@@ -29,33 +29,33 @@ namespace eval ::xowiki {
 }
 
 # the following block is legacy code
-::Generic::CrClass create CrWikiPage -superclass ::xowiki::Page \
-    -pretty_name "Wiki Page" -pretty_plural "Wiki Pages" \
-    -table_name "generic_cr_wiki_page" -id_column "page_id" \
-    -form ::xowiki::WikiForm -object_type "CrWikiPage"
+# ::Generic::CrClass create CrWikiPage -superclass ::xowiki::Page \
+#     -pretty_name "Wiki Page" -pretty_plural "Wiki Pages" \
+#     -table_name "generic_cr_wiki_page" -id_column "page_id" \
+#     -form ::xowiki::WikiForm -object_type "CrWikiPage"
 
-::Generic::CrClass create CrWikiPlainPage -superclass ::xowiki::PlainPage \
-    -pretty_name "Plain Wiki Page" -pretty_plural "Plain Wiki Pages" \
-    -table_name "generic_cr_plain_page" -id_column "ppage_id" \
-    -form ::xowiki::PlainWikiForm -object_type "CrWikiPlainPage"
+# ::Generic::CrClass create CrWikiPlainPage -superclass ::xowiki::PlainPage \
+#     -pretty_name "Plain Wiki Page" -pretty_plural "Plain Wiki Pages" \
+#     -table_name "generic_cr_plain_page" -id_column "ppage_id" \
+#     -form ::xowiki::PlainWikiForm -object_type "CrWikiPlainPage"
 
-::Generic::CrClass create PageTemplate -superclass ::xowiki::PageTemplate \
-    -pretty_name "Page Template" -pretty_plural "Page Templates" \
-    -table_name "generic_page_template" -id_column "page_template_id" \
-    -form ::xowiki::WikiForm  -object_type "PageTemplate"
+# ::Generic::CrClass create PageTemplate -superclass ::xowiki::PageTemplate \
+#     -pretty_name "Page Template" -pretty_plural "Page Templates" \
+#     -table_name "generic_page_template" -id_column "page_template_id" \
+#     -form ::xowiki::WikiForm  -object_type "PageTemplate"
  
-::Generic::CrClass create PageInstance -superclass ::xowiki::PageInstance \
-    -pretty_name "Page Instance" -pretty_plural "Page Instances" \
-    -table_name "generic_page_instance" -id_column "page_instance_id" \
-    -object_type "PageInstance" \
-    -cr_attributes {
-      ::Generic::Attribute new -attribute_name page_template -datatype integer \
-	  -pretty_name "Page Template"
-      ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-	  -pretty_name "Instance Attributes" 
-    } \
-    -form ::xowiki::PageInstanceForm \
-    -edit_form ::xowiki::PageInstanceEditForm
+# ::Generic::CrClass create PageInstance -superclass ::xowiki::PageInstance \
+#     -pretty_name "Page Instance" -pretty_plural "Page Instances" \
+#     -table_name "generic_page_instance" -id_column "page_instance_id" \
+#     -object_type "PageInstance" \
+#     -cr_attributes {
+#       ::Generic::Attribute new -attribute_name page_template -datatype integer \
+# 	  -pretty_name "Page Template"
+#       ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
+# 	  -pretty_name "Instance Attributes" 
+#     } \
+#     -form ::xowiki::PageInstanceForm \
+#     -edit_form ::xowiki::PageInstanceEditForm
  
 
 if {![db_0or1row check-xowiki-table \
