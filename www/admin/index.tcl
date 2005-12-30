@@ -9,7 +9,7 @@ ad_page_contract {
 }
 
 set context [list]
-set supertype CrWikiPage
+set supertype ::xowiki::Page
 set object_type_key [$supertype set object_type_key]
 
 set page_title "Administer all kind of [$supertype set pretty_plural]"
@@ -45,10 +45,18 @@ db_multirow \
         select object_type from acs_object_types where 
         tree_sortkey between :object_type_key and tree_right(:object_type_key)
     " {
+
       set delete_url [export_vars -base delete-type {object_type}]
-      set nr_instances [db_list count [$object_type instance_select_query \
-					   -count 1 \
-					   -with_subtypes false]]
+      if {[$object_type info class] eq "::xotcl::Class"} {
+	# for backward comatibility with 5.1, since we define PageTemplate as plain xotcl class;
+	# only necessary to avoid crash, when entries are already in the database
+	continue
+	#set nr_instances 0
+      } else {
+	set nr_instances [db_list count [$object_type instance_select_query \
+					     -count 1 \
+					     -with_subtypes false]]
+      }
       set instances_url [export_vars -base ../index {object_type}]
     }
 

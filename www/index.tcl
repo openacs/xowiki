@@ -13,7 +13,6 @@ ad_page_contract {
 }
 
 set context [list]
-#set supertype CrWikiPage
 set supertype ::xowiki::Page
 
 # if object_type is specified, only list entries of this type;
@@ -39,18 +38,41 @@ set category_map_url [export_vars -base \
     "[site_node::get_package_url -package_key categories]cadmin/one-object" \
         { { object_id $package_id } }]
 
-::Generic::List index \
-    -object_type $object_type \
-    -folder_id $folder_id \
-    -with_subtypes $with_subtypes \
-    -object_types $object_types \
-    -fields {
-      EDIT {}
-      VIEW {}
-      title {label "Name"}
-      object_type {label "Object Type"}
-      DELETE {}
+set actions ""
+foreach type $object_types {
+  if {[$type info class] eq "::xotcl::Class"} {continue; #5.1 compatibility hack}
+  append actions [subst {Action new -label "Add [$type pretty_name]" \
+			     -url [export_vars -base edit {{object_type $type} folder_id}] \
+			     -tooltip  "Add a new item of kind [$type pretty_name]"
+  }]
+}
+
+TableWidget t1 -volatile \
+    -actions $actions \
+    -columns {
+      ImageField_EditIcon edit -label "" 
+      ImageField_ViewIcon view -label "" 
+      Field title -label "Name"
+      Field object_type -label "Object Type"
+      ImageField_DeleteIcon delete -label ""
     }
 
-index generate -order_by cr.title
+set order_clause "order by cr.title"
+# -page_size 10
+# -page_number 1
+db_foreach instance_select \
+    [$object_type instance_select_query \
+	 -folder_id $folder_id \
+	 -select_attributes title \
+	 -with_subtypes $with_subtypes \
+	 -order_clause $order_clause \
+	 ] {
+	   t1 add \
+	       -title $title \
+	       -object_type $object_type \
+	       -view.href [export_vars -base view {item_id}] \
+	       -edit.href [export_vars -base edit {item_id}] \
+	       -delete.href [export_vars -base delete {item_id}]
+  	 }
 
+set t1 [t1 asHTML]

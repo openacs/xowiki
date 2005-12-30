@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.15" url="http://openacs.org/repository/download/apm/xowiki-0.15.apm">
+    <version name="0.16" url="http://openacs.org/repository/download/apm/xowiki-0.16.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2005-12-14</release-date>
+        <release-date>2005-12-29</release-date>
         <description format="text/html">XoWiki is a wiki implementation for OpenACS in xotcl. Instead of trying to
 implement the full set of wiki markup commands of systems like MediaWiki,
 XoWiki is based on a rich text editor and focuses more on integration
@@ -23,11 +23,11 @@ languages). Furthermore, XoWiki allows to define different types of links such
 one could define book-structures (where a navigation structure could be built on the fly) or glossaries with differnt kind of word relationships (like synonyms, etc.). XoWiki supports pages in multiple languages and is localized (currently only for English and German). Currently, richtext and plaintext type entries are supported. Included support for adp-substitution in wiki pages and a file-selector. 0.13  supports page templates and uses the new generic form interface. Use of the oo layer for the content repository, reduced number of database interactions.</description>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.15"/>
+        <provides url="xowiki" version="0.16"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="5.1.0"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.27"/>
+        <requires url="xotcl-core" version="0.29"/>
 
         <callbacks>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>

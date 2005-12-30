@@ -5,5 +5,5 @@
 <a href="@category_map_url@"
       class="action_link">Site-Wide Categories</a>
           
-<listtemplate name="@template@"></listtemplate>
+@t1;noquote@
 

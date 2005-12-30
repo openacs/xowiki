@@ -9,23 +9,36 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
       -table_name "xowiki_plain_page" -id_column "ppage_id" \
       -form ::xowiki::PlainWikiForm
+
+
+  # attribute support works only in 5.2.0 or newer. Since PageTemplate
+  # does not make much sense without PageInstance, we disable it as well.
   
-  ::Generic::CrClass create PageTemplate -superclass Page \
-      -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
-      -table_name "xowiki_page_template" -id_column "page_template_id" \
-      -form ::xowiki::WikiForm 
-  
-  ::Generic::CrClass create PageInstance -superclass Page \
-      -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
-      -table_name "xowiki_page_instance" -id_column "page_instance_id" \
-      -cr_attributes {
-	::Generic::Attribute new -attribute_name page_template -datatype integer \
-	    -pretty_name "Page Template"
-	::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-	    -pretty_name "Instance Attributes" 
-      } \
-      -form ::xowiki::PageInstanceForm \
-      -edit_form ::xowiki::PageInstanceEditForm
+  apm_version_get -package_key acs-kernel -array vi
+  if {[apm_version_names_compare $vi(version_name) 5.2.0] > -1} {
+ 
+    ::Generic::CrClass create PageTemplate -superclass Page \
+	-pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
+	-table_name "xowiki_page_template" -id_column "page_template_id" \
+	-form ::xowiki::WikiForm 
+    
+    ::Generic::CrClass create PageInstance -superclass Page \
+	-pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
+	-table_name "xowiki_page_instance" -id_column "page_instance_id" \
+	-cr_attributes {
+	  ::Generic::Attribute new -attribute_name page_template -datatype integer \
+	      -pretty_name "Page Template"
+	  ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
+	      -pretty_name "Instance Attributes" 
+	} \
+	-form ::xowiki::PageInstanceForm \
+	-edit_form ::xowiki::PageInstanceEditForm
+  } else {
+    # create dummy classes
+    Class create PageTemplate
+    Class create PageInstance
+  }
+
 }
 
 # the following block is legacy code
@@ -170,7 +183,7 @@ namespace eval ::xowiki {
     ::xowiki::f1 instvar data folder_id  ;# form has to be named ::xowiki::f1
     # transitional code begin
     set object_type [[$data info class] object_type]
-    if {[string match ::xowiki::* $object_type]} {
+    if {[string match "::xowiki::*" $object_type]} {
       set templateclass ::xowiki::PageTemplate
     } else {
       set templateclass ::PageTemplate
@@ -372,7 +385,7 @@ namespace eval ::xowiki {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       set adp_fn [lindex $adp 0] 
-      if {![string match /* $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
+      if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [concat [lindex $adp 1] [list __including_page [self]]]
       return [template::adp_include $adp_fn $adp_args]
     }
@@ -396,7 +409,7 @@ namespace eval ::xowiki {
     set label $arg
     set link $arg
     regexp {^(.*)[|](.*)$} $arg _ link label
-    if {[string match http*//* $link]} {
+    if {[string match "http*//*" $link]} {
       return "<a class='external' href='$link'>$label</a>"
     } else {
       my instvar parent_id
