@@ -11,12 +11,6 @@ namespace eval ::xowiki {
       -form ::xowiki::PlainWikiForm
 
 
-  # attribute support works only in 5.2.0 or newer. Since PageTemplate
-  # does not make much sense without PageInstance, we disable it as well.
-  
-  apm_version_get -package_key acs-kernel -array vi
-  if {[apm_version_names_compare $vi(version_name) 5.2.0] > -1} {
- 
     ::Generic::CrClass create PageTemplate -superclass Page \
 	-pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
 	-table_name "xowiki_page_template" -id_column "page_template_id" \
@@ -33,11 +27,6 @@ namespace eval ::xowiki {
 	} \
 	-form ::xowiki::PageInstanceForm \
 	-edit_form ::xowiki::PageInstanceEditForm
-  } else {
-    # create dummy classes
-    Class create PageTemplate
-    Class create PageInstance
-  }
 
 }
 
@@ -467,7 +456,7 @@ namespace eval ::xowiki {
   Page instproc substitute_markup {source} {
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
     $baseclass instvar RE
-    my log "-- baseclass for RE = $baseclass"
+    #my log "-- baseclass for RE = $baseclass"
 
     set content ""
     foreach l [split [lindex $source 0] \n] {
@@ -569,7 +558,7 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_content {} {
     my instvar page_template
-    my log  "-- fetching page_template = $page_template"
+    #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template volatile
     return [my substitute_markup [$page_template set text]]
