@@ -76,7 +76,7 @@ img.undefined {border: 10; color: yellow; height: 12px}
 <!--  <a href="changes?object_type=CrWikiPage&item_id=@item_id@" accesskey='c'>
    Änderungen</a> &middot; -->
    <a href="@new_link@" accesskey='n'>#xowiki.new#</a> &middot;
-   <a href="index" accesskey='i'>#xowiki.index#</a> 
+   <a href="@index_link@" accesskey='i'>#xowiki.index#</a> 
 </div>
 
 @content;noquote@

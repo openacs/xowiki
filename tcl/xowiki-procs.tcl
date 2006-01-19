@@ -3,30 +3,32 @@ namespace eval ::xowiki {
   ::Generic::CrClass create Page -superclass ::Generic::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
       -table_name "xowiki_page" -id_column "page_id" \
+      -mime_type text/html \
       -form ::xowiki::WikiForm
 
   ::Generic::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
       -table_name "xowiki_plain_page" -id_column "ppage_id" \
+      -mime_type text/plain \
       -form ::xowiki::PlainWikiForm
 
 
-    ::Generic::CrClass create PageTemplate -superclass Page \
-	-pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
-	-table_name "xowiki_page_template" -id_column "page_template_id" \
-	-form ::xowiki::WikiForm 
+  ::Generic::CrClass create PageTemplate -superclass Page \
+      -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
+      -table_name "xowiki_page_template" -id_column "page_template_id" \
+      -form ::xowiki::WikiForm 
     
-    ::Generic::CrClass create PageInstance -superclass Page \
-	-pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
-	-table_name "xowiki_page_instance" -id_column "page_instance_id" \
-	-cr_attributes {
-	  ::Generic::Attribute new -attribute_name page_template -datatype integer \
-	      -pretty_name "Page Template"
-	  ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-	      -pretty_name "Instance Attributes" 
-	} \
-	-form ::xowiki::PageInstanceForm \
-	-edit_form ::xowiki::PageInstanceEditForm
+  ::Generic::CrClass create PageInstance -superclass Page \
+      -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
+      -table_name "xowiki_page_instance" -id_column "page_instance_id" \
+      -cr_attributes {
+	::Generic::Attribute new -attribute_name page_template -datatype integer \
+	    -pretty_name "Page Template"
+	::Generic::Attribute new -attribute_name instance_attributes -datatype text \
+	    -pretty_name "Instance Attributes" 
+      } \
+      -form ::xowiki::PageInstanceForm \
+      -edit_form ::xowiki::PageInstanceEditForm
 
 }
 
@@ -198,12 +200,31 @@ namespace eval ::xowiki {
     return 1
   }
 
-  WikiForm instproc edit_data {} {
+  WikiForm instproc handle_enhanced_text_from_form {} {
     my instvar data
-    my log "--"
-    set item_id [next]
+    array set __tmp [ns_set array [ns_getform]]
+    if {[info exists __tmp(text.format)] && 
+	$__tmp(text.format) eq "text/enhanced"} {
+      $data set mime_type "text/enhanced"
+    }
+  }
+  WikiForm instproc update_references {} {
+    my instvar data
     $data render_adp false
     $data render -update_references
+  }
+
+  WikiForm instproc new_data {} {
+    my handle_enhanced_text_from_form
+    set item_id [next]
+    my update_references
+    return $item_id
+  }
+
+  WikiForm instproc edit_data {} {
+    my handle_enhanced_text_from_form
+    set item_id [next]
+    my update_references
     return $item_id
   }
 
@@ -244,6 +265,7 @@ namespace eval ::xowiki {
     my set_submit_link_edit
     return $item_id
   }
+
   PageInstanceForm instproc edit_data {} {
     set item_id [next]
     my log "-- edit_data item_id=$item_id"
@@ -308,7 +330,6 @@ namespace eval ::xowiki {
     $template volatile
     set dont_edit [concat [[$data info class] edit_atts] [list page_title] \
 		       [::Generic::CrClass set common_query_atts]]
-    my log "-- dont edit <$dont_edit>"
     set page_instance_form_atts [list]
     foreach {_1 _2 var} [regexp -all -inline \
 			     [template::adp_variable_regexp] \
@@ -401,6 +422,7 @@ namespace eval ::xowiki {
     if {[string match "http*//*" $link]} {
       return "<a class='external' href='$link'>$label</a>"
     } else {
+      set specified_link $link
       my instvar parent_id
       [my info class]  instvar object_type
       if {[regexp {^:(..):(.*)$} $link _ lang stripped]} {
@@ -409,7 +431,8 @@ namespace eval ::xowiki {
 	my log "lang lookup for '$lang:$stripped' returned $lang_item_id"
 	if {$lang_item_id} {
 	  set css_class "found"
-	  set link [export_vars -base view {{item_id $lang_item_id}}]
+	  set link ./[ad_urlencode $lang:$stripped]
+	  #set link [export_vars -base view {{item_id $lang_item_id}}]
 	} else {
 	  set css_class "undefined"
 	  set last_page_id [my set item_id]
@@ -431,14 +454,17 @@ namespace eval ::xowiki {
 		       -title $link -parent_id $parent_id]
       if {$item_id} {
 	my lappend references [list $item_id $link_type]
-	set link [export_vars -base view {item_id}]
-	return "<a href='$link'>$label</a>"
+	#set link [export_vars -base view {item_id}]
+	#return "<a href='$link'>$label</a>"
+	return "<a href='./[ad_urlencode $specified_link]'>$label</a>"
       } else {
-	set link [export_vars -base edit {object_type {title $label}}]
+	my incr unresolved_references
+	set link [export_vars -base ../edit {object_type {title $label}}]
 	return "<a href='$link'> \[ </a>$label <a href='$link'> \] </a>" 
       }
     }
   }
+
   Page instproc references {} {
     [my info class] instvar table_name 
     my instvar item_id
@@ -447,8 +473,10 @@ namespace eval ::xowiki {
 		       where reference=$item_id and ci.item_id = page"]
     set refs [list]
     foreach e $l {
-      set link [export_vars -base view {{item_id {[lindex $e 0]}}}]
-      lappend refs "<a href='$link'>[lindex $e 1]</a>"
+      #set link [export_vars -base view {{item_id {[lindex $e 0]}}}]
+      set link [lindex $e 1]
+      if {[string range $link 0 2] eq "[my lang]:"} {set link [string range $link 3 end]}
+      lappend refs "<a href=' ./[ad_urlencode $link]'>$link</a>"
     }
     return [join $refs ", "]
   }
@@ -457,7 +485,9 @@ namespace eval ::xowiki {
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
     $baseclass instvar RE
     #my log "-- baseclass for RE = $baseclass"
-
+    if {[my set mime_type] eq "text/enhanced"} {
+      set source [ad_enhanced_text_to_html $source]
+    }
     set content ""
     foreach l [split [lindex $source 0] \n] {
       set l [my regsub-eval $RE(include) $l {my include "\1"}]
@@ -514,16 +544,17 @@ namespace eval ::xowiki {
    }
 
   Page instproc render {-update_references:switch} {
-    my instvar item_id references lang title render_adp
+    my instvar item_id references lang title render_adp unresolved_references
     my log "-- my class=[my info class]"
     regexp {^(..):(.*)$} $title _ lang title
     set references [list]
+    set unresolved_references 0
     set content [my get_content]
-    if {$update_references} {
+    if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
     if {![my exists lang_links]} {
-      my log "-- for some reason, no lang links"
+      #my log "-- for some reason, no lang links"
       my set lang_links ""
     } else {
       my set lang_links [join [my set lang_links] ", "]
@@ -561,7 +592,7 @@ namespace eval ::xowiki {
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template volatile
-    return [my substitute_markup [$page_template set text]]
+    return [my substitute_markup [my adp_subst [$page_template set text]]]
   }
   PageInstance instproc adp_subst {content} {
     # add extra variables as instance variables

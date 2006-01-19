@@ -16,6 +16,7 @@ ad_page_contract {
   {object_type:optional}
 }
 
+ns_log notice "-- view item_id=$item_id, [info exists folder_id]"
 ::xowiki::Page set recursion_count 0
 
 set page [::Generic::CrItem instantiate \
@@ -29,9 +30,11 @@ set references [$page references]
 $page instvar title text description lang_links
 
 set context [list $title]
-set rev_link  [export_vars -base revisions {{page_id $item_id} title}]
-set edit_link [export_vars -base edit {item_id}]
-set new_link  [export_vars -base edit {object_type}]
+set base [apm_package_url_from_id [ad_conn package_id]]
+set rev_link  [export_vars -base ${base}revisions {{page_id $item_id} title}]
+set edit_link [export_vars -base ${base}edit {item_id}]
+set new_link  [export_vars -base ${base}edit {object_type}]
+set index_link  [export_vars -base ${base} {}]
 
 set return_url  [export_vars -base [ad_conn url] item_id]
 set gc_link     [general_comments_create_link $item_id $return_url]

@@ -12,6 +12,9 @@ ad_page_contract {
   folder_id:optional
 }
 
+set path [ad_conn path_info]
+ns_log notice "-- path=<$path>"
+
 set context [list]
 set supertype ::xowiki::Page
 
@@ -35,15 +38,16 @@ if {![info exists folder_id]} {
 # set up categories
 set package_id [ad_conn package_id]
 set category_map_url [export_vars -base \
-    "[site_node::get_package_url -package_key categories]cadmin/one-object" \
-        { { object_id $package_id } }]
+	  [site_node::get_package_url -package_key categories]cadmin/one-object \
+			  { { object_id $package_id } }]
 
 set actions ""
 foreach type $object_types {
-  if {[$type info class] eq "::xotcl::Class"} {continue; #5.1 compatibility hack}
-  append actions [subst {Action new -label "Add [$type pretty_name]" \
-			     -url [export_vars -base edit {{object_type $type} folder_id}] \
-			     -tooltip  "Add a new item of kind [$type pretty_name]"
+  append actions [subst {
+    Action new \
+	-label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
+	-url [export_vars -base edit {{object_type $type} folder_id}] \
+	-tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
   }]
 }
 
@@ -52,8 +56,8 @@ TableWidget t1 -volatile \
     -columns {
       ImageField_EditIcon edit -label "" 
       ImageField_ViewIcon view -label "" 
-      Field title -label "Name"
-      Field object_type -label "Object Type"
+      Field title -label [_ xowiki.page_title]
+      Field object_type -label [_ xowiki.page_type]
       ImageField_DeleteIcon delete -label ""
     }
 
@@ -70,7 +74,7 @@ db_foreach instance_select \
 	   t1 add \
 	       -title $title \
 	       -object_type $object_type \
-	       -view.href [export_vars -base view {item_id}] \
+	       -view.href [export_vars -base pages/[ad_urlencode $title] {}] \
 	       -edit.href [export_vars -base edit {item_id}] \
 	       -delete.href [export_vars -base delete {item_id}]
   	 }

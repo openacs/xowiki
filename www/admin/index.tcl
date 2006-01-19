@@ -16,6 +16,10 @@ set page_title "Administer all kind of [$supertype set pretty_plural]"
 
 template::list::create \
     -name admin_index \
+    -actions {
+      export export export
+      import import import 
+    } \
     -elements {	
       delete {
 	link_url_col delete_url 
