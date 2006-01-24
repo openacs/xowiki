@@ -3,7 +3,7 @@
   <property name="context">@context;noquote@</property>
   <property name="focus">note.title</property>
 
-<!-- we should load extra style files optionall -->
+<!-- we should load extra style files optional -->
 <style type="text/css" media="all">
     @import "/resources/calendar/calendar.css";
 </style> 

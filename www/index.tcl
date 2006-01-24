@@ -12,9 +12,6 @@ ad_page_contract {
   folder_id:optional
 }
 
-set path [ad_conn path_info]
-ns_log notice "-- path=<$path>"
-
 set context [list]
 set supertype ::xowiki::Page
 
@@ -55,8 +52,7 @@ TableWidget t1 -volatile \
     -actions $actions \
     -columns {
       ImageField_EditIcon edit -label "" 
-      ImageField_ViewIcon view -label "" 
-      Field title -label [_ xowiki.page_title]
+      AnchorField title -label [_ xowiki.page_title]
       Field object_type -label [_ xowiki.page_type]
       ImageField_DeleteIcon delete -label ""
     }
@@ -74,7 +70,7 @@ db_foreach instance_select \
 	   t1 add \
 	       -title $title \
 	       -object_type $object_type \
-	       -view.href [export_vars -base pages/[ad_urlencode $title] {}] \
+	       -title.href [export_vars -base pages/[ad_urlencode $title] {}] \
 	       -edit.href [export_vars -base edit {item_id}] \
 	       -delete.href [export_vars -base delete {item_id}]
   	 }
