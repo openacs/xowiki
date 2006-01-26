@@ -38,7 +38,14 @@ ad_proc -private ::xowiki::url { revision_id } {
   set folder_id [$page set parent_id]
   set pid [db_string get_package_id \
 	       "select package_id from acs_objects where object_id = $folder_id"]
-  return "[site_node::get_url_from_object_id -object_id $pid]pages/[ad_urlencode [$page set title]]"
+  if {$pid > 0} {
+    return "[site_node::get_url_from_object_id -object_id $pid]pages/[ad_urlencode [$page set title]]"
+  } else {
+    # cannot determine package_id; one page from the directory should be viewed to update 
+    # package id for the content folder...
+    return "cannot determine package_id, view a page from the folder containing page \
+	[$page set title]"
+  }
 }
 
 
