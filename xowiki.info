@@ -31,9 +31,9 @@ one could define book-structures (where a navigation structure could be built on
         <requires url="xotcl-core" version="0.32"/>
 
         <callbacks>
-            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
-            <callback type="after-install"  proc=":xowiki::sc::register_implementations"/>
             <callback type="before-uninstall"  proc="::xowiki::sc::unregister_implementations"/>
+            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
+            <callback type="after-install"  proc="::xowiki::sc::register_implementations"/>
         </callbacks>
         <parameters>
         <!-- No version parameters -->
