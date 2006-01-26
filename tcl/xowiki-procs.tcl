@@ -116,9 +116,12 @@ namespace eval ::xowiki {
 	  } else {
 	    ns_log notice "-- no new class for $oldClass"
 	  }
-	}
-	
+	}	
       }
+    }
+    if {$to_version_name eq "0.19"} {
+      ns_log notice "-- upgrading to 0.19"
+      ::xowiki::sc::register_implementations
     }
   }
 
@@ -203,9 +206,8 @@ namespace eval ::xowiki {
   WikiForm instproc handle_enhanced_text_from_form {} {
     my instvar data
     array set __tmp [ns_set array [ns_getform]]
-    if {[info exists __tmp(text.format)] && 
-	$__tmp(text.format) eq "text/enhanced"} {
-      $data set mime_type "text/enhanced"
+    if {[info exists __tmp(text.format)]} {	
+      $data set mime_type $__tmp(text.format) 
     }
   }
   WikiForm instproc update_references {} {

@@ -12,6 +12,9 @@ ad_page_contract {
   folder_id:optional
 }
 
+set path [ad_conn path_info]
+ns_log notice "-- path=<$path>"
+
 set context [list]
 set supertype ::xowiki::Page
 

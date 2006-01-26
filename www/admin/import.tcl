@@ -33,6 +33,7 @@ ad_form \
 	set added 0
 	foreach o [$object_type allinstances] {
 	  $o set parent_id $folder_id
+	  $o set package_id [ad_conn package_id]
 	  # page instances have references to page templates, add these first
 	  if {[$o istype ::xowiki::PageInstance]} continue
 	  set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
