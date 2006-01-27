@@ -1,3 +1,6 @@
+# valid parameters from the include are 
+#     tree_name: match pattern, if specified displays only the trees with matching names
+#     no_tree_name: if specified, only tree names are not displayed
 
 # get the folder id from the including page
 set folder_id [$__including_page set parent_id]
@@ -5,7 +8,11 @@ set package_id [db_string get_package_id \
 		    "select package_id from acs_objects where object_id = $folder_id"]
 set content ""
 foreach tree [category_tree::get_mapped_trees $package_id] {
-  foreach {tree_id tree_name ...} $tree {break}
+  foreach {tree_id my_tree_name ...} $tree {break}
+  if {[info exists tree_name] && ![string match $tree_name $my_tree_name]} continue
+  if {![info exists no_tree_name]} {
+    append content "<h2>$my_tree_name</h2>"
+  }
   foreach category [category_tree::get_tree $tree_id] {
     foreach {category_id category_label deprecated_p level} $category {break}
     set cat_content ""
