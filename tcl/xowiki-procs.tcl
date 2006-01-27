@@ -280,7 +280,7 @@ namespace eval ::xowiki {
  	{f.title          {title:text(inform)}}
  	{f.page_template  {page_template:text(hidden)}}
  	{f.nls_language   {nls_language:text(hidden)}}
-	{with_categories  false}
+	{with_categories  true}
 	{textfieldspec    {text(textarea),nospell {html {cols 60 rows 5}}}}
       }
 
