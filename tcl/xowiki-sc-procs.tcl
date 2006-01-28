@@ -20,12 +20,22 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set content [expr {[$page set object_type] eq "::xowiki::PlainPage" ?
 		     [$page set text] : [lindex [$page set text] 0]}]
   $page set unresolved_references 0
+  $page instvar item_id
   set content [ad_html_text_convert -from [$page set mime_type] -to text/plain -- $content]
 		   
   #ns_log notice "--datasource content=$content, oid=$revision_id"
+  # category photos 
+  # link "${full}photo/photo_id=$item_id" 
   return [list object_id $revision_id title  [$page set title] \
-                content $content keywords {} \
-                storage_type text mime text/plain ]
+	      content $content keywords {} \
+	      storage_type text mime text/plain \
+	      syndication [list link "[ad_url]/o/$item_id" \
+			       description $content \
+			       author "nobody" \
+			       category "" \
+			       guid "[ad_url]/o/$item_id" \
+			       pubDate [$page set last_modified]] \
+	     ]
 }
 
 ad_proc -private ::xowiki::url { revision_id } {
