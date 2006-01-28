@@ -68,6 +68,8 @@ img.found {border: 0; height: 12px}
 img.undefined {border: 10; color: yellow; height: 12px}
 #left-col   {float: left;    width: 40%; relative: absolute; top: 0px;}
 #right-col {float: right; width: 59%; relative: absolute; top: 0px;}
+#left-col30   {float: left;    width: 30%; relative: absolute; top: 0px;}
+#right-col70 {float: right; width: 69%; relative: absolute; top: 0px;}
 </style>
 
 <div id='wikicmds'>

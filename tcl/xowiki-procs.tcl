@@ -219,7 +219,12 @@ namespace eval ::xowiki {
   WikiForm instproc new_data {} {
     my handle_enhanced_text_from_form
     set item_id [next]
-    my update_references
+    if {![my istype PageInstanceForm]} {
+      ### danger: update references does an ad_eval, which breaks the  [template::adp_level] 
+      ### ad_form! don't do it here. 
+      my update_references
+    }
+
     return $item_id
   }
 
@@ -247,6 +252,7 @@ namespace eval ::xowiki {
 	    {label "Page Template"}
 	    {options \[xowiki::page_templates\]}}
 	}
+	{with_categories  false}
       }
   PageInstanceForm instproc set_submit_link_edit {} {
     my instvar folder_id data
@@ -411,6 +417,10 @@ namespace eval ::xowiki {
       return "<div id='left-col' class='column'>"
     } elseif {$arg eq "right-col"} {
       return "<div id='right-col' class='column'>"
+    } elseif {$arg eq "left-col30"} {
+      return "<div id='left-col30' class='column'>"
+    } elseif {$arg eq "right-col70"} {
+      return "<div id='right-col70' class='column'>"
     } elseif {$arg eq "box"} {
       return "<div class='box'>"
     } elseif {$arg eq ""} {
@@ -594,7 +604,13 @@ namespace eval ::xowiki {
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template volatile
-    return [my substitute_markup [my adp_subst [$page_template set text]]]
+    #return [my substitute_markup [my adp_subst [$page_template set text]]]
+    if {[my set instance_attributes] eq ""} {
+      return [my adp_subst [$page_template set text]]
+    }
+    set T [my adp_subst [$page_template set text]]
+    #my log T=$T
+    return [my substitute_markup $T]
   }
   PageInstance instproc adp_subst {content} {
     # add extra variables as instance variables
