@@ -1,5 +1,4 @@
 namespace eval ::xowiki {
-
   ::Generic::CrClass create Page -superclass ::Generic::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
       -table_name "xowiki_page" -id_column "page_id" \
@@ -29,6 +28,17 @@ namespace eval ::xowiki {
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
+
+  ::Generic::CrClass create Object -superclass PlainPage \
+      -pretty_name "XoWiki Object" -pretty_plural "XoWiki Objects" \
+      -table_name "xowiki_object" -id_column "xowiki_object_id" \
+      -mime_type text/xotcl \
+      -form ::xowiki::ObjectForm
+
+  Object instproc save_new {} {
+    #my set text [::Serializer deepSerialize [self]]
+    next
+  }
 
 }
 
@@ -235,6 +245,9 @@ namespace eval ::xowiki {
     return $item_id
   }
 
+  #
+  # PlainWiki Form
+  #
 
   Class create PlainWikiForm -superclass WikiForm \
       -parameter {
@@ -243,6 +256,40 @@ namespace eval ::xowiki {
 	    {label #xowiki.content#} 
 	    {html {cols 80 rows 10}}}}
   }
+
+  #
+  # Object Form
+  #
+
+  Class create ObjectForm -superclass PlainWikiForm \
+      -parameter {
+ 	{f.title          {title:text(inform)}}
+	{f.text 
+	  {text:text(textarea),nospell,optional 
+	    {label #xowiki.content#} 
+	    {html {cols 80 rows 15}}}}
+	{validate 
+	  {}}
+	{with_categories  false}
+      }
+
+  ObjectForm instproc edit_request {item_id} {
+    my instvar data
+    permission::require_permission \
+	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
+	-privilege "admin"
+    next
+  }
+      
+  ObjectForm instproc edit_data {} {
+    my instvar data
+    $data package_info [$data set text]
+    next
+  }
+
+  #
+  # PageInstance Forms
+  #
 
   Class create PageInstanceForm -superclass WikiForm \
       -parameter {
@@ -269,7 +316,6 @@ namespace eval ::xowiki {
     my log "-- 1 $data, cl=[$data info class] [[$data info class] object_type]"
     set item_id [next]
     my log "-- 2 $data, cl=[$data info class] [[$data info class] object_type]"
-    my log "-- new data next DONE item_id=$item_id"
     my set_submit_link_edit
     return $item_id
   }
@@ -310,6 +356,7 @@ namespace eval ::xowiki {
       if {[info exists __ia($var)]} {my var $var [list $__ia($var)]}
     }
   }
+
 
   PageInstanceEditForm instproc edit_data {} {
     my log "-- "
@@ -356,6 +403,35 @@ namespace eval ::xowiki {
  
 
 namespace eval ::xowiki {
+
+  Page ad_proc require_folder_object {
+    -folder_id
+    -package_id 
+  } {
+  } {
+    if {![::xotcl::Object isobject ::$folder_id]} {
+      set item_id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
+      if {$item_id != 0} {
+	my log "--f fetch folder object"
+	set o [::xowiki::Object create ::$folder_id]
+	::xowiki::Object fetch_object -object $o -item_id $item_id
+	$o package_info [$o set text]
+      } else {
+	my log "--f save new folder object"
+	set o [::xowiki::Object create ::$folder_id]
+	$o set text "set package_id $package_id\nset index_page {}\n"
+	$o set parent_id $folder_id
+	$o set title ::$folder_id
+	$o save_new
+	$o package_info [$o set text]
+      }
+      $o proc destroy {} {my log "--f "; next}
+      my log "--f exists $o -> [::xotcl::Object isobject $o]"
+      uplevel #0 [list $o volatile]
+    } else {
+      my log "--f reuse folder object  [::Serializer deepSerialize ::$folder_id]"
+    }
+  }
 
   #
   # data definitions
@@ -620,5 +696,18 @@ namespace eval ::xowiki {
       my set $var $__ia($var)
     }
     next
+  }
+
+  Object instproc package_info {cmd} {
+    set package_info [self]::package_info
+    if {![my isobject $package_info]} {::xotcl::Object create $package_info}
+    if {[catch {$package_info eval $cmd} error ]} {
+      ns_log error "XoWiki folder object: content lead to error: $error"
+    }
+  }
+  Object instproc get_package_info {var} {
+    set package_info [self]::package_info
+    if {![my isobject $package_info]} {::xotcl::Object create $package_info}
+    expr {[$package_info exists $var] ? [$package_info set $var] : ""}
   }
 }

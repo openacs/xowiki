@@ -32,7 +32,6 @@ if {$path ne ""} {
     rp_form_put item_id $item_id
     rp_form_put folder_id $folder_id
     rp_internal_redirect "/packages/xowiki/www/view"
-    #    ad_returnredirect [export_vars -base ../view {item_id folder_id}]
-    ad_abort_script
+    ad_script_abort
   }
 }

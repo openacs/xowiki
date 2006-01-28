@@ -12,11 +12,22 @@ ad_page_contract {
   folder_id:optional
 }
 
-set path [ad_conn path_info]
-ns_log notice "-- path=<$path>"
-
 set context [list]
 set supertype ::xowiki::Page
+
+if {![info exists folder_id] && ![info exists object_type]} {
+  set folder_id [$supertype require_folder -name xowiki]
+  set index_page [$folder_id get_package_info index_page]
+  if {$index_page ne ""} {
+    set item_id [Generic::CrItem lookup -title $index_page -parent_id $folder_id]
+    if {$item_id != 0} {
+      rp_form_put item_id $item_id
+      rp_form_put folder_id $folder_id
+      rp_internal_redirect "/packages/xowiki/www/view"
+      ad_script_abort
+    }
+  }
+}
 
 # if object_type is specified, only list entries of this type;
 # otherwise show types and subtypes of $supertype

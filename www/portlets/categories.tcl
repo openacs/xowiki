@@ -6,6 +6,8 @@
 set folder_id [$__including_page set parent_id]
 set package_id [db_string get_package_id \
 		    "select package_id from acs_objects where object_id = $folder_id"]
+set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
+
 set content ""
 foreach tree [category_tree::get_mapped_trees $package_id] {
   foreach {tree_id my_tree_name ...} $tree {break}
@@ -26,7 +28,7 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
 	    # we could check for certain page types as well
 	    continue
 	  }
-	  append cat_content "<a href='[ad_urlencode $title]'>$title</a><br>\n"
+	  append cat_content "<a href='${url_prefix}pages/[ad_urlencode $title]'>$title</a><br>\n"
 	}
     if {$cat_content ne ""} {
       append content "<h3>$category_label</h3><blockquote>" $cat_content "</blockquote>\n"
