@@ -7,6 +7,7 @@ ad_page_contract {
   @param object_type the class name of an instance of CrClass
 } -query {
   object_type
+  {query "."}
 }
 
 db_foreach retrieve_instances [$object_type instance_select_query] {
@@ -18,4 +19,4 @@ foreach type [$object_type object_types -subtypes_first true] {
   $type drop_object_type
 }
 
-ad_returnredirect "."
+ad_returnredirect $query

@@ -12,12 +12,13 @@ ad_page_contract {
   folder_id:optional
 }
 
-set context [list]
+set context   [list [list admin Administration] index]
 set supertype ::xowiki::Page
+set query     .?[ns_conn query]
 
 if {![info exists folder_id] && ![info exists object_type]} {
   set folder_id [$supertype require_folder -name xowiki]
-  set index_page [$folder_id get_package_info index_page]
+  set index_page [$folder_id get_payload index_page]
   if {$index_page ne ""} {
     set item_id [Generic::CrItem lookup -title $index_page -parent_id $folder_id]
     if {$item_id != 0} {
@@ -86,7 +87,7 @@ db_foreach instance_select \
 	       -object_type $object_type \
 	       -title.href [export_vars -base pages/[ad_urlencode $title] {}] \
 	       -edit.href [export_vars -base edit {item_id}] \
-	       -delete.href [export_vars -base delete {item_id}]
+	       -delete.href [export_vars -base delete {item_id query}]
   	 }
 
 set t1 [t1 asHTML]

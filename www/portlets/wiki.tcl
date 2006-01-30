@@ -7,10 +7,12 @@ $page volatile
 
 if {[::xowiki::Page incr recursion_count]<3} {
   set content [$page render]
-  set link [export_vars -base view {item_id}]
+  set link [ad_urlencode $name]
   ns_log notice "RECURSION_COUNT = [::xowiki::Page set recursion_count]"
 } else {
   set content "Recursion Limit exceeded, items are nested to deep!"
 }
 
 ::xowiki::Page incr recursion_count -1
+#strip language prefix for title
+regexp {^..:(.*)$} $name _ name

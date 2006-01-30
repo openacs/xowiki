@@ -20,10 +20,15 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set content [expr {[$page set object_type] eq "::xowiki::PlainPage" ?
 		     [$page set text] : [lindex [$page set text] 0]}]
   $page set unresolved_references 0
-  $page instvar item_id
+  $page instvar item_id creation_user
   set content [ad_html_text_convert -from [$page set mime_type] -to text/plain -- $content]
-		   
-  #ns_log notice "--datasource content=$content, oid=$revision_id"
+  if {$creation_user ne ""} {
+    acs_user::get -user_id $creation_user -array user
+    set creator "$user(first_names) $user(last_name)"
+  } else {
+    set creator "nobody"
+  }
+  #ns_log notice "--datasource revid=$revision_id, cru=$creation_user, cr=$creator"
   # category photos 
   # link "${full}photo/photo_id=$item_id" 
   return [list object_id $revision_id title  [$page set title] \
@@ -31,7 +36,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 	      storage_type text mime text/plain \
 	      syndication [list link "[ad_url]/o/$item_id" \
 			       description $content \
-			       author "nobody" \
+			       author $creator \
 			       category "" \
 			       guid "[ad_url]/o/$item_id" \
 			       pubDate [$page set last_modified]] \

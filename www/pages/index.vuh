@@ -22,11 +22,13 @@ if {![info exists folder_id]} {
 set path [ad_conn path_info]
 #ns_log notice "-- path=<$path>"
 if {$path ne ""} {
-  if {![regexp {^..:} $path]} {
-    set path [string range [lang::conn::locale] 0 1]:$path
+  set item_id [::Generic::CrItem lookup -title $path -parent_id $folder_id]
+  if {$item_id == 0} {
+    if {![regexp {^..:} $path]} {
+      set path [string range [lang::conn::locale] 0 1]:$path
+      set item_id [::Generic::CrItem lookup -title $path -parent_id $folder_id]
+    }
   }
-  set item_id [::Generic::CrItem lookup \
-		   -title $path -parent_id $folder_id] 
   #ns_log notice "-- path=<$path> item_id=$item_id"
   if {$item_id != 0} {
     rp_form_put item_id $item_id

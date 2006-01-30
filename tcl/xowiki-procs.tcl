@@ -160,7 +160,7 @@ namespace eval ::xowiki {
 	{validate 
 	  {{title {\[::xowiki::validate_title\]} {correcting locale}}}}
 	{with_categories true}
-	{submit_link view}
+	{submit_link "view"}
       }
 
   WikiForm instproc folderspec {value} {
@@ -222,19 +222,19 @@ namespace eval ::xowiki {
   }
   WikiForm instproc update_references {} {
     my instvar data
-    $data render_adp false
-    $data render -update_references
+    if {![my istype PageInstanceForm]} {
+      ### danger: update references does an ad_eval, which breaks the  [template::adp_level] 
+      ### ad_form! don't do it here. 
+      $data render_adp false
+      $data render -update_references
+    }
+    my set submit_link pages/[ad_urlencode [$data set title]]?
   }
 
   WikiForm instproc new_data {} {
     my handle_enhanced_text_from_form
     set item_id [next]
-    if {![my istype PageInstanceForm]} {
-      ### danger: update references does an ad_eval, which breaks the  [template::adp_level] 
-      ### ad_form! don't do it here. 
-      my update_references
-    }
-
+    my update_references
     return $item_id
   }
 
@@ -263,18 +263,38 @@ namespace eval ::xowiki {
 
   Class create ObjectForm -superclass PlainWikiForm \
       -parameter {
- 	{f.title          {title:text(inform)}}
 	{f.text 
 	  {text:text(textarea),nospell,optional 
 	    {label #xowiki.content#} 
 	    {html {cols 80 rows 15}}}}
-	{validate 
-	  {}}
 	{with_categories  false}
       }
 
+  ObjectForm instproc init {} {
+    my instvar data
+    if {[$data exists title]} {
+      # don't call vaidate on the folder object, don't let people change its name
+      set title [$data set title]
+      if {$title eq "::[$data set parent_id]"} {
+	my f.title  {title:text(inform) {label #xowiki.name#}}
+	my validate {{title {1} {correcting locale}}}
+	#my log "--e don't validate folder id - parent_id = [$data set parent_id]"
+      }
+    }
+    next
+  }
+  ObjectForm instproc new_request {} {
+    my instvar data
+    permission::require_permission \
+	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
+	-privilege "admin"
+    next
+  }
+
   ObjectForm instproc edit_request {item_id} {
     my instvar data
+    my log "--e setting f.title"
+    my f.title {{title:text {label #xowiki.name#}}}
     permission::require_permission \
 	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
 	-privilege "admin"
@@ -283,7 +303,7 @@ namespace eval ::xowiki {
       
   ObjectForm instproc edit_data {} {
     my instvar data
-    $data package_info [$data set text]
+    $data set_payload [$data set text]
     next
   }
 
@@ -415,15 +435,14 @@ namespace eval ::xowiki {
 	my log "--f fetch folder object"
 	set o [::xowiki::Object create ::$folder_id]
 	::xowiki::Object fetch_object -object $o -item_id $item_id
-	$o package_info [$o set text]
       } else {
 	my log "--f save new folder object"
 	set o [::xowiki::Object create ::$folder_id]
-	$o set text "set package_id $package_id\nset index_page {}\n"
+	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
 	$o set parent_id $folder_id
 	$o set title ::$folder_id
 	$o save_new
-	$o package_info [$o set text]
+	$o initialize_loaded_object
       }
       $o proc destroy {} {my log "--f "; next}
       my log "--f exists $o -> [::xotcl::Object isobject $o]"
@@ -487,16 +506,11 @@ namespace eval ::xowiki {
   Page instproc div arg {
     if {$arg eq "content"} {
       return "<div id='content' class='column'>"
-    } elseif {$arg eq "sidebar"} {
-      return "<div id='sidebar' class='column'>"
-    } elseif {$arg eq "left-col"} {
-      return "<div id='left-col' class='column'>"
-    } elseif {$arg eq "right-col"} {
-      return "<div id='right-col' class='column'>"
-    } elseif {$arg eq "left-col30"} {
-      return "<div id='left-col30' class='column'>"
-    } elseif {$arg eq "right-col70"} {
-      return "<div id='right-col70' class='column'>"
+    } elseif {[lsearch [list \
+			    left-col  left-col25  left-col30 \
+			    right-col right-col25 right-col30 right-col70] \
+		   $arg] > -1} {
+      return "<div id='$arg' class='column'>"
     } elseif {$arg eq "box"} {
       return "<div class='box'>"
     } elseif {$arg eq ""} {
@@ -698,16 +712,31 @@ namespace eval ::xowiki {
     next
   }
 
-  Object instproc package_info {cmd} {
-    set package_info [self]::package_info
-    if {![my isobject $package_info]} {::xotcl::Object create $package_info}
-    if {[catch {$package_info eval $cmd} error ]} {
+  #
+  # Methods of the object Object
+  #
+
+  Object instproc get_content {} {
+    if {[[self]::payload info procs content] ne ""} {
+      return  [my substitute_markup [[self]::payload content]]
+    } else {
+      return "<pre>[my set text]</pre>"
+    }
+  }
+  
+  Object instproc initialize_loaded_object {} {
+    my set_payload [my set text]
+  }
+  Object instproc set_payload {cmd} {
+    set payload [self]::payload
+    if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
+    if {[catch {$payload eval $cmd} error ]} {
       ns_log error "XoWiki folder object: content lead to error: $error"
     }
   }
-  Object instproc get_package_info {var} {
-    set package_info [self]::package_info
-    if {![my isobject $package_info]} {::xotcl::Object create $package_info}
-    expr {[$package_info exists $var] ? [$package_info set $var] : ""}
+  Object instproc get_payload {var} {
+    set payload [self]::payload
+    if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
+    expr {[$payload exists $var] ? [$payload set $var] : ""}
   }
 }

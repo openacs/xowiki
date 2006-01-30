@@ -16,6 +16,7 @@ set object_type_key [$supertype set object_type_key]
 set folder_id       [$supertype require_folder -name xowiki]
 set object_types    [$supertype object_types]
 
+
 TableWidget t1 -volatile \
     -actions {
       Action new -label export -url export
