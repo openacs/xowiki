@@ -1,3 +1,11 @@
+ad_library {
+    XoWiki - main libraray classes and objects
+
+    @creation-date 2006-01-10
+    @author Gustaf Neumann
+    @cvs-id $Id$
+}
+
 namespace eval ::xowiki {
   ::Generic::CrClass create Page -superclass ::Generic::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
@@ -228,7 +236,7 @@ namespace eval ::xowiki {
       $data render_adp false
       $data render -update_references
     }
-    my set submit_link pages/[ad_urlencode [$data set title]]?
+    my set submit_link pages/[ad_urlencode [$data lang]:[$data set title]]?
   }
 
   WikiForm instproc new_data {} {
@@ -450,6 +458,59 @@ namespace eval ::xowiki {
     } else {
       my log "--f reuse folder object  [::Serializer deepSerialize ::$folder_id]"
     }
+  }
+
+  Page proc import {-user_id -package-id -folder-id {-replace 0} -objects} {
+    set object_type [self]
+    if {![info exists folder_id]}  {set folder_id [$object_type require_folder -name xowiki]}
+    if {![info exists package_id]} {set package_id [ad_conn package_id]}
+    if {![info exists user_id]}    {set user_id    [ad_conn user_id]}
+    if {![info exists objects]}    {set objects    [$object_type allinstances]}
+
+    set msg "processing objects: $objects<p>"
+    set added 0
+    set replaced 0
+    foreach o $objects {
+      $o set parent_id $folder_id
+      $o set package_id $package_id
+      $o set creation_user $user_id
+      # page instances have references to page templates, add these first
+      if {[$o istype ::xowiki::PageInstance]} continue
+      set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
+      if {$item != 0 && $replace} { ;# we delete the original 
+	::Generic::CrItem delete -item_id $item 
+	set item 0
+	incr replaced
+      }
+      if {$item == 0} {
+	$o save_new
+	incr added
+      }
+    }
+
+    foreach o $objects {
+      if {[$o istype ::xowiki::PageInstance]} {
+	db_transaction {
+	  set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
+	  if {$item != 0 && $replace} { ;# we delete the original
+	    ::Generic::CrItem delete -item_id $item 
+	    set item 0
+	    incr replaced
+	  }
+	  if {$item == 0} {  ;# the item does not exist -> update reference and save
+	    set old_template_id [$o set page_template]
+	    set template [CrItem lookup \
+			      -title [$old_template_id set title] \
+			      -parent_id $folder_id]
+	    $o set page_template $template
+	    $o save_new
+	    incr added
+	  }
+	}
+      }
+      $o destroy
+    }
+    append msg "$added objects inserted, $replaced objects replaced<p>"
   }
 
   #

@@ -5,8 +5,36 @@
 
 <!-- we should load extra style files optional -->
 <style type="text/css" media="all">
-    @import "/resources/calendar/calendar.css";
+<!--    @import "/resources/calendar/calendar.css"; -->
 </style> 
+
+<script type="text/javascript" language="javascript">
+
+function getHttpObject() {
+     var http_request = false;
+     if (window.XMLHttpRequest) { // Mozilla, Safari,...
+         http_request = new XMLHttpRequest();
+         if (http_request.overrideMimeType) {
+             //http_request.overrideMimeType('text/xml');
+         }
+     } else if (window.ActiveXObject) { // IE
+         try {
+             http_request = new ActiveXObject("Msxml2.XMLHTTP");
+         } catch (e) {
+             try {
+                 http_request = new ActiveXObject("Microsoft.XMLHTTP");
+             } catch (e) {}
+         }
+     }
+
+     if (!http_request) {
+         alert('Cannot create and instance of XMLHTTP');
+     }
+   return http_request;
+}
+
+var http = getHttpObject();
+</script>
 
 <style type='text/css'>
 #wikicmds {position: relative;top: -50px;  right: 0px; height: 0px;
@@ -66,12 +94,15 @@ table, td       {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;
 #sidebar .sidebox li {font-size: 10px; margin: 0;}
 img.found {border: 0; height: 12px}
 img.undefined {border: 10; color: yellow; height: 12px}
-#left-col   {float: left;    width: 40%; relative: absolute; top: 0px;}
-#right-col {float: right; width: 59%; relative: absolute; top: 0px;}
-#left-col30   {float: left;    width: 30%; relative: absolute; top: 0px; margin-right: 10px;}
-#left-col25   {float: left;    width: 25%; relative: absolute; top: 0px; margin-right: 10px;}
-#right-col70 {float: right; width: 69%; relative: absolute; top: 0px;}
-#right-col25 {float: right; width: 25%; relative: absolute; top: 0px;}
+#left-col   {float: left;    width: 40%; top: 0px;}
+#right-col {float: right; width: 59%;  top: 0px;}
+#left-col30   {float: left;    width: 30%; top: 0px; margin-right: 10px;}
+#left-col25   {float: left;    width: 25%; top: 0px; margin-right: 10px;}
+#right-col70 {float: right; width: 69%; top: 0px;}
+#right-col25 {float: right; width: 25%; top: 0px;}
+#messages .timestamp {font-size: 80%; color: grey}
+#messages .user {font-size: 80%; font-weight: bold; color: grey}
+#messages .message {vertical-align: top}
 </style>
 
 <div id='wikicmds'>

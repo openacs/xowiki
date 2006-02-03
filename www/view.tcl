@@ -14,11 +14,10 @@ ad_page_contract {
   {revision_id:integer 0}
   {folder_id:optional}
   {object_type:optional}
+  {master 1}
 }
 
-ns_log notice "-- view item_id=$item_id, [info exists folder_id]"
 ::xowiki::Page set recursion_count 0
-
 set page [::Generic::CrItem instantiate \
 	      -item_id $item_id \
 	      -revision_id $revision_id]
@@ -28,14 +27,18 @@ set references [$page references]
 
 # export title, text, and description to current scope
 $page instvar title text description lang_links
+if {$master} {
+  set context [list $title]
+  set base [apm_package_url_from_id [ad_conn package_id]]
+  set rev_link  [export_vars -base ${base}revisions {{page_id $item_id} title}]
+  set edit_link [export_vars -base ${base}edit {item_id}]
+  set new_link  [export_vars -base ${base}edit {object_type}]
+  set index_link  [export_vars -base ${base} {}]
 
-set context [list $title]
-set base [apm_package_url_from_id [ad_conn package_id]]
-set rev_link  [export_vars -base ${base}revisions {{page_id $item_id} title}]
-set edit_link [export_vars -base ${base}edit {item_id}]
-set new_link  [export_vars -base ${base}edit {object_type}]
-set index_link  [export_vars -base ${base} {}]
-
-set return_url  [export_vars -base [ad_conn url] item_id]
-set gc_link     [general_comments_create_link $item_id $return_url]
-set gc_comments [general_comments_get_comments $item_id $return_url]
+  set return_url  [export_vars -base [ad_conn url] item_id]
+  set gc_link     [general_comments_create_link $item_id $return_url]
+  set gc_comments [general_comments_get_comments $item_id $return_url]
+} else {
+  ns_return 200 text/html $content
+  ad_script_abort
+}
