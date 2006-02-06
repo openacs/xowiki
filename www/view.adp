@@ -15,7 +15,7 @@ function getHttpObject() {
      if (window.XMLHttpRequest) { // Mozilla, Safari,...
          http_request = new XMLHttpRequest();
          if (http_request.overrideMimeType) {
-             //http_request.overrideMimeType('text/xml');
+              http_request.overrideMimeType('text/xml');
          }
      } else if (window.ActiveXObject) { // IE
          try {
@@ -31,6 +31,18 @@ function getHttpObject() {
          alert('Cannot create and instance of XMLHTTP');
      }
    return http_request;
+}
+
+if (typeof DOMParser == "undefined") {
+   DOMParser = function () {}
+	
+   DOMParser.prototype.parseFromString = function (str, contentType) {
+      if (typeof ActiveXObject != "undefined") {
+         var d = new ActiveXObject("MSXML.DomDocument");
+         d.loadXML(str);
+         return d;
+        }
+   }
 }
 
 var http = getHttpObject();

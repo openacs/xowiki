@@ -7,10 +7,12 @@ ad_page_contract {
 } -query {
   m
   id
+  s
   msg:optional
 }
 
-::xowiki::Chat c1 -volatile -chat_id $id
+#ns_log notice "--c m=$m session_id = $s [clock format [lindex [split $s .] 1] -format %H:%M:%S]"
+::xowiki::Chat c1 -volatile -chat_id $id -session_id $s
 switch -- $m {
   add_msg {
     set _ [c1 $m $msg]
