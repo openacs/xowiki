@@ -82,10 +82,15 @@ db_foreach instance_select \
 	 -with_subtypes $with_subtypes \
 	 -order_clause $order_clause \
 	 ] {
+	   if {[regexp {^(..):(.*)$} $title _ lang name]} {
+	     set link pages/$lang/[ad_urlencode $name]
+	   } else {
+	     set link pages/[ad_urlencode $title]
+	   }
 	   t1 add \
 	       -title $title \
 	       -object_type $object_type \
-	       -title.href [export_vars -base pages/[ad_urlencode $title] {}] \
+	       -title.href $link \
 	       -edit.href [export_vars -base edit {item_id}] \
 	       -delete.href [export_vars -base delete {item_id query}]
   	 }

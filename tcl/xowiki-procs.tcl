@@ -236,7 +236,7 @@ namespace eval ::xowiki {
       $data render_adp false
       $data render -update_references
     }
-    my set submit_link pages/[ad_urlencode [$data lang]:[$data set title]]?
+    my set submit_link pages/[$data lang]/[ad_urlencode [$data set title]]?
   }
 
   WikiForm instproc new_data {} {
@@ -591,10 +591,10 @@ namespace eval ::xowiki {
       if {[regexp {^:(..):(.*)$} $link _ lang stripped]} {
 	set lang_item_id [CrItem lookup \
 			      -title $lang:$stripped -parent_id $parent_id]
-	my log "lang lookup for '$lang:$stripped' returned $lang_item_id"
+	#my log "lang lookup for '$lang:$stripped' returned $lang_item_id"
 	if {$lang_item_id} {
 	  set css_class "found"
-	  set link ./[ad_urlencode $lang:$stripped]
+	  set link ../$lang/[ad_urlencode $stripped]
 	  #set link [export_vars -base view {{item_id $lang_item_id}}]
 	} else {
 	  set css_class "undefined"
@@ -608,18 +608,20 @@ namespace eval ::xowiki {
       }
       set link_type link
       regexp {^([^:]+):([^:]+:.*)$} $link _ link_type link
-      if {[regexp {^..:(.*)$} $link _ stripped_label]} {
-	if {$label eq $arg} {set label $stripped_label}
+      if {[regexp {^(..):(.*)$} $link _ lang stripped_name]} {
+	if {$label eq $arg} {set label $stripped_name}
+	set name $link
       } {
-	set link [my lang]:$link
+	set stripped_name $link
+	set name [my lang]:$link
+	set lang [my lang]
       }
-      set item_id [::Generic::CrItem lookup \
-		       -title $link -parent_id $parent_id]
+      set item_id [::Generic::CrItem lookup -title $name -parent_id $parent_id]
       if {$item_id} {
 	my lappend references [list $item_id $link_type]
 	#set link [export_vars -base view {item_id}]
 	#return "<a href='$link'>$label</a>"
-	return "<a href='./[ad_urlencode $specified_link]'>$label</a>"
+	return "<a href='../$lang/[ad_urlencode $stripped_name]'>$label</a>"
       } else {
 	my incr unresolved_references
 	set link [export_vars -base ../edit {object_type {title $label}}]
@@ -638,8 +640,11 @@ namespace eval ::xowiki {
     foreach e $l {
       #set link [export_vars -base view {{item_id {[lindex $e 0]}}}]
       set link [lindex $e 1]
-      if {[string range $link 0 2] eq "[my lang]:"} {set link [string range $link 3 end]}
-      lappend refs "<a href=' ./[ad_urlencode $link]'>$link</a>"
+      if {[regexp {^(..):(.*)$} $link _ lang name]} {
+	lappend refs "<a href=' ../$lang/[ad_urlencode $name]'>$link</a>"
+      } else {
+	lappend refs "<a href=' ./[ad_urlencode $link]'>$link</a>"
+      }
     }
     return [join $refs ", "]
   }

@@ -19,14 +19,19 @@ if {![info exists folder_id]} {
   set folder_id [$object_type require_folder -name xowiki]
 }
 
-set path [ad_conn path_info]
+set path [ns_urldecode [ad_conn path_info]]
 #ns_log notice "-- path=<$path>"
 if {$path ne ""} {
   set item_id [::Generic::CrItem lookup -title $path -parent_id $folder_id]
+
   if {$item_id == 0} {
-    if {![regexp {^..:} $path]} {
-      set path [string range [lang::conn::locale] 0 1]:$path
-      set item_id [::Generic::CrItem lookup -title $path -parent_id $folder_id]
+    if {[regexp {^(..)/(.*)$} $path _ lang name]} {
+      set title $lang:$name
+    } elseif {![regexp {^..:} $path]} {
+      set title [string range [lang::conn::locale] 0 1]:$path 
+    }
+    if {[info exists title]} {
+      set item_id [::Generic::CrItem lookup -title $title -parent_id $folder_id]
     }
   }
   #ns_log notice "-- path=<$path> item_id=$item_id"
