@@ -11,6 +11,12 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
+      -cr_attributes {
+	::Generic::Attribute new -attribute_name page_title -datatype text \
+	    -pretty_name "Page Title"
+	::Generic::Attribute new -attribute_name creator -datatype text \
+	    -pretty_name "Creator" 
+      } \
       -form ::xowiki::WikiForm
 
   ::Generic::CrClass create PlainPage -superclass Page \
@@ -141,15 +147,33 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to 0.19"
       ::xowiki::sc::register_implementations
     }
+    if {$to_version_name eq "0.21"} {
+	db_1row create_att {
+	  select content_type__create_attribute(
+		'::xowiki::Page','page_title','text',
+                'Page Title',null,null,null,'text'	)}
+        db_1row create_att {
+	  select content_type__create_attribute(
+		'::xowiki::Page','creator','text',
+                'Creator',null,null,null,'text'  	)}
+      db_1row refresh "select content_type__refresh_view('::xowiki::PlainPage') from dual"
+      db_1row refresh "select content_type__refresh_view('::xowiki::PageTemplate') from dual"
+      db_1row refresh "select content_type__refresh_view('::xowiki::PageInstance') from dual"
+      db_1row refresh "select content_type__refresh_view('::xowiki::Object') from dual"
+    }
   }
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-	{field_list {item_id title text description nls_language}} 
+	{field_list {item_id title page_title creator text description nls_language}} 
 	{f.item_id 
 	  {item_id:key}}
 	{f.title 
-	  {title:text {label #xowiki.name#}}}
+	  {title:text {label #xowiki.name#} {html {size 80}} }}
+	{f.page_title
+	  {page_title:text {label #xowiki.title#} {html {size 80}} }}
+	{f.creator
+	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
 	{f.text 
 	  {text:richtext(richtext),nospell,optional 
 	    {label #xowiki.content#} 
@@ -356,7 +380,7 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
- 	{field_list {item_id title page_template description nls_language}} 
+ 	{field_list {item_id title page_title creator page_template description nls_language}} 
  	{f.title          {title:text(inform)}}
  	{f.page_template  {page_template:text(hidden)}}
  	{f.nls_language   {nls_language:text(hidden)}}
@@ -431,6 +455,22 @@ namespace eval ::xowiki {
  
 
 namespace eval ::xowiki {
+
+  Page instproc get_name {uid} {
+    if {$uid ne "" && $uid != 0} {
+      acs_user::get -user_id $uid -array user
+      return "$user(first_names) $user(last_name)"
+    } else {
+      return nobody
+    }
+  }
+
+  Page instproc initialize_loaded_object {} {
+    my instvar page_title creator
+    if {$page_title eq ""} {set page_title [my set title]}
+    #if {$creator eq ""} {set creator [my get_name [my set creation_user]]}
+    next
+  }
 
   Page ad_proc require_folder_object {
     -folder_id
@@ -792,6 +832,7 @@ namespace eval ::xowiki {
   
   Object instproc initialize_loaded_object {} {
     my set_payload [my set text]
+    next
   }
   Object instproc set_payload {cmd} {
     set payload [self]::payload

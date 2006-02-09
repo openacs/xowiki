@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.18" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.21" locale="en_US" charset="ISO-8859-1">
 
   <msg key="back">Back</msg>
   <msg key="content">Content</msg>
+  <msg key="creator">Creator</msg>
   <msg key="description">Description</msg>
   <msg key="edit">Edit</msg>
   <msg key="index">Index</msg>
@@ -12,5 +13,6 @@
   <msg key="page_type">Page Type</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
+  <msg key="title">Title</msg>
   <msg key="view">View</msg>
 </message_catalog>

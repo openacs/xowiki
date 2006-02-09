@@ -53,7 +53,7 @@ $form_class create ::xowiki::f1 -volatile \
 #ns_log notice "-- form f1 has class [::xowiki::f1 info class]"
 
 ::xowiki::f1 generate
-::xowiki::f1 instvar page_title context formTemplate
+::xowiki::f1 instvar edit_form_page_title context formTemplate
 
 if {[info exists item_id]} {
   set rev_link [export_vars -base revisions {{page_id $item_id} title}]

@@ -25,10 +25,10 @@ set page [::Generic::CrItem instantiate \
 set content [$page render]
 set references [$page references]
 
-# export title, text, and description to current scope
-$page instvar title text description lang_links
+# export page_title, text, and lang_links to current scope
+$page instvar page_title title text lang_links
 if {$master} {
-  set context [list $title]
+  set context [list $page_title]
   set base [apm_package_url_from_id [ad_conn package_id]]
   set rev_link  [export_vars -base ${base}revisions {{page_id $item_id} title}]
   set edit_link [export_vars -base ${base}edit {item_id}]

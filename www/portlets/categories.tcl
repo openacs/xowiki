@@ -19,16 +19,19 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
     foreach {category_id category_label deprecated_p level} $category {break}
     set cat_content ""
     db_foreach get_pages \
-	"select i.item_id, r.title, i.content_type from category_object_map c, cr_items i, cr_revisions r \
+	"select i.item_id, r.title, i.content_type, p.page_title \
+	 from category_object_map c, cr_items i, cr_revisions r,  xowiki_page p \
 		where c.object_id = i.item_id and i.parent_id = $folder_id \
 		and category_id = $category_id \
 		and r.revision_id = i.live_revision \
+		and p.page_id = r.revision_id \
 	" {
+	  if {$page_title eq ""} { set page_title $title}
 	  if {![::xotcl::Object isclass $content_type]} {
 	    # we could check for certain page types as well
 	    continue
 	  }
-	  append cat_content "<a href='${url_prefix}pages/[ad_urlencode $title]'>$title</a><br>\n"
+	  append cat_content "<a href='${url_prefix}pages/[ad_urlencode $title]'>$page_title</a><br>\n"
 	}
     if {$cat_content ne ""} {
       append content "<h3>$category_label</h3><blockquote>" $cat_content "</blockquote>\n"
