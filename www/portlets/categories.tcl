@@ -1,12 +1,15 @@
+# $Id$
+# display the category tree with associated pages
+# -gustaf neumann
+# 
 # valid parameters from the include are 
 #     tree_name: match pattern, if specified displays only the trees with matching names
 #     no_tree_name: if specified, only tree names are not displayed
 
 # get the folder id from the including page
-set folder_id [$__including_page set parent_id]
-set package_id [db_string get_package_id \
-		    "select package_id from acs_objects where object_id = $folder_id"]
-set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
+set folder_id   [$__including_page set parent_id]
+set package_id  [$folder_id set package_id]
+set url_prefix  [site_node::get_url_from_object_id -object_id $package_id]
 
 set content ""
 foreach tree [category_tree::get_mapped_trees $package_id] {

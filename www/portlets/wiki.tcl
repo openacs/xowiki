@@ -1,5 +1,7 @@
+# $Id$
+# display a wiki page included in a different wiki page
+# -gustaf neumann
 
-# get the folder id from the including page
 set folder_id [$__including_page set parent_id]
 set item_id   [::Generic::CrItem lookup -title $name -parent_id $folder_id]
 set page      [::Generic::CrItem instantiate -item_id $item_id]

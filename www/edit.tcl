@@ -26,6 +26,7 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
   set page [CrItem instantiate -item_id $item_id]     ;# no revision_id yet
   set folder_id   [$page set parent_id]
   set object_type [$page info class]
+  ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
 } else {
   set page [$object_type new]
   if {![info exists folder_id]} {

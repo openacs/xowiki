@@ -263,6 +263,20 @@ namespace eval ::xowiki {
     my set submit_link pages/[$data lang]/[ad_urlencode [$data set title]]?
   }
 
+  WikiForm instproc new_request {} {
+    my instvar data
+    $data set creator [$data get_name [ad_conn user_id]]
+    next
+  }
+
+  WikiForm instproc edit_request args {
+    my instvar data
+    if {[$data set creator] eq ""} {
+      $data set creator [$data get_name [ad_conn user_id]]
+    }
+    next
+  }
+
   WikiForm instproc new_data {} {
     my handle_enhanced_text_from_form
     set item_id [next]
@@ -315,6 +329,7 @@ namespace eval ::xowiki {
     }
     next
   }
+
   ObjectForm instproc new_request {} {
     my instvar data
     permission::require_permission \
@@ -474,7 +489,7 @@ namespace eval ::xowiki {
 
   Page ad_proc require_folder_object {
     -folder_id
-    -package_id 
+    -package_id:required 
   } {
   } {
     if {![::xotcl::Object isobject ::$folder_id]} {
@@ -492,7 +507,8 @@ namespace eval ::xowiki {
 	$o save_new
 	$o initialize_loaded_object
       }
-      $o proc destroy {} {my log "--f "; next}
+      #$o proc destroy {} {my log "--f "; next}
+      $o set package_id $package_id
       my log "--f exists $o -> [::xotcl::Object isobject $o]"
       uplevel #0 [list $o volatile]
     } else {
