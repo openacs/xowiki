@@ -215,7 +215,7 @@ namespace eval ::xowiki {
 	  {nls_language:text(select),optional {label Language} 
 	    {options \[xowiki::locales\]}}}
 	{validate 
-	  {{title {\[::xowiki::validate_title\]} {correcting locale}}}}
+	  {{title {\[::xowiki::validate_title\]} {Item with this name exists already}}}}
 	{with_categories true}
 	{submit_link "view"}
       }
@@ -262,10 +262,13 @@ namespace eval ::xowiki {
   }
 
   proc ::xowiki::validate_title {} {
-    upvar title title nls_language nls_language
+    upvar title title nls_language nls_language folder_id folder_id
     if {![regexp {^..:} $title]} {
       if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
       set title [string range $nls_language 0 1]:$title
+    }
+    if {[ns_set get [ns_getform] __new_p]} {
+      return [expr {[CrItem lookup -title $title -parent_id $folder_id] == 0}]
     }
     return 1
   }
@@ -348,7 +351,7 @@ namespace eval ::xowiki {
       set title [$data set title]
       if {$title eq "::[$data set parent_id]"} {
 	my f.title  {title:text(inform) {label #xowiki.name#}}
-	my validate {{title {1} {correcting locale}}}
+	my validate {{title {1} {dummy}} }
 	#my log "--e don't validate folder id - parent_id = [$data set parent_id]"
       }
     }
