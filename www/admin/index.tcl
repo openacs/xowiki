@@ -18,10 +18,11 @@ set object_types    [$supertype object_types]
 
 
 TableWidget t1 -volatile \
-    -actions {
+    -actions [subst {
       Action new -label export -url export
       Action new -label import -url import
-    } \
+      Action new -label permissions -url /admin/applications/permissions?package_id=[ad_conn package_id]
+    }] \
     -columns {
       Field object_type -label [_ xowiki.page_type]
       AnchorField instances -label Instances -html {align center}

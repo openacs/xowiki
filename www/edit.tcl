@@ -29,13 +29,13 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
   ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
 } else {
   set page [$object_type new]
-  if {![info exists folder_id]} {
-    set folder_id [$object_type require_folder -name xowiki]
-  }
+  set folder_id [$object_type require_folder -name xowiki]
   $page set parent_id $folder_id
 }
 
-
+#
+# setting up file selector fs
+#
 set fs_folder_id ""
 if {[info commands dotlrn_fs::get_community_shared_folder] ne ""} {
   set fs_folder_id [dotlrn_fs::get_community_shared_folder \

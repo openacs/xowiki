@@ -17,6 +17,9 @@ ad_page_contract {
   {master 1}
 }
 
+permission::require_permission -object_id [ad_conn package_id] -privilege "read"
+set write_p [permission::permission_p -object_id [ad_conn package_id] -privilege "write"]
+
 ::xowiki::Page set recursion_count 0
 set page [::Generic::CrItem instantiate \
 	      -item_id $item_id \

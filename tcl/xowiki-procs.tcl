@@ -143,11 +143,16 @@ namespace eval ::xowiki {
 	}	
       }
     }
-    if {$to_version_name eq "0.19"} {
+
+    if {[apm_version_names_compare $from_version_name "0.19"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.19"] > -1} {
       ns_log notice "-- upgrading to 0.19"
       ::xowiki::sc::register_implementations
     }
-    if {$to_version_name eq "0.21"} {
+
+    if {[apm_version_names_compare $from_version_name "0.21"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.21"] > -1} {
+      ns_log notice "-- upgrading to 0.21"
 	db_1row create_att {
 	  select content_type__create_attribute(
 		'::xowiki::Page','page_title','text',
@@ -160,6 +165,26 @@ namespace eval ::xowiki {
       db_1row refresh "select content_type__refresh_view('::xowiki::PageTemplate') from dual"
       db_1row refresh "select content_type__refresh_view('::xowiki::PageInstance') from dual"
       db_1row refresh "select content_type__refresh_view('::xowiki::Object') from dual"
+    }
+    
+    if {[apm_version_names_compare $from_version_name "0.22"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.22"] > -1} {
+      ns_log notice "-- upgrading to 0.22"
+      set folder_ids [list]
+      set package_ids [list]
+      db_foreach get_xowiki_packages {select * from apm_packages where package_key = 'xowiki'} {
+	set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+		where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
+	if {$folder_id ne ""} {
+	  db_dml update_package_id {update cr_folders set package_id = :package_id 
+	    where folder_id = :folder_id}
+	  lappend folder_ids $folder_id
+	  lappend package_ids $package_id
+	}
+      }
+      foreach f $folder_ids p $package_ids {
+	db_dml update_context_ids "update acs_objects set context_id = $p where object_id = $f"
+      }
     }
   }
 
@@ -480,6 +505,18 @@ namespace eval ::xowiki {
     }
   }
 
+  Page proc pretty_link {-lang title} {
+    my instvar url_prefix
+    if {![info exists lang]} {
+      regexp {^(..):(.*)$} $title _ lang title
+    }
+    if {[info exists lang]} {
+      return ${url_prefix}pages/$lang/[ad_urlencode $title]
+    } else {
+      return ${url_prefix}pages/[ad_urlencode $title]
+    }
+  }
+
   Page instproc initialize_loaded_object {} {
     my instvar page_title creator
     if {$page_title eq ""} {set page_title [my set title]}
@@ -642,7 +679,8 @@ namespace eval ::xowiki {
       return "<a class='external' href='$link'>$label</a>"
     } else {
       set specified_link $link
-      my instvar parent_id
+      my instvar parent_id 
+      Page instvar url_prefix
       [my info class]  instvar object_type
       if {[regexp {^:(..):(.*)$} $link _ lang stripped]} {
 	set lang_item_id [CrItem lookup \
@@ -650,12 +688,12 @@ namespace eval ::xowiki {
 	#my log "lang lookup for '$lang:$stripped' returned $lang_item_id"
 	if {$lang_item_id} {
 	  set css_class "found"
-	  set link ../$lang/[ad_urlencode $stripped]
+	  set link [Page pretty_link -lang $lang $stripped]
 	  #set link [export_vars -base view {{item_id $lang_item_id}}]
 	} else {
 	  set css_class "undefined"
 	  set last_page_id [my set item_id]
-	  set link [export_vars -base edit {object_type {title $lang:$stripped} last_page_id}]
+	  set link [export_vars -base ${url_prefix}edit {object_type {title $lang:$stripped} last_page_id}]
 	}
 	my lappend lang_links \
 	    "<a href='$link'><img class='$css_class' style='height='12' \
@@ -677,10 +715,10 @@ namespace eval ::xowiki {
 	my lappend references [list $item_id $link_type]
 	#set link [export_vars -base view {item_id}]
 	#return "<a href='$link'>$label</a>"
-	return "<a href='../$lang/[ad_urlencode $stripped_name]'>$label</a>"
+	return "<a href='[Page pretty_link -lang $lang $stripped_name]'>$label</a>"
       } else {
 	my incr unresolved_references
-	set link [export_vars -base ../edit {object_type {title $label}}]
+	set link [export_vars -base ${url_prefix}edit {object_type {title $label}}]
 	return "<a href='$link'> \[ </a>$label <a href='$link'> \] </a>" 
       }
     }
@@ -688,7 +726,7 @@ namespace eval ::xowiki {
 
   Page instproc references {} {
     [my info class] instvar table_name 
-    my instvar item_id
+    my instvar item_id url_prefix
     set l [db_list_of_lists references \
 	       "SELECT page,ci.name,link_type from xowiki_references, cr_items ci \
 		       where reference=$item_id and ci.item_id = page"]
@@ -696,11 +734,7 @@ namespace eval ::xowiki {
     foreach e $l {
       #set link [export_vars -base view {{item_id {[lindex $e 0]}}}]
       set link [lindex $e 1]
-      if {[regexp {^(..):(.*)$} $link _ lang name]} {
-	lappend refs "<a href=' ../$lang/[ad_urlencode $name]'>$link</a>"
-      } else {
-	lappend refs "<a href=' ./[ad_urlencode $link]'>$link</a>"
-      }
+      lappend refs "<a href='[Page pretty_link $link]'>$link</a>"
     }
     return [join $refs ", "]
   }
@@ -768,8 +802,12 @@ namespace eval ::xowiki {
    }
 
   Page instproc render {-update_references:switch} {
-    my instvar item_id references lang title render_adp unresolved_references
+    my instvar item_id references lang title render_adp unresolved_references parent_id
     my log "-- my class=[my info class]"
+
+    set package_id [$parent_id set package_id]
+    Page set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
+
     regexp {^(..):(.*)$} $title _ lang title
     set references [list]
     set unresolved_references 0

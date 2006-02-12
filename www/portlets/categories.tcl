@@ -34,7 +34,7 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
 	    # we could check for certain page types as well
 	    continue
 	  }
-	  append cat_content "<a href='${url_prefix}pages/[ad_urlencode $title]'>$page_title</a><br>\n"
+	  append cat_content "<a href='[::xowiki::Page pretty_link $title]'>$page_title</a><br>\n"
 	}
     if {$cat_content ne ""} {
       append content "<h3>$category_label</h3><blockquote>" $cat_content "</blockquote>\n"

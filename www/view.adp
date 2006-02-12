@@ -118,11 +118,12 @@ img.undefined {border: 10; color: yellow; height: 12px}
 </style>
 
 <div id='wikicmds'>
+  <if @write_p@ eq 1>
     <a href='@edit_link@' accesskey='e' title='Diese Seite bearbeiten ...'>#xowiki.edit#</a> &middot;
     <a href="@rev_link@" accesskey='r' >#xotcl-core.revisions#</a> &middot;
-<!--  <a href="changes?object_type=CrWikiPage&item_id=@item_id@" accesskey='c'>
-   Änderungen</a> &middot; -->
+<!--  <a href="changes?object_type=CrWikiPage&item_id=@item_id@" accesskey='c'> chg</a> &middot; -->
    <a href="@new_link@" accesskey='n'>#xowiki.new#</a> &middot;
+  </if>
    <a href="@index_link@" accesskey='i'>#xowiki.index#</a> 
 </div>
 
