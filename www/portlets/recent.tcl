@@ -9,8 +9,6 @@ if {![info exists max_entries]} {set max_entries 20}
 
 # get the folder id from the including page
 set folder_id    [$__including_page set parent_id]
-set package_id   [$folder_id set package_id]
-set ::url_prefix [site_node::get_url_from_object_id -object_id $package_id]
 
 TableWidget t1 -volatile \
     -columns {
@@ -32,7 +30,7 @@ db_foreach get_pages \
 
 	   t1 add \
 	      -title $page_title \
-	      -title.href "<a href='${::url_prefix}pages/[ad_urlencode $title]'>$page_title</a>" \
+	      -title.href "<a href='[::xowiki::Page pretty_link $title]'>$page_title</a>" \
 	      -date $publish_date
 	}
 
