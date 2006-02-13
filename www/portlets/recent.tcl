@@ -30,7 +30,7 @@ db_foreach get_pages \
 
 	   t1 add \
 	      -title $page_title \
-	      -title.href "<a href='[::xowiki::Page pretty_link $title]'>$page_title</a>" \
+	      -title.href [::xowiki::Page pretty_link $title] \
 	      -date $publish_date
 	}
 
