@@ -31,6 +31,8 @@ if {![info exists folder_id]} {set folder_id [$page set parent_id]}
 set content [$page render]
 set references [$page references]
 
+if {[$page exists master] && $master == 1} {set master [$page set master]}
+
 # export page_title, text, and lang_links to current scope
 $page instvar page_title title text lang_links
 if {$master} {

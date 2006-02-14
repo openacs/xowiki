@@ -288,7 +288,7 @@ namespace eval ::xowiki {
       $data render_adp false
       $data render -update_references
     }
-    my set submit_link pages/[$data lang]/[ad_urlencode [$data set title]]?
+    my set submit_link [::xowiki::Page pretty_link [$data set title]]?
   }
 
   WikiForm instproc new_request {} {
@@ -486,9 +486,10 @@ namespace eval ::xowiki {
 			     [$template set text]] {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
-    foreach var $page_instance_form_atts {
-      my lappend field_list $var
-      my set f.$var "$var:[my textfieldspec]"
+
+    foreach __var $page_instance_form_atts {
+      my lappend field_list $__var
+      my set f.$__var "$__var:[$data get_field_type $__var $template [my textfieldspec]]"
     }
     next
     #my log "--fields = [my fields]"
@@ -522,7 +523,7 @@ namespace eval ::xowiki {
 
   Page instproc initialize_loaded_object {} {
     my instvar page_title creator
-    if {$page_title eq ""} {set page_title [my set title]}
+    if {[info exists page_title] && $page_title eq ""} {set page_title [my set title]}
     #if {$creator eq ""} {set creator [my get_name [my set creation_user]]}
     next
   }
@@ -552,7 +553,7 @@ namespace eval ::xowiki {
       my log "--f exists $o -> [::xotcl::Object isobject $o]"
       uplevel #0 [list $o volatile]
     } else {
-      my log "--f reuse folder object  [::Serializer deepSerialize ::$folder_id]"
+      my log "--f reuse folder object $folder_id"; # [::Serializer deepSerialize ::$folder_id]
     }
   }
 
@@ -852,11 +853,28 @@ namespace eval ::xowiki {
   # Page Instance methods
   #
 
+  PageInstance instproc get_field_type {name template default_spec} {
+    # get the widget field specifications from the payload of the folder object 
+    # for a field with a specified name in a specified page template
+    set spec $default_spec
+    foreach {s widget} [[my set parent_id] get_payload widget_specs] {
+      foreach {template_name var_name} [split $s ,] break
+      #ns_log notice "--w T.title = '[$template set title]' var=$name"
+      if {[string match $template_name [$template set title]] &&
+	  [string match $var_name $name]} {
+	set spec $widget
+	#ns_log notice "--w using $widget for $name"
+      }
+    }
+    #ns_log notice "--w returning spec $spec"
+    return $spec
+  }
+
   PageInstance instproc get_content {} {
     my instvar page_template
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
-    $page_template volatile
+    uplevel #0 [list $page_template volatile]
     #return [my substitute_markup [my adp_subst [$page_template set text]]]
     if {[my set instance_attributes] eq ""} {
       return [my adp_subst [$page_template set text]]
@@ -866,11 +884,18 @@ namespace eval ::xowiki {
     return [my substitute_markup $T]
   }
   PageInstance instproc adp_subst {content} {
+    my instvar page_template
+    #my log "--r page_template exists? $page_template: [info command $page_template]"
     # add extra variables as instance variables
     array set __ia [my set instance_attributes]
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
-      my set $var $__ia($var)
+      if {[string match "richtext*" [my get_field_type $var $page_template text]]} {
+	# ignore the text/html info from htmlarea
+	my set $var [lindex $__ia($var) 0]
+      } else {
+	my set $var $__ia($var)
+      }
     }
     next
   }
