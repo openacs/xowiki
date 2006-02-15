@@ -46,6 +46,17 @@ if {$master} {
   set return_url  [export_vars -base [ad_conn url] item_id]
   set gc_link     [general_comments_create_link $item_id $return_url]
   set gc_comments [general_comments_get_comments $item_id $return_url]
+
+  set template [$folder_id get_payload template]
+  if {$template ne ""} {
+    set __including_page $page
+    set template_code [template::adp_compile -string $template]
+    if {[catch {set content [template::adp_eval template_code]} errmsg]} {
+      set content "Error in Page $title: $errmsg<br>$content"
+    } else {
+      ns_return 200 text/html $content
+    }
+  }
 } else {
   ns_return 200 text/html $content
   ad_script_abort

@@ -908,7 +908,7 @@ namespace eval ::xowiki {
     if {[[self]::payload info procs content] ne ""} {
       return  [my substitute_markup [[self]::payload content]]
     } else {
-      return "<pre>[my set text]</pre>"
+      return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
     }
   }
   
