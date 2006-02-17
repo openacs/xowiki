@@ -806,12 +806,12 @@ namespace eval ::xowiki {
    }
 
   Page instproc render {-update_references:switch} {
-    my instvar item_id references lang title render_adp unresolved_references parent_id
+    my instvar item_id references lang render_adp unresolved_references parent_id
     my log "-- my class=[my info class]"
 
     set package_id [$parent_id set package_id]
     Page set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
-
+    set title [my set title]
     regexp {^(..):(.*)$} $title _ lang title
     set references [list]
     set unresolved_references 0
