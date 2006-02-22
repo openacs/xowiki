@@ -536,11 +536,10 @@ namespace eval ::xowiki {
     if {![::xotcl::Object isobject ::$folder_id]} {
       set item_id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
       if {$item_id != 0} {
-	my log "--f fetch folder object"
-	set o [::xowiki::Object create ::$folder_id]
-	::xowiki::Object fetch_object -object $o -item_id $item_id
+	#my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
+	set o [::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id]
       } else {
-	my log "--f save new folder object"
+	#my log "--f save new folder object"
 	set o [::xowiki::Object create ::$folder_id]
 	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
 	$o set parent_id $folder_id
@@ -550,10 +549,10 @@ namespace eval ::xowiki {
       }
       #$o proc destroy {} {my log "--f "; next}
       $o set package_id $package_id
-      my log "--f exists $o -> [::xotcl::Object isobject $o]"
+      #my log "--f package_id set, exists $o -> [::xotcl::Object isobject $o]"
       uplevel #0 [list $o volatile]
     } else {
-      my log "--f reuse folder object $folder_id"; # [::Serializer deepSerialize ::$folder_id]
+      #my log "--f reuse folder object $folder_id [::Serializer deepSerialize ::$folder_id]"
     }
   }
 
@@ -807,7 +806,7 @@ namespace eval ::xowiki {
 
   Page instproc render {-update_references:switch} {
     my instvar item_id references lang render_adp unresolved_references parent_id
-    my log "-- my class=[my info class]"
+    #my log "-- my class=[my info class]"
 
     set package_id [$parent_id set package_id]
     Page set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
@@ -833,7 +832,7 @@ namespace eval ::xowiki {
   #
 
   PlainPage instproc get_content {} {
-    my log "-- my class=[my info class]"
+    #my log "-- my class=[my info class]"
     return [my substitute_markup [my set text]]
   }
 
