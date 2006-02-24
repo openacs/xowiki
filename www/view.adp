@@ -49,7 +49,7 @@ var http = getHttpObject();
 </script>
 
 <style type='text/css'>
-#wikicmds {position: relative;top: -50px;  right: 0px; height: 0px;
+#wikicmds {position: relative;top: -80px;  right: 0px; height: 0px;
 	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
 #wikicmds a, #wikicmds a:visited { color: #7A7A78; text-decoration: none;}
 #wikicmds a:hover {text-decoration: underline;}

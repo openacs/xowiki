@@ -26,9 +26,21 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
   set page [CrItem instantiate -item_id $item_id]     ;# no revision_id yet
   set folder_id   [$page set parent_id]
   set object_type [$page info class]
-  ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
+  if {$object_type eq "::xowiki::Object" && [$page set title] eq "::$folder_id"} {
+    # if we edit the folder object, we have to do some extra magic here, since 
+    # the folder object has slightly different naming conventions.
+    if {[info command ::$folder_id] eq ""} {
+      ns_cache flush xotcl_object_cache $page
+      $page move ::$folder_id
+    }
+    set page ::$folder_id
+    $page set package_id [ad_conn package_id]
+  } else {
+    $page volatile
+    ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
+  }
 } else {
-  set page [$object_type new]
+  set page [$object_type new -volatile]
   set folder_id [::xowiki::Page require_folder -name xowiki]
   $page set parent_id $folder_id
 }

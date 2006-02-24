@@ -51,8 +51,7 @@ ad_proc -private ::xowiki::url { revision_id } {
   set page [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
   $page volatile
   set folder_id [$page set parent_id]
-  set pid [db_string get_package_id \
-	       "select package_id from acs_objects where object_id = $folder_id"]
+  set pid [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
   if {$pid > 0} {
     return "[site_node::get_url_from_object_id -object_id $pid]pages/[ad_urlencode [$page set title]]"
   } else {
