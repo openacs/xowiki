@@ -111,6 +111,7 @@ namespace eval ::xowiki {
   }
   Chat proc login {-chat_id -package_id} {
     auth::require_login
+    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
     if {![info exists package_id]} {set package_id [ad_conn package_id] }
     if {![info exists chat_id]}    {set chat_id $package_id }
 

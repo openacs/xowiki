@@ -347,7 +347,7 @@ namespace eval ::xowiki {
   ObjectForm instproc init {} {
     my instvar data
     if {[$data exists title]} {
-      # don't call vaidate on the folder object, don't let people change its name
+      # don't call validate on the folder object, don't let people change its name
       set title [$data set title]
       if {$title eq "::[$data set parent_id]"} {
 	my f.title  {title:text(inform) {label #xowiki.name#}}
@@ -499,6 +499,19 @@ namespace eval ::xowiki {
  
 
 namespace eval ::xowiki {
+  Page proc requireCSS name {set ::need_css($name) 1}
+  Page proc requireJS  name {set ::need_js($name)  1}
+  Page proc header_stuff {} {
+    set result ""
+    foreach file [array names ::need_css] {
+      append result "<link rel='stylesheet' href='$file' media='all'>\n"
+    }
+    foreach file [array names ::need_js]  {
+      append result "<script language='javascript' src='$file' type='text/javascript'>" \
+	  "</script>"
+    }
+    return $result
+  }
 
   Page instproc get_name {uid} {
     if {$uid ne "" && $uid != 0} {
@@ -534,11 +547,14 @@ namespace eval ::xowiki {
   } {
   } {
     if {![::xotcl::Object isobject ::$folder_id]} {
-      set item_id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
+      set item_id [ns_cache eval xotcl_object_type_cache item-of-$folder_id {
+	set item_id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
+      }]
       if {$item_id != 0} {
 	#my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
 	set o [::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id]
       } else {
+	ns_cache flush xotcl_object_type_cache item-of-$folder_id
 	#my log "--f save new folder object"
 	set o [::xowiki::Object create ::$folder_id]
 	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"

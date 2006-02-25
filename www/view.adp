@@ -1,52 +1,7 @@
 <master>
   <property name="title">@page_title;noquote@</property>
   <property name="context">@context;noquote@</property>
-  <property name="focus">note.title</property>
-
-<!-- we should load extra style files optional -->
-<style type="text/css" media="all">
-<!--    @import "/resources/calendar/calendar.css"; -->
-</style> 
-
-<script type="text/javascript" language="javascript">
-
-function getHttpObject() {
-     var http_request = false;
-     if (window.XMLHttpRequest) { // Mozilla, Safari,...
-         http_request = new XMLHttpRequest();
-         if (http_request.overrideMimeType) {
-              http_request.overrideMimeType('text/xml');
-         }
-     } else if (window.ActiveXObject) { // IE
-         try {
-             http_request = new ActiveXObject("Msxml2.XMLHTTP");
-         } catch (e) {
-             try {
-                 http_request = new ActiveXObject("Microsoft.XMLHTTP");
-             } catch (e) {}
-         }
-     }
-
-     if (!http_request) {
-         alert('Cannot create and instance of XMLHTTP');
-     }
-   return http_request;
-}
-
-if (typeof DOMParser == "undefined") {
-   DOMParser = function () {}
-	
-   DOMParser.prototype.parseFromString = function (str, contentType) {
-      if (typeof ActiveXObject != "undefined") {
-         var d = new ActiveXObject("MSXML.DomDocument");
-         d.loadXML(str);
-         return d;
-        }
-   }
-}
-
-var http = getHttpObject();
-</script>
+  <property name="header_stuff">@header_stuff;noquote@</property>
 
 <style type='text/css'>
 #wikicmds {position: relative;top: -80px;  right: 0px; height: 0px;
@@ -108,10 +63,21 @@ img.found {border: 0; height: 12px}
 img.undefined {border: 10; color: yellow; height: 12px}
 #left-col   {float: left;    width: 40%; top: 0px;}
 #right-col {float: right; width: 59%;  top: 0px;}
-#left-col30   {float: left;    width: 30%; top: 0px; margin-right: 10px;}
-#left-col25   {float: left;    width: 25%; top: 0px; margin-right: 10px;}
+
+#left-col20   {float: left;    width: 14%; top: 0px; margin-right: 10px;}
+#left-col25   {float: left;    width: 24%; top: 0px; margin-right: 10px;}
+#left-col30   {float: left;    width: 29%; top: 0px; margin-right: 10px;}
+#left-col70 {float: left; width: 69%; top: 0px;}
+#left-col75 {float: left; width: 74%; top: 0px;}
+#left-col80 {float: left; width: 79%; top: 0px;}
+
+#right-col20   {float: right;    width: 14%; top: 0px; margin-right: 10px;}
+#right-col25   {float: right;    width: 24%; top: 0px; margin-right: 10px;}
+#right-col30   {float: right;    width: 29%; top: 0px; margin-right: 10px;}
 #right-col70 {float: right; width: 69%; top: 0px;}
-#right-col25 {float: right; width: 25%; top: 0px;}
+#right-col75 {float: right; width: 74%; top: 0px;}
+#right-col80 {float: right; width: 79%; top: 0px;}
+
 #messages .timestamp {font-size: 80%; color: grey}
 #messages .user {font-size: 80%; font-weight: bold; color: grey}
 #messages .message {vertical-align: top}
@@ -129,8 +95,7 @@ img.undefined {border: 10; color: yellow; height: 12px}
 
 @content;noquote@
 <div style="clear: both; text-align: left; font-size: 85%;">
-<p/>&nbsp;<hr>
-#xowiki.references_label# @references;noquote@
+<p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
 @lang_links;noquote@</div><br>
 @gc_comments;noquote@
 <if @gc_comments@ not nil>

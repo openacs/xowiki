@@ -5,6 +5,8 @@
 # valid parameters from the include are 
 #     max_entries: show given number of new entries
 
+::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+
 if {![info exists max_entries]} {set max_entries 20}
 
 # get the folder id from the including page
