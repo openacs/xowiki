@@ -88,7 +88,6 @@ namespace eval ::xowiki {
 
 if {![db_0or1row check-xowiki-table \
 	  "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
-  ns_log notice "xowiki create"
   db_dml create-xowiki-table "create table xowiki_references(
 	reference integer references cr_items(item_id) on delete cascade, 
         link_type text,

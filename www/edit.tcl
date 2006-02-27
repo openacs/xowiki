@@ -29,12 +29,12 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
   if {$object_type eq "::xowiki::Object" && [$page set title] eq "::$folder_id"} {
     # if we edit the folder object, we have to do some extra magic here, since 
     # the folder object has slightly different naming conventions.
-    if {[info command ::$folder_id] eq ""} {
-      ns_cache flush xotcl_object_cache $page
-      $page move ::$folder_id
-    }
+    #ns_log notice "--editing folder object ::$folder_id"
+    ns_cache flush xotcl_object_cache $page
+    $page move ::$folder_id
     set page ::$folder_id
     $page set package_id [ad_conn package_id]
+    #ns_log notice "--move page=$page"
   } else {
     $page volatile
     ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
