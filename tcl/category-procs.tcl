@@ -10,11 +10,15 @@ namespace eval ::xowiki {
     set catobj [self]::$category_id
     if {![my isobject $catobj]} {
       ::xo::OrderedComposite create $catobj
+      $catobj orderby page_title
       $catobj set pos $pos
       $catobj set open_requests 0
       my add $catobj
     }
-    if {$open_item} {$catobj incr open_requests}
+    if {$open_item} {
+      $catobj incr open_requests
+      $itemobj set open_item 1
+    }
     $catobj add $itemobj
   }
 
@@ -23,10 +27,11 @@ namespace eval ::xowiki {
     foreach c [my children] {
       set cat_content ""
       foreach i [$c children] {
-	$i instvar title page_title prefix
-	append cat_content $prefix " <a href='" \
+	$i instvar title page_title prefix open_item
+	set openProps [expr {[info exists open_item] ? [list <b> </b>] : {}}]
+	append cat_content [lindex $openProps 0] $prefix " <a href='" \
 	    [::xowiki::Page pretty_link $title] \
-	    "'>$page_title</a><br>\n"
+	    "'>$page_title</a>" [lindex $openProps 1] "<br>\n"
       }
       append content "<h3>[category::get_name [namespace tail $c]]</h3><blockquote>" \
 	  $cat_content "</blockquote>\n"
@@ -41,9 +46,11 @@ namespace eval ::xowiki {
     foreach c [my children] {
       set cat_content ""
       foreach i [$c children] {
-	$i instvar title page_title prefix
+	$i instvar title page_title prefix open_item
+	set openProps [expr {[info exists open_item] ? [list <b> </b>] : {}}]
 	append cat_content "<li style='padding-left: -0px; list-style: none;'>" \
-	    $prefix "<a href='[::xowiki::Page pretty_link $title]'>$page_title</a></li>\n"
+	    [lindex $openProps 0] $prefix "<a href='[::xowiki::Page pretty_link $title]'>$page_title</a>" \
+	    [lindex $openProps 1] "</li>\n"
       }
       set open_state [expr {[$c set open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
       append content "<li $open_state>[category::get_name [namespace tail $c]]" \
