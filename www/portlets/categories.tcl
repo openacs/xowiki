@@ -34,7 +34,7 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
     set order($category_id) [incr pos]
     lappend categories $category_id
   }
-  set cattree [::xowiki::CatTree new -volatile]
+  set cattree [::xowiki::CatTree new -volatile -order_items_by page_title]
   db_foreach get_pages \
       "select i.item_id, r.title, i.content_type, p.page_title, category_id \
 	 from category_object_map c, cr_items i, cr_revisions r, xowiki_page p \

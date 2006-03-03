@@ -1,5 +1,5 @@
 namespace eval ::xowiki {
-  Class CatTree -superclass ::xo::OrderedComposite 
+  Class CatTree -superclass ::xo::OrderedComposite -parameter order_items_by
 
   CatTree instproc add_to_category {
     -category_id 
@@ -10,7 +10,9 @@ namespace eval ::xowiki {
     set catobj [self]::$category_id
     if {![my isobject $catobj]} {
       ::xo::OrderedComposite create $catobj
-      $catobj orderby page_title
+      if {[my exists order_items_by]} {
+	$catobj orderby [my set order_items_by]
+      }
       $catobj set pos $pos
       $catobj set open_requests 0
       my add $catobj
