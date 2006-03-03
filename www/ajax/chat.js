@@ -40,18 +40,18 @@ function appendToMessages(content) {
     tr = doc.createElement('tr');
     e = items[i].getElementsByTagName('TD');
     td = doc.createElement('td');
-    td.innerHTML = unescape(e[0].firstChild.nodeValue);
+    td.innerHTML = decodeURIComponent(e[0].firstChild.nodeValue);
     td.className = 'timestamp';
     tr.appendChild(td);
 
     td = doc.createElement('td');
     s = e[1].firstChild.nodeValue;
-    td.innerHTML = unescape(e[1].firstChild.nodeValue.replace(/\+/g,' '));
+    td.innerHTML = decodeURIComponent(e[1].firstChild.nodeValue.replace(/\+/g,' '));
     td.className = 'user';
     tr.appendChild(td);
 
     td = doc.createElement('td');
-    td.innerHTML = unescape(e[2].firstChild.nodeValue.replace(/\+/g,' '));
+    td.innerHTML = decodeURIComponent(e[2].firstChild.nodeValue.replace(/\+/g,' '));
     td.className = 'message';
     tr.appendChild(td);
 
@@ -63,7 +63,7 @@ function appendToMessages(content) {
 
 function chatSendMsg(send_url,handler) {
   var msgField = document.getElementById('chatMsg');
-  chatSendCmd(send_url + escape(msgField.value),handler);
+  chatSendCmd(send_url + encodeURIComponent(msgField.value),handler);
   msgField.value = '';
 }
 
