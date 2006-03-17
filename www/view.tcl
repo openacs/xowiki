@@ -45,7 +45,7 @@ if {$master} {
   set new_link  [export_vars -base ${base}edit {object_type}]
   set index_link  [export_vars -base ${base} {}]
 
-  set return_url  [export_vars -base [ad_conn url] item_id]
+  set return_url  [::xowiki::Page pretty_link $title]
   set gc_link     [general_comments_create_link $item_id $return_url]
   set gc_comments [general_comments_get_comments $item_id $return_url]
 

@@ -639,7 +639,7 @@ namespace eval ::xowiki {
   }
   Page set recursion_count 0
   Page array set RE {
-    include {{{(.+)}}[ \n\r]*(<br */*>)?} 
+    include {{{(.+)}}[ \n\r]*} 
     anchor {\\\[\\\[([^\]]+)\\\]\\\]}
     div    { *(<br */*> *)?&gt;&gt;([^&]*)&lt;&lt;}
   }
@@ -669,6 +669,7 @@ namespace eval ::xowiki {
   Page instproc include arg {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
+      set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0] 
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [concat [lindex $adp 1] [list __including_page [self]]]
@@ -765,11 +766,14 @@ namespace eval ::xowiki {
       set source [ad_enhanced_text_to_html $source]
     }
     set content ""
-    foreach l [split [lindex $source 0] \n] {
+    foreach l0 [split [lindex $source 0] \n] {
+      append l $l0
+      if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
       set l [my regsub-eval $RE(include) $l {my include "\1"}]
       set l [my regsub-eval $RE(anchor)  $l {my anchor "\1"}]
       set l [my regsub-eval $RE(div)     $l {my div "\2"}]
       append content $l \n
+      set l ""
     }
     return $content
   }
