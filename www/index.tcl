@@ -69,7 +69,7 @@ TableWidget t1 -volatile \
       ImageField_EditIcon edit -label "" 
       AnchorField title -label [_ xowiki.page_title]
       Field object_type -label [_ xowiki.page_type]
-      ImageField_DeleteIcon delete -label ""
+      ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
     }
 
 set order_clause "order by cr.title"

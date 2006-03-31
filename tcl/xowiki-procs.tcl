@@ -669,6 +669,10 @@ namespace eval ::xowiki {
   Page instproc include arg {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
+      if {[catch {lindex $adp 0}]} {
+	# there is something syntactically wrong
+	return $arg
+      }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0] 
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
