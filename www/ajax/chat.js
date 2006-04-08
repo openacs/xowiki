@@ -1,3 +1,7 @@
+// simple javascript support for polling ajax based chat interface
+// $Id$
+// -gustaf neumann   April 2006
+
 function receiver1() {
   if (http.readyState == 4) {
     // alert('status code =' + http.status);
@@ -23,7 +27,6 @@ function appendToMessages(content) {
   var xmlobject = (new DOMParser()).parseFromString(content, 'application/xhtml+xml');
   var items = xmlobject.getElementsByTagName('TR');
   //alert('found ' + items.length + ' items');
-
   //var counter = document.getElementById('chatCounter');
   //counter.innerHTML = parseInt(counter.innerHTML) + 1;
   //document.getElementById('chatResponse').innerHTML = 'items = ' + items.length + ' l=' + content.length + ' ' + escape(content);

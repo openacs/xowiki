@@ -15,10 +15,12 @@ ad_page_contract {
 ::xowiki::Chat c1 -volatile -chat_id $id -session_id $s
 switch -- $m {
   add_msg {
+    #ns_log notice "--c call c1 $m '$msg'"
     set _ [c1 $m $msg]
-    ns_log notice "--c add_msg returns '$_'"
+    #ns_log notice "--c add_msg returns '$_'"
   }
   login -
+  subscribe -
   get_new -
   get_all {set _ [c1 $m]}
   default {ns_log error "--c unknown method $m called."} 

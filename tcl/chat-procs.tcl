@@ -33,30 +33,47 @@ namespace eval ::xowiki {
 
   Chat proc initialize_nsvs {} {;}      ;# noop
 
-  Chat proc login {-chat_id -package_id} {
+  Chat proc login {-chat_id -package_id -mode} {
+    my log "--"
     auth::require_login
-    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
     if {![info exists package_id]} {set package_id [ad_conn package_id] }
     if {![info exists chat_id]}    {set chat_id $package_id }
-
     set context id=$chat_id&s=[ad_conn session_id].[clock seconds]
-    set path packages/xowiki/www/ajax/chat.js
-    if { ![file exists [acs_root_dir]/$path] } {
-      return -code error "File [acs_root_dir]/$path does not exist"
+    set path    [site_node::get_url_from_object_id -object_id $package_id]
+    
+    if {![info exists mode]} {
+      set mode polling
+      set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+      if {[regexp (firefox|msie) $user_agent] && [info command ::thread::mutex] ne ""} {
+	set mode streaming
+      }
+      my log "--mode $mode, user_agent=$user_agent"
     }
-    set file [open [acs_root_dir]/$path]; set js [read $file]; close $file
-    set location  [util_current_location]
-    set path      [site_node::get_url_from_object_id -object_id $package_id]
-    set login_url $path/ajax/chat?m=login&$context
-    set send_url  $path/ajax/chat?m=add_msg&$context&msg=
-    set get_update  "chatSendCmd(\"$path/ajax/chat?m=get_new&$context\",chatReceiver)"
-    set get_all     "chatSendCmd(\"$path/ajax/chat?m=get_all&$context\",chatReceiver)"
-    return "\
+    
+    if {$mode eq "polling"} {
+      ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+      set jspath packages/xowiki/www/ajax/chat.js
+      set login_url ${path}ajax/chat?m=login&$context
+      set get_update  "chatSendCmd(\"$path/ajax/chat?m=get_new&$context\",chatReceiver)"
+      set get_all     "chatSendCmd(\"$path/ajax/chat?m=get_all&$context\",chatReceiver)"
+    } else {
+      set jspath packages/xowiki/www/ajax/streaming-chat.js
+      set subscribe_url ${path}ajax/chat?m=subscribe&$context
+    }
+    set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
+
+    if { ![file exists [acs_root_dir]/$jspath] } {
+      return -code error "File [acs_root_dir]/$jspath does not exist"
+    }
+    set file [open [acs_root_dir]/$jspath]; set js [read $file]; close $file
+
+    if {$mode eq "polling"} {
+      return "\
       <script type='text/javascript' language='javascript'>
       $js
       setInterval('$get_update',5000)
       </script>
-      <form action='#' onsubmit='chatSendMsg(\"$send_url\", chatReceiver); return false;'>
+      <form action='#' onsubmit='chatSendMsg(\"$send_url\",chatReceiver); return false;'>
       <iframe name='ichat' id='ichat' frameborder='0' src='$login_url'
           style='width:90%;' height='150'>
 
@@ -64,14 +81,27 @@ namespace eval ::xowiki {
       <input type='text' size='40' name='msg' id='chatMsg'>
       </form> 
     "
-  }
-
-  if {0} {
-    Chat c1 -chat_id 222 -session_id 123 -user_id 456
-    set _ ""
-    c1 add_msg "Hello World now"
-    append _ [c1 get_new]
-    
-    ns_return 200 text/html $_
+    } else {
+      return "\
+      <script type='text/javascript' language='javascript'>$js
+      var send_url = \"$send_url\";
+      chatSubscribe(\"$subscribe_url\");
+      </script>
+   <div id='messages' style='margin:1.5em 0 1.5em 0;
+padding:1em 0 1em 1em;
+background-color: #f9f9f9;
+border:1px solid #dedede;
+height: 70px;
+height:150px;
+font-size:.95em;
+line-height:1em;
+color:#333;
+overflow:auto;
+'></div>
+   <form action='#' onsubmit='chatSendMsg(); return false;'>
+   <input type='text' size='40' name='msg' id='chatMsg'>
+"
+    }
   }
 }
+
