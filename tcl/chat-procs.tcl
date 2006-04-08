@@ -44,7 +44,7 @@ namespace eval ::xowiki {
     if {![info exists mode]} {
       set mode polling
       set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
-      if {[regexp (firefox|msie) $user_agent] && [info command ::thread::mutex] ne ""} {
+      if {[regexp (firefox) $user_agent] && [info command ::thread::mutex] ne ""} {
 	set mode streaming
       }
       my log "--mode $mode, user_agent=$user_agent"

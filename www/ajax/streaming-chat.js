@@ -23,7 +23,9 @@ function getHttpObject() {
 }
 
 function getData() {
-  var response = http.responseText.substring(http.last);
+  //alert('access responseText'); // hmm, IE does not allow us to access responstext in state == 3 :(
+  var response = http.responseText.substring(http_last);
+  //alert('access responseText done');
   // we recognize a complete message by a trailing }\n
   if (response.match(/\}[\n ]+$/)) {
     var messages = document.getElementById('messages');
@@ -49,11 +51,12 @@ function getData() {
       messages.appendChild(p);
       messages.scrollTop = messages.scrollHeight;
     }
-    http.last = http.responseText.length;
+    http_last = http.responseText.length;
   }
 }
-	 
+
 var http = getHttpObject();
+var http_last = 0;
 var http_send = getHttpObject();
 
 function chatSendMsg() {
@@ -90,7 +93,7 @@ function chatSubscribe(subscribe_url) {
     }
   };
   http.send(null);
-  http.last = 0;
+  http_last = 0;
 }
 function tell(msg) {
   document.monitor.window.value =  msg;
