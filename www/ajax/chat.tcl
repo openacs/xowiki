@@ -9,10 +9,11 @@ ad_page_contract {
   id
   s
   msg:optional
+  {mode ""}
 }
 
-#ns_log notice "--c m=$m session_id = $s [clock format [lindex [split $s .] 1] -format %H:%M:%S]"
-::xowiki::Chat c1 -volatile -chat_id $id -session_id $s
+#ns_log notice "--c m=$m session_id=$s [clock format [lindex [split $s .] 1] -format %H:%M:%S] mode=$mode" 
+::xowiki::Chat c1 -volatile -chat_id $id -session_id $s -mode $mode
 switch -- $m {
   add_msg {
     #ns_log notice "--c call c1 $m '$msg'"

@@ -39,7 +39,7 @@ function getData() {
       p.appendChild(span);
       
       span = document.createElement('span');
-      span.innerHTML = ' ' + data.messages[i].user + ' ';
+      span.innerHTML = '&nbsp;' + data.messages[i].user + '&nbsp;';
       span.className = 'user';
       p.appendChild(span);
       
