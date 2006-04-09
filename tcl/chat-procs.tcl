@@ -43,8 +43,10 @@ namespace eval ::xowiki {
     
     if {![info exists mode]} {
       set mode polling
-      if {[info command ::thread::mutex] ne ""} {
-	# we seem to have libthread installed, we can use the background delivery thread
+      if {[info command ::thread::mutex] ne "" &&
+	  ![catch {ns_conn contentsentlength}]} {
+	# we seem to have libthread installed, and the patch for obtaining the tcl-stream
+	# from a connection thread, so we can use the background delivery thread;
 	# scripted streaming should work everywhere
 	set mode scripted-streaming
 	if {[regexp (firefox) [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
