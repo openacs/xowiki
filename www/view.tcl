@@ -40,9 +40,10 @@ if {$master} {
   set context [list $page_title]
 
   set base [apm_package_url_from_id [ad_conn package_id]]
-  set rev_link  [export_vars -base ${base}revisions {{page_id $item_id} title}]
-  set edit_link [export_vars -base ${base}edit {item_id}]
-  set new_link  [export_vars -base ${base}edit {object_type}]
+  set rev_link    [export_vars -base ${base}revisions {{page_id $item_id} title}]
+  set edit_link   [export_vars -base ${base}edit {item_id}]
+  set delete_link [export_vars -base ${base}delete {item_id}]
+  set new_link    [export_vars -base ${base}edit {object_type}]
   set index_link  [export_vars -base ${base} {}]
 
   set return_url  [::xowiki::Page pretty_link $title]

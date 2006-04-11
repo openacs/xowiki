@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.21" locale="de_DE" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.23" locale="de_DE" charset="ISO-8859-1">
 
   <msg key="back">Zurück</msg>
   <msg key="content">Inhalt</msg>
+  <msg key="delete">Löschen</msg>
   <msg key="description">Kommentar</msg>
   <msg key="edit">Bearbeiten</msg>
   <msg key="index">Index</msg>
