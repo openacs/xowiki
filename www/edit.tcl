@@ -46,23 +46,17 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
 }
 
 #
-# setting up file selector fs
+# setting up folder id for file selector (use community folder if available)
 #
 set fs_folder_id ""
 if {[info commands dotlrn_fs::get_community_shared_folder] ne ""} {
   set fs_folder_id [dotlrn_fs::get_community_shared_folder \
 			-community_id [dotlrn_community::get_community_id]]
 }
-if {$fs_folder_id ne ""} {
-  set folderspec "folder_id $fs_folder_id"
-} else {
-  set folderspec ""
-}
 
-set form_class [$object_type getFormClass]
-$form_class create ::xowiki::f1 -volatile \
+[$object_type getFormClass] create ::xowiki::f1 -volatile \
     -data $page \
-    -folderspec $folderspec
+    -folderspec [expr {$fs_folder_id ne "" ? "folder_id $fs_folder_id" : ""}]
 #ns_log notice "-- form f1 has class [::xowiki::f1 info class]"
 
 ::xowiki::f1 generate

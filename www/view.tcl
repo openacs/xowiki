@@ -29,6 +29,10 @@ if {![info exists folder_id]} {set folder_id [$page set parent_id]}
 ::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
 
 set content [$page render]
+
+if {[ad_parameter "user_tracking" -package_id [ad_conn package_id]] } {
+  $page record_last_visited
+}
 set references [$page references]
 set header_stuff [::xowiki::Page header_stuff]
 

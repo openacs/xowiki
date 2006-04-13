@@ -86,14 +86,27 @@ namespace eval ::xowiki {
 #     -edit_form ::xowiki::PageInstanceEditForm
  
 
-if {![db_0or1row check-xowiki-table \
+if {![db_0or1row check-xowiki-references-table \
 	  "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
-  db_dml create-xowiki-table "create table xowiki_references(
+  db_dml create-xowiki-references-table "create table xowiki_references(
 	reference integer references cr_items(item_id) on delete cascade, 
         link_type text,
         page      integer references cr_items(item_id) on delete cascade)"
-  db_dml create-xowiki-table \
+  db_dml create-xowiki-references-index \
       "create index xowiki_ref_index ON xowiki_references(reference)"
+}
+if {![db_0or1row check-xowiki-last-visited-table \
+	  "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
+  db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
+	page_id integer references cr_items(item_id) on delete cascade, 
+	package_id integer,
+        user_id integer,
+        count   integer,
+        time    timestamp)"
+  db_dml create-xowiki-last-visited-update-index \
+      "create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
+  db_dml create-xowiki-last-visited-index \
+      "create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
 }
 
 namespace eval ::xowiki {
@@ -204,7 +217,7 @@ namespace eval ::xowiki {
 	    {options {editor xinha plugins {
 	      GetHtml CharacterMap ContextMenu FullScreen
 	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
-	    } height 350px \$::xowiki::folderspec}}
+	    } height 350px}}
 	    {html {rows 15 cols 50 style {width: 100%}}}}
 	}
 	{f.description 
@@ -217,17 +230,29 @@ namespace eval ::xowiki {
 	  {{title {\[::xowiki::validate_title\]} {Item with this name exists already}}}}
 	{with_categories true}
 	{submit_link "view"}
+	{folderspec ""}
       }
 
-  WikiForm instproc folderspec {value} {
-     set ::xowiki::folderspec $value
-  }
   WikiForm instproc mkFields {} {
-    set fields ""
-    foreach field [my field_list] {
-      append fields [list [my set f.$field]] \n
+    set __fields ""
+    foreach __field [my field_list] {
+      set __spec [my set f.$__field]
+      if {[string first "richtext" [lindex $__spec 0]] > -1 
+	  && [my folderspec] ne ""} {
+	# we have a richtext widget. append the folder spec to its options
+	set __newspec [list [lindex $__spec 0]]
+	foreach __e [lrange $__spec 1 end] {
+	  foreach {__name __value} $__e break
+	  if {$__name eq "options"} {eval lappend __value [my folderspec]}
+	  lappend __newspec $__name $__value
+	}
+	my log "--F rewritten spec is '$__newspec'"
+	set __spec $__newspec
+      }
+      #my log "--F field <$__field> = $__spec"
+      append __fields [list $__spec] \n
     }
-    my set fields $fields
+    my set fields $__fields
   }
 
   proc ::xowiki::locales {} {
@@ -283,9 +308,12 @@ namespace eval ::xowiki {
     my instvar data
     if {![my istype PageInstanceForm]} {
       ### danger: update references does an ad_eval, which breaks the  [template::adp_level] 
-      ### ad_form! don't do it here. 
+      ### ad_form! don't do it in pageinstanceforms. 
       $data render_adp false
       $data render -update_references
+    } else {
+      # for the subsequent pretty_link; in the other branch, render sets it up already
+      Page set url_prefix [site_node::get_url_from_object_id -object_id [ad_conn package_id]]
     }
     my set submit_link [::xowiki::Page pretty_link [$data set title]]?
   }
@@ -850,6 +878,24 @@ namespace eval ::xowiki {
     return [expr {$render_adp ? [my adp_subst $content] : $content}]
   }
 
+
+  Page instproc record_last_visited {-user_id} {
+    my instvar parent_id item_id
+    if {![info exists user_id]} {set user_id [ad_conn user_id]}
+    if {$user_id > 0} {
+      # only record information for authenticated users
+      set package_id [$parent_id set package_id]
+      db_dml update_last_visisted \
+	  "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
+	   where page_id = $item_id and user_id = $user_id"
+      if {[db_resultrows] < 1} {
+	db_dml insert_last_visisted \
+	    "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
+    	     values ($item_id, $package_id, $user_id, 1, current_timestamp)"
+      }
+    }
+  }
+
   #
   # Plain Page methods
   #
@@ -872,7 +918,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # Page Instance methods
+  # PageInstance methods
   #
 
   PageInstance instproc get_field_type {name template default_spec} {
