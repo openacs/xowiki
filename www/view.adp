@@ -2,6 +2,9 @@
   <property name="title">@page_title;noquote@</property>
   <property name="context">@context;noquote@</property>
   <property name="header_stuff">@header_stuff;noquote@</property>
+  
+  <!-- The following DIV is needed for overlib to function! -->
+  <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>	
 
 <style type='text/css'>
 #wikicmds {position: relative;top: -80px;  right: 0px; height: 0px;
@@ -98,9 +101,8 @@ img.undefined {border: 10; color: yellow; height: 12px}
 <div style="clear: both; text-align: left; font-size: 85%;">
 <p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
 @lang_links;noquote@</div><br>
-@gc_comments;noquote@
 <if @gc_comments@ not nil>
-   <p>#file-storage.lt_Comments_on_this_file#
+   <p>#general-comments.Add_comment#
    <ul>@gc_comments;noquote@</ul></p>
 </if>
 <if @gc_link@ not nil>

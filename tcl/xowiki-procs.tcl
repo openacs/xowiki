@@ -6,6 +6,7 @@ ad_library {
     @cvs-id $Id$
 }
 
+
 namespace eval ::xowiki {
   ::Generic::CrClass create Page -superclass ::Generic::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
@@ -56,35 +57,9 @@ namespace eval ::xowiki {
 
 }
 
-# the following block is legacy code
-# ::Generic::CrClass create CrWikiPage -superclass ::xowiki::Page \
-#     -pretty_name "Wiki Page" -pretty_plural "Wiki Pages" \
-#     -table_name "generic_cr_wiki_page" -id_column "page_id" \
-#     -form ::xowiki::WikiForm -object_type "CrWikiPage"
-
-# ::Generic::CrClass create CrWikiPlainPage -superclass ::xowiki::PlainPage \
-#     -pretty_name "Plain Wiki Page" -pretty_plural "Plain Wiki Pages" \
-#     -table_name "generic_cr_plain_page" -id_column "ppage_id" \
-#     -form ::xowiki::PlainWikiForm -object_type "CrWikiPlainPage"
-
-# ::Generic::CrClass create PageTemplate -superclass ::xowiki::PageTemplate \
-#     -pretty_name "Page Template" -pretty_plural "Page Templates" \
-#     -table_name "generic_page_template" -id_column "page_template_id" \
-#     -form ::xowiki::WikiForm  -object_type "PageTemplate"
- 
-# ::Generic::CrClass create PageInstance -superclass ::xowiki::PageInstance \
-#     -pretty_name "Page Instance" -pretty_plural "Page Instances" \
-#     -table_name "generic_page_instance" -id_column "page_instance_id" \
-#     -object_type "PageInstance" \
-#     -cr_attributes {
-#       ::Generic::Attribute new -attribute_name page_template -datatype integer \
-# 	  -pretty_name "Page Template"
-#       ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-# 	  -pretty_name "Instance Attributes" 
-#     } \
-#     -form ::xowiki::PageInstanceForm \
-#     -edit_form ::xowiki::PageInstanceEditForm
- 
+#
+# create reference table and table for user tracking
+#
 
 if {![db_0or1row check-xowiki-references-table \
 	  "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
@@ -110,6 +85,10 @@ if {![db_0or1row check-xowiki-last-visited-table \
 }
 
 namespace eval ::xowiki {
+
+  #
+  # upgrade logic
+  #
 
   ad_proc ::xowiki::upgrade_callback {
     {-from_version_name:required}
@@ -199,6 +178,10 @@ namespace eval ::xowiki {
       }
     }
   }
+
+  #
+  # Application specific forms
+  #
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
@@ -311,11 +294,8 @@ namespace eval ::xowiki {
       ### ad_form! don't do it in pageinstanceforms. 
       $data render_adp false
       $data render -update_references
-    } else {
-      # for the subsequent pretty_link; in the other branch, render sets it up already
-      Page set url_prefix [site_node::get_url_from_object_id -object_id [ad_conn package_id]]
     }
-    my set submit_link [::xowiki::Page pretty_link [$data set title]]?
+    my set submit_link [::xowiki::Page pretty_link [$data set title]]
   }
 
   WikiForm instproc new_request {} {
@@ -526,6 +506,7 @@ namespace eval ::xowiki {
  
 
 namespace eval ::xowiki {
+
   Page proc requireCSS name {set ::need_css($name) 1}
   Page proc requireJS  name {set ::need_js($name)  1}
   Page proc header_stuff {} {
@@ -549,15 +530,30 @@ namespace eval ::xowiki {
     }
   }
 
-  Page proc pretty_link {-lang title} {
-    my instvar url_prefix
+  Page proc url_prefix {-package_id} {
+    my instvar url_prefix folder_id
+    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
+    if {![info exists url_prefix($package_id)]} {
+      set url_prefix($package_id) [site_node::get_url_from_object_id -object_id $package_id]
+    }
+    return $url_prefix($package_id)
+  }
+
+  Page proc pretty_link {-lang -package_id title} {
+    my instvar url_prefix folder_id
+    
+    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
+    if {![info exists url_prefix($package_id)]} {
+      set url_prefix($package_id) [site_node::get_url_from_object_id -object_id $package_id]
+    }
+
     if {![info exists lang]} {
       regexp {^(..):(.*)$} $title _ lang title
     }
     if {[info exists lang]} {
-      return ${url_prefix}pages/$lang/[ad_urlencode $title]
+      return $url_prefix($package_id)pages/$lang/[ad_urlencode $title]
     } else {
-      return ${url_prefix}pages/[ad_urlencode $title]
+      return $url_prefix($package_id)pages/[ad_urlencode $title]
     }
   }
 
@@ -570,19 +566,25 @@ namespace eval ::xowiki {
 
   Page ad_proc require_folder_object {
     -folder_id
-    -package_id:required 
+    -package_id:required
+    {-store_folder_id:boolean true}
   } {
   } {
     if {![::xotcl::Object isobject ::$folder_id]} {
-      set item_id [ns_cache eval xotcl_object_type_cache item-of-$folder_id {
-	set item_id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
-      }]
-      if {$item_id != 0} {
+      while {1} {
+	set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
+	  set id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
+	  if {$id == 0} break; # don't cache
+	  return $id
+	}]
+	break
+      }
+      if {$item_id ne ""} {
+	# we have a valid item_id and get the folder object
 	#my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
 	set o [::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id]
       } else {
-	ns_cache flush xotcl_object_type_cache item-of-$folder_id
-	#my log "--f save new folder object"
+	# we have no folder object yet. so we create one...
 	set o [::xowiki::Object create ::$folder_id]
 	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
 	$o set parent_id $folder_id
@@ -592,10 +594,12 @@ namespace eval ::xowiki {
       }
       #$o proc destroy {} {my log "--f "; next}
       $o set package_id $package_id
-      #my log "--f package_id set, exists $o -> [::xotcl::Object isobject $o]"
       uplevel #0 [list $o volatile]
     } else {
       #my log "--f reuse folder object $folder_id [::Serializer deepSerialize ::$folder_id]"
+    }
+    if {$store_folder_id} {
+      Page set folder_id $folder_id
     }
   }
 
@@ -704,7 +708,13 @@ namespace eval ::xowiki {
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0] 
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
-      set adp_args [concat [lindex $adp 1] [list __including_page [self]]]
+      set adp_args [lindex $adp 1]
+      if {[llength $adp_args] % 2 == 1} {
+	return "Error in '$arg'<br/>\n\
+	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
+	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
+      }
+      lappend adp_args __including_page [self]
       return [template::adp_include $adp_fn $adp_args]
     }
   }
@@ -728,66 +738,42 @@ namespace eval ::xowiki {
     regexp {^(.*)[|](.*)$} $arg _ link label
     if {[string match "http*//*" $link]} {
       return "<a class='external' href='$link'>$label</a>"
+    }
+    
+    my instvar parent_id 
+    # do we have a language link (it starts with a ':')
+    if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
+      set link_type language
     } else {
-      set specified_link $link
-      my instvar parent_id 
-      Page instvar url_prefix
-      [my info class]  instvar object_type
-      if {[regexp {^:(..):(.*)$} $link _ lang stripped]} {
-	set lang_item_id [CrItem lookup \
-			      -title $lang:$stripped -parent_id $parent_id]
-	#my log "lang lookup for '$lang:$stripped' returned $lang_item_id"
-	if {$lang_item_id} {
-	  set css_class "found"
-	  set link [Page pretty_link -lang $lang $stripped]
-	  #set link [export_vars -base view {{item_id $lang_item_id}}]
-	} else {
-	  set css_class "undefined"
-	  set last_page_id [my set item_id]
-	  set link [export_vars -base ${url_prefix}edit {object_type {title $lang:$stripped} last_page_id}]
-	}
-	my lappend lang_links \
-	    "<a href='$link'><img class='$css_class' style='height='12' \
-		src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
-	return ""
-      }
-      set link_type link
-      regexp {^([^:]+):([^:]+:.*)$} $link _ link_type link
-      if {[regexp {^(..):(.*)$} $link _ lang stripped_name]} {
-	if {$label eq $arg} {set label $stripped_name}
-	set name $link
-      } {
+      # do we have a typed link?
+      if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ link_type _ lang  stripped_name]} {
+	# must be an untyped link; defaults, in case the second regexp does not match either
+	set lang ""
+	set link_type link
 	set stripped_name $link
-	set name [my lang]:$link
-	set lang [my lang]
-      }
-      set item_id [::Generic::CrItem lookup -title $name -parent_id $parent_id]
-      if {$item_id} {
-	my lappend references [list $item_id $link_type]
-	#set link [export_vars -base view {item_id}]
-	#return "<a href='$link'>$label</a>"
-	return "<a href='[Page pretty_link -lang $lang $stripped_name]'>$label</a>"
-      } else {
-	my incr unresolved_references
-	set link [export_vars -base ${url_prefix}edit {object_type {title $label}}]
-	return "<a href='$link'> \[ </a>$label <a href='$link'> \] </a>" 
+	regexp {^(..):(.+)$} $link _ lang stripped_name
       }
     }
+    if {$lang eq ""} {set lang [my lang]}
+    if {$label eq $arg} {set label $stripped_name}
+    my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
+    Link create [self]::link \
+	-type $link_type -title $lang:$stripped_name -lang $lang \
+	-stripped_name $stripped_name -label $label \
+	-folder_id $parent_id -package_id [$parent_id set package_id]
+    return [[self]::link render]
   }
 
   Page instproc references {} {
     [my info class] instvar table_name 
-    my instvar item_id url_prefix
-    set l [db_list_of_lists references \
-	       "SELECT page,ci.name,link_type from xowiki_references, cr_items ci \
-		       where reference=$item_id and ci.item_id = page"]
+    my instvar item_id
     set refs [list]
-    foreach e $l {
-      #set link [export_vars -base view {{item_id {[lindex $e 0]}}}]
-      set link [lindex $e 1]
-      lappend refs "<a href='[Page pretty_link $link]'>$link</a>"
-    }
-    return [join $refs ", "]
+    db_foreach references "SELECT page,ci.name,link_type,f.package_id \
+	from xowiki_references,cr_items ci,cr_folders f \
+	where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
+	  lappend refs "<a href='[Page pretty_link -package_id $package_id $name]'>$name</a>"
+	}
+    join $refs ", "
   }
 
   Page instproc substitute_markup {source} {
@@ -811,7 +797,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc adp_subst {content} {
-    set __ignorelist [list RE __defaults name_method object_type_key]
+    set __ignorelist [list RE __defaults name_method object_type_key url_prefix]
     foreach __v [my info vars] {
       if {[info exists $__v]} continue
       my instvar $__v
@@ -859,8 +845,6 @@ namespace eval ::xowiki {
     my instvar item_id references lang render_adp unresolved_references parent_id
     #my log "-- my class=[my info class]"
 
-    set package_id [$parent_id set package_id]
-    Page set url_prefix [site_node::get_url_from_object_id -object_id $package_id]
     set title [my set title]
     regexp {^(..):(.*)$} $title _ lang title
     set references [list]
@@ -969,7 +953,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # Methods of the object Object
+  # Methods of ::xowiki::Object
   #
 
   Object instproc get_content {} {
