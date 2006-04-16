@@ -144,9 +144,9 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.21"] == -1 &&
 	[apm_version_names_compare $to_version_name "0.21"] > -1} {
       ns_log notice "-- upgrading to 0.21"
-	db_1row create_att {
-	  select content_type__create_attribute(
-		'::xowiki::Page','page_title','text',
+      db_1row create_att {
+	select content_type__create_attribute(
+ 	        '::xowiki::Page','page_title','text',
                 'Page Title',null,null,null,'text'	)}
         db_1row create_att {
 	  select content_type__create_attribute(
@@ -579,7 +579,7 @@ namespace eval ::xowiki {
 	}]
 	break
       }
-      if {$item_id ne ""} {
+      if {[info exists item_id]} {
 	# we have a valid item_id and get the folder object
 	#my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
 	set o [::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id]

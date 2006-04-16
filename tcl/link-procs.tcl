@@ -18,7 +18,6 @@ namespace eval ::xowiki {
     if {[my isclass $class]} {my class $class}
   }
   Link instproc resolve {} {
-    my log "--LINK "
     ::Generic::CrItem lookup -title [my title] -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
