@@ -710,12 +710,16 @@ namespace eval ::xowiki {
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
-	return "Error in '$arg'<br/>\n\
+	return "Error in '{{$arg}}'<br/>\n\
 	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
 	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
       lappend adp_args __including_page [self]
-      return [template::adp_include $adp_fn $adp_args]
+      if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
+	return "Error during evaluation of '{{$arg}}'<br/>\n\
+	   adp_include returned error message: $errorMsg<br>\n"
+      }
+      return $page
     }
   }
   Page instproc div arg {
