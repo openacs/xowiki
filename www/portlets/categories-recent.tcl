@@ -11,7 +11,7 @@ if {![info exists max_entries]} {set max_entries 10}
 # get the folder id from the including page
 set folder_id    [$__including_page set parent_id]
 set package_id   [$folder_id set package_id]
-set cattree      [::xowiki::CatTree new -volatile]
+set cattree      [::xowiki::CatTree new -volatile -name "categories-recent"]
 
 ## provide also a three level display with tree names?
 
@@ -37,9 +37,16 @@ db_foreach get_pages \
 	" {
 	  if {$page_title eq ""} {set page_title $title}
 	  set itemobj [Object new]
-	  set prefix  $publish_date
-	  foreach var {title page_title prefix} {$itemobj set $var [set $var]}
-	  $cattree add_to_category -category_id $category_id -itemobj $itemobj
+	  set prefix  "$publish_date "
+	  set suffix  ""
+	  foreach var {title page_title prefix suffix} {$itemobj set $var [set $var]}
+	  if {![info exists categories($category_id)]} {
+	    set categories($category_id) [::xowiki::Category new \
+					      -label [category::get_name $category_id]\
+					     -level 1]
+	    $cattree add  $categories($category_id)
+	  }
+	  $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
 	}
 
 set content [$cattree render]

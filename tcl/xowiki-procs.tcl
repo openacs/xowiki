@@ -16,7 +16,7 @@ namespace eval ::xowiki {
 	::Generic::Attribute new -attribute_name page_title -datatype text \
 	    -pretty_name "Page Title"
 	::Generic::Attribute new -attribute_name creator -datatype text \
-	    -pretty_name "Creator" 
+	    -pretty_name "Creator"
       } \
       -form ::xowiki::WikiForm
 
@@ -30,8 +30,8 @@ namespace eval ::xowiki {
   ::Generic::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
-      -form ::xowiki::WikiForm 
-    
+      -form ::xowiki::WikiForm
+
   ::Generic::CrClass create PageInstance -superclass Page \
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
       -table_name "xowiki_page_instance" -id_column "page_instance_id" \
@@ -39,7 +39,7 @@ namespace eval ::xowiki {
 	::Generic::Attribute new -attribute_name page_template -datatype integer \
 	    -pretty_name "Page Template"
 	::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-	    -pretty_name "Instance Attributes" 
+	    -pretty_name "Instance Attributes"
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
@@ -64,7 +64,7 @@ namespace eval ::xowiki {
 if {![db_0or1row check-xowiki-references-table \
 	  "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
   db_dml create-xowiki-references-table "create table xowiki_references(
-	reference integer references cr_items(item_id) on delete cascade, 
+	reference integer references cr_items(item_id) on delete cascade,
         link_type text,
         page      integer references cr_items(item_id) on delete cascade)"
   db_dml create-xowiki-references-index \
@@ -73,7 +73,7 @@ if {![db_0or1row check-xowiki-references-table \
 if {![db_0or1row check-xowiki-last-visited-table \
 	  "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
   db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
-	page_id integer references cr_items(item_id) on delete cascade, 
+	page_id integer references cr_items(item_id) on delete cascade,
 	package_id integer,
         user_id integer,
         count   integer,
@@ -94,12 +94,12 @@ namespace eval ::xowiki {
     {-from_version_name:required}
     {-to_version_name:required}
   } {
-    
-    Callback for upgrading 
+
+    Callback for upgrading
 
     @author Gustaf Neumann (neumann@wu-wien.ac.at)
   } {
-    ns_log notice "-- UPGRADE $from_version_name -> $to_version_name" 
+    ns_log notice "-- UPGRADE $from_version_name -> $to_version_name"
 
     if {$to_version_name eq "0.13"} {
       ns_log notice "-- upgrading to 0.13"
@@ -157,7 +157,7 @@ namespace eval ::xowiki {
       db_1row refresh "select content_type__refresh_view('::xowiki::PageInstance') from dual"
       db_1row refresh "select content_type__refresh_view('::xowiki::Object') from dual"
     }
-    
+
     if {[apm_version_names_compare $from_version_name "0.22"] == -1 &&
 	[apm_version_names_compare $to_version_name "0.22"] > -1} {
       ns_log notice "-- upgrading to 0.22"
@@ -167,7 +167,7 @@ namespace eval ::xowiki {
 	set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
 		where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
 	if {$folder_id ne ""} {
-	  db_dml update_package_id {update cr_folders set package_id = :package_id 
+	  db_dml update_package_id {update cr_folders set package_id = :package_id
 	    where folder_id = :folder_id}
 	  lappend folder_ids $folder_id
 	  lappend package_ids $package_id
@@ -185,31 +185,31 @@ namespace eval ::xowiki {
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-	{field_list {item_id title page_title creator text description nls_language}} 
-	{f.item_id 
+	{field_list {item_id title page_title creator text description nls_language}}
+	{f.item_id
 	  {item_id:key}}
-	{f.title 
+	{f.title
 	  {title:text {label #xowiki.name#} {html {size 80}} }}
 	{f.page_title
 	  {page_title:text {label #xowiki.title#} {html {size 80}} }}
 	{f.creator
 	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
-	{f.text 
-	  {text:richtext(richtext),nospell,optional 
-	    {label #xowiki.content#} 
+	{f.text
+	  {text:richtext(richtext),nospell,optional
+	    {label #xowiki.content#}
 	    {options {editor xinha plugins {
 	      GetHtml CharacterMap ContextMenu FullScreen
 	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
 	    } height 350px}}
 	    {html {rows 15 cols 50 style {width: 100%}}}}
 	}
-	{f.description 
+	{f.description
 	  {description:text,optional {label #xowiki.description#}}
 	}
-	{f.nls_language 
-	  {nls_language:text(select),optional {label Language} 
+	{f.nls_language
+	  {nls_language:text(select),optional {label Language}
 	    {options \[xowiki::locales\]}}}
-	{validate 
+	{validate
 	  {{title {\[::xowiki::validate_title\]} {Item with this name exists already}}}}
 	{with_categories true}
 	{submit_link "view"}
@@ -220,7 +220,7 @@ namespace eval ::xowiki {
     set __fields ""
     foreach __field [my field_list] {
       set __spec [my set f.$__field]
-      if {[string first "richtext" [lindex $__spec 0]] > -1 
+      if {[string first "richtext" [lindex $__spec 0]] > -1
 	  && [my folderspec] ne ""} {
 	# we have a richtext widget. append the folder spec to its options
 	set __newspec [list [lindex $__spec 0]]
@@ -284,14 +284,14 @@ namespace eval ::xowiki {
     my instvar data
     array set __tmp [ns_set array [ns_getform]]
     if {[info exists __tmp(text.format)]} {	
-      $data set mime_type $__tmp(text.format) 
+      $data set mime_type $__tmp(text.format)
     }
   }
   WikiForm instproc update_references {} {
     my instvar data
     if {![my istype PageInstanceForm]} {
-      ### danger: update references does an ad_eval, which breaks the  [template::adp_level] 
-      ### ad_form! don't do it in pageinstanceforms. 
+      ### danger: update references does an ad_eval, which breaks the  [template::adp_level]
+      ### ad_form! don't do it in pageinstanceforms.
       $data render_adp false
       $data render -update_references
     }
@@ -332,9 +332,9 @@ namespace eval ::xowiki {
 
   Class create PlainWikiForm -superclass WikiForm \
       -parameter {
-	{f.text 
-	  {text:text(textarea),nospell,optional 
-	    {label #xowiki.content#} 
+	{f.text
+	  {text:text(textarea),nospell,optional
+	    {label #xowiki.content#}
 	    {html {cols 80 rows 10}}}}
   }
 
@@ -344,9 +344,9 @@ namespace eval ::xowiki {
 
   Class create ObjectForm -superclass PlainWikiForm \
       -parameter {
-	{f.text 
-	  {text:text(textarea),nospell,optional 
-	    {label #xowiki.content#} 
+	{f.text
+	  {text:text(textarea),nospell,optional
+	    {label #xowiki.content#}
 	    {html {cols 80 rows 15}}}}
 	{with_categories  false}
       }
@@ -382,7 +382,7 @@ namespace eval ::xowiki {
 	-privilege "admin"
     next
   }
-      
+
   ObjectForm instproc edit_data {} {
     my instvar data
     $data set_payload [$data set text]
@@ -395,9 +395,9 @@ namespace eval ::xowiki {
 
   Class create PageInstanceForm -superclass WikiForm \
       -parameter {
-	{field_list {item_id title page_template description nls_language}} 
-	{f.page_template 
-	  {page_template:text(select) 
+	{field_list {item_id title page_template description nls_language}}
+	{f.page_template
+	  {page_template:text(select)
 	    {label "Page Template"}
 	    {options \[xowiki::page_templates\]}}
 	}
@@ -407,7 +407,7 @@ namespace eval ::xowiki {
     my instvar folder_id data
     set __vars {folder_id item_id page_template}
     set object_type [[$data info class] object_type]
-    my log "-- data=$data cl=[$data info class] ot=$object_type"    
+    my log "-- data=$data cl=[$data info class] ot=$object_type"
     set item_id [$data set item_id]
     set page_template [ns_set get [ns_getform] page_template]
     my submit_link [export_vars -base edit {folder_id object_type item_id page_template}]
@@ -430,7 +430,7 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
- 	{field_list {item_id title page_title creator page_template description nls_language}} 
+ 	{field_list {item_id title page_title creator page_template description nls_language}}
  	{f.title          {title:text(inform)}}
  	{f.page_template  {page_template:text(hidden)}}
  	{f.nls_language   {nls_language:text(hidden)}}
@@ -441,8 +441,8 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc new_data {} {
     set __vars {folder_id item_id page_template}
     set object_type [[[my set data] info class] object_type]
-    my log "-- cl=[[my set data] info class] ot=$object_type"    
-    foreach __v $__vars {set $__v [ns_queryget $__v]} 
+    my log "-- cl=[[my set data] info class] ot=$object_type"
+    foreach __v $__vars {set $__v [ns_queryget $__v]}
     set item_id [next]
     my submit_link [export_vars -base edit $__vars]
     my log "-- submit_link = [my submit_link]"
@@ -475,7 +475,7 @@ namespace eval ::xowiki {
   }
 
   PageInstanceEditForm instproc init {} {
-    my instvar data page_instance_form_atts 
+    my instvar data page_instance_form_atts
     set item_id [ns_queryget item_id]
     set page_template [ns_queryget page_template]
     if {$page_template eq ""} {
@@ -503,7 +503,7 @@ namespace eval ::xowiki {
   }
 
 }
- 
+
 
 namespace eval ::xowiki {
 
@@ -541,7 +541,7 @@ namespace eval ::xowiki {
 
   Page proc pretty_link {-lang -package_id title} {
     my instvar url_prefix folder_id
-    
+
     if {![info exists package_id]} {set package_id [$folder_id set package_id]}
     if {![info exists url_prefix($package_id)]} {
       set url_prefix($package_id) [site_node::get_url_from_object_id -object_id $package_id]
@@ -620,8 +620,8 @@ namespace eval ::xowiki {
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
       set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
-      if {$item != 0 && $replace} { ;# we delete the original 
-	::Generic::CrItem delete -item_id $item 
+      if {$item != 0 && $replace} { ;# we delete the original
+	::Generic::CrItem delete -item_id $item
 	set item 0
 	incr replaced
       }
@@ -636,7 +636,7 @@ namespace eval ::xowiki {
 	db_transaction {
 	  set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
 	  if {$item != 0 && $replace} { ;# we delete the original
-	    ::Generic::CrItem delete -item_id $item 
+	    ::Generic::CrItem delete -item_id $item
 	    set item 0
 	    incr replaced
 	  }
@@ -661,17 +661,17 @@ namespace eval ::xowiki {
   #
 
   Page parameter {
-    page_id 
+    page_id
     {revision_id 0}
-    object_type 
-    {folder_id -100} 
-    {lang_links ""} 
+    object_type
+    {folder_id -100}
+    {lang_links ""}
     {lang de}
     {render_adp 1}
   }
   Page set recursion_count 0
   Page array set RE {
-    include {{{(.+)}}[ \n\r]*} 
+    include {{{(.+)}}[ \n\r]*}
     anchor {\\\[\\\[([^\]]+)\\\]\\\]}
     div    { *(<br */*> *)?&gt;&gt;([^&]*)&lt;&lt;}
   }
@@ -680,7 +680,7 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PlainPage array set RE {
-    include {{{(.+)}}[ \n\r]} 
+    include {{{(.+)}}[ \n\r]}
     anchor {\\\[\\\[([^\]]+)\\\]\\\]}
     div    {()>>([^<]*)<<}
   }
@@ -706,7 +706,7 @@ namespace eval ::xowiki {
 	return $arg
       }
       set adp [string map {&nbsp; " "} $adp]
-      set adp_fn [lindex $adp 0] 
+      set adp_fn [lindex $adp 0]
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
@@ -739,8 +739,8 @@ namespace eval ::xowiki {
     if {[string match "http*//*" $link]} {
       return "<a class='external' href='$link'>$label</a>"
     }
-    
-    my instvar parent_id 
+
+    my instvar parent_id
     # do we have a language link (it starts with a ':')
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       set link_type language
@@ -765,7 +765,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc references {} {
-    [my info class] instvar table_name 
+    [my info class] instvar table_name
     my instvar item_id
     set refs [list]
     db_foreach references "SELECT page,ci.name,link_type,f.package_id \
@@ -906,7 +906,7 @@ namespace eval ::xowiki {
   #
 
   PageInstance instproc get_field_type {name template default_spec} {
-    # get the widget field specifications from the payload of the folder object 
+    # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
     set spec $default_spec
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
@@ -963,7 +963,7 @@ namespace eval ::xowiki {
       return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
     }
   }
-  
+
   Object instproc initialize_loaded_object {} {
     my set_payload [my set text]
     next

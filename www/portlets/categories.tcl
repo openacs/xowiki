@@ -18,7 +18,6 @@ set open_item_id [expr {[info exists open_page] ?
 
 if {![info exists tree_style]} {set tree_style 1}
 if {![info exists plain_include]} {set plain_include 0}
-set renderer     [expr {$tree_style ? "render-li" : "render"}]
 
 set content ""
 foreach tree [category_tree::get_mapped_trees $package_id] {
@@ -29,12 +28,19 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
   }
   set categories [list]
   set pos 0
-  foreach category [category_tree::get_tree $tree_id] {
-    foreach {category_id category_label deprecated_p level} $category {break}
-    set order($category_id) [incr pos]
+  set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
+  set lastlevel 0
+  foreach category_info [category_tree::get_tree $tree_id] {
+    foreach {category_id category_label deprecated_p level} $category_info {break}
+    set c [::xowiki::Category new -orderby pos -category_id $category_id \
+	       -level $level -label $category_label -pos [incr pos]]
+    set cattree($level) $c
+    set plevel [expr {$level -1}]
+    $cattree($plevel) add $c
+    set category($category_id) $c
     lappend categories $category_id
   }
-  set cattree [::xowiki::CatTree new -volatile -order_items_by page_title]
+
   db_foreach get_pages \
       "select i.item_id, r.title, i.content_type, p.page_title, category_id \
 	 from category_object_map c, cr_items i, cr_revisions r, xowiki_page p \
@@ -47,15 +53,15 @@ foreach tree [category_tree::get_mapped_trees $package_id] {
 	  if {$page_title eq ""} {set page_title $title}
 	  set itemobj [Object new]
 	  set prefix ""
-	  foreach var {title page_title prefix} {$itemobj set $var [set $var]}
-	  $cattree add_to_category \
-	      -category_id $category_id \
+	  set suffix ""
+	  foreach var {title page_title prefix suffix} {$itemobj set $var [set $var]}
+	  $cattree(0) add_to_category \
+	      -category $category($category_id) \
 	      -itemobj $itemobj \
-	      -pos $order($category_id) \
+	      -orderby title \
 	      -open_item [expr {$item_id == $open_item_id}]
 	}
-  $cattree orderby pos
-  append content [$cattree $renderer]
+  append content [$cattree(0) render -tree_style $tree_style]
 }
 
 if {[info exists skin]} {

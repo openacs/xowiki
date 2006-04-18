@@ -46,3 +46,9 @@ db_foreach type_select \
     }
 
 set t1 [t1 asHTML]
+
+# set up categories
+set package_id [ad_conn package_id]
+set category_map_url [export_vars -base \
+	  [site_node::get_package_url -package_key categories]cadmin/one-object \
+			  { { object_id $package_id } }]

@@ -27,7 +27,6 @@ db_foreach get_pages \
 	r.revision_id = p.page_id and x.user_id = $user_id and x.package_id = $package_id
         order by x.time desc limit $max_entries
 	" {
-ns_log notice "-- GOT $page_title"
 	  if {$page_title eq ""} {set page_title $title}
 
 	   t1 add \
