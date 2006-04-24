@@ -31,13 +31,14 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
-      set href [::xowiki::Page pretty_link -package_id [my package_id] -lang [my lang] [my stripped_name]]
+      set href [::xowiki::Page pretty_link -package_id [my package_id] -lang [my lang] \
+		    [my stripped_name]]
       my render_found $href [my label]
     } else {
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
       set title [my label]
-      set href [export_vars -base [Page url_prefix -package_id [my package_id]]edit {object_type title}]
+      set href [export_vars -base [::xowiki::Page url_prefix -package_id [my package_id]]edit {object_type title}]
       my render_not_found $href [my label]
     }
   }
@@ -73,7 +74,7 @@ namespace eval ::xowiki {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
-      set link [export_vars -base [Page url_prefix]edit {object_type title last_page_id}]
+      set link [export_vars -base [::xowiki::Page url_prefix]edit {object_type title last_page_id}]
     }
     $page lappend lang_links \
 	"<a href='$link'><img class='$css_class' style='height='12' \
@@ -88,9 +89,11 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::Link::glossary -superclass ::xowiki::Link
   ::xowiki::Link::glossary instproc resolve {} {
-    # look for a package instance of xowiki, named "glossary"
     [my info parent] instvar parent_id
-    my array set glossary [my lookup_xowiki_package_by_name [my type] [$parent_id set package_id]]
+    # look for a package instance of xowiki, named "glossary" (the type)
+    my array set glossary [my lookup_xowiki_package_by_name [my type] \
+		       [site_node::get_node_id_from_object_id -object_id [my package_id]]]
+
     if {[my exists glossary(folder_id)]} {
       # set correct package id for rendering the link (needed for url_prefix)
       my package_id [my set glossary(package_id)]

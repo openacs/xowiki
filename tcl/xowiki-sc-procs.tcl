@@ -13,33 +13,32 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   returns a datasource for the search package
 } {
-  #ns_log notice "--datasource called with revision_id = $revision_id"
+  ns_log notice "--datasource called with revision_id = $revision_id"
 
   set page [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
   $page volatile
-  set content [expr {[$page set object_type] eq "::xowiki::PlainPage" ?
-		     [$page set text] : [lindex [$page set text] 0]}]
-  $page set unresolved_references 0
-  $page instvar item_id creation_user
-  set content [ad_html_text_convert -from [$page set mime_type] -to text/plain -- $content]
-  if {$creation_user ne ""} {
-    acs_user::get -user_id $creation_user -array user
-    set creator "$user(first_names) $user(last_name)"
-  } else {
-    set creator "nobody"
-  }
-  #ns_log notice "--datasource revid=$revision_id, cru=$creation_user, cr=$creator"
-  # category photos 
-  # link "${full}photo/photo_id=$item_id" 
-  return [list object_id $revision_id title  [$page set title] \
-	      content $content keywords {} \
+
+  # ensure context for dependencies of folder object
+  set folder_id [$page set parent_id]
+  ::xowiki::Page require_folder_object -folder_id $folder_id
+
+  set html [$page render]
+  set text [ad_html_text_convert -from text/html -to text/plain -- $html]
+  
+  ns_log notice "-- INDEXING $revision_id -> $text"
+  #$page set unresolved_references 0
+  $page instvar item_id
+
+  return [list object_id $revision_id title [$page set page_title] \
+	      content $text keywords {} \
 	      storage_type text mime text/plain \
-	      syndication [list link "[ad_url]/o/$item_id" \
-			       description $content \
-			       author $creator \
-			       category "" \
-			       guid "[ad_url]/o/$item_id" \
-			       pubDate [$page set last_modified]] \
+	      syndication [list \
+			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set title]] \
+			description $text \
+			author [$page set creator] \
+			category "" \
+			guid "[ad_url]/o/$item_id" \
+			pubDate [$page set last_modified]] \
 	     ]
 }
 
@@ -53,7 +52,7 @@ ad_proc -private ::xowiki::url { revision_id } {
   set folder_id [$page set parent_id]
   set pid [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
   if {$pid > 0} {
-    return "[site_node::get_url_from_object_id -object_id $pid]pages/[ad_urlencode [$page set title]]"
+    return [::xowiki::Page pretty_link -package_id $package_id [$page set title]]
   } else {
     # cannot determine package_id; one page from the directory should be viewed to update 
     # package id for the content folder...
@@ -87,11 +86,21 @@ ad_proc -private ::xowiki::sc::register_implementations {} {
       contract_name FtsContentProvider
       owner xowiki
     }
+    acs_sc::impl::new_from_spec -spec {
+      name "::xowiki::PageInstance"
+      aliases {
+	datasource ::xowiki::datasource
+	url ::xowiki::url
+      }
+      contract_name FtsContentProvider
+      owner xowiki
+    }
 }
 
 ad_proc -private ::xowiki::sc::unregister_implementations {} {
   acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
   acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PlainPage
+  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PageInstance
 }
 
 

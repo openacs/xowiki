@@ -10,11 +10,25 @@ ad_page_contract {
 } -query {
   object_type:optional
   folder_id:optional
+  reindex:optional
+  rss:optional
 }
 
 set context   [list [list admin Administration] index]
 set supertype ::xowiki::Page
 set query     .?[ns_conn query]
+
+if {[info exists reindex]} {
+  # rebuild fts index and rss content
+  ::xowiki::Page reindex -package_id [ad_conn package_id]
+}
+if {[info exists rss]} {
+  ns_log notice "-- rss=$rss"
+  set cmd [list ::xowiki::Page rss -package_id [ad_conn package_id]]
+  if {[regexp {[^0-9]*([0-9]+)d} $rss _ days]} {lappend cmd -days $days}
+  eval $cmd
+  ad_script_abort
+}
 
 if {![info exists folder_id] && ![info exists object_type]} {
   set folder_id [$supertype require_folder -name xowiki]

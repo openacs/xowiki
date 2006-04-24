@@ -6,8 +6,11 @@ ad_library {
     @cvs-id $Id$
 }
 
-
 namespace eval ::xowiki {
+
+  #
+  # create classes for different kind of pages
+  #
   ::Generic::CrClass create Page -superclass ::Generic::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
       -table_name "xowiki_page" -id_column "page_id" \
@@ -25,7 +28,6 @@ namespace eval ::xowiki {
       -table_name "xowiki_plain_page" -id_column "ppage_id" \
       -mime_type text/plain \
       -form ::xowiki::PlainWikiForm
-
 
   ::Generic::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
@@ -55,37 +57,33 @@ namespace eval ::xowiki {
     next
   }
 
-}
-
-#
-# create reference table and table for user tracking
-#
-
-if {![db_0or1row check-xowiki-references-table \
-	  "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
-  db_dml create-xowiki-references-table "create table xowiki_references(
+  #
+  # create reference table and table for user tracking
+  #
+  
+  if {![db_0or1row check-xowiki-references-table \
+	    "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
+    db_dml create-xowiki-references-table "create table xowiki_references(
 	reference integer references cr_items(item_id) on delete cascade,
         link_type text,
         page      integer references cr_items(item_id) on delete cascade)"
-  db_dml create-xowiki-references-index \
-      "create index xowiki_ref_index ON xowiki_references(reference)"
-}
-if {![db_0or1row check-xowiki-last-visited-table \
-	  "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
-  db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
+    db_dml create-xowiki-references-index \
+	"create index xowiki_ref_index ON xowiki_references(reference)"
+  }
+  if {![db_0or1row check-xowiki-last-visited-table \
+	    "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
+    db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
 	page_id integer references cr_items(item_id) on delete cascade,
 	package_id integer,
         user_id integer,
         count   integer,
         time    timestamp)"
-  db_dml create-xowiki-last-visited-update-index \
-      "create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
-  db_dml create-xowiki-last-visited-index \
-      "create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
-}
-
-namespace eval ::xowiki {
-
+    db_dml create-xowiki-last-visited-update-index \
+	"create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
+    db_dml create-xowiki-last-visited-index \
+	"create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
+  }
+  
   #
   # upgrade logic
   #
@@ -177,335 +175,28 @@ namespace eval ::xowiki {
 	db_dml update_context_ids "update acs_objects set context_id = $p where object_id = $f"
       }
     }
-  }
 
-  #
-  # Application specific forms
-  #
-
-  Class create WikiForm -superclass ::Generic::Form \
-      -parameter {
-	{field_list {item_id title page_title creator text description nls_language}}
-	{f.item_id
-	  {item_id:key}}
-	{f.title
-	  {title:text {label #xowiki.name#} {html {size 80}} }}
-	{f.page_title
-	  {page_title:text {label #xowiki.title#} {html {size 80}} }}
-	{f.creator
-	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
-	{f.text
-	  {text:richtext(richtext),nospell,optional
-	    {label #xowiki.content#}
-	    {options {editor xinha plugins {
-	      GetHtml CharacterMap ContextMenu FullScreen
-	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
-	    } height 350px}}
-	    {html {rows 15 cols 50 style {width: 100%}}}}
+    if {[apm_version_names_compare $from_version_name "0.25"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.25"] > -1} {
+      ns_log notice "-- upgrading to 0.25"
+      acs_sc::impl::new_from_spec -spec {
+	name "::xowiki::PageInstance"
+	aliases {
+	  datasource ::xowiki::datasource
+	  url ::xowiki::url
 	}
-	{f.description
-	  {description:text,optional {label #xowiki.description#}}
-	}
-	{f.nls_language
-	  {nls_language:text(select),optional {label Language}
-	    {options \[xowiki::locales\]}}}
-	{validate
-	  {{title {\[::xowiki::validate_title\]} {Item with this name exists already}}}}
-	{with_categories true}
-	{submit_link "view"}
-	{folderspec ""}
+	contract_name FtsContentProvider
+	owner xowiki
       }
-
-  WikiForm instproc mkFields {} {
-    set __fields ""
-    foreach __field [my field_list] {
-      set __spec [my set f.$__field]
-      if {[string first "richtext" [lindex $__spec 0]] > -1
-	  && [my folderspec] ne ""} {
-	# we have a richtext widget. append the folder spec to its options
-	set __newspec [list [lindex $__spec 0]]
-	foreach __e [lrange $__spec 1 end] {
-	  foreach {__name __value} $__e break
-	  if {$__name eq "options"} {eval lappend __value [my folderspec]}
-	  lappend __newspec $__name $__value
-	}
-	my log "--F rewritten spec is '$__newspec'"
-	set __spec $__newspec
-      }
-      #my log "--F field <$__field> = $__spec"
-      append __fields [list $__spec] \n
-    }
-    my set fields $__fields
-  }
-
-  proc ::xowiki::locales {} {
-    set locales [lang::system::get_locales]
-    set defpos [lsearch $locales [lang::conn::locale]]
-    set locales [linsert [lreplace $locales $defpos $defpos] 0 \
-		     [lang::conn::locale]]
-    foreach l $locales {lappend lpairs [list $l $l]}
-    return $lpairs
-  }
-
-  proc ::xowiki::page_templates {} {
-    ::xowiki::f1 instvar data folder_id  ;# form has to be named ::xowiki::f1
-    # transitional code begin
-    set object_type [[$data info class] object_type]
-    if {[string match "::xowiki::*" $object_type]} {
-      set templateclass ::xowiki::PageTemplate
-    } else {
-      set templateclass ::PageTemplate
-    }
-    # transitional code end
-    set q [$templateclass instance_select_query \
-	       -folder_id $folder_id \
-	       -select_attributes {title}]
-    db_foreach get_page_templates $q {
-      lappend lpairs [list $title $item_id]
-    } if_no_rows {
-      lappend lpairs [list "(No Page Template available)" ""]
-    }
-    return $lpairs
-  }
-
-  proc ::xowiki::validate_title {} {
-    upvar title title nls_language nls_language folder_id folder_id
-    if {![regexp {^..:} $title]} {
-      if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-      set title [string range $nls_language 0 1]:$title
-    }
-    if {[ns_set get [ns_getform] __new_p]} {
-      return [expr {[CrItem lookup -title $title -parent_id $folder_id] == 0}]
-    }
-    return 1
-  }
-
-  WikiForm instproc handle_enhanced_text_from_form {} {
-    my instvar data
-    array set __tmp [ns_set array [ns_getform]]
-    if {[info exists __tmp(text.format)]} {	
-      $data set mime_type $__tmp(text.format)
+#       foreach pkgid [site_node::get_children -package_key xowiki -all \
+# 			 -node_id 0 -element package_id] {
+# 	::xowiki::Page reindex -package_id $pkgid
+#       }
     }
   }
-  WikiForm instproc update_references {} {
-    my instvar data
-    if {![my istype PageInstanceForm]} {
-      ### danger: update references does an ad_eval, which breaks the  [template::adp_level]
-      ### ad_form! don't do it in pageinstanceforms.
-      $data render_adp false
-      $data render -update_references
-    }
-    my set submit_link [::xowiki::Page pretty_link [$data set title]]
-  }
-
-  WikiForm instproc new_request {} {
-    my instvar data
-    $data set creator [$data get_name [ad_conn user_id]]
-    next
-  }
-
-  WikiForm instproc edit_request args {
-    my instvar data
-    if {[$data set creator] eq ""} {
-      $data set creator [$data get_name [ad_conn user_id]]
-    }
-    next
-  }
-
-  WikiForm instproc new_data {} {
-    my handle_enhanced_text_from_form
-    set item_id [next]
-    my update_references
-    return $item_id
-  }
-
-  WikiForm instproc edit_data {} {
-    my handle_enhanced_text_from_form
-    set item_id [next]
-    my update_references
-    return $item_id
-  }
-
   #
-  # PlainWiki Form
+  # Page definitions
   #
-
-  Class create PlainWikiForm -superclass WikiForm \
-      -parameter {
-	{f.text
-	  {text:text(textarea),nospell,optional
-	    {label #xowiki.content#}
-	    {html {cols 80 rows 10}}}}
-  }
-
-  #
-  # Object Form
-  #
-
-  Class create ObjectForm -superclass PlainWikiForm \
-      -parameter {
-	{f.text
-	  {text:text(textarea),nospell,optional
-	    {label #xowiki.content#}
-	    {html {cols 80 rows 15}}}}
-	{with_categories  false}
-      }
-
-  ObjectForm instproc init {} {
-    my instvar data
-    if {[$data exists title]} {
-      # don't call validate on the folder object, don't let people change its name
-      set title [$data set title]
-      if {$title eq "::[$data set parent_id]"} {
-	my f.title  {title:text(inform) {label #xowiki.name#}}
-	my validate {{title {1} {dummy}} }
-	#my log "--e don't validate folder id - parent_id = [$data set parent_id]"
-      }
-    }
-    next
-  }
-
-  ObjectForm instproc new_request {} {
-    my instvar data
-    permission::require_permission \
-	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
-	-privilege "admin"
-    next
-  }
-
-  ObjectForm instproc edit_request {item_id} {
-    my instvar data
-    my log "--e setting f.title"
-    my f.title {{title:text {label #xowiki.name#}}}
-    permission::require_permission \
-	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
-	-privilege "admin"
-    next
-  }
-
-  ObjectForm instproc edit_data {} {
-    my instvar data
-    $data set_payload [$data set text]
-    next
-  }
-
-  #
-  # PageInstance Forms
-  #
-
-  Class create PageInstanceForm -superclass WikiForm \
-      -parameter {
-	{field_list {item_id title page_template description nls_language}}
-	{f.page_template
-	  {page_template:text(select)
-	    {label "Page Template"}
-	    {options \[xowiki::page_templates\]}}
-	}
-	{with_categories  false}
-      }
-  PageInstanceForm instproc set_submit_link_edit {} {
-    my instvar folder_id data
-    set __vars {folder_id item_id page_template}
-    set object_type [[$data info class] object_type]
-    my log "-- data=$data cl=[$data info class] ot=$object_type"
-    set item_id [$data set item_id]
-    set page_template [ns_set get [ns_getform] page_template]
-    my submit_link [export_vars -base edit {folder_id object_type item_id page_template}]
-    my log "-- submit_link = [my submit_link]"
-  }
-  PageInstanceForm instproc new_data {} {
-    my instvar data
-    my log "-- 1 $data, cl=[$data info class] [[$data info class] object_type]"
-    set item_id [next]
-    my log "-- 2 $data, cl=[$data info class] [[$data info class] object_type]"
-    my set_submit_link_edit
-    return $item_id
-  }
-
-  PageInstanceForm instproc edit_data {} {
-    set item_id [next]
-    my log "-- edit_data item_id=$item_id"
-    return $item_id
-  }
-
-  Class create PageInstanceEditForm -superclass WikiForm \
-      -parameter {
- 	{field_list {item_id title page_title creator page_template description nls_language}}
- 	{f.title          {title:text(inform)}}
- 	{f.page_template  {page_template:text(hidden)}}
- 	{f.nls_language   {nls_language:text(hidden)}}
-	{with_categories  true}
-	{textfieldspec    {text(textarea),nospell {html {cols 60 rows 5}}}}
-      }
-
-  PageInstanceEditForm instproc new_data {} {
-    set __vars {folder_id item_id page_template}
-    set object_type [[[my set data] info class] object_type]
-    my log "-- cl=[[my set data] info class] ot=$object_type"
-    foreach __v $__vars {set $__v [ns_queryget $__v]}
-    set item_id [next]
-    my submit_link [export_vars -base edit $__vars]
-    my log "-- submit_link = [my submit_link]"
-    return $item_id
-  }
-
-  PageInstanceEditForm instproc edit_request {item_id} {
-    my log "-- "
-    my instvar page_instance_form_atts data
-    next
-    array set __ia [$data set instance_attributes]
-    foreach var $page_instance_form_atts {
-      if {[info exists __ia($var)]} {my var $var [list $__ia($var)]}
-    }
-  }
-
-
-  PageInstanceEditForm instproc edit_data {} {
-    my log "-- "
-    my instvar page_instance_form_atts data
-    array set __ia [$data set instance_attributes]
-    foreach var $page_instance_form_atts {
-      set __ia($var) [my var $var]
-    }
-    my log "-- set instance_attributes [array get __ia]"
-    $data set instance_attributes [array get __ia]
-    set item_id [next]
-    my log "-- edit_data item_id=$item_id"
-    return $item_id
-  }
-
-  PageInstanceEditForm instproc init {} {
-    my instvar data page_instance_form_atts
-    set item_id [ns_queryget item_id]
-    set page_template [ns_queryget page_template]
-    if {$page_template eq ""} {
-      set page_template [$data set page_template]
-      my log  "-- page_template = $page_template"
-    }
-    my log  "-- calling page_template = $page_template"
-    set template [::Generic::CrItem instantiate -item_id $page_template]
-    $template volatile
-    set dont_edit [concat [[$data info class] edit_atts] [list page_title] \
-		       [::Generic::CrClass set common_query_atts]]
-    set page_instance_form_atts [list]
-    foreach {_1 _2 var} [regexp -all -inline \
-			     [template::adp_variable_regexp] \
-			     [$template set text]] {
-      if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
-    }
-
-    foreach __var $page_instance_form_atts {
-      my lappend field_list $__var
-      my set f.$__var "$__var:[$data get_field_type $__var $template [my textfieldspec]]"
-    }
-    next
-    #my log "--fields = [my fields]"
-  }
-
-}
-
-
-namespace eval ::xowiki {
 
   Page proc requireCSS name {set ::need_css($name) 1}
   Page proc requireJS  name {set ::need_js($name)  1}
@@ -521,6 +212,128 @@ namespace eval ::xowiki {
     return $result
   }
 
+
+  Page ad_proc reindex {-package_id} {
+    reindex all items of a package
+  } {
+    if {![info exists package_id]} {set package_id [ad_conn package_id]}
+    set folder_id  [::xowiki::Page require_folder \
+			-package_id $package_id \
+			-name xowiki]  
+    db_foreach get_pages "select page_id from xowiki_page" {
+      search::queue -object_id $page_id -event DELETE
+      search::queue -object_id $page_id -event INSERT
+    }
+  }
+  
+
+  Page proc rss_head {
+		      -channel_title
+		      -link
+		      -description
+		      {-language en-us}
+		    } {
+    return "<?xml version='1.0' encoding='utf-8'?>
+<rss version='2.0'
+  xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
+  xmlns:dc='http://purl.org/dc/elements/1.1/'>
+<channel>
+  <title>$channel_title</title>
+  <link>$link</link>
+  <description>$description</description>
+  <language>$language</language>
+  <generator>xowiki</generator>"
+  }
+
+  Page proc rss_item {
+		      -creator
+		      -title
+		      -link
+		      -guid
+		      -description
+		      -pubdate
+		    } {
+    append result <item> \n\
+	<dc:creator> $creator </dc:creator> \n\
+	<title> $title </title> \n\
+	<link> $link </link> \n\
+	"<guid isPermaLink='false'>" $guid </guid> \n\
+	<description> $description </description> \n\
+	<pubDate> $pubdate </pubDate> \n\
+	</item> \n
+  }
+  
+  Page proc rss_tail {} {
+    return  "\n</channel>\n</rss>\n"
+  }
+  
+  Page ad_proc rss {
+    -maxentries
+    -days 
+    -package_id
+  } {
+    Report content of xowiki folder in rss 2.0 format. The
+    reporting order is descending by date. The title of the feed
+    is taken from the page_title, the description
+    is taken from the description field of the folder object.
+    
+    @param maxentries maximum number of entries retrieved
+    @param days report entries changed in speficied last days
+    @param package_id to determine the xowiki instance (default from ad_conn)
+    
+  } {
+    if {![info exists package_id]} {set package_id [ad_conn package_id]}
+    # get the folder id from the including page
+    set folder_id [::xowiki::Page require_folder -name xowiki]
+    
+    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
+    set timerange_clause [expr {[info exists days] ? 
+				" and p.last_modified > (now() + interval '$days days ago')" : ""}]
+    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
+    
+    set content [my rss_head \
+		     -channel_title [string map $xmlMap [::$folder_id set page_title ]] \
+		     -description   [string map $xmlMap [::$folder_id set description]] \
+		     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
+		    ]
+    
+    db_foreach get_pages \
+	"select s.body, p.title, p.creator, p.page_title, p.page_id,\
+		p.object_type as content_type, p.last_modified, p.description  \
+	from xowiki_pagex p, syndication s, cr_items i  \
+	where i.parent_id = $folder_id and i.live_revision = s.object_id \
+		and s.object_id = p.page_id $timerange_clause \
+	order by p.last_modified desc $limit_clause \
+	" {
+	  
+	  if {[string match ::* $title]} continue
+	  if {$content_type eq "::xowiki::PageTemplate::"} continue
+
+	  set description [string trim $description]
+	  if {$description eq ""} {set description $body}
+	  regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+	  
+	  if {$page_title eq ""} {set page_title $title}
+	  #append page_title " ($content_type)"
+	  set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+	  append content [my rss_item \
+			      -creator [string map $xmlMap $creator] \
+			      -title [string map $xmlMap $page_title] \
+			      -link [::xowiki::Page pretty_link \
+					 -package_id $package_id \
+					 -fully_qualified true $title] \
+			      -guid [ad_url]/$page_id \
+			      -description [string map $xmlMap $description] \
+			      -pubdate $time \
+			     ]
+	}
+    
+    append content [my rss_tail]
+    set t text/plain
+    set t text/xml
+    ns_return 200 $t $content
+  }
+  
   Page instproc get_name {uid} {
     if {$uid ne "" && $uid != 0} {
       acs_user::get -user_id $uid -array user
@@ -539,7 +352,7 @@ namespace eval ::xowiki {
     return $url_prefix($package_id)
   }
 
-  Page proc pretty_link {-lang -package_id title} {
+  Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id title} {
     my instvar url_prefix folder_id
 
     if {![info exists package_id]} {set package_id [$folder_id set package_id]}
@@ -550,10 +363,11 @@ namespace eval ::xowiki {
     if {![info exists lang]} {
       regexp {^(..):(.*)$} $title _ lang title
     }
+    set host [expr {$fully_qualified ? [ad_url] : ""}]
     if {[info exists lang]} {
-      return $url_prefix($package_id)pages/$lang/[ad_urlencode $title]
+      return $host$url_prefix($package_id)pages/$lang/[ad_urlencode $title]
     } else {
-      return $url_prefix($package_id)pages/[ad_urlencode $title]
+      return $host$url_prefix($package_id)pages/[ad_urlencode $title]
     }
   }
 
@@ -566,7 +380,7 @@ namespace eval ::xowiki {
 
   Page ad_proc require_folder_object {
     -folder_id
-    -package_id:required
+    -package_id
     {-store_folder_id:boolean true}
   } {
   } {
@@ -591,6 +405,11 @@ namespace eval ::xowiki {
 	$o set title ::$folder_id
 	$o save_new
 	$o initialize_loaded_object
+      }
+      if {![info exists package_id]} {
+	# get package_id from folder_id
+	set package_id [db_string get_package_id "select f.package_id from cr_folders f \
+		where $folder_id = f.folder_id"]
       }
       #$o proc destroy {} {my log "--f "; next}
       $o set package_id $package_id
@@ -690,7 +509,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # method definitions
+  # Methods of ::xowiki::Page
   #
 
   Page instproc regsub-eval {re string cmd} {
@@ -760,7 +579,7 @@ namespace eval ::xowiki {
     }
     if {$lang eq ""} {set lang [my lang]}
     if {$label eq $arg} {set label $stripped_name}
-    my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
+    #my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
     Link create [self]::link \
 	-type $link_type -title $lang:$stripped_name -lang $lang \
 	-stripped_name $stripped_name -label $label \
@@ -885,7 +704,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # Plain Page methods
+  # Methods of ::xowiki::PlainPage
   #
 
   PlainPage instproc get_content {} {
@@ -984,4 +803,5 @@ namespace eval ::xowiki {
     if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
     expr {[$payload exists $var] ? [$payload set $var] : ""}
   }
+
 }

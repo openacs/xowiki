@@ -51,10 +51,7 @@ namespace eval ::xowiki {
   Class Category -superclass ::xo::OrderedComposite -parameter {
     level label pos category_id {open_requests 0}
   }
-  Category instproc destroy {} {
-    my log --
-    next
-  }
+  #Category instproc destroy {} {my log --; next}
   Category instproc openTree {} {
     my set open_requests 1
     if {[my exists __parent]} {[my set __parent] openTree}
