@@ -52,6 +52,7 @@ ad_proc -private ::xowiki::url { revision_id } {
   set folder_id [$page set parent_id]
   set pid [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
   if {$pid > 0} {
+    set package_id [$folder_id set package_id]
     return [::xowiki::Page pretty_link -package_id $package_id [$page set title]]
   } else {
     # cannot determine package_id; one page from the directory should be viewed to update 

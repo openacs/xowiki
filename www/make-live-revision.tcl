@@ -5,7 +5,7 @@ ad_page_contract {
   @creation-date Oct 23, 2005
   @cvs-id $Id$
 } {
-  file_id:integer,notnull
+  page_id:integer,notnull
   revision_id:integer,notnull
   title
 }
@@ -13,4 +13,5 @@ ad_page_contract {
 db_exec_plsql make_live {
   select content_item__set_live_revision(:revision_id)
 }
-ad_returnredirect [export_vars -base file {file_id title}]
+ns_cache flush xotcl_object_cache ::$page_id
+ad_returnredirect [export_vars -base revisions {page_id title}]
