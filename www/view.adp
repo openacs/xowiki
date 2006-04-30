@@ -1,12 +1,13 @@
 <master>
   <property name="title">@page_title;noquote@</property>
   <property name="context">@context;noquote@</property>
-  <property name="header_stuff">@header_stuff;noquote@</property>
-  
-  <!-- The following DIV is needed for overlib to function! -->
-  <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>	
-
+  <property name="header_stuff">@header_stuff;noquote@
 <style type='text/css'>
+#at-a-glance :active  {background: #999999;}
+#at-a-glance td.inactive  {color: #999999;}
+#at-a-glance td.active  {color: #003b53;}
+#at-a-glance td.today  {color: #FFFFFF;}
+
 #wikicmds {position: relative;top: -80px;  right: 0px; height: 0px;
 	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
 #wikicmds a, #wikicmds a:visited { color: #7A7A78; text-decoration: none;}
@@ -57,7 +58,7 @@ table, td       {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;
 #page-body h4 {font-size: 10px; margin: 0;}
 #page-body .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 #content .box h2 {border-bottom: 1px solid #a1a5a9; padding: 5px; background: #f2f2f2; margin: 0 -5px 5px -5px; font-size: 12px;}
-#sidebar {float: right; width: 31%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}
+#sidebar {float: right; width: 29%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}
 #sidebar h2 {font-size: 12px; margin: 0;}
 #sidebar h3 {font-size: 11px; margin: 0;}
 #sidebar h4 {font-size: 10px; margin: 0;}
@@ -98,6 +99,10 @@ a:hover.rss {color:#dddddd;}
 a:visited.rss {color: #FFF}
 a:link.rss {color: #FFF}
 </style>
+</property>
+  
+  <!-- The following DIV is needed for overlib to function! -->
+  <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>	
 
 <div id='wikicmds'>
   <if @write_p@ eq 1>

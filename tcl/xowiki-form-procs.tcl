@@ -27,7 +27,7 @@ namespace eval ::xowiki {
 	  {text:richtext(richtext),nospell,optional
 	    {label #xowiki.content#}
 	    {options {editor xinha plugins {
-	      GetHtml CharacterMap ContextMenu FullScreen
+	      GetHtml CharacterMap ContextMenu FullScreen InsertAnchor
 	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
 	    } height 350px}}
 	    {html {rows 15 cols 50 style {width: 100%}}}}

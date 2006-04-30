@@ -16,17 +16,17 @@ namespace eval ::xowiki {
     if {![my isobject $items]} { 
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
-	set direction [expr {$increasing?"increasing":"decreasing"}]
+	set direction [expr {$increasing ? "increasing" : "decreasing"}]
 	$items orderby -order $direction $orderby
       }
     }
     $items add $itemobj
     if {$open_item} {
-      $category openTree
+      $category open_tree
       $itemobj set open_item 1
     }
   }
-  CatTree instproc openTree {} {;}
+  CatTree instproc open_tree {} {;}
 
   CatTree instproc render {{-tree_style:boolean false}} {
     if {$tree_style} {
@@ -49,12 +49,12 @@ namespace eval ::xowiki {
   #
   
   Class Category -superclass ::xo::OrderedComposite -parameter {
-    level label pos category_id {open_requests 0}
+    level label pos category_id {open_requests 0} count {href ""}
   }
   #Category instproc destroy {} {my log --; next}
-  Category instproc openTree {} {
+  Category instproc open_tree {} {
     my set open_requests 1
-    if {[my exists __parent]} {[my set __parent] openTree}
+    if {[my exists __parent]} {[my set __parent] open_tree}
   }
 
   Category instproc render {} {
@@ -67,6 +67,11 @@ namespace eval ::xowiki {
       }
       foreach c [my children] {append cat_content [$c render] \n}
       append content [my render_category -open [expr {[my set open_requests]>0}] $cat_content]
+    } elseif {[my open_requests]>0} {
+      set cat_content ""
+      foreach c [my children] {append cat_content [$c render] \n}
+      append content [my render_category -open true $cat_content]
+
     }
     return $content
   }
@@ -84,7 +89,8 @@ namespace eval ::xowiki {
   }
   Category instproc render_category {{-open:boolean false} cat_content} {
     set open_state [expr {[my set open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
-    return "<li $open_state>[my label]\n <ul>$cat_content</ul>\n"
+    set c [expr {[my exists count] ? "<a href='[my href]'>([my count])</a>" : ""}]
+    return "<li $open_state>[my label] $c\n <ul>$cat_content</ul>\n"
   }
 
   #

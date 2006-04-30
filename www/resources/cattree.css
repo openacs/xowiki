@@ -1,9 +1,9 @@
 /* Put this inside a @media qualifier so Netscape 4 ignores it */
 @media screen { 
     /* Turn off list bullets */
-    ul.mktree  li { list-style: none; } 
+    ul.mktree  li { list-style: none} 
     /* Control how "spaced out" the tree is */
-    ul.mktree, ul.mktree ul , ul.mktree li { margin-left:1px; }
+    ul.mktree, ul.mktree ul , ul.mktree li { margin-left:0px; padding-left: 7px;}
     /* Provide space for our own "bullet" inside the LI */
     ul.mktree  li           .bullet { padding-left: 15px; }
     /* Show "bullets" in the links, depending on the class of the LI that the link's in */

@@ -306,7 +306,7 @@ namespace eval ::xowiki {
 	order by p.last_modified desc $limit_clause \
 	" {
 	  
-	  if {[string match ::* $title]} continue
+	  if {[string match "::*" $title]} continue
 	  if {$content_type eq "::xowiki::PageTemplate::"} continue
 
 	  set description [string trim $description]
@@ -329,7 +329,7 @@ namespace eval ::xowiki {
 	}
     
     append content [my rss_tail]
-    set t text/plain
+    #set t text/plain
     set t text/xml
     ns_return 200 $t $content
   }
@@ -475,6 +475,60 @@ namespace eval ::xowiki {
     append msg "$added objects inserted, $replaced objects replaced<p>"
   }
 
+  Page ad_proc select_query {
+    {-select_attributes ""}
+    {-order_clause ""}
+    {-where_clause ""}
+    {-count:boolean false}
+    {-folder_id}
+    {-page_size 20}
+    {-page_number ""}
+    {-syndication:boolean false}
+    {-extra_where_clause ""}
+    {-extra_from_clause ""}
+  } {
+    returns the SQL-query to select the xowiki pages of the specified folder
+    @select_attributes attributes for the sql query to be retrieved, in addion
+      to ci.item_id acs_objects.object_type, which are always returned
+    @param order_clause clause for ordering the solution set
+    @param where_clause clause for restricting the answer set
+    @param count return the query for counting the solutions
+    @param folder_id parent_id
+    @return sql query
+  } {
+    my instvar object_type_key
+    if {![info exists folder_id]} {my instvar folder_id}
+
+    set attributes [list ci.item_id p.page_id] 
+    foreach a $select_attributes {
+      if {$a eq "title"} {set a p.title}
+      lappend attributes $a
+    }
+    if {$count} {
+      set attribute_selection "count(*)"
+      set order_clause ""      ;# no need to order when we count
+      set page_number  ""      ;# no pagination when count is used
+    } else {
+      set attribute_selection [join $attributes ,]
+    }
+
+    if {$where_clause ne ""} {set where_clause "and $where_clause "}
+#     if {$syndication}        {
+#       append where_clause "and syndication.object_id = p.page_id"
+#       set extra_tables ", syndication "
+#     } else {
+#       set extra_tables ""
+#     }
+    if {$page_number ne ""} {
+      set pagination "offset [expr {$page_size*($page_number-1)}] limit $page_size"
+    } else {
+      set pagination ""
+    }
+    return "select $attribute_selection from xowiki_pagei p, cr_items ci $extra_from_clause \
+        where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
+	ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
+  }
+
   #
   # data definitions
   #
@@ -490,18 +544,20 @@ namespace eval ::xowiki {
   }
   Page set recursion_count 0
   Page array set RE {
-    include {{{(.+)}}[ \n\r]*}
-    anchor {\\\[\\\[([^\]]+)\\\]\\\]}
-    div    { *(<br */*> *)?&gt;&gt;([^&]*)&lt;&lt;}
+    include {([^\\]){{(.+)}}[ \n\r]*}
+    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
+    div     {()([^\\])&gt;&gt;([^&]*)&lt;&lt;}
+    clean   {[\\](\{\{|&gt;&gt;|\[\[)}
   }
 
   PlainPage parameter {
     {render_adp 0}
   }
   PlainPage array set RE {
-    include {{{(.+)}}[ \n\r]}
-    anchor {\\\[\\\[([^\]]+)\\\]\\\]}
-    div    {()>>([^<]*)<<}
+    include {([^\\]){{(.+)}}[ \n\r]}
+    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
+    div     {()([^\\])>>([^<]*)<<}
+    clean   {[\\](\{\{|>>|\[\[)}
   }
 
   PageTemplate parameter {
@@ -517,50 +573,54 @@ namespace eval ::xowiki {
 	       "\[$cmd\]"]
   }
 
-  Page instproc include arg {
+  Page instproc include {ch arg} {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
-      if {[catch {lindex $adp 0}]} {
+      if {[catch {lindex $adp 0} errMsg]} {
 	# there is something syntactically wrong
-	return $arg
+	return "${ch}Error in '{{$arg}}' in [my set title]<br/>\n\
+	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
+	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
-	return "Error in '{{$arg}}'<br/>\n\
+	return "${ch}Error in '{{$arg}}'<br/>\n\
 	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
 	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
       lappend adp_args __including_page [self]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
-	return "Error during evaluation of '{{$arg}}'<br/>\n\
+	error "${ch}Error during evaluation of '{{$arg}}' in [my set title]<br/>\n\
 	   adp_include returned error message: $errorMsg<br>\n"
       }
-      return $page
+
+      return $ch$page
     }
   }
-  Page instproc div arg {
+  Page instproc div {ch arg} {
     if {$arg eq "content"} {
-      return "<div id='content' class='column'>"
-    } elseif {[lsearch [list \
-			    left-col  left-col25  left-col30 \
-			    right-col right-col25 right-col30 right-col70] \
-		   $arg] > -1} {
-      return "<div id='$arg' class='column'>"
+      return "$ch<div id='content' class='column'>"
+    } elseif {[string match left-col* $arg] \
+	      || [string match right-col* $arg] \
+	      || $arg eq "sidebar"} {
+      return "$ch<div id='$arg' class='column'>"
     } elseif {$arg eq "box"} {
-      return "<div class='box'>"
+      return "$ch<div class='box'>"
     } elseif {$arg eq ""} {
-      return "</div>"
+      return "$ch</div>"
+    } else {
+      return $ch
     }
   }
-  Page instproc anchor arg {
+  Page instproc anchor {ch arg} {
     set label $arg
     set link $arg
     regexp {^(.*)[|](.*)$} $arg _ link label
     if {[string match "http*//*" $link]} {
-      return "<a class='external' href='$link'>$label</a>"
+      return "$ch<a class='external' href='$link'>$label</a>"
     }
 
     my instvar parent_id
@@ -584,7 +644,7 @@ namespace eval ::xowiki {
 	-type $link_type -title $lang:$stripped_name -lang $lang \
 	-stripped_name $stripped_name -label $label \
 	-folder_id $parent_id -package_id [$parent_id set package_id]
-    return [[self]::link render]
+    return $ch[[self]::link render]
   }
 
   Page instproc references {} {
@@ -607,14 +667,16 @@ namespace eval ::xowiki {
       set source [ad_enhanced_text_to_html $source]
     }
     set content ""
+    set l " "; #use one byte trailer for regexps for escaped content
     foreach l0 [split [lindex $source 0] \n] {
       append l $l0
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
-      set l [my regsub-eval $RE(include) $l {my include "\1"}]
-      set l [my regsub-eval $RE(anchor)  $l {my anchor "\1"}]
-      set l [my regsub-eval $RE(div)     $l {my div "\2"}]
-      append content $l \n
-      set l ""
+      set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
+      set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
+      set l [my regsub-eval $RE(include) $l {my include "\1" "\2"}]
+      regsub -all $RE(clean) $l {\1} l
+      append content [string range $l 1 end] \n
+      set l " "
     }
     return $content
   }
@@ -716,10 +778,12 @@ namespace eval ::xowiki {
     [self class] instvar RE
     set content ""
     foreach l [split $source \n] {
-      set l [my regsub-eval $RE(include) $l {my include "\1"}]
-      set l [my regsub-eval $RE(anchor)  $l {my anchor "\1"}]
-      set l [my regsub-eval $RE(div)     $l {my div "\2"}]
-      append content $l \n
+      set l " $l"
+      set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
+      set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
+      set l [my regsub-eval $RE(include) $l {my include "\1" "\2"}]
+      regsub -all $RE(clean) $l {\1} l
+      append content [string range $l 1 end] \n
     }
     return $content
   }
