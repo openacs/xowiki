@@ -201,10 +201,10 @@ namespace eval ::xowiki {
       db_dml copy_page_title_into_title \
 	  "update cr_revisions set title = p.page_title from xowiki_page p \
 		where page_title != '' and revision_id = p.page_id"
-      db_dml delete_deprecated_types_from_ancient_versions \
+      db_foreach  delete_deprecated_types_from_ancient_versions \
 	"select content_item__delete(i.item_id) from cr_items i \
 		where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
-		'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"
+		'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')" {;}
     }
   }
   #
