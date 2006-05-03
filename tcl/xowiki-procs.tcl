@@ -125,6 +125,7 @@ namespace eval ::xowiki {
 	    $e save
 	    $e class $newClass
 	    $e set title $oldtitle
+	    $e set name $oldtitle
 	    $e save_new
 	  } else {
 	    ns_log notice "-- no new class for $oldClass"
@@ -192,6 +193,18 @@ namespace eval ::xowiki {
 # 			 -node_id 0 -element package_id] {
 # 	::xowiki::Page reindex -package_id $pkgid
 #       }
+    }
+
+    if {[apm_version_names_compare $from_version_name "0.27"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.27"] > -1} {
+      ns_log notice "-- upgrading to 0.27"
+      db_dml copy_page_title_into_title \
+	  "update cr_revisions set title = p.page_title from xowiki_page p \
+		where page_title != '' and revision_id = p.page_id"
+      db_dml delete_deprecated_types_from_ancient_versions \
+	"select content_item__delete(i.item_id) from cr_items i \
+		where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
+		'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"
     }
   }
   #
@@ -274,7 +287,7 @@ namespace eval ::xowiki {
   } {
     Report content of xowiki folder in rss 2.0 format. The
     reporting order is descending by date. The title of the feed
-    is taken from the page_title, the description
+    is taken from the title, the description
     is taken from the description field of the folder object.
     
     @param maxentries maximum number of entries retrieved
@@ -292,13 +305,13 @@ namespace eval ::xowiki {
     set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
     
     set content [my rss_head \
-		     -channel_title [string map $xmlMap [::$folder_id set page_title ]] \
+		     -channel_title [string map $xmlMap [::$folder_id set title ]] \
 		     -description   [string map $xmlMap [::$folder_id set description]] \
 		     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
 		    ]
     
     db_foreach get_pages \
-	"select s.body, p.title, p.creator, p.page_title, p.page_id,\
+	"select s.body, p.name, p.creator, p.title, p.page_id,\
 		p.object_type as content_type, p.last_modified, p.description  \
 	from xowiki_pagex p, syndication s, cr_items i  \
 	where i.parent_id = $folder_id and i.live_revision = s.object_id \
@@ -306,22 +319,22 @@ namespace eval ::xowiki {
 	order by p.last_modified desc $limit_clause \
 	" {
 	  
-	  if {[string match "::*" $title]} continue
+	  if {[string match "::*" $name]} continue
 	  if {$content_type eq "::xowiki::PageTemplate::"} continue
 
 	  set description [string trim $description]
 	  if {$description eq ""} {set description $body}
 	  regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
 	  
-	  if {$page_title eq ""} {set page_title $title}
-	  #append page_title " ($content_type)"
+	  if {$title eq ""} {set title $name}
+	  #append title " ($content_type)"
 	  set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
 	  append content [my rss_item \
 			      -creator [string map $xmlMap $creator] \
-			      -title [string map $xmlMap $page_title] \
+			      -title [string map $xmlMap $title] \
 			      -link [::xowiki::Page pretty_link \
 					 -package_id $package_id \
-					 -fully_qualified true $title] \
+					 -fully_qualified true $name] \
 			      -guid [ad_url]/$page_id \
 			      -description [string map $xmlMap $description] \
 			      -pubdate $time \
@@ -352,7 +365,7 @@ namespace eval ::xowiki {
     return $url_prefix($package_id)
   }
 
-  Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id title} {
+  Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id name} {
     my instvar url_prefix folder_id
 
     if {![info exists package_id]} {set package_id [$folder_id set package_id]}
@@ -361,19 +374,19 @@ namespace eval ::xowiki {
     }
 
     if {![info exists lang]} {
-      regexp {^(..):(.*)$} $title _ lang title
+      regexp {^(..):(.*)$} $name _ lang name
     }
     set host [expr {$fully_qualified ? [ad_url] : ""}]
     if {[info exists lang]} {
-      return $host$url_prefix($package_id)pages/$lang/[ad_urlencode $title]
+      return $host$url_prefix($package_id)pages/$lang/[ad_urlencode $name]
     } else {
-      return $host$url_prefix($package_id)pages/[ad_urlencode $title]
+      return $host$url_prefix($package_id)pages/[ad_urlencode $name]
     }
   }
 
   Page instproc initialize_loaded_object {} {
-    my instvar page_title creator
-    if {[info exists page_title] && $page_title eq ""} {set page_title [my set title]}
+    my instvar title creator
+    if {[info exists title] && $title eq ""} {set title [my set name]}
     #if {$creator eq ""} {set creator [my get_name [my set creation_user]]}
     next
   }
@@ -387,7 +400,7 @@ namespace eval ::xowiki {
     if {![::xotcl::Object isobject ::$folder_id]} {
       while {1} {
 	set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
-	  set id [CrItem lookup -title ::$folder_id -parent_id $folder_id]
+	  set id [CrItem lookup -name ::$folder_id -parent_id $folder_id]
 	  if {$id == 0} break; # don't cache
 	  return $id
 	}]
@@ -402,6 +415,7 @@ namespace eval ::xowiki {
 	set o [::xowiki::Object create ::$folder_id]
 	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
 	$o set parent_id $folder_id
+	$o set name ::$folder_id
 	$o set title ::$folder_id
 	$o save_new
 	$o initialize_loaded_object
@@ -438,7 +452,7 @@ namespace eval ::xowiki {
       $o set creation_user $user_id
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
-      set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
+      set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
       if {$item != 0 && $replace} { ;# we delete the original
 	::Generic::CrItem delete -item_id $item
 	set item 0
@@ -453,7 +467,7 @@ namespace eval ::xowiki {
     foreach o $objects {
       if {[$o istype ::xowiki::PageInstance]} {
 	db_transaction {
-	  set item [CrItem lookup -title [$o set title] -parent_id $folder_id]
+	  set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
 	  if {$item != 0 && $replace} { ;# we delete the original
 	    ::Generic::CrItem delete -item_id $item
 	    set item 0
@@ -462,7 +476,7 @@ namespace eval ::xowiki {
 	  if {$item == 0} {  ;# the item does not exist -> update reference and save
 	    set old_template_id [$o set page_template]
 	    set template [CrItem lookup \
-			      -title [$old_template_id set title] \
+			      -name [$old_template_id set name] \
 			      -parent_id $folder_id]
 	    $o set page_template $template
 	    $o save_new
@@ -499,7 +513,7 @@ namespace eval ::xowiki {
     my instvar object_type_key
     if {![info exists folder_id]} {my instvar folder_id}
 
-    set attributes [list ci.item_id p.page_id] 
+    set attributes [list ci.item_id ci.name p.page_id] 
     foreach a $select_attributes {
       if {$a eq "title"} {set a p.title}
       lappend attributes $a
@@ -578,7 +592,7 @@ namespace eval ::xowiki {
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
 	# there is something syntactically wrong
-	return "${ch}Error in '{{$arg}}' in [my set title]<br/>\n\
+	return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
 	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
 	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
@@ -593,7 +607,7 @@ namespace eval ::xowiki {
       }
       lappend adp_args __including_page [self]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
-	error "${ch}Error during evaluation of '{{$arg}}' in [my set title]<br/>\n\
+	return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
 	   adp_include returned error message: $errorMsg<br>\n"
       }
 
@@ -641,7 +655,7 @@ namespace eval ::xowiki {
     if {$label eq $arg} {set label $stripped_name}
     #my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
     Link create [self]::link \
-	-type $link_type -title $lang:$stripped_name -lang $lang \
+	-type $link_type -name $lang:$stripped_name -lang $lang \
 	-stripped_name $stripped_name -label $label \
 	-folder_id $parent_id -package_id [$parent_id set package_id]
     return $ch[[self]::link render]
@@ -705,7 +719,7 @@ namespace eval ::xowiki {
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
     set template_code [template::adp_compile -string $content]
     if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
-      return "Error in Page $title: $errmsg<br>$content<p>Possible values are$__template_variables__"
+      return "Error in Page $name: $errmsg<br>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }
@@ -730,8 +744,8 @@ namespace eval ::xowiki {
     my instvar item_id references lang render_adp unresolved_references parent_id
     #my log "-- my class=[my info class]"
 
-    set title [my set title]
-    regexp {^(..):(.*)$} $title _ lang title
+    set name [my set name]
+    regexp {^(..):(.*)$} $name _ lang name
     set references [list]
     set unresolved_references 0
     set content [my get_content]
@@ -798,8 +812,8 @@ namespace eval ::xowiki {
     set spec $default_spec
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
-      #ns_log notice "--w T.title = '[$template set title]' var=$name"
-      if {[string match $template_name [$template set title]] &&
+      #ns_log notice "--w T.title = '[$template set name]' var=$name"
+      if {[string match $template_name [$template set name]] &&
 	  [string match $var_name $name]} {
 	set spec $widget
 	#ns_log notice "--w using $widget for $name"

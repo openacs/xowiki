@@ -29,11 +29,11 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #$page set unresolved_references 0
   $page instvar item_id
 
-  return [list object_id $revision_id title [$page set page_title] \
+  return [list object_id $revision_id title [$page set title] \
 	      content $text keywords {} \
 	      storage_type text mime text/plain \
 	      syndication [list \
-			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set title]] \
+			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set name]] \
 			description $text \
 			author [$page set creator] \
 			category "" \
@@ -52,12 +52,12 @@ ad_proc -private ::xowiki::url { revision_id } {
   set folder_id [$page set parent_id]
   set pid [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
   if {$pid > 0} {
-    return [::xowiki::Page pretty_link -package_id $pid [$page set title]]
+    return [::xowiki::Page pretty_link -package_id $pid [$page set name]]
   } else {
     # cannot determine package_id; one page from the directory should be viewed to update 
     # package id for the content folder...
     return "cannot determine package_id, view a page from the folder containing page \
-	[$page set title]"
+	[$page set name]"
   }
 }
 

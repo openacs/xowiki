@@ -38,19 +38,19 @@ set header_stuff [::xowiki::Page header_stuff]
 
 if {[$page exists master] && $master == 1} {set master [$page set master]}
 
-# export page_title, text, and lang_links to current scope
-$page instvar page_title title text lang_links
+# export title, text, and lang_links to current scope
+$page instvar title name text lang_links
 if {$master} {
-  set context [list $page_title]
+  set context [list $title]
 
   set base [apm_package_url_from_id [ad_conn package_id]]
-  set rev_link    [export_vars -base ${base}revisions {{page_id $item_id} title}]
+  set rev_link    [export_vars -base ${base}revisions {{page_id $item_id} name}]
   set edit_link   [export_vars -base ${base}edit {item_id}]
   set delete_link [export_vars -base ${base}delete {item_id}]
   set new_link    [export_vars -base ${base}edit {object_type}]
   set index_link  [export_vars -base ${base} {}]
 
-  set return_url  [::xowiki::Page pretty_link $title]
+  set return_url  [::xowiki::Page pretty_link $name]
   set gc_link     [general_comments_create_link $item_id $return_url]
   set gc_comments [general_comments_get_comments $item_id $return_url]
 
@@ -59,7 +59,7 @@ if {$master} {
     set __including_page $page
     set template_code [template::adp_compile -string $template]
     if {[catch {set content [template::adp_eval template_code]} errmsg]} {
-      set content "Error in Page $title: $errmsg<br>$content"
+      set content "Error in Page $name: $errmsg<br>$content"
     } else {
       ns_return 200 text/html $content
     }

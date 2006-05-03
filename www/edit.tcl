@@ -6,11 +6,11 @@ ad_page_contract {
   @cvs-id $Id$
 
   @param item_id If present, item to be edited
-  @param title Name of the item
+  @param name Name of the item
   @param object_type the source class providing the data source for filling the form
 } -query {
   item_id:integer,optional
-  title:optional
+  name:optional
   last_page_id:integer,optional
   folder_id:integer,optional
   {object_type:optional ::xowiki::Page}
@@ -26,7 +26,7 @@ if {[info exists item_id] && [ns_set get [ns_getform] __new_p] ne "1"} {
   set page [CrItem instantiate -item_id $item_id]     ;# no revision_id yet
   set folder_id   [$page set parent_id]
   set object_type [$page info class]
-  if {$object_type eq "::xowiki::Object" && [$page set title] eq "::$folder_id"} {
+  if {$object_type eq "::xowiki::Object" && [$page set name] eq "::$folder_id"} {
     # if we edit the folder object, we have to do some extra magic here, since 
     # the folder object has slightly different naming conventions.
     #ns_log notice "--editing folder object ::$folder_id"
@@ -63,9 +63,9 @@ if {[info commands dotlrn_fs::get_community_shared_folder] ne ""} {
 ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
 if {[info exists item_id]} {
-  set rev_link [export_vars -base revisions {{page_id $item_id} title}]
+  set rev_link [export_vars -base revisions {{page_id $item_id} name}]
 }
 set view_link  [export_vars -base view {item_id}]
 if {[info exists last_page_id]} {
-  set back_link [export_vars -base view {{item_id $last_page_id} title}]
+  set back_link [export_vars -base view {{item_id $last_page_id} name}]
 }

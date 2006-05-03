@@ -14,13 +14,13 @@ namespace eval ::xowiki {
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-	{field_list {item_id title page_title creator text description nls_language}}
+	{field_list {item_id name title creator text description nls_language}}
 	{f.item_id
 	  {item_id:key}}
+	{f.name
+	  {name:text {label #xowiki.name#} {html {size 80}} }}
 	{f.title
-	  {title:text {label #xowiki.name#} {html {size 80}} }}
-	{f.page_title
-	  {page_title:text {label #xowiki.title#} {html {size 80}} }}
+	  {title:text {label #xowiki.title#} {html {size 80}} }}
 	{f.creator
 	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
 	{f.text
@@ -40,7 +40,8 @@ namespace eval ::xowiki {
 	  {nls_language:text(select),optional {label #xowiki.Language#}
 	    {options \[xowiki::locales\]}}}
 	{validate
-	  {{title {\[::xowiki::validate_title\]} {Item with this name exists already}}}}
+	  {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
+		already in this folder}}}}
 	{with_categories true}
 	{submit_link "view"}
 	{folderspec ""}
@@ -89,23 +90,25 @@ namespace eval ::xowiki {
     # transitional code end
     set q [$templateclass instance_select_query \
 	       -folder_id $folder_id \
-	       -select_attributes {title}]
+	       -select_attributes {name}]
     db_foreach get_page_templates $q {
-      lappend lpairs [list $title $item_id]
+      lappend lpairs [list $name $item_id]
     } if_no_rows {
       lappend lpairs [list "(No Page Template available)" ""]
     }
     return $lpairs
   }
 
-  proc ::xowiki::validate_title {} {
-    upvar title title nls_language nls_language folder_id folder_id
-    if {![regexp {^..:} $title]} {
+  proc ::xowiki::validate_name {} {
+    upvar name name nls_language nls_language folder_id folder_id
+    if {![regexp {^..:} $name]} {
       if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-      set title [string range $nls_language 0 1]:$title
+      set name [string range $nls_language 0 1]:$name
     }
-    if {[ns_set get [ns_getform] __new_p]} {
-      return [expr {[CrItem lookup -title $title -parent_id $folder_id] == 0}]
+    if {[ns_set get [ns_getform] __new_p] 
+	|| [ns_set get [ns_getform] __object_name] ne $name
+      } {
+      return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
     }
     return 1
   }
@@ -127,12 +130,13 @@ namespace eval ::xowiki {
     }
     my set submit_link [::xowiki::Page pretty_link \
 			    -package_id [$data set parent_id] \
-			    [$data set title]]
+			    [$data set name]]
   }
 
   WikiForm instproc new_request {} {
     my instvar data
     $data set creator [$data get_name [ad_conn user_id]]
+    my log "--F setting creator to [$data get_name [ad_conn user_id]]"
     next
   }
 
@@ -185,12 +189,12 @@ namespace eval ::xowiki {
 
   ObjectForm instproc init {} {
     my instvar data
-    if {[$data exists title]} {
+    if {[$data exists name]} {
       # don't call validate on the folder object, don't let people change its name
-      set title [$data set title]
-      if {$title eq "::[$data set parent_id]"} {
-	my f.title  {title:text(inform) {label #xowiki.name#}}
-	my validate {{title {1} {dummy}} }
+      set name [$data set name]
+      if {$name eq "::[$data set parent_id]"} {
+	my f.name  {name:text(inform) {label #xowiki.name#}}
+	my validate {{name {1} {dummy}} }
 	#my log "--e don't validate folder id - parent_id = [$data set parent_id]"
       }
     }
@@ -207,8 +211,8 @@ namespace eval ::xowiki {
 
   ObjectForm instproc edit_request {item_id} {
     my instvar data
-    my log "--e setting f.title"
-    my f.title {{title:text {label #xowiki.name#}}}
+    my log "--e setting f.name"
+    my f.name {{name:text {label #xowiki.name#}}}
     permission::require_permission \
 	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
 	-privilege "admin"
@@ -227,7 +231,7 @@ namespace eval ::xowiki {
 
   Class create PageInstanceForm -superclass WikiForm \
       -parameter {
-	{field_list {item_id title page_template description nls_language}}
+	{field_list {item_id name page_template description nls_language}}
 	{f.page_template
 	  {page_template:text(select)
 	    {label "Page Template"}
@@ -262,8 +266,8 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
- 	{field_list {item_id title page_title creator page_template description nls_language}}
- 	{f.title          {title:text(inform)}}
+ 	{field_list {item_id name title creator page_template description nls_language}}
+ 	{f.name           {name:text(inform)}}
  	{f.page_template  {page_template:text(hidden)}}
  	{f.nls_language   {nls_language:text(hidden)}}
 	{with_categories  true}
@@ -317,7 +321,7 @@ namespace eval ::xowiki {
     my log  "-- calling page_template = $page_template"
     set template [::Generic::CrItem instantiate -item_id $page_template]
     $template volatile
-    set dont_edit [concat [[$data info class] edit_atts] [list page_title] \
+    set dont_edit [concat [[$data info class] edit_atts] [list title] \
 		       [::Generic::CrClass set common_query_atts]]
     set page_instance_form_atts [list]
     foreach {_1 _2 var} [regexp -all -inline \

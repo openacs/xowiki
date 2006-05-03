@@ -61,8 +61,8 @@ namespace eval ::xowiki {
     set content ""
     if {[my isobject [self]::items]} {
       foreach i [[self]::items children] {
-	$i instvar title page_title prefix suffix
-	set entry "$prefix<a href='[::xowiki::Page pretty_link $title]'>$page_title</a>$suffix"
+	$i instvar name title prefix suffix
+	set entry "$prefix<a href='[::xowiki::Page pretty_link $name]'>$title</a>$suffix"
 	append cat_content [my render_item -highlight [$i exists open_item] $entry]
       }
       foreach c [my children] {append cat_content [$c render] \n}

@@ -7,11 +7,11 @@ ad_page_contract {
 } {
   page_id:integer,notnull
   revision_id:integer,notnull
-  title
+  name
 }
 
 db_exec_plsql delete_revision {
   select content_revision__del(:revision_id)
 }
 ns_cache flush xotcl_object_cache ::$page_id
-ad_returnredirect [export_vars -base revisions {page_id title}]
+ad_returnredirect [export_vars -base revisions {page_id name}]

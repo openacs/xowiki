@@ -12,13 +12,13 @@ namespace eval ::xowiki {
   # generic links
   #
 
-  Class create Link -parameter {type title lang stripped_name label folder_id package_id}
+  Class create Link -parameter {type name lang stripped_name label folder_id package_id}
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
   }
   Link instproc resolve {} {
-    ::Generic::CrItem lookup -title [my title] -parent_id [my folder_id]
+    ::Generic::CrItem lookup -name [my name] -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
     return "<a href='$href'>$label</a>"
@@ -37,8 +37,8 @@ namespace eval ::xowiki {
     } else {
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
-      set title [my label]
-      set href [export_vars -base [::xowiki::Page url_prefix -package_id [my package_id]]edit {object_type title}]
+      set name [my label]
+      set href [export_vars -base [::xowiki::Page url_prefix -package_id [my package_id]]edit {object_type name}]
       my render_not_found $href [my label]
     }
   }
@@ -74,7 +74,7 @@ namespace eval ::xowiki {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
-      set link [export_vars -base [::xowiki::Page url_prefix]edit {object_type title last_page_id}]
+      set link [export_vars -base [::xowiki::Page url_prefix]edit {object_type name last_page_id}]
     }
     $page lappend lang_links \
 	"<a href='$link'><img class='$css_class' style='height='12' \
@@ -98,9 +98,9 @@ namespace eval ::xowiki {
       # set correct package id for rendering the link (needed for url_prefix)
       my package_id [my set glossary(package_id)]
       # lookup the item from the found folder
-       return [::Generic::CrItem lookup -title [my title] -parent_id [my set glossary(folder_id)]]
+       return [::Generic::CrItem lookup -name [my name] -parent_id [my set glossary(folder_id)]]
     }
-    my log "--LINK no page found [my title], [my lang], type=[my type]."
+    my log "--LINK no page found [my name], [my lang], type=[my type]."
     return 0
   }
   ::xowiki::Link::glossary instproc render_found {href label} {
@@ -118,7 +118,7 @@ namespace eval ::xowiki {
 
   Class LinkCache
   LinkCache instproc resolve {} {
-    set key link-[my type]-[my title]-[my folder_id]
+    set key link-[my type]-[my name]-[my folder_id]
     while {1} {
       array set r [ns_cache eval xowiki_cache $key {
 	set id [next]

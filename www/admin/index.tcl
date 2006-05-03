@@ -10,7 +10,7 @@ ad_page_contract {
 
 set context [list]
 set supertype ::xowiki::Page
-set page_title "Administer all kind of [$supertype set pretty_plural]"
+set title "Administer all kind of [$supertype set pretty_plural]"
 
 set object_type_key [$supertype set object_type_key]
 set folder_id       [$supertype require_folder -name xowiki]
@@ -37,7 +37,7 @@ db_foreach type_select \
       t1 add \
 	  -object_type $object_type \
 	  -instances [db_list count [$object_type instance_select_query \
-					 -folder_id $folder_id -count 1 -with_subtypes false]] \
+				 -folder_id $folder_id -count 1 -with_subtypes false]] \
 	  -instances.href [export_vars -base ../index {object_type}] \
 	  -edit.href   [export_vars -base ../edit {object_type folder_id}] \
 	  -delete.href [export_vars -base delete-type {object_type}] \

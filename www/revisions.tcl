@@ -6,18 +6,18 @@ ad_page_contract {
   @cvs-id $Id$
 } {
   page_id:integer,notnull
-  {title ""}
+  {name ""}
 } -properties {
-  title:onevalue
+  name:onevalue
   context:onevalue
   page_id:onevalue
   revisions:multirow
   gc_comments:onevalue
 }
 
-set context [list [list [export_vars -base view {{item_id $page_id}}] $title ] \
+set context [list [list [export_vars -base view {{item_id $page_id}}] $name ] \
                  [_ xotcl-core.revisions]]
-set title "[_ xotcl-core.revision_title] '$title'"
+set title "[_ xotcl-core.revision_title] '$name'"
 
 # most things happen in the adp-include file from xotcl-core
 

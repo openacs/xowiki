@@ -10,10 +10,11 @@ namespace eval ::xowiki::tmp {
       } \
       -set nls_language en_US \
       -set mime_type {text/html} \
+      -set name en:ajax-chat \
       -set title en:ajax-chat
 }
 
-set page_title "Import XoWiki Pages"
+set title "Import XoWiki Pages"
 set context {}
 set msg [::xowiki::Page import -objects ::xowiki::tmp::ajax-chat -replace true]
 template::set_file "[file dir $__adp_stub]/../importmsg"

@@ -30,11 +30,14 @@ if {[info exists rss]} {
   ad_script_abort
 }
 
-if {![info exists folder_id] && ![info exists object_type]} {
+if {![info exists folder_id]} {
   set folder_id [$supertype require_folder -name xowiki]
+}
+
+if {![info exists object_type]} {
   set index_page [$folder_id get_payload index_page]
   if {$index_page ne ""} {
-    set item_id [Generic::CrItem lookup -title $index_page -parent_id $folder_id]
+    set item_id [Generic::CrItem lookup -name $index_page -parent_id $folder_id]
     if {$item_id != 0} {
       rp_form_put item_id $item_id
       rp_form_put folder_id $folder_id
@@ -48,16 +51,13 @@ if {![info exists folder_id] && ![info exists object_type]} {
 # otherwise show types and subtypes of $supertype
 if {![info exists object_type]} {
   set object_types [$supertype object_types]
-  set page_title "List of all kind of [$supertype set pretty_plural]"
+  set title "List of all kind of [$supertype set pretty_plural]"
   set with_subtypes true
   set object_type $supertype
 } else {
   set object_types [list $object_type]
-  set page_title "Index of [$object_type set pretty_plural]"
+  set title "Index of [$object_type set pretty_plural]"
   set with_subtypes false
-}
-if {![info exists folder_id]} {
-  set folder_id [$object_type require_folder -name xowiki]
 }
 #ns_log notice "-- folder_id = $folder_id"
 
@@ -81,30 +81,27 @@ TableWidget t1 -volatile \
     -actions $actions \
     -columns {
       ImageField_EditIcon edit -label "" 
-      AnchorField title -label [_ xowiki.page_title]
+      AnchorField name -label [_ xowiki.name]
       Field object_type -label [_ xowiki.page_type]
+      #Field last_modified -label "Last Modified" -orderby last_modified
       ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
     }
 
-set order_clause "order by cr.title"
+set order_clause "order by ci.name"
 # -page_size 10
 # -page_number 1
 db_foreach instance_select \
     [$object_type instance_select_query \
 	 -folder_id $folder_id \
-	 -select_attributes title \
 	 -with_subtypes $with_subtypes \
+	 -select_attributes last_modified \
 	 -order_clause $order_clause \
 	 ] {
-	   if {[regexp {^(..):(.*)$} $title _ lang name]} {
-	     set link pages/$lang/[ad_urlencode $name]
-	   } else {
-	     set link pages/[ad_urlencode $title]
-	   }
+
 	   t1 add \
-	       -title $title \
+	       -name $name \
 	       -object_type $object_type \
-	       -title.href $link \
+	       -name.href [::xowiki::Page pretty_link $name] \
 	       -edit.href [export_vars -base edit {item_id}] \
 	       -delete.href [export_vars -base delete {item_id query}]
   	 }
