@@ -12,12 +12,13 @@
 
 ::xowiki::Page proc __render_html {
   -folder_id 
-  -tree_name
+  {-tree_name ""}
   -tree_style
   -no_tree_name:boolean
   -count:boolean
   {-open_page ""}
 } {
+
   # get the folder id from the including page
   set package_id   [$folder_id set package_id]
   set open_item_id [expr {$open_page ne "" ?
@@ -26,7 +27,7 @@
   set content ""
   foreach tree [category_tree::get_mapped_trees $package_id] {
     foreach {tree_id my_tree_name ...} $tree {break}
-    if {[info exists tree_name] && ![string match $tree_name $my_tree_name]} continue
+    if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
     if {!$no_tree_name} {
       append content "<h3>$my_tree_name</h3>"
     }
