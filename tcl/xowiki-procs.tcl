@@ -594,7 +594,7 @@ namespace eval ::xowiki {
 	# there is something syntactically wrong
 	return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
 	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
+	   Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)"
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
@@ -606,7 +606,10 @@ namespace eval ::xowiki {
 	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
       lappend adp_args __including_page [self]
+      set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
+	# in case of error, reset the adp_level to the previous value
+	set ::template::parse_level $including_page_level 
 	return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
 	   adp_include returned error message: $errorMsg<br>\n"
       }

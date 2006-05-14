@@ -120,7 +120,7 @@ a:link.rss {color: #FFF}
 <p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
 @lang_links;noquote@</div><br>
 <if @gc_comments@ not nil>
-   <p>#general-comments.Add_comment#
+   <p>#general-comments.Comments#
    <ul>@gc_comments;noquote@</ul></p>
 </if>
 <if @gc_link@ not nil>
