@@ -392,7 +392,7 @@ namespace eval ::xowiki {
   }
 
   Page ad_proc require_folder_object {
-    -folder_id
+    -folder_id:required
     -package_id
     {-store_folder_id:boolean true}
   } {
