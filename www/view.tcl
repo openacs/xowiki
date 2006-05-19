@@ -35,6 +35,7 @@ if {[ad_parameter "user_tracking" -package_id [ad_conn package_id]] } {
 }
 set references [$page references]
 set header_stuff [::xowiki::Page header_stuff]
+#ns_log notice "--HEADER-Stuff = <$header_stuff>"
 
 if {[$page exists master] && $master == 1} {set master [$page set master]}
 

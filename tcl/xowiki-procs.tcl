@@ -732,6 +732,21 @@ namespace eval ::xowiki {
     set content [my substitute_markup [my set text]]
   }
 
+  Page instproc get_rich_text_spec {field_name default} {
+    set spec ""
+    foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
+      foreach {page_name var_name} [split $s ,] break
+      #ns_log notice "--w T.name = '[my set name]' var=$page_name, $var_name $field_name []"
+      if {[string match $page_name [my set name]] &&
+	  [string match $var_name $field_name]} {
+	set spec $widget_spec
+	break
+      }
+    }
+    if {$spec eq ""} {return $default}
+    return $field_name:$spec
+  }
+
   Page instproc update_references {page_id references} {
     db_dml delete_references \
 	"delete from xowiki_references where page = $page_id"

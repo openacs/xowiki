@@ -29,7 +29,8 @@ namespace eval ::xowiki {
 	    {options {editor xinha plugins {
 	      GetHtml CharacterMap ContextMenu FullScreen InsertAnchor
 	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
-	    } height 350px}}
+	    } height 350px 
+            }}
 	    {html {rows 15 cols 50 style {width: 100%}}}}
 	}
 	{f.description
@@ -47,21 +48,28 @@ namespace eval ::xowiki {
 	{folderspec ""}
       }
 
+
   WikiForm instproc mkFields {} {
+    my instvar data
     set __fields ""
     foreach __field [my field_list] {
       set __spec [my set f.$__field]
-      if {[string first "richtext" [lindex $__spec 0]] > -1
-	  && [my folderspec] ne ""} {
-	# we have a richtext widget. append the folder spec to its options
-	set __newspec [list [lindex $__spec 0]]
-	foreach __e [lrange $__spec 1 end] {
-	  foreach {__name __value} $__e break
-	  if {$__name eq "options"} {eval lappend __value [my folderspec]}
-	  lappend __newspec $__name $__value
+      if {[string first "richtext" [lindex $__spec 0]] > -1} {
+	# we have a richtext widget; get special configuration is specified
+	set __spec [$data get_rich_text_spec $__field $__spec]
+	if {[my folderspec] ne ""} {
+	  # append the folder spec to its options
+	  set __newspec [list [lindex $__spec 0]]
+	  foreach __e [lrange $__spec 1 end] {
+	    foreach {__name __value} $__e break
+	    if {$__name eq "options"} {eval lappend __value [my folderspec]}
+	    lappend __newspec $__name $__value
+	  }
+	  my log "--F rewritten spec is '$__newspec'"
+	  set __spec $__newspec
 	}
-	my log "--F rewritten spec is '$__newspec'"
-	set __spec $__newspec
+	# ad_form does a subst. escape esp. the javascript stuff
+	set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
       #my log "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
@@ -316,9 +324,9 @@ namespace eval ::xowiki {
     set page_template [ns_queryget page_template]
     if {$page_template eq ""} {
       set page_template [$data set page_template]
-      my log  "-- page_template = $page_template"
+      #my log  "-- page_template = $page_template"
     }
-    my log  "-- calling page_template = $page_template"
+    #my log  "-- calling page_template = $page_template"
     set template [::Generic::CrItem instantiate -item_id $page_template]
     $template volatile
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
