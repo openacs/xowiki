@@ -736,8 +736,10 @@ namespace eval ::xowiki {
     set spec ""
     foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
       foreach {page_name var_name} [split $s ,] break
+      # in case we have no name (edit new page) we use the first value or the default.
+      set name [expr {[my exists name] ? [my set name] : $page_name}]
       #ns_log notice "--w T.name = '[my set name]' var=$page_name, $var_name $field_name []"
-      if {[string match $page_name [my set name]] &&
+      if {[string match $page_name $name] &&
 	  [string match $var_name $field_name]} {
 	set spec $widget_spec
 	break

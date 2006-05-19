@@ -259,16 +259,14 @@ namespace eval ::xowiki {
   }
   PageInstanceForm instproc new_data {} {
     my instvar data
-    my log "-- 1 $data, cl=[$data info class] [[$data info class] object_type]"
     set item_id [next]
-    my log "-- 2 $data, cl=[$data info class] [[$data info class] object_type]"
     my set_submit_link_edit
     return $item_id
   }
 
   PageInstanceForm instproc edit_data {} {
     set item_id [next]
-    my log "-- edit_data item_id=$item_id"
+    #my log "-- edit_data item_id=$item_id"
     return $item_id
   }
 
