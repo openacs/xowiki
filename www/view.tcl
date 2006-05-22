@@ -64,6 +64,10 @@ if {$master} {
     } else {
       ns_return 200 text/html $content
     }
+  } else {
+    # use adp file
+    set template_file [$folder_id get_payload template_file]
+    if {$template_file ne ""} {template::set_file "[file dir $__adp_stub]/$template_file"}
   }
 } else {
   ns_return 200 text/html $content
