@@ -8,8 +8,9 @@
 #at-a-glance td.active  {color: #003b53;}
 #at-a-glance td.today  {color: #FFFFFF;}
 
-#wikicmds {position: relative;top: -80px;  right: 0px; height: 0px;
+#wikicmds {position: relative; top: -24px;  right: 0px; height: 0px;
 	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
+#portal #wikicmds {top: -80px}
 #wikicmds a, #wikicmds a:visited { color: #7A7A78; text-decoration: none;}
 #wikicmds a:hover {text-decoration: underline;}
 #wikicmds a:active {color: rgb(255,153,51);}
