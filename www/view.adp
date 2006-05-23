@@ -10,7 +10,7 @@
 
 #wikicmds {position: relative; top: -24px;  right: 0px; height: 0px;
 	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
-#portal #wikicmds {top: -80px}
+#portal #wikicmds {top: -90px}
 #wikicmds a, #wikicmds a:visited { color: #7A7A78; text-decoration: none;}
 #wikicmds a:hover {text-decoration: underline;}
 #wikicmds a:active {color: rgb(255,153,51);}
@@ -112,6 +112,9 @@ a:link.rss {color: #FFF}
 <!--  <a href="changes?object_type=CrWikiPage&item_id=@item_id@" accesskey='c'> chg</a> &middot; -->
    <a href="@new_link@" accesskey='n'>#xowiki.new#</a> &middot;
    <a href="@delete_link@" accesskey='d'>#xowiki.delete#</a> &middot;
+  </if>
+  <if @admin_p@ eq 1>
+   <a href="@admin_link@" accesskey='a'>#xowiki.admin#</a> &middot;
   </if>
    <a href="@index_link@" accesskey='i'>#xowiki.index#</a> 
 </div>

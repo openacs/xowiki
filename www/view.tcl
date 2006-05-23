@@ -17,8 +17,10 @@ ad_page_contract {
   {master 1}
 }
 
-permission::require_permission -object_id [ad_conn package_id] -privilege "read"
-set write_p [permission::permission_p -object_id [ad_conn package_id] -privilege "write"]
+set package_id [ad_conn package_id]
+permission::require_permission -object_id $package_id -privilege "read"
+set write_p [permission::permission_p -object_id $package_id -privilege "write"]
+set admin_p [permission::permission_p -object_id $package_id -privilege "admin"]
 
 ::xowiki::Page set recursion_count 0
 set page [::Generic::CrItem instantiate \
@@ -26,11 +28,11 @@ set page [::Generic::CrItem instantiate \
 	      -revision_id $revision_id]
 
 if {![info exists folder_id]} {set folder_id [$page set parent_id]}
-::xowiki::Page require_folder_object -folder_id $folder_id -package_id [ad_conn package_id]
+::xowiki::Page require_folder_object -folder_id $folder_id -package_id $package_id
 
 set content [$page render]
 
-if {[ad_parameter "user_tracking" -package_id [ad_conn package_id]] } {
+if {[ad_parameter "user_tracking" -package_id $package_id] } {
   $page record_last_visited
 }
 set references [$page references]
@@ -44,11 +46,12 @@ $page instvar title name text lang_links
 if {$master} {
   set context [list $title]
 
-  set base [apm_package_url_from_id [ad_conn package_id]]
+  set base [apm_package_url_from_id $package_id]
   set rev_link    [export_vars -base ${base}revisions {{page_id $item_id} name}]
   set edit_link   [export_vars -base ${base}edit {item_id}]
   set delete_link [export_vars -base ${base}delete {item_id}]
   set new_link    [export_vars -base ${base}edit {object_type}]
+  set admin_link  [export_vars -base ${base}admin/ {}]
   set index_link  [export_vars -base ${base} {}]
 
   set return_url  [::xowiki::Page pretty_link $name]
