@@ -30,9 +30,7 @@ if {[info exists rss]} {
   ad_script_abort
 }
 
-if {![info exists folder_id]} {
-  set folder_id [$supertype require_folder -name xowiki]
-}
+set folder_id [$supertype require_folder -name xowiki]
 
 if {![info exists object_type]} {
   set index_page [$folder_id get_payload index_page]
