@@ -132,5 +132,6 @@ namespace eval ::xowiki {
     my package_id $r(package_id)
     return $r(item_id)
   }
+
   Link instmixin add LinkCache
 }

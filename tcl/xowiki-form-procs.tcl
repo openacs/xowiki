@@ -136,6 +136,23 @@ namespace eval ::xowiki {
       $data render_adp false
       $data render -update_references
     }
+    #
+    # delete the link cache entries for this item 
+    # could be made more intelligent to delete entries is more rare cases, like
+    # in case the file was renamed
+    my instvar folder_id
+    #ns_log notice "--F folder_id=$folder_id"
+    ##### why is ns_cache names xowiki_cache *pattern*   not working???
+    foreach entry [ns_cache names xowiki_cache] {
+      if {[string match link-*-$folder_id $entry]} {
+	array set tmp [ns_cache get xowiki_cache $entry]
+	#ns_log notice "--F item_id [$data set item_id] tmp(item_id) = $tmp(item_id)"
+	if {$tmp(item_id) == [$data set item_id]} {
+	  ns_cache flush xowiki_cache $entry
+	}
+      }
+    }
+    ### provide a nice link
     my set submit_link [::xowiki::Page pretty_link \
 			    -package_id [$data set parent_id] \
 			    [$data set name]]
