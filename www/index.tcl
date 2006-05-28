@@ -37,8 +37,8 @@ if {![info exists object_type]} {
   if {$index_page ne ""} {
     set item_id [Generic::CrItem lookup -name $index_page -parent_id $folder_id]
     if {$item_id != 0} {
-      rp_form_put item_id $item_id
-      rp_form_put folder_id $folder_id
+      if {[ns_queryget item_id] eq ""} {rp_form_put item_id $item_id}
+      if {[ns_queryget folder_id] eq ""} {rp_form_put folder_id $folder_id}
       rp_internal_redirect "/packages/xowiki/www/view"
       ad_script_abort
     }
