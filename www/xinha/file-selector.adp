@@ -60,6 +60,14 @@ function onPreview(url,mime) {
     }
     return false;
 }
+
+// in order window.focus() does not work here for IE. It is not the best
+// solution, but for the time being, we simply skip it. 
+function myFocus() {
+  if (!window.ActiveXObject) { // no IE
+    window.focus();
+  }
+}
 </script>
 		
 <style type="text/css">
@@ -89,7 +97,8 @@ select, input, button { font: 11px Tahoma,Verdana,sans-serif; }
 </style>
 		
 </head>
-<body onBlur="window.focus();">
+<!-- <body onBlur="window.focus();"> -->
+<body onBlur="myFocus();">
   <div class="title">@HTML_Title@</div>
   <div style="border-bottom:1px solid #000000;font-weight:bold;margin-bottom: 5px;">@HTML_Context@</div>
 
