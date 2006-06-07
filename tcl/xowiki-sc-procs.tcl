@@ -24,6 +24,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   set html [$page render]
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
+  #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
   ns_log notice "-- INDEXING $revision_id -> $text"
   #$page set unresolved_references 0

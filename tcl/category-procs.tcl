@@ -57,6 +57,14 @@ namespace eval ::xowiki {
     if {[my exists __parent]} {[my set __parent] open_tree}
   }
 
+  Category instproc some_child_has_items {} {
+    foreach i [my children] {
+      if {[my isobject ${i}::items]} {return 1}
+      if {[$i some_child_has_items]} {return 1}
+    }
+    return 0
+  }
+
   Category instproc render {} {
     set content ""
     if {[my isobject [self]::items]} {
@@ -67,7 +75,7 @@ namespace eval ::xowiki {
       }
       foreach c [my children] {append cat_content [$c render] \n}
       append content [my render_category -open [expr {[my set open_requests]>0}] $cat_content]
-    } elseif {[my open_requests]>0} {
+    } elseif {[my open_requests]>0 || [my some_child_has_items]} {
       set cat_content ""
       foreach c [my children] {append cat_content [$c render] \n}
       append content [my render_category -open true $cat_content]

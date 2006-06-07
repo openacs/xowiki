@@ -246,6 +246,7 @@ namespace eval ::xowiki {
 		      -description
 		      {-language en-us}
 		    } {
+#<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
     return "<?xml version='1.0' encoding='utf-8'?>
 <rss version='2.0'
   xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
