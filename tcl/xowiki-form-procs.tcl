@@ -113,6 +113,10 @@ namespace eval ::xowiki {
       if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
       set name [string range $nls_language 0 1]:$name
     }
+    set subst_blank_in_name [$folder_id get_payload subst_blank_in_name]
+    if {$subst_blank_in_name == 1} {
+      regsub -all " " $name "_" name
+    }
     if {[ns_set get [ns_getform] __new_p] 
 	|| [ns_set get [ns_getform] __object_name] ne $name
       } {
