@@ -5,6 +5,7 @@
 # valid parameters from the include are 
 #     max_entries: show given number of new entries
 #     user_id
+#     skin: name of adp-file to render content
 
 ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 
@@ -44,4 +45,9 @@ set content [::xowiki::Page __render_html \
 		 -user_id     [expr {[info exists user_id] ? $user_id : \
 					 [ad_conn isconnected] ? [ad_conn user_id] : 0}] \
 		]
+
+if {![info exists skin]} {set skin portlet-skin}
+if {![string match /* $skin]} {set skin [file dir $__adp_stub]/$skin}
+template::set_file $skin
+
 

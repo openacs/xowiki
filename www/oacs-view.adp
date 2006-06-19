@@ -12,7 +12,7 @@
 
 #wikicmds {position: relative; top: -24px;  right: 0px; height: 0px;
 	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
-#portal #wikicmds {top: -80px}
+#portal #wikicmds {top: -90px}
 #wikicmds a, #wikicmds a:visited { color: #7A7A78; text-decoration: none;}
 #wikicmds a:hover {text-decoration: underline;}
 #wikicmds a:active {color: rgb(255,153,51);}
@@ -68,19 +68,20 @@ table, td       {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;
 #sidebar .sidebox li {font-size: 10px; margin: 0;}
 img.found {border: 0; height: 12px}
 img.undefined {border: 10; color: yellow; height: 12px}
+
 #left-col   {float: left;    width: 40%; top: 0px;}
 #right-col {float: right; width: 59%;  top: 0px;}
 
-#left-col20   {float: left;    width: 14%; top: 0px; margin-right: 10px;}
-#left-col25   {float: left;    width: 24%; top: 0px; margin-right: 10px;}
-#left-col30   {float: left;    width: 29%; top: 0px; margin-right: 10px;}
+#left-col20 {float: left; width: 14%; top: 0px; margin-right: 10px;}
+#left-col25 {float: left; width: 24%; top: 0px; margin-right: 10px;}
+#left-col30 {float: left; width: 29%; top: 0px; margin-right: 10px;}
 #left-col70 {float: left; width: 69%; top: 0px;}
 #left-col75 {float: left; width: 74%; top: 0px;}
 #left-col80 {float: left; width: 79%; top: 0px;}
 
-#right-col20   {float: right;    width: 14%; top: 0px; margin-right: 10px;}
-#right-col25   {float: right;    width: 24%; top: 0px; margin-right: 10px;}
-#right-col30   {float: right;    width: 29%; top: 0px; margin-right: 10px;}
+#right-col20 {float: right; width: 14%; top: 0px; margin-right: 10px;}
+#right-col25 {float: right; width: 24%; top: 0px; margin-right: 10px;}
+#right-col30 {float: right; width: 29%; top: 0px; margin-right: 10px;}
 #right-col70 {float: right; width: 69%; top: 0px;}
 #right-col75 {float: right; width: 74%; top: 0px;}
 #right-col80 {float: right; width: 79%; top: 0px;}
@@ -102,6 +103,24 @@ a:hover.rss {color:#dddddd;}
 a:visited.rss {color: #FFF}
 a:link.rss {color: #FFF}
 </style>
+<script type="text/javascript">
+function get_popular_tags() {
+  var http = getHttpObject();
+  http.open('GET', '@popular_tags_link@', true);
+  http.onreadystatechange = function() {
+    if (http.readyState == 4) {
+      if (http.status != 200) {
+	alert('Something wrong in HTTP request, status code = ' + http.status);
+      } else {
+       var e = document.getElementById('popular_tags');
+       e.innerHTML = http.responseText;
+       e.style.display = 'block';
+      }
+    }
+  };
+  http.send(null);
+}
+</script>
 </property>
   
   <!-- The following DIV is needed for overlib to function! -->
@@ -135,7 +154,18 @@ a:link.rss {color: #FFF}
 </div>
 <div style="clear: both; text-align: left; font-size: 85%;">
 <p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
-@lang_links;noquote@</div><br>
+@lang_links;noquote@
+<br>#xowiki.your_tags_label#: @tags_with_links;noquote@
+(<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
+<a href='#' onclick='get_popular_tags();return false;'>#xowiki.popular_tags_link#</a>)
+<span id='edit_tags' style='display: none'><FORM action='@save_tag_link@'>
+<INPUT name='tags' type='text' value='@tags@'>
+<INPUT name='item_id' type='hidden' value='@item_id@'>
+<INPUT name='query' type='hidden' value='@return_url@'>
+</FORM>
+</span>
+<span id='popular_tags' style='display: none'></span>
+</div><br>
 <if @gc_comments@ not nil>
    <p>#general-comments.Comments#
    <ul>@gc_comments;noquote@</ul></p>

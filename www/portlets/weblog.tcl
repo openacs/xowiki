@@ -22,9 +22,12 @@ Class ::xowiki::WeblogEntry -instproc render {} {
   -page_size
   -page_number
   -date
+  -tag
+  -ptag
   -category_id
   -filter_msg
   -nr_items
+  {-summary:boolean false}
 } {
   upvar $filter_msg my_filter_msg  ;# pass info back to caller
   upvar $nr_items   my_nr_items    ;# pass info back to caller
@@ -32,23 +35,39 @@ Class ::xowiki::WeblogEntry -instproc render {} {
   set package_id [$folder_id set package_id]
   $including_page set render_adp 0  ;# no double substitutions
   set my_filter_msg  ""
+  set query_parm ""
 
   # set up filters
+  set extra_from_clause ""
+  set extra_where_clause ""
+
   if {$date ne ""} {
     set date_clause "and date_trunc('day',p.publish_date) = '$date'"
     set my_filter_msg "Filtered by date $date"
+    set query_parm "&date=$date"
   } else {
     set date_clause ""
   }
   if {$category_id ne ""} {
-    set cat_clause        "and c.object_id = ci.item_id and c.category_id = $category_id"
-    set extra_from_clause ",category_object_map c"
+    append extra_where_clause "and c.object_id = ci.item_id and c.category_id = $category_id "
+    append extra_from_clause  ",category_object_map c "
     set my_filter_msg "Filtered by category [::category::get_name $category_id]"
-  } else {
-    set cat_clause ""
-    set extra_from_clause ""
+    set query_parm "&category_id=$category_id"
   }
-  
+  if {$tag ne ""} {
+    set my_filter_msg "Filtered by your tag $tag"
+    append extra_from_clause ",xowiki_tags tags "
+    append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :tag and tags.user_id = [ad_conn user_id]" 
+    set query_parm "&tag=[ad_urlencode $tag]"
+  }
+  if {$ptag ne ""} {
+    set my_filter_msg "Filtered by popular tag $ptag"
+    append extra_from_clause ",xowiki_tags tags "
+    append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :ptag " 
+    set query_parm "&ptag=[ad_urlencode $ptag]"
+  }
+
+
   # define item container
   set items [::xo::OrderedComposite new -proc render {} {
     set content ""
@@ -65,7 +84,7 @@ Class ::xowiki::WeblogEntry -instproc render {} {
 	   -page_number $page_number -page_size $page_size \
 	   -extra_from_clause $extra_from_clause \
 	   -extra_where_clause "and ci.item_id != [$including_page set item_id] $date_clause \
-	        and ci.content_type not in ('::xowiki::PageTemplate') $cat_clause" ]
+	        and ci.content_type not in ('::xowiki::PageTemplate') $extra_where_clause" ]
 
   set my_nr_items [db_string count [eval ::xowiki::Page select_query $query -count true]]
 
@@ -81,17 +100,24 @@ Class ::xowiki::WeblogEntry -instproc render {} {
     $p set pretty_date $pretty_date
     
     #ns_log notice "--Render object=$p, $page_id $name $title"
-    if {[catch {$p set description [$p render]} errorMsg]} {
+    if {!$summary && [catch {$p set description [$p render]} errorMsg]} {
       ns_log notice "--Render Error ($errorMsg) $page_id $name $title"
       continue
     }
     #ns_log notice "--Render DONE $page_id $name $title"
     $items add $p
   }
+  
+  array set smsg {1 full 0 summary}
+  set flink "<a href='[ad_conn url]?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
 
   if {$my_filter_msg eq ""} {
-    set my_filter_msg "Showing [llength [$items children]] of $my_nr_items Postings"
+    append my_filter_msg "Showing [llength [$items children]] of $my_nr_items Postings " \
+	"($flink)"
+  } else {
+    append my_filter_msg " (<a href='[ad_conn url]'>all</a>, $flink)"
   }
+
   ::xowiki::Page instmixin add ::xowiki::WeblogEntry
   set content [$items render]
   ::xowiki::Page instmixin delete ::xowiki::WeblogEntry
@@ -111,13 +137,17 @@ proc ::xo::update_query_variable {old_query var value} {
 if {![info exists page_size]}  {set page_size 10}
 set page_size   [ns_queryget page_size $page_size]
 set page_number [ns_queryget page_number 1]
+set summary     [ns_queryget summary 0]
 set content [::xowiki::Page __render_html \
 		 -folder_id   [$__including_page set parent_id] \
 		 -including_page $__including_page \
 		 -page_size $page_size \
 		 -page_number $page_number \
+		 -summary $summary \
 		 -date [ns_queryget date] \
 		 -category_id [ns_queryget category_id] \
+		 -tag [ns_queryget tag] \
+		 -ptag [ns_queryget ptag] \
 		 -filter_msg filter_msg \
 		 -nr_items nr_items]
 

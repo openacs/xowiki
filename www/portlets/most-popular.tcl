@@ -4,6 +4,7 @@
 #
 # valid parameters from the include are 
 #     max_entries: show given number of new entries
+#     skin: name of adp-file to render content
 
 ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 
@@ -42,3 +43,8 @@ set content [::xowiki::Page __render_html \
 		]
 if {![info exists name]} {set name "Most Popular Pages"}
 set link ""
+
+if {![info exists skin]} {set skin portlet-skin}
+if {![string match /* $skin]} {set skin [file dir $__adp_stub]/$skin}
+template::set_file $skin
+

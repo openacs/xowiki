@@ -1,5 +1,5 @@
 ::xowiki::Page requireCSS "/resources/calendar/calendar.css"
-set folder_id    [$__including_page set parent_id]
+set folder_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
 if {![exists_and_not_null base_url]} {

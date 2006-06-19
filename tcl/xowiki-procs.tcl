@@ -83,6 +83,22 @@ namespace eval ::xowiki {
     db_dml create-xowiki-last-visited-index \
 	"create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
   }
+
+  if {![db_0or1row check-tag-table \
+	    "select tablename from pg_tables where tablename = 'xowiki_tags'"]} {
+    db_dml create-xowiki-tag-table "create table xowiki_tags(
+	item_id integer references cr_items(item_id) on delete cascade,
+	package_id integer,
+        user_id integer references users(user_id),
+        tag     text,
+        time    timestamp)"
+    db_dml create-xowiki-tags-index-user \
+	"create index xowiki_tags_index_user ON xowiki_tags(user_id, page_id)"
+    db_dml create-xowiki-tags-index-tag \
+	"create index xowiki_tags_index-tag ON xowiki_tags(tag, package_id)"
+  }
+
+
   
   #
   # upgrade logic
@@ -385,6 +401,37 @@ namespace eval ::xowiki {
     }
   }
 
+  Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
+    db_dml delete_tags \
+	"delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
+    foreach tag $tags {
+      db_dml insert_tag \
+	  "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
+	   values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+    }
+   }
+  Page proc get_tags {-package_id:required -item_id -user_id} {
+    if {[info exists item_id]} {
+      if {[info exists user_id]} {
+	# tags for item and user
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
+      } else {
+	# all tags for this item 
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
+      }
+    } else {
+      if {[info exists user_id]} {
+	# all tags for this user
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
+      } else {
+	# all tags for the package
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
+      }
+    }
+    join $tags " "
+  }
+
+
   Page instproc initialize_loaded_object {} {
     my instvar title creator
     if {[info exists title] && $title eq ""} {set title [my set name]}
@@ -554,7 +601,7 @@ namespace eval ::xowiki {
     object_type
     {folder_id -100}
     {lang_links ""}
-    {lang de}
+    {lang en}
     {render_adp 1}
   }
   Page set recursion_count 0

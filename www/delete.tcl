@@ -1,7 +1,7 @@
 ad_page_contract {
-  This deletes a note
+  This deletes a page
   
-  @author Your Name (you@example.com)
+  @author gustaf neumann
   @cvs-id $Id$
   
   @param item_id The item_id of the note to delete

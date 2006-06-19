@@ -16,6 +16,7 @@
   -tree_style
   -no_tree_name:boolean
   -count:boolean
+  {-summary 0}
   {-open_page ""}
 } {
 
@@ -55,7 +56,8 @@
       db_foreach get_counts \
 	  "select count(*) as nr,category_id from $sql group by category_id" {
 	    $category($category_id) set count $nr
-	    $category($category_id) href [ad_conn url]?category_id=$category_id
+	    set s [expr {$summary ? "&summary=$summary" : ""}]
+	    $category($category_id) href [ad_conn url]?category_id=$category_id$s
 	    $category($category_id) open_tree
 	  }
       append content [$cattree(0) render -tree_style $tree_style]
@@ -81,16 +83,18 @@
 
 set link ""
 if {![info exists name]} {set name "Categories"}
+set summary [ns_queryget summary 0]
 set content [::xowiki::Page __render_html \
 		 -folder_id    [$__including_page set parent_id] \
 		 -tree_name    [expr {[info exists tree_name] ? $tree_name : ""}] \
 		 -tree_style   [expr {[info exists tree_style] ? $tree_style : 1}] \
 		 -no_tree_name [info exists no_tree_name]  \
 		 -count        [info exists count] \
+		 -summary      $summary \
 		 -open_page    [expr {[info exists open_page] ? $open_page : ""}] \
 		]
 
-if {[info exists skin]} {
-  template::set_file "[file dir $__adp_stub]/$skin"
-}
+if {![info exists skin]} {set skin portlet-skin}
+if {![string match /* $skin]} {set skin [file dir $__adp_stub]/$skin}
+template::set_file $skin
 

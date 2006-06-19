@@ -6,14 +6,18 @@
   <msg key="delete">Löschen</msg>
   <msg key="description">Kurzbeschreibung</msg>
   <msg key="edit">Bearbeiten</msg>
+  <msg key="edit_link">bearbeiten</msg>
   <msg key="index">Index</msg>
   <msg key="Language">Sprache</msg>
   <msg key="name">Name</msg>
   <msg key="new">Neue Seite</msg>
   <msg key="page_title">Titel der Seite</msg>
   <msg key="page_type">Typ der Seite</msg>
+  <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
+  <msg key="popular_tags_link">häufige Schlagworte</msg>
   <msg key="references_label">Verweise auf diese Seite:</msg>
   <msg key="revisions">Verlauf</msg>
   <msg key="title">Titel</msg>
   <msg key="view">Ansehen</msg>
+  <msg key="your_tags_label">Persönliche Schlagworte</msg>
 </message_catalog>

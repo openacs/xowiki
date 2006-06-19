@@ -8,14 +8,18 @@
   <msg key="delete">Delete</msg>
   <msg key="description">Description</msg>
   <msg key="edit">Edit</msg>
+  <msg key="edit_link">edit</msg>
   <msg key="index">Index</msg>
   <msg key="Language">Language</msg>
   <msg key="name">Name</msg>
   <msg key="new">New Page</msg>
   <msg key="page_title">Page Title</msg>
   <msg key="page_type">Page Type</msg>
+  <msg key="popular_tags_label">Popular tags</msg>
+  <msg key="popular_tags_link">popular tags</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="title">Title</msg>
   <msg key="view">View</msg>
+  <msg key="your_tags_label">Your Tags</msg>
 </message_catalog>

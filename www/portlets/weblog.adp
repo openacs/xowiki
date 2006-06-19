@@ -4,7 +4,7 @@
 <div class="portlet">
   <div class='weblog'>
     <if @filter_msg@ ne "">
-      <div class='filter'>@filter_msg@</div>
+      <div class='filter'>@filter_msg;noquote@</div>
     </if> 
     @content;noquote@
     <if @prev_p@>

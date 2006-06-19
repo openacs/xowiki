@@ -5,6 +5,7 @@
 # valid parameters from the include are 
 #     tree_name: match pattern, if specified displays only the trees with matching names
 #     max_entries: show given number of new entries
+#     skin: name of adp-file to render content
 
 ::xowiki::Page proc __render_html {
   -folder_id 
@@ -57,3 +58,8 @@ set content [::xowiki::Page __render_html \
 		]
 if {![info exists name]} {set name "Recently Changed Pages by Categories"}
 set link ""
+
+if {![info exists skin]} {set skin portlet-skin}
+if {![string match /* $skin]} {set skin [file dir $__adp_stub]/$skin}
+template::set_file $skin
+
