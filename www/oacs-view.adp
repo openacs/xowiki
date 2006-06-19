@@ -155,7 +155,9 @@ function get_popular_tags() {
 <div style="clear: both; text-align: left; font-size: 85%;">
 <p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
 @lang_links;noquote@
-<br>#xowiki.your_tags_label#: @tags_with_links;noquote@
+<br>
+<if @no_tags@ eq 0>
+#xowiki.your_tags_label#: @tags_with_links;noquote@
 (<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
 <a href='#' onclick='get_popular_tags();return false;'>#xowiki.popular_tags_link#</a>)
 <span id='edit_tags' style='display: none'><FORM action='@save_tag_link@'>
@@ -164,6 +166,7 @@ function get_popular_tags() {
 <INPUT name='query' type='hidden' value='@return_url@'>
 </FORM>
 </span>
+</if>
 <span id='popular_tags' style='display: none'></span>
 </div><br>
 <if @gc_comments@ not nil>

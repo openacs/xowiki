@@ -93,9 +93,9 @@ namespace eval ::xowiki {
         tag     text,
         time    timestamp)"
     db_dml create-xowiki-tags-index-user \
-	"create index xowiki_tags_index_user ON xowiki_tags(user_id, page_id)"
+	"create index xowiki_tags_index_user ON xowiki_tags(user_id, item_id)"
     db_dml create-xowiki-tags-index-tag \
-	"create index xowiki_tags_index-tag ON xowiki_tags(tag, package_id)"
+	"create index xowiki_tags_index_tag ON xowiki_tags(tag, package_id)"
   }
 
 
