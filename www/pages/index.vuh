@@ -33,6 +33,13 @@ if {$path ne ""} {
     if {[info exists name]} {
       set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
     }
+    if {$item_id == 0} {
+      set subst_blank_in_name [$folder_id get_payload subst_blank_in_name]
+      if {$subst_blank_in_name == 1} {
+	regsub -all { } $name "_" name
+	set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
+      }
+    }
   }
   #ns_log notice "-- path=<$path> item_id=$item_id"
   if {$item_id != 0} {

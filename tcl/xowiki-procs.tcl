@@ -702,6 +702,7 @@ namespace eval ::xowiki {
 	regexp {^(..):(.+)$} $link _ lang stripped_name
       }
     }
+    set stripped_name [string trim $stripped_name]
     if {$lang eq ""} {set lang [my lang]}
     if {$label eq $arg} {set label $stripped_name}
     #my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
