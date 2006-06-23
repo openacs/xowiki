@@ -705,6 +705,12 @@ namespace eval ::xowiki {
     set stripped_name [string trim $stripped_name]
     if {$lang eq ""} {set lang [my lang]}
     if {$label eq $arg} {set label $stripped_name}
+
+    # if subst_blank_in_name is turned on, turn spaces into _
+    if {[$parent_id get_payload subst_blank_in_name] == 1} {
+      regsub -all { } $stripped_name "_" stripped_name
+    }
+
     #my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
     Link create [self]::link \
 	-type $link_type -name $lang:$stripped_name -lang $lang \
