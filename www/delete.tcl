@@ -11,7 +11,7 @@ ad_page_contract {
   {query "."}
 }
 
-permission::require_write_permission -object_id $item_id
+permission::require_permission -object_id $item_id -privilege admin
 ::Generic::CrItem delete -item_id $item_id 
 ns_cache flush xotcl_object_cache ::$item_id
 ad_returnredirect $query
