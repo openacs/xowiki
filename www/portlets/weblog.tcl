@@ -83,7 +83,8 @@ Class ::xowiki::WeblogEntry -instproc render {} {
 	   -order_clause "order by p.publish_date desc" \
 	   -page_number $page_number -page_size $page_size \
 	   -extra_from_clause $extra_from_clause \
-	   -extra_where_clause "and ci.item_id != [$including_page set item_id] $date_clause \
+	   -extra_where_clause "and ci.item_id != [$including_page set item_id] \
+		and ci.name != '::$folder_id' $date_clause \
 	        and ci.content_type not in ('::xowiki::PageTemplate') $extra_where_clause" ]
 
   set my_nr_items [db_string count [eval ::xowiki::Page select_query $query -count true]]

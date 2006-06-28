@@ -44,7 +44,9 @@
       $cattree($plevel) add $c
       set category($category_id) $c
       lappend categories $category_id
-    }
+      #set itemobj [Object new -set name en:index -set title MyTitle -set prefix "" -set suffix ""]
+      #$cattree(0) add_to_category -category $c -itemobj $itemobj -orderby title
+     }
     
     set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
 		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
