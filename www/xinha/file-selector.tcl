@@ -20,10 +20,26 @@ if {![info exists fs_package_id]} {
   } else {
     # get package_id from package name
     set key file-storage
-    set id [apm_version_id_from_package_key $key]
-    set mount_url [site_node::get_children -all -package_key $key -node_id $id]
-    array set site_node [site_node::get -url $mount_url]
-    set fs_package_id $site_node(package_id)
+    # get file-storage instance from this subsite
+    set subsite_node [subsite::get_element -element node_id]
+    set mount_url [site_node::get_children -package_key $key -node_id $subsite_node]
+    if { $mount_url eq "" } {
+        # no file-storage instance at this subsite so look to main site
+        set subsite_node [subsite::get_element -subsite_id [subsite::main_site_id] -element node_id]
+        set mount_url [site_node::get_children -package_key file-storage -node_id $subsite_node]
+    }
+    if { $mount_url ne "" } {
+        # file-storage instance IS at main site
+        array set site_node [site_node::get -url $mount_url]
+        set fs_package_id $site_node(package_id)
+    } else {
+        # look for any file-storage instance
+        # probably not what user wants; could return error instead
+        set id [apm_version_id_from_package_key $key]
+        set mount_url [site_node::get_children -all -package_key $key -node_id $id]
+        array set site_node [site_node::get -url $mount_url]
+        set fs_package_id $site_node(package_id)
+    }
   }
 }
 
