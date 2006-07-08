@@ -269,14 +269,16 @@ namespace eval ::xowiki {
       }
   PageInstanceForm instproc set_submit_link_edit {} {
     my instvar folder_id data
-    set __vars {folder_id item_id page_template}
     set object_type [[$data info class] object_type]
-    my log "-- data=$data cl=[$data info class] ot=$object_type"
+    #my log "-- data=$data cl=[$data info class] ot=$object_type"
     set item_id [$data set item_id]
     set page_template [ns_set get [ns_getform] page_template]
-    my submit_link [export_vars -base edit {folder_id object_type item_id page_template}]
+    set f [ns_getform]
+    if {[ns_set find $f return_url]} {set return_url [ns_set get $f return_url]}
+    my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my log "-- submit_link = [my submit_link]"
   }
+
   PageInstanceForm instproc new_data {} {
     my instvar data
     set item_id [next]
@@ -301,9 +303,9 @@ namespace eval ::xowiki {
       }
 
   PageInstanceEditForm instproc new_data {} {
-    set __vars {folder_id item_id page_template}
+    set __vars {folder_id item_id page_template return_url}
     set object_type [[[my set data] info class] object_type]
-    my log "-- cl=[[my set data] info class] ot=$object_type"
+    #my log "-- cl=[[my set data] info class] ot=$object_type $__vars"
     foreach __v $__vars {set $__v [ns_queryget $__v]}
     set item_id [next]
     my submit_link [export_vars -base edit $__vars]
