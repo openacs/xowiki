@@ -15,6 +15,7 @@ ad_page_contract {
   folder_id:integer,optional
   {object_type:optional ::xowiki::Page}
   page_template:integer,optional
+  return_url:optional
 }
 
 #ns_log notice "-- [ad_conn url]/'[ns_conn query]' \
@@ -55,12 +56,21 @@ if {[info commands dotlrn_fs::get_community_shared_folder] ne ""} {
 			-community_id [dotlrn_community::get_community_id]]
 }
 
+if {![info exists return_url]} {
+  if {[info exists item_id]  && [ns_set get [ns_getform] __new_p] ne "1"} {
+    set return_url [::xowiki::Page pretty_link -package_id [ad_conn package_id] [$page set name]]
+  } else {
+    set return_url view
+  }
+}
 [$object_type getFormClass] create ::xowiki::f1 -volatile \
     -data $page \
-    -folderspec [expr {$fs_folder_id ne "" ? "folder_id $fs_folder_id" : ""}]
+    -folderspec [expr {$fs_folder_id ne "" ? "folder_id $fs_folder_id" : ""}] \
+    -submit_link $return_url
+
 #ns_log notice "-- form f1 has class [::xowiki::f1 info class]"
 
-::xowiki::f1 generate
+::xowiki::f1 generate -export [list [list return_url $return_url]]
 ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
 if {[info exists item_id]} {

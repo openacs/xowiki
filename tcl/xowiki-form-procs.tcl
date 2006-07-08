@@ -157,7 +157,7 @@ namespace eval ::xowiki {
       }
     }
     ### provide a nice link
-    my set submit_link [::xowiki::Page pretty_link \
+    #my set submit_link [::xowiki::Page pretty_link \
 			    -package_id [$data set parent_id] \
 			    [$data set name]]
   }
@@ -249,8 +249,7 @@ namespace eval ::xowiki {
   }
 
   ObjectForm instproc edit_data {} {
-    my instvar data
-    $data set_payload [$data set text]
+    [my data] initialize_loaded_object
     next
   }
 
