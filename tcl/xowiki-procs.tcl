@@ -52,10 +52,6 @@ namespace eval ::xowiki {
       -mime_type text/xotcl \
       -form ::xowiki::ObjectForm
 
-  Object instproc save_new {} {
-    #my set text [::Serializer deepSerialize [self]]
-    next
-  }
 
   #
   # create reference table and table for user tracking
@@ -222,9 +218,57 @@ namespace eval ::xowiki {
 		where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
 		'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')" {;}
     }
+
+    if {[apm_version_names_compare $from_version_name "0.30"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.30"] > -1} {
+      ns_log notice "-- upgrading to 0.30"
+      # delete orphan cr revisions, created automatically by content_item
+      # new, when e.g. a title is specified....
+      foreach class {::xowiki::Page ::xowiki::PlainPage ::xowiki::Object
+	::xowiki::PageTemplate ::xowiki::PageInstance} {
+	db_dml delete_orphan_revisions "
+	  delete from cr_revisions where revision_id in (
+		 select r.revision_id from cr_items i,cr_revisions r  
+		 where i.content_type = '$class' and r.item_id = i.item_id 
+		 and not r.revision_id in (select [$class id_column] from [$class table_name]))
+	"
+	db_dml delete_orphan_items "
+         delete from acs_objects where object_type = '$class' 
+             and not object_id in (select item_id from cr_items where content_type = '$class') 
+             and not object_id in (select [$class id_column] from [$class table_name])
+         "
+      }
+    }
   }
+
   #
   # Page definitions
+  #
+  
+  Page parameter {
+    page_id
+    {revision_id 0}
+    object_type
+    parent_id
+    package_id
+    name
+    title
+    text
+    {folder_id -100}
+    {lang_links ""}
+    {lang en}
+    {render_adp 1}
+  }
+  Page set recursion_count 0
+  Page array set RE {
+    include {([^\\]){{(.+)}}[ \n\r]*}
+    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
+    div     {()([^\\])&gt;&gt;([^&]*)&lt;&lt;}
+    clean   {[\\](\{\{|&gt;&gt;|\[\[)}
+  }
+
+  #
+  # templating and CSS
   #
 
   Page proc requireCSS name {set ::need_css($name) 1}
@@ -240,21 +284,63 @@ namespace eval ::xowiki {
     }
     return $result
   }
-
-
-  Page ad_proc reindex {-package_id} {
-    reindex all items of a package
-  } {
-    if {![info exists package_id]} {set package_id [ad_conn package_id]}
-    set folder_id  [::xowiki::Page require_folder \
-			-package_id $package_id \
-			-name xowiki]  
-    db_foreach get_pages "select page_id from xowiki_page" {
-      search::queue -object_id $page_id -event DELETE
-      search::queue -object_id $page_id -event INSERT
-    }
+  Page proc quoted_html_content text {
+    list [ad_text_to_html $text] text/html
   }
-  
+
+  #
+  # Operations on the whole instance
+  #
+  Class create Folder
+
+
+  Page ad_proc select_query {
+    {-select_attributes ""}
+    {-order_clause ""}
+    {-where_clause ""}
+    {-count:boolean false}
+    {-folder_id}
+    {-page_size 20}
+    {-page_number ""}
+    {-extra_where_clause ""}
+    {-extra_from_clause ""}
+  } {
+    returns the SQL-query to select the xowiki pages of the specified folder
+    @select_attributes attributes for the sql query to be retrieved, in addion
+      to ci.item_id acs_objects.object_type, which are always returned
+    @param order_clause clause for ordering the solution set
+    @param where_clause clause for restricting the answer set
+    @param count return the query for counting the solutions
+    @param folder_id parent_id
+    @return sql query
+  } {
+    my instvar object_type_key
+    if {![info exists folder_id]} {my instvar folder_id}
+
+    set attributes [list ci.item_id ci.name p.page_id] 
+    foreach a $select_attributes {
+      if {$a eq "title"} {set a p.title}
+      lappend attributes $a
+    }
+    if {$count} {
+      set attribute_selection "count(*)"
+      set order_clause ""      ;# no need to order when we count
+      set page_number  ""      ;# no pagination when count is used
+    } else {
+      set attribute_selection [join $attributes ,]
+    }
+
+    if {$where_clause ne ""} {set where_clause "and $where_clause "}
+    if {$page_number ne ""} {
+      set pagination "offset [expr {$page_size*($page_number-1)}] limit $page_size"
+    } else {
+      set pagination ""
+    }
+    return "select $attribute_selection from xowiki_pagei p, cr_items ci $extra_from_clause \
+        where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
+	ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
+  }
+
 
   Page proc rss_head {
 		      -channel_title
@@ -275,14 +361,7 @@ namespace eval ::xowiki {
   <generator>xowiki</generator>"
   }
 
-  Page proc rss_item {
-		      -creator
-		      -title
-		      -link
-		      -guid
-		      -description
-		      -pubdate
-		    } {
+  Page proc rss_item {-creator -title -link -guid -description -pubdate } {
     append result <item> \n\
 	<dc:creator> $creator </dc:creator> \n\
 	<title> $title </title> \n\
@@ -364,127 +443,7 @@ namespace eval ::xowiki {
     ns_return 200 $t $content
   }
   
-  Page instproc get_name {uid} {
-    if {$uid ne "" && $uid != 0} {
-      acs_user::get -user_id $uid -array user
-      return "$user(first_names) $user(last_name)"
-    } else {
-      return nobody
-    }
-  }
-
-  Page proc url_prefix {-package_id} {
-    my instvar url_prefix folder_id
-    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
-    if {![info exists url_prefix($package_id)]} {
-      set url_prefix($package_id) [site_node::get_url_from_object_id -object_id $package_id]
-    }
-    return $url_prefix($package_id)
-  }
-
-  Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id name} {
-    my instvar url_prefix folder_id
-
-    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
-    if {![info exists url_prefix($package_id)]} {
-      set url_prefix($package_id) [site_node::get_url_from_object_id -object_id $package_id]
-    }
-
-    if {![info exists lang]} {
-      regexp {^(..):(.*)$} $name _ lang name
-    }
-    set host [expr {$fully_qualified ? [ad_url] : ""}]
-    if {[info exists lang]} {
-      return $host$url_prefix($package_id)pages/$lang/[ad_urlencode $name]
-    } else {
-      return $host$url_prefix($package_id)pages/[ad_urlencode $name]
-    }
-  }
-
-  Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
-    db_dml delete_tags \
-	"delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
-    foreach tag $tags {
-      db_dml insert_tag \
-	  "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
-	   values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
-    }
-   }
-  Page proc get_tags {-package_id:required -item_id -user_id} {
-    if {[info exists item_id]} {
-      if {[info exists user_id]} {
-	# tags for item and user
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
-      } else {
-	# all tags for this item 
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
-      }
-    } else {
-      if {[info exists user_id]} {
-	# all tags for this user
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
-      } else {
-	# all tags for the package
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
-      }
-    }
-    join $tags " "
-  }
-
-
-  Page instproc initialize_loaded_object {} {
-    my instvar title creator
-    if {[info exists title] && $title eq ""} {set title [my set name]}
-    #if {$creator eq ""} {set creator [my get_name [my set creation_user]]}
-    next
-  }
-
-  Page ad_proc require_folder_object {
-    -folder_id:required
-    -package_id
-    {-store_folder_id:boolean true}
-  } {
-  } {
-    if {![::xotcl::Object isobject ::$folder_id]} {
-      while {1} {
-	set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
-	  set id [CrItem lookup -name ::$folder_id -parent_id $folder_id]
-	  if {$id == 0} break; # don't cache
-	  return $id
-	}]
-	break
-      }
-      if {[info exists item_id]} {
-	# we have a valid item_id and get the folder object
-	#my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
-	set o [::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id]
-      } else {
-	# we have no folder object yet. so we create one...
-	set o [::xowiki::Object create ::$folder_id]
-	$o set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
-	$o set parent_id $folder_id
-	$o set name ::$folder_id
-	$o set title ::$folder_id
-	$o save_new
-	$o initialize_loaded_object
-      }
-      if {![info exists package_id]} {
-	# get package_id from folder_id
-	set package_id [db_string get_package_id "select f.package_id from cr_folders f \
-		where $folder_id = f.folder_id"]
-      }
-      #$o proc destroy {} {my log "--f "; next}
-      $o set package_id $package_id
-      uplevel #0 [list $o volatile]
-    } else {
-      #my log "--f reuse folder object $folder_id [::Serializer deepSerialize ::$folder_id]"
-    }
-    if {$store_folder_id} {
-      Page set folder_id $folder_id
-    }
-  }
-
-  Page proc import {-user_id -package-id -folder-id {-replace 0} -objects} {
+  Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     set object_type [self]
     if {![info exists folder_id]}  {set folder_id [$object_type require_folder -name xowiki]}
     if {![info exists package_id]} {set package_id [ad_conn package_id]}
@@ -537,98 +496,140 @@ namespace eval ::xowiki {
     append msg "$added objects inserted, $replaced objects replaced<p>"
   }
 
-  Page ad_proc select_query {
-    {-select_attributes ""}
-    {-order_clause ""}
-    {-where_clause ""}
-    {-count:boolean false}
-    {-folder_id}
-    {-page_size 20}
-    {-page_number ""}
-    {-syndication:boolean false}
-    {-extra_where_clause ""}
-    {-extra_from_clause ""}
-  } {
-    returns the SQL-query to select the xowiki pages of the specified folder
-    @select_attributes attributes for the sql query to be retrieved, in addion
-      to ci.item_id acs_objects.object_type, which are always returned
-    @param order_clause clause for ordering the solution set
-    @param where_clause clause for restricting the answer set
-    @param count return the query for counting the solutions
-    @param folder_id parent_id
-    @return sql query
-  } {
-    my instvar object_type_key
-    if {![info exists folder_id]} {my instvar folder_id}
-
-    set attributes [list ci.item_id ci.name p.page_id] 
-    foreach a $select_attributes {
-      if {$a eq "title"} {set a p.title}
-      lappend attributes $a
-    }
-    if {$count} {
-      set attribute_selection "count(*)"
-      set order_clause ""      ;# no need to order when we count
-      set page_number  ""      ;# no pagination when count is used
-    } else {
-      set attribute_selection [join $attributes ,]
-    }
-
-    if {$where_clause ne ""} {set where_clause "and $where_clause "}
-#     if {$syndication}        {
-#       append where_clause "and syndication.object_id = p.page_id"
-#       set extra_tables ", syndication "
-#     } else {
-#       set extra_tables ""
-#     }
-    if {$page_number ne ""} {
-      set pagination "offset [expr {$page_size*($page_number-1)}] limit $page_size"
-    } else {
-      set pagination ""
-    }
-    return "select $attribute_selection from xowiki_pagei p, cr_items ci $extra_from_clause \
-        where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
-	ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
-  }
-
   #
-  # data definitions
+  # URL and naming management
+  #
+  Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id name} {
+    my instvar folder_id
+    my log "--u name=<$name>"
+
+    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
+    if {![my isobject ::$package_id]} {
+      my log "--u we create package ::xowiki::Package create ::$package_id -folder_id $folder_id"
+      ::xowiki::Package create ::$package_id -folder_id $folder_id
+    }
+    set url [::$package_id package_url]
+    
+    if {![info exists lang]} {
+      regexp {^(..):(.*)$} $name _ lang name
+    }
+    if {![info exists lang] && ![string match :* $name]} {
+      set lang [string range [lang::conn::locale] 0 1]
+    }
+    set host [expr {$fully_qualified ? [ad_url] : ""}]
+    if {[info exists lang]} {
+      return $host${url}$lang/[ad_urlencode $name]
+    } else {
+      return $host${url}[ad_urlencode $name]
+    }
+  }
+
+  Page proc normalize_name {-package_id string} {
+    set string [string trim $string]
+    # if subst_blank_in_name is turned on, turn spaces into _
+    if {[$package_id get_parameter subst_blank_in_name 1] != 0} {
+      regsub -all { } $string "_" string
+    }
+    return $string
+  }
+
+  Page instproc make_link {-privilege -url object method args} {
+    my instvar package_id
+ 
+    if {[info exists privilege]} {
+      set granted [expr {$privilege eq "public" ? 1 :
+			 [permission::permission_p -object_id $package_id -privilege $privilege]
+		       }]
+    } else {
+      # determine privilege from policy
+      set granted [$package_id permission_p $object $method]
+      my log "--p $package_id permission_p $object $method ==> $granted"
+    }
+    if {$granted} {
+      if {[$object istype ::xowiki::Package]} {
+	set base  [$package_id package_url]
+	if {[info exists url]} {
+	  return [uplevel export_vars -base $base$url [list $args]]
+	} else {
+	  lappend args [list $method 1]
+	  return [uplevel export_vars -base $base [list $args]]
+	}
+      } elseif {[$object istype ::xowiki::Page]} {
+	set base [$package_id url]
+	lappend args [list m $method]
+	return [uplevel export_vars -base $base [list $args]]
+      }
+    }
+    return ""
+  }
+ 
+  #
+  # tag management, get_tags works on instance or gobally
   #
 
-  Page parameter {
-    page_id
-    {revision_id 0}
-    object_type
-    {folder_id -100}
-    {lang_links ""}
-    {lang en}
-    {render_adp 1}
-  }
-  Page set recursion_count 0
-  Page array set RE {
-    include {([^\\]){{(.+)}}[ \n\r]*}
-    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
-    div     {()([^\\])&gt;&gt;([^&]*)&lt;&lt;}
-    clean   {[\\](\{\{|&gt;&gt;|\[\[)}
+  Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
+    db_dml delete_tags \
+	"delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
+    foreach tag $tags {
+      db_dml insert_tag \
+	  "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
+	   values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+    }
+   }
+  Page proc get_tags {-package_id:required -item_id -user_id} {
+    if {[info exists item_id]} {
+      if {[info exists user_id]} {
+	# tags for item and user
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
+      } else {
+	# all tags for this item 
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
+      }
+    } else {
+      if {[info exists user_id]} {
+	# all tags for this user
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
+      } else {
+	# all tags for the package
+	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
+      }
+    }
+    join $tags " "
   }
 
-  PlainPage parameter {
-    {render_adp 0}
-  }
-  PlainPage array set RE {
-    include {([^\\]){{(.+)}}[ \n\r]}
-    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
-    div     {()([^\\])>>([^<]*)<<}
-    clean   {[\\](\{\{|>>|\[\[)}
-  }
-
-  PageTemplate parameter {
-    {render_adp 0}
-  }
 
   #
   # Methods of ::xowiki::Page
   #
+
+  Page instforward query_parameter {%my set package_id} %proc
+  Page instforward exists_query_parameter {%my set package_id} %proc
+  Page instforward form_parameter {%my set package_id} %proc
+  Page instforward exists_form_parameter {%my set package_id} %proc
+
+  Page instproc condition {method attr value} {
+    switch $attr {
+      has_class {return [expr {[my set object_type] eq $value}]}
+    }
+    return 0
+  }
+
+  Page instproc get_user_name {uid} {
+    if {$uid ne "" && $uid != 0} {
+      acs_user::get -user_id $uid -array user
+      return "$user(first_names) $user(last_name)"
+    } else {
+      return nobody
+    }
+  }
+
+  
+  Page instproc initialize_loaded_object {} {
+    my instvar title creator
+    if {[info exists title] && $title eq ""} {set title [my set name]}
+    #if {$creator eq ""} {set creator [my get_user_name [my set creation_user]]}
+    next
+  }
 
   Page instproc regsub-eval {re string cmd} {
     subst [regsub -all $re [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $string] \
@@ -688,7 +689,7 @@ namespace eval ::xowiki {
       return "$ch<a class='external' href='$link'>$label</a>"
     }
 
-    my instvar parent_id
+    my instvar parent_id package_id
     # do we have a language link (it starts with a ':')
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       set link_type language
@@ -702,20 +703,14 @@ namespace eval ::xowiki {
 	regexp {^(..):(.+)$} $link _ lang stripped_name
       }
     }
-    set stripped_name [string trim $stripped_name]
-    if {$lang eq ""} {set lang [my lang]}
+    set stripped_name   [Page normalize_name -package_id $package_id $stripped_name]
+    if {$lang eq ""}    {set lang [my lang]}
     if {$label eq $arg} {set label $stripped_name}
 
-    # if subst_blank_in_name is turned on, turn spaces into _
-    if {[$parent_id get_payload subst_blank_in_name] == 1} {
-      regsub -all { } $stripped_name "_" stripped_name
-    }
-
-    #my log "--LINK lang=$lang type=$link_type stripped_name=$stripped_name"
     Link create [self]::link \
 	-type $link_type -name $lang:$stripped_name -lang $lang \
 	-stripped_name $stripped_name -label $label \
-	-folder_id $parent_id -package_id [$parent_id set package_id]
+	-folder_id $parent_id -package_id $package_id
     return $ch[[self]::link render]
   }
 
@@ -754,7 +749,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc adp_subst {content} {
-    set __ignorelist [list RE __defaults name_method object_type_key url_prefix]
+    set __ignorelist [list RE __defaults name_method object_type_key]
     foreach __v [my info vars] {
       if {[info exists $__v]} continue
       my instvar $__v
@@ -783,7 +778,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_content {} {
-    my log "--"
+    #my log "--"
     set content [my substitute_markup [my set text]]
   }
 
@@ -838,11 +833,10 @@ namespace eval ::xowiki {
 
 
   Page instproc record_last_visited {-user_id} {
-    my instvar parent_id item_id
+    my instvar item_id package_id
     if {![info exists user_id]} {set user_id [ad_conn user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
-      set package_id [$parent_id set package_id]
       db_dml update_last_visisted \
 	  "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
 	   where page_id = $item_id and user_id = $user_id"
@@ -857,6 +851,16 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::PlainPage
   #
+
+  PlainPage parameter {
+    {render_adp 0}
+  }
+  PlainPage array set RE {
+    include {([^\\]){{(.+)}}[ \n\r]}
+    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
+    div     {()([^\\])>>([^<]*)<<}
+    clean   {[\\](\{\{|>>|\[\[)}
+  }
 
   PlainPage instproc get_content {} {
     #my log "-- my class=[my info class]"
@@ -878,9 +882,15 @@ namespace eval ::xowiki {
   }
 
   #
+  # PageTemplate specifics
+  #
+  PageTemplate parameter {
+    {render_adp 0}
+  }
+
+  #
   # PageInstance methods
   #
-
   PageInstance instproc get_field_type {name template default_spec} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
@@ -932,6 +942,11 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::Object
   #
 
+  #Object instproc save_new {} {
+    #my set text [::Serializer deepSerialize [self]]
+    #next
+  #}
+
   Object instproc get_content {} {
     if {[[self]::payload info procs content] ne ""} {
       return  [my substitute_markup [[self]::payload content]]
@@ -946,15 +961,18 @@ namespace eval ::xowiki {
   }
   Object instproc set_payload {cmd} {
     set payload [self]::payload
-    if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
+    if {[my isobject $payload]} {$payload destroy}
+    ::xotcl::Object create $payload -requireNamespace
     if {[catch {$payload eval $cmd} error ]} {
       ns_log error "XoWiki folder object: content lead to error: $error"
     }
   }
-  Object instproc get_payload {var} {
+  Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
     if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
-    expr {[$payload exists $var] ? [$payload set $var] : ""}
+    expr {[$payload exists $var] ? [$payload set $var] : $default}
   }
 
 }
+
+source [file dirname [info script]]/xowiki-www-procs.tcl

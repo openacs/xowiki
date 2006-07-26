@@ -15,12 +15,8 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 } {
   ns_log notice "--datasource called with revision_id = $revision_id"
 
-  set page [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+  set page [::xowiki::Package instantiate_from_page -revision_id $revision_id]
   $page volatile
-
-  # ensure context for dependencies of folder object
-  set folder_id [$page set parent_id]
-  ::xowiki::Page require_folder_object -folder_id $folder_id
 
   set html [$page render]
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
@@ -30,7 +26,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #$page set unresolved_references 0
   $page instvar item_id
 
-  return [list object_id $revision_id title [$page set title] \
+  return [list object_id $revision_id title [$page title] \
 	      content $text keywords {} \
 	      storage_type text mime text/plain \
 	      syndication [list \
@@ -38,7 +34,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 			description $text \
 			author [$page set creator] \
 			category "" \
-			guid "[ad_url]/o/$item_id" \
+			guid "$item_id" \
 			pubDate [$page set last_modified]] \
 	     ]
 }
@@ -48,18 +44,9 @@ ad_proc -private ::xowiki::url { revision_id } {
 
     returns a url for a message to the search package
 } {
-  set page [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+  set page [::xowiki::Package instantiate_from_page -revision_id $revision_id]
   $page volatile
-  set folder_id [$page set parent_id]
-  set pid [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
-  if {$pid > 0} {
-    return [::xowiki::Page pretty_link -package_id $pid [$page set name]]
-  } else {
-    # cannot determine package_id; one page from the directory should be viewed to update 
-    # package id for the content folder...
-    return "cannot determine package_id, view a page from the folder containing page \
-	[$page set name]"
-  }
+  return [::[$page package_id] url]
 }
 
 

@@ -1,36 +1,27 @@
+set package_id [ad_conn package_id]
+set Package    [::xowiki::Package create ::$package_id]
+$Package instvar folder_id
+set weblog_page [$Package get_parameter weblog_page "en:weblog"]
+set page [$Package resolve_request -path $weblog_page]
+#$Package log "weblog-page = $page"
 
-set package_id  [ad_conn package_id]
-set folder_id   [::xowiki::Page require_folder -package_id $package_id -name xowiki]
-set weblog_page [$folder_id get_payload weblog_page]
-if {$weblog_page eq ""} {set weblog_page "en:weblog"}
-set item_id [Generic::CrItem lookup -name $weblog_page -parent_id $folder_id]
-
-if {$item_id == 0} {
-  set page [::xowiki::Page create new -volatile -noinit \
-		-set creator {Gustaf Neumann} \
-		-set name $weblog_page \
-		-set title {Weblog} \
-		-set creation_date {2006-06-18 00:32:30.674009+02} \
-		-set creation_user 0 \
-		-set item_id 0 \
-		-set parent_id $folder_id \
-		-set mime_type text/html \
-		-set description {} \
-		-set text {{<p>&gt;&gt;content&lt;&lt; 
-  <br />{{adp portlets/weblog {name Weblog}}} 
-  <br />&gt;&gt;&lt;&lt; 
-  <br />&gt;&gt;sidebar&lt;&lt; 
-  <br />{{adp portlets/weblog-mini-calendar}} 
-  <br />{{adp portlets/categories {count 1 skin plain-include}}}
-  <br />{{adp portlets/tags {skin plain-include}}} 
-  <br />&gt;&gt;&lt;&lt; 
-</p>} text/html}]
+if {$page eq ""} {
+  set page [::xowiki::Page create new -volatile -name $weblog_page \
+		-title Weblog -parent_id $folder_id -package_id $package_id \
+		-text [::xowiki::Page quoted_html_content {>>content<<
+{{adp portlets/weblog {name Weblog}}}
+>><<
+>>sidebar<<
+{{adp portlets/weblog-mini-calendar}}
+{{adp portlets/tags {skin plain-include}}}
+{{adp portlets/tags {skin plain-include popular 1 limit 30}}}
+{{adp portlets/categories {count 1 skin plain-include}}}
+>><<}]]
   set item_id [$page save_new]
 }
+$Package url [::xowiki::Page pretty_link -package_id $package_id $weblog_page]
+ns_return 200 text/html [$page view]
 
-#if {[ns_queryget page] eq ""} {rp_form_put page $page}
-if {[ns_queryget item_id] eq ""} {rp_form_put item_id $item_id}
-if {[ns_queryget folder_id] eq ""} {rp_form_put folder_id $folder_id}
-rp_internal_redirect "/packages/xowiki/www/view"
+
 
 

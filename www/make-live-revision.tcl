@@ -4,10 +4,6 @@ ad_page_contract {
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date Oct 23, 2005
   @cvs-id $Id$
-} {
-  page_id:integer,notnull
-  revision_id:integer,notnull
-  name
 }
 
 db_exec_plsql make_live {

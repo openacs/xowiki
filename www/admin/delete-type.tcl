@@ -15,8 +15,7 @@ db_foreach retrieve_instances [$object_type instance_select_query] {
   $object_type delete -item_id $item_id
 }
 
-foreach type [$object_type object_types -subtypes_first true] {
-  $type drop_object_type
-}
+# drop type requires that all pages of all xowiki instances are deleted
+#foreach type [$object_type object_types -subtypes_first true] {$type drop_object_type}
 
 ad_returnredirect $query

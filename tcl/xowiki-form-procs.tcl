@@ -113,10 +113,10 @@ namespace eval ::xowiki {
       if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
       set name [string range $nls_language 0 1]:$name
     }
-    set subst_blank_in_name [$folder_id get_payload subst_blank_in_name]
-    if {$subst_blank_in_name == 1} {
-      regsub -all " " $name "_" name
-    }
+    set name [::xowiki::Page normalize_name -package_id [ad_conn package_id] $name]
+
+    #my log "--form vars = [ns_set array [ns_getform] ]"
+    #my log "--form comparing '[ns_set get [ns_getform] __object_name]' w '$name'"
     if {[ns_set get [ns_getform] __new_p] 
 	|| [ns_set get [ns_getform] __object_name] ne $name
       } {
@@ -164,15 +164,14 @@ namespace eval ::xowiki {
 
   WikiForm instproc new_request {} {
     my instvar data
-    $data set creator [$data get_name [ad_conn user_id]]
-    my log "--F setting creator to [$data get_name [ad_conn user_id]]"
+    $data set creator [$data get_user_name [ad_conn user_id]]
     next
   }
 
   WikiForm instproc edit_request args {
     my instvar data
     if {[$data set creator] eq ""} {
-      $data set creator [$data get_name [ad_conn user_id]]
+      $data set creator [$data get_user_name [ad_conn user_id]]
     }
     next
   }
@@ -274,8 +273,13 @@ namespace eval ::xowiki {
     set item_id [$data set item_id]
     set page_template [ns_set get [ns_getform] page_template]
     set f [ns_getform]
-    if {[ns_set find $f return_url]} {set return_url [ns_set get $f return_url]}
-    my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
+    if {[$data exists_query_parameter return_url]} {
+      set return_url [$data query_parameter return_url]
+    }
+    #if {[ns_set find $f return_url]} {set return_url [ns_set get $f return_url]}
+    set link [::xowiki::Page pretty_link -package_id [$data set package_id] [$data set name]]
+    #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
+    my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
     my log "-- submit_link = [my submit_link]"
   }
 
@@ -303,12 +307,16 @@ namespace eval ::xowiki {
       }
 
   PageInstanceEditForm instproc new_data {} {
+    my instvar data
     set __vars {folder_id item_id page_template return_url}
-    set object_type [[[my set data] info class] object_type]
+    set object_type [[$data info class] object_type]
     #my log "-- cl=[[my set data] info class] ot=$object_type $__vars"
     foreach __v $__vars {set $__v [ns_queryget $__v]}
     set item_id [next]
-    my submit_link [export_vars -base edit $__vars]
+
+    set link [::xowiki::Page pretty_link -package_id [$data set package_id] [$data set name]]
+    my submit_link [export_vars -base $link {{m edit} $__vars}]
+    #my submit_link [export_vars -base edit $__vars]
     my log "-- submit_link = [my submit_link]"
     return $item_id
   }

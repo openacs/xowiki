@@ -79,7 +79,7 @@ Class ::xowiki::WeblogEntry -instproc render {} {
   
   set query \
       [list -folder_id $folder_id \
-	   -select_attributes [list p.publish_date] \
+	   -select_attributes [list p.publish_date p.title] \
 	   -order_clause "order by p.publish_date desc" \
 	   -page_number $page_number -page_size $page_size \
 	   -extra_from_clause $extra_from_clause \
@@ -91,6 +91,7 @@ Class ::xowiki::WeblogEntry -instproc render {} {
 
   db_foreach instance_select [eval ::xowiki::Page select_query $query] {
     set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+    $p set package_id [$including_page set package_id]
     
     regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
     set pretty_date [util::age_pretty -timestamp_ansi $publish_date \
@@ -105,7 +106,7 @@ Class ::xowiki::WeblogEntry -instproc render {} {
       ns_log notice "--Render Error ($errorMsg) $page_id $name $title"
       continue
     }
-    #ns_log notice "--Render DONE $page_id $name $title"
+    ns_log notice "--W Render DONE $page_id $name $title"
     $items add $p
   }
   

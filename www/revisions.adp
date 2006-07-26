@@ -4,7 +4,7 @@
 <property name="context">@context;noquote@</property>
 <property name="displayed_object_id">@page_id;noquote@</property>
 
-<include src="/packages/xotcl-core/lib/revisions" >
+@content;noquote@
 
 <if @gc_comments@ not nil>
     <p>#file-storage.lt_Comments_on_this_file#

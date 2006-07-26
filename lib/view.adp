@@ -1,2 +1,1 @@
-
-@content;noquote@
+@html;noquote@

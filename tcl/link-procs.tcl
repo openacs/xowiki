@@ -29,16 +29,18 @@ namespace eval ::xowiki {
   Link instproc render {} {
     set page [my info parent]
     set item_id [my resolve]
+    #my log "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       set href [::xowiki::Page pretty_link -package_id [my package_id] -lang [my lang] \
 		    [my stripped_name]]
       my render_found $href [my label]
     } else {
+      my instvar package_id
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
       set name [my label]
-      set href [export_vars -base [::xowiki::Page url_prefix -package_id [my package_id]]edit {object_type name}]
+      set href [export_vars -base [$package_id package_url] {{edit-new 1} object_type name}]
       my render_not_found $href [my label]
     }
   }
@@ -49,12 +51,15 @@ namespace eval ::xowiki {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
 			  -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
-	set folder_id  [::xowiki::Page require_folder -package_id $package_id \
-			    -name xowiki -store_folder_id false]
-	return [list package_id $package_id folder_id $folder_id]
+	my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
+	if {![my isobject ::$package_id]} {
+	  my log "--LINK creating package object"
+	  ::xowiki::Package create ::$package_id
+	}
+	return $package_id
       }
     }
-    return [list]
+    return 0
   }
 
 
@@ -65,7 +70,7 @@ namespace eval ::xowiki {
   Class create ::xowiki::Link::language -superclass ::xowiki::Link
   ::xowiki::Link::language instproc render {} {
     set page [my info parent]
-    my instvar lang
+    my instvar lang name package_id
     set item_id [my resolve]
     if {$item_id} {
       set css_class "found"
@@ -74,7 +79,7 @@ namespace eval ::xowiki {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
-      set link [export_vars -base [::xowiki::Page url_prefix]edit {object_type name last_page_id}]
+      set link [export_vars -base [$package_id package_url] {{edit-new 1} object_type name last_page_id}]
     }
     $page lappend lang_links \
 	"<a href='$link'><img class='$css_class' style='height='12' \
@@ -89,16 +94,16 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::Link::glossary -superclass ::xowiki::Link
   ::xowiki::Link::glossary instproc resolve {} {
-    [my info parent] instvar parent_id
     # look for a package instance of xowiki, named "glossary" (the type)
-    my array set glossary [my lookup_xowiki_package_by_name [my type] \
-		       [site_node::get_node_id_from_object_id -object_id [my package_id]]]
-
-    if {[my exists glossary(folder_id)]} {
-      # set correct package id for rendering the link (needed for url_prefix)
-      my package_id [my set glossary(package_id)]
+    set id [my lookup_xowiki_package_by_name [my type] \
+		[site_node::get_node_id_from_object_id -object_id [my package_id]]]
+    my log "--LINK glossary lookup returned package_id $id"
+    if {$id} {
+      # set correct package id for rendering the link
+      my set package_id $id
+      my log "--u setting package_id to $id"
       # lookup the item from the found folder
-       return [::Generic::CrItem lookup -name [my name] -parent_id [my set glossary(folder_id)]]
+      return [::Generic::CrItem lookup -name [my name] -parent_id [$id set folder_id]]
     }
     my log "--LINK no page found [my name], [my lang], type=[my type]."
     return 0

@@ -12,14 +12,12 @@
 </style>
 
 <div id='wikicmds'>
-   <if @back_link@ not nil>
-      <a href="@back_link@" accesskey='b' >#xowiki.back#</a> &middot;
-   </if>
+   <if @back_link@ not nil><a href="@back_link@" accesskey='b' >#xowiki.back#</a> &middot;</if>
    <if @item_id@ not nil>
-      <a href="@view_link@" accesskey='v' >#xowiki.view#</a> &middot;
-      <a href="@rev_link@" accesskey='r' >#xowiki.revisions#</a> &middot;
+      <if @view_link@ not nil><a href="@view_link@" accesskey='v' >#xowiki.view#</a> &middot;</if>
+      <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' >#xotcl-core.revisions#</a> &middot;</if>
    </if>
-   <a href="index" accesskey='i'>#xowiki.index#</a> 
+   <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
 </div>
   
 <formtemplate id="@formTemplate@"></formtemplate>

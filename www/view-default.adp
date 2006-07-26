@@ -2,9 +2,7 @@
   <property name="title">@title;noquote@</property>
   <property name="context">@context;noquote@</property>
   <property name="header_stuff">@header_stuff;noquote@
-<link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all'>
-<script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
-<link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
+  <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
 <script type="text/javascript">
 function get_popular_tags() {
   var http = getHttpObject();
@@ -37,18 +35,7 @@ function get_popular_tags() {
   <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
 </div>
 
-<div style="float:left; 
-     font-size: .8em;
-     width: 25%;
-     background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 2px; margin-top: 2px;
-     padding: 0px 6px 6px 0px;			    
-">
-<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-<include src="/packages/xowiki/www/portlets/categories" &__including_page=page name="@title@" open_page="@name@">
-</div></div><div style="float:right; width: 70%;">
 @content;noquote@
-</div>
 <div style="clear: both; text-align: left; font-size: 85%;">
 <if @references@ ne "">
 <if @lang_links@ ne "">

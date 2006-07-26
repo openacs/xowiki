@@ -18,7 +18,7 @@ a:link.rss {color: #FFF}
 </style>
 </property>
 
-<a href="@category_map_url@"  class="action_link">Site-Wide Categories</a>
+<a href="@category_map_url@" class="action_link">Site-Wide Categories...</a>
 <a href="./?rss" class="rss">RSS</a>          
 @t1;noquote@
 
