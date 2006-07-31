@@ -8,7 +8,7 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.30" url="http://openacs.org/repository/download/apm/xowiki-0.30.apm">
+    <version name="0.31" url="http://openacs.org/repository/download/apm/xowiki-0.31.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
@@ -26,7 +26,7 @@ one could define book-structures (where a navigation structure could be built on
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.30"/>
+        <provides url="xowiki" version="0.31"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
