@@ -13,7 +13,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   returns a datasource for the search package
 } {
-  ns_log notice "--datasource called with revision_id = $revision_id"
+  ns_log notice "--sc datasource called with revision_id = $revision_id"
 
   set page [::xowiki::Package instantiate_from_page -revision_id $revision_id]
   $page volatile
@@ -22,13 +22,24 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
-  ns_log notice "-- INDEXING $revision_id -> $text"
+  #ns_log notice "--sc INDEXING $revision_id -> $text"
   #$page set unresolved_references 0
   $page instvar item_id
+  db_dml delete_old_revisions {delete from txt where object_id in \
+      (select revision_id from cr_revisions where item_id = :item_id and revision_id != :revision_id)}
+  foreach tag {h1 h2 h3 h4 h5 b strong} {
+    foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
+      foreach w [split $words] {
+	if {$w eq ""} continue
+	set word($w) 1
+      }
+    }
+  }
+  ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   return [list object_id $revision_id title [$page title] \
-	      content $text keywords {} \
-	      storage_type text mime text/plain \
+	      content $html keywords [array names word] \
+	      storage_type text mime text/html \
 	      syndication [list \
 			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set name]] \
 			description $text \

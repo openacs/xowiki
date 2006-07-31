@@ -239,6 +239,26 @@ namespace eval ::xowiki {
          "
       }
     }
+
+    if {[apm_version_names_compare $from_version_name "0.31"] == -1 &&
+	[apm_version_names_compare $to_version_name "0.31"] > -1} {
+      ns_log notice "-- upgrading to 0.31"
+      set folder_ids [list]
+      set package_ids [list]
+      db_foreach get_xowiki_packages {select * from apm_packages where package_key = 'xowiki'} {
+	set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+		where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
+	if {$folder_id ne ""} {
+	  db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in 
+	    (select item_id as object_id from cr_items where parent_id = :folder_id)}
+	  db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in 
+	    (select r.revision_id as object_id from cr_revisions r, cr_items i where 
+	     i.item_id = r.item_id and i.parent_id = :folder_id)}
+	  Package create ::$package_id -volatile -folder_id $folder_id -use_ns_conn false
+	  ::$package_id reindex
+	}
+      }
+    }
   }
 
   #
@@ -771,7 +791,11 @@ namespace eval ::xowiki {
     append __template_variables__ "</ul>\n"
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
     set template_code [template::adp_compile -string $content]
+    #my log "--pl before adp_eval '[template::adp_level]'"
+    set my_parse_level [template::adp_level]
     if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
+      set ::template::parse_level $my_parse_level 
+      #my log "--pl after adp_eval '[template::adp_level]' mpl=$my_parse_level"
       return "Error in Page $name: $errmsg<br>$content<p>Possible values are$__template_variables__"
     }
     return $template_value

@@ -249,8 +249,9 @@ namespace eval ::xowiki {
   } {
     my instvar folder_id
     db_foreach get_pages "select page_id from xowiki_page, cr_revisions r, cr_items i \
-	where page_id = r.revision_id and i.item_id = r.item_id and i.parent_id = $folder_id " {
-	  search::queue -object_id $page_id -event DELETE
+	where page_id = r.revision_id and i.item_id = r.item_id and i.parent_id = $folder_id \
+	and i.live_revision = page_id" {
+	  #search::queue -object_id $page_id -event DELETE
 	  search::queue -object_id $page_id -event INSERT
 	}
   }

@@ -122,7 +122,7 @@ namespace eval ::xowiki {
 	set page [self]
 	$package_id return_page -adp $template_file -variables {
 	  references name title item_id page context header_stuff return_url
-	  content references lang_links 
+	  content references lang_links package_id
 	  rev_link edit_link delete_link new_link admin_link index_link 
 	  tags no_tags tags_with_links save_tag_link popular_tags_link 
 	  gc_link gc_comments 
