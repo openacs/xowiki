@@ -566,8 +566,7 @@ namespace eval ::xowiki {
  
     if {[info exists privilege]} {
       set granted [expr {$privilege eq "public" ? 1 :
-			 [permission::permission_p -object_id $package_id -privilege $privilege]
-		       }]
+		 [permission::permission_p -object_id $package_id -privilege $privilege] }]
     } else {
       # determine privilege from policy
       set granted [$package_id permission_p $object $method]
@@ -930,7 +929,8 @@ namespace eval ::xowiki {
     
   File instproc get_content {} {
     my instvar name mime_type description parent_id package_id creation_user
-    set page_link [my make_link [self] download]
+    # don't require permissions here, such that rss can present the link
+    set page_link [my make_link -privilege public [self] download ""]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
 	       -columns {

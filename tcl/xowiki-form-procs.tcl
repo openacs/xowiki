@@ -204,8 +204,10 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc new_data {} {
+    my instvar data
     my handle_enhanced_text_from_form
     set item_id [next]
+    $data set creation_user [ad_conn user_id]
     my update_references
     return $item_id
   }
@@ -256,7 +258,7 @@ namespace eval ::xowiki {
 
   FileForm instproc get_uploaded_file {} {
     my instvar data
-    #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+    my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
     set upload_file [$data form_parameter upload_file]
     my log "--F... upload_file = $upload_file"
     if {$upload_file ne ""} {

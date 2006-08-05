@@ -26,7 +26,8 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #$page set unresolved_references 0
   $page instvar item_id
   db_dml delete_old_revisions {delete from txt where object_id in \
-      (select revision_id from cr_revisions where item_id = :item_id and revision_id != :revision_id)}
+      (select revision_id from cr_revisions 
+       where item_id = :item_id and revision_id != :revision_id)}
   foreach tag {h1 h2 h3 h4 h5 b strong} {
     foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
       foreach w [split $words] {
@@ -38,7 +39,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   return [list object_id $revision_id title [$page title] \
-	      content $html keywords [array names word] \
+	      content $text keywords [array names word] \
 	      storage_type text mime text/html \
 	      syndication [list \
 			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set name]] \
@@ -94,12 +95,22 @@ ad_proc -private ::xowiki::sc::register_implementations {} {
       contract_name FtsContentProvider
       owner xowiki
     }
+    acs_sc::impl::new_from_spec -spec {
+      name "::xowiki::File"
+      aliases {
+	datasource ::xowiki::datasource
+	url ::xowiki::url
+      }
+      contract_name FtsContentProvider
+      owner xowiki
+    }
 }
 
 ad_proc -private ::xowiki::sc::unregister_implementations {} {
   acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
   acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PlainPage
   acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PageInstance
+  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::File
 }
 
 
