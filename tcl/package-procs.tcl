@@ -59,6 +59,8 @@ namespace eval ::xowiki {
 
   Package instproc invoke {-method} {
     my instvar object folder_id id policy
+    my set mime_type text/html
+    my set delivery ns_return
     my log "--object = '$object'"
     if {$object eq ""} {
       set exported [$policy defined_methods Package]
@@ -84,7 +86,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc call {policy object method} {
-    my log "--p $policy check_permissions $object $method = [$policy check_permissions $object $method]"
+    my log "--p $policy check_permissions $object $method = [$policy check_permissions $object $method]  delivery=[my set delivery]"
     if {[$policy check_permissions $object $method]} {
       my log "--p calling $object ([$object info class]) '$method'"
       $object $method
@@ -108,6 +110,7 @@ namespace eval ::xowiki {
 	if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
 	} elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
 	} elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
+	} elseif {[regexp {^(file|image)/(.*)$} $path _ lang local_name]} {
 	} else {
 	  set key queryparm(lang)
 	  set lang [expr {[info exists $key] ? [set $key] : \
@@ -373,6 +376,9 @@ namespace eval ::xowiki {
 
     Class Object -array set require_permission {
       edit               {{package_id admin}}
+    }
+    Class File -array set require_permission {
+      download           {{package_id read}}
     }
   }
   

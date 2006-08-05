@@ -107,14 +107,47 @@ namespace eval ::xowiki {
     return $lpairs
   }
 
-  proc ::xowiki::validate_name {} {
-    upvar name name nls_language nls_language folder_id folder_id
-    if {![regexp {^..:} $name]} {
-      if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-      set name [string range $nls_language 0 1]:$name
-    }
-    set name [::xowiki::Page normalize_name -package_id [ad_conn package_id] $name]
+  #
+  # this should be OO-ified -gustaf
+  proc ::xowiki::validate_file {} {
+    my log "--F validate_file data=[my exists data]"
+    my instvar data
+    my get_uploaded_file
+    my log "--F validate_file returns [$data exists import_file]"
+    upvar title title
+    if {$title eq ""} {set title [$data set upload_file]}
+    return [$data exists import_file]
+  }
 
+  proc ::xowiki::validate_name {} {
+    upvar name name nls_language nls_language folder_id folder_id \
+	object_type object_type mime_type mime_type
+    my log "--F validate_name ot=$object_type data=[my exists data]"
+    my instvar data
+    if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
+      #my get_uploaded_file
+      switch -glob -- [$data set mime_type] {
+	image/* {set type image}
+	default {set type file}
+      }
+      if {$name ne ""} {
+	regexp {^(.*):(.*)$} $name _ _t stripped_name
+	if {![info exists stripped_name]} {set stripped_name $name}
+      } else {
+	set stripped_name [$data set upload_file]
+      }
+      set name ${type}:[::xowiki::Page normalize_name \
+			    -package_id [ad_conn package_id] $stripped_name]
+    } else {
+      if {![regexp {^..:} $name]} {
+	if {![info exists nls_language]} {set nls_language ""}
+	if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
+	set name [string range $nls_language 0 1]:$name
+      }
+      set name [::xowiki::Page normalize_name -package_id [ad_conn package_id] $name]
+    }
+
+    # check, if we try to create a new item with an existing name
     #my log "--form vars = [ns_set array [ns_getform] ]"
     #my log "--form comparing '[ns_set get [ns_getform] __object_name]' w '$name'"
     if {[ns_set get [ns_getform] __new_p] 
@@ -135,7 +168,7 @@ namespace eval ::xowiki {
   WikiForm instproc update_references {} {
     my instvar data
     if {![my istype PageInstanceForm]} {
-      ### danger: update references does an ad_eval, which breaks the  [template::adp_level]
+      ### danger: update references does an ad_eval, which breaks the [template::adp_level]
       ### ad_form! don't do it in pageinstanceforms.
       $data render_adp false
       $data render -update_references
@@ -147,31 +180,25 @@ namespace eval ::xowiki {
     my instvar folder_id
     #ns_log notice "--F folder_id=$folder_id"
     ##### why is ns_cache names xowiki_cache *pattern*   not working???
-    foreach entry [ns_cache names xowiki_cache] {
-      if {[string match link-*-$folder_id $entry]} {
-	array set tmp [ns_cache get xowiki_cache $entry]
-	#ns_log notice "--F item_id [$data set item_id] tmp(item_id) = $tmp(item_id)"
-	if {$tmp(item_id) == [$data set item_id]} {
-	  ns_cache flush xowiki_cache $entry
-	}
+    foreach entry [ns_cache names xowiki_cache link-*-$folder_id] {
+      array set tmp [ns_cache get xowiki_cache $entry]
+      #ns_log notice "--F item_id [$data set item_id] tmp(item_id) = $tmp(item_id)"
+      if {$tmp(item_id) == [$data set item_id]} {
+	ns_cache flush xowiki_cache $entry
       }
     }
-    ### provide a nice link
-    #my set submit_link [::xowiki::Page pretty_link \
-			    -package_id [$data set parent_id] \
-			    [$data set name]]
   }
 
   WikiForm instproc new_request {} {
     my instvar data
-    $data set creator [$data get_user_name [ad_conn user_id]]
+    $data set creator [::xo::get_user_name [ad_conn user_id]]
     next
   }
 
   WikiForm instproc edit_request args {
     my instvar data
     if {[$data set creator] eq ""} {
-      $data set creator [$data get_user_name [ad_conn user_id]]
+      $data set creator [::xo::get_user_name [ad_conn user_id]]
     }
     next
   }
@@ -200,6 +227,61 @@ namespace eval ::xowiki {
 	  {text:text(textarea),nospell,optional
 	    {label #xowiki.content#}
 	    {html {cols 80 rows 10}}}}
+      }
+
+  #
+  # File Form
+  #
+
+  Class create FileForm -superclass WikiForm \
+      -parameter {
+	{html { enctype multipart/form-data }} \
+	{field_list {item_id name text title creator description}}
+	{f.name    
+	  {name:text,nospell,optional 
+	    {help_text {Can be obtained from the name of the uploaded file}}}}
+	{f.title
+	  {title:text,optional {label #xowiki.title#} {html {size 80}} }}
+	{f.text
+	  {upload_file:file(file) 
+	    {label #xowiki.content#}
+	    {html {size 30}} }}
+	{validate {
+	  {upload_file {\[::xowiki::validate_file\]} {For new entries, \
+							  a upload file must be provided}}
+	  {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+						   already in this folder}}
+	  }}
+	}
+
+  FileForm instproc get_uploaded_file {} {
+    my instvar data
+    #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+    set upload_file [$data form_parameter upload_file]
+    my log "--F... upload_file = $upload_file"
+    if {$upload_file ne ""} {
+      $data set upload_file  $upload_file
+      $data set import_file [$data form_parameter upload_file.tmpfile]
+      $data set mime_type   [$data form_parameter upload_file.content-type]
+    } else {
+      my log "--F no upload_file provided [lsort [$data info vars]]"
+      if {[$data exists mime_type]} {
+	#my log "   mime_type=[$data set mime_type]"
+	#my log "   text=[$data set text]"
+	regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
+	$data set upload_file $upload_file
+	$data set import_file [$data full_file_name]
+	#my log "   import_type=[$data set import_file]"
+      }
+    }
+  }
+  FileForm instproc new_data {} {
+    #my get_uploaded_file
+    return [next]
+  }
+  FileForm instproc edit_data {} {
+    #my get_uploaded_file
+    return [next]
   }
 
   #

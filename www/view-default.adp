@@ -41,11 +41,9 @@ function get_popular_tags() {
 
 @content;noquote@
 <div style="clear: both; text-align: left; font-size: 85%;">
-<if @references@ ne "">
-<if @lang_links@ ne "">
-<p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@
-@lang_links;noquote@
-</if></if>
+<if @references@ ne "" or @lang_links@ ne "">
+<p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@ @lang_links;noquote@
+</if>
 <br>
 <if @no_tags@ eq 0>
 #xowiki.your_tags_label#: @tags_with_links;noquote@

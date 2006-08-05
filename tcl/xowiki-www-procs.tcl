@@ -47,7 +47,7 @@ namespace eval ::xowiki {
 
     my log "--after user_tracking"
     set references [my references]
-    my log "--after references"
+    my log "--after references = <$references>"
 
     # export title, text, and lang_links to current scope
     my instvar title name text lang_links
@@ -148,7 +148,7 @@ namespace eval ::xowiki {
     #}
 
     # set some default values if they are provided
-    foreach key {name} {
+    foreach key {name title last_page_id} {
       if {[$package_id exists_query_parameter $key]} {my set $key [$package_id query_parameter $key]}
     }
 
@@ -220,7 +220,14 @@ namespace eval ::xowiki {
     return $html
   }
 
-
+  File instproc download {} {
+    my instvar text mime_type package_id item_id revision_id
+    $package_id set mime_type $mime_type
+    $package_id set delivery \
+	  [expr {[my isobject bgdelivery] ? "ad_returnfile_background" : "ns_returnfile"}] 
+    #my log "--F FILE=[my full_file_name]"
+    return [my full_file_name]
+  }
 
   Page instproc revisions {} {
     my instvar package_id name item_id
@@ -266,6 +273,8 @@ namespace eval ::xowiki {
       ns_cache flush xotcl_object_type_cache item_id-of-$parent_id
       ::$parent_id destroy
     }
+    set key link-*-$name-$parent_id
+    foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
     ad_returnredirect [my query_parameter "return_url" [$package_id package_url]]
   }
 

@@ -55,8 +55,10 @@ TableWidget t1 -volatile \
     -columns {
       ImageField_EditIcon edit -label "" 
       AnchorField name -label [_ xowiki.name] -orderby name
-      Field object_type -label [_ xowiki.page_type] -orderby object_type
+      Field object_type -label [_ xowiki.page_type] -orderby object_type 
+      Field size -label "Size" -orderby size -html {align right}
       Field last_modified -label "Last Modified" -orderby last_modified
+      Field mod_user -label "By User" -orderby mod_user
       ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
     }
 
@@ -70,7 +72,8 @@ db_foreach instance_select \
     [$object_type instance_select_query \
 	 -folder_id $folder_id \
 	 -with_subtypes $with_subtypes \
-	 -select_attributes [list "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
+	 -select_attributes [list content_length creation_user \
+		 "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
 	 -order_clause $order_clause \
 	 ] {
 	   set page_link [::xowiki::Page pretty_link $name]
@@ -81,7 +84,9 @@ db_foreach instance_select \
 	       -object_type $object_type \
 	       -name.href $page_link \
 	       -last_modified $last_modified \
+	       -size $content_length \
 	       -edit.href [export_vars -base $page_link {{m edit}}] \
+	       -mod_user [::xo::get_user_name $creation_user] \
 	       -delete.href [export_vars -base $page_link {{m delete} return_url}]
   	 }
 

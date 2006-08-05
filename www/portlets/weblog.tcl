@@ -11,6 +11,7 @@ Class ::xowiki::WeblogEntry -instproc render {} {
   append content "<DIV class='post' style='clear: both;'>" \
       "<h2><a href='[::xowiki::Page pretty_link [my set name]]'>[my set title]</a></h2>" \
       "<p class='auth'>Created by [my set creator], " \
+      "last modfified by [::xo::get_user_name [my set creation_user]] " \
       "<span class='date'>[my set pretty_date]</span></p>" \
       [my set description] \n \
       "</DIV>"

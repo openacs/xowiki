@@ -29,6 +29,12 @@ namespace eval ::xowiki {
       -mime_type text/plain \
       -form ::xowiki::PlainWikiForm
 
+  ::Generic::CrClass create File -superclass Page \
+      -pretty_name "XoWiki File" -pretty_plural "XoWiki Files" \
+      -table_name "xowiki_file" -id_column "file_id" \
+      -storage_type file \
+      -form ::xowiki::FileForm
+
   ::Generic::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
@@ -521,7 +527,7 @@ namespace eval ::xowiki {
   #
   Page proc pretty_link {{-fully_qualified:boolean false} -lang -package_id name} {
     my instvar folder_id
-    my log "--u name=<$name>"
+    #my log "--u name=<$name>"
 
     if {![info exists package_id]} {set package_id [$folder_id set package_id]}
     if {![my isobject ::$package_id]} {
@@ -531,9 +537,11 @@ namespace eval ::xowiki {
     set url [::$package_id package_url]
     
     if {![info exists lang]} {
-      regexp {^(..):(.*)$} $name _ lang name
+      if {![regexp {^(..):(.*)$} $name _ lang name]} {
+	regexp {^(file|image):(.*)$} $name _ lang name
+      }
     }
-    if {![info exists lang] && ![string match :* $name]} {
+    if {![info exists lang] && ![regexp {^(:|(file|image))} $name]} {
       set lang [string range [lang::conn::locale] 0 1]
     }
     set host [expr {$fully_qualified ? [ad_url] : ""}]
@@ -569,15 +577,15 @@ namespace eval ::xowiki {
       if {[$object istype ::xowiki::Package]} {
 	set base  [$package_id package_url]
 	if {[info exists url]} {
-	  return [uplevel export_vars -base $base$url [list $args]]
+	  return [uplevel export_vars -base [list $base$url] [list $args]]
 	} else {
 	  lappend args [list $method 1]
-	  return [uplevel export_vars -base $base [list $args]]
+	  return [uplevel export_vars -base [list $base] [list $args]]
 	}
       } elseif {[$object istype ::xowiki::Page]} {
 	set base [$package_id url]
 	lappend args [list m $method]
-	return [uplevel export_vars -base $base [list $args]]
+	return [uplevel export_vars -base [list $base] [list $args]]
       }
     }
     return ""
@@ -634,25 +642,15 @@ namespace eval ::xowiki {
     return 0
   }
 
-  Page instproc get_user_name {uid} {
-    if {$uid ne "" && $uid != 0} {
-      acs_user::get -user_id $uid -array user
-      return "$user(first_names) $user(last_name)"
-    } else {
-      return nobody
-    }
-  }
-
-  
   Page instproc initialize_loaded_object {} {
     my instvar title creator
     if {[info exists title] && $title eq ""} {set title [my set name]}
-    #if {$creator eq ""} {set creator [my get_user_name [my set creation_user]]}
+    #if {$creator eq ""} {set creator [::xo::get_user_name [my set creation_user]]}
     next
   }
 
   Page instproc regsub-eval {re string cmd} {
-    subst [regsub -all $re [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $string] \
+    subst [regsub -all $re [string map {\" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\} $string] \
 	       "\[$cmd\]"]
   }
 
@@ -709,10 +707,14 @@ namespace eval ::xowiki {
       return "$ch<a class='external' href='$link'>$label</a>"
     }
 
+    set name ""
     my instvar parent_id package_id
     # do we have a language link (it starts with a ':')
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       set link_type language
+    } elseif {[regexp {^(file|image):(.*)$} $link _ link_type stripped_name]} {
+      set lang ""
+      set name $link
     } else {
       # do we have a typed link?
       if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ link_type _ lang  stripped_name]} {
@@ -723,13 +725,14 @@ namespace eval ::xowiki {
 	regexp {^(..):(.+)$} $link _ lang stripped_name
       }
     }
-    set stripped_name   [Page normalize_name -package_id $package_id $stripped_name]
-    if {$lang eq ""}    {set lang [my lang]}
+    set normalized_name [Page normalize_name -package_id $package_id $stripped_name]
+    if {$lang  eq ""}   {set lang [my lang]}
+    if {$name  eq ""}   {set name $lang:$normalized_name}
     if {$label eq $arg} {set label $stripped_name}
 
     Link create [self]::link \
-	-type $link_type -name $lang:$stripped_name -lang $lang \
-	-stripped_name $stripped_name -label $label \
+	-type $link_type -name $name -lang $lang \
+	-stripped_name $normalized_name -label $label \
 	-folder_id $parent_id -package_id $package_id
     return $ch[[self]::link render]
   }
@@ -903,6 +906,63 @@ namespace eval ::xowiki {
       append content [string range $l 1 end] \n
     }
     return $content
+  }
+
+  #
+  # Methods of ::xowiki::File
+  #
+
+  File parameter {
+    {render_adp 0}
+  }
+  File instproc full_file_name {} {
+    if {![my exists full_file_name]} {
+      if {[my exists item_id]} {
+	my instvar text mime_type package_id item_id revision_id
+	set storage_area_key [db_string get_storage_key \
+		  "select storage_area_key from cr_items where item_id=$item_id"]
+	my set full_file_name [cr_fs_path $storage_area_key]/$text
+	#my log "--F setting FILE=[my set full_file_name]"
+      }
+    }
+    return [my set full_file_name]
+  }
+    
+  File instproc get_content {} {
+    my instvar name mime_type description parent_id package_id creation_user
+    set page_link [my make_link [self] download]
+    #my log "--F page_link=$page_link ---- "
+    set t [TableWidget new -volatile \
+	       -columns {
+		 AnchorField name -label [_ xowiki.name]
+		 Field mime_type -label [_ xowiki.page_type]
+		 Field last_modified -label "Last Modified"
+		 Field mod_user -label "By User"
+		 Field size -label "Size"
+	       }]
+
+    regsub {[.][0-9]+([^0-9])} [my set last_modified] {\1} last_modified
+    regexp {^([^:]+):(.*)$} $name _ link_type stripped_name
+    set label $stripped_name
+
+    $t add \
+	-name $stripped_name \
+	-mime_type $mime_type \
+	-name.href $page_link \
+	-last_modified $last_modified \
+	-mod_user [::xo::get_user_name $creation_user] \
+	-size [file size [my full_file_name]]
+
+    if {$link_type eq "image"} {
+      set l [Link new -volatile \
+		 -type $link_type -name $name -lang "" \
+		 -stripped_name $stripped_name -label $label \
+		 -folder_id $parent_id -package_id $package_id]
+      set image "<div >[$l render]</div>"
+    } else {
+      set image ""
+    }
+    return "$image<p>[$t asHTML]</p>\n<p>$description</p>"
   }
 
   #

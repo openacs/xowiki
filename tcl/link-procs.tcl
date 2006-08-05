@@ -12,12 +12,17 @@ namespace eval ::xowiki {
   # generic links
   #
 
-  Class create Link -parameter {type name lang stripped_name label folder_id package_id}
+  Class create Link -parameter {
+    type name lang stripped_name label 
+    folder_id package_id
+  }
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
+    my log "--L link has class [my info class]"
   }
   Link instproc resolve {} {
+    #my log "--lookup of [my name]"
     ::Generic::CrItem lookup -name [my name] -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
@@ -32,21 +37,26 @@ namespace eval ::xowiki {
     #my log "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
-      set href [::xowiki::Page pretty_link -package_id [my package_id] -lang [my lang] \
+      set href [::xowiki::Page pretty_link \
+		    -package_id [my package_id] -lang [my lang] \
 		    [my stripped_name]]
       my render_found $href [my label]
     } else {
       my instvar package_id
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
-      set name [my label]
-      set href [export_vars -base [$package_id package_url] {{edit-new 1} object_type name}]
+      set name [my name]
+      set title [my label]
+      set href [export_vars -base [$package_id package_url] \
+		    {{edit-new 1} object_type name title}]
       my render_not_found $href [my label]
     }
   }
 
   Link instproc lookup_xowiki_package_by_name {name start_package_id} {
-    set ancestors [site_node::get_ancestors -node_id $start_package_id -element node_id]
+    set ancestors [site_node::get_ancestors \
+		       -node_id $start_package_id \
+		       -element node_id]
     foreach a $ancestors {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
 			  -filters [list name $name] -element package_id]
@@ -79,14 +89,49 @@ namespace eval ::xowiki {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
-      set link [export_vars -base [$package_id package_url] {{edit-new 1} object_type name last_page_id}]
+      set link [export_vars -base [$package_id package_url] \
+		    {{edit-new 1} object_type name last_page_id}]
     }
     $page lappend lang_links \
 	"<a href='$link'><img class='$css_class' style='height='12' \
 		src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
     return ""
   }
+
+  #
+  # image links
+  #
  
+  Class create ::xowiki::Link::image -superclass ::xowiki::Link
+  ::xowiki::Link::image instproc render {} {
+    my instvar name package_id label
+    set page [my info parent]
+    set item_id [my resolve]
+    if {$item_id} {
+      set link [export_vars -base [::xowiki::Page pretty_link $name] {{m download}} ]
+      $page lappend references [list $item_id [my type]]
+      my render_found $link $label
+    } else {
+      $page incr unresolved_references
+      set last_page_id [$page set item_id]
+      set title $label
+      set link [export_vars -base [$package_id package_url] \
+		    {{edit-new 1} {object_type ::xowiki::File} 
+		      {return_url "[$package_id url]"}
+		      name title last_page_id}]
+      my render_not_found $link $label
+    }
+  }
+  ::xowiki::Link::image instproc render_found {link label} {
+    set label [string map [list ' "&#39;"] $label]
+    return "<img src='$link' alt='$label' title='$label'>"
+  }
+
+  Class create ::xowiki::Link::file -superclass ::xowiki::Link::image
+  ::xowiki::Link::file instproc render_found {href label} {
+    return "<a href='$href' style='background: url(/resources/xowiki/file.jpg) \
+	right center no-repeat; padding-right:9px'>$label</a>"
+  }
 
   #
   # glossary links
