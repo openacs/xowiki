@@ -224,7 +224,8 @@ namespace eval ::xowiki {
     my instvar text mime_type package_id item_id revision_id
     $package_id set mime_type $mime_type
     $package_id set delivery \
-	  [expr {[my isobject bgdelivery] ? "ad_returnfile_background" : "ns_returnfile"}] 
+	  [expr {[catch {ns_conn contentsentlength}] ? 
+		 "ns_returnfile" : "ad_returnfile_background"}]
     #my log "--F FILE=[my full_file_name]"
     return [my full_file_name]
   }
