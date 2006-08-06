@@ -1,0 +1,13 @@
+>>content<<
+{{adp portlets/weblog {name Weblog}}}
+>><<
+>>sidebar<<
+{{adp portlets/weblog-mini-calendar}}
+{{adp portlets/tags {skin plain-include}}}
+{{adp portlets/tags {skin plain-include popular 1 limit 30}}}
+{{adp portlets/categories {count 1 skin plain-include}}}
+>><<
+
+
+
+

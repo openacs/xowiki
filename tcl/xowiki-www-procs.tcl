@@ -298,4 +298,10 @@ namespace eval ::xowiki {
 	 }
     ns_return 200 text/html "[_ xowiki.popular_tags_label]: [join $entries {, }]"
   }
+
+  Class Page::skin=portlet -instproc render {} {
+    return "<div class='portlet-title'>\
+	<span><a href='[::xowiki::Page pretty_link [my name]]'>[my title]</a></span></div>\
+	<div class='portlet'>[next]</div>"
+  }
 }

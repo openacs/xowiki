@@ -19,7 +19,7 @@ namespace eval ::xowiki {
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
-    my log "--L link has class [my info class]"
+    #my log "--L link has class [my info class]"
   }
   Link instproc resolve {} {
     #my log "--lookup of [my name]"

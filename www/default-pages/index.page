@@ -1,0 +1,15 @@
+<p>
+This is the default start page of XoWiki. You can edit this page and save it to provide a personalized look of the XoWiki instance. You can as well provide a different index page through configuration. For more details, consult the [[http://media.wu-wien.ac.at/download/xowiki-doc/|XoWiki documentation]].
+</p>
+>>left-col<<
+{{adp portlets/recent {name {Recently Changed Pages} max_entries 25} }}
+>><<
+>>right-col<<
+{{adp portlets/last-visited {name {Last Visited} max_entries 10 }}}
+<br>
+{{adp portlets/most-popular {name {Most Popular} max_entries 10 }}}
+>><<
+
+
+
+

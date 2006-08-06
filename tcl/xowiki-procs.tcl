@@ -681,6 +681,22 @@ namespace eval ::xowiki {
       }
 
       return $ch$page
+    } else {
+      my instvar package_id
+      set page_name [lindex $arg 0]
+      set page [$package_id resolve_request -path $page_name]
+      if {$page ne ""} {
+	$page volatile
+	$page set __including_page [self]
+	set skin portlet
+	foreach {att value} [lrange $arg 1 end] {
+	  switch -- $att {
+	    -skin {set skin $value}
+	  }
+	}
+	if {$skin ne "plain"} {$page mixin add ::xowiki::Page::skin=$skin}
+	return $ch[$page render]
+      }
     }
   }
   Page instproc div {ch arg} {

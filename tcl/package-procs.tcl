@@ -69,19 +69,38 @@ namespace eval ::xowiki {
 	  return [my call $policy [self] $m]
 	}
       }
-      set object [$id get_parameter index_page]
     }
     if {$object eq ""} {
       # we should change this to the new interface with query_parameter
       #if {[ns_queryget summary] eq ""} {rp_form_put summary 1}
       #set object [$id get_parameter weblog_page "en:weblog"]
-      ad_returnredirect "admin/list"
+      #ad_returnredirect "admin/list"
+      set object index
     }
     set page [my resolve_request -path $object]
     if {$page ne ""} {
       return [my call $policy $page $method]
+    }
+    # try standard page
+    set standard_page [$id get_parameter ${object}_page]
+    my log "--standard page '$standard_page' from ${object}_page"
+    if {$standard_page ne ""} {
+      set page [my resolve_request -path $standard_page]
+      if {$page ne ""} {
+	my log "--found standard page $standard_page => $page"
+	return [my call $policy $page $method]
+      }
+      # create from default page
+      set fn [get_server_root]/packages/xowiki/www/default-pages/$object.page
+      my log "--sourcing page definition /packages/xowiki/www/default-pages/$object"
+      set F [open $fn]; set source [read $F]; close $F
+      set page [::xowiki::Page new -volatile -name $standard_page \
+		    -title $object -parent_id $folder_id -package_id $id \
+		    -text [list [string map [list >> "&gt;&gt;" << "&lt;&lt;"] $source] text/html]]
+      $page save_new
+      return [my call $policy $page $method]
     } else {
-      #...
+      ad_returnredirect "admin/list"
     }
   }
 
@@ -176,10 +195,12 @@ namespace eval ::xowiki {
 	} else {
 	  # we have no folder object yet. so we create one...
 	  ::xowiki::Object create ::$folder_id
-	  ::$folder_id set text "# this is the payload of the folder object\n\nset index_page \"\"\n"
+	  ::$folder_id set text "# this is the payload of the folder object\n\n\
+		set index_page \"en:index\"\n"
 	  ::$folder_id set parent_id $folder_id
 	  ::$folder_id set name ::$folder_id
 	  ::$folder_id set title ::$folder_id
+	  ::$folder_id set package_id $id
 	  ::$folder_id save_new
 	  ::$folder_id initialize_loaded_object
 	}
@@ -199,7 +220,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc return_page {-adp -variables -form} {
-    my log "--vars=[self args]"
+    #my log "--vars=[self args]"
     set __vars [list]
     foreach _var $variables {
       if {[llength $_var] == 2} {

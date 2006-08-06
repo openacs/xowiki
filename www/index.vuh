@@ -13,9 +13,9 @@ ad_page_contract {
 		   package_id [ad_conn package_id]]
 
 set Package [::xowiki::Package create ::$package_id -folder_id $folder_id]
-#$Package log "--starting... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+$Package log "--starting... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
 set text [$Package invoke -method $m]
-#$Package log "--delivery [$Package set delivery] 200 [$Package set mime_type] $text"
+$Package log "--delivery [$Package set delivery] 200 [$Package set mime_type] [string length $text] bytes"
 [$Package set delivery] 200 [$Package set mime_type] $text
-#$Package log "--done"
+$Package log "--done [$Package set object]"
 ad_script_abort

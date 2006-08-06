@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.32" url="http://openacs.org/repository/download/apm/xowiki-0.32.apm">
+    <version name="0.33" url="http://openacs.org/repository/download/apm/xowiki-0.33.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2006-08-05</release-date>
+        <release-date>2006-08-06</release-date>
         <description format="text/html">XoWiki is a wiki implementation for OpenACS in xotcl. Instead of trying to
 implement the full set of wiki markup commands of systems like MediaWiki,
 XoWiki is based on a rich text editor and focuses more on integration
@@ -20,13 +20,13 @@ with oacs (e.g categories, general comments, adp-includes).  XoWiki
 combines aspects of wikis (ease of page-creation) with aspects of a
 content management system (revisions, re-usable items, multiple
 languages). Furthermore, XoWiki allows to define different types of links such
-one could define book-structures (where a navigation structure could be built on the fly) or glossaries with differnt kind of word relationships (like synonyms, etc.). XoWiki supports pages in multiple languages and is localized (currently only for English and German). Currently, richtext and plaintext type entries are supported. Included support for adp-substitution in wiki pages and a file-selector. 0.13  supports page templates and uses the new generic form interface. Use of the oo layer for the content repository, reduced number of database interactions.0.18 supports text/enhanced, nice page names, import/export. Support for search (::xowiki::Page and ::xowiki::PlainPage); 0.20 support ::xowiki::Object, directory object, rss generation into syndication table, improved admin pages; 0.21: ajax-ased chat added, new attributes creator and page_title for all xowiki::Pages; 0.22 improved permission checking. 0.24 provides link-types, more includeletes (most-recently viewed, most frequently accessed pages). 0.26 provides Weblog support. 0.27: alignment with xotcl-core 0.38 (use cr_item.name instead of cr_revisions.title), change page_title to title (potential incompatibility) to rely more strictly to the CR data model (most files are effected). 0.28: tag and improved weblog support. 0.30: symbolic oo interface, nicer links, permission management. 0.31: per package search. 0.32: new class ::xowiki::File for [[file:readme.pdf]] and [[image:picture.jpg]]
+one could define book-structures (where a navigation structure could be built on the fly) or glossaries with differnt kind of word relationships (like synonyms, etc.). XoWiki supports pages in multiple languages and is localized (currently only for English and German). Currently, richtext and plaintext type entries are supported. Included support for adp-substitution in wiki pages and a file-selector. 0.13  supports page templates and uses the new generic form interface. Use of the oo layer for the content repository, reduced number of database interactions.0.18 supports text/enhanced, nice page names, import/export. Support for search (::xowiki::Page and ::xowiki::PlainPage); 0.20 support ::xowiki::Object, directory object, rss generation into syndication table, improved admin pages; 0.21: ajax-ased chat added, new attributes creator and page_title for all xowiki::Pages; 0.22 improved permission checking. 0.24 provides link-types, more includeletes (most-recently viewed, most frequently accessed pages). 0.26 provides Weblog support. 0.27: alignment with xotcl-core 0.38 (use cr_item.name instead of cr_revisions.title), change page_title to title (potential incompatibility) to rely more strictly to the CR data model (most files are effected). 0.28: tag and improved weblog support. 0.30: symbolic oo interface, nicer links, permission management. 0.31: per package search. 0.32: new class ::xowiki::File for [[file:readme.pdf]] and [[image:picture.jpg]] 0.33: direct inclusion of xowiki pages via {{en:mypage}}, simpler default pages (see xowiki/www/default-pages).
 
 </description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.32"/>
+        <provides url="xowiki" version="0.33"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
@@ -40,6 +40,7 @@ one could define book-structures (where a navigation structure could be built on
         <parameters>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks."/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="name of the adp file to be used for viewing xowiki pages. Alternatively, one can use oacs-view for providing a view with the category-tree on the left or any other tailored view"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_gc"  default="1" description="use general comments package "/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_tags"  default="1" description="allow user to provide tags to pages"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_user_tracking"  default="1" description="track page view usage per user"/>
