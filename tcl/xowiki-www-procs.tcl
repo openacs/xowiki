@@ -103,9 +103,11 @@ namespace eval ::xowiki {
 
       my log "--after context delete_link=$delete_link "
       set template [$folder_id get_payload template]
+      set page [self]
 
       if {$template ne ""} {
 	set __including_page $page
+	set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
 	set template_code [template::adp_compile -string $template]
 	if {[catch {set content [template::adp_eval template_code]} errmsg]} {
 	  set content "Error in Page $name: $errmsg<br>$content"
@@ -119,7 +121,6 @@ namespace eval ::xowiki {
 	if {![regexp {^[./]} $template_file]} {
 	  set template_file /packages/xowiki/www/$template_file
 	}
-	set page [self]
 	$package_id return_page -adp $template_file -variables {
 	  references name title item_id page context header_stuff return_url
 	  content references lang_links package_id

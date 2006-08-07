@@ -19,6 +19,8 @@ ad_form \
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
       set f [open $upload_tmpfile]; set content [read $f]; close $f
+
+      foreach o [::xowiki::Page allinstances] { $o destroy }
       if {[catch {eval $content} error]} {
 	set msg "Error: $error"
       } else {
