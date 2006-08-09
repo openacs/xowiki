@@ -85,7 +85,7 @@ db_foreach instance_select \
 	       -name.href $page_link \
 	       -last_modified $last_modified \
 	       -size $content_length \
-	       -edit.href [export_vars -base $page_link {{m edit}}] \
+	       -edit.href [export_vars -base $page_link {{m edit} return_url}] \
 	       -mod_user [::xo::get_user_name $creation_user] \
 	       -delete.href [export_vars -base $page_link {{m delete} return_url}]
   	 }

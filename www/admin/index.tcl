@@ -39,12 +39,14 @@ db_foreach type_select \
     "select object_type from acs_object_types where 
         tree_sortkey between :object_type_key and tree_right(:object_type_key)
     " {
+
+      set return_url [export_vars -base ${base}admin {object_type}]
       t1 add \
 	  -object_type $object_type \
 	  -instances [db_list count [$object_type instance_select_query \
 				 -folder_id $folder_id -count 1 -with_subtypes false]] \
 	  -instances.href [export_vars -base ./list {object_type}] \
-	  -edit.href   [export_vars -base $base {{edit-new 1} object_type}] \
+	  -edit.href   [export_vars -base $base {{edit-new 1} object_type return_url}] \
 	  -delete.href [export_vars -base delete-type {object_type}] \
 	  -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
 	  -delete.title  "Delete all [$object_type pretty_plural] of this instance"

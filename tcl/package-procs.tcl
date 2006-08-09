@@ -108,7 +108,7 @@ namespace eval ::xowiki {
       $page save_new
       return [my call $policy $page $method]
     } else {
-      ad_returnredirect "admin/list"
+      ad_returnredirect "[my package_url]admin/list"
     }
   }
 
