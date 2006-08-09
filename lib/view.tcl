@@ -1,5 +1,4 @@
 
-
 if {[info exists url]} {
   # new style, the url is sufficient
   regexp {^(/[^/]+)/?(.*)$} $url _ instance path
@@ -11,7 +10,7 @@ if {[info exists url]} {
 } else {
   # old style, use item_id
   set m view
-  set page [::xowiki::Package instantiate_from_page -item_id $item_id]
+  set page [::xowiki::Package instantiate_page_from_id -item_id $item_id]
   $page instvar package_id
   set Package ::$package_id
 }

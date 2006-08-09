@@ -15,13 +15,17 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 } {
   ns_log notice "--sc datasource called with revision_id = $revision_id"
 
-  set page [::xowiki::Package instantiate_from_page -revision_id $revision_id]
+  set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id]
   $page volatile
+  $page absolute_links 1
+  ns_log notice "--sc setting absolute link for page = $page"
 
   set html [$page render]
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
+ ::xowiki::notification::do_notifications -page $page -html $html -text $text
+
   #ns_log notice "--sc INDEXING $revision_id -> $text"
   #$page set unresolved_references 0
   $page instvar item_id
@@ -42,7 +46,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 	      content $text keywords [array names word] \
 	      storage_type text mime text/html \
 	      syndication [list \
-			link [::xowiki::Page pretty_link -fully_qualified 1 [$page set name]] \
+			link [::xowiki::Page pretty_link -absolute 1 [$page set name]] \
 			description $text \
 			author [$page set creator] \
 			category "" \
@@ -51,24 +55,19 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 	     ]
 }
 
-ad_proc -private ::xowiki::url { revision_id } {
-    @param revision_id
-
+ad_proc -private ::xowiki::url { revision_id} {
     returns a url for a message to the search package
 } {
-  set page [::xowiki::Package instantiate_from_page -revision_id $revision_id]
-  $page volatile
-  return [::[$page package_id] url]
+  return [::xowiki::Package get_url_from_id -revision_id $revision_id]
 }
 
 
+namespace eval ::xowiki::sc {
 
-namespace eval ::xowiki::sc {}
-
-ad_proc -private ::xowiki::sc::register_implementations {} {
+  ad_proc -private ::xowiki::sc::register_implementations {} {
     Register the content type fts contract
-} {
-   acs_sc::impl::new_from_spec -spec {
+  } {
+    acs_sc::impl::new_from_spec -spec {
       name "::xowiki::Page"
       aliases {
 	datasource ::xowiki::datasource
@@ -106,11 +105,11 @@ ad_proc -private ::xowiki::sc::register_implementations {} {
     }
 }
 
-ad_proc -private ::xowiki::sc::unregister_implementations {} {
-  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
-  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PlainPage
-  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PageInstance
-  acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::File
+  ad_proc -private ::xowiki::sc::unregister_implementations {} {
+    acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
+    acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PlainPage
+    acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PageInstance
+    acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::File
+  }
 }
-
 

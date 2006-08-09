@@ -13,7 +13,7 @@ namespace eval ::xowiki {
   #
 
   Class create Link -parameter {
-    type name lang stripped_name label 
+    type name lang stripped_name label page
     folder_id package_id
   }
   Link instproc init {} {
@@ -32,7 +32,7 @@ namespace eval ::xowiki {
     return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
   }
   Link instproc render {} {
-    set page [my info parent]
+    set page [my page]
     set item_id [my resolve]
     #my log "--u resolve returns $item_id"
     if {$item_id} {
@@ -79,7 +79,7 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::Link::language -superclass ::xowiki::Link
   ::xowiki::Link::language instproc render {} {
-    set page [my info parent]
+    set page [my page]
     my instvar lang name package_id
     set item_id [my resolve]
     if {$item_id} {
@@ -105,10 +105,12 @@ namespace eval ::xowiki {
   Class create ::xowiki::Link::image -superclass ::xowiki::Link
   ::xowiki::Link::image instproc render {} {
     my instvar name package_id label
-    set page [my info parent]
+    set page [my page]
     set item_id [my resolve]
     if {$item_id} {
-      set link [export_vars -base [::xowiki::Page pretty_link $name] {{m download}} ]
+      set base [::xowiki::Page pretty_link -absolute [$page absolute_links] $name]
+my log "--l fully quali [$page absolute_links], base=$base"
+      set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
       my render_found $link $label
     } else {

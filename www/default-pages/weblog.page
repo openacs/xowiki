@@ -1,3 +1,4 @@
+::xowiki::Page new -title "Index Page" -text {
 >>content<<
 {{adp portlets/weblog {name Weblog}}}
 >><<
@@ -7,7 +8,7 @@
 {{adp portlets/tags {skin plain-include popular 1 limit 30}}}
 {{adp portlets/categories {count 1 skin plain-include}}}
 >><<
-
+}
 
 
 

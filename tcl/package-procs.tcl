@@ -5,11 +5,12 @@ namespace eval ::xowiki {
   #Package instproc create {name args} {if {![my isobject $name]} {next}}
 
   Package proc process_query {{-defaults ""}} {
-    my instvar queryparm formvars
-    if {![info exists query]} {set query [ns_conn query]}
+    my instvar queryparm form_parameter
     array unset queryparm
     array unset form_parameter
     array set queryparm $defaults
+
+    set query [ns_conn query]
     foreach querypart [split $query &] {
       set att_val [split $querypart =]
       if {[llength $att_val] == 1} {
@@ -22,14 +23,20 @@ namespace eval ::xowiki {
     foreach key [array names queryparm] {uplevel [list set $key $queryparm($key)]}
   }
 
-  Package proc instantiate_from_page {{-revision_id 0} {-item_id 0}} {
+  Package proc instantiate_page_from_id {{-revision_id 0} {-item_id 0}} {
     set page [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
     set folder_id [$page set parent_id]
     set package_id [db_string get_pid "select package_id from cr_folders where folder_id = $folder_id"]
     $page set package_id $package_id
-    [self] create ::$package_id -folder_id $folder_id -use_ns_conn false
+    my create ::$package_id -folder_id $folder_id -use_ns_conn false
     ::$package_id set_url -url [Page pretty_link -package_id $package_id [$page name]]
     return $page
+  }
+
+  Package proc get_url_from_id {{-item_id 0} {-revision_id 0}} {
+    set page [::xowiki::Package instantiate_page_from_id -item_id $item_id -revision_id $revision_id]
+    $page volatile
+    return [::[$page package_id] url] 
   }
 
   Package instproc init args {
@@ -93,10 +100,11 @@ namespace eval ::xowiki {
       # create from default page
       set fn [get_server_root]/packages/xowiki/www/default-pages/$object.page
       my log "--sourcing page definition /packages/xowiki/www/default-pages/$object"
-      set F [open $fn]; set source [read $F]; close $F
-      set page [::xowiki::Page new -volatile -name $standard_page \
-		    -title $object -parent_id $folder_id -package_id $id \
-		    -text [list [string map [list >> "&gt;&gt;" << "&lt;&lt;"] $source] text/html]]
+      set page [source $fn]
+      $page configure -volatile -name $standard_page \
+	  -title $object -parent_id $folder_id -package_id $id \
+	  -text [list [string map [list >> "\n<br />&gt;&gt;" << "&lt;&lt;\n"] \
+			   [string trim [$page text] " \n"]] text/html]
       $page save_new
       return [my call $policy $page $method]
     } else {

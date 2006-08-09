@@ -27,7 +27,7 @@
 # move require folder object code
 # edit-new last_page_id (needed?)
 # edit last_page_id (needed?)
-
+# nicer title + content for notification; my-wiki,
 
 namespace eval ::xowiki {
   
@@ -88,6 +88,11 @@ namespace eval ::xowiki {
       set return_url [my query_parameter "edit_return_url"]
     }
 
+    if {[$package_id get_parameter "use_notifications" 1]} {
+      set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+      set notification_link /notifications/request-new?return_url=/xowiki&type_id=$notification_type&object_id=$package_id
+    }
+
     my log "--after gc title=$title"
     if {$master} {
       set context [list $title]
@@ -126,7 +131,7 @@ namespace eval ::xowiki {
 	  content references lang_links package_id
 	  rev_link edit_link delete_link new_link admin_link index_link 
 	  tags no_tags tags_with_links save_tag_link popular_tags_link 
-	  gc_link gc_comments 
+	  gc_link gc_comments notification_link
 	}
       }
     } else {
