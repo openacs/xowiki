@@ -10,7 +10,9 @@ ad_page_contract {
   {query "."}
 }
 
-db_foreach retrieve_instances [$object_type instance_select_query] {
+set p [::xowiki::Package create ::[ad_conn package_id]]
+
+db_foreach retrieve_instances [$object_type instance_select_query -folder_id [$p set folder_id]] {
   permission::require_write_permission -object_id $item_id
   $object_type delete -item_id $item_id
 }
