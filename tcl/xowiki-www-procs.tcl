@@ -64,14 +64,46 @@ namespace eval ::xowiki {
 	set entries [list]
 	set tags [lsort [::xowiki::Page get_tags -user_id [ad_conn user_id] \
 			     -item_id $item_id -package_id $package_id]]
-	set href [site_node::get_url_from_object_id -object_id $package_id]weblog?summary=1
+	set href [$package_id package_url]weblog?summary=1
 	foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
 	set tags_with_links [join $entries {, }]
       }
     }
-
     my log "--after tags"
+
     set return_url  [$package_id url]     ;# for the time being
+
+   if {[$package_id get_parameter "use_notifications" 1]} {
+     set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+     set notification_subscribe_link [export_vars -base /notifications/request-new \
+				 {return_url 
+				   {pretty_name "Subscribe the xowiki instance"} \
+				   {type_id $notification_type} 
+				   {object_id $package_id}}]
+     set notification_image "<img style='border: 0px;' src='/resources/xowiki/email.png'>"
+    }
+    my log "--after notifications [info exists notification_image]"
+    
+    if {[$package_id get_parameter "show_per_object_categories" 1]} {
+      set entries [list]
+      set href [$package_id package_url]weblog?summary=1
+      foreach cat_id [category::get_mapped_categories $item_id] {
+	foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
+	my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
+	set entry "<a href='$href&category_id=$category_id'>$category_name ($tree_name)</a>"
+	if {[info exists notification_image]} {
+	  set cat_notif_link [export_vars -base /notifications/request-new \
+				  {return_url \
+				       {pretty_name "Category $category_name in tree $tree_name"} \
+				       {type_id $notification_type} \
+				       {object_id $category_id}}]
+	  append entry "<a href='$cat_notif_link'>$notification_image</a>"
+	}
+	lappend entries $entry
+      }
+      set per_object_categories_with_links [join $entries {, }]
+    }
+    my log "--after tags"
 
     if {[$package_id get_parameter "use_gc"] && 
 	![my exists_query_parameter no_gc]} {
@@ -81,6 +113,8 @@ namespace eval ::xowiki {
       set gc_link ""
       set gc_comments ""
     }
+    my log "--after gc title=$title"
+
 
     set header_stuff [::xowiki::Page header_stuff]
     set master [my query_parameter "master" 1]
@@ -88,12 +122,6 @@ namespace eval ::xowiki {
       set return_url [my query_parameter "edit_return_url"]
     }
 
-    if {[$package_id get_parameter "use_notifications" 1]} {
-      set notification_type [notification::type::get_type_id -short_name xowiki_notif]
-      set notification_link /notifications/request-new?return_url=/xowiki&type_id=$notification_type&object_id=$package_id
-    }
-
-    my log "--after gc title=$title"
     if {$master} {
       set context [list $title]
       set object_type [my info class]
@@ -131,7 +159,8 @@ namespace eval ::xowiki {
 	  content references lang_links package_id
 	  rev_link edit_link delete_link new_link admin_link index_link 
 	  tags no_tags tags_with_links save_tag_link popular_tags_link 
-	  gc_link gc_comments notification_link
+	  per_object_categories_with_links
+	  gc_link gc_comments notification_subscribe_link notification_image
 	}
       }
     } else {

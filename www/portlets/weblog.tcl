@@ -50,15 +50,23 @@ Class ::xowiki::WeblogEntry -instproc render {} {
     set date_clause ""
   }
   if {$category_id ne ""} {
-    append extra_where_clause "and c.object_id = ci.item_id and c.category_id = $category_id "
-    append extra_from_clause  ",category_object_map c "
-    set my_filter_msg "Filtered by category [::category::get_name $category_id]"
+    set cnames [list]
+    #append extra_where_clause "and c.object_id = ci.item_id and c.category_id = $category_id "
+    #append extra_from_clause  ",category_object_map c "
+    foreach cid [split $category_id ,] {
+      append extra_where_clause "and exists (select * from category_object_map \
+	where object_id = ci.item_id and category_id = $cid)"
+      lappend cnames [::category::get_name $cid]
+    }
+    append extra_from_clause  ""
+    set my_filter_msg "Filtered by category [join $cnames {, }]"
     set query_parm "&category_id=$category_id"
   }
   if {$tag ne ""} {
     set my_filter_msg "Filtered by your tag $tag"
     append extra_from_clause ",xowiki_tags tags "
-    append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :tag and tags.user_id = [ad_conn user_id]" 
+    append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :tag and \
+	tags.user_id = [ad_conn user_id]" 
     set query_parm "&tag=[ad_urlencode $tag]"
   }
   if {$ptag ne ""} {

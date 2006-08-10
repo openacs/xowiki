@@ -34,6 +34,8 @@ function get_popular_tags() {
   <if @new_link@ not nil><a href="@new_link@" accesskey='n'>#xowiki.new#</a> &middot;</if>
   <if @delete_link@ not nil><a href="@delete_link@" accesskey='d'>#xowiki.delete#</a> &middot;</if>
   <if @admin_link@ not nil><a href="@admin_link@" accesskey='a'>#xowiki.admin#</a> &middot;</if>
+  <if @notification_subscribe_link@ not nil><a href='/notifications/manage'>#xowiki.notifications#</a> 
+    <a href='@notification_subscribe_link@'>@notification_image;noquote@</a> &middot;</if>
   <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'>#xowiki.search#</a> &middot;
   <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
 <span id='do_search' style='display: none'> 
@@ -65,7 +67,10 @@ function get_popular_tags() {
 <span id='edit_tags' style='display: none'>
 <FORM action='@save_tag_link@' method='POST'><INPUT name='tags' type='text' value='@tags@'></FORM>
 </span>
-<span id='popular_tags' style='display: none'></span>
+<span id='popular_tags' style='display: none'></span><br>
+</if>
+<if @per_object_categories_with_links@ not nil and @per_object_categories_with_links@ ne "">
+Categories: @per_object_categories_with_links;noquote@
 </if>
 </div><br>
 <if @gc_comments@ not nil>

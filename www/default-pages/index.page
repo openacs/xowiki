@@ -5,6 +5,12 @@ This is the default start page of XoWiki. You can edit this page and save it to 
 You can also view the contents of the Wiki in a <a href='./weblog'>weblog</a> style. 
 For more details, consult the [[http://media.wu-wien.ac.at/download/xowiki-doc/|XoWiki documentation]]. 
 </p>
+<p>
+A user can define <a href='/notifications/manage'>notifications</a>
+for the whole XoWiki instance (by clicking on the notifications button
+in the menu bar or for categories (by clicking on the letter symbol
+next to the category entries at the bottom of the page)
+</p>
 >>left-col<<
 {{adp portlets/recent {name {Recently Changed Pages} max_entries 25} }}
 >><<

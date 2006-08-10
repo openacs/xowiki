@@ -92,6 +92,7 @@ namespace eval ::xowiki::notification {
 
     set state [expr {[$page set last_modified] eq [$page set creation_date] ? "New" : "Updated"}]
     
+    ns_log notice "--n per directory [$page set title] ($state)"
     notification::new \
         -type_id [notification::type::get_type_id -short_name xowiki_notif] \
         -object_id [$page set package_id] \
@@ -100,6 +101,29 @@ namespace eval ::xowiki::notification {
         -notif_text $text \
         -notif_html $html \
         -notif_user [$page set creation_user]
+
+    foreach cat_id [category::get_mapped_categories [$page set item_id] ] {
+      set tree_id [category::get_tree $cat_id]
+      array unset cat
+      array unset label
+      foreach category_info [category_tree::get_tree $tree_id] {
+	foreach {category_id category_label deprecated_p level} $category_info {break}
+	set cat($level) $category_id
+	set label($level) $category_label
+	if {$category_id == $cat_id} break
+      }
+      foreach level [array names cat] {
+	ns_log notice "--n category $cat($level) $label($level): [$page set title] ($state)"
+	notification::new \
+	    -type_id [notification::type::get_type_id -short_name xowiki_notif] \
+	    -object_id $cat($level) \
+	    -response_id [$page set revision_id] \
+	    -notif_subject "$label($level): [$page set title] ($state)" \
+	    -notif_text $text \
+	    -notif_html $html \
+	    -notif_user [$page set creation_user]
+      }
+    }
   }
 
 

@@ -97,9 +97,13 @@ namespace eval ::xowiki {
 	my log "--found standard page $standard_page => $page"
 	return [my call $policy $page $method]
       }
+    } else {
+      set standard_page "en:index"
+    }
+    set fn [get_server_root]/packages/xowiki/www/default-pages/$object.page
+    if {[file readable $fn]} {
       # create from default page
-      set fn [get_server_root]/packages/xowiki/www/default-pages/$object.page
-      my log "--sourcing page definition /packages/xowiki/www/default-pages/$object"
+      my log "--sourcing page definition $fn"
       set page [source $fn]
       $page configure -volatile -name $standard_page \
 	  -title $object -parent_id $folder_id -package_id $id \

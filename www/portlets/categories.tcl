@@ -18,6 +18,7 @@
   -count:boolean
   {-summary 0}
   {-open_page ""}
+  {-except_category_ids ""}
 } {
 
   # get the folder id from the including page
@@ -54,6 +55,14 @@
 		and category_id in ([join $categories ,]) \
 		and r.revision_id = ci.live_revision \
 		and p.page_id = r.revision_id"
+
+    if {$except_category_ids ne ""} {
+      append sql catogory_filter \
+	  " and not exists (select * from category_object_map c2 \
+		where ci.item_id = c2.object_id \
+		and c2.category_id in ($except_category_ids))"
+    }
+
     if {$count} {
       db_foreach get_counts \
 	  "select count(*) as nr,category_id from $sql group by category_id" {
@@ -94,6 +103,8 @@ set content [::xowiki::Page __render_html \
 		 -count        [info exists count] \
 		 -summary      $summary \
 		 -open_page    [expr {[info exists open_page] ? $open_page : ""}] \
+		 -except_category_ids [expr {[info exists except_category_ids] ?
+					     $except_category_ids : ""}] \
 		]
 
 if {![info exists skin]} {set skin portlet-skin}

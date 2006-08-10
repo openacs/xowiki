@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.34" url="http://openacs.org/repository/download/apm/xowiki-0.34.apm">
+    <version name="0.35" url="http://openacs.org/repository/download/apm/xowiki-0.35.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2006-08-09</release-date>
+        <release-date>2006-08-10</release-date>
         <description format="text/html">XoWiki is a wiki implementation for OpenACS in xotcl. Instead of trying to
 implement the full set of wiki markup commands of systems like MediaWiki,
 XoWiki is based on a rich text editor and focuses more on integration
@@ -26,7 +26,7 @@ one could define book-structures (where a navigation structure could be built on
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.34"/>
+        <provides url="xowiki" version="0.35"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
