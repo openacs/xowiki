@@ -258,9 +258,10 @@ namespace eval ::xowiki {
   File instproc download {} {
     my instvar text mime_type package_id item_id revision_id
     $package_id set mime_type $mime_type
+    set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] && 
+			       [info command ::throttle] ne ""}]
     $package_id set delivery \
-	  [expr {[catch {ns_conn contentsentlength}] ? 
-		 "ns_returnfile" : "ad_returnfile_background"}]
+	[expr {$use_bg_delivery ? "ns_returnfile" : "ad_returnfile_background"}]
     #my log "--F FILE=[my full_file_name]"
     return [my full_file_name]
   }
