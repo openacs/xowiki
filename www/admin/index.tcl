@@ -10,7 +10,6 @@ ad_page_contract {
 
 set package_id [ad_conn package_id]
 set Package    [::xowiki::Package create ::$package_id]
-$Package instvar folder_id
 
 set context [list]
 set supertype ::xowiki::Page
@@ -18,13 +17,15 @@ set title "Administer all kind of [$supertype set pretty_plural]"
 
 set object_type_key [$supertype set object_type_key]
 set object_types    [$supertype object_types]
+set return_url      [ns_conn url]
 
 TableWidget t1 -volatile \
     -actions [subst {
-      Action new -label all -url list
+      Action new -label "all pages" -url list
+      Action new -label parameters -url [export_vars -base /shared/parameters {package_id return_url}]
       Action new -label export -url export
       Action new -label import -url import
-      Action new -label permissions -url /admin/applications/permissions?package_id=$package_id
+      Action new -label permissions -url [export_vars -base permissions {package_id}]
     }] \
     -columns {
       Field object_type -label [_ xowiki.page_type]
@@ -44,7 +45,8 @@ db_foreach type_select \
       t1 add \
 	  -object_type $object_type \
 	  -instances [db_list count [$object_type instance_select_query \
-				 -folder_id $folder_id -count 1 -with_subtypes false]] \
+					 -folder_id [$Package set folder_id] \
+					 -count 1 -with_subtypes false]] \
 	  -instances.href [export_vars -base ./list {object_type}] \
 	  -edit.href   [export_vars -base $base {{edit-new 1} object_type return_url}] \
 	  -delete.href [export_vars -base delete-type {object_type}] \
@@ -56,5 +58,5 @@ set t1 [t1 asHTML]
 
 # set up categories
 set category_map_url [export_vars -base \
-	  [site_node::get_package_url -package_key categories]cadmin/one-object \
+	  [site_node::get_package_url -package_key categories]cadmin/object-map \
 			  { { object_id $package_id } }]

@@ -38,6 +38,7 @@ one could define book-structures (where a navigation structure could be built on
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
         </callbacks>
         <parameters>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks."/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="name of the adp file to be used for viewing xowiki pages. Alternatively, one can use oacs-view for providing a view with the category-tree on the left or any other tailored view"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_gc"  default="1" description="use general comments package "/>
