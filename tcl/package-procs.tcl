@@ -140,6 +140,12 @@ namespace eval ::xowiki {
     } else {
       regexp {../([^/]+)$} $object _ object
       set standard_page "en:$object"
+      # maybe we are calling from a different language, but the
+      # standard page with en: was already instantiated
+      set page [my resolve_request -path $standard_page]
+      if {$page ne ""} {
+        return $page
+      }
     }
 
     my log "--W object='$object'"
@@ -501,6 +507,38 @@ namespace eval ::xowiki {
       revisions          {{package_id write}}
       edit               {{package_id write}}
       make-live-revision {{package_id write}}
+      delete-revision    swa
+      delete             swa
+      save-tags          login
+      popular-tags       login
+    }
+
+    Class Object -array set require_permission {
+      edit               {{package_id admin}}
+    }
+    Class File -array set require_permission {
+      download           {{package_id read}}
+    }
+  }
+  
+  Policy policy3 -contains {
+    #
+    # we require side wide admin rights for deletions
+    # we perform checking on item_ids for pages. 
+    #
+
+    Class Package -array set require_permission {
+      reindex            {{id admin}}
+      rss                none
+      delete             swa
+      edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
+    }
+    
+    Class Page -array set require_permission {
+      view               {{item_id read}}
+      revisions          {{item_id write}}
+      edit               {{item_id write}}
+      make-live-revision {{item_id write}}
       delete-revision    swa
       delete             swa
       save-tags          login

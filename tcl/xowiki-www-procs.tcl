@@ -95,7 +95,7 @@ namespace eval ::xowiki {
       set href [$package_id package_url]weblog?summary=1
       foreach cat_id [category::get_mapped_categories $item_id] {
         foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
-        my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
+        #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
         set entry "<a href='$href&category_id=$category_id'>$category_name ($tree_name)</a>"
         if {[info exists notification_image]} {
           set notification_text "Subscribe category $category_name in tree $tree_name"

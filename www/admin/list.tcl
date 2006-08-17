@@ -47,10 +47,17 @@ foreach type $object_types {
   }]
 }
 
+set ::individual_permissions [expr {[$package_id set policy] eq "::xowiki::policy3"}]
+
 TableWidget t1 -volatile \
     -actions $actions \
     -columns {
-      ImageField_EditIcon edit -label "" 
+      ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
+      if {$::individual_permissions} {
+        ImageField permissions -src /resources/xowiki/permissions.png -width 16 \
+            -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
+            -alt permsissions -label "" -html {style "padding: 2px;"}
+      }
       AnchorField name -label [_ xowiki.name] -orderby name
       Field object_type -label [_ xowiki.page_type] -orderby object_type 
       Field size -label "Size" -orderby size -html {align right}
@@ -65,6 +72,7 @@ t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 set order_clause "order by ci.name"
 # -page_size 10
 # -page_number 1
+
 db_foreach instance_select \
     [$object_type instance_select_query \
          -folder_id [::$package_id folder_id] \
@@ -84,6 +92,11 @@ db_foreach instance_select \
               -edit.href [export_vars -base $page_link {{m edit} return_url}] \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}]
+          if {$::individual_permissions} {
+            # TODO: this should get some architectural support
+            [lindex [t1 set __children] end] set permissions.href \
+                [export_vars -base permissions {item_id return_url}] 
+          }
         }
 
 set t1 [t1 asHTML]
