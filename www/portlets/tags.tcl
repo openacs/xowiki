@@ -21,12 +21,12 @@
     set label [_ xowiki.popular_tags_label]
     set tag_type ptag
     set sql "select count(*) as nr,tag from xowiki_tags where \
-	package_id=$package_id group by tag order by tag limit $limit"
+        package_id=$package_id group by tag order by tag limit $limit"
   } else {
     set label [_ xowiki.your_tags_label]
     set tag_type tag 
     set sql "select count(*) as nr,tag from xowiki_tags where \
-	user_id=$user_id and package_id=$package_id group by tag order by tag"
+        user_id=$user_id and package_id=$package_id group by tag order by tag"
   }
   set content "<h3>$label</h3> <BLOCKQUOTE>"
   set entries [list]
@@ -44,12 +44,12 @@ if {![info exists name]} {set name "Tags"}
 if {![info exists limit]} {set limit 20}
 set summary [ns_queryget summary 0]
 set content [::xowiki::Page __render_html \
-		 -folder_id    [$__including_page set parent_id] \
-		 -user_id      [ad_conn user_id]  \
-		 -summary      $summary \
-		 -limit        $limit \
-		 -popular      [info exists popular] \
-		]
+                 -folder_id    [$__including_page set parent_id] \
+                 -user_id      [ad_conn user_id]  \
+                 -summary      $summary \
+                 -limit        $limit \
+                 -popular      [info exists popular] \
+                ]
 
 if {![info exists skin]} {set skin portlet-skin}
 if {![string match /* $skin]} {set skin [file dir $__adp_stub]/$skin}

@@ -16,10 +16,10 @@ namespace eval ::xowiki {
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
       -cr_attributes {
-	::Generic::Attribute new -attribute_name page_title -datatype text \
-	    -pretty_name "Page Title"
-	::Generic::Attribute new -attribute_name creator -datatype text \
-	    -pretty_name "Creator"
+        ::Generic::Attribute new -attribute_name page_title -datatype text \
+            -pretty_name "Page Title"
+        ::Generic::Attribute new -attribute_name creator -datatype text \
+            -pretty_name "Creator"
       } \
       -form ::xowiki::WikiForm
 
@@ -44,10 +44,10 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
       -table_name "xowiki_page_instance" -id_column "page_instance_id" \
       -cr_attributes {
-	::Generic::Attribute new -attribute_name page_template -datatype integer \
-	    -pretty_name "Page Template"
-	::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-	    -pretty_name "Instance Attributes"
+        ::Generic::Attribute new -attribute_name page_template -datatype integer \
+            -pretty_name "Page Template"
+        ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
+            -pretty_name "Instance Attributes"
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
@@ -64,40 +64,40 @@ namespace eval ::xowiki {
   #
   
   if {![db_0or1row check-xowiki-references-table \
-	    "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
+            "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
     db_dml create-xowiki-references-table "create table xowiki_references(
-	reference integer references cr_items(item_id) on delete cascade,
+        reference integer references cr_items(item_id) on delete cascade,
         link_type text,
         page      integer references cr_items(item_id) on delete cascade)"
     db_dml create-xowiki-references-index \
-	"create index xowiki_ref_index ON xowiki_references(reference)"
+        "create index xowiki_ref_index ON xowiki_references(reference)"
   }
   if {![db_0or1row check-xowiki-last-visited-table \
-	    "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
+            "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
     db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
-	page_id integer references cr_items(item_id) on delete cascade,
-	package_id integer,
+        page_id integer references cr_items(item_id) on delete cascade,
+        package_id integer,
         user_id integer,
         count   integer,
         time    timestamp)"
     db_dml create-xowiki-last-visited-update-index \
-	"create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
+        "create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
     db_dml create-xowiki-last-visited-index \
-	"create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
+        "create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
   }
 
   if {![db_0or1row check-tag-table \
-	    "select tablename from pg_tables where tablename = 'xowiki_tags'"]} {
+            "select tablename from pg_tables where tablename = 'xowiki_tags'"]} {
     db_dml create-xowiki-tag-table "create table xowiki_tags(
-	item_id integer references cr_items(item_id) on delete cascade,
-	package_id integer,
+        item_id integer references cr_items(item_id) on delete cascade,
+        package_id integer,
         user_id integer references users(user_id),
         tag     text,
         time    timestamp)"
     db_dml create-xowiki-tags-index-user \
-	"create index xowiki_tags_index_user ON xowiki_tags(user_id, item_id)"
+        "create index xowiki_tags_index_user ON xowiki_tags(user_id, item_id)"
     db_dml create-xowiki-tags-index-tag \
-	"create index xowiki_tags_index_tag ON xowiki_tags(tag, package_id)"
+        "create index xowiki_tags_index_tag ON xowiki_tags(tag, package_id)"
   }
 
   #
@@ -106,7 +106,9 @@ namespace eval ::xowiki {
   
   Page parameter {
     page_id
+    {creator ""}
     {revision_id 0}
+    item_id
     object_type
     parent_id
     package_id
@@ -141,7 +143,7 @@ namespace eval ::xowiki {
     }
     foreach file [array names ::need_js]  {
       append result "<script language='javascript' src='$file' type='text/javascript'>" \
-	  "</script>"
+          "</script>"
     }
     return $result
   }
@@ -176,7 +178,7 @@ namespace eval ::xowiki {
     @return sql query
   } {
     my instvar object_type_key
-    if {![info exists folder_id]} {my instvar folder_id}
+    #if {![info exists folder_id]} {my instvar folder_id}
 
     set attributes [list ci.item_id ci.name p.page_id] 
     foreach a $select_attributes {
@@ -199,16 +201,16 @@ namespace eval ::xowiki {
     }
     return "select $attribute_selection from xowiki_pagei p, cr_items ci $extra_from_clause \
         where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
-	ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
+        ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
   }
 
 
   Page proc rss_head {
-		      -channel_title
-		      -link
-		      -description
-		      {-language en-us}
-		    } {
+                      -channel_title
+                      -link
+                      -description
+                      {-language en-us}
+                    } {
 #<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
     return "<?xml version='1.0' encoding='utf-8'?>
 <rss version='2.0'
@@ -224,13 +226,13 @@ namespace eval ::xowiki {
 
   Page proc rss_item {-creator -title -link -guid -description -pubdate } {
     append result <item> \n\
-	<dc:creator> $creator </dc:creator> \n\
-	<title> $title </title> \n\
-	<link> $link </link> \n\
-	"<guid isPermaLink='false'>" $guid </guid> \n\
-	<description> $description </description> \n\
-	<pubDate> $pubdate </pubDate> \n\
-	</item> \n
+        <dc:creator> $creator </dc:creator> \n\
+        <title> $title </title> \n\
+        <link> $link </link> \n\
+        "<guid isPermaLink='false'>" $guid </guid> \n\
+        <description> $description </description> \n\
+        <pubDate> $pubdate </pubDate> \n\
+        </item> \n
   }
   
   Page proc rss_tail {} {
@@ -240,7 +242,7 @@ namespace eval ::xowiki {
   Page ad_proc rss {
     -maxentries
     -days 
-    -package_id
+    -package_id:required
   } {
     Report content of xowiki folder in rss 2.0 format. The
     reporting order is descending by date. The title of the feed
@@ -249,54 +251,50 @@ namespace eval ::xowiki {
     
     @param maxentries maximum number of entries retrieved
     @param days report entries changed in speficied last days
-    @param package_id to determine the xowiki instance (default from ad_conn)
+    @param package_id to determine the xowiki instance
     
   } {
-    if {![info exists package_id]} {set package_id [ad_conn package_id]}
-    # get the folder id from the including page
-    set folder_id [::xowiki::Page require_folder -name xowiki]
-    
+    set folder_id [::$package_id folder_id]
+   
     set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
     set timerange_clause [expr {[info exists days] ? 
-				" and p.last_modified > (now() + interval '$days days ago')" : ""}]
+                                " and p.last_modified > (now() + interval '$days days ago')" : ""}]
     set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
     
     set content [my rss_head \
-		     -channel_title [string map $xmlMap [::$folder_id set title ]] \
-		     -description   [string map $xmlMap [::$folder_id set description]] \
-		     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
-		    ]
+                     -channel_title [string map $xmlMap [::$folder_id set title ]] \
+                     -description   [string map $xmlMap [::$folder_id set description]] \
+                     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
+                    ]
     
     db_foreach get_pages \
-	"select s.body, p.name, p.creator, p.title, p.page_id,\
-		p.object_type as content_type, p.last_modified, p.description  \
-	from xowiki_pagex p, syndication s, cr_items i  \
-	where i.parent_id = $folder_id and i.live_revision = s.object_id \
-		and s.object_id = p.page_id $timerange_clause \
-	order by p.last_modified desc $limit_clause \
-	" {
-	  
-	  if {[string match "::*" $name]} continue
-	  if {$content_type eq "::xowiki::PageTemplate::"} continue
+        "select s.body, p.name, p.creator, p.title, p.page_id,\
+                p.object_type as content_type, p.last_modified, p.description  \
+        from xowiki_pagex p, syndication s, cr_items i  \
+        where i.parent_id = $folder_id and i.live_revision = s.object_id \
+                and s.object_id = p.page_id $timerange_clause \
+        order by p.last_modified desc $limit_clause \
+        " {
+          
+          if {[string match "::*" $name]} continue
+          if {$content_type eq "::xowiki::PageTemplate::"} continue
 
-	  set description [string trim $description]
-	  if {$description eq ""} {set description $body}
-	  regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-	  
-	  if {$title eq ""} {set title $name}
-	  #append title " ($content_type)"
-	  set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-	  append content [my rss_item \
-			      -creator [string map $xmlMap $creator] \
-			      -title [string map $xmlMap $title] \
-			      -link [::xowiki::Page pretty_link \
-					 -package_id $package_id \
-					 -absolute true $name] \
-			      -guid [ad_url]/$page_id \
-			      -description [string map $xmlMap $description] \
-			      -pubdate $time \
-			     ]
-	}
+          set description [string trim $description]
+          if {$description eq ""} {set description $body}
+          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+          
+          if {$title eq ""} {set title $name}
+          #append title " ($content_type)"
+          set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+          append content [my rss_item \
+                              -creator [string map $xmlMap $creator] \
+                              -title [string map $xmlMap $title] \
+                              -link [::$package_id pretty_link -absolute true $name] \
+                              -guid [ad_url]/$page_id \
+                              -description [string map $xmlMap $description] \
+                              -pubdate $time \
+                             ]
+        }
     
     append content [my rss_tail]
     #set t text/plain
@@ -306,7 +304,7 @@ namespace eval ::xowiki {
   
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     set object_type [self]
-    if {![info exists folder_id]}  {set folder_id [$object_type require_folder -name xowiki]}
+    if {![info exists folder_id]}  {set folder_id  [$object_type require_folder -name xowiki]}
     if {![info exists package_id]} {set package_id [ad_conn package_id]}
     if {![info exists user_id]}    {set user_id    [ad_conn user_id]}
     if {![info exists objects]}    {set objects    [$object_type allinstances]}
@@ -322,35 +320,35 @@ namespace eval ::xowiki {
       if {[$o istype ::xowiki::PageInstance]} continue
       set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
       if {$item != 0 && $replace} { ;# we delete the original
-	::Generic::CrItem delete -item_id $item
-	set item 0
-	incr replaced
+        ::Generic::CrItem delete -item_id $item
+        set item 0
+        incr replaced
       }
       if {$item == 0} {
-	$o save_new
-	incr added
+        $o save_new
+        incr added
       }
     }
 
     foreach o $objects {
       if {[$o istype ::xowiki::PageInstance]} {
-	db_transaction {
-	  set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
-	  if {$item != 0 && $replace} { ;# we delete the original
-	    ::Generic::CrItem delete -item_id $item
-	    set item 0
-	    incr replaced
-	  }
-	  if {$item == 0} {  ;# the item does not exist -> update reference and save
-	    set old_template_id [$o set page_template]
-	    set template [CrItem lookup \
-			      -name [$old_template_id set name] \
-			      -parent_id $folder_id]
-	    $o set page_template $template
-	    $o save_new
-	    incr added
-	  }
-	}
+        db_transaction {
+          set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
+          if {$item != 0 && $replace} { ;# we delete the original
+            ::Generic::CrItem delete -item_id $item
+            set item 0
+            incr replaced
+          }
+          if {$item == 0} {  ;# the item does not exist -> update reference and save
+            set old_template_id [$o set page_template]
+            set template [CrItem lookup \
+                              -name [$old_template_id set name] \
+                              -parent_id $folder_id]
+            $o set page_template $template
+            $o save_new
+            incr added
+          }
+        }
       }
       $o destroy
     }
@@ -358,68 +356,33 @@ namespace eval ::xowiki {
   }
 
   #
-  # URL and naming management
+  # conditional links, could go into package as well...
   #
-  Page proc pretty_link {{-absolute:boolean false} -lang -package_id name} {
-    my instvar folder_id
-    #my log "--u name=<$name>"
-
-    if {![info exists package_id]} {set package_id [$folder_id set package_id]}
-    if {![my isobject ::$package_id]} {
-      my log "--u we create package ::xowiki::Package create ::$package_id -folder_id $folder_id"
-      ::xowiki::Package create ::$package_id -folder_id $folder_id
-    }
-    set url [::$package_id package_url]
-    
-    if {![info exists lang]} {
-      if {![regexp {^(..):(.*)$} $name _ lang name]} {
-	regexp {^(file|image):(.*)$} $name _ lang name
-      }
-    }
-    if {![info exists lang] && ![regexp {^(:|(file|image))} $name]} {
-      set lang [string range [lang::conn::locale] 0 1]
-    }
-    set host [expr {$absolute ? [ad_url] : ""}]
-    if {[info exists lang]} {
-      return $host${url}$lang/[ad_urlencode $name]
-    } else {
-      return $host${url}[ad_urlencode $name]
-    }
-  }
-
-  Page proc normalize_name {-package_id string} {
-    set string [string trim $string]
-    # if subst_blank_in_name is turned on, turn spaces into _
-    if {[$package_id get_parameter subst_blank_in_name 1] != 0} {
-      regsub -all { } $string "_" string
-    }
-    return $string
-  }
-
+  
   Page instproc make_link {-privilege -url object method args} {
     my instvar package_id
  
     if {[info exists privilege]} {
       set granted [expr {$privilege eq "public" ? 1 :
-		 [permission::permission_p -object_id $package_id -privilege $privilege] }]
+                 [permission::permission_p -object_id $package_id -privilege $privilege] }]
     } else {
       # determine privilege from policy
       set granted [$package_id permission_p $object $method]
-      my log "--p $package_id permission_p $object $method ==> $granted"
+      #my log "--p $package_id permission_p $object $method ==> $granted"
     }
     if {$granted} {
       if {[$object istype ::xowiki::Package]} {
-	set base  [$package_id package_url]
-	if {[info exists url]} {
-	  return [uplevel export_vars -base [list $base$url] [list $args]]
-	} else {
-	  lappend args [list $method 1]
-	  return [uplevel export_vars -base [list $base] [list $args]]
-	}
+        set base  [$package_id package_url]
+        if {[info exists url]} {
+          return [uplevel export_vars -base [list $base$url] [list $args]]
+        } else {
+          lappend args [list $method 1]
+          return [uplevel export_vars -base [list $base] [list $args]]
+        }
       } elseif {[$object istype ::xowiki::Page]} {
-	set base [$package_id url]
-	lappend args [list m $method]
-	return [uplevel export_vars -base [list $base] [list $args]]
+        set base [$package_id url]
+        lappend args [list m $method]
+        return [uplevel export_vars -base [list $base] [list $args]]
       }
     }
     return ""
@@ -431,29 +394,29 @@ namespace eval ::xowiki {
 
   Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
     db_dml delete_tags \
-	"delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
+        "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
     foreach tag $tags {
       db_dml insert_tag \
-	  "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
-	   values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+          "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
+           values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
     }
    }
   Page proc get_tags {-package_id:required -item_id -user_id} {
     if {[info exists item_id]} {
       if {[info exists user_id]} {
-	# tags for item and user
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
+        # tags for item and user
+        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
       } else {
-	# all tags for this item 
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
+        # all tags for this item 
+        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
       }
     } else {
       if {[info exists user_id]} {
-	# all tags for this user
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
+        # all tags for this user
+        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
       } else {
-	# all tags for the package
-	set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
+        # all tags for the package
+        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
       }
     }
     join $tags " "
@@ -476,6 +439,18 @@ namespace eval ::xowiki {
     return 0
   }
 
+#   Page instproc init {} {    
+#     my log "--W "
+#     ::xo::show_stack
+#     next
+#   }
+
+#   Page instproc destroy  {} {
+#     my log "--W "
+#     ::xo::show_stack
+#     next
+#   }
+
   Page instproc initialize_loaded_object {} {
     my instvar title creator
     if {[info exists title] && $title eq ""} {set title [my set name]}
@@ -485,52 +460,69 @@ namespace eval ::xowiki {
 
   Page instproc regsub-eval {re string cmd} {
     subst [regsub -all $re [string map {\" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\} $string] \
-	       "\[$cmd\]"]
+               "\[$cmd\]"]
   }
 
   Page instproc include {ch arg} {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
-	# there is something syntactically wrong
-	return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
-	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-	   Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)"
+        # there is something syntactically wrong
+        return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
+           Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
+           Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)"
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
-	return "${ch}Error in '{{$arg}}'<br/>\n\
-	   Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-	   Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
+        return "${ch}Error in '{{$arg}}'<br/>\n\
+           Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
+           Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
       }
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
-	# in case of error, reset the adp_level to the previous value
-	set ::template::parse_level $including_page_level 
-	return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
-	   adp_include returned error message: $errorMsg<br>\n"
+        # in case of error, reset the adp_level to the previous value
+        set ::template::parse_level $including_page_level 
+        return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
+           adp_include returned error message: $errorMsg<br>\n"
       }
 
       return $ch$page
     } else {
+      # we have a direct (adp-less include)
       my instvar package_id
       set page_name [lindex $arg 0]
-      set page [$package_id resolve_request -path $page_name]
+      if {[my isclass ::xowiki::portlet::$page_name]} {
+        # direct call, without page, not tailorable
+        set page [::xowiki::portlet::$page_name new \
+                      -package_id $package_id \
+                      -name $page_name \
+                      -actual_query [::xo::cc actual_query]]
+      } else {
+        # we include a page, tailorable
+        set page [$package_id resolve_page $page_name __m]
+        catch {$page set __decoration portlet}
+      }
       if {$page ne ""} {
-	$page volatile
-	$page set __including_page [self]
-	set skin portlet
-	foreach {att value} [lrange $arg 1 end] {
-	  switch -- $att {
-	    -skin {set skin $value}
-	  }
-	}
-	if {$skin ne "plain"} {$page mixin add ::xowiki::Page::skin=$skin}
-	return $ch[$page render]
+        $page destroy_on_cleanup
+        $page set __including_page [self]
+        $page set __caller_parameters [lrange $arg 1 end]
+        #$page set __decoration portlet
+        foreach {att value} [$page set __caller_parameters] {
+          switch -- $att {
+            -decoration {$page set __decoration $value}
+            -title {$page set title $value}
+          }
+        }
+        if {[$page exists __decoration] && [$page set __decoration] ne "plain"} {
+          $page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
+        }
+        return $ch[$page render]
+      } else {
+        return "${ch} $page_name unknown<br>\n"
       }
     }
   }
@@ -538,8 +530,8 @@ namespace eval ::xowiki {
     if {$arg eq "content"} {
       return "$ch<div id='content' class='column'>"
     } elseif {[string match left-col* $arg] \
-	      || [string match right-col* $arg] \
-	      || $arg eq "sidebar"} {
+              || [string match right-col* $arg] \
+              || $arg eq "sidebar"} {
       return "$ch<div id='$arg' class='column'>"
     } elseif {$arg eq "box"} {
       return "$ch<div class='box'>"
@@ -568,23 +560,23 @@ namespace eval ::xowiki {
     } else {
       # do we have a typed link?
       if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ link_type _ lang  stripped_name]} {
-	# must be an untyped link; defaults, in case the second regexp does not match either
-	set lang ""
-	set link_type link
-	set stripped_name $link
-	regexp {^(..):(.+)$} $link _ lang stripped_name
+        # must be an untyped link; defaults, in case the second regexp does not match either
+        set lang ""
+        set link_type link
+        set stripped_name $link
+        regexp {^(..):(.+)$} $link _ lang stripped_name
       }
     }
-    set normalized_name [Page normalize_name -package_id $package_id $stripped_name]
+    set normalized_name [::$package_id normalize_name $stripped_name]
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
     if {$label eq $arg} {set label $stripped_name}
 
     Link create [self]::link \
         -page [self] \
-	-type $link_type -name $name -lang $lang \
-	-stripped_name $normalized_name -label $label \
-	-folder_id $parent_id -package_id $package_id
+        -type $link_type -name $name -lang $lang \
+        -stripped_name $normalized_name -label $label \
+        -folder_id $parent_id -package_id $package_id
     return $ch[[self]::link render]
   }
 
@@ -593,10 +585,10 @@ namespace eval ::xowiki {
     my instvar item_id
     set refs [list]
     db_foreach references "SELECT page,ci.name,link_type,f.package_id \
-	from xowiki_references,cr_items ci,cr_folders f \
-	where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
-	  lappend refs "<a href='[Page pretty_link -package_id $package_id $name]'>$name</a>"
-	}
+        from xowiki_references,cr_items ci,cr_folders f \
+        where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
+          lappend refs "<a href='[::$package_id pretty_link $name]'>$name</a>"
+        }
     join $refs ", "
   }
 
@@ -635,7 +627,7 @@ namespace eval ::xowiki {
       [my info class] instvar $__v
     }
     set __ignorelist [list __v __ignorelist __varlist __template_variables__ \
-			  text item_id content]
+                          text item_id content]
     set __varlist [list]
     set __template_variables__ "<ul>\n"
     foreach __v [lsort [info vars]] {
@@ -660,6 +652,10 @@ namespace eval ::xowiki {
     #my log "--"
     set content [my substitute_markup [my set text]]
   }
+  Page instproc set_content {text} {
+    my text [list [string map [list >> "\n<br />&gt;&gt;" << "&lt;&lt;\n"] \
+                       [string trim $text " \n"]] text/html]
+  }
 
   Page instproc get_rich_text_spec {field_name default} {
     set spec ""
@@ -669,9 +665,9 @@ namespace eval ::xowiki {
       set name [expr {[my exists name] ? [my set name] : $page_name}]
       #ns_log notice "--w T.name = '[my set name]' var=$page_name, $var_name $field_name []"
       if {[string match $page_name $name] &&
-	  [string match $var_name $field_name]} {
-	set spec $widget_spec
-	break
+          [string match $var_name $field_name]} {
+        set spec $widget_spec
+        break
       }
     }
     if {$spec eq ""} {return $default}
@@ -680,12 +676,12 @@ namespace eval ::xowiki {
 
   Page instproc update_references {page_id references} {
     db_dml delete_references \
-	"delete from xowiki_references where page = $page_id"
+        "delete from xowiki_references where page = $page_id"
     foreach ref $references {
       foreach {r link_type} $ref break
       db_dml insert_reference \
-	  "insert into xowiki_references (reference, link_type, page) \
-	   values ($r,:link_type,$page_id)"
+          "insert into xowiki_references (reference, link_type, page) \
+           values ($r,:link_type,$page_id)"
     }
    }
 
@@ -697,7 +693,9 @@ namespace eval ::xowiki {
     regexp {^(..):(.*)$} $name _ lang name
     set references [list]
     set unresolved_references 0
+    #my log "--W setting unresolved_references to 0  [info exists unresolved_references]"
     set content [my get_content]
+    #my log "--W after content [info exists unresolved_references] [my exists unresolved_references] ?? [info vars]"
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
@@ -717,12 +715,12 @@ namespace eval ::xowiki {
     if {$user_id > 0} {
       # only record information for authenticated users
       db_dml update_last_visisted \
-	  "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
-	   where page_id = $item_id and user_id = $user_id"
+          "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
+           where page_id = $item_id and user_id = $user_id"
       if {[db_resultrows] < 1} {
-	db_dml insert_last_visisted \
-	    "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
-    	     values ($item_id, $package_id, $user_id, 1, current_timestamp)"
+        db_dml insert_last_visisted \
+            "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
+             values ($item_id, $package_id, $user_id, 1, current_timestamp)"
       }
     }
   }
@@ -745,6 +743,9 @@ namespace eval ::xowiki {
   PlainPage instproc get_content {} {
     #my log "-- my class=[my info class]"
     return [my substitute_markup [my set text]]
+  }
+  PlainPage instproc set_content {text} {
+    my text $text
   }
 
   PlainPage instproc substitute_markup {source} {
@@ -771,11 +772,11 @@ namespace eval ::xowiki {
   File instproc full_file_name {} {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
-	my instvar text mime_type package_id item_id revision_id
-	set storage_area_key [db_string get_storage_key \
-		  "select storage_area_key from cr_items where item_id=$item_id"]
-	my set full_file_name [cr_fs_path $storage_area_key]/$text
-	#my log "--F setting FILE=[my set full_file_name]"
+        my instvar text mime_type package_id item_id revision_id
+        set storage_area_key [db_string get_storage_key \
+                  "select storage_area_key from cr_items where item_id=$item_id"]
+        my set full_file_name [cr_fs_path $storage_area_key]/$text
+        #my log "--F setting FILE=[my set full_file_name]"
       }
     }
     return [my set full_file_name]
@@ -787,32 +788,32 @@ namespace eval ::xowiki {
     set page_link [my make_link -privilege public [self] download ""]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
-	       -columns {
-		 AnchorField name -label [_ xowiki.name]
-		 Field mime_type -label [_ xowiki.page_type]
-		 Field last_modified -label "Last Modified"
-		 Field mod_user -label "By User"
-		 Field size -label "Size"
-	       }]
+               -columns {
+                 AnchorField name -label [_ xowiki.name]
+                 Field mime_type -label [_ xowiki.page_type]
+                 Field last_modified -label "Last Modified"
+                 Field mod_user -label "By User"
+                 Field size -label "Size"
+               }]
 
     regsub {[.][0-9]+([^0-9])} [my set last_modified] {\1} last_modified
     regexp {^([^:]+):(.*)$} $name _ link_type stripped_name
     set label $stripped_name
 
     $t add \
-	-name $stripped_name \
-	-mime_type $mime_type \
-	-name.href $page_link \
-	-last_modified $last_modified \
-	-mod_user [::xo::get_user_name $creation_user] \
-	-size [file size [my full_file_name]]
+        -name $stripped_name \
+        -mime_type $mime_type \
+        -name.href $page_link \
+        -last_modified $last_modified \
+        -mod_user [::xo::get_user_name $creation_user] \
+        -size [file size [my full_file_name]]
 
     if {$link_type eq "image"} {
       set l [Link new -volatile \
                  -page [self] \
-		 -type $link_type -name $name -lang "" \
-		 -stripped_name $stripped_name -label $label \
-		 -folder_id $parent_id -package_id $package_id]
+                 -type $link_type -name $name -lang "" \
+                 -stripped_name $stripped_name -label $label \
+                 -folder_id $parent_id -package_id $package_id]
       set image "<div >[$l render]</div>"
     } else {
       set image ""
@@ -838,9 +839,9 @@ namespace eval ::xowiki {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '[$template set name]' var=$name"
       if {[string match $template_name [$template set name]] &&
-	  [string match $var_name $name]} {
-	set spec $widget
-	#ns_log notice "--w using $widget for $name"
+          [string match $var_name $name]} {
+        set spec $widget
+        #ns_log notice "--w using $widget for $name"
       }
     }
     #ns_log notice "--w returning spec $spec"
@@ -854,7 +855,7 @@ namespace eval ::xowiki {
     uplevel #0 [list $page_template volatile]
     #return [my substitute_markup [my adp_subst [$page_template set text]]]
     if {[my set instance_attributes] eq ""} {
-      return [my adp_subst [$page_template set text]]
+      return [my adp_subst [lindex [$page_template set text] 0]]
     }
     set T [my adp_subst [$page_template set text]]
     #my log T=$T
@@ -868,10 +869,10 @@ namespace eval ::xowiki {
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
       if {[string match "richtext*" [my get_field_type $var $page_template text]]} {
-	# ignore the text/html info from htmlarea
-	my set $var [lindex $__ia($var) 0]
+        # ignore the text/html info from htmlarea
+        my set $var [lindex $__ia($var) 0]
       } else {
-	my set $var $__ia($var)
+        my set $var $__ia($var)
       }
     }
     next
@@ -881,13 +882,8 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::Object
   #
 
-  #Object instproc save_new {} {
-    #my set text [::Serializer deepSerialize [self]]
-    #next
-  #}
-
   Object instproc get_content {} {
-    if {[[self]::payload info procs content] ne ""} {
+    if {[[self]::payload info methods content] ne ""} {
       return  [my substitute_markup [[self]::payload content]]
     } else {
       return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
@@ -901,9 +897,11 @@ namespace eval ::xowiki {
   Object instproc set_payload {cmd} {
     set payload [self]::payload
     if {[my isobject $payload]} {$payload destroy}
-    ::xotcl::Object create $payload -requireNamespace
-    if {[catch {$payload eval $cmd} error ]} {
-      ns_log error "XoWiki folder object: content lead to error: $error"
+    ::xo::Context create $payload -requireNamespace \
+        -actual_query [::xo::cc actual_query]
+    $payload set package_id [my set package_id]
+    if {[catch {$payload contains $cmd} error ]} {
+      ns_log error "content $cmd lead to error: $error"
     }
   }
   Object instproc get_payload {var {default ""}} {

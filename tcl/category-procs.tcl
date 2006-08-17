@@ -16,8 +16,8 @@ namespace eval ::xowiki {
     if {![my isobject $items]} { 
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
-	set direction [expr {$increasing ? "increasing" : "decreasing"}]
-	$items orderby -order $direction $orderby
+        set direction [expr {$increasing ? "increasing" : "decreasing"}]
+        $items orderby -order $direction $orderby
       }
     }
     $items add $itemobj
@@ -49,7 +49,7 @@ namespace eval ::xowiki {
   #
   
   Class Category -superclass ::xo::OrderedComposite -parameter {
-    level label pos category_id {open_requests 0} count {href ""}
+    package_id level label pos category_id {open_requests 0} count {href ""}
   }
   #Category instproc destroy {} {my log --; next}
   Category instproc open_tree {} {
@@ -69,9 +69,9 @@ namespace eval ::xowiki {
     set content ""
     if {[my isobject [self]::items]} {
       foreach i [[self]::items children] {
-	$i instvar name title prefix suffix
-	set entry "$prefix<a href='[::xowiki::Page pretty_link $name]'>$title</a>$suffix"
-	append cat_content [my render_item -highlight [$i exists open_item] $entry]
+        $i instvar name title prefix suffix
+        set entry "$prefix<a href='[::[my package_id] pretty_link $name]'>$title</a>$suffix"
+        append cat_content [my render_item -highlight [$i exists open_item] $entry]
       }
       foreach c [my children] {append cat_content [$c render] \n}
       append content [my render_category -open [expr {[my set open_requests]>0}] $cat_content]
@@ -116,8 +116,7 @@ namespace eval ::xowiki {
   Category::section_style instproc render_category {{-open:boolean false} cat_content} {
     set section [expr {[my level] + 2}]
     return "<H$section>[my label]</H$section>\n<p>\
-	<blockquote style='margin-left: 2em; margin-right:0px;'>$cat_content</blockquote>\n"
+        <blockquote style='margin-left: 2em; margin-right:0px;'>$cat_content</blockquote>\n"
   }
-
 
 }

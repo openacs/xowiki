@@ -15,16 +15,16 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 } {
   ns_log notice "--sc datasource called with revision_id = $revision_id"
 
-  set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id]
+  set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
   $page volatile
   $page absolute_links 1
-  ns_log notice "--sc setting absolute link for page = $page"
+  ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 
   set html [$page render]
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
- ::xowiki::notification::do_notifications -page $page -html $html -text $text
+  #::xowiki::notification::do_notifications -page $page -html $html -text $text
 
   #ns_log notice "--sc INDEXING $revision_id -> $text"
   #$page set unresolved_references 0
@@ -35,24 +35,24 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   foreach tag {h1 h2 h3 h4 h5 b strong} {
     foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
       foreach w [split $words] {
-	if {$w eq ""} continue
-	set word($w) 1
+        if {$w eq ""} continue
+        set word($w) 1
       }
     }
   }
   ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   return [list object_id $revision_id title [$page title] \
-	      content $text keywords [array names word] \
-	      storage_type text mime text/html \
-	      syndication [list \
-			link [::xowiki::Page pretty_link -absolute 1 [$page set name]] \
-			description $text \
-			author [$page set creator] \
-			category "" \
-			guid "$item_id" \
-			pubDate [$page set last_modified]] \
-	     ]
+              content $text keywords [array names word] \
+              storage_type text mime text/html \
+              syndication [list \
+                        link [::[$page package_id] pretty_link -absolute 1 [$page set name]] \
+                        description $text \
+                        author [$page set creator] \
+                        category "" \
+                        guid "$item_id" \
+                        pubDate [$page set last_modified]] \
+             ]
 }
 
 ad_proc -private ::xowiki::url { revision_id} {
@@ -70,8 +70,8 @@ namespace eval ::xowiki::sc {
     acs_sc::impl::new_from_spec -spec {
       name "::xowiki::Page"
       aliases {
-	datasource ::xowiki::datasource
-	url ::xowiki::url
+        datasource ::xowiki::datasource
+        url ::xowiki::url
       }
       contract_name FtsContentProvider
       owner xowiki
@@ -79,8 +79,8 @@ namespace eval ::xowiki::sc {
     acs_sc::impl::new_from_spec -spec {
       name "::xowiki::PlainPage"
       aliases {
-	datasource ::xowiki::datasource
-	url ::xowiki::url
+        datasource ::xowiki::datasource
+        url ::xowiki::url
       }
       contract_name FtsContentProvider
       owner xowiki
@@ -88,8 +88,8 @@ namespace eval ::xowiki::sc {
     acs_sc::impl::new_from_spec -spec {
       name "::xowiki::PageInstance"
       aliases {
-	datasource ::xowiki::datasource
-	url ::xowiki::url
+        datasource ::xowiki::datasource
+        url ::xowiki::url
       }
       contract_name FtsContentProvider
       owner xowiki
@@ -97,8 +97,8 @@ namespace eval ::xowiki::sc {
     acs_sc::impl::new_from_spec -spec {
       name "::xowiki::File"
       aliases {
-	datasource ::xowiki::datasource
-	url ::xowiki::url
+        datasource ::xowiki::datasource
+        url ::xowiki::url
       }
       contract_name FtsContentProvider
       owner xowiki

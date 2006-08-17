@@ -14,38 +14,38 @@ namespace eval ::xowiki {
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-	{field_list {item_id name title creator text description nls_language}}
-	{f.item_id
-	  {item_id:key}}
-	{f.name
-	  {name:text {label #xowiki.name#} {html {size 80}} }}
-	{f.title
-	  {title:text {label #xowiki.title#} {html {size 80}} }}
-	{f.creator
-	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
-	{f.text
-	  {text:richtext(richtext),nospell,optional
-	    {label #xowiki.content#}
-	    {options {editor xinha plugins {
-	      GetHtml CharacterMap ContextMenu FullScreen InsertAnchor
-	      ListType TableOperations EditTag LangMarks Abbreviation OacsFs
-	    } height 350px 
+        {field_list {item_id name title creator text description nls_language}}
+        {f.item_id
+          {item_id:key}}
+        {f.name
+          {name:text {label #xowiki.name#} {html {size 80}} }}
+        {f.title
+          {title:text {label #xowiki.title#} {html {size 80}} }}
+        {f.creator
+          {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
+        {f.text
+          {text:richtext(richtext),nospell,optional
+            {label #xowiki.content#}
+            {options {editor xinha plugins {
+              GetHtml CharacterMap ContextMenu FullScreen InsertAnchor
+              ListType TableOperations EditTag LangMarks Abbreviation OacsFs
+            } height 350px 
             }}
-	    {html {rows 15 cols 50 style {width: 100%}}}}
-	}
-	{f.description
-	  {description:text(textarea),nospell,optional 
-	    {label #xowiki.description#} {html {cols 80 rows 2}}}
-	}
-	{f.nls_language
-	  {nls_language:text(select),optional {label #xowiki.Language#}
-	    {options \[xowiki::locales\]}}}
-	{validate
-	  {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
-		already in this folder}}}}
-	{with_categories true}
-	{submit_link "view"}
-	{folderspec ""}
+            {html {rows 15 cols 50 style {width: 100%}}}}
+        }
+        {f.description
+          {description:text(textarea),nospell,optional 
+            {label #xowiki.description#} {html {cols 80 rows 2}}}
+        }
+        {f.nls_language
+          {nls_language:text(select),optional {label #xowiki.Language#}
+            {options \[xowiki::locales\]}}}
+        {validate
+          {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                already in this folder}}}}
+        {with_categories true}
+        {submit_link "view"}
+        {folderspec ""}
       }
 
 
@@ -55,21 +55,21 @@ namespace eval ::xowiki {
     foreach __field [my field_list] {
       set __spec [my set f.$__field]
       if {[string first "richtext" [lindex $__spec 0]] > -1} {
-	# we have a richtext widget; get special configuration is specified
-	set __spec [$data get_rich_text_spec $__field $__spec]
-	if {[my folderspec] ne ""} {
-	  # append the folder spec to its options
-	  set __newspec [list [lindex $__spec 0]]
-	  foreach __e [lrange $__spec 1 end] {
-	    foreach {__name __value} $__e break
-	    if {$__name eq "options"} {eval lappend __value [my folderspec]}
-	    lappend __newspec $__name $__value
-	  }
-	  my log "--F rewritten spec is '$__newspec'"
-	  set __spec $__newspec
-	}
-	# ad_form does a subst. escape esp. the javascript stuff
-	set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
+        # we have a richtext widget; get special configuration is specified
+        set __spec [$data get_rich_text_spec $__field $__spec]
+        if {[my folderspec] ne ""} {
+          # append the folder spec to its options
+          set __newspec [list [lindex $__spec 0]]
+          foreach __e [lrange $__spec 1 end] {
+            foreach {__name __value} $__e break
+            if {$__name eq "options"} {eval lappend __value [my folderspec]}
+            lappend __newspec $__name $__value
+          }
+          my log "--F rewritten spec is '$__newspec'"
+          set __spec $__newspec
+        }
+        # ad_form does a subst. escape esp. the javascript stuff
+        set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
       #my log "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
@@ -81,7 +81,7 @@ namespace eval ::xowiki {
     set locales [lang::system::get_locales]
     set defpos [lsearch $locales [lang::conn::locale]]
     set locales [linsert [lreplace $locales $defpos $defpos] 0 \
-		     [lang::conn::locale]]
+                     [lang::conn::locale]]
     foreach l $locales {lappend lpairs [list $l $l]}
     return $lpairs
   }
@@ -97,8 +97,8 @@ namespace eval ::xowiki {
     }
     # transitional code end
     set q [$templateclass instance_select_query \
-	       -folder_id $folder_id \
-	       -select_attributes {name}]
+               -folder_id $folder_id \
+               -select_attributes {name}]
     db_foreach get_page_templates $q {
       lappend lpairs [list $name $item_id]
     } if_no_rows {
@@ -110,10 +110,10 @@ namespace eval ::xowiki {
   #
   # this should be OO-ified -gustaf
   proc ::xowiki::validate_file {} {
-    my log "--F validate_file data=[my exists data]"
+    #my log "--F validate_file data=[my exists data]"
     my instvar data
     my get_uploaded_file
-    my log "--F validate_file returns [$data exists import_file]"
+    #my log "--F validate_file returns [$data exists import_file]"
     upvar title title
     if {$title eq ""} {set title [$data set upload_file]}
     return [$data exists import_file]
@@ -121,37 +121,36 @@ namespace eval ::xowiki {
 
   proc ::xowiki::validate_name {} {
     upvar name name nls_language nls_language folder_id folder_id \
-	object_type object_type mime_type mime_type
-    my log "--F validate_name ot=$object_type data=[my exists data]"
+        object_type object_type mime_type mime_type
+    #my log "--F validate_name ot=$object_type data=[my exists data]"
     my instvar data
     if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
       #my get_uploaded_file
       switch -glob -- [$data set mime_type] {
-	image/* {set type image}
-	default {set type file}
+        image/* {set type image}
+        default {set type file}
       }
       if {$name ne ""} {
-	regexp {^(.*):(.*)$} $name _ _t stripped_name
-	if {![info exists stripped_name]} {set stripped_name $name}
+        regexp {^(.*):(.*)$} $name _ _t stripped_name
+        if {![info exists stripped_name]} {set stripped_name $name}
       } else {
-	set stripped_name [$data set upload_file]
+        set stripped_name [$data set upload_file]
       }
-      set name ${type}:[::xowiki::Page normalize_name \
-			    -package_id [ad_conn package_id] $stripped_name]
+      set name ${type}:[::[ad_conn package_id] normalize_name $stripped_name]
     } else {
       if {![regexp {^..:} $name]} {
-	if {![info exists nls_language]} {set nls_language ""}
-	if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-	set name [string range $nls_language 0 1]:$name
+        if {![info exists nls_language]} {set nls_language ""}
+        if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
+        set name [string range $nls_language 0 1]:$name
       }
-      set name [::xowiki::Page normalize_name -package_id [ad_conn package_id] $name]
+      set name [::[ad_conn package_id] normalize_name $name]
     }
 
     # check, if we try to create a new item with an existing name
     #my log "--form vars = [ns_set array [ns_getform] ]"
     #my log "--form comparing '[ns_set get [ns_getform] __object_name]' w '$name'"
     if {[ns_set get [ns_getform] __new_p] 
-	|| [ns_set get [ns_getform] __object_name] ne $name
+        || [ns_set get [ns_getform] __object_name] ne $name
       } {
       return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
     }
@@ -161,7 +160,7 @@ namespace eval ::xowiki {
   WikiForm instproc handle_enhanced_text_from_form {} {
     my instvar data
     array set __tmp [ns_set array [ns_getform]]
-    if {[info exists __tmp(text.format)]} {	
+    if {[info exists __tmp(text.format)]} {     
       $data set mime_type $__tmp(text.format)
     }
   }
@@ -173,22 +172,24 @@ namespace eval ::xowiki {
       $data render_adp false
       $data render -update_references
     }
-    #
     # delete the link cache entries for this item 
     # could be made more intelligent to delete entries is more rare cases, like
     # in case the file was renamed
     my instvar folder_id
-    #ns_log notice "--F folder_id=$folder_id"
-    ##### why is ns_cache names xowiki_cache *pattern*   not working???
+    ##### why is ns_cache names xowiki_cache *pattern*   not working??? upgrade ns_cache to 1.5!
     foreach entry [ns_cache names xowiki_cache link-*-$folder_id] {
       array set tmp [ns_cache get xowiki_cache $entry]
-      #ns_log notice "--F item_id [$data set item_id] tmp(item_id) = $tmp(item_id)"
       if {$tmp(item_id) == [$data set item_id]} {
-	ns_cache flush xowiki_cache $entry
+        ns_cache flush xowiki_cache $entry
       }
     }
+    if {![$data istype ::xowiki::Object] &&
+        ![$data istype ::xowiki::PageTemplate] } {
+      ::xowiki::notification::do_notifications -page $data
+    }
   }
-
+    
+    
   WikiForm instproc new_request {} {
     my instvar data
     $data set creator [::xo::get_user_name [ad_conn user_id]]
@@ -225,10 +226,10 @@ namespace eval ::xowiki {
 
   Class create PlainWikiForm -superclass WikiForm \
       -parameter {
-	{f.text
-	  {text:text(textarea),nospell,optional
-	    {label #xowiki.content#}
-	    {html {cols 80 rows 10}}}}
+        {f.text
+          {text:text(textarea),nospell,optional
+            {label #xowiki.content#}
+            {html {cols 80 rows 10}}}}
       }
 
   #
@@ -237,43 +238,43 @@ namespace eval ::xowiki {
 
   Class create FileForm -superclass WikiForm \
       -parameter {
-	{html { enctype multipart/form-data }} \
-	{field_list {item_id name text title creator description}}
-	{f.name    
-	  {name:text,nospell,optional 
-	    {help_text {Can be obtained from the name of the uploaded file}}}}
-	{f.title
-	  {title:text,optional {label #xowiki.title#} {html {size 80}} }}
-	{f.text
-	  {upload_file:file(file) 
-	    {label #xowiki.content#}
-	    {html {size 30}} }}
-	{validate {
-	  {upload_file {\[::xowiki::validate_file\]} {For new entries, \
-							  a upload file must be provided}}
-	  {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-						   already in this folder}}
-	  }}
-	}
+        {html { enctype multipart/form-data }} \
+        {field_list {item_id name text title creator description}}
+        {f.name    
+          {name:text,nospell,optional 
+            {help_text {Can be obtained from the name of the uploaded file}}}}
+        {f.title
+          {title:text,optional {label #xowiki.title#} {html {size 80}} }}
+        {f.text
+          {upload_file:file(file) 
+            {label #xowiki.content#}
+            {html {size 30}} }}
+        {validate {
+          {upload_file {\[::xowiki::validate_file\]} {For new entries, \
+                                                          a upload file must be provided}}
+          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                                                   already in this folder}}
+          }}
+        }
 
   FileForm instproc get_uploaded_file {} {
     my instvar data
-    my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+    #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
     set upload_file [$data form_parameter upload_file]
-    my log "--F... upload_file = $upload_file"
+    #my log "--F... upload_file = $upload_file"
     if {$upload_file ne ""} {
       $data set upload_file  $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
       $data set mime_type   [$data form_parameter upload_file.content-type]
     } else {
-      my log "--F no upload_file provided [lsort [$data info vars]]"
+      #my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
-	#my log "   mime_type=[$data set mime_type]"
-	#my log "   text=[$data set text]"
-	regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
-	$data set upload_file $upload_file
-	$data set import_file [$data full_file_name]
-	#my log "   import_type=[$data set import_file]"
+        #my log "   mime_type=[$data set mime_type]"
+        #my log "   text=[$data set text]"
+        regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
+        $data set upload_file $upload_file
+        $data set import_file [$data full_file_name]
+        #my log "   import_type=[$data set import_file]"
       }
     }
   }
@@ -292,11 +293,11 @@ namespace eval ::xowiki {
 
   Class create ObjectForm -superclass PlainWikiForm \
       -parameter {
-	{f.text
-	  {text:text(textarea),nospell,optional
-	    {label #xowiki.content#}
-	    {html {cols 80 rows 15}}}}
-	{with_categories  false}
+        {f.text
+          {text:text(textarea),nospell,optional
+            {label #xowiki.content#}
+            {html {cols 80 rows 15}}}}
+        {with_categories  false}
       }
 
   ObjectForm instproc init {} {
@@ -305,9 +306,9 @@ namespace eval ::xowiki {
       # don't call validate on the folder object, don't let people change its name
       set name [$data set name]
       if {$name eq "::[$data set parent_id]"} {
-	my f.name  {name:text(inform) {label #xowiki.name#}}
-	my validate {{name {1} {dummy}} }
-	#my log "--e don't validate folder id - parent_id = [$data set parent_id]"
+        my f.name  {name:text(inform) {label #xowiki.name#}}
+        my validate {{name {1} {dummy}} }
+        #my log "--e don't validate folder id - parent_id = [$data set parent_id]"
       }
     }
     next
@@ -316,18 +317,17 @@ namespace eval ::xowiki {
   ObjectForm instproc new_request {} {
     my instvar data
     permission::require_permission \
-	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
-	-privilege "admin"
+        -party_id [ad_conn user_id] -object_id [$data set parent_id] \
+        -privilege "admin"
     next
   }
 
   ObjectForm instproc edit_request {item_id} {
     my instvar data
-    my log "--e setting f.name"
     my f.name {{name:text {label #xowiki.name#}}}
     permission::require_permission \
-	-party_id [ad_conn user_id] -object_id [$data set parent_id] \
-	-privilege "admin"
+        -party_id [ad_conn user_id] -object_id [$data set parent_id] \
+        -privilege "admin"
     next
   }
 
@@ -342,13 +342,13 @@ namespace eval ::xowiki {
 
   Class create PageInstanceForm -superclass WikiForm \
       -parameter {
-	{field_list {item_id name page_template description nls_language}}
-	{f.page_template
-	  {page_template:text(select)
-	    {label "Page Template"}
-	    {options \[xowiki::page_templates\]}}
-	}
-	{with_categories  false}
+        {field_list {item_id name page_template description nls_language}}
+        {f.page_template
+          {page_template:text(select)
+            {label "Page Template"}
+            {options \[xowiki::page_templates\]}}
+        }
+        {with_categories  false}
       }
   PageInstanceForm instproc set_submit_link_edit {} {
     my instvar folder_id data
@@ -361,7 +361,7 @@ namespace eval ::xowiki {
       set return_url [$data query_parameter return_url]
     }
     #if {[ns_set find $f return_url]} {set return_url [ns_set get $f return_url]}
-    set link [::xowiki::Page pretty_link -package_id [$data set package_id] [$data set name]]
+    set link [::[$data set package_id] pretty_link [$data set name]]
     #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
     my log "-- submit_link = [my submit_link]"
@@ -382,12 +382,12 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
- 	{field_list {item_id name title creator page_template description nls_language}}
- 	{f.name           {name:text(inform)}}
- 	{f.page_template  {page_template:text(hidden)}}
- 	{f.nls_language   {nls_language:text(hidden)}}
-	{with_categories  true}
-	{textfieldspec    {text(textarea),nospell {html {cols 60 rows 5}}}}
+        {field_list {item_id name title creator page_template description nls_language}}
+        {f.name           {name:text(inform)}}
+        {f.page_template  {page_template:text(hidden)}}
+        {f.nls_language   {nls_language:text(hidden)}}
+        {with_categories  true}
+        {textfieldspec    {text(textarea),nospell {html {cols 60 rows 5}}}}
       }
 
   PageInstanceEditForm instproc new_data {} {
@@ -398,7 +398,7 @@ namespace eval ::xowiki {
     foreach __v $__vars {set $__v [ns_queryget $__v]}
     set item_id [next]
 
-    set link [::xowiki::Page pretty_link -package_id [$data set package_id] [$data set name]]
+    set link [::[$data set package_id] pretty_link [$data set name]]
     my submit_link [export_vars -base $link {{m edit} $__vars}]
     #my submit_link [export_vars -base edit $__vars]
     my log "-- submit_link = [my submit_link]"
@@ -442,11 +442,11 @@ namespace eval ::xowiki {
     set template [::Generic::CrItem instantiate -item_id $page_template]
     $template volatile
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
-		       [::Generic::CrClass set common_query_atts]]
+                       [::Generic::CrClass set common_query_atts]]
     set page_instance_form_atts [list]
     foreach {_1 _2 var} [regexp -all -inline \
-			     [template::adp_variable_regexp] \
-			     [$template set text]] {
+                             [template::adp_variable_regexp] \
+                             [$template set text]] {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
 

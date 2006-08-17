@@ -11,18 +11,18 @@
 #     skin: name of adp-file to render content
 
 ::xowiki::Page proc __render_html {
-  -folder_id 
+  -package_id 
   {-tree_name ""}
   -tree_style
   -no_tree_name:boolean
   -count:boolean
   {-summary 0}
   {-open_page ""}
+  {-category_ids ""}
   {-except_category_ids ""}
 } {
-
+  set folder_id [$package_id folder_id]
   # get the folder id from the including page
-  set package_id   [$folder_id set package_id]
   set open_item_id [expr {$open_page ne "" ?
 			  [CrItem lookup -name $open_page -parent_id $folder_id] : 0}]
 
@@ -37,17 +37,17 @@
     set pos 0
     set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
     foreach category_info [category_tree::get_tree $tree_id] {
-      foreach {category_id category_label deprecated_p level} $category_info {break}
-      set c [::xowiki::Category new -orderby pos -category_id $category_id \
+      foreach {cid category_label deprecated_p level} $category_info {break}
+      set c [::xowiki::Category new -orderby pos -category_id $cid -package_id $package_id \
 		 -level $level -label $category_label -pos [incr pos]]
       set cattree($level) $c
       set plevel [expr {$level -1}]
       $cattree($plevel) add $c
-      set category($category_id) $c
-      lappend categories $category_id
+      set category($cid) $c
+      lappend categories $cid
       #set itemobj [Object new -set name en:index -set title MyTitle -set prefix "" -set suffix ""]
       #$cattree(0) add_to_category -category $c -itemobj $itemobj -orderby title
-     }
+    }
     
     set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
 		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
@@ -57,10 +57,17 @@
 		and p.page_id = r.revision_id"
 
     if {$except_category_ids ne ""} {
-      append sql catogory_filter \
+      append sql \
 	  " and not exists (select * from category_object_map c2 \
 		where ci.item_id = c2.object_id \
 		and c2.category_id in ($except_category_ids))"
+    }
+    ns_log notice "--c category_ids=$category_ids"
+    if {$category_ids ne ""} {
+      foreach cid [split $category_ids ,] {
+	append sql " and exists (select * from category_object_map \
+	where object_id = ci.item_id and category_id = $cid)"
+      }
     }
 
     if {$count} {
@@ -95,16 +102,19 @@
 set link ""
 if {![info exists name]} {set name "Categories"}
 set summary [ns_queryget summary 0]
+foreach _ {category_ids except_category_ids} {
+  if {![info exists $_]} {set $_ [ns_queryget $_ ""]}
+}
 set content [::xowiki::Page __render_html \
-		 -folder_id    [$__including_page set parent_id] \
+		 -package_id   [$__including_page set package_id] \
 		 -tree_name    [expr {[info exists tree_name] ? $tree_name : ""}] \
 		 -tree_style   [expr {[info exists tree_style] ? $tree_style : 1}] \
 		 -no_tree_name [info exists no_tree_name]  \
 		 -count        [info exists count] \
 		 -summary      $summary \
 		 -open_page    [expr {[info exists open_page] ? $open_page : ""}] \
-		 -except_category_ids [expr {[info exists except_category_ids] ?
-					     $except_category_ids : ""}] \
+		 -category_ids $category_ids \
+		 -except_category_ids $except_category_ids \
 		]
 
 if {![info exists skin]} {set skin portlet-skin}

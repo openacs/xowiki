@@ -17,16 +17,16 @@ namespace eval ::xowiki {
       set timelong  [clock format [$child time]]
       set timeshort [clock format [$child time] -format {[%H:%M:%S]}]
       if {$user_id > 0} {
-	acs_user::get -user_id $user_id -array user
-	set name [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
-	set url "/shared/community-member?user%5fid=$user_id"
-	set creator "<a target='_parent' href='$url'>$name</a>"
+        acs_user::get -user_id $user_id -array user
+        set name [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
+        set url "/shared/community-member?user%5fid=$user_id"
+        set creator "<a target='_parent' href='$url'>$name</a>"
       } else {
-	set creator "Nobody"
+        set creator "Nobody"
       }
       append result "<TR><TD class='timestamp'>$timeshort</TD>\
-	<TD class='user'>[my encode $creator]</TD>\
-	<TD class='message'>[my encode $msg]</TD></TR>\n"
+        <TD class='user'>[my encode $creator]</TD>\
+        <TD class='message'>[my encode $msg]</TD></TR>\n"
     }
     return $result
   }
@@ -44,35 +44,36 @@ namespace eval ::xowiki {
     if {![info exists mode]} {
       set mode polling
       if {[info command ::thread::mutex] ne "" &&
-	  ![catch {ns_conn contentsentlength}]} {
-	# we seem to have libthread installed, and the patch for obtaining the tcl-stream
-	# from a connection thread, so we can use the background delivery thread;
-	# scripted streaming should work everywhere
-	set mode scripted-streaming
-	if {[regexp (firefox) [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
-	  # for firefox, we could use the nice mode without the spinning load indicator
-	  set mode streaming
-	}
+          ![catch {ns_conn contentsentlength}]} {
+        # we seem to have libthread installed, and the patch for obtaining the tcl-stream
+        # from a connection thread, so we can use the background delivery thread;
+        # scripted streaming should work everywhere
+        set mode scripted-streaming
+        if {[regexp (firefox) [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
+          # for firefox, we could use the nice mode without the spinning load indicator
+          # currently, streaming mode seems broken with current firefox...
+          #set mode streaming
+        }
       }
       my log "--mode $mode"
     }
 
     switch $mode {
       polling {
-	::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
-	set jspath packages/xowiki/www/ajax/chat.js
-	set login_url ${path}ajax/chat?m=login&$context
-	set get_update  "chatSendCmd(\"$path/ajax/chat?m=get_new&$context\",chatReceiver)"
-	set get_all     "chatSendCmd(\"$path/ajax/chat?m=get_all&$context\",chatReceiver)"
+        ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+        set jspath packages/xowiki/www/ajax/chat.js
+        set login_url ${path}ajax/chat?m=login&$context
+        set get_update  "chatSendCmd(\"$path/ajax/chat?m=get_new&$context\",chatReceiver)"
+        set get_all     "chatSendCmd(\"$path/ajax/chat?m=get_all&$context\",chatReceiver)"
       }
       streaming {
-	set jspath packages/xowiki/www/ajax/streaming-chat.js
-	set subscribe_url ${path}ajax/chat?m=subscribe&$context
+        set jspath packages/xowiki/www/ajax/streaming-chat.js
+        set subscribe_url ${path}ajax/chat?m=subscribe&$context
       }
       scripted-streaming {
-	append context &mode=scripted
-	set jspath packages/xowiki/www/ajax/scripted-streaming-chat.js
-	set subscribe_url ${path}ajax/chat?m=subscribe&$context
+        append context &mode=scripted
+        set jspath packages/xowiki/www/ajax/scripted-streaming-chat.js
+        set subscribe_url ${path}ajax/chat?m=subscribe&$context
       }
     }
     set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
@@ -81,6 +82,8 @@ namespace eval ::xowiki {
       return -code error "File [acs_root_dir]/$jspath does not exist"
     }
     set file [open [acs_root_dir]/$jspath]; set js [read $file]; close $file
+
+    my log "--CHAT mode=$mode"
 
     switch $mode {
       polling {return "\
@@ -95,6 +98,8 @@ namespace eval ::xowiki {
       <input type='text' size='40' name='msg' id='chatMsg'>
       </form>"
       }
+
+
       streaming {return "\
       <script type='text/javascript' language='javascript'>$js
       var send_url = \"$send_url\";
@@ -114,6 +119,8 @@ overflow:auto;
    <form action='#' onsubmit='chatSendMsg(); return false;'>
    <input type='text' size='40' name='msg' id='chatMsg'>"
       }
+
+
       scripted-streaming {return "\
       <script type='text/javascript' language='javascript'>
       $js
@@ -131,7 +138,7 @@ color:#333;
 overflow:auto;
 '></div>
       <iframe name='ichat' id='ichat' frameborder='0' src='$subscribe_url' 
-	      style='width:0px; height:0px; border: 0px'>
+              style='width:0px; height:0px; border: 0px'>
       </iframe>
       <form action='#' onsubmit='chatSendMsg(); return false;'>
       <input type='text' size='40' name='msg' id='chatMsg'>

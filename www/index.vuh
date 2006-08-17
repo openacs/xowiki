@@ -1,4 +1,6 @@
-ad_page_contract {
+# -*- tcl -*-
+::xowiki::Package initialize -ad_doc {
+
   This is the resolver for this package. It turns a request into
   an object and executes the object with the computed method
 
@@ -6,16 +8,17 @@ ad_page_contract {
   @creation-date July, 2006
   @cvs-id $Id$
 
+} -parameter {
+  {-m view}
+  {-folder_id:integer 0}
 }
-::xowiki::Package process_query \
-    -defaults [list m view \
-		   folder_id 0 \
-		   package_id [ad_conn package_id]]
 
-set Package [::xowiki::Package create ::$package_id -folder_id $folder_id]
-$Package log "--starting... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
-set text [$Package invoke -method $m]
-$Package log "--delivery [$Package set delivery] 200 [$Package set mime_type] [string length $text] bytes"
-[$Package set delivery] 200 [$Package set mime_type] $text
-$Package log "--done [$Package set object]"
+::$package_id log "--starting... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+set text [::$package_id invoke -method $m]
+if {[string length $text] > 1} {
+  #::$package_id log "--delivery [::$package_id set delivery] 200 [::$package_id set mime_type] \
+	[string length $text] bytes"
+  [::$package_id set delivery] 200 [::$package_id set mime_type] $text
+}
+::$package_id log "--i ::$package_id DONE"
 ad_script_abort

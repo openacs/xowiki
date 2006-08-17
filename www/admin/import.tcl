@@ -1,3 +1,12 @@
+::xowiki::Package initialize -ad_doc {
+  import objects in xotcl format
+
+  @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
+  @creation-date Aug 11, 2006
+  @cvs-id $Id$
+
+} 
+
 set msg ""
 ad_form \
     -name upload_form \
@@ -12,9 +21,9 @@ ad_form \
     -on_submit {
       # check file name
       if {$upload_file eq ""} {
-	template::form::set_error upload_form upload_file \
-	    [_ acs-templating.HTMLArea_SpecifyUploadFilename]
-	break
+        template::form::set_error upload_form upload_file \
+            [_ acs-templating.HTMLArea_SpecifyUploadFilename]
+        break
       }
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
@@ -22,9 +31,9 @@ ad_form \
 
       foreach o [::xowiki::Page allinstances] { $o destroy }
       if {[catch {eval $content} error]} {
-	set msg "Error: $error"
+        set msg "Error: $error"
       } else {
-	set msg [::xowiki::Page import]
+        set msg [::xowiki::Page import]
       }
     }
 

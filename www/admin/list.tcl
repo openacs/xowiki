@@ -1,4 +1,4 @@
-ad_page_contract {
+::xowiki::Package initialize -ad_doc {
   This is the admin page for the package.  It displays all entries
   provides links to create, edit and delete these
 
@@ -7,14 +7,10 @@ ad_page_contract {
   @cvs-id $Id$
 
   @param object_type show objects of this class and its subclasses
-} -query {
-  object_type:optional
-  {orderby:optional "last_modified,desc"}
+} -parameter {
+  {-object_type:optional}
+  {-orderby:optional "last_modified,desc"}
 }
-
-set package_id [ad_conn package_id]
-set Package    [::xowiki::Package create ::$package_id]
-$Package instvar folder_id
 
 set context   [list index]
 
@@ -33,20 +29,21 @@ if {![info exists object_type]} {
   set title "Index of [$object_type set pretty_plural]"
   set with_subtypes false
 }
-#ns_log notice "-- folder_id = $folder_id"
 
+set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
+                      [::$package_id url]}]
 # set up categories
 set category_map_url [export_vars -base \
-	  [site_node::get_package_url -package_key categories]cadmin/one-object \
-			  { { object_id $package_id } }]
+              [site_node::get_package_url -package_key categories]cadmin/one-object \
+                          { { object_id $package_id } }]
 
 set actions ""
 foreach type $object_types {
   append actions [subst {
     Action new \
-	-label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
-	-url [export_vars -base [$Package package_url] {{edit-new 1} {object_type $type}}] \
-	-tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
+        -label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
+        -url [export_vars -base [::$package_id package_url] {{edit-new 1} {object_type $type} return_url}] \
+        -tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
   }]
 }
 
@@ -70,24 +67,23 @@ set order_clause "order by ci.name"
 # -page_number 1
 db_foreach instance_select \
     [$object_type instance_select_query \
-	 -folder_id $folder_id \
-	 -with_subtypes $with_subtypes \
-	 -select_attributes [list content_length creation_user \
-		 "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
-	 -order_clause $order_clause \
-	 ] {
-	   set page_link [::xowiki::Page pretty_link $name]
-	   set return_url [expr {$per_type ? [export_vars -base [$Package url] object_type] :
-			   [$Package url]}]
-	   t1 add \
-	       -name $name \
-	       -object_type $object_type \
-	       -name.href $page_link \
-	       -last_modified $last_modified \
-	       -size $content_length \
-	       -edit.href [export_vars -base $page_link {{m edit} return_url}] \
-	       -mod_user [::xo::get_user_name $creation_user] \
-	       -delete.href [export_vars -base $page_link {{m delete} return_url}]
-  	 }
+         -folder_id [::$package_id folder_id] \
+         -with_subtypes $with_subtypes \
+         -select_attributes [list content_length creation_user \
+                  "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
+         -order_clause $order_clause \
+        ] {
+          set page_link [::$package_id pretty_link $name]
+
+          t1 add \
+              -name $name \
+              -object_type $object_type \
+              -name.href $page_link \
+              -last_modified $last_modified \
+              -size [expr {$content_length ne "" ? $content_length : 0}]  \
+              -edit.href [export_vars -base $page_link {{m edit} return_url}] \
+              -mod_user [::xo::get_user_name $creation_user] \
+              -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}]
+        }
 
 set t1 [t1 asHTML]

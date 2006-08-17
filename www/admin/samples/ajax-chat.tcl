@@ -4,9 +4,9 @@ namespace eval ::xowiki::tmp {
       -set lang en \
       -set description {} \
       -set text {
-	proc content {} {
-	  ::xowiki::Chat login -chat_id 22
-	}
+        proc content {} {
+          ::xowiki::Chat login -chat_id 22
+        }
       } \
       -set nls_language en_US \
       -set mime_type {text/html} \

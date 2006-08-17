@@ -1,18 +1,19 @@
-ad_page_contract {
+::xowiki::Package initialize -ad_doc {
   This deletes a type with all subtypes and instances
-  
-  @author Your Name (you@example.com)
+
+  @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
+  @creation-date Aug 11, 2006
   @cvs-id $Id$
-  
-  @param object_type the class name of an instance of CrClass
-} -query {
-  object_type
-  {query "."}
+
+  @param object_type 
+  @param query
+} -parameter {
+  {-object_type ::xowiki::Page}
+  {-return_url "."}
 }
 
-set p [::xowiki::Package create ::[ad_conn package_id]]
-
-db_foreach retrieve_instances [$object_type instance_select_query -folder_id [$p set folder_id]] {
+set sql [$object_type instance_select_query -folder_id [::$package_id folder_id]]
+db_foreach retrieve_instances $sql
   permission::require_write_permission -object_id $item_id
   $object_type delete -item_id $item_id
 }
@@ -20,4 +21,4 @@ db_foreach retrieve_instances [$object_type instance_select_query -folder_id [$p
 # drop type requires that all pages of all xowiki instances are deleted
 #foreach type [$object_type object_types -subtypes_first true] {$type drop_object_type}
 
-ad_returnredirect $query
+ad_returnredirect $return_url

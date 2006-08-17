@@ -13,7 +13,7 @@ $page volatile
 
 if {[::xowiki::Page incr recursion_count]<3} {
   set content [$page render]
-  set link [::xowiki::Page pretty_link $name]
+  set link [::[$page package_id] pretty_link $name]
 } else {
   set content "Recursion Limit exceeded, items are nested to deep!"
 }

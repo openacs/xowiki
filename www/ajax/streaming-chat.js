@@ -61,7 +61,7 @@ var http_send = getHttpObject();
 
 function chatSendMsg() {
   var msg = document.getElementById('chatMsg').value;
-  if (msg == '') {
+    if (msg == '') {
          return;
   }
   //alert(send_url + encodeURIComponent(msg));

@@ -1,28 +1,27 @@
-ad_page_contract {
+::xowiki::Package initialize -ad_doc {
+
   This is the admin page for the package.  It displays all of the types 
   of wiki pages provides links to delete them
 
   @author Gustaf Neumann neumann@wu-wien.ac.at
   @cvs-id $Id$
-} -query {
-  object_type:optional
+
+} -parameter {
+  {-object_type ::xowiki::Page}
 }
 
-set package_id [ad_conn package_id]
-set Package    [::xowiki::Package create ::$package_id]
-
 set context [list]
-set supertype ::xowiki::Page
-set title "Administer all kind of [$supertype set pretty_plural]"
+set title "Administer all kind of [$object_type set pretty_plural]"
 
-set object_type_key [$supertype set object_type_key]
-set object_types    [$supertype object_types]
+set object_type_key [$object_type set object_type_key]
+set object_types    [$object_type object_types]
 set return_url      [ns_conn url]
 
 TableWidget t1 -volatile \
     -actions [subst {
       Action new -label "all pages" -url list
-      Action new -label parameters -url [export_vars -base /shared/parameters {package_id return_url}]
+      Action new -label parameters -url \
+          [export_vars -base /shared/parameters {package_id return_url}]
       Action new -label export -url export
       Action new -label import -url import
       Action new -label permissions -url [export_vars -base permissions {package_id}]
@@ -32,10 +31,10 @@ TableWidget t1 -volatile \
       AnchorField instances -label Instances -html {align center}
       ImageField_AddIcon edit -label "Add" -html {align center}
       ImageField_DeleteIcon delete -label "Delete All" \
-	  -html {align center onClick "return(confirm('Delete really all?'));"}
+          -html {align center onClick "return(confirm('Delete really all?'));"}
     }
 
-set base [$Package package_url]
+set base [::$package_id package_url]
 db_foreach type_select \
     "select object_type from acs_object_types where 
         tree_sortkey between :object_type_key and tree_right(:object_type_key)
@@ -43,20 +42,20 @@ db_foreach type_select \
 
       set return_url [export_vars -base ${base}admin {object_type}]
       t1 add \
-	  -object_type $object_type \
-	  -instances [db_list count [$object_type instance_select_query \
-					 -folder_id [$Package set folder_id] \
-					 -count 1 -with_subtypes false]] \
-	  -instances.href [export_vars -base ./list {object_type}] \
-	  -edit.href   [export_vars -base $base {{edit-new 1} object_type return_url}] \
-	  -delete.href [export_vars -base delete-type {object_type}] \
-	  -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
-	  -delete.title  "Delete all [$object_type pretty_plural] of this instance"
+          -object_type $object_type \
+          -instances [db_list count [$object_type instance_select_query \
+                                         -folder_id [::$package_id set folder_id] \
+                                         -count 1 -with_subtypes false]] \
+          -instances.href [export_vars -base ./list {object_type}] \
+          -edit.href   [export_vars -base $base {{edit-new 1} object_type return_url}] \
+          -delete.href [export_vars -base delete-type {object_type}] \
+          -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
+          -delete.title  "Delete all [$object_type pretty_plural] of this instance"
     }
 
 set t1 [t1 asHTML]
 
 # set up categories
 set category_map_url [export_vars -base \
-	  [site_node::get_package_url -package_key categories]cadmin/object-map \
-			  { { object_id $package_id } }]
+          [site_node::get_package_url -package_key categories]cadmin/object-map \
+                          { { object_id $package_id } }]

@@ -37,9 +37,7 @@ namespace eval ::xowiki {
     #my log "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
-      set href [::xowiki::Page pretty_link \
-		    -package_id [my package_id] -lang [my lang] \
-		    [my stripped_name]]
+      set href [::[my package_id] pretty_link -lang [my lang] [my stripped_name]]
       my render_found $href [my label]
     } else {
       my instvar package_id
@@ -48,25 +46,25 @@ namespace eval ::xowiki {
       set name [my name]
       set title [my label]
       set href [export_vars -base [$package_id package_url] \
-		    {{edit-new 1} object_type name title}]
+                    {{edit-new 1} object_type name title}]
       my render_not_found $href [my label]
     }
   }
 
   Link instproc lookup_xowiki_package_by_name {name start_package_id} {
     set ancestors [site_node::get_ancestors \
-		       -node_id $start_package_id \
-		       -element node_id]
+                       -node_id $start_package_id \
+                       -element node_id]
     foreach a $ancestors {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
-			  -filters [list name $name] -element package_id]
+                          -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
-	my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
-	if {![my isobject ::$package_id]} {
-	  my log "--LINK creating package object"
-	  ::xowiki::Package create ::$package_id
-	}
-	return $package_id
+        my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
+        if {![my isobject ::$package_id]} {
+          my log "--LINK creating package object"
+          ::xowiki::Package create ::$package_id
+        }
+        return $package_id
       }
     }
     return 0
@@ -84,17 +82,17 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     if {$item_id} {
       set css_class "found"
-      set link [::xowiki::Page pretty_link -lang $lang [my stripped_name]]
+      set link [::[my package_id] pretty_link -lang $lang [my stripped_name]]
     } else {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
       set link [export_vars -base [$package_id package_url] \
-		    {{edit-new 1} object_type name last_page_id}]
+                    {{edit-new 1} object_type name last_page_id}]
     }
     $page lappend lang_links \
-	"<a href='$link'><img class='$css_class' style='height='12' \
-		src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
+        "<a href='$link'><img class='$css_class' style='height='12' \
+                src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
     return ""
   }
 
@@ -108,7 +106,7 @@ namespace eval ::xowiki {
     set page [my page]
     set item_id [my resolve]
     if {$item_id} {
-      set base [::xowiki::Page pretty_link -absolute [$page absolute_links] $name]
+      set base [::[my package_id] pretty_link -absolute [$page absolute_links] $name]
 my log "--l fully quali [$page absolute_links], base=$base"
       set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
@@ -118,9 +116,9 @@ my log "--l fully quali [$page absolute_links], base=$base"
       set last_page_id [$page set item_id]
       set title $label
       set link [export_vars -base [$package_id package_url] \
-		    {{edit-new 1} {object_type ::xowiki::File} 
-		      {return_url "[$package_id url]"}
-		      name title last_page_id}]
+                    {{edit-new 1} {object_type ::xowiki::File} 
+                      {return_url "[$package_id url]"}
+                      name title last_page_id}]
       my render_not_found $link $label
     }
   }
@@ -132,7 +130,7 @@ my log "--l fully quali [$page absolute_links], base=$base"
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image
   ::xowiki::Link::file instproc render_found {href label} {
     return "<a href='$href' style='background: url(/resources/xowiki/file.jpg) \
-	right center no-repeat; padding-right:9px'>$label</a>"
+        right center no-repeat; padding-right:9px'>$label</a>"
   }
 
   #
@@ -143,7 +141,7 @@ my log "--l fully quali [$page absolute_links], base=$base"
   ::xowiki::Link::glossary instproc resolve {} {
     # look for a package instance of xowiki, named "glossary" (the type)
     set id [my lookup_xowiki_package_by_name [my type] \
-		[site_node::get_node_id_from_object_id -object_id [my package_id]]]
+                [site_node::get_node_id_from_object_id -object_id [my package_id]]]
     my log "--LINK glossary lookup returned package_id $id"
     if {$id} {
       # set correct package id for rendering the link
@@ -160,8 +158,8 @@ my log "--l fully quali [$page absolute_links], base=$base"
     ::xowiki::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xowiki::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     return "<a href='$href' onclick=\"showInfo('$href?master=0','$label'); return false;\"\
-  	style='background: url(/resources/xowiki/glossary.gif) right center no-repeat; padding-right:14px'
-	>$label</a>"
+        style='background: url(/resources/xowiki/glossary.gif) right center no-repeat; padding-right:14px'
+        >$label</a>"
   }
 
   #
@@ -173,9 +171,9 @@ my log "--l fully quali [$page absolute_links], base=$base"
     set key link-[my type]-[my name]-[my folder_id]
     while {1} {
       array set r [ns_cache eval xowiki_cache $key {
-	set id [next]
-	if {$id == 0} break ;# don't cache
-	return [list item_id $id package_id [my package_id]]
+        set id [next]
+        if {$id == 0} break ;# don't cache
+        return [list item_id $id package_id [my package_id]]
       }]
       break
     }

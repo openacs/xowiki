@@ -1,0 +1,16 @@
+::xowiki::Page new -title "Index Page" -text {
+
+>>content<<
+{{weblog-portlet}}
+>><<
+>>sidebar<<
+{{adp portlets/weblog-mini-calendar}}
+{{adp portlets/tags {skin plain-include}}}
+{{adp portlets/tags {skin plain-include popular 1 limit 30}}}
+{{categories-portlet -count 1 -skin plain}}
+>><<
+
+}
+
+
+

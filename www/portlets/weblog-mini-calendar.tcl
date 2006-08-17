@@ -59,15 +59,15 @@ for {set i 0} {$i < 7} {incr i} {
 }
 
 db_foreach entries_this_month "select count(ci.item_id), date_trunc('day',p.publish_date) as d \
-	from xowiki_pagei p, cr_items ci \
-	where ci.parent_id = $folder_id \
-	and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
+        from xowiki_pagei p, cr_items ci \
+        where ci.parent_id = $folder_id \
+        and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
         and ci.content_type not in ('::xowiki::PageTemplate') \
-	and ci.item_id != $including_item_id \
-	and date_trunc('month', p.publish_date) = '$year-$month-01' \
-	group by d" {
-	  set entries([lindex $d 0]) $count
-	}
+        and ci.item_id != $including_item_id \
+        and date_trunc('month', p.publish_date) = '$year-$month-01' \
+        group by d" {
+          set entries([lindex $d 0]) $count
+        }
 
 multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url count class
 
