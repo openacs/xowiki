@@ -459,7 +459,8 @@ namespace eval ::xowiki {
   }
 
   Page instproc regsub-eval {re string cmd} {
-    subst [regsub -all $re [string map {\" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\} $string] \
+    subst [regsub -all $re [string map { \" \\\" \[ \\[ \] \\] \
+                                            \$ \\$ \\ \\\\} $string] \
                "\[$cmd\]"]
   }
 
@@ -494,7 +495,13 @@ namespace eval ::xowiki {
     } else {
       # we have a direct (adp-less include)
       my instvar package_id
-      set page_name [lindex $arg 0]
+      if {[catch {set page_name [lindex $arg 0]} errMsg]} {
+        my log "--S arg='$arg'"
+        # there is something syntactically wrong
+        return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
+           Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
+           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)"
+      }
       if {[my isclass ::xowiki::portlet::$page_name]} {
         # direct call, without page, not tailorable
         set page [::xowiki::portlet::$page_name new \

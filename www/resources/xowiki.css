@@ -96,3 +96,42 @@ img.undefined {border: 10px; color: yellow; height: 12px}
 a:hover.rss {color:#dddddd;}
 a:visited.rss {color: #FFF}
 a:link.rss {color: #FFF}
+
+.code {
+    font-family: "Courier", monospace;
+}
+
+.string {
+    color: #7D615B;
+}
+div.code {
+    font-size: 90%;
+    font-family: "Courier", monospace;
+    white-space: pre;
+    margin-right: 15px;
+    padding-right: 5px;
+    border: #cccccc 1px solid;
+    margin-left: 15px;
+    padding-left: 5px;
+    padding-bottom: 12px;
+    padding-top: 0px;
+    background-color: #FFFFF8;
+    margin-bottom: 16px;
+}
+
+div.code p i {
+    color: #008000;
+}
+div.code  i {
+    color: #008000;
+}
+div.code p em {
+    color: #008000;
+}
+div.code  em {
+    color: #008000;
+}
+strong.code {
+    font-weight: bolder;
+}
+
