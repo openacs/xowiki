@@ -173,7 +173,7 @@ namespace eval ::xowiki {
   Package instproc call {object method} {
     my instvar policy
     if {[$policy check_permissions $object $method]} {
-      my log "--p calling $object ([$object info class]) '$method'"
+      #my log "--p calling $object ([$object info class]) '$method'"
       $object $method
     } else {
       my log "not allowed to call $object $method"
@@ -400,13 +400,15 @@ namespace eval ::xowiki {
         }
         set id [$object set $attribute]
         #my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
-        return [::xo::cc permission -object_id $id -privilege $privilege]
+        return [::xo::cc permission -object_id $id -privilege $privilege \
+                    -party_id [xo::cc user_id]]
       }
     }
     return 0
   }
 
   Policy instproc check_permissions {object method} {
+    #my log "--p check_permissions {$object $method}"
     set allowed 0
     foreach class [concat [$object info class] [[$object info class] info heritage]] {
       set c [self]::[namespace tail $class]
@@ -414,7 +416,7 @@ namespace eval ::xowiki {
       set key require_permission($method)
       if {[$c exists $key]} {
         set permission [$c set $key]
-        my log "checking $permission for $c $key"
+        #my log "--p checking $permission for $c $key"
         switch $permission {
           none  {set allowed 1; break}
           login {auth::require_login; set allowed 1; break}
@@ -439,10 +441,10 @@ namespace eval ::xowiki {
               }
             }
             set id [$object set $attribute]
-            #my log "--c require_permission -object_id $id -privilege $privilege"
+            #my log "--p require_permission -object_id $id -privilege $privilege"
             set p [::xo::cc permission -object_id $id -privilege $privilege]
             if {!$p} {
-              ns_log notice "permission::require_permission: [::xo::cc user_id]doesn't \
+              ns_log notice "permission::require_permission: [::xo::cc user_id] doesn't \
 		have $privilege on object $id"
               ad_return_forbidden  "Permission Denied"  "<blockquote>
   You don't have permission to $privilege [$object name].
@@ -471,7 +473,7 @@ namespace eval ::xowiki {
     }
     
     Class Page -array set require_permission {
-      view               {{package_id read}}
+      view               none
       revisions          {{package_id write}}
       edit               {{package_id write}}
       make-live-revision {{package_id write}}
