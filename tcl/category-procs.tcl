@@ -3,7 +3,7 @@ namespace eval ::xowiki {
   # ::xowiki::CatTree  (category tree)
   #
 
-  Class CatTree -superclass ::xo::OrderedComposite -parameter {name ""}
+  Class CatTree -superclass ::xo::OrderedComposite -parameter {{name ""}}
 
   CatTree instproc add_to_category {
     -category

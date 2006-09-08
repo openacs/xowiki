@@ -16,7 +16,7 @@ namespace eval ::xowiki {
   } {
     #TODO can most probably further simplified
     set page [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
-    my log "--I instantiate i=$item_id revision_id=$revision_id page=$page"
+    #my log "--I instantiate i=$item_id revision_id=$revision_id page=$page"
     $page folder_id [$page set parent_id] 
     set package_id [$page set package_id]
     ::xowiki::Package initialize \
