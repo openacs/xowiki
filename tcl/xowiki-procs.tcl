@@ -364,7 +364,9 @@ namespace eval ::xowiki {
  
     if {[info exists privilege]} {
       set granted [expr {$privilege eq "public" ? 1 :
-                 [permission::permission_p -object_id $package_id -privilege $privilege] }]
+                 [permission::permission_p \
+                      -object_id $package_id -privilege $privilege \
+                      -party_id [::xo::cc user_id]] }]
     } else {
       # determine privilege from policy
       set granted [$package_id permission_p $object $method]
@@ -913,7 +915,9 @@ namespace eval ::xowiki {
   }
   Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
-    if {![my isobject $payload]} {::xotcl::Object create $payload -requireNamespace}
+    if {![my isobject $payload]} {
+      ::xo::Context create $payload -requireNamespace
+    }
     expr {[$payload exists $var] ? [$payload set $var] : $default}
   }
 

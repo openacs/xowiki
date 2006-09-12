@@ -76,18 +76,20 @@ namespace eval ::xowiki {
       set return_url [my query_parameter return_url]
     }
     
-    
     if {[$package_id get_parameter "use_notifications" 1]} {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
-        set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+        set notification_type [notification::type::get_type_id \
+                                   -short_name xowiki_notif]
         set notification_text "Subscribe the XoWiki instance"
-        set notification_subscribe_link [export_vars -base /notifications/request-new \
-                                             {return_url 
-                                               {pretty_name $notification_text} 
-                                               {type_id $notification_type} 
-                                               {object_id $package_id}}]
-        set notification_image "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-	alt='$notification_text' title='$notification_text'>"
+        set notification_subscribe_link \
+            [export_vars -base /notifications/request-new \
+                 {return_url 
+                   {pretty_name $notification_text} 
+                   {type_id $notification_type} 
+                   {object_id $package_id}}]
+        set notification_image \
+           "<img style='border: 0px;' src='/resources/xowiki/email.png' \
+	    alt='$notification_text' title='$notification_text'>"
       }
     }
     my log "--after notifications [info exists notification_image]"
@@ -225,8 +227,9 @@ namespace eval ::xowiki {
     }
     #my log "--u sumit_link=$submit_link qp=[my query_parameter return_url]"
 
-    # we have to do template mangling here; ad_form_template writes form variables into the 
-    # actual parselevel, so we have to be in our own level in order to access an pass these
+    # we have to do template mangling here; ad_form_template writes form 
+    # variables into the actual parselevel, so we have to be in our
+    # own level in order to access an pass these
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
@@ -282,7 +285,6 @@ namespace eval ::xowiki {
     }
   }
 
-
   Page instproc make-live-revision {} {
     my instvar revision_id item_id package_id
     my log "--M set_live_revision($revision_id)"
@@ -290,7 +292,7 @@ namespace eval ::xowiki {
     set page_id [my query_parameter "page_id"]
     ns_cache flush xotcl_object_cache ::$item_id
     ad_returnredirect [my query_parameter "return_url" \
-                           [export_vars -base [$package_id url] {{m revisions}}]]
+          [export_vars -base [$package_id url] {{m revisions}}]]
   }
 
 
@@ -301,7 +303,7 @@ namespace eval ::xowiki {
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
     ad_returnredirect [my query_parameter "return_url" \
-                           [export_vars -base [$package_id url] {{m revisions}}]]
+          [export_vars -base [$package_id url] {{m revisions}}]]
   }
 
   Page instproc delete {} {
