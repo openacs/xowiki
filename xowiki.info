@@ -27,6 +27,7 @@ one could define book-structures (where a navigation structure could be built on
         <maturity>0</maturity>
 
         <provides url="xowiki" version="0.36"/>
+        <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
