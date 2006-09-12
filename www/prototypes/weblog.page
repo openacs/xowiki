@@ -1,4 +1,4 @@
-::xowiki::Page new -title "Index Page" -text {
+::xowiki::Page new -title "Weblog Page" -text {
 
 >>content<<
 {{weblog-portlet}}
