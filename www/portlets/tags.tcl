@@ -28,14 +28,17 @@
     set sql "select count(*) as nr,tag from xowiki_tags where \
         user_id=$user_id and package_id=$package_id group by tag order by tag"
   }
-  set content "<h3>$label</h3> <BLOCKQUOTE>"
   set entries [list]
   db_foreach get_counts $sql {
     set s [expr {$summary ? "&summary=$summary" : ""}]
-    set href [ad_conn url]?$tag_type=[ad_urlencode $tag]$s
+    set href [::$package_id url]?$tag_type=[ad_urlencode $tag]$s
     lappend entries "$tag <a href='$href'>($nr)</a>"
   }
-  append content "[join $entries {, }]</BLOCKQUOTE>\n"
+  set content ""
+  if {[llength $entries]>0} {
+    append content "<h3>$label</h3> <BLOCKQUOTE>" \
+        "[join $entries {, }]</BLOCKQUOTE>\n"
+  }
   return $content
 }
 
@@ -45,7 +48,7 @@ if {![info exists limit]} {set limit 20}
 set summary [ns_queryget summary 0]
 set content [::xowiki::Page __render_html \
                  -folder_id    [$__including_page set parent_id] \
-                 -user_id      [ad_conn user_id]  \
+                 -user_id      [::xo::cc user_id]  \
                  -summary      $summary \
                  -limit        $limit \
                  -popular      [info exists popular] \
