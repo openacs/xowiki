@@ -122,8 +122,9 @@ namespace eval ::xowiki {
   proc ::xowiki::validate_name {} {
     upvar name name nls_language nls_language folder_id folder_id \
         object_type object_type mime_type mime_type
-    #my log "--F validate_name ot=$object_type data=[my exists data]"
     my instvar data
+    #my log "--F validate_name ot=$object_type data=[my exists data]"
+    $data instvar package_id
     if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
       #my get_uploaded_file
       switch -glob -- [$data set mime_type] {
@@ -136,21 +137,19 @@ namespace eval ::xowiki {
       } else {
         set stripped_name [$data set upload_file]
       }
-      set name ${type}:[::[ad_conn package_id] normalize_name $stripped_name]
+      set name ${type}:[::$package_id normalize_name $stripped_name]
     } else {
       if {![regexp {^..:} $name]} {
         if {![info exists nls_language]} {set nls_language ""}
         if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
         set name [string range $nls_language 0 1]:$name
       }
-      set name [::[ad_conn package_id] normalize_name $name]
+      set name [::$package_id normalize_name $name]
     }
 
     # check, if we try to create a new item with an existing name
-    #my log "--form vars = [ns_set array [ns_getform] ]"
-    #my log "--form comparing '[ns_set get [ns_getform] __object_name]' w '$name'"
-    if {[ns_set get [ns_getform] __new_p] 
-        || [ns_set get [ns_getform] __object_name] ne $name
+    if {[$data form_parameter __new_p] 
+        || [$data form_parameter __object_name] ne $name
       } {
       return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
     }
@@ -159,9 +158,8 @@ namespace eval ::xowiki {
 
   WikiForm instproc handle_enhanced_text_from_form {} {
     my instvar data
-    array set __tmp [ns_set array [ns_getform]]
-    if {[info exists __tmp(text.format)]} {     
-      $data set mime_type $__tmp(text.format)
+    if {[$data exists_form_parameter text.format]} {
+      $data set mime_type [$data form_parameter text.format]
     }
   }
   WikiForm instproc update_references {} {
@@ -176,7 +174,8 @@ namespace eval ::xowiki {
     # could be made more intelligent to delete entries is more rare cases, like
     # in case the file was renamed
     my instvar folder_id
-    ##### why is ns_cache names xowiki_cache *pattern*   not working??? upgrade ns_cache to 1.5!
+    ##### why is ns_cache names xowiki_cache *pattern*   not working??? 
+    ##### upgrade ns_cache from CVS !
     foreach entry [ns_cache names xowiki_cache link-*-$folder_id] {
       array set tmp [ns_cache get xowiki_cache $entry]
       if {$tmp(item_id) == [$data set item_id]} {
@@ -355,12 +354,10 @@ namespace eval ::xowiki {
     set object_type [[$data info class] object_type]
     #my log "-- data=$data cl=[$data info class] ot=$object_type"
     set item_id [$data set item_id]
-    set page_template [ns_set get [ns_getform] page_template]
-    set f [ns_getform]
+    set page_template [$data form_parameter page_template]
     if {[$data exists_query_parameter return_url]} {
       set return_url [$data query_parameter return_url]
     }
-    #if {[ns_set find $f return_url]} {set return_url [ns_set get $f return_url]}
     set link [::[$data set package_id] pretty_link [$data set name]]
     #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
@@ -395,7 +392,7 @@ namespace eval ::xowiki {
     set __vars {folder_id item_id page_template return_url}
     set object_type [[$data info class] object_type]
     #my log "-- cl=[[my set data] info class] ot=$object_type $__vars"
-    foreach __v $__vars {set $__v [ns_queryget $__v]}
+    foreach __v $__vars {set $__v [$data from_parameter $__v] ""}
     set item_id [next]
 
     set link [::[$data set package_id] pretty_link [$data set name]]
@@ -432,8 +429,8 @@ namespace eval ::xowiki {
 
   PageInstanceEditForm instproc init {} {
     my instvar data page_instance_form_atts
-    set item_id [ns_queryget item_id]
-    set page_template [ns_queryget page_template]
+    set item_id [$data form_parameter item_id]
+    set page_template [$data form_parameter page_template ""]
     if {$page_template eq ""} {
       set page_template [$data set page_template]
       #my log  "-- page_template = $page_template"

@@ -13,12 +13,12 @@
   {-folder_id:integer 0}
 }
 
-::$package_id log "--starting... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
-set text [::$package_id invoke -method $m]
-if {[string length $text] > 1} {
-  #::$package_id log "--delivery [::$package_id set delivery] 200 [::$package_id set mime_type] \
-	[string length $text] bytes"
-  [::$package_id set delivery] 200 [::$package_id set mime_type] $text
-}
+::$package_id log "--starting... [ns_conn url] [ns_conn query] \
+	form vars = [ns_set array [ns_getform]]"
+#::$package_id exists_form_parameter creator
+#::$package_id log "-- [::xo::cc serialize]"
+
+::$package_id reply_to_user [::$package_id invoke -method $m]
+
 ::$package_id log "--i ::$package_id DONE"
 ad_script_abort

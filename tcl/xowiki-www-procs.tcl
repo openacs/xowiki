@@ -291,19 +291,18 @@ namespace eval ::xowiki {
     db_exec_plsql make_live {select content_item__set_live_revision(:revision_id)}
     set page_id [my query_parameter "page_id"]
     ns_cache flush xotcl_object_cache ::$item_id
-    ad_returnredirect [my query_parameter "return_url" \
-          [export_vars -base [$package_id url] {{m revisions}}]]
+    ::$package_id returnredirect [my query_parameter "return_url" \
+              [export_vars -base [$package_id url] {{m revisions}}]]
   }
-
+  
 
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id
-    my log "--M delete revision($revision_id)"
     db_exec_plsql delete_revision {select content_revision__del(:revision_id)}
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
-    ad_returnredirect [my query_parameter "return_url" \
-          [export_vars -base [$package_id url] {{m revisions}}]]
+    ::$package_id returnredirect [my query_parameter "return_url" \
+                  [export_vars -base [$package_id url] {{m revisions}}]]
   }
 
   Page instproc delete {} {
@@ -315,7 +314,8 @@ namespace eval ::xowiki {
     my instvar package_id item_id
     ::xowiki::Page save_tags -user_id [::xo::cc user_id] -item_id $item_id \
         -package_id $package_id [my form_parameter tags]
-    ad_returnredirect [my query_parameter "return_url" [$package_id url]]
+    ::$package_id returnredirect \
+        [my query_parameter "return_url" [$package_id url]]
   }
 
   Page instproc popular-tags {} {

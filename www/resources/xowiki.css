@@ -46,7 +46,7 @@ hr {
    color: silver; background-color: silver;
 } 
 #page-body {background: #fff; font: 10pt Arial, Helvetica, sans-serif;}
-table, td       {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}
+/* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%}
 #page-body h1 {font-size: 24px; margin: 0 0 .5em 0;}

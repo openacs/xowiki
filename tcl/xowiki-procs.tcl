@@ -456,7 +456,6 @@ namespace eval ::xowiki {
   Page instproc initialize_loaded_object {} {
     my instvar title creator
     if {[info exists title] && $title eq ""} {set title [my set name]}
-    #if {$creator eq ""} {set creator [::xo::get_user_name [my set creation_user]]}
     next
   }
 
@@ -861,13 +860,12 @@ namespace eval ::xowiki {
     my instvar page_template
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
-    uplevel #0 [list $page_template volatile]
-    #return [my substitute_markup [my adp_subst [$page_template set text]]]
-    if {[my set instance_attributes] eq ""} {
-      return [my adp_subst [lindex [$page_template set text] 0]]
-    }
+    $page_template destroy_on_cleanup
+    #if {[my set instance_attributes] eq ""} {
+    #  set T [my adp_subst [$page_template set text]]
+    #  return [my substitute_markup $T]
+    #}
     set T [my adp_subst [$page_template set text]]
-    #my log T=$T
     return [my substitute_markup $T]
   }
   PageInstance instproc adp_subst {content} {

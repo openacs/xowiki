@@ -91,7 +91,15 @@ namespace eval ::xowiki {
       return [my call $page $method]
     } else {
       return [my error_msg "No page <b>'[my set object]'</b> available."]
-      #ad_returnredirect "[my package_url]admin/list"
+    }
+  }
+  Package instproc reply_to_user {text} {
+    if {[::xo::cc exists __continuation]} {
+      eval [::co::cc set __continuation]
+    } else {
+      if {[string length $text] > 1} {
+        [my set delivery] 200 [my set mime_type] $text
+      }
     }
   }
 
@@ -229,7 +237,7 @@ namespace eval ::xowiki {
 
   Package instproc require_folder_object { } {
     my instvar id folder_id
-    my log "--f [::xotcl::Object isobject ::$folder_id] folder_id=$folder_id"
+    #my log "--f [::xotcl::Object isobject ::$folder_id] folder_id=$folder_id"
 
     if {$folder_id == 0} {
       set folder_id [::xowiki::Page require_folder -name xowiki -package_id $id]
@@ -343,7 +351,7 @@ namespace eval ::xowiki {
     if {$item_id ne ""} {
       my log "--D trying to delete $item_id $name"
       ::Generic::CrItem delete -item_id $item_id
-      ns_cache flush xotcl_object_cache ::$item_id
+      #ns_cache flush xotcl_object_cache ::$item_id;;; done by generic
       # we should probably flush as well cached revisions
       if {$name eq "::$folder_id"} {
         my log "--D deleting folder object ::$folder_id"
@@ -356,7 +364,7 @@ namespace eval ::xowiki {
     } else {
       my log "--D nothing to delete!"
     }
-    ad_returnredirect [my query_parameter "return_url" [$id package_url]]
+    my returnredirect [my query_parameter "return_url" [$id package_url]]
   }
 
   Package instproc condition {method attr value} {
