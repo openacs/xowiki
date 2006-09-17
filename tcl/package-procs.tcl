@@ -95,7 +95,7 @@ namespace eval ::xowiki {
   }
   Package instproc reply_to_user {text} {
     if {[::xo::cc exists __continuation]} {
-      eval [::co::cc set __continuation]
+      eval [::xo::cc set __continuation]
     } else {
       if {[string length $text] > 1} {
         [my set delivery] 200 [my set mime_type] $text
