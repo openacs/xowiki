@@ -16,9 +16,16 @@ namespace eval ::xowiki {
   } {
     #TODO can most probably further simplified
     set page [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
+
     #my log "--I instantiate i=$item_id revision_id=$revision_id page=$page"
+
     $page folder_id [$page set parent_id] 
-    set package_id [$page set package_id]
+    if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
+      set package_id [db_string get_pid "select package_id from cr_folders where folder_id = [$page $folder_id]"]
+      $page package_id $package_id
+    } else {
+      set package_id [$page set package_id]
+    }
     ::xowiki::Package initialize \
 	-package_id $package_id -user_id $user_id \
 	-parameter $parameter -init_url false -actual_query ""
@@ -565,3 +572,6 @@ namespace eval ::xowiki {
   
   
 }
+
+
+
