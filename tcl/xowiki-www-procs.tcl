@@ -71,7 +71,8 @@ namespace eval ::xowiki {
     }
     my log "--after tags"
 
-    #set return_url  [$package_id url]     ;# for the time being
+     set return_url [ad_return_url]
+
     if {[my exists_query_parameter return_url]} {
       set return_url [my query_parameter return_url]
     }
