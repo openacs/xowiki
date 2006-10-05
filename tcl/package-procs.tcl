@@ -138,7 +138,7 @@ namespace eval ::xowiki {
     }
     if {$object eq ""} {
       # we have no object, but as well no method callable on the package
-      set object index
+      set object [$id get_parameter index_page "index"]
     }
     set page [my resolve_request -path $object]
     if {$page ne ""} {
