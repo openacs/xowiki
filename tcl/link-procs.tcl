@@ -32,15 +32,16 @@ namespace eval ::xowiki {
     return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
   }
   Link instproc render {} {
+    my instvar package_id
     set page [my page]
     set item_id [my resolve]
     #my log "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
-      set href [::[my package_id] pretty_link -lang [my lang] [my stripped_name]]
+      ::xowiki::Package require $package_id
+      set href [::$package_id pretty_link -lang [my lang] [my stripped_name]]
       my render_found $href [my label]
     } else {
-      my instvar package_id
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
       set name [my name]
@@ -60,10 +61,7 @@ namespace eval ::xowiki {
                           -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
         my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
-        if {![my isobject ::$package_id]} {
-          my log "--LINK creating package object"
-          ::xowiki::Package create ::$package_id
-        }
+        ::xowiki::Package require $package_id
         return $package_id
       }
     }
@@ -146,6 +144,8 @@ my log "--l fully quali [$page absolute_links], base=$base"
     if {$id} {
       # set correct package id for rendering the link
       my set package_id $id
+      #my log "-- INITIALIZE $id"
+      #::xowiki::Package initialize -package_id $id
       my log "--u setting package_id to $id"
       # lookup the item from the found folder
       return [::Generic::CrItem lookup -name [my name] -parent_id [$id set folder_id]]

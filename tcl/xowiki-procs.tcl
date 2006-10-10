@@ -595,6 +595,7 @@ namespace eval ::xowiki {
     db_foreach references "SELECT page,ci.name,link_type,f.package_id \
         from xowiki_references,cr_items ci,cr_folders f \
         where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
+          ::xowiki::Package require $package_id
           lappend refs "<a href='[::$package_id pretty_link $name]'>$name</a>"
         }
     join $refs ", "

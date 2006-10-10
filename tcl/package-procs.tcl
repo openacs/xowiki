@@ -79,9 +79,11 @@ namespace eval ::xowiki {
   }
 
   Package instproc init {} {
+    #my log "--R creating + folder_object"
     next
     my require_folder_object
     my set policy [my get_parameter security_policy ::xowiki::policy1]
+    #my proc destroy {} {my log "--P "; next}
   }
 
   Package instproc get_parameter {attribute {default ""}} {
@@ -244,7 +246,7 @@ namespace eval ::xowiki {
 
   Package instproc require_folder_object { } {
     my instvar id folder_id
-    #my log "--f [::xotcl::Object isobject ::$folder_id] folder_id=$folder_id"
+    #my log "--f [my isobject ::$folder_id] folder_id=$folder_id"
 
     if {$folder_id == 0} {
       set folder_id [::xowiki::Page require_folder -name xowiki -package_id $id]
@@ -278,7 +280,7 @@ namespace eval ::xowiki {
           ::$folder_id initialize_loaded_object
         }
       }
-      
+      #my log "--f new folder object = ::$folder_id"
       #::$folder_id proc destroy {} {my log "--f "; next}
       ::$folder_id set package_id $id
       ::$folder_id destroy_on_cleanup

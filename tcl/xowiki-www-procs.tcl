@@ -71,7 +71,8 @@ namespace eval ::xowiki {
     }
     my log "--after tags"
 
-     set return_url [ad_return_url]
+    ### this was added by dave to address a problem with notifications
+    set return_url [ad_return_url]
 
     if {[my exists_query_parameter return_url]} {
       set return_url [my query_parameter return_url]
@@ -269,7 +270,7 @@ namespace eval ::xowiki {
     my instvar text mime_type package_id item_id revision_id
     $package_id set mime_type $mime_type
     set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] && 
-                               [info command ::throttle] ne ""}]
+                               [info command ::bgdelivery] ne ""}]
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
     #my log "--F FILE=[my full_file_name]"
