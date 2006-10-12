@@ -19,8 +19,11 @@ if {[info exists url]} {
 }
 
 set html [::$package_id invoke -method $m]
-set fn [get_server_root]/packages/xowiki/www/resources/xowiki.css
-set F [open $fn]; set css [read $F]; close $F
-set css "<style type='text/css'>$css</style>"
-set html $css$html
+
+if {![info exists css]} {
+  set fn [get_server_root]/packages/xowiki/www/resources/xowiki.css
+  set F [open $fn]; set css [read $F]; close $F
+  set css "<style type='text/css'>$css</style>"
+  set html $css$html
+}
 
