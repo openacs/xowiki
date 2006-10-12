@@ -5,9 +5,12 @@ set parameter [subst {
   {-folder_id 0}
 }]
 
+# TODO the following should be done more elegantly
+set actual_query [expr {[info exists template_file] ? "template_file=$template_file" : " "}]
+
 if {[info exists url]} {
   # new style, the url is sufficient
-  ::xowiki::Package initialize -parameter $parameter -url $url
+  ::xowiki::Package initialize -parameter $parameter -url $url -actual_query $actual_query
 } else {
   # old style, use item_id
   set page [::xowiki::Package instantiate_page_from_id \
