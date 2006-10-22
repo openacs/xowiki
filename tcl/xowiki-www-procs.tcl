@@ -166,6 +166,7 @@ namespace eval ::xowiki {
         # use adp file
         set template_file [my query_parameter "template_file" \
                                [::$package_id get_parameter template_file view-default]]
+my log "--T *** template_file=$template_file"
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file
         }
