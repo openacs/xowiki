@@ -138,6 +138,7 @@ namespace eval ::xowiki {
         }
       }
     }
+    #my log "--o object is '$object'"
     if {$object eq ""} {
       # we have no object, but as well no method callable on the package
       set object [$id get_parameter index_page "index"]
@@ -147,8 +148,13 @@ namespace eval ::xowiki {
       return $page
     }
 
+    # stripped object is the object without a language prefix
+    set stripped_object $object
+    regexp {^..:(.*)$} $object _ stripped_object
+
     # try standard page
     set standard_page [$id get_parameter ${object}_page]
+    #my log "--o standard_page == $standard_page"
     if {$standard_page ne ""} {
       set page [my resolve_request -path $standard_page]
       if {$page ne ""} {
@@ -156,7 +162,7 @@ namespace eval ::xowiki {
       }
     } else {
       regexp {../([^/]+)$} $object _ object
-      set standard_page "en:$object"
+      set standard_page "en:$stripped_object"
       # maybe we are calling from a different language, but the
       # standard page with en: was already instantiated
       set page [my resolve_request -path $standard_page]
@@ -165,11 +171,12 @@ namespace eval ::xowiki {
       }
     }
 
-    my log "--W object='$object'"
-    set fn [get_server_root]/packages/xowiki/www/prototypes/$object.page
+
+    my log "--W object='$stripped_object'"
+    set fn [get_server_root]/packages/xowiki/www/prototypes/$stripped_object.page
     if {[file readable $fn]} {
       # create from default page
-      my log "--sourcing page definition $fn"
+      my log "--sourcing page definition $fn, using name '$standard_page'"
       set page [source $fn]
       $page configure -name $standard_page \
           -parent_id $folder_id -package_id $id 
