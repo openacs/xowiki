@@ -184,7 +184,15 @@ namespace eval ::xowiki {
     }
     if {![$data istype ::xowiki::Object] &&
         ![$data istype ::xowiki::PageTemplate] } {
-      ::xowiki::notification::do_notifications -page $data
+      if {[$data istype ::xowiki::PageInstance]} {
+	if {[$data set instance_attributes] ne ""} {
+	  # fieldless page instances are not notified. problem?
+	  #my log "--i instance_attributes = <[$data set instance_attributes]>"
+	  ::xowiki::notification::do_notifications -page $data
+	}
+      } else {
+	::xowiki::notification::do_notifications -page $data
+      }
     }
   }
     
