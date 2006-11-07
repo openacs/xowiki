@@ -511,7 +511,7 @@ namespace eval ::xowiki {
       edit               {{package_id admin}}
     }
     Class File -array set require_permission {
-      download           {{package_id read}}
+      download           none
     }
   }
 
