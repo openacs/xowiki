@@ -300,12 +300,29 @@ namespace eval ::xowiki {
   
 
   Page instproc delete-revision {} {
-    my instvar revision_id package_id item_id
-    db_exec_plsql delete_revision {select content_revision__del(:revision_id)}
+    my instvar revision_id package_id item_id 
+    db_1row get_revision "select latest_revision,live_revision from cr_items where item_id = $item_id"
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
-    ::$package_id returnredirect [my query_parameter "return_url" \
-                  [export_vars -base [$package_id url] {{m revisions}}]]
+    db_exec_plsql delete_revision {select content_revision__del(:revision_id)}
+    set redirect [my query_parameter "return_url" \
+                      [export_vars -base [$package_id url] {{m revisions}}]]
+    if {$live_revision == $revision_id} {
+      # latest revision might have changed by delete_revision, so we have to fetch here
+      db_1row get_revision "select latest_revision from cr_items where item_id = $item_id"
+      if {$latest_revision eq ""} {
+        # we are out of luck, this was the final revision, delete the item
+        my instvar package_id name
+        $package_id delete -name $name -item_id $item_id
+      } else {
+        db_0or1row make_live "select content_item__set_live_revision($latest_revision)"
+      }
+    }
+    if {$latest_revision ne ""} {
+      # otherwise, "delete" did already the redirect
+      ::$package_id returnredirect [my query_parameter "return_url" \
+                                      [export_vars -base [$package_id url] {{m revisions}}]]
+    }
   }
 
   Page instproc delete {} {
