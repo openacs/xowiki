@@ -553,7 +553,7 @@ namespace eval ::xowiki {
     set label $arg
     set link $arg
     regexp {^(.*)[|](.*)$} $arg _ link label
-    if {[string match "http*//*" $link]} {
+    if {[string match "http*//*" $link] || [string match "/*" $link]} {
       return "$ch<a class='external' href='$link'>$label</a>"
     }
 
