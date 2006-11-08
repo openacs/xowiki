@@ -227,9 +227,11 @@ namespace eval ::xowiki {
           set local_name $path
         }
         set name ${lang}:$local_name
-        if {[info exists name]} {
-          set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
-          my log "--try $name -> $item_id"
+        set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
+        my log "--try $name -> $item_id"
+        if {$item_id == 0 && $lang eq "file"} {
+          set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
+          my log "--try image:$local_name -> $item_id"
         }
         if {$item_id == 0} {
           set nname   [my normalize_name $name]

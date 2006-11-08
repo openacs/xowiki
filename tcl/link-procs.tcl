@@ -19,7 +19,7 @@ namespace eval ::xowiki {
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
-    #my log "--L link has class [my info class]"
+    my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
     #my log "--lookup of [my name]"
@@ -103,9 +103,10 @@ namespace eval ::xowiki {
     my instvar name package_id label
     set page [my page]
     set item_id [my resolve]
+    #my log "-- image resolve for $page returned $item_id (name=$name, label=$label) "
     if {$item_id} {
       set base [::[my package_id] pretty_link -absolute [$page absolute_links] $name]
-my log "--l fully quali [$page absolute_links], base=$base"
+      #my log "--l fully quali [$page absolute_links], base=$base"
       set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
       my render_found $link $label
@@ -126,6 +127,14 @@ my log "--l fully quali [$page absolute_links], base=$base"
   }
 
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image
+  ::xowiki::Link::file instproc resolve {} {
+    set item_id [next]
+    # my log "-- file, lookup of [my name] returned $item_id"
+    if {$item_id eq 0 && [regsub {^file:} [my name] image: name]} {
+      set item_id [::Generic::CrItem lookup -name $name -parent_id [my folder_id]]
+    }
+    return $item_id
+  }
   ::xowiki::Link::file instproc render_found {href label} {
     return "<a href='$href' style='background: url(/resources/xowiki/file.jpg) \
         right center no-repeat; padding-right:9px'>$label</a>"
@@ -172,7 +181,7 @@ my log "--l fully quali [$page absolute_links], base=$base"
     while {1} {
       array set r [ns_cache eval xowiki_cache $key {
         set id [next]
-        if {$id == 0} break ;# don't cache
+        if {$id == 0 || $id eq ""} break ;# don't cache
         return [list item_id $id package_id [my package_id]]
       }]
       break
