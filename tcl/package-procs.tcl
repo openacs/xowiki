@@ -222,8 +222,14 @@ namespace eval ::xowiki {
         } elseif {[regexp {^(file|image)/(.*)$} $path _ lang local_name]} {
         } else {
           set key queryparm(lang)
-          set lang [expr {[info exists $key] ? [set $key] : \
-                              [string range [lang::conn::locale] 0 1]}]
+          if {[info exists $key]} {
+            set lang [set $key]
+          } else {
+            # for now, we assume en is the default local for search
+            my log "--we need lang string and locale [ns_conn isconnected]"
+            set lang [expr {[ns_conn isconnected] ?  
+                            [string range [lang::conn::locale] 0 1] : "en"}]
+          }
           set local_name $path
         }
         set name ${lang}:$local_name
@@ -337,12 +343,14 @@ namespace eval ::xowiki {
     set pages [db_list get_pages "select page_id from xowiki_page, cr_revisions r, cr_items i \
       where page_id = r.revision_id and i.item_id = r.item_id and i.parent_id = $folder_id \
       and i.live_revision = page_id"]
+    #my log "--reindex returns <$pages>"
     foreach page_id $pages {
       #search::queue -object_id $page_id -event DELETE
       search::queue -object_id $page_id -event INSERT
     }
   }
 
+  # the following three functions should be moved form page-proc to here 
   Package instproc rss {} {
     my instvar id
     set cmd [list ::xowiki::Page rss -package_id $id]
@@ -350,6 +358,14 @@ namespace eval ::xowiki {
       lappend cmd -days $days
     }
     eval $cmd
+  }
+  Package instproc gsm {} {
+    my instvar id
+    ::xowiki::Page gsm -package_id $id
+  }
+  Package instproc sitemapindex {} {
+    my log "--HERE"
+    ::xowiki::Page sitemapindex
   }
 
   Package instproc edit-new {} {
@@ -494,6 +510,8 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex            swa
       rss                none
+      gsm                none
+      sitemapindex       none
       delete             {{id admin}}
       edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
     }

@@ -154,8 +154,6 @@ namespace eval ::xowiki {
   #
   # Operations on the whole instance
   #
-  Class create Folder
-
 
   Page ad_proc select_query {
     {-select_attributes ""}
@@ -259,6 +257,7 @@ namespace eval ::xowiki {
     set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
     set timerange_clause [expr {[info exists days] ? 
                                 " and p.last_modified > (now() + interval '$days days ago')" : ""}]
+
     set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
     
     set content [my rss_head \
@@ -301,6 +300,103 @@ namespace eval ::xowiki {
     set t text/xml
     ns_return 200 $t $content
   }
+
+  
+  Page ad_proc sitemapindex {
+    {-changefreq "daily"}
+    {-priority "priority"}
+  } {
+    Provide a sitemap index of all xowiki instances in google site map format
+    https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
+    
+    @param maxentries maximum number of entries retrieved
+    @param package_id to determine the xowiki instance
+    @param changefreq changefreq as defined by google
+    @param priority priority as defined by google
+    
+  } {
+  
+    set content {<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
+}
+    db_foreach get_xowiki_packages {select package_id  
+      from apm_packages p, site_nodes s  
+      where package_key = 'xowiki' and s.object_id = p.package_id} {
+      my log "--package_id = $package_id"
+      set last_modified [db_string get_newest_modification_date \
+                             "select last_modified from acs_objects where package_id = $package_id \
+		order by last_modified desc limit 1"]
+
+      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+
+      my log "--site_node::get_from_object_id -object_id $package_id"
+      array set info [site_node::get_from_object_id -object_id $package_id]
+
+      append content <sitemap> \n\
+          <loc>[ad_url]$info(url)?gsm</loc> \n\
+          <lastmod>$time</lastmod> \n\
+          </sitemap> 
+    }
+    append content </urlset> \n
+    set t text/plain
+    #set t text/xml
+    ns_return 200 $t $content
+  }
+
+  Page ad_proc gsm {
+    -maxentries
+    -package_id:required
+    {-changefreq "daily"}
+    {-priority "priority"}
+  } {
+    Report content of xowiki folder in google site map format
+    https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
+    
+    @param maxentries maximum number of entries retrieved
+    @param package_id to determine the xowiki instance
+    @param changefreq changefreq as defined by google
+    @param priority priority as defined by google
+    
+  } {
+    set folder_id [::$package_id folder_id]
+   
+    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
+    set timerange_clause ""
+    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
+    
+    set content {<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">
+}
+    db_foreach get_pages \
+        "select s.body, p.name, p.creator, p.title, p.page_id,\
+                p.object_type as content_type, p.last_modified, p.description  \
+        from xowiki_pagex p, syndication s, cr_items i  \
+        where i.parent_id = $folder_id and i.live_revision = s.object_id \
+                and s.object_id = p.page_id $timerange_clause \
+        order by p.last_modified desc $limit_clause \
+        " {
+          
+          if {[string match "::*" $name]} continue
+          if {$content_type eq "::xowiki::PageTemplate::"} continue
+
+          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+          
+          set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+          append content <url> \n\
+              <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
+              <lastmod>$time</lastmod> \n\
+              <changefreq>$changefreq</changefreq> \n\
+              <priority>$priority</priority> \n\
+              </url> \n
+        }
+    
+    append content </urlset> \n
+    set t text/plain
+    #set t text/xml
+    ns_return 200 $t $content
+  }
+
   
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     set object_type [self]
