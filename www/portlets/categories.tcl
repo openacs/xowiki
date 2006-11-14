@@ -101,9 +101,13 @@
 
 set link ""
 if {![info exists name]} {set name "Categories"}
-set summary [ns_queryget summary 0]
+# TODO new style includelets, based on ::xo::cc
+set summary [expr {[ns_conn isconnected] ? [ns_queryget summary 0]} : 0]
 foreach _ {category_ids except_category_ids} {
-  if {![info exists $_]} {set $_ [ns_queryget $_ ""]}
+  if {![info exists $_]} {
+    # TODO new style includelets, based on ::xo::cc
+    set $_ [expr {[ns_conn isconnected] ? [ns_queryget $_ ""] : ""}]
+  }
 }
 set content [::xowiki::Page __render_html \
 		 -package_id   [$__including_page set package_id] \
