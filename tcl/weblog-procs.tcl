@@ -83,6 +83,7 @@ namespace eval ::xowiki {
              -extra_where_clause "and ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
                 and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
+                and ci.publish_status <> 'production' \
                 $extra_where_clause" ]
     
     set nr_items [db_string count [eval ::xowiki::Page select_query $sql -count true]]

@@ -156,10 +156,13 @@ namespace eval ::xowiki {
     return 1
   }
 
-  WikiForm instproc handle_enhanced_text_from_form {} {
+  WikiForm instproc data_from_form {} {
     my instvar data
     if {[$data exists_form_parameter text.format]} {
       $data set mime_type [$data form_parameter text.format]
+    }
+    if {[[$data set package_id] get_parameter production_mode]} {
+      $data set content_item.publish_status production
     }
   }
   WikiForm instproc update_references {} {
@@ -213,7 +216,7 @@ namespace eval ::xowiki {
 
   WikiForm instproc new_data {} {
     my instvar data
-    my handle_enhanced_text_from_form
+    my data_from_form 
     set item_id [next]
     $data set creation_user [ad_conn user_id]
     my update_references
@@ -221,7 +224,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc edit_data {} {
-    my handle_enhanced_text_from_form
+    my data_from_form
     set item_id [next]
     my update_references
     return $item_id

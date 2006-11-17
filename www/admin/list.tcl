@@ -48,6 +48,7 @@ foreach type $object_types {
 }
 
 set ::individual_permissions [expr {[$package_id set policy] eq "::xowiki::policy3"}]
+set ::with_publish_status 1
 
 TableWidget t1 -volatile \
     -actions $actions \
@@ -57,6 +58,11 @@ TableWidget t1 -volatile \
         ImageField permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
             -alt permsissions -label "" -html {style "padding: 2px;"}
+      }
+      if {$::with_publish_status} {
+	ImageField publish_status -src "" -width 8 \
+            -height 8 -border 0 -title "Toggle Publish Status" \
+            -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
       AnchorField name -label [_ xowiki.name] -orderby name
       Field object_type -label [_ xowiki.page_type] -orderby object_type 
@@ -77,7 +83,7 @@ db_foreach instance_select \
     [$object_type instance_select_query \
          -folder_id [::$package_id folder_id] \
          -with_subtypes $with_subtypes \
-         -select_attributes [list content_length creation_user \
+         -select_attributes [list revision_id content_length creation_user \
                   "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
          -order_clause $order_clause \
         ] {
@@ -96,6 +102,20 @@ db_foreach instance_select \
             # TODO: this should get some architectural support
             [lindex [t1 set __children] end] set permissions.href \
                 [export_vars -base permissions {item_id return_url}] 
+          }
+          if {$::with_publish_status} {
+            # TODO: this should get some architectural support
+	    if {$publish_status eq "ready"} {
+	      set image active.png
+	      set state "production"
+	    } else {
+	      set image inactive.png
+	      set state "ready"
+	    }
+            [lindex [t1 set __children] end] set publish_status.src /resources/xowiki/$image
+	    [lindex [t1 set __children] end] set publish_status.href \
+		[export_vars -base [$package_id package_url]admin/set-publish-state \
+		     {state revision_id return_url}]
           }
         }
 

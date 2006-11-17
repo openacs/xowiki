@@ -176,7 +176,8 @@ namespace eval ::xowiki::portlet {
        where c.object_id = i.item_id and i.parent_id = [$package_id folder_id] \
 	 and r.revision_id = i.live_revision \
 	 and p.page_id = r.revision_id $tree_select_clause \
-	 order by r.publish_date desc limit $max_entries
+         and i.publish_status <> 'production' \
+	 order by r.publish_date desc limit $max_entries \
      " {
        if {$title eq ""} {set title $name}
        set itemobj [Object new]
@@ -225,6 +226,7 @@ namespace eval ::xowiki::portlet {
          where i.parent_id = [$package_id folder_id] \
                 and r.revision_id = i.live_revision \
                 and p.page_id = r.revision_id \
+		and i.publish_status <> 'production' \
                 order by r.publish_date desc limit $max_entries\
       " {
         t1 add \
@@ -267,7 +269,8 @@ namespace eval ::xowiki::portlet {
            from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
            where x.page_id = i.item_id and i.live_revision = p.page_id  \
 	    and r.revision_id = p.page_id and x.user_id = [::xo::cc user_id] \
-	    and x.package_id = $package_id order by x.time desc limit $max_entries \
+	    and x.package_id = $package_id  and i.publish_status <> 'production' \
+	order by x.time desc limit $max_entries \
       " {
         t1 add \
             -title $title \
@@ -303,7 +306,8 @@ namespace eval ::xowiki::portlet {
         "select sum(x.count), x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
-            and x.package_id = $package_id group by x.page_id, r.title, i.name \
+            and x.package_id = $package_id and i.publish_status <> 'production' \
+            group by x.page_id, r.title, i.name \
             order by sum desc limit $max_entries " \
         {
           t1 add \
