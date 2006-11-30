@@ -53,7 +53,7 @@ namespace eval ::xowiki {
     if {[my get_parameter subst_blank_in_name 1] != 0} {
       regsub -all { +} $string "_" string
     }
-    return $string
+      return [ns_urldecode $string]
   }
   
   Package instproc pretty_link {
