@@ -14,22 +14,21 @@ namespace eval ::xowiki {
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-        {field_list {item_id name title creator text description nls_language}}
-        {f.item_id
-          {item_id:key}}
-        {f.name
-          {name:text {label #xowiki.name#} {html {size 80}} }}
-        {f.title
-          {title:text {label #xowiki.title#} {html {size 80}} }}
-        {f.creator
-          {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
-        {f.text
-          {text:richtext(richtext),nospell,optional
-            {label #xowiki.content#}
-            {options {editor xinha plugins {
-              GetHtml CharacterMap ContextMenu FullScreen InsertAnchor
-              ListType TableOperations EditTag LangMarks Abbreviation OacsFs
-            } height 350px 
+	{field_list {item_id name title creator text description nls_language}}
+	{f.item_id
+	  {item_id:key}}
+	{f.name
+	  {name:text {label #xowiki.name#} {html {size 80}} }}
+	{f.title
+	  {title:text {label #xowiki.title#} {html {size 80}} }}
+	{f.creator
+	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
+	{f.text
+	  {text:richtext(richtext),nospell,optional
+	    {label #xowiki.content#}
+	    {options {editor xinha plugins {
+[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
+	    } height 350px 
             }}
             {html {rows 15 cols 50 style {width: 100%}}}}
         }
@@ -197,6 +196,10 @@ namespace eval ::xowiki {
 	::xowiki::notification::do_notifications -page $data
       }
     }
+    application_data_link::update_links_from \
+        -object_id [$data set item_id] \
+        -text [$data set text]
+
   }
     
     
@@ -373,6 +376,7 @@ namespace eval ::xowiki {
     #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
     my log "-- submit_link = [my submit_link]"
+    ns_log notice "-- submit_link = [my submit_link]"
   }
 
   PageInstanceForm instproc new_data {} {
@@ -384,7 +388,7 @@ namespace eval ::xowiki {
 
   PageInstanceForm instproc edit_data {} {
     set item_id [next]
-    #my log "-- edit_data item_id=$item_id"
+    my log "-- edit_data item_id=$item_id"
     return $item_id
   }
 

@@ -57,7 +57,7 @@ namespace eval ::xowiki {
   }
   
   Package instproc pretty_link {
-    {-absolute:boolean false} {-lang ""} name
+      {-anchor ""} {-absolute:boolean false} {-lang ""} name 
   } {
     #my log "--u name=<$name>"
     if {$lang eq ""} {
@@ -72,9 +72,9 @@ namespace eval ::xowiki {
 
     set host [expr {$absolute ? [ad_url] : ""}]
     if {$lang ne ""} {
-      return $host[my package_url]$lang/[ad_urlencode $name]
+	return $host[my package_url]$lang/[ad_urlencode $name][expr {$anchor ne "" ? "\#${anchor}" : ""}]
     } else {
-      return $host[my package_url][ad_urlencode $name]
+      return $host[my package_url][ad_urlencode $name][expr {$anchor ne "" ? "#${anchor}" : ""}]
     }
   }
 
@@ -212,6 +212,7 @@ namespace eval ::xowiki {
     set item_id 0
 
     if {$path ne ""} {
+
       set item_id [::Generic::CrItem lookup -name $path -parent_id $folder_id]
       my log "--try $path -> $item_id"
       

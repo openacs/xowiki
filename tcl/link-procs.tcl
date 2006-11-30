@@ -22,8 +22,11 @@ namespace eval ::xowiki {
     my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
-    #my log "--lookup of [my name]"
-    ::Generic::CrItem lookup -name [my name] -parent_id [my folder_id]
+      my log "--lookup of [my name]"
+	if {![regexp {(.*?)(\#|%23)+(.*)$} [my stripped_name] full_name name anchor_tag anchor]} {
+	    set name [my name]
+	}
+    ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
     return "<a href='$href'>$label</a>"
@@ -35,11 +38,16 @@ namespace eval ::xowiki {
     my instvar package_id
     set page [my page]
     set item_id [my resolve]
-    #my log "--u resolve returns $item_id"
+    my log "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      set href [::$package_id pretty_link -lang [my lang] [my stripped_name]]
+	if {![regexp {(.*?)(\#|%23)+(.*)$} [my stripped_name] full_name name anchor_tag anchor]} {
+	    set name [my stripped_name]
+	    set anchor ""
+	}
+	set href [::$package_id pretty_link -lang [my lang] -anchor $anchor $name]
+
       my render_found $href [my label]
     } else {
       $page incr unresolved_references
