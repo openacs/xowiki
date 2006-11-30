@@ -23,7 +23,7 @@ namespace eval ::xowiki {
   }
   Link instproc resolve {} {
       my log "--lookup of [my name]"
-	if {![regexp {(.*?)(\#|%23)+(.*)$} [my stripped_name] full_name name anchor_tag anchor]} {
+	if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
 	    set name [my name]
 	}
     ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
