@@ -160,7 +160,7 @@ namespace eval ::xowiki {
     if {[$data exists_form_parameter text.format]} {
       $data set mime_type [$data form_parameter text.format]
     }
-    if {[[$data set package_id] get_parameter production_mode "f"]} {
+    if {[[$data set package_id] get_parameter production_mode 0]} {
       $data set content_item.publish_status production
     }
   }
