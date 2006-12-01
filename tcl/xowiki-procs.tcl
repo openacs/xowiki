@@ -302,7 +302,7 @@ namespace eval ::xowiki {
   }
 
   
-  Page ad_proc sitemapindex {
+  Page ad_proc google-sitemapindex {
     {-changefreq "daily"}
     {-priority "priority"}
   } {
@@ -322,7 +322,6 @@ namespace eval ::xowiki {
     db_foreach get_xowiki_packages {select package_id  
       from apm_packages p, site_nodes s  
       where package_key = 'xowiki' and s.object_id = p.package_id} {
-      my log "--package_id = $package_id"
       set last_modified [db_string get_newest_modification_date \
                              "select last_modified from acs_objects where package_id = $package_id \
 		order by last_modified desc limit 1"]
@@ -344,11 +343,11 @@ namespace eval ::xowiki {
     ns_return 200 $t $content
   }
 
-  Page ad_proc gsm {
+  Page ad_proc google-sitemap {
     -maxentries
     -package_id:required
     {-changefreq "daily"}
-    {-priority "priority"}
+    {-priority "0.5"}
   } {
     Report content of xowiki folder in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html

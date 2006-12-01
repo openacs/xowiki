@@ -360,13 +360,12 @@ namespace eval ::xowiki {
     }
     eval $cmd
   }
-  Package instproc gsm {} {
+  Package instproc google-sitemap {} {
     my instvar id
-    ::xowiki::Page gsm -package_id $id
+    ::xowiki::Page [self proc] -package_id $id
   }
-  Package instproc sitemapindex {} {
-    my log "--HERE"
-    ::xowiki::Page sitemapindex
+  Package instproc google-sitemapindex {} {
+    ::xowiki::Page [self proc]
   }
 
   Package instproc edit-new {} {
@@ -509,12 +508,12 @@ namespace eval ::xowiki {
   Policy policy1 -contains {
   
     Class Package -array set require_permission {
-      reindex            swa
-      rss                none
-      gsm                none
-      sitemapindex       none
-      delete             {{id admin}}
-      edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
+      reindex             swa
+      rss                 none
+      google-sitemap      none
+      google-sitemapindex none
+      delete              {{id admin}}
+      edit-new            {{{has_class ::xowiki::Object} id admin} {id create}}
     }
     
     Class Page -array set require_permission {
