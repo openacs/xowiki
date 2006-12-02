@@ -359,6 +359,62 @@ namespace eval ::xowiki::portlet {
     return $content
   }
 
+
+  #############################################################################
+  # presence
+  #
+
+  Class create presence \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration plain}}
+
+  presence instproc render {} {
+    my initialize -parameter {
+      {-interval "10 minutes"}
+      {-max_users:integer 40}
+      {-page}
+    }
+    my get_parameters
+
+    set sql "select user_id,time from xowiki_last_visited \
+	where package_id = $package_id "
+
+    if {[info exists page] && $page eq "this"} {
+      my instvar __including_page
+      append sql "and page_id = [$__including_page item_id] "
+      set limit_clause "limit $max_users"
+      set what "last on page [$__including_page title]"
+    } else {
+      append sql "and time > now() - '$interval'::interval "
+      set limit_clause ""
+      set what "currently in community [$package_id instance_name]"
+
+    }
+
+    append sql "order by time desc $limit_clause"
+
+    set count 0
+    set output "<TABLE>"
+    db_foreach get_visitors $sql {
+      if {[info exists seen($user_id)]} continue
+      set seen($user_id) $time
+      if {[incr count]>$max_users} {
+        set count $max_users
+        break
+      }
+
+      if {[::xo::cc user_id]>0} { 
+        regexp {^([^.]+)[.]} $time _ time
+        set pretty_time [util::age_pretty -timestamp_ansi $time \
+                             -sysdate_ansi [clock_to_ansi [clock seconds]] \
+                             -mode_3_fmt "%d %b %Y, at %X"]
+        
+        set name [::xo::get_user_name $user_id]
+        append output "<TR><TD class='user'>$name</TD><TD class='timestamp'>$pretty_time</TD></TR>\n"
+      }
+    }
+    if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
+
+    return "<DIV id='presence'><H1>[array size seen] Users $what</H1><br>$output</DIV>"
+  }
 }
-
-

@@ -39,17 +39,17 @@ one could define book-structures (where a navigation structure could be built on
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
         </callbacks>
         <parameters>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="If set to 1, the publish_state of new items and new revisions are set to 'production' instead of 'ready'"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks."/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="name of the adp file to be used for viewing xowiki pages. Alternatively, one can use oacs-view for providing a view with the category-tree on the left or any other tailored view"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_portlet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki portlet (defined in ::xowiki::portlet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki portlets."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_gc"  default="1" description="use general comments package "/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_notifications"  default="1" description="Allow the user to register notifications"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_tags"  default="1" description="allow user to provide tags to pages"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_user_tracking"  default="1" description="track page view usage per user"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
         </parameters>
 
     </version>

@@ -123,7 +123,7 @@ namespace eval ::xowiki {
   }
   Page set recursion_count 0
   Page array set RE {
-    include {([^\\]){{(.+)}}[ \n\r]*}
+    include {([^\\]){{([^<]+)}}[ \n\r]*}
     anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
     div     {()([^\\])&gt;&gt;([^&]*)&lt;&lt;()([ \n]*<br */?>)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}

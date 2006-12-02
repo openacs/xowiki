@@ -41,6 +41,20 @@ namespace eval ::xowiki {
     set content [my render]
     my log "--after render"
 
+    set vp [$package_id get_parameter "top_portlet" ""]
+    if {$vp ne ""} {
+      set vp_name [lindex $vp 0]
+      if {[my isclass ::xowiki::portlet::$vp_name]} {
+        set p [::xowiki::portlet::$vp_name new \
+                   -package_id $package_id \
+                   -name $vp_name \
+                   -actual_query [::xo::cc actual_query] \
+                   -destroy_on_cleanup ]
+        $p set __caller_parameters [lrange $vp 1 end]
+        set content [$p render]$content
+      }
+    }
+
     if {[$package_id get_parameter "use_user_tracking" 1]} {
       my record_last_visited
     }

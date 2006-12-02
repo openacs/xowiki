@@ -97,6 +97,11 @@ a:hover.rss {color:#dddddd;}
 a:visited.rss {color: #FFF}
 a:link.rss {color: #FFF}
 
+#presence {float:right; right: 1em; clear: right; font-size: 75%; padding: 5px;
+    border:dotted; border-width:1px;background: #f8f8f8
+}
+#presence h1 {font-size: 11px; margin-bottom: 0px}
+
 .code {
     font-family: "Courier", monospace;
 }
