@@ -31,7 +31,7 @@ one could define book-structures (where a navigation structure could be built on
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.44"/>
+        <requires url="xotcl-core" version="0.45"/>
 
         <callbacks>
             <callback type="after-install"  proc="::xowiki::after-install"/>
