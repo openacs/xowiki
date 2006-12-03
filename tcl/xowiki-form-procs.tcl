@@ -196,7 +196,8 @@ namespace eval ::xowiki {
 	::xowiki::notification::do_notifications -page $data
       }
     }
-    if {[apm_version_names_compare [ad_acs_version] 5.3] > -1} {
+    #my log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
+    if {[apm_version_names_compare [ad_acs_version] 5.2] == 1} {
       application_data_link::update_links_from \
           -object_id [$data set item_id] \
           -text [$data set text]
