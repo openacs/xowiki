@@ -12,7 +12,7 @@
   {-return_url "."}
 }
 
-set sql [$object_type instance_select_query -with_subtypes:boolean 0 -folder_id [::$package_id folder_id]]
+set sql [$object_type instance_select_query -with_subtypes 0 -folder_id [::$package_id folder_id]]
 db_foreach retrieve_instances $sql {
   permission::require_write_permission -object_id $item_id
   $object_type delete -item_id $item_id
