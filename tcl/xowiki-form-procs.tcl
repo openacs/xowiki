@@ -196,10 +196,11 @@ namespace eval ::xowiki {
 	::xowiki::notification::do_notifications -page $data
       }
     }
-    application_data_link::update_links_from \
-        -object_id [$data set item_id] \
-        -text [$data set text]
-
+    if {[apm_version_names_compare [ad_acs_version] 5.3] > -1} {
+      application_data_link::update_links_from \
+          -object_id [$data set item_id] \
+          -text [$data set text]
+    }
   }
     
     
