@@ -107,7 +107,7 @@ namespace eval ::xowiki {
       set folder_ids [list]
       set package_ids [list]
       db_foreach get_xowiki_packages {select package_id from apm_packages where package_key = 'xowiki'} {
-        set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+        set folder_id [db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
         if {$folder_id ne ""} {
           db_dml update_package_id {update cr_folders set package_id = :package_id
@@ -201,5 +201,31 @@ namespace eval ::xowiki {
     }
   }
 
+  ad_proc fix_all_package_ids {} {
+    earlier versions of openacs did not have the package_id set correctly
+    in acs_objects; this proc updates the package_ids of all items
+    and revisions in acs_objects
+  } {
+    set folder_ids [list]
+    set package_ids [list]
+    set package_ids [db_list get_xowiki_packages \
+                         {select package_id from apm_packages where package_key = 'xowiki'}]
+    foreach package_id $package_ids {
+      ns_log notice "checking package_id $package_id"
+      set folder_id [db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+                where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
+      if {$folder_id ne ""} {
+        db_dml update_package_id {update acs_objects set package_id = :package_id 
+          where object_id in 
+          	(select item_id as object_id from cr_items where parent_id = :folder_id)
+          and package_id is NULL}
+        db_dml update_package_id {update acs_objects set package_id = :package_id 
+          where object_id in 
+                (select r.revision_id as object_id from cr_revisions r, cr_items i where 
+                 i.item_id = r.item_id and i.parent_id = :folder_id)
+          and package_id is NULL}
+      }
+    }
+  }
 
 }
