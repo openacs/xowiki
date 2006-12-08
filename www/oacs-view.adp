@@ -65,7 +65,7 @@ function get_popular_tags() {
 (<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
 <a href='#' onclick='get_popular_tags();return false;'>#xowiki.popular_tags_link#</a>)
 <span id='edit_tags' style='display: none'>
-<FORM action="@save_tag_link@" method='POST'><INPUT name='tags' type='text' value="@tags@"></FORM>
+<FORM action="@save_tag_link@" method='POST'><INPUT name='new_tags' type='text' value="@tags@"></FORM>
 </span>
 <span id='popular_tags' style='display: none'></span><br>
 </if>
