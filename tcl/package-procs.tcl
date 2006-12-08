@@ -544,6 +544,8 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex            {{id admin}}
       rss                none
+      google-sitemap      none
+      google-sitemapindex none
       delete             swa
       edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
     }
@@ -576,6 +578,8 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex            {{id admin}}
       rss                none
+      google-sitemap      none
+      google-sitemapindex none
       delete             swa
       edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
     }

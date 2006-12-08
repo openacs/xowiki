@@ -612,7 +612,8 @@ namespace eval ::xowiki {
       if {$page ne ""} {
         $page destroy_on_cleanup
         $page set __including_page [self]
-        $page set __caller_parameters [lrange $arg 1 end]
+        regsub -all {([^\\])&quot;}  [lrange $arg 1 end] {\1\"} parameters
+        $page set __caller_parameters $parameters
         #$page set __decoration portlet
         foreach {att value} [$page set __caller_parameters] {
           switch -- $att {
