@@ -394,7 +394,7 @@ namespace eval ::xowiki::portlet {
     append sql "order by time desc $limit_clause"
 
     set count 0
-    set output "<TABLE>"
+    set output ""
     db_foreach get_visitors $sql {
       if {[info exists seen($user_id)]} continue
       set seen($user_id) $time
@@ -414,7 +414,7 @@ namespace eval ::xowiki::portlet {
       }
     }
     if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
-
-    return "<DIV id='presence'><H1>[array size seen] Users $what</H1><br>$output</DIV>"
+    set users [expr {$count == 0 ? "No users" : "$count users"}]
+    return "<DIV id='presence'><H1>$users $what</H1>$output</DIV>"
   }
 }
