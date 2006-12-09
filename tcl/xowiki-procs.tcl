@@ -589,15 +589,21 @@ namespace eval ::xowiki {
 
       return $ch$page
     } else {
-      # we have a direct (adp-less include)
       my instvar package_id
+      # we have a direct (adp-less include)
+      # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
+      # We have to change this back
+      regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
+      
+      # do we have a wellformed list?
       if {[catch {set page_name [lindex $arg 0]} errMsg]} {
-        my log "--S arg='$arg'"
+        #my log "--S arg='$arg'"
         # there is something syntactically wrong
         return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
            Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
            Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)"
       }
+      # the include is either a portlet class, or a wiki page
       if {[my isclass ::xowiki::portlet::$page_name]} {
         # direct call, without page, not tailorable
         set page [::xowiki::portlet::$page_name new \
@@ -605,15 +611,14 @@ namespace eval ::xowiki {
                       -name $page_name \
                       -actual_query [::xo::cc actual_query]]
       } else {
-        # we include a page, tailorable
+        # we include a wiki page, tailorable
         set page [$package_id resolve_page $page_name __m]
         catch {$page set __decoration portlet}
       }
       if {$page ne ""} {
         $page destroy_on_cleanup
         $page set __including_page [self]
-        regsub -all {([^\\])&quot;}  [lrange $arg 1 end] {\1\"} parameters
-        $page set __caller_parameters $parameters
+        $page set __caller_parameters [lrange $arg 1 end] 
         #$page set __decoration portlet
         foreach {att value} [$page set __caller_parameters] {
           switch -- $att {
