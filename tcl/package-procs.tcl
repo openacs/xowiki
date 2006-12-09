@@ -252,6 +252,7 @@ namespace eval ::xowiki {
       set [expr {$revision_id ? "item_id" : "revision_id"}] 0
       #my log "--instantiate item_id $item_id revision_id $revision_id"
       set r [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
+      $r destroy_on_cleanup
       #my log "--instantiate done  CONTENT\n[$r serialize]"
       $r set package_id [namespace tail [self]]
       return $r
@@ -307,7 +308,7 @@ namespace eval ::xowiki {
     my set folder_id $folder_id
   }
 
-  Package instproc return_page {-adp -variables -form} {
+  Package instproc return_page {-adp:required -variables -form} {
     #my log "--vars=[self args]"
     set __vars [list]
     foreach _var $variables {
@@ -519,6 +520,7 @@ namespace eval ::xowiki {
     Class Page -array set require_permission {
       view               none
       revisions          {{package_id write}}
+      diff               {{package_id write}}
       edit               {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
@@ -553,6 +555,7 @@ namespace eval ::xowiki {
     Class Page -array set require_permission {
       view               {{package_id read}}
       revisions          {{package_id write}}
+      diff               {{package_id write}}
       edit               {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    swa
@@ -587,6 +590,7 @@ namespace eval ::xowiki {
     Class Page -array set require_permission {
       view               {{item_id read}}
       revisions          {{item_id write}}
+      diff               {{item_id write}}
       edit               {{item_id write}}
       make-live-revision {{item_id write}}
       delete-revision    swa

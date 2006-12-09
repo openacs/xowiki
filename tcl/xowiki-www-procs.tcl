@@ -365,4 +365,89 @@ namespace eval ::xowiki {
     ns_return 200 text/html "[_ xowiki.popular_tags_label]: [join $entries {, }]"
   }
 
+  Page instproc diff {} {
+    my instvar package_id
+    set compare_id [my query_parameter "compare_revision_id" 0]
+    if {$compare_id == 0} {
+      return ""
+    }
+    set my_page [::xowiki::Package instantiate_page_from_id -revision_id [my set revision_id]]
+    $my_page volatile
+
+    set html1 [$my_page render]
+    set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
+    set user1 [::xo::get_user_name [$my_page set creation_user]]
+    set time1 [$my_page set creation_date]
+    set revision_id1 [$my_page set revision_id]
+    regexp {^([^.]+)[.]} $time1 _ time1
+
+    set other_page [::xowiki::Package instantiate_page_from_id -revision_id $compare_id]
+    $other_page volatile
+    #$other_page absolute_links 1
+
+    set html2 [$other_page render]
+    set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
+    set user2 [::xo::get_user_name [$other_page set creation_user]]
+    set time2 [$other_page set creation_date]
+    set revision_id2 [$other_page set revision_id]
+    regexp {^([^.]+)[.]} $time2 _ time2
+
+    set title "Differences for [my set name]"
+    set context [list $title]
+
+    set content [::xowiki::html_diff $text2 $text1]
+    $package_id return_page -adp /packages/xowiki/www/diff -variables {
+      content title context
+      time1 time2 user1 user2 revision_id1 revision_id2
+    }
+  }
+
+  proc html_diff {doc1 doc2} {
+    set out ""
+    set i 0
+    set j 0
+    
+    set lines1 [split $doc1 "\n"]
+    set lines2 [split $doc2 "\n"]
+    
+    regsub -all \n $doc1 <br> doc1
+    regsub -all \n $doc2 <br> doc2
+    set lines1 [split $doc1 " "]
+    set lines2 [split $doc2 " "]
+    
+    foreach { x1 x2 } [list::longestCommonSubsequence $lines1 $lines2] {
+      foreach p $x1 q $x2 {
+        while { $i < $p } {
+          set l [lindex $lines1 $i]
+          incr i
+          #puts "R\t$i\t\t$l"
+          append out "<span class='removed'>$l</span>\n"
+        }
+        while { $j < $q } {
+          set m [lindex $lines2 $j]
+          incr j
+          #puts "A\t\t$j\t$m"
+          append out "<span class='added'>$m</span>\n"
+        }
+        set l [lindex $lines1 $i]
+        incr i; incr j
+        #puts "B\t$i\t$j\t$l"
+      append out "$l\n"
+      }
+    }
+    while { $i < [llength $lines1] } {
+      set l [lindex $lines1 $i]
+      incr i
+      puts "$i\t\t$l"
+      append out "<span class='removed'>$l</span>\n"
+    }
+    while { $j < [llength $lines2] } {
+      set m [lindex $lines2 $j]
+      incr j
+      #puts "\t$j\t$m"
+      append out "<span class='added'>$m</span>\n"
+    }
+    return $out
+  }
+
 }
