@@ -407,11 +407,11 @@ namespace eval ::xowiki {
     set i 0
     set j 0
     
-    set lines1 [split $doc1 "\n"]
-    set lines2 [split $doc2 "\n"]
+    #set lines1 [split $doc1 "\n"]
+    #set lines2 [split $doc2 "\n"]
     
-    regsub -all \n $doc1 <br> doc1
-    regsub -all \n $doc2 <br> doc2
+    regsub -all \n $doc1 " <br>" doc1
+    regsub -all \n $doc2 " <br>" doc2
     set lines1 [split $doc1 " "]
     set lines2 [split $doc2 " "]
     
