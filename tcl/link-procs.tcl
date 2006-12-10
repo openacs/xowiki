@@ -106,7 +106,12 @@ namespace eval ::xowiki {
   # image links
   #
  
-  Class create ::xowiki::Link::image -superclass ::xowiki::Link
+  Class create ::xowiki::Link::image -superclass ::xowiki::Link \
+      -parameter {
+        href
+        float width height padding margin border border-width
+        position top botton left right
+      }
   ::xowiki::Link::image instproc render {} {
     my instvar name package_id label
     set page [my page]
@@ -130,10 +135,24 @@ namespace eval ::xowiki {
     }
   }
   ::xowiki::Link::image instproc render_found {link label} {
+    set style ""
+    foreach a {
+      float width height padding margin border border-width
+      position top botton left right
+    } {
+      if {[my exists $a]} {append style "$a: [my set $a];"}
+    }
+    if {$style ne ""} {set style "style='$style'"}
     set label [string map [list ' "&#39;"] $label]
-    return "<img src='$link' alt='$label' title='$label'>"
+    if {[my exists href]} {
+      set href [my set href]
+      if {[string match "java*" $href]} {set href .}
+      return "<a href='$href'><img class='xowikiimage'src='$link' alt='$label' title='$label' $style></a>"
+    } else {
+      return "<img class='xowikiimage' src='$link' alt='$label' title='$label' $style>"
+    }
   }
-
+  
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image
   ::xowiki::Link::file instproc resolve {} {
     set item_id [next]

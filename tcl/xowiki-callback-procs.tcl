@@ -193,12 +193,20 @@ namespace eval ::xowiki {
       }
     }
 
-
     if {[apm_version_names_compare $from_version_name "0.34"] == -1 &&
         [apm_version_names_compare $to_version_name "0.34"] > -1} {
       ns_log notice "-- upgrading to 0.34"
       ::xowiki::notifications-install
     }
+
+    if {[apm_version_names_compare $from_version_name "0.39"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.39"] > -1} {
+      ns_log notice "-- upgrading to 0.39"
+      catch {db_dml create-xowiki-last-visited-time-idx \
+        "create index xowiki_last_visited_time_idx on xowiki_last_visited(time)"
+      }
+    }
+    
   }
 
   ad_proc fix_all_package_ids {} {

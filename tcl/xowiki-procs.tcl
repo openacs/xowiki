@@ -84,6 +84,8 @@ namespace eval ::xowiki {
         "create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
     db_dml create-xowiki-last-visited-index \
         "create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
+    db_dml create-xowiki-last-visited-time-idx \
+        "create index xowiki_last_visited_time_idx on xowiki_last_visited(time)"
   }
 
   if {![db_0or1row check-tag-table \
@@ -653,7 +655,9 @@ namespace eval ::xowiki {
   Page instproc anchor {ch arg} {
     set label $arg
     set link $arg
-    regexp {^(.*)[|](.*)$} $arg _ link label
+    set options ""
+    regexp {^([^|]+)[|](.*)$} $arg _ link label
+    regexp {^([^|]+)[|](.*)$} $label _ label options
     if {[string match "http*//*" $link] || [string match "//*" $link]} {
       regsub {^//} $link / link
       return "$ch<a class='external' href='$link'>$label</a>"
@@ -687,7 +691,12 @@ namespace eval ::xowiki {
         -type $link_type -name $name -lang $lang \
         -stripped_name $normalized_name -label $label \
         -folder_id $parent_id -package_id $package_id
-    return $ch[[self]::link render]
+    
+    if {[catch {eval [self]::link configure $options} error]} {
+      return "${ch}<b>Error during processing of options: $error<br></b>"
+    } else {
+      return $ch[[self]::link render]
+    }
   }
 
   Page instproc references {} {
