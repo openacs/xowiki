@@ -108,7 +108,7 @@ namespace eval ::xowiki {
  
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
-        href
+        href cssclass
         float width height padding margin border border-width
         position top botton left right
       }
@@ -144,12 +144,13 @@ namespace eval ::xowiki {
     }
     if {$style ne ""} {set style "style='$style'"}
     set label [string map [list ' "&#39;"] $label]
+    set cls [expr {[my exists cssclass] ? [my cssclass] : "xowikiimage"}]
     if {[my exists href]} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
-      return "<a href='$href'><img class='xowikiimage'src='$link' alt='$label' title='$label' $style></a>"
+      return "<a href='$href'><img class='$cls' src='$link' alt='$label' title='$label' $style></a>"
     } else {
-      return "<img class='xowikiimage' src='$link' alt='$label' title='$label' $style>"
+      return "<img class='$cls' src='$link' alt='$label' title='$label' $style>"
     }
   }
   
