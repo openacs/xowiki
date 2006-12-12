@@ -19,8 +19,8 @@
 
   <p>  Comparing 
 <ul>
-<li>version @revision_id1@ modified by @user1@ at @time2@ with 
-<li>version @revision_id2@ modified by @user2@ at @time1@
+<li>version @revision_id1@ modified by @user1@ at @time1@ with 
+<li>version @revision_id2@ modified by @user2@ at @time2@
 </ul>
   </p>
   <hr>
