@@ -56,25 +56,42 @@ namespace eval ::xowiki {
       return [ns_urldecode $string]
   }
   
+  Package instproc default_language {} {
+    if {[ns_conn isconnected] && [my get_parameter use_connection_locale 0]} {
+      # we are connected, return the connection locale
+      set locale [lang::conn::locale]
+    } else {
+      # return either the package locale or the site-wide locale
+      set locale [lang::system::locale -package_id [my id]]
+    }
+    return [string range $locale 0 1]
+  }
+  
   Package instproc pretty_link {
       {-anchor ""} {-absolute:boolean false} {-lang ""} name 
   } {
     #my log "--u name=<$name>"
+    set default_lang [my default_language]
     if {$lang eq ""} {
       if {![regexp {^(..):(.*)$} $name _ lang name]} {
-        regexp {^(file|image):(.*)$} $name _ lang name
+        if {![regexp {^(file|image):(.*)$} $name _ lang name]} {
+          set lang $default_lang
+        }
       }
     }
-    if {$lang eq "" && ![regexp {^(:|(file|image))} $name]} {
-      #my log "--u name=<$name> need lang"
-      set lang [string range [lang::conn::locale -package_id [my id]] 0 1]
-    }
-
     set host [expr {$absolute ? [ad_url] : ""}]
-    if {$lang ne ""} {
-	return $host[my package_url]$lang/[ad_urlencode $name][expr {$anchor ne "" ? "\#${anchor}" : ""}]
+    if {$anchor ne ""} {set anchor \#$anchor}
+    #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
+
+    set package_prefix [my get_parameter package_prefix [my package_url]]
+    if {$package_prefix eq "/" && [string length $lang]>2} {
+      # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
+      set package_prefix [my package_url]
+    }
+    if {$lang ne $default_lang} {
+      return ${host}${package_prefix}${lang}/[ad_urlencode $name]$anchor
     } else {
-      return $host[my package_url][ad_urlencode $name][expr {$anchor ne "" ? "#${anchor}" : ""}]
+      return ${host}${package_prefix}[ad_urlencode $name]$anchor
     }
   }
 
@@ -226,10 +243,8 @@ namespace eval ::xowiki {
           if {[info exists $key]} {
             set lang [set $key]
           } else {
-            # for now, we assume en is the default local for search
-            my log "--we need lang string and locale [ns_conn isconnected]"
-            set lang [expr {[ns_conn isconnected] ?  
-                            [string range [lang::conn::locale] 0 1] : "en"}]
+            # we can't determine lang from name, or query parameter, so take default
+            set lang [my default_language]
           }
           set local_name $path
         }
