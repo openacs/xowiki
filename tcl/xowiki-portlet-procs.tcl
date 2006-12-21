@@ -4,6 +4,32 @@ namespace eval ::xowiki::portlet {
       -superclass ::xo::Context \
       -parameter {{name ""} {title ""} {__decoration "portlet"}}
 
+  ::xowiki::Portlet instproc locale_clause {package_id locale} {
+    set with_system_locale [regexp {(.*)[+]system} $locale _ locale]
+    if {$locale eq "default"} {
+      set locale [$package_id default_locale]
+      set include_system_locale 0
+    } 
+
+    set locale_clause ""    
+    if {$locale ne ""} {
+      set locale_clause " and r.nls_language = '$locale'" 
+      if {$with_system_locale} {
+        set system_locale [lang::system::locale -package_id $package_id]
+        if {$system_locale ne $default_locale} {
+          set locale_clause " and (r.nls_language = '$locale' 
+		or r.nls_language = '$system_locale' and not exists
+		  (select 1 from cr_items i where i.name = '[string range $locale 0 1]:' || 
+		  substring(ci.name,4) and i.parent_id = ci.parent_id))"
+        } else
+      } else {
+
+      }
+    }
+    return [list $locale $locale_clause]
+  }
+
+
   #############################################################################
   # dotlrn style portlet decoration for includelets
   #
@@ -52,6 +78,7 @@ namespace eval ::xowiki::portlet {
       {-no_tree_name:boolean 0}
       {-count:boolean 0}
       {-summary:boolean 0}
+      {-locale ""}
       {-open_page ""}
       {-category_ids ""}
       {-except_category_ids ""}
@@ -59,11 +86,18 @@ namespace eval ::xowiki::portlet {
     
     my get_parameters
 
+    set content ""
     set folder_id [$package_id folder_id]
     set open_item_id [expr {$open_page ne "" ?
                             [CrItem lookup -name $open_page -parent_id $folder_id] : 0}]
-    set content ""
-    foreach tree [category_tree::get_mapped_trees $package_id] {
+
+    foreach {locale locale_clause} [my locale_clause $package_id $locale] break
+
+    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
+    set trees [expr {$have_locale ?
+                     [category_tree::get_mapped_trees $package_id $locale] :
+                     [category_tree::get_mapped_trees $package_id]}]
+    foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
       if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
       if {!$no_tree_name} {
@@ -72,8 +106,13 @@ namespace eval ::xowiki::portlet {
       set categories [list]
       set pos 0
       set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
-      foreach category_info [category_tree::get_tree $tree_id] {
+      set category_infos [expr {$have_locale ?
+                                [category_tree::get_tree $tree_id $locale] :
+                                [category_tree::get_tree $tree_id]}]
+
+      foreach category_info $category_infos {
         foreach {cid category_label deprecated_p level} $category_info {break}
+        
         set c [::xowiki::Category new -orderby pos -category_id $cid -package_id $package_id \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
@@ -105,6 +144,7 @@ namespace eval ::xowiki::portlet {
 	where object_id = ci.item_id and category_id = $cid)"
         }
       }
+      append sql $locale_clause
       
       if {$count} {
         db_foreach get_counts \
@@ -153,30 +193,38 @@ namespace eval ::xowiki::portlet {
     my initialize -parameter {
       {-max_entries:integer 10}
       {-tree_name ""}
+      {-locale ""}
     }
     my get_parameters
   
     set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
 
-    foreach tree [category_tree::get_mapped_trees $package_id] {
+    foreach {locale locale_clause} [my locale_clause $package_id $locale] break
+
+    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
+    set trees [expr {$have_locale ?
+                     [category_tree::get_mapped_trees $package_id $locale] :
+                     [category_tree::get_mapped_trees $package_id]}]
+
+    foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
       if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
-      lappend trees $tree_id
+      lappend tree_ids $tree_id
     }
-    if {[info exists trees]} {
-      set tree_select_clause "and c.tree_id in ([join $trees ,])"
+    if {[info exists tree_ids]} {
+      set tree_select_clause "and c.tree_id in ([join $tree_ids ,])"
     } else {
       set tree_select_clause ""
     }
-    
+      
     db_foreach get_pages \
-        "select c.category_id, i.name, r.title, \
+        "select c.category_id, ci.name, r.title, \
 	 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
-       from category_object_map_tree c, cr_items i, cr_revisions r, xowiki_page p \
-       where c.object_id = i.item_id and i.parent_id = [$package_id folder_id] \
-	 and r.revision_id = i.live_revision \
-	 and p.page_id = r.revision_id $tree_select_clause \
-         and i.publish_status <> 'production' \
+       from category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p \
+       where c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
+	 and r.revision_id = ci.live_revision \
+	 and p.page_id = r.revision_id $tree_select_clause $locale_clause \
+         and ci.publish_status <> 'production' \
 	 order by r.publish_date desc limit $max_entries \
      " {
        if {$title eq ""} {set title $name}
@@ -187,7 +235,7 @@ namespace eval ::xowiki::portlet {
        if {![info exists categories($category_id)]} {
 	 set categories($category_id) [::xowiki::Category new \
                                            -package_id $package_id \
-					   -label [category::get_name $category_id]\
+					   -label [category::get_name $category_id $locale]\
 					   -level 1]
 	 $cattree add  $categories($category_id)
        }

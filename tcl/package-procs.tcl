@@ -1,3 +1,11 @@
+ad_library {
+    XoWiki - package specific methods
+
+    @creation-date 2006-10-10
+    @author Gustaf Neumann
+    @cvs-id $Id$
+}
+
 namespace eval ::xowiki {
 
   ::xo::PackageMgr create Package \
@@ -56,7 +64,8 @@ namespace eval ::xowiki {
       return [ns_urldecode $string]
   }
   
-  Package instproc default_language {} {
+  Package instproc default_locale {} {
+    # TODO: this might be called quite often. we can optimize this my caching into xo::cc
     if {[ns_conn isconnected] && [my get_parameter use_connection_locale 0]} {
       # we are connected, return the connection locale
       set locale [lang::conn::locale]
@@ -64,7 +73,11 @@ namespace eval ::xowiki {
       # return either the package locale or the site-wide locale
       set locale [lang::system::locale -package_id [my id]]
     }
-    return [string range $locale 0 1]
+    return $locale
+  }
+  
+  Package instproc default_language {} {
+    return [string range [my default_locale] 0 1]
   }
   
   Package instproc pretty_link {
