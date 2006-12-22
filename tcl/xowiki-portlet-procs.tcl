@@ -5,11 +5,14 @@ namespace eval ::xowiki::portlet {
       -parameter {{name ""} {title ""} {__decoration "portlet"}}
 
   ::xowiki::Portlet instproc locale_clause {package_id locale} {
+    set default_locale [$package_id default_locale]
+    set system_locale ""
+
     set with_system_locale [regexp {(.*)[+]system} $locale _ locale]
     if {$locale eq "default"} {
-      set locale [$package_id default_locale]
+      set locale $default_locale
       set include_system_locale 0
-    } 
+    }
 
     set locale_clause ""    
     if {$locale ne ""} {
@@ -21,11 +24,11 @@ namespace eval ::xowiki::portlet {
 		or r.nls_language = '$system_locale' and not exists
 		  (select 1 from cr_items i where i.name = '[string range $locale 0 1]:' || 
 		  substring(ci.name,4) and i.parent_id = ci.parent_id))"
-        } else
-      } else {
-
-      }
+        }
+      } 
     }
+
+    #my log "--locale $locale, def=$default_locale sys=$system_locale, cl=$locale_clause"
     return [list $locale $locale_clause]
   }
 

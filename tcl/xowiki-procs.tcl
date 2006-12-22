@@ -562,6 +562,49 @@ namespace eval ::xowiki {
                "\[$cmd\]"]
   }
 
+  Page instproc include_portlet {arg} {
+    my instvar package_id
+    # do we have a wellformed list?
+    if {[catch {set page_name [lindex $arg 0]} errMsg]} {
+      #my log "--S arg='$arg'"
+      # there is something syntactically wrong
+      return "$Error in '{{$arg}}' in [my set name]<br/>\n\
+           Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
+           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)"
+    }
+
+    # the include is either a portlet class, or a wiki page
+    if {[my isclass ::xowiki::portlet::$page_name]} {
+      # direct call, without page, not tailorable
+      set page [::xowiki::portlet::$page_name new \
+		    -package_id $package_id \
+		    -name $page_name \
+		    -actual_query [::xo::cc actual_query]]
+    } else {
+      # we include a wiki page, tailorable
+      set page [$package_id resolve_page $page_name __m]
+      catch {$page set __decoration portlet}
+    }
+    if {$page ne ""} {
+      $page destroy_on_cleanup
+      $page set __including_page [self]
+      $page set __caller_parameters [lrange $arg 1 end] 
+      #$page set __decoration portlet
+      foreach {att value} [$page set __caller_parameters] {
+	switch -- $att {
+	  -decoration {$page set __decoration $value}
+	  -title {$page set title $value}
+	}
+      }
+      if {[$page exists __decoration] && [$page set __decoration] ne "plain"} {
+	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
+      }
+      return [$page render]
+    } else {
+      return "$page_name unknown<br>\n"
+    }
+  }
+
   Page instproc include {ch arg} {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
@@ -591,52 +634,15 @@ namespace eval ::xowiki {
 
       return $ch$page
     } else {
-      my instvar package_id
       # we have a direct (adp-less include)
       # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
       # We have to change this back
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
-      
-      # do we have a wellformed list?
-      if {[catch {set page_name [lindex $arg 0]} errMsg]} {
-        #my log "--S arg='$arg'"
-        # there is something syntactically wrong
-        return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
-           Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)"
-      }
-      # the include is either a portlet class, or a wiki page
-      if {[my isclass ::xowiki::portlet::$page_name]} {
-        # direct call, without page, not tailorable
-        set page [::xowiki::portlet::$page_name new \
-                      -package_id $package_id \
-                      -name $page_name \
-                      -actual_query [::xo::cc actual_query]]
-      } else {
-        # we include a wiki page, tailorable
-        set page [$package_id resolve_page $page_name __m]
-        catch {$page set __decoration portlet}
-      }
-      if {$page ne ""} {
-        $page destroy_on_cleanup
-        $page set __including_page [self]
-        $page set __caller_parameters [lrange $arg 1 end] 
-        #$page set __decoration portlet
-        foreach {att value} [$page set __caller_parameters] {
-          switch -- $att {
-            -decoration {$page set __decoration $value}
-            -title {$page set title $value}
-          }
-        }
-        if {[$page exists __decoration] && [$page set __decoration] ne "plain"} {
-          $page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
-        }
-        return $ch[$page render]
-      } else {
-        return "${ch} $page_name unknown<br>\n"
-      }
+      set html [my include_portlet $arg]
+      return ${ch}$html
     }
   }
+
   Page instproc div {ch arg} {
     if {$arg eq "content"} {
       return "$ch<div id='content' class='column'>"
