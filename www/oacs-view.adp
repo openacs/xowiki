@@ -53,7 +53,7 @@ function get_popular_tags() {
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="categories -locale default+system -open_page @name@  -decoration plain">
+	 portlet="categories -open_page @name@  -decoration plain">
 </div></div><div style="float:right; width: 70%;">
 @content;noquote@
 </div>
