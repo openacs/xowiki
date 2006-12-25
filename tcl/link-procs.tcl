@@ -19,13 +19,13 @@ namespace eval ::xowiki {
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
-    my log "--L link has class [my info class] // $class"
+    #my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
-      my log "--lookup of [my name]"
-	if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
-	    set name [my name]
-	}
+    #my log "--lookup of [my name]"
+    if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
+      set name [my name]
+    }
     ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {

@@ -468,4 +468,28 @@ namespace eval ::xowiki::portlet {
     set users [expr {$count == 0 ? "No users" : "$count users"}]
     return "<DIV id='presence'><H1>$users $what</H1>$output</DIV>"
   }
+
+  #############################################################################
+  # this might become some usful stuff for digg
+  #
+
+  Class create digg \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration plain}}
+
+  digg instproc render {} {
+    # use "span" to specify parameters to the rss call
+    my initialize -parameter {}
+    my get_parameters
+    my instvar __including_page
+    set description [$__including_page set description]
+    if {$description eq ""} {
+      set description [ad_html_text_convert -from text/html -to text/plain -- \
+                           [$__including_page set text]]
+    }
+    return "<div style='border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8'>\
+	$description</div>"
+  }
+
+
 }

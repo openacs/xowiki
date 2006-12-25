@@ -55,20 +55,20 @@ namespace eval ::xowiki {
       }
     }
 
-    if {[$package_id get_parameter "use_user_tracking" 1]} {
+    if {[$package_id get_parameter "with_user_tracking" 1]} {
       my record_last_visited
     }
 
-    my log "--after user_tracking"
+    #my log "--after user_tracking"
     set references [my references]
-    my log "--after references = <$references>"
+    #my log "--after references = <$references>"
 
     # export title, text, and lang_links to current scope
     my instvar title name text lang_links
 
     set tags ""
     set no_tags 1
-    if {[$package_id get_parameter "use_tags" 1] && 
+    if {[$package_id get_parameter "with_tags" 1] && 
         ![my exists_query_parameter no_tags]} {
       # only activate tags when the user is logged in
       set no_tags [expr {[::xo::cc user_id] == 0}]
@@ -83,7 +83,7 @@ namespace eval ::xowiki {
         set tags_with_links [join $entries {, }]
       }
     }
-    my log "--after tags"
+    #my log "--after tags"
 
     ### this was added by dave to address a problem with notifications
     set return_url [ad_return_url]
@@ -92,7 +92,7 @@ namespace eval ::xowiki {
       set return_url [my query_parameter return_url]
     }
     
-    if {[$package_id get_parameter "use_notifications" 1]} {
+    if {[$package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
         set notification_type [notification::type::get_type_id \
                                    -short_name xowiki_notif]
@@ -108,7 +108,7 @@ namespace eval ::xowiki {
 	    alt='$notification_text' title='$notification_text'>"
       }
     }
-    my log "--after notifications [info exists notification_image]"
+    #my log "--after notifications [info exists notification_image]"
     
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
       set entries [list]
@@ -132,9 +132,9 @@ namespace eval ::xowiki {
       }
       set per_object_categories_with_links [join $entries {, }]
     }
-    my log "--after tags"
+    #my log "--after tags"
 
-    if {[$package_id get_parameter "use_gc"] && 
+    if {[$package_id get_parameter "with_general_comments" 0] && 
         ![my exists_query_parameter no_gc]} {
       set gc_return_url [$package_id url]
       set gc_link     [general_comments_create_link -object_name $title $item_id $gc_return_url]
@@ -143,13 +143,28 @@ namespace eval ::xowiki {
       set gc_link ""
       set gc_comments ""
     }
-    my log "--after gc title=$title"
+    #my log "--after gc title=$title"
+
+    if {[$package_id get_parameter "with_digg" 0] && [ns_conn isconnected]} {
+      set digg_description [my set description]
+      if {$digg_description eq ""} {
+	set digg_description [ad_html_text_convert -from text/html -to text/plain -- $content]
+      }
+      set digg_link [export_vars -base "http://digg.com/submit" {
+        {phase 2} 
+        {url "[ns_conn location][::xo::cc url]"}
+        {title "[string range $title 0 74]"}
+        {body_text "[string range $digg_description 0 349]"}
+      }]
+    }
+    #my log "--after digg"
 
     set header_stuff [::xowiki::Page header_stuff]
     set master [my query_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
     #}
+    my log "--after options"
 
     if {$master} {
       set context [list $title]
@@ -189,7 +204,7 @@ namespace eval ::xowiki {
           content references lang_links package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           tags no_tags tags_with_links save_tag_link popular_tags_link 
-          per_object_categories_with_links
+          per_object_categories_with_links digg_link
           gc_link gc_comments notification_subscribe_link notification_image
         }
       }

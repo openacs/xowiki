@@ -48,11 +48,13 @@ one could define book-structures (where a navigation structure could be built on
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="name of the adp file to be used for viewing xowiki pages. Alternatively, one can use oacs-view for providing a view with the category-tree on the left or any other tailored view"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_portlet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki portlet (defined in ::xowiki::portlet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki portlets."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, the connection locale (depending on the browser setting) is used to determine the default language, in which a page is presented, whenever possible. Users with different locales will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used as default." section_name="URL"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_gc"  default="1" description="use general comments package "/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_notifications"  default="1" description="Allow the user to register notifications"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_tags"  default="1" description="allow user to provide tags to pages"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_user_tracking"  default="1" description="track page view usage per user"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="add an icon to submit article to digg
+" section_name="Options"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_general_comments"  default="1" description="use general comments package " section_name="Options"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_notifications"  default="1" description="Allow the user to register notifications" section_name="Options"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
         </parameters>
 
     </version>

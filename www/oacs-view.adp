@@ -43,23 +43,23 @@ function get_popular_tags() {
 </span>
 </div>
 
-<div style="float:left; 
-     font-size: .8em;
-     width: 25%;
+<div style="float:left; width: 25%; font-size: .8em;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 2px; margin-top: 2px;
-     padding: 0px 6px 6px 0px;			    
+     margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="categories -open_page @name@  -decoration plain">
-</div></div><div style="float:right; width: 70%;">
-@content;noquote@
-</div>
+</div></div>
+<div style="float:right; width: 70%;">@content;noquote@</div>
 <div style="clear: both; text-align: left; font-size: 85%;">
+<hr>
+<if @digg_link@ not nil>
+<div style='float: right'><a href='@digg_link@'><img  src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a></div>
+</if>
 <if @references@ ne "" or @lang_links@ ne "">
-<p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@ @lang_links;noquote@
+#xowiki.references_label# @references;noquote@ @lang_links;noquote@
 </if>
 <br>
 <if @no_tags@ eq 0>

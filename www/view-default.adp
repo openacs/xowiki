@@ -42,9 +42,13 @@ function get_popular_tags() {
 </div>
 
 @content;noquote@
+<hr>
 <div style="clear: both; text-align: left; font-size: 85%;">
+<if @digg_link@ not nil>
+<div style='float: right'><a href='@digg_link@'><img  src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a></div>
+</if>
 <if @references@ ne "" or @lang_links@ ne "">
-<p/>&nbsp;<hr>#xowiki.references_label# @references;noquote@ @lang_links;noquote@
+#xowiki.references_label# @references;noquote@ @lang_links;noquote@
 </if>
 <br>
 <if @no_tags@ eq 0>
@@ -60,7 +64,6 @@ function get_popular_tags() {
 Categories: @per_object_categories_with_links;noquote@
 </if>
 </div>
-<br>
 <if @gc_comments@ not nil>
    <p>#general-comments.Comments#
    <ul>@gc_comments;noquote@</ul></p>
