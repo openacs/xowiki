@@ -52,12 +52,17 @@ function get_popular_tags() {
 	 &__including_page=page 
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>
-<div style="float:right; width: 70%;">@content;noquote@</div>
+<div style="float:right; width: 70%;">@top_portlets;noquote@
+@content;noquote@</div>
 <div style="clear: both; text-align: left; font-size: 85%;">
 <hr>
 <if @digg_link@ not nil>
 <div style='float: right'><a href='@digg_link@'><img  src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a></div>
 </if>
+<if @delicious_link@ not nil>
+<div style='float: right; padding-right: 10px;'><a href='@delicious_link@'><img src="http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif" width="14" height="14" border="0" alt="Add to your del.icio.us" />del.icio.us</a></div>
+</if>
+<div style="clear: both; text-align: left; font-size: 85%;">
 <if @references@ ne "" or @lang_links@ ne "">
 #xowiki.references_label# @references;noquote@ @lang_links;noquote@
 </if>

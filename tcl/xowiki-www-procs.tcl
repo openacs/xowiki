@@ -41,6 +41,7 @@ namespace eval ::xowiki {
     set content [my render]
     my log "--after render"
 
+    set top_portlets ""
     set vp [$package_id get_parameter "top_portlet" ""]
     if {$vp ne ""} {
       set vp_name [lindex $vp 0]
@@ -51,7 +52,7 @@ namespace eval ::xowiki {
                    -actual_query [::xo::cc actual_query] \
                    -destroy_on_cleanup ]
         $p set __caller_parameters [lrange $vp 1 end]
-        set content [$p render]$content
+        set top_portlets [$p render]
       }
     }
 
@@ -157,7 +158,25 @@ namespace eval ::xowiki {
         {body_text "[string range $digg_description 0 349]"}
       }]
     }
-    #my log "--after digg"
+    if {[$package_id get_parameter "with_delicious" 0] && [ns_conn isconnected]} {
+      set delicious_description [my set description]
+      if {$delicious_description eq ""} {
+        set delicious_description [ad_html_text_convert -from text/html -to text/plain -- $content]
+      }
+      # the following opens a window, where a user can edit the posted info.
+      # however, it seems not possible to add tags this way automatically.
+      # Alternatively, one could use the api as descibed below; this allows
+      # tags, but no editing...
+      # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
+      set delicious_link [export_vars -base "http://del.icio.us/post" {
+        {v 4}
+        {url "[ns_conn location][::xo::cc url]"}
+        {title "[string range $title 0 79]"}
+        {notes "[string range $delicious_description 0 199]"}
+        tags
+      }]
+    }
+    #my log "--after delicious"
 
     set header_stuff [::xowiki::Page header_stuff]
     set master [my query_parameter "master" 1]
@@ -204,8 +223,9 @@ namespace eval ::xowiki {
           content references lang_links package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           tags no_tags tags_with_links save_tag_link popular_tags_link 
-          per_object_categories_with_links digg_link
-          gc_link gc_comments notification_subscribe_link notification_image
+          per_object_categories_with_links digg_link delicious_link
+          gc_link gc_comments notification_subscribe_link notification_image 
+          top_portlets
         }
       }
     } else {
