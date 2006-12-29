@@ -16,7 +16,7 @@ namespace eval ::xowiki {
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
       -cr_attributes {
-        if {[::xo::has_ltree]} {
+        if {[::xo::db::has_ltree]} {
           ::Generic::Attribute new -attribute_name page_order -datatype text \
               -pretty_name "Order" -sqltype ltree
         }
@@ -92,7 +92,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_tags -col tag,package_id
 
 
-  if {[::xo::has_ltree]} {
+  if {[::xo::db::has_ltree]} {
     ::xo::db::require index -table xowiki_page -col page_order -using gist
   }
 

@@ -54,7 +54,7 @@ namespace eval ::xowiki {
     my instvar data
     set __fields ""
     set field_list [my field_list]
-    if {[::xo::has_ltree]} {set field_list [linsert $field_list 2 page_order]}
+    if {[::xo::db::has_ltree]} {set field_list [linsert $field_list 2 page_order]}
     foreach __field $field_list {
       set __spec [my set f.$__field]
       if {[string first "richtext" [lindex $__spec 0]] > -1} {

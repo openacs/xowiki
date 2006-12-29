@@ -64,7 +64,7 @@ TableWidget t1 -volatile \
             -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
-      if {[::xo::has_ltree]} {
+      if {[::xo::db::has_ltree]} {
         AnchorField page_order -label [_ xowiki.order] -orderby page_order
       }
       AnchorField name -label [_ xowiki.name] -orderby name
@@ -121,7 +121,7 @@ db_foreach instance_select \
 		[export_vars -base [$package_id package_url]admin/set-publish-state \
 		     {state revision_id return_url}]
           }
-          if {[::xo::has_ltree]} {
+          if {[::xo::db::has_ltree]} {
 	    [t1 last_child] set page_order $page_order
           }
         }

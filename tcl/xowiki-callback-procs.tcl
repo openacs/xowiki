@@ -262,7 +262,7 @@ namespace eval ::xowiki {
   ad_proc add_ltree_order_column {} {
     add ltree order column, if ltree is configured
   } {
-    if {[::xo::has_ltree]} {
+    if {[::xo::db::has_ltree]} {
       set object_type ::xowiki::Page
       set attribute_name page_order
       set datatype text
