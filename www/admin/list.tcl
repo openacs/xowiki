@@ -64,6 +64,9 @@ TableWidget t1 -volatile \
             -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
+      if {[::xo::has_ltree]} {
+        AnchorField page_order -label [_ xowiki.order] -orderby page_order
+      }
       AnchorField name -label [_ xowiki.name] -orderby name
       Field object_type -label [_ xowiki.page_type] -orderby object_type 
       Field size -label "Size" -orderby size -html {align right}
@@ -83,7 +86,9 @@ db_foreach instance_select \
     [$object_type instance_select_query \
          -folder_id [::$package_id folder_id] \
          -with_subtypes $with_subtypes \
-         -select_attributes [list revision_id content_length creation_user \
+         -from_clause ", xowiki_page P" \
+         -where_clause "P.page_id = cr.revision_id" \
+         -select_attributes [list revision_id content_length creation_user page_order \
                   "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
          -order_clause $order_clause \
         ] {
@@ -99,8 +104,7 @@ db_foreach instance_select \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}]
           if {$::individual_permissions} {
-            # TODO: this should get some architectural support
-            [lindex [t1 set __children] end] set permissions.href \
+            [t1 last_child] set permissions.href \
                 [export_vars -base permissions {item_id return_url}] 
           }
           if {$::with_publish_status} {
@@ -112,10 +116,13 @@ db_foreach instance_select \
 	      set image inactive.png
 	      set state "ready"
 	    }
-            [lindex [t1 set __children] end] set publish_status.src /resources/xowiki/$image
-	    [lindex [t1 set __children] end] set publish_status.href \
+            [t1 last_child] set publish_status.src /resources/xowiki/$image
+	    [t1 last_child] set publish_status.href \
 		[export_vars -base [$package_id package_url]admin/set-publish-state \
 		     {state revision_id return_url}]
+          }
+          if {[::xo::has_ltree]} {
+	    [t1 last_child] set page_order $page_order
           }
         }
 

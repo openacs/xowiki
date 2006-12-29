@@ -15,6 +15,8 @@ namespace eval ::xowiki {
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
 	{field_list {item_id name title creator text description nls_language}}
+	{f.page_order
+	  {page_order:text,optional {label #xowiki.order#} {html {align right}} }}
 	{f.item_id
 	  {item_id:key}}
 	{f.name
@@ -51,7 +53,9 @@ namespace eval ::xowiki {
   WikiForm instproc mkFields {} {
     my instvar data
     set __fields ""
-    foreach __field [my field_list] {
+    set field_list [my field_list]
+    if {[::xo::has_ltree]} {set field_list [linsert $field_list 2 page_order]}
+    foreach __field $field_list {
       set __spec [my set f.$__field]
       if {[string first "richtext" [lindex $__spec 0]] > -1} {
         # we have a richtext widget; get special configuration is specified

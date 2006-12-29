@@ -73,6 +73,7 @@ namespace eval ::xowiki {
       }
       return $content
     }]
+    foreach i [split [my exclude_item_ids] ,] {lappend ::xowiki_page_item_id_rendered $i}
  
     set sql \
         [list -folder_id $folder_id \
@@ -82,6 +83,7 @@ namespace eval ::xowiki {
              -extra_from_clause $extra_from_clause \
              -extra_where_clause "and ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
+		[::xowiki::Page container_already_rendered ci.item_id] \
                 and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
                 and ci.publish_status <> 'production' \
                 $extra_where_clause" ]

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.34" locale="de_DE" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.41" locale="de_DE" charset="ISO-8859-1">
 
+  <msg key="admin">Administrator</msg>
   <msg key="back">Zurück</msg>
   <msg key="content">Inhalt</msg>
   <msg key="delete">Löschen</msg>
@@ -12,10 +13,13 @@
   <msg key="name">Name</msg>
   <msg key="new">Neue Seite</msg>
   <msg key="notifications">Verständigungen</msg>
+  <msg key="order">Abschnitt
+</msg>
   <msg key="page_title">Titel der Seite</msg>
   <msg key="page_type">Typ der Seite</msg>
   <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
   <msg key="popular_tags_link">häufige Schlagworte</msg>
+  <msg key="publish_status">Freigegeben</msg>
   <msg key="references_label">Verweise auf diese Seite:</msg>
   <msg key="revisions">Verlauf</msg>
   <msg key="search">Suche</msg>

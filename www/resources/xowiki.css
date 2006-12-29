@@ -49,10 +49,10 @@ hr {
 /* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%}
-#page-body h1 {font-size: 24px; margin: 0 0 .5em 0;}
-#page-body h2 {font-size: 16px}
-#page-body h3 {font-size: 12px}
-#page-body h4 {font-size: 10px; margin: 0;}
+#page-body h1 {font-size: 24px; margin: 0 0 .5em 0; clear: both;}
+#page-body h2 {font-size: 16px; clear: both;}
+#page-body h3 {font-size: 14px}
+#page-body h4 {font-size: 12px; margin: 0;}
 #page-body .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 #content .box h2 {border-bottom: 1px solid #a1a5a9; padding: 5px; background: #f2f2f2; margin: 0 -5px 5px -5px; font-size: 12px;}
 #sidebar {float: right; top: 0px; width: 29%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}

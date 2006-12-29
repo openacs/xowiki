@@ -206,7 +206,30 @@ namespace eval ::xowiki {
         "create index xowiki_last_visited_time_idx on xowiki_last_visited(time)"
       }
     }
-    
+
+    if {[apm_version_names_compare $from_version_name "0.42"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.42"] > -1} {
+      ns_log notice "-- upgrading to 0.42"
+      ::xowiki::add_ltree_order_column
+      # get rid of obsolete column
+      catch {db_1row delete_att {
+        select content_type__drop_attribute('::xowiki::Page','page_title', 't'::boolean)}
+      }
+      db_dml create_view "create or replace view xowiki_page_live_revision as select p.*, \
+          cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, ci.latest_revision, ci.publish_status, \
+          ci.content_type, ci.storage_type, ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
+          from xowiki_page p, cr_items ci, cr_revisions cr  \
+          where p.page_id = ci.live_revision \
+            and p.page_id = cr.revision_id  \
+            and ci.publish_status <> 'production'"
+      # drop old non-conformant indices
+      foreach index { xowiki_ref_index 
+        xowiki_last_visited_index_unique xowiki_last_visited_index
+        xowiki_tags_index_tag xowiki_tags_index_user
+      } {
+        catch {db_dml drop_index "drop index $index"}
+      }
+    }
   }
 
   ad_proc fix_all_package_ids {} {
@@ -234,6 +257,31 @@ namespace eval ::xowiki {
           and package_id is NULL}
       }
     }
+  }
+
+  ad_proc add_ltree_order_column {} {
+    add ltree order column, if ltree is configured
+  } {
+    if {[::xo::has_ltree]} {
+      set object_type ::xowiki::Page
+      set attribute_name page_order
+      set datatype text
+      set pretty_name Order
+      set sqltype ltree
+      # catch sql statement to allow multiple runs
+      catch {db_1row create_att {select content_type__create_attribute(
+          :object_type,:attribute_name,:datatype,
+          :pretty_name,null,null,null,:sqltype)}}
+      db_dml create_index "create index xowiki_page_page_order_idx \
+	on xowiki_page using gist (page_order)"
+      foreach type [db_list get_xowiki_types \
+                        "select object_type from acs_object_types \
+				where supertype like '::xowiki::%'"] {
+        db_1row refresh "select content_type__refresh_view('$type') from dual"
+      }
+      return 1
+    }
+    return 0
   }
 
 }

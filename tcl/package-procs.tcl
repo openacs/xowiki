@@ -79,7 +79,18 @@ namespace eval ::xowiki {
   Package instproc default_language {} {
     return [string range [my default_locale] 0 1]
   }
-  
+  Package array set www-file {
+    admin 1
+    diff 1
+    doc 1
+    edit 1
+    error-template 1
+    portlet 1     portlet-ajax 1  portlets 1
+    prototypes 1 
+    ressources 1
+    revisions 1 
+    view-default view-links view-plain oacs-view
+  }
   Package instproc pretty_link {
       {-anchor ""} {-absolute:boolean false} {-lang ""} name 
   } {
@@ -101,7 +112,7 @@ namespace eval ::xowiki {
       # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    if {$lang ne $default_lang} {
+    if {$lang ne $default_lang || [[self class] exists www-file($name)]} {
       return ${host}${package_prefix}${lang}/[ad_urlencode $name]$anchor
     } else {
       return ${host}${package_prefix}[ad_urlencode $name]$anchor
@@ -173,7 +184,9 @@ namespace eval ::xowiki {
       # we have no object, but as well no method callable on the package
       set object [$id get_parameter index_page "index"]
     }
+    #my log "--o try index '$object'"
     set page [my resolve_request -path $object]
+    #my log "--o page is '$page'"
     if {$page ne ""} {
       return $page
     }
@@ -184,7 +197,7 @@ namespace eval ::xowiki {
 
     # try standard page
     set standard_page [$id get_parameter ${object}_page]
-    #my log "--o standard_page == $standard_page"
+    #my log "--o standard_page '$standard_page'"
     if {$standard_page ne ""} {
       set page [my resolve_request -path $standard_page]
       if {$page ne ""} {
@@ -316,7 +329,7 @@ namespace eval ::xowiki {
           # we have no folder object yet. so we create one...
           ::xowiki::Object create ::$folder_id
           ::$folder_id set text "# this is the payload of the folder object\n\n\
-                set index_page \"en:index\"\n"
+                #set index_page \"index\"\n"
           ::$folder_id set parent_id $folder_id
           ::$folder_id set name ::$folder_id
           ::$folder_id set title ::$folder_id

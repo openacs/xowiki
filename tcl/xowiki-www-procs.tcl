@@ -153,8 +153,8 @@ namespace eval ::xowiki {
       }
       set digg_link [export_vars -base "http://digg.com/submit" {
         {phase 2} 
-        {url "[ns_conn location][::xo::cc url]"}
-        {title "[string range $title 0 74]"}
+        {url       "[ns_conn location][::xo::cc url]"}
+        {title     "[string range $title 0 74]"}
         {body_text "[string range $digg_description 0 349]"}
       }]
     }
@@ -170,7 +170,7 @@ namespace eval ::xowiki {
       # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
       set delicious_link [export_vars -base "http://del.icio.us/post" {
         {v 4}
-        {url "[ns_conn location][::xo::cc url]"}
+        {url   "[ns_conn location][::xo::cc url]"}
         {title "[string range $title 0 79]"}
         {notes "[string range $delicious_description 0 199]"}
         tags
@@ -178,7 +178,6 @@ namespace eval ::xowiki {
     }
     #my log "--after delicious"
 
-    set header_stuff [::xowiki::Page header_stuff]
     set master [my query_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
@@ -218,6 +217,7 @@ namespace eval ::xowiki {
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file
         }
+        set header_stuff [::xowiki::Page header_stuff]
         $package_id return_page -adp $template_file -variables {
           references name title item_id page context header_stuff return_url
           content references lang_links package_id
@@ -225,7 +225,7 @@ namespace eval ::xowiki {
           tags no_tags tags_with_links save_tag_link popular_tags_link 
           per_object_categories_with_links digg_link delicious_link
           gc_link gc_comments notification_subscribe_link notification_image 
-          top_portlets
+          top_portlets page
         }
       }
     } else {

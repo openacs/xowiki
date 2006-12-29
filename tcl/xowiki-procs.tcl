@@ -16,8 +16,10 @@ namespace eval ::xowiki {
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
       -cr_attributes {
-        ::Generic::Attribute new -attribute_name page_title -datatype text \
-            -pretty_name "Page Title"
+        if {[::xo::has_ltree]} {
+          ::Generic::Attribute new -attribute_name page_order -datatype text \
+              -pretty_name "Order" -sqltype ltree
+        }
         ::Generic::Attribute new -attribute_name creator -datatype text \
             -pretty_name "Creator"
       } \
@@ -60,47 +62,48 @@ namespace eval ::xowiki {
 
 
   #
-  # create reference table and table for user tracking
+  # create various extra tables, indices and views
   #
-  
-  if {![db_0or1row check-xowiki-references-table \
-            "select tablename from pg_tables where tablename = 'xowiki_references'"]} {
-    db_dml create-xowiki-references-table "create table xowiki_references(
-        reference integer references cr_items(item_id) on delete cascade,
-        link_type text,
-        page      integer references cr_items(item_id) on delete cascade)"
-    db_dml create-xowiki-references-index \
-        "create index xowiki_ref_index ON xowiki_references(reference)"
-  }
-  if {![db_0or1row check-xowiki-last-visited-table \
-            "select tablename from pg_tables where tablename = 'xowiki_last_visited'"]} {
-    db_dml create-xowiki-last-visited-table "create table xowiki_last_visited(
-        page_id integer references cr_items(item_id) on delete cascade,
+  ::xo::db::require table xowiki_references \
+        "reference integer references cr_items(item_id) on delete cascade,
+         link_type text,
+         page      integer references cr_items(item_id) on delete cascade"
+  ::xo::db::require index -table xowiki_references -col reference
+      
+
+  ::xo::db::require table xowiki_last_visited \
+       "page_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
         user_id integer,
         count   integer,
-        time    timestamp)"
-    db_dml create-xowiki-last-visited-update-index \
-        "create unique index xowiki_last_visited_index_unique ON xowiki_last_visited(user_id, page_id)"
-    db_dml create-xowiki-last-visited-index \
-        "create index xowiki_last_visited_index ON xowiki_last_visited(user_id, package_id)"
-    db_dml create-xowiki-last-visited-time-idx \
-        "create index xowiki_last_visited_time_idx on xowiki_last_visited(time)"
-  }
+        time    timestamp"
+  ::xo::db::require index -table xowiki_last_visited -col user_id,page_id -unique true
+  ::xo::db::require index -table xowiki_last_visited -col user_id,package_id
+  ::xo::db::require index -table xowiki_last_visited -col time
 
-  if {![db_0or1row check-tag-table \
-            "select tablename from pg_tables where tablename = 'xowiki_tags'"]} {
-    db_dml create-xowiki-tag-table "create table xowiki_tags(
-        item_id integer references cr_items(item_id) on delete cascade,
+
+  ::xo::db::require table xowiki_tags \
+       "item_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
         user_id integer references users(user_id),
         tag     text,
-        time    timestamp)"
-    db_dml create-xowiki-tags-index-user \
-        "create index xowiki_tags_index_user ON xowiki_tags(user_id, item_id)"
-    db_dml create-xowiki-tags-index-tag \
-        "create index xowiki_tags_index_tag ON xowiki_tags(tag, package_id)"
+        time    timestamp"
+  ::xo::db::require index -table xowiki_tags -col user_id,item_id
+  ::xo::db::require index -table xowiki_tags -col tag,package_id
+
+
+  if {[::xo::has_ltree]} {
+    ::xo::db::require index -table xowiki_page -col page_order -using gist
   }
+
+  ::xo::db::require view xowiki_page_live_revision \
+      "select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
+	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
+	  ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
+          from xowiki_page p, cr_items ci, cr_revisions cr  \
+          where p.page_id = ci.live_revision \
+            and p.page_id = cr.revision_id  \
+            and ci.publish_status <> 'production'"
 
   #
   # Page definitions
@@ -127,7 +130,7 @@ namespace eval ::xowiki {
   Page array set RE {
     include {([^\\]){{([^<]+)}}[ \n\r]*}
     anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
-    div     {()([^\\])&gt;&gt;([^&]*)&lt;&lt;()([ \n]*<br */?>)?}
+    div     {()([^\\])&gt;&gt;([^&<]*)&lt;&lt;()([ \n]*<br */?>)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
@@ -137,15 +140,20 @@ namespace eval ::xowiki {
   #
 
   Page proc requireCSS name {set ::need_css($name) 1}
-  Page proc requireJS  name {set ::need_js($name)  1}
+  Page proc requireJS  name {
+    if {![info exists ::need_js($name)]} {lappend ::js_order $name}
+    set ::need_js($name)  1
+  }
   Page proc header_stuff {} {
     set result ""
     foreach file [array names ::need_css] {
       append result "<link rel='stylesheet' href='$file' media='all'>\n"
     }
-    foreach file [array names ::need_js]  {
-      append result "<script language='javascript' src='$file' type='text/javascript'>" \
+    if {[info exists ::js_order]} {
+      foreach file $::js_order  {
+        append result "<script language='javascript' src='$file' type='text/javascript'>" \
           "</script>"
+      }
     }
     return $result
   }
@@ -479,7 +487,11 @@ namespace eval ::xowiki {
           return [uplevel export_vars -base [list $base] [list $args]]
         }
       } elseif {[$object istype ::xowiki::Page]} {
-        set base [$package_id url]
+        if {[info exists url]} {
+          set base $url
+        } else {
+          set base [$package_id url]
+        }
         lappend args [list m $method]
         return [uplevel export_vars -base [list $base] [list $args]]
       }
@@ -585,6 +597,7 @@ namespace eval ::xowiki {
       set page [$package_id resolve_page $page_name __m]
       catch {$page set __decoration portlet}
     }
+    my set __last_includelet $page
     if {$page ne ""} {
       $page destroy_on_cleanup
       $page set __including_page [self]
@@ -811,10 +824,17 @@ namespace eval ::xowiki {
     }
    }
 
-  Page instproc render {-update_references:switch} {
-    my instvar item_id references lang render_adp unresolved_references parent_id
-    #my log "-- my class=[my info class]"
+  Page proc container_already_rendered {field} {
+    if {![info exists ::xowiki_page_item_id_rendered]} {
+      return ""
+    }
+    my log "--OMIT and not $field in ([join $::xowiki_page_item_id_rendered ,])"
+    return "and not $field in ([join $::xowiki_page_item_id_rendered ,])"
+  }
 
+  Page instproc render {-update_references:switch} {
+    my instvar item_id revision_id references lang render_adp unresolved_references parent_id
+    #my log "-- my class=[my info class]"
     set name [my set name]
     regexp {^(..):(.*)$} $name _ lang name
     set references [list]

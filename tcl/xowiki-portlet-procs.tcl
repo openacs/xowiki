@@ -32,7 +32,9 @@ namespace eval ::xowiki::portlet {
     return [list $locale $locale_clause]
   }
 
+}
 
+namespace eval ::xowiki::portlet {
   #############################################################################
   # dotlrn style portlet decoration for includelets
   #
@@ -47,7 +49,6 @@ namespace eval ::xowiki::portlet {
   #############################################################################
   # rss button
   #
-
   Class create rss-button \
       -superclass ::xowiki::Portlet \
       -parameter {{__decoration plain}}
@@ -60,9 +61,11 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     return "<a href='[$package_id package_url]?rss=$span' class='rss'>RSS</a>"
   }
+}
 
+namespace eval ::xowiki::portlet {
   #############################################################################
-  # valid parameters from the adp include are 
+  # valid parameters for he categories portlet are
   #     tree_name: match pattern, if specified displays only the trees 
   #                with matching names
   #     no_tree_name: if specified, tree names are not displayed
@@ -177,7 +180,10 @@ namespace eval ::xowiki::portlet {
     }
     return $content
   }
+}
 
+
+namespace eval ::xowiki::portlet {
   #############################################################################
   # $Id$
   # display recent entries by categories
@@ -246,7 +252,10 @@ namespace eval ::xowiki::portlet {
      }
     return [$cattree render]
   }
+}
 
+
+namespace eval ::xowiki::portlet {
   #############################################################################
   #
   # display recent entries 
@@ -287,8 +296,9 @@ namespace eval ::xowiki::portlet {
       }
     return [t1 asHTML]
   }
+}
 
-
+namespace eval ::xowiki::portlet {
   #############################################################################
   # $Id$
   # display last visited entries 
@@ -329,7 +339,10 @@ namespace eval ::xowiki::portlet {
       }
     return [t1 asHTML]
   }
+}
 
+
+namespace eval ::xowiki::portlet {
   #############################################################################
   #
   # list the most popular pages
@@ -368,7 +381,9 @@ namespace eval ::xowiki::portlet {
         }
     return [t1 asHTML]
   }
+}
 
+namespace eval ::xowiki::portlet {
   #############################################################################
   #
   # Show the tags
@@ -410,11 +425,12 @@ namespace eval ::xowiki::portlet {
     return $content
   }
 
+}
 
+namespace eval ::xowiki::portlet {
   #############################################################################
   # presence
   #
-
   Class create presence \
       -superclass ::xowiki::Portlet \
       -parameter {{__decoration plain}}
@@ -468,28 +484,157 @@ namespace eval ::xowiki::portlet {
     set users [expr {$count == 0 ? "No users" : "$count users"}]
     return "<DIV id='presence'><H1>$users $what</H1>$output</DIV>"
   }
+}
 
+
+namespace eval ::xowiki::portlet {
   #############################################################################
-  # this might become some usful stuff for digg
+  # portlets based on order
   #
-
-  Class create digg \
+  Class create toc \
       -superclass ::xowiki::Portlet \
       -parameter {{__decoration plain}}
 
-  digg instproc render {} {
-    # use "span" to specify parameters to the rss call
-    my initialize -parameter {}
-    my get_parameters
-    my instvar __including_page
-    set description [$__including_page set description]
-    if {$description eq ""} {
-      set description [ad_html_text_convert -from text/html -to text/plain -- \
-                           [$__including_page set text]]
-    }
-    return "<div style='border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8'>\
-	$description</div>"
+#"select page_id,  page_order, name, title, \
+#	(select count(*)-1 from xowiki_page_live_revision where page_order <@ p.page_order) as count \
+#	from xowiki_page_live_revision p where not page_order is NULL order by page_order asc"
+
+  toc instproc count {} {return [my set navigation(count)]}
+  toc instproc current {} {return [my set navigation(current)]}
+  toc instproc position {} {return [my set navigation(position)]}
+  toc instproc page_name {p} {return [my set page_name($p)]}
+
+  toc instproc get_nodes {open_page package_id expand_all} {
+    my instvar navigation page_name book_mode
+    array set navigation {parent "" position 0 current ""}
+
+    set js ""
+    set node() root
+    set node_cnt 0
+    set folder_id [$package_id set folder_id]
+    db_foreach get_nodes "select page_id,  page_order, name, title \
+	from xowiki_page_live_revision p \
+	where parent_id = $folder_id \
+	and not page_order is NULL order by page_order asc" {
+          set label "$page_order $title"
+          set jsobj obj[set node($page_order) tmpNode[incr node_cnt]]
+          set page_name($node_cnt) $name
+          if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+
+          if {$book_mode} {
+            regexp {^.*:([^:]+)$} $name _ anchor
+            set href [$package_id url]#$anchor
+          } else {
+            set href [$package_id pretty_link $name]
+          }
+
+          if {$expand_all} {
+            set expand "true"
+          } else {
+            set expand [expr {$open_page eq $name} ? "true" : "false"]
+            if {$expand} {
+              set navigation(parent) $parent
+              set navigation(position) $node_cnt
+              set navigation(current) $page_order
+              for {set p $parent} {$p ne ""} {} {
+                append js "$node($p).expand();\n"
+                if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
+              }
+            }
+          }
+          set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
+          append js \
+              "var $jsobj = {label: '$label', href:\"$href\"};" \
+              "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n"
+        }
+    set navigation(count) $node_cnt
+    my log "--COUNT=$node_cnt"
+    return $js
   }
 
+  toc instproc render {} {
+    my initialize -parameter {
+      {-style ""} 
+      {-open_page ""}
+      {-book_mode false}
+      {-expand_all false}
+    }
+    my get_parameters
+    switch -- $style {
+      "menu" {set s "menu/"}
+      "folders" {set s "folders/"}
+      "default" {set s ""}
+    }
+    ::xowiki::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
+    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
 
+    my set book_mode $book_mode
+    if {!$book_mode} {
+      my set book_mode [[my set __including_page] exists __is_book_page]
+    }
+    set js_tree_cmds [my get_nodes $open_page $package_id $expand_all]
+
+    return "<div id='[self]'>
+      <script type = 'text/javascript'>
+      var tree; 
+      function treeInit() { 
+        tree = new YAHOO.widget.TreeView('[self]'); 
+        var root = tree.getRoot(); 
+        $js_tree_cmds        
+        tree.draw();
+      }
+    YAHOO.util.Event.addListener(window, 'load', treeInit);
+      </script>
+    </div>"
+  }
+
+  #############################################################################
+  # book style
+  #
+  Class create book \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration plain}}
+
+  book instproc render {} {
+    my initialize -parameter { }
+    my get_parameters
+
+    my instvar __including_page
+    lappend ::xowiki_page_item_id_rendered [$__including_page item_id]
+    $__including_page set __is_book_page 1
+
+    set folder_id [$package_id set folder_id]
+    set page_infos [db_list_of_lists get_page_infos \
+        "select page_id, page_order, name, title, nlevel(page_order)+1, item_id \
+		from xowiki_page_live_revision p \
+		where parent_id = $folder_id \
+		and not page_order is NULL \
+		[::xowiki::Page container_already_rendered item_id] \
+		order by page_order asc"]
+
+    set output ""
+    set return_url [::xo::cc url]
+    foreach page_info $page_infos {
+      foreach {page_id page_order name title level item_id} $page_info break
+      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+      $p destroy_on_cleanup
+      set p_link [$package_id pretty_link $name]
+      set edit_link [$p make_link -url $p_link $p edit return_url]
+      if {$edit_link ne ""} {
+        set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
+      } else {
+        set edit_markup ""
+      }
+
+      $p set render_adp 0
+      regexp {^.*:([^:]+)$} $name _ anchor
+      append output "<h$level class='book'>" \
+          $edit_markup \
+          "<a name='$anchor'>$page_order $title</h$level>" \
+          [$p render]
+    }
+    return $output
+  }
 }
