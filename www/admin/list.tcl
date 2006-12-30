@@ -82,14 +82,19 @@ set order_clause "order by ci.name"
 # -page_size 10
 # -page_number 1
 
+set attributes [list revision_id content_length creation_user  \
+    "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] 
+if {[::xo::db::has_ltree]} {
+  lappend attributes page_order
+}
+
 db_foreach instance_select \
     [$object_type instance_select_query \
          -folder_id [::$package_id folder_id] \
          -with_subtypes $with_subtypes \
          -from_clause ", xowiki_page P" \
          -where_clause "P.page_id = cr.revision_id" \
-         -select_attributes [list revision_id content_length creation_user page_order \
-                  "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] \
+         -select_attributes $attributes \
          -order_clause $order_clause \
         ] {
           set page_link [::$package_id pretty_link $name]
