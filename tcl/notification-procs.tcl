@@ -81,13 +81,19 @@ namespace eval ::xowiki::notification {
     if {![info exists page]} {
       set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id]
       $page volatile
-    } 
+    }
+    
+    if {[$page set publish_status] eq "production"} {
+      # don't do notification for pages under construction
+      ns_log notice "--n xowiki::notification NO NOTIFCATION XXX"
+      return
+    }
     
     $page absolute_links 1
     if {![info exists html]} {set html [$page render]}
     if {![info exists text]} {set text [ad_html_text_convert -from text/html -to text/plain -- $html]}
 
-    ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id]"
+    ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id] publish_status=[$page set publish_status] XXX"
     $page instvar package_id
     set link [::$package_id pretty_link -absolute 1 [$page name]]
     append html "<p>For more details, see <a href='$link'>[$page set title]</a></p>"

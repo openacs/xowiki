@@ -84,7 +84,7 @@ function get_popular_tags() {
 </div>
 <if @page_title@ not nil>
 @page_title;noquote@
-</if
+</if>
 </if>
 
 @content;noquote@

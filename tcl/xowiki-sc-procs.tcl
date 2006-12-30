@@ -17,6 +17,13 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
   $page volatile
+
+  if {[$page set publish_status] eq "production"} {
+    # no data source for for pages under construction
+    ns_log notice "--sc page under construction, no datasource"
+    return
+  }
+
   $page absolute_links 1
   ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 

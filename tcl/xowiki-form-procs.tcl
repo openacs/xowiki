@@ -159,13 +159,13 @@ namespace eval ::xowiki {
     return 1
   }
 
-  WikiForm instproc data_from_form {} {
+  WikiForm instproc data_from_form {{-new 0}} {
     my instvar data
     if {[$data exists_form_parameter text.format]} {
       $data set mime_type [$data form_parameter text.format]
     }
-    if {[[$data set package_id] get_parameter production_mode 0]} {
-      $data set content_item.publish_status production
+    if {$new && [[$data set package_id] get_parameter production_mode 0]} {
+      $data set publish_status production
     }
   }
   WikiForm instproc update_references {} {
@@ -191,15 +191,16 @@ namespace eval ::xowiki {
     if {![$data istype ::xowiki::Object] &&
         ![$data istype ::xowiki::PageTemplate] } {
       if {[$data istype ::xowiki::PageInstance]} {
-	if {[$data set instance_attributes] ne ""} {
-	  # fieldless page instances are not notified. problem?
-	  #my log "--i instance_attributes = <[$data set instance_attributes]>"
-	  ::xowiki::notification::do_notifications -page $data
-	}
+        if {[$data set instance_attributes] ne ""} {
+          # fieldless page instances are not notified. problem?
+          # my log "--i instance_attributes = <[$data set instance_attributes]>"
+          ::xowiki::notification::do_notifications -page $data
+        }
       } else {
-	::xowiki::notification::do_notifications -page $data
+        ::xowiki::notification::do_notifications -page $data
       }
     }
+
     #my log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
     if {[apm_version_names_compare [ad_acs_version] 5.2.99] == 1} {
       application_data_link::update_links_from \
@@ -207,7 +208,7 @@ namespace eval ::xowiki {
           -text [$data set text]
     }
   }
-    
+  
     
   WikiForm instproc new_request {} {
     my instvar data
@@ -225,7 +226,7 @@ namespace eval ::xowiki {
 
   WikiForm instproc new_data {} {
     my instvar data
-    my data_from_form 
+    my data_from_form -new 1 
     set item_id [next]
     $data set creation_user [ad_conn user_id]
     my update_references
@@ -233,7 +234,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc edit_data {} {
-    my data_from_form
+    my data_from_form -new 0
     set item_id [next]
     my update_references
     return $item_id
