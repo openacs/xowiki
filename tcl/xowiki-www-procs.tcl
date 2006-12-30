@@ -111,6 +111,7 @@ namespace eval ::xowiki {
     }
     #my log "--after notifications [info exists notification_image]"
     
+
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
       set entries [list]
       set href [$package_id package_url]weblog?summary=1
@@ -178,6 +179,14 @@ namespace eval ::xowiki {
     }
     #my log "--after delicious"
 
+    set my_yahoo_publisher [$package_id get_parameter "my_yahoo_publisher" ""]
+    if {$my_yahoo_publisher ne "" && [ns_conn isconnected]} {
+      set my_yahoo_publisher [ad_urlencode $my_yahoo_publisher]
+      set feedname [ad_urlencode [$folder_id set title]]
+      set rssurl [ad_urlencode "[ad_url][$package_id package_url]?rss"]
+      set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$my_yahoo_publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
+    }
+
     set master [my query_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
@@ -223,7 +232,8 @@ namespace eval ::xowiki {
           content references lang_links package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           tags no_tags tags_with_links save_tag_link popular_tags_link 
-          per_object_categories_with_links digg_link delicious_link
+          per_object_categories_with_links 
+          digg_link delicious_link my_yahoo_link
           gc_link gc_comments notification_subscribe_link notification_image 
           top_portlets page
         }

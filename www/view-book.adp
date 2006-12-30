@@ -98,6 +98,10 @@ function get_popular_tags() {
 <if @delicious_link@ not nil>
 <div style='float: right; padding-right: 10px;'><a href='@delicious_link@'><img src="http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif" width="14" height="14" border="0" alt="Add to your del.icio.us" />del.icio.us</a></div>
 </if>
+<if @my_yahoo_link@ not nil>
+<div style='float: right; padding-right: 10px;'>
+<a href="@my_yahoo_link@"><img src="http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif" width="91" height="17" border="0" align="middle" alt="Add to My Yahoo!"></a></div>
+</if>
 <div style="clear: both; text-align: left; font-size: 85%;">
 <if @references@ ne "" or @lang_links@ ne "">
 #xowiki.references_label# @references;noquote@ @lang_links;noquote@
