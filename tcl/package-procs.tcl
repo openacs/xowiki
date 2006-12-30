@@ -334,6 +334,7 @@ namespace eval ::xowiki {
           ::$folder_id set name ::$folder_id
           ::$folder_id set title ::$folder_id
           ::$folder_id set package_id $id
+          ::$folder_id set publish_status "production"
           ::$folder_id save_new
           ::$folder_id initialize_loaded_object
         }
