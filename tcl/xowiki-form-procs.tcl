@@ -126,10 +126,11 @@ namespace eval ::xowiki {
     upvar name name nls_language nls_language folder_id folder_id \
         object_type object_type mime_type mime_type
     my instvar data
-    #my log "--F validate_name ot=$object_type data=[my exists data]"
+    my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
     if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
       #my get_uploaded_file
+      #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
       switch -glob -- [$data set mime_type] {
         image/* {set type image}
         default {set type file}
@@ -289,7 +290,7 @@ namespace eval ::xowiki {
     } else {
       #my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
-        #my log "   mime_type=[$data set mime_type]"
+        #my log "--mime_type=[$data set mime_type]"
         #my log "   text=[$data set text]"
         regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
         $data set upload_file $upload_file

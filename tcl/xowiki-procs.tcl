@@ -597,8 +597,9 @@ namespace eval ::xowiki {
       set page [$package_id resolve_page $page_name __m]
       catch {$page set __decoration portlet}
     }
-    my set __last_includelet $page
+
     if {$page ne ""} {
+      my set __last_includelet $page
       $page destroy_on_cleanup
       $page set __including_page [self]
       $page set __caller_parameters [lrange $arg 1 end] 
@@ -614,7 +615,7 @@ namespace eval ::xowiki {
       }
       return [$page render]
     } else {
-      return "$page_name unknown<br>\n"
+      return "<div style='color: red; font-weight: bold;'><p>Error: includelet '$page_name' unknown</span></div>\n"
     }
   }
 

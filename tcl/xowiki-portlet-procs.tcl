@@ -627,13 +627,18 @@ namespace eval ::xowiki::portlet {
       } else {
         set edit_markup ""
       }
-
-      $p set render_adp 0
+      
+      $p set unresolved_references 0
+      #$p set render_adp 0
+      set content [$p get_content]
+      if {[regexp package_id $content]} {my log "--CONTENT 0 $content"}
+      set content [string map [list "\{\{" "\\\{\{"] $content]
+     if {[regexp package_id $content]} {my log "--CONTENT 1 $content"}
       regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
           "<a name='$anchor'>$page_order $title</h$level>" \
-          [$p render]
+          $content
     }
     return $output
   }

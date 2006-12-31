@@ -22,7 +22,7 @@ namespace eval ::xowiki {
     #my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
-    #my log "--lookup of [my name]"
+    #my log "--lookup of [my name] -page [my page]"
     if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
       set name [my name]
     }
@@ -68,7 +68,7 @@ namespace eval ::xowiki {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
                           -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
-        my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
+        #my log "--LINK found package_id=$package_id [my isobject ::$package_id]"
         ::xowiki::Package require $package_id
         return $package_id
       }
@@ -177,7 +177,7 @@ namespace eval ::xowiki {
     # look for a package instance of xowiki, named "glossary" (the type)
     set id [my lookup_xowiki_package_by_name [my type] \
                 [site_node::get_node_id_from_object_id -object_id [my package_id]]]
-    my log "--LINK glossary lookup returned package_id $id"
+    #my log "--LINK glossary lookup returned package_id $id"
     if {$id} {
       # set correct package id for rendering the link
       my set package_id $id
@@ -187,7 +187,7 @@ namespace eval ::xowiki {
       # lookup the item from the found folder
       return [::Generic::CrItem lookup -name [my name] -parent_id [$id set folder_id]]
     }
-    my log "--LINK no page found [my name], [my lang], type=[my type]."
+    #my log "--LINK no page found [my name], [my lang], type=[my type]."
     return 0
   }
   ::xowiki::Link::glossary instproc render_found {href label} {
