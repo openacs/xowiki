@@ -215,13 +215,6 @@ namespace eval ::xowiki {
       catch {db_1row delete_att {
         select content_type__drop_attribute('::xowiki::Page','page_title', 't'::boolean)}
       }
-      db_dml create_view "create or replace view xowiki_page_live_revision as select p.*, \
-          cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, ci.latest_revision, ci.publish_status, \
-          ci.content_type, ci.storage_type, ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
-          from xowiki_page p, cr_items ci, cr_revisions cr  \
-          where p.page_id = ci.live_revision \
-            and p.page_id = cr.revision_id  \
-            and ci.publish_status <> 'production'"
       # drop old non-conformant indices
       foreach index { xowiki_ref_index 
         xowiki_last_visited_index_unique xowiki_last_visited_index
@@ -229,6 +222,7 @@ namespace eval ::xowiki {
       } {
         catch {db_dml drop_index "drop index $index"}
       }
+      ::xowiki::update_views
     }
   }
 
@@ -259,6 +253,17 @@ namespace eval ::xowiki {
     }
   }
 
+  ad_proc update_views {} {
+    update all automatic views of xowiki
+  } {
+    set updates [db_list_of_lists get_xowiki_types \
+                     "select object_type,\
+                               content_type__refresh_view(object_type)
+                      from acs_object_types \
+		      where object_type like '::xowiki::%' \
+                      order by tree_sortkey "]
+  }
+
   ad_proc add_ltree_order_column {} {
     add ltree order column, if ltree is configured
   } {
@@ -278,12 +283,7 @@ namespace eval ::xowiki {
     } else {
       set result 0
     }
-    set updates [db_list_of_lists get_xowiki_types \
-                     "select object_type,\
-                               content_type__refresh_view(object_type)
-                      from acs_object_types \
-		      where object_type like '::xowiki::%' \
-                      order by tree_sortkey "]
+    ::xowiki::update_views
     return $result
   }
 
