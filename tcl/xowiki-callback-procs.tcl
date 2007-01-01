@@ -272,16 +272,19 @@ namespace eval ::xowiki {
       catch {db_1row create_att {select content_type__create_attribute(
           :object_type,:attribute_name,:datatype,
           :pretty_name,null,null,null,:sqltype)}}
-      db_dml create_index "create index xowiki_page_page_order_idx \
-	on xowiki_page using gist (page_order)"
-      foreach type [db_list get_xowiki_types \
-                        "select object_type from acs_object_types \
-				where supertype like '::xowiki::%'"] {
-        db_1row refresh "select content_type__refresh_view('$type') from dual"
-      }
-      return 1
+      catch {db_dml create_index "create index xowiki_page_page_order_idx \
+	  on xowiki_page using gist (page_order)"}
+      set result 1
+    } else {
+      set result 0
     }
-    return 0
+    set updates [db_list_of_lists get_xowiki_types \
+                     "select object_type,\
+                               content_type__refresh_view(object_type)
+                      from acs_object_types \
+		      where object_type like '::xowiki::%' \
+                      order by tree_sortkey "]
+    return $result
   }
 
 }
