@@ -122,6 +122,18 @@ namespace eval ::xowiki {
     return [$data exists import_file]
   }
 
+  proc ::xowiki::guesstype {fn} {
+    set mime [ns_guesstype $fn]
+    if {$mime eq "*/*"} {
+      # ns_guesstype was failing
+      switch [file extension $fn] {
+        .mp3 {set mime audio/mpeg}
+        .cdf {set mime application/x-netcdf}
+      }
+    }
+    return $mime
+  }
+
   proc ::xowiki::validate_name {} {
     upvar name name nls_language nls_language folder_id folder_id \
         object_type object_type mime_type mime_type
@@ -131,7 +143,17 @@ namespace eval ::xowiki {
     if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
       #my get_uploaded_file
       #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
-      switch -glob -- [$data set mime_type] {
+      set mime [$data set mime_type]
+      set fn [$data set upload_file]
+      #my log "--mime=$mime"
+      switch -- $mime {
+        application/force-download {
+          set mime [::xowiki::guesstype $fn]
+          $data set mime_type $mime
+        }
+      }
+      #my log "--mime 2 = $mime"
+      switch -glob -- $mime {
         image/* {set type image}
         default {set type file}
       }
@@ -139,7 +161,7 @@ namespace eval ::xowiki {
         regexp {^(.*):(.*)$} $name _ _t stripped_name
         if {![info exists stripped_name]} {set stripped_name $name}
       } else {
-        set stripped_name [$data set upload_file]
+        set stripped_name $fn
       }
       set name ${type}:[::$package_id normalize_name $stripped_name]
     } else {
@@ -290,7 +312,7 @@ namespace eval ::xowiki {
     } else {
       #my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
-        #my log "--mime_type=[$data set mime_type]"
+        my log "--mime_type=[$data set mime_type]"
         #my log "   text=[$data set text]"
         regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
         $data set upload_file $upload_file
