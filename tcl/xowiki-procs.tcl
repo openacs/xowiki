@@ -207,7 +207,10 @@ namespace eval ::xowiki {
     } else {
       set pagination ""
     }
-    return "select $attribute_selection from xowiki_pagei p, cr_items ci $extra_from_clause \
+    set outer_join [expr {[string first s. $attribute_selection] > -1 ?
+                          "left outer join syndication s on s.object_id = p.revision_id" : ""}]
+
+    return "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci $extra_from_clause \
         where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
         ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
   }

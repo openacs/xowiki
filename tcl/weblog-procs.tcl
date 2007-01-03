@@ -78,7 +78,8 @@ namespace eval ::xowiki {
  
     set sql \
         [list -folder_id $folder_id \
-             -select_attributes [list p.publish_date p.title p.creator p.creation_user p.description] \
+             -select_attributes [list p.publish_date p.title p.creator p.creation_user \
+                                     p.description s.body] \
              -order_clause "order by p.publish_date desc" \
              -page_number $page_number -page_size $page_size \
              -extra_from_clause $extra_from_clause \
@@ -93,7 +94,7 @@ namespace eval ::xowiki {
     
     set s [::xowiki::Page instantiate_objects -sql [eval ::xowiki::Page select_query $sql]]
     foreach c [$s children] {
-      $c instvar page_id publish_date title name item_id creator creation_user description
+      $c instvar page_id publish_date title name item_id creator creation_user description body
 
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
       set pretty_date [util::age_pretty -timestamp_ansi $publish_date \
@@ -104,7 +105,8 @@ namespace eval ::xowiki {
         # we need always: package_id name title creator creation_user pretty_date
         set p [Page new -package_id $package_id -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
-        $p set description $description
+        $p set description [expr {$description eq "" && $body ne ""? \
+                                      "[string range $body 0 150]..." : $description}]
       } else {
         # do full instantiation and rendering
         # ns_log notice "--Render object=$p, $page_id $name $title"
@@ -187,7 +189,7 @@ namespace eval ::xowiki {
     append content "<DIV class='post' style='clear: both;'>" \
         "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
-        "last modfified by [::xo::get_user_name $creation_user] " \
+        "last modfied by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
         $description $more \n\
         "</DIV>"
