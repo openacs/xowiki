@@ -33,7 +33,7 @@ ad_form \
       if {[catch {eval $content} error]} {
         set msg "Error: $error"
       } else {
-        set msg [::xowiki::Page import]
+        set msg [::xowiki::Page import -replace 1]
       }
     }
 

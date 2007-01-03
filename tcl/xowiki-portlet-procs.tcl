@@ -544,7 +544,7 @@ namespace eval ::xowiki::portlet {
           }
           set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
           append js \
-              "var $jsobj = {label: '$label', href:\"$href\"};" \
+              "var $jsobj = {label: \"$label\", href:\"$href\"};" \
               "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n"
         }
     set navigation(count) $node_cnt

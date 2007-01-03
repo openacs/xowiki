@@ -220,6 +220,7 @@ namespace eval ::xowiki {
         }
       } else {
         # use adp file
+        foreach css [$package_id get_parameter extra_css ""] {::xowiki::Page requireCSS $css}
         set template_file [my query_parameter "template_file" \
                                [::$package_id get_parameter template_file view-default]]
 
