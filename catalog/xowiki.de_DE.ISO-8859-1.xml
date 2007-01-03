@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.41" locale="de_DE" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.43" locale="de_DE" charset="ISO-8859-1">
 
-  <msg key="admin">Administrator</msg>
+  <msg key="admin">Verwalten</msg>
   <msg key="back">Zurück</msg>
   <msg key="content">Inhalt</msg>
   <msg key="delete">Löschen</msg>
@@ -25,5 +25,6 @@
   <msg key="search">Suche</msg>
   <msg key="title">Titel</msg>
   <msg key="view">Ansehen</msg>
+  <msg key="weblog-more">mehr...</msg>
   <msg key="your_tags_label">Persönliche Schlagworte</msg>
 </message_catalog>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.41" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.43" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -25,5 +25,6 @@
   <msg key="search">Search</msg>
   <msg key="title">Title</msg>
   <msg key="view">View</msg>
+  <msg key="weblog-more">more...</msg>
   <msg key="your_tags_label">Your Tags</msg>
 </message_catalog>

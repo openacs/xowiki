@@ -12,6 +12,10 @@
     background: url(/resources/xowiki/bracket.gif) no-repeat;
 }
 
+.post .more {
+    color: #9a9a9b;
+}
+
 .post h2 {
     font: normal 140%/1.3em Arial, Verdana, Helvetica, sans-serif;
 }

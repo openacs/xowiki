@@ -74,6 +74,7 @@ namespace eval ::xowiki {
       return $content
     }]
     foreach i [split [my exclude_item_ids] ,] {lappend ::xowiki_page_item_id_rendered $i}
+    $items set weblog_obj [self]
  
     set sql \
         [list -folder_id $folder_id \
@@ -175,16 +176,23 @@ namespace eval ::xowiki {
 
   # default layout for weblog entries
   Class create ::xowiki::Weblog::EntryRenderer -instproc render {} {
-    my instvar package_id name title creator creation_user pretty_date
-    my log "-- rendering default $name" 
+    my instvar package_id name title creator creation_user pretty_date description 
+    [my set __parent] instvar weblog_obj
+
+    set link [::$package_id pretty_link $name]
+    set more [expr {[$weblog_obj summary] ? 
+                    " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
+    append more "<p></p>"
+
     append content "<DIV class='post' style='clear: both;'>" \
-        "<h2><a href='[::$package_id pretty_link $name]'>$title</a></h2>" \
+        "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modfified by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
-        [my set description] \n \
+        $description $more \n\
         "</DIV>"
   }
+
 
   # Default layout for weblog
   Class create ::xowiki::Weblog::WeblogRenderer -instproc render {} {
