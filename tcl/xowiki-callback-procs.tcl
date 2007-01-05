@@ -256,12 +256,23 @@ namespace eval ::xowiki {
   ad_proc update_views {} {
     update all automatic views of xowiki
   } {
+
     set updates [db_list_of_lists get_xowiki_types \
                      "select object_type,\
                                content_type__refresh_view(object_type)
                       from acs_object_types \
 		      where object_type like '::xowiki::%' \
                       order by tree_sortkey "]
+
+    catch {db_dml drop_live_revision_view "drop view xowiki_page_live_revision"}
+    ::xo::db::require view xowiki_page_live_revision \
+	"select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
+	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
+	  ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
+          from xowiki_page p, cr_items ci, cr_revisions cr  \
+          where p.page_id = ci.live_revision \
+            and p.page_id = cr.revision_id  \
+            and ci.publish_status <> 'production'"
   }
 
   ad_proc add_ltree_order_column {} {

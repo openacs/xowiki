@@ -420,19 +420,35 @@ namespace eval ::xowiki {
     set msg "processing objects: $objects<p>"
     set added 0
     set replaced 0
+    set updated 0
+    array set excluded_var {
+      folder_id 1 package_id 1 absolute_links 1 lang_links 1 
+      publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
+    }
     foreach o $objects {
       $o set parent_id $folder_id
       $o set package_id $package_id
       $o set creation_user $user_id
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
-      set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
-      if {$item != 0 && $replace} { ;# we delete the original
-        ::Generic::CrItem delete -item_id $item
-        set item 0
-        incr replaced
+      set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+      if {$item_id != 0} {
+	if {$replace} { ;# we delete the original
+	  ::Generic::CrItem delete -item_id $item_id
+	  set item_id 0
+	  incr replaced
+	} else {
+	  ::Generic::CrItem instantiate -item_id $item_id
+	  foreach var [$o info vars] {
+	    if {![info exists excluded_var($var)]} {
+	      $item_id set $var [$o set $var]
+	    }
+	  }
+	  $item_id save
+	  incr updated
+	}
       }
-      if {$item == 0} {
+      if {$item_id == 0} {
         $o save_new
         incr added
       }
@@ -441,13 +457,24 @@ namespace eval ::xowiki {
     foreach o $objects {
       if {[$o istype ::xowiki::PageInstance]} {
         db_transaction {
-          set item [CrItem lookup -name [$o set name] -parent_id $folder_id]
-          if {$item != 0 && $replace} { ;# we delete the original
-            ::Generic::CrItem delete -item_id $item
-            set item 0
-            incr replaced
-          }
-          if {$item == 0} {  ;# the item does not exist -> update reference and save
+          set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+          if {$item_id != 0} {
+	    if {$replace} { ;# we delete the original
+	      ::Generic::CrItem delete -item_id $item_id
+	      set item_id 0
+	      incr replaced
+	    } else {
+	      ::Generic::CrItem instantiate -item_id $item_id
+	      foreach var [$o info vars] {
+		if {![info exists excluded_var($var)]} {
+		  $item_id set $var [$o set $var]
+		}
+	      }
+	      $item_id save
+	      incr updated
+	    }
+	  }
+	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
             set old_template_id [$o set page_template]
             set template [CrItem lookup \
                               -name [$old_template_id set name] \
@@ -460,7 +487,7 @@ namespace eval ::xowiki {
       }
       $o destroy
     }
-    append msg "$added objects inserted, $replaced objects replaced<p>"
+    append msg "$added objects newly inserted, $updated object updated, $replaced objects replaced<p>"
   }
 
   #
@@ -583,9 +610,9 @@ namespace eval ::xowiki {
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
       #my log "--S arg='$arg'"
       # there is something syntactically wrong
-      return "$Error in '{{$arg}}' in [my set name]<br/>\n\
+      return "<div class='errorMsg'>$Error in '{{$arg}}' in [my set name]<br/>\n\
            Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)"
+           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)</div>"
     }
 
     # the include is either a portlet class, or a wiki page
@@ -618,7 +645,7 @@ namespace eval ::xowiki {
       }
       return [$page render]
     } else {
-      return "<div style='color: red; font-weight: bold;'><p>Error: includelet '$page_name' unknown</span></div>\n"
+      return "<div class='errorMsg'><p>Error: includelet '$page_name' unknown</div>\n"
     }
   }
 
@@ -627,26 +654,26 @@ namespace eval ::xowiki {
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
-        return "${ch}Error in '{{$arg}}' in [my set name]<br/>\n\
+        return "${ch}<div class='errorMsg'>Error in '{{$arg}}' in [my set name]<br/>\n\
            Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)"
+           Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)</div>"
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
-        return "${ch}Error in '{{$arg}}'<br/>\n\
+        return "${ch}<div class='errorMsg'>Error in '{{$arg}}'<br/>\n\
            Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)"
+           Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)</div>"
       }
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
-        return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
-           adp_include returned error message: $errorMsg<br/>\n"
+        return "${ch}<div class='errorMsg'>Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
+           adp_include returned error message: $errorMsg</div>\n"
       }
 
       return $ch$page
@@ -716,7 +743,7 @@ namespace eval ::xowiki {
         -folder_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} error]} {
-      return "${ch}<b>Error during processing of options: $error<br/></b>"
+      return "${ch}<div class='errorMsg'>Error during processing of options: $error</div>"
     } else {
       return $ch[[self]::link render]
     }
@@ -786,7 +813,7 @@ namespace eval ::xowiki {
     if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
       set ::template::parse_level $my_parse_level 
       #my log "--pl after adp_eval '[template::adp_level]' mpl=$my_parse_level"
-      return "Error in Page $name: $errmsg<br/>$content<p>Possible values are$__template_variables__"
+      return "<div class='errorMsg'>Error in Page $name: $errmsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }

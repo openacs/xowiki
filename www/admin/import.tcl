@@ -30,11 +30,12 @@ ad_form \
       set f [open $upload_tmpfile]; set content [read $f]; close $f
 
       foreach o [::xowiki::Page allinstances] { $o destroy }
-      if {[catch {eval $content} error]} {
+      if {[catch {namespace eval ::xo::import $content} error]} {
         set msg "Error: $error"
       } else {
-        set msg [::xowiki::Page import -replace 1]
+        set msg [::xowiki::Page import -replace 0]
       }
+      namespace delete ::xo::import
     }
 
 
