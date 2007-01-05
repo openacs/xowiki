@@ -16,7 +16,7 @@ next to the category entries at the bottom of the page)
 >><<
 >>right-col<<
 {{last-visited -title "Last Visited" -max_entries 10 }}
-<br>
+<br/>
 {{most-popular -title "Most Popular" -max_entries 10 }}
 >><<
 

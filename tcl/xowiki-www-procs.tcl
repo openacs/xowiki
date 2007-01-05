@@ -214,7 +214,7 @@ namespace eval ::xowiki {
         set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
         set template_code [template::adp_compile -string $template]
         if {[catch {set content [template::adp_eval template_code]} errmsg]} {
-          ns_return 200 text/html "Error in Page $name: $errmsg<br>$template"
+          ns_return 200 text/html "Error in Page $name: $errmsg<br/>$template"
         } else {
           ns_return 200 text/html $content
         }
@@ -456,8 +456,8 @@ namespace eval ::xowiki {
     #set lines1 [split $doc1 "\n"]
     #set lines2 [split $doc2 "\n"]
     
-    regsub -all \n $doc1 " <br>" doc1
-    regsub -all \n $doc2 " <br>" doc2
+    regsub -all \n $doc1 " <br/>" doc1
+    regsub -all \n $doc2 " <br/>" doc2
     set lines1 [split $doc1 " "]
     set lines2 [split $doc2 " "]
     

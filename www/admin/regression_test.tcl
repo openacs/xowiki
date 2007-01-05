@@ -539,7 +539,7 @@ set content [test without_ns_form {::$package_id invoke -method $m}]
 
 ns_write "<p>
 <hr>
- Tests passed: [test set passed]<br>
- Tests failed: [test set failed]<br>
- Tests Time: [t1 diff -start]ms<br>
+ Tests passed: [test set passed]<br/>
+ Tests failed: [test set failed]<br/>
+ Tests Time: [t1 diff -start]ms<br/>
 " 

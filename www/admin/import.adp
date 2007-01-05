@@ -25,5 +25,5 @@
 </table>
 </formtemplate>
 @msg;noquote@
-<br><a href="../">Index</a>
+<br/><a href="../">Index</a>
 

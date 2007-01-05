@@ -57,7 +57,7 @@ function get_popular_tags() {
 <if @references@ ne "" or @lang_links@ ne "">
 #xowiki.references_label# @references;noquote@ @lang_links;noquote@
 </if>
-<br>
+<br/>
 <if @no_tags@ eq 0>
 #xowiki.your_tags_label#: @tags_with_links;noquote@
 (<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
@@ -65,7 +65,7 @@ function get_popular_tags() {
 <span id='edit_tags' style='display: none'>
 <FORM action="@save_tag_link@" method='POST'><INPUT name='new_tags' type='text' value="@tags@"></FORM>
 </span>
-<span id='popular_tags' style='display: none'></span><br>
+<span id='popular_tags' style='display: none'></span><br/>
 </if>
 <if @per_object_categories_with_links@ not nil and @per_object_categories_with_links@ ne "">
 Categories: @per_object_categories_with_links;noquote@

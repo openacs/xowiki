@@ -3,5 +3,5 @@
   <property name="context">@context;noquote@</property>  
 
 @msg;noquote@
-<br><a href="../">Index</a>
+<br/><a href="../">Index</a>
 

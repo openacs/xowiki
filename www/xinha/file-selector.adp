@@ -2,9 +2,9 @@
 <head>
   <title>@HTML_Title@</title>
   <link rel="stylesheet" type="text/css" 
-	href="/resources/acs-templating/lists.css" media="all">
+	href="/resources/acs-templating/lists.css" media="all" />
   <link rel="stylesheet" type="text/css" 
-	href="/resources/acs-templating/forms.css" media="all">  
+	href="/resources/acs-templating/forms.css" media="all" />
 
   <script type="text/javascript">
 function onOK() {

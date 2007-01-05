@@ -147,7 +147,7 @@ namespace eval ::xowiki {
   Page proc header_stuff {} {
     set result ""
     foreach file [array names ::need_css] {
-      append result "<link rel='stylesheet' href='$file' media='all'>\n"
+      append result "<link rel='stylesheet' href='$file' media='all' />\n"
     }
     if {[info exists ::js_order]} {
       foreach file $::js_order  {
@@ -646,7 +646,7 @@ namespace eval ::xowiki {
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
         return "${ch}Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
-           adp_include returned error message: $errorMsg<br>\n"
+           adp_include returned error message: $errorMsg<br/>\n"
       }
 
       return $ch$page
@@ -716,7 +716,7 @@ namespace eval ::xowiki {
         -folder_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} error]} {
-      return "${ch}<b>Error during processing of options: $error<br></b>"
+      return "${ch}<b>Error during processing of options: $error<br/></b>"
     } else {
       return $ch[[self]::link render]
     }
@@ -786,7 +786,7 @@ namespace eval ::xowiki {
     if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
       set ::template::parse_level $my_parse_level 
       #my log "--pl after adp_eval '[template::adp_level]' mpl=$my_parse_level"
-      return "Error in Page $name: $errmsg<br>$content<p>Possible values are$__template_variables__"
+      return "Error in Page $name: $errmsg<br/>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }

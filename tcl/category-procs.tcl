@@ -108,9 +108,9 @@ namespace eval ::xowiki {
   Class Category::section_style
   Category::section_style instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
-      return "<b>$item</b><br>\n"
+      return "<b>$item</b><br/>\n"
     } else {
-      return "$item<br>\n"
+      return "$item<br/>\n"
     }
   }
   Category::section_style instproc render_category {{-open:boolean false} cat_content} {

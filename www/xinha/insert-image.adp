@@ -224,7 +224,7 @@
     <iframe name="ipreview" id="ipreview" frameborder="0" style="border : 1px solid gray;" height="200" width="300" src="./blank.html"></iframe>
   </td>
   <td valign="bottom" style="text-align: right">
-    <button type="button" name="ok" onclick="return onOK();">OK</button><br>
+    <button type="button" name="ok" onclick="return onOK();">OK</button><br/>
     <button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
   </td>
  </tr>
