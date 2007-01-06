@@ -40,5 +40,5 @@ ad_form \
 
 
 set title "Import XoWiki Pages"
-set context {}
+set context .
 ad_return_template

@@ -504,49 +504,63 @@ namespace eval ::xowiki::portlet {
   toc instproc position {} {return [my set navigation(position)]}
   toc instproc page_name {p} {return [my set page_name($p)]}
 
-  toc instproc get_nodes {open_page package_id expand_all} {
+  toc instproc get_nodes {open_page package_id expand_all remove_levels} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
 
     set js ""
     set node() root
     set node_cnt 0
+
     set folder_id [$package_id set folder_id]
-    db_foreach get_nodes "select page_id,  page_order, name, title \
+    set pages [::xowiki::Page instantiate_objects -sql "select page_id,  page_order, name, title \
 	from xowiki_page_live_revision p \
 	where parent_id = $folder_id \
-	and not page_order is NULL order by page_order asc" {
-          set label "$page_order $title"
-          set jsobj obj[set node($page_order) tmpNode[incr node_cnt]]
-          set page_name($node_cnt) $name
-          if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+	and not page_order is NULL"]
+    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    $pages orderby page_order
 
-          if {$book_mode} {
-            regexp {^.*:([^:]+)$} $name _ anchor
-            set href [$package_id url]#$anchor
-          } else {
-            set href [$package_id pretty_link $name]
-          }
+    foreach o [$pages children] {
+      $o instvar page_order title page_id name title 
 
-          if {$expand_all} {
-            set expand "true"
-          } else {
-            set expand [expr {$open_page eq $name} ? "true" : "false"]
-            if {$expand} {
-              set navigation(parent) $parent
-              set navigation(position) $node_cnt
-              set navigation(current) $page_order
-              for {set p $parent} {$p ne ""} {} {
-                append js "$node($p).expand();\n"
-                if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
-              }
-            }
-          }
-          set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
-          append js \
-              "var $jsobj = {label: \"$label\", href:\"$href\"};" \
-              "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n"
-        }
+      my log "o: $page_order"
+      set displayed_page_order $page_order
+      for {set i 0} {$i < $remove_levels} {incr i} {
+	regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
+      }
+      set label "$displayed_page_order $title"
+      set jsobj obj[set node($page_order) tmpNode[incr node_cnt]]
+
+      set page_name($node_cnt) $name
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+
+      if {$book_mode} {
+	regexp {^.*:([^:]+)$} $name _ anchor
+	set href [$package_id url]#$anchor
+      } else {
+	set href [$package_id pretty_link $name]
+      }
+      
+      if {$expand_all} {
+	set expand "true"
+      } else {
+	set expand [expr {$open_page eq $name} ? "true" : "false"]
+	if {$expand} {
+	  set navigation(parent) $parent
+	  set navigation(position) $node_cnt
+	  set navigation(current) $page_order
+	  for {set p $parent} {$p ne ""} {} {
+	    if {![info exists node($p)]} break
+	    append js "$node($p).expand();\n"
+	    if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
+	  }
+	}
+      }
+      set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
+      append js \
+	  "var $jsobj = {label: \"$label\", href:\"$href\"};" \
+	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n"
+    }
     set navigation(count) $node_cnt
     my log "--COUNT=$node_cnt"
     return $js
@@ -558,6 +572,7 @@ namespace eval ::xowiki::portlet {
       {-open_page ""}
       {-book_mode false}
       {-expand_all false}
+      {-remove_levels 0}
     }
     my get_parameters
     switch -- $style {
@@ -574,7 +589,7 @@ namespace eval ::xowiki::portlet {
     if {!$book_mode} {
       my set book_mode [[my set __including_page] exists __is_book_page]
     }
-    set js_tree_cmds [my get_nodes $open_page $package_id $expand_all]
+    set js_tree_cmds [my get_nodes $open_page $package_id $expand_all $remove_levels]
 
     return "<div id='[self]'>
       <script type = 'text/javascript'>
@@ -605,19 +620,21 @@ namespace eval ::xowiki::portlet {
     lappend ::xowiki_page_item_id_rendered [$__including_page item_id]
     $__including_page set __is_book_page 1
 
-    set folder_id [$package_id set folder_id]
-    set page_infos [db_list_of_lists get_page_infos \
-        "select page_id, page_order, name, title, nlevel(page_order)+1, item_id \
+    set pages [::xowiki::Page instantiate_objects -sql \
+        "select page_id, page_order, name, title, item_id \
 		from xowiki_page_live_revision p \
-		where parent_id = $folder_id \
+		where parent_id = [$package_id folder_id] \
 		and not page_order is NULL \
-		[::xowiki::Page container_already_rendered item_id] \
-		order by page_order asc"]
+		[::xowiki::Page container_already_rendered item_id]" ]
+    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    $pages orderby page_order
 
     set output ""
     set return_url [::xo::cc url]
-    foreach page_info $page_infos {
-      foreach {page_id page_order name title level item_id} $page_info break
+
+    foreach o [$pages children] {
+      $o instvar page_order title page_id name title 
+      set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
       set p_link [$package_id pretty_link $name]

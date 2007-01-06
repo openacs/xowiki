@@ -1,6 +1,6 @@
 
 #ns_log notice "--including_page= $__including_page, portlet=$portlet"
-set toc [$page include_portlet [list toc -open_page $name  -decoration plain]]
+set toc [$page include_portlet [list toc -open_page $name  -decoration plain -remove_levels 1]]
 set i [$page set __last_includelet]
 my log "--last includelet = [$page set __last_includelet] [$page exists __is_book_page]"
 if {$i ne "" && ![$page exists __is_book_page]} {
