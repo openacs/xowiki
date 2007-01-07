@@ -128,7 +128,8 @@ namespace eval ::xowiki {
   }
 
   Package instproc get_parameter {attribute {default ""}} {
-    set value [::[my folder_id] get_payload $attribute]
+    set value [::xo::cc get_parameter $attribute]
+    if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
     if {$value eq ""} {set value [next]}
     return $value
   }
