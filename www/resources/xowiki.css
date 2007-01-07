@@ -56,6 +56,8 @@ hr {
 #page-body .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 #page-body .errorMsg {color: red; font-weight: bold;}
 
+#bookNavBar { top: 0px; height: 2px; background-color: #859db8; }
+
 #content .box h2 {border-bottom: 1px solid #a1a5a9; padding: 5px; background: #f2f2f2; margin: 0 -5px 5px -5px; font-size: 12px;}
 #sidebar {float: right; top: 0px; width: 29%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}
 #sidebar h2 {font-size: 12px; margin: 0;}

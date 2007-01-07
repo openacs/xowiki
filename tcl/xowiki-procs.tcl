@@ -209,10 +209,11 @@ namespace eval ::xowiki {
     }
     set outer_join [expr {[string first s. $attribute_selection] > -1 ?
                           "left outer join syndication s on s.object_id = p.revision_id" : ""}]
-
-    return "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci $extra_from_clause \
+    set sql "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci $extra_from_clause \
         where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
         ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
+    #my log "--SQL=$sql"
+    return $sql
   }
 
 
@@ -643,7 +644,10 @@ namespace eval ::xowiki {
       if {[$page exists __decoration] && [$page set __decoration] ne "plain"} {
 	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
       }
-      return [$page render]
+      if {[catch {set html [$page render]} errorMsg]} {
+        set html "<div class='errorMsg'><p>Error in includelet '$page_name' $errorMsg</div>\n"
+      }
+      return $html
     } else {
       return "<div class='errorMsg'><p>Error: includelet '$page_name' unknown</div>\n"
     }

@@ -45,7 +45,9 @@ namespace eval ::xowiki::portlet {
         <span><a href='$link'>$title</a></span></div>\
         <div class='portlet'>[next]</div>"
   }
+}
 
+namespace eval ::xowiki::portlet {
   #############################################################################
   # rss button
   #
@@ -60,6 +62,25 @@ namespace eval ::xowiki::portlet {
     }
     my get_parameters
     return "<a href='[$package_id package_url]?rss=$span' class='rss'>RSS</a>"
+  }
+
+  #############################################################################
+  # set-parameter "includelet"
+  #
+  Class create set-parameter \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration plain}}
+
+  set-parameter instproc render {} {
+    my get_parameters
+    set pl [my set __caller_parameters]
+    if {[llength $pl] % 2 == 1} {
+      error "no even number of parameters '$pl'"
+    }
+    foreach {att value} $pl {
+      ::xo::cc set_parameter $att $value
+    }
+    return "NO"
   }
 }
 
@@ -520,6 +541,8 @@ namespace eval ::xowiki::portlet {
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
+    my set jsobjs ""
+
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
 
@@ -529,7 +552,9 @@ namespace eval ::xowiki::portlet {
 	regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
       }
       set label "$displayed_page_order $title"
-      set jsobj obj[set node($page_order) tmpNode[incr node_cnt]]
+      set id tmpNode[incr node_cnt]
+      set node($page_order) $id
+      set jsobj TocTree.objs\[$node_cnt\]
 
       set page_name($node_cnt) $name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
@@ -557,20 +582,173 @@ namespace eval ::xowiki::portlet {
 	}
       }
       set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
+      set refvar [expr {[my set ajax] ? "ref" : "href"}]
       append js \
-	  "var $jsobj = {label: \"$label\", href:\"$href\"};" \
-	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n"
+	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
+	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n" \
+          ""
+      my lappend jsobjs $jsobj
+
     }
     set navigation(count) $node_cnt
     my log "--COUNT=$node_cnt"
     return $js
   }
 
+  toc instproc ajax_tree {js_tree_cmds} {
+    return "<div id='[self]'>
+      <script type = 'text/javascript'>
+      var TocTree = {
+
+         count : this.count = [my set navigation(count)],
+
+         getPage: function(href, c) {
+             //  console.log('getPage: ' + href + ' type: ' + typeof href) ;
+
+             if ( typeof c == 'undefined' ) {
+
+                 // no c given, search it from the objects
+                 // console.log('search for href <' + href + '>');
+
+                 for (i in this.objs) {
+                     if (this.objs\[i\].ref == href) {
+                        c = this.objs\[i\].c;
+                        // console.log('found href ' + href + ' c=' + c);
+                        var node = this.tree.getNodeByIndex(c).parent;
+                        while (node.index > 1) {
+                            if (!node.expanded) {node.expand();}
+                            node = node.parent;
+                        }
+                        break;
+                     }
+                 }
+                 if (typeof c == 'undefined') {
+                     // console.warn('c undefined');
+                     return false;
+                 }
+             }
+             // console.log('have href ' + href + ' c=' + c);
+
+             var transaction = YAHOO.util.Connect.asyncRequest('GET', \
+                 href + '?template_file=view-page', 
+                {
+                  success:function(o) {
+                     var bookpage = document.getElementById('book-page');
+     		     var fadeOutAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 0} }, 0.5 );
+
+                     var doFadeIn = function(type, args) {
+                        // console.log('fadein starts');
+                        var bookpage = document.getElementById('book-page');
+                        bookpage.innerHTML = o.responseText;
+                        var fadeInAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 1} }, 0.1 );
+                        fadeInAnim.animate();
+                     }
+
+                     // console.log(' tree: ' + this.tree + ' count: ' + this.count);
+                     // console.info(this);
+
+                     if (this.count > 0) {
+                        var percent = (100 * o.argument / this.count).toFixed(2) + '%';
+                     } else {
+                        var percent = '0.00%';
+                     }
+
+                     if (o.argument > 1) {
+                        var link = this.objs\[o.argument - 1 \].ref;
+                        var src = '/resources/xowiki/previous.png';
+                        var onclick = 'return TocTree.getPage(\"' + link + '\");' ;
+                     } else {
+                        var link = '#';
+                        var onclick = '';
+                        var src = '/resources/xowiki/previous-end.png';
+                     }
+
+                     // console.log('changing prev href to ' + link);
+                     // console.log('changing prev onclick to ' + onclick);
+                     document.getElementById('bookNavPrev.img').src = src;
+                     document.getElementById('bookNavPrev.a').href = link;
+                     document.getElementById('bookNavPrev.a').attributes\['onclick'\].value = onclick;
+
+                     if (o.argument < this.count) {
+                        var link = this.objs\[o.argument + 1 \].ref;
+                        var src = '/resources/xowiki/next.png';
+                        var onclick = 'return TocTree.getPage(\"' + link + '\");' ;
+                     } else {
+                        var link = '#';
+                        var onclick = '';
+                        var src = '/resources/xowiki/next-end.png';
+                     }
+
+                     // console.log('changing next href to ' + link);
+                     // console.log('changing next onclick to ' + onclick);
+                     document.getElementById('bookNavNext.img').src = src;
+                     document.getElementById('bookNavNext.a').href = link;
+                     document.getElementById('bookNavNext.a').attributes\['onclick'\].value = onclick;
+
+                     document.getElementById('bookNavRelPosText').innerHTML = percent;
+                     document.getElementById('bookNavBar').attributes\['style'\].value = 'width: ' + percent + ';';
+
+                     fadeOutAnim.onComplete.subscribe(doFadeIn);
+  		     fadeOutAnim.animate();
+                  }, 
+                  failure:function(o) {
+                     // console.error(o);
+                     // alert('failure ');
+                     return false;
+                  },
+                  argument: c,
+                  scope: TocTree
+                }, null);
+
+                return false;
+            },
+
+
+         treeInit: function() { 
+            TocTree.tree = new YAHOO.widget.TreeView('[self]'); 
+            root = TocTree.tree.getRoot(); 
+            TocTree.objs = new Array();
+            $js_tree_cmds
+
+            TocTree.tree.subscribe('labelClick', function(node) {
+              TocTree.getPage(node.data.ref, node.data.c); });
+            TocTree.tree.draw();
+         }
+
+      };
+
+     YAHOO.util.Event.addListener(window, 'load', TocTree.treeInit);
+      </script>
+    </div>"
+  }
+
+  toc instproc tree {js_tree_cmds} {
+    return "<div id='[self]'>
+      <script type = 'text/javascript'>
+      var TocTree = {
+
+         getPage: function(href, c) { return true; },
+
+         treeInit: function() { 
+            TocTree.tree = new YAHOO.widget.TreeView('[self]'); 
+            root = TocTree.tree.getRoot(); 
+            TocTree.objs = new Array();
+            $js_tree_cmds
+            TocTree.tree.draw();
+         }
+      };
+      YAHOO.util.Event.on(window, 'load', TocTree.treeInit);
+      </script>
+    </div>"
+  }
+
+
   toc instproc render {} {
     my initialize -parameter {
       {-style ""} 
       {-open_page ""}
       {-book_mode false}
+      {-ajax true}
       {-expand_all false}
       {-remove_levels 0}
     }
@@ -583,26 +761,27 @@ namespace eval ::xowiki::portlet {
     ::xowiki::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    if {$ajax} {
+       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
+       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
+       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
+    }  
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
+    #::xowiki::Page requireJS "http://www.json.org/json.js"   ;# for toJSONString
+
 
     my set book_mode $book_mode
     if {!$book_mode} {
-      my set book_mode [[my set __including_page] exists __is_book_page]
+      ###### my set book_mode [[my set __including_page] exists __is_book_page]
+    } elseif $ajax {
+      #my log "--warn: cannot use bookmode with ajax, resetting ajax"
+      set ajax 0
     }
+    my set ajax $ajax
+            
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all $remove_levels]
 
-    return "<div id='[self]'>
-      <script type = 'text/javascript'>
-      var tree; 
-      function treeInit() { 
-        tree = new YAHOO.widget.TreeView('[self]'); 
-        var root = tree.getRoot(); 
-        $js_tree_cmds        
-        tree.draw();
-      }
-    YAHOO.util.Event.addListener(window, 'load', treeInit);
-      </script>
-    </div>"
+    return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
   }
 
   #############################################################################
