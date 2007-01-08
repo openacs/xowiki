@@ -614,7 +614,9 @@ namespace eval ::xowiki::portlet {
                      if (this.objs\[i\].ref == href) {
                         c = this.objs\[i\].c;
                         // console.log('found href ' + href + ' c=' + c);
-                        var node = this.tree.getNodeByIndex(c).parent;
+                        var node = this.tree.getNodeByIndex(c);
+                        if (!node.expanded) {node.expand();}
+                        node = node.parent;
                         while (node.index > 1) {
                             if (!node.expanded) {node.expand();}
                             node = node.parent;
@@ -665,9 +667,10 @@ namespace eval ::xowiki::portlet {
 
                      // console.log('changing prev href to ' + link);
                      // console.log('changing prev onclick to ' + onclick);
+
                      document.getElementById('bookNavPrev.img').src = src;
                      document.getElementById('bookNavPrev.a').href = link;
-                     document.getElementById('bookNavPrev.a').attributes\['onclick'\].value = onclick;
+                     document.getElementById('bookNavPrev.a').setAttribute('onclick',onclick);
 
                      if (o.argument < this.count) {
                         var link = this.objs\[o.argument + 1 \].ref;
@@ -683,10 +686,10 @@ namespace eval ::xowiki::portlet {
                      // console.log('changing next onclick to ' + onclick);
                      document.getElementById('bookNavNext.img').src = src;
                      document.getElementById('bookNavNext.a').href = link;
-                     document.getElementById('bookNavNext.a').attributes\['onclick'\].value = onclick;
 
+                     document.getElementById('bookNavNext.a').setAttribute('onclick',onclick);
                      document.getElementById('bookNavRelPosText').innerHTML = percent;
-                     document.getElementById('bookNavBar').attributes\['style'\].value = 'width: ' + percent + ';';
+                     document.getElementById('bookNavBar').setAttribute('style', 'width: ' + percent + ';');
 
                      fadeOutAnim.onComplete.subscribe(doFadeIn);
   		     fadeOutAnim.animate();
