@@ -483,10 +483,8 @@ namespace eval ::xowiki::portlet {
       }
     }
 
-    if {$summary} {
-      set select_count "select count(distinct user_id) from xowiki_last_visited "
-      set order_clause ""
-    } else {
+    set select_count "select count(distinct user_id) from xowiki_last_visited "
+    if {!$summary} {
       set select_users "select distinct user_id,time from xowiki_last_visited "
       set limit_clause "limit $max_users"
       set order_clause "order by time desc $limit_clause"
