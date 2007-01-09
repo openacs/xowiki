@@ -641,7 +641,7 @@ namespace eval ::xowiki {
 	  -title {$page set title $value}
 	}
       }
-      if {[$page exists __decoration] && [$page set __decoration] ne "plain"} {
+      if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
 	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
       }
       if {[catch {set html [$page render]} errorMsg]} {

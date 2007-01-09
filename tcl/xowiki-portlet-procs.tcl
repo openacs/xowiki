@@ -2,7 +2,7 @@
 namespace eval ::xowiki::portlet {
   Class create ::xowiki::Portlet \
       -superclass ::xo::Context \
-      -parameter {{name ""} {title ""} {__decoration "portlet"}}
+      -parameter {{name ""} {title ""} {__decoration "portlet"} {id}}
 
   ::xowiki::Portlet instproc locale_clause {package_id locale} {
     set default_locale [$package_id default_locale]
@@ -40,10 +40,17 @@ namespace eval ::xowiki::portlet {
   #
   Class ::xowiki::portlet::decoration=portlet -instproc render {} {
     my instvar package_id name title
+    set class [namespace tail [my info class]]
+    set id [expr {[my exists id] ? "id='[my id]'" : ""}]
     set link [expr {[string match "*:*" $name] ? [$package_id pretty_link $name] : ""}]
-    return "<div class='portlet-title'>\
+    return "<div class='$class'><div class='portlet-title'>\
         <span><a href='$link'>$title</a></span></div>\
-        <div class='portlet'>[next]</div>"
+        <div $id class='portlet'>[next]</div></div>"
+  }
+  Class ::xowiki::portlet::decoration=plain -instproc render {} {
+    set class [namespace tail [my info class]]
+    set id [expr {[my exists id] ? "id='[my id]'" : ""}]
+    return "<div $id class='$class'>[next]</div>"
   }
 }
 
@@ -80,7 +87,7 @@ namespace eval ::xowiki::portlet {
     foreach {att value} $pl {
       ::xo::cc set_parameter $att $value
     }
-    return "NO"
+    return ""
   }
 }
 
@@ -456,54 +463,78 @@ namespace eval ::xowiki::portlet {
       -superclass ::xowiki::Portlet \
       -parameter {{__decoration plain}}
 
+  # TODO make display style -decoration
+
   presence instproc render {} {
     my initialize -parameter {
       {-interval "10 minutes"}
       {-max_users:integer 40}
+      {-show_anonymous "summary"}
       {-page}
     }
     my get_parameters
 
-    set sql "select user_id,time from xowiki_last_visited \
-	where package_id = $package_id "
+    set summary 0
+    if {[::xo::cc user_id] == 0} {
+      switch -- $show_anonymous {
+        nothing {return ""}
+        all {set summary 0} 
+        default {set summary 1} 
+      }
+    }
+
+    if {$summary} {
+      set sql "select count(distinct user_id) from xowiki_last_visited "
+      set order_clause ""
+    } else {
+      set sql "select user_id,time from xowiki_last_visited "
+      set limit_clause "limit $max_users"
+      set order_clause "order by time desc $limit_clause"
+    }
+    append sql "\
+        where package_id = $package_id \
+        and time > now() - '$interval'::interval "
+    set when "<br>in last $interval"
 
     if {[info exists page] && $page eq "this"} {
       my instvar __including_page
       append sql "and page_id = [$__including_page item_id] "
-      set limit_clause "limit $max_users"
-      set what "last on page [$__including_page title]"
+      set what " on page [$__including_page title]"
     } else {
       append sql "and time > now() - '$interval'::interval "
       set limit_clause ""
-      set what "currently in community [$package_id instance_name]"
-
+      set what " in community [$package_id instance_name]"
     }
-
-    append sql "order by time desc $limit_clause"
 
     set count 0
     set output ""
-    db_foreach get_visitors $sql {
-      if {[info exists seen($user_id)]} continue
-      set seen($user_id) $time
-      if {[incr count]>$max_users} {
-        set count $max_users
-        break
-      }
 
-      if {[::xo::cc user_id]>0} { 
+    if {$summary} {
+      my log "--presence $sql"
+      set count [db_string presence_count_users $sql]
+    } else {
+      db_foreach get_visitors $sql {
+        if {[info exists seen($user_id)]} continue
+        set seen($user_id) $time
+        if {[incr count]>$max_users} {
+          set count $max_users
+          break
+        }
+        
         regexp {^([^.]+)[.]} $time _ time
         set pretty_time [util::age_pretty -timestamp_ansi $time \
-                             -sysdate_ansi [clock_to_ansi [clock seconds]] \
-                             -mode_3_fmt "%d %b %Y, at %X"]
+                               -sysdate_ansi [clock_to_ansi [clock seconds]] \
+                               -mode_3_fmt "%d %b %Y, at %X"]
         
         set name [::xo::get_user_name $user_id]
         append output "<TR><TD class='user'>$name</TD><TD class='timestamp'>$pretty_time</TD></TR>\n"
       }
+      if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
     }
-    if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
-    set users [expr {$count == 0 ? "No users" : "$count users"}]
-    return "<DIV id='presence'><H1>$users $what</H1>$output</DIV>"
+    set users [expr {$count == 0 ? "No users" : 
+                     $count == 1 ? "1 registered user" : 
+                     "$count registered users"}]
+    return "<H1>$users$what$when</H1>$output"
   }
 }
 
@@ -546,7 +577,7 @@ namespace eval ::xowiki::portlet {
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
 
-      my log "o: $page_order"
+      #my log "o: $page_order"
       set displayed_page_order $page_order
       for {set i 0} {$i < $remove_levels} {incr i} {
 	regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
@@ -591,7 +622,7 @@ namespace eval ::xowiki::portlet {
 
     }
     set navigation(count) $node_cnt
-    my log "--COUNT=$node_cnt"
+    #my log "--COUNT=$node_cnt"
     return $js
   }
 

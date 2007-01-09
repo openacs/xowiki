@@ -44,16 +44,7 @@ namespace eval ::xowiki {
     set top_portlets ""
     set vp [$package_id get_parameter "top_portlet" ""]
     if {$vp ne ""} {
-      set vp_name [lindex $vp 0]
-      if {[my isclass ::xowiki::portlet::$vp_name]} {
-        set p [::xowiki::portlet::$vp_name new \
-                   -package_id $package_id \
-                   -name $vp_name \
-                   -actual_query [::xo::cc actual_query] \
-                   -destroy_on_cleanup ]
-        $p set __caller_parameters [lrange $vp 1 end]
-        set top_portlets [$p render]
-      }
+      set top_portlets [my include_portlet $vp]
     }
 
     if {[$package_id get_parameter "with_user_tracking" 1]} {
