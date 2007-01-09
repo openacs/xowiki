@@ -45,16 +45,16 @@ hr {
    height: 1px; border: none; 
    color: silver; background-color: silver;
 } 
-#page-body {background: #fff; font: 10pt Arial, Helvetica, sans-serif;}
+div.xowiki-content {background: #fff; font: 10pt Arial, Helvetica, sans-serif;}
 /* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%}
-#page-body h1 {font-size: 24px; margin: 0 0 .5em 0; clear: both;}
-#page-body h2 {font-size: 16px; clear: both;}
-#page-body h3 {font-size: 14px}
-#page-body h4 {font-size: 12px; margin: 0;}
-#page-body .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
-#page-body .errorMsg {color: red; font-weight: bold;}
+div.xowiki-content h1 {font-size: 24px; margin: 0 0 .5em 0; clear: both;}
+div.xowiki-content h2 {font-size: 16px; clear: both;}
+div.xowiki-content h3 {font-size: 14px}
+div.xowiki-content h4 {font-size: 12px; margin: 0;}
+div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
+div.xowiki-content .errorMsg {color: red; font-weight: bold;}
 
 #bookNavBar { top: 0px; height: 2px; background-color: #859db8; }
 

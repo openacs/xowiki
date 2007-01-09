@@ -1,3 +1,4 @@
+<div class='xowiki-content'>
 <div id='wikicmds'>
   <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='Diese Seite bearbeiten ...'>#xowiki.edit#</a> &middot; </if>
   <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' >#xotcl-core.revisions#</a> &middot;</if>
@@ -13,3 +14,4 @@
 </span>
 </div>
 @content;noquote@
+</div> <!-- class='xowiki-content'>

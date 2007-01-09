@@ -28,6 +28,7 @@ function get_popular_tags() {
   <!-- The following DIV is needed for overlib to function! -->
   <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>	
 
+<div class='xowiki-content'>
 <div style="float:left; width: 25%; font-size: .8em;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
@@ -125,3 +126,4 @@ Categories: @per_object_categories_with_links;noquote@
 <if @gc_link@ not nil>
    <p>@gc_link;noquote@</p>
 </if>
+</div> <!-- class='xowiki-content'>

@@ -28,6 +28,7 @@ function get_popular_tags() {
   <!-- The following DIV is needed for overlib to function! -->
   <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>	
 
+<div class='xowiki-content'>
 <div id='wikicmds'>
   <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='Diese Seite bearbeiten ...'>#xowiki.edit#</a> &middot; </if>
   <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' >#xotcl-core.revisions#</a> &middot;</if>
@@ -91,3 +92,4 @@ Categories: @per_object_categories_with_links;noquote@
 <if @gc_link@ not nil>
    <p>@gc_link;noquote@</p>
 </if>
+</div> <!-- class='xowiki-content'>
