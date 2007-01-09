@@ -485,9 +485,9 @@ namespace eval ::xowiki::portlet {
 
     set select_count "select count(distinct user_id) from xowiki_last_visited "
     if {!$summary} {
-      set select_users "select distinct user_id,time from xowiki_last_visited "
+      set select_users "select user_id,max(time) as max_time from xowiki_last_visited "
       set limit_clause "limit $max_users"
-      set order_clause "order by time desc $limit_clause"
+      set order_clause "group by user_id order by max_time desc $limit_clause"
     }
     set where_clause "\
         where package_id = $package_id \
@@ -527,7 +527,7 @@ namespace eval ::xowiki::portlet {
       }
       if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
     }
-    set users [expr {$count == 0 ? "No users" : 
+    set users [expr {$count == 0 ? "No registered users" : 
                      $count == 1 ? "1 registered user" : 
                      "$count registered users"}]
     return "<H1>$users$what$when</H1>$output"
