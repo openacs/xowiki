@@ -92,4 +92,4 @@ Categories: @per_object_categories_with_links;noquote@
 <if @gc_link@ not nil>
    <p>@gc_link;noquote@</p>
 </if>
-</div> <!-- class='xowiki-content'>
+</div> <!-- class='xowiki-content' -->

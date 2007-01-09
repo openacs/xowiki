@@ -14,4 +14,4 @@
 </span>
 </div>
 @content;noquote@
-</div> <!-- class='xowiki-content'>
+</div> <!-- class='xowiki-content' -->
