@@ -44,7 +44,7 @@ function get_popular_tags() {
 </span>
 </div>
 
-<div style="float:left; width: 25%; font-size: .8em;
+<div style="float:left; width: 25%; font-size: 85%;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">

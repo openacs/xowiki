@@ -45,7 +45,7 @@ hr {
    height: 1px; border: none; 
    color: silver; background-color: silver;
 } 
-div.xowiki-content {background: #fff; font: 10pt Arial, Helvetica, sans-serif;}
+div.xowiki-content {background: #fff; font: 10pt Verdana, Arial, Helvetica, sans-serif;}
 /* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%}
