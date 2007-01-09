@@ -484,47 +484,45 @@ namespace eval ::xowiki::portlet {
     }
 
     if {$summary} {
-      set sql "select count(distinct user_id) from xowiki_last_visited "
+      set select_count "select count(distinct user_id) from xowiki_last_visited "
       set order_clause ""
     } else {
-      set sql "select user_id,time from xowiki_last_visited "
+      set select_users "select distinct user_id,time from xowiki_last_visited "
       set limit_clause "limit $max_users"
       set order_clause "order by time desc $limit_clause"
     }
-    append sql "\
+    set where_clause "\
         where package_id = $package_id \
         and time > now() - '$interval'::interval "
     set when "<br>in last $interval"
 
     if {[info exists page] && $page eq "this"} {
       my instvar __including_page
-      append sql "and page_id = [$__including_page item_id] "
+      append where_clause "and page_id = [$__including_page item_id] "
       set what " on page [$__including_page title]"
     } else {
-      append sql "and time > now() - '$interval'::interval "
-      set limit_clause ""
       set what " in community [$package_id instance_name]"
     }
 
-    set count 0
     set output ""
 
     if {$summary} {
-      my log "--presence $sql"
-      set count [db_string presence_count_users $sql]
+      set count [db_string presence_count_users "$select_count $where_clause"] 
     } else {
-      db_foreach get_visitors $sql {
-        if {[info exists seen($user_id)]} continue
+      set values [db_list_of_lists get_users "$select_users $where_clause $order_clause"]
+      set count [llength $values]
+      if {$count == $max_users} {
+        # we have to check, whether there were more users...
+        set count [db_string presence_count_users "$select_count $where_clause"] 
+      }
+      foreach value  $values {
+        foreach {user_id time} $value break
         set seen($user_id) $time
-        if {[incr count]>$max_users} {
-          set count $max_users
-          break
-        }
         
         regexp {^([^.]+)[.]} $time _ time
         set pretty_time [util::age_pretty -timestamp_ansi $time \
-                               -sysdate_ansi [clock_to_ansi [clock seconds]] \
-                               -mode_3_fmt "%d %b %Y, at %X"]
+                             -sysdate_ansi [clock_to_ansi [clock seconds]] \
+                             -mode_3_fmt "%d %b %Y, at %X"]
         
         set name [::xo::get_user_name $user_id]
         append output "<TR><TD class='user'>$name</TD><TD class='timestamp'>$pretty_time</TD></TR>\n"
