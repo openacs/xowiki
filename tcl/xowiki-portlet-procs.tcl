@@ -863,7 +863,7 @@ namespace eval ::xowiki::portlet {
       regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
-          "<a name='$anchor'>$page_order $title</h$level>" \
+          "<a name='$anchor'></a>$page_order $title</h$level>" \
           $content
     }
     return $output
