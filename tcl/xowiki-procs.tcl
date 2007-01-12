@@ -790,6 +790,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc adp_subst {content} {
+    #my log "--adp_subst in [my name]"
     set __ignorelist [list RE __defaults name_method object_type_key]
     foreach __v [my info vars] {
       if {[info exists $__v]} continue
@@ -811,12 +812,20 @@ namespace eval ::xowiki {
     }
     append __template_variables__ "</ul>\n"
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
+    #my log "--adp before adp_eval '[template::adp_level]'"
+    set l [string length $content]
+    if {[catch {set bufsize [ns_adp_ctl bufsize]}]} {
+      set bufsize 0
+    }
+    if {$bufsize > 0 && $l > $bufsize} {
+      # we have aolserver 4.5, we can increase the bufsize
+      ns_adp_ctl bufsize [expr {$l + 1024}]
+    }
     set template_code [template::adp_compile -string $content]
-    #my log "--pl before adp_eval '[template::adp_level]'"
     set my_parse_level [template::adp_level]
     if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
       set ::template::parse_level $my_parse_level 
-      #my log "--pl after adp_eval '[template::adp_level]' mpl=$my_parse_level"
+      #my log "--adp after adp_eval '[template::adp_level]' mpl=$my_parse_level"
       return "<div class='errorMsg'>Error in Page $name: $errmsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
