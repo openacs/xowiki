@@ -32,6 +32,30 @@ namespace eval ::xowiki::portlet {
     return [list $locale $locale_clause]
   }
 
+  ::xowiki::Portlet instproc category_clause {category_spec {item_ref p.item_id}} {
+    # the category_spec has the syntax "a,b,c|d,e", where the values are category_ids
+    # pipe symbols are or-operations, commas are and-operations;
+    # no parenthesis are permitted
+    set extra_where_clause ""
+    set or_names [list]
+    set ors [list]
+    foreach cid_or [split $category_spec |] {
+      set ands [list]
+      set and_names [list]
+      foreach cid_and [split $cid_or ,] {
+        lappend and_names [::category::get_name $cid_and]
+        lappend ands "exists (select 1 from category_object_map \
+           where object_id = p.item_id and category_id = $cid_and)"
+      }
+      lappend or_names "[join $and_names { and }]"
+      lappend ors "([join $ands { and }])"
+    }
+    set cnames "[join $or_names { or }]"
+    set extra_where_clause "and ([join $ors { or }])"
+    my log "--cnames $category_spec -> $cnames"
+    return [list $cnames $extra_where_clause]
+  }
+  
 }
 
 namespace eval ::xowiki::portlet {
@@ -42,9 +66,11 @@ namespace eval ::xowiki::portlet {
     my instvar package_id name title
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
-    set link [expr {[string match "*:*" $name] ? [$package_id pretty_link $name] : ""}]
+    set link [expr {[string match "*:*" $name] ? 
+                    "<a href='[$package_id pretty_link $name]'>$title</a>" : 
+                    $title}]
     return "<div class='$class'><div class='portlet-title'>\
-        <span><a href='$link'>$title</a></span></div>\
+        <span>$link</span></div>\
         <div $id class='portlet'>[next]</div></div>"
   }
   Class ::xowiki::portlet::decoration=plain -instproc render {} {
@@ -560,11 +586,16 @@ namespace eval ::xowiki::portlet {
     set node() root
     set node_cnt 0
 
+    set extra_where_clause ""
+    if {[my exists category_id]} {
+      foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
+    }
+
     set folder_id [$package_id set folder_id]
     set pages [::xowiki::Page instantiate_objects -sql "select page_id,  page_order, name, title \
 	from xowiki_page_live_revision p \
 	where parent_id = $folder_id \
-	and not page_order is NULL"]
+	and not page_order is NULL $extra_where_clause"]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
@@ -781,6 +812,7 @@ namespace eval ::xowiki::portlet {
       {-ajax true}
       {-expand_all false}
       {-remove_levels 0}
+      {-category_id}
     }
     my get_parameters
     switch -- $style {
@@ -799,7 +831,6 @@ namespace eval ::xowiki::portlet {
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
     #::xowiki::Page requireJS "http://www.json.org/json.js"   ;# for toJSONString
 
-
     my set book_mode $book_mode
     if {!$book_mode} {
       ###### my set book_mode [[my set __including_page] exists __is_book_page]
@@ -808,6 +839,7 @@ namespace eval ::xowiki::portlet {
       set ajax 0
     }
     my set ajax $ajax
+    if {[info exists category_id]} {my set category_id $category_id}
             
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all $remove_levels]
 
@@ -822,23 +854,32 @@ namespace eval ::xowiki::portlet {
       -parameter {{__decoration plain}}
 
   book instproc render {} {
-    my initialize -parameter { }
+    my initialize -parameter { -category_id }
     my get_parameters
 
     my instvar __including_page
     lappend ::xowiki_page_item_id_rendered [$__including_page item_id]
     $__including_page set __is_book_page 1
 
+    set extra_where_clause ""
+    set cnames ""
+    if {[info exists category_id]} {
+      foreach {cnames extra_where_clause} [my category_clause $category_id] break
+    }
+
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \
 		from xowiki_page_live_revision p \
 		where parent_id = [$package_id folder_id] \
-		and not page_order is NULL \
+		and not page_order is NULL $extra_where_clause \
 		[::xowiki::Page container_already_rendered item_id]" ]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
     set output ""
+    if {$cnames ne ""} {
+      append output "<div class='filter'>Filtered by categories: $cnames</div>"
+    }
     set return_url [::xo::cc url]
 
     foreach o [$pages children] {
@@ -857,9 +898,7 @@ namespace eval ::xowiki::portlet {
       $p set unresolved_references 0
       #$p set render_adp 0
       set content [$p get_content]
-      if {[regexp package_id $content]} {my log "--CONTENT 0 $content"}
       set content [string map [list "\{\{" "\\\{\{"] $content]
-     if {[regexp package_id $content]} {my log "--CONTENT 1 $content"}
       regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
