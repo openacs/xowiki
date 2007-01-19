@@ -658,7 +658,7 @@ namespace eval ::xowiki::portlet {
       <script type = 'text/javascript'>
       var TocTree = {
 
-         count : this.count = [my set navigation(count)],
+         count: [my set navigation(count)],
 
          getPage: function(href, c) {
              //  console.log('getPage: ' + href + ' type: ' + typeof href) ;
@@ -690,7 +690,7 @@ namespace eval ::xowiki::portlet {
              // console.log('have href ' + href + ' c=' + c);
 
              var transaction = YAHOO.util.Connect.asyncRequest('GET', \
-                 href + '?template_file=view-page', 
+                 href + '?template_file=view-page&return_url=' + href, 
                 {
                   success:function(o) {
                      var bookpage = document.getElementById('book-page');
