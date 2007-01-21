@@ -4,6 +4,10 @@ namespace eval ::xowiki::portlet {
       -superclass ::xo::Context \
       -parameter {{name ""} {title ""} {__decoration "portlet"} {id}}
 
+  ::xowiki::Portlet instproc js_name {} {
+    return [string map [list : _ # _] [self]]
+  }
+
   ::xowiki::Portlet instproc locale_clause {package_id locale} {
     set default_locale [$package_id default_locale]
     set system_locale ""
@@ -600,6 +604,7 @@ namespace eval ::xowiki::portlet {
     $pages orderby page_order
 
     my set jsobjs ""
+    #my log "--book read [llength [$pages children]] pages"
 
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
@@ -612,7 +617,7 @@ namespace eval ::xowiki::portlet {
       set label "$displayed_page_order $title"
       set id tmpNode[incr node_cnt]
       set node($page_order) $id
-      set jsobj TocTree.objs\[$node_cnt\]
+      set jsobj [my js_name].objs\[$node_cnt\]
 
       set page_name($node_cnt) $name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
@@ -641,6 +646,7 @@ namespace eval ::xowiki::portlet {
       }
       set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
       set refvar [expr {[my set ajax] ? "ref" : "href"}]
+      my log "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};"
       append js \
 	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
 	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n" \
@@ -649,14 +655,14 @@ namespace eval ::xowiki::portlet {
 
     }
     set navigation(count) $node_cnt
-    #my log "--COUNT=$node_cnt"
+    my log "--COUNT=$node_cnt"
     return $js
   }
 
   toc instproc ajax_tree {js_tree_cmds} {
     return "<div id='[self]'>
       <script type = 'text/javascript'>
-      var TocTree = {
+      var [my js_name] = {
 
          count: [my set navigation(count)],
 
@@ -716,7 +722,7 @@ namespace eval ::xowiki::portlet {
                      if (o.argument > 1) {
                         var link = this.objs\[o.argument - 1 \].ref;
                         var src = '/resources/xowiki/previous.png';
-                        var onclick = 'return TocTree.getPage(\"' + link + '\");' ;
+                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
                      } else {
                         var link = '#';
                         var onclick = '';
@@ -733,7 +739,7 @@ namespace eval ::xowiki::portlet {
                      if (o.argument < this.count) {
                         var link = this.objs\[o.argument + 1 \].ref;
                         var src = '/resources/xowiki/next.png';
-                        var onclick = 'return TocTree.getPage(\"' + link + '\");' ;
+                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
                      } else {
                         var link = '#';
                         var onclick = '';
@@ -758,7 +764,7 @@ namespace eval ::xowiki::portlet {
                      return false;
                   },
                   argument: c,
-                  scope: TocTree
+                  scope: [my js_name]
                 }, null);
 
                 return false;
@@ -766,19 +772,19 @@ namespace eval ::xowiki::portlet {
 
 
          treeInit: function() { 
-            TocTree.tree = new YAHOO.widget.TreeView('[self]'); 
-            root = TocTree.tree.getRoot(); 
-            TocTree.objs = new Array();
+            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            root = [my js_name].tree.getRoot(); 
+            [my js_name].objs = new Array();
             $js_tree_cmds
 
-            TocTree.tree.subscribe('labelClick', function(node) {
-              TocTree.getPage(node.data.ref, node.data.c); });
-            TocTree.tree.draw();
+            [my js_name].tree.subscribe('labelClick', function(node) {
+              [my js_name].getPage(node.data.ref, node.data.c); });
+            [my js_name].tree.draw();
          }
 
       };
 
-     YAHOO.util.Event.addListener(window, 'load', TocTree.treeInit);
+     YAHOO.util.Event.addListener(window, 'load', [my js_name].treeInit);
       </script>
     </div>"
   }
@@ -786,19 +792,19 @@ namespace eval ::xowiki::portlet {
   toc instproc tree {js_tree_cmds} {
     return "<div id='[self]'>
       <script type = 'text/javascript'>
-      var TocTree = {
+      var [my js_name] = {
 
          getPage: function(href, c) { return true; },
 
          treeInit: function() { 
-            TocTree.tree = new YAHOO.widget.TreeView('[self]'); 
-            root = TocTree.tree.getRoot(); 
-            TocTree.objs = new Array();
+            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            root = [my js_name].tree.getRoot(); 
+            [my js_name].objs = new Array();
             $js_tree_cmds
-            TocTree.tree.draw();
+            [my js_name].tree.draw();
          }
       };
-      YAHOO.util.Event.on(window, 'load', TocTree.treeInit);
+      YAHOO.util.Event.on(window, 'load', [my js_name].treeInit);
       </script>
     </div>"
   }
