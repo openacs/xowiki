@@ -56,7 +56,7 @@ namespace eval ::xowiki::portlet {
     }
     set cnames "[join $or_names { or }]"
     set extra_where_clause "and ([join $ors { or }])"
-    my log "--cnames $category_spec -> $cnames"
+    #my log "--cnames $category_spec -> $cnames"
     return [list $cnames $extra_where_clause]
   }
   
@@ -193,7 +193,8 @@ namespace eval ::xowiki::portlet {
 		and ci.content_type not in ('::xowiki::PageTemplate') \
 		and category_id in ([join $categories ,]) \
 		and r.revision_id = ci.live_revision \
-		and p.page_id = r.revision_id"
+		and p.page_id = r.revision_id \
+                and ci.publish_status <> 'production'"
 
       if {$except_category_ids ne ""} {
         append sql \
