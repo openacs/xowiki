@@ -1,33 +1,10 @@
-# different template testing DONE
-# orphan creation DONE
-# orphan deletions completion  DONE
-# link resolver DONE
-# edit-new parameter name DONE
-# cgi package_id missing DONE
-# delete all DONE
-# $parent_id set package_id DONE
-# lang link DONE
-# unknown link DONE
-# weblog DONE
-# tag edit DONE
-# tag new DONE
-# weblog on the fly creation DONE
-# behavior without index page DONE
-# renaming objects DONE
-# handling of sc DONE
-# make subst_blank_in_name default DONE
-# package parameters and payload of folder object DONE
-# permissions management DONE
-# permissions admin DONE
-# include DONE
-# edit page template DONE
-# edit page instance DONE
-# delete folder object DONE
-# the flag store_folder_id should not be necessary
-# move require folder object code
-# edit-new last_page_id (needed?)
-# edit last_page_id (needed?)
-# nicer title + content for notification; my-wiki,
+ad_library {
+    XoWiki - form classes
+
+    @creation-date 2006-04-10
+    @author Gustaf Neumann
+    @cvs-id $Id$
+}
 
 namespace eval ::xowiki {
   
@@ -49,6 +26,19 @@ namespace eval ::xowiki {
 
     if {[$package_id get_parameter "with_user_tracking" 1]} {
       my record_last_visited
+    }
+
+    # Deal with the views package (many thanks to Malte for this snippet!)
+    if {[$package_id get_parameter with_views_package_if_available 1] 
+	&& [apm_package_installed_p "views"]} {
+      views::record_view -object_id $item_id -viewer_id [::xo::cc user_id]
+      array set views_arr [views::get -object_id $item_id]
+      if {$views_arr(views) ne ""} {
+	set views $views_arr(views)
+	set unique_views $views_arr(unique_views)
+	set last_viewed $views_arr(last_viewed)
+      }
+      views unique_views last_viewed
     }
 
     #my log "--after user_tracking"
