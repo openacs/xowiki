@@ -1,5 +1,6 @@
 ad_library {
-    XoWiki - form classes
+    XoWiki - www procs. These procs are the methods called on xowiki objects via 
+    the web interface.
 
     @creation-date 2006-04-10
     @author Gustaf Neumann
@@ -177,14 +178,14 @@ namespace eval ::xowiki {
     if {$master} {
       set context [list $title]
       set object_type [my info class]
-      set rev_link    [my make_link [self] revisions]
-      set edit_link   [my make_link [self] edit return_url]
-      set delete_link [my make_link [self] delete return_url] 
-      set new_link    [my make_link $package_id edit-new object_type return_url] 
-      set admin_link  [my make_link -privilege admin -url admin/ $package_id {} {}] 
-      set index_link  [my make_link -privilege public -url "" $package_id {} {}]
-      set save_tag_link [my make_link [self] save-tags]
-      set popular_tags_link [my make_link [self] popular-tags]
+      set rev_link    [$package_id make_link [self] revisions]
+      set edit_link   [$package_id make_link [self] edit return_url]
+      set delete_link [$package_id make_link [self] delete return_url] 
+      set new_link    [$package_id make_link $package_id edit-new object_type return_url] 
+      set admin_link  [$package_id make_link -privilege admin -url admin/ $package_id {} {}] 
+      set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
+      set save_tag_link [$package_id make_link [self] save-tags]
+      set popular_tags_link [$package_id make_link [self] popular-tags]
 
       my log "--after context delete_link=$delete_link "
       set template [$folder_id get_payload template]
@@ -291,14 +292,14 @@ namespace eval ::xowiki {
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
     
     if {[info exists item_id]} {
-      set rev_link    [my make_link [self] revisions]
-      set view_link   [my make_link [self] view]
+      set rev_link    [$package_id make_link [self] revisions]
+      set view_link   [$package_id make_link [self] view]
     }
     if {[info exists last_page_id]} {
       set back_link [$package_id url]
     }
 
-    set index_link  [my make_link -privilege public -url "" $package_id {} {}]
+    set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
     set html [$package_id return_page -adp /packages/xowiki/www/edit \
                   -form f1 \
                   -variables {item_id edit_form_page_title context formTemplate

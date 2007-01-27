@@ -134,6 +134,45 @@ namespace eval ::xowiki {
     return $value
   }
 
+  #
+  # conditional links
+  #
+  Package instproc make_link {-privilege -url object method args} {
+    my instvar id
+ 
+    if {[info exists privilege]} {
+      set granted [expr {$privilege eq "public" ? 1 :
+                 [permission::permission_p \
+                      -object_id $id -privilege $privilege \
+                      -party_id [::xo::cc user_id]] }]
+    } else {
+      # determine privilege from policy
+      set granted [my permission_p $object $method]
+      #my log "--p $id permission_p $object $method ==> $granted"
+    }
+    if {$granted} {
+      if {[$object istype ::xowiki::Package]} {
+        set base  [my package_url]
+        if {[info exists url]} {
+          return [uplevel export_vars -base [list $base$url] [list $args]]
+        } else {
+          lappend args [list $method 1]
+          return [uplevel export_vars -base [list $base] [list $args]]
+        }
+      } elseif {[$object istype ::xowiki::Page]} {
+        if {[info exists url]} {
+          set base $url
+        } else {
+          set base [my url]
+        }
+        lappend args [list m $method]
+        return [uplevel export_vars -base [list $base] [list $args]]
+      }
+    }
+    return ""
+  }
+
+
   Package instproc invoke {-method} {
     my set mime_type text/html
     my set delivery ns_return
@@ -141,7 +180,17 @@ namespace eval ::xowiki {
     if {$page ne ""} {
       return [my call $page $method]
     } else {
-      return [my error_msg "No page <b>'[my set object]'</b> available."]
+      my instvar id
+      my get_name_and_lang_from_path [my set object] lang local_name
+      set name ${lang}:$local_name
+      set object_type ::xowiki::Page ;# for the time being; maybe a parameter?
+      set new_link    [my make_link $id edit-new object_type return_url name] 
+      if {$new_link ne ""} {
+        set edit_snippet "<p>Do you want to create page <a href='$new_link'>$name</a> new?"
+      } else {
+        set edit_snippet ""
+      }
+      return [my error_msg "Page <b>'[my set object]'</b> is not available. $edit_snippet"]
     }
   }
   Package instproc reply_to_user {text} {
@@ -249,6 +298,24 @@ namespace eval ::xowiki {
   }
   Package instforward permission_p {%my set policy} %proc
 
+  Package instproc get_name_and_lang_from_path {path vlang vlocal_name} {
+    my upvar $vlang lang $vlocal_name local_name 
+    if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(file|image)/(.*)$} $path _ lang local_name]} {
+    } else {
+      set key queryparm(lang)
+      if {[info exists $key]} {
+        set lang [set $key]
+      } else {
+        # we can't determine lang from name, or query parameter, so take default
+        set lang [my default_language]
+      }
+      set local_name $path
+    }
+  }
+
   Package instproc resolve_request {-path} {
     my instvar folder_id
     #my log "--u [self args]"
@@ -261,20 +328,7 @@ namespace eval ::xowiki {
       my log "--try $path -> $item_id"
       
       if {$item_id == 0} {
-        if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
-        } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
-        } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-        } elseif {[regexp {^(file|image)/(.*)$} $path _ lang local_name]} {
-        } else {
-          set key queryparm(lang)
-          if {[info exists $key]} {
-            set lang [set $key]
-          } else {
-            # we can't determine lang from name, or query parameter, so take default
-            set lang [my default_language]
-          }
-          set local_name $path
-        }
+        my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name
         set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
         my log "--try $name -> $item_id"

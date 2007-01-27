@@ -492,45 +492,6 @@ namespace eval ::xowiki {
   }
 
   #
-  # conditional links, could go into package as well...
-  #
-  
-  Page instproc make_link {-privilege -url object method args} {
-    my instvar package_id
- 
-    if {[info exists privilege]} {
-      set granted [expr {$privilege eq "public" ? 1 :
-                 [permission::permission_p \
-                      -object_id $package_id -privilege $privilege \
-                      -party_id [::xo::cc user_id]] }]
-    } else {
-      # determine privilege from policy
-      set granted [$package_id permission_p $object $method]
-      #my log "--p $package_id permission_p $object $method ==> $granted"
-    }
-    if {$granted} {
-      if {[$object istype ::xowiki::Package]} {
-        set base  [$package_id package_url]
-        if {[info exists url]} {
-          return [uplevel export_vars -base [list $base$url] [list $args]]
-        } else {
-          lappend args [list $method 1]
-          return [uplevel export_vars -base [list $base] [list $args]]
-        }
-      } elseif {[$object istype ::xowiki::Page]} {
-        if {[info exists url]} {
-          set base $url
-        } else {
-          set base [$package_id url]
-        }
-        lappend args [list m $method]
-        return [uplevel export_vars -base [list $base] [list $args]]
-      }
-    }
-    return ""
-  }
-
-  #
   # tag management, get_tags works on instance or gobally
   #
 
@@ -975,7 +936,7 @@ namespace eval ::xowiki {
   File instproc get_content {} {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
-    set page_link [my make_link -privilege public [self] download ""]
+    set page_link [$package_id make_link -privilege public [self] download ""]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {

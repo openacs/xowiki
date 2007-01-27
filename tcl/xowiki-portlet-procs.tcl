@@ -1,4 +1,10 @@
+ad_library {
+    XoWiki - define various kind of includelets
 
+    @creation-date 2006-10-10
+    @author Gustaf Neumann
+    @cvs-id $Id$
+}
 namespace eval ::xowiki::portlet {
   Class create ::xowiki::Portlet \
       -superclass ::xo::Context \
@@ -895,7 +901,7 @@ namespace eval ::xowiki::portlet {
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
       set p_link [$package_id pretty_link $name]
-      set edit_link [$p make_link -url $p_link $p edit return_url]
+      set edit_link [$package_id make_link -url $p_link $p edit return_url]
       if {$edit_link ne ""} {
         set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
       } else {
