@@ -47,14 +47,18 @@ namespace eval ::xowiki {
         {with_categories true}
         {submit_link "view"}
         {folderspec ""}
+        {autoname 0}
       }
 
 
   WikiForm instproc mkFields {} {
-    my instvar data
+    my instvar data autoname
     set __fields ""
     set field_list [my field_list]
     if {[::xo::db::has_ltree]} {set field_list [linsert $field_list 2 page_order]}
+    if {$autoname} {
+      my f.name {name:text(hidden),optional}
+    }
     foreach __field $field_list {
       set __spec [my set f.$__field]
       if {[string first "richtext" [lindex $__spec 0]] > -1} {
@@ -168,7 +172,10 @@ namespace eval ::xowiki {
       if {![regexp {^..:} $name]} {
         if {![info exists nls_language]} {set nls_language ""}
         if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-        set name [string range $nls_language 0 1]:$name
+        if {$name ne ""} {
+          # prepend the language prefix only, if the entry is not empty
+          set name [string range $nls_language 0 1]:$name
+        }
       }
       set name [::$package_id normalize_name $name]
     }

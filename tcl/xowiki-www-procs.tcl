@@ -1,5 +1,5 @@
 ad_library {
-    XoWiki - www procs. These procs are the methods called on xowiki objects via 
+    XoWiki - www procs. These procs are the methods called on xowiki pages via 
     the web interface.
 
     @creation-date 2006-04-10
@@ -33,13 +33,7 @@ namespace eval ::xowiki {
     if {[$package_id get_parameter with_views_package_if_available 1] 
 	&& [apm_package_installed_p "views"]} {
       views::record_view -object_id $item_id -viewer_id [::xo::cc user_id]
-      array set views_arr [views::get -object_id $item_id]
-      if {$views_arr(views) ne ""} {
-	set views $views_arr(views)
-	set unique_views $views_arr(unique_views)
-	set last_viewed $views_arr(last_viewed)
-      }
-      views unique_views last_viewed
+      array set views_data [views::get -object_id $item_id]
     }
 
     #my log "--after user_tracking"
@@ -219,6 +213,7 @@ namespace eval ::xowiki {
           digg_link delicious_link my_yahoo_link
           gc_link gc_comments notification_subscribe_link notification_image 
           top_portlets page
+          views_data
         }
       }
     } else {
@@ -226,7 +221,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Page instproc edit {{-new:boolean false}} {
+  Page instproc edit {{-new:boolean false} {-autoname:boolean false}} {
     my instvar package_id item_id revision_id
     $package_id instvar folder_id  ;# this is the root folder
 
@@ -282,7 +277,8 @@ namespace eval ::xowiki {
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
         -folderspec [expr {$fs_folder_id ne "" ?"folder_id $fs_folder_id":""}] \
-        -submit_link $submit_link
+        -submit_link $submit_link \
+        -autoname $autoname
 
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]

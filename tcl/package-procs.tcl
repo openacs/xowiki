@@ -180,6 +180,8 @@ namespace eval ::xowiki {
     if {$page ne ""} {
       return [my call $page $method]
     } else {
+      # the requested page was not found, provide an error message and 
+      # an optional link for creating the page
       my instvar id
       my get_name_and_lang_from_path [my set object] lang local_name
       set name ${lang}:$local_name
@@ -414,7 +416,9 @@ namespace eval ::xowiki {
       } else {
         set localvar local.$_var
         upvar $_var $localvar
-        if {[info exists $localvar]} {
+        if {[array exists $localvar]} {
+          lappend __vars &$_var $localvar
+        } elseif {[info exists $localvar]} {
           # ignore undefined variables
           lappend __vars $_var [set $localvar]
         }
@@ -428,9 +432,9 @@ namespace eval ::xowiki {
         upvar #$level $f $f
       }
     }
-    my log "--before adp"  ;#$__vars
+    #my log "--before adp"   ; # $__vars
     set text [template::adp_include $adp $__vars]
-    my log "--after adp"
+    #my log "--after adp"
     return $text
   }
 
@@ -469,8 +473,9 @@ namespace eval ::xowiki {
   Package instproc edit-new {} {
     my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
+    set autoname [my query_parameter autoname 0]
     set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
-    return [$page edit -new true]
+    return [$page edit -new true -autoname $autoname]
   }
 
   Package instproc delete {-item_id -name} {
