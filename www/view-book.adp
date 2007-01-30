@@ -106,9 +106,8 @@ function get_popular_tags() {
 #xowiki.references_label# @references;noquote@ @lang_links.found;noquote@<br/>
 </if>
 <if @lang_links.undefined@ ne "">
-#xowiki.create_this_page_in_language# @lang_links.undefined;noquote@
+#xowiki.create_this_page_in_language# @lang_links.undefined;noquote@<br/>
 </if>
-<br/>
 <if @no_tags@ eq 0>
 #xowiki.your_tags_label#: @tags_with_links;noquote@
 (<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 

@@ -99,6 +99,7 @@ namespace eval ::xowiki {
       #set link [export_vars -base [$package_id package_url] \
       #              {{edit-new 1} object_type name last_page_id}]
     }
+    my log "--lang_link=$link"
     if {$link ne ""} {
       $page lappend lang_links($css_class) \
           "<a href='$link'><img class='$css_class' \
