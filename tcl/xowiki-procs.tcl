@@ -121,7 +121,6 @@ namespace eval ::xowiki {
     title
     text
     {folder_id -100}
-    {lang_links ""}
     {lang en}
     {render_adp 1}
     {absolute_links 0}
@@ -763,7 +762,7 @@ namespace eval ::xowiki {
       [my info class] instvar $__v
     }
     set __ignorelist [list __v __ignorelist __varlist __template_variables__ \
-                          text item_id content]
+                          text item_id content lang_links]
     set __varlist [list]
     set __template_variables__ "<ul>\n"
     foreach __v [lsort [info vars]] {
@@ -839,6 +838,7 @@ namespace eval ::xowiki {
 
   Page instproc render {-update_references:switch} {
     my instvar item_id revision_id references lang render_adp unresolved_references parent_id
+    my array set lang_links {found "" undefined ""}
     #my log "-- my class=[my info class]"
     set name [my set name]
     regexp {^(..):(.*)$} $name _ lang name
@@ -849,12 +849,6 @@ namespace eval ::xowiki {
     #my log "--W after content [info exists unresolved_references] [my exists unresolved_references] ?? [info vars]"
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
-    }
-    if {![my exists lang_links]} {
-      #my log "-- for some reason, no lang links"
-      my set lang_links ""
-    } else {
-      my set lang_links [join [my set lang_links] ", "]
     }
     return [expr {$render_adp ? [my adp_subst $content] : $content}]
   }

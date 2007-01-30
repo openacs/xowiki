@@ -66,8 +66,8 @@ div.xowiki-content .errorMsg {color: red; font-weight: bold;}
 #sidebar h3 {font-size: 11px; margin: 0;}
 #sidebar h4 {font-size: 10px; margin: 0;}
 #sidebar .sidebox li {font-size: 10px; margin: 0;}
-img.found {border: 0px; height: 12px}
-img.undefined {border: 10px; color: yellow; height: 12px}
+img.found {border-width: 0px; height: 12px}
+img.undefined {border-width: 2px; border-color: #859db8; height: 8px}
 
 #left-col   {float: left;  width: 50%; top: 0px;}
 #right-col  {float: right; width: 49%; top: 0px;}

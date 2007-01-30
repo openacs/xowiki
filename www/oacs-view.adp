@@ -30,7 +30,7 @@ function get_popular_tags() {
 
 <div class='xowiki-content'>
 <div id='wikicmds'>
-  <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='Diese Seite bearbeiten ...'>#xowiki.edit#</a> &middot; </if>
+  <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='Diese Seite bearbeiten ...'>#xowiki.edit#</a> &middot;</if>
   <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' >#xotcl-core.revisions#</a> &middot;</if>
   <if @new_link@ not nil><a href="@new_link@" accesskey='n'>#xowiki.new#</a> &middot;</if>
   <if @delete_link@ not nil><a href="@delete_link@" accesskey='d'>#xowiki.delete#</a> &middot;</if>
@@ -68,8 +68,11 @@ function get_popular_tags() {
 <a href="@my_yahoo_link@"><img src="http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif" width="91" height="17" border="0" align="middle" alt="Add to My Yahoo!"></a></div>
 </if>
 <div style="clear: both; text-align: left; font-size: 85%;">
-<if @references@ ne "" or @lang_links@ ne "">
-#xowiki.references_label# @references;noquote@ @lang_links;noquote@
+<if @references@ ne "" or @lang_links.found@ ne "">
+#xowiki.references_label# @references;noquote@ @lang_links.found;noquote@<br/>
+</if>
+<if @lang_links.undefined@ ne "">
+#xowiki.create_this_page_in_language# @lang_links.undefined;noquote@
 </if>
 <br/>
 <if @no_tags@ eq 0>

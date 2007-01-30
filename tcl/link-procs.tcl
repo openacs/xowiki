@@ -88,17 +88,22 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     if {$item_id} {
       set css_class "found"
-      set link [::[my package_id] pretty_link -lang $lang [my stripped_name]]
+      set link [$package_id pretty_link -lang $lang [my stripped_name]]
     } else {
       set css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
-      set link [export_vars -base [$package_id package_url] \
-                    {{edit-new 1} object_type name last_page_id}]
+      set link [$package_id make_link $package_id \
+                    edit-new object_type name last_page_id]
+
+      #set link [export_vars -base [$package_id package_url] \
+      #              {{edit-new 1} object_type name last_page_id}]
     }
-    $page lappend lang_links \
-        "<a href='$link'><img class='$css_class' style='height='12' \
+    if {$link ne ""} {
+      $page lappend lang_links($css_class) \
+          "<a href='$link'><img class='$css_class' \
                 src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
+    }
     return ""
   }
 

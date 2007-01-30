@@ -40,8 +40,8 @@ namespace eval ::xowiki {
     set references [my references]
     #my log "--after references = <$references>"
 
-    # export title, text, and lang_links to current scope
-    my instvar title name text lang_links
+    # export title, name and text into current scope
+    my instvar title name text
 
     set tags ""
     set no_tags 1
@@ -180,6 +180,20 @@ namespace eval ::xowiki {
       set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
       set save_tag_link [$package_id make_link [self] save-tags]
       set popular_tags_link [$package_id make_link [self] popular-tags]
+      set create_in_req_locale_link ""
+      if {[$package_id get_parameter use_connection_locale 0]} {
+        $package_id get_name_and_lang_from_path \
+            [$package_id set object] req_lang req_local_name
+        set l [Link create new \
+                   -page [self] -type language -stripped_name $req_local_name \
+                   -name ${req_lang}:$req_local_name -lang $req_lang \
+                   -label $req_local_name -folder_id $folder_id \
+                   -package_id $package_id]
+      }
+
+      foreach i [my array names lang_links] {
+        set lang_links($i) [join [my set lang_links($i)] ", "]
+      }
 
       my log "--after context delete_link=$delete_link "
       set template [$folder_id get_payload template]
@@ -209,6 +223,7 @@ namespace eval ::xowiki {
           content references lang_links package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           tags no_tags tags_with_links save_tag_link popular_tags_link 
+          create_in_req_locale_link req_lang
           per_object_categories_with_links 
           digg_link delicious_link my_yahoo_link
           gc_link gc_comments notification_subscribe_link notification_image 
