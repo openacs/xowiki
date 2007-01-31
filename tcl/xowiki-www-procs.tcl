@@ -184,12 +184,16 @@ namespace eval ::xowiki {
       if {[$package_id get_parameter use_connection_locale 0]} {
         $package_id get_name_and_lang_from_path \
             [$package_id set object] req_lang req_local_name
-        Link create new -destroy_on_cleanup \
-            -page [self] -type language -stripped_name $req_local_name \
-            -name ${req_lang}:$req_local_name -lang $req_lang \
-            -label $req_local_name -folder_id $folder_id \
-            -package_id $package_id \
-            -init -render
+        set default_lang [$package_id default_language]
+        if {$req_lang ne $default_lang} {
+          set l [Link create new -destroy_on_cleanup \
+                     -page [self] -type language -stripped_name $req_local_name \
+                     -name ${default_lang}:$req_local_name -lang $default_lang \
+                     -label $req_local_name -folder_id $folder_id \
+                     -package_id $package_id -init \
+                     -return_only undefined]
+          $l render
+        }
       }
 
       foreach i [my array names lang_links] {

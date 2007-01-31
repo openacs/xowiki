@@ -13,7 +13,7 @@ namespace eval ::xowiki {
   #
 
   Class create Link -parameter {
-    type name lang stripped_name label page
+    type name lang stripped_name label page 
     folder_id package_id
   }
   Link instproc init {} {
@@ -81,7 +81,9 @@ namespace eval ::xowiki {
   # language links
   #
 
-  Class create ::xowiki::Link::language -superclass ::xowiki::Link
+  Class create ::xowiki::Link::language -superclass ::xowiki::Link -parameter {
+    return_only
+  }
   ::xowiki::Link::language instproc render {} {
     set page [my page]
     my instvar lang name package_id
@@ -95,11 +97,11 @@ namespace eval ::xowiki {
       set object_type  [[$page info class] set object_type]
       set link [$package_id make_link $package_id \
                     edit-new object_type name last_page_id]
-
-      #set link [export_vars -base [$package_id package_url] \
-      #              {{edit-new 1} object_type name last_page_id}]
     }
-    my log "--lang_link=$link"
+    # my log "--lang_link=$link"
+    if {[my exists return_only] && [my return_only] ne $css_class} {
+      set link ""
+    }
     if {$link ne ""} {
       $page lappend lang_links($css_class) \
           "<a href='$link'><img class='$css_class' \

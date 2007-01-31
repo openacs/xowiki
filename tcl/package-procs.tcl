@@ -91,8 +91,21 @@ namespace eval ::xowiki {
     revisions 1 
     view-default view-links view-plain oacs-view
   }
-  Package instproc pretty_link {
-      {-anchor ""} {-absolute:boolean false} {-lang ""} name 
+
+  Package ad_instproc pretty_link {
+    {-anchor ""} 
+    {-absolute:boolean false} 
+    {-lang ""} 
+    name 
+  } {
+    Generate a (minimal) link to a wiki page with the specified name.
+    Pratically all links in the xowiki systems are generated through this
+    function. 
+
+    @param anchor anchor to be added to the link
+    @param absolute make an absolute link (including protocol and host)
+    @param lang use the specified 2 character language code (rather than computing the value)
+    @param name name of the wiki page
   } {
     #my log "--u name=<$name>"
     set default_lang [my default_language]
@@ -112,7 +125,9 @@ namespace eval ::xowiki {
       # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    if {$lang ne $default_lang || [[self class] exists www-file($name)]} {
+    set no_language 1
+    if {!$no_language &&
+        ($lang ne $default_lang || [[self class] exists www-file($name)])} {
       return ${host}${package_prefix}${lang}/[ad_urlencode $name]$anchor
     } else {
       return ${host}${package_prefix}[ad_urlencode $name]$anchor
