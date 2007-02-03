@@ -107,7 +107,7 @@ namespace eval ::xowiki {
     @param lang use the specified 2 character language code (rather than computing the value)
     @param name name of the wiki page
   } {
-    #my log "--u name=<$name>"
+    #my log "--u name=<$name> // lang=$lang"
     set default_lang [my default_language]
     if {$lang eq ""} {
       if {![regexp {^(..):(.*)$} $name _ lang name]} {
@@ -125,9 +125,7 @@ namespace eval ::xowiki {
       # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    set no_language 1
-    if {!$no_language &&
-        ($lang ne $default_lang || [[self class] exists www-file($name)])} {
+    if {$lang ne $default_lang || [[self class] exists www-file($name)]} {
       return ${host}${package_prefix}${lang}/[ad_urlencode $name]$anchor
     } else {
       return ${host}${package_prefix}[ad_urlencode $name]$anchor
@@ -282,7 +280,7 @@ namespace eval ::xowiki {
     }
 
 
-    my log "--W object='$stripped_object'"
+    #my log "--W object='$stripped_object'"
     set fn [get_server_root]/packages/xowiki/www/prototypes/$stripped_object.page
     if {[file readable $fn]} {
       # create from default page
@@ -306,6 +304,7 @@ namespace eval ::xowiki {
 
   Package instproc call {object method} {
     my instvar policy
+    #my log "--call check_permissions $object $method -> [$policy check_permissions $object $method]"
     if {[$policy check_permissions $object $method]} {
       #my log "--p calling $object ([$object info class]) '$method'"
       $object $method
@@ -559,7 +558,7 @@ namespace eval ::xowiki {
           }
         }
         set id [$object set $attribute]
-        #my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
+        my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
         return [::xo::cc permission -object_id $id -privilege $privilege \
                     -party_id [xo::cc user_id]]
       }
@@ -568,7 +567,7 @@ namespace eval ::xowiki {
   }
 
   Policy instproc check_permissions {object method} {
-    #my log "--p check_permissions {$object $method}"
+    # my log "--p check_permissions {$object $method}"
     set allowed 0
     foreach class [concat [$object info class] [[$object info class] info heritage]] {
       set c [self]::[namespace tail $class]
@@ -576,7 +575,7 @@ namespace eval ::xowiki {
       set key require_permission($method)
       if {[$c exists $key]} {
         set permission [$c set $key]
-        #my log "--p checking $permission for $c $key"
+        # my log "--p checking $permission for $c $key"
         switch $permission {
           none  {set allowed 1; break}
           login {auth::require_login; set allowed 1; break}
@@ -590,7 +589,7 @@ namespace eval ::xowiki {
           }
           default {
             foreach cond_permission $permission {
-              my log "--c check $cond_permission"
+              #my log "--c check $cond_permission"
               switch [llength $cond_permission] {
                 3 {foreach {condition attribute privilege} $cond_permission break
                   if {[eval $object condition $method $condition]} break
@@ -601,7 +600,7 @@ namespace eval ::xowiki {
               }
             }
             set id [$object set $attribute]
-            #my log "--p require_permission -object_id $id -privilege $privilege"
+            # my log "--p ::xo::cc permission -object_id $id -privilege $privilege"
             set p [::xo::cc permission -object_id $id -privilege $privilege]
             if {!$p} {
               ns_log notice "permission::require_permission: [::xo::cc user_id] doesn't \
