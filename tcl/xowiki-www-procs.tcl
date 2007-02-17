@@ -63,7 +63,8 @@ namespace eval ::xowiki {
     #my log "--after tags"
 
     ### this was added by dave to address a problem with notifications
-    set return_url [ad_return_url]
+    ### however, this does not work, when e.g. a page is renamed.
+    #set return_url [ad_return_url]
 
     if {[my exists_query_parameter return_url]} {
       set return_url [my query_parameter return_url]
@@ -286,7 +287,7 @@ namespace eval ::xowiki {
     } else {
       set submit_link $myurl
     }
-    #my log "--u sumit_link=$submit_link qp=[my query_parameter return_url]"
+    #my log "--u my-url=$myurl, sumit_link=$submit_link qp=[my query_parameter return_url]"
 
     # we have to do template mangling here; ad_form_template writes form 
     # variables into the actual parselevel, so we have to be in our
