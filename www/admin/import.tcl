@@ -33,7 +33,7 @@ ad_form \
       if {[catch {namespace eval ::xo::import $content} error]} {
         set msg "Error: $error"
       } else {
-        set msg [::xowiki::Page import -replace 0]
+        set msg [$package_id import -replace 0]
       }
       namespace delete ::xo::import
     }

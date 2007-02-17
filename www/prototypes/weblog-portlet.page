@@ -29,7 +29,7 @@
     append content "<DIV class='post' style='clear: both;'>" \
         "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
-        "last modfified by [::xo::get_user_name $creation_user] " \
+        "last modified by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
         $description $more \n\
         "</DIV>"

@@ -41,6 +41,19 @@ namespace eval ::xowiki {
     return $page
   }
 
+  Package ad_proc instances {{-include_unmounted false}} {
+    @return list of package_ids of xowiki instances
+  } {
+    if {$include_unmounted} {
+      return [db_list get_xowiki_packages {select package_id \
+        from apm_packages where package_key = 'xowiki'}]
+    } else {
+      return [db_list get_mounted_packages {select package_id \
+        from apm_packages p, site_nodes s  \
+        where package_key = 'xowiki' and s.object_id = p.package_id}]
+    }
+  }
+
   Package ad_proc get_url_from_id {{-item_id 0} {-revision_id 0}} {
     Get the full URL from a page in situations, where the context is not set up.
     @see instantiate_page_from_id
@@ -453,6 +466,12 @@ namespace eval ::xowiki {
   }
 
 
+
+  ###############################################################
+  #
+  # user callable methods
+  #
+
   Package ad_instproc reindex {} {
     reindex all items of this package
   } {
@@ -467,20 +486,296 @@ namespace eval ::xowiki {
     }
   }
 
-  # the following three functions should be moved form page-proc to here 
-  Package instproc rss {} {
-    my instvar id
-    set cmd [list ::xowiki::Page rss -package_id $id]
-    if {[regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
-      lappend cmd -days $days
+  #
+  # Package import
+  #
+
+  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects} {
+    import the specified pages into the xowiki instance
+  } {
+    set package_id [my id]
+    if {![info exists folder_id]}  {set folder_id  [my folder_id]}
+    if {![info exists user_id]}    {set user_id    [::xo::cc user_id]}
+    if {![info exists objects]}    {set objects    [::xowiki::Page allinstances]}
+
+    set msg "processing objects: $objects<p>"
+    set added 0
+    set replaced 0
+    set updated 0
+    array set excluded_var {
+      folder_id 1 package_id 1 absolute_links 1 lang_links 1 
+      publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
     }
-    eval $cmd
+    foreach o $objects {
+      $o set parent_id $folder_id
+      $o set package_id $package_id
+      $o set creation_user $user_id
+      # page instances have references to page templates, add these first
+      if {[$o istype ::xowiki::PageInstance]} continue
+      set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+      if {$item_id != 0} {
+	if {$replace} { ;# we delete the original
+	  ::Generic::CrItem delete -item_id $item_id
+	  set item_id 0
+	  incr replaced
+	} else {
+	  ::Generic::CrItem instantiate -item_id $item_id
+	  foreach var [$o info vars] {
+	    if {![info exists excluded_var($var)]} {
+	      $item_id set $var [$o set $var]
+	    }
+	  }
+	  $item_id save
+	  incr updated
+	}
+      }
+      if {$item_id == 0} {
+        $o save_new
+        incr added
+      }
+    }
+
+    foreach o $objects {
+      if {[$o istype ::xowiki::PageInstance]} {
+        db_transaction {
+          set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+          if {$item_id != 0} {
+	    if {$replace} { ;# we delete the original
+	      ::Generic::CrItem delete -item_id $item_id
+	      set item_id 0
+	      incr replaced
+	    } else {
+	      ::Generic::CrItem instantiate -item_id $item_id
+	      foreach var [$o info vars] {
+		if {![info exists excluded_var($var)]} {
+		  $item_id set $var [$o set $var]
+		}
+	      }
+	      $item_id save
+	      incr updated
+	    }
+	  }
+	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
+            set old_template_id [$o set page_template]
+            set template [CrItem lookup \
+                              -name [$old_template_id set name] \
+                              -parent_id $folder_id]
+            $o set page_template $template
+            $o save_new
+            incr added
+          }
+        }
+      }
+      $o destroy
+    }
+    append msg "$added objects newly inserted, $updated object updated, $replaced objects replaced<p>"
   }
-  Package instproc google-sitemap {} {
-    my instvar id
-    ::xowiki::Page [self proc] -package_id $id
+
+  #
+  # RSS 2.0 support
+  #
+
+  Package instproc rss_head {
+    -channel_title
+    -link
+    -description
+    {-language en-us}
+  } {
+#<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
+    return "<?xml version='1.0' encoding='utf-8'?>
+<rss version='2.0'
+  xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
+  xmlns:dc='http://purl.org/dc/elements/1.1/'>
+<channel>
+  <title>$channel_title</title>
+  <link>$link</link>
+  <description>$description</description>
+  <language>$language</language>
+  <generator>xowiki</generator>"
   }
+
+  Package instproc rss_item {-creator -title -link -guid -description -pubdate } {
+    append result <item> \n\
+        <dc:creator> $creator </dc:creator> \n\
+        <title> $title </title> \n\
+        <link> $link </link> \n\
+        "<guid isPermaLink='false'>" $guid </guid> \n\
+        <description> $description </description> \n\
+        <pubDate> $pubdate </pubDate> \n\
+        </item> \n
+  }
+  
+  Package instproc rss_tail {} {
+    return  "\n</channel>\n</rss>\n"
+  }
+  
+  Package ad_instproc rss {
+    -maxentries
+    -days 
+  } {
+    Report content of xowiki folder in rss 2.0 format. The
+    reporting order is descending by date. The title of the feed
+    is taken from the title, the description
+    is taken from the description field of the folder object.
+    
+    @param maxentries maximum number of entries retrieved
+    @param days report entries changed in speficied last days
+    
+  } {
+    set package_id [my id]
+    set folder_id [::$package_id folder_id]
+
+    if {![info exists days] && 
+        [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
+      # setting the variable days
+    }
+   
+    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
+    set timerange_clause [expr {[info exists days] ? 
+                                " and p.last_modified > (now() + interval '$days days ago')" : ""}]
+
+    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
+    
+    set content [my rss_head \
+                     -channel_title [string map $xmlMap [::$folder_id set title ]] \
+                     -description   [string map $xmlMap [::$folder_id set description]] \
+                     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
+                    ]
+    
+    db_foreach get_pages \
+        "select s.body, p.name, p.creator, p.title, p.page_id,\
+                p.object_type as content_type, p.last_modified, p.description  \
+        from xowiki_pagex p, syndication s, cr_items i  \
+        where i.parent_id = $folder_id and i.live_revision = s.object_id \
+                and s.object_id = p.page_id $timerange_clause \
+        order by p.last_modified desc $limit_clause \
+        " {
+          
+          if {[string match "::*" $name]} continue
+          if {$content_type eq "::xowiki::PageTemplate::"} continue
+
+          set description [string trim $description]
+          if {$description eq ""} {set description $body}
+          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+          
+          if {$title eq ""} {set title $name}
+          #append title " ($content_type)"
+          set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+          append content [my rss_item \
+                              -creator [string map $xmlMap $creator] \
+                              -title [string map $xmlMap $title] \
+                              -link [::$package_id pretty_link -absolute true $name] \
+                              -guid [ad_url]/$page_id \
+                              -description [string map $xmlMap $description] \
+                              -pubdate $time \
+                             ]
+        }
+    
+    append content [my rss_tail]
+    #set t text/plain
+    set t text/xml
+    ns_return 200 $t $content
+  }
+
+  #
+  # Google sitemap support
+  #
+
+  Package ad_instproc google-sitemap {
+    -maxentries
+
+    {-changefreq "daily"}
+    {-priority "0.5"}
+  } {
+    Report content of xowiki folder in google site map format
+    https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
+    
+    @param maxentries maximum number of entries retrieved
+    @param package_id to determine the xowiki instance
+    @param changefreq changefreq as defined by google
+    @param priority priority as defined by google
+    
+  } {
+    set package_id [my id]
+    set folder_id [::$package_id folder_id]
+   
+    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
+    set timerange_clause ""
+    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
+    
+    set content {<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">
+}
+    db_foreach get_pages \
+        "select s.body, p.name, p.creator, p.title, p.page_id,\
+                p.object_type as content_type, p.last_modified, p.description  \
+        from xowiki_pagex p, syndication s, cr_items i  \
+        where i.parent_id = $folder_id and i.live_revision = s.object_id \
+                and s.object_id = p.page_id $timerange_clause \
+        order by p.last_modified desc $limit_clause \
+        " {
+          my log "--found $name"
+          if {[string match "::*" $name]} continue
+          if {$content_type eq "::xowiki::PageTemplate::"} continue
+
+          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+          
+          set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+          append content <url> \n\
+              <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
+              <lastmod>$time</lastmod> \n\
+              <changefreq>$changefreq</changefreq> \n\
+              <priority>$priority</priority> \n\
+              </url> \n
+        }
+    
+    append content </urlset> \n
+    set t text/plain
+    #set t text/xml
+    ns_return 200 $t $content
+  }
+
+  Package ad_proc google-sitemapindex {
+    {-changefreq "daily"}
+    {-priority "priority"}
+  } {
+    Provide a sitemap index of all xowiki instances in google site map format
+    https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
+    
+    @param maxentries maximum number of entries retrieved
+    @param package_id to determine the xowiki instance
+    @param changefreq changefreq as defined by google
+    @param priority priority as defined by google
+    
+  } {
+  
+    set content {<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
+}
+    foreach package_id  [::xowiki::Package instances] {
+      set last_modified [db_string get_newest_modification_date \
+                             "select last_modified from acs_objects where package_id = $package_id \
+		order by last_modified desc limit 1"]
+
+      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+
+      my log "--site_node::get_from_object_id -object_id $package_id"
+      array set info [site_node::get_from_object_id -object_id $package_id]
+
+      append content <sitemap> \n\
+          <loc>[ad_url]$info(url)?google-sitemap</loc> \n\
+          <lastmod>$time</lastmod> \n\
+          </sitemap> 
+    }
+    append content </urlset> \n
+    set t text/plain
+    #set t text/xml
+    ns_return 200 $t $content
+  }
+
   Package instproc google-sitemapindex {} {
+    # deprecated
     ::xowiki::Page [self proc]
   }
 
@@ -496,16 +791,15 @@ namespace eval ::xowiki {
     my instvar folder_id id
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
-      my log "--D item_id from query parameter $item_id"
+      #my log "--D item_id from query parameter $item_id"
       set name    [my query_parameter name]
     }
     if {$item_id ne ""} {
-      my log "--D trying to delete $item_id $name"
+      #my log "--D trying to delete $item_id $name"
       ::Generic::CrItem delete -item_id $item_id
-      #ns_cache flush xotcl_object_cache ::$item_id;;; done by generic
-      # we should probably flush as well cached revisions
+
       if {$name eq "::$folder_id"} {
-        my log "--D deleting folder object ::$folder_id"
+        #my log "--D deleting folder object ::$folder_id"
         ns_cache flush xotcl_object_cache ::$folder_id
         ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
         ::$folder_id destroy
@@ -517,6 +811,10 @@ namespace eval ::xowiki {
     }
     my returnredirect [my query_parameter "return_url" [$id package_url]]
   }
+
+  #
+  # policy management
+  #
 
   Package instproc condition {method attr value} {
     switch $attr {

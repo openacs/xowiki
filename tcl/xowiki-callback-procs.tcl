@@ -106,7 +106,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to 0.22"
       set folder_ids [list]
       set package_ids [list]
-      db_foreach get_xowiki_packages {select package_id from apm_packages where package_key = 'xowiki'} {
+      foreach package_id [::xowiki::Package instances] {
         set folder_id [db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
         if {$folder_id ne ""} {
@@ -133,8 +133,7 @@ namespace eval ::xowiki {
         contract_name FtsContentProvider
         owner xowiki
       }
-#       foreach pkgid [site_node::get_children -package_key xowiki -all \
-#                        -node_id 0 -element package_id] {
+#      foreach pkgid [::xowiki::Package instances] {
 #       ::xowiki::Page reindex -package_id $pkgid
 #       }
     }
@@ -177,8 +176,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to 0.31"
       set folder_ids [list]
       set package_ids [list]
-      set package_ids [db_list get_xowiki_packages {select package_id from apm_packages where package_key = 'xowiki'}]
-      foreach package_id $package_ids {
+      foreach package_id [::xowiki::Package instances] {
         set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
         if {$folder_id ne ""} {
@@ -233,9 +231,7 @@ namespace eval ::xowiki {
   } {
     set folder_ids [list]
     set package_ids [list]
-    set package_ids [db_list get_xowiki_packages \
-                         {select package_id from apm_packages where package_key = 'xowiki'}]
-    foreach package_id $package_ids {
+    foreach package_id [::xowiki::Package instances] {
       ns_log notice "checking package_id $package_id"
       set folder_id [db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
