@@ -413,7 +413,6 @@ namespace eval ::xowiki {
     #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
     my log "-- submit_link = [my submit_link]"
-    ns_log notice "-- submit_link = [my submit_link]"
   }
 
   PageInstanceForm instproc new_data {} {

@@ -347,7 +347,7 @@ namespace eval ::xowiki {
         my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name
         set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
-        my log "--try $name -> $item_id"
+        my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
         if {$item_id == 0 && $lang eq "file"} {
           set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
           my log "--try image:$local_name -> $item_id"
