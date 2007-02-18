@@ -714,7 +714,7 @@ namespace eval ::xowiki {
                 and s.object_id = p.page_id $timerange_clause \
         order by p.last_modified desc $limit_clause \
         " {
-          my log "--found $name"
+          #my log "--found $name"
           if {[string match "::*" $name]} continue
           if {$content_type eq "::xowiki::PageTemplate::"} continue
 
@@ -730,8 +730,8 @@ namespace eval ::xowiki {
         }
     
     append content </urlset> \n
-    set t text/plain
-    #set t text/xml
+    #set t text/plain
+    set t text/xml
     ns_return 200 $t $content
   }
 
@@ -760,7 +760,7 @@ namespace eval ::xowiki {
       regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
 
-      my log "--site_node::get_from_object_id -object_id $package_id"
+      #my log "--site_node::get_from_object_id -object_id $package_id"
       array set info [site_node::get_from_object_id -object_id $package_id]
 
       append content <sitemap> \n\
@@ -768,9 +768,9 @@ namespace eval ::xowiki {
           <lastmod>$time</lastmod> \n\
           </sitemap> 
     }
-    append content </urlset> \n
-    set t text/plain
-    #set t text/xml
+    append content </sitemapindex> \n
+    #set t text/plain
+    set t text/xml
     ns_return 200 $t $content
   }
 
