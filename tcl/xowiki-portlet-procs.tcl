@@ -102,9 +102,12 @@ namespace eval ::xowiki::portlet {
     # use "span" to specify parameters to the rss call
     my initialize -parameter {
       {-span "10d"}
+      {-name_filter}
+      {-title}
     }
     my get_parameters
-    return "<a href='[$package_id package_url]?rss=$span' class='rss'>RSS</a>"
+    set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title}]
+    return "<a href=\"$href \" class='rss'>RSS</a>"
   }
 
   #############################################################################
@@ -653,7 +656,7 @@ namespace eval ::xowiki::portlet {
       }
       set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
       set refvar [expr {[my set ajax] ? "ref" : "href"}]
-      my log "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};"
+      #my log "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};"
       append js \
 	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
 	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n" \
@@ -662,7 +665,7 @@ namespace eval ::xowiki::portlet {
 
     }
     set navigation(count) $node_cnt
-    my log "--COUNT=$node_cnt"
+    #my log "--COUNT=$node_cnt"
     return $js
   }
 

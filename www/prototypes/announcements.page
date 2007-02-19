@@ -1,46 +1,51 @@
 # -*- tcl-*-
 # $Id$
-::xowiki::Object new -title "Weblog" -text {
+::xowiki::Object new -title "Announcements" -text {
   #
-  # A sample Weblog object.
+  # A sample Announcements object.
   #
   my initialize -parameter {
     {-page_size:integer 10}
     {-page_number:integer 1}
     {-summary:boolean 0}
+    {-name_filter {:(0|1|2|3|4|5|6|7|8|9)}}
     {-date ""}
     {-tag ""}
     {-ptag ""}
   }
+  
+  # The name filter is not the most efficient way of selecting
+  # autonamed entries. However, most times the number of announcements items 
+  # is not overwhelming, so we can live with that for the time being. 
+  # TODO: more efficient selection of autonamed entries
 
   #
   # The following definition is the default rendering per 
-  # weblog entry. This is executed in the context of every displayed page.
+  # announcements entry. This is executed in the context of every displayed page.
   #
   Class create EntryRenderer -instproc render {} {
-    my instvar package_id name title creator creation_user pretty_date description 
+    my instvar package_id name title creator creation_user pretty_date description publish_date
     [my set __parent] instvar weblog_obj
 
     set link [::$package_id pretty_link $name]
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
+    set day [lc_time_fmt [my set publish_date] "%x"]
 
-    append content "<DIV class='post' style='clear: both;'>" \
-        "<h2><a href='$link'>$title</a></h2>" \
-        "<p class='auth'>Created by $creator, " \
-        "last modified by [::xo::get_user_name $creation_user] " \
-        "<span class='date'>$pretty_date</span></p>" \
-        $description $more \n\
-        "</DIV>"
+    append content "<DIV class='announcements' style='clear: both;'>" \
+      "<h2 style='display: inline;'><a href='$link'>$title</a></h2>" \
+      "&nbsp;<span class='date'>($day)</span><br/> " \
+      $description $more \n\
+      "</DIV>"
   }
 
   #
   # The following definition is the renderer for the full weblog.
   # This is executed in the context of the whole weblog object
   #
-  Class create WeblogRenderer -instproc render {} {
-    my instvar filter_msg link name prev_page_link next_page_link 
+  Class create AnnouncementsRenderer -instproc render {} {
+    my instvar filter_msg link name prev_page_link next_page_link name_filter title
 
     set filter ""
     set prev ""
@@ -59,7 +64,11 @@
         <img border=0 src='/resources/acs-subsite/right.gif' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
-    return "<div class='weblog'> $filter [next] $prev $next </div>"
+    set page [my set __page]
+    set rss [$page include_portlet \
+       "rss-button -name_filter {$name_filter} -title {[$page title]}"]
+    #set rss [list [self] [lsort [my info vars]]]
+    return "<div class='weblog'> $filter [next] $prev $next <br>$rss</div>"
   }
   
   my proc content {} {
@@ -76,15 +85,12 @@
       set exclude_item_ids [$page item_id]
     }
 
-    # on the weblog-portlet page, an edit-new should not create an object
+    # on the announcements page, an edit-new should not create an object
     ::xo::cc set_parameter object_type ::xowiki::Page
+    ::xo::cc set_parameter autoname 1
 
-    # the default renderer
-    #set renderer       ::xowiki::Weblog::WeblogRenderer
-    #set entry_renderer ::xowiki::Weblog::EntryRenderer
-
-    # the above custom renderers
-    set renderer       [self]::WeblogRenderer
+    # use the above defined custom renderers
+    set renderer       [self]::AnnouncementsRenderer
     set entry_renderer [self]::EntryRenderer 
     
     set w [::xowiki::Weblog new -destroy_on_cleanup \
@@ -96,10 +102,12 @@
                -category_id [ns_queryget category_id] \
                -tag $tag \
                -ptag $ptag \
+               -name_filter $name_filter \
+               -entry_label "Announcements" \
                -exclude_item_ids $exclude_item_ids \
                -entry_renderer $entry_renderer \
               ]
-
+    $w set __page $page
     $w mixin add $renderer
     return [$w render]
   }

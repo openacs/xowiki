@@ -153,8 +153,15 @@ namespace eval ::xowiki {
     #my proc destroy {} {my log "--P "; next}
   }
 
-  Package instproc get_parameter {attribute {default ""}} {
+  Package ad_instproc get_parameter {attribute {default ""}} {
+    resolves configurable parameters according to the following precedence:
+    (1) values specifically set per page {{set-parameter ...}}
+    (2) query parameter
+    (3) per instance parameters from the folder object (computable)
+    (4) standard OpenACS package parameter
+  } {
     set value [::xo::cc get_parameter $attribute]
+    if {$value eq ""} {set value [my query_parameter $attribute]}
     if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
     if {$value eq ""} {set value [next]}
     return $value
@@ -257,6 +264,12 @@ namespace eval ::xowiki {
         }
       }
     }
+    if {[string match //* $object]} {
+      # we have a reference to another instance, we cant resolve this from this package.
+      # Report back not found
+      return ""
+    }
+
     #my log "--o object is '$object'"
     if {$object eq ""} {
       # we have no object, but as well no method callable on the package
@@ -476,9 +489,9 @@ namespace eval ::xowiki {
     reindex all items of this package
   } {
     my instvar folder_id
-    set pages [db_list get_pages "select page_id from xowiki_page, cr_revisions r, cr_items i \
-      where page_id = r.revision_id and i.item_id = r.item_id and i.parent_id = $folder_id \
-      and i.live_revision = page_id"]
+    set pages [db_list get_pages "select page_id from xowiki_page, cr_revisions r, cr_items ci \
+      where page_id = r.revision_id and ci.item_id = r.item_id and ci.parent_id = $folder_id \
+      and ci.live_revision = page_id"]
     #my log "--reindex returns <$pages>"
     foreach page_id $pages {
       #search::queue -object_id $page_id -event DELETE
@@ -611,6 +624,8 @@ namespace eval ::xowiki {
   
   Package ad_instproc rss {
     -maxentries
+    -name_filter
+    -title
     -days 
   } {
     Report content of xowiki folder in rss 2.0 format. The
@@ -624,12 +639,26 @@ namespace eval ::xowiki {
   } {
     set package_id [my id]
     set folder_id [::$package_id folder_id]
+    set extra_where_clause ""
 
     if {![info exists days] && 
         [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
       # setting the variable days
     }
-   
+    if {![info exists namefilter]} {
+      set name_filter  [my get_parameter name_filter ""]
+    }
+    if {$name_filter ne ""} {
+      append extra_where_clause "and ci.name ~ E'$name_filter' "
+    }
+    if {![info exists title]} {
+      set title [my get_parameter title ""]
+      if {$title eq ""} {
+        set title [::$folder_id set title]
+      }
+    }
+    my log "--rss: title=$title"
+
     set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
     set timerange_clause [expr {[info exists days] ? 
                                 " and p.last_modified > (now() + interval '$days days ago')" : ""}]
@@ -637,7 +666,7 @@ namespace eval ::xowiki {
     set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
     
     set content [my rss_head \
-                     -channel_title [string map $xmlMap [::$folder_id set title ]] \
+                     -channel_title [string map $xmlMap $title] \
                      -description   [string map $xmlMap [::$folder_id set description]] \
                      -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
                     ]
@@ -645,8 +674,9 @@ namespace eval ::xowiki {
     db_foreach get_pages \
         "select s.body, p.name, p.creator, p.title, p.page_id,\
                 p.object_type as content_type, p.last_modified, p.description  \
-        from xowiki_pagex p, syndication s, cr_items i  \
-        where i.parent_id = $folder_id and i.live_revision = s.object_id \
+        from xowiki_pagex p, syndication s, cr_items ci  \
+        where ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+                and ci.publish_status <> 'production' $extra_where_clause \
                 and s.object_id = p.page_id $timerange_clause \
         order by p.last_modified desc $limit_clause \
         " {
@@ -709,9 +739,9 @@ namespace eval ::xowiki {
     db_foreach get_pages \
         "select s.body, p.name, p.creator, p.title, p.page_id,\
                 p.object_type as content_type, p.last_modified, p.description  \
-        from xowiki_pagex p, syndication s, cr_items i  \
-        where i.parent_id = $folder_id and i.live_revision = s.object_id \
-                and s.object_id = p.page_id $timerange_clause \
+        from xowiki_pagex p, syndication s, cr_items ci  \
+        where ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+              and s.object_id = p.page_id $timerange_clause \
         order by p.last_modified desc $limit_clause \
         " {
           #my log "--found $name"
@@ -782,7 +812,7 @@ namespace eval ::xowiki {
   Package instproc edit-new {} {
     my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
-    set autoname [my query_parameter autoname 0]
+    set autoname [my get_parameter autoname 0]
     set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
     return [$page edit -new true -autoname $autoname]
   }

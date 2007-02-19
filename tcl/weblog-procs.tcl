@@ -12,6 +12,8 @@ namespace eval ::xowiki {
     ptag
     category_id
     filter_msg
+    {name_filter ""}
+    {entry_label "Postings"}
     {exclude_item_ids 0}
     {summary false}
     {entry_renderer ::xowiki::Weblog::Entry}
@@ -19,7 +21,8 @@ namespace eval ::xowiki {
   
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
-    my instvar date category_id tag ptag page_number page_size summary items
+    my instvar date category_id tag ptag page_number page_size summary items 
+    my instvar name_filter entry_label
     
     my log "--W starting"
     set folder_id [::$package_id set folder_id]
@@ -62,6 +65,9 @@ namespace eval ::xowiki {
       append extra_from_clause ",xowiki_tags tags "
       append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :ptag " 
       set query_parm "&ptag=[ad_urlencode $ptag]"
+    }
+    if {$name_filter ne ""} {
+      append extra_where_clause "and ci.name ~ E'$name_filter' "
     }
     
     # create an item container, which delegates rendering to its chidlren
@@ -116,6 +122,8 @@ namespace eval ::xowiki {
         }
       }
       $p set pretty_date $pretty_date
+      $p set publish_date $publish_date
+      my log "--W setting $p set publish_date $publish_date"
       #$p proc destroy {} {my log "--Render temporal object destroyed"; next}
       #ns_log notice "--W Render object $p DONE $page_id $name $title "
 
@@ -131,9 +139,9 @@ namespace eval ::xowiki {
     set range [expr {$nr > 1 ? "$from - $to" : $from}]
     
     if {$filter_msg ne ""} {
-      append filter_msg ", $range of $nr_items Postings (<a href='[::xo::cc url]'>all</a>, $flink)"
+      append filter_msg ", $range of $nr_items $entry_label (<a href='[::xo::cc url]'>all</a>, $flink)"
     } else {
-      append filter_msg "Showing $range of $nr_items Postings ($flink)"
+      append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
     }
     
     set next_p [expr {$nr_items > $page_number*$page_size}]

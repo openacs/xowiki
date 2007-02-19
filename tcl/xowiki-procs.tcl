@@ -301,7 +301,10 @@ namespace eval ::xowiki {
   }
 
   Page instproc include_portlet {arg} {
-    my instvar package_id
+    # we want to use package_id as proc-local variable, since the 
+    # cross package reference might alter it locally
+    set package_id [my package_id]
+
     # do we have a wellformed list?
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
       #my log "--S arg='$arg'"
@@ -321,6 +324,15 @@ namespace eval ::xowiki {
     } else {
       # we include a wiki page, tailorable
       set page [$package_id resolve_page $page_name __m]
+      if {[regexp {^/(/[^?]*)[?]?(.*)$} $page_name _ url query]} {
+        # here we handle cross package xowiki includes
+        ::xowiki::Package initialize -parameter {{-m view}} -url $url \
+            -actual_query $query
+        if {$package_id != 0} {
+          set page [$package_id resolve_page [$package_id set object] __m]
+        }
+        #my log "--resolve --> $page"
+      }
       catch {$page set __decoration portlet}
     }
 

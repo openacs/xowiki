@@ -50,12 +50,16 @@ namespace eval ::xowiki {
         {autoname 0}
       }
 
+  WikiForm instproc show_page_order {} {
+    my instvar data
+    return [expr {[::xo::db::has_ltree] && [[$data package_id] get_parameter display_page_order 1]}]
+  }
 
   WikiForm instproc mkFields {} {
     my instvar data autoname
     set __fields ""
     set field_list [my field_list]
-    if {[::xo::db::has_ltree]} {set field_list [linsert $field_list 2 page_order]}
+    if {[my show_page_order]} {set field_list [linsert $field_list 2 page_order]}
     if {$autoname} {
       my f.name {name:text(hidden),optional}
     }
@@ -257,6 +261,7 @@ namespace eval ::xowiki {
   WikiForm instproc new_data {} {
     my instvar data
     my data_from_form -new 1 
+    $data set __autoname_prefix [string range [$data set nls_language] 0 1]:
     set item_id [next]
     $data set creation_user [ad_conn user_id]
     my update_references

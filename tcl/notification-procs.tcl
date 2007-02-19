@@ -85,7 +85,7 @@ namespace eval ::xowiki::notification {
     
     if {[$page set publish_status] eq "production"} {
       # don't do notification for pages under construction
-      ns_log notice "--n xowiki::notification NO NOTIFCATION XXX"
+      ns_log notice "--n xowiki::notification NO NOTIFCATION due to production state"
       return
     }
     

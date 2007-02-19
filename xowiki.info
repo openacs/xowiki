@@ -8,41 +8,108 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.45" url="http://openacs.org/repository/download/apm/xowiki-0.45.apm">
+    <version name="0.46" url="http://openacs.org/repository/download/apm/xowiki-0.46.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-01-30</release-date>
-        <description format="text/html">XoWiki is a wiki implementation for OpenACS in xotcl. Instead of trying to
-implement the full set of wiki markup commands of systems like MediaWiki,
-XoWiki is based on a rich text editor and focuses more on integration
-with oacs (e.g categories, general comments, adp-includes).  XoWiki
-combines aspects of wikis (ease of page-creation) with aspects of a
-content management system (revisions, re-usable items, multiple
-languages). Furthermore, XoWiki allows to define different types of links such
-one could define book-structures (where a navigation structure could be built on the fly) or glossaries with differnt kind of word relationships (like synonyms, etc.). XoWiki supports pages in multiple languages and is localized (currently only for English and German). Currently, richtext and plaintext type entries are supported. Included support for adp-substitution in wiki pages and a file-selector. 0.13  supports page templates and uses the new generic form interface. Use of the oo layer for the content repository, reduced number of database interactions.0.18 supports text/enhanced, nice page names, import/export. Support for search (::xowiki::Page and ::xowiki::PlainPage); 0.20 support ::xowiki::Object, directory object, rss generation into syndication table, improved admin pages; 0.21: ajax-ased chat added, new attributes creator and page_title for all xowiki::Pages; 0.22 improved permission checking. 0.24 provides link-types, more includeletes (most-recently viewed, most frequently accessed pages). 0.26 provides Weblog support. 0.27: alignment with xotcl-core 0.38 (use cr_item.name instead of cr_revisions.title), change page_title to title (potential incompatibility) to rely more strictly to the CR data model (most files are effected). 0.28: tag and improved weblog support. 0.30: symbolic oo interface, nicer links, permission management. 0.31: per package search. 0.32: new class ::xowiki::File for [[file:readme.pdf]] and [[image:picture.jpg]] 0.33: direct inclusion of xowiki pages via {{en:mypage}}, simpler default pages (see xowiki/www/default-pages). 0.34: notifications; 0.36: prototypes, direct includes, context handling; 0.37: initial reqression testing (118 tests); 
-0.38: production_mode, virtual presence, google-sitemap. 
-0.39: version diff, provide image properties in xowiki-pages, specify how links can be generated; 
-0.41: book-style (toc and book portlet, based on yui treeview), use language prefix to avoid clashes, ltree (for ordering)
-0.44: dotlrn portlet support
+        <release-date>2007-02-19</release-date>
+        <description format="text/html">&lt;pre&gt;
+XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
+trying to implement the full set of wiki markup commands of systems
+like MediaWiki, XoWiki is based on a rich text editor and focuses more
+on integration with OpenACS (e.g categories, general comments,
+ADP-includes). XoWiki combines aspects of wikis (ease of
+page-creation) with aspects of a content management system (revisions,
+re-usable items, multiple languages). Furthermore, XoWiki allows to
+define different types of links such one could define book-structures
+(where a navigation structure could be built on the fly) or glossaries
+with different kind of word relationships (like synonyms,
+etc.). XoWiki supports pages in multiple languages and is localized
+(currently only for English and German). Currently, rich-text and
+plaintext type entries are supported. Included support for
+ADP-substitution in wiki pages and a file-selector. 
 
-</description>
+0.13 supports page templates and uses the new generic form
+interface. Use of the OO layer for the content repository, reduced
+number of database interactions.
+
+0.18 supports text/enhanced, nice page names,
+import/export. Support for search (::xowiki::Page and
+::xowiki::PlainPage); 
+
+0.20 support ::xowiki::Object, directory object,
+RSS generation into syndication table, improved admin pages; 
+
+0.21: Ajax-based chat added, new attributes creator and page_title for
+all xowiki::Pages;
+
+0.22 improved permission checking. 
+
+0.24 provides link-types, more includeletes (most-recently viewed,
+most frequently accessed pages). 
+
+0.26 provides Weblog support.
+
+ 0.27: alignment with xotcl-core
+
+0.28 (use cr_item.name instead of cr_revisions.title), change
+page_title to title (potential incompatibility) to rely more strictly
+to the CR data model (most files are effected).
+
+0.29: tag and improved weblog support. 
+
+0.30:
+symbolic OO interface, nicer links, permission management. 
+
+0.31: per
+package search. 
+
+0.32: new class ::xowiki::File for [[file:readme.pdf]] and
+[[image:picture.jpg]]
+
+0.33: direct inclusion of XoWiki pages via {{en:mypage}}, simpler
+default pages (see xowiki/www/default-pages).
+
+0.34: notifications; 
+
+0.36: prototypes, direct includes, context handling;
+
+0.37: initial regression testing (118 tests);
+
+0.38: production_mode, virtual presence, google-sitemap.
+
+0.39: version diff, provide image properties in XoWiki-pages, specify
+how links can be generated;
+
+0.42: book-style (toc and book portlet, based on YUI treeview), use
+language prefix to avoid clashes, ltree (for ordering);
+
+0.43: support for views package
+
+0.44: DotLRN portlet support 
+
+0.45: auto-naming of pages 
+
+0.46: support for announcement style configuration
+&lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.45"/>
+        <provides url="xowiki" version="0.46"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.46"/>
+        <requires url="xotcl-core" version="0.47"/>
 
         <callbacks>
-            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-install"  proc="::xowiki::after-install"/>
+            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. This attribute can only be shown, when ltree is available." section_name="Form"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="When specified, a button for adding the content to myyahoo is added, containing the specified publisher" section_name="Options"/>
@@ -51,7 +118,7 @@ one could define book-structures (where a navigation structure could be built on
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="name of the adp file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_portlet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki portlet (defined in ::xowiki::portlet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki portlets."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, the connection locale (depending on the browser setting) is used to determine the default language, in which a page is presented, whenever possible. Users with different locales will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used as default." section_name="URL"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>

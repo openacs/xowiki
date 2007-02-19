@@ -72,12 +72,13 @@ namespace eval ::xowiki {
     
     if {[$package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
+        set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id \
                                    -short_name xowiki_notif]
         set notification_text "Subscribe the XoWiki instance"
         set notification_subscribe_link \
             [export_vars -base /notifications/request-new \
-                 {return_url 
+                 {{return_url $notifications_return_url}
                    {pretty_name $notification_text} 
                    {type_id $notification_type} 
                    {object_id $package_id}}]
@@ -99,7 +100,7 @@ namespace eval ::xowiki {
         if {[info exists notification_image]} {
           set notification_text "Subscribe category $category_name in tree $tree_name"
           set cat_notif_link [export_vars -base /notifications/request-new \
-                                  {return_url \
+                                  {{return_url $notifications_return_url} \
                                        {pretty_name $notification_text} \
                                        {type_id $notification_type} \
                                        {object_id $category_id}}]
@@ -172,11 +173,12 @@ namespace eval ::xowiki {
 
     if {$master} {
       set context [list $title]
-      set object_type [my info class]
+      set autoname    [$package_id get_parameter autoname 0]
+      set object_type [$package_id get_parameter object_type [my info class]]
       set rev_link    [$package_id make_link [self] revisions]
       set edit_link   [$package_id make_link [self] edit return_url]
       set delete_link [$package_id make_link [self] delete return_url] 
-      set new_link    [$package_id make_link $package_id edit-new object_type return_url] 
+      set new_link    [$package_id make_link $package_id edit-new object_type return_url autoname] 
       set admin_link  [$package_id make_link -privilege admin -url admin/ $package_id {} {}] 
       set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
       set save_tag_link [$package_id make_link [self] save-tags]
