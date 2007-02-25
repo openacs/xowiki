@@ -38,7 +38,7 @@ namespace eval ::xowiki {
       -form ::xowiki::FileForm
 
   ::Generic::CrClass create PodcastItem -superclass File \
-      -pretty_name "Podcast Item" -pretty_plural "Podcase Items" \
+      -pretty_name "Podcast Item" -pretty_plural "Podcast Items" \
       -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
       -cr_attributes {
           ::Generic::Attribute new -attribute_name pub_date -datatype date -sqltype timestamp \
