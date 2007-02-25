@@ -241,7 +241,7 @@ namespace eval ::xowiki {
         }
       }
     } else {
-      ns_return 200 text/html $content
+      ns_return 200 [::xo::cc get_parameter content-type text/html] $content
     }
   }
 
