@@ -148,19 +148,18 @@ namespace eval ::xowiki {
     my instvar data
     my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
-    if {$object_type eq "::xowiki::File" && [$data exists mime_type]} {
+    if {[lsearch [$object_type info heritage] ::xowiki::File] > -1 && [$data exists mime_type]} {
+      
       #my get_uploaded_file
       #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
       set mime [$data set mime_type]
       set fn [$data set upload_file]
-      #my log "--mime=$mime"
       switch -- $mime {
         application/force-download {
           set mime [::xowiki::guesstype $fn]
           $data set mime_type $mime
         }
       }
-      #my log "--mime 2 = $mime"
       switch -glob -- $mime {
         image/* {set type image}
         default {set type file}
@@ -203,19 +202,20 @@ namespace eval ::xowiki {
     }
   }
   WikiForm instproc update_references {} {
-    my instvar data
+    my instvar data folder_id
     if {![my istype PageInstanceForm]} {
       ### danger: update references does an ad_eval, which breaks the [template::adp_level]
       ### ad_form! don't do it in pageinstanceforms.
       $data render_adp false
       $data render -update_references
     }
-    # delete the link cache entries for this item 
-    # could be made more intelligent to delete entries is more rare cases, like
-    # in case the file was renamed
-    my instvar folder_id
-    ##### why is ns_cache names xowiki_cache *pattern*   not working??? 
-    ##### upgrade ns_cache from CVS !
+    # Delete the link cache entries for this entry.
+    # The logic could be made more intelligent to delete entries is more rare cases, like
+    # in case the file was renamed, but this is more bullet-proove.
+    #
+    # In case "ns_cache names xowiki_cache *pattern*" is not working on your installation;
+    #    upgrade ns_cache from cvs or use
+    #    foreach entry [lsearch -inline -all [ns_cache names xowiki_cache] link-*-$folder_id] 
     foreach entry [ns_cache names xowiki_cache link-*-$folder_id] {
       array set tmp [ns_cache get xowiki_cache $entry]
       if {$tmp(item_id) == [$data set item_id]} {
@@ -296,7 +296,7 @@ namespace eval ::xowiki {
         {html { enctype multipart/form-data }} \
         {field_list {item_id name text title creator description}}
         {f.name    
-          {name:text,nospell,optional 
+          {name:text,nospell,optional {label #xowiki.name#}
             {help_text {Can be obtained from the name of the uploaded file}}}}
         {f.title
           {title:text,optional {label #xowiki.title#} {html {size 80}} }}
@@ -341,6 +341,73 @@ namespace eval ::xowiki {
     #my get_uploaded_file
     return [next]
   }
+
+
+  Class create PodcastForm -superclass FileForm \
+      -parameter {
+        {html { enctype multipart/form-data }} \
+        {field_list {item_id name text title subtitle creator pub_date duration keywords 
+	  description}}
+        {f.subtitle    
+          {subtitle:text,nospell,optional {label #xowiki.subtitle#} {html {size 80}}}}
+        {f.pub_date 
+	  {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}
+	    {after_html {<input type="button" 
+	      style="height:23px; width:23px; background: url('/resources/acs-templating/calendar.gif');" 
+	      onclick ="return showCalendarWithDateWidget('date', 'y-m-d');" /> Y-M-D}
+	    }}
+	}
+        {f.duration 
+	  {duration:text,nospell,optional
+	    {help_text {E.g. 9:16 means 9 minutes 16 seconds}}
+	  }}
+        {f.keywords 
+	  {keywords:text,nospell,optional
+	    {help_text {comma separated itunes keywords, e.g. salt, pepper, shaker, exciting}}
+	  }}
+        {validate {
+          {upload_file {\[::xowiki::validate_file\]} {For new entries, \
+                                                          a upload file must be provided}}
+          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                                                   already in this folder}}
+          }}
+      }
+
+  PodcastForm instproc to_timestamp {widgetinfo} {
+    if {$widgetinfo ne ""} {
+      foreach {y m day hour min} $widgetinfo break
+      set t [clock scan "${hour}:$min $m/$day/$y"]
+      return [clock format $t]
+    }
+    return ""
+  }
+  PodcastForm instproc to_timeinfo {timestamp} {
+    set t [clock scan $timestamp]
+    return "[clock format $t -format {%Y %m %d %H %M}] {} {YY MM DD HH24 MI}"
+  }
+
+  PodcastForm instproc new_data {} {
+    set pub_date [my var pub_date]
+    my var pub_date [list [my to_timestamp $pub_date]]
+    return [next]
+  }
+  PodcastForm instproc edit_data {} {
+    set pub_date [my var pub_date]
+    my var pub_date [list [my to_timestamp $pub_date]]
+    return [next]
+  }
+
+  PodcastForm instproc new_request {} {
+    my instvar data
+    $data set pub_date [my to_timeinfo [clock format [clock seconds]]]
+    next
+  }
+  PodcastForm instproc edit_request {item_id} {
+    my instvar data
+    $data set pub_date [my to_timeinfo [$data set pub_date]]
+    next
+  }
+
 
   #
   # Object Form

@@ -1,0 +1,30 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "XoWiki Podcast" -text {
+
+  my initialize -parameter {
+    {-name_filter ""}
+    {-days ""}
+  }
+
+  proc content {} {
+    my get_parameters
+
+    ::xo::cc set_parameter master 0
+    if {$title eq ""} {set title [[my info parent] title]}
+    set f [::xowiki::Podcast new -destroy_on_cleanup \
+	       -package_id  $package_id \
+	       -name_filter $name_filter \
+	       -siteurl     http://localhost:8053 \
+	       -title       [[my info parent] set title] \
+	       -description [[my info parent] set description] \
+	       -author      [[my info parent] creator] \
+	       -subtitle    "A Sample Collection of Podcast Items" \
+	       -days        $days]
+
+    return [$f render]
+  }
+}
+
+
+

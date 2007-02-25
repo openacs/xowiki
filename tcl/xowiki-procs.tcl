@@ -37,6 +37,22 @@ namespace eval ::xowiki {
       -storage_type file \
       -form ::xowiki::FileForm
 
+  ::Generic::CrClass create PodcastItem -superclass File \
+      -pretty_name "Podcast Item" -pretty_plural "Podcase Items" \
+      -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
+      -cr_attributes {
+          ::Generic::Attribute new -attribute_name pub_date -datatype date -sqltype timestamp \
+              -pretty_name "Publication Date"
+          ::Generic::Attribute new -attribute_name duration -datatype text \
+              -pretty_name "Duration"
+          ::Generic::Attribute new -attribute_name subtitle -datatype text \
+              -pretty_name "Subtitle"
+          ::Generic::Attribute new -attribute_name keywords -datatype text \
+              -pretty_name "Keywords"
+      } \
+      -storage_type file \
+      -form ::xowiki::PodcastForm
+
   ::Generic::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
@@ -682,7 +698,7 @@ namespace eval ::xowiki {
     set t [TableWidget new -volatile \
                -columns {
                  AnchorField name -label [_ xowiki.name]
-                 Field mime_type -label [_ xowiki.page_type]
+                 Field mime_type -label "Content Type"
                  Field last_modified -label "Last Modified"
                  Field mod_user -label "By User"
                  Field size -label "Size"

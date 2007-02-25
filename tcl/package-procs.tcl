@@ -108,6 +108,7 @@ namespace eval ::xowiki {
   Package ad_instproc pretty_link {
     {-anchor ""} 
     {-absolute:boolean false} 
+    {-siteurl ""}
     {-lang ""} 
     name 
   } {
@@ -129,7 +130,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    set host [expr {$absolute ? [ad_url] : ""}]
+    set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
 
@@ -254,12 +255,15 @@ namespace eval ::xowiki {
   Package instproc resolve_page {object method_var} {
     upvar $method_var method
     my instvar folder_id id policy
+    #
+    # first, resolve package level methods
+    #
     if {$object eq ""} {
       set exported [$policy defined_methods Package]
       foreach m $exported {
 	#my log "--QP my exists_query_parameter $m = [my exists_query_parameter $m]"
         if {[::xo::cc exists_query_parameter $m]} {
-          set method $m  ;# the only reason for the upvar
+          set method $m  ;# determining the method, similar file extensions
           return [self]
         }
       }
@@ -275,8 +279,11 @@ namespace eval ::xowiki {
       # we have no object, but as well no method callable on the package
       set object [$id get_parameter index_page "index"]
     }
+    #
+    # second, resolve object level methods
+    #
     #my log "--o try index '$object'"
-    set page [my resolve_request -path $object]
+    set page [my resolve_request -path $object method]
     #my log "--o page is '$page'"
     if {$page ne ""} {
       return $page
@@ -290,7 +297,7 @@ namespace eval ::xowiki {
     set standard_page [$id get_parameter ${object}_page]
     #my log "--o standard_page '$standard_page'"
     if {$standard_page ne ""} {
-      set page [my resolve_request -path $standard_page]
+      set page [my resolve_request -path $standard_page method]
       if {$page ne ""} {
         return $page
       }
@@ -299,7 +306,7 @@ namespace eval ::xowiki {
       set standard_page "en:$stripped_object"
       # maybe we are calling from a different language, but the
       # standard page with en: was already instantiated
-      set page [my resolve_request -path $standard_page]
+      set page [my resolve_request -path $standard_page method]
       if {$page ne ""} {
         return $page
       }
@@ -358,7 +365,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_request {-path} {
+  Package instproc resolve_request {-path method_var} {
     my instvar folder_id
     #my log "--u [self args]"
     [self class] instvar queryparm
@@ -374,6 +381,13 @@ namespace eval ::xowiki {
         set name ${lang}:$local_name
         set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
         my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
+        if {$item_id == 0 && $lang eq "file" && [regexp {(.+)/download.} $local_name _ base_name]} {
+	  set item_id [::Generic::CrItem lookup -name file:$base_name -parent_id $folder_id]
+	  if {$item_id != 0} {
+	    upvar $method_var method
+	    set method download
+	  }
+	}
         if {$item_id == 0 && $lang eq "file"} {
           set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
           my log "--try image:$local_name -> $item_id"
@@ -587,41 +601,6 @@ namespace eval ::xowiki {
   #
   # RSS 2.0 support
   #
-
-  Package instproc rss_head {
-    -channel_title
-    -link
-    -description
-    {-language en-us}
-  } {
-#<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
-    return "<?xml version='1.0' encoding='utf-8'?>
-<rss version='2.0'
-  xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
-  xmlns:dc='http://purl.org/dc/elements/1.1/'>
-<channel>
-  <title>$channel_title</title>
-  <link>$link</link>
-  <description>$description</description>
-  <language>$language</language>
-  <generator>xowiki</generator>"
-  }
-
-  Package instproc rss_item {-creator -title -link -guid -description -pubdate } {
-    append result <item> \n\
-        <dc:creator> $creator </dc:creator> \n\
-        <title> $title </title> \n\
-        <link> $link </link> \n\
-        "<guid isPermaLink='false'>" $guid </guid> \n\
-        <description> $description </description> \n\
-        <pubDate> $pubdate </pubDate> \n\
-        </item> \n
-  }
-  
-  Package instproc rss_tail {} {
-    return  "\n</channel>\n</rss>\n"
-  }
-  
   Package ad_instproc rss {
     -maxentries
     -name_filter
@@ -638,73 +617,34 @@ namespace eval ::xowiki {
     
   } {
     set package_id [my id]
-    set folder_id [::$package_id folder_id]
-    set extra_where_clause ""
-
-    if {![info exists days] && 
-        [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
-      # setting the variable days
-    }
+    set folder_id [$package_id folder_id]
     if {![info exists namefilter]} {
       set name_filter  [my get_parameter name_filter ""]
     }
-    if {$name_filter ne ""} {
-      append extra_where_clause "and ci.name ~ E'$name_filter' "
-    }
+
     if {![info exists title]} {
       set title [my get_parameter title ""]
       if {$title eq ""} {
         set title [::$folder_id set title]
       }
     }
-    my log "--rss: title=$title"
 
-    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
-    set timerange_clause [expr {[info exists days] ? 
-                                " and p.last_modified > (now() + interval '$days days ago')" : ""}]
-
-    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
+    if {![info exists days] && 
+        [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
+      # setting the variable days
+    } else {
+      set days 10
+    }
     
-    set content [my rss_head \
-                     -channel_title [string map $xmlMap $title] \
-                     -description   [string map $xmlMap [::$folder_id set description]] \
-                     -link [ad_url][site_node::get_url_from_object_id -object_id $package_id] \
-                    ]
+    set r [RSS new -destroy_on_cleanup \
+	       -package_id [my id] \
+	       -name_filter $name_filter \
+	       -title $title \
+	       -days $days]
     
-    db_foreach get_pages \
-        "select s.body, p.name, p.creator, p.title, p.page_id,\
-                p.object_type as content_type, p.last_modified, p.description  \
-        from xowiki_pagex p, syndication s, cr_items ci  \
-        where ci.parent_id = $folder_id and ci.live_revision = s.object_id \
-                and ci.publish_status <> 'production' $extra_where_clause \
-                and s.object_id = p.page_id $timerange_clause \
-        order by p.last_modified desc $limit_clause \
-        " {
-          
-          if {[string match "::*" $name]} continue
-          if {$content_type eq "::xowiki::PageTemplate::"} continue
-
-          set description [string trim $description]
-          if {$description eq ""} {set description $body}
-          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-          
-          if {$title eq ""} {set title $name}
-          #append title " ($content_type)"
-          set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-          append content [my rss_item \
-                              -creator [string map $xmlMap $creator] \
-                              -title [string map $xmlMap $title] \
-                              -link [::$package_id pretty_link -absolute true $name] \
-                              -guid [ad_url]/$page_id \
-                              -description [string map $xmlMap $description] \
-                              -pubdate $time \
-                             ]
-        }
-    
-    append content [my rss_tail]
     #set t text/plain
     set t text/xml
-    ns_return 200 $t $content
+    ns_return 200 $t [$r render]
   }
 
   #

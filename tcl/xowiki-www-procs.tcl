@@ -165,7 +165,7 @@ namespace eval ::xowiki {
       set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$my_yahoo_publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
     }
 
-    set master [my query_parameter "master" 1]
+    set master [$package_id get_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
     #}

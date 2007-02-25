@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.44" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.47" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -9,7 +9,7 @@
   <msg key="delete">Delete</msg>
   <msg key="description">Description</msg>
   <msg key="edit">Edit</msg>
-  <msg key="edit_link">edit</msg>
+  <msg key="edit_link">edit tags</msg>
   <msg key="index">Index</msg>
   <msg key="Language">Language</msg>
   <msg key="name">Name</msg>
@@ -24,6 +24,7 @@
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="search">Search</msg>
+  <msg key="subtitle">Subtitle</msg>
   <msg key="title">Title</msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>
