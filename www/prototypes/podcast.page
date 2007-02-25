@@ -11,8 +11,6 @@
     my get_parameters
 
     ::xo::cc set_parameter master 0
-    if {$title eq ""} {set title [[my info parent] title]}
-
     #   -siteurl     http://localhost:8053 
 
     set f [::xowiki::Podcast new -destroy_on_cleanup \
