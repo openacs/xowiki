@@ -8,6 +8,7 @@ namespace eval ::xowiki {
     maxentries 
     {name_filter ""}
     {days ""}
+    {css ""}
     {siteurl "[ad_url]"}
     {description ""}
     {language en-us}
@@ -40,10 +41,27 @@ namespace eval ::xowiki {
     return <$name$attsXML>[string map $xmlMap $value]</$name>
   }
 
+  RSS instproc css_link {} {
+    my instvar css
+    if {$css ne ""} {
+      #
+      # firefox 2.0 appears to overwrite the style info, so one has to use such ugly tricks:
+      #    http://www.blingblog.info/2006/10/30/firefox-big-browser/
+      # when we want to use custom style sheets
+      #
+      set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+      set filler [expr {[string first firefox $user_agent] >- 1 ?
+                        "<!-- [string repeat deadbef 100] -->" : ""
+                      }]
+      set css_link [expr {[string match /* $css] ? $css : "/resources/xowiki/$css"}]
+      return "\n<?xml-stylesheet type='text/css' href='$css_link' ?>\n$filler"
+    }
+    return ""
+  }
+
   RSS instproc head {} {
     my instvar title link description language
-#<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
-    return "<?xml version='1.0' encoding='utf-8'?>
+    return "<?xml version='1.0' encoding='utf-8'?>[my css_link]
 <rss version='2.0'
   xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
   xmlns:dc='http://purl.org/dc/elements/1.1/'>
@@ -142,11 +160,12 @@ namespace eval ::xowiki {
     {explicit "no"}
   }
 
+
   Podcast instproc head {} {
     my instvar title link description language subtitle summary author explicit
-#<?xml-stylesheet type='text/css' href='http://localhost:8002/resources/xowiki/rss.css' ?>
-    return "<?xml version='1.0' encoding='utf-8'?>
-<rss xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\" version=\"2.0\">
+
+    return "<?xml version='1.0' encoding='utf-8'?>[my css_link]
+<rss xmlns:itunes='http://www.itunes.com/dtds/podcast-1.0.dtd' version='2.0'>
 <channel>
   [my tag title $title]
   [my tag link $link]
@@ -161,7 +180,7 @@ namespace eval ::xowiki {
   }
 
   Podcast instproc item {
-    -author -title -subtitle 
+    -author -title -subtitle -description 
     -link -guid -pubdate 
     -mime_type -duration -keywords} {
     append result \n <item> \
@@ -171,6 +190,7 @@ namespace eval ::xowiki {
 	[my tag pubDate $pubdate] \n\
 	[my tag itunes:duration $duration] \n\
 	[my tag author $author ] \n\
+	[my tag description $description ] \n\
 	[my tag itunes:subtitle $subtitle ] \n\
 	[my tag itunes:author $author ] \n\
 	[my tag itunes:keywords $keywords ] \n\
@@ -209,6 +229,7 @@ namespace eval ::xowiki {
 	  set link [::$package_id pretty_link -absolute true -siteurl $siteurl $name]/download.$file_extension
 	  append content [my item \
 			      -author $creator -title $title -subtitle $subtitle \
+                              -description $description \
 			      -link $link -mime_type $mime_type \
 			      -guid $link -pubdate $pub_date -duration $duration \
 			      -keywords $keywords]
