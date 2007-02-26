@@ -8,7 +8,7 @@ namespace eval ::xowiki {
     maxentries 
     {name_filter ""}
     {days ""}
-    {siteurl ""}
+    {siteurl "[ad_url]"}
     {description ""}
     {language en-us}
     {title ""}
@@ -96,8 +96,7 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
 
     if {$description eq ""} {set description [::$folder_id set description]}
-    set url [expr {[my exists siteurl] ? $siteurl : [ad_url]}]
-    my set link $url[site_node::get_url_from_object_id -object_id $package_id]
+    my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
 
     set content [my head]
     db_foreach get_pages \
@@ -119,14 +118,13 @@ namespace eval ::xowiki {
           regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
           
           if {$title eq ""} {set title $name}
-	  set url [expr {[my exists siteurl] ? [my set siteurl] : [ad_url]}]
           #append title " ($content_type)"
           set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
           append content [my item \
                               -creator $creator \
                               -title $title \
-                              -link [::$package_id pretty_link -absolute true -siteurl [my siteurl]  $name] \
-                              -guid $url/$page_id \
+                              -link [::$package_id pretty_link -absolute true -siteurl $siteurl  $name] \
+                              -guid $siteurl/$page_id \
                               -description $description \
                               -pubdate $time \
                              ]
@@ -183,15 +181,14 @@ namespace eval ::xowiki {
 
   Podcast instproc render {} {
     my instvar package_id max_entries name_filter title days \
-	summary subtitle description author
+	summary subtitle description author siteurl
 
     set folder_id [::$package_id folder_id]
     if {$description eq ""} {set description [::$folder_id set description]}
     if {$summary eq ""} {set summary $description}
     if {$subtitle eq ""} {set subtitle $title}
 
-    set url [expr {[my exists siteurl] ? [my set siteurl] : [ad_url]}]
-    my set link $url[site_node::get_url_from_object_id -object_id $package_id]
+    my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
     
     set content [my head]
     db_foreach get_pages \
@@ -209,7 +206,7 @@ namespace eval ::xowiki {
           
           if {$title eq ""} {set title $name}
           #set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-	  set link [::$package_id pretty_link -absolute true -siteurl [my siteurl] $name]/download.$file_extension
+	  set link [::$package_id pretty_link -absolute true -siteurl $siteurl $name]/download.$file_extension
 	  append content [my item \
 			      -author $creator -title $title -subtitle $subtitle \
 			      -link $link -mime_type $mime_type \

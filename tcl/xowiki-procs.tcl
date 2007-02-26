@@ -729,6 +729,16 @@ namespace eval ::xowiki {
     return "$image<p>[$t asHTML]</p>\n<p>$description</p>"
   }
 
+  PodcastItem instproc get_content {} {
+    set content [next]
+    append content <ul>
+    foreach i {title subtitle creator pub_date duration keywords} {
+      append content "<li><em>$i:</em> [my set $i]\n"
+    }
+    append content </ul>
+    return $content
+  }
+
   #
   # PageTemplate specifics
   #
