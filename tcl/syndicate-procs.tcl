@@ -116,6 +116,8 @@ namespace eval ::xowiki {
     if {$description eq ""} {set description [::$folder_id set description]}
     my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
 
+    my log "--rss WHERE= [my extra_where_clause]"
+
     set content [my head]
     db_foreach get_pages \
         "select s.body, p.name, p.creator, p.title, p.page_id,\
