@@ -569,7 +569,7 @@ namespace eval ::xowiki {
       foreach {page_name var_name} [split $s ,] break
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[my exists name] ? [my set name] : $page_name}]
-      #ns_log notice "--w T.name = '[my set name]' var=$page_name, $var_name $field_name []"
+      #ns_log notice "--w T.name = '$name' var=$page_name, $var_name $field_name "
       if {[string match $page_name $name] &&
           [string match $var_name $field_name]} {
         set spec $widget_spec
@@ -753,6 +753,7 @@ namespace eval ::xowiki {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
     set spec $default_spec
+    #ns_log notice "--w pid=[my set parent_id] name='$name' template=[$template set name], specs=[[my set parent_id] get_payload widget_specs]"
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '[$template set name]' var=$name"
@@ -775,8 +776,9 @@ namespace eval ::xowiki {
     #  set T [my adp_subst [$page_template set text]]
     #  return [my substitute_markup $T]
     #}
-    set T [my adp_subst [$page_template set text]]
-    return [my substitute_markup $T]
+    set template [$page_template set text]
+    set T [my adp_subst [lindex $template 0]]
+    return [my substitute_markup [list $T [lindex $template 1]]]
   }
   PageInstance instproc adp_subst {content} {
     my instvar page_template

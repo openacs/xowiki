@@ -569,7 +569,11 @@ namespace eval ::xowiki {
                              [$template set text]] {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
-
+    foreach __var [my field_list] {
+      set spec [my f.$__var]
+      set spec [string range $spec [expr {[string first : $spec]+1}] end]
+      my set f.$__var "$__var:[$data get_field_type $__var $template $spec]"
+    }
     foreach __var $page_instance_form_atts {
       my lappend field_list $__var
       my set f.$__var "$__var:[$data get_field_type $__var $template [my textfieldspec]]"
