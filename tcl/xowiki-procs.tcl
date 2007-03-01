@@ -231,6 +231,56 @@ namespace eval ::xowiki {
     return $sql
   }
 
+  #
+  # Page marshall/demarshall
+  #
+
+
+  Page instproc marshall {} {
+    return [my serialize]
+  }
+
+  File instproc marshall {} {
+    set fn [my full_file_name]
+    set F [open $fn]
+    fconfigure $F -translation binary
+    set C [read $F]
+    close $F
+    my set __file_content [::base64::encode $C]
+    next
+  }
+
+  Page instproc demarshall {-parent_id -package_id -creation_user} {
+    # this method is the counterpart of marshall
+    my set parent_id $parent_id
+    my set package_id $package_id 
+    my set creation_user $creation_user
+    # in the general case, no actions required
+  }
+
+  File instproc demarshall {args} {
+    next
+    # we have to care about recoding the file content
+    my instvar import_file __file_content
+    set import_file [ns_tmpnam]
+    set F [open $import_file w]
+    fconfigure $F -translation binary
+    puts -nonewline $F [::base64::decode $__file_content]
+    close $F
+  }
+
+  Page instproc copy_content_vars {-from_object:required} {
+    array set excluded_var {
+      folder_id 1 package_id 1 absolute_links 1 lang_links 1 
+      publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
+    }
+    foreach var [$from_object info vars] {
+      if {![info exists excluded_var($var)]} {
+        my set $var [$from_object set $var]
+      }
+    }
+  }
+
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     my log "DEPRECATED"
     if {![info exists package_id]}  {set package_id  [::xo::cc package_id]}

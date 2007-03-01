@@ -496,7 +496,7 @@ namespace eval ::xowiki {
 
   ###############################################################
   #
-  # user callable methods
+  # user callable methods on package level
   #
 
   Package ad_instproc reindex {} {
@@ -529,14 +529,9 @@ namespace eval ::xowiki {
     set added 0
     set replaced 0
     set updated 0
-    array set excluded_var {
-      folder_id 1 package_id 1 absolute_links 1 lang_links 1 
-      publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
-    }
+
     foreach o $objects {
-      $o set parent_id $folder_id
-      $o set package_id $package_id
-      $o set creation_user $user_id
+      $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
       set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
@@ -547,11 +542,7 @@ namespace eval ::xowiki {
 	  incr replaced
 	} else {
 	  ::Generic::CrItem instantiate -item_id $item_id
-	  foreach var [$o info vars] {
-	    if {![info exists excluded_var($var)]} {
-	      $item_id set $var [$o set $var]
-	    }
-	  }
+          $item_id copy_content_vars -from_object $o
 	  $item_id save
 	  incr updated
 	}
@@ -573,11 +564,7 @@ namespace eval ::xowiki {
 	      incr replaced
 	    } else {
 	      ::Generic::CrItem instantiate -item_id $item_id
-	      foreach var [$o info vars] {
-		if {![info exists excluded_var($var)]} {
-		  $item_id set $var [$o set $var]
-		}
-	      }
+              $item_id copy_content_vars -from_object $o
 	      $item_id save
 	      incr updated
 	    }

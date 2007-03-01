@@ -121,12 +121,11 @@ namespace eval ::xowiki {
   #
   # this should be OO-ified -gustaf
   proc ::xowiki::validate_file {} {
-    #my log "--F validate_file data=[my exists data]"
     my instvar data
     my get_uploaded_file
-    #my log "--F validate_file returns [$data exists import_file]"
     upvar title title
     if {$title eq ""} {set title [$data set upload_file]}
+    #my log "--F validate_file returns [$data set mime_type] data=[my exists data]" 
     return [$data exists import_file]
   }
 
@@ -148,9 +147,7 @@ namespace eval ::xowiki {
     my instvar data
     my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
-    if {[lsearch [$object_type info heritage] ::xowiki::File] > -1 && [$data exists mime_type]} {
-      
-      #my get_uploaded_file
+    if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
       set mime [$data set mime_type]
       set fn [$data set upload_file]

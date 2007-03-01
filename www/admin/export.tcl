@@ -18,7 +18,7 @@ set content ""
 db_foreach instance_select $sql {
   ::Generic::CrItem instantiate -item_id $item_id
   $item_id volatile
-  append content [::Serializer deepSerialize $item_id] \n
+  append content [$item_id marshall] \n
 }
 
 ns_return 200 text/plain $content
