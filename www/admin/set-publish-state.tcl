@@ -24,6 +24,8 @@ db_0or1row make_live {select content_item__set_live_revision(:revision_id,:state
 if {$state ne "production"} {
   ::xowiki::notification::do_notifications -revision_id $revision_id
   ::xowiki::datasource $revision_id
+} else {
+  db_dml flush_syndication {delete from syndication where object_id = :revision_id}
 }
 
 ad_returnredirect $return_url
