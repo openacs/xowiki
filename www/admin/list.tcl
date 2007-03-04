@@ -64,6 +64,7 @@ TableWidget t1 -volatile \
             -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
+      Field syndicated -label "RSS"
       if {[::xo::db::has_ltree]} {
         AnchorField page_order -label [_ xowiki.order] -orderby page_order
       }
@@ -88,12 +89,18 @@ if {[::xo::db::has_ltree]} {
   lappend attributes page_order
 }
 
+set folder_id [::$package_id folder_id]
+foreach i [db_list get_syndicated {
+  select object_id from syndication s, cr_items ci 
+  where object_id = ci.live_revision and parent_id = :folder_id;
+}] { set syndicated($i) 1 }
+
 db_foreach instance_select \
     [$object_type instance_select_query \
-         -folder_id [::$package_id folder_id] \
+         -folder_id $folder_id \
          -with_subtypes $with_subtypes \
-         -from_clause ", xowiki_page P" \
-         -where_clause "P.page_id = cr.revision_id" \
+         -from_clause ", xowiki_page p" \
+         -where_clause "p.page_id = cr.revision_id" \
          -select_attributes $attributes \
          -order_clause $order_clause \
         ] {
@@ -101,9 +108,10 @@ db_foreach instance_select \
 
           t1 add \
               -name $name \
-              -object_type $object_type \
+              -object_type [string map [list "::xowiki::" ""] $object_type] \
               -name.href $page_link \
               -last_modified $last_modified \
+              -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
               -edit.href [export_vars -base $page_link {{m edit} return_url}] \
               -mod_user [::xo::get_user_name $creation_user] \
