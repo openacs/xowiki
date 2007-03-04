@@ -375,7 +375,7 @@ namespace eval ::xowiki {
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
       #my log "--S arg='$arg'"
       # there is something syntactically wrong
-      return "<div class='errorMsg'>$Error in '{{$arg}}' in [my set name]<br/>\n\
+      return "<div class='errorMsg'>Error in '{{$arg}}' in [my set name] ($errMsg)<br/>\n\
            Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
            Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)</div>"
     }
@@ -431,7 +431,7 @@ namespace eval ::xowiki {
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
-        return "${ch}<div class='errorMsg'>Error in '{{$arg}}' in [my set name]<br/>\n\
+        return "${ch}<div class='errorMsg'>Error in '{{$arg}}' in [my set name] ($errMsg)<br/>\n\
            Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
            Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)</div>"
       }
@@ -596,10 +596,10 @@ namespace eval ::xowiki {
     }
     set template_code [template::adp_compile -string $content]
     set my_parse_level [template::adp_level]
-    if {[catch {set template_value [template::adp_eval template_code]} errmsg]} {
+    if {[catch {set template_value [template::adp_eval template_code]} errMsg]} {
       set ::template::parse_level $my_parse_level 
       #my log "--adp after adp_eval '[template::adp_level]' mpl=$my_parse_level"
-      return "<div class='errorMsg'>Error in Page $name: $errmsg</div>$content<p>Possible values are$__template_variables__"
+      return "<div class='errorMsg'>Error in Page $name: $errMsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }
