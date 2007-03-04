@@ -125,8 +125,10 @@ namespace eval ::xowiki {
     set default_lang [my default_language]
     if {$lang eq ""} {
       if {![regexp {^(..):(.*)$} $name _ lang name]} {
-        if {![regexp {^(file|image):(.*)$} $name _ lang name]} {
+        if {![regexp {^(file|image|swf):(.*)$} $name _ lang name]} {
           set lang $default_lang
+        } else {
+          set lang file
         }
       }
     }

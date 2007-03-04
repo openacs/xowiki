@@ -166,7 +166,7 @@ namespace eval ::xowiki {
   ::xowiki::Link::file instproc resolve {} {
     set item_id [next]
     # my log "-- file, lookup of [my name] returned $item_id"
-    if {$item_id eq 0 && [regsub {^file:} [my name] image: name]} {
+    if {$item_id == 0 && [regsub {^file:} [my name] image: name]} {
       set item_id [::Generic::CrItem lookup -name $name -parent_id [my folder_id]]
     }
     return $item_id
@@ -175,6 +175,39 @@ namespace eval ::xowiki {
     return "<a href='$href' style='background: url(/resources/xowiki/file.jpg) \
         right center no-repeat; padding-right:9px'>$label</a>"
   }
+
+  Class create ::xowiki::Link::swf -superclass ::xowiki::Link::file -parameter {
+    width height bgcolor version
+    quality wmode align salign play loop menu scale
+  }
+  ::xowiki::Link::swf instproc resolve {} {
+    set item_id [next]
+    my log "--file, lookup of [my name] returned $item_id"
+    if {$item_id == 0 && [regsub {^swf:} [my name] file: name]} {
+      set item_id [::Generic::CrItem lookup -name $name -parent_id [my folder_id]]
+      my log "--file, 2nd lookup of $name returned $item_id"
+    }
+    return $item_id
+  }
+  ::xowiki::Link::swf instproc render_found {href label} {
+    ::xowiki::Page requireJS /resources/xowiki/swfobject.js
+    my instvar package_id name
+    #set link [$package_id pretty_link -absolute true  -siteurl http://localhost:8003 $name]/download.swf
+    foreach {width height bgcolor version} {320 240 #999999 7} break
+    foreach a {width height bgcolor version} {if {[my exists $a]} {set $a [my set $a]}}
+    set addParams ""
+    foreach a {quality wmode align salign play loop menu scale} {
+      if {[my exists $a]} {append addParams "so.addParam('$a', '[my set $a]');\n"}
+    }
+    
+    return "<div id='[self]'>$label</div>
+    <script type='text/javascript'>
+    var so = new SWFObject('$href', '$name', '$width', '$height', '$version', '$bgcolor');
+    $addParams so.write('[self]');
+    </script>
+    "
+  }
+
 
   #
   # glossary links

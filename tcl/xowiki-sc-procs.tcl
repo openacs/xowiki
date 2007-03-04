@@ -21,7 +21,9 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   if {[$page set publish_status] eq "production"} {
     # no data source for for pages under construction
     ns_log notice "--sc page under construction, no datasource"
-    return
+    return   [list object_id $revision_id title "" \
+                  content "" keywords "" \
+                  storage_type text mime text/html]
   }
 
   $page absolute_links 1

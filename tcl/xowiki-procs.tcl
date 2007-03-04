@@ -495,7 +495,7 @@ namespace eval ::xowiki {
     # do we have a language link (it starts with a ':')
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       set link_type language
-    } elseif {[regexp {^(file|image):(.*)$} $link _ link_type stripped_name]} {
+    } elseif {[regexp {^(file|image|swf):(.*)$} $link _ link_type stripped_name]} {
       set lang ""
       set name $link
     } else {
