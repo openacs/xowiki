@@ -793,11 +793,27 @@ namespace eval ::xowiki {
 
   Policy instproc check_privilege {privilege object method} {
     set allowed -1   ;# undecided
+    if {[acs_user::site_wide_admin_p]} {
+      return 1
+    }
     switch $privilege {
       none  {return 1}
       login {auth::require_login; return 1}
+      creator {
+        if {[$object exists creation_user]} {
+          auth::require_login
+          if {[$object set creation_user] == [::xo::cc user_id]} {
+            set allowed 1
+          } else {
+            set allowed [::xo::cc permission -object_id [::xo::cc package_id] -privilege admin \
+                             -party_id [xo::cc user_id]]
+          }
+        } else {
+          set allowed 0
+        }
+      }
       swa   {
-        set allowed [acs_user::site_wide_admin_p]
+        #set allowed [acs_user::site_wide_admin_p]
         #if {!$allowed} {
         #  ad_return_warning "Insufficient Permissions" \
         #      "Only side wide admins are allowed for this operation! ($object $method)"
@@ -1001,7 +1017,7 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
   }
-  
+
   
 }
 

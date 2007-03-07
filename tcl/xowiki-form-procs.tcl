@@ -61,9 +61,11 @@ namespace eval ::xowiki {
     set field_list [my field_list]
     if {[my show_page_order]} {
       set field_list [linsert $field_list 2 page_order]
-      set s [$data get_field_type page_order "" ""]
-      if {$s ne ""} {
-	my set f.page_order $page_order:$s
+      if {[$data istype ::xowiki::PageInstance]} {
+        set s [$data get_field_type page_order "" ""]
+        if {$s ne ""} {
+          my set f.page_order $page_order:$s
+        }
       }
     }
     if {$autoname} {
