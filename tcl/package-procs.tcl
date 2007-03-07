@@ -777,7 +777,7 @@ namespace eval ::xowiki {
 
   Package instproc condition {method attr value} {
     switch $attr {
-      has_class {set result [expr {[my query_parameter object_type ""] eq $value}]}
+      has_class {set result [expr {[my query_parameter object_type ""] eq $value}] }
       default {set result 0}
     }
     #my log "--c [self args] returns $result"
@@ -790,6 +790,47 @@ namespace eval ::xowiki {
     set c [self]::$class
     expr {[my isclass $c] ? [$c array names require_permission] : [list]}
   }
+
+  Policy instproc check_privilege {privilege object method} {
+    set allowed -1   ;# undecided
+    switch $privilege {
+      none  {return 1}
+      login {auth::require_login; return 1}
+      swa   {
+        set allowed [acs_user::site_wide_admin_p]
+        #if {!$allowed} {
+        #  ad_return_warning "Insufficient Permissions" \
+        #      "Only side wide admins are allowed for this operation! ($object $method)"
+        #  ad_script_abort
+        #}
+      }
+    }
+    #my log "--check_privilege {$privilege $object $method} ==> $allowed"
+    return $allowed
+  }
+
+  Policy instproc get_privilege {permission object method} {
+    # the privilege might by primitive (one word privilege)
+    # or it might be complex (attribute + privilege)
+    # or it might be conditional (primitive or complex) in a list of privilges
+
+    foreach p $permission {
+      
+      set condition [lindex $p 0]
+      if {[llength $condition]>1} {
+        # we have a condition
+        if {[eval $object condition $method $condition]} {
+          # the condition is true
+          #my log "--c check cond=$condition == TRUE"
+          return [my get_privilege [lrange $p 1 end] $object $method]
+        } 
+      } else {
+        # we have no condition
+        return [list [expr {[llength $p] == 1 ? "primitive" : "complex"}] $p]
+      }
+    }
+  }
+  
   Policy instproc permission_p {object method} {
     foreach class [concat [$object info class] [[$object info class] info heritage]] {
       set c [self]::[namespace tail $class]
@@ -797,34 +838,25 @@ namespace eval ::xowiki {
       set key require_permission($method)
       if {[$c exists $key]} {
         set permission  [$c set $key]
-        if {$permission eq "login" || $permission eq "none"} {
-          return 1
-        }
-        if {$permission eq "swa"} {
-          return [acs_user::site_wide_admin_p]
-        }
-        foreach cond_permission $permission {
-          #my log "--cond_permission = $cond_permission"
-          switch [llength $cond_permission] {
-            3 {foreach {condition attribute privilege} $cond_permission break
-              if {[eval $object condition $method $condition]} break
-            }
-            2 {foreach {attribute privilege} $cond_permission break
-              break
-            }
+
+        foreach {kind p} [my get_privilege $permission $object $method] break
+        switch $kind {
+          primitive {return [my check_privilege $p $object $method]}
+          complex {
+            foreach {attribute privilege} $p break
+            set id [$object set $attribute]
+            my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
+            return [::xo::cc permission -object_id $id -privilege $privilege \
+                        -party_id [xo::cc user_id]]
           }
         }
-        set id [$object set $attribute]
-        my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
-        return [::xo::cc permission -object_id $id -privilege $privilege \
-                    -party_id [xo::cc user_id]]
       }
     }
     return 0
   }
 
   Policy instproc check_permissions {object method} {
-    # my log "--p check_permissions {$object $method}"
+    #my log "--p check_permissions {$object $method}"
     set allowed 0
     foreach class [concat [$object info class] [[$object info class] info heritage]] {
       set c [self]::[namespace tail $class]
@@ -832,48 +864,38 @@ namespace eval ::xowiki {
       set key require_permission($method)
       if {[$c exists $key]} {
         set permission [$c set $key]
-        # my log "--p checking $permission for $c $key"
-        switch $permission {
-          none  {set allowed 1; break}
-          login {auth::require_login; set allowed 1; break}
-          swa   {
-            set allowed [acs_user::site_wide_admin_p]
-            if {!$allowed} {
-              ad_return_warning "Insufficient Permissions" \
-                  "Only side wide admins are allowed for this operation!"
-              ad_script_abort
-            }
+
+        foreach {kind p} [my get_privilege $permission $object $method] break
+        switch $kind {
+          primitive {
+            set allowed [my check_privilege $p $object $method]
+            set privilege $p
+            break
           }
-          default {
-            foreach cond_permission $permission {
-              #my log "--c check $cond_permission"
-              switch [llength $cond_permission] {
-                3 {foreach {condition attribute privilege} $cond_permission break
-                  if {[eval $object condition $method $condition]} break
-                }
-                2 {foreach {attribute privilege} $cond_permission break
-                  break
-                }
-              }
-            }
+          complex {
+            foreach {attribute privilege} $p break
             set id [$object set $attribute]
-            # my log "--p ::xo::cc permission -object_id $id -privilege $privilege"
-            set p [::xo::cc permission -object_id $id -privilege $privilege]
-            if {!$p} {
-              ns_log notice "permission::require_permission: [::xo::cc user_id] doesn't \
-		have $privilege on object $id"
-              ad_return_forbidden  "Permission Denied"  "<blockquote>
-  You don't have permission to $privilege [$object name].
-</blockquote>"
-              ad_script_abort
-            }
-            #permission::require_permission -object_id $id -privilege $privilege
-            set allowed 1
+            #my log "--p checking permission::permission_p -object_id $id -privilege $privilege"
+            set allowed [::xo::cc permission -object_id $id -privilege $privilege \
+                             -party_id [xo::cc user_id]]
+             #permission::require_permission -object_id $id -privilege $privilege
             break
           }
         }
       }
     }
+
+    #my log "--p check_permissions {$object $method} ==> $allowed"
+
+    if {!$allowed} {
+      ns_log notice "permission::require_permission: [::xo::cc user_id] doesn't \
+		have $privilege on $object"
+      ad_return_forbidden  "Permission Denied"  "<blockquote>
+  You don't have sufficient permissions for $method on this object ($object).
+</blockquote>"
+      ad_script_abort
+    }
+  
     return $allowed
   }
 
@@ -913,16 +935,16 @@ namespace eval ::xowiki {
 
   Policy policy2 -contains {
     #
-    # we require side wide admin rights for deletions
+    # we require side wide admin rights for deletions and code
     #
 
     Class Package -array set require_permission {
-      reindex            {{id admin}}
-      rss                none
+      reindex             {{id admin}}
+      rss                 none
       google-sitemap      none
       google-sitemapindex none
-      delete             swa
-      edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
+      delete              swa
+      edit-new            {{{has_class ::xowiki::Object} swa} {id create}}
     }
     
     Class Page -array set require_permission {
@@ -938,7 +960,7 @@ namespace eval ::xowiki {
     }
 
     Class Object -array set require_permission {
-      edit               {{package_id admin}}
+      edit               swa
     }
     Class File -array set require_permission {
       download           {{package_id read}}
@@ -957,7 +979,7 @@ namespace eval ::xowiki {
       google-sitemap      none
       google-sitemapindex none
       delete             swa
-      edit-new           {{{has_class ::xowiki::Object} id admin} {id create}}
+      edit-new           {{{has_class ::xowiki::Object} swa} {id create}}
     }
     
     Class Page -array set require_permission {
@@ -973,7 +995,7 @@ namespace eval ::xowiki {
     }
 
     Class Object -array set require_permission {
-      edit               {{package_id admin}}
+      edit               swa
     }
     Class File -array set require_permission {
       download           {{package_id read}}
