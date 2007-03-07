@@ -59,7 +59,13 @@ namespace eval ::xowiki {
     my instvar data autoname
     set __fields ""
     set field_list [my field_list]
-    if {[my show_page_order]} {set field_list [linsert $field_list 2 page_order]}
+    if {[my show_page_order]} {
+      set field_list [linsert $field_list 2 page_order]
+      set s [$data get_field_type page_order "" ""]
+      if {$s ne ""} {
+	my set f.page_order $page_order:$s
+      }
+    }
     if {$autoname} {
       my f.name {name:text(hidden),optional}
     }

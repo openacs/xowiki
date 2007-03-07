@@ -803,11 +803,12 @@ namespace eval ::xowiki {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
     set spec $default_spec
-    #ns_log notice "--w pid=[my set parent_id] name='$name' template=[$template set name], specs=[[my set parent_id] get_payload widget_specs]"
+    set given_template_name [expr {[my isobject $template] ? [$template set name] : $template}]
+    #ns_log notice "--w pid=[my set parent_id] name='$name' template[$given_template_name, specs=[[my set parent_id] get_payload widget_specs]"
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
-      #ns_log notice "--w T.title = '[$template set name]' var=$name"
-      if {[string match $template_name [$template set name]] &&
+      #ns_log notice "--w T.title = '$given_template_name' var=$name"
+      if {([string match $template_name $given_template_name] || $given_template_name eq "") &&
           [string match $var_name $name]} {
         set spec $widget
         #ns_log notice "--w using $widget for $name"
