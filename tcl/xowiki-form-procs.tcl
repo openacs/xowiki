@@ -64,7 +64,7 @@ namespace eval ::xowiki {
       if {[$data istype ::xowiki::PageInstance]} {
         set s [$data get_field_type page_order "" ""]
         if {$s ne ""} {
-          my set f.page_order $page_order:$s
+          my set f.page_order page_order:$s
         }
       }
     }

@@ -791,17 +791,29 @@ namespace eval ::xowiki {
     expr {[my isclass $c] ? [$c array names require_permission] : [list]}
   }
 
-  Policy instproc check_privilege {privilege object method} {
+  Policy instproc check_privilege {{-login true} privilege object method} {
     set allowed -1   ;# undecided
     if {[acs_user::site_wide_admin_p]} {
       return 1
     }
     switch $privilege {
       none  {return 1}
-      login {auth::require_login; return 1}
+      login {
+        if {$login} {
+          auth::require_login; return 1
+        } else {
+          return [expr {[::xo::cc user_id] != 0}]
+        }
+      }
       creator {
         if {[$object exists creation_user]} {
-          auth::require_login
+          if {$login} {
+            auth::require_login
+          } else {
+            if {[::xo::cc user_id] == 0} {
+              return 0
+            }
+          }
           if {[$object set creation_user] == [::xo::cc user_id]} {
             set allowed 1
           } else {
@@ -857,7 +869,7 @@ namespace eval ::xowiki {
 
         foreach {kind p} [my get_privilege $permission $object $method] break
         switch $kind {
-          primitive {return [my check_privilege $p $object $method]}
+          primitive {return [my check_privilege -login false $p $object $method]}
           complex {
             foreach {attribute privilege} $p break
             set id [$object set $attribute]
