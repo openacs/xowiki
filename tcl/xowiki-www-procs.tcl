@@ -272,9 +272,9 @@ namespace eval ::xowiki {
     # setting up folder id for file selector (use community folder if available)
     #
     set fs_folder_id ""
-    if {[info commands dotlrn_fs::get_community_shared_folder] ne ""} {
-      set fs_folder_id [dotlrn_fs::get_community_shared_folder \
-                            -community_id [dotlrn_community::get_community_id]]
+    if {[info commands ::dotlrn_fs::get_community_shared_folder] ne ""} {
+      set fs_folder_id [::dotlrn_fs::get_community_shared_folder \
+                            -community_id [::dotlrn_community::get_community_id]]
     }
 
     # the following line is like [$package_id url], but works as well with renamed objects

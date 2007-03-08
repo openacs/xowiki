@@ -825,7 +825,7 @@ namespace eval ::xowiki {
         }
       }
       swa   {
-        #set allowed [acs_user::site_wide_admin_p]
+        set allowed 0
         #if {!$allowed} {
         #  ad_return_warning "Insufficient Permissions" \
         #      "Only side wide admins are allowed for this operation! ($object $method)"

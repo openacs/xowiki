@@ -82,7 +82,8 @@ namespace eval ::xowiki {
           foreach __e [lrange $__spec 1 end] {
             foreach {__name __value} $__e break
             if {$__name eq "options"} {eval lappend __value [my folderspec]}
-            lappend __newspec $__name $__value
+            #lappend __newspec $__name $__value
+            lappend __newspec [list $__name $__value]
           }
           my log "--F rewritten spec is '$__newspec'"
           set __spec $__newspec
