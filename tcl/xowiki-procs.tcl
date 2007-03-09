@@ -885,3 +885,4 @@ namespace eval ::xowiki {
 }
 
 source [file dirname [info script]]/xowiki-www-procs.tcl
+
