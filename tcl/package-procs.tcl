@@ -775,13 +775,8 @@ namespace eval ::xowiki {
   # policy management
   #
 
-  Package instproc condition {method attr value} {
-    switch $attr {
-      has_class {set result [expr {[my query_parameter object_type ""] eq $value}] }
-      default {set result 0}
-    }
-    #my log "--c [self args] returns $result"
-    return $result
+  Package instproc condition=has_class {value} {
+    return [expr {[my query_parameter object_type ""] eq $value}]
   }
 
 
@@ -808,7 +803,7 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
-    }
+    } -set default_permission {{package_id write}}
 
     Class Object -array set require_permission {
       edit               {{package_id admin}}
