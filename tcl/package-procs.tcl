@@ -883,7 +883,13 @@ namespace eval ::xowiki {
     }
   }
 
+  Policy policy4 -contains {
+    ::xotcl::Object function -array set require_permission {
+      f none
+    } -set default_permission login
+  }
   
+  #my log "--set granted [policy4 check_permissions -user_id 0 -package_id 0 function f]"
 }
 
 
