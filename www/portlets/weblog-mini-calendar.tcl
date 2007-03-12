@@ -3,7 +3,7 @@ set folder_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
 if {![exists_and_not_null base_url]} {
-  set base_url [ad_conn url]
+  set base_url [expr {[info exists page] ? "[[::xo::cc package_id] package_url]$page" : [::xo::cc url]}]
 }
 
 set date [ns_queryget date]
@@ -64,6 +64,7 @@ db_foreach entries_this_month "select count(ci.item_id), date_trunc('day',p.publ
         and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
         and ci.content_type not in ('::xowiki::PageTemplate') \
         and ci.item_id != $including_item_id \
+        and ci.publish_status <> 'production' \
         and date_trunc('month', p.publish_date) = '$year-$month-01' \
         group by d" {
           set entries([lindex $d 0]) $count

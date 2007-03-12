@@ -5,9 +5,9 @@
 >><<
 >>sidebar<<
 {{adp portlets/weblog-mini-calendar}}
-{{tags -skin plain}}
-{{tags -popular 1 -limit 30 -skin plain}}
-{{categories-portlet -count 1 -skin plain}} 
+{{tags -decoration plain}}
+{{tags -popular 1 -limit 30 -decoration plain}}
+{{categories-portlet -count 1 -decoration plain}} 
 >><<
 
 }

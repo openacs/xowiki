@@ -468,6 +468,7 @@ namespace eval ::xowiki::portlet {
       {-limit:integer 20}
       {-summary:boolean 0}
       {-popular:boolean 0}
+      {-page}
     }
     my get_parameters
     
@@ -484,9 +485,10 @@ namespace eval ::xowiki::portlet {
     }
     set content "<h3>$label</h3> <BLOCKQUOTE>"
     set entries [list]
+    set url [expr {[info exists page] ? "[$package_id package_url]$page" : [::xo::cc url]}]
     db_foreach get_counts $sql {
       set s [expr {$summary ? "&summary=$summary" : ""}]
-      set href [ad_conn url]?$tag_type=[ad_urlencode $tag]$s
+      set href $url?$tag_type=[ad_urlencode $tag]$s
       lappend entries "$tag <a href='$href'>($nr)</a>"
     }
     append content "[join $entries {, }]</BLOCKQUOTE>\n"
@@ -845,7 +847,6 @@ namespace eval ::xowiki::portlet {
        ::xowiki::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
     }  
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
-    #::xowiki::Page requireJS "http://www.json.org/json.js"   ;# for toJSONString
 
     my set book_mode $book_mode
     if {!$book_mode} {
