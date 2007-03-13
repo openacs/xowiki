@@ -88,6 +88,12 @@ namespace eval ::xowiki::portlet {
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
     return "<div $id class='$class'>[next]</div>"
   }
+
+  Class ::xowiki::portlet::decoration=rightbox -instproc render {} {
+    set class [namespace tail [my info class]]
+    set id [expr {[my exists id] ? "id='[my id]'" : ""}]
+    return "<div class='rightbox'><div $id class='$class'>[next]</div></div>"
+  }
 }
 
 namespace eval ::xowiki::portlet {
@@ -193,8 +199,6 @@ namespace eval ::xowiki::portlet {
         $cattree($plevel) add $c
         set category($cid) $c
         lappend categories $cid
-        #set itemobj [Object new -set name en:index -set title MyTitle -set prefix "" -set suffix ""]
-        #$cattree(0) add_to_category -category $c -itemobj $itemobj -orderby title
       }
       
       set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
@@ -503,7 +507,7 @@ namespace eval ::xowiki::portlet {
   #
   Class create presence \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration plain}}
+      -parameter {{__decoration rightbox}}
 
   # TODO make display style -decoration
 

@@ -4,6 +4,7 @@
   <property name="context">@context;noquote@</property>
   <property name="header_stuff">@header_stuff;noquote@
       <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
+      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     
   <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
@@ -53,9 +54,32 @@ function get_popular_tags() {
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>
 <div style="float:right; width: 70%;">
+<div id='content' class='column'>
 @top_portlets;noquote@
 @content;noquote@
 </div>
+<div id='sidebar' class='column'>
+<div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
+     margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
+">
+<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
+<style type='text/css'>table.mini-calendar {width: 200px ! important;}</style>
+<include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
+	 &__including_page=page 
+	 page="weblog">
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="tags -decoration plain -page weblog-portlet">
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="tags -popular 1 -limit 30 -decoration plain -page weblog-portlet">
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="presence -interval {10 minutes} -decoration plain">
+</div>
+</div>
+</div>
+</div> <!-- right 70% -->
 
 <div style="clear: both; text-align: left; font-size: 85%;">
 <hr/>

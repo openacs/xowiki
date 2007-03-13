@@ -7,6 +7,7 @@ ad_library {
     @cvs-id $Id$
 }
 
+
 namespace eval ::xowiki {
   
   Page instproc view {} {
