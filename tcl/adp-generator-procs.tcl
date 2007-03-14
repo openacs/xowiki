@@ -196,7 +196,11 @@ Categories: @per_object_categories_with_links;noquote@
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>
 <div style="float:right; width: 70%;">
-<div id='content' class='column'>
+<style type='text/css'>
+table.mini-calendar {width: 200px ! important;}
+#sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
+</style>
+<div style='float: left; width: 62%; overflow: visible ! important;'>
 [next]
 </div>
 <div id='sidebar' class='column'>
@@ -204,22 +208,23 @@ Categories: @per_object_categories_with_links;noquote@
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-<style type='text/css'>table.mini-calendar {width: 200px ! important;}</style>
 <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
 	 &__including_page=page 
-	 page="weblog">
+	 page="weblog-portlet" summary="1">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -decoration plain -page weblog-portlet">
+	 portlet="tags -decoration plain -page weblog-portlet -summary 1">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -popular 1 -limit 30 -decoration plain -page weblog-portlet">
+	 portlet="tags -popular 1 -limit 30 -decoration plain -page weblog-portlet -summary 1">
+<hr>
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="presence -interval {10 minutes} -decoration plain">
 </div>
 </div>
 </div>
+
 </div> <!-- right 70% -->
 }]
      }

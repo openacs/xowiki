@@ -11,15 +11,11 @@ if {![exists_and_not_null date]} {
   set date [dt_sysdate]
 } 
 
-if {[exists_and_not_null page_num]} {
-    set page_num_formvar [export_form_vars page_num]
-    set page_num "&page_num=$page_num"
-} else {
-    set page_num_formvar ""
-    set page_num ""
-}
-
-set url_stub_period_days ""
+#if {[exists_and_not_null page_num]} {
+#    set page_num "&page_num=$page_num"
+#} else {
+#    set page_num ""
+#}
 
 array set message_key_array {
     list #acs-datetime.List#
@@ -48,8 +44,9 @@ set curr_month_idx  [expr {[dt_trim_leading_zeros [clock format $now -format "%m
 set curr_month [lindex $months_list $curr_month_idx ]
 set prev_month [clock format [clock scan "1 month ago" -base $now] -format "%Y-%m-%d"]
 set next_month [clock format [clock scan "1 month" -base $now] -format "%Y-%m-%d"]
-set prev_month_url "$base_url?date=[ad_urlencode $prev_month]${page_num}${url_stub_period_days}"
-set next_month_url "$base_url?date=[ad_urlencode $next_month]${page_num}${url_stub_period_days}"
+set prev_month_url [export_vars -base $base_url {{date $prev_month} page_num summary}]
+set next_month_url [export_vars -base $base_url {{date $next_month} page_num summary}]
+#set next_month_url "$base_url?date=[ad_urlencode $next_month]${page_num}"
     
 set first_day_of_week [lc_get firstdayofweek]
 set week_days [lc_get abday]
@@ -129,14 +126,14 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
     set class inactive
   }
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
-      "[export_vars -base $base_url {{date $ansi_date}}]${url_stub_period_days}" $count $class
+      "[export_vars -base $base_url {{date $ansi_date} summary}]" $count $class
   incr day_number
   incr day_of_week
 }
 
-
-set today_url "$base_url?date=[ad_urlencode [dt_sysdate]]${page_num}${url_stub_period_days}"
-if {[dt_sysdate] eq $date} {
+set sysdate [dt_sysdate]
+set today_url [export_vars -base $base_url {{date $sysdate} page_num}]
+if {$sysdate eq $date} {
   set today_p t
 } else {
   set today_p f
