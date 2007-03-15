@@ -9,6 +9,21 @@ ad_library {
 
 
 namespace eval ::xowiki {
+
+  Page instproc render_my_tags {-weblog_page tags_var} {
+    my upvar $tags_var tags
+    my instvar item_id package_id
+    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+    set entries [list]
+    if {![info exists weblog_page]} {
+      set weblog_page [$package_id get_parameter weblog_page weblog]
+    }
+    set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
+                         -item_id $item_id -package_id $package_id]]
+    set href [$package_id package_url]$weblog_page?summary=1
+    foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
+    return [join [lsort $entries] {, }]
+  }
   
   Page instproc view {} {
     # view is used only for the toplevel call, when the xowiki page is viewed
@@ -17,6 +32,13 @@ namespace eval ::xowiki {
     $package_id instvar folder_id  ;# this is the root folder
     ::xowiki::Page set recursion_count 0
 
+    set template_file [my query_parameter "template_file" \
+                           [::$package_id get_parameter template_file view-default]]
+
+    if {[my isobject ::xowiki::$template_file]} {
+      $template_file before_render
+    }
+    
     set content [my render]
     my log "--after render"
 
@@ -50,16 +72,7 @@ namespace eval ::xowiki {
         ![my exists_query_parameter no_tags]} {
       # only activate tags when the user is logged in
       set no_tags [expr {[::xo::cc user_id] == 0}]
-      set tags ""
-      if {!$no_tags} {
-        ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
-        set entries [list]
-        set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
-                             -item_id $item_id -package_id $package_id]]
-        set href [$package_id package_url]weblog?summary=1
-        foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
-        set tags_with_links [join $entries {, }]
-      }
+      if {!$no_tags} {set tags_with_links [my render_my_tags tags]}
     }
     #my log "--after tags"
 
@@ -180,8 +193,8 @@ namespace eval ::xowiki {
       set edit_link   [$package_id make_link [self] edit return_url]
       set delete_link [$package_id make_link [self] delete return_url] 
       set new_link    [$package_id make_link $package_id edit-new object_type return_url autoname] 
-      set admin_link  [$package_id make_link -privilege admin -url admin/ $package_id {} {}] 
-      set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
+      set admin_link  [$package_id make_link -privilege admin -link admin/ $package_id {} {}] 
+      set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
       set save_tag_link [$package_id make_link [self] save-tags]
       set popular_tags_link [$package_id make_link [self] popular-tags]
       set create_in_req_locale_link ""
@@ -221,8 +234,6 @@ namespace eval ::xowiki {
       } else {
         # use adp file
         foreach css [$package_id get_parameter extra_css ""] {::xowiki::Page requireCSS $css}
-        set template_file [my query_parameter "template_file" \
-                               [::$package_id get_parameter template_file view-default]]
 
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file
@@ -320,7 +331,7 @@ namespace eval ::xowiki {
       set back_link [$package_id url]
     }
 
-    set index_link  [$package_id make_link -privilege public -url "" $package_id {} {}]
+    set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
     set html [$package_id return_page -adp /packages/xowiki/www/edit \
                   -form f1 \
                   -variables {item_id edit_form_page_title context formTemplate
@@ -397,14 +408,17 @@ namespace eval ::xowiki {
     my instvar package_id item_id
     ::xowiki::Page save_tags -user_id [::xo::cc user_id] -item_id $item_id \
         -package_id $package_id [my form_parameter new_tags]
+
     ::$package_id returnredirect \
         [my query_parameter "return_url" [$package_id url]]
   }
 
   Page instproc popular-tags {} {
     my instvar package_id item_id parent_id
-    set limit [my query_parameter "limit" 20]
-    set href [$package_id package_url]weblog?summary=1
+    set limit       [my query_parameter "limit" 20]
+    set weblog_page [$package_id get_parameter weblog_page weblog]
+    set href        [$package_id pretty_link $weblog_page]?summary=1
+
     set entries [list]
     db_foreach get_popular_tags \
         "select count(*) as nr,tag from xowiki_tags \

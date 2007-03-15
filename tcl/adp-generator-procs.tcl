@@ -17,20 +17,24 @@ namespace eval ::xowiki {
     {extra_header_stuff ""}
   }
 
+  ADP_Generator instproc before_render {} {
+    # just a hook, might be removed later
+  }
+
   ADP_Generator instproc ajax_tag_definition {} {
     # if we have no footer, we have no tag form
     if {![my footer]} {return ""}
 
     return {<script type="text/javascript">
-function get_popular_tags() {
+function get_popular_tags(popular_tags_link, prefix) {
   var http = getHttpObject();
-  http.open('GET', "@popular_tags_link@", true);
+  http.open('GET', popular_tags_link, true);
   http.onreadystatechange = function() {
     if (http.readyState == 4) {
       if (http.status != 200) {
 	alert('Something wrong in HTTP request, status code = ' + http.status);
       } else {
-       var e = document.getElementById('popular_tags');
+       var e = document.getElementById(prefix + '-popular_tags');
        e.innerHTML = http.responseText;
        e.style.display = 'block';
       }
@@ -92,12 +96,12 @@ function get_popular_tags() {
 </if>
 <if @no_tags@ eq 0>
 #xowiki.your_tags_label#: @tags_with_links;noquote@
-(<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
-<a href='#' onclick='get_popular_tags();return false;'>#xowiki.popular_tags_link#</a>)
-<span id='edit_tags' style='display: none'>
+(<a href='#' onclick='document.getElementById("-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
+<a href='#' onclick='get_popular_tags("@popular_tags_link@","");return false;'>#xowiki.popular_tags_link#</a>)
+<span id='-edit_tags' style='display: none'>
 <FORM action="@save_tag_link@" method='POST'><INPUT name='new_tags' type='text' value="@tags@"></FORM>
 </span>
-<span id='popular_tags' style='display: none'></span><br/>
+<span id='-popular_tags' style='display: none'></span><br/>
 </if>
 <if @per_object_categories_with_links@ not nil and @per_object_categories_with_links@ ne "">
 Categories: @per_object_categories_with_links;noquote@
@@ -146,7 +150,6 @@ Categories: @per_object_categories_with_links;noquote@
       puts -nonewline $f [my generate]
       close $f
     }
-    my destroy_on_cleanup
   }
 
   ADP_Generator create view-plain -master 0 -wikicmds 0 -footer 0
@@ -184,6 +187,9 @@ Categories: @per_object_categories_with_links;noquote@
       <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     } \
+    -proc before_render {} {
+      ::xo::cc set_parameter weblog_page weblog-portlet
+    } \
     -proc content_part {} {
        return [subst -novariables -nobackslashes \
 {<div style="float:left; width: 25%; font-size: 85%;
@@ -200,9 +206,9 @@ Categories: @per_object_categories_with_links;noquote@
 table.mini-calendar {width: 200px ! important;}
 #sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
 </style>
-<div style='float: left; width: 62%; overflow: visible ! important;'>
+<div style='float: left; width: 62%'>
 [next]
-</div>
+</div>  <!-- float left -->
 <div id='sidebar' class='column'>
 <div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
@@ -210,28 +216,24 @@ table.mini-calendar {width: 200px ! important;}
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
 	 &__including_page=page 
-	 page="weblog-portlet" summary="1">
+         summary="1" noparens="1">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -decoration plain -page weblog-portlet -summary 1">
+	 portlet="tags -decoration plain -summary 1">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -popular 1 -limit 30 -decoration plain -page weblog-portlet -summary 1">
+	 portlet="tags -popular 1 -limit 30 -decoration plain -summary 1">
 <hr>
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="presence -interval {10 minutes} -decoration plain">
+	 portlet="presence -interval {30 minutes} -decoration plain">
 </div>
 </div>
-</div>
+</div> <!-- sidebar -->
 
 </div> <!-- right 70% -->
 }]
      }
-
-#{{adp portlets/weblog-mini-calendar {page weblog}}}
-#{{tags -decoration plain -page weblog-portlet}}
-#{{tags -popular 1 -limit 30 -decoration plain -page weblog-portlet}} 
 
 
 }

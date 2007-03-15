@@ -108,8 +108,9 @@ namespace eval ::xowiki {
                            -mode_3_fmt "%d %b %Y, at %X"]
       
       if {$summary} {
-        # we need always: package_id name title creator creation_user pretty_date
-        set p [Page new -package_id $package_id -name $name -title $title -creator $creator]
+        # we need always: package_id item_id name title creator creation_user pretty_date
+        set p [Page new -package_id $package_id -item_id $item_id \
+                   -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
         $p set description [expr {$description eq "" && $body ne ""? \
                                       "[string range $body 0 150]..." : $description}]

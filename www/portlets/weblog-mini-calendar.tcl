@@ -1,9 +1,11 @@
 ::xowiki::Page requireCSS "/resources/calendar/calendar.css"
+set package_id        [::xo::cc package_id]
 set folder_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
 if {![exists_and_not_null base_url]} {
-  set base_url [expr {[info exists page] ? "[[::xo::cc package_id] package_url]$page" : [::xo::cc url]}]
+  if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
+  set base_url [$package_id pretty_link $page]
 }
 
 set date [ns_queryget date]
@@ -117,7 +119,9 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   }
 
   # ns_log notice "--D julian_date = $julian_date [dt_julian_to_ansi $julian_date] //$ansi_date"
-  set count [expr {[info exists entries($ansi_date)] ? "($entries($ansi_date))" : ""}]
+  set count [expr {[info exists entries($ansi_date)] ? 
+                   ([info exists noparens] ? $entries($ansi_date) : "($entries($ansi_date))") 
+                   : ""}]
   if {$today_p} {
     set class today
   } elseif {$active_p} {

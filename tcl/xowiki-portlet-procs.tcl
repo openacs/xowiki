@@ -487,7 +487,6 @@ namespace eval ::xowiki::portlet {
       set sql "select count(*) as nr,tag from xowiki_tags where \
         user_id=[::xo::cc user_id] and package_id=$package_id group by tag order by tag"
     }
-    set content "<h3>$label</h3> <BLOCKQUOTE>"
     set entries [list]
     set url [expr {[info exists page] ? "[$package_id package_url]$page" : [::xo::cc url]}]
     db_foreach get_counts $sql {
@@ -495,10 +494,43 @@ namespace eval ::xowiki::portlet {
       set href $url?$tag_type=[ad_urlencode $tag]$s
       lappend entries "$tag <a href='$href'>($nr)</a>"
     }
-    append content "[join $entries {, }]</BLOCKQUOTE>\n"
-    return $content
+    return [expr {[llength $entries]  > 0 ? 
+                  "<h3>$label</h3> <BLOCKQUOTE>[join $entries {, }]</BLOCKQUOTE>\n" :
+                  ""}]
   }
 
+  Class create my-tags \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  my-tags instproc render {} {
+
+    my initialize -parameter {
+    }
+    my get_parameters
+    my instvar __including_page
+    set p_link [$package_id pretty_link [$__including_page name]]
+    set return_url "[::xo::cc url]?[::xo::cc actual_query]"
+    set weblog_page [$package_id get_parameter weblog_page weblog]
+    set save_tag_link [$package_id make_link -link $p_link $__including_page \
+                           save-tags return_url]
+    set popular_tags_link [$package_id make_link -link $p_link $__including_page \
+                               popular-tags return_url weblog_page]
+    set tags_with_links [$__including_page render_my_tags tags]
+
+    set content [subst -nobackslashes {
+      #xowiki.your_tags_label#: $tags_with_links
+      (<a href='#' onclick='document.getElementById("[self]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
+       <a href='#' onclick='get_popular_tags("$popular_tags_link","[self]");return false;'>#xowiki.popular_tags_link#</a>)
+      <span id='[self]-edit_tags' style='display: none'>
+      <FORM action="$save_tag_link" method='POST'>
+        <INPUT name='new_tags' type='text' value="$tags">
+      </FORM>
+      </span>
+      <span id='[self]-popular_tags' style='display: none'></span><br/>
+    }]
+    return $content
+  }
 }
 
 namespace eval ::xowiki::portlet {
@@ -909,7 +941,7 @@ namespace eval ::xowiki::portlet {
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
       set p_link [$package_id pretty_link $name]
-      set edit_link [$package_id make_link -url $p_link $p edit return_url]
+      set edit_link [$package_id make_link -link $p_link $p edit return_url]
       if {$edit_link ne ""} {
         set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
       } else {

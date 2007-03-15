@@ -173,7 +173,7 @@ namespace eval ::xowiki {
   #
   # conditional links
   #
-  Package instproc make_link {-privilege -url object method args} {
+  Package instproc make_link {-privilege -link object method args} {
     my instvar id
  
     if {[info exists privilege]} {
@@ -189,15 +189,15 @@ namespace eval ::xowiki {
     if {$granted} {
       if {[$object istype ::xowiki::Package]} {
         set base  [my package_url]
-        if {[info exists url]} {
-          return [uplevel export_vars -base [list $base$url] [list $args]]
+        if {[info exists link]} {
+          return [uplevel export_vars -base [list $base$link] [list $args]]
         } else {
           lappend args [list $method 1]
           return [uplevel export_vars -base [list $base] [list $args]]
         }
       } elseif {[$object istype ::xowiki::Page]} {
-        if {[info exists url]} {
-          set base $url
+        if {[info exists link]} {
+          set base $link
         } else {
           set base [my url]
         }
