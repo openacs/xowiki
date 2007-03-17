@@ -6,15 +6,15 @@
 <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
 <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
 <script type="text/javascript">
-function get_popular_tags() {
+function get_popular_tags(popular_tags_link, prefix) {
   var http = getHttpObject();
-  http.open('GET', "@popular_tags_link@", true);
+  http.open('GET', popular_tags_link, true);
   http.onreadystatechange = function() {
     if (http.readyState == 4) {
       if (http.status != 200) {
 	alert('Something wrong in HTTP request, status code = ' + http.status);
       } else {
-       var e = document.getElementById('popular_tags');
+       var e = document.getElementById(prefix + '-popular_tags');
        e.innerHTML = http.responseText;
        e.style.display = 'block';
       }
@@ -89,43 +89,5 @@ function get_popular_tags() {
 </div>
 
 </div>
-<div style="clear: both; text-align: left; font-size: 85%;">
-<hr>
-<if @digg_link@ not nil>
-<div style='float: right'><a href='@digg_link@'><img  src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a></div>
-</if>
-<if @delicious_link@ not nil>
-<div style='float: right; padding-right: 10px;'><a href='@delicious_link@'><img src="http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif" width="14" height="14" border="0" alt="Add to your del.icio.us" />del.icio.us</a></div>
-</if>
-<if @my_yahoo_link@ not nil>
-<div style='float: right; padding-right: 10px;'>
-<a href="@my_yahoo_link@"><img src="http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif" width="91" height="17" border="0" align="middle" alt="Add to My Yahoo!"></a></div>
-</if>
-<div style="clear: both; text-align: left; font-size: 85%;">
-<if @references@ ne "" or @lang_links.found@ ne "">
-#xowiki.references_label# @references;noquote@ @lang_links.found;noquote@<br/>
-</if>
-<if @lang_links.undefined@ ne "">
-#xowiki.create_this_page_in_language# @lang_links.undefined;noquote@<br/>
-</if>
-<if @no_tags@ eq 0>
-#xowiki.your_tags_label#: @tags_with_links;noquote@
-(<a href='#' onclick='document.getElementById("edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
-<a href='#' onclick='get_popular_tags();return false;'>#xowiki.popular_tags_link#</a>)
-<span id='edit_tags' style='display: none'>
-<FORM action="@save_tag_link@" method='POST'><INPUT name='new_tags' type='text' value="@tags@"></FORM>
-</span>
-<span id='popular_tags' style='display: none'></span><br/>
-</if>
-<if @per_object_categories_with_links@ not nil and @per_object_categories_with_links@ ne "">
-Categories: @per_object_categories_with_links;noquote@
-</if>
-</div><br/>
-<if @gc_comments@ not nil>
-   <p>#general-comments.Comments#
-   <ul>@gc_comments;noquote@</ul></p>
-</if>
-<if @gc_link@ not nil>
-   <p>@gc_link;noquote@</p>
-</if>
+@footer;noquote@
 </div> <!-- class='xowiki-content' -->

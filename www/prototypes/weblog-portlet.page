@@ -25,13 +25,14 @@
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
+    set my_footer [my htmlFooter]
 
-    append content "<DIV class='post' style='clear: both;'>" \
+    append content "<DIV class='post' style='clear: both; background: #f8f8f8;'>" \
         "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modified by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
-        $description $more \n\
+        $description $more $my_footer \n\
         "</DIV>"
   }
 
@@ -74,6 +75,7 @@
     } else {
       #my log "--W NO including page"
       set exclude_item_ids [$page item_id]
+      $page set __no_footer 1
     }
 
     # on the weblog-portlet page, an edit-new should not create an object

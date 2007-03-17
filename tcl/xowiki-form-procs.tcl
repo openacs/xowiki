@@ -252,14 +252,14 @@ namespace eval ::xowiki {
     
   WikiForm instproc new_request {} {
     my instvar data
-    $data set creator [::xo::get_user_name [ad_conn user_id]]
+    $data set creator [::xo::get_user_name [::xo::cc user_id]]
     next
   }
 
   WikiForm instproc edit_request args {
     my instvar data
     if {[$data set creator] eq ""} {
-      $data set creator [::xo::get_user_name [ad_conn user_id]]
+      $data set creator [::xo::get_user_name [::xo::cc user_id]]
     }
     next
   }
@@ -269,7 +269,7 @@ namespace eval ::xowiki {
     my data_from_form -new 1 
     $data set __autoname_prefix [string range [$data set nls_language] 0 1]:
     set item_id [next]
-    $data set creation_user [ad_conn user_id]
+    $data set creation_user [::xo::cc user_id]
     my update_references
     return $item_id
   }

@@ -17,7 +17,7 @@ namespace eval ::xowiki {
     {extra_header_stuff ""}
   }
 
-  ADP_Generator instproc before_render {} {
+  ADP_Generator instproc before_render {obj} {
     # just a hook, might be removed later
   }
 
@@ -76,44 +76,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 
   ADP_Generator instproc footer_part {} {
     if {![my footer]} {return ""}
-    return {<div style="clear: both; text-align: left; font-size: 85%;">
-<hr/>
-<if @digg_link@ not nil>
-<div style='float: right'><a href='@digg_link@'><img  src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a></div>
-</if>
-<if @delicious_link@ not nil>
-<div style='float: right; padding-right: 10px;'><a href='@delicious_link@'><img src="http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif" width="14" height="14" border="0" alt="Add to your del.icio.us" />del.icio.us</a></div>
-</if>
-<if @my_yahoo_link@ not nil>
-<div style='float: right; padding-right: 10px;'>
-<a href="@my_yahoo_link@"><img src="http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif" width="91" height="17" border="0" align="middle" alt="Add to My Yahoo!"></a></div>
-</if>
-<if @references@ ne "" or @lang_links.found@ ne "">
-#xowiki.references_label# @references;noquote@ @lang_links.found;noquote@<br/>
-</if>
-<if @lang_links.undefined@ ne "">
-#xowiki.create_this_page_in_language# @lang_links.undefined;noquote@<br/>
-</if>
-<if @no_tags@ eq 0>
-#xowiki.your_tags_label#: @tags_with_links;noquote@
-(<a href='#' onclick='document.getElementById("-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>, 
-<a href='#' onclick='get_popular_tags("@popular_tags_link@","");return false;'>#xowiki.popular_tags_link#</a>)
-<span id='-edit_tags' style='display: none'>
-<FORM action="@save_tag_link@" method='POST'><INPUT name='new_tags' type='text' value="@tags@"></FORM>
-</span>
-<span id='-popular_tags' style='display: none'></span><br/>
-</if>
-<if @per_object_categories_with_links@ not nil and @per_object_categories_with_links@ ne "">
-Categories: @per_object_categories_with_links;noquote@
-</if>
-</div>
-<if @gc_comments@ not nil>
-   <p>#general-comments.Comments#
-   <ul>@gc_comments;noquote@</ul></p>
-</if>
-<if @gc_link@ not nil>
-   <p>@gc_link;noquote@</p>
-</if>}
+    return "@footer;noquote@"
   }
 
   ADP_Generator instproc content_part {} {
@@ -145,8 +108,9 @@ Categories: @per_object_categories_with_links;noquote@
     set name [namespace tail [self]]
     set filename [file dirname [info script]]/../www/$name.adp
     # generate the adp file, if it does not exist
-    if {![file exists $filename]} {
-      set f [open $filename w]
+    if {[catch {set f [open $filename w]} errorMsg]} {
+      my log "Error: cannot overwrite $filename, ignoring possible changes"
+    } else {
       puts -nonewline $f [my generate]
       close $f
     }
@@ -187,7 +151,7 @@ Categories: @per_object_categories_with_links;noquote@
       <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     } \
-    -proc before_render {} {
+    -proc before_render {page} {
       ::xo::cc set_parameter weblog_page weblog-portlet
     } \
     -proc content_part {} {
@@ -216,17 +180,19 @@ table.mini-calendar {width: 200px ! important;}
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
 	 &__including_page=page 
-         summary="1" noparens="1">
+         summary="0" noparens="1">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -decoration plain -summary 1">
+	 portlet="tags -decoration plain">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
-	 portlet="tags -popular 1 -limit 30 -decoration plain -summary 1">
+	 portlet="tags -popular 1 -limit 30 -decoration plain">
 <hr>
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="presence -interval {30 minutes} -decoration plain">
+<hr>
+<a href="contributors" text="Show People contributing to this XoWiki Instance">Contributors</a>
 </div>
 </div>
 </div> <!-- sidebar -->

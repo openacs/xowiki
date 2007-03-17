@@ -9,21 +9,70 @@ ad_library {
 
 
 namespace eval ::xowiki {
+  
+  Page instproc htmlFooter {{-content ""}} {
+    my instvar package_id description
+    if {[my exists __no_footer]} {return ""}
 
-  Page instproc render_my_tags {-weblog_page tags_var} {
-    my upvar $tags_var tags
-    my instvar item_id package_id
-    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
-    set entries [list]
-    if {![info exists weblog_page]} {
-      set weblog_page [$package_id get_parameter weblog_page weblog]
+    set footer "<hr/>"
+
+    if {$description eq ""} {
+      set description [my get_description $content]
     }
-    set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
-                         -item_id $item_id -package_id $package_id]]
-    set href [$package_id package_url]$weblog_page?summary=1
-    foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
-    return [join [lsort $entries] {, }]
+
+    if {[ns_conn isconnected]} {
+      set url         "[ns_conn location][::xo::cc url]"
+      set package_url "[ns_conn location][$package_id package_url]"
+    }
+
+    if {[$package_id get_parameter "with_tags" 1] && 
+        ![my exists_query_parameter no_tags] &&
+        [::xo::cc user_id] != 0
+      } {
+      set tag_content "[my include_portlet my-tags]<br>"
+      set tag_includelet [my set __last_includelet]
+      set tags [$tag_includelet set tags]
+    } else {
+      set tag_content ""
+      set tags ""
+    }
+
+    if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
+      append footer "<div style='float: right'>" \
+          [my include_portlet [list digg -description $description -url $url]] "</div>\n"
+    }
+
+    if {[$package_id get_parameter "with_delicious" 0] && [info exists url]} {
+      append footer "<div style='float: right; padding-right: 10px;'>" \
+          [my include_portlet [list delicious -description $description -url $url -tags $tags]] \
+          "</div>\n"
+    }
+
+    if {[$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
+      append footer "<div style='float: right; padding-right: 10px;'>" \
+          [my include_portlet [list my-yahoo-publisher \
+                                   -publisher [::xo::get_user_name [::xo::cc user_id]] \
+                                   -rssurl "$package_url?rss"]] \
+          "</div>\n"
+    }
+
+    append footer [my include_portlet my-references]  <br>
+    
+    if {[$package_id get_parameter "show_per_object_categories" 1]} {
+      append footer [my include_portlet my-categories]  <br>
+      set categories_includelet [my set __last_includelet]
+    }
+
+    append footer $tag_content
+
+    if {[$package_id get_parameter "with_general_comments" 0] &&
+        ![my exists_query_parameter no_gc]} {
+      append footer [my include_portlet my-general-comments] <br>
+    }
+
+    return  "<div style='clear: both; text-align: left; font-size: 85%;'>$footer</div>\n"
   }
+
   
   Page instproc view {} {
     # view is used only for the toplevel call, when the xowiki page is viewed
@@ -36,11 +85,12 @@ namespace eval ::xowiki {
                            [::$package_id get_parameter template_file view-default]]
 
     if {[my isobject ::xowiki::$template_file]} {
-      $template_file before_render
+      $template_file before_render [self]
     }
     
     set content [my render]
     my log "--after render"
+    set footer [my htmlFooter -content $content]
 
     set top_portlets ""
     set vp [$package_id get_parameter "top_portlet" ""]
@@ -59,22 +109,8 @@ namespace eval ::xowiki {
       array set views_data [views::get -object_id $item_id]
     }
 
-    #my log "--after user_tracking"
-    set references [my references]
-    #my log "--after references = <$references>"
-
     # export title, name and text into current scope
     my instvar title name text
-
-    set tags ""
-    set no_tags 1
-    if {[$package_id get_parameter "with_tags" 1] && 
-        ![my exists_query_parameter no_tags]} {
-      # only activate tags when the user is logged in
-      set no_tags [expr {[::xo::cc user_id] == 0}]
-      if {!$no_tags} {set tags_with_links [my render_my_tags tags]}
-    }
-    #my log "--after tags"
 
     ### this was added by dave to address a problem with notifications
     ### however, this does not work, when e.g. a page is renamed.
@@ -87,8 +123,7 @@ namespace eval ::xowiki {
     if {[$package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
-        set notification_type [notification::type::get_type_id \
-                                   -short_name xowiki_notif]
+        set notification_type [notification::type::get_type_id -short_name xowiki_notif]
         set notification_text "Subscribe the XoWiki instance"
         set notification_subscribe_link \
             [export_vars -base /notifications/request-new \
@@ -102,82 +137,6 @@ namespace eval ::xowiki {
       }
     }
     #my log "--after notifications [info exists notification_image]"
-    
-
-    if {[$package_id get_parameter "show_per_object_categories" 1]} {
-      set entries [list]
-      set href [$package_id package_url]weblog?summary=1
-      foreach cat_id [category::get_mapped_categories $item_id] {
-        foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
-        #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
-        set entry "<a href='$href&category_id=$category_id'>$category_name ($tree_name)</a>"
-        if {[info exists notification_image]} {
-          set notification_text "Subscribe category $category_name in tree $tree_name"
-          set cat_notif_link [export_vars -base /notifications/request-new \
-                                  {{return_url $notifications_return_url} \
-                                       {pretty_name $notification_text} \
-                                       {type_id $notification_type} \
-                                       {object_id $category_id}}]
-          append entry "<a href='$cat_notif_link'> " \
-              "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
-              "alt='$notification_text' title='$notification_text'>" </a>
-        }
-        lappend entries $entry
-      }
-      set per_object_categories_with_links [join $entries {, }]
-    }
-    #my log "--after tags"
-
-    if {[$package_id get_parameter "with_general_comments" 0] && 
-        ![my exists_query_parameter no_gc]} {
-      set gc_return_url [$package_id url]
-      set gc_link     [general_comments_create_link -object_name $title $item_id $gc_return_url]
-      set gc_comments [general_comments_get_comments $item_id $gc_return_url]
-    } else {
-      set gc_link ""
-      set gc_comments ""
-    }
-    #my log "--after gc title=$title"
-
-    if {[$package_id get_parameter "with_digg" 0] && [ns_conn isconnected]} {
-      set digg_description [my set description]
-      if {$digg_description eq ""} {
-	set digg_description [ad_html_text_convert -from text/html -to text/plain -- $content]
-      }
-      set digg_link [export_vars -base "http://digg.com/submit" {
-        {phase 2} 
-        {url       "[ns_conn location][::xo::cc url]"}
-        {title     "[string range $title 0 74]"}
-        {body_text "[string range $digg_description 0 349]"}
-      }]
-    }
-    if {[$package_id get_parameter "with_delicious" 0] && [ns_conn isconnected]} {
-      set delicious_description [my set description]
-      if {$delicious_description eq ""} {
-        set delicious_description [ad_html_text_convert -from text/html -to text/plain -- $content]
-      }
-      # the following opens a window, where a user can edit the posted info.
-      # however, it seems not possible to add tags this way automatically.
-      # Alternatively, one could use the api as descibed below; this allows
-      # tags, but no editing...
-      # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
-      set delicious_link [export_vars -base "http://del.icio.us/post" {
-        {v 4}
-        {url   "[ns_conn location][::xo::cc url]"}
-        {title "[string range $title 0 79]"}
-        {notes "[string range $delicious_description 0 199]"}
-        tags
-      }]
-    }
-    #my log "--after delicious"
-
-    set my_yahoo_publisher [$package_id get_parameter "my_yahoo_publisher" ""]
-    if {$my_yahoo_publisher ne "" && [ns_conn isconnected]} {
-      set my_yahoo_publisher [ad_urlencode $my_yahoo_publisher]
-      set feedname [ad_urlencode [$folder_id set title]]
-      set rssurl [ad_urlencode "[ad_url][$package_id package_url]?rss"]
-      set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$my_yahoo_publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
-    }
 
     set master [$package_id get_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
@@ -195,8 +154,6 @@ namespace eval ::xowiki {
       set new_link    [$package_id make_link $package_id edit-new object_type return_url autoname] 
       set admin_link  [$package_id make_link -privilege admin -link admin/ $package_id {} {}] 
       set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
-      set save_tag_link [$package_id make_link [self] save-tags]
-      set popular_tags_link [$package_id make_link [self] popular-tags]
       set create_in_req_locale_link ""
       if {[$package_id get_parameter use_connection_locale 0]} {
         $package_id get_name_and_lang_from_path \
@@ -211,11 +168,6 @@ namespace eval ::xowiki {
                      -return_only undefined]
           $l render
         }
-      }
-
-      foreach i [my array names lang_links] {
-        set lang_links($i) [join [my set lang_links($i)] ", "]
-        #my log "--lang_links($i) = '$lang_links($i)'"
       }
 
       my log "--after context delete_link=$delete_link "
@@ -240,16 +192,14 @@ namespace eval ::xowiki {
         }
         set header_stuff [::xowiki::Page header_stuff]
         $package_id return_page -adp $template_file -variables {
-          references name title item_id page context header_stuff return_url
-          content references lang_links package_id
+          name title item_id page context header_stuff return_url
+          content package_id
           rev_link edit_link delete_link new_link admin_link index_link 
-          tags no_tags tags_with_links save_tag_link popular_tags_link 
           create_in_req_locale_link req_lang
-          per_object_categories_with_links 
-          digg_link delicious_link my_yahoo_link
-          gc_link gc_comments notification_subscribe_link notification_image 
+          notification_subscribe_link notification_image 
           top_portlets page
           views_data
+          footer
         }
       }
     } else {
@@ -337,7 +287,7 @@ namespace eval ::xowiki {
                   -variables {item_id edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link}]
     template::util::lpop parse_level
-    my log "--e html length [string length $html]"
+    #my log "--e html length [string length $html]"
     return $html
   }
 

@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.48" url="http://openacs.org/repository/download/apm/xowiki-0.48.apm">
+    <version name="0.49" url="http://openacs.org/repository/download/apm/xowiki-0.49.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-03-09</release-date>
+        <release-date>2007-03-18</release-date>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of wiki markup commands of systems
@@ -95,11 +95,13 @@ language prefix to avoid clashes, ltree (for ordering);
 0.47: podcast support
 
 0.48: policy management moved to xotcl-core, more detailed form field specification for page instances, flash support, yndication status in www/admin/list, file import/export, style information in css files
+
+0.49: adp-generator, make tags/categories/social software buttons per item in a weblog
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.48"/>
+        <provides url="xowiki" version="0.49"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -116,7 +118,6 @@ language prefix to avoid clashes, ltree (for ordering);
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. This attribute can only be shown, when ltree is available." section_name="Form"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="When specified, a button for adding the content to myyahoo is added, containing the specified publisher" section_name="Options"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;."/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
@@ -133,6 +134,7 @@ language prefix to avoid clashes, ltree (for ordering);
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_notifications"  default="1" description="Allow the user to register notifications" section_name="Options"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_yahoo_publisher"  default="0" description="When specified, a button for adding the content to myyahoo is added, containing the specified publisher" section_name="Options"/>
         </parameters>
 
     </version>

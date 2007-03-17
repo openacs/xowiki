@@ -488,10 +488,13 @@ namespace eval ::xowiki::portlet {
         user_id=[::xo::cc user_id] and package_id=$package_id group by tag order by tag"
     }
     set entries [list]
-    set url [expr {[info exists page] ? "[$package_id package_url]$page" : [::xo::cc url]}]
+
+    if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
+    set base_url [$package_id pretty_link $page]
+
     db_foreach get_counts $sql {
       set s [expr {$summary ? "&summary=$summary" : ""}]
-      set href $url?$tag_type=[ad_urlencode $tag]$s
+      set href $base_url?$tag_type=[ad_urlencode $tag]$s
       lappend entries "$tag <a href='$href'>($nr)</a>"
     }
     return [expr {[llength $entries]  > 0 ? 
@@ -504,11 +507,14 @@ namespace eval ::xowiki::portlet {
       -parameter {{__decoration none}}
   
   my-tags instproc render {} {
-
+    
     my initialize -parameter {
+      {-summary 1}
     }
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page tags
+    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+    
     set p_link [$package_id pretty_link [$__including_page name]]
     set return_url "[::xo::cc url]?[::xo::cc actual_query]"
     set weblog_page [$package_id get_parameter weblog_page weblog]
@@ -516,7 +522,14 @@ namespace eval ::xowiki::portlet {
                            save-tags return_url]
     set popular_tags_link [$package_id make_link -link $p_link $__including_page \
                                popular-tags return_url weblog_page]
-    set tags_with_links [$__including_page render_my_tags tags]
+
+    set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
+                         -item_id [$__including_page item_id] -package_id $package_id]]
+    set href [$package_id package_url]$weblog_page?summary=$summary
+
+    set entries [list]
+    foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
+    set tags_with_links [join [lsort $entries] {, }]
 
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
@@ -531,6 +544,186 @@ namespace eval ::xowiki::portlet {
     }]
     return $content
   }
+
+  
+  Class create my-categories \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  my-categories instproc render {} {
+    
+    my initialize -parameter {
+      {-summary 1}
+    }
+    my get_parameters
+    my instvar __including_page tags
+    set content ""
+
+    set weblog_page [$package_id get_parameter weblog_page weblog]
+    set entries [list]
+    set href [$package_id package_url]$weblog_page?summary=$summary
+    set notification_type ""
+    if {[$package_id get_parameter "with_notifications" 1] &&
+        [::xo::cc user_id] != 0} { ;# notifications require login
+      set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+    }
+    if {[$package_id exists_query_parameter return_url]} {
+      set return_url [$package_id query_parameter return_url]
+    }
+    foreach cat_id [category::get_mapped_categories [$__including_page set item_id]] {
+      foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
+      #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
+      set entry "<a href='$href&category_id=$category_id'>$category_name ($tree_name)</a>"
+      if {$notification_type ne ""} {
+        set notification_text "Subscribe category $category_name in tree $tree_name"
+        set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
+        set notification_image \
+            "<img style='border: 0px;' src='/resources/xowiki/email.png' \
+   	     alt='$notification_text' title='$notification_text'>"
+
+        set cat_notif_link [export_vars -base /notifications/request-new \
+                                {{return_url $notifications_return_url} \
+                                     {pretty_name $notification_text} \
+                                     {type_id $notification_type} \
+                                     {object_id $category_id}}]
+        append entry "<a href='$cat_notif_link'> " \
+                         "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
+                         "alt='$notification_text' title='$notification_text'>" </a>
+
+      }
+      lappend entries $entry
+    }
+    if {[llength $entries]>0} {
+      set content "Categories: [join $entries {, }]"
+    }
+    return $content
+  }
+
+  Class create my-general-comments \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  my-general-comments instproc render {} {
+    
+    my initialize -parameter {}
+    my get_parameters
+    my instvar __including_page
+    set item_id [$__including_page item_id] 
+    set gc_return_url [$package_id url]
+    set gc_link     [general_comments_create_link \
+                         -object_name [$__including_page title] \
+                         $item_id $gc_return_url]
+    set gc_comments [general_comments_get_comments $item_id $gc_return_url]
+
+    return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
+  }
+
+
+  Class create digg \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  digg instproc render {} {
+    my initialize -parameter {
+      {-description ""}
+      {-url}
+    }
+    my get_parameters
+    my instvar __including_page
+    set digg_link [export_vars -base "http://digg.com/submit" {
+      {phase 2} 
+      {url       $url}
+      {title     "[string range [$__including_page title] 0 74]"}
+      {body_text "[string range $description 0 349]"}
+    }]
+    return "<a href='$digg_link'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a>"
+  }
+
+  Class create delicious \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  delicious instproc render {} {
+    my initialize -parameter {
+      {-description ""}
+      {-tags ""}
+      {-url}
+    }
+    my get_parameters
+    my instvar __including_page
+
+    # the following opens a window, where a user can edit the posted info.
+    # however, it seems not possible to add tags this way automatically.
+    # Alternatively, one could use the api as descibed below; this allows
+    # tags, but no editing...
+    # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
+
+    set delicious_link [export_vars -base "http://del.icio.us/post" {
+      {v 4}
+      {url   $url}
+      {title "[string range [$__including_page title] 0 79]"}
+      {notes "[string range $description 0 199]"}
+      tags
+    }]
+    return "<a href='$delicious_link'><img src='http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif' width='14' height='14' border='0' alt='Add to your del.icio.us' />del.icio.us</a>"
+  }
+
+
+  Class create my-yahoo-publisher \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  my-yahoo-publisher instproc render {} {
+    my initialize -parameter {
+      {-publisher ""}
+      {-rssurl}
+    }
+    my get_parameters
+    my instvar __including_page
+
+    set publisher [ad_urlencode $publisher]
+    set feedname [ad_urlencode [[$package_id folder_id] title]]
+    set rssurl [ad_urlencode $rssurl]
+    set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
+
+    return "<a href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' border='0' align='middle' alt='Add to My Yahoo!'></a>"
+  }
+
+  Class create my-references \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration none}}
+  
+  my-references instproc render {} {
+    my initialize -parameter {
+    }
+    my get_parameters
+    my instvar __including_page
+
+    set item_id [$__including_page item_id] 
+    set refs [list]
+    db_foreach get_references "SELECT page,ci.name,f.package_id \
+        from xowiki_references,cr_items ci,cr_folders f \
+        where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
+          ::xowiki::Package require $package_id
+          lappend refs "<a href='[$package_id pretty_link $name]'>$name</a>"
+        }
+    set references [join $refs ", "]
+
+    array set lang {found "" undefined ""}
+    foreach i [$__including_page array names lang_links] {
+      set lang($i) [join [$__including_page set lang_links($i)] ", "]
+    }
+    append references " " $lang(found)
+    set result ""
+    if {$references ne " "} {
+      append result "#xowiki.references_label# $references"
+    }
+    if {$lang(undefined) ne ""} {
+      append result "#xowiki.create_this_page_in_language# $lang(undefined)"
+    }
+    return $result
+  }
+
 }
 
 namespace eval ::xowiki::portlet {

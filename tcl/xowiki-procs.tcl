@@ -526,18 +526,6 @@ namespace eval ::xowiki {
     }
   }
 
-  Page instproc references {} {
-    [my info class] instvar table_name
-    my instvar item_id
-    set refs [list]
-    db_foreach references "SELECT page,ci.name,link_type,f.package_id \
-        from xowiki_references,cr_items ci,cr_folders f \
-        where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
-          ::xowiki::Package require $package_id
-          lappend refs "<a href='[::$package_id pretty_link $name]'>$name</a>"
-        }
-    join $refs ", "
-  }
 
   Page instproc substitute_markup {source} {
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
@@ -602,6 +590,19 @@ namespace eval ::xowiki {
       return "<div class='errorMsg'>Error in Page $name: $errMsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
+  }
+
+  Page instproc get_description {content} {
+    my instvar revision_id
+    set description [my set description]
+    if {$description eq "" && $content ne ""} {
+      set description [ad_html_text_convert -from text/html -to text/plain -- $content]
+    }
+    if {$description eq "" && $revision_id > 0} {
+      set description [db_string get_description_from syndication \
+                           "select body from syndication where object_id = $revision_id"]
+    }
+    return $description
   }
 
   Page instproc get_content {} {
