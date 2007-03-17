@@ -1,0 +1,32 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "Contributors" -text {
+
+  my proc content {} {
+    my instvar package_id
+    set folder_id [$package_id folder_id]
+
+    TableWidget t1 -volatile \
+        -columns {
+          Field contributor -label "Contributor"
+          Field count -label "Page Revisions"
+        }
+
+    db_foreach get_contributors {select count(object_id), creation_user 
+      from acs_objects o, cr_revisions cr,cr_items ci 
+      where object_id = revision_id 
+        and parent_id = :folder_id
+        and cr.item_id = ci.item_id 
+      group by creation_user order by count desc;
+    } {
+      t1 add \
+          -contributor [::xo::get_user_name $creation_user] \
+          -count $count
+    }
+    return "The following users have contributed to this xowiki instance:<p>[t1 asHTML]</p>"
+  }
+  
+}
+
+
+
