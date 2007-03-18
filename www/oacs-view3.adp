@@ -4,6 +4,7 @@
   <property name="context">@context;noquote@</property>
   <property name="header_stuff">@header_stuff;noquote@
       <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
+      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     
   <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
@@ -43,19 +44,50 @@ function get_popular_tags(popular_tags_link, prefix) {
   <FORM action='/search/search'><INPUT  id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" /></FORM> 
 </span>
 </div>
-<div style="float:left; width: 25%; font-size: 85%;
-     background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
+<div style="float:left; width: 25%; font-size: 85%;">
+<style type='text/css'>
+table.mini-calendar {width: 200px ! important;}
+#sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
+div.tags h3 {font-size: 80%;}
+div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
+</style>
+
+<div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
+<include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
+	 &__including_page=page 
+         summary="0" noprens="1">
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="tags -decoration plain">
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="tags -popular 1 -limit 30 -decoration plain">
+<hr>
+<include src="/packages/xowiki/www/portlets/include" 
+	 &__including_page=page 
+	 portlet="presence -interval {30 minutes} -decoration plain">
+<hr>
+<a href="contributors" text="Show People contributing to this XoWiki Instance">Contributors</a>
+</div>
+</div> <!-- background -->
+
+<div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
+     margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
+">
+<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
+
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="categories -open_page @name@  -decoration plain">
-</div></div>
+</div></div>  <!-- background -->
+</div>
 <div style="float:right; width: 70%;">
 @top_portlets;noquote@
 @content;noquote@
-</div>
+</div> <!-- right 70% -->
 
 @footer;noquote@
 </div> <!-- class='xowiki-content' -->
