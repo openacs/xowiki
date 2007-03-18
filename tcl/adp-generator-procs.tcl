@@ -215,10 +215,9 @@ table.mini-calendar {width: 200px ! important;}
     } \
     -proc content_part {} {
        return [subst -novariables -nobackslashes \
-{<div style="float:left; width: 25%; font-size: 85%;">
+{<div style="float:left; width: 245px; font-size: 85%;">
 <style type='text/css'>
-table.mini-calendar {width: 200px ! important;}
-#sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
+table.mini-calendar {width: 227px ! important;font-size: 80%;}
 div.tags h3 {font-size: 80%;}
 div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
 </style>
