@@ -7,6 +7,13 @@
  *  The algorithm is based on a spring-style layouter of a Java-based social
  *  network tracker PieSpy written by Paul Mutton E<lt>paul@jibble.orgE<gt>.
  *
+ *  Several add-ons by Gustaf Neumann (March 20, 2007)
+ *  - fixed positioning of item labels when graph is not on top corner
+ *  - new parameter width
+ *  - new parameter arrow (0/1)
+ *  - new parameter weight
+ *  - several positioning fixes
+ *
  *  Graph is freely distributable under the terms of an MIT-style license.
  *  For details, see the Graph web site: http://dev.buildpatternd.com/trac
  *
