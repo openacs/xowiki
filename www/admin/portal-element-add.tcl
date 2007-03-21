@@ -24,7 +24,7 @@ if {[db_string check_unique_name_on_page {
   select 1 from portal_element_map
   where page_id     = :portal_page_id 
   and   pretty_name = :page_title
-} -default 0] == 1} {
+} -default 0]} {
   ad_return_error [_ xowiki.portlet_title_exists_error_short] [_ xowiki.portlet_title_exists_error_long]
 } else {
   db_transaction {
