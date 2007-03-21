@@ -1164,6 +1164,11 @@ namespace eval ::xowiki::portlet {
   graph instproc graphHTML {-edges -nodes -max_edges -cutoff -base {-attrib node_id}} {
 
     ::xowiki::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
+    set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+    if {[string match "*msie " $user_agent]} {
+      # canvas support for MSIE
+      ::xowiki::Page requireJS "/resources/xowiki/excanvas.js"
+    }
     ::xowiki::Page requireJS "/resources/xowiki/collab-graph.js"
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
     ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
