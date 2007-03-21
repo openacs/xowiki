@@ -13,7 +13,7 @@
 }
 
 
-set page_id [$package_id resolve_request -path $page_name]
+set page_id [$package_id resolve_request -path $page_name method]
 set page_id [::Generic::CrItem lookup -name $page_name -parent_id [$package_id folder_id]]
 
 ns_log notice "we have page=$page_id\n::Generic::CrItem lookup -name $page_name -parent_id [$package_id folder_id]"
