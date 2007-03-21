@@ -15,29 +15,31 @@
 
 set page_id [$package_id resolve_request -path $page_name method]
 set page_id [::Generic::CrItem lookup -name $page_name -parent_id [$package_id folder_id]]
+set page_title [$page_id title]
 
-ns_log notice "we have page=$page_id\n::Generic::CrItem lookup -name $page_name -parent_id [$package_id folder_id]"
-db_transaction {
-ns_log notice "portal::add_element \
-		      -portal_id $portal_id \
-		      -portlet_name [xowiki_portlet::get_my_name] \
-		      -pretty_name [$page_id title] \
-		      -force_region [parameter::get_from_package_key \
-					 -parameter xowiki_portal_content_force_region \
-					 -package_key xowiki-portlet]"
+# for the time being, we add the portlet on the first page (page 0)
+set portal_page_id [portal::get_page_id -portal_id $portal_id -sort_key 0]
 
-  set element_id [portal::add_element \
-		      -portal_id $portal_id \
-		      -portlet_name [xowiki_portlet::get_my_name] \
-		      -pretty_name [$page_id title] \
-		      -force_region [parameter::get_from_package_key \
-					 -parameter "xowiki_portal_content_force_region" \
-					 -package_key "xowiki-portlet"]
-                                                                                 ]
-  portal::set_element_param $element_id package_id $package_id
-  portal::set_element_param $element_id page_name [$page_id name]
+if {[db_string check_unique_name_on_page {
+  select 1 from portal_element_map
+  where portal_id   = :portal_page_id 
+  and   pretty_name = :page_title
+}] eq "1"} {
+  ad_return_error [_ xowiki.portlet_title_exists_error_short] [_ xowiki.portlet_title_exists_error_long]
+} else {
+  db_transaction {
+    set element_id [portal::add_element \
+                        -portal_id $portal_id \
+                        -portlet_name [xowiki_portlet::get_my_name] \
+                        -pretty_name $page_title \
+                        -force_region [parameter::get_from_package_key \
+                                           -parameter "xowiki_portal_content_force_region" \
+                                           -package_key "xowiki-portlet"]
+                   ]
+    portal::set_element_param $element_id package_id $package_id
+    portal::set_element_param $element_id page_name [$page_id name]
+  }
+  ad_returnredirect $referer
 }
-
-ad_returnredirect $referer
 ad_script_abort
 

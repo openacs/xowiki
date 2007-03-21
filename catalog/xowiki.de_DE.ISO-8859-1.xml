@@ -14,12 +14,13 @@
   <msg key="name">Name</msg>
   <msg key="new">Neue Seite</msg>
   <msg key="notifications">Verständigungen</msg>
-  <msg key="order">Abschnitt
-</msg>
+  <msg key="order">Abschnitt</msg>
   <msg key="page_title">Titel der Seite</msg>
   <msg key="page_type">Typ der Seite</msg>
   <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
   <msg key="popular_tags_link">häufige Schlagworte</msg>
+   <msg key="portlet_title_exists_error_short">Es gibt bereits ein Portlet mit dem Titel '%page_title%' in diesem Portal.</msg>
+   <msg key="portlet_title_exists_error_long">Ändern Sie entweder den Namen des existierenden Portlets oder den Titel der Xowiki-Seite, die Sie zum Portal hinzufügen wollen.</msg>
   <msg key="publish_status">Freigegeben</msg>
   <msg key="references_label">Verweise auf diese Seite:</msg>
   <msg key="revisions">Verlauf</msg>
