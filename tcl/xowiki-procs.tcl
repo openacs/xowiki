@@ -599,7 +599,7 @@ namespace eval ::xowiki {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set description [db_string get_description_from syndication \
+      set description [db_string get_description_from_syndication \
                            "select body from syndication where object_id = $revision_id"]
     }
     return $description
