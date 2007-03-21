@@ -192,14 +192,12 @@ namespace eval ::xowiki {
         }
         set header_stuff [::xowiki::Page header_stuff]
         $package_id return_page -adp $template_file -variables {
-          name title item_id page context header_stuff return_url
-          content package_id
+          name title item_id context header_stuff return_url
+          content footer package_id
           rev_link edit_link delete_link new_link admin_link index_link 
-          create_in_req_locale_link req_lang
           notification_subscribe_link notification_image 
           top_portlets page
           views_data
-          footer
         }
       }
     } else {
