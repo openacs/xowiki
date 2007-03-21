@@ -22,9 +22,9 @@ set portal_page_id [portal::get_page_id -portal_id $portal_id -sort_key 0]
 
 if {[db_string check_unique_name_on_page {
   select 1 from portal_element_map
-  where portal_id   = :portal_page_id 
+  where page_id     = :portal_page_id 
   and   pretty_name = :page_title
-}] eq "1"} {
+} -default 0] == 1} {
   ad_return_error [_ xowiki.portlet_title_exists_error_short] [_ xowiki.portlet_title_exists_error_long]
 } else {
   db_transaction {
