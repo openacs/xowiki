@@ -1165,7 +1165,7 @@ namespace eval ::xowiki::portlet {
 
     ::xowiki::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
     set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
-    if {[string match "*msie " $user_agent]} {
+    if {[string match "*msie *" $user_agent]} {
       # canvas support for MSIE
       ::xowiki::Page requireJS "/resources/xowiki/excanvas.js"
     }
