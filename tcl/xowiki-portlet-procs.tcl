@@ -1154,3 +1154,214 @@ namespace eval ::xowiki::portlet {
     return $output
   }
 }
+
+namespace eval ::xowiki::portlet {
+
+  Class create graph \
+      -superclass ::xowiki::Portlet \
+      -parameter {{__decoration plain}}
+
+  graph instproc graphHTML {-edges -nodes -max_edges -cutoff -base {-attrib node_id}} {
+
+    ::xowiki::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
+    ::xowiki::Page requireJS "/resources/xowiki/collab-graph.js"
+    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+
+    set nodesHTML ""
+    array set n $nodes
+
+    foreach {node label} $nodes {
+      set link "<a href='$base?$attrib=$node'>$label</a>"
+      append nodesHTML "<div id='$node'>&nbsp;&nbsp;&nbsp;&nbsp;$link</div>\n"
+    }
+
+    set edgesHTML ""; set c 0
+    foreach p [lsort -index 1 -decreasing -integer $edges] {
+      foreach {edge weight width} $p break
+      foreach {a b} [split $edge ,] break
+      if {[incr c]>$max_edges} break
+      if {$weight < $cutoff} continue
+      append edgesHTML "g.addEdge(\$('$a'), \$('$b'), $weight, 0, $width);\n"
+    }
+
+    return [subst -novariables {
+<div>
+<canvas id="collab" width="500" height="500" style="border: 0px solid black">
+</canvas>
+[set nodesHTML]
+<script type="text/javascript">
+function draw() {
+  var g = new Graph();
+[set edgesHTML]
+  var layouter = new Graph.Layout.Spring(g);
+  layouter.layout();
+  
+  // IE does not pick up the canvas width or height
+  $('collab').width=500;
+  $('collab').height=500;
+
+  var renderer = new Graph.Renderer.Basic($('collab'), g);
+  renderer.radius = 5;
+  renderer.draw();
+}
+YAHOO.util.Event.addListener(window, 'load', draw());
+</script>
+</div>
+}]
+  }
+}
+
+namespace eval ::xowiki::portlet {
+  Class create collab-graph \
+      -superclass ::xowiki::portlet::graph \
+      -parameter {}
+  
+  collab-graph instproc render {} {
+    my initialize -parameter { {-max_edges 70} {-cutoff 0.1} -user_id}
+    my get_parameters
+    
+    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
+
+    set folder_id [$package_id folder_id]    
+    db_foreach get_collaborators {
+      select count(revision_id), item_id, creation_user 
+      from cr_revisions r, acs_objects o 
+      where item_id in 
+        (select distinct i.item_id from 
+          acs_objects o, acs_objects o2, cr_revisions cr, cr_items i 
+          where o.object_id = i.item_id and o2.object_id = cr.revision_id 
+          and o2.creation_user = :user_id and i.item_id = cr.item_id 
+          and i.parent_id = :folder_id order by item_id
+        ) 
+      and o.object_id = revision_id 
+      and creation_user is not null 
+      group by item_id, creation_user} {
+
+      lappend i($item_id) $creation_user $count
+      set user($creation_user) [::xo::get_user_name $creation_user]
+    }
+
+    set result "<p>Collaboration Graph for <b>[::xo::get_user_name $user_id]</b> " 
+    if {[array size i] < 1} {
+      append result "</p><p>No collaborations found</p>"
+    } else {
+      append result "(max. [set max_edges] edges)</p>\n"
+
+      foreach x [array names i] {
+        foreach {u1 c1} $i($x) {
+          foreach {u2 c2} $i($x) {
+            if {$u1 < $u2} {
+              set var collab($u1,$u2)
+              if {![info exists $var]} {set $var 0} 
+              incr $var $c1
+              incr $var $c2
+            }
+          }
+        }
+      }
+
+      set max 50
+      foreach x [array names collab] {
+        if {$collab($x) > $max} {set max $collab($x)}
+      }
+ 
+      set edges [list]
+      foreach x [array names collab] {
+        lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
+      }
+
+      append result [my graphHTML \
+                         -nodes [array get user] -edges $edges \
+                         -max_edges $max_edges -cutoff $cutoff \
+                         -base collab -attrib user_id]
+    }
+    
+    return $result
+  }
+
+
+  Class create activity-graph \
+      -superclass ::xowiki::portlet::graph \
+      -parameter {}
+  
+  activity-graph instproc render {} {
+    my initialize -parameter { 
+      {-max_edges 70} 
+      {-cutoff 0.1}
+      {-max_activities:integer 100}
+    }
+    my get_parameters
+
+    set folder_id [$package_id folder_id]    
+    
+    # there must be a better way to handle temporaray tables safely....
+    catch {db_dml drop_temp_table {drop table XOWIKI_TEMP_TABLE }}
+
+    db_dml get_n_most_revent_contributions {
+      create temporary table XOWIKI_TEMP_TABLE as
+      select i.item_id, revision_id, creation_user 
+      from cr_revisions cr, cr_items i, acs_objects o  
+      where cr.item_id = i.item_id and i.parent_id = :folder_id 
+      and o.object_id = revision_id 
+      order by revision_id desc limit :max_activities
+    }
+
+    set total 0
+    db_foreach get_activities {
+      select count(revision_id),item_id, creation_user  
+      from XOWIKI_TEMP_TABLE 
+      where creation_user is not null 
+      group by item_id, creation_user
+    } {
+      lappend i($item_id) $creation_user $count
+      incr total $count
+      set user($creation_user) [::xo::get_user_name $creation_user]
+    }
+
+    db_dml drop_temp_table {drop table XOWIKI_TEMP_TABLE }
+
+    if {[array size i] == 0} {
+      append result "<p>No activities found</p>"
+    } elseif {[array size user] == 1} {
+      set user_id [lindex [array names user] 0]
+      append result "<p>Last $total activities were done by user " \
+          "<a href='collab?$user_id'>[::xo::get_user_name $user_id]</a>."
+    } else {
+      append result "<p>Collaborations in last $total activities by [array size user] Users</p>"
+
+      foreach x [array names i] {
+        foreach {u1 c1} $i($x) {
+          foreach {u2 c2} $i($x) {
+            if {$u1 < $u2} {
+              set var collab($u1,$u2)
+              if {![info exists $var]} {set $var 0} 
+              incr $var $c1
+              incr $var $c2
+            }
+          }
+        }
+      }
+
+      set max 0
+      foreach x [array names collab] {
+        if {$collab($x) > $max} {set max $collab($x)}
+      }
+ 
+      set edges [list]
+      foreach x [array names collab] {
+        lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
+      }
+
+      append result [my graphHTML \
+                         -nodes [array get user] -edges $edges \
+                         -max_edges $max_edges -cutoff $cutoff \
+                         -base collab -attrib user_id]
+    }
+    
+    return $result
+  }
+
+
+
+}
