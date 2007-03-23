@@ -832,11 +832,21 @@ namespace eval ::xowiki {
     set T [my adp_subst [lindex $template 0]]
     return [my substitute_markup [list $T [lindex $template 1]]]
   }
+  PageInstance instproc template_vars {content} {
+    set result [list]
+    foreach {_ _ v} [regexp -inline -all [template::adp_variable_regexp] $content] {
+      lappend result $v ""
+    }
+    return $result
+  }
   PageInstance instproc adp_subst {content} {
     my instvar page_template
     #my log "--r page_template exists? $page_template: [info command $page_template]"
+    # initialize template variables (in case, new variables are added to template)
+    array set __ia [my template_vars $content]
     # add extra variables as instance variables
     array set __ia [my set instance_attributes]
+
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
       if {[string match "richtext*" [my get_field_type $var $page_template text]]} {
