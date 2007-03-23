@@ -600,7 +600,8 @@ namespace eval ::xowiki {
     }
     if {$description eq "" && $revision_id > 0} {
       set description [db_string get_description_from_syndication \
-                           "select body from syndication where object_id = $revision_id"]
+                           "select body from syndication where object_id = $revision_id" \
+                           -default ""]
     }
     return $description
   }

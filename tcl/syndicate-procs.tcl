@@ -2,9 +2,24 @@ namespace eval ::xowiki {
   #
   # RSS 2.0 support
   #
+  Class XMLSyndication -parameter {package_id}
 
-  Class RSS -parameter {
-    package_id 
+  XMLSyndication instproc init {} {
+    my set xmlMap [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"]
+  }
+
+  XMLSyndication instproc tag {{-atts } name value} {
+    my instvar xmlMap
+    set attsXML ""
+    if {[info exists atts]} {
+      foreach {attName attValue} $atts {
+	append attsXML " $attName='$attValue'"
+      }
+    }
+    return <$name$attsXML>[string map $xmlMap $value]</$name>
+  }
+
+  Class RSS -superclass XMLSyndication -parameter {
     maxentries 
     {name_filter ""}
     {days ""}
@@ -24,21 +39,6 @@ namespace eval ::xowiki {
     @param days report entries changed in speficied last days
     @param name_filter include only pages matching the provided regular expression (postgres)
     
-  }
-
-  RSS instproc init {} {
-    my set xmlMap [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"]
-  }
-
-  RSS instproc tag {{-atts } name value} {
-    my instvar xmlMap
-    set attsXML ""
-    if {[info exists atts]} {
-      foreach {attName attValue} $atts {
-	append attsXML " $attName='$attValue'"
-      }
-    }
-    return <$name$attsXML>[string map $xmlMap $value]</$name>
   }
 
   RSS instproc css_link {} {
@@ -241,5 +241,68 @@ namespace eval ::xowiki {
     return $content
   }
   
+  Class Timeline -superclass XMLSyndication
 
+  Timeline instproc reverse list {
+    set result [list]
+    for {set i [expr {[llength $list] - 1}]} {$i >= 0} {incr i -1}  	{
+      lappend result [lindex $list $i]
+    }
+    return $result
+  }
+
+  Timeline instproc render {} {
+    my instvar package_id 
+    set folder_id [::$package_id folder_id]
+
+    set last_user ""
+    set last_item ""
+    set last_clock ""
+    ::xo::OrderedComposite items -destroy_on_cleanup
+    db_foreach get_pages {
+      select ci.name, o.creation_user, cr.publish_date, cr.item_id, ci.parent_id, cr.title
+      from cr_items ci, cr_revisions cr, acs_objects o 
+      where cr.item_id = ci.item_id and o.object_id = cr.revision_id 
+      and ci.parent_id = :folder_id and creation_user is not null order by revision_id desc
+    } {
+      regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
+      set clock [clock scan $publish_date]
+
+      if {$last_user == $creation_user && $last_item == $item_id && $last_clock ne ""} {
+        my log "--clockdiff = [expr {$last_clock - $clock }] $name"
+        if {($last_clock - $clock) < 7500 } {
+          my log "--clock ignore change due to cockdiff"
+          continue
+        }
+      }
+      set o [Object new]
+      foreach att {item_id creation_user item_id clock name publish_date parent_id title} {
+        $o set $att [set $att]
+      }
+      items add $o
+      foreach {last_user last_item last_clock} [list $creation_user $item_id $clock] break
+    }
+
+    foreach i [my reverse [items children]] {
+      set key seen([$i set item_id])
+      if {[info exists $key]} {
+        $i set operation modified
+      } else {
+        $i set operation created
+        set $key 1
+      }
+    }
+    set result <data>\n
+    foreach i [items children] {
+      set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
+      set user [::xo::get_user_name [$i set creation_user]]
+      append result [my tag -atts [list \
+                                       start $stamp \
+                                       title [$i set title] \
+                                       link [$package_id pretty_link [$i set name]]] \
+                         event "$user [$i set operation] [$i set title]"] \n
+    }
+    append result </data>\n
+    return $result
+  }
 }
