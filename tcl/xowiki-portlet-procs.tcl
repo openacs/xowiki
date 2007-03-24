@@ -1178,7 +1178,7 @@ namespace eval ::xowiki::portlet {
 
     foreach {node label} $nodes {
       set link "<a href='$base?$attrib=$node'>$label</a>"
-      append nodesHTML "<div id='$node'>&nbsp;&nbsp;&nbsp;&nbsp;$link</div>\n"
+      append nodesHTML "<div id='$node' style='position:relative;'>&nbsp;&nbsp;&nbsp;&nbsp;$link</div>\n"
     }
 
     set edgesHTML ""; set c 0
@@ -1189,6 +1189,7 @@ namespace eval ::xowiki::portlet {
       if {$weight < $cutoff} continue
       append edgesHTML "g.addEdge(\$('$a'), \$('$b'), $weight, 0, $width);\n"
     }
+    # [lsort -index 1 -decreasing -integer $edges]<br>[set cutoff] - [set c]<br>
 
     return [subst -novariables {
 <div>
@@ -1197,11 +1198,15 @@ namespace eval ::xowiki::portlet {
 [set nodesHTML]
 <script type="text/javascript">
 function draw() {
+  if (typeof(G_vmlCanvasManager) == "object") {
+      G_vmlCanvasManager.init_(window.document);
+  } 
+  
   var g = new Graph();
 [set edgesHTML]
   var layouter = new Graph.Layout.Spring(g);
   layouter.layout();
-  
+
   // IE does not pick up the canvas width or height
   $('collab').width=500;
   $('collab').height=500;
@@ -1210,7 +1215,8 @@ function draw() {
   renderer.radius = 5;
   renderer.draw();
 }
-YAHOO.util.Event.addListener(window, 'load', draw());
+ YAHOO.util.Event.addListener(window, 'load', draw);
+//   YAHOO.util.Event.onContentReady('collab', draw); 
 </script>
 </div>
 }]
@@ -1245,13 +1251,14 @@ namespace eval ::xowiki::portlet {
 
       lappend i($item_id) $creation_user $count
       set user($creation_user) [::xo::get_user_name $creation_user]
+      if {![info exists activities($creation_user)]} {set activities($creation_user) 0}
+      incr activities($creation_user) $count
     }
 
     set result "<p>Collaboration Graph for <b>[::xo::get_user_name $user_id]</b> " 
     if {[array size i] < 1} {
       append result "</p><p>No collaborations found</p>"
     } else {
-      append result "(max. [set max_edges] edges)</p>\n"
 
       foreach x [array names i] {
         foreach {u1 c1} $i($x) {
@@ -1276,6 +1283,7 @@ namespace eval ::xowiki::portlet {
         lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
       }
 
+      append result "($activities($user_id) contributions)</p>\n"
       append result [my graphHTML \
                          -nodes [array get user] -edges $edges \
                          -max_edges $max_edges -cutoff $cutoff \
@@ -1367,6 +1375,83 @@ namespace eval ::xowiki::portlet {
     return $result
   }
 
+  Class create timeline \
+      -superclass ::xowiki::Portlet \
+      -parameter {}
+  
+  timeline instproc render {} {
+    my initialize -parameter { -user_id {-data timeline-data} {-interval1 DAY} {-interval2 MONTH}}
+    my get_parameters
 
+   ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+   ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+   ::xowiki::Page requireJS "/resources/xowiki/timeline/api/timeline-api.js"
+
+   set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
+   if {[info exists user_id]} {append data "?user_id=$user_id"}
+
+   return [subst -nocommands -nobackslashes {
+ <div id="my-timeline" style="font-size:80%; height: 250px; border: 1px solid #aaa"></div>
+<script type="text/javascript">
+var tl;
+function onLoad() {
+  var eventSource = new Timeline.DefaultEventSource();
+  var bandInfos = [
+    Timeline.createBandInfo({
+        eventSource:    eventSource,
+        date:           "$stamp",
+        width:          "70%", 
+        intervalUnit:   Timeline.DateTime.$interval1, 
+        intervalPixels: 100
+    }),
+    Timeline.createBandInfo({
+        eventSource:    eventSource,
+        date:           "$stamp",
+        width:          "30%", 
+        intervalUnit:   Timeline.DateTime.$interval2, 
+        intervalPixels: 200
+    })
+  ];
+  //console.info(bandInfos);
+  bandInfos[1].syncWith = 0;
+  bandInfos[1].highlight = true;
+
+  tl = Timeline.create(document.getElementById("my-timeline"), bandInfos);
+  //console.log('create done');
+  Timeline.loadXML("$data", function(xml, url) {eventSource.loadXML(xml,url); });
+}
+
+var resizeTimerID = null;
+function onResize() {
+//   console.log('resize');
+
+    if (resizeTimerID == null) {
+        resizeTimerID = window.setTimeout(function() {
+            resizeTimerID = null;
+//   console.log('call layout');
+            tl.layout();
+        }, 500);
+    }
+}
+
+YAHOO.util.Event.addListener(window, 'load',   onLoad());
+// YAHOO.util.Event.addListener(window, 'resize', onResize());
+
+</script>
+
+  }]
+  }
+
+  Class create user-timeline \
+      -superclass timeline \
+      -parameter {}
+  
+  user-timeline instproc render {} {
+    my initialize -parameter { -user_id {-data timeline-data} {-interval1 DAY} {-interval2 MONTH}}
+    my get_parameters
+    if {![info exists user_id]} {set user_id [::xo::cc user_id]]}
+    ::xo::cc set_parameter user_id $user_id
+    next 
+ }
 
 }

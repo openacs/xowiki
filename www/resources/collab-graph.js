@@ -111,8 +111,17 @@ Graph.Renderer.Basic.prototype = {
                 var point = this.translate([node.layoutPosX, node.layoutPosY]);
 
             node.value.style.position = 'absolute';
-            node.value.style.top      = document.getElementById("collab").offsetTop - 10 + point[1] + 'px';
-            node.value.style.left     = document.getElementById("collab").offsetLeft + point[0] + 'px';
+            var collab = document.getElementById("collab")
+            var top, left;
+            if (/MSIE/.test(navigator.userAgent) && !window.opera) {
+            	top = collab.offsetParent.offsetTop; 
+            	left = collab.offsetParent.offsetLeft;
+            } else {
+            	top = collab.offsetTop; 
+            	left = collab.offsetLeft;            	
+            }
+            node.value.style.top      = top - 10 + point[1] + 'px';
+            node.value.style.left     = left + point[0] + 'px';
                 this.ctx.strokeStyle = 'black'
                 this.ctx.beginPath();
                 this.ctx.arc(point[0], point[1], this.radius, 0, Math.PI*2, true);

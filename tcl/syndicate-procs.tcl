@@ -13,7 +13,7 @@ namespace eval ::xowiki {
     set attsXML ""
     if {[info exists atts]} {
       foreach {attName attValue} $atts {
-	append attsXML " $attName='$attValue'"
+	append attsXML " $attName='[string map [list ' {&apos;}] $attValue]'"
       }
     }
     return <$name$attsXML>[string map $xmlMap $value]</$name>
@@ -241,7 +241,8 @@ namespace eval ::xowiki {
     return $content
   }
   
-  Class Timeline -superclass XMLSyndication
+  Class Timeline -superclass XMLSyndication \
+	-parameter {user_id {limit 1000}}
 
   Timeline instproc reverse list {
     set result [list]
@@ -254,17 +255,23 @@ namespace eval ::xowiki {
   Timeline instproc render {} {
     my instvar package_id 
     set folder_id [::$package_id folder_id]
+    set where_clause ""
+    set limit_clause ""
 
     set last_user ""
     set last_item ""
     set last_clock ""
+    if {[my exists user_id]} { append where_clause " and creation_user = [my user_id] " }
+    if {[my exists limit]} { append limit_clause  " limit [my limit] " }
+
     ::xo::OrderedComposite items -destroy_on_cleanup
-    db_foreach get_pages {
+    db_foreach get_pages "
       select ci.name, o.creation_user, cr.publish_date, cr.item_id, ci.parent_id, cr.title
       from cr_items ci, cr_revisions cr, acs_objects o 
       where cr.item_id = ci.item_id and o.object_id = cr.revision_id 
-      and ci.parent_id = :folder_id and creation_user is not null order by revision_id desc
-    } {
+      and ci.parent_id = :folder_id and creation_user is not null 
+      $where_clause order by revision_id desc $limit_clause
+    " {
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
       set clock [clock scan $publish_date]
 

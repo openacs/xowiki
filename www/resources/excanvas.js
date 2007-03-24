@@ -31,14 +31,15 @@ if (!window.CanvasRenderingContext2D) {
       var doc = opt_doc || document;
       if (/MSIE/.test(navigator.userAgent) && !window.opera) {
         var self = this;
-        doc.attachEvent("onreadystatechange", function () {
-          self.init_(doc);
-        });
+//        doc.attachEvent("onreadystatechange", function () {
+//          self.init_(doc);
+//        });
       }
     },
 
     init_: function (doc, e) {
-      if (doc.readyState == "complete") {
+// alert(doc.readyState);
+      if (doc.readyState == "complete" || doc.readyState == "interactive" || 1) {
         // create xmlns
         if (!doc.namespaces["g_vml_"]) {
           doc.namespaces.add("g_vml_", "urn:schemas-microsoft-com:vml");
