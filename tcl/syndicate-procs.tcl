@@ -266,19 +266,21 @@ namespace eval ::xowiki {
 
     ::xo::OrderedComposite items -destroy_on_cleanup
     db_foreach get_pages "
-      select ci.name, o.creation_user, cr.publish_date, cr.item_id, ci.parent_id, cr.title
-      from cr_items ci, cr_revisions cr, acs_objects o 
+      select ci.name, o.creation_user, cr.publish_date, o2.creation_date, cr.item_id, ci.parent_id, cr.title
+      from cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2 
       where cr.item_id = ci.item_id and o.object_id = cr.revision_id 
-      and ci.parent_id = :folder_id and creation_user is not null 
+      and o2.object_id = cr.item_id 
+      and ci.parent_id = :folder_id and o.creation_user is not null 
       $where_clause order by revision_id desc $limit_clause
     " {
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
+      regexp {^([^.]+)[.][0-9]+(.*)$} $creation_date _ creation_date tz
       set clock [clock scan $publish_date]
 
       if {$last_user == $creation_user && $last_item == $item_id && $last_clock ne ""} {
-        my log "--clockdiff = [expr {$last_clock - $clock }] $name"
+        #my log "--clockdiff = [expr {$last_clock - $clock }] $name"
         if {($last_clock - $clock) < 7500 } {
-          my log "--clock ignore change due to cockdiff"
+          #my log "--clock ignore change due to cockdiff"
           continue
         }
       }
@@ -286,19 +288,27 @@ namespace eval ::xowiki {
       foreach att {item_id creation_user item_id clock name publish_date parent_id title} {
         $o set $att [set $att]
       }
+      $o set operation [expr {$creation_date eq $oublish_date ? "created" : "modified"}]
+
       items add $o
       foreach {last_user last_item last_clock} [list $creation_user $item_id $clock] break
     }
 
-    foreach i [my reverse [items children]] {
-      set key seen([$i set item_id])
-      if {[info exists $key]} {
-        $i set operation modified
-      } else {
-        $i set operation created
-        set $key 1
-      }
-    }
+    # The following loop tries to distinguis between create and modify by age.
+    # This does not work in cases, where we get just a limited amount 
+    # or restricted entries
+#     if {$limit_clause eq ""} {
+#       foreach i [my reverse [items children]] {
+#         set key seen([$i set item_id])
+#         if {[info exists $key]} {
+#           $i set operation modified
+#         } else {
+#           $i set operation created
+#           set $key 1
+#         }
+#       }
+#     }
+
     set result <data>\n
     foreach i [items children] {
       set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
