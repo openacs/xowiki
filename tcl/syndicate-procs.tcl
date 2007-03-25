@@ -288,7 +288,7 @@ namespace eval ::xowiki {
       foreach att {item_id creation_user item_id clock name publish_date parent_id title} {
         $o set $att [set $att]
       }
-      $o set operation [expr {$creation_date eq $oublish_date ? "created" : "modified"}]
+      $o set operation [expr {$creation_date eq $publish_date ? "created" : "modified"}]
 
       items add $o
       foreach {last_user last_item last_clock} [list $creation_user $item_id $clock] break
