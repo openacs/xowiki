@@ -13,7 +13,7 @@ namespace eval ::xowiki {
     set attsXML ""
     if {[info exists atts]} {
       foreach {attName attValue} $atts {
-	append attsXML " $attName='[string map [list ' {&apos;}] $attValue]'"
+	append attsXML " $attName='[string map [list ' {&apos;} {&nbsp;} { }] $attValue]'"
       }
     }
     return <$name$attsXML>[string map $xmlMap $value]</$name>
