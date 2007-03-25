@@ -278,7 +278,7 @@ namespace eval ::xowiki {
       set clock [clock scan $publish_date]
 
       if {$last_user == $creation_user && $last_item == $item_id && $last_clock ne ""} {
-        #my log "--clockdiff = [expr {$last_clock - $clock }] $name"
+        #my log "--clockdiff = [expr {$last_clock - $clock }] $name [clock format $clock -format {%b %d %Y %X %Z} -gmt true]"
         if {($last_clock - $clock) < 7500 } {
           #my log "--clock ignore change due to cockdiff"
           continue
@@ -309,15 +309,44 @@ namespace eval ::xowiki {
 #       }
 #     }
 
-    set result <data>\n
     foreach i [items children] {
+      set key contrib([clock format [$i set clock] -format "%Y-%m-%d" -gmt true],[$i set creation_user],[$i set item_id])
+      lappend $key $i
+    }
+
+    set result <data>\n
+#    foreach i [items children] {
+#      set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
+#      set user [::xo::get_user_name [$i set creation_user]]
+#      append result [my tag -atts [list \
+#                                       start $stamp \
+#                                       title [$i set title] \
+#                                       link [$package_id pretty_link [$i set name]]] \
+#                         event "$user [$i set operation] [$i set title]"] \n
+#    }
+    foreach c [lsort -decreasing [array names contrib]] {
+      if {[llength $contrib($c)] == 1} {
+         set i $contrib($c)
+         set title [$i set title]
+      set user [::xo::get_user_name [$i set creation_user]]
+         set event "$user [$i set operation] [$i set title] [$i set name]"
+      } else {
+         set i [lindex $contrib($c) 0]
+         set event "Contributions by [::xo::get_user_name [$i set creation_user]] on [clock format [$i set clock] -format {%b %d %Y} -gmt true]\n<ul>"
+         set title "[$i set title] ([llength $contrib($c)])"
+         foreach j $contrib($c) {
+            set stamp [clock format [$j set clock] -format "%X %Z" -gmt true]
+            append  event "<li>$stamp: [$j set operation]</li>" \n
+         }
+         append event "</ul>" \n
+      }
       set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
       set user [::xo::get_user_name [$i set creation_user]]
       append result [my tag -atts [list \
                                        start $stamp \
-                                       title [$i set title] \
+                                       title $title \
                                        link [$package_id pretty_link [$i set name]]] \
-                         event "$user [$i set operation] [$i set title]"] \n
+                         event $event]  \n
     }
     append result </data>\n
     return $result

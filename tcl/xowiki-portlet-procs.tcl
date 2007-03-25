@@ -1185,6 +1185,7 @@ namespace eval ::xowiki::portlet {
     foreach p [lsort -index 1 -decreasing -integer $edges] {
       foreach {edge weight width} $p break
       foreach {a b} [split $edge ,] break
+      #my log "--G $a -> $b check $c > $max_edges, $weight < $cutoff"
       if {[incr c]>$max_edges} break
       if {$weight < $cutoff} continue
       append edgesHTML "g.addEdge(\$('$a'), \$('$b'), $weight, 0, $width);\n"
@@ -1250,7 +1251,10 @@ namespace eval ::xowiki::portlet {
       group by item_id, creation_user} {
 
       lappend i($item_id) $creation_user $count
-      set user($creation_user) [::xo::get_user_name $creation_user]
+      set count_var user_count($creation_user)
+      if {![info exists $count_var]} {set $count_var 0}
+      incr $count_var $count
+      set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
       if {![info exists activities($creation_user)]} {set activities($creation_user) 0}
       incr activities($creation_user) $count
     }
@@ -1329,7 +1333,10 @@ namespace eval ::xowiki::portlet {
     } {
       lappend i($item_id) $creation_user $count
       incr total $count
-      set user($creation_user) [::xo::get_user_name $creation_user]
+      set count_var user_count($creation_user)
+      if {![info exists $count_var]} {set $count_var 0}
+      incr $count_var $count
+      set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
     }
 
     db_dml drop_temp_table {drop table XOWIKI_TEMP_TABLE }
@@ -1391,7 +1398,7 @@ namespace eval ::xowiki::portlet {
    if {[info exists user_id]} {append data "?user_id=$user_id"}
 
    return [subst -nocommands -nobackslashes {
- <div id="my-timeline" style="font-size:80%; height: 250px; border: 1px solid #aaa"></div>
+ <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
 <script type="text/javascript">
 var tl;
 function onLoad() {

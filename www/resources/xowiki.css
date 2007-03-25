@@ -145,4 +145,5 @@ div.code  em {
 strong.code {
     font-weight: bolder;
 }
-
+div.collab-graph div {font-size: 85%;}
+div.activity-graph div {font-size: 85%;}
