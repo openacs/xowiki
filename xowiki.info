@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.49" url="http://openacs.org/repository/download/apm/xowiki-0.49.apm">
+    <version name="0.50" url="http://openacs.org/repository/download/apm/xowiki-0.50.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-03-18</release-date>
+        <release-date>2007-03-25</release-date>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of wiki markup commands of systems
@@ -96,12 +96,14 @@ language prefix to avoid clashes, ltree (for ordering);
 
 0.48: policy management moved to xotcl-core, more detailed form field specification for page instances, flash support, yndication status in www/admin/list, file import/export, style information in css files
 
-0.49: adp-generator, make tags/categories/social software buttons per item in a weblog
+0.49: adp-generator, make tags/categories/social software buttons per item in a weblog, oacs-view2 and oacs-view3
+
+0.50: timeline support, new includelets activity-graph, collab-graph, timeline, and user-timeline
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.49"/>
+        <provides url="xowiki" version="0.50"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>

@@ -102,7 +102,7 @@ namespace eval ::xowiki {
     prototypes 1 
     ressources 1
     revisions 1 
-    view-default 1 view-links 1 view-plain 1 oacs-view 1
+    view-default 1 view-links 1 view-plain 1 oacs-view 1 oacs-view2 1 oacs-view3 1
   }
 
   Package ad_instproc pretty_link {
