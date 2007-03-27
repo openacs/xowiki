@@ -1322,7 +1322,7 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
-    if {$show_anonymous ne "all" && $user_id ne 0} {
+    if {$show_anonymous ne "all" && $user_id eq 0} {
       return "You must login to see the [namespace tail [self class]]"
     }
 
