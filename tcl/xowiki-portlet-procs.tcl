@@ -8,10 +8,60 @@ ad_library {
 namespace eval ::xowiki::portlet {
   Class create ::xowiki::Portlet \
       -superclass ::xo::Context \
-      -parameter {{name ""} {title ""} {__decoration "portlet"} {id}}
+      -parameter {
+        {name ""} 
+        {title ""} 
+        {__decoration "portlet"} 
+        {parameter_declaration {}}
+        {id}
+      }
+
+  ::xowiki::Portlet proc describe_includelets {portlet_classes} {
+    my log "--plc=$portlet_classes "
+    foreach cl $portlet_classes {
+      set result ""
+      append result "{{<b>[namespace tail $cl]</b>"
+      foreach p [$cl info parameter] {
+        if {[llength $p] != 2} continue
+        foreach {name value} $p break
+        if {$name eq "parameter_declaration"} {
+          foreach pp $value {
+            #append result ""
+            switch [llength $pp] {
+              1 {append result " $pp"}
+              2 {
+                set v [lindex $pp 1]
+                if {$v eq ""} {set v {""}}
+                append result " [lindex $pp 0] <em>$v</em>"
+              }
+            }
+            #append result "\n"
+          }
+        }
+      }
+      append result "}}\n"
+      my set html([namespace tail $cl]) $result
+      my describe_includelets [$cl info subclass]
+    }
+  }
+  ::xowiki::Portlet proc available_includelets {} {
+    if {[my array exists html]} {my array unset html}
+    my describe_includelets [::xowiki::Portlet info subclass]
+    set result "<UL>"
+    foreach d [lsort [my array names html]] {
+      append result "<LI>" [my set html($d)] "</LI>" \n
+    }
+    append result "</UL>"
+    return $result
+  }
 
   ::xowiki::Portlet instproc js_name {} {
     return [string map [list : _ # _] [self]]
+  }
+
+  ::xowiki::Portlet instproc screen_name {user_id} {
+    acs_user::get -user_id $user_id -array user
+    return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
   }
 
   ::xowiki::Portlet instproc locale_clause {package_id locale} {
@@ -70,6 +120,20 @@ namespace eval ::xowiki::portlet {
 
 namespace eval ::xowiki::portlet {
   #############################################################################
+  Class create available-includelets \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {title "The following includelets can be used in a page"}
+      }
+
+  available-includelets instproc render {} {
+    my get_parameters
+    return [::xowiki::Portlet available_includelets]
+  }
+}
+  
+namespace eval ::xowiki::portlet {
+  #############################################################################
   # dotlrn style portlet decoration for includelets
   #
   Class ::xowiki::portlet::decoration=portlet -instproc render {} {
@@ -102,15 +166,16 @@ namespace eval ::xowiki::portlet {
   #
   Class create rss-button \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration plain}}
+      -parameter {
+        {__decoration plain}
+        {parameter_declaration {
+          {-span "10d"}
+          {-name_filter}
+          {-title}
+        }}
+      }
 
   rss-button instproc render {} {
-    # use "span" to specify parameters to the rss call
-    my initialize -parameter {
-      {-span "10d"}
-      {-name_filter}
-      {-title}
-    }
     my get_parameters
     set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title}]
     return "<a href=\"$href \" class='rss'>RSS</a>"
@@ -147,22 +212,22 @@ namespace eval ::xowiki::portlet {
 
   Class create categories \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Categories"}}
+      -parameter {
+        {title "Categories"}
+        {parameter_declaration {
+          {-tree_name ""}
+          {-tree_style:boolean 1}
+          {-no_tree_name:boolean 0}
+          {-count:boolean 0}
+          {-summary:boolean 0}
+          {-locale ""}
+          {-open_page ""}
+          {-category_ids ""}
+          {-except_category_ids ""}
+        }}
+      }
   
   categories instproc render {} {
-
-    my initialize -parameter {
-      {-tree_name ""}
-      {-tree_style:boolean 1}
-      {-no_tree_name:boolean 0}
-      {-count:boolean 0}
-      {-summary:boolean 0}
-      {-locale ""}
-      {-open_page ""}
-      {-category_ids ""}
-      {-except_category_ids ""}
-    }
-    
     my get_parameters
 
     set content ""
@@ -267,15 +332,16 @@ namespace eval ::xowiki::portlet {
   
   Class create categories-recent \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Recently Changed Pages by Categories"}}
+      -parameter {
+        {title "Recently Changed Pages by Categories"}
+        {parameter_declaration {
+          {-max_entries:integer 10}
+          {-tree_name ""}
+          {-locale ""}
+        }}
+      }
 
   categories-recent instproc render {} {
-
-    my initialize -parameter {
-      {-max_entries:integer 10}
-      {-tree_name ""}
-      {-locale ""}
-    }
     my get_parameters
   
     set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
@@ -335,16 +401,17 @@ namespace eval ::xowiki::portlet {
   
   Class create recent \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Recently Changed Pages"}}
+      -parameter {
+        {title "Recently Changed Pages"}
+        {parameter_declaration {
+          {-max_entries:integer 10}
+        }}
+      }
   
   recent instproc render {} {
+    my get_parameters
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 
-    my initialize -parameter {
-      {-max_entries:integer 10}
-    }
-    my get_parameters
-    
     TableWidget t1 -volatile \
         -columns {
           Field date -label "Modification Date"
@@ -382,15 +449,16 @@ namespace eval ::xowiki::portlet {
   
   Class create last-visited \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Last Visited Pages"}}
+      -parameter {
+        {title "Last Visited Pages"}
+        {parameter_declaration {
+          {-max_entries:integer 20}
+        }}
+      }
   
   last-visited instproc render {} {
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
-
-    my initialize -parameter {
-      {-max_entries:integer 20}
-    }
     my get_parameters
+    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 
     TableWidget t1 -volatile \
         -columns {
@@ -422,15 +490,16 @@ namespace eval ::xowiki::portlet {
 
   Class create most-popular \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Most Popular Pages"}}
+      -parameter {
+        {title "Most Popular Pages"}
+        {parameter_declaration {
+          {-max_entries:integer "10"}
+        }}
+      }
   
   most-popular instproc render {} {
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
-
-    my initialize -parameter {
-      {-max_entries:integer "10"}
-    }
     my get_parameters
+    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
    
     TableWidget t1 -volatile \
         -columns {
@@ -463,19 +532,20 @@ namespace eval ::xowiki::portlet {
 
   Class create tags \
       -superclass ::xowiki::Portlet \
-      -parameter {{title "Tags"}}
+      -parameter {
+        {title "Tags"}
+        {parameter_declaration {
+          {-limit:integer 20}
+          {-summary:boolean 0}
+          {-popular:boolean 0}
+          {-page}
+        }}
+      }
   
   tags instproc render {} {
+    my get_parameters
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 
-    my initialize -parameter {
-      {-limit:integer 20}
-      {-summary:boolean 0}
-      {-popular:boolean 0}
-      {-page}
-    }
-    my get_parameters
-    
     if {$popular} {
       set label [_ xowiki.popular_tags_label]
       set tag_type ptag
@@ -504,13 +574,14 @@ namespace eval ::xowiki::portlet {
 
   Class create my-tags \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration none}}
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-summary 1}
+        }}
+      }
   
   my-tags instproc render {} {
-    
-    my initialize -parameter {
-      {-summary 1}
-    }
     my get_parameters
     my instvar __including_page tags
     ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
@@ -548,13 +619,14 @@ namespace eval ::xowiki::portlet {
   
   Class create my-categories \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration none}}
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-summary 1}
+        }}
+      }
   
   my-categories instproc render {} {
-    
-    my initialize -parameter {
-      {-summary 1}
-    }
     my get_parameters
     my instvar __including_page tags
     set content ""
@@ -604,8 +676,6 @@ namespace eval ::xowiki::portlet {
       -parameter {{__decoration none}}
   
   my-general-comments instproc render {} {
-    
-    my initialize -parameter {}
     my get_parameters
     my instvar __including_page
     set item_id [$__including_page item_id] 
@@ -617,17 +687,18 @@ namespace eval ::xowiki::portlet {
 
     return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
   }
-
-
+  
   Class create digg \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration none}}
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-description ""}
+          {-url}
+        }}
+      }
   
   digg instproc render {} {
-    my initialize -parameter {
-      {-description ""}
-      {-url}
-    }
     my get_parameters
     my instvar __including_page
     set digg_link [export_vars -base "http://digg.com/submit" {
@@ -641,14 +712,16 @@ namespace eval ::xowiki::portlet {
 
   Class create delicious \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration none}}
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-description ""}
+          {-tags ""}
+          {-url}
+        }}
+      }
   
   delicious instproc render {} {
-    my initialize -parameter {
-      {-description ""}
-      {-tags ""}
-      {-url}
-    }
     my get_parameters
     my instvar __including_page
 
@@ -671,19 +744,21 @@ namespace eval ::xowiki::portlet {
 
   Class create my-yahoo-publisher \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration none}}
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-publisher ""}
+          {-rssurl}
+        }}
+      }
   
   my-yahoo-publisher instproc render {} {
-    my initialize -parameter {
-      {-publisher ""}
-      {-rssurl}
-    }
     my get_parameters
     my instvar __including_page
 
     set publisher [ad_urlencode $publisher]
-    set feedname [ad_urlencode [[$package_id folder_id] title]]
-    set rssurl [ad_urlencode $rssurl]
+    set feedname  [ad_urlencode [[$package_id folder_id] title]]
+    set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 
     return "<a href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' border='0' align='middle' alt='Add to My Yahoo!'></a>"
@@ -694,8 +769,6 @@ namespace eval ::xowiki::portlet {
       -parameter {{__decoration none}}
   
   my-references instproc render {} {
-    my initialize -parameter {
-    }
     my get_parameters
     my instvar __including_page
 
@@ -732,24 +805,26 @@ namespace eval ::xowiki::portlet {
   #
   Class create presence \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration rightbox}}
+      -parameter {
+        {__decoration rightbox}
+        {parameter_declaration {
+          {-interval "10 minutes"}
+          {-max_users:integer 40}
+          {-show_anonymous "summary"}
+          {-page}
+        }}
+      }
 
   # TODO make display style -decoration
 
   presence instproc render {} {
-    my initialize -parameter {
-      {-interval "10 minutes"}
-      {-max_users:integer 40}
-      {-show_anonymous "summary"}
-      {-page}
-    }
     my get_parameters
 
     set summary 0
     if {[::xo::cc user_id] == 0} {
       switch -- $show_anonymous {
         nothing {return ""}
-        all {set summary 0} 
+        all     {set summary 0} 
         default {set summary 1} 
       }
     }
@@ -812,7 +887,18 @@ namespace eval ::xowiki::portlet {
   #
   Class create toc \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration plain}}
+      -parameter {
+        {__decoration plain}
+        {parameter_declaration {
+          {-style ""} 
+          {-open_page ""}
+          {-book_mode false}
+          {-ajax true}
+          {-expand_all false}
+          {-remove_levels 0}
+          {-category_id}
+        }}
+      }
 
 #"select page_id,  page_order, name, title, \
 #	(select count(*)-1 from xowiki_page_live_revision where page_order <@ p.page_order) as count \
@@ -1052,16 +1138,8 @@ namespace eval ::xowiki::portlet {
 
 
   toc instproc render {} {
-    my initialize -parameter {
-      {-style ""} 
-      {-open_page ""}
-      {-book_mode false}
-      {-ajax true}
-      {-expand_all false}
-      {-remove_levels 0}
-      {-category_id}
-    }
     my get_parameters
+
     switch -- $style {
       "menu" {set s "menu/"}
       "folders" {set s "folders/"}
@@ -1097,10 +1175,14 @@ namespace eval ::xowiki::portlet {
   #
   Class create book \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration plain}}
+      -parameter {
+        {__decoration plain}
+        {parameter_declaration {
+          {-category_id}
+        }}
+      }
 
   book instproc render {} {
-    my initialize -parameter { -category_id }
     my get_parameters
 
     my instvar __including_page
@@ -1227,13 +1309,22 @@ function draw() {
 namespace eval ::xowiki::portlet {
   Class create collab-graph \
       -superclass ::xowiki::portlet::graph \
-      -parameter {}
+      -parameter {
+        {parameter_declaration {
+          {-max_edges 70} 
+          {-cutoff 0.1} 
+          {-show_anonymous "message"}
+          -user_id
+        }}
+      }
   
   collab-graph instproc render {} {
-    my initialize -parameter { {-max_edges 70} {-cutoff 0.1} -user_id}
     my get_parameters
     
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
+    if {$show_anonymous ne "all" && $user_id ne 0} {
+      return "You must login to see the [namespace tail [self class]]"
+    }
 
     set folder_id [$package_id folder_id]    
     db_foreach get_collaborators {
@@ -1300,15 +1391,22 @@ namespace eval ::xowiki::portlet {
 
   Class create activity-graph \
       -superclass ::xowiki::portlet::graph \
-      -parameter {}
+      -parameter {
+        {parameter_declaration {
+          {-max_edges 70} 
+          {-cutoff 0.1}
+          {-max_activities:integer 100}
+          {-show_anonymous "message"}
+        }}
+      }
   
   activity-graph instproc render {} {
-    my initialize -parameter { 
-      {-max_edges 70} 
-      {-cutoff 0.1}
-      {-max_activities:integer 100}
-    }
     my get_parameters
+
+    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
+    if {$show_anonymous ne "all" && $user_id ne 0} {
+      return "You must loging to see the [namespace tail [self class]]"
+    }
 
     set folder_id [$package_id folder_id]    
     
@@ -1384,10 +1482,16 @@ namespace eval ::xowiki::portlet {
 
   Class create timeline \
       -superclass ::xowiki::Portlet \
-      -parameter {}
+      -parameter {
+        {parameter_declaration {
+          -user_id 
+          {-data timeline-data} 
+          {-interval1 DAY} 
+          {-interval2 MONTH}
+        }}
+      }
   
   timeline instproc render {} {
-    my initialize -parameter { -user_id {-data timeline-data} {-interval1 DAY} {-interval2 MONTH}}
     my get_parameters
 
    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
@@ -1451,10 +1555,16 @@ YAHOO.util.Event.addListener(window, 'load',   onLoad());
 
   Class create user-timeline \
       -superclass timeline \
-      -parameter {}
+      -parameter {
+        {parameter_declaration {
+           -user_id 
+           {-data timeline-data} 
+           {-interval1 DAY} 
+           {-interval2 MONTH}
+        }}
+      }
   
   user-timeline instproc render {} {
-    my initialize -parameter { -user_id {-data timeline-data} {-interval1 DAY} {-interval2 MONTH}}
     my get_parameters
     if {![info exists user_id]} {set user_id [::xo::cc user_id]]}
     ::xo::cc set_parameter user_id $user_id
