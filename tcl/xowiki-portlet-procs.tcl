@@ -1321,10 +1321,10 @@ namespace eval ::xowiki::portlet {
   collab-graph instproc render {} {
     my get_parameters
     
-    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
-    if {$show_anonymous ne "all" && $user_id eq 0} {
+    if {$show_anonymous ne "all" && [::xo::cc user_id] eq 0} {
       return "You must login to see the [namespace tail [self class]]"
     }
+    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
 
     set folder_id [$package_id folder_id]    
     db_foreach get_collaborators {
@@ -1350,7 +1350,7 @@ namespace eval ::xowiki::portlet {
       incr activities($creation_user) $count
     }
 
-    set result "<p>Collaboration Graph for <b>[::xo::get_user_name $user_id]</b> " 
+    set result "<p>Collaboration Graph for <b>[::xo::get_user_name $user_id]</b> in this wiki" 
     if {[array size i] < 1} {
       append result "</p><p>No collaborations found</p>"
     } else {
@@ -1403,9 +1403,8 @@ namespace eval ::xowiki::portlet {
   activity-graph instproc render {} {
     my get_parameters
 
-    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
-    if {$show_anonymous ne "all" && $user_id ne 0} {
-      return "You must loging to see the [namespace tail [self class]]"
+    if {$show_anonymous ne "all" && [::xo::cc user_id] eq 0} {
+      return "You must login to see the [namespace tail [self class]]"
     }
 
     set folder_id [$package_id folder_id]    
@@ -1446,7 +1445,7 @@ namespace eval ::xowiki::portlet {
       append result "<p>Last $total activities were done by user " \
           "<a href='collab?$user_id'>[::xo::get_user_name $user_id]</a>."
     } else {
-      append result "<p>Collaborations in last $total activities by [array size user] Users</p>"
+      append result "<p>Collaborations in last $total activities by [array size user] Users in this wiki</p>"
 
       foreach x [array names i] {
         foreach {u1 c1} $i($x) {
