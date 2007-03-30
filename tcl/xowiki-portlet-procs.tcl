@@ -504,7 +504,7 @@ namespace eval ::xowiki::portlet {
     TableWidget t1 -volatile \
         -columns {
           AnchorField title -label [_ xowiki.page_title]
-          Field count -label Count -html { align right }
+          Field count -label Visits -html { align right }
           Field users -label Users -html { align right }
         }
 
