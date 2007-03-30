@@ -505,10 +505,11 @@ namespace eval ::xowiki::portlet {
         -columns {
           AnchorField title -label [_ xowiki.page_title]
           Field count -label Count -html { align right }
+          Field users -label Users -html { align right }
         }
 
     db_foreach get_pages \
-        "select sum(x.count), x.page_id, r.title,i.name  \
+        "select sum(x.count), count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
@@ -518,6 +519,7 @@ namespace eval ::xowiki::portlet {
           t1 add \
               -title $title \
               -title.href [$package_id pretty_link $name] \
+              -users $nr_different_users \
               -count $sum
         }
     return [t1 asHTML]
