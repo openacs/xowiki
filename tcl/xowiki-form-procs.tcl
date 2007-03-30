@@ -20,7 +20,8 @@ namespace eval ::xowiki {
 	{f.item_id
 	  {item_id:key}}
 	{f.name
-	  {name:text {label #xowiki.name#} {html {size 80}} }}
+	  {name:text {label #xowiki.name#} {html {size 80}} 
+            {help_text {Shortname to identify a page within a folder, typically lowercase characters}}}}
 	{f.title
 	  {title:text {label #xowiki.title#} {html {size 80}} }}
 	{f.creator
