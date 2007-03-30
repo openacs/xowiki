@@ -140,12 +140,13 @@ namespace eval ::xowiki::portlet {
     my instvar package_id name title
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
+    set html [next]
     set link [expr {[string match "*:*" $name] ? 
                     "<a href='[$package_id pretty_link $name]'>$title</a>" : 
                     $title}]
     return "<div class='$class'><div class='portlet-title'>\
         <span>$link</span></div>\
-        <div $id class='portlet'>[next]</div></div>"
+        <div $id class='portlet'>$html</div></div>"
   }
   Class ::xowiki::portlet::decoration=plain -instproc render {} {
     set class [namespace tail [my info class]]
@@ -494,6 +495,7 @@ namespace eval ::xowiki::portlet {
         {title "Most Popular Pages"}
         {parameter_declaration {
           {-max_entries:integer "10"}
+          {-interval}
         }}
       }
   
@@ -501,27 +503,57 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
    
-    TableWidget t1 -volatile \
-        -columns {
-          AnchorField title -label [_ xowiki.page_title]
-          Field count -label Visits -html { align right }
-          Field users -label Users -html { align right }
-        }
+    if {[info exists interval]} {
+      # 
+      # If we have and interval, we cannot get report the number of visits 
+      # for that interval, since we have only the aggregated values in
+      # the database.
+      #
+      my append title " in last $interval"
 
-    db_foreach get_pages \
-        "select sum(x.count), count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
+      TableWidget t1 -volatile \
+          -columns {
+            AnchorField title -label [_ xowiki.page_title]
+            Field users -label Visitors -html { align right }
+          }
+      db_foreach get_pages \
+          "select count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
+          from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
+          where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
+            and x.package_id = $package_id and i.publish_status <> 'production' \
+            and time > now() - '$interval'::interval \
+            group by x.page_id, r.title, i.name \
+            order by nr_different_users desc limit $max_entries " \
+          {
+            t1 add \
+                -title $title \
+                -title.href [$package_id pretty_link $name] \
+                -users $nr_different_users
+          }
+    } else {
+
+      TableWidget t1 -volatile \
+          -columns {
+            AnchorField title -label [_ xowiki.page_title]
+            Field count -label Visits -html { align right }
+            Field users -label Visitors -html { align right }
+          }
+      db_foreach get_pages \
+          "select sum(x.count), count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
             group by x.page_id, r.title, i.name \
             order by sum desc limit $max_entries " \
-        {
-          t1 add \
-              -title $title \
-              -title.href [$package_id pretty_link $name] \
-              -users $nr_different_users \
-              -count $sum
-        }
+          {
+            t1 add \
+                -title $title \
+                -title.href [$package_id pretty_link $name] \
+                -users $nr_different_users \
+                -count $sum
+          }
+    }
+
     return [t1 asHTML]
   }
 }
