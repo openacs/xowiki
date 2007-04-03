@@ -144,10 +144,14 @@ namespace eval ::xowiki::portlet {
     set link [expr {[string match "*:*" $name] ? 
                     "<a href='[$package_id pretty_link $name]'>$title</a>" : 
                     $title}]
-    return "<div class='$class'><div class='portlet-title'>\
-        <span>$link</span></div>\
-        <div $id class='portlet'>$html</div></div>"
-  }
+    return [subst [[self class] set template]]
+  } -set template [expr {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1 ? 
+       {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
+	 <div class='portlet-title-no-controls'>$link</div></div>
+	 <div $id class='portlet'>$html</div></div></div>
+       } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
+        <div $id class='portlet'>[next]</div></div>}
+       }]
   Class ::xowiki::portlet::decoration=plain -instproc render {} {
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
