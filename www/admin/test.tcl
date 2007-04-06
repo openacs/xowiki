@@ -154,9 +154,9 @@ set content_length [string length $content]
 
 test subsection "Check Permissions based on default policy"
 ? {::xo::cc user_id} 0 "user_id is guest"
-? {::$page_item_id make_link ::$page_item_id delete return_url} "" \
+? {::$package_id make_link ::$page_item_id delete return_url} "" \
     "the public cannot delete this page"
-? {::$page_item_id make_link -privilege admin -url admin/ $package_id {} {}} "" \
+? {::$package_id make_link -privilege admin -url admin/ $package_id {} {}} "" \
     "the public cannot admin this package"
 
 ########################################################################
@@ -319,9 +319,9 @@ set content [::$package_id invoke -method $m]
 
 test subsection "Check Permissions based on default policy"
 ? {expr {[::xo::cc user_id] != 0}} 1 "user_id [lindex $swas 0] is not guest"
-? {expr {[::$page_item_id make_link ::$page_item_id delete return_url] ne ""}} 1 \
+? {expr {[::$package_id make_link ::$page_item_id delete return_url] ne ""}} 1 \
     "SWA sees the delete link"
-? {expr {[::$page_item_id make_link -privilege admin -url admin/ $package_id {} {}] ne ""}} 1 \
+? {expr {[::$package_id make_link -privilege admin -link admin/ $package_id {} {}] ne ""}} 1 \
     "SWA sees admin link"
 ? {db_string count [::xowiki::Page select_query \
                         -folder_id [$package_id folder_id] \
@@ -478,7 +478,7 @@ set content [test without_ns_form {::$package_id invoke -method $m}]
 ? {string first Error $content} -1 "page contains no error"
 
 ? {::xo::cc exists __continuation} 1 "continuation exists"
-? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/en/hello" \
+? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/hello" \
     "redirect to hello page"
 
 ########################################################################
