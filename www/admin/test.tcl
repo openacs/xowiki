@@ -9,6 +9,7 @@ test proc subsection msg {ns_write "<h4>$msg</h4>"}
 test proc errmsg msg     {ns_write "ERROR: $msg<BR/>"; test incr failed}
 test proc okmsg msg      {ns_write "OK: $msg<BR/>"; test incr passed}
 test proc code msg       {ns_write "<pre>$msg</pre>"}
+test proc hint msg       {ns_write "$msg<BR/>"}
 test proc reset {} {
   array unset ::xotcl_cleanup
   global af_parts  af_key_name
@@ -57,7 +58,9 @@ test case "XoWiki Test Cases"
 
 test section "Basic Setup"
 
+test hint "Using XOTcl $::xotcl::version$::xotcl::patchlevel"
 ? {expr {$::xotcl::version < 1.4}} 0 "XOTcl Version $::xotcl::version >= 1.4"
+
 set ns_cache_version_old [catch {ns_cache names xowiki_cache xxx}]
 if {$ns_cache_version_old} {
   ? {set x old} new "upgrade ns_cache: cvs -z3 -d:pserver:anonymous@aolserver.cvs.sourceforge.net:/cvsroot/aolserver co nscache"
@@ -65,7 +68,7 @@ if {$ns_cache_version_old} {
   ? {set x new} new "ns_cache version seems up to date"
 }
 ########################################################################
-test section "New Instance"
+test section "Create New Package Instance of XoWiki"
 #
 # create a fresh instance for testing
 #
@@ -82,6 +85,17 @@ if {[site_node::exists_p -url /$instance_name]} {
 
 ? {site_node::exists_p -url /$instance_name} 0 \
     "the test instance does not exist"
+
+set root_id [db_string get_root {select node_id, name from site_nodes where name = ''}]
+if {[db_0or1row check_broken_site_nodes {
+     select node_id, name from site_nodes where name = :instance_name and parent_id = :root_id
+}]} {
+  test hint "... site nodes seem broken, since we have an entry, but site_node::exists_p returns false"
+  test hint "... try to fix anyhow"
+  db_dml fix_broken_entry {
+    delete from site_nodes where name = :instance_name and parent_id = :root_id
+  }
+}
 
 # create a fresh instance
 array set node [site_node::get -url /]
