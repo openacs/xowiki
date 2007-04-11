@@ -295,7 +295,7 @@ namespace eval ::xowiki::portlet {
       append sql $locale_clause
       
       if {$count} {
-        db_foreach get_counts \
+        db_foreach [my qn get_counts] \
             "select count(*) as nr,category_id from $sql group by category_id" {
               $category($category_id) set count $nr
               set s [expr {$summary ? "&summary=$summary" : ""}]
@@ -304,7 +304,7 @@ namespace eval ::xowiki::portlet {
 	  }
         append content [$cattree(0) render -tree_style $tree_style]
       } else {
-        db_foreach get_pages \
+        db_foreach [my qn get_pages] \
             "select ci.item_id, ci.name, ci.content_type, r.title, category_id from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
@@ -369,7 +369,7 @@ namespace eval ::xowiki::portlet {
       set tree_select_clause ""
     }
       
-    db_foreach get_pages \
+    db_foreach [my qn get_pages] \
         "select c.category_id, ci.name, r.title, \
 	 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
        from category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p \
@@ -423,7 +423,7 @@ namespace eval ::xowiki::portlet {
           AnchorField title -label [_ xowiki.page_title]
         }
     
-    db_foreach get_pages \
+    db_foreach [my qn get_pages] \
         "select i.name, r.title, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
          from cr_items i, cr_revisions r, xowiki_page p \
@@ -470,7 +470,7 @@ namespace eval ::xowiki::portlet {
           AnchorField title -label [_ xowiki.page_title]
         }
 
-    db_foreach get_pages \
+    db_foreach [my qn get_pages] \
         "select r.title,i.name, to_char(x.time,'YYYY-MM-DD HH24:MI:SS') as visited_date  \
            from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
            where x.page_id = i.item_id and i.live_revision = p.page_id  \
@@ -520,7 +520,7 @@ namespace eval ::xowiki::portlet {
             AnchorField title -label [_ xowiki.page_title]
             Field users -label Visitors -html { align right }
           }
-      db_foreach get_pages \
+      db_foreach [my qn get_pages] \
           "select count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
@@ -542,7 +542,7 @@ namespace eval ::xowiki::portlet {
             Field count -label Visits -html { align right }
             Field users -label Visitors -html { align right }
           }
-      db_foreach get_pages \
+      db_foreach [my qn get_pages] \
           "select sum(x.count), count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
@@ -600,7 +600,7 @@ namespace eval ::xowiki::portlet {
     if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
     set base_url [$package_id pretty_link $page]
 
-    db_foreach get_counts $sql {
+    db_foreach [my qn get_counts] $sql {
       set s [expr {$summary ? "&summary=$summary" : ""}]
       set href $base_url?$tag_type=[ad_urlencode $tag]$s
       lappend entries "$tag <a href='$href'>($nr)</a>"
@@ -812,7 +812,7 @@ namespace eval ::xowiki::portlet {
 
     set item_id [$__including_page item_id] 
     set refs [list]
-    db_foreach get_references "SELECT page,ci.name,f.package_id \
+    db_foreach [my qn get_references] "SELECT page,ci.name,f.package_id \
         from xowiki_references,cr_items ci,cr_folders f \
         where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
           ::xowiki::Package require $package_id
@@ -889,13 +889,13 @@ namespace eval ::xowiki::portlet {
     set output ""
 
     if {$summary} {
-      set count [db_string presence_count_users "$select_count $where_clause"] 
+      set count [db_string [my qn presence_count_users] "$select_count $where_clause"] 
     } else {
-      set values [db_list_of_lists get_users "$select_users $where_clause $order_clause"]
+      set values [db_list_of_lists [my qn get_users] "$select_users $where_clause $order_clause"]
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...
-        set count [db_string presence_count_users "$select_count $where_clause"] 
+        set count [db_string [my qn presence_count_users] "$select_count $where_clause"] 
       }
       foreach value  $values {
         foreach {user_id time} $value break
@@ -1365,7 +1365,7 @@ namespace eval ::xowiki::portlet {
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
 
     set folder_id [$package_id folder_id]    
-    db_foreach get_collaborators {
+    db_foreach [my qn get_collaborators] {
       select count(revision_id), item_id, creation_user 
       from cr_revisions r, acs_objects o 
       where item_id in 
@@ -1448,9 +1448,9 @@ namespace eval ::xowiki::portlet {
     set folder_id [$package_id folder_id]    
     
     # there must be a better way to handle temporaray tables safely....
-    catch {db_dml drop_temp_table {drop table XOWIKI_TEMP_TABLE }}
+    catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE }}
 
-    db_dml get_n_most_revent_contributions {
+    db_dml [my qn get_n_most_revent_contributions] {
       create temporary table XOWIKI_TEMP_TABLE as
       select i.item_id, revision_id, creation_user 
       from cr_revisions cr, cr_items i, acs_objects o  
@@ -1460,7 +1460,7 @@ namespace eval ::xowiki::portlet {
     }
 
     set total 0
-    db_foreach get_activities {
+    db_foreach [my qn get_activities] {
       select count(revision_id),item_id, creation_user  
       from XOWIKI_TEMP_TABLE 
       where creation_user is not null 
@@ -1474,7 +1474,7 @@ namespace eval ::xowiki::portlet {
       set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
     }
 
-    db_dml drop_temp_table {drop table XOWIKI_TEMP_TABLE }
+    db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE }
 
     if {[array size i] == 0} {
       append result "<p>No activities found</p>"

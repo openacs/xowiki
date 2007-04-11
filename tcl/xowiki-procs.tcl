@@ -296,10 +296,10 @@ namespace eval ::xowiki {
   #
 
   Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
-    db_dml delete_tags \
+    db_dml [my qn delete_tags] \
         "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
     foreach tag $tags {
-      db_dml insert_tag \
+      db_dml [my qn insert_tag] \
           "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
            values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
     }
@@ -308,18 +308,26 @@ namespace eval ::xowiki {
     if {[info exists item_id]} {
       if {[info exists user_id]} {
         # tags for item and user
-        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
+        set tags [db_list [my qn get_tags] \
+               "SELECT distinct tag from xowiki_tags \
+		where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
       } else {
         # all tags for this item 
-        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where item_id=$item_id and package_id=$package_id"]
+        set tags [db_list [my qn get_tags] \
+                "SELECT distinct tag from xowiki_tags \
+		where item_id=$item_id and package_id=$package_id"]
       }
     } else {
       if {[info exists user_id]} {
         # all tags for this user
-        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where user_id=$user_id and package_id=$package_id"]
+        set tags [db_list [my qn get_tags] \
+                "SELECT distinct tag from xowiki_tags \
+                 where user_id=$user_id and package_id=$package_id"]
       } else {
         # all tags for the package
-        set tags [db_list get_tags "SELECT distinct tag from xowiki_tags where package_id=$package_id"]
+        set tags [db_list [my qn get_tags] \
+                "SELECT distinct tag from xowiki_tags \
+                 where package_id=$package_id"]
       }
     }
     join $tags " "
@@ -599,7 +607,7 @@ namespace eval ::xowiki {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set description [db_string get_description_from_syndication \
+      set description [db_string [my qn get_description_from_syndication] \
                            "select body from syndication where object_id = $revision_id" \
                            -default ""]
     }
@@ -633,11 +641,11 @@ namespace eval ::xowiki {
   }
 
   Page instproc update_references {page_id references} {
-    db_dml delete_references \
+    db_dml [my qn delete_references] \
         "delete from xowiki_references where page = $page_id"
     foreach ref $references {
       foreach {r link_type} $ref break
-      db_dml insert_reference \
+      db_dml [my qn insert_reference] \
           "insert into xowiki_references (reference, link_type, page) \
            values ($r,:link_type,$page_id)"
     }
@@ -674,11 +682,11 @@ namespace eval ::xowiki {
     if {![info exists user_id]} {set user_id [ad_conn user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
-      db_dml update_last_visisted \
+      db_dml [my qn update_last_visisted] \
           "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
            where page_id = $item_id and user_id = $user_id"
       if {[db_resultrows] < 1} {
-        db_dml insert_last_visisted \
+        db_dml [my qn insert_last_visisted] \
             "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
              values ($item_id, $package_id, $user_id, 1, current_timestamp)"
       }
@@ -733,7 +741,7 @@ namespace eval ::xowiki {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
         my instvar text mime_type package_id item_id revision_id
-        set storage_area_key [db_string get_storage_key \
+        set storage_area_key [db_string [my qn get_storage_key] \
                   "select storage_area_key from cr_items where item_id=$item_id"]
         my set full_file_name [cr_fs_path $storage_area_key]/$text
         #my log "--F setting FILE=[my set full_file_name]"

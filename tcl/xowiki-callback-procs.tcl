@@ -87,18 +87,15 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.21"] == -1 &&
         [apm_version_names_compare $to_version_name "0.21"] > -1} {
       ns_log notice "-- upgrading to 0.21"
-      db_1row create_att {
-        select content_type__create_attribute(
-                '::xowiki::Page','page_title','text',
-                'Page Title',null,null,null,'text'      )}
-        db_1row create_att {
-          select content_type__create_attribute(
-                '::xowiki::Page','creator','text',
-                'Creator',null,null,null,'text'         )}
-      db_1row refresh "select content_type__refresh_view('::xowiki::PlainPage') from dual"
-      db_1row refresh "select content_type__refresh_view('::xowiki::PageTemplate') from dual"
-      db_1row refresh "select content_type__refresh_view('::xowiki::PageInstance') from dual"
-      db_1row refresh "select content_type__refresh_view('::xowiki::Object') from dual"
+      ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+        {content_type ::xowiki::Page} {attribute_name page_title} {datatype text}
+        {pretty_name "Page Title"} {column_spec text}
+      }
+      ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+        {content_type ::xowiki::Page} {attribute_name creator} {datatype text}
+        {pretty_name "Creator"} {column_spec text}
+      }
+      ::xowiki::update_views
     }
 
     if {[apm_version_names_compare $from_version_name "0.22"] == -1 &&
@@ -144,10 +141,11 @@ namespace eval ::xowiki {
       db_dml copy_page_title_into_title \
           "update cr_revisions set title = p.page_title from xowiki_page p \
                 where page_title != '' and revision_id = p.page_id"
-      db_foreach  delete_deprecated_types_from_ancient_versions \
-        "select content_item__delete(i.item_id) from cr_items i \
+
+      db_list delete_deprecated_types_from_ancient_versions \
+        [::xo::db::map "select content_item__delete(i.item_id) from cr_items i \
                 where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
-                'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')" {;}
+                'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"]
     }
 
     if {[apm_version_names_compare $from_version_name "0.30"] == -1 &&
@@ -210,9 +208,11 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to 0.42"
       ::xowiki::add_ltree_order_column
       # get rid of obsolete column
-      catch {db_1row delete_att {
-        select content_type__drop_attribute('::xowiki::Page','page_title', 't'::boolean)}
-      }
+      catch {
+      ::xo::db::CONTENT_TYPE DELETE_ATTRIBUTE {
+        {content_type ::xowiki::Page} {attribute_name page_title} 
+        {drop_column t}
+      }}
       # drop old non-conformant indices
       foreach index { xowiki_ref_index 
         xowiki_last_visited_index_unique xowiki_last_visited_index
@@ -253,18 +253,30 @@ namespace eval ::xowiki {
     update all automatic views of xowiki
   } {
 
-    set updates [db_list_of_lists get_xowiki_types \
-                     "select object_type,\
-                               content_type__refresh_view(object_type)
+    set sql(oracle) "select object_type, content_type.refresh_view(object_type) \
+                     from acs_object_types \
+                     connect by supertype = prior object_type 
+                     start with object_type = '::xowiki::Page'"
+
+    set sql(postgresql) "select object_type,content_type__refresh_view(object_type)
                       from acs_object_types \
 		      where object_type like '::xowiki::%' \
-                      order by tree_sortkey "]
+                      order by tree_sortkey "
+
+    db_list get_xowiki_types $sql([db_driverkey ""]) 
 
     catch {db_dml drop_live_revision_view "drop view xowiki_page_live_revision"}
+
+    if {[db_driverkey ""] eq "postgresql"} {
+      set sortkeys ", ci.tree_sortkey, ci.max_child_sortkey "
+    } else {
+      set sortkeys ""
+    }
+
     ::xo::db::require view xowiki_page_live_revision \
 	"select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
 	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
-	  ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
+	  ci.storage_area_key $sortkeys \
           from xowiki_page p, cr_items ci, cr_revisions cr  \
           where p.page_id = ci.live_revision \
             and p.page_id = cr.revision_id  \
@@ -275,17 +287,12 @@ namespace eval ::xowiki {
     add ltree order column, if ltree is configured
   } {
     if {[::xo::db::has_ltree]} {
-      set object_type ::xowiki::Page
-      set attribute_name page_order
-      set datatype text
-      set pretty_name Order
-      set sqltype ltree
       # catch sql statement to allow multiple runs
-      catch {db_1row create_att {select content_type__create_attribute(
-          :object_type,:attribute_name,:datatype,
-          :pretty_name,null,null,null,:sqltype)}}
-      catch {db_dml create_index "create index xowiki_page_page_order_idx \
-	  on xowiki_page using gist (page_order)"}
+      catch {::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+        {content_type ::xowiki::Page} {attribute_name page_order} {datatype text}
+        {pretty_name Order} {column_spec ltree}
+      }}
+      ::xo::db::require index -table xowiki_page -col page_order -using gist
       set result 1
     } else {
       set result 0

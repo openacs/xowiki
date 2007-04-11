@@ -120,7 +120,7 @@ namespace eval ::xowiki {
     set q [$templateclass instance_select_query \
                -folder_id $folder_id \
                -select_attributes {name}]
-    db_foreach get_page_templates $q {
+    db_foreach [my qn get_page_templates] $q {
       lappend lpairs [list $name $item_id]
     } if_no_rows {
       lappend lpairs [list "(No Page Template available)" ""]

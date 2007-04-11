@@ -18,6 +18,8 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
   $page volatile
 
+  #ns_log notice "--sc package=[[$page package_id] serialize]"
+
   if {[$page set publish_status] eq "production"} {
     # no data source for for pages under construction
     ns_log notice "--sc page under construction, no datasource"
@@ -27,7 +29,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   }
 
   $page absolute_links 1
-  ns_log notice "--sc setting absolute links for page = $page [$page set name]"
+  #ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 
   set html [$page render]
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]

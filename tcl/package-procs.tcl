@@ -29,7 +29,8 @@ namespace eval ::xowiki {
 
     $page folder_id [$page set parent_id] 
     if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
-      set package_id [db_string get_pid "select package_id from cr_folders where folder_id = [$page $folder_id]"]
+      set package_id [db_string [my qn get_pid] \
+                          "select package_id from cr_folders where folder_id = [$page $folder_id]"]
       $page package_id $package_id
     } else {
       set package_id [$page set package_id]
@@ -45,10 +46,10 @@ namespace eval ::xowiki {
     @return list of package_ids of xowiki instances
   } {
     if {$include_unmounted} {
-      return [db_list get_xowiki_packages {select package_id \
+      return [db_list [my qn get_xowiki_packages] {select package_id \
         from apm_packages where package_key = 'xowiki'}]
     } else {
-      return [db_list get_mounted_packages {select package_id \
+      return [db_list [my qn get_mounted_packages] {select package_id \
         from apm_packages p, site_nodes s  \
         where package_key = 'xowiki' and s.object_id = p.package_id}]
     }
@@ -135,7 +136,6 @@ namespace eval ::xowiki {
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
-
     set package_prefix [my get_parameter package_prefix [my package_url]]
     if {$package_prefix eq "/" && [string length $lang]>2} {
       # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
@@ -505,7 +505,7 @@ namespace eval ::xowiki {
     reindex all items of this package
   } {
     my instvar folder_id
-    set pages [db_list get_pages "select page_id from xowiki_page, cr_revisions r, cr_items ci \
+    set pages [db_list [my qn get_pages] "select page_id from xowiki_page, cr_revisions r, cr_items ci \
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.parent_id = $folder_id \
       and ci.live_revision = page_id"]
     #my log "--reindex returns <$pages>"
@@ -665,7 +665,7 @@ namespace eval ::xowiki {
     set content {<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.google.com/schemas/sitemap/0.84">
 }
-    db_foreach get_pages \
+    db_foreach [my qn get_pages] \
         "select s.body, p.name, p.creator, p.title, p.page_id,\
                 p.object_type as content_type, p.last_modified, p.description  \
         from xowiki_pagex p, syndication s, cr_items ci  \
@@ -712,7 +712,7 @@ namespace eval ::xowiki {
 <sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
 }
     foreach package_id  [::xowiki::Package instances] {
-      set last_modified [db_string get_newest_modification_date \
+      set last_modified [db_string [my qn get_newest_modification_date] \
                              "select last_modified from acs_objects where package_id = $package_id \
 		order by last_modified desc limit 1"]
 

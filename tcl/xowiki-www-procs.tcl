@@ -257,6 +257,7 @@ namespace eval ::xowiki {
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
+my log "--X get_form"
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
@@ -269,6 +270,7 @@ namespace eval ::xowiki {
     } else {
       ::xowiki::f1 generate
     }
+my log "--X after generate"
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
     
     if {[info exists item_id]} {
@@ -278,7 +280,7 @@ namespace eval ::xowiki {
     if {[info exists last_page_id]} {
       set back_link [$package_id url]
     }
-
+my log "--X call returnb_page"
     set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
     set html [$package_id return_page -adp /packages/xowiki/www/edit \
                   -form f1 \
@@ -313,7 +315,7 @@ namespace eval ::xowiki {
   Page instproc make-live-revision {} {
     my instvar revision_id item_id package_id
     my log "--M set_live_revision($revision_id)"
-    db_exec_plsql make_live {select content_item__set_live_revision(:revision_id)}
+    ::xo::db::CONTENT_ITEM SET_LIVE_REVISION revision_id
     set page_id [my query_parameter "page_id"]
     ns_cache flush xotcl_object_cache ::$item_id
     ::$package_id returnredirect [my query_parameter "return_url" \
@@ -323,21 +325,21 @@ namespace eval ::xowiki {
 
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id 
-    db_1row get_revision "select latest_revision,live_revision from cr_items where item_id = $item_id"
+    db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
-    db_exec_plsql delete_revision {select content_revision__del(:revision_id)}
+    ::xo::db::CONTENT_REVISION DEL {revision_id}
     set redirect [my query_parameter "return_url" \
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
       # latest revision might have changed by delete_revision, so we have to fetch here
-      db_1row get_revision "select latest_revision from cr_items where item_id = $item_id"
+      db_1row [my qn get_revision] "select latest_revision from cr_items where item_id = $item_id"
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
         my instvar package_id name
         $package_id delete -name $name -item_id $item_id
       } else {
-        db_0or1row make_live "select content_item__set_live_revision($latest_revision)"
+        ::xo::db::CONTENT_ITEM SET_LIVE_REVISION {{revision_id $latest_revision}}
       }
     }
     if {$latest_revision ne ""} {
@@ -368,7 +370,7 @@ namespace eval ::xowiki {
     set href        [$package_id pretty_link $weblog_page]?summary=1
 
     set entries [list]
-    db_foreach get_popular_tags \
+    db_foreach [my qn get_popular_tags] \
         "select count(*) as nr,tag from xowiki_tags \
          where item_id=$item_id group by tag order by nr limit $limit" {
            lappend entries "<a href='$href&ptag=[ad_urlencode $tag]'>$tag ($nr)</a>"

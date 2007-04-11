@@ -19,7 +19,7 @@ set item_id [db_string get_item_id \
 ns_cache flush xotcl_object_cache ::$item_id
 ns_cache flush xotcl_object_cache ::$revision_id
 
-db_0or1row make_live {select content_item__set_live_revision(:revision_id,:state)}
+::xo::db::CONTENT_ITEM MAKE_LIVE {revision_id state}
 
 if {$state ne "production"} {
   ::xowiki::notification::do_notifications -revision_id $revision_id
