@@ -905,8 +905,8 @@ namespace eval ::xowiki::portlet {
         set pretty_time [util::age_pretty -timestamp_ansi $time \
                              -sysdate_ansi [clock_to_ansi [clock seconds]] \
                              -mode_3_fmt "%d %b %Y, at %X"]
-        
         set name [::xo::get_user_name $user_id]
+
         append output "<TR><TD class='user'>$name</TD><TD class='timestamp'>$pretty_time</TD></TR>\n"
       }
       if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}

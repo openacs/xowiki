@@ -257,7 +257,6 @@ namespace eval ::xowiki {
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
-my log "--X get_form"
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
@@ -270,7 +269,7 @@ my log "--X get_form"
     } else {
       ::xowiki::f1 generate
     }
-my log "--X after generate"
+
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
     
     if {[info exists item_id]} {
@@ -280,7 +279,7 @@ my log "--X after generate"
     if {[info exists last_page_id]} {
       set back_link [$package_id url]
     }
-my log "--X call returnb_page"
+
     set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
     set html [$package_id return_page -adp /packages/xowiki/www/edit \
                   -form f1 \
@@ -314,8 +313,9 @@ my log "--X call returnb_page"
 
   Page instproc make-live-revision {} {
     my instvar revision_id item_id package_id
-    my log "--M set_live_revision($revision_id)"
-    ::xo::db::CONTENT_ITEM SET_LIVE_REVISION revision_id
+    #my log "--M set_live_revision($revision_id)"
+    #::xo::db::CONTENT_ITEM SET_LIVE_REVISION revision_id
+    ::xo::db::content_item set_live_revision -revision_id $revision_id
     set page_id [my query_parameter "page_id"]
     ns_cache flush xotcl_object_cache ::$item_id
     ::$package_id returnredirect [my query_parameter "return_url" \
@@ -328,7 +328,8 @@ my log "--X call returnb_page"
     db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
-    ::xo::db::CONTENT_REVISION DEL {revision_id}
+    #::xo::db::CONTENT_REVISION DEL {revision_id}
+    ::xo::db::content_revision del -revision_id $revision_id
     set redirect [my query_parameter "return_url" \
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
@@ -339,7 +340,8 @@ my log "--X call returnb_page"
         my instvar package_id name
         $package_id delete -name $name -item_id $item_id
       } else {
-        ::xo::db::CONTENT_ITEM SET_LIVE_REVISION {{revision_id $latest_revision}}
+        #::xo::db::CONTENT_ITEM SET_LIVE_REVISION {{revision_id $latest_revision}}
+        ::xo::db::content_item set_live_revision -revision_id $latest_revision
       }
     }
     if {$latest_revision ne ""} {

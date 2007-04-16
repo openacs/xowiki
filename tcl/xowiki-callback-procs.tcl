@@ -87,14 +87,27 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.21"] == -1 &&
         [apm_version_names_compare $to_version_name "0.21"] > -1} {
       ns_log notice "-- upgrading to 0.21"
-      ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
-        {content_type ::xowiki::Page} {attribute_name page_title} {datatype text}
-        {pretty_name "Page Title"} {column_spec text}
-      }
-      ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
-        {content_type ::xowiki::Page} {attribute_name creator} {datatype text}
-        {pretty_name "Creator"} {column_spec text}
-      }
+      ::xo::db::content_type create_attribute \
+                 -content_type ::xowiki::Page \
+                 -attribute_name page_title \
+                 -datatype text \
+                 -pretty_name "Page Title" \
+                 -column_spec text
+      ::xo::db::content_type create_attribute \
+                 -content_type ::xowiki::Page \
+                 -attribute_name creator \
+                 -datatype text \
+                 -pretty_name "Creator" \
+                 -column_spec text
+
+#       ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+#         {content_type ::xowiki::Page} {attribute_name page_title} {datatype text}
+#         {pretty_name "Page Title"} {column_spec text}
+#       }
+#       ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+#         {content_type ::xowiki::Page} {attribute_name creator} {datatype text}
+#         {pretty_name "Creator"} {column_spec text}
+#       }
       ::xowiki::update_views
     }
 
@@ -209,10 +222,15 @@ namespace eval ::xowiki {
       ::xowiki::add_ltree_order_column
       # get rid of obsolete column
       catch {
-      ::xo::db::CONTENT_TYPE DELETE_ATTRIBUTE {
-        {content_type ::xowiki::Page} {attribute_name page_title} 
-        {drop_column t}
-      }}
+#       ::xo::db::CONTENT_TYPE DELETE_ATTRIBUTE {
+#         {content_type ::xowiki::Page} {attribute_name page_title} 
+#         {drop_column t}
+#       }
+      ::xo::db::content_type delete_attribute \
+          -content_type ::xowiki::Page \
+          -attribute_name page_title \
+          -drop_column t
+      }
       # drop old non-conformant indices
       foreach index { xowiki_ref_index 
         xowiki_last_visited_index_unique xowiki_last_visited_index
@@ -288,10 +306,17 @@ namespace eval ::xowiki {
   } {
     if {[::xo::db::has_ltree]} {
       # catch sql statement to allow multiple runs
-      catch {::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
-        {content_type ::xowiki::Page} {attribute_name page_order} {datatype text}
-        {pretty_name Order} {column_spec ltree}
-      }}
+#       catch {::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
+#         {content_type ::xowiki::Page} {attribute_name page_order} {datatype text}
+#         {pretty_name Order} {column_spec ltree}
+#       }}
+      catch {::xo::db::content_type create_attribute \
+                 -content_type ::xowiki::Page \
+                 -attribute_name page_order \
+                 -datatype text \
+                 -pretty_name Order \
+                 -column_spec ltree}
+ 
       ::xo::db::require index -table xowiki_page -col page_order -using gist
       set result 1
     } else {
