@@ -14,15 +14,14 @@
 }
 
 set item_id [db_string get_item_id \
-                 {select item_id from cr_revisions 
-                   where revision_id = :revision_id}]
+    {select item_id from cr_revisions where revision_id = :revision_id}]
+
 ns_cache flush xotcl_object_cache ::$item_id
 ns_cache flush xotcl_object_cache ::$revision_id
 
-#::xo::db::CONTENT_ITEM MAKE_LIVE {revision_id state}
-::xo::db::content_item make_live \
+::xo::db::content_item set_live_revision \
             -revision_id $revision_id \
-            -state $state
+            -publish_status $state
 
 if {$state ne "production"} {
   ::xowiki::notification::do_notifications -revision_id $revision_id

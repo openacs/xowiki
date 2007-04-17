@@ -159,7 +159,7 @@ set content_size_total 0
 
 #set folder_path [::xo::db::CONTENT_ITEM GET_PATH {folder_id root_folder_id}]
 set folder_path [::xo::db::content_item get_path \
-                     -folder_id $folder_id \
+                     -item_id $folder_id \
                      -root_folder_id $root_folder_id]
 
 # -pass_to_urls {c} 
