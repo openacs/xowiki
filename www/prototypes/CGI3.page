@@ -16,7 +16,7 @@
 
   #
   # The classes and objects here are all local to the object, 
-  # as long a no absolulte addresses are used (no leading colons)
+  # as long as no absolute class or object names are used (no leading colons)
   #
   
   Class CGI

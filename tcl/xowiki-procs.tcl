@@ -407,7 +407,9 @@ namespace eval ::xowiki {
         }
         #my log "--resolve --> $page"
       }
-      catch {$page set __decoration portlet}
+      if {$page ne "" && ![$page exists __decoration]} {
+        $page set __decoration portlet
+      }
     }
 
     if {$page ne ""} {
@@ -893,6 +895,8 @@ namespace eval ::xowiki {
     if {[catch {$payload contains $cmd} error ]} {
       ns_log error "content $cmd lead to error: $error"
     }
+    #my log "call init mixins=[my info mixin]//[$payload info mixin]"
+    $payload init
   }
   Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
