@@ -40,9 +40,16 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #ns_log notice "--sc INDEXING $revision_id -> $text"
   #$page set unresolved_references 0
   $page instvar item_id
-  db_dml delete_old_revisions {delete from txt where object_id in \
+  # cleanup old stuff. This might run into an error, when search is not
+  # configured, and therefore txt does not exist. TODO: we should look for a better
+  # solution, where syndication does not depend on search....
+  catch {
+    db_dml delete_old_revisions {
+      delete from txt where object_id in \
       (select revision_id from cr_revisions 
-       where item_id = :item_id and revision_id != :revision_id)}
+       where item_id = :item_id and revision_id != :revision_id)
+    }
+  }
   foreach tag {h1 h2 h3 h4 h5 b strong} {
     foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
       foreach w [split $words] {
