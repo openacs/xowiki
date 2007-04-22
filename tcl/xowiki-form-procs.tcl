@@ -406,7 +406,7 @@ namespace eval ::xowiki {
 
   PodcastForm instproc new_request {} {
     my instvar data
-    $data set pub_date [my to_timeinfo [clock format [clock seconds]]]
+    $data set pub_date [my to_timeinfo [clock format [clock seconds]  -format "%y-%m-%d %T"]]
     next
   }
   PodcastForm instproc edit_request {item_id} {
