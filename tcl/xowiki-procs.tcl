@@ -140,12 +140,13 @@ namespace eval ::xowiki {
     {lang en}
     {render_adp 1}
     {absolute_links 0}
+    page_order
   }
   Page set recursion_count 0
   Page array set RE {
-    include {([^\\]){{([^<]+)}}[ \n\r]*}
-    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
-    div     {()([^\\])&gt;&gt;([^&<]*)&lt;&lt;()([ \n]*<br */?>)?}
+    include {([^\\]){{([^<]+?)}}[ \n\r]*}
+    anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
+    div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*<br */?>)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
@@ -427,9 +428,12 @@ namespace eval ::xowiki {
       if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
 	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
       }
+
       if {[catch {set html [$page render]} errorMsg]} {
-        set html "<div class='errorMsg'><p>Error in includelet '$page_name' $errorMsg</div>\n"
+        set html "<div class='errorMsg'><p>Error in includelet '$page_name' $errorMsg\
+           <pre>$::errorInfo</pre></div>\n"
       }
+
       return $html
     } else {
       return "<div class='errorMsg'><p>Error: includelet '$page_name' unknown</div>\n"
@@ -626,8 +630,9 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_rich_text_spec {field_name default} {
+    my instvar package_id
     set spec ""
-    foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
+    foreach {s widget_spec} [$package_id get_parameter widget_specs] {
       foreach {page_name var_name} [split $s ,] break
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[my exists name] ? [my set name] : $page_name}]
@@ -703,9 +708,9 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PlainPage array set RE {
-    include {([^\\]){{(.+)}}[ \n\r]}
-    anchor  {([^\\])\\\[\\\[([^\]]+)\\\]\\\]}
-    div     {()([^\\])>>([^<]*)<<}
+    include {([^\\]){{(.+?)}}[ \n\r]}
+    anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
+    div     {()([^\\])>>([^<]*?)<<}
     clean   {[\\](\{\{|>>|\[\[)}
     clean2  {(--DUMMY NOT USED--)}
   }

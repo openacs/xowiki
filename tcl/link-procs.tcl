@@ -117,8 +117,10 @@ namespace eval ::xowiki {
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
         href cssclass
-        float width height padding margin border border-width
-        position top botton left right
+        float width height 
+        padding padding-right padding-left padding-top padding-bottom
+        margin margin-left margin-right margin-top margin-bottom
+        border border-width position top botton left right
       }
   ::xowiki::Link::image instproc render {} {
     my instvar name package_id label
@@ -145,8 +147,10 @@ namespace eval ::xowiki {
   ::xowiki::Link::image instproc render_found {link label} {
     set style ""
     foreach a {
-      float width height padding margin border border-width
-      position top botton left right
+      float width height 
+      padding padding-right padding-left padding-top padding-bottom
+      margin margin-left margin-right margin-top margin-bottom
+      border border-width position top botton left right
     } {
       if {[my exists $a]} {append style "$a: [my set $a];"}
     }

@@ -314,9 +314,8 @@ namespace eval ::xowiki {
       }
     }
 
-
-    #my log "--W object='$stripped_object'"
-    set fn [get_server_root]/packages/xowiki/www/prototypes/$stripped_object.page
+    set fn [get_server_root]/packages/[my package_key]/www/prototypes/$stripped_object.page
+    #my log "--W check $fn"
     if {[file readable $fn]} {
       # create from default page
       my log "--sourcing page definition $fn, using name '$standard_page'"

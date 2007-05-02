@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.51" url="http://openacs.org/repository/download/apm/xowiki-0.51.apm">
+    <version name="0.52" url="http://openacs.org/repository/download/apm/xowiki-0.52.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-04-11</release-date>
+        <release-date>2007-05-02</release-date>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of wiki markup commands of systems
@@ -94,23 +94,36 @@ language prefix to avoid clashes, ltree (for ordering);
 
 0.47: podcast support
 
-0.48: policy management moved to xotcl-core, more detailed form field specification for page instances, flash support, yndication status in www/admin/list, file import/export, style information in css files
+0.48: policy management moved to xotcl-core, more detailed 
+form field specification for page instances, flash support, 
+syndication status in www/admin/list, file import/export, 
+style information in css files
 
-0.49: adp-generator, make tags/categories/social software buttons per item in a weblog, oacs-view2 and oacs-view3
+0.49: adp-generator, make tags/categories/social software 
+buttons per item in a weblog, oacs-view2 and oacs-view3
 
-0.50: timeline support, new includelets activity-graph, collab-graph, timeline, and user-timeline
+0.50: timeline support, new includelets activity-graph, 
+collab-graph, timeline, and user-timeline
 
-0.51: minimal zen support, using new oo interface form xotcl-core, more silent on db-operations in error log 
+0.51: minimal zen support, using new oo interface form 
+xotcl-core, more silent on db-operations in error log
+
+0.52: added full set of padding-* and margin-* flags to
+control image rendering, added allow_edit and allow_delete 
+to includelet &quot;recent&quot;, new includelet &quot;get&quot; to obtain 
+variable binding from different pages, new includelets
+creation-date to get dates nicer formatted, simplified 
+development of derived packages (s5) 
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.51"/>
+        <provides url="xowiki" version="0.52"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.50"/>
+        <requires url="xotcl-core" version="0.51"/>
 
         <callbacks>
             <callback type="after-install"  proc="::xowiki::after-install"/>

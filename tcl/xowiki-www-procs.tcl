@@ -186,6 +186,9 @@ namespace eval ::xowiki {
       } else {
         # use adp file
         foreach css [$package_id get_parameter extra_css ""] {::xowiki::Page requireCSS $css}
+        # refetch it, since it might have been changed via set-parameter
+        set template_file [my query_parameter "template_file" \
+                               [::$package_id get_parameter template_file view-default]]
 
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file

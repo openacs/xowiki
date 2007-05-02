@@ -115,7 +115,19 @@ namespace eval ::xowiki::portlet {
     #my log "--cnames $category_spec -> $cnames"
     return [list $cnames $extra_where_clause]
   }
-  
+  ::xowiki::Portlet instproc get_source {source} {
+    if {$source ne ""} {
+      my instvar package_id
+      set page [$package_id resolve_page $source __m]
+      if {$page eq ""} {
+        error "Cannot find page '$source'"
+      }
+      $page destroy_on_cleanup
+    } else {
+      set page [my set __including_page]
+    }
+    return $page
+  }  
 }
 
 namespace eval ::xowiki::portlet {
@@ -166,6 +178,41 @@ namespace eval ::xowiki::portlet {
 }
 
 namespace eval ::xowiki::portlet {
+
+  Class create get \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-variable:required }
+          {-source ""}
+        }}
+      } -instproc render {} {
+        my get_parameters
+        set page [my get_source $source]
+        if {[$page exists $variable]} {
+          return [$page set $variable]
+        } else {
+          return "no such variable $variable in page [$page set name]"
+        }
+      }
+ 
+  Class create creation-date \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-source ""}
+          {-format "%m-%d-%Y"}
+        }}
+      } -instproc render {} {
+        my get_parameters
+        set page [my get_source $source]
+        set time [$page set creation_date]
+        regexp {^([^.]+)[.]} $time _ time
+        return [clock format [clock scan $time] -format $format]
+      }
+
   #############################################################################
   # rss button
   #
@@ -410,21 +457,30 @@ namespace eval ::xowiki::portlet {
         {title "Recently Changed Pages"}
         {parameter_declaration {
           {-max_entries:integer 10}
+          {-allow_edit:boolean false}
+          {-allow_delete:boolean false}
         }}
       }
   
   recent instproc render {} {
     my get_parameters
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
-
     TableWidget t1 -volatile \
+        -set allow_edit $allow_edit \
+        -set allow_delete $allow_delete \
         -columns {
           Field date -label "Modification Date"
+          if {[[my info parent] set allow_edit]} {
+            ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
+          }
           AnchorField title -label [_ xowiki.page_title]
+          if {[[my info parent] set allow_delete]} {
+            ImageField_DeleteIcon delete -label ""
+          }
         }
     
     db_foreach [my qn get_pages] \
-        "select i.name, r.title, \
+        "select i.name, r.title, p.page_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
          from cr_items i, cr_revisions r, xowiki_page p \
          where i.parent_id = [$package_id folder_id] \
@@ -437,6 +493,26 @@ namespace eval ::xowiki::portlet {
             -title $title \
             -title.href [$package_id pretty_link $name] \
             -date $publish_date
+
+        if {$allow_edit} {
+          #set page_link [$package_id pretty_link $name]
+          #set edit_link [$package_id make_link $page_link edit return_url]
+          set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+          $p destroy_on_cleanup
+          set page_link [$package_id pretty_link $name]
+          set edit_link [$package_id make_link -link $page_link $p edit return_url]
+          my log "page_link=$page_link, edit=$edit_link"
+          [t1 last_child] set edit.href $edit_link
+        }
+        if {$allow_delete} {
+          if {![info exists p]} {
+            set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+            $p destroy_on_cleanup
+          }
+          set page_link [$package_id pretty_link $name]
+          set delete_link [$package_id make_link -link $page_link $p delete return_url]
+          [t1 last_child] set delete.href $delete_link
+        }
       }
     return [t1 asHTML]
   }
