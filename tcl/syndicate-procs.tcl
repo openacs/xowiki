@@ -207,7 +207,7 @@ namespace eval ::xowiki {
 
     set folder_id [::$package_id folder_id]
     if {$description eq ""} {set description [::$folder_id set description]}
-    if {$summary eq ""} {set summary $description}
+    if {$summary  eq ""} {set summary $description}
     if {$subtitle eq ""} {set subtitle $title}
 
     my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
@@ -219,7 +219,7 @@ namespace eval ::xowiki {
               and ci.live_revision = p.object_id \
               and p.mime_type = m.mime_type \
               and ci.publish_status <> 'production' [my extra_where_clause] \
-        order by p.last_modified desc [my limit_clause] \
+        order by p.pub_date asc [my limit_clause] \
         " {
           
           if {$content_type ne "::xowiki::PodcastItem"} continue
@@ -315,15 +315,7 @@ namespace eval ::xowiki {
     }
 
     set result <data>\n
-#    foreach i [items children] {
-#      set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
-#      set user [::xo::get_user_name [$i set creation_user]]
-#      append result [my tag -atts [list \
-#                                       start $stamp \
-#                                       title [$i set title] \
-#                                       link [$package_id pretty_link [$i set name]]] \
-#                         event "$user [$i set operation] [$i set title]"] \n
-#    }
+
     foreach c [lsort -decreasing [array names contrib]] {
       if {[llength $contrib($c)] == 1} {
          set i $contrib($c)
