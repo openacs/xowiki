@@ -151,6 +151,24 @@ namespace eval ::xowiki {
     return $mime
   }
 
+  proc ::xowiki::validate_duration {} {
+    upvar duration duration
+    my instvar data 
+    $data instvar package_id
+    if {[$data istype ::xowiki::PodcastItem] && $duration eq ""} {
+      set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
+      set ffmpeg [$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
+      if {[file exists $ffmpeg]} {
+        catch {exec $ffmpeg -i $filename} output
+        if {[info exists output]} {
+          regexp {Duration: +([0-9:.]+)[ ,]} $output _ duration
+        }
+      }
+    }
+    return 1
+  }
+
+
   proc ::xowiki::validate_name {} {
     upvar name name nls_language nls_language folder_id folder_id \
         object_type object_type mime_type mime_type
@@ -319,6 +337,7 @@ namespace eval ::xowiki {
           }}
         }
 
+
   FileForm instproc get_uploaded_file {} {
     my instvar data
     #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
@@ -366,7 +385,7 @@ namespace eval ::xowiki {
 	}
         {f.duration 
 	  {duration:text,nospell,optional
-	    {help_text {E.g. 9:16 means 9 minutes 16 seconds}}
+	    {help_text {E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)}}
 	  }}
         {f.keywords 
 	  {keywords:text,nospell,optional
@@ -377,6 +396,7 @@ namespace eval ::xowiki {
                                                           a upload file must be provided}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
+          {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
           }}
       }
 
