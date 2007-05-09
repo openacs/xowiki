@@ -87,18 +87,22 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.21"] == -1 &&
         [apm_version_names_compare $to_version_name "0.21"] > -1} {
       ns_log notice "-- upgrading to 0.21"
-      ::xo::db::content_type create_attribute \
-                 -content_type ::xowiki::Page \
-                 -attribute_name page_title \
-                 -datatype text \
-                 -pretty_name "Page Title" \
-                 -column_spec text
-      ::xo::db::content_type create_attribute \
-                 -content_type ::xowiki::Page \
-                 -attribute_name creator \
-                 -datatype text \
-                 -pretty_name "Creator" \
-                 -column_spec text
+      if {![attribute::exists_p ::xowiki::Page page_title]} {
+        ::xo::db::content_type create_attribute \
+            -content_type ::xowiki::Page \
+            -attribute_name page_title \
+            -datatype text \
+            -pretty_name "Page Title" \
+            -column_spec text
+      }
+      if {![attribute::exists_p ::xowiki::Page creator]} {
+        ::xo::db::content_type create_attribute \
+            -content_type ::xowiki::Page \
+            -attribute_name creator \
+            -datatype text \
+            -pretty_name "Creator" \
+            -column_spec text
+      }
 
 #       ::xo::db::CONTENT_TYPE CREATE_ATTRIBUTE {
 #         {content_type ::xowiki::Page} {attribute_name page_title} {datatype text}
@@ -134,18 +138,18 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.25"] == -1 &&
         [apm_version_names_compare $to_version_name "0.25"] > -1} {
       ns_log notice "-- upgrading to 0.25"
-      acs_sc::impl::new_from_spec -spec {
-        name "::xowiki::PageInstance"
-        aliases {
-          datasource ::xowiki::datasource
-          url ::xowiki::url
+      # Only run this if the PageInstance does not exist
+      if {[catch {acs_sc::impl::get_id -owner xowiki -name ::xowiki::PageInstance}]} {
+        acs_sc::impl::new_from_spec -spec {
+          name "::xowiki::PageInstance"
+          aliases {
+            datasource ::xowiki::datasource
+            url ::xowiki::url
+          }
+          contract_name FtsContentProvider
+          owner xowiki
         }
-        contract_name FtsContentProvider
-        owner xowiki
       }
-#      foreach pkgid [::xowiki::Package instances] {
-#       ::xowiki::Page reindex -package_id $pkgid
-#       }
     }
 
     if {[apm_version_names_compare $from_version_name "0.27"] == -1 &&
