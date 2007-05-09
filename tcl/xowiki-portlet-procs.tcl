@@ -742,7 +742,7 @@ namespace eval ::xowiki::portlet {
   
   my-categories instproc render {} {
     my get_parameters
-    my instvar __including_page tags
+    my instvar __including_page
     set content ""
 
     set weblog_page [$package_id get_parameter weblog_page weblog]

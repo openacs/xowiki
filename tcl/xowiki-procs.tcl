@@ -67,7 +67,6 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
             -pretty_name "Instance Attributes"
       } \
-      -parameter {page_template instance_attributes} \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
 
@@ -377,7 +376,7 @@ namespace eval ::xowiki {
 #   }
 
   Page instproc initialize_loaded_object {} {
-    my instvar title creator
+    my instvar title
     if {[info exists title] && $title eq ""} {set title [my set name]}
     next
   }
