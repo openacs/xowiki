@@ -1339,8 +1339,15 @@ namespace eval ::xowiki::portlet {
       
       $p set unresolved_references 0
       #$p set render_adp 0
-      set content [$p get_content]
-      set content [string map [list "\{\{" "\\\{\{"] $content]
+      switch [$p info class] {
+        ::xowiki::Form {
+          set content [$p render]
+        }
+        default { 
+          set content [$p get_content]
+          set content [string map [list "\{\{" "\\\{\{"] $content]
+        }
+      }
       regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
@@ -1685,3 +1692,76 @@ YAHOO.util.Event.addListener(window, 'load',   onLoad());
  }
 
 }
+
+
+namespace eval ::xowiki::portlet {
+  #############################################################################
+  Class create form-menu \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-form_item_id:integer,required}
+        }}
+      }
+  
+  form-menu instproc render {} {
+    my get_parameters
+    # todo return_url
+    my instvar __including_page
+    set base [$package_id pretty_link [$__including_page name]]
+    set new_link [$package_id make_link -link $base $__including_page new return_url]
+    set answer_link [$package_id make_link -link $base $__including_page list return_url]
+    set sql [::xowiki::FormInstance instance_select_query \
+                 -count true \
+                 -with_subtypes false \
+                 -from_clause ", xowiki_page_instance p" \
+                 -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
+                 -folder_id [$package_id folder_id]]
+    set count [db_list [my qn count] $sql]
+    return "<div class='wiki-menu'>\
+     <a href='$new_link'>fill out</a> &middot; <a href='$answer_link'>list answers ($count)</a>
+      </div>"
+  }
+
+  Class create form-instances \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-form_item_id:integer,required}
+          {-orderby "last_modified,desc"}
+        }}
+      }
+  
+  form-instances instproc render {} {
+    my get_parameters
+
+    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    TableWidget t1 -volatile \
+        -columns {
+          Field last_modified -label "Modification Date" -orderby last_modified
+          Field creation_user -label "By User" -orderby creation_user
+          AnchorField view -label "View"
+        }
+
+    foreach {att order} [split $orderby ,] break
+    set sql [::xowiki::FormInstance instance_select_query \
+                 -select_attributes "publish_date creation_user" \
+                 -from_clause ", xowiki_page_instance p" \
+                 -with_subtypes 0 \
+                 -order_clause "order by $att $order" \
+                 -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
+                 -folder_id [$package_id folder_id]]
+
+    db_foreach [my qn get_pages] $sql {
+        t1 add \
+            -view $name \
+            -view.href [$package_id pretty_link $name] \
+            -creation_user [::xo::get_user_name $creation_user] \
+            -last_modified $publish_date
+      }
+    return [t1 asHTML]
+  }
+}
+ 

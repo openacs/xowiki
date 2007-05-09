@@ -67,6 +67,7 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
             -pretty_name "Instance Attributes"
       } \
+      -parameter {page_template instance_attributes} \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
 
@@ -76,6 +77,18 @@ namespace eval ::xowiki {
       -mime_type text/xotcl \
       -form ::xowiki::ObjectForm
 
+  ::Generic::CrClass create Form -superclass Page \
+      -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
+      -table_name "xowiki_form" -id_column "xowiki_form_id" \
+      -cr_attributes {
+        ::Generic::Attribute new -attribute_name form_constraints -datatype text \
+            -pretty_name "Form Constraints"
+      } \
+      -form ::xowiki::WikiForm
+  ::Generic::CrClass create FormInstance -superclass PageInstance \
+      -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
+      -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" \
+      -form ::xowiki::WikiForm
 
   #
   # create various extra tables, indices and views
@@ -835,17 +848,16 @@ namespace eval ::xowiki {
     return $spec
   }
 
-  PageInstance instproc get_content {} {
+  PageInstance instproc get_text_from_template {} {
     my instvar page_template
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template destroy_on_cleanup
-    #if {[my set instance_attributes] eq ""} {
-    #  set T [my adp_subst [$page_template set text]]
-    #  return [my substitute_markup $T]
-    #}
-    set template [$page_template set text]
-    set T [my adp_subst [lindex $template 0]]
+    return [lindex [$page_template set text] 0]   ;# assuming html text with content type
+  }
+
+  PageInstance instproc get_content {} {
+    set T [my adp_subst [my get_text_from_template]]
     return [my substitute_markup [list $T [lindex $template 1]]]
   }
   PageInstance instproc template_vars {content} {
@@ -909,6 +921,98 @@ namespace eval ::xowiki {
       ::xo::Context create $payload -requireNamespace
     }
     expr {[$payload exists $var] ? [$payload set $var] : $default}
+  }
+
+  #
+  # Methods of ::xowiki::Form
+  #
+  Form instproc render {-update_references:switch} {
+    set html [next]
+    append html [my include_portlet [list form-menu -form_item_id [my item_id]]]
+    return $html
+  }
+
+  Form instproc new {} {
+    my instvar package_id
+    my log "--new form_item_id=[my item_id]"
+    set f [FormInstance new -destroy_on_cleanup -page_template [my item_id] -instance_attributes [list]]
+    $f parent_id [my parent_id]
+    $f package_id $package_id
+    $f save_new
+    $package_id returnredirect \
+        [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
+  }
+
+  Form instproc list {} {
+    my view [my include_portlet [list form-instances -form_item_id [my item_id]]]
+  }
+
+  #
+  # Methods of ::xowiki::FormInstance
+  #
+  FormInstance instproc provide_value {att value} {
+    my instvar root
+    set fields [$root selectNodes "//*\[@name='$att'\]"]
+    # my msg "found field = $fields xp=//*\[@name='$att'\]"
+    foreach field $fields {
+      if {[$field nodeName] ne "input"} continue
+      set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
+      # the switch should be really different objects ad classes...., but thats HTML, anyhow.
+      switch $type {
+        checkbox {$field setAttribute checked true}
+        radio {
+          set inputvalue [$field getAttribute value]
+          if {$inputvalue eq $value} {
+            $field setAttribute checked true
+          }
+        }
+        text {  $field setAttribute value $value}
+        default {my msg "can't handle $type so far $att=$value"}
+      }
+    }
+  }
+  FormInstance instproc provide_values {} {
+    foreach {att value} [my instance_attributes] {
+      my provide_value $att $value
+    }
+  }
+  FormInstance instproc render {} {
+    my instvar doc root package_id
+    set form [my get_text_from_template]
+    dom parse -simple -html $form doc
+    $doc documentElement root
+    my provide_values
+    return [$root asHTML]    
+  }
+
+  FormInstance instproc edit {} {
+    my instvar page_template doc root package_id
+    
+    set form [my get_text_from_template]
+    dom parse -simple -html $form doc
+    $doc documentElement root
+  
+    $root appendFromList [list input [list type submit] {}]
+    set form [lindex [$root selectNodes //form] 0]
+    if {$form eq ""} {
+      my msg "no form found in page [$page_template name]"
+    } else {
+      $form setAttribute action [$package_id pretty_link [my name]]?m=save method POST
+    }
+    my provide_values
+    set result [$root asHTML]
+    my view $result
+  }
+  FormInstance instproc save {} {
+    my instvar package_id
+    array set __ia [my set instance_attributes]
+    foreach {att value}  [::xo::cc array get form_parameter] {
+      set __ia($att) $value
+    }
+    my set instance_attributes [array get __ia]
+    next
+    $package_id returnredirect \
+        [my query_parameter "return_url" [::xo::cc url]]
   }
 
 }

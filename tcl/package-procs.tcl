@@ -810,6 +810,10 @@ namespace eval ::xowiki {
     Class File -array set require_permission {
       download           none
     }
+    Class Form -array set require_permission {
+      new               {{item_id write}}
+      list              {{package_id admin}}
+    }
   }
 
 

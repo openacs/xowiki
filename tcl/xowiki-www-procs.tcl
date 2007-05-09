@@ -74,7 +74,7 @@ namespace eval ::xowiki {
   }
 
   
-  Page instproc view {} {
+  Page instproc view {{content ""}} {
     # view is used only for the toplevel call, when the xowiki page is viewed
     # this is not inteded for embedded wiki pages
     my instvar package_id item_id 
@@ -88,7 +88,9 @@ namespace eval ::xowiki {
       $template_file before_render [self]
     }
     
-    set content [my render]
+    if {$content eq ""} {
+      set content [my render]
+    }
     my log "--after render"
     set footer [my htmlFooter -content $content]
 
