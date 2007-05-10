@@ -83,7 +83,7 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name form_constraints -datatype text \
             -pretty_name "Form Constraints"
       } \
-      -form ::xowiki::WikiForm
+      -form ::xowiki::FormForm
   ::Generic::CrClass create FormInstance -superclass PageInstance \
       -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
       -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" \
@@ -136,7 +136,7 @@ namespace eval ::xowiki {
   #
   # Page definitions
   #
-  
+
   Page parameter {
     page_id
     {creator ""}
@@ -513,7 +513,11 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $label _ label options
     if {[string match "http*//*" $link] || [string match "//*" $link]} {
       regsub {^//} $link / link
-      return "$ch<a class='external' href='$link'>$label</a>"
+      set l [ExternalLink new -label $label -href $link]
+      eval $l configure $options
+      set html [$l render]
+      $l destroy
+      return "$ch$html"
     }
 
     set name ""

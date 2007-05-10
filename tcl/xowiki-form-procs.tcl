@@ -609,5 +609,11 @@ namespace eval ::xowiki {
     #my log "--fields = [my fields]"
   }
 
+  Class create FormForm -superclass ::xowiki::WikiForm \
+    -parameter {
+	{field_list {item_id name title creator text form_constraints description nls_language}}
+	{f.form_constraints
+	  {form_constraints:text,nospell,optional {label Constraints} {html {size 80}} }}
+    }
 }
 
