@@ -26,6 +26,9 @@ namespace eval ::xowiki {
     folder_id package_id 
     title
   }
+  Link instproc title_att {} {
+    if {[my exists title]} {return "title='[my title]'"} {return ""}
+  }
   Link instproc init {} {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
@@ -39,9 +42,7 @@ namespace eval ::xowiki {
     ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
-    set title_att ""
-    if {[my exists title]} {set title_att "title='[my set title]'"}
-    return "<a $title_att href='$href'>$label</a>"
+    return "<a [my title_att] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
     return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
