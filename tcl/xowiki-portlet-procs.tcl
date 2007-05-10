@@ -1285,6 +1285,84 @@ namespace eval ::xowiki::portlet {
   }
 
   #############################################################################
+  # Selection
+  #
+  # TODO: base book (and toc) on selection
+  Class create selection \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration plain}
+        {parameter_declaration {
+          {-pages ""}
+          {-ordered_pages}
+        }}
+      }
+
+  selection instproc render {} {
+    my instvar page_order
+    my get_parameters
+    my set package_id $package_id
+
+    # compute a list of ordered_pages from pages, if necessary
+    if {[info exists ordered_pages]} {
+      foreach {order page} $ordered_pages {set page_order($page) $order}
+    } else {
+      set i 0
+      foreach page $pages { set page_order($page) [incr i]}
+    }
+    
+    # should check for quotes in names
+    set page_names ('[join [array names page_order] ',']')
+    set pages [::xowiki::Page instantiate_objects -sql \
+                   "select page_id, name, title, item_id \
+		from xowiki_page_live_revision p \
+		where parent_id = [$package_id folder_id] \
+		and name in $page_names \
+		[::xowiki::Page container_already_rendered item_id]" ]
+    foreach p [$pages children] {
+      $p set page_order $page_order([$p set name])
+    }
+    
+    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    $pages orderby page_order
+    my render_children $pages
+  }
+
+  selection instproc render_children {pages} {
+    my instvar package_id
+    foreach o [$pages children] {
+      $o instvar page_order title page_id name title 
+      set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
+      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+      $p destroy_on_cleanup
+      set p_link [$package_id pretty_link $name]
+      set edit_link [$package_id make_link -link $p_link $p edit return_url]
+      if {$edit_link ne ""} {
+        set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
+      } else {
+        set edit_markup ""
+      }
+      
+      $p set unresolved_references 0
+      switch [$p info class] {
+        ::xowiki::Form {
+          set content [$p render]
+        }
+        default { 
+          set content [$p get_content]
+          set content [string map [list "\{\{" "\\\{\{"] $content]
+        }
+      }
+      regexp {^.*:([^:]+)$} $name _ anchor
+      append output "<h$level class='book'>" \
+          $edit_markup \
+          "<a name='$anchor'></a>$page_order $title</h$level>" \
+          $content
+    }
+    return $output
+  }
+
+  #############################################################################
   # book style
   #
   Class create book \
