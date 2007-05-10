@@ -1724,6 +1724,24 @@ namespace eval ::xowiki::portlet {
       </div>"
   }
 
+
+  Class create form-instance-menu \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+        }}
+      }
+  
+  form-instance-menu instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set form [$__including_page page_template]
+    set base [$package_id pretty_link [$form name]]
+    return "<div class='wiki-menu'><a href='$base'>Form</a></div>\n"
+  }
+
+  #############################################################################
   Class create form-instances \
       -superclass ::xowiki::Portlet \
       -parameter {
@@ -1736,8 +1754,10 @@ namespace eval ::xowiki::portlet {
   
   form-instances instproc render {} {
     my get_parameters
+    my instvar __including_page
 
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+
     TableWidget t1 -volatile \
         -columns {
           Field last_modified -label "Modification Date" -orderby last_modified
@@ -1761,7 +1781,11 @@ namespace eval ::xowiki::portlet {
             -creation_user [::xo::get_user_name $creation_user] \
             -last_modified $publish_date
       }
-    return [t1 asHTML]
+
+    set base [$package_id pretty_link [$__including_page name]]
+    set label "[$__including_page title] ([$__including_page name])"
+    append html "<p>Instances of Form <a href='$base'>$label</a></p>\n" [t1 asHTML]
+    return $html
   }
 }
  

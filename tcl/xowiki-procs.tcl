@@ -682,6 +682,10 @@ namespace eval ::xowiki {
     return "and not $field in ([join $::xowiki_page_item_id_rendered ,])"
   }
 
+  Page instproc footer {} {
+    return ""
+  }
+
   Page instproc render {-update_references:switch} {
     my instvar item_id revision_id references lang render_adp unresolved_references parent_id
     my array set lang_links {found "" undefined ""}
@@ -696,9 +700,8 @@ namespace eval ::xowiki {
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
-    return [expr {$render_adp ? [my adp_subst $content] : $content}]
+    return "[expr {$render_adp ? [my adp_subst $content] : $content}][my footer]"
   }
-
 
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
@@ -856,12 +859,13 @@ namespace eval ::xowiki {
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template destroy_on_cleanup
-    return [lindex [$page_template set text] 0]   ;# assuming html text with content type
+    return [$page_template set text]
   }
 
   PageInstance instproc get_content {} {
-    set T [my adp_subst [my get_text_from_template]]
-    return [my substitute_markup [list $T [lindex $template 1]]]
+    set raw_template [my get_text_from_template]
+    set T  [my adp_subst [lindex $raw_template 0]]
+    return [my substitute_markup [list $T [lindex $raw_template 1]]]
   }
   PageInstance instproc template_vars {content} {
     set result [list]
@@ -929,15 +933,12 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::Form
   #
-  Form instproc render {-update_references:switch} {
-    set html [next]
-    append html [my include_portlet [list form-menu -form_item_id [my item_id]]]
-    return $html
+  Form instproc footer {} {
+    return [my include_portlet [list form-menu -form_item_id [my item_id]]]
   }
 
   Form instproc new {} {
     my instvar package_id
-    my log "--new form_item_id=[my item_id]"
     set f [FormInstance new -destroy_on_cleanup -page_template [my item_id] -instance_attributes [list]]
     $f parent_id [my parent_id]
     $f package_id $package_id
@@ -953,6 +954,9 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::FormInstance
   #
+  FormInstance instproc footer {} {
+    return [my include_portlet [list form-instance-menu]]
+  }
   FormInstance instproc provide_value {att value} {
     my instvar root
     set fields [$root selectNodes "//*\[@name='$att'\]"]
@@ -979,19 +983,27 @@ namespace eval ::xowiki {
       my provide_value $att $value
     }
   }
-  FormInstance instproc render {} {
+  FormInstance instproc get_content {} {
     my instvar doc root package_id
-    set form [my get_text_from_template]
+    set form [lindex [my get_text_from_template] 0]
     dom parse -simple -html $form doc
     $doc documentElement root
     my provide_values
-    return [$root asHTML]    
+    return [$root asHTML]
   }
+  #FormInstance instproc render {} {
+  #  my instvar doc root package_id
+  #  set form [lindex [my get_text_from_template] 0]
+  #  dom parse -simple -html $form doc
+  #  $doc documentElement root
+  #  my provide_values
+  #  return [$root asHTML]    
+  #}
 
   FormInstance instproc edit {} {
     my instvar page_template doc root package_id
     
-    set form [my get_text_from_template]
+    set form [lindex [my get_text_from_template] 0]
     dom parse -simple -html $form doc
     $doc documentElement root
   
