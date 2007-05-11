@@ -1293,6 +1293,7 @@ namespace eval ::xowiki::portlet {
       -parameter {
         {__decoration plain}
         {parameter_declaration {
+          {-edit_links:boolean true}
           {-pages ""}
           {-ordered_pages}
         }}
@@ -1302,6 +1303,7 @@ namespace eval ::xowiki::portlet {
     my instvar page_order
     my get_parameters
     my set package_id $package_id
+    my set edit_links $edit_links
 
     # compute a list of ordered_pages from pages, if necessary
     if {[info exists ordered_pages]} {
@@ -1325,24 +1327,24 @@ namespace eval ::xowiki::portlet {
     
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
-    my render_children $pages
+    return [my render_children $pages]
   }
 
   selection instproc render_children {pages} {
-    my instvar package_id
+    my instvar package_id edit_links
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
-      set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
+      set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
+      set edit_markup ""
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
-      set p_link [$package_id pretty_link $name]
-      set edit_link [$package_id make_link -link $p_link $p edit return_url]
-      if {$edit_link ne ""} {
-        set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
-      } else {
-        set edit_markup ""
+      if {$edit_links} {
+        set p_link [$package_id pretty_link $name]
+        set edit_link [$package_id make_link -link $p_link $p edit return_url]
+        if {$edit_link ne ""} {
+          set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
+        }
       }
-      
       $p set unresolved_references 0
       switch [$p info class] {
         ::xowiki::Form {
@@ -1360,6 +1362,54 @@ namespace eval ::xowiki::portlet {
           $content
     }
     return $output
+  }
+
+  Class create composite-form \
+      -superclass ::xowiki::portlet::selection \
+      -parameter {
+        {parameter_declaration {
+          {-edit_links:boolean false}
+          {-pages ""}
+          {-ordered_pages}
+        }}
+      }
+
+  composite-form instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set inner_html [next]
+    #my log "innerhtml=$inner_html"
+    regsub -nocase -all "<form " $inner_html "<div class='form' " inner_html
+    regsub -nocase -all "<form>" $inner_html "<div class='form'>" inner_html
+    regsub -nocase -all "</form *>" $inner_html "</div>" inner_html
+    dom parse -simple -html <form>$inner_html</form> doc
+    $doc documentElement root
+
+    set fields [$root selectNodes "//div\[@class = 'wiki-menu'\]"]
+    foreach field $fields {$field delete}
+
+    set inner_html [$root asHTML]
+    set id ID[$__including_page item_id]
+    set base [$package_id pretty_link [$__including_page name]]
+    #set id ID$item_id
+    #$root setAttribute id $id
+    set as_att_value [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $inner_html]
+
+    set save_form [subst {
+      <p>
+      <a href='#' onclick='document.getElementById("$id").style.display="inline";return false;'>Create Form from Content</a>
+      </p>
+      <span id='$id' style='display: none'>
+      Form Name: 
+      <FORM action="$base?m=create-new" method='POST' style='display: inline'>
+         <INPUT name='class' type='hidden' value="::xowiki::Form">
+         <INPUT name='content' type='hidden' value="$as_att_value">
+         <INPUT name='name' type='text'>
+      </FORM>
+      </span>
+    }]
+
+    return $inner_html$save_form
   }
 
   #############################################################################
@@ -1788,7 +1838,7 @@ namespace eval ::xowiki::portlet {
     # todo return_url
     my instvar __including_page
     set base [$package_id pretty_link [$__including_page name]]
-    set new_link [$package_id make_link -link $base $__including_page new return_url]
+    set new_link [$package_id make_link -link $base $__including_page create-new return_url]
     set answer_link [$package_id make_link -link $base $__including_page list return_url]
     set sql [::xowiki::FormInstance instance_select_query \
                  -count true \

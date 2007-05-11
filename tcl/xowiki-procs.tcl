@@ -363,6 +363,16 @@ namespace eval ::xowiki {
     return 0
   }
 
+  Page instproc complete_name {name {nls_language ""}} {
+    if {![regexp {^..:} $name]} {
+      if {$name ne ""} {
+        # prepend the language prefix only, if the entry is not empty
+        if {$nls_language eq ""} {set nls_language [my set nls_language]}
+        set name [string range $nls_language 0 1]:$name
+      }
+    }
+  }
+
 #   Page instproc init {} {    
 #     my log "--W "
 #     ::xo::show_stack
@@ -763,6 +773,20 @@ namespace eval ::xowiki {
   File parameter {
     {render_adp 0}
   }
+  File instproc complete_name {name {fn ""}} {
+    my instvar mime_type
+    switch -glob -- $mime_type {
+      image/* {set type image}
+      default {set type file}
+    }
+    if {$name ne ""} {
+      set stripped_name $name
+      regexp {^(.*):(.*)$} $name _ _t stripped_name
+    } else {
+      set stripped_name $fn
+    }
+    return ${type}:[::$package_id normalize_name $stripped_name]
+  }
   File instproc full_file_name {} {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
@@ -840,7 +864,6 @@ namespace eval ::xowiki {
     # for a field with a specified name in a specified page template
     set spec $default_spec
     set given_template_name [expr {[my isobject $template] ? [$template set name] : $template}]
-    #ns_log notice "--w pid=[my set parent_id] name='$name' template[$given_template_name, specs=[[my set parent_id] get_payload widget_specs]"
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
@@ -937,7 +960,36 @@ namespace eval ::xowiki {
     return [my include_portlet [list form-menu -form_item_id [my item_id]]]
   }
 
-  Form instproc new {} {
+  Page instproc create-new {} {
+    my instvar package_id
+    set folder_id [my parent_id]
+    my log "--new [::xo::cc array get form_parameter]"
+    set name [::xo::cc form_parameter name]
+    set name [my complete_name $name]
+    set name [::$package_id normalize_name $name]
+    set suffix ""; set i 0
+    while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
+      set suffix .[incr i]
+    }
+    set name $name$suffix
+    set class [::xo::cc form_parameter class ::xowiki::Page]
+    my log --class=$class
+    if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
+      set class [::xo::cc form_parameter class ::xowiki::Page]
+      set f [$class create [self].$i \
+                 -name $name \
+                 -package_id $package_id \
+                 -parent_id [my parent_id] \
+                 -title [my title] \
+                 -text [list [::xo::cc form_parameter content ""] text/html]]
+      $f save_new
+      $f destroy
+      $package_id returnredirect \
+          [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
+    }
+  }
+
+  Form instproc create-new {} {
     my instvar package_id
     set f [FormInstance new -destroy_on_cleanup -page_template [my item_id] -instance_attributes [list]]
     $f parent_id [my parent_id]
@@ -958,9 +1010,9 @@ namespace eval ::xowiki {
     return [my include_portlet [list form-instance-menu]]
   }
   FormInstance instproc provide_value {att value} {
-    my instvar root
+    my instvar root item_id
     set fields [$root selectNodes "//*\[@name='$att'\]"]
-    # my msg "found field = $fields xp=//*\[@name='$att'\]"
+    #my msg "found field = $fields xp=//*\[@name='$att'\]"
     foreach field $fields {
       if {[$field nodeName] ne "input"} continue
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]

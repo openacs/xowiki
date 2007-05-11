@@ -177,36 +177,16 @@ namespace eval ::xowiki {
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
-      set mime [$data set mime_type]
-      set fn [$data set upload_file]
-      switch -- $mime {
-        application/force-download {
-          set mime [::xowiki::guesstype $fn]
-          $data set mime_type $mime
-        }
-      }
-      switch -glob -- $mime {
-        image/* {set type image}
-        default {set type file}
-      }
-      if {$name ne ""} {
-        regexp {^(.*):(.*)$} $name _ _t stripped_name
-        if {![info exists stripped_name]} {set stripped_name $name}
-      } else {
-        set stripped_name $fn
-      }
-      set name ${type}:[::$package_id normalize_name $stripped_name]
+      set name [$data complete_name $name [$data set upload_file]]
     } else {
       if {![regexp {^..:} $name]} {
-        if {![info exists nls_language]} {set nls_language ""}
-        if {$nls_language eq ""} {set nls_language [lang::conn::locale]}
-        if {$name ne ""} {
-          # prepend the language prefix only, if the entry is not empty
-          set name [string range $nls_language 0 1]:$name
+        if {![info exists nls_language]} {
+          set nls_language [lang::conn::locale]
         }
+        set name [$data complete_name $name $nls_language]
       }
-      set name [::$package_id normalize_name $name]
-    }
+    } 
+    set name [::$package_id normalize_name $name]
 
     # check, if we try to create a new item with an existing name
     if {[$data form_parameter __new_p] 
@@ -609,11 +589,45 @@ namespace eval ::xowiki {
     #my log "--fields = [my fields]"
   }
 
+  proc ::xowiki::validate_form_text {} {
+    upvar text text
+    dom parse -simple -html [lindex $text 0] doc
+    $doc documentElement root
+    return [expr {[$root nodeName] eq "form"}]
+  }
+
   Class create FormForm -superclass ::xowiki::WikiForm \
     -parameter {
 	{field_list {item_id name title creator text form_constraints description nls_language}}
 	{f.form_constraints
 	  {form_constraints:text,nospell,optional {label Constraints} {html {size 80}} }}
+        {validate
+          {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                already in this folder}}}
+          {{text {\[::xowiki::validate_form_text\]} {From must contain an HTML form}}}
+        }
     }
+
+  FormForm instproc new_data {} {
+    my instvar data
+    set item_id [next]
+    
+    # provide unique ids and names
+    set text [$data set text]
+    dom parse -simple -html [lindex $text 0] doc
+    $doc documentElement root
+    set id ID$item_id
+    $root setAttribute id $id
+    set fields [$root selectNodes "//*\[@name != ''\]"]
+    foreach field $fields {
+      $field setAttribute name $id.[$field getAttribute name]
+    }
+    # updating is rather crude. we need the item_id in advance to fill it
+    # into the items, but it is returned from saving the file.
+    my log "item_id=$item_id form=[$root asHTML] [$data serialize]"
+    $data update_content [$data revision_id] [list [$root asHTML] [lindex $text 1] ]
+    return $item_id
+  }
+
 }
 

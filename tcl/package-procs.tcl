@@ -802,6 +802,7 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
+      create-new        {{item_id write}}
     } -set default_permission {{package_id write}}
 
     Class Object -array set require_permission {
@@ -811,7 +812,7 @@ namespace eval ::xowiki {
       download           none
     }
     Class Form -array set require_permission {
-      new               {{item_id write}}
+      create-new        {{item_id write}}
       list              {{package_id admin}}
     }
   }
