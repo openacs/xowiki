@@ -1911,7 +1911,7 @@ namespace eval ::xowiki::portlet {
       }
 
     set base [$package_id pretty_link [$__including_page name]]
-    set label "[$__including_page title] ([$__including_page name])"
+    set label [$__including_page name]
     append html "<p>Instances of Form <a href='$base'>$label</a></p>\n" [t1 asHTML]
     return $html
   }

@@ -969,7 +969,7 @@ namespace eval ::xowiki {
     set name [::$package_id normalize_name $name]
     set suffix ""; set i 0
     while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
-      set suffix .[incr i]
+      set suffix -[incr i]
     }
     set name $name$suffix
     set class [::xo::cc form_parameter class ::xowiki::Page]
@@ -1036,12 +1036,14 @@ namespace eval ::xowiki {
     }
   }
   FormInstance instproc get_content {} {
-    my instvar doc root package_id
+    my instvar doc root package_id page_template
     set form [lindex [my get_text_from_template] 0]
     dom parse -simple -html $form doc
     $doc documentElement root
     my provide_values
-    return [$root asHTML]
+    set base [$package_id pretty_link [$page_template name]]
+    set intro "<p>This form in an instance of <a href='$base'>[$page_template name]</a></p>"
+    return "$intro[$root asHTML]"
   }
   #FormInstance instproc render {} {
   #  my instvar doc root package_id
