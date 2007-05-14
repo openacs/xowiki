@@ -422,7 +422,7 @@ namespace eval ::xowiki::portlet {
     } else {
       set tree_select_clause ""
     }
-      
+    ::xo::db::limit_query -limit $max_entries -sql -order 
     db_foreach [my qn get_pages] \
         "select c.category_id, ci.name, r.title, \
 	 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
@@ -487,19 +487,21 @@ namespace eval ::xowiki::portlet {
         }
     
     db_foreach [my qn get_pages] \
-        "select i.name, r.title, p.page_id, \
-                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
+        [::xo::db::sql limit_select \
+             -sql "i.name, r.title, p.page_id, r.publish_date, \
+                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date \
          from cr_items i, cr_revisions r, xowiki_page p \
          where i.parent_id = [$package_id folder_id] \
                 and r.revision_id = i.live_revision \
                 and p.page_id = r.revision_id \
-		and i.publish_status <> 'production' \
-                order by r.publish_date desc limit $max_entries\
-      " {
+		and i.publish_status <> 'production'" \
+             -order "publish_date desc" \
+             -limit $max_entries ] {
+
         t1 add \
             -title $title \
             -title.href [$package_id pretty_link $name] \
-            -date $publish_date
+            -date $formatted_date
 
         if {$allow_edit} {
           #set page_link [$package_id pretty_link $name]
@@ -554,17 +556,19 @@ namespace eval ::xowiki::portlet {
         }
 
     db_foreach [my qn get_pages] \
-        "select r.title,i.name, to_char(x.time,'YYYY-MM-DD HH24:MI:SS') as visited_date  \
+       [::xo::db::sql limit_select \
+            -sql "r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date  \
            from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
            where x.page_id = i.item_id and i.live_revision = p.page_id  \
 	    and r.revision_id = p.page_id and x.user_id = [::xo::cc user_id] \
-	    and x.package_id = $package_id  and i.publish_status <> 'production' \
-	order by x.time desc limit $max_entries \
-      " {
-        t1 add \
-            -title $title \
-            -title.href [$package_id pretty_link $name] 
-      }
+	    and x.package_id = $package_id  and i.publish_status <> 'production'" \
+            -order "visited_date desc" \
+            -limit $max_entries] \
+        {
+          t1 add \
+              -title $title \
+              -title.href [$package_id pretty_link $name] 
+        }
     return [t1 asHTML]
   }
 }
@@ -604,19 +608,20 @@ namespace eval ::xowiki::portlet {
             Field users -label Visitors -html { align right }
           }
       db_foreach [my qn get_pages] \
-          "select count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
+          [::xo::db::sql limit_select \
+               -sql "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
             and time > now() - '$interval'::interval \
-            group by x.page_id, r.title, i.name \
-            order by nr_different_users desc limit $max_entries " \
-          {
-            t1 add \
-                -title $title \
-                -title.href [$package_id pretty_link $name] \
-                -users $nr_different_users
-          }
+            group by x.page_id, r.title, i.name" \
+               -order "nr_different_users desc" \
+               -limit $max_entries ] {
+                 t1 add \
+                     -title $title \
+                     -title.href [$package_id pretty_link $name] \
+                     -users $nr_different_users
+               }
     } else {
 
       TableWidget t1 -volatile \
@@ -626,19 +631,20 @@ namespace eval ::xowiki::portlet {
             Field users -label Visitors -html { align right }
           }
       db_foreach [my qn get_pages] \
-          "select sum(x.count), count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
+          [::xo::db::sql limit_select \
+               -sql "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
           where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
-            group by x.page_id, r.title, i.name \
-            order by sum desc limit $max_entries " \
-          {
-            t1 add \
-                -title $title \
-                -title.href [$package_id pretty_link $name] \
-                -users $nr_different_users \
-                -count $sum
-          }
+            group by x.page_id, r.title, i.name " \
+               -order "sum desc" \
+               -limit $max_entries] {
+                 t1 add \
+                     -title $title \
+                     -title.href [$package_id pretty_link $name] \
+                     -users $nr_different_users \
+                     -count $sum
+               }
     }
 
     return [t1 asHTML]
@@ -951,30 +957,35 @@ namespace eval ::xowiki::portlet {
     }
 
     set select_count "select count(distinct user_id) from xowiki_last_visited "
-    if {!$summary} {
-      set select_users "select user_id,max(time) as max_time from xowiki_last_visited "
-      set limit_clause "limit $max_users"
-      set order_clause "group by user_id order by max_time desc $limit_clause"
-    }
-    set where_clause "\
-        where package_id = $package_id \
-        and time > now() - '$interval'::interval "
-    set when "<br>in last $interval"
 
     if {[info exists page] && $page eq "this"} {
       my instvar __including_page
-      append where_clause "and page_id = [$__including_page item_id] "
+      set extra_where_clause "and page_id = [$__including_page item_id] "
       set what " on page [$__including_page title]"
     } else {
+      set extra_where_clause ""
       set what " in community [$package_id instance_name]"
     }
+
+    if {!$summary} {
+      set select_users "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time from xowiki_last_visited "
+    }
+    #set time_comparison "time > now() - '$interval'::interval"
+    set since [clock format [clock scan "-$interval"] -format "%Y-%m-%d %T"]
+    set time_comparison "time > TO_TIMESTAMP('$since','YYYY-MM-DD HH24:MI:SS')"
+    set where_clause "where package_id = $package_id and $time_comparison $extra_where_clause"
+    set when "<br>in last $interval"
 
     set output ""
 
     if {$summary} {
       set count [db_string [my qn presence_count_users] "$select_count $where_clause"] 
     } else {
-      set values [db_list_of_lists [my qn get_users] "$select_users $where_clause $order_clause"]
+      set values [db_list_of_lists [my qn get_users] \
+                      [::xo::db::sql limit_select \
+                           -sql "$select_users $where_clause group by user_id " \
+                           -limit $max_users \
+                           -order "max_time desc"]]
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...

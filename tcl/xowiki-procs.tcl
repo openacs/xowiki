@@ -94,7 +94,7 @@ namespace eval ::xowiki {
   #
   ::xo::db::require table xowiki_references \
         "reference integer references cr_items(item_id) on delete cascade,
-         link_type text,
+         link_type [::xowiki::Page  map_sql_datatype text],
          page      integer references cr_items(item_id) on delete cascade"
   ::xo::db::require index -table xowiki_references -col reference
       
@@ -114,7 +114,7 @@ namespace eval ::xowiki {
        "item_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
         user_id integer references users(user_id),
-        tag     text,
+        tag     [::xowiki::Page  map_sql_datatype text],
         time    timestamp"
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id
@@ -124,10 +124,11 @@ namespace eval ::xowiki {
     ::xo::db::require index -table xowiki_page -col page_order -using gist
   }
 
+  set sortkeys [expr {[db_driverkey ""] eq "oracle" ? "" : ", ci.tree_sortkey, ci.max_child_sortkey"}]
   ::xo::db::require view xowiki_page_live_revision \
       "select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
 	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
-	  ci.storage_area_key, ci.tree_sortkey, ci.max_child_sortkey \
+	  ci.storage_area_key $sortkeys \
           from xowiki_page p, cr_items ci, cr_revisions cr  \
           where p.page_id = ci.live_revision \
             and p.page_id = cr.revision_id  \
