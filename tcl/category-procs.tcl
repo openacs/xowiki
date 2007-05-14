@@ -16,6 +16,9 @@ namespace eval ::xowiki {
     if {![my isobject $items]} { 
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
+        if {$orderby eq "page_order"} {
+          $items mixin add ::xo::OrderedComposite::IndexCompare
+        }
         set direction [expr {$increasing ? "increasing" : "decreasing"}]
         $items orderby -order $direction $orderby
       }

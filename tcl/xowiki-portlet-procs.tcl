@@ -274,6 +274,7 @@ namespace eval ::xowiki::portlet {
           {-summary:boolean 0}
           {-locale ""}
           {-open_page ""}
+          {-order_items_by "title,asc"}
           {-category_ids ""}
           {-except_category_ids ""}
         }}
@@ -351,17 +352,23 @@ namespace eval ::xowiki::portlet {
 	  }
         append content [$cattree(0) render -tree_style $tree_style]
       } else {
+        foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
+        set increasing [expr {$direction eq "asc"}]
+        set order_column [expr {[::xo::db::has_ltree] ? ", p.page_order" : ""}]
+        #my log "--CAT $increasing $order_column"
         db_foreach [my qn get_pages] \
-            "select ci.item_id, ci.name, ci.content_type, r.title, category_id from $sql" {
+            "select ci.item_id, ci.name, ci.content_type, r.title, category_id $order_column from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
               set prefix ""
               set suffix ""
-              foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
+              foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
+              
               $cattree(0) add_to_category \
                   -category $category($category_id) \
                   -itemobj $itemobj \
-                  -orderby title \
+                  -orderby $orderby \
+                  -increasing $increasing \
                   -open_item [expr {$item_id == $open_item_id}]
             }
         append content [$cattree(0) render -tree_style $tree_style]
