@@ -353,7 +353,7 @@ namespace eval ::xowiki::portlet {
         append content [$cattree(0) render -tree_style $tree_style]
       } else {
         foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
-        set increasing [expr {$direction eq "asc"}]
+        set increasing [expr {$direction ne "desc"}]
         set order_column [expr {[::xo::db::has_ltree] ? ", p.page_order" : ""}]
         #my log "--CAT $increasing $order_column"
         db_foreach [my qn get_pages] \
