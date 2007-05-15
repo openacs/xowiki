@@ -196,7 +196,7 @@ namespace eval ::xowiki {
 
   Page ad_proc select_query {
     {-select_attributes ""}
-    {-order_clause ""}
+    {-orderby ""}
     {-where_clause ""}
     {-count:boolean false}
     {-folder_id}
@@ -208,7 +208,7 @@ namespace eval ::xowiki {
     returns the SQL-query to select the xowiki pages of the specified folder
     @select_attributes attributes for the sql query to be retrieved, in addion
       to ci.item_id acs_objects.object_type, which are always returned
-    @param order_clause clause for ordering the solution set
+    @param orderby clause for ordering the solution set
     @param where_clause clause for restricting the answer set
     @param count return the query for counting the solutions
     @param folder_id parent_id
@@ -224,7 +224,7 @@ namespace eval ::xowiki {
     }
     if {$count} {
       set attribute_selection "count(*)"
-      set order_clause ""      ;# no need to order when we count
+      set orderby ""      ;# no need to order when we count
       set page_number  ""      ;# no pagination when count is used
     } else {
       set attribute_selection [join $attributes ,]
@@ -238,6 +238,7 @@ namespace eval ::xowiki {
     }
     set outer_join [expr {[string first s. $attribute_selection] > -1 ?
                           "left outer join syndication s on s.object_id = p.revision_id" : ""}]
+    set order_clause [expr {$orderby ne "" ? "ORDER BY $orderby" : ""}]
     set sql "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci $extra_from_clause \
         where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
         ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"

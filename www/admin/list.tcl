@@ -79,7 +79,6 @@ TableWidget t1 -volatile \
 foreach {att order} [split $orderby ,] break
 t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 
-set order_clause "order by ci.name"
 # -page_size 10
 # -page_number 1
 
@@ -102,7 +101,7 @@ db_foreach instance_select \
          -from_clause ", xowiki_page p" \
          -where_clause "p.page_id = cr.revision_id" \
          -select_attributes $attributes \
-         -order_clause $order_clause \
+         -orderby ci.name \
         ] {
           set page_link [::$package_id pretty_link $name]
 

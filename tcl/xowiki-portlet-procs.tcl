@@ -422,31 +422,31 @@ namespace eval ::xowiki::portlet {
     } else {
       set tree_select_clause ""
     }
-    ::xo::db::sql limit_select -limit $max_entries -sql -order 
-    db_foreach [my qn get_pages] \
-        "select c.category_id, ci.name, r.title, \
-	 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
-       from category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p \
-       where c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
+    set sql [::xo::db::sql select \
+                 -vars "c.category_id, ci.name, r.title, r.publish_date, \
+                        to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
+                 -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
+                 -where "c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
 	 and r.revision_id = ci.live_revision \
 	 and p.page_id = r.revision_id $tree_select_clause $locale_clause \
-         and ci.publish_status <> 'production' \
-	 order by r.publish_date desc limit $max_entries \
-     " {
-       if {$title eq ""} {set title $name}
-       set itemobj [Object new]
-       set prefix  "$publish_date "
-       set suffix  ""
-       foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
-       if {![info exists categories($category_id)]} {
-	 set categories($category_id) [::xowiki::Category new \
-                                           -package_id $package_id \
-					   -label [category::get_name $category_id $locale]\
-					   -level 1]
-	 $cattree add  $categories($category_id)
-       }
-       $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
-     }
+         and ci.publish_status <> 'production'" \
+                 -orderby "publish_date desc" \
+                 -limit $max_entries]
+    db_foreach [my qn get_pages] $sql {
+      if {$title eq ""} {set title $name}
+      set itemobj [Object new]
+      set prefix  "$formatted_date "
+      set suffix  ""
+      foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
+      if {![info exists categories($category_id)]} {
+        set categories($category_id) [::xowiki::Category new \
+                                          -package_id $package_id \
+                                          -label [category::get_name $category_id $locale]\
+                                          -level 1]
+        $cattree add  $categories($category_id)
+      }
+      $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
+    }
     return [$cattree render]
   }
 }
@@ -487,15 +487,15 @@ namespace eval ::xowiki::portlet {
         }
     
     db_foreach [my qn get_pages] \
-        [::xo::db::sql limit_select \
-             -sql "i.name, r.title, p.page_id, r.publish_date, \
-                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date \
-         from cr_items i, cr_revisions r, xowiki_page p \
-         where i.parent_id = [$package_id folder_id] \
+        [::xo::db::sql select \
+             -vars "i.name, r.title, p.page_id, r.publish_date, \
+                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
+             -from "cr_items i, cr_revisions r, xowiki_page p" \
+             -where "i.parent_id = [$package_id folder_id] \
                 and r.revision_id = i.live_revision \
                 and p.page_id = r.revision_id \
 		and i.publish_status <> 'production'" \
-             -order "publish_date desc" \
+             -orderby "publish_date desc" \
              -limit $max_entries ] {
 
         t1 add \
@@ -556,13 +556,13 @@ namespace eval ::xowiki::portlet {
         }
 
     db_foreach [my qn get_pages] \
-       [::xo::db::sql limit_select \
-            -sql "r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date  \
-           from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
-           where x.page_id = i.item_id and i.live_revision = p.page_id  \
+       [::xo::db::sql select \
+            -vars "r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
+            -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+            -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
 	    and r.revision_id = p.page_id and x.user_id = [::xo::cc user_id] \
 	    and x.package_id = $package_id  and i.publish_status <> 'production'" \
-            -order "visited_date desc" \
+            -orderby "visited_date desc" \
             -limit $max_entries] \
         {
           t1 add \
@@ -607,15 +607,16 @@ namespace eval ::xowiki::portlet {
             AnchorField title -label [_ xowiki.page_title]
             Field users -label Visitors -html { align right }
           }
+      set since_condition "and [::xo::db::sql since_interval_condition time $interval]"
       db_foreach [my qn get_pages] \
-          [::xo::db::sql limit_select \
-               -sql "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
-          from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
-          where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
+          [::xo::db::sql select \
+               -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name" \
+               -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+               -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
-            and time > now() - '$interval'::interval \
-            group by x.page_id, r.title, i.name" \
-               -order "nr_different_users desc" \
+            $since_condition" \
+               -groupby "x.page_id, r.title, i.name" \
+               -orderby "nr_different_users desc" \
                -limit $max_entries ] {
                  t1 add \
                      -title $title \
@@ -631,13 +632,13 @@ namespace eval ::xowiki::portlet {
             Field users -label Visitors -html { align right }
           }
       db_foreach [my qn get_pages] \
-          [::xo::db::sql limit_select \
-               -sql "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name  \
-          from xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r  \
-          where x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
-            and x.package_id = $package_id and i.publish_status <> 'production' \
-            group by x.page_id, r.title, i.name " \
-               -order "sum desc" \
+          [::xo::db::sql select \
+               -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name"  \
+               -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+               -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
+            and x.package_id = $package_id and i.publish_status <> 'production'" \
+               -groupby "x.page_id, r.title, i.name" \
+               -orderby "sum desc" \
                -limit $max_entries] {
                  t1 add \
                      -title $title \
@@ -676,8 +677,13 @@ namespace eval ::xowiki::portlet {
     if {$popular} {
       set label [_ xowiki.popular_tags_label]
       set tag_type ptag
-      set sql "select count(*) as nr,tag from xowiki_tags where \
-        package_id=$package_id group by tag order by tag limit $limit"
+      set sql [::xo::db::sql select \
+                   -vars "count(*) as nr,tag" \
+                   -from xowiki_tags \
+                   -where "package_id=$package_id" \
+                   -groupby tag \
+                   -orderby tag \
+                   -limit $limit]
     } else {
       set label [_ xowiki.your_tags_label]
       set tag_type tag 
@@ -956,8 +962,6 @@ namespace eval ::xowiki::portlet {
       }
     }
 
-    set select_count "select count(distinct user_id) from xowiki_last_visited "
-
     if {[info exists page] && $page eq "this"} {
       my instvar __including_page
       set extra_where_clause "and page_id = [$__including_page item_id] "
@@ -970,22 +974,24 @@ namespace eval ::xowiki::portlet {
     if {!$summary} {
       set select_users "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time from xowiki_last_visited "
     }
-    #set time_comparison "time > now() - '$interval'::interval"
-    set since [clock format [clock scan "-$interval"] -format "%Y-%m-%d %T"]
-    set time_comparison "time > TO_TIMESTAMP('$since','YYYY-MM-DD HH24:MI:SS')"
-    set where_clause "where package_id = $package_id and $time_comparison $extra_where_clause"
+    set since_condition [::xo::db::sql since_interval_condition time $interval]
+    set where_clause "package_id=$package_id and $since_condition $extra_where_clause"
     set when "<br>in last $interval"
 
     set output ""
 
     if {$summary} {
-      set count [db_string [my qn presence_count_users] "$select_count $where_clause"] 
+      set count [db_string [my qn presence_count_users] \
+                     "select count(distinct user_id) from xowiki_last_visited  $where_clause"]
     } else {
       set values [db_list_of_lists [my qn get_users] \
-                      [::xo::db::sql limit_select \
-                           -sql "$select_users $where_clause group by user_id " \
-                           -limit $max_users \
-                           -order "max_time desc"]]
+                      [::xo::db::sql select \
+                           -vars "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time" \
+                           -from xowiki_last_visited \
+                           -where $where_clause \
+                           -groupby user_id \
+                           -orderby "max_time desc" \
+                           -limit $max_users ]]
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...
@@ -1053,12 +1059,11 @@ namespace eval ::xowiki::portlet {
     if {[my exists category_id]} {
       foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
     }
-
-    set folder_id [$package_id set folder_id]
-    set pages [::xowiki::Page instantiate_objects -sql "select page_id,  page_order, name, title \
-	from xowiki_page_live_revision p \
-	where parent_id = $folder_id \
-	and not page_order is NULL $extra_where_clause"]
+    set sql [::xo::db::sql select \
+                 -vars "page_id,  page_order, name, title" \
+                 -from "xowiki_page_live_revision p" \
+                 -where "parent_id=[$package_id folder_id] and not page_order is NULL $extra_where_clause"]
+    set pages [::xowiki::Page instantiate_objects -sql $sql]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
@@ -1916,7 +1921,7 @@ namespace eval ::xowiki::portlet {
                  -select_attributes "publish_date creation_user" \
                  -from_clause ", xowiki_page_instance p" \
                  -with_subtypes 0 \
-                 -order_clause "order by $att $order" \
+                 -orderby "$att $order" \
                  -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
                  -folder_id [$package_id folder_id]]
 

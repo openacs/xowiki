@@ -86,7 +86,7 @@ namespace eval ::xowiki {
         [list -folder_id $folder_id \
              -select_attributes [list p.publish_date p.title p.creator p.creation_user \
                                      p.description s.body] \
-             -order_clause "order by p.publish_date desc" \
+             -orderby "p.publish_date desc" \
              -page_number $page_number -page_size $page_size \
              -extra_from_clause $extra_from_clause \
              -extra_where_clause "and ci.item_id not in ([my exclude_item_ids]) \
