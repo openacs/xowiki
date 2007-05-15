@@ -422,7 +422,7 @@ namespace eval ::xowiki::portlet {
     } else {
       set tree_select_clause ""
     }
-    ::xo::db::limit_query -limit $max_entries -sql -order 
+    ::xo::db::sql limit_select -limit $max_entries -sql -order 
     db_foreach [my qn get_pages] \
         "select c.category_id, ci.name, r.title, \
 	 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as publish_date \
