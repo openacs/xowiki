@@ -509,12 +509,13 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
-        {field_list {item_id name title creator page_template description nls_language}}
-        {f.name           {name:text(inform)}}
-        {f.page_template  {page_template:text(hidden)}}
-        {f.nls_language   {nls_language:text(hidden)}}
-        {with_categories  true}
-        {textfieldspec    {text(textarea),nospell {html {cols 60 rows 5}}}}
+        {field_list_top    {item_id name title}}
+        {field_list_bottom {page_template description creator nls_language}}
+        {f.name            {name:text(inform)}}
+        {f.page_template   {page_template:text(hidden)}}
+        {f.nls_language    {nls_language:text(hidden)}}
+        {with_categories   true}
+        {textfieldspec     {text(textarea),nospell {html {cols 60 rows 5}}}}
       }
 
   PageInstanceEditForm instproc new_data {} {
@@ -571,19 +572,18 @@ namespace eval ::xowiki {
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
     set page_instance_form_atts [list]
-    foreach {_1 _2 var} [regexp -all -inline \
-                             [template::adp_variable_regexp] \
-                             [$template set text]] {
+    foreach {var _} [$data template_vars [$template set text]] {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
-    foreach __var [my field_list] {
+    my set field_list [concat [my field_list_top] $page_instance_form_atts [my field_list_bottom]]
+    my log "--field_list [my set field_list]"
+    foreach __var [concat [my field_list_top] [my field_list_bottom]] {
       set spec [my f.$__var]
       set spec [string range $spec [expr {[string first : $spec]+1}] end]
-      my set f.$__var "$__var:[$data get_field_type $__var $template $spec]"
+      my set f.$__var "$__var:[$data get_field_type $__var $spec]"
     }
     foreach __var $page_instance_form_atts {
-      my lappend field_list $__var
-      my set f.$__var "$__var:[$data get_field_type $__var $template [my textfieldspec]]"
+      my set f.$__var "$__var:[$data get_field_type $__var [my textfieldspec]]"
     }
     next
     #my log "--fields = [my fields]"
@@ -591,6 +591,16 @@ namespace eval ::xowiki {
 
   proc ::xowiki::validate_form_text {} {
     upvar text text
+    if {$text eq ""} {return 1}
+    set clean_text $text
+    regsub -all "<br */?>" $clean_text "" clean_text
+    regsub -all "<p */?>" $clean_text "" clean_text
+    if {[string trim $clean_text] eq ""} { set text "" }
+    return 1
+  }
+  proc ::xowiki::validate_form_form {} {
+    upvar form form
+    if {$form eq ""} {return 1}
     dom parse -simple -html [lindex $text 0] doc
     $doc documentElement root
     return [expr {[$root nodeName] eq "form"}]
@@ -598,13 +608,32 @@ namespace eval ::xowiki {
 
   Class create FormForm -superclass ::xowiki::WikiForm \
     -parameter {
-	{field_list {item_id name title creator text form_constraints description nls_language}}
+	{field_list {item_id name title creator text form form_constraints description nls_language}}
 	{f.form_constraints
 	  {form_constraints:text,nospell,optional {label Constraints} {html {size 80}} }}
+	{f.text
+	  {text:richtext(richtext),nospell,optional
+	    {label #xowiki.template#}
+	    {options {editor xinha plugins {
+[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
+	    } height 300px 
+            }}
+            {html {rows 10 cols 50 style {width: 100%}}}}
+        }
+	{f.form
+	  {form:richtext(richtext),nospell,optional
+	    {label #xowiki.form#}
+	    {options {editor xinha plugins {
+[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
+	    } height 300px 
+            }}
+            {html {rows 10 cols 50 style {width: 100%}}}}
+        }
         {validate
           {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}}
-          {{text {\[::xowiki::validate_form_text\]} {From must contain an HTML form}}}
+          {{text {\[::xowiki::validate_form_text\]} {From must contain a template}}}
+          {{form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}}
         }
     }
 
@@ -612,22 +641,75 @@ namespace eval ::xowiki {
     my instvar data
     set item_id [next]
     
-    # provide unique ids and names
-    set text [$data set text]
-    dom parse -simple -html [lindex $text 0] doc
-    $doc documentElement root
-    set id ID$item_id
-    $root setAttribute id $id
-    set fields [$root selectNodes "//*\[@name != ''\]"]
-    foreach field $fields {
-      $field setAttribute name $id.[$field getAttribute name]
+    # provide unique ids and names, if form is provided
+    set text [$data set form]
+    if {$text ne ""} {
+      dom parse -simple -html [lindex $text 0] doc
+      $doc documentElement root
+      set id ID$item_id
+      $root setAttribute id $id
+      set fields [$root selectNodes "//*\[@name != ''\]"]
+      foreach field $fields {
+        $field setAttribute name $id.[$field getAttribute name]
+      }
+      # updating is rather crude. we need the item_id in advance to fill it
+      # into the items, but it is returned from saving the file.
+      my log "item_id=$item_id form=[$root asHTML] [$data serialize]"
+      $data update_content [$data revision_id] [list [$root asHTML] [lindex $text 1] ]
     }
-    # updating is rather crude. we need the item_id in advance to fill it
-    # into the items, but it is returned from saving the file.
-    my log "item_id=$item_id form=[$root asHTML] [$data serialize]"
-    $data update_content [$data revision_id] [list [$root asHTML] [lindex $text 1] ]
     return $item_id
   }
+
+
+  # first approximation for form fields.
+  # these could support not only asWidgetSpec, but as well asHTML
+  # todo: every formfield type should have its own class
+
+  Class FormField -parameter {{required false} {type text} {label} {name} {spell false} {size 80} spec}
+  FormField instproc init {} {
+    my instvar type options spec
+    my label [string totitle [my name]]
+    foreach s [split $spec ,] {
+      switch -glob $s {
+        required {my required true}
+        text     {set type text}
+        date     {set type date}
+        month    {
+          set type text(select)
+          set options {
+            {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
+            {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
+          }
+        }
+        label=*  {my label [lindex [split $e =] 1]}
+        size=*   {my size [lindex [split $e =] 1]}
+      }
+    }
+  }
+  FormField instproc asWidgetSpec {} {
+    my instvar type options
+    set spec $type
+    if {![my spell]} {append spec ",nospell"}
+    if {![my required]} {append spec ",optional"}
+    append spec " {label \"[my label]\"}"
+    if {$type eq "text"} {
+      if {[my exists size]} {append spec " {html {size [my size]}}"}
+    } elseif {$type eq "text(select)"} {
+      append spec " {options [list $options]}"
+    }
+    return $spec
+  }
+  FormField instproc renderValue {v} {
+    if {[my exists options]} {
+      foreach o [my set options] {
+        foreach {label value} $o break
+        if {$value eq $v} {return $label}
+      }
+    }
+    return $v
+  }
+ 
+
 
 }
 
