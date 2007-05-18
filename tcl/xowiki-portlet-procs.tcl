@@ -1875,7 +1875,7 @@ namespace eval ::xowiki::portlet {
       </div>"
   }
 
-
+  #############################################################################
   Class create form-instance-menu \
       -superclass ::xowiki::Portlet \
       -parameter {
@@ -1889,7 +1889,7 @@ namespace eval ::xowiki::portlet {
     my instvar __including_page
     set form [$__including_page page_template]
     set base [$package_id pretty_link [$form name]]
-    return "<div class='wiki-menu'><a href='$base'>Form</a></div>\n"
+    return "<div class='wiki-menu'><a href='$base'>Form [$form name]</a></div>\n"
   }
 
   #############################################################################
@@ -1898,7 +1898,8 @@ namespace eval ::xowiki::portlet {
       -parameter {
         {__decoration none}
         {parameter_declaration {
-          {-form_item_id:integer,required}
+          {-form_item_id:integer}
+          {-form}
           {-orderby "last_modified,desc"}
         }}
       }
@@ -1906,6 +1907,11 @@ namespace eval ::xowiki::portlet {
   form-instances instproc render {} {
     my get_parameters
     my instvar __including_page
+
+    if {![info exists form_item_id]} {
+      set form_item_id [::xowiki::Form lookup -name $form -parent_id $folder_id]
+      if {$form_item_id == 0} {error "Cannot lookup page $form"}
+    }
 
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
 

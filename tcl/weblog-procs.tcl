@@ -5,13 +5,16 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::Weblog -parameter {
     package_id
-    page_size
-    page_number
+    {page_size 20}
+    {page_number ""}
     date
     tag
     ptag
     category_id
+    instances_of
     filter_msg
+    {sort_composite ""}
+    {no_footer false}
     {name_filter ""}
     {entry_label "Postings"}
     {exclude_item_ids 0}
@@ -22,7 +25,7 @@ namespace eval ::xowiki {
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
     my instvar date category_id tag ptag page_number page_size summary items 
-    my instvar name_filter entry_label
+    my instvar name_filter entry_label instances_of sort_composite
     
     my log "--W starting"
     set folder_id [::$package_id set folder_id]
@@ -69,38 +72,55 @@ namespace eval ::xowiki {
     if {$name_filter ne ""} {
       append extra_where_clause "and ci.name ~ E'$name_filter' "
     }
-    
-    # create an item container, which delegates rendering to its chidlren
+    set base_type ::xowiki::Page
+    set base_table xowiki_pagei
+    set attributes [list cr.revision_id p.publish_date p.title p.creator p.creation_user \
+                        p.description s.body]
+    if {$instances_of ne ""} {
+      set form_items [list]
+      foreach t [split $instances_of |] {
+        set form_item_id [::xowiki::Form lookup -name $t -parent_id $folder_id]
+        if {$form_item_id == 0} {error "Cannot lookup page $t"}
+        lappend form_items $form_item_id
+      }
+      append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = cr.revision_id "
+      set base_type ::xowiki::FormInstance
+      set base_table xowiki_form_instancei
+      lappend attributes instance_attributes
+    }
+
+    # create an item container, which delegates rendering to its children
     set items [::xo::OrderedComposite new -proc render {} {
       set content ""
-      foreach c [my children] {
-        $c mixin add [my set entry_renderer]
-        append content [$c render]
-      }
+      foreach c [my children] { append content [$c render] }
       return $content
     }]
+
     foreach i [split [my exclude_item_ids] ,] {lappend ::xowiki_page_item_id_rendered $i}
     $items set weblog_obj [self]
  
     set sql \
         [list -folder_id $folder_id \
-             -select_attributes [list p.publish_date p.title p.creator p.creation_user \
-                                     p.description s.body] \
+             -select_attributes $attributes \
              -orderby "p.publish_date desc" \
-             -page_number $page_number -page_size $page_size \
-             -extra_from_clause $extra_from_clause \
-             -extra_where_clause "and ci.item_id not in ([my exclude_item_ids]) \
+             -from_clause "$extra_from_clause , $base_table p left outer join syndication s on s.object_id = p.revision_id" \
+             -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
                 and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
                 and ci.publish_status <> 'production' \
                 $extra_where_clause" ]
+
+    if {$page_number ne ""} {
+      lappend sql -page_number $page_number -page_size $page_size 
+    }
     
-    set nr_items [db_string count [eval ::xowiki::Page select_query $sql -count true]]
+    set nr_items [db_string count [eval $base_type instance_select_query $sql -count true]]
     
-    set s [::xowiki::Page instantiate_objects -sql [eval ::xowiki::Page select_query $sql]]
+    set s [$base_type instantiate_objects -sql [eval  $base_type instance_select_query $sql]]
+    
     foreach c [$s children] {
-      $c instvar page_id publish_date title name item_id creator creation_user description body
+      $c instvar revision_id publish_date title name item_id creator creation_user description body
 
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
       set pretty_date [util::age_pretty -timestamp_ansi $publish_date \
@@ -116,47 +136,56 @@ namespace eval ::xowiki {
                                       "[string range $body 0 150]..." : $description}]
       } else {
         # do full instantiation and rendering
-        # ns_log notice "--Render object=$p, $page_id $name $title"
-        set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+        # ns_log notice "--Render object=$p, $revision_id $name $title"
+        set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+        if {[my no_footer]} {$p set __no_footer 1}
         if {[catch {$p set description [$p render]} errorMsg]} {
-          set description "Render Error ($errorMsg) $page_id $name $title"
+          set description "Render Error ($errorMsg) $revision_id $name $title"
         }
       }
       $p set pretty_date $pretty_date
       $p set publish_date $publish_date
       my log "--W setting $p set publish_date $publish_date"
       #$p proc destroy {} {my log "--Render temporal object destroyed"; next}
-      #ns_log notice "--W Render object $p DONE $page_id $name $title "
-
+      #ns_log notice "--W Render object $p DONE $revision_id $name $title "
+      $p mixin add [my set entry_renderer]
       $items add $p
     }
     
     array set smsg {1 full 0 summary}
     set flink "<a href='[::xo::cc url]?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
     
-    set nr [llength [$items children]] 
-    set from [expr {($page_number-1)*$page_size+1}]
-    set to   [expr {($page_number-1)*$page_size+$nr}]
-    set range [expr {$nr > 1 ? "$from - $to" : $from}]
-    
-    if {$filter_msg ne ""} {
-      append filter_msg ", $range of $nr_items $entry_label (<a href='[::xo::cc url]'>all</a>, $flink)"
-    } else {
-      append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
-    }
-    
-    set next_p [expr {$nr_items > $page_number*$page_size}]
-    set prev_p [expr {$page_number > 1}]
+    if {$page_number ne ""} {
+      set nr [llength [$items children]] 
+      set from [expr {($page_number-1)*$page_size+1}]
+      set to   [expr {($page_number-1)*$page_size+$nr}]
+      set range [expr {$nr > 1 ? "$from - $to" : $from}]
+      
+      if {$filter_msg ne ""} {
+        append filter_msg ", $range of $nr_items $entry_label (<a href='[::xo::cc url]'>all</a>, $flink)"
+      } else {
+        append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
+      }
+      
+      set next_p [expr {$nr_items > $page_number*$page_size}]
+      set prev_p [expr {$page_number > 1}]
   
-    if {$next_p} {
-      set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number+1}]]
-      set next_page_link [export_vars -base [::xo::cc url] $query]
-    }
-    if {$prev_p} {
-      set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number-1}]]
-      set prev_page_link [export_vars -base [::xo::cc url] $query]
+      if {$next_p} {
+        set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number+1}]]
+        set next_page_link [export_vars -base [::xo::cc url] $query]
+      }
+      if {$prev_p} {
+        set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number-1}]]
+        set prev_page_link [export_vars -base [::xo::cc url] $query]
+      }
     }
     my proc destroy {} {my log "--W"; next}
+    
+    if {$sort_composite ne ""} {
+      foreach {kind att direction} [split $sort_composite ,] break
+      if {$kind eq "method"} {$items mixin add ::xo::OrderedComposite::MethodCompare}
+      $items orderby -order [expr {$direction eq "asc" ? "increasing" : "decreasing"}] $att
+    }
     my log "--W done"
   }
 

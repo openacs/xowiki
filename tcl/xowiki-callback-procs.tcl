@@ -330,4 +330,11 @@ namespace eval ::xowiki {
     return $result
   }
 
+  proc form_upgrade {} {
+    db_dml from_upgrade {
+      update xowiki_form f set form = xowiki_formi.data from xowiki_formi 
+      where f.xowiki_form_id = xowiki_formi.revision_id
+    }
+  }
+
 }

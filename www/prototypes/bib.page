@@ -1,14 +1,17 @@
-# -*- tcl-*-
+# -*- tcl -*-
 # $Id$
-::xowiki::Object new -title "Weblog" -text {
+::xowiki::Object new -title "Bibliography Includelet" -text {
   #
-  # A sample Weblog object.
+  # A bibliography interface based on weblog.
+  # Bibliography entries are typically selected via 
+  # instances_of (PageInstances, FormInstances). 
+  #
+  # Gustaf Neumann fecit, May 2007
   #
   my initialize -parameter {
-    {-page_size:integer 10}
-    {-page_number:integer 1}
     {-summary:boolean 0}
     {-date ""}
+    {-category_id ""}
     {-tag ""}
     {-ptag ""}
     {-instances_of ""}
@@ -18,23 +21,13 @@
   # The following definition is the default rendering per 
   # weblog entry. This is executed in the context of every displayed page.
   #
-  Class create EntryRenderer -instproc render {} {
-    my instvar package_id name title creator creation_user pretty_date description 
-    [my set __parent] instvar weblog_obj
-
-    set link [::$package_id pretty_link $name]
-    set more [expr {[$weblog_obj summary] ? 
-                    " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
-    append more "<p></p>"
-    set my_footer [my htmlFooter]
-
-    append content "<DIV class='post' style='clear: both; background: #f8f8f8;'>" \
-        "<h2><a href='$link'>$title</a></h2>" \
-        "<p class='auth'>Created by $creator, " \
-        "last modified by [::xo::get_user_name $creation_user] " \
-        "<span class='date'>$pretty_date</span></p>" \
-        $description $more $my_footer \n\
-        "</DIV>"
+  Class create EntryRenderer 
+  EntryRenderer instproc render {} {
+    append content "<LI>[next]</LI>\n"
+  }
+  EntryRenderer instproc by_date {} {
+    array set ia [my set instance_attributes]
+    return "$ia(year)-[format %2d $ia(month)]"
   }
 
   #
@@ -44,13 +37,9 @@
   Class create WeblogRenderer -instproc render {} {
     my instvar filter_msg link name prev_page_link next_page_link 
 
-    set filter ""
     set prev ""
     set next ""
     
-    if {[info exists filter_msg]} {
-      set filter  "<div class='filter'>$filter_msg</div>"
-    } 
     if {[info exists prev_page_link]} {
       set prev "<a href='$prev_page_link'>\
         <img border=0 src='/resources/acs-subsite/left.gif' \
@@ -61,7 +50,7 @@
         <img border=0 src='/resources/acs-subsite/right.gif' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
-    return "<div class='weblog'> $filter [next] $prev $next </div>"
+    return "<UL>[next]</UL> $prev $next"
   }
   
   my proc content {} {
@@ -79,26 +68,22 @@
       $page set __no_footer 1
     }
 
-    # on the weblog-portlet page, an edit-new should not create an object
+    # on the current page, an edit-new should not create an ::xowiki::object
     ::xo::cc set_parameter object_type ::xowiki::Page
 
-    # the default renderer
-    #set renderer       ::xowiki::Weblog::WeblogRenderer
-    #set entry_renderer ::xowiki::Weblog::EntryRenderer
-
-    # the above custom renderers
+    # use the custom renderers defined above
     set renderer       [self]::WeblogRenderer
     set entry_renderer [self]::EntryRenderer 
     
     set w [::xowiki::Weblog new -destroy_on_cleanup \
                -package_id $package_id \
-               -page_size $page_size \
-               -page_number $page_number \
                -summary $summary \
                -date $date \
-               -category_id [ns_queryget category_id] \
+               -category_id $category_id \
                -tag $tag \
                -ptag $ptag \
+               -no_footer true \
+               -sort_composite "method,by_date,desc" \
                -instances_of $instances_of \
                -exclude_item_ids $exclude_item_ids \
                -entry_renderer $entry_renderer \

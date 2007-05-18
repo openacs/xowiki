@@ -76,10 +76,12 @@ namespace eval ::xowiki {
       -mime_type text/xotcl \
       -form ::xowiki::ObjectForm
 
-  ::Generic::CrClass create Form -superclass Page \
+  ::Generic::CrClass create Form -superclass PageTemplate \
       -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
       -table_name "xowiki_form" -id_column "xowiki_form_id" \
       -cr_attributes {
+        ::Generic::Attribute new -attribute_name form -datatype text \
+            -pretty_name "Form"
         ::Generic::Attribute new -attribute_name form_constraints -datatype text \
             -pretty_name "Form Constraints"
       } \
@@ -87,7 +89,7 @@ namespace eval ::xowiki {
   ::Generic::CrClass create FormInstance -superclass PageInstance \
       -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
       -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" \
-      -form ::xowiki::WikiForm
+      -form ::xowiki::PageInstanceEditForm
 
   #
   # create various extra tables, indices and views
@@ -650,7 +652,7 @@ namespace eval ::xowiki {
 
   Page instproc get_content {} {
     #my log "--"
-    set content [my substitute_markup [my set text]]
+    return [my substitute_markup [my set text]]
   }
   Page instproc set_content {text} {
     my text [list [string map [list >> "\n<br />&gt;&gt;" << "&lt;&lt;\n"] \
@@ -712,7 +714,9 @@ namespace eval ::xowiki {
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
-    return "[expr {$render_adp ? [my adp_subst $content] : $content}][my footer]"
+    set html [expr {$render_adp ? [my adp_subst $content] : $content}]
+    if {![my exists __no_footer]} {append html [my footer]}
+    return $html
   }
 
   Page instproc record_last_visited {-user_id} {
@@ -861,11 +865,81 @@ namespace eval ::xowiki {
   #
   # PageInstance methods
   #
-  PageInstance instproc get_field_type {name template default_spec} {
+
+  Class FormField -parameter {{required false} {type text} {label} {name} {spell false} {size 80} spec}
+  FormField instproc init {} {
+    my instvar type options spec
+    my label [string totitle [my name]]
+    foreach s [split $spec ,] {
+      switch -glob $s {
+        required {my required true}
+        text     {set type text}
+        month    {
+          set type text(select)
+          set options {
+            {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
+            {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
+          }
+        }
+        label=*  {my label [lindex [split $e =] 1]}
+        size=*   {my size [lindex [split $e =] 1]}
+      }
+    }
+  }
+  FormField instproc asWidgetSpec {} {
+    my instvar type options
+    set spec $type
+    if {![my spell]} {append spec ",nospell"}
+    if {![my required]} {append spec ",optional"}
+    append spec " {label \"[my label]\"}"
+    if {$type eq "text"} {
+      if {[my exists size]} {append spec " {html {size [my size]}}"}
+    } elseif {$type eq "text(select)"} {
+      append spec " {options [list $options]}"
+    }
+    return $spec
+  }
+  FormField instproc renderValue {v} {
+    if {[my exists options]} {
+      foreach o [my set options] {
+        foreach {label value} $o break
+        if {$value eq $v} {return $label}
+      }
+    }
+    return $v
+  }
+
+  PageInstance instproc get_short_spec {name} {
+    my instvar page_template
+    if {[$page_template exists form_constraints]} {
+      foreach name_and_spec [$page_template form_constraints] {
+        foreach {spec_name short_spec} [split $name_and_spec :] break
+        if {$spec_name eq $name} {
+          return $short_spec
+        }
+      }
+    }
+    return ""
+  }
+  PageInstance instproc get_field_label {name value} {
+    set short_spec [my get_short_spec $name]
+    if {$short_spec ne ""} {
+      set f [FormField new -volatile -name $name -spec $short_spec]
+      return [$f renderValue $value]
+    }
+    return $value
+  }
+  PageInstance instproc get_field_type {name default_spec} {
+    my instvar page_template
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
     set spec $default_spec
-    set given_template_name [expr {[my isobject $template] ? [$template set name] : $template}]
+    set short_spec [my get_short_spec $name]
+    if {$short_spec ne ""} {
+      set f [FormField new -volatile -name $name -spec $short_spec]
+      return [$f asWidgetSpec]
+    }
+    set given_template_name [$page_template set name]
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
@@ -879,16 +953,16 @@ namespace eval ::xowiki {
     return $spec
   }
 
-  PageInstance instproc get_text_from_template {} {
+  PageInstance instproc get_from_template {var} {
     my instvar page_template
     #my log  "-- fetching page_template = $page_template"
     ::Generic::CrItem instantiate -item_id $page_template
     $page_template destroy_on_cleanup
-    return [$page_template set text]
+    return [$page_template set $var]
   }
 
   PageInstance instproc get_content {} {
-    set raw_template [my get_text_from_template]
+    set raw_template [my get_from_template text]
     set T  [my adp_subst [lindex $raw_template 0]]
     return [my substitute_markup [list $T [lindex $raw_template 1]]]
   }
@@ -909,11 +983,11 @@ namespace eval ::xowiki {
 
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
-      if {[string match "richtext*" [my get_field_type $var $page_template text]]} {
+      if {[string match "richtext*" [my get_field_type $var text]]} {
         # ignore the text/html info from htmlarea
-        my set $var [lindex $__ia($var) 0]
+        my set $var [my get_field_label $var [lindex $__ia($var) 0]]
       } else {
-        my set $var $__ia($var)
+        my set $var [my get_field_label $var $__ia($var)]
       }
     }
     next
@@ -1001,6 +1075,17 @@ namespace eval ::xowiki {
         [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
   }
 
+  Form instproc get_content {} {
+    my instvar text
+    my log "-- text='$text'"
+    if {$text ne ""} {
+      set content [my substitute_markup [my set text]]
+    } else {
+      set content [lindex [my set form] 0]
+    }
+    return $content
+  }
+
   Form instproc list {} {
     my view [my include_portlet [list form-instances -form_item_id [my item_id]]]
   }
@@ -1039,40 +1124,40 @@ namespace eval ::xowiki {
   }
   FormInstance instproc get_content {} {
     my instvar doc root package_id page_template
-    set form [lindex [my get_text_from_template] 0]
-    dom parse -simple -html $form doc
-    $doc documentElement root
-    my provide_values
-    set base [$package_id pretty_link [$page_template name]]
-    set intro "<p>This form in an instance of <a href='$base'>[$page_template name]</a></p>"
-    return "$intro[$root asHTML]"
+    set text [lindex [my get_from_template text] 0]
+    if {$text ne ""} {
+      # we have a template
+      return [next]
+    } else {
+      set form [lindex [my get_from_template form] 0]
+      dom parse -simple -html $form doc
+      $doc documentElement root
+      my provide_values
+      return [$root asHTML]
+    }
   }
-  #FormInstance instproc render {} {
-  #  my instvar doc root package_id
-  #  set form [lindex [my get_text_from_template] 0]
-  #  dom parse -simple -html $form doc
-  #  $doc documentElement root
-  #  my provide_values
-  #  return [$root asHTML]    
-  #}
 
   FormInstance instproc edit {} {
     my instvar page_template doc root package_id
     
-    set form [lindex [my get_text_from_template] 0]
-    dom parse -simple -html $form doc
-    $doc documentElement root
-  
-    $root appendFromList [list input [list type submit] {}]
-    set form [lindex [$root selectNodes //form] 0]
+    set form [lindex [my get_from_template form] 0]
     if {$form eq ""} {
-      my msg "no form found in page [$page_template name]"
+      next
     } else {
-      $form setAttribute action [$package_id pretty_link [my name]]?m=save method POST
+      dom parse -simple -html $form doc
+      $doc documentElement root
+      
+      $root appendFromList [list input [list type submit] {}]
+      set form [lindex [$root selectNodes //form] 0]
+      if {$form eq ""} {
+        my msg "no form found in page [$page_template name]"
+      } else {
+        $form setAttribute action [$package_id pretty_link [my name]]?m=save method POST
+      }
+      my provide_values
+      set result [$root asHTML]
+      my view $result
     }
-    my provide_values
-    set result [$root asHTML]
-    my view $result
   }
   FormInstance instproc save {} {
     my instvar package_id

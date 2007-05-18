@@ -243,8 +243,8 @@ namespace eval ::xowiki {
     }
 
     # the following line is like [$package_id url], but works as well with renamed objects
-    set myurl [expr {$new ? [$package_id url] :
-                     [$package_id pretty_link [my form_parameter name]]}]
+    #set myurl [expr {$new ? [$package_id url] :
+    #                 [$package_id pretty_link [my form_parameter name]]}]
 
     set myurl [$package_id pretty_link [my form_parameter name]]
 
@@ -262,6 +262,7 @@ namespace eval ::xowiki {
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
+    my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
