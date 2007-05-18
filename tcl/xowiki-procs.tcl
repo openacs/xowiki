@@ -272,6 +272,9 @@ namespace eval ::xowiki {
     my set parent_id $parent_id
     my set package_id $package_id 
     my set creation_user $creation_user
+    # handle anonymous entries
+    my instvar name
+    if {[regexp {^..:[0-9]+$} $name]} {set name ""}
     # in the general case, no actions required
   }
 

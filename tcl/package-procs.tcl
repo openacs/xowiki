@@ -533,8 +533,10 @@ namespace eval ::xowiki {
 
     foreach o $objects {
       $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
+
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
+
       set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
       if {$item_id != 0} {
 	if {$replace} { ;# we delete the original
@@ -549,7 +551,7 @@ namespace eval ::xowiki {
 	}
       }
       if {$item_id == 0} {
-        $o save_new
+        set n [$o save_new]
         incr added
       }
     }
@@ -573,7 +575,7 @@ namespace eval ::xowiki {
 	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
             set old_template_id [$o set page_template]
             set template [CrItem lookup \
-                              -name [$old_template_id set name] \
+                              -name [::$old_template_id set name] \
                               -parent_id $folder_id]
             $o set page_template $template
             $o save_new
@@ -581,8 +583,8 @@ namespace eval ::xowiki {
           }
         }
       }
-      $o destroy
     }
+    foreach o $objects {$o destroy}
     append msg "$added objects newly inserted, $updated object updated, $replaced objects replaced<p>"
   }
 
