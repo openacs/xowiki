@@ -869,49 +869,6 @@ namespace eval ::xowiki {
   # PageInstance methods
   #
 
-  Class FormField -parameter {{required false} {type text} {label} {name} {spell false} {size 80} spec}
-  FormField instproc init {} {
-    my instvar type options spec
-    my label [string totitle [my name]]
-    foreach s [split $spec ,] {
-      switch -glob $s {
-        required {my required true}
-        text     {set type text}
-        month    {
-          set type text(select)
-          set options {
-            {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
-            {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
-          }
-        }
-        label=*  {my label [lindex [split $e =] 1]}
-        size=*   {my size [lindex [split $e =] 1]}
-      }
-    }
-  }
-  FormField instproc asWidgetSpec {} {
-    my instvar type options
-    set spec $type
-    if {![my spell]} {append spec ",nospell"}
-    if {![my required]} {append spec ",optional"}
-    append spec " {label \"[my label]\"}"
-    if {$type eq "text"} {
-      if {[my exists size]} {append spec " {html {size [my size]}}"}
-    } elseif {$type eq "text(select)"} {
-      append spec " {options [list $options]}"
-    }
-    return $spec
-  }
-  FormField instproc renderValue {v} {
-    if {[my exists options]} {
-      foreach o [my set options] {
-        foreach {label value} $o break
-        if {$value eq $v} {return $label}
-      }
-    }
-    return $v
-  }
-
   PageInstance instproc get_short_spec {name} {
     my instvar page_template
     if {[$page_template exists form_constraints]} {
@@ -977,21 +934,21 @@ namespace eval ::xowiki {
     return $result
   }
   PageInstance instproc adp_subst {content} {
-    my instvar page_template
-    #my log "--r page_template exists? $page_template: [info command $page_template]"
     # initialize template variables (in case, new variables are added to template)
     array set __ia [my template_vars $content]
-    # add extra variables as instance variables
+    # add extra variables as instance attributes
     array set __ia [my set instance_attributes]
-
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
       if {[string match "richtext*" [my get_field_type $var text]]} {
         # ignore the text/html info from htmlarea
-        my set $var [my get_field_label $var [lindex $__ia($var) 0]]
+	set value [lindex $__ia($var) 0]
       } else {
-        my set $var [my get_field_label $var $__ia($var)]
+	set value $__ia($var)
       }
+      # the value might not be from the form attributes (e.g. title), don't clear it.
+      if {$value eq "" && [my exists $var]} continue
+      my set $var [my get_field_label $var $value]
     }
     next
   }
@@ -1125,6 +1082,33 @@ namespace eval ::xowiki {
       my provide_value $att $value
     }
   }
+  FormInstance instproc form_attributes {} {
+    my instvar page_template
+    set dont_edit [concat [[my info class] edit_atts] [list title] \
+                       [::Generic::CrClass set common_query_atts]]
+
+    set template [lindex [my get_from_template text] 0]
+    set page_instance_form_atts [list]
+    if {$template ne ""} {
+      foreach {var _} [my template_vars $template] {
+	if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
+      }
+    } else {
+      set form [lindex [my get_from_template form] 0]
+      dom parse -simple -html $form doc
+      $doc documentElement root
+      set fields [$root selectNodes "//*\[@name != ''\]"]
+      foreach field $fields {
+	if {[$field nodeName] ne "input"} continue
+	set att [$field getAttribute name]
+	if {[lsearch $page_instance_form_atts $att]} {
+	  lappend page_instance_form_atts $att
+	}
+      }
+    }
+    return $page_instance_form_atts
+  }
+
   FormInstance instproc get_content {} {
     my instvar doc root package_id page_template
     set text [lindex [my get_from_template text] 0]
@@ -1162,13 +1146,23 @@ namespace eval ::xowiki {
       my view $result
     }
   }
+
   FormInstance instproc save {} {
     my instvar package_id
-    array set __ia [my set instance_attributes]
-    foreach {att value}  [::xo::cc array get form_parameter] {
-      set __ia($att) $value
+    set form [lindex [my get_from_template form] 0]
+    if {$form ne ""} {
+      array set __ia [my set instance_attributes]
+      #my log "--old instance attributes [array get __ia]"
+      #foreach att [my form_attributes] {
+      #   set __ia($att) [::xo::cc form_parameter $att]
+      #}
+      # we have a form, we get for the time being all variables
+      foreach {att value}  [::xo::cc array get form_parameter] {
+        set __ia($att) $value
+      }
+      #my log "--set instance attributes to [array get __ia]"
+      my set instance_attributes [array get __ia]
     }
-    my set instance_attributes [array get __ia]
     next
     $package_id returnredirect \
         [my query_parameter "return_url" [::xo::cc url]]

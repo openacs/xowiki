@@ -503,7 +503,7 @@ namespace eval ::xowiki {
 
   PageInstanceForm instproc edit_data {} {
     set item_id [next]
-    my log "-- edit_data item_id=$item_id"
+    #my log "-- edit_data item_id=$item_id"
     return $item_id
   }
 
@@ -551,7 +551,6 @@ namespace eval ::xowiki {
     foreach var $page_instance_form_atts {
       set __ia($var) [my var $var]
     }
-    my log "-- set instance_attributes [array get __ia]"
     $data set instance_attributes [array get __ia]
     set item_id [next]
     my log "-- edit_data item_id=$item_id"
