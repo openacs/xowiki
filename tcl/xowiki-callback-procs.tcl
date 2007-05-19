@@ -160,9 +160,9 @@ namespace eval ::xowiki {
                 where page_title != '' and revision_id = p.page_id"
 
       db_list delete_deprecated_types_from_ancient_versions \
-        [::xo::db::map "select content_item__delete(i.item_id) from cr_items i \
+	  "select [::xo::db::function_name content_item__delete(i.item_id)] from cr_items i \
                 where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
-                'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"]
+                'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"
     }
 
     if {[apm_version_names_compare $from_version_name "0.30"] == -1 &&
