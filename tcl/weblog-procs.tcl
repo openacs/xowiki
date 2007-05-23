@@ -11,7 +11,7 @@ namespace eval ::xowiki {
     tag
     ptag
     category_id
-    instances_of
+    {instances_of ""}
     filter_msg
     {sort_composite ""}
     {no_footer false}
