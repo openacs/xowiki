@@ -86,7 +86,9 @@ if {[site_node::exists_p -url /$instance_name]} {
 ? {site_node::exists_p -url /$instance_name} 0 \
     "the test instance does not exist"
 
-set root_id [site_node::get_root_node_id]
+#set root_id [site_node::get_root_node_id]
+set root_id [db_string "" {select node_id from site_nodes where parent_id is null}]
+
 if {[db_0or1row check_broken_site_nodes {
      select node_id, name from site_nodes where name = :instance_name and parent_id = :root_id
 }]} {

@@ -37,7 +37,8 @@ namespace eval ::xowiki {
     set extra_where_clause ""
     
     if {$date ne ""} {
-      set date_clause "and date_trunc('day',p.publish_date) = '$date'"
+      #set date_clause "and date_trunc('day',p.publish_date) = '$date'"
+      set date_clause "and [::xo::db::sql date_trunc_expression day p.publish_date $date]"
       set filter_msg "Filtered by date $date"
       set query_parm "&date=$date"
     } else {
@@ -102,7 +103,7 @@ namespace eval ::xowiki {
     set sql \
         [list -folder_id $folder_id \
              -select_attributes $attributes \
-             -orderby "p.publish_date desc" \
+             -orderby "publish_date desc" \
              -from_clause "$extra_from_clause , $base_table p left outer join syndication s on s.object_id = p.revision_id" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
