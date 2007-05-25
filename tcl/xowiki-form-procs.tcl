@@ -628,12 +628,12 @@ namespace eval ::xowiki {
             }}
             {html {rows 10 cols 50 style {width: 100%}}}}
         }
-        {validate
+        {validate {
           {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}}
           {{text {\[::xowiki::validate_form_text\]} {From must contain a template}}}
           {{form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}}
-        }
+        }}
     }
 
   FormForm instproc new_data {} {
