@@ -982,7 +982,7 @@ namespace eval ::xowiki::portlet {
 
     if {$summary} {
       set count [db_string [my qn presence_count_users] \
-                     "select count(distinct user_id) from xowiki_last_visited  $where_clause"]
+                     "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
     } else {
       set values [db_list_of_lists [my qn get_users] \
                       [::xo::db::sql select \
