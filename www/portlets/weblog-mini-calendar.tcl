@@ -57,7 +57,7 @@ for {set i 0} {$i < 7} {incr i} {
   multirow append days_of_week [lindex $week_days [expr {($i + $first_day_of_week) % 7}]]
 }
 
-db_foreach entries_this_month "select count(ci.item_id), 
+db_foreach entries_this_month "select count(ci.item_id) as c, 
         [::xo::db::sql date_trunc day p.publish_date] as d \
         from xowiki_pagei p, cr_items ci \
         where ci.parent_id = $folder_id \
@@ -66,8 +66,8 @@ db_foreach entries_this_month "select count(ci.item_id),
         and ci.item_id != $including_item_id \
         and ci.publish_status <> 'production' \
         and [::xo::db::sql date_trunc_expression month p.publish_date $year-$month-01] \
-        group by d" {
-          set entries([lindex $d 0]) $count
+        group by [::xo::db::sql date_trunc day p.publish_date]" {
+          set entries([lindex $d 0]) $c
         }
 
 multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url count class
