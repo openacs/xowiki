@@ -783,7 +783,7 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   File instproc complete_name {name {fn ""}} {
-    my instvar mime_type
+    my instvar mime_type package_id
     switch -glob -- $mime_type {
       image/* {set type image}
       default {set type file}
