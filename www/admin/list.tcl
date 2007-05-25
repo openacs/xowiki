@@ -91,7 +91,7 @@ if {[::xo::db::has_ltree]} {
 set folder_id [::$package_id folder_id]
 foreach i [db_list get_syndicated {
   select object_id from syndication s, cr_items ci 
-  where object_id = ci.live_revision and parent_id = :folder_id;
+  where object_id = ci.live_revision and parent_id = :folder_id
 }] { set syndicated($i) 1 }
 
 db_foreach instance_select \

@@ -35,10 +35,7 @@ TableWidget t1 -volatile \
     }
 
 set base [::$package_id package_url]
-db_foreach type_select \
-    "select object_type from acs_object_types where 
-        tree_sortkey between :object_type_key and tree_right(:object_type_key)
-    " {
+foreach object_type $object_types {
 
       set return_url [export_vars -base ${base}admin {object_type}]
       t1 add \

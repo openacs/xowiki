@@ -109,6 +109,7 @@ namespace eval ::xowiki {
 		[::xowiki::Page container_already_rendered ci.item_id] \
                 and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
                 and ci.publish_status <> 'production' \
+		and p.revision_id = cr.revision_id \
                 $extra_where_clause" ]
 
     if {$page_number ne ""} {
