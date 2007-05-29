@@ -189,7 +189,7 @@ namespace eval ::xowiki {
     set name [::$package_id normalize_name $name]
 
     # check, if we try to create a new item with an existing name
-    if {[$data form_parameter __new_p] 
+    if {[$data form_parameter __new_p 0]
         || [$data form_parameter __object_name] ne $name
       } {
       return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
@@ -600,7 +600,7 @@ namespace eval ::xowiki {
   proc ::xowiki::validate_form_form {} {
     upvar form form
     if {$form eq ""} {return 1}
-    dom parse -simple -html [lindex $text 0] doc
+    dom parse -simple -html [lindex $form 0] doc
     $doc documentElement root
     return [expr {[$root nodeName] eq "form"}]
   }
@@ -629,10 +629,10 @@ namespace eval ::xowiki {
             {html {rows 10 cols 50 style {width: 100%}}}}
         }
         {validate {
-          {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                already in this folder}}}
-          {{text {\[::xowiki::validate_form_text\]} {From must contain a template}}}
-          {{form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}}
+          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                already in this folder}}
+          {text {\[::xowiki::validate_form_text\]} {From must contain a template}}
+          {form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}
         }}
     }
 
