@@ -49,6 +49,16 @@ namespace eval ::xowiki {
         {submit_link "view"}
         {folderspec ""}
         {autoname 0}
+      } -ad_doc {
+          Form Class for XoWIKI Pages. 
+          
+          You can manipulate the form elements shown by editing the field_list. The following elements are mandatory in field_list
+          and should never be left out:
+          <ul>
+          <li>name
+          <li>item_id
+          </ul>
+          
       }
 
   WikiForm instproc show_page_order {} {
@@ -252,6 +262,7 @@ namespace eval ::xowiki {
   WikiForm instproc new_request {} {
     my instvar data
     $data set creator [::xo::get_user_name [::xo::cc user_id]]
+    $data set nls_language [ad_conn locale]
     next
   }
 
