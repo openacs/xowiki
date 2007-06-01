@@ -173,7 +173,29 @@ namespace eval ::xowiki {
   #
   # conditional links
   #
-  Package instproc make_link {-privilege -link object method args} {
+  Package ad_instproc make_link {-privilege -link object method args} {
+    Creates conditionally a link for use in xowiki. When the generated link 
+    will be activated, the specified method of the object will be invoked.
+    make_link checks in advance, wether the actual user has enough 
+    rights to invoke the method. If not, this method returns empty.
+       
+    @param Object The object to which the link refers to. If it is a package_id it will base \
+        to the root_url of the package_id. If it is a page, it will base to the page_url
+    @param method Which method to use. This will be appended as "m=method" to the url. 
+
+    Examples for methods:
+     <ul>
+     <li>view: To view and existing page</li>
+     <li>edit: To edit an existing page</li>
+     <li>revisions: To view the revisions of an existing page</li>
+    </ul>
+
+    @param args List of attributes to be append to the link. Every element 
+    can be an attribute name, or a "name value" pair. Behaves like export_vars.
+
+    @return The link or empty
+    @see export_vars
+  } {
     my instvar id
  
     if {[info exists privilege]} {
