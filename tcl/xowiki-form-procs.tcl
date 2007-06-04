@@ -183,6 +183,13 @@ namespace eval ::xowiki {
     upvar name name nls_language nls_language folder_id folder_id \
         object_type object_type mime_type mime_type
     my instvar data
+
+    set old_name [::xo::cc form_parameter __object_name ""]
+    if {$name eq $old_name && $name ne ""} {
+      # do not change names, which are already validated;
+      # otherwise, autonamed entries might get an unwanted en:prefix
+      return
+    }
     my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
@@ -195,7 +202,7 @@ namespace eval ::xowiki {
         }
         set name [$data complete_name $name $nls_language]
       }
-    } 
+    }
     set name [::$package_id normalize_name $name]
 
     # check, if we try to create a new item with an existing name
