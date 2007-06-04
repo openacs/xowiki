@@ -254,7 +254,26 @@ namespace eval ::xowiki {
 
 
   Page instproc marshall {} {
-    return [my serialize]
+    my instvar name
+    if {[regexp {^..:[0-9]+$} $name] ||
+        [regexp {^[0-9]+$} $name]} {
+      #
+      # for anonymous entries, names might clash in the target
+      # instance. If we create on the target site for anonymous
+      # entries always new instances, we end up with duplicates.
+      # Therefore, we rename anonymous entries during export to
+      #    ip_address:port/item_id
+      #
+      set old_name $name
+      set server [ns_info server]
+      set port [ns_config ns/server/${server}/module/nssock port]
+      set name [ns_info address]:${port}/[my item_id]
+      set content [my serialize]
+      set name $old_name
+    } else {
+      set content [my serialize]
+    }
+    return $content
   }
 
   File instproc marshall {} {
@@ -272,10 +291,7 @@ namespace eval ::xowiki {
     my set parent_id $parent_id
     my set package_id $package_id 
     my set creation_user $creation_user
-    # handle anonymous entries
-    my instvar name
-    if {[regexp {^..:[0-9]+$} $name]} {set name ""}
-    # in the general case, no actions required
+    # in the general case, no more actions required
   }
 
   File instproc demarshall {args} {
