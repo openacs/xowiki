@@ -53,6 +53,9 @@ set ::with_publish_status 1
 TableWidget t1 -volatile \
     -actions $actions \
     -columns {
+      BulkAction objects -id name -actions {
+            Action new -label export -tooltip export -url export
+          }
       ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
       if {$::individual_permissions} {
         ImageField permissions -src /resources/xowiki/permissions.png -width 16 \
