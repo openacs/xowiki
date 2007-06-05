@@ -580,6 +580,10 @@ namespace eval ::xowiki {
 
     foreach o $objects {
       if {[$o istype ::xowiki::PageInstance]} {
+	set old_template_id [$o set page_template]
+	set template_id [CrItem lookup \
+			  -name [::$old_template_id set name] \
+			  -parent_id $folder_id]
         db_transaction {
           set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
           if {$item_id != 0} {
@@ -589,17 +593,14 @@ namespace eval ::xowiki {
 	      incr replaced
 	    } else {
 	      ::Generic::CrItem instantiate -item_id $item_id
-              $item_id copy_content_vars -from_object $o
+	      $item_id copy_content_vars -from_object $o
+              $item_id set page_template $template_id
 	      $item_id save
 	      incr updated
 	    }
 	  }
 	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
-            set old_template_id [$o set page_template]
-            set template [CrItem lookup \
-                              -name [::$old_template_id set name] \
-                              -parent_id $folder_id]
-            $o set page_template $template
+	    $o set page_template $template_id
             $o save_new
             incr added
           }
