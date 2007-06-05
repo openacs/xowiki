@@ -188,7 +188,7 @@ namespace eval ::xowiki {
     if {$name eq $old_name && $name ne ""} {
       # do not change names, which are already validated;
       # otherwise, autonamed entries might get an unwanted en:prefix
-      return
+      return 1
     }
     my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
