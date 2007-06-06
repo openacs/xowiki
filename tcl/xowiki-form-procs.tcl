@@ -50,7 +50,7 @@ namespace eval ::xowiki {
         {folderspec ""}
         {autoname 0}
       } -ad_doc {
-          Form Class for XoWIKI Pages. 
+          Form Class for XoWiki Pages. 
           
           You can manipulate the form elements shown by editing the field_list. The following elements are mandatory in field_list
           and should never be left out:
@@ -221,6 +221,10 @@ namespace eval ::xowiki {
     }
     if {$new && [[$data set package_id] get_parameter production_mode 0]} {
       $data set publish_status production
+    }
+    upvar #[template::adp_level] page_order page_order
+    if {[info exists page_order] && $page_order ne ""} {
+      set page_order [string trim $page_order]
     }
   }
   WikiForm instproc update_references {} {
