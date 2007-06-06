@@ -96,7 +96,7 @@ namespace eval ::xowiki {
   #
   ::xo::db::require table xowiki_references \
         "reference integer references cr_items(item_id) on delete cascade,
-         link_type [::xowiki::Page  map_sql_datatype text],
+         link_type [::xo::db::map_sql_datatype text],
          page      integer references cr_items(item_id) on delete cascade"
   ::xo::db::require index -table xowiki_references -col reference
       
@@ -116,7 +116,7 @@ namespace eval ::xowiki {
        "item_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
         user_id integer references users(user_id),
-        tag     [::xowiki::Page  map_sql_datatype text],
+        tag     [::xo::db::map_sql_datatype text],
         time    timestamp"
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id
