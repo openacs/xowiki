@@ -138,19 +138,23 @@ namespace eval ::xowiki {
                                       "[string range $body 0 150]..." : $description}]
       } else {
         # do full instantiation and rendering
-        # ns_log notice "--Render object=$p, $revision_id $name $title"
+        # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[my isobject ::$revision_id]"
         set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+	# in cases, the revision was created already earlier, drop the mixins
+	if {[$p info mixin] ne ""} {$p mixin {}}
         if {[my no_footer]} {$p set __no_footer 1}
         if {[catch {$p set description [$p render]} errorMsg]} {
           set description "Render Error ($errorMsg) $revision_id $name $title"
         }
+	#my log "--W $p render (mixins=[$p info mixin]) => $description"
       }
       $p set pretty_date $pretty_date
       $p set publish_date $publish_date
-      my log "--W setting $p set publish_date $publish_date"
+      #my log "--W setting $p set publish_date $publish_date"
       #$p proc destroy {} {my log "--Render temporal object destroyed"; next}
       #ns_log notice "--W Render object $p DONE $revision_id $name $title "
       $p mixin add [my set entry_renderer]
+      #my log "--W items=$items, added mixin [my set entry_renderer] to $p, has now <[$p info mixin]>"
       $items add $p
     }
     
@@ -181,7 +185,7 @@ namespace eval ::xowiki {
         set prev_page_link [export_vars -base [::xo::cc url] $query]
       }
     }
-    my proc destroy {} {my log "--W"; next}
+    #my proc destroy {} {my log "--W"; next}
     
     if {$sort_composite ne ""} {
       foreach {kind att direction} [split $sort_composite ,] break
