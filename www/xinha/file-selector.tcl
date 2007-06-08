@@ -157,8 +157,7 @@ if {[permission::permission_p -party_id $user_id -object_id $folder_id \
 set folder_name [lang::util::localize [fs::get_object_name -object_id  $folder_id]]
 set content_size_total 0
 
-#set folder_path [::xo::db::CONTENT_ITEM GET_PATH {folder_id root_folder_id}]
-set folder_path [::xo::db::content_item get_path \
+set folder_path [::xo::db::sql::content_item get_path \
                      -item_id $folder_id \
                      -root_folder_id $root_folder_id]
 

@@ -82,18 +82,58 @@ namespace eval ::xowiki {
     if {$autoname} {
       my f.name {name:text(hidden),optional}
     }
+
+    # TODO: this could be made cleaner by using slots, which require xotcl 1.5.*. 
+    # currently, i do not want to force an upgrade to the newer xotcl versions.
+    set class [[my set data] info class]
+    set __container [::xo::OrderedComposite new -destroy_on_cleanup]
+    foreach cl [concat $class [$class info heritage]] {
+      if {[$cl exists cr_attributes]} {$__container contains [$cl cr_attributes]}
+    }
+
     foreach __field $field_list {
       set __spec [my set f.$__field]
-      if {[string first "richtext" [lindex $__spec 0]] > -1} {
+      set __wspec [lindex $__spec 0]
+
+      # 
+      # try first to get the information from the attribute definitions
+      #
+      if {[lindex $__wspec 0] eq "="} {
+        set __found 0
+        foreach __att [$__container children] {
+          #ns_log notice "--field compare '$__field' '[$__att attribute_name]'"
+          if {[$__att attribute_name] eq $__field} {
+            #ns_log notice "--field $__field [$__att serialize]"
+            set __f [FormField new -volatile \
+                -label [$__att pretty_name] -type [$__att datatype] \
+                -spec  [lindex $__wspec 1]]
+            set __spec ${__field}:[$__f asWidgetSpec]
+            set __wspec [lindex $__spec 0]
+            set __found 1
+            break
+          }
+        }
+        if {!$__found} {
+          ns_log notice "--form WARNING: could not find field $__field"
+        }
+      }
+
+      #
+      # it might be necessary to update the folder spec for xinha 
+      # (to locate the right folder)
+      #
+      # ns_log notice "--field richtext '$__wspec' --> [string first richtext $__wspec]"
+      if {[string first "richtext" $__wspec] > -1} {
         # we have a richtext widget; get special configuration is specified
         set __spec [$data get_rich_text_spec $__field $__spec]
+        set __wspec [lindex $__spec 0]
+        #my log "--F richtext-spec = '$__spec', folder_spec [my folderspec]"
         if {[my folderspec] ne ""} {
           # append the folder spec to its options
-          set __newspec [list [lindex $__spec 0]]
+          set __newspec [list $__wspec]
           foreach __e [lrange $__spec 1 end] {
             foreach {__name __value} $__e break
             if {$__name eq "options"} {eval lappend __value [my folderspec]}
-            #lappend __newspec $__name $__value
             lappend __newspec [list $__name $__value]
           }
           my log "--F rewritten spec is '$__newspec'"
@@ -102,6 +142,7 @@ namespace eval ::xowiki {
         # ad_form does a subst. escape esp. the javascript stuff
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
+
       #my log "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
     }
@@ -488,6 +529,15 @@ namespace eval ::xowiki {
   }
 
   #
+  # PageTemplateForm
+  #
+  Class create PageTemplateForm -superclass WikiForm \
+      -parameter {
+	{field_list {item_id name title creator text anon_instances description nls_language}}
+        {f.anon_instances "="}
+      }
+
+  #
   # PageInstance Forms
   #
 
@@ -597,7 +647,7 @@ namespace eval ::xowiki {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
     my set field_list [concat [my field_list_top] $page_instance_form_atts [my field_list_bottom]]
-    my log "--field_list [my set field_list]"
+    #my log "--field_list [my set field_list]"
     foreach __var [concat [my field_list_top] [my field_list_bottom]] {
       set spec [my f.$__var]
       set spec [string range $spec [expr {[string first : $spec]+1}] end]
@@ -630,8 +680,7 @@ namespace eval ::xowiki {
   Class create FormForm -superclass ::xowiki::WikiForm \
     -parameter {
 	{field_list {item_id name title creator text form form_constraints description nls_language}}
-	{f.form_constraints
-	  {form_constraints:text,nospell,optional {label Constraints} {html {size 80}} }}
+	{f.form_constraints "="}
 	{f.text
 	  {text:richtext(richtext),nospell,optional
 	    {label #xowiki.template#}
@@ -643,7 +692,7 @@ namespace eval ::xowiki {
         }
 	{f.form
 	  {form:richtext(richtext),nospell,optional
-	    {label #xowiki.form#}
+	    {label #xowiki.Form-form#}
 	    {options {editor xinha plugins {
 [parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
 	    } height 300px 
@@ -688,34 +737,45 @@ namespace eval ::xowiki {
 
   Class FormField -parameter {{required false} {type text} {label} {name} {spell false} {size 80} spec}
   FormField instproc init {} {
-    my instvar type options spec
-    my label [string totitle [my name]]
+    my instvar type options spec widget_type
+    if {![my exists label]} {my label [string totitle [my name]]}
     foreach s [split $spec ,] {
       switch -glob $s {
         required {my required true}
         text     {set type text}
         date     {set type date}
-        month    {
-          set type text(select)
-          set options {
-            {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
-            {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
-          }
-        }
+        boolean  {set type date}
+        month    {set type date}
         label=*  {my label [lindex [split $e =] 1]}
         size=*   {my size [lindex [split $e =] 1]}
       }
     }
+    switch $type {
+      boolean  {
+        set widget_type text(select)
+        set options {{No f} {Yes t}}
+      }
+      month    {
+        set widget_type text(select)
+        set options {
+          {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
+          {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
+        }
+      }
+      default {
+        set widget_type $type
+      }
+    }
   }
   FormField instproc asWidgetSpec {} {
-    my instvar type options
-    set spec $type
+    my instvar widget_type options
+    set spec $widget_type
     if {![my spell]} {append spec ",nospell"}
     if {![my required]} {append spec ",optional"}
     append spec " {label \"[my label]\"}"
-    if {$type eq "text"} {
+    if {$widget_type eq "text"} {
       if {[my exists size]} {append spec " {html {size [my size]}}"}
-    } elseif {$type eq "text(select)"} {
+    } elseif {$widget_type eq "text(select)"} {
       append spec " {options [list $options]}"
     }
     return $spec

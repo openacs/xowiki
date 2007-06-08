@@ -93,7 +93,7 @@ namespace eval ::xowiki::notification {
     if {![info exists html]} {set html [$page render]}
     if {![info exists text]} {set text [ad_html_text_convert -from text/html -to text/plain -- $html]}
 
-    ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id] publish_status=[$page set publish_status] XXX"
+    #ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id] publish_status=[$page set publish_status] XXX"
     $page instvar package_id
     set link [::$package_id pretty_link -absolute 1 [$page name]]
     append html "<p>For more details, see <a href='$link'>[$page set title]</a></p>"

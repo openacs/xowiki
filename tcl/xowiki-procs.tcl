@@ -56,7 +56,12 @@ namespace eval ::xowiki {
   ::Generic::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
-      -form ::xowiki::WikiForm
+      -cr_attributes {
+        ::Generic::Attribute new -attribute_name anon_instances -datatype boolean \
+            -sqltype boolean -default "f" \
+            -pretty_name "#xowiki.PageTemplate-anon_instances#"
+      } \
+      -form ::xowiki::PageTemplateForm
 
   ::Generic::CrClass create PageInstance -superclass Page \
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
@@ -81,9 +86,9 @@ namespace eval ::xowiki {
       -table_name "xowiki_form" -id_column "xowiki_form_id" \
       -cr_attributes {
         ::Generic::Attribute new -attribute_name form -datatype text \
-            -pretty_name "Form"
+            -pretty_name "#xowiki.Form-form#"
         ::Generic::Attribute new -attribute_name form_constraints -datatype text \
-            -pretty_name "Form Constraints"
+            -pretty_name "#xowiki.Form-form_constraints#"
       } \
       -form ::xowiki::FormForm
   ::Generic::CrClass create FormInstance -superclass PageInstance \
@@ -96,7 +101,7 @@ namespace eval ::xowiki {
   #
   ::xo::db::require table xowiki_references \
         "reference integer references cr_items(item_id) on delete cascade,
-         link_type [::xo::db::map_sql_datatype text],
+         link_type [::xo::db::sql map_datatype text],
          page      integer references cr_items(item_id) on delete cascade"
   ::xo::db::require index -table xowiki_references -col reference
       
@@ -116,7 +121,7 @@ namespace eval ::xowiki {
        "item_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
         user_id integer references users(user_id),
-        tag     [::xo::db::map_sql_datatype text],
+        tag     [::xo::db::sql map_datatype text],
         time    timestamp"
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id

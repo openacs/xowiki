@@ -320,8 +320,7 @@ namespace eval ::xowiki {
   Page instproc make-live-revision {} {
     my instvar revision_id item_id package_id
     #my log "--M set_live_revision($revision_id)"
-    #::xo::db::CONTENT_ITEM SET_LIVE_REVISION revision_id
-    ::xo::db::content_item set_live_revision -revision_id $revision_id
+    ::xo::db::sql::content_item set_live_revision -revision_id $revision_id
     set page_id [my query_parameter "page_id"]
     ns_cache flush xotcl_object_cache ::$item_id
     ::$package_id returnredirect [my query_parameter "return_url" \
@@ -334,8 +333,7 @@ namespace eval ::xowiki {
     db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
     ns_cache flush xotcl_object_cache ::$item_id
     ns_cache flush xotcl_object_cache ::$revision_id
-    #::xo::db::CONTENT_REVISION DEL {revision_id}
-    ::xo::db::content_revision del -revision_id $revision_id
+    ::xo::db::sql::content_revision del -revision_id $revision_id
     set redirect [my query_parameter "return_url" \
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
@@ -346,8 +344,7 @@ namespace eval ::xowiki {
         my instvar package_id name
         $package_id delete -name $name -item_id $item_id
       } else {
-        #::xo::db::CONTENT_ITEM SET_LIVE_REVISION {{revision_id $latest_revision}}
-        ::xo::db::content_item set_live_revision -revision_id $latest_revision
+        ::xo::db::sql::content_item set_live_revision -revision_id $latest_revision
       }
     }
     if {$latest_revision ne ""} {
