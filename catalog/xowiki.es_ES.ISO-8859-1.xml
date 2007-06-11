@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<message_catalog package_key="xowiki" package_version="0.52" locale="es_ES" charset="ISO-8859-1">
+
+  <msg key="admin">Administrar</msg>
+  <msg key="back">Volver</msg>
+  <msg key="content">Contenido</msg>
+  <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
+  <msg key="creator">Autor</msg>
+  <msg key="delete">Borrar</msg>
+  <msg key="description">Descripción</msg>
+  <msg key="edit">Editar</msg>
+  <msg key="edit_link">editar tags</msg>
+  <msg key="index">Índice</msg>
+  <msg key="Language">Idioma</msg>
+  <msg key="name">Nombre</msg>
+  <msg key="new">Nueva Página</msg>
+  <msg key="notifications">Notificaciones</msg>
+  <msg key="order">Sección</msg>
+  <msg key="page_title">Título de la Página</msg>
+  <msg key="page_type">Tipo de Página</msg>
+  <msg key="popular_tags_label">Tags populares</msg>
+  <msg key="popular_tags_link">tags populares</msg>
+  <msg key="portlet_title_exists_error_long">Por favor, cambie el nombre de los portlets existentes ó el título de la página del xowiki que se quiere añadir al portal.</msg>
+  <msg key="portlet_title_exists_error_short">Un portlet cuyo título es '%page_title%' ya existe en este portal.</msg>
+  <msg key="publish_status">Publicado</msg>
+  <msg key="references_label">Referencias a esta Página:</msg>
+  <msg key="revisions">Revisiones</msg>
+  <msg key="search">Buscar</msg>
+  <msg key="subtitle">Subtítulo</msg>
+  <msg key="title">Título</msg>
+  <msg key="view">Vista</msg>
+  <msg key="weblog-more">más...</msg>
+  <msg key="your_tags_label">Tus tags</msg>
+</message_catalog>
