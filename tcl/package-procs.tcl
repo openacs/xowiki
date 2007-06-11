@@ -511,6 +511,10 @@ namespace eval ::xowiki {
     }
     #my log "--before adp"   ; # $__vars
     set text [template::adp_include $adp $__vars]
+
+    if { [lang::util::translator_mode_p] } {
+      set text [::xo::localize $text 1]
+    }
     #my log "--after adp"
     return $text
   }
@@ -684,7 +688,6 @@ namespace eval ::xowiki {
    
     set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
     set timerange_clause ""
-    set xmlMap { & &amp; < &lt; > &gt; \" &quot; ' &apos; }
     
     set content {<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.google.com/schemas/sitemap/0.84">

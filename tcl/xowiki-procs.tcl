@@ -483,7 +483,7 @@ namespace eval ::xowiki {
         set html "<div class='errorMsg'><p>Error in includelet '$page_name' $errorMsg\
            <pre>$::errorInfo</pre></div>\n"
       }
-
+      #my log "--include portlet returns $html"
       return $html
     } else {
       return "<div class='errorMsg'><p>Error: includelet '$page_name' unknown</div>\n"
@@ -524,6 +524,7 @@ namespace eval ::xowiki {
       # We have to change this back
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
       set html [my include_portlet $arg]
+      #my log "--include portlet returns $html"
       return ${ch}$html
     }
   }
@@ -615,6 +616,7 @@ namespace eval ::xowiki {
       append content [string range $l 1 end] \n
       set l " "
     }
+    #my log "--substitute_markup returns $content"
     return $content
   }
 

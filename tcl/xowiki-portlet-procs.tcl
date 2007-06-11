@@ -647,7 +647,6 @@ namespace eval ::xowiki::portlet {
                      -count $sum
                }
     }
-
     return [t1 asHTML]
   }
 }
