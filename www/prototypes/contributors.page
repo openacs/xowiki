@@ -12,12 +12,12 @@
           Field count -label "Page Revisions" -html { align right }
         }
 
-    db_foreach get_contributors {select count(object_id), creation_user 
+    db_foreach get_contributors {select count(object_id) as count, creation_user 
       from acs_objects o, cr_revisions cr,cr_items ci 
       where object_id = revision_id 
         and parent_id = :folder_id
         and cr.item_id = ci.item_id 
-      group by creation_user order by count desc;
+      group by creation_user order by count desc
     } {
       if {$creation_user eq ""} continue
       t1 add \

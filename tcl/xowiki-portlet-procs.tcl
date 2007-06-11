@@ -1684,14 +1684,16 @@ namespace eval ::xowiki::portlet {
     # there must be a better way to handle temporaray tables safely....
     catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE }}
 
-    db_dml [my qn get_n_most_revent_contributions] {
-      create temporary table XOWIKI_TEMP_TABLE as
-      select i.item_id, revision_id, creation_user 
-      from cr_revisions cr, cr_items i, acs_objects o  
-      where cr.item_id = i.item_id and i.parent_id = :folder_id 
-      and o.object_id = revision_id 
-      order by revision_id desc limit :max_activities
-    }
+    set sql "create global temporary table XOWIKI_TEMP_TABLE as "
+    append sql [::xo::db::sql select \
+                    -vars "i.item_id, revision_id, creation_user" \
+                    -from "cr_revisions cr, cr_items i, acs_objects o" \
+                    -where "cr.item_id = i.item_id and i.parent_id = $folder_id \
+                            and o.object_id = revision_id" \
+                    -orderby "revision_id desc" \
+                    -limit $max_activities]
+
+    db_dml [my qn get_n_most_recent_contributions] $sql
 
     set total 0
     db_foreach [my qn get_activities] {
