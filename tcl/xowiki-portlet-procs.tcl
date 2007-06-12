@@ -529,12 +529,8 @@ namespace eval ::xowiki::portlet {
 
 namespace eval ::xowiki::portlet {
   #############################################################################
-  # $Id$
-  # display last visited entries 
-  # -gustaf neumann
   #
-  # valid parameters from the include are 
-  #     max_entries: show given number of new entries
+  # display last visited entries 
   #
   
   Class create last-visited \
@@ -650,6 +646,55 @@ namespace eval ::xowiki::portlet {
     return [t1 asHTML]
   }
 }
+
+namespace eval ::xowiki::portlet {
+  #############################################################################
+  #
+  # display unread items.
+  # Currently moderately useful, should optionally be able to 
+  # display unread revisions as well
+  
+  Class create unread-items \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {title "Unread Items"}
+        {parameter_declaration {
+          {-max_entries:integer 20}
+        }}
+      }
+  
+  unread-items instproc render {} {
+    my get_parameters
+    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+
+    TableWidget t1 -volatile \
+        -columns {
+          AnchorField title -label [_ xowiki.page_title]
+        }
+
+    db_foreach [my qn get_pages] \
+       [::xo::db::sql select \
+            -vars "a.title, i.name" \
+            -from "xowiki_page p, cr_items i, acs_objects a "  \
+            -where "i.item_id not in (select x.page_id from xowiki_last_visited x 
+                        where x.user_id = [::xo::cc user_id] and  x.package_id = $package_id) 
+                    and i.live_revision = p.page_id 
+                    and i.parent_id = [$package_id folder_id] 
+                    and i.publish_status <> 'production'
+                    and a.object_id = i.item_id" \
+            -orderby "a.creation_date desc" \
+            -limit $max_entries] \
+        {
+          t1 add \
+              -title $title \
+              -title.href [$package_id pretty_link $name] 
+        }
+    return [t1 asHTML]
+  }
+}
+
+
+
 
 namespace eval ::xowiki::portlet {
   #############################################################################
@@ -1681,18 +1726,22 @@ namespace eval ::xowiki::portlet {
     set folder_id [$package_id folder_id]    
     
     # there must be a better way to handle temporaray tables safely....
-    catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE }}
+    catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE}}
 
-    set sql "create global temporary table XOWIKI_TEMP_TABLE as "
-    append sql [::xo::db::sql select \
+    set sql "create global temporary table XOWIKI_TEMP_TABLE on commit preserve rows as "
+    set subquery [::xo::db::sql select \
                     -vars "i.item_id, revision_id, creation_user" \
                     -from "cr_revisions cr, cr_items i, acs_objects o" \
                     -where "cr.item_id = i.item_id and i.parent_id = $folder_id \
                             and o.object_id = revision_id" \
                     -orderby "revision_id desc" \
                     -limit $max_activities]
-
-    db_dml [my qn get_n_most_recent_contributions] $sql
+    
+    # this is currently a rather ugly hack to get the suff quicky working in oracle.
+    # TODO: cleanup, different methods for oracle and postgres for handling temporary tables
+    if {[catch {db_dml [my qn get_n_most_recent_contributions] $sql$subquery}]} {
+       db_dml . "insert into XOWIKI_TEMP_TABLE (item_id,revision_id,creation_user) ($subquery)"
+    }
 
     set total 0
     db_foreach [my qn get_activities] {
@@ -1709,7 +1758,9 @@ namespace eval ::xowiki::portlet {
       set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
     }
 
-    db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE }
+    if {[catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE}} ]} {
+      db_dml [my qn trunc_temp_table] {truncate table XOWIKI_TEMP_TABLE }
+    }
 
     if {[array size i] == 0} {
       append result "<p>No activities found</p>"
