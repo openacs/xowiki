@@ -186,7 +186,7 @@ namespace eval ::xowiki {
     my get_uploaded_file
     upvar title title
     if {$title eq ""} {set title [$data set upload_file]}
-    #my log "--F validate_file returns [$data set mime_type] data=[my exists data]" 
+    # my log "--F validate_file returns [$data exists import_file]"
     return [$data exists import_file]
   }
 
@@ -206,7 +206,7 @@ namespace eval ::xowiki {
     upvar duration duration
     my instvar data 
     $data instvar package_id
-    if {[$data istype ::xowiki::PodcastItem] && $duration eq ""} {
+    if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
       set ffmpeg [$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
       if {[file exists $ffmpeg]} {
@@ -231,7 +231,7 @@ namespace eval ::xowiki {
       # otherwise, autonamed entries might get an unwanted en:prefix
       return 1
     }
-    my log "--F validate_name ot=$object_type data=[my exists data]"
+    # my log "--F validate_name ot=$object_type data=[my exists data]"
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
@@ -385,21 +385,25 @@ namespace eval ::xowiki {
     my instvar data
     #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
     set upload_file [$data form_parameter upload_file]
-    #my log "--F... upload_file = $upload_file"
-    if {$upload_file ne ""} {
+    # my log "--F... upload_file = $upload_file"
+    if {$upload_file ne "" && $upload_file ne "{}"} {
       $data set upload_file  $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
       $data set mime_type   [$data form_parameter upload_file.content-type]
-    } else {
-      #my log "--F no upload_file provided [lsort [$data info vars]]"
+    } elseif {[$data exists name]} {
+      # my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
         my log "--mime_type=[$data set mime_type]"
         #my log "   text=[$data set text]"
         regexp {^[^:]+:(.*)$} [$data set name] _ upload_file
         $data set upload_file $upload_file
         $data set import_file [$data full_file_name]
+        # my log "--F upload_file $upload_file  import_file [$data full_file_name]"
         #my log "   import_type=[$data set import_file]"
-      }
+      } 
+    } else {
+      # my log "--F no name and no upload file"
+      $data set upload_file ""
     }
   }
   FileForm instproc new_data {} {
