@@ -650,10 +650,14 @@ namespace eval ::xowiki::portlet {
 namespace eval ::xowiki::portlet {
   #############################################################################
   #
-  # display unread items.
-  # Currently moderately useful, should optionally be able to 
-  # display unread revisions as well
-  
+  # Display unread items
+  #
+  # Currently moderately useful
+  # 
+  # TODO: display of unread *revisions* should be included optionally, one has to
+  # consider what to do with auto-created stuff (put it into 'production' state?)
+  # 
+
   Class create unread-items \
       -superclass ::xowiki::Portlet \
       -parameter {
@@ -672,12 +676,18 @@ namespace eval ::xowiki::portlet {
           AnchorField title -label [_ xowiki.page_title]
         }
 
+    set or_clause "or i.item_id in (select x.page_id from xowiki_last_visited x, acs_objects o  \
+      where x.time < o.last_modified and x.page_id = o.object_id and x.package_id = $package_id)
+"
+
     db_foreach [my qn get_pages] \
        [::xo::db::sql select \
             -vars "a.title, i.name" \
             -from "xowiki_page p, cr_items i, acs_objects a "  \
-            -where "i.item_id not in (select x.page_id from xowiki_last_visited x 
+            -where "(i.item_id not in (select x.page_id from xowiki_last_visited x 
                         where x.user_id = [::xo::cc user_id] and  x.package_id = $package_id) 
+                    $or_clause
+                    )
                     and i.live_revision = p.page_id 
                     and i.parent_id = [$package_id folder_id] 
                     and i.publish_status <> 'production'
