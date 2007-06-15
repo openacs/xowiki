@@ -164,7 +164,7 @@ namespace eval ::xowiki {
   }
   Page set recursion_count 0
   Page array set RE {
-    include {([^\\]){{([^<]+?)}}(\s|$)}
+    include {([^\\]){{([^<]+?)}}(\s|<|$)?}
     anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
     div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*<br */?>)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
@@ -490,7 +490,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Page instproc include {ch arg} {
+  Page instproc include {ch arg ch2} {
     [self class] instvar recursion_depth
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
@@ -517,7 +517,7 @@ namespace eval ::xowiki {
            adp_include returned error message: $errorMsg</div>\n"
       }
 
-      return $ch$page
+      return $ch$page$ch2
     } else {
       # we have a direct (adp-less include)
       # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
@@ -525,7 +525,7 @@ namespace eval ::xowiki {
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
       set html [my include_portlet $arg]
       #my log "--include portlet returns $html"
-      return ${ch}$html
+      return $ch$html$ch2
     }
   }
 
@@ -610,7 +610,7 @@ namespace eval ::xowiki {
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
       set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
       set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub-eval $RE(include) $l {my include "\1" "\2"}]
+      set l [my regsub-eval $RE(include) $l {my include "\1" "\2" "\3"}]
       regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       append content [string range $l 1 end] \n
@@ -791,7 +791,7 @@ namespace eval ::xowiki {
       set l " $l"
       set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
       set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub-eval $RE(include) $l {my include "\1" "\2"}]
+      set l [my regsub-eval $RE(include) $l {my include "\1" "\2" ""}]
       regsub -all $RE(clean) $l {\1} l
       append content [string range $l 1 end] \n
     }

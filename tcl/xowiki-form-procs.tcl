@@ -752,8 +752,8 @@ namespace eval ::xowiki {
         required {my required true}
         text     {set type text}
         date     {set type date}
-        boolean  {set type date}
-        month    {set type date}
+        boolean  {set type boolean}
+        month    {set type month}
         label=*  {my label [lindex [split $e =] 1]}
         size=*   {my size [lindex [split $e =] 1]}
       }
