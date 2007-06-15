@@ -1061,7 +1061,7 @@ namespace eval ::xowiki {
   Form instproc get_content {} {
     my instvar text
     my log "-- text='$text'"
-    if {$text ne ""} {
+    if {[lindex $text 0] ne ""} {
       set content [my substitute_markup [my set text]]
     } else {
       set content [lindex [my set form] 0]
@@ -1079,7 +1079,7 @@ namespace eval ::xowiki {
   FormInstance instproc footer {} {
     return [my include_portlet [list form-instance-menu]]
   }
-  FormInstance instproc provide_value {att value} {
+  FormInstance instproc set_form_value {att value} {
     my instvar root item_id
     set fields [$root selectNodes "//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
@@ -1100,11 +1100,31 @@ namespace eval ::xowiki {
       }
     }
   }
-  FormInstance instproc provide_values {} {
+
+  FormInstance ad_instproc set_form_data {} {
+    Store the instance attributes in the form.
+  } {
     foreach {att value} [my instance_attributes] {
-      my provide_value $att $value
+      my set_form_value $att $value
     }
   }
+
+  FormInstance ad_instproc get_form_data {} {
+    Get the values from the form and store it as
+    instance attributes.
+  } {
+    set form [lindex [my get_from_template form] 0]
+    if {$form ne ""} {
+      array set __ia [my set instance_attributes]
+      # we have a form, we get for the time being all variables
+      foreach {att value}  [::xo::cc array get form_parameter] {
+        set __ia($att) $value
+      }
+      #my log "--set instance attributes to [array get __ia]"
+      my set instance_attributes [array get __ia]
+    }
+  }
+
   FormInstance instproc form_attributes {} {
     my instvar page_template
     set dont_edit [concat [[my info class] edit_atts] [list title] \
@@ -1142,7 +1162,7 @@ namespace eval ::xowiki {
       set form [lindex [my get_from_template form] 0]
       dom parse -simple -html $form doc
       $doc documentElement root
-      my provide_values
+      my set_form_data
       return [$root asHTML]
     }
   }
@@ -1162,31 +1182,20 @@ namespace eval ::xowiki {
       if {$form eq ""} {
         my msg "no form found in page [$page_template name]"
       } else {
-        $form setAttribute action [$package_id pretty_link [my name]]?m=save method POST
+        $form setAttribute action [$package_id pretty_link [my name]]?m=save_form_data method POST
       }
-      my provide_values
+      my set_form_data
       set result [$root asHTML]
       my view $result
     }
   }
 
-  FormInstance instproc save {} {
+  FormInstance ad_instproc save_form_data {} {
+    Method to be called from a submit button of the form
+  } {
     my instvar package_id
-    set form [lindex [my get_from_template form] 0]
-    if {$form ne ""} {
-      array set __ia [my set instance_attributes]
-      #my log "--old instance attributes [array get __ia]"
-      #foreach att [my form_attributes] {
-      #   set __ia($att) [::xo::cc form_parameter $att]
-      #}
-      # we have a form, we get for the time being all variables
-      foreach {att value}  [::xo::cc array get form_parameter] {
-        set __ia($att) $value
-      }
-      #my log "--set instance attributes to [array get __ia]"
-      my set instance_attributes [array get __ia]
-    }
-    next
+    my get_form_data
+    my save
     $package_id returnredirect \
         [my query_parameter "return_url" [::xo::cc url]]
   }

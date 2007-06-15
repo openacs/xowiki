@@ -1942,9 +1942,15 @@ namespace eval ::xowiki::portlet {
                  -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
                  -folder_id [$package_id folder_id]]
     set count [db_list [my qn count] $sql]
-    return "<div class='wiki-menu'>\
-     <a href='$new_link'>fill out</a> &middot; <a href='$answer_link'>list answers ($count)</a>
-      </div>"
+    set links [list]
+    foreach l [list new_link answer_link] {
+      if {[set $l] ne ""} {
+        set label #xowiki.form-menu-$l#
+        if {$l eq "answer_link"} {append label " ($count) "}
+        lappend links "<a href='[set $l]'>$label</a>"
+      }
+    }
+    return "<div class='wiki-menu'>[join $links {  &middot; }]</div>\n"
   }
 
   #############################################################################

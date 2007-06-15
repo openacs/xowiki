@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.47" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.52" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -10,6 +10,10 @@
   <msg key="description">Description</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
+  <msg key="Form-form">Form</msg>
+  <msg key="Form-form_constraints">Form Constraints</msg>
+  <msg key="form-menu-answer_link">Anwers</msg>
+  <msg key="form-menu-new_link">Fill out</msg>
   <msg key="index">Index</msg>
   <msg key="Language">Language</msg>
   <msg key="name">Name</msg>
@@ -20,13 +24,14 @@
   <msg key="page_type">Page Type</msg>
   <msg key="popular_tags_label">Popular tags</msg>
   <msg key="popular_tags_link">popular tags</msg>
+  <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
   <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
-  <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg> 
   <msg key="publish_status">Published</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="search">Search</msg>
   <msg key="subtitle">Subtitle</msg>
+  <msg key="template">Template</msg>
   <msg key="title">Title</msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>

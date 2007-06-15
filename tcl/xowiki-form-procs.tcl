@@ -666,13 +666,17 @@ namespace eval ::xowiki {
 
   proc ::xowiki::validate_form_text {} {
     upvar text text
-    if {$text eq ""} {return 1}
-    set clean_text $text
-    regsub -all "<br */?>" $clean_text "" clean_text
-    regsub -all "<p */?>" $clean_text "" clean_text
-    if {[string trim $clean_text] eq ""} { set text "" }
+    if {[llength $text] != 2} { return 0 }
+    foreach {content mime} $text break
+    if {$content eq ""} {return 1}
+    set clean_content $content
+    regsub -all "<br */?>" $clean_content "" clean_content
+    regsub -all "<p */?>" $clean_content "" clean_content
+    ns_log notice "--vaidate_form_content '$content' clean='$clean_content', stripped='[string trim $clean_content]'"
+    if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
     return 1
   }
+
   proc ::xowiki::validate_form_form {} {
     upvar form form
     if {$form eq ""} {return 1}
@@ -706,7 +710,7 @@ namespace eval ::xowiki {
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}
-          {text {\[::xowiki::validate_form_text\]} {From must contain a template}}
+          {text {\[::xowiki::validate_form_text\]} {From must contain a valid template}}
           {form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}
         }}
     }

@@ -360,7 +360,7 @@ namespace eval ::xowiki {
 
   Package instproc call {object method} {
     my instvar policy
-    #my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
+    my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
     if {[$policy enforce_permissions $object $method]} {
       #my log "--p calling $object ([$object info class]) '$method'"
       $object $method
@@ -825,6 +825,7 @@ namespace eval ::xowiki {
       revisions          {{package_id write}}
       diff               {{package_id write}}
       edit               {{package_id write}}
+      save_form-data     {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}
