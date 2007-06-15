@@ -825,7 +825,7 @@ namespace eval ::xowiki {
       revisions          {{package_id write}}
       diff               {{package_id write}}
       edit               {{package_id write}}
-      save_form-data     {{package_id write}}
+      save-form-data     {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}

@@ -1182,7 +1182,7 @@ namespace eval ::xowiki {
       if {$form eq ""} {
         my msg "no form found in page [$page_template name]"
       } else {
-        $form setAttribute action [$package_id pretty_link [my name]]?m=save_form_data method POST
+        $form setAttribute action [$package_id pretty_link [my name]]?m=save-form-data method POST
       }
       my set_form_data
       set result [$root asHTML]
@@ -1190,7 +1190,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormInstance ad_instproc save_form_data {} {
+  FormInstance ad_instproc save-form-data {} {
     Method to be called from a submit button of the form
   } {
     my instvar package_id
