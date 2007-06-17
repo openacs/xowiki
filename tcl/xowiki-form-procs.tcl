@@ -685,9 +685,9 @@ namespace eval ::xowiki {
     return [expr {[$root nodeName] eq "form"}]
   }
 
-  Class create FormForm -superclass ::xowiki::WikiForm \
+  Class create FormForm -superclass ::xowiki::PageTemplateForm \
     -parameter {
-	{field_list {item_id name title creator text form form_constraints description nls_language}}
+	{field_list {item_id name title creator text form form_constraints anon_instances description nls_language}}
 	{f.form_constraints "="}
 	{f.text
 	  {text:richtext(richtext),nospell,optional
