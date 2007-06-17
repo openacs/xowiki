@@ -1022,7 +1022,6 @@ namespace eval ::xowiki {
   Page instproc create-new {} {
     my instvar package_id
     set folder_id [my parent_id]
-    my log "--new [::xo::cc array get form_parameter]"
     set name [::xo::cc form_parameter name]
     set name [my complete_name $name]
     set name [::$package_id normalize_name $name]
@@ -1117,8 +1116,8 @@ namespace eval ::xowiki {
     if {$form ne ""} {
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
-      foreach {att value}  [::xo::cc array get form_parameter] {
-        set __ia($att) $value
+      foreach att [::xo::cc array names form_parameter] {
+        set __ia($att) [::xo::cc form_parameter $att]
       }
       #my log "--set instance attributes to [array get __ia]"
       my set instance_attributes [array get __ia]
