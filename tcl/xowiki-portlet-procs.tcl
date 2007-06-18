@@ -1939,7 +1939,7 @@ namespace eval ::xowiki::portlet {
                  -count true \
                  -with_subtypes false \
                  -from_clause ", xowiki_page_instance p" \
-                 -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
+                 -where_clause " p.page_template=$form_item_id and p.page_instance_id=cr.revision_id " \
                  -folder_id [$package_id folder_id]]
     set count [db_list [my qn count] $sql]
     set links [list]
@@ -1950,7 +1950,7 @@ namespace eval ::xowiki::portlet {
         lappend links "<a href='[set $l]'>$label</a>"
       }
     }
-    return "<div class='wiki-menu'>[join $links {  &middot; }]</div>\n"
+    return "<div class='wiki-menu'>[join $links { &middot; }]</div>\n"
   }
 
   #############################################################################

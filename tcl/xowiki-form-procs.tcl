@@ -221,8 +221,7 @@ namespace eval ::xowiki {
 
 
   proc ::xowiki::validate_name {} {
-    upvar name name nls_language nls_language folder_id folder_id \
-        object_type object_type mime_type mime_type
+    upvar name name nls_language nls_language
     my instvar data
 
     set old_name [::xo::cc form_parameter __object_name ""]
@@ -231,10 +230,10 @@ namespace eval ::xowiki {
       # otherwise, autonamed entries might get an unwanted en:prefix
       return 1
     }
-    # my log "--F validate_name ot=$object_type data=[my exists data]"
+    # my log "--F validate_name data=[my exists data]"
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
-      #my log "--mime validate_name ot=$object_type data=[my exists data] MIME [$data set mime_type]"
+      #my log "--mime validate_name data=[my exists data] MIME [$data set mime_type]"
       set name [$data complete_name $name [$data set upload_file]]
     } else {
       if {![regexp {^..:} $name]} {
@@ -250,6 +249,7 @@ namespace eval ::xowiki {
     if {[$data form_parameter __new_p 0]
         || [$data form_parameter __object_name] ne $name
       } {
+      set folder_id [$data parent_id]
       return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
     }
     return 1
@@ -666,6 +666,7 @@ namespace eval ::xowiki {
 
   proc ::xowiki::validate_form_text {} {
     upvar text text
+    if {$text eq ""} { return 1 }
     if {[llength $text] != 2} { return 0 }
     foreach {content mime} $text break
     if {$content eq ""} {return 1}

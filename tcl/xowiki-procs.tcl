@@ -70,7 +70,7 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name page_template -datatype integer \
             -pretty_name "Page Template"
         ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-            -pretty_name "Instance Attributes"
+            -pretty_name "Instance Attributes" -default ""
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
@@ -104,7 +104,7 @@ namespace eval ::xowiki {
          link_type [::xo::db::sql map_datatype text],
          page      integer references cr_items(item_id) on delete cascade"
   ::xo::db::require index -table xowiki_references -col reference
-      
+
 
   ::xo::db::require table xowiki_last_visited \
        "page_id integer references cr_items(item_id) on delete cascade,
@@ -246,7 +246,8 @@ namespace eval ::xowiki {
     set outer_join [expr {[string first s. $attribute_selection] > -1 ?
                           "left outer join syndication s on s.object_id = p.revision_id" : ""}]
     set order_clause [expr {$orderby ne "" ? "ORDER BY $orderby" : ""}]
-    set sql "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci $extra_from_clause \
+    set sql "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci \
+        $extra_from_clause \
         where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
         ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
     #my log "--SQL=$sql"
@@ -644,6 +645,11 @@ namespace eval ::xowiki {
     append __template_variables__ "</ul>\n"
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
     #my log "--adp before adp_eval '[template::adp_level]'"
+    #
+    # The adp buffer has limited size. For large pages, it might happen
+    # that the buffer overflows. In Aolserver 4.5, we can increase the
+    # buffer size. In 4.0.10, we are out of luck.
+    #
     set l [string length $content]
     if {[catch {set bufsize [ns_adp_ctl bufsize]}]} {
       set bufsize 0
@@ -1019,29 +1025,35 @@ namespace eval ::xowiki {
     return [my include_portlet [list form-menu -form_item_id [my item_id]]]
   }
 
+  Page instproc new_name {name} {
+    if {$name ne ""} {
+      my instvar package_id
+      set name [my complete_name $name]
+      set name [::$package_id normalize_name $name]
+      set suffix ""; set i 0
+      set folder_id [my parent_id]
+      while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
+        set suffix -[incr i]
+      }
+      set name $name$suffix
+    }
+    return $name
+  }
+
   Page instproc create-new {} {
     my instvar package_id
-    set folder_id [my parent_id]
-    set name [::xo::cc form_parameter name]
-    set name [my complete_name $name]
-    set name [::$package_id normalize_name $name]
-    set suffix ""; set i 0
-    while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
-      set suffix -[incr i]
-    }
-    set name $name$suffix
+    set name [my new_name [::xo::cc form_parameter name ""]]
     set class [::xo::cc form_parameter class ::xowiki::Page]
-    my log --class=$class
     if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
       set class [::xo::cc form_parameter class ::xowiki::Page]
-      set f [$class create [self].$i \
+      set f [$class new -destroy_on_cleanup \
                  -name $name \
                  -package_id $package_id \
                  -parent_id [my parent_id] \
+                 -publish_status "production" \
                  -title [my title] \
                  -text [list [::xo::cc form_parameter content ""] text/html]]
       $f save_new
-      $f destroy
       $package_id returnredirect \
           [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
     }
@@ -1049,9 +1061,11 @@ namespace eval ::xowiki {
 
   Form instproc create-new {} {
     my instvar package_id
-    set f [FormInstance new -destroy_on_cleanup -page_template [my item_id] -instance_attributes [list]]
-    $f parent_id [my parent_id]
-    $f package_id $package_id
+    set f [FormInstance new -destroy_on_cleanup \
+               -package_id $package_id \
+               -parent_id [my parent_id] \
+               -publish_status "production" \
+               -page_template [my item_id]]
     $f save_new
     $package_id returnredirect \
         [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
@@ -1117,9 +1131,14 @@ namespace eval ::xowiki {
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
       foreach att [::xo::cc array names form_parameter] {
-        set __ia($att) [::xo::cc form_parameter $att]
+        switch -- $att {
+          __object_name {}
+          __name  {my set name [::xo::cc form_parameter $att]}
+          __title {my set title [::xo::cc form_parameter $att]}
+          default {set __ia($att) [::xo::cc form_parameter $att]}
+        }
       }
-      #my log "--set instance attributes to [array get __ia]"
+      my log "--set instance attributes to [array get __ia]"
       my set instance_attributes [array get __ia]
     }
   }
@@ -1170,13 +1189,54 @@ namespace eval ::xowiki {
     my instvar page_template doc root package_id
     
     set form [lindex [my get_from_template form] 0]
+    my log "--forminstance form='$form'"
+    set anon_instances [my get_from_template anon_instances]
+    my log "--forminstance anon_instances='$anon_instances'"
     if {$form eq ""} {
       next
     } else {
       dom parse -simple -html $form doc
       $doc documentElement root
+
+      ::require_html_procs
+      $root firstChild fcn
+      $root insertBeforeFromScript {
+        ::html::input -type hidden -name __object_name -value [my name]
+      } $fcn
       
+      if {$anon_instances eq "f"} {
+        my log "--forminstance revision_id=[my revision_id]"
+        if {[my publish_status] eq "production" && [my name] eq [my revision_id]} {
+          set value [my name]
+        } else {
+          set value [my name]
+        }
+        $root insertBeforeFromScript {
+          ::html::div -class form-item-wrapper {
+            ::html::div -class form-label {
+              ::html::label -for __name {
+                ::html::t "#xowiki.name#"
+              }
+            }
+            ::html::div -class form-widget {
+              ::html::input -type text -name __name -value [my set name]
+            }
+          }
+          ::html::div -class form-item-wrapper {
+            ::html::div -class form-label {
+              ::html::label -for __title {
+                ::html::t "#xowiki.title#: "
+              }
+            }
+            ::html::div -class form-widget {
+              ::html::input -type text -name __title -value [my set title]
+            }
+          }
+          #::html::hr
+        } $fcn
+      }
       $root appendFromList [list input [list type submit] {}]
+
       set form [lindex [$root selectNodes //form] 0]
       if {$form eq ""} {
         my msg "no form found in page [$page_template name]"
@@ -1192,11 +1252,38 @@ namespace eval ::xowiki {
   FormInstance ad_instproc save-form-data {} {
     Method to be called from a submit button of the form
   } {
-    my instvar package_id
+    my instvar package_id name
     my get_form_data
-    my save
-    $package_id returnredirect \
-        [my query_parameter "return_url" [::xo::cc url]]
+    my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
+    set ok [::xowiki::validate_name]
+    my log "--forminstance name='$name', old_name=[::xo::cc form_parameter __object_name] ok=$ok"
+    if {$ok} {
+      db_transaction {
+        set old_name [::xo::cc form_parameter __object_name ""]
+        #
+        # if the newly created item was in production mode, but ordinary entries
+        # are not, change on the first save the status to ready
+        #
+        if {[my publish_status] eq "production" && $old_name eq [my revision_id]} {
+          if {![$package_id get_parameter production_mode 0]} {
+            my set publish_status "ready"
+          }
+        }
+        my save
+        if {$old_name ne $name} {
+          my log "--forminstance renaming"
+          db_dml [my qn update_rename] "update cr_items set name = :name \
+                where item_id = [my item_id]"
+        }
+      }
+      my log "--forminstance redirect to [$package_id pretty_link $name]"
+      $package_id returnredirect \
+          [my query_parameter "return_url" [$package_id pretty_link $name]]
+    } else {
+      util_user_message -message "Another item with the name name $name exists already"
+      set name  [::xo::cc form_parameter __object_name]
+      $package_id returnredirect [::xo::cc url]?m=edit
+    }
   }
 
 }
