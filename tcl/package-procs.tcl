@@ -197,7 +197,26 @@ namespace eval ::xowiki {
     @see export_vars
   } {
     my instvar id
- 
+
+    set computed_link ""
+    if {[$object istype ::xowiki::Package]} {
+      set base  [my package_url]
+      if {[info exists link]} {
+        set computed_link [uplevel export_vars -base [list $base$link] [list $args]]
+      } else {
+        lappend args [list $method 1]
+        set computed_link [uplevel export_vars -base [list $base] [list $args]]
+        }
+    } elseif {[$object istype ::xowiki::Page]} {
+      if {[info exists link]} {
+        set base $link
+      } else {
+        set base [my url]
+      }
+      lappend args [list m $method]
+      set computed_link [uplevel export_vars -base [list $base] [list $args]]
+    }
+    
     if {[info exists privilege]} {
       set granted [expr {$privilege eq "public" ? 1 :
                  [permission::permission_p \
@@ -205,27 +224,12 @@ namespace eval ::xowiki {
                       -party_id [::xo::cc user_id]] }]
     } else {
       # determine privilege from policy
-      set granted [my check_permissions $object $method]
+      set granted [my check_permissions -link $computed_link $object $method]
       #my log "--p $id check_permissions $object $method ==> $granted"
     }
+
     if {$granted} {
-      if {[$object istype ::xowiki::Package]} {
-        set base  [my package_url]
-        if {[info exists link]} {
-          return [uplevel export_vars -base [list $base$link] [list $args]]
-        } else {
-          lappend args [list $method 1]
-          return [uplevel export_vars -base [list $base] [list $args]]
-        }
-      } elseif {[$object istype ::xowiki::Page]} {
-        if {[info exists link]} {
-          set base $link
-        } else {
-          set base [my url]
-        }
-        lappend args [list m $method]
-        return [uplevel export_vars -base [list $base] [list $args]]
-      }
+      return $computed_link
     }
     return ""
   }
@@ -802,8 +806,8 @@ namespace eval ::xowiki {
   # policy management
   #
 
-  Package instproc condition=has_class {value} {
-    return [expr {[my query_parameter object_type ""] eq $value}]
+  Package instproc condition=has_class {query_context value} {
+    return [expr {[$query_context query_parameter object_type ""] eq $value}]
   }
 
 
@@ -845,7 +849,6 @@ namespace eval ::xowiki {
       list              {{package_id admin}}
     }
   }
-
 
   Policy policy2 -contains {
     #
