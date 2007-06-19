@@ -265,7 +265,7 @@ namespace eval ::xowiki {
     }
     upvar #[template::adp_level] page_order page_order
     if {[info exists page_order] && $page_order ne ""} {
-      set page_order [string trim $page_order]
+      set page_order [string trim $page_order " ."]
     }
   }
   WikiForm instproc update_references {} {
@@ -578,9 +578,7 @@ namespace eval ::xowiki {
   }
 
   PageInstanceForm instproc edit_data {} {
-    set item_id [next]
-    #my log "-- edit_data item_id=$item_id"
-    return $item_id
+    return [next]
   }
 
   Class create PageInstanceEditForm -superclass WikiForm \
@@ -662,6 +660,27 @@ namespace eval ::xowiki {
     }
     next
     #my log "--fields = [my fields]"
+  }
+
+ Class create FormInstanceEditForm -superclass PageInstanceEditForm \
+    -parameter {
+      {f.name
+        {name:text {label #xowiki.name#} {html {size 80}} 
+          {help_text {Shortname to identify a page within a folder, typically lowercase characters}}}}
+    }
+
+  FormInstanceEditForm instproc edit_data {} {
+    my log "-- "
+    my instvar page_instance_form_atts data
+    array set __ia [$data set instance_attributes]
+    foreach var $page_instance_form_atts {
+      set __ia($var) [my var $var]
+    }
+    my log "--edit_data ia = [array get __ia]"
+    $data set instance_attributes [array get __ia]
+    foreach __var [my form_vars] {$data set $__var [my var $__var]}
+    set item_id [$data save_data [::xo::cc form_parameter __object_name ""]]
+    return $item_id
   }
 
   proc ::xowiki::validate_form_text {} {

@@ -94,7 +94,7 @@ namespace eval ::xowiki {
   ::Generic::CrClass create FormInstance -superclass PageInstance \
       -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
       -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" \
-      -form ::xowiki::PageInstanceEditForm
+      -form ::xowiki::FormInstanceEditForm
 
   #
   # create various extra tables, indices and views
@@ -1205,12 +1205,6 @@ namespace eval ::xowiki {
       } $fcn
       
       if {$anon_instances eq "f"} {
-        my log "--forminstance revision_id=[my revision_id]"
-        if {[my publish_status] eq "production" && [my name] eq [my revision_id]} {
-          set value [my name]
-        } else {
-          set value [my name]
-        }
         $root insertBeforeFromScript {
           ::html::div -class form-item-wrapper {
             ::html::div -class form-label {
@@ -1249,6 +1243,30 @@ namespace eval ::xowiki {
     }
   }
 
+  FormInstance instproc save_data {old_name} {
+    my log "-- [self args]"
+    my instvar package_id name
+    db_transaction {
+      #
+      # if the newly created item was in production mode, but ordinary entries
+      # are not, change on the first save the status to ready
+      #
+      if {[my publish_status] eq "production" && $old_name eq [my revision_id]} {
+        if {![$package_id get_parameter production_mode 0]} {
+          my set publish_status "ready"
+        }
+      }
+      my save
+      my log "-- old_name $old_name, name $name"
+      if {$old_name ne $name} {
+        my log "--forminstance renaming"
+        db_dml [my qn update_rename] "update cr_items set name = :name \
+                where item_id = [my item_id]"
+      }
+    }
+    return [my item_id]
+  }
+
   FormInstance ad_instproc save-form-data {} {
     Method to be called from a submit button of the form
   } {
@@ -1258,24 +1276,7 @@ namespace eval ::xowiki {
     set ok [::xowiki::validate_name]
     my log "--forminstance name='$name', old_name=[::xo::cc form_parameter __object_name] ok=$ok"
     if {$ok} {
-      db_transaction {
-        set old_name [::xo::cc form_parameter __object_name ""]
-        #
-        # if the newly created item was in production mode, but ordinary entries
-        # are not, change on the first save the status to ready
-        #
-        if {[my publish_status] eq "production" && $old_name eq [my revision_id]} {
-          if {![$package_id get_parameter production_mode 0]} {
-            my set publish_status "ready"
-          }
-        }
-        my save
-        if {$old_name ne $name} {
-          my log "--forminstance renaming"
-          db_dml [my qn update_rename] "update cr_items set name = :name \
-                where item_id = [my item_id]"
-        }
-      }
+      my save_data [::xo::cc form_parameter __object_name ""]
       my log "--forminstance redirect to [$package_id pretty_link $name]"
       $package_id returnredirect \
           [my query_parameter "return_url" [$package_id pretty_link $name]]
