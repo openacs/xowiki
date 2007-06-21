@@ -1185,63 +1185,6 @@ namespace eval ::xowiki {
     }
   }
 
-  FormInstance instproc edit {} {
-    my instvar page_template doc root package_id
-    
-    set form [lindex [my get_from_template form] 0]
-    my log "--forminstance form='$form'"
-    set anon_instances [my get_from_template anon_instances]
-    my log "--forminstance anon_instances='$anon_instances'"
-    if {$form eq ""} {
-      next
-    } else {
-      dom parse -simple -html $form doc
-      $doc documentElement root
-
-      ::require_html_procs
-      $root firstChild fcn
-      $root insertBeforeFromScript {
-        ::html::input -type hidden -name __object_name -value [my name]
-      } $fcn
-      
-      if {$anon_instances eq "f"} {
-        $root insertBeforeFromScript {
-          ::html::div -class form-item-wrapper {
-            ::html::div -class form-label {
-              ::html::label -for __name {
-                ::html::t "#xowiki.name#"
-              }
-            }
-            ::html::div -class form-widget {
-              ::html::input -type text -name __name -value [my set name]
-            }
-          }
-          ::html::div -class form-item-wrapper {
-            ::html::div -class form-label {
-              ::html::label -for __title {
-                ::html::t "#xowiki.title#: "
-              }
-            }
-            ::html::div -class form-widget {
-              ::html::input -type text -name __title -value [my set title]
-            }
-          }
-          #::html::hr
-        } $fcn
-      }
-      $root appendFromList [list input [list type submit] {}]
-
-      set form [lindex [$root selectNodes //form] 0]
-      if {$form eq ""} {
-        my msg "no form found in page [$page_template name]"
-      } else {
-        $form setAttribute action [$package_id pretty_link [my name]]?m=save-form-data method POST
-      }
-      my set_form_data
-      set result [$root asHTML]
-      my view $result
-    }
-  }
 
   FormInstance instproc save_data {old_name} {
     my log "-- [self args]"

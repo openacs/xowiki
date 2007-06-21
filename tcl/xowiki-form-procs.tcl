@@ -565,9 +565,8 @@ namespace eval ::xowiki {
       set return_url [$data query_parameter return_url]
     }
     set link [::[$data set package_id] pretty_link [$data set name]]
-    #my submit_link [export_vars -base edit {folder_id object_type item_id page_template return_url}]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
-    my log "-- submit_link = [my submit_link]"
+    # my log "-- submit_link = [my submit_link]"
   }
 
   PageInstanceForm instproc new_data {} {
@@ -583,8 +582,8 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
-        {field_list_top    {item_id name title}}
-        {field_list_bottom {page_template description creator nls_language}}
+        {field_list_top    {item_id name title creator}}
+        {field_list_bottom {page_template description nls_language}}
         {f.name            {name:text(inform)}}
         {f.page_template   {page_template:text(hidden)}}
         {f.nls_language    {nls_language:text(hidden)}}
@@ -602,8 +601,7 @@ namespace eval ::xowiki {
 
     set link [::[$data set package_id] pretty_link [$data set name]]
     my submit_link [export_vars -base $link {{m edit} $__vars}]
-    #my submit_link [export_vars -base edit $__vars]
-    my log "-- submit_link = [my submit_link]"
+    # my log "-- submit_link = [my submit_link]"
     return $item_id
   }
 
@@ -658,6 +656,7 @@ namespace eval ::xowiki {
     foreach __var $page_instance_form_atts {
       my set f.$__var "$__var:[$data get_field_type $__var [my textfieldspec]]"
     }
+    my edit_page_title [$data get_from_template title]
     next
     #my log "--fields = [my fields]"
   }
@@ -769,16 +768,23 @@ namespace eval ::xowiki {
     if {![my exists label]} {my label [string totitle [my name]]}
     foreach s [split $spec ,] {
       switch -glob $s {
-        required {my required true}
+        required {my set required true}
+        hidden   {set type hidden}
+        inform   {set type inform}
         text     {set type text}
         date     {set type date}
         boolean  {set type boolean}
         month    {set type month}
         label=*  {my label [lindex [split $e =] 1]}
         size=*   {my size [lindex [split $e =] 1]}
+        default  {error "unknown spec for entry [my name]: '$s'"}
       }
     }
     switch $type {
+      hidden  -
+      inform {
+        set widget_type text($type)
+      }
       boolean  {
         set widget_type text(select)
         set options {{No f} {Yes t}}
@@ -794,6 +800,7 @@ namespace eval ::xowiki {
         set widget_type $type
       }
     }
+    #my msg "--formField processing spec $spec -> widget_type = $widget_type"
   }
   FormField instproc asWidgetSpec {} {
     my instvar widget_type options
