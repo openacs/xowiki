@@ -58,12 +58,12 @@ TableWidget t1 -volatile \
           }
       ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
       if {$::individual_permissions} {
-        ImageField permissions -src /resources/xowiki/permissions.png -width 16 \
+        ImageAnchorField permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
             -alt permsissions -label "" -html {style "padding: 2px;"}
       }
       if {$::with_publish_status} {
-	ImageField publish_status -src "" -width 8 \
+	ImageAnchorField publish_status -src "" -width 8 \
             -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }

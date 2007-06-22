@@ -7,7 +7,6 @@ ad_library {
 }
 
 namespace eval ::xowiki {
-
   #
   # create classes for different kind of pages
   #
@@ -23,7 +22,27 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name creator -datatype text \
             -pretty_name "Creator"
       } \
+      -parameter {
+        page_id
+        {revision_id 0}
+        item_id
+        object_type
+        parent_id
+        package_id
+        name
+        title
+        text
+        {folder_id -100}
+        {lang en}
+        {render_adp 1}
+        {absolute_links 0}
+      } \
       -form ::xowiki::WikiForm
+
+  # TODO: the following line is just a start. type, required+label should be just attributes
+  # of the slot object
+  ::xowiki::Page::slot::name set spec "text,required,label=#xowiki.name#"
+
 
   ::Generic::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
@@ -145,23 +164,7 @@ namespace eval ::xowiki {
   # Page definitions
   #
 
-  Page parameter {
-    page_id
-    {creator ""}
-    {revision_id 0}
-    item_id
-    object_type
-    parent_id
-    package_id
-    name
-    title
-    text
-    {folder_id -100}
-    {lang en}
-    {render_adp 1}
-    {absolute_links 0}
-    page_order
-  }
+
   Page set recursion_count 0
   Page array set RE {
     include {([^\\]){{([^<]+?)}}(\s|<|$)?}
@@ -1066,6 +1069,7 @@ namespace eval ::xowiki {
                -parent_id [my parent_id] \
                -publish_status "production" \
                -page_template [my item_id]]
+    $f set __title_prefix [my title]
     $f save_new
     $package_id returnredirect \
         [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]

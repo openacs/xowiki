@@ -296,6 +296,49 @@ namespace eval ::xowiki {
     return $html
   }
 
+  FormInstance instproc createFormField {{-spec ""} {-configuration ""} -name} {
+    if {$spec ne ""} {
+      set f [FormField new -name $name -spec $spec]
+    } else {
+      # 
+      # try first to get the information from the form constraints
+      #
+      set short_spec [my get_short_spec $name]
+      if {$short_spec ne ""} {
+        set f [FormField new -name $name -spec $short_spec]
+      } else {
+        
+        # TODO: this could be made cleaner by using slots, which require xotcl 1.5.*. 
+        # currently, i do not want to force an upgrade to the newer xotcl versions.
+        set class [my info class]
+        set __container [::xo::OrderedComposite new -destroy_on_cleanup]
+        foreach cl [concat $class [$class info heritage]] {
+          if {[$cl exists cr_attributes]} {$__container contains [$cl cr_attributes]}
+        }
+        
+        # 
+        # try to get the information from the attribute definitions
+        #
+        foreach __att [$__container children] {
+          #ns_log notice "--field compare '$__field' '[$__att attribute_name]'"
+          if {[$__att attribute_name] eq $name} {
+            #ns_log notice "--field $name [$__att serialize]"
+            set f [FormField new \
+                       -label [$__att pretty_name] -type [$__att datatype] \
+                       -spec  [lindex $__wspec 1]]
+            break
+          }
+        }
+      }
+    }
+    if {![info exists f]} {
+      error "could not find definitions for field $name"
+    }
+    $f destroy_on_cleanup
+    $f configure $configuration
+    return $f
+  }
+
   FormInstance instproc edit {} {
     my instvar page_template doc root package_id
     
@@ -319,37 +362,26 @@ namespace eval ::xowiki {
       } $fcn
       
       if {$anon_instances eq "f"} {
-        $root insertBeforeFromScript {
-          ::html::div -class form-item-wrapper {
-            ::html::div -class form-label {
-              ::html::label -for __name {
-                ::html::t "#xowiki.name#"
-              }
-            }
-            ::html::div -class form-widget {
-              ::html::input -type text -name __name -value [my set name]
-            }
-          }
-          ::html::div -class form-item-wrapper {
-            ::html::div -class form-label {
-              ::html::label -for __title {
-                ::html::t "#xowiki.title#: "
-              }
-            }
-            ::html::div -class form-widget {
-              ::html::input -type text -name __title -value [my set title]
-            }
-          }
-          #::html::hr
-        } $fcn
-      }
-      $root appendFromList [list input [list type submit] {}]
+        set f [my createFormField -name __name -spec "text,required,label=#xowiki.name#" \
+                   -configuration [list -value [my set name]]]
+        $root insertBeforeFromScript {$f render_item} $fcn
 
+        set f [my createFormField -name __title -spec "text,required,label=#xowiki.title#" \
+                   -configuration [list -value [my set title]]]
+        $root insertBeforeFromScript {$f render_item} $fcn
+      }
+
+      $root appendFromScript {
+        ::html::br 
+        ::html::input -type submit
+      }
       set form [lindex [$root selectNodes //form] 0]
       if {$form eq ""} {
         my msg "no form found in page [$page_template name]"
       } else {
         $form setAttribute action [$package_id pretty_link [my name]]?m=save-form-data method POST
+        set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
+        $form setAttribute class [string trim "$oldCSSClass margin-form"]
       }
       my set_form_data
       set result [$root asHTML]

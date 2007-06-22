@@ -762,7 +762,10 @@ namespace eval ::xowiki {
   # these could support not only asWidgetSpec, but as well asHTML
   # todo: every formfield type should have its own class
 
-  Class FormField -parameter {{required false} {type text} {label} {name} {spell false} {size 80} spec}
+  Class FormField -parameter {
+    {required false} {type text} {label} {name} {spell false} {size 80} 
+    {value ""} spec
+  }
   FormField instproc init {} {
     my instvar type options spec widget_type
     if {![my exists label]} {my label [string totitle [my name]]}
@@ -774,9 +777,10 @@ namespace eval ::xowiki {
         text     {set type text}
         date     {set type date}
         boolean  {set type boolean}
+        numeric  {set type text; #for the time being}
         month    {set type month}
-        label=*  {my label [lindex [split $e =] 1]}
-        size=*   {my size [lindex [split $e =] 1]}
+        label=*  {my label [lindex [split $s =] 1]}
+        size=*   {my size [lindex [split $s =] 1]}
         default  {error "unknown spec for entry [my name]: '$s'"}
       }
     }
@@ -814,6 +818,30 @@ namespace eval ::xowiki {
       append spec " {options [list $options]}"
     }
     return $spec
+  }
+  FormField instproc render_form_widget {} {
+    # todo: for all types
+    set atts [list type text]
+    foreach att {size name value} {
+      if {[my exists $att]} {lappend atts $att [my set $att]}
+    }
+
+    ::html::div -class form-widget {::html::input $atts {}}
+  } 
+  FormField instproc render_item {} {
+    ::html::div -class form-item-wrapper {
+      ::html::div -class form-label {
+        ::html::label -for [my name] {
+          ::html::t [my label]
+        }
+        if {[my required]} {
+          ::html::div -class form-required-mark {
+            ::html::t " (#acs-templating.required#)"
+          }
+        }
+      }
+      my render_form_widget
+    }
   }
   FormField instproc renderValue {v} {
     if {[my exists options]} {
