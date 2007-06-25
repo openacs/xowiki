@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.52" url="http://openacs.org/repository/download/apm/xowiki-0.52.apm">
+    <version name="0.53" url="http://openacs.org/repository/download/apm/xowiki-0.53.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-05-02</release-date>
+        <release-date>2007-06-25</release-date>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of wiki markup commands of systems
@@ -114,20 +114,26 @@ to includelet &quot;recent&quot;, new includelet &quot;get&quot; to obtain
 variable binding from different pages, new includelets
 creation-date to get dates nicer formatted, simplified 
 development of derived packages (s5) 
+
+0.53: ::xowiki::Form (will be maybe renamed before release),
+::xowiki::FormInstances (pot. rename). FormFields, form 
+constraints, unnamed instances, some podcast improvements
+improved localization, new includelet &quot;unread-items&quot;,
+export renaming for unnamed entries 
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.52"/>
+        <provides url="xowiki" version="0.53"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.51"/>
+        <requires url="xotcl-core" version="0.52"/>
 
         <callbacks>
-            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
+            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>

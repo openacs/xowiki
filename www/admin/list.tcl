@@ -56,7 +56,7 @@ TableWidget t1 -volatile \
       BulkAction objects -id name -actions {
             Action new -label export -tooltip export -url export
           }
-      ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
+      ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}
       if {$::individual_permissions} {
         ImageAnchorField permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
@@ -67,13 +67,14 @@ TableWidget t1 -volatile \
             -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
-      Field syndicated -label "RSS"
+      Field syndicated -label "RSS" -html {style "padding: 2px;"}
       if {[::xo::db::has_ltree]} {
-        AnchorField page_order -label [_ xowiki.order] -orderby page_order
+        AnchorField page_order -label [_ xowiki.order] -orderby page_order -html {style "padding: 2px;"}
       }
-      AnchorField name -label [_ xowiki.name] -orderby name
-      Field object_type -label [_ xowiki.page_type] -orderby object_type 
-      Field size -label "Size" -orderby size -html {align right}
+      AnchorField name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
+      AnchorField title -label [_ xowiki.Page-title] -orderby title
+      Field object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
+      Field size -label "Size" -orderby size -html {align right style "padding: 2px;"}
       Field last_modified -label "Last Modified" -orderby last_modified
       Field mod_user -label "By User" -orderby mod_user
       ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
@@ -85,7 +86,7 @@ t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 # -page_size 10
 # -page_number 1
 
-set attributes [list revision_id content_length creation_user  \
+set attributes [list revision_id content_length creation_user title \
     "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] 
 if {[::xo::db::has_ltree]} {
   lappend attributes page_order
@@ -110,6 +111,7 @@ db_foreach instance_select \
 
           t1 add \
               -name $name \
+              -title $title \
               -object_type [string map [list "::xowiki::" ""] $object_type] \
               -name.href $page_link \
               -last_modified $last_modified \

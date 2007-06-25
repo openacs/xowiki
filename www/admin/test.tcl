@@ -172,7 +172,7 @@ test subsection "Check Permissions based on default policy"
 ? {::xo::cc user_id} 0 "user_id is guest"
 ? {::$package_id make_link ::$page_item_id delete return_url} "" \
     "the public cannot delete this page"
-? {::$package_id make_link -privilege admin -url admin/ $package_id {} {}} "" \
+? {::$package_id make_link -privilege admin -link admin/ $package_id {} {}} "" \
     "the public cannot admin this package"
 
 ########################################################################

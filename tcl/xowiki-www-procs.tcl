@@ -296,46 +296,58 @@ namespace eval ::xowiki {
     return $html
   }
 
-  FormInstance instproc createFormField {{-spec ""} {-configuration ""} -name} {
-    if {$spec ne ""} {
-      set f [FormField new -name $name -spec $spec]
-    } else {
-      # 
-      # try first to get the information from the form constraints
-      #
-      set short_spec [my get_short_spec $name]
-      if {$short_spec ne ""} {
-        set f [FormField new -name $name -spec $short_spec]
-      } else {
-        
-        # TODO: this could be made cleaner by using slots, which require xotcl 1.5.*. 
-        # currently, i do not want to force an upgrade to the newer xotcl versions.
-        set class [my info class]
-        set __container [::xo::OrderedComposite new -destroy_on_cleanup]
-        foreach cl [concat $class [$class info heritage]] {
-          if {[$cl exists cr_attributes]} {$__container contains [$cl cr_attributes]}
-        }
-        
-        # 
-        # try to get the information from the attribute definitions
-        #
-        foreach __att [$__container children] {
-          #ns_log notice "--field compare '$__field' '[$__att attribute_name]'"
-          if {[$__att attribute_name] eq $name} {
-            #ns_log notice "--field $name [$__att serialize]"
-            set f [FormField new \
-                       -label [$__att pretty_name] -type [$__att datatype] \
-                       -spec  [lindex $__wspec 1]]
-            break
-          }
-        }
+  Page instproc find_slot {name} {
+    set start_class [my info class]
+    foreach cl [concat $start_class [$start_class info heritage]] {
+      set slotobj ${cl}::slot::$name
+      if {[my isobject $slotobj]} {
+        #my msg $slotobj
+        return $slotobj
       }
     }
-    if {![info exists f]} {
-      error "could not find definitions for field $name"
+    return ""
+  }
+  
+  Page instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
+
+    if {$slot eq ""} {
+      # We have no slot, so create a minimal slot. This should only happen for instance attributes
+      set slot [::xo::Attribute new -pretty_name $name -datatype text -volatile -noinit]
     }
+
+    set spec_list [list]
+    if {[$slot exists spec]} {lappend spec_list [$slot set spec]}
+    if {$spec ne ""}         {lappend spec_list $spec}
+    #my msg "[self args] spec_list $spec_list"
+    #my msg "$name, spec_list = '[join $spec_list ,]'"
+
+    if {[$slot exists pretty_name]} {
+      set label [$slot set pretty_name]
+    } else {
+      set label $name
+      ns_log notice "no pretty_name for variable $name in slot $slot"
+    }
+
+    set f [FormField new -name $name \
+               -label     $label \
+               -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
+               -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
+               -required  [expr {[$slot exists required]  ? [$slot set required]  : "false"}] \
+               -spec      [join $spec_list ,] \
+              ]
     $f destroy_on_cleanup
     $f configure $configuration
+    return $f
+  }
+
+  PageInstance instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
+    # TODO combine with form_constraints, Remove unneeded cases
+    set short_spec [my get_short_spec $name]
+    set spec_list [list]
+    if {$short_spec ne ""} {lappend spec_list $short_spec}
+    if {$spec ne ""}       {lappend spec_list $spec}
+    #my msg "$name, short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
+    set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
     return $f
   }
 
@@ -362,11 +374,11 @@ namespace eval ::xowiki {
       } $fcn
       
       if {$anon_instances eq "f"} {
-        set f [my createFormField -name __name -spec "text,required,label=#xowiki.name#" \
+        set f [my create_form_field -name __name -slot [my find_slot name] \
                    -configuration [list -value [my set name]]]
         $root insertBeforeFromScript {$f render_item} $fcn
 
-        set f [my createFormField -name __title -spec "text,required,label=#xowiki.title#" \
+        set f [my create_form_field -name __title -slot [my find_slot title] \
                    -configuration [list -value [my set title]]]
         $root insertBeforeFromScript {$f render_item} $fcn
       }

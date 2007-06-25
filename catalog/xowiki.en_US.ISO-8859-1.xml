@@ -1,28 +1,39 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.52" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.53" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
-  <msg key="content">Content</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
-  <msg key="creator">Creator</msg>
   <msg key="delete">Delete</msg>
-  <msg key="description">Description</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
+  <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
   <msg key="form-menu-answer_link">Anwers</msg>
   <msg key="form-menu-new_link">Fill out</msg>
   <msg key="index">Index</msg>
-  <msg key="Language">Language</msg>
-  <msg key="name">Name</msg>
   <msg key="new">New Page</msg>
   <msg key="notifications">Notifications</msg>
-  <msg key="order">Section</msg>
-  <msg key="page_title">Page Title</msg>
+  <msg key="Page-creator">Creator</msg>
+  <msg key="Page-description">Description</msg>
+  <msg key="Page-name">Name</msg>
+  <msg key="Page-name-help_text">Shortname to identify an entry within a folder, typically lowercase characters</msg>
+  <msg key="Page-nls_language">Language</msg>
+  <msg key="Page-page_order">Section</msg>
+  <msg key="Page-text">Content</msg>
+  <msg key="Page-title">Page Title</msg>
   <msg key="page_type">Page Type</msg>
-  <msg key="PageTemplate-anon_instances">Anonymous Instances</msg>
+  <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
+  <msg key="PageInstance-page_template">Page Instance</msg>
+  <msg key="PageTemplate-anon_instances">Unnamed Instances</msg>
+  <msg key="PodcastItem-duration">Duration</msg>
+  <msg key="PodcastItem-duration-help_text">E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)</msg>
+  <msg key="PodcastItem-keywords">Keywords</msg>
+  <msg key="PodcastItem-keywords-help_text">comma separated itunes keywords, e.g. salt, pepper, shaker, exciting</msg>
+  <msg key="PodcastItem-name-help_text">Can be obtained from the name of the uploaded file</msg>
+  <msg key="PodcastItem-pub_date">Publication Date</msg>
+  <msg key="PodcastItem-subtitle">Subtitle</msg>
   <msg key="popular_tags_label">Popular tags</msg>
   <msg key="popular_tags_link">popular tags</msg>
   <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
@@ -31,9 +42,6 @@
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="search">Search</msg>
-  <msg key="subtitle">Subtitle</msg>
-  <msg key="template">Template</msg>
-  <msg key="title">Title</msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>
   <msg key="your_tags_label">Your Tags</msg>

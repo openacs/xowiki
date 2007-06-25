@@ -490,7 +490,7 @@ namespace eval ::xowiki::portlet {
           if {[[my info parent] set allow_edit]} {
             ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
           }
-          AnchorField title -label [_ xowiki.page_title]
+          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
             ImageField_DeleteIcon delete -label ""
           }
@@ -558,7 +558,7 @@ namespace eval ::xowiki::portlet {
 
     TableWidget t1 -volatile \
         -columns {
-          AnchorField title -label [_ xowiki.page_title]
+          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
 
     db_foreach [my qn get_pages] \
@@ -610,7 +610,7 @@ namespace eval ::xowiki::portlet {
 
       TableWidget t1 -volatile \
           -columns {
-            AnchorField title -label [_ xowiki.page_title]
+            AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
             Field users -label Visitors -html { align right }
           }
       set since_condition "and [::xo::db::sql since_interval_condition time $interval]"
@@ -633,7 +633,7 @@ namespace eval ::xowiki::portlet {
 
       TableWidget t1 -volatile \
           -columns {
-            AnchorField title -label [_ xowiki.page_title]
+            AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
             Field count -label Visits -html { align right }
             Field users -label Visitors -html { align right }
           }
@@ -683,7 +683,7 @@ namespace eval ::xowiki::portlet {
 
     TableWidget t1 -volatile \
         -columns {
-          AnchorField title -label [_ xowiki.page_title]
+          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
 
     set or_clause "or i.item_id in (select x.page_id from xowiki_last_visited x, acs_objects o  \
@@ -1992,17 +1992,19 @@ namespace eval ::xowiki::portlet {
     }
 
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    set return_url [::xo::cc url]?[::xo::cc actual_query]
 
     TableWidget t1 -volatile \
         -columns {
           Field last_modified -label "Modification Date" -orderby last_modified
           Field creation_user -label "By User" -orderby creation_user
           AnchorField view -label "View"
+          ImageField_DeleteIcon delete -label ""
         }
 
     foreach {att order} [split $orderby ,] break
     set sql [::xowiki::FormInstance instance_select_query \
-                 -select_attributes "publish_date creation_user" \
+                 -select_attributes "publish_date creation_user revision_id" \
                  -from_clause ", xowiki_page_instance p" \
                  -with_subtypes 0 \
                  -orderby "$att $order" \
@@ -2010,12 +2012,18 @@ namespace eval ::xowiki::portlet {
                  -folder_id [$package_id folder_id]]
 
     db_foreach [my qn get_pages] $sql {
-        t1 add \
-            -view $name \
-            -view.href [$package_id pretty_link $name] \
-            -creation_user [::xo::get_user_name $creation_user] \
-            -last_modified $publish_date
-      }
+
+      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+      $p destroy_on_cleanup
+      set page_link [$package_id pretty_link $name]
+      
+      t1 add \
+          -view $name \
+          -view.href $page_link \
+          -creation_user [::xo::get_user_name $creation_user] \
+          -delete.href [$package_id make_link -link $page_link $p delete return_url] \
+          -last_modified $publish_date
+    }
 
     set base [$package_id pretty_link [$__including_page name]]
     set label [$__including_page name]

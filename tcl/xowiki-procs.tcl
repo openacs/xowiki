@@ -16,11 +16,9 @@ namespace eval ::xowiki {
       -mime_type text/html \
       -cr_attributes {
         if {[::xo::db::has_ltree]} {
-          ::Generic::Attribute new -attribute_name page_order -datatype text \
-              -pretty_name "Order" -sqltype ltree
+          ::Generic::Attribute new -attribute_name page_order -datatype text -sqltype ltree
         }
-        ::Generic::Attribute new -attribute_name creator -datatype text \
-            -pretty_name "Creator"
+        ::Generic::Attribute new -attribute_name creator -datatype text
       } \
       -parameter {
         page_id
@@ -32,6 +30,8 @@ namespace eval ::xowiki {
         name
         title
         text
+        description
+        nls_language
         {folder_id -100}
         {lang en}
         {render_adp 1}
@@ -39,10 +39,23 @@ namespace eval ::xowiki {
       } \
       -form ::xowiki::WikiForm
 
-  # TODO: the following line is just a start. type, required+label should be just attributes
-  # of the slot object
-  ::xowiki::Page::slot::name set spec "text,required,label=#xowiki.name#"
-
+  # TODO: the following slot definitions are not meant to stay this way.
+  # when we change to the xotcl 1.5.0+ slots, this will go away
+  ::xowiki::Page::slot::name set pretty_name #xowiki.Page-name#
+  ::xowiki::Page::slot::name set required true
+  ::xowiki::Page::slot::name set help_text #xowiki.Page-name-help_text#
+  ::xowiki::Page::slot::name set datatype text
+  ::xowiki::Page::slot::title set pretty_name #xowiki.Page-title#
+  ::xowiki::Page::slot::title set required true
+  ::xowiki::Page::slot::title set datatype text
+  ::xowiki::Page::slot::description set pretty_name #xowiki.Page-description#
+  ::xowiki::Page::slot::description set spec "textarea(cols=80;rows=2)"
+  ::xowiki::Page::slot::description set datatype text
+  ::xowiki::Page::slot::text set pretty_name #xowiki.Page-text#
+  ::xowiki::Page::slot::text set datatype text
+  ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
+  ::xowiki::Page::slot::nls_language set datatype text
+  ::xowiki::Page::slot::nls_language set spec {select(options=[xowiki::locales])}
 
   ::Generic::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
@@ -60,14 +73,13 @@ namespace eval ::xowiki {
       -pretty_name "Podcast Item" -pretty_plural "Podcast Items" \
       -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
       -cr_attributes {
-          ::Generic::Attribute new -attribute_name pub_date -datatype date -sqltype timestamp \
-              -pretty_name "Publication Date"
+          ::Generic::Attribute new -attribute_name pub_date -datatype date \
+              -sqltype timestamp -spec "date(format=YYYY_MM_DD_HH24_MI)"
           ::Generic::Attribute new -attribute_name duration -datatype text \
-              -pretty_name "Duration"
-          ::Generic::Attribute new -attribute_name subtitle -datatype text \
-              -pretty_name "Subtitle"
+              -help_text "#xowiki.PodcastItem-duration-help_text#"
+          ::Generic::Attribute new -attribute_name subtitle -datatype text
           ::Generic::Attribute new -attribute_name keywords -datatype text \
-              -pretty_name "Keywords"
+              -help_text "#xowiki.PodcastItem-keywords-help_text#"
       } \
       -storage_type file \
       -form ::xowiki::PodcastForm
@@ -77,8 +89,7 @@ namespace eval ::xowiki {
       -table_name "xowiki_page_template" -id_column "page_template_id" \
       -cr_attributes {
         ::Generic::Attribute new -attribute_name anon_instances -datatype boolean \
-            -sqltype boolean -default "f" \
-            -pretty_name "#xowiki.PageTemplate-anon_instances#"
+            -sqltype boolean -default "f" 
       } \
       -form ::xowiki::PageTemplateForm
 
@@ -86,10 +97,9 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
       -table_name "xowiki_page_instance" -id_column "page_instance_id" \
       -cr_attributes {
-        ::Generic::Attribute new -attribute_name page_template -datatype integer \
-            -pretty_name "Page Template"
+        ::Generic::Attribute new -attribute_name page_template -datatype integer 
         ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
-            -pretty_name "Instance Attributes" -default ""
+            -default ""
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
@@ -104,10 +114,8 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
       -table_name "xowiki_form" -id_column "xowiki_form_id" \
       -cr_attributes {
-        ::Generic::Attribute new -attribute_name form -datatype text \
-            -pretty_name "#xowiki.Form-form#"
-        ::Generic::Attribute new -attribute_name form_constraints -datatype text \
-            -pretty_name "#xowiki.Form-form_constraints#"
+        ::Generic::Attribute new -attribute_name form -datatype text 
+        ::Generic::Attribute new -attribute_name form_constraints -datatype text
       } \
       -form ::xowiki::FormForm
   ::Generic::CrClass create FormInstance -superclass PageInstance \
@@ -300,6 +308,12 @@ namespace eval ::xowiki {
     my set parent_id $parent_id
     my set package_id $package_id 
     my set creation_user $creation_user
+    #
+    # if we import from an instance without page_orders into an instance
+    # with page_orders, we need default values
+    if {[::xo::db::has_ltree] && ![my exists page_order]} {
+      my set page_order ""
+    }
     # in the general case, no more actions required
   }
 
@@ -312,6 +326,24 @@ namespace eval ::xowiki {
     fconfigure $F -translation binary
     puts -nonewline $F [::base64::decode $__file_content]
     close $F
+  }
+
+  # set default values. 
+  # todo: with slots, it should be easier to set default values
+  # for non existing variables
+  PageInstance instproc demarshall {args} {
+    # some older versions do not have anon_instances
+    if {![my exists anon_instances]} {
+      my set anon_instances "f"
+    }
+    next
+  }
+  Form instproc demarshall {args} {
+    # some older versions do not have anon_instances
+    if {![my exists anon_instances]} {
+      my set anon_instances "t"
+    }
+    next
   }
 
   Page instproc copy_content_vars {-from_object:required} {
@@ -423,7 +455,7 @@ namespace eval ::xowiki {
     next
   }
 
-  Page instproc regsub-eval {re string cmd} {
+  Page instproc regsub_eval {re string cmd} {
     subst [regsub -all $re [string map { \" \\\" \[ \\[ \] \\] \
                                             \$ \\$ \\ \\\\} $string] \
                "\[$cmd\]"]
@@ -612,9 +644,9 @@ namespace eval ::xowiki {
     foreach l0 [split [lindex $source 0] \n] {
       append l $l0
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
-      set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
-      set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub-eval $RE(include) $l {my include "\1" "\2" "\3"}]
+      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
+      set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
+      set l [my regsub_eval $RE(include) $l {my include "\1" "\2" "\3"}]
       regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       append content [string range $l 1 end] \n
@@ -798,9 +830,9 @@ namespace eval ::xowiki {
     set content ""
     foreach l [split $source \n] {
       set l " $l"
-      set l [my regsub-eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
-      set l [my regsub-eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub-eval $RE(include) $l {my include "\1" "\2" ""}]
+      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
+      set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
+      set l [my regsub_eval $RE(include) $l {my include "\1" "\2" ""}]
       regsub -all $RE(clean) $l {\1} l
       append content [string range $l 1 end] \n
     }
@@ -848,7 +880,7 @@ namespace eval ::xowiki {
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {
-                 AnchorField name -label [_ xowiki.name]
+                 AnchorField name -label [_ xowiki.Page-name]
                  Field mime_type -label "Content Type"
                  Field last_modified -label "Last Modified"
                  Field mod_user -label "By User"
@@ -921,28 +953,35 @@ namespace eval ::xowiki {
     }
     return $value
   }
-  PageInstance instproc get_field_type {name default_spec} {
-    my instvar page_template
+  PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    set spec $default_spec
-    set short_spec [my get_short_spec $name]
-    if {$short_spec ne ""} {
-      set f [FormField new -volatile -name $name -spec $short_spec]
-      return [$f asWidgetSpec]
-    }
-    set given_template_name [$page_template set name]
+    my instvar page_template
     foreach {s widget} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&
           [string match $var_name $name]} {
-        set spec $widget
+        return $widget_spec
         #ns_log notice "--w using $widget for $name"
       }
     }
-    #ns_log notice "--w returning spec $spec"
-    return $spec
+    return ""
+  }
+  PageInstance instproc get_field_type {name default_spec} {
+    my instvar page_template
+    # get widget spec from folder (highest priority)
+    set spec [my widget_spec_from_folder_object $name [$page_template set name]]
+    if {$spec ne ""} {
+      return $spec
+    }
+    # get widget spec from attribute definition 
+    set f [my create_form_field -name $name -slot [my find_slot $name]]
+    if {$f ne ""} {
+      return [$f asWidgetSpec]
+    }
+    # use default widget spec
+    return $default_spec
   }
 
   PageInstance instproc get_from_template {var} {
@@ -972,6 +1011,8 @@ namespace eval ::xowiki {
     array set __ia [my set instance_attributes]
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
+      # TODO: just for the lookup, whether a field is a richt text field,
+      # there should be a more efficient and easier way...
       if {[string match "richtext*" [my get_field_type $var text]]} {
         # ignore the text/html info from htmlarea
 	set value [lindex $__ia($var) 0]

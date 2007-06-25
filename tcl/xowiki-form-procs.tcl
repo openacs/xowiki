@@ -15,17 +15,11 @@ namespace eval ::xowiki {
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
 	{field_list {item_id name title creator text description nls_language}}
-	{f.page_order
-	  {page_order:text,optional {label #xowiki.order#} {html {align right}} }}
-	{f.item_id
-	  {item_id:key}}
-	{f.name
-	  {name:text {label #xowiki.name#} {html {size 80}} 
-            {help_text {Shortname to identify a page within a folder, typically lowercase characters}}}}
-	{f.title
-	  {title:text {label #xowiki.title#} {html {size 80}} }}
-	{f.creator
-	  {creator:text,optional {label #xowiki.creator#}  {html {size 80}} }}
+	{f.item_id {item_id:key}}
+	{f.name "="}
+        {f.title "="}
+        {f.creator "="}
+        {f.description "="}
 	{f.text
 	  {text:richtext(richtext),nospell,optional
 	    {label #xowiki.content#}
@@ -35,13 +29,6 @@ namespace eval ::xowiki {
             }}
             {html {rows 15 cols 50 style {width: 100%}}}}
         }
-        {f.description
-          {description:text(textarea),nospell,optional 
-            {label #xowiki.description#} {html {cols 80 rows 2}}}
-        }
-        {f.nls_language
-          {nls_language:text(select),optional {label #xowiki.Language#}
-            {options \[xowiki::locales\]}}}
         {validate
           {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}}}
@@ -72,6 +59,7 @@ namespace eval ::xowiki {
     set field_list [my field_list]
     if {[my show_page_order]} {
       set field_list [linsert $field_list 2 page_order]
+      # todo: needed?
       if {[$data istype ::xowiki::PageInstance]} {
         set s [$data get_field_type page_order ""]
         if {$s ne ""} {
@@ -83,44 +71,30 @@ namespace eval ::xowiki {
       my f.name {name:text(hidden),optional}
     }
 
-    # TODO: this could be made cleaner by using slots, which require xotcl 1.5.*. 
-    # currently, i do not want to force an upgrade to the newer xotcl versions.
-    set class [[my set data] info class]
-    set __container [::xo::OrderedComposite new -destroy_on_cleanup]
-    foreach cl [concat $class [$class info heritage]] {
-      if {[$cl exists cr_attributes]} {$__container contains [$cl cr_attributes]}
-    }
-
     foreach __field $field_list {
-      set __spec [my set f.$__field]
+
+      # if there is no field spec, use the default from the slot definitions
+      set __spec  [expr {[my exists f.$__field] ? [my set f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
 
+      #my msg "$__field wspec=$__wspec, spec=$__spec"
       # 
-      # try first to get the information from the attribute definitions
+      # get first the information from the attribute definitions & given specs
       #
       if {[lindex $__wspec 0] eq "="} {
-        set __found 0
-        foreach __att [$__container children] {
-          #ns_log notice "--field compare '$__field' '[$__att attribute_name]'"
-          if {[$__att attribute_name] eq $__field} {
-            #ns_log notice "--field $__field [$__att serialize]"
-            set __f [FormField new -volatile \
-                -label [$__att pretty_name] -type [$__att datatype] \
-                -spec  [lindex $__wspec 1]]
-            set __spec ${__field}:[$__f asWidgetSpec]
-            set __wspec [lindex $__spec 0]
-            set __found 1
-            break
-          }
-        }
-        if {!$__found} {
-          ns_log notice "--form WARNING: could not find field $__field"
-        }
+        set f [$data create_form_field \
+                   -name $__field \
+                   -slot [$data find_slot $__field] \
+                   -spec [lindex $__spec 1] \
+                  ]
+
+        set __spec ${__field}:[$f asWidgetSpec]
+        set __wspec [lindex $__spec 0]
       }
 
       #
       # it might be necessary to update the folder spec for xinha 
-      # (to locate the right folder)
+      # to locate the right folder
       #
       # ns_log notice "--field richtext '$__wspec' --> [string first richtext $__wspec]"
       if {[string first "richtext" $__wspec] > -1} {
@@ -139,7 +113,7 @@ namespace eval ::xowiki {
           my log "--F rewritten spec is '$__newspec'"
           set __spec $__newspec
         }
-        # ad_form does a subst. escape esp. the javascript stuff
+        # ad_form does a subst, therefore escape esp. the javascript stuff
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
 
@@ -349,10 +323,7 @@ namespace eval ::xowiki {
 
   Class create PlainWikiForm -superclass WikiForm \
       -parameter {
-        {f.text
-          {text:text(textarea),nospell,optional
-            {label #xowiki.content#}
-            {html {cols 80 rows 10}}}}
+        {f.text "= textarea(cols=80;rows=10)"}
       }
 
   #
@@ -363,11 +334,8 @@ namespace eval ::xowiki {
       -parameter {
         {html { enctype multipart/form-data }} \
         {field_list {item_id name text title creator description}}
-        {f.name    
-          {name:text,nospell,optional {label #xowiki.name#}
-            {help_text {Can be obtained from the name of the uploaded file}}}}
-        {f.title
-          {title:text,optional {label #xowiki.title#} {html {size 80}} }}
+        {f.name  "= optional,help_text=#xowiki.File-name-help_text#"}
+        {f.title "= optional"}
         {f.text
           {upload_file:file(file) 
             {label #xowiki.content#}
@@ -415,29 +383,19 @@ namespace eval ::xowiki {
     return [next]
   }
 
+#         {f.pub_date 
+# 	  {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}
+# 	    {after_html {<input type="button" 
+# 	      style="height:23px; width:23px; background: url('/resources/acs-templating/calendar.gif');" 
+# 	      onclick ="return showCalendarWithDateWidget('date', 'y-m-d');" /> Y-M-D}
+# 	    }}
+# 	}
 
   Class create PodcastForm -superclass FileForm \
       -parameter {
         {html { enctype multipart/form-data }} \
         {field_list {item_id name text title subtitle creator pub_date duration keywords 
 	  description}}
-        {f.subtitle    
-          {subtitle:text,nospell,optional {label #xowiki.subtitle#} {html {size 80}}}}
-        {f.pub_date 
-	  {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}
-	    {after_html {<input type="button" 
-	      style="height:23px; width:23px; background: url('/resources/acs-templating/calendar.gif');" 
-	      onclick ="return showCalendarWithDateWidget('date', 'y-m-d');" /> Y-M-D}
-	    }}
-	}
-        {f.duration 
-	  {duration:text,nospell,optional
-	    {help_text {E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)}}
-	  }}
-        {f.keywords 
-	  {keywords:text,nospell,optional
-	    {help_text {comma separated itunes keywords, e.g. salt, pepper, shaker, exciting}}
-	  }}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
                                                           a upload file must be provided}}
@@ -446,6 +404,8 @@ namespace eval ::xowiki {
           {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
           }}
       }
+
+#	    {help_text {E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)}}
 
   PodcastForm instproc to_timestamp {widgetinfo} {
     if {$widgetinfo ne ""} {
@@ -502,7 +462,7 @@ namespace eval ::xowiki {
       # don't call validate on the folder object, don't let people change its name
       set name [$data set name]
       if {$name eq "::[$data set parent_id]"} {
-        my f.name  {name:text(inform) {label #xowiki.name#}}
+        my f.name  "= inform,help_text="
         my validate {{name {1} {dummy}} }
         #my log "--e don't validate folder id - parent_id = [$data set parent_id]"
       }
@@ -513,14 +473,14 @@ namespace eval ::xowiki {
   ObjectForm instproc new_request {} {
     my instvar data
     permission::require_permission \
-        -party_id [ad_conn user_id] -object_id [$data set parent_id] \
+       -party_id [ad_conn user_id] -object_id [$data set parent_id] \
         -privilege "admin"
     next
   }
 
   ObjectForm instproc edit_request {item_id} {
     my instvar data
-    my f.name {{name:text {label #xowiki.name#}}}
+    #my f.name {{name:text {label #xowiki.Page-name#}}}
     permission::require_permission \
         -party_id [ad_conn user_id] -object_id [$data set parent_id] \
         -privilege "admin"
@@ -538,7 +498,6 @@ namespace eval ::xowiki {
   Class create PageTemplateForm -superclass WikiForm \
       -parameter {
 	{field_list {item_id name title creator text anon_instances description nls_language}}
-        {f.anon_instances "="}
       }
 
   #
@@ -584,7 +543,7 @@ namespace eval ::xowiki {
       -parameter {
         {field_list_top    {item_id name title creator}}
         {field_list_bottom {page_template description nls_language}}
-        {f.name            {name:text(inform)}}
+        {f.name            "= inform"}
         {f.page_template   {page_template:text(hidden)}}
         {f.nls_language    {nls_language:text(hidden)}}
         {with_categories   true}
@@ -632,30 +591,39 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc init {} {
     my instvar data page_instance_form_atts
     set item_id [$data form_parameter item_id]
-    set page_template [$data form_parameter page_template ""]
-    if {$page_template eq ""} {
-      set page_template [$data set page_template]
-      #my log  "-- page_template = $page_template"
+    #
+    # make sure to have page template object loaded
+    #
+    set page_template_id [$data form_parameter page_template ""]
+    if {$page_template_id eq ""} {
+      set page_template_id [$data set page_template]
     }
-    #my log  "-- calling page_template = $page_template"
-    set template [::Generic::CrItem instantiate -item_id $page_template]
-    $template volatile
+    set template [::Generic::CrItem instantiate -item_id $page_template_id]
+    $template destroy_on_cleanup
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
+
+    #
+    # compute list of form instance attributes
+    #
     set page_instance_form_atts [list]
     foreach {var _} [$data template_vars [$template set text]] {
       if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
     }
     my set field_list [concat [my field_list_top] $page_instance_form_atts [my field_list_bottom]]
-    #my log "--field_list [my set field_list]"
-    foreach __var [concat [my field_list_top] [my field_list_bottom]] {
-      set spec [my f.$__var]
-      set spec [string range $spec [expr {[string first : $spec]+1}] end]
-      my set f.$__var "$__var:[$data get_field_type $__var $spec]"
-    }
+
+    #
+    # get widget specs from folder. 
+    # All other specs are taken form attributes or form constraints.
+    # The widget_spec functionality might be deprecated in the future.
+    #
     foreach __var $page_instance_form_atts {
-      my set f.$__var "$__var:[$data get_field_type $__var [my textfieldspec]]"
+      set spec [$data widget_spec_from_folder_object [$data set name] [$template set name]]
+      if {$spec ne ""} {
+        my set f.$__var "$__var:$spec"
+      }
     }
+
     my edit_page_title [$data get_from_template title]
     next
     #my log "--fields = [my fields]"
@@ -663,9 +631,7 @@ namespace eval ::xowiki {
 
  Class create FormInstanceEditForm -superclass PageInstanceEditForm \
     -parameter {
-      {f.name
-        {name:text {label #xowiki.name#} {html {size 80}} 
-          {help_text {Shortname to identify a page within a folder, typically lowercase characters}}}}
+      {f.name "= text"}
     }
 
   FormInstanceEditForm instproc edit_data {} {
@@ -707,7 +673,6 @@ namespace eval ::xowiki {
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
     -parameter {
 	{field_list {item_id name title creator text form form_constraints anon_instances description nls_language}}
-	{f.form_constraints "="}
 	{f.text
 	  {text:richtext(richtext),nospell,optional
 	    {label #xowiki.template#}
@@ -758,102 +723,5 @@ namespace eval ::xowiki {
   }
 
 
-  # first approximation for form fields.
-  # these could support not only asWidgetSpec, but as well asHTML
-  # todo: every formfield type should have its own class
-
-  Class FormField -parameter {
-    {required false} {type text} {label} {name} {spell false} {size 80} 
-    {value ""} spec
-  }
-  FormField instproc init {} {
-    my instvar type options spec widget_type
-    if {![my exists label]} {my label [string totitle [my name]]}
-    foreach s [split $spec ,] {
-      switch -glob $s {
-        required {my set required true}
-        hidden   {set type hidden}
-        inform   {set type inform}
-        text     {set type text}
-        date     {set type date}
-        boolean  {set type boolean}
-        numeric  {set type text; #for the time being}
-        month    {set type month}
-        label=*  {my label [lindex [split $s =] 1]}
-        size=*   {my size [lindex [split $s =] 1]}
-        default  {error "unknown spec for entry [my name]: '$s'"}
-      }
-    }
-    switch $type {
-      hidden  -
-      inform {
-        set widget_type text($type)
-      }
-      boolean  {
-        set widget_type text(select)
-        set options {{No f} {Yes t}}
-      }
-      month    {
-        set widget_type text(select)
-        set options {
-          {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
-          {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
-        }
-      }
-      default {
-        set widget_type $type
-      }
-    }
-    #my msg "--formField processing spec $spec -> widget_type = $widget_type"
-  }
-  FormField instproc asWidgetSpec {} {
-    my instvar widget_type options
-    set spec $widget_type
-    if {![my spell]} {append spec ",nospell"}
-    if {![my required]} {append spec ",optional"}
-    append spec " {label \"[my label]\"}"
-    if {$widget_type eq "text"} {
-      if {[my exists size]} {append spec " {html {size [my size]}}"}
-    } elseif {$widget_type eq "text(select)"} {
-      append spec " {options [list $options]}"
-    }
-    return $spec
-  }
-  FormField instproc render_form_widget {} {
-    # todo: for all types
-    set atts [list type text]
-    foreach att {size name value} {
-      if {[my exists $att]} {lappend atts $att [my set $att]}
-    }
-
-    ::html::div -class form-widget {::html::input $atts {}}
-  } 
-  FormField instproc render_item {} {
-    ::html::div -class form-item-wrapper {
-      ::html::div -class form-label {
-        ::html::label -for [my name] {
-          ::html::t [my label]
-        }
-        if {[my required]} {
-          ::html::div -class form-required-mark {
-            ::html::t " (#acs-templating.required#)"
-          }
-        }
-      }
-      my render_form_widget
-    }
-  }
-  FormField instproc renderValue {v} {
-    if {[my exists options]} {
-      foreach o [my set options] {
-        foreach {label value} $o break
-        if {$value eq $v} {return $label}
-      }
-    }
-    return $v
-  }
- 
-
 
 }
-
