@@ -420,13 +420,6 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%my set package_id} %proc
   Page instforward exists_form_parameter {%my set package_id} %proc
 
-  Page instproc condition {method attr value} {
-    switch $attr {
-      has_class {return [expr {[my set object_type] eq $value}]}
-    }
-    return 0
-  }
-
   Page instproc complete_name {name {nls_language ""}} {
     if {![regexp {^..:} $name]} {
       if {$name ne ""} {

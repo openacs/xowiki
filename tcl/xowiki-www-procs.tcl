@@ -341,7 +341,6 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
-    # TODO combine with form_constraints, Remove unneeded cases
     set short_spec [my get_short_spec $name]
     set spec_list [list]
     if {$short_spec ne ""} {lappend spec_list $short_spec}
