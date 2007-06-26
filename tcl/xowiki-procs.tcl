@@ -49,13 +49,13 @@ namespace eval ::xowiki {
   ::xowiki::Page::slot::title set required true
   ::xowiki::Page::slot::title set datatype text
   ::xowiki::Page::slot::description set pretty_name #xowiki.Page-description#
-  ::xowiki::Page::slot::description set spec "textarea(cols=80;rows=2)"
+  ::xowiki::Page::slot::description set spec "textarea,cols=80,rows=2"
   ::xowiki::Page::slot::description set datatype text
   ::xowiki::Page::slot::text set pretty_name #xowiki.Page-text#
   ::xowiki::Page::slot::text set datatype text
   ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
   ::xowiki::Page::slot::nls_language set datatype text
-  ::xowiki::Page::slot::nls_language set spec {select(options=[xowiki::locales])}
+  ::xowiki::Page::slot::nls_language set spec {select,options=[xowiki::locales]}
 
   ::Generic::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
@@ -74,7 +74,7 @@ namespace eval ::xowiki {
       -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
       -cr_attributes {
           ::Generic::Attribute new -attribute_name pub_date -datatype date \
-              -sqltype timestamp -spec "date(format=YYYY_MM_DD_HH24_MI)"
+              -sqltype timestamp -spec "date,format=YYYY_MM_DD_HH24_MI"
           ::Generic::Attribute new -attribute_name duration -datatype text \
               -help_text "#xowiki.PodcastItem-duration-help_text#"
           ::Generic::Attribute new -attribute_name subtitle -datatype text

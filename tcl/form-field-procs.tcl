@@ -8,115 +8,84 @@ ad_library {
 
 namespace eval ::xowiki {
 
-  # first approximation for form fields.
-  # these could support not only asWidgetSpec, but as well asHTML
+  # seconds approximation for form fields.
+  # these could support not only asWidgetSpec, but as well asHTML (just partly by now)
   #
-  # todo: every formfield type should have its own class
-  # finally, this should go into xotcl-core
+  # todo: finally, this should go into xotcl-core
 
   Class FormField -parameter {
-    {required false} {type text} {label} {name} {spell false} {size 80} 
-    {value ""} {spec ""} {help_text ""}
+    {required false} 
+    {type text} 
+    {label} 
+    {name} 
+    {id} 
+    {value ""} 
+    {spec ""} 
+    {help_text ""}
   }
   FormField instproc init {} {
-    my instvar spec
     if {![my exists label]} {my label [string totitle [my name]]}
-    my config_from_spec $spec
+    if {[my exists id]} {my html(id) [my id]}
+    #my msg "calling config_from_spec '[my spec]'"
+    my config_from_spec [my spec]
   }
   FormField instproc config_from_spec {spec} {
     my instvar type options widget_type
+    if {[my info class] eq [self class]} {
+      # check, wether a class was already set. we do it this way
+      # to allow multiple additive config_from_spec invocations
+      my class  [self class]::$type
+    }
+
     foreach s [split $spec ,] {
       switch -glob $s {
         optional    {my set required false}
         required    {my set required true}
-        hidden      {set type hidden}
-        inform      {set type inform}
-        text        {set type text}
-        boolean     {set type boolean}
-        numeric     {set type text; #for the time being}
-        month       {set type month}
+        hidden      {my class [self class]::hidden}
+        inform      {my class [self class]::inform}
+        text        {my class [self class]::text}
+        textarea    {my class [self class]::textarea}
+        richtext    {my class [self class]::richtext}
+        boolean     {my class [self class]::boolean}
+        numeric     {my class [self class]::text; #for the time being
+        }
+        select      {my class [self class]::select}
+        month       {my class [self class]::month}
+        date        {my class [self class]::date}
         label=*     {my label     [lindex [split $s =] 1]}
         help_text=* {my help_text [lindex [split $s =] 1]}
-        size=*      {my size      [lindex [split $s =] 1]}
-        date*       {
-          my instvar date
-          set type date
-          if {[regexp {^date\((.*)\)$} $s _ opts]} {
-            foreach o [split "$opts;" ";"] {
-              foreach {att value} [split $o =] break
-              set date($att) [string map [list _ " "] $value]
-            }
-          }
-        }
-        select(*)  {
-          regexp {^select\((.*)\)$} $s _ opts
-          set type text(select)
-          foreach o [split "$opts;" ";"] {
-             switch -glob $o {
-               options=* {set options [lindex [split $o =] 1]}
-             }
-          }
-        }
-        textarea*   {
-          my instvar textarea
-          set type text(textarea)
-          set textarea(cols) 80
-          set textarea(rows) 2
-          if {[regexp {^textarea\((.*)\)$} $s _ opts]} {
-            foreach o [split $opts ";"] {
-              switch -glob $o {
-                cols=* {set textarea(cols) [lindex [split $o =] 1]}
-                rows=* {set textarea(rows) [lindex [split $o =] 1]}
-              }
-            }
-          }
-          my size [lindex [split $s =] 1]
-        }
-        default   {error "unknown spec for entry [my name]: '$s'"}
-       }
-    }
-    switch $type {
-      hidden  -
-      inform {
-        set widget_type text($type)
-      }
-      boolean  {
-        set widget_type text(select)
-        set options {{No f} {Yes t}}
-      }
-      month    {
-        set widget_type text(select)
-        set options {
-          {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
-          {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
-        }
-      }
-      default {
-        set widget_type $type
+        *=*         {set l [split $s =]; my [lindex $l 0] [lindex $l 1]}
+        default     {error "unknown spec for entry [my name]: '$s'"}
       }
     }
-    #my msg "--formField processing spec $spec -> widget_type = $widget_type"
+    ::xotcl::Class::Parameter searchDefaults [self]; # todo will be different in xotcl 1.6.*
+    #my msg "[my name]: '$spec' calling initialize class=[my info class]\n"
+    my initialize 
   }
 
   FormField instproc asWidgetSpec {} {
-    my instvar widget_type options help_text
+    my instvar widget_type options label help_text format html
     set spec $widget_type
-    if {![my spell]} {append spec ",nospell"}
+    if {[my exists spell]} {append spec ",[expr {[my spell] ? {} : {no}}]spell"}
+
     if {![my required]} {append spec ",optional"}
-    append spec " {label \"[my label]\"}"
-    if {$widget_type eq "text"} {
-      if {[my exists size]} {append spec " {html {size [my size]}}"}
-    } elseif {$widget_type eq "text(select)"} {
-      append spec " {options [list $options]}"
-    } elseif {$widget_type eq "text(textarea)"} {
-      my instvar textarea
-      append spec " {html {cols $textarea(cols) rows $textarea(rows)}}"
-    } elseif {$widget_type eq "date" && [my exists date]} {
-      if {[my exists date(format)]} {
-        append spec " {format \"[my set date(format)]\"}"
+    append spec " {label " [list $label] "} "
+
+    if {[my exists html]} {
+      append spec " {html {" 
+      foreach {key value} [array get html] {
+        append spec $key " " [list $value] " "
       }
-      # 	  {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}}
+      append spec "}} " 
     }
+
+    if {[my exists options]} {
+      append spec " {options " [list $options] "} "
+    }
+    if {[my exists format]} {
+      append spec " {format " [list $format] "} "
+    }
+
     if {$help_text ne ""} {
       if {[string match "#*#" $help_text]} {
         set internationalized [_ [string trim $help_text #]]
@@ -125,7 +94,6 @@ namespace eval ::xowiki {
         append spec " {help_text {$help_text}}"
       }
     }
-    #my msg "final spec=$spec"
     return $spec
   }
 
@@ -162,6 +130,98 @@ namespace eval ::xowiki {
     }
     return $v
   }
+
+
+  Class FormField::hidden -superclass FormField
+  FormField::hidden instproc initialize {} {
+    my instvar widget_type
+    set widget_type text(hidden)
+  }
+  
+  Class FormField::inform -superclass FormField
+  FormField::inform instproc initialize {} {
+    my instvar widget_type
+    set widget_type text(inform)
+  }
+
+  Class FormField::text -superclass FormField -parameter {
+    {size 80}
+  }
+  FormField::text instproc initialize {} {
+    my instvar widget_type html
+    set widget_type text
+    foreach p [list size] {if {[my exists $p]} {set html($p) [my $p]}}
+  }
+
+  Class FormField::textarea -superclass FormField -parameter {
+    {rows 2}
+    {cols 80}
+    {spell false}
+    style
+  }
+  FormField::textarea instproc initialize {} {
+    my instvar widget_type options html
+    set widget_type text(textarea)
+    foreach p [list rows cols style] {if {[my exists $p]} {set html($p) [my $p]}}
+  }
+
+  Class FormField::richtext -superclass FormField::textarea -parameter {
+    {editor xinha} 
+    plugins 
+    folder_id
+    width
+    javascript
+    {height 350px}
+    {style "width: 100%"}
+  }
+  FormField::richtext instproc initialize {} {
+    my instvar widget_type options
+    next
+    set widget_type richtext
+    if {![my exists plugins]} {
+      my plugins \
+          [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
+               -default [parameter::get_from_package_key \
+                             -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
+    }
+    set options [list]
+    foreach p [list editor plugins height folder_id] {lappend options $p [my $p]}
+  }
+
+
+  
+  Class FormField::date -superclass FormField -parameter {format}
+  FormField::date instproc initialize {} {
+    my instvar widget_type format
+    set widget_type date
+    if {[my exists format]} {
+      set format [string map [list _ " "] [my format]]
+    }
+  }
+
+  Class FormField::select -superclass FormField -parameter {
+    {options ""}
+  }
+  FormField::select instproc initialize {} {
+    my set widget_type text(select)
+  }
+
+  Class FormField::month -superclass FormField -superclass FormField::select
+  FormField::month instproc initialize {} {
+    my options {
+      {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
+      {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
+    }
+    next
+  }
+
+  Class FormField::boolean -superclass FormField -superclass FormField::select
+  FormField::boolean instproc initialize {} {
+    my options {{No f} {Yes t}}
+    next
+  }
+
+
  
   #
   # a few test cases
@@ -172,7 +232,7 @@ namespace eval ::xowiki {
     if {$msg eq ""} {set msg $cmd}
     if {$r ne $expected} {
       regsub -all \# $r "" r
-      append ::_ "Error: $msg returned '$r' ne '$expected'\n"
+      append ::_ "Error: $msg returned \n'$r' ne \n'$expected'\n"
     } else {
       append ::_ "$msg - passed ([t1 diff] ms)\n"
     }
@@ -187,41 +247,41 @@ namespace eval ::xowiki {
     set f0 [$o create_form_field -name test \
                 -slot ::xowiki::Page::slot::name]
     ? {$f0 asWidgetSpec} \
-        {text,nospell {label "#xowiki.Page-name#"} {html {size 80}} {help_text {Shortname to identify a page within a folder, typically lowercase characters}}} \
+        {text {label #xowiki.Page-name#}  {html {size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text"
 
     set f0 [$o create_form_field -name test \
                 -slot ::xowiki::Page::slot::name -spec inform]
     ? {$f0 asWidgetSpec} \
-        {text(inform),nospell {label "#xowiki.Page-name#"} {help_text {Shortname to identify a page within a folder, typically lowercase characters}}} \
+        {text(inform) {label #xowiki.Page-name#}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text + inform"
 
     set f0 [$o create_form_field -name test \
                 -slot ::xowiki::Page::slot::name -spec optional]
     ? {$f0 asWidgetSpec} \
-        {text,nospell,optional {label "#xowiki.Page-name#"} {html {size 80}} {help_text {Shortname to identify a page within a folder, typically lowercase characters}}} \
+        {text,optional {label #xowiki.Page-name#}  {html {size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text + optional"
 
     set f1 [$o create_form_field -name test \
                -slot ::xowiki::Page::slot::description \
-               -spec "textarea(cols=80;rows=2)"]
+               -spec "textarea,cols=80,rows=2"]
     ? {$f1 asWidgetSpec} \
-        {text(textarea),nospell,optional {label "#xowiki.Page-description#"} {html {cols 80 rows 2}}} \
-        "textarea(cols=80;rows=2)"
+        {text(textarea),nospell,optional {label #xowiki.Page-description#}  {html {cols 80 rows 2 }} } \
+        "textarea,cols=80,rows=2"
 
     set f2 [$o create_form_field -name test \
                 -slot ::xowiki::Page::slot::nls_language \
-                -spec {select(options=[xowiki::locales])}]
+                -spec {select,options=[xowiki::locales]}]
     ? {$f2 asWidgetSpec} \
-        {text(select),nospell,optional {label "#xowiki.Page-nls_language#"} {options {[xowiki::locales]}}} \
-        {select(options=[xowiki::locales])}
+        {text(select),optional {label #xowiki.Page-nls_language#}  {options {[xowiki::locales]}} } \
+        {select,options=[xowiki::locales]}
 
 
     $o mixin ::xowiki::PodcastItem
     set f3 [$o create_form_field -name test \
                 -slot ::xowiki::PodcastItem::slot::pub_date]
     ? {$f3 asWidgetSpec} \
-        {date,nospell,optional {label "#xowiki.PodcastItem-pub_date#"} {format "YYYY MM DD HH24 MI"}} \
+        {date,optional {label #xowiki.PodcastItem-pub_date#}  {format {YYYY MM DD HH24 MI}} } \
         {date with format}
   }
 }

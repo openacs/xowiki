@@ -20,15 +20,7 @@ namespace eval ::xowiki {
         {f.title "="}
         {f.creator "="}
         {f.description "="}
-	{f.text
-	  {text:richtext(richtext),nospell,optional
-	    {label #xowiki.content#}
-	    {options {editor xinha plugins {
-[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
-	    } height 350px 
-            }}
-            {html {rows 15 cols 50 style {width: 100%}}}}
-        }
+	{f.text "= richtext,editor=xinha"}
         {validate
           {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}}}
@@ -88,31 +80,19 @@ namespace eval ::xowiki {
                    -spec [lindex $__spec 1] \
                   ]
 
+        if {[$f istype ::xowiki::FormField::richtext] &&
+            [my folderspec] ne ""} {
+          # insert the folder id into the spec for the 
+          # oacsfs plugin to access the correct filestore instance
+          foreach {key value} [my folderspec] break
+          $f $key $value
+        }
+
         set __spec ${__field}:[$f asWidgetSpec]
         set __wspec [lindex $__spec 0]
       }
 
-      #
-      # it might be necessary to update the folder spec for xinha 
-      # to locate the right folder
-      #
-      # ns_log notice "--field richtext '$__wspec' --> [string first richtext $__wspec]"
       if {[string first "richtext" $__wspec] > -1} {
-        # we have a richtext widget; get special configuration is specified
-        set __spec [$data get_rich_text_spec $__field $__spec]
-        set __wspec [lindex $__spec 0]
-        #my log "--F richtext-spec = '$__spec', folder_spec [my folderspec]"
-        if {[my folderspec] ne ""} {
-          # append the folder spec to its options
-          set __newspec [list $__wspec]
-          foreach __e [lrange $__spec 1 end] {
-            foreach {__name __value} $__e break
-            if {$__name eq "options"} {eval lappend __value [my folderspec]}
-            lappend __newspec [list $__name $__value]
-          }
-          my log "--F rewritten spec is '$__newspec'"
-          set __spec $__newspec
-        }
         # ad_form does a subst, therefore escape esp. the javascript stuff
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
@@ -154,7 +134,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # this should be OO-ified -gustaf
+  # todo: this should be OO-ified -gustaf
   proc ::xowiki::validate_file {} {
     my instvar data
     my get_uploaded_file
@@ -323,7 +303,7 @@ namespace eval ::xowiki {
 
   Class create PlainWikiForm -superclass WikiForm \
       -parameter {
-        {f.text "= textarea(cols=80;rows=10)"}
+        {f.text "= textarea,cols=80,rows=10"}
       }
 
   #
@@ -449,10 +429,7 @@ namespace eval ::xowiki {
 
   Class create ObjectForm -superclass PlainWikiForm \
       -parameter {
-        {f.text
-          {text:text(textarea),nospell,optional
-            {label #xowiki.content#}
-            {html {cols 80 rows 15}}}}
+        {f.text "= textarea,cols=80,rows=15"}
         {with_categories  false}
       }
 
@@ -672,25 +649,10 @@ namespace eval ::xowiki {
 
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
     -parameter {
-	{field_list {item_id name title creator text form form_constraints anon_instances description nls_language}}
-	{f.text
-	  {text:richtext(richtext),nospell,optional
-	    {label #xowiki.template#}
-	    {options {editor xinha plugins {
-[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
-	    } height 300px 
-            }}
-            {html {rows 10 cols 50 style {width: 100%}}}}
-        }
-	{f.form
-	  {form:richtext(richtext),nospell,optional
-	    {label #xowiki.Form-form#}
-	    {options {editor xinha plugins {
-[parameter::get -parameter "XowikiXinhaDefaultPlugins" -default [parameter::get_from_package_key -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
-	    } height 300px 
-            }}
-            {html {rows 10 cols 50 style {width: 100%}}}}
-        }
+	{field_list {item_id name title creator text form form_constraints 
+          anon_instances description nls_language}}
+	{f.text "= richtext,height=200px"}
+	{f.form "= richtext,height=200px"}
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}
