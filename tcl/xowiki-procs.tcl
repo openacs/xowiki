@@ -483,7 +483,13 @@ namespace eval ::xowiki {
 		    -name $page_name \
 		    -actual_query [::xo::cc actual_query]]
     } else {
+      #
       # we include a wiki page, tailorable
+      #
+      # for the resolver, we create a fresh context to avoid recursive loops, when
+      # e.g. revision_id is set...
+      #
+      $package_id context [::xo::Context new -volatile]
       set page [$package_id resolve_page $page_name __m]
       if {[regexp {^/(/[^?]*)[?]?(.*)$} $page_name _ url query]} {
         # here we handle cross package xowiki includes
@@ -494,6 +500,7 @@ namespace eval ::xowiki {
         }
         #my log "--resolve --> $page"
       }
+      $package_id context ::xo::cc
       if {$page ne "" && ![$page exists __decoration]} {
         $page set __decoration portlet
       }
