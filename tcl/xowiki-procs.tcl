@@ -454,6 +454,15 @@ namespace eval ::xowiki {
                "\[$cmd\]"]
   }
 
+  Page instproc error_during_render {msg} {
+    return "<div class='errorMsg'>$msg</div>"
+  }
+
+  Page instproc error_in_includelet {arg msg} {
+    my instvar name
+    return [my error_during_render "[_ xowiki.error_in_includelet]<br/>\n$msg"]
+  }
+
   Page instproc include_portlet {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
@@ -463,9 +472,7 @@ namespace eval ::xowiki {
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
       #my log "--S arg='$arg'"
       # there is something syntactically wrong
-      return "<div class='errorMsg'>Error in '{{$arg}}' in [my set name] ($errMsg)<br/>\n\
-           Syntax: &lt;name of portlet&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$arg'; must be attribute value pairs (attribues with dashes)</div>"
+      return [my error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
 
     # the include is either a portlet class, or a wiki page
@@ -509,51 +516,46 @@ namespace eval ::xowiki {
       }
 
       if {[catch {set html [$page render]} errorMsg]} {
-        set html "<div class='errorMsg'><p>Error in includelet '$page_name' $errorMsg\
-           <pre>$::errorInfo</pre></div>\n"
+        set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
       }
       #my log "--include portlet returns $html"
       return $html
     } else {
-      return "<div class='errorMsg'><p>Error: includelet '$page_name' unknown</div>\n"
+      return [my error_during_render [_ xowiki.error-includelet-unknown]]
     }
   }
 
   Page instproc include {ch arg ch2} {
     # make recursion depth a global variable to ease the deletion etc.
-    if {[catch {incr ::xowiki_recursion_depth}]} {
-      set ::xowiki_recursion_depth 1
+    if {[catch {incr ::xowiki_inclusion_depth}]} {
+      set ::xowiki_inclusion_depth 1
     }
-    if {$::xowiki_recursion_depth > 10} {
-      return "${ch}<div class='errorMsg'>Error in includelet '{{$arg}}' in page [my set name]:<br/>\n\
-      Nesting of pages is to deep</div>"
+    if {$::xowiki_inclusion_depth > 10} {
+      return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]
     }
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
-        incr ::xowiki_recursion_depth -1
-        return "${ch}<div class='errorMsg'>Error in '{{$arg}}' in [my set name] ($errMsg)<br/>\n\
-           Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)</div>"
+        incr ::xowiki_inclusion_depth -1
+        return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
-        incr ::xowiki_recursion_depth -1
-        return "${ch}<div class='errorMsg'>Error in '{{$arg}}'<br/>\n\
-           Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
-           Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)</div>"
+        incr ::xowiki_inclusion_depth -1
+        set adp $adp_args
+        return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
-        incr ::xowiki_recursion_depth -1
-        return "${ch}<div class='errorMsg'>Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
-           adp_include returned error message: $errorMsg</div>\n"
+        incr ::xowiki_inclusion_depth -1
+        return ${ch}[my error_in_includelet $arg \
+                         [_ xowiki.error-includelet-error_during_adp_evaluation]]
       }
 
       return $ch$page$ch2
@@ -564,7 +566,7 @@ namespace eval ::xowiki {
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
       set html [my include_portlet $arg]
       #my log "--include portlet returns $html"
-      incr ::xowiki_recursion_depth -1
+      incr ::xowiki_inclusion_depth -1
       return $ch$html$ch2
     }
   }

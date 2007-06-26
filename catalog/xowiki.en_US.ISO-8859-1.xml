@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.53" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.54" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -7,6 +7,18 @@
   <msg key="delete">Delete</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
+  <msg key="error-includelet-adp_syntax_invalid">Syntax: adp &amp;lt;name of adp-file&amp;gt; {&amp;lt;argument list&amp;gt;}&lt;br/&gt;
+
+Invalid argument list: '%adp%'; must be of form: attribute value pairs (even number of elements)</msg>
+  <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt;
+
+Argument list must contain attribute value pairs (attributes with dashes)</msg>
+  <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
+  <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
+&lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
+  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is to deep</msg>
+  <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
+  <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
