@@ -185,7 +185,9 @@ namespace eval ::xowiki {
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
     set options [list]
-    foreach p [list editor plugins height folder_id] {lappend options $p [my $p]}
+    foreach p [list editor plugins width height folder_id javascript] {
+      if {[my exists $p]} {lappend options $p [my $p]}
+    }
   }
 
 
