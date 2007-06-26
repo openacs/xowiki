@@ -520,10 +520,18 @@ namespace eval ::xowiki {
   }
 
   Page instproc include {ch arg ch2} {
-    [self class] instvar recursion_depth
+    # make recursion depth a global variable to ease the deletion etc.
+    if {[catch {incr ::xowiki_recursion_depth}]} {
+      set ::xowiki_recursion_depth 1
+    }
+    if {$::xowiki_recursion_depth > 10} {
+      return "${ch}<div class='errorMsg'>Error in includelet '{{$arg}}' in page [my set name]:<br/>\n\
+      Nesting of pages is to deep</div>"
+    }
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
+        incr ::xowiki_recursion_depth -1
         return "${ch}<div class='errorMsg'>Error in '{{$arg}}' in [my set name] ($errMsg)<br/>\n\
            Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
            Invalid argument list: '$adp'; must be attribute value pairs (even number of elements)</div>"
@@ -533,6 +541,7 @@ namespace eval ::xowiki {
       if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
+        incr ::xowiki_recursion_depth -1
         return "${ch}<div class='errorMsg'>Error in '{{$arg}}'<br/>\n\
            Syntax: adp &lt;name of adp-file&gt; {&lt;argument list&gt;}<br/>\n
            Invalid argument list: '$adp_args'; must be attribute value pairs (even number of elements)</div>"
@@ -542,6 +551,7 @@ namespace eval ::xowiki {
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
+        incr ::xowiki_recursion_depth -1
         return "${ch}<div class='errorMsg'>Error during evaluation of '{{$arg}}' in [my set name]<br/>\n\
            adp_include returned error message: $errorMsg</div>\n"
       }
@@ -554,6 +564,7 @@ namespace eval ::xowiki {
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
       set html [my include_portlet $arg]
       #my log "--include portlet returns $html"
+      incr ::xowiki_recursion_depth -1
       return $ch$html$ch2
     }
   }
