@@ -1155,6 +1155,7 @@ namespace eval ::xowiki {
     set fields [$root selectNodes "//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
     foreach field $fields {
+      # TODO missing: textarea
       if {[$field nodeName] ne "input"} continue
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
@@ -1176,6 +1177,7 @@ namespace eval ::xowiki {
     Store the instance attributes in the form.
   } {
     foreach {att value} [my instance_attributes] {
+      #my msg "set_form_value $att $value"
       my set_form_value $att $value
     }
   }
@@ -1191,9 +1193,10 @@ namespace eval ::xowiki {
       foreach att [::xo::cc array names form_parameter] {
         switch -- $att {
           __object_name {}
-          __name  {my set name [::xo::cc form_parameter $att]}
-          __title {my set title [::xo::cc form_parameter $att]}
-          default {set __ia($att) [::xo::cc form_parameter $att]}
+          __name        {my set name       [::xo::cc form_parameter $att]}
+          __title       {my set title      [::xo::cc form_parameter $att]}
+          __page_order  {my set page_order [::xo::cc form_parameter $att]}
+          default       {set __ia($att)    [::xo::cc form_parameter $att]}
         }
       }
       my log "--set instance attributes to [array get __ia]"
@@ -1232,6 +1235,7 @@ namespace eval ::xowiki {
     my instvar doc root package_id page_template
     set text [lindex [my get_from_template text] 0]
     if {$text ne ""} {
+      #my msg "we have a template text='$text'"
       # we have a template
       return [next]
     } else {

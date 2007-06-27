@@ -377,6 +377,12 @@ namespace eval ::xowiki {
                    -configuration [list -value [my set name]]]
         $root insertBeforeFromScript {$f render_item} $fcn
 
+	if {[$package_id show_page_order]} {
+	  set f [my create_form_field -name __page_order -slot [my find_slot page_order] \
+		     -configuration [list -value [my set page_order]]]
+	  $root insertBeforeFromScript {$f render_item} $fcn
+	}
+
         set f [my create_form_field -name __title -slot [my find_slot title] \
                    -configuration [list -value [my set title]]]
         $root insertBeforeFromScript {$f render_item} $fcn

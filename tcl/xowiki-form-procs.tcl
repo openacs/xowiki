@@ -14,9 +14,10 @@ namespace eval ::xowiki {
 
   Class create WikiForm -superclass ::Generic::Form \
       -parameter {
-	{field_list {item_id name title creator text description nls_language}}
+	{field_list {item_id name page_order title creator text description nls_language}}
 	{f.item_id {item_id:key}}
 	{f.name "="}
+	{f.page_order "="}
         {f.title "="}
         {f.creator "="}
         {f.description "="}
@@ -40,28 +41,14 @@ namespace eval ::xowiki {
           
       }
 
-  WikiForm instproc show_page_order {} {
-    my instvar data
-    return [expr {[::xo::db::has_ltree] && [[$data package_id] get_parameter display_page_order 1]}]
-  }
-
   WikiForm instproc mkFields {} {
     my instvar data autoname
     set __fields ""
     set field_list [my field_list]
-    if {[my show_page_order]} {
-      set field_list [linsert $field_list 2 page_order]
-      # todo: needed?
-      if {[$data istype ::xowiki::PageInstance]} {
-        set s [$data get_field_type page_order ""]
-        if {$s ne ""} {
-          my set f.page_order page_order:$s
-        }
-      }
-    }
-    if {$autoname} {
-      my f.name {name:text(hidden),optional}
-    }
+
+    set show_page_order [[$data package_id] show_page_order]
+    if {!$show_page_order} { my f.page_order "= hidden" } 
+    if {$autoname}         { my f.name       "= hidden"}
 
     foreach __field $field_list {
 
@@ -313,7 +300,7 @@ namespace eval ::xowiki {
   Class create FileForm -superclass WikiForm \
       -parameter {
         {html { enctype multipart/form-data }} \
-        {field_list {item_id name text title creator description}}
+        {field_list {item_id name page_order text title creator description}}
         {f.name  "= optional,help_text=#xowiki.File-name-help_text#"}
         {f.title "= optional"}
         {f.text
@@ -374,7 +361,7 @@ namespace eval ::xowiki {
   Class create PodcastForm -superclass FileForm \
       -parameter {
         {html { enctype multipart/form-data }} \
-        {field_list {item_id name text title subtitle creator pub_date duration keywords 
+        {field_list {item_id name page_order text title subtitle creator pub_date duration keywords 
 	  description}}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
@@ -474,7 +461,9 @@ namespace eval ::xowiki {
   #
   Class create PageTemplateForm -superclass WikiForm \
       -parameter {
-	{field_list {item_id name title creator text anon_instances description nls_language}}
+	{field_list {
+	  item_id name page_order title creator text anon_instances description nls_language
+	}}
       }
 
   #
@@ -483,7 +472,7 @@ namespace eval ::xowiki {
 
   Class create PageInstanceForm -superclass WikiForm \
       -parameter {
-        {field_list {item_id name page_template description nls_language}}
+        {field_list {item_id name page_order page_template description nls_language}}
         {f.page_template
           {page_template:text(select)
             {label "Page Template"}
@@ -518,7 +507,7 @@ namespace eval ::xowiki {
 
   Class create PageInstanceEditForm -superclass WikiForm \
       -parameter {
-        {field_list_top    {item_id name title creator}}
+        {field_list_top    {item_id name page_order title creator}}
         {field_list_bottom {page_template description nls_language}}
         {f.name            "= inform"}
         {f.page_template   {page_template:text(hidden)}}
@@ -649,7 +638,7 @@ namespace eval ::xowiki {
 
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
     -parameter {
-	{field_list {item_id name title creator text form form_constraints 
+	{field_list {item_id name page_order title creator text form form_constraints 
           anon_instances description nls_language}}
 	{f.text "= richtext,height=200px"}
 	{f.form "= richtext,height=200px"}

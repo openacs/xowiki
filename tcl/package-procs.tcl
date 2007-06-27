@@ -170,6 +170,10 @@ namespace eval ::xowiki {
     return $value
   }
 
+  Package instproc show_page_order {} {
+    return [expr {[::xo::db::has_ltree] && [my get_parameter display_page_order 1]}]
+  }
+
   #
   # conditional links
   #
