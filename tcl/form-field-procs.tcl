@@ -22,6 +22,8 @@ namespace eval ::xowiki {
     {value ""} 
     {spec ""} 
     {help_text ""}
+    {error_msg ""}
+    {validator ""}
   }
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
@@ -29,6 +31,26 @@ namespace eval ::xowiki {
     #my msg "calling config_from_spec '[my spec]'"
     my config_from_spec [my spec]
   }
+
+  FormField instproc validate {value obj} {
+    my instvar name required
+    if {$required && $value eq ""} {
+      my instvar label
+      return [_ acs-templating.Element_is_required]
+    }
+    # todo value type checker (through subtypes, check only if necessary)
+    if {[my validator] ne ""} {
+      set r [$obj [my validator] $value]
+      #my msg "validator [my validator] /[$obj procsearch [my validator]]/ returned $r"
+      if {$r != 1} {
+        set cl [namespace tail [lindex [$obj procsearch [my validator]] 0]]
+        my msg xowiki.$cl-[my validator]
+        return [_ xowiki.$cl-[my validator]]
+      }
+    }
+    return ""
+  }
+
   FormField instproc config_from_spec {spec} {
     my instvar type options widget_type
     if {[my info class] eq [self class]} {
@@ -50,6 +72,7 @@ namespace eval ::xowiki {
         numeric     {my class [self class]::text; #for the time being
         }
         select      {my class [self class]::select}
+        scale       {my class [self class]::scale}
         month       {my class [self class]::month}
         date        {my class [self class]::date}
         label=*     {my label     [lindex [split $s =] 1]}
@@ -64,7 +87,7 @@ namespace eval ::xowiki {
   }
 
   FormField instproc asWidgetSpec {} {
-    my instvar widget_type options label help_text format html
+    my instvar widget_type options label help_text format html display_html
     set spec $widget_type
     if {[my exists spell]} {append spec ",[expr {[my spell] ? {} : {no}}]spell"}
 
@@ -85,7 +108,9 @@ namespace eval ::xowiki {
     if {[my exists format]} {
       append spec " {format " [list $format] "} "
     }
-
+    #if {[my exists display_html]} {
+     # append spec " {display_value " [list [my set display_html]] "} "
+    #}
     if {$help_text ne ""} {
       if {[string match "#*#" $help_text]} {
         set internationalized [_ [string trim $help_text #]]
@@ -119,6 +144,12 @@ namespace eval ::xowiki {
         }
       }
       my render_form_widget
+      if {[my error_msg] ne ""} {
+        ::html::div -class form-error {
+          my instvar label
+          ::html::t -disableOutputEscaping [my error_msg]
+        }
+      }
     }
   }
   FormField instproc renderValue {v} {
@@ -201,6 +232,13 @@ namespace eval ::xowiki {
     }
   }
 
+  Class FormField::radio -superclass FormField -parameter {
+    {options ""}
+  }
+  FormField::radio instproc initialize {} {
+    my set widget_type text(radio)
+  }
+
   Class FormField::select -superclass FormField -parameter {
     {options ""}
   }
@@ -217,13 +255,22 @@ namespace eval ::xowiki {
     next
   }
 
-  Class FormField::boolean -superclass FormField -superclass FormField::select
+  Class FormField::boolean -superclass FormField -superclass FormField::radio
   FormField::boolean instproc initialize {} {
     my options {{No f} {Yes t}}
     next
   }
 
-
+  #Class FormField::scale -superclass FormField -parameter {{n 5}}
+  #FormField::scale instproc initialize {} {
+  #  my instvar n display_html 
+  #  my set widget_type text
+  #  for {set i 1} {$i < $n} {incr i} {
+  #    set checked ""
+  #    if {[my exists value] && [my value] == $i} {set checked " checked='checked'"}
+  #    append display_html "<input type='radio' name='[my name]' value='$i' $checked> "
+  #  }
+  #}
  
   #
   # a few test cases

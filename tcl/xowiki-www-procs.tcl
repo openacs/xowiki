@@ -210,7 +210,11 @@ namespace eval ::xowiki {
     }
   }
 
-  Page instproc edit {{-new:boolean false} {-autoname:boolean false}} {
+  Page instproc edit {
+    {-new:boolean false} 
+    {-autoname:boolean false}
+    {-validaton_errors ""}
+  } {
     my instvar package_id item_id revision_id
     $package_id instvar folder_id  ;# this is the root folder
 
@@ -332,15 +336,21 @@ namespace eval ::xowiki {
                -label     $label \
                -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
+               -validator [expr {[$slot exists validator] ? [$slot set validator] : ""}] \
                -required  [expr {[$slot exists required]  ? [$slot set required]  : "false"}] \
                -spec      [join $spec_list ,] \
               ]
     $f destroy_on_cleanup
-    $f configure $configuration
+    eval $f configure $configuration
     return $f
   }
 
-  PageInstance instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
+  PageInstance instproc create_form_field {
+    -name 
+    -slot 
+    {-spec ""} 
+    {-configuration ""}
+  } {
     set short_spec [my get_short_spec $name]
     set spec_list [list]
     if {$short_spec ne ""} {lappend spec_list $short_spec}
@@ -350,15 +360,39 @@ namespace eval ::xowiki {
     return $f
   }
 
-  FormInstance instproc edit {} {
+  FormInstance instproc create_form_fields {fields root fcn validation_errors} {
+    array set errors $validation_errors
+    foreach {formatt att} $fields {
+      set error_msg ""
+      if {[info exists errors($formatt)]} {set error_msg $errors($formatt)}
+
+      set f [my create_form_field -name $formatt -slot [my find_slot $att] \
+                   -configuration [list -value [my set $att] -error_msg $error_msg]]
+      $root insertBeforeFromScript {$f render_item} $fcn
+    }
+  }
+
+  FormInstance instproc edit {    
+    {-validation_errors ""}
+  } {
     my instvar page_template doc root package_id
-    
+
+    if {[my form_parameter __form_action ""] eq "save-form-data"} {
+      set validation_errors [my get_form_data]
+      if {$validation_errors ne [list]} {
+        foreach {att msg} $validation_errors {
+          my msg "Error in $att: $msg"
+        }
+        # reset the name in error cases to the original one
+        my set name [my form_parameter __object_name]
+      } else {
+        #$package_id returnredirect [::xo::cc url]?m=edit
+        #my edit -validation_errors $validation_errors
+      }
+    }
     set form [lindex [my get_from_template form] 0]
-    my log "--forminstance form='$form'"
-    set anon_instances   [my get_from_template anon_instances]
-    #set form_constraints [my get_from_template form_constraints]
-    #my log "--forminstance anon_instances='$anon_instances' fc='$form_constraints'"
-    my log "--forminstance anon_instances='$anon_instances'"
+    set anon_instances [my get_from_template anon_instances]
+
     if {$form eq ""} {
       #next -autoname $anon_instances -form_constraints $form_constraints
       next -autoname $anon_instances
@@ -370,22 +404,16 @@ namespace eval ::xowiki {
       $root firstChild fcn
       $root insertBeforeFromScript {
         ::html::input -type hidden -name __object_name -value [my name]
+        ::html::input -type hidden -name __form_action -value save-form-data
       } $fcn
       
       if {$anon_instances eq "f"} {
-        set f [my create_form_field -name __name -slot [my find_slot name] \
-                   -configuration [list -value [my set name]]]
-        $root insertBeforeFromScript {$f render_item} $fcn
-
 	if {[$package_id show_page_order]} {
-	  set f [my create_form_field -name __page_order -slot [my find_slot page_order] \
-		     -configuration [list -value [my set page_order]]]
-	  $root insertBeforeFromScript {$f render_item} $fcn
-	}
-
-        set f [my create_form_field -name __title -slot [my find_slot title] \
-                   -configuration [list -value [my set title]]]
-        $root insertBeforeFromScript {$f render_item} $fcn
+          set fields {__name name __page_order page_order __title title}
+        } else {
+          set fields {__name name __title title}
+        }
+        my create_form_fields $fields $root $fcn $validation_errors
       }
 
       $root appendFromScript {
@@ -396,7 +424,7 @@ namespace eval ::xowiki {
       if {$form eq ""} {
         my msg "no form found in page [$page_template name]"
       } else {
-        $form setAttribute action [$package_id pretty_link [my name]]?m=save-form-data method POST
+        $form setAttribute action [$package_id pretty_link [my name]]?m=edit method POST
         set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
         $form setAttribute class [string trim "$oldCSSClass margin-form"]
       }

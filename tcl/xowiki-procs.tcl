@@ -45,14 +45,19 @@ namespace eval ::xowiki {
   ::xowiki::Page::slot::name set required true
   ::xowiki::Page::slot::name set help_text #xowiki.Page-name-help_text#
   ::xowiki::Page::slot::name set datatype text
+  ::xowiki::Page::slot::name set validator validate_name
+
   ::xowiki::Page::slot::title set pretty_name #xowiki.Page-title#
   ::xowiki::Page::slot::title set required true
   ::xowiki::Page::slot::title set datatype text
+
   ::xowiki::Page::slot::description set pretty_name #xowiki.Page-description#
   ::xowiki::Page::slot::description set spec "textarea,cols=80,rows=2"
   ::xowiki::Page::slot::description set datatype text
+
   ::xowiki::Page::slot::text set pretty_name #xowiki.Page-text#
   ::xowiki::Page::slot::text set datatype text
+
   ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
   ::xowiki::Page::slot::nls_language set datatype text
   ::xowiki::Page::slot::nls_language set spec {select,options=[xowiki::locales]}
@@ -757,6 +762,12 @@ namespace eval ::xowiki {
     return $field_name:$spec
   }
 
+  Page instproc validate_name {name} {
+    upvar nls_language nls_language
+    my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
+    return [::xowiki::validate_name]
+  }
+
   Page instproc update_references {page_id references} {
     db_dml [my qn delete_references] \
         "delete from xowiki_references where page = $page_id"
@@ -1176,6 +1187,7 @@ namespace eval ::xowiki {
   FormInstance ad_instproc set_form_data {} {
     Store the instance attributes in the form.
   } {
+    #my msg "set_form_value instance attributes = [my instance_attributes]"
     foreach {att value} [my instance_attributes] {
       #my msg "set_form_value $att $value"
       my set_form_value $att $value
@@ -1186,22 +1198,32 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
+    set form_errors [list]
     set form [lindex [my get_from_template form] 0]
     if {$form ne ""} {
+      array set name_map {"__name" name "__title" title "__page_order" page_order}
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
       foreach att [::xo::cc array names form_parameter] {
+        set matt [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
+        set f    [my create_form_field -name $att -slot [my find_slot $matt]]
+        set value [::xo::cc form_parameter $att]
+        set form_error [$f validate $value [self]]
+        if {$form_error ne ""} {
+          lappend form_errors $att $form_error
+        }
         switch -- $att {
           __object_name {}
-          __name        {my set name       [::xo::cc form_parameter $att]}
-          __title       {my set title      [::xo::cc form_parameter $att]}
-          __page_order  {my set page_order [::xo::cc form_parameter $att]}
-          default       {set __ia($att)    [::xo::cc form_parameter $att]}
+          __name        {my set $matt    $value}
+          __title       {my set $matt    $value}
+          __page_order  {my set $matt    $value}
+          default       {set __ia($att)  $value}
         }
       }
       my log "--set instance attributes to [array get __ia]"
       my set instance_attributes [array get __ia]
     }
+    return $form_errors
   }
 
   FormInstance instproc form_attributes {} {
@@ -1240,6 +1262,7 @@ namespace eval ::xowiki {
       return [next]
     } else {
       set form [lindex [my get_from_template form] 0]
+      #my msg "we have a form"
       dom parse -simple -html $form doc
       $doc documentElement root
       my set_form_data
@@ -1276,19 +1299,17 @@ namespace eval ::xowiki {
     Method to be called from a submit button of the form
   } {
     my instvar package_id name
-    my get_form_data
-    my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
-    set ok [::xowiki::validate_name]
-    my log "--forminstance name='$name', old_name=[::xo::cc form_parameter __object_name] ok=$ok"
-    if {$ok} {
+    set validation_errors [my get_form_data]
+    if {$validation_errors ne [list]} {
+      foreach {att msg} $validation_errors {
+        my msg "Error in $name: $att"
+      }
+      my edit -validation_errors $validation_errors
+    } else {
       my save_data [::xo::cc form_parameter __object_name ""]
       my log "--forminstance redirect to [$package_id pretty_link $name]"
       $package_id returnredirect \
           [my query_parameter "return_url" [$package_id pretty_link $name]]
-    } else {
-      util_user_message -message "Another item with the name name $name exists already"
-      set name  [::xo::cc form_parameter __object_name]
-      $package_id returnredirect [::xo::cc url]?m=edit
     }
   }
 
