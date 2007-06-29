@@ -47,8 +47,9 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to 0.13"
       set package_id [::Generic::package_id_from_package_key xowiki]
       set folder_id  [::xowiki::Page require_folder \
-                         -package_id $package_id \
-                         -name xowiki]
+			  -package_id $package_id \
+			  -content_types ::xowki::Page* \
+			  -name xowiki]
       set r [::CrWikiPage instantiate_all -folder_id $folder_id]
       db_transaction {
         array set map {

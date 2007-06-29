@@ -449,7 +449,11 @@ namespace eval ::xowiki {
     #my log "--f [my isobject ::$folder_id] folder_id=$folder_id"
 
     if {$folder_id == 0} {
-      set folder_id [::xowiki::Page require_folder -name xowiki -package_id $id]
+      # TODO: we should make a parameter allowed_page_types (see content_types), 
+      # but the package admin should not have necessarily the rights to change it
+      set folder_id [::xowiki::Page require_folder \
+			 -name xowiki -package_id $id \
+			 -content_types ::xowki::Page* ]
     }
 
     if {![::xotcl::Object isobject ::$folder_id]} {
@@ -796,6 +800,7 @@ namespace eval ::xowiki {
         #my log "--D deleting folder object ::$folder_id"
         ns_cache flush xotcl_object_cache ::$folder_id
         ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
+        ns_cache flush xotcl_object_type_cache root_folder-$id
         ::$folder_id destroy
       }
       set key link-*-$name-$folder_id
