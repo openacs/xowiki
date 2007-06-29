@@ -1161,70 +1161,6 @@ namespace eval ::xowiki {
   FormInstance instproc footer {} {
     return [my include_portlet [list form-instance-menu]]
   }
-  FormInstance instproc set_form_value {att value} {
-    my instvar root item_id
-    set fields [$root selectNodes "//*\[@name='$att'\]"]
-    #my msg "found field = $fields xp=//*\[@name='$att'\]"
-    foreach field $fields {
-      # TODO missing: textarea
-      if {[$field nodeName] ne "input"} continue
-      set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
-      # the switch should be really different objects ad classes...., but thats HTML, anyhow.
-      switch $type {
-        checkbox {$field setAttribute checked true}
-        radio {
-          set inputvalue [$field getAttribute value]
-          if {$inputvalue eq $value} {
-            $field setAttribute checked true
-          }
-        }
-        text {  $field setAttribute value $value}
-        default {my msg "can't handle $type so far $att=$value"}
-      }
-    }
-  }
-
-  FormInstance ad_instproc set_form_data {} {
-    Store the instance attributes in the form.
-  } {
-    #my msg "set_form_value instance attributes = [my instance_attributes]"
-    foreach {att value} [my instance_attributes] {
-      #my msg "set_form_value $att $value"
-      my set_form_value $att $value
-    }
-  }
-
-  FormInstance ad_instproc get_form_data {} {
-    Get the values from the form and store it as
-    instance attributes.
-  } {
-    set form_errors [list]
-    set form [lindex [my get_from_template form] 0]
-    if {$form ne ""} {
-      array set name_map {"__name" name "__title" title "__page_order" page_order}
-      array set __ia [my set instance_attributes]
-      # we have a form, we get for the time being all variables
-      foreach att [::xo::cc array names form_parameter] {
-        set matt [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
-        set f    [my create_form_field -name $att -slot [my find_slot $matt]]
-        set value [::xo::cc form_parameter $att]
-        set form_error [$f validate $value [self]]
-        if {$form_error ne ""} {
-          lappend form_errors $att $form_error
-        }
-        switch -- $att {
-          __object_name {}
-          __name        {my set $matt    $value}
-          __title       {my set $matt    $value}
-          __page_order  {my set $matt    $value}
-          default       {set __ia($att)  $value}
-        }
-      }
-      my log "--set instance attributes to [array get __ia]"
-      my set instance_attributes [array get __ia]
-    }
-    return $form_errors
-  }
 
   FormInstance instproc form_attributes {} {
     my instvar page_template
@@ -1299,18 +1235,10 @@ namespace eval ::xowiki {
     Method to be called from a submit button of the form
   } {
     my instvar package_id name
-    set validation_errors [my get_form_data]
-    if {$validation_errors ne [list]} {
-      foreach {att msg} $validation_errors {
-        my msg "Error in $name: $att"
-      }
-      my edit -validation_errors $validation_errors
-    } else {
-      my save_data [::xo::cc form_parameter __object_name ""]
-      my log "--forminstance redirect to [$package_id pretty_link $name]"
-      $package_id returnredirect \
-          [my query_parameter "return_url" [$package_id pretty_link $name]]
-    }
+    my save_data [::xo::cc form_parameter __object_name ""]
+    my log "--forminstance redirect to [$package_id pretty_link $name]"
+    $package_id returnredirect \
+        [my query_parameter "return_url" [$package_id pretty_link $name]]
   }
 
 }

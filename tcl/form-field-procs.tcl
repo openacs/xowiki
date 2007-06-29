@@ -34,6 +34,7 @@ namespace eval ::xowiki {
 
   FormField instproc validate {value obj} {
     my instvar name required
+    my set value $value
     if {$required && $value eq ""} {
       my instvar label
       return [_ acs-templating.Element_is_required]
@@ -131,6 +132,16 @@ namespace eval ::xowiki {
 
     ::html::div -class form-widget {::html::input $atts {}}
   } 
+  
+  FormField instproc render_error_msg {} {
+    if {[my error_msg] ne ""} {
+      ::html::div -class form-error {
+        my instvar label
+        ::html::t -disableOutputEscaping [my error_msg]
+        my set error_reported 1
+      }
+    }
+  }
   FormField instproc render_item {} {
     ::html::div -class form-item-wrapper {
       ::html::div -class form-label {
@@ -144,12 +155,7 @@ namespace eval ::xowiki {
         }
       }
       my render_form_widget
-      if {[my error_msg] ne ""} {
-        ::html::div -class form-error {
-          my instvar label
-          ::html::t -disableOutputEscaping [my error_msg]
-        }
-      }
+      my render_error_msg
     }
   }
   FormField instproc renderValue {v} {

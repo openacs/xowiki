@@ -360,15 +360,84 @@ namespace eval ::xowiki {
     return $f
   }
 
-  FormInstance instproc create_form_fields {fields root fcn validation_errors} {
-    array set errors $validation_errors
-    foreach {formatt att} $fields {
-      set error_msg ""
-      if {[info exists errors($formatt)]} {set error_msg $errors($formatt)}
+  FormInstance instproc set_form_value {att value} {
+    my instvar root item_id
+    set fields [$root selectNodes "//*\[@name='$att'\]"]
+    #my msg "found field = $fields xp=//*\[@name='$att'\]"
+    foreach field $fields {
+      # TODO missing: textarea
+      if {[$field nodeName] ne "input"} continue
+      set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
+      # the switch should be really different objects ad classes...., but thats HTML, anyhow.
+      switch $type {
+        checkbox {$field setAttribute checked true}
+        radio {
+          set inputvalue [$field getAttribute value]
+          if {$inputvalue eq $value} {
+            $field setAttribute checked true
+          }
+        }
+        hidden -
+        text {  $field setAttribute value $value}
+        default {my msg "can't handle $type so far $att=$value"}
+      }
+    }
+  }
 
-      set f [my create_form_field -name $formatt -slot [my find_slot $att] \
-                   -configuration [list -value [my set $att] -error_msg $error_msg]]
-      $root insertBeforeFromScript {$f render_item} $fcn
+  FormInstance ad_instproc set_form_data {} {
+    Store the instance attributes in the form.
+  } {
+    #my msg "set_form_value instance attributes = [my instance_attributes]"
+    foreach {att value} [my instance_attributes] {
+      #my msg "set_form_value $att $value"
+      my set_form_value $att $value
+    }
+  }
+
+  FormInstance ad_instproc get_form_data {} {
+    Get the values from the form and store it as
+    instance attributes.
+  } {
+    set form_fields [list]
+    set validation_errors 0
+    set form [lindex [my get_from_template form] 0]
+    if {$form ne ""} {
+      array set name_map {"__name" name "__title" title "__page_order" page_order}
+      array set __ia [my set instance_attributes]
+      # we have a form, we get for the time being all variables
+      foreach att [::xo::cc array names form_parameter] {
+        set matt  [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
+        set f     [my create_form_field -name $att -slot [my find_slot $matt]]
+        set value [::xo::cc form_parameter $att]
+        set validation_error [$f validate $value [self]]
+        if {$validation_error ne ""} {
+          $f error_msg $validation_error
+          incr validation_errors
+        }
+        lappend form_fields $f
+        switch -- $att {
+          __object_name {}
+          __name        {my set $matt    $value}
+          __title       {my set $matt    $value}
+          __page_order  {my set $matt    $value}
+          default       {set __ia($att)  $value}
+        }
+      }
+      my log "--set instance attributes to [array get __ia]"
+      my set instance_attributes [array get __ia]
+    }
+    return [list $validation_errors $form_fields]
+  }
+
+  FormInstance instproc insert_form_fields {field_names root fcn form_fields} {
+    foreach {form_att att} $field_names {
+      # try to find the field in the field_list (fields are found on validaton errors)
+      foreach f $form_fields {
+        if {[$f name] eq $form_att} {
+          $root insertBeforeFromScript {$f render_item} $fcn      
+          break
+        }
+      }
     }
   }
 
@@ -377,61 +446,88 @@ namespace eval ::xowiki {
   } {
     my instvar page_template doc root package_id
 
-    if {[my form_parameter __form_action ""] eq "save-form-data"} {
-      set validation_errors [my get_form_data]
-      if {$validation_errors ne [list]} {
-        foreach {att msg} $validation_errors {
-          my msg "Error in $att: $msg"
-        }
-        # reset the name in error cases to the original one
-        my set name [my form_parameter __object_name]
-      } else {
-        #$package_id returnredirect [::xo::cc url]?m=edit
-        #my edit -validation_errors $validation_errors
-      }
-    }
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
 
     if {$form eq ""} {
+      #
+      # nothing to do here, use standard ad_form behavior
+      #
       #next -autoname $anon_instances -form_constraints $form_constraints
-      next -autoname $anon_instances
-    } else {
-      dom parse -simple -html $form doc
-      $doc documentElement root
-
-      ::require_html_procs
-      $root firstChild fcn
-      $root insertBeforeFromScript {
-        ::html::input -type hidden -name __object_name -value [my name]
-        ::html::input -type hidden -name __form_action -value save-form-data
-      } $fcn
-      
-      if {$anon_instances eq "f"} {
-	if {[$package_id show_page_order]} {
-          set fields {__name name __page_order page_order __title title}
-        } else {
-          set fields {__name name __title title}
-        }
-        my create_form_fields $fields $root $fcn $validation_errors
-      }
-
-      $root appendFromScript {
-        ::html::br 
-        ::html::input -type submit
-      }
-      set form [lindex [$root selectNodes //form] 0]
-      if {$form eq ""} {
-        my msg "no form found in page [$page_template name]"
-      } else {
-        $form setAttribute action [$package_id pretty_link [my name]]?m=edit method POST
-        set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
-        $form setAttribute class [string trim "$oldCSSClass margin-form"]
-      }
-      my set_form_data
-      set result [$root asHTML]
-      my view $result
+      return [next -autoname $anon_instances]
     }
+
+    if {$anon_instances eq "f"} {
+      if {[$package_id show_page_order]} {
+        set field_names [list __name name __page_order page_order __title title]
+      } else {
+        set field_names [list __name name __title title]
+      }
+    } else {
+      set field_names [list]
+    }
+
+    if {[my form_parameter __form_action ""] eq "save-form-data"} {
+      #
+      # we have to valiate and save the form data
+      #
+      foreach {validation_errors form_fields} [my get_form_data] break
+      if {$validation_errors != 0} {
+        #my msg "$validation_errors errors in $form_fields"
+        #foreach f $form_fields { my msg "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
+        # reset the name in error cases to the original one
+        my set name [my form_parameter __object_name]
+      } else {
+        #
+        # we have no validation erros, so we can save the content
+        #
+        my instvar name
+        my save_data [::xo::cc form_parameter __object_name ""]
+        my log "--forminstance redirect to [$package_id pretty_link $name]"
+        $package_id returnredirect \
+            [my query_parameter "return_url" [$package_id pretty_link $name]]
+        return
+      }
+    } else {
+      set form_fields [list]
+      foreach {form_att att} $field_names {
+        lappend form_fields [my create_form_field -name $form_att -slot [my find_slot $att] \
+                                 -configuration [list -value [my set $att]]]
+      }
+    }
+    
+    dom parse -simple -html $form doc
+    $doc documentElement root
+
+    ::require_html_procs
+    $root firstChild fcn
+    $root insertBeforeFromScript {
+      ::html::input -type hidden -name __object_name -value [my name]
+      ::html::input -type hidden -name __form_action -value save-form-data
+    } $fcn
+    
+    my insert_form_fields $field_names $root $fcn $form_fields
+    
+    $root appendFromScript {
+      foreach f $form_fields {
+        if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
+          $f render_error_msg
+        }
+      }
+      ::html::br 
+      ::html::input -type submit
+    }
+    set form [lindex [$root selectNodes //form] 0]
+    if {$form eq ""} {
+      my msg "no form found in page [$page_template name]"
+    } else {
+      $form setAttribute action [$package_id pretty_link [my name]]?m=edit method POST
+      set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
+      $form setAttribute class [string trim "$oldCSSClass margin-form"]
+    }
+    my set_form_data
+    set result [$root asHTML]
+    my view $result
   }
 
 
