@@ -959,7 +959,10 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_short_spec {name} {
     my instvar page_template
-    if {[$page_template exists form_constraints]} {
+    # in the old-fashioned 2-form page-instance create, page_template
+    # might be non-existant or empty.
+    if {[info exists page_template] && $page_template ne "" &&
+        [$page_template exists form_constraints]} {
       foreach name_and_spec [$page_template form_constraints] {
         foreach {spec_name short_spec} [split $name_and_spec :] break
         if {$spec_name eq $name} {

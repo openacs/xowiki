@@ -101,16 +101,9 @@ namespace eval ::xowiki {
 
   proc ::xowiki::page_templates {} {
     ::xowiki::f1 instvar data folder_id  ;# form has to be named ::xowiki::f1
-    # transitional code begin
-    set object_type [[$data info class] object_type]
-    if {[string match "::xowiki::*" $object_type]} {
-      set templateclass ::xowiki::PageTemplate
-    } else {
-      set templateclass ::PageTemplate
-    }
-    # transitional code end
-    set q [$templateclass instance_select_query \
+    set q [::xowiki::PageTemplate instance_select_query \
                -folder_id $folder_id \
+               -with_subtypes false \
                -select_attributes {name}]
     db_foreach [my qn get_page_templates] $q {
       lappend lpairs [list $name $item_id]
