@@ -27,7 +27,8 @@ namespace eval ::xowiki {
   }
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
-    if {[my exists id]} {my html(id) [my id]}
+    if {![my exists id]} {my id [my name]}
+    if {[my exists id]}  {my set html(id) [my id]}
     #my msg "calling config_from_spec '[my spec]'"
     my config_from_spec [my spec]
   }
@@ -73,13 +74,18 @@ namespace eval ::xowiki {
         numeric     {my class [self class]::text; #for the time being
         }
         select      {my class [self class]::select}
-        scale       {my class [self class]::scale}
+        #scale       {my class [self class]::scale}
         month       {my class [self class]::month}
         date        {my class [self class]::date}
         label=*     {my label     [lindex [split $s =] 1]}
         help_text=* {my help_text [lindex [split $s =] 1]}
-        *=*         {set l [split $s =]; my [lindex $l 0] [lindex $l 1]}
-        default     {error "unknown spec for entry [my name]: '$s'"}
+        *=*         {
+          set l [split $s =]
+          if {[catch {my [lindex $l 0] [lindex $l 1]} errMsg]} {
+            my msg "Error during setting attribute [lindex $l 0] to value [lindex $l 1]: $errMsg"
+          }
+        }
+        default     {my msg "Ignoring unknown spec for entry [my name]: '$s'"}
       }
     }
     ::xotcl::Class::Parameter searchDefaults [self]; # todo will be different in xotcl 1.6.*
@@ -126,10 +132,9 @@ namespace eval ::xowiki {
   FormField instproc render_form_widget {} {
     # todo: for all types
     set atts [list type text]
-    foreach att {size name value} {
+    foreach att {size id name value} {
       if {[my exists $att]} {lappend atts $att [my set $att]}
     }
-
     ::html::div -class form-widget {::html::input $atts {}}
   } 
   
@@ -145,7 +150,7 @@ namespace eval ::xowiki {
   FormField instproc render_item {} {
     ::html::div -class form-item-wrapper {
       ::html::div -class form-label {
-        ::html::label -for [my name] {
+        ::html::label -for [my id] {
           ::html::t [my label]
         }
         if {[my required]} {
@@ -158,6 +163,7 @@ namespace eval ::xowiki {
       my render_error_msg
     }
   }
+
   FormField instproc renderValue {v} {
     if {[my exists options]} {
       foreach o [my set options] {
@@ -247,10 +253,26 @@ namespace eval ::xowiki {
 
   Class FormField::select -superclass FormField -parameter {
     {options ""}
+    {multiple "false"}
   }
   FormField::select instproc initialize {} {
     my set widget_type text(select)
   }
+  FormField::select instproc render_form_widget {} {
+    ::html::div -class form-widget {
+      set atts [list id [my id] name [my name]]
+      if {[my multiple]} {lappend atts multiple [my multiple]}
+      ::html::select $atts {
+        foreach {name value} [my options] {
+          set atts [list value $value]
+          #my msg "lsearch [my value] $value ==> [lsearch [my value] $value]"
+          if {[lsearch [my value] $value] > -1} {
+            lappend atts selected on
+          }
+          ::html::option $atts {::html::t $name}
+    }}}
+  }
+
 
   Class FormField::month -superclass FormField -superclass FormField::select
   FormField::month instproc initialize {} {

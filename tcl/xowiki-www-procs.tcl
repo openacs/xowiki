@@ -398,7 +398,8 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
-    set form_fields [list]
+    set form_fields  [list]
+    set category_ids [list]
     set validation_errors 0
     set form [lindex [my get_from_template form] 0]
     if {$form ne ""} {
@@ -415,8 +416,10 @@ namespace eval ::xowiki {
           incr validation_errors
         }
         lappend form_fields $f
-        switch -- $att {
+        switch -glob -- $att {
+          __form_action -
           __object_name {}
+          __category_*  {lappend category_ids $value}
           __name        {my set $matt    $value}
           __title       {my set $matt    $value}
           __page_order  {my set $matt    $value}
@@ -426,7 +429,7 @@ namespace eval ::xowiki {
       my log "--set instance attributes to [array get __ia]"
       my set instance_attributes [array get __ia]
     }
-    return [list $validation_errors $form_fields]
+    return [list $validation_errors $form_fields $category_ids]
   }
 
   FormInstance instproc insert_form_fields {field_names root fcn form_fields} {
@@ -439,6 +442,44 @@ namespace eval ::xowiki {
         }
       }
     }
+  }
+  
+  FormInstance instproc insert_category_fields {} {
+    # todo: flag, when categories should be included or not (form constraints?)
+    #if {![my with_categories]} return
+    
+    set container_object_id [my package_id]
+    set category_trees [category_tree::get_mapped_trees $container_object_id]
+    set category_ids [category::get_mapped_categories [my item_id]]
+
+    foreach category_tree $category_trees {
+      foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
+
+      set options [list] 
+      if {!$require_category_p} {lappend options "" ""}
+      set value ""
+      foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
+        foreach {category_id category_name deprecated_p level} $category break
+        if {[lsearch $category_ids $category_id] > -1} {set value $category_id}
+        set category_name [ad_quotehtml [lang::util::localize $category_name]]
+        if { $level>1 } {
+          set category_name "[string repeat {&nbsp;} [expr {2*$level -4}]]..$category_name"
+        }
+        lappend options $category_name $category_id
+      }
+      set f [FormField new \
+                 -name "__category_${tree_name}_$tree_id" \
+                 -label $tree_name \
+                 -type select \
+                 -value $value \
+                 -required $require_category_p]
+      $f destroy_on_cleanup
+      $f options $options
+      $f multiple [expr {!$assign_single_p}]
+      #my msg [$f serialize]
+      $f render_item
+    }
+
   }
 
   FormInstance instproc edit {    
@@ -471,7 +512,7 @@ namespace eval ::xowiki {
       #
       # we have to valiate and save the form data
       #
-      foreach {validation_errors form_fields} [my get_form_data] break
+      foreach {validation_errors form_fields category_ids} [my get_form_data] break
       if {$validation_errors != 0} {
         #my msg "$validation_errors errors in $form_fields"
         #foreach f $form_fields { my msg "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
@@ -482,7 +523,7 @@ namespace eval ::xowiki {
         # we have no validation erros, so we can save the content
         #
         my instvar name
-        my save_data [::xo::cc form_parameter __object_name ""]
+        my save_data [::xo::cc form_parameter __object_name ""] $category_ids
         my log "--forminstance redirect to [$package_id pretty_link $name]"
         $package_id returnredirect \
             [my query_parameter "return_url" [$package_id pretty_link $name]]
@@ -498,17 +539,21 @@ namespace eval ::xowiki {
     
     dom parse -simple -html $form doc
     $doc documentElement root
-
     ::require_html_procs
     $root firstChild fcn
+    
+    # insert hidden form fields
     $root insertBeforeFromScript {
       ::html::input -type hidden -name __object_name -value [my name]
       ::html::input -type hidden -name __form_action -value save-form-data
     } $fcn
     
+    # insert automatic form fields on top (for named entries, e.g. name and title)
     my insert_form_fields $field_names $root $fcn $form_fields
-    
-    $root appendFromScript {
+
+    $root appendFromScript {    
+      my insert_category_fields
+      # insert unreported errors and add a submit field at bottom
       foreach f $form_fields {
         if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
           $f render_error_msg

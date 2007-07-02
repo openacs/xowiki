@@ -1210,7 +1210,7 @@ namespace eval ::xowiki {
   }
 
 
-  FormInstance instproc save_data {old_name} {
+  FormInstance instproc save_data {old_name category_ids} {
     my log "-- [self args]"
     my instvar package_id name
     db_transaction {
@@ -1223,6 +1223,9 @@ namespace eval ::xowiki {
           my set publish_status "ready"
         }
       }
+       # could be optimized, if we do not want to have categories (form constraints?)
+      category::map_object -remove_old -object_id [my item_id] $category_ids
+
       my save
       my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
@@ -1234,15 +1237,15 @@ namespace eval ::xowiki {
     return [my item_id]
   }
 
-  FormInstance ad_instproc save-form-data {} {
-    Method to be called from a submit button of the form
-  } {
-    my instvar package_id name
-    my save_data [::xo::cc form_parameter __object_name ""]
-    my log "--forminstance redirect to [$package_id pretty_link $name]"
-    $package_id returnredirect \
-        [my query_parameter "return_url" [$package_id pretty_link $name]]
-  }
+ #  FormInstance ad_instproc save-form-data {} {
+#     Method to be called from a submit button of the form
+#   } {
+#     my instvar package_id name
+#     my save_data [::xo::cc form_parameter __object_name ""]
+#     my log "--forminstance redirect to [$package_id pretty_link $name]"
+#     $package_id returnredirect \
+#         [my query_parameter "return_url" [$package_id pretty_link $name]]
+#   }
 
 }
 
