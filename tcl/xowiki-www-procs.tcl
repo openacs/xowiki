@@ -360,6 +360,46 @@ namespace eval ::xowiki {
     return $f
   }
 
+  FormInstance instproc create_category_fields {} {
+    # todo: flag, when categories should be included or not (form constraints?)
+    #if {![my with_categories]} return
+    
+    set category_fields [list]
+    set container_object_id [my package_id]
+    set category_trees [category_tree::get_mapped_trees $container_object_id]
+    set category_ids [category::get_mapped_categories [my item_id]]
+    #my msg "mapped category ids=$category_ids"
+
+    foreach category_tree $category_trees {
+      foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
+
+      set options [list] 
+      if {!$require_category_p} {lappend options "" ""}
+      set value [list]
+      foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
+        foreach {category_id category_name deprecated_p level} $category break
+        if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
+        set category_name [ad_quotehtml [lang::util::localize $category_name]]
+        if { $level>1 } {
+          set category_name "[string repeat {&nbsp;} [expr {2*$level -4}]]..$category_name"
+        }
+        lappend options $category_name $category_id
+      }
+      set f [FormField new \
+                 -name "__category_${tree_name}_$tree_id" \
+                 -label $tree_name \
+                 -type select \
+                 -value $value \
+                 -required $require_category_p]
+      #my msg "category field [my name] created, value '$value'"
+      $f destroy_on_cleanup
+      $f options $options
+      $f multiple [expr {!$assign_single_p}]
+      lappend category_fields $f
+    }
+    return $category_fields
+  }
+
   FormInstance instproc set_form_value {att value} {
     my instvar root item_id
     set fields [$root selectNodes "//*\[@name='$att'\]"]
@@ -389,7 +429,7 @@ namespace eval ::xowiki {
   } {
     #my msg "set_form_value instance attributes = [my instance_attributes]"
     foreach {att value} [my instance_attributes] {
-      #my msg "set_form_value $att $value"
+      #my msg "set_form_value $att '$value'"
       my set_form_value $att $value
     }
   }
@@ -398,35 +438,46 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
-    set form_fields  [list]
-    set category_ids [list]
     set validation_errors 0
+    set category_ids    [list]
+    set form_fields     [my create_category_fields]
     set form [lindex [my get_from_template form] 0]
     if {$form ne ""} {
       array set name_map {"__name" name "__title" title "__page_order" page_order}
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
       foreach att [::xo::cc array names form_parameter] {
-        set matt  [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
-        set f     [my create_form_field -name $att -slot [my find_slot $matt]]
-        set value [::xo::cc form_parameter $att]
-        set validation_error [$f validate $value [self]]
-        if {$validation_error ne ""} {
-          $f error_msg $validation_error
-          incr validation_errors
+        if {[string match "__category_*" $att]} {
+          foreach f $form_fields {
+            if {[$f name] eq $att} break
+          }
+          set matt $att
+        } else {
+          set matt  [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
+          set f     [my create_form_field -name $att -slot [my find_slot $matt]]
+          lappend   form_fields $f
         }
-        lappend form_fields $f
+        set value [$f value [::xo::cc form_parameter $att]]
+
         switch -glob -- $att {
           __form_action -
           __object_name {}
-          __category_*  {lappend category_ids $value}
+          __category_*  {foreach v $value {lappend category_ids $v}}
           __name        {my set $matt    $value}
           __title       {my set $matt    $value}
           __page_order  {my set $matt    $value}
           default       {set __ia($att)  $value}
         }
       }
-      my log "--set instance attributes to [array get __ia]"
+      foreach f $form_fields {
+        set validation_error [$f validate [self]]
+        #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
+        if {$validation_error ne ""} {
+          $f error_msg $validation_error
+          incr validation_errors
+        }
+      }
+      #my log "--set instance attributes to [array get __ia]"
       my set instance_attributes [array get __ia]
     }
     return [list $validation_errors $form_fields $category_ids]
@@ -530,7 +581,7 @@ namespace eval ::xowiki {
         return
       }
     } else {
-      set form_fields [list]
+      set form_fields [my create_category_fields]
       foreach {form_att att} $field_names {
         lappend form_fields [my create_form_field -name $form_att -slot [my find_slot $att] \
                                  -configuration [list -value [my set $att]]]
@@ -552,7 +603,13 @@ namespace eval ::xowiki {
     my insert_form_fields $field_names $root $fcn $form_fields
 
     $root appendFromScript {    
-      my insert_category_fields
+      # append category fields
+      foreach f $form_fields {
+        if {[string match "__category_*" [$f name]]} {
+          $f render_item
+        }
+      }
+
       # insert unreported errors and add a submit field at bottom
       foreach f $form_fields {
         if {[$f set error_msg] ne "" && ![$f exists error_reported]} {

@@ -33,9 +33,8 @@ namespace eval ::xowiki {
     my config_from_spec [my spec]
   }
 
-  FormField instproc validate {value obj} {
-    my instvar name required
-    my set value $value
+  FormField instproc validate {obj} {
+    my instvar name required value
     if {$required && $value eq ""} {
       my instvar label
       return [_ acs-templating.Element_is_required]
@@ -265,7 +264,7 @@ namespace eval ::xowiki {
       ::html::select $atts {
         foreach {name value} [my options] {
           set atts [list value $value]
-          #my msg "lsearch [my value] $value ==> [lsearch [my value] $value]"
+          #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
           if {[lsearch [my value] $value] > -1} {
             lappend atts selected on
           }
