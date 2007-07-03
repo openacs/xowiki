@@ -219,7 +219,7 @@ namespace eval ::xowiki {
     $package_id instvar folder_id  ;# this is the root folder
 
     # set some default values if they are provided
-    foreach key {name title last_page_id} {
+    foreach key {name title page_order last_page_id} {
       if {[$package_id exists_query_parameter $key]} {
         my set $key [$package_id query_parameter $key]
       }
