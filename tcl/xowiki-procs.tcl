@@ -41,6 +41,17 @@ namespace eval ::xowiki {
 
   # TODO: the following slot definitions are not meant to stay this way.
   # when we change to the xotcl 1.5.0+ slots, this will go away
+  if {$::xotcl::version < 1.5} {
+     if {![::xotcl::Object isobject ::xowiki::Page::slot]} {
+        ::xotcl::Object create ::xowiki::Page::slot
+     }
+     foreach parameter {name title description text nls_language} {
+        if {![::xotcl::Object isobject ::xowiki::Page::slot::$parameter]} {
+          ::xo::Attribute create ::xowiki::Page::slot::$parameter 
+        }
+     }
+  }
+
   ::xowiki::Page::slot::name set pretty_name #xowiki.Page-name#
   ::xowiki::Page::slot::name set required true
   ::xowiki::Page::slot::name set help_text #xowiki.Page-name-help_text#
