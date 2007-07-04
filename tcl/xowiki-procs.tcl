@@ -111,7 +111,7 @@ namespace eval ::xowiki {
 
   ::Generic::CrClass create PageInstance -superclass Page \
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
-      -table_name "xowiki_page_instance" -id_column "page_instance_id" \
+      -table_name "xowiki_page_instance"  -id_column "page_instance_id" \
       -cr_attributes {
         ::Generic::Attribute new -attribute_name page_template -datatype integer 
         ::Generic::Attribute new -attribute_name instance_attributes -datatype text \
@@ -122,13 +122,13 @@ namespace eval ::xowiki {
 
   ::Generic::CrClass create Object -superclass PlainPage \
       -pretty_name "XoWiki Object" -pretty_plural "XoWiki Objects" \
-      -table_name "xowiki_object" -id_column "xowiki_object_id" \
+      -table_name "xowiki_object"  -id_column "xowiki_object_id" \
       -mime_type text/xotcl \
       -form ::xowiki::ObjectForm
 
   ::Generic::CrClass create Form -superclass PageTemplate \
       -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
-      -table_name "xowiki_form" -id_column "xowiki_form_id" \
+      -table_name "xowiki_form"  -id_column "xowiki_form_id" \
       -cr_attributes {
         ::Generic::Attribute new -attribute_name form -datatype text 
         ::Generic::Attribute new -attribute_name form_constraints -datatype text

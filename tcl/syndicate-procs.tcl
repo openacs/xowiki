@@ -38,7 +38,6 @@ namespace eval ::xowiki {
     @param maxentries maximum number of entries retrieved
     @param days report entries changed in speficied last days
     @param name_filter include only pages matching the provided regular expression (postgres)
-    
   }
 
   RSS instproc css_link {} {

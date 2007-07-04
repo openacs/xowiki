@@ -277,6 +277,16 @@ namespace eval ::xowiki {
     return $item_id
   }
 
+  WikiForm instproc after_submit {item_id} {
+    set link [my submit_link]
+    if {$link eq "."} {
+      my instvar data
+      # we can determine submit link only after nls_langauge 
+      # is returned from the user
+      my submit_link [[$data package_id] pretty_link [$data name]]
+    }
+    next
+  }
   #
   # PlainWiki Form
   #
@@ -561,6 +571,12 @@ namespace eval ::xowiki {
     $template destroy_on_cleanup
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
+
+    
+    set category_spec [$data get_short_spec @categories]
+    foreach f [split $category_spec ,] {
+      if {$f eq "off"} {my set with_categories false}
+    }
 
     #
     # compute list of form instance attributes

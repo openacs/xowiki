@@ -186,6 +186,7 @@ namespace eval ::xowiki {
           ns_return 200 text/html $content
         }
       } else {
+
         # use adp file
         foreach css [$package_id get_parameter extra_css ""] {::xowiki::Page requireCSS $css}
         # refetch it, since it might have been changed via set-parameter
@@ -247,18 +248,15 @@ namespace eval ::xowiki {
     }
 
     # the following line is like [$package_id url], but works as well with renamed objects
-    #set myurl [expr {$new ? [$package_id url] :
-    #                 [$package_id pretty_link [my form_parameter name]]}]
-
-    set myurl [$package_id pretty_link [my form_parameter name]]
+    # set myurl [$package_id pretty_link [my form_parameter name]]
 
     if {[my exists_query_parameter "return_url"]} {
-      set submit_link [my query_parameter "return_url" $myurl]
+      set submit_link [my query_parameter "return_url" "."]
       set return_url $submit_link
     } else {
-      set submit_link $myurl
+      set submit_link "."
     }
-    #my log "--u my-url=$myurl, sumit_link=$submit_link qp=[my query_parameter return_url]"
+    #my log "--u submit_link=$submit_link qp=[my query_parameter return_url]"
 
     # we have to do template mangling here; ad_form_template writes form 
     # variables into the actual parselevel, so we have to be in our
@@ -313,7 +311,6 @@ namespace eval ::xowiki {
   }
   
   Page instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
-
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
       set slot [::xo::Attribute new -pretty_name $name -datatype text -volatile -noinit]
@@ -361,8 +358,10 @@ namespace eval ::xowiki {
   }
 
   FormInstance instproc create_category_fields {} {
-    # todo: flag, when categories should be included or not (form constraints?)
-    #if {![my with_categories]} return
+    set category_spec [my get_short_spec @categories]
+    foreach f [split $category_spec ,] {
+      if {$f eq "off"} {return [list]}
+    }
     
     set category_fields [list]
     set container_object_id [my package_id]
@@ -483,56 +482,6 @@ namespace eval ::xowiki {
     return [list $validation_errors $form_fields $category_ids]
   }
 
-  FormInstance instproc insert_form_fields {field_names root fcn form_fields} {
-    foreach {form_att att} $field_names {
-      # try to find the field in the field_list (fields are found on validaton errors)
-      foreach f $form_fields {
-        if {[$f name] eq $form_att} {
-          $root insertBeforeFromScript {$f render_item} $fcn      
-          break
-        }
-      }
-    }
-  }
-  
-  FormInstance instproc insert_category_fields {} {
-    # todo: flag, when categories should be included or not (form constraints?)
-    #if {![my with_categories]} return
-    
-    set container_object_id [my package_id]
-    set category_trees [category_tree::get_mapped_trees $container_object_id]
-    set category_ids [category::get_mapped_categories [my item_id]]
-
-    foreach category_tree $category_trees {
-      foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
-
-      set options [list] 
-      if {!$require_category_p} {lappend options "" ""}
-      set value ""
-      foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
-        foreach {category_id category_name deprecated_p level} $category break
-        if {[lsearch $category_ids $category_id] > -1} {set value $category_id}
-        set category_name [ad_quotehtml [lang::util::localize $category_name]]
-        if { $level>1 } {
-          set category_name "[string repeat {&nbsp;} [expr {2*$level -4}]]..$category_name"
-        }
-        lappend options $category_name $category_id
-      }
-      set f [FormField new \
-                 -name "__category_${tree_name}_$tree_id" \
-                 -label $tree_name \
-                 -type select \
-                 -value $value \
-                 -required $require_category_p]
-      $f destroy_on_cleanup
-      $f options $options
-      $f multiple [expr {!$assign_single_p}]
-      #my msg [$f serialize]
-      $f render_item
-    }
-
-  }
-
   FormInstance instproc edit {    
     {-validation_errors ""}
   } {
@@ -549,7 +498,7 @@ namespace eval ::xowiki {
       return [next -autoname $anon_instances]
     }
 
-    if {$anon_instances eq "f"} {
+    if {!$anon_instances} {
       if {[$package_id show_page_order]} {
         set field_names [list __name name __page_order page_order __title title]
       } else {
@@ -592,16 +541,27 @@ namespace eval ::xowiki {
     $doc documentElement root
     ::require_html_procs
     $root firstChild fcn
-    
-    # insert hidden form fields
+    #
+    # prepend some fields above the HTML contents of the form
+    #
     $root insertBeforeFromScript {
       ::html::input -type hidden -name __object_name -value [my name]
       ::html::input -type hidden -name __form_action -value save-form-data
-    } $fcn
-    
-    # insert automatic form fields on top (for named entries, e.g. name and title)
-    my insert_form_fields $field_names $root $fcn $form_fields
 
+      # insert automatic form fields on top (for named entries, e.g. name and title)
+      foreach {form_att att} $field_names {
+        # try to find the field in the field_list (fields are found on validaton errors)
+        foreach f $form_fields {
+          if {[$f name] eq $form_att} {
+            $f render_item
+            break
+          }
+        }
+      }
+    } $fcn
+    #
+    # append some fields after the HTML contents of the form 
+    #
     $root appendFromScript {    
       # append category fields
       foreach f $form_fields {
