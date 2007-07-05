@@ -80,7 +80,18 @@ namespace eval ::xowiki {
         help_text=* {my help_text [lindex [split $s =] 1]}
         *=*         {
           set l [split $s =]
-          if {[catch {my [lindex $l 0] [lindex $l 1]} errMsg]} {
+          set value [lindex $l 1]
+          if {[catch {
+            #
+            # we want to allow e.g. options=[xowiki::locales] 
+            #
+            # Make sure, that validaton of form fields does not allow
+            # square brackets.
+            if {[string match {\[*\]} $value]} {
+              set value [subst $value]
+            }
+            my [lindex $l 0] $value
+          } errMsg]} {
             my msg "Error during setting attribute [lindex $l 0] to value [lindex $l 1]: $errMsg"
           }
         }
@@ -206,6 +217,12 @@ namespace eval ::xowiki {
     set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {set html($p) [my $p]}}
   }
+  FormField::textarea instproc render_form_widget {} {
+    ::html::div -class form-widget {
+      ::html::textarea -id [my id] -name [my name] cols [my cols] -rows [my rows] {
+        ::html::t [my value]
+      }}
+  }
 
   Class FormField::richtext -superclass FormField::textarea -parameter {
     {editor xinha} 
@@ -262,7 +279,8 @@ namespace eval ::xowiki {
       set atts [list id [my id] name [my name]]
       if {[my multiple]} {lappend atts multiple [my multiple]}
       ::html::select $atts {
-        foreach {name value} [my options] {
+        foreach o [my options] {
+          foreach {name value} $o break
           set atts [list value $value]
           #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
           if {[lsearch [my value] $value] > -1} {

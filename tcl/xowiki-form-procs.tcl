@@ -20,8 +20,9 @@ namespace eval ::xowiki {
 	{f.page_order "="}
         {f.title "="}
         {f.creator "="}
-        {f.description "="}
 	{f.text "= richtext,editor=xinha"}
+        {f.description "="}
+        {f.nls_language "="}
         {validate
           {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}}}

@@ -373,7 +373,7 @@ namespace eval ::xowiki {
       foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
 
       set options [list] 
-      if {!$require_category_p} {lappend options "" ""}
+      if {!$require_category_p} {lappend options [list "" ""]}
       set value [list]
       foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
         foreach {category_id category_name deprecated_p level} $category break
@@ -382,7 +382,7 @@ namespace eval ::xowiki {
         if { $level>1 } {
           set category_name "[string repeat {&nbsp;} [expr {2*$level -4}]]..$category_name"
         }
-        lappend options $category_name $category_id
+        lappend options [list $category_name $category_id]
       }
       set f [FormField new \
                  -name "__category_${tree_name}_$tree_id" \
@@ -442,7 +442,10 @@ namespace eval ::xowiki {
     set form_fields     [my create_category_fields]
     set form [lindex [my get_from_template form] 0]
     if {$form ne ""} {
-      array set name_map {"__name" name "__title" title "__page_order" page_order}
+      array set name_map {
+        "_name" name "_title" title "_page_order" page_order 
+        "_description" description "_nls_language" nls_language
+      }
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
       foreach att [::xo::cc array names form_parameter] {
@@ -462,9 +465,7 @@ namespace eval ::xowiki {
           __form_action -
           __object_name {}
           __category_*  {foreach v $value {lappend category_ids $v}}
-          __name        {my set $matt    $value}
-          __title       {my set $matt    $value}
-          __page_order  {my set $matt    $value}
+          _*            {my set $matt    $value}
           default       {set __ia($att)  $value}
         }
       }
@@ -498,14 +499,12 @@ namespace eval ::xowiki {
       return [next -autoname $anon_instances]
     }
 
+    set field_names [list _title title _description description _nls_language nls_language]
+    if {[$package_id show_page_order]} {
+      set field_names [linsert $field_names 0 _page_order page_order]
+    }
     if {!$anon_instances} {
-      if {[$package_id show_page_order]} {
-        set field_names [list __name name __page_order page_order __title title]
-      } else {
-        set field_names [list __name name __title title]
-      }
-    } else {
-      set field_names [list]
+      set field_names [linsert $field_names 0 _name name]
     }
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
@@ -532,8 +531,9 @@ namespace eval ::xowiki {
     } else {
       set form_fields [my create_category_fields]
       foreach {form_att att} $field_names {
+        set value [my set $att]
         lappend form_fields [my create_form_field -name $form_att -slot [my find_slot $att] \
-                                 -configuration [list -value [my set $att]]]
+                                 -configuration [list -value $value]]
       }
     }
     
