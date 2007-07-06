@@ -1174,6 +1174,7 @@ namespace eval ::xowiki::portlet {
       }
       set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
       set refvar [expr {[my set ajax] ? "ref" : "href"}]
+      regsub -all {\"} $label {\"} label
       #my log "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};"
       append js \
 	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
