@@ -1111,6 +1111,16 @@ namespace eval ::xowiki::portlet {
   toc instproc position {} {return [my set navigation(position)]}
   toc instproc page_name {p} {return [my set page_name($p)]}
 
+  toc proc anchor {name} {
+    if {![regexp {^.*:([^:]+)$} $name _ anchor]} {
+      # we might have an unnamed entry, which has no language prefix
+      set anchor $name
+    }
+    # anchor is used between single quotes
+    regsub -all ' $anchor {\'} anchor
+    return $anchor
+  }
+
   toc instproc get_nodes {open_page package_id expand_all remove_levels} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
@@ -1151,8 +1161,7 @@ namespace eval ::xowiki::portlet {
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
 
       if {$book_mode} {
-	regexp {^.*:([^:]+)$} $name _ anchor
-	set href [$package_id url]#$anchor
+	set href [$package_id url]#[toc anchor $name]
       } else {
 	set href [$package_id pretty_link $name]
       }
@@ -1443,10 +1452,9 @@ namespace eval ::xowiki::portlet {
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
-      regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
-          "<a name='$anchor'></a>$page_order $title</h$level>" \
+          "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
     return $output
@@ -1564,10 +1572,9 @@ namespace eval ::xowiki::portlet {
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
-      regexp {^.*:([^:]+)$} $name _ anchor
       append output "<h$level class='book'>" \
           $edit_markup \
-          "<a name='$anchor'></a>$page_order $title</h$level>" \
+          "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
     return $output
