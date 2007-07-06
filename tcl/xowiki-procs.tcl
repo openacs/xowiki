@@ -776,7 +776,13 @@ namespace eval ::xowiki {
   Page instproc validate_name {name} {
     upvar nls_language nls_language
     my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
-    return [::xowiki::validate_name]
+    set success [::xowiki::validate_name]
+    if {$success} {
+      # set the instance variable with a potentially prefixed name
+      # the classical validators do just an upvar
+      my set name $name
+    }
+    return $success
   }
 
   Page instproc update_references {page_id references} {
@@ -969,6 +975,7 @@ namespace eval ::xowiki {
   #
 
   PageInstance instproc get_short_spec {name} {
+    #my msg "get_short_spec $name"
     my instvar page_template
     # in the old-fashioned 2-form page-instance create, page_template
     # might be non-existant or empty.
@@ -977,17 +984,28 @@ namespace eval ::xowiki {
       foreach name_and_spec [$page_template form_constraints] {
         foreach {spec_name short_spec} [split $name_and_spec :] break
         if {$spec_name eq $name} {
+          #my msg "get_short_spec $name returns 1 $short_spec"
           return $short_spec
         }
       }
+      # in case not found, look for name prefixed with _, in cases 
+      # we refer to instance variables of the page
+      #foreach name_and_spec [$page_template form_constraints] {
+      #  foreach {spec_name short_spec} [split $name_and_spec :] break
+      #  if {"_$spec_name" eq $name} {
+      #    my msg "get_short_spec $name returns 2 $short_spec"
+      #    return $short_spec
+      #  }
+      #}
     }
     return ""
   }
+
   PageInstance instproc get_field_label {name value} {
     set short_spec [my get_short_spec $name]
     if {$short_spec ne ""} {
       set f [FormField new -volatile -name $name -spec $short_spec]
-      return [$f renderValue $value]
+      return [$f pretty_value $value]
     }
     return $value
   }
@@ -1154,13 +1172,26 @@ namespace eval ::xowiki {
         [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
   }
 
+  Form proc disable_input_fields {form} {
+    dom parse -simple -html $form doc
+    $doc documentElement root
+    # TODO: other input fields (select, textarea)
+    set fields [$root selectNodes "//*\[@name != ''\]"]
+    foreach field $fields {
+      if {[$field nodeName] ne "input"} continue
+      $field setAttribute disabled "disabled"
+    }
+    return [$root asHTML]
+  }
+
   Form instproc get_content {} {
     my instvar text
-    my log "-- text='$text'"
+    #my log "-- text='$text'"
     if {[lindex $text 0] ne ""} {
       set content [my substitute_markup [my set text]]
     } else {
-      set content [lindex [my set form] 0]
+      set form [lindex [my set form] 0]
+      set content [[self class] disable_input_fields $form]
     }
     return $content
   }
@@ -1216,7 +1247,7 @@ namespace eval ::xowiki {
       dom parse -simple -html $form doc
       $doc documentElement root
       my set_form_data
-      return [$root asHTML]
+      return [Form disable_input_fields [$root asHTML]]
     }
   }
 

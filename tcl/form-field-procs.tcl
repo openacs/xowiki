@@ -174,7 +174,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormField instproc renderValue {v} {
+  FormField instproc pretty_value {v} {
     if {[my exists options]} {
       foreach o [my set options] {
         foreach {label value} $o break
@@ -293,6 +293,7 @@ namespace eval ::xowiki {
 
   Class FormField::month -superclass FormField -superclass FormField::select
   FormField::month instproc initialize {} {
+    # localized values are in acs-lang.localization-mon
     my options {
       {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
       {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
@@ -302,7 +303,9 @@ namespace eval ::xowiki {
 
   Class FormField::boolean -superclass FormField -superclass FormField::radio
   FormField::boolean instproc initialize {} {
-    my options {{No f} {Yes t}}
+    # should be with cvs head message catalogs:
+    # my options {{#acs-kernel.common_No# f} {#acs-kernel.common_Yes# t}}
+    my options {{No f} {#acs-kernel.common_Yes# t}}
     next
   }
 

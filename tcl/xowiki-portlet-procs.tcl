@@ -1112,12 +1112,10 @@ namespace eval ::xowiki::portlet {
   toc instproc page_name {p} {return [my set page_name($p)]}
 
   toc proc anchor {name} {
-    if {![regexp {^.*:([^:]+)$} $name _ anchor]} {
-      # we might have an unnamed entry, which has no language prefix
-      set anchor $name
-    }
+    # try to strip the language prefix from the name
+    regexp {^.*:([^:]+)$} $name _ name
     # anchor is used between single quotes
-    regsub -all ' $anchor {\'} anchor
+    regsub -all ' $name {\'} anchor
     return $anchor
   }
 
