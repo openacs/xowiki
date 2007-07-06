@@ -1175,10 +1175,8 @@ namespace eval ::xowiki {
   Form proc disable_input_fields {form} {
     dom parse -simple -html $form doc
     $doc documentElement root
-    # TODO: other input fields (select, textarea)
-    set fields [$root selectNodes "//*\[@name != ''\]"]
+    set fields [$root selectNodes "//button | //input | //optgroup | //option | //select | //textarea "]
     foreach field $fields {
-      if {[$field nodeName] ne "input"} continue
       $field setAttribute disabled "disabled"
     }
     return [$root asHTML]
