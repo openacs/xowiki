@@ -310,7 +310,12 @@ namespace eval ::xowiki {
     return ""
   }
   
-  Page instproc create_form_field {-name -slot {-spec ""} {-configuration ""}} {
+  Page instproc create_form_field {
+    -name 
+    {-slot ""} 
+    {-spec ""} 
+    {-configuration ""}
+  } {
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
       set slot [::xo::Attribute new -pretty_name $name -datatype text -volatile -noinit]
@@ -344,7 +349,7 @@ namespace eval ::xowiki {
 
   PageInstance instproc create_form_field {
     -name 
-    -slot 
+    {-slot ""}
     {-spec ""} 
     {-configuration ""}
   } {
@@ -449,26 +454,32 @@ namespace eval ::xowiki {
       array set __ia [my set instance_attributes]
       # we have a form, we get for the time being all variables
       foreach att [::xo::cc array names form_parameter] {
-        if {[string match "__category_*" $att]} {
-          foreach f $form_fields {
-            if {[$f name] eq $att} break
-          }
-          set matt $att
-        } else {
-          set matt  [expr {[info exists name_map($att)] ? $name_map($att) : $att}]
-          set f     [my create_form_field -name $att -slot [my find_slot $matt]]
-          lappend   form_fields $f
-        }
-        set value [$f value [::xo::cc form_parameter $att]]
-
         switch -glob -- $att {
-          __form_action -
-          __object_name {}
-          __category_*  {foreach v $value {lappend category_ids $v}}
-          _*            {my set $matt    $value}
-          default       {set __ia($att)  $value}
+          __form_action - __object_name {}
+          __category_* {
+            foreach f $form_fields {
+              if {[$f name] eq $att} break
+            }
+            set value [$f value [::xo::cc form_parameter $att]]
+            foreach v $value {lappend category_ids $v}
+          }
+          _* {
+            # instance attribute fields
+            set f     [my create_form_field -name $att -slot [my find_slot $name_map($att)]]
+            lappend   form_fields $f
+            set value [$f value [::xo::cc form_parameter $att]]
+            my set $name_map($att) $value
+          }
+          default {
+            # user form content fields
+            set f     [my create_form_field -name $att]
+            lappend   form_fields $f
+            set value [$f value [::xo::cc form_parameter $att]]
+            set __ia($att)  $value
+          }
         }
       }
+
       foreach f $form_fields {
         set validation_error [$f validate [self]]
         #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
