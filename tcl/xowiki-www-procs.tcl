@@ -326,7 +326,7 @@ namespace eval ::xowiki {
       set label [$slot set pretty_name]
     } else {
       set label $name
-      ns_log notice "no pretty_name for variable $name in slot $slot"
+      my log "no pretty_name for variable $name in slot $slot"
     }
 
     set f [FormField new -name $name \

@@ -62,8 +62,7 @@ namespace eval ::xowiki {
           set oldClass [$e info class]
           if {[info exists map($oldClass)]} {
             set newClass $map($oldClass)
-            ns_log notice "-- old class [$e info class] -> $newClass, \
-                        fetching [$e set item_id] "
+            #ns_log notice "-- old class [$e info class] -> $newClass, fetching [$e set item_id] "
             [$e info class] fetch_object -object $e -item_id [$e set item_id]
             set oldtitle [$e set title]
             $e append title " (old)"

@@ -85,7 +85,7 @@ namespace eval ::xowiki::notification {
     
     if {[$page set publish_status] eq "production"} {
       # don't do notification for pages under construction
-      ns_log notice "--n xowiki::notification NO NOTIFCATION due to production state"
+      #ns_log notice "--n xowiki::notification NO NOTIFCATION due to production state"
       return
     }
     
@@ -102,7 +102,7 @@ namespace eval ::xowiki::notification {
     set state [expr {[$page set last_modified] eq [$page set creation_date] ? "New" : "Updated"}]
     set instance_name [::$package_id instance_name]
     
-    ns_log notice "--n per directory [$page set title] ($state)"
+    #ns_log notice "--n per directory [$page set title] ($state)"
     notification::new \
         -type_id [notification::type::get_type_id -short_name xowiki_notif] \
         -object_id [$page set package_id] \
@@ -112,8 +112,7 @@ namespace eval ::xowiki::notification {
         -notif_html $html \
         -notif_user [$page set creation_user]
 
-    ns_log notice "--n find categories [$page set title] ($state)"
-
+    #ns_log notice "--n find categories [$page set title] ($state)"
 
     foreach cat_id [category::get_mapped_categories [$page set item_id] ] {
       set tree_id [category::get_tree $cat_id]
@@ -126,7 +125,7 @@ namespace eval ::xowiki::notification {
         if {$category_id == $cat_id} break
       }
       foreach level [array names cat] {
-        ns_log notice "--n category $cat($level) $label($level): [$page set title] ($state)"
+        #ns_log notice "--n category $cat($level) $label($level): [$page set title] ($state)"
         notification::new \
             -type_id [notification::type::get_type_id -short_name xowiki_notif] \
             -object_id $cat($level) \

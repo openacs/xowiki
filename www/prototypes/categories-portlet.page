@@ -68,7 +68,7 @@
 		where ci.item_id = c2.object_id \
 		and c2.category_id in ($except_category_ids))"
       }
-      ns_log notice "--c category_ids=$category_ids"
+      #my log "--c category_ids=$category_ids"
       if {$category_ids ne ""} {
         foreach cid [split $category_ids ,] {
           append sql " and exists (select * from category_object_map \

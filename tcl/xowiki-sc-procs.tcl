@@ -13,7 +13,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   returns a datasource for the search package
 } {
-  ns_log notice "--sc datasource called with revision_id = $revision_id"
+  #ns_log notice "--sc datasource called with revision_id = $revision_id"
 
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
   $page volatile
@@ -22,7 +22,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   if {[$page set publish_status] eq "production"} {
     # no data source for for pages under construction
-    ns_log notice "--sc page under construction, no datasource"
+    #ns_log notice "--sc page under construction, no datasource"
     return   [list object_id $revision_id title "" \
                   content "" keywords "" \
                   storage_type text mime text/html]
@@ -58,7 +58,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       }
     }
   }
-  ns_log notice "--sc keywords $revision_id -> [array names word]"
+  #ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   return [list object_id $revision_id title [$page title] \
               content $text keywords [array names word] \

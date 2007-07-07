@@ -633,7 +633,7 @@ namespace eval ::xowiki {
     set clean_content $content
     regsub -all "<br */?>" $clean_content "" clean_content
     regsub -all "<p */?>" $clean_content "" clean_content
-    ns_log notice "--vaidate_form_content '$content' clean='$clean_content', stripped='[string trim $clean_content]'"
+    #ns_log notice "--vaidate_form_content '$content' clean='$clean_content', stripped='[string trim $clean_content]'"
     if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
     return 1
   }
