@@ -72,6 +72,7 @@ namespace eval ::xowiki {
         textarea    {my class [self class]::textarea}
         richtext    {my class [self class]::richtext}
         boolean     {my class [self class]::boolean}
+        scale       {my class [self class]::scale}
         numeric     {my class [self class]::text; #for the time being
         }
         select      {my class [self class]::select}
@@ -328,17 +329,17 @@ namespace eval ::xowiki {
     next
   }
 
-  #Class FormField::scale -superclass FormField -parameter {{n 5}}
-  #FormField::scale instproc initialize {} {
-  #  my instvar n display_html 
-  #  my set widget_type text
-  #  for {set i 1} {$i < $n} {incr i} {
-  #    set checked ""
-  #    if {[my exists value] && [my value] == $i} {set checked " checked='checked'"}
-  #    append display_html "<input type='radio' name='[my name]' value='$i' $checked> "
-  #  }
-  #}
- 
+  Class FormField::scale -superclass FormField::radio -parameter {{n 5} {horizontal true}}
+  FormField::scale instproc initialize {} {
+    my instvar n
+    set options [list]
+    for {set i 1} {$i <= $n} {incr i} {
+      lappend options [list $i $i]
+    }
+    my options $options
+    next
+  }
+
   #
   # a few test cases
   #
