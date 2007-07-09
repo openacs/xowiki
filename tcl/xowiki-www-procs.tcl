@@ -354,6 +354,7 @@ namespace eval ::xowiki {
     {-configuration ""}
   } {
     set short_spec [my get_short_spec $name]
+    #my msg "create form field, short_spec for '$name' = '$short_spec"
     set spec_list [list]
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     if {$spec ne ""}       {lappend spec_list $spec}
@@ -446,79 +447,105 @@ namespace eval ::xowiki {
     set category_ids    [list]
     set form_fields     [my create_category_fields]
     set form [lindex [my get_from_template form] 0]
-    if {$form ne ""} {
-      array set name_map {
-        "_name" name "_title" title "_page_order" page_order 
-        "_description" description "_nls_language" nls_language
-      }
-      array set __ia [my set instance_attributes]
-      # we have a form, we get for the time being all variables
-      foreach att [::xo::cc array names form_parameter] {
-        switch -glob -- $att {
-          __form_action - __object_name {}
-          __category_* {
-            foreach f $form_fields {
-              if {[$f name] eq $att} break
-            }
-            set value [$f value [::xo::cc form_parameter $att]]
-            foreach v $value {lappend category_ids $v}
-          }
-          _* {
-            # instance attribute fields
-            set f     [my create_form_field -name $att -slot [my find_slot $name_map($att)]]
-            lappend   form_fields $f
-            set value [$f value [::xo::cc form_parameter $att]]
-            my set $name_map($att) $value
-          }
-          default {
-            # user form content fields
-            set f     [my create_form_field -name $att]
-            lappend   form_fields $f
-            set value [$f value [::xo::cc form_parameter $att]]
-            set __ia($att)  $value
-          }
-        }
-      }
-
-      foreach f $form_fields {
-        set validation_error [$f validate [self]]
-        #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
-        if {$validation_error ne ""} {
-          $f error_msg $validation_error
-          incr validation_errors
-        }
-      }
-      #my log "--set instance attributes to [array get __ia]"
-      my set instance_attributes [array get __ia]
+    array set name_map {
+      "_name" name "_title" title "_page_order" page_order 
+      "_description" description "_nls_language" nls_language
     }
+    array set __ia [my set instance_attributes]
+    # we have a form and get all form variables
+    foreach att [::xo::cc array names form_parameter] {
+      my msg "getting att=$att"
+      switch -glob -- $att {
+        __category_* {
+          foreach f $form_fields {
+            if {[$f name] eq $att} break
+          }
+          set value [$f value [::xo::cc form_parameter $att]]
+          foreach v $value {lappend category_ids $v}
+        }
+        __* {
+          # other internal variables (like __object names) are ignored
+        }
+        _* {
+          # instance attribute fields
+          set f     [my create_form_field -name $att -slot [my find_slot $name_map($att)]]
+          lappend   form_fields $f
+          set value [$f value [::xo::cc form_parameter $att]]
+          my set $name_map($att) $value
+        }
+        default {
+          # user form content fields
+          set f     [my create_form_field -name $att]
+          lappend   form_fields $f
+          set value [$f value [::xo::cc form_parameter $att]]
+          set __ia($att)  $value
+        }
+      }
+    }
+    
+    foreach f $form_fields {
+        set validation_error [$f validate [self]]
+      #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
+      if {$validation_error ne ""} {
+        $f error_msg $validation_error
+        incr validation_errors
+      }
+    }
+    #my log "--set instance attributes to [array get __ia]"
+    my set instance_attributes [array get __ia]
     return [list $validation_errors $form_fields $category_ids]
   }
 
-  FormInstance instproc edit {    
+  FormInstance instproc edit {
     {-validation_errors ""}
   } {
     my instvar page_template doc root package_id
 
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
+    set page_instance_form_atts [list]
 
+    #if {$form eq ""} {
+    #  #
+    #  # nothing to do here, use standard ad_form behavior
+    #  #
+    #  #next -autoname $anon_instances -form_constraints $form_constraints
+    #  return [next -autoname $anon_instances]
+    #}
     if {$form eq ""} {
-      #
-      # nothing to do here, use standard ad_form behavior
-      #
-      #next -autoname $anon_instances -form_constraints $form_constraints
-      return [next -autoname $anon_instances]
+      array set __ia [my set instance_attributes]
+      #set dont_edit [concat [[my info class] edit_atts] [list title] \
+      #                   [::Generic::CrClass set common_query_atts]]
+      set template [lindex [my get_from_template text] 0]
+      #my msg template_vars=[my template_vars $template]
+      foreach {var _} [my template_vars $template] {
+        switch -glob $var {
+          _* {}
+          default {
+            set varname __ia($var)
+            lappend page_instance_form_atts $var $varname
+            if {![info exists $varname]} {set $varname ""}
+          }
+        }
+        #if {[lsearch $dont_edit $var] == -1} {
+        #  set varname __ia($var)
+        #}
+      }
+      #my msg page_instance_form_atts=$page_instance_form_atts
+      set form "<FORM></FORM>"
     }
 
-    set field_names [list _title title _description description _nls_language nls_language]
-    if {[$package_id show_page_order]} {
-      set field_names [linsert $field_names 0 _page_order page_order]
-    }
-    if {!$anon_instances} {
-      set field_names [linsert $field_names 0 _name name]
+    set field_names [list]
+    if {!$anon_instances}               { lappend field_names _name name }
+    if {[$package_id show_page_order]}  { lappend field_names _page_order page_order }
+    lappend field_names _title title
+    foreach fn $page_instance_form_atts { lappend field_names $fn }
+    foreach fn [list _description description _nls_language nls_language] {
+      lappend field_names $fn
     }
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
+      my msg "we have to validate"
       #
       # we have to valiate and save the form data
       #
@@ -542,7 +569,11 @@ namespace eval ::xowiki {
     } else {
       set form_fields [my create_category_fields]
       foreach {form_att att} $field_names {
-        set value [my set $att]
+        if {[string match __ia* $att]} {
+          set value [set $att]
+        } else {
+          set value [my set $att]
+        }
         lappend form_fields [my create_form_field -name $form_att -slot [my find_slot $att] \
                                  -configuration [list -value $value]]
       }

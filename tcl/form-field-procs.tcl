@@ -24,11 +24,13 @@ namespace eval ::xowiki {
     {help_text ""}
     {error_msg ""}
     {validator ""}
+    default
   }
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
     if {[my exists id]}  {my set html(id) [my id]}
+    if {[my exists default]} {my set value [my default]}
     #my msg "calling config_from_spec '[my spec]'"
     my config_from_spec [my spec]
   }
@@ -262,9 +264,24 @@ namespace eval ::xowiki {
 
   Class FormField::radio -superclass FormField -parameter {
     {options ""}
+    {horizontal false}
   }
   FormField::radio instproc initialize {} {
     my set widget_type text(radio)
+  }
+  FormField::radio instproc render_form_widget {} {
+    set value [my value]
+    ::html::div -class form-widget {
+      foreach o [my options] {
+        foreach {label rep} $o break
+        set atts [list id [my id]:$rep name [my name] type radio value $rep]
+        #my msg "comparing value '$value' with rep '$rep'"
+        if {$value eq $rep} {lappend atts checked checked}
+        ::html::input $atts {}
+        html::t $label
+        if {![my horizontal]} {html::br}
+      }
+    }
   }
 
   Class FormField::select -superclass FormField -parameter {
@@ -280,13 +297,13 @@ namespace eval ::xowiki {
       if {[my multiple]} {lappend atts multiple [my multiple]}
       ::html::select $atts {
         foreach o [my options] {
-          foreach {name value} $o break
-          set atts [list value $value]
+          foreach {label rep} $o break
+          set atts [list value $rep]
           #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
-          if {[lsearch [my value] $value] > -1} {
+          if {[lsearch [my value] $rep] > -1} {
             lappend atts selected on
           }
-          ::html::option $atts {::html::t $name}
+          ::html::option $atts {::html::t $label}
     }}}
   }
 
@@ -301,7 +318,9 @@ namespace eval ::xowiki {
     next
   }
 
-  Class FormField::boolean -superclass FormField -superclass FormField::radio
+  Class FormField::boolean -superclass FormField::radio -parameter {
+    {default t}
+  }
   FormField::boolean instproc initialize {} {
     # should be with cvs head message catalogs:
     # my options {{#acs-kernel.common_No# f} {#acs-kernel.common_Yes# t}}

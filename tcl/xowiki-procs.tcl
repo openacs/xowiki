@@ -465,7 +465,15 @@ namespace eval ::xowiki {
   }
 
   Page instproc regsub_eval {re string cmd} {
-    subst [regsub -all $re [string map { \" \\\" \[ \\[ \] \\] \
+#     my msg "re=$re, string=$string cmd=$cmd"
+#     set c [regsub -all $re [string map { \[ \\[ \] \\] \
+#                                             \$ \\$ \\ \\\\} $string] \
+#                "\[$cmd\]"]
+#     my msg c=$c
+#     set s [subst $c]
+#     my msg s=$s
+#     return $s
+    subst [regsub -all $re [string map { \[ \\[ \] \\] \
                                             \$ \\$ \\ \\\\} $string] \
                "\[$cmd\]"]
   }
@@ -1249,6 +1257,42 @@ namespace eval ::xowiki {
     }
   }
 
+  FormInstance instproc get_value {before varname } {
+    #my msg "varname=$varname"
+    array set __ia [my set instance_attributes]
+    switch -glob $varname {
+      _*      {set value [my set [string range $varname 1 end]]}
+      default {
+        if {[info exists __ia($varname)]} {
+          set value [set __ia($varname)]
+        } elseif {[my exists $varname]} {
+          set value [my $varname]
+        } else {
+          set value "**** unknown variable '$varname' ****"
+        }
+      }
+    }
+
+    set f [my create_form_field -name $varname -slot [my find_slot $varname] \
+               -configuration [list -value $value]]
+    set value [$f pretty_value $value]
+    #my msg [$f serialize]
+    
+    #set short_spec [my get_short_spec $name]
+    #if {$short_spec ne ""} {
+    #  set f [FormField new -volatile -name $name -spec $short_spec]
+    #  return [$f pretty_value $value]
+    #}
+    
+    return $before$value
+  }
+
+  FormInstance instproc adp_subst {content} {
+    set content [my regsub_eval \
+                     [template::adp_variable_regexp] $content {my get_value "\\\1" "\2"}]
+    #regsub -all  $content {\1@\2;noquote@} content
+    return $content
+  }
 
   FormInstance instproc save_data {old_name category_ids} {
     my log "-- [self args]"
