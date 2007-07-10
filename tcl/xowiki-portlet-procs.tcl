@@ -59,6 +59,10 @@ namespace eval ::xowiki::portlet {
     return [string map [list : _ # _] [self]]
   }
 
+  ::xowiki::Portlet proc make_id {} {
+    return [string map [list : _ # _] [self]]
+  }
+
   ::xowiki::Portlet instproc screen_name {user_id} {
     acs_user::get -user_id $user_id -array user
     return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]

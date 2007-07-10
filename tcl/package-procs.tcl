@@ -414,13 +414,19 @@ namespace eval ::xowiki {
         my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
         if {$item_id == 0 && $lang eq "file" && [regexp {(.+)/download.} $local_name _ base_name]} {
 	  set item_id [::Generic::CrItem lookup -name file:$base_name -parent_id $folder_id]
+	  if {$item_id == 0} {
+            set item_id [::Generic::CrItem lookup -name swf:$base_name -parent_id $folder_id]
+          }
 	  if {$item_id != 0} {
 	    upvar $method_var method
 	    set method download
 	  }
 	}
         if {$item_id == 0 && $lang eq "file"} {
-          set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
+          set item_id [::Generic::CrItem lookup -name swf:$local_name -parent_id $folder_id]
+          if {$item_id == 0} {
+            set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
+          }
           my log "--try image:$local_name -> $item_id"
         }
         if {$item_id == 0} {
