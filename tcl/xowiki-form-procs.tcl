@@ -248,6 +248,20 @@ namespace eval ::xowiki {
     
   WikiForm instproc new_request {} {
     my instvar data
+    #
+    # get the defaults from the slots and set it in the data.
+    # This should not be necessary with xotocl 1.6.*
+    #
+    foreach f [my field_list] {
+      set s [$data find_slot $f] 
+      if {$s ne "" && [$s exists default] && [$s default] ne ""} {
+        #my msg "new_request $f default = '[$s default]'"
+        $data set $f [$s default]
+      }
+    }
+    # 
+    # set tthe following defaults manually
+    #
     $data set creator [::xo::get_user_name [::xo::cc user_id]]
     $data set nls_language [ad_conn locale]
     next

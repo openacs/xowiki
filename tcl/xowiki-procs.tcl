@@ -464,7 +464,12 @@ namespace eval ::xowiki {
     next
   }
 
-  Page instproc regsub_eval {re string cmd} {
+  Page instproc regsub_eval {{-noquote:boolean false} re string cmd} {
+    if {$noquote} {
+      set map { \[ \\[ \] \\] \$ \\$ \\ \\\\}
+    } else {
+      set map { \" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\}
+    }
 #     my msg "re=$re, string=$string cmd=$cmd"
 #     set c [regsub -all $re [string map { \[ \\[ \] \\] \
 #                                             \$ \\$ \\ \\\\} $string] \
@@ -473,9 +478,7 @@ namespace eval ::xowiki {
 #     set s [subst $c]
 #     my msg s=$s
 #     return $s
-    subst [regsub -all $re [string map { \[ \\[ \] \\] \
-                                            \$ \\$ \\ \\\\} $string] \
-               "\[$cmd\]"]
+    uplevel [list subst [regsub -all $re [string map $map $string] "\[$cmd\]"]]
   }
 
   Page instproc error_during_render {msg} {
@@ -683,7 +686,7 @@ namespace eval ::xowiki {
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
       set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub_eval $RE(include) $l {my include "\1" "\2" "\3"}]
+      set l [my regsub_eval $RE(include) $l {my include "\\\1" "\2" "\3"}]
       regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       append content [string range $l 1 end] \n
@@ -1214,31 +1217,46 @@ namespace eval ::xowiki {
   }
 
   FormInstance instproc form_attributes {} {
+    #
+    # this method returns the form attributes (not including _*)
+    #
     my instvar page_template
     set dont_edit [concat [[my info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
 
     set template [lindex [my get_from_template text] 0]
-    set page_instance_form_atts [list]
+    #set field_names [list _name _title _description _creator _nls_language _page_order]
+    set field_names [list]
     if {$template ne ""} {
       foreach {var _} [my template_vars $template] {
-	if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
+        if {[string match _* $var]} continue
+	if {[lsearch $dont_edit $var] == -1} {lappend field_names $var}
       }
     } else {
       set form [lindex [my get_from_template form] 0]
+      foreach {match 1 att} [regexp -all -inline [template::adp_variable_regexp] $form] {
+        if {[string match _* $att]} continue
+        lappend field_names $att
+      }
       dom parse -simple -html $form doc
       $doc documentElement root
       set fields [$root selectNodes "//*\[@name != ''\]"]
       foreach field $fields {
-	if {[$field nodeName] ne "input"} continue
+        set node_name [$field nodeName]
+	if {$node_name ne "input" 
+            && $node_name ne "textarea" 
+            && $node_name ne "select" 
+          } continue
 	set att [$field getAttribute name]
-	if {[lsearch $page_instance_form_atts $att]} {
-	  lappend page_instance_form_atts $att
+        if {[string match _* $att]} continue
+	if {[lsearch $page_instance_form_atts $att] > -1} {
+	  lappend field_names $att
 	}
       }
     }
-    return $page_instance_form_atts
+    return $field_names
   }
+
 
   FormInstance instproc get_content {} {
     my instvar doc root package_id page_template
@@ -1257,7 +1275,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormInstance instproc get_value {before varname } {
+  FormInstance instproc get_value {before varname} {
     #my msg "varname=$varname"
     array set __ia [my set instance_attributes]
     switch -glob $varname {
@@ -1288,7 +1306,7 @@ namespace eval ::xowiki {
   }
 
   FormInstance instproc adp_subst {content} {
-    set content [my regsub_eval \
+    set content [my regsub_eval -noquote true \
                      [template::adp_variable_regexp] $content {my get_value "\\\1" "\2"}]
     #regsub -all  $content {\1@\2;noquote@} content
     return $content
@@ -1320,16 +1338,6 @@ namespace eval ::xowiki {
     }
     return [my item_id]
   }
-
- #  FormInstance ad_instproc save-form-data {} {
-#     Method to be called from a submit button of the form
-#   } {
-#     my instvar package_id name
-#     my save_data [::xo::cc form_parameter __object_name ""]
-#     my log "--forminstance redirect to [$package_id pretty_link $name]"
-#     $package_id returnredirect \
-#         [my query_parameter "return_url" [$package_id pretty_link $name]]
-#   }
 
 }
 

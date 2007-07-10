@@ -66,19 +66,6 @@ namespace eval ::xowiki {
       switch -glob $s {
         optional    {my set required false}
         required    {my set required true}
-        hidden      {my class [self class]::hidden}
-        inform      {my class [self class]::inform}
-        text        {my class [self class]::text}
-        textarea    {my class [self class]::textarea}
-        richtext    {my class [self class]::richtext}
-        boolean     {my class [self class]::boolean}
-        scale       {my class [self class]::scale}
-        numeric     {my class [self class]::text; #for the time being
-        }
-        select      {my class [self class]::select}
-        #scale       {my class [self class]::scale}
-        month       {my class [self class]::month}
-        date        {my class [self class]::date}
         label=*     {my label     [lindex [split $s =] 1]}
         help_text=* {my help_text [lindex [split $s =] 1]}
         *=*         {
@@ -98,7 +85,13 @@ namespace eval ::xowiki {
             my msg "Error during setting attribute [lindex $l 0] to value [lindex $l 1]: $errMsg"
           }
         }
-        default     {my msg "Ignoring unknown spec for entry [my name]: '$s'"}
+        default {
+          if {[my isclass [self class]::$s]} {
+            my class [self class]::$s
+          } else {
+            my msg "Ignoring unknown spec for entry [my name]: '$s'"
+          }
+        }
       }
     }
     ::xotcl::Class::Parameter searchDefaults [self]; # todo will be different in xotcl 1.6.*
@@ -142,9 +135,14 @@ namespace eval ::xowiki {
     return $spec
   }
 
+  FormField instproc render {} {
+    my render_form_widget
+  }
+
   FormField instproc render_form_widget {} {
     # todo: for all types
-    set atts [list type text]
+    #my msg type=[my type]
+    set atts [list type [my type]]
     foreach att {size id name value} {
       if {[my exists $att]} {lappend atts $att [my set $att]}
     }
@@ -190,23 +188,26 @@ namespace eval ::xowiki {
 
   Class FormField::hidden -superclass FormField
   FormField::hidden instproc initialize {} {
-    my instvar widget_type
-    set widget_type text(hidden)
+    my type hidden
+    my set widget_type text(hidden)
   }
+  FormField::hidden instproc render_item {} {
+    # don't render the labels
+    my render_form_widget
+  }
+  
   
   Class FormField::inform -superclass FormField
   FormField::inform instproc initialize {} {
-    my instvar widget_type
-    set widget_type text(inform)
+    my set widget_type text(inform)
   }
 
   Class FormField::text -superclass FormField -parameter {
     {size 80}
   }
   FormField::text instproc initialize {} {
-    my instvar widget_type html
-    set widget_type text
-    foreach p [list size] {if {[my exists $p]} {set html($p) [my $p]}}
+    my set widget_type text
+    foreach p [list size] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
 
   Class FormField::textarea -superclass FormField -parameter {
@@ -216,9 +217,8 @@ namespace eval ::xowiki {
     style
   }
   FormField::textarea instproc initialize {} {
-    my instvar widget_type options html
-    set widget_type text(textarea)
-    foreach p [list rows cols style] {if {[my exists $p]} {set html($p) [my $p]}}
+    my set widget_type text(textarea)
+    foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
   FormField::textarea instproc render_form_widget {} {
     ::html::div -class form-widget {
@@ -237,18 +237,17 @@ namespace eval ::xowiki {
     {style "width: 100%"}
   }
   FormField::richtext instproc initialize {} {
-    my instvar widget_type options
     next
-    set widget_type richtext
+    my set widget_type richtext
     if {![my exists plugins]} {
       my plugins \
           [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
                -default [parameter::get_from_package_key \
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
-    set options [list]
+    my set options [list]
     foreach p [list editor plugins width height folder_id javascript] {
-      if {[my exists $p]} {lappend options $p [my $p]}
+      if {[my exists $p]} {my lappend options $p [my $p]}
     }
   }
 
@@ -256,10 +255,9 @@ namespace eval ::xowiki {
   
   Class FormField::date -superclass FormField -parameter {format}
   FormField::date instproc initialize {} {
-    my instvar widget_type format
-    set widget_type date
+    my set widget_type date
     if {[my exists format]} {
-      set format [string map [list _ " "] [my format]]
+      my set format [string map [list _ " "] [my format]]
     }
   }
 
@@ -279,7 +277,7 @@ namespace eval ::xowiki {
         #my msg "comparing value '$value' with rep '$rep'"
         if {$value eq $rep} {lappend atts checked checked}
         ::html::input $atts {}
-        html::t $label
+        html::t "$label  "
         if {![my horizontal]} {html::br}
       }
     }

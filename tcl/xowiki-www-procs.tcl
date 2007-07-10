@@ -73,6 +73,9 @@ namespace eval ::xowiki {
     return  "<div style='clear: both; text-align: left; font-size: 85%;'>$footer</div>\n"
   }
 
+}
+
+namespace eval ::xowiki {
   
   Page instproc view {{content ""}} {
     # view is used only for the toplevel call, when the xowiki page is viewed
@@ -210,6 +213,10 @@ namespace eval ::xowiki {
       ns_return 200 [::xo::cc get_parameter content-type text/html] $content
     }
   }
+}
+
+
+namespace eval ::xowiki {
 
   Page instproc edit {
     {-new:boolean false} 
@@ -334,14 +341,23 @@ namespace eval ::xowiki {
       my log "no pretty_name for variable $name in slot $slot"
     }
 
+    if {[$slot exists default]} {
+      #my msg "setting ff $name default = [$slot default]"
+      set default [$slot default] 
+    } else {
+      set default ""
+    }
+
     set f [FormField new -name $name \
                -label     $label \
                -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
                -validator [expr {[$slot exists validator] ? [$slot set validator] : ""}] \
                -required  [expr {[$slot exists required]  ? [$slot set required]  : "false"}] \
+               -default   $default \
                -spec      [join $spec_list ,] \
               ]
+
     $f destroy_on_cleanup
     eval $f configure $configuration
     return $f
@@ -354,7 +370,7 @@ namespace eval ::xowiki {
     {-configuration ""}
   } {
     set short_spec [my get_short_spec $name]
-    #my msg "create form field, short_spec for '$name' = '$short_spec"
+    #my msg "create form field '$name', short_spec = '$short_spec"
     set spec_list [list]
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     if {$spec ne ""}       {lappend spec_list $spec}
@@ -363,8 +379,25 @@ namespace eval ::xowiki {
     return $f
   }
 
+  PageInstance instproc lookup_form_field {
+    -name 
+    form_fields
+  } {
+    set found 0
+    foreach f $form_fields {
+      if {[$f name] eq $name} {set found 1; break}
+    }
+    if {!$found} {
+      error "No form field with name $name found"
+    }
+    return $f
+  }
+}
+
+namespace eval ::xowiki {
+
   FormInstance instproc create_category_fields {} {
-    set category_spec [my get_short_spec @categories]
+    set category_spec [my get_short_spec _categories]
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {return [list]}
     }
@@ -428,6 +461,10 @@ namespace eval ::xowiki {
       }
     }
   }
+}
+
+
+namespace eval ::xowiki {
 
   FormInstance ad_instproc set_form_data {} {
     Store the instance attributes in the form.
@@ -438,28 +475,26 @@ namespace eval ::xowiki {
       my set_form_value $att $value
     }
   }
+}
 
-  FormInstance ad_instproc get_form_data {} {
+
+namespace eval ::xowiki {
+
+  FormInstance ad_instproc get_form_data {form_fields} {
     Get the values from the form and store it as
     instance attributes.
   } {
     set validation_errors 0
     set category_ids    [list]
-    set form_fields     [my create_category_fields]
-    set form [lindex [my get_from_template form] 0]
-    array set name_map {
-      "_name" name "_title" title "_page_order" page_order 
-      "_description" description "_nls_language" nls_language
-    }
     array set __ia [my set instance_attributes]
+
     # we have a form and get all form variables
+      
     foreach att [::xo::cc array names form_parameter] {
-      my msg "getting att=$att"
+      #my msg "getting att=$att"
       switch -glob -- $att {
         __category_* {
-          foreach f $form_fields {
-            if {[$f name] eq $att} break
-          }
+          set f [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
           foreach v $value {lappend category_ids $v}
         }
@@ -468,23 +503,23 @@ namespace eval ::xowiki {
         }
         _* {
           # instance attribute fields
-          set f     [my create_form_field -name $att -slot [my find_slot $name_map($att)]]
-          lappend   form_fields $f
+          set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
-          my set $name_map($att) $value
+          set varname [string range $att 1 end]
+          my set $varname $value
         }
         default {
           # user form content fields
-          set f     [my create_form_field -name $att]
-          lappend   form_fields $f
+          set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
+          # my msg "value of $att is $value"
           set __ia($att)  $value
         }
       }
     }
     
     foreach f $form_fields {
-        set validation_error [$f validate [self]]
+      set validation_error [$f validate [self]]
       #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
       if {$validation_error ne ""} {
         $f error_msg $validation_error
@@ -493,7 +528,50 @@ namespace eval ::xowiki {
     }
     #my log "--set instance attributes to [array get __ia]"
     my set instance_attributes [array get __ia]
-    return [list $validation_errors $form_fields $category_ids]
+    return [list $validation_errors $category_ids]
+  }
+
+  FormInstance instproc form_field_as_html {before name form_fields} {
+    set found 0
+    foreach f $form_fields {
+      if {[$f name] eq $name} {set found 1; break}
+    } 
+    if {!$found} {
+      set f [my create_form_field -name $name -slot [my find_slot $name]]
+    }
+    #my msg "$name $found [$f serialize]"
+    # render form field as html
+    set html [$f asHTML]
+    #my msg "$name $html"
+    return ${before}$html
+  }
+}
+
+namespace eval ::xowiki {
+
+  FormInstance instproc create_form_fields {field_names} {
+
+    set form_fields   [my create_category_fields]
+    set cr_field_spec [my get_short_spec _cr_fields]
+    set field_spec    [my get_short_spec _fields]
+
+    foreach att $field_names {
+      switch -glob -- $att {
+        __* {}
+        _* {
+          set varname [string range $att 1 end]
+          lappend form_fields [my create_form_field -name $att \
+                                   -spec $cr_field_spec \
+                                   -slot [my find_slot $varname]]
+        }
+        default {
+          lappend form_fields [my create_form_field -name $att \
+                                   -spec $field_spec \
+                                   -slot [my find_slot $att]]
+        }
+      }
+    }
+    return $form_fields
   }
 
   FormInstance instproc edit {
@@ -503,53 +581,59 @@ namespace eval ::xowiki {
 
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
-    set page_instance_form_atts [list]
 
-    #if {$form eq ""} {
-    #  #
-    #  # nothing to do here, use standard ad_form behavior
-    #  #
-    #  #next -autoname $anon_instances -form_constraints $form_constraints
-    #  return [next -autoname $anon_instances]
-    #}
     if {$form eq ""} {
-      array set __ia [my set instance_attributes]
-      #set dont_edit [concat [[my info class] edit_atts] [list title] \
-      #                   [::Generic::CrClass set common_query_atts]]
+      #
+      # Since we have no form, we create it on the fly
+      # from the template variables and the form field specifications.
+      #
       set template [lindex [my get_from_template text] 0]
-      #my msg template_vars=[my template_vars $template]
+      #TODO rethink. form-attributes are set below
       foreach {var _} [my template_vars $template] {
         switch -glob $var {
-          _* {}
+          _* {
+            # we need no variables for the instance attributes
+          }
           default {
             set varname __ia($var)
-            lappend page_instance_form_atts $var $varname
             if {![info exists $varname]} {set $varname ""}
           }
         }
-        #if {[lsearch $dont_edit $var] == -1} {
-        #  set varname __ia($var)
-        #}
       }
-      #my msg page_instance_form_atts=$page_instance_form_atts
       set form "<FORM></FORM>"
+      set formgiven 0
+    } else {
+      set formgiven 1
     }
 
+    set form_attributes [my form_attributes]
     set field_names [list]
-    if {!$anon_instances}               { lappend field_names _name name }
-    if {[$package_id show_page_order]}  { lappend field_names _page_order page_order }
-    lappend field_names _title title
-    foreach fn $page_instance_form_atts { lappend field_names $fn }
-    foreach fn [list _description description _nls_language nls_language] {
-      lappend field_names $fn
+    lappend field_names _name
+    if {[$package_id show_page_order]}  { lappend field_names _page_order }
+    lappend field_names _title 
+    foreach fn $form_attributes                  { lappend field_names $fn }
+    foreach fn [list _description _nls_language] { lappend field_names $fn }
+
+    set cr_fields [list]
+    foreach f $field_names {
+      if {![string match _* $f]} continue
+      lappend cr_fields $f
+    }
+    #my msg form_atts=$form_attributes
+    #my msg cr_fields=$cr_fields
+
+    set form_fields [my create_form_fields $field_names]
+    if {$anon_instances}  { 
+      set f [my lookup_form_field -name _name $form_fields]
+      $f spec hidden
     }
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
-      my msg "we have to validate"
+      #my msg "we have to validate"
       #
       # we have to valiate and save the form data
       #
-      foreach {validation_errors form_fields category_ids} [my get_form_data] break
+      foreach {validation_errors category_ids} [my get_form_data $form_fields] break
       if {$validation_errors != 0} {
         #my msg "$validation_errors errors in $form_fields"
         #foreach f $form_fields { my msg "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
@@ -561,24 +645,40 @@ namespace eval ::xowiki {
         #
         my instvar name
         my save_data [::xo::cc form_parameter __object_name ""] $category_ids
-        my log "--forminstance redirect to [$package_id pretty_link $name]"
+        #my log "--forminstance redirect to [$package_id pretty_link $name]"
         $package_id returnredirect \
             [my query_parameter "return_url" [$package_id pretty_link $name]]
         return
       }
     } else {
-      set form_fields [my create_category_fields]
-      foreach {form_att att} $field_names {
-        if {[string match __ia* $att]} {
-          set value [set $att]
-        } else {
-          set value [my set $att]
+      # 
+      # display the current values
+      #
+      array set __ia [my set instance_attributes]
+      foreach att $field_names {
+        switch -glob $att {
+          __* {}
+          _* {
+            set f [my lookup_form_field -name $att $form_fields]
+            set varname [string range $att 1 end]
+            $f value [my set $varname]
+          }
+          default {
+            set f [my lookup_form_field -name $att $form_fields]
+            if {[info exists __ia($att)]} {
+              $f value $__ia($att)
+            }
+          }
         }
-        lappend form_fields [my create_form_field -name $form_att -slot [my find_slot $att] \
-                                 -configuration [list -value $value]]
       }
     }
     
+    
+    set form [my regsub_eval  \
+                  [template::adp_variable_regexp] $form \
+                  {my form_field_as_html "\\\1" "\2" $form_fields}]
+    #my msg form=$form
+
     dom parse -simple -html $form doc
     $doc documentElement root
     ::require_html_procs
@@ -590,15 +690,11 @@ namespace eval ::xowiki {
       ::html::input -type hidden -name __object_name -value [my name]
       ::html::input -type hidden -name __form_action -value save-form-data
 
-      # insert automatic form fields on top (for named entries, e.g. name and title)
-      foreach {form_att att} $field_names {
-        # try to find the field in the field_list (fields are found on validaton errors)
-        foreach f $form_fields {
-          if {[$f name] eq $form_att} {
-            $f render_item
-            break
-          }
-        }
+      # insert automatic form fields on top 
+      foreach att $field_names {
+        if {$formgiven && ![string match _* $att]} continue
+        set f [my lookup_form_field -name $att $form_fields]
+        $f render_item
       }
     } $fcn
     #
