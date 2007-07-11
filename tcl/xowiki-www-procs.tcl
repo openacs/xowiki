@@ -19,6 +19,8 @@ namespace eval ::xowiki {
     if {$description eq ""} {
       set description [my get_description $content]
     }
+    
+    #set ::META(description) $description
 
     if {[ns_conn isconnected]} {
       set url         "[ns_conn location][::xo::cc url]"
@@ -347,9 +349,11 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
-
+    if {![my exists name]} {
+      my set name [self]
+    }
     set f [FormField new -name $name \
-               -id        [::xowiki::Portlet html_id F.[my name].$name] \
+               -id        [::xowiki::Portlet html_id F.[my set name].$name] \
                -locale    [my nls_language] \
                -label     $label \
                -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
