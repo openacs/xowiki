@@ -350,10 +350,10 @@ namespace eval ::xowiki {
       set default ""
     }
     if {![my exists name]} {
-      my set name [self]
+      my name ""
     }
     set f [FormField new -name $name \
-               -id        [::xowiki::Portlet html_id F.[my set name].$name] \
+               -id        [::xowiki::Portlet html_id F.[my name].$name] \
                -locale    [my nls_language] \
                -label     $label \
                -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
@@ -378,8 +378,8 @@ namespace eval ::xowiki {
     set short_spec [my get_short_spec $name]
     #my msg "create form field '$name', short_spec = '$short_spec"
     set spec_list [list]
-    if {$short_spec ne ""} {lappend spec_list $short_spec}
     if {$spec ne ""}       {lappend spec_list $spec}
+    if {$short_spec ne ""} {lappend spec_list $short_spec}
     #my msg "$name, short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
     return $f
@@ -538,7 +538,7 @@ namespace eval ::xowiki {
     return [list $validation_errors $category_ids]
   }
 
-  FormInstance instproc form_field_as_html {before name form_fields} {
+  FormInstance instproc form_field_as_html {{-mode edit} before name form_fields} {
     set found 0
     foreach f $form_fields {
       if {[$f name] eq $name} {set found 1; break}
@@ -546,9 +546,12 @@ namespace eval ::xowiki {
     if {!$found} {
       set f [my create_form_field -name $name -slot [my find_slot $name]]
     }
-    #my msg "$name $found [$f serialize]"
-    # render form field as html
-    set html [$f asHTML]
+    #my msg "$name mode=$mode type=[$f set type]"
+    if {$mode eq "edit" || [$f display_field]} {
+      set html [$f asHTML]
+    } else {
+      set html @$name@
+    }
     #my msg "$name $html"
     return ${before}$html
   }
@@ -614,6 +617,8 @@ namespace eval ::xowiki {
     }
 
     set form_attributes [my form_attributes]
+    #my msg form_attributes=$form_attributes
+
     set field_names [list]
     lappend field_names _name
     if {[$package_id show_page_order]}  { lappend field_names _page_order }

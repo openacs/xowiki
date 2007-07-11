@@ -30,6 +30,7 @@ namespace eval ::xowiki {
   ###########################################################
   Class FormField -parameter {
     {required false} 
+    {display_field true} 
     {type text} 
     {label} 
     {name} 
@@ -343,6 +344,7 @@ namespace eval ::xowiki {
   FormField::richtext instproc initialize {} {
     # Reclass the editor based on the attribute 'editor' if necessary
     # and call initialize again in this case...
+    my display_field false
     if {[my editor] eq "xinha" && [my info class] ne "[self class]::xinha"} {
       my class [self class]::xinha
       my initialize

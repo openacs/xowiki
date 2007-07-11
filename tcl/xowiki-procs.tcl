@@ -1254,7 +1254,7 @@ namespace eval ::xowiki {
           } continue
 	set att [$field getAttribute name]
         if {[string match _* $att]} continue
-	if {[lsearch $field_names $att] > -1} {
+	if {[lsearch $field_names $att] == -1} {
 	  lappend field_names $att
 	}
       }
@@ -1276,7 +1276,7 @@ namespace eval ::xowiki {
       set form_fields [my create_form_fields $field_names]
       set form [my regsub_eval  \
 		    [template::adp_variable_regexp] $form \
-		    {my form_field_as_html "\\\1" "\2" $form_fields}]
+		    {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
 
       dom parse -simple -html $form doc
       $doc documentElement root
