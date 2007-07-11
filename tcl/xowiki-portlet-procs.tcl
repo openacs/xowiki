@@ -59,8 +59,14 @@ namespace eval ::xowiki::portlet {
     return [string map [list : _ # _] [self]]
   }
 
-  ::xowiki::Portlet proc make_id {} {
+  ::xowiki::Portlet proc self_id {} {
     return [string map [list : _ # _] [self]]
+  }
+  ::xowiki::Portlet proc html_id {name} {
+    # Construct a valid HTML id or name. 
+    # For details, see http://www.w3.org/TR/html4/types.html
+    regsub -all {[^A-Za-z0-9_:.-]} $name _ name
+    return $name
   }
 
   ::xowiki::Portlet instproc screen_name {user_id} {

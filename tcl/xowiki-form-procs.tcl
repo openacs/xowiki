@@ -64,6 +64,7 @@ namespace eval ::xowiki {
       if {[lindex $__wspec 0] eq "="} {
         set f [$data create_form_field \
                    -name $__field \
+                   -locale [$data nls_language] \
                    -slot [$data find_slot $__field] \
                    -spec [lindex $__spec 1] \
                   ]

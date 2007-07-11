@@ -8,11 +8,26 @@ ad_library {
 
 namespace eval ::xowiki {
 
-  # seconds approximation for form fields.
-  # these could support not only asWidgetSpec, but as well asHTML (just partly by now)
+  # Second approximation for form fields.
+  # FormFields are objects, which can be outputed as well in ad_forms
+  # or asHTML included in wiki pages. FormFields support 
   #
-  # todo: finally, this should go into xotcl-core
+  #  - validation
+  #  - help_text
+  #  - error messages
+  #  - internationlized pretty_values
+  #
+  # and inherit properties of the original datatypes via slots
+  # (e.g. for boolean entries). FormFields can be subclassed
+  # to ensure tailorability and high reuse.
+  # 
+  # todo: at some later time, this should go into xotcl-core
 
+  ###########################################################
+  #
+  # ::xowiki::FormField (Base Class)
+  #
+  ###########################################################
   Class FormField -parameter {
     {required false} 
     {type text} 
@@ -24,6 +39,7 @@ namespace eval ::xowiki {
     {help_text ""}
     {error_msg ""}
     {validator ""}
+    locale
     default
   }
   FormField instproc init {} {
@@ -41,13 +57,13 @@ namespace eval ::xowiki {
       my instvar label
       return [_ acs-templating.Element_is_required]
     }
-    # todo value type checker (through subtypes, check only if necessary)
+    # todo: value type checker (through subtypes, check only if necessary)
     if {[my validator] ne ""} {
       set r [$obj [my validator] $value]
       #my msg "validator [my validator] /[$obj procsearch [my validator]]/ returned $r"
       if {$r != 1} {
         set cl [namespace tail [lindex [$obj procsearch [my validator]] 0]]
-        my msg xowiki.$cl-[my validator]
+        # my msg xowiki.$cl-[my validator]
         return [_ xowiki.$cl-[my validator]]
       }
     }
@@ -57,7 +73,7 @@ namespace eval ::xowiki {
   FormField instproc config_from_spec {spec} {
     my instvar type options widget_type
     if {[my info class] eq [self class]} {
-      # check, wether a class was already set. we do it this way
+      # Check, wether a class was already set. we do it this way
       # to allow multiple additive config_from_spec invocations
       my class  [self class]::$type
     }
@@ -75,7 +91,7 @@ namespace eval ::xowiki {
             #
             # we want to allow e.g. options=[xowiki::locales] 
             #
-            # Make sure, that validaton of form fields does not allow
+            # TODO: Make sure, that validaton of form fields does not allow
             # square brackets.
             if {[string match {\[*\]} $value]} {
               set value [subst $value]
@@ -94,8 +110,11 @@ namespace eval ::xowiki {
         }
       }
     }
-    ::xotcl::Class::Parameter searchDefaults [self]; # todo will be different in xotcl 1.6.*
+    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     #my msg "[my name]: '$spec' calling initialize class=[my info class]\n"
+    if {[lang::util::translator_mode_p]} {
+      my mixin "::xo::TRN-Mode"
+    }
     my initialize 
   }
 
@@ -121,9 +140,6 @@ namespace eval ::xowiki {
     if {[my exists format]} {
       append spec " {format " [list $format] "} "
     }
-    #if {[my exists display_html]} {
-     # append spec " {display_value " [list [my set display_html]] "} "
-    #}
     if {$help_text ne ""} {
       if {[string match "#*#" $help_text]} {
         set internationalized [_ [string trim $help_text #]]
@@ -135,17 +151,35 @@ namespace eval ::xowiki {
     return $spec
   }
 
+  FormField ad_instproc get_attributes {
+    args
+  } {
+    Get a list of attribute value pairs
+    of instance attributes. It returns only those
+    pairs for which a value exists.
+
+    @return flattened list of attribute value pairs
+  } {
+    set pairs [list]
+    foreach attribute $args {
+      if {[my exists $attribute]} {
+        lappend pairs $attribute [my set $attribute]
+      }
+    }
+    return $pairs
+  }
+  
   FormField instproc render {} {
+    # In case, we use an asHTML of a FormField, we use this
+    # render definition (without label, error message, help text)
     my render_form_widget
   }
 
   FormField instproc render_form_widget {} {
-    # todo: for all types
-    #my msg type=[my type]
-    set atts [list type [my type]]
-    foreach att {size id name value} {
-      if {[my exists $att]} {lappend atts $att [my set $att]}
-    }
+    # This is the most general form widget. If no special rendere
+    # is defined, we fall back to this one, which is in most cases 
+    # a simple input type=string field.
+    set atts [my get_attributes type size id name value]
     ::html::div -class form-widget {::html::input $atts {}}
   } 
   
@@ -153,11 +187,29 @@ namespace eval ::xowiki {
     if {[my error_msg] ne ""} {
       ::html::div -class form-error {
         my instvar label
-        ::html::t -disableOutputEscaping [my error_msg]
+        ::html::t [::xo::localize [my error_msg]]
+        my render_localizer
         my set error_reported 1
       }
     }
   }
+
+  FormField instproc render_help_text {} {
+    set text [my help_text]
+    if {$text ne ""} {
+      html::div -class form-help-text {
+        html::img -src "/shared/images/info.gif" -alt {[i]} -title {Help text} \
+            -width "12" -height 9 -border 0 -style "margin-right: 5px" {}
+        html::t $text
+      }
+    }
+  }
+
+  FormField instproc render_localizer {} {
+    # Just an empty fall-back method.
+    # This method will be overloaded in trn mode by a mixin.
+  }
+
   FormField instproc render_item {} {
     ::html::div -class form-item-wrapper {
       ::html::div -class form-label {
@@ -171,20 +223,37 @@ namespace eval ::xowiki {
         }
       }
       my render_form_widget
+      my render_help_text
       my render_error_msg
+      html::t \n
     }
+  }
+
+  FormField instproc localize {v} {
+    # We localize in pretty_value the message keys in the 
+    # language of the item (not the connection item).
+    if {[regexp "^#(.*)#$" $v _ key]} {
+      return [lang::message::lookup [my locale] $key]
+    }
+    return $v
   }
 
   FormField instproc pretty_value {v} {
     if {[my exists options]} {
       foreach o [my set options] {
         foreach {label value} $o break
-        if {$value eq $v} {return $label}
+        if {$value eq $v} {return [my localize $label]}
       }
     }
-    return $v
+    # todo: if we can do locale substituion per langauge of the item
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $v]
   }
 
+  ###########################################################
+  #
+  # ::xowiki::FormField::hidden
+  #
+  ###########################################################
 
   Class FormField::hidden -superclass FormField
   FormField::hidden instproc initialize {} {
@@ -195,12 +264,34 @@ namespace eval ::xowiki {
     # don't render the labels
     my render_form_widget
   }
+  FormField::hidden instproc render_help_text {} {
+  }
   
+  ###########################################################
+  #
+  # ::xowiki::FormField::inform
+  #
+  ###########################################################
   
   Class FormField::inform -superclass FormField
   FormField::inform instproc initialize {} {
+    my type hidden
     my set widget_type text(inform)
   }
+  FormField::inform instproc render_form_widget {} {
+    ::html::div -class form-widget {
+      ::html::t [my value]
+      ::html::input [my get_attributes type id name value] {}
+    }
+  }
+  FormField::inform instproc render_help_text {} {
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::text
+  #
+  ###########################################################
 
   Class FormField::text -superclass FormField -parameter {
     {size 80}
@@ -209,6 +300,12 @@ namespace eval ::xowiki {
     my set widget_type text
     foreach p [list size] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::textarea
+  #
+  ###########################################################
 
   Class FormField::textarea -superclass FormField -parameter {
     {rows 2}
@@ -220,12 +317,19 @@ namespace eval ::xowiki {
     my set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
+
   FormField::textarea instproc render_form_widget {} {
     ::html::div -class form-widget {
-      ::html::textarea -id [my id] -name [my name] cols [my cols] -rows [my rows] {
+      ::html::textarea [my get_attributes id name cols rows style] {
         ::html::t [my value]
       }}
   }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::richtext
+  #
+  ###########################################################
 
   Class FormField::richtext -superclass FormField::textarea -parameter {
     {editor xinha} 
@@ -237,6 +341,28 @@ namespace eval ::xowiki {
     {style "width: 100%"}
   }
   FormField::richtext instproc initialize {} {
+    # Reclass the editor based on the attribute 'editor' if necessary
+    # and call initialize again in this case...
+    if {[my editor] eq "xinha" && [my info class] ne "[self class]::xinha"} {
+      my class [self class]::xinha
+      my initialize
+    } else {
+      next
+    }
+  }
+  FormField::richtext instproc pretty_value {v} {
+    # for richtext, perform no output escaping
+    return $v
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::richtext::xinha
+  #
+  ###########################################################
+
+  Class FormField::richtext::xinha -superclass FormField::richtext 
+  FormField::richtext::xinha instproc initialize {} {
     next
     my set widget_type richtext
     if {![my exists plugins]} {
@@ -245,14 +371,38 @@ namespace eval ::xowiki {
                -default [parameter::get_from_package_key \
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
-    my set options [list]
-    foreach p [list editor plugins width height folder_id javascript] {
-      if {[my exists $p]} {my lappend options $p [my $p]}
+    my set options [my get_attributes editor plugins width height folder_id javascript]
+  }
+  FormField::richtext::xinha instproc render_form_widget {} {
+    # we use for the time being the initialization of xinha based on 
+    # the site master
+    set ::acs_blank_master(xinha) 1
+    set quoted [list]
+    foreach e [my plugins] {lappend quoted '$e'}
+    set ::acs_blank_master(xinha.plugins) [join $quoted ", "]
+    
+    array set o [my set options]
+    set xinha_options ""
+    foreach e {width height folder_id fs_package_id file_types attach_parent_id} {
+      if {[info exists o($e)]} {
+        append xinha_options "xinha_config.$e = '$o($e)';\n"
+      }
     }
+    append xinha_options "xinha_config.package_id = '[::xo::cc package_id]';\n"
+    if {[info exists o(javascript)]} {
+      append xinha_options $o(javascript) \n
+    }
+    set ::acs_blank_master(xinha.options) $xinha_options
+    lappend ::acs_blank_master__htmlareas [my id]
+    next
   }
 
+  ###########################################################
+  #
+  # ::xowiki::FormField::date
+  #
+  ###########################################################
 
-  
   Class FormField::date -superclass FormField -parameter {format}
   FormField::date instproc initialize {} {
     my set widget_type date
@@ -260,6 +410,12 @@ namespace eval ::xowiki {
       my set format [string map [list _ " "] [my format]]
     }
   }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::radio
+  #
+  ###########################################################
 
   Class FormField::radio -superclass FormField -parameter {
     {options ""}
@@ -274,7 +430,6 @@ namespace eval ::xowiki {
       foreach o [my options] {
         foreach {label rep} $o break
         set atts [list id [my id]:$rep name [my name] type radio value $rep]
-        #my msg "comparing value '$value' with rep '$rep'"
         if {$value eq $rep} {lappend atts checked checked}
         ::html::input $atts {}
         html::t "$label  "
@@ -282,6 +437,12 @@ namespace eval ::xowiki {
       }
     }
   }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::select
+  #
+  ###########################################################
 
   Class FormField::select -superclass FormField -parameter {
     {options ""}
@@ -292,7 +453,7 @@ namespace eval ::xowiki {
   }
   FormField::select instproc render_form_widget {} {
     ::html::div -class form-widget {
-      set atts [list id [my id] name [my name]]
+      set atts [my get_attributes id name]
       if {[my multiple]} {lappend atts multiple [my multiple]}
       ::html::select $atts {
         foreach o [my options] {
@@ -306,6 +467,11 @@ namespace eval ::xowiki {
     }}}
   }
 
+  ###########################################################
+  #
+  # ::xowiki::FormField::month
+  #
+  ###########################################################
 
   Class FormField::month -superclass FormField -superclass FormField::select
   FormField::month instproc initialize {} {
@@ -317,6 +483,12 @@ namespace eval ::xowiki {
     next
   }
 
+  ###########################################################
+  #
+  # ::xowiki::FormField::boolean
+  #
+  ###########################################################
+
   Class FormField::boolean -superclass FormField::radio -parameter {
     {default t}
   }
@@ -326,6 +498,12 @@ namespace eval ::xowiki {
     my options {{No f} {#acs-kernel.common_Yes# t}}
     next
   }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::scale
+  #
+  ###########################################################
 
   Class FormField::scale -superclass FormField::radio -parameter {{n 5} {horizontal true}}
   FormField::scale instproc initialize {} {
@@ -338,9 +516,12 @@ namespace eval ::xowiki {
     next
   }
 
+  ###########################################################
   #
   # a few test cases
   #
+  ###########################################################
+
   proc ? {cmd expected {msg ""}} {
     ::xo::Timestamp t1
     set r [uplevel $cmd]

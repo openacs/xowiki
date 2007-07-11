@@ -214,8 +214,13 @@ namespace eval ::xowiki {
     }
     if {[info exists ::js_order]} {
       foreach file $::js_order  {
-        append result "<script language='javascript' src='$file' type='text/javascript'>" \
-          "</script>"
+        if {[string match "*;*" $file]} {
+          # it is not a file, but some javascipt statements
+          append result "<script language='javascript'>" $file "</script>\n"
+        } else {
+          append result "<script language='javascript' src='$file' type='text/javascript'>" \
+              "</script>\n"
+        }
       }
     }
     return $result

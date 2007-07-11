@@ -349,6 +349,8 @@ namespace eval ::xowiki {
     }
 
     set f [FormField new -name $name \
+               -id        [::xowiki::Portlet html_id F.[my name].$name] \
+               -locale    [my nls_language] \
                -label     $label \
                -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
@@ -425,6 +427,7 @@ namespace eval ::xowiki {
       }
       set f [FormField new \
                  -name "__category_${tree_name}_$tree_id" \
+                 -locale [my nls_language] \
                  -label $tree_name \
                  -type select \
                  -value $value \
@@ -611,16 +614,9 @@ namespace eval ::xowiki {
     lappend field_names _name
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
     lappend field_names _title 
-    foreach fn $form_attributes                  { lappend field_names $fn }
-    foreach fn [list _description _nls_language] { lappend field_names $fn }
-
-    set cr_fields [list]
-    foreach f $field_names {
-      if {![string match _* $f]} continue
-      lappend cr_fields $f
-    }
+    foreach fn $form_attributes                        { lappend field_names $fn }
+    foreach fn [list _text _description _nls_language] { lappend field_names $fn }
     #my msg form_atts=$form_attributes
-    #my msg cr_fields=$cr_fields
 
     set form_fields [my create_form_fields $field_names]
     if {$anon_instances}  { 
