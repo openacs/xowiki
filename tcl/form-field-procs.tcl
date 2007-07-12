@@ -479,6 +479,75 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
+  # ::xowiki::FormField::HH24
+  #
+  ###########################################################
+
+  Class FormField::HH24 -superclass FormField -superclass FormField::select
+  FormField::HH24 instproc initialize {} {
+    my options {
+      {00  0} {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} 
+      {10 10} {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19} 
+      {20 20} {21 21} {22 22} {23 23} 
+    }
+    next
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::MI
+  #
+  ###########################################################
+
+  Class FormField::MI -superclass FormField -superclass FormField::select
+  FormField::MI instproc value args {
+    if {[llength $args] == 0} {return [my set value]} else {
+      set v [lindex $args 0]
+      if {$v eq ""} {return [my set value ""]} else {
+	# round to 5 minutes
+	my set value [lindex [my options] [expr {($v + 2) / 5}] 1]
+      }
+    }
+  }
+  FormField::MI instproc initialize {} {
+    my options {
+      {00  0} {05  5} {10 10} {15 15} {20 20} {25 25} 
+      {30 30} {35 35} {40 40} {45 45} {50 50} {55 55}
+    }
+    next
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::MM
+  #
+  ###########################################################
+
+  Class FormField::MM -superclass FormField -superclass FormField::select
+  FormField::MM instproc initialize {} {
+    my options {
+      {01  1} {02  2} {03 3} {04 4} {05 5} {06 6} {07 7} {08 8} {09 9} {10 10}
+      {11 11} {12 12} 
+    }
+    next
+  }
+  ###########################################################
+  #
+  # ::xowiki::FormField::month
+  #
+  ###########################################################
+
+  Class FormField::mon -superclass FormField::select
+  FormField::mon instproc initialize {} {
+    # localized values are in acs-lang.localization-mon
+    my options {
+      {Jan 1} {Feb 2} {Mar 3} {Apr  4} {May  5} {Jun  6}
+      {Jul 7} {Aug 8} {Sep 9} {Oct 10} {Nov 11} {Dec 12}
+    }
+    next
+  }
+  ###########################################################
+  #
   # ::xowiki::FormField::month
   #
   ###########################################################
@@ -510,20 +579,26 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::date -superclass FormField -parameter {{format "DD MONTH YYYY"}}
+  Class FormField::date -superclass FormField -parameter {
+    {format "DD MONTH YYYY"}
+    {display_format "%Y-%m-%d %T"}
+  }
   FormField::date instproc initialize {} {
     my set widget_type date
-    if {[my exists format]} {
-      my set format [string map [list _ " "] [my format]]
-    }
+    my set format [string map [list _ " "] [my format]]
     my array set format_map {
+      SS    {SS    %S 1}
+      MI    {MI    %M 1}
+      HH24  {HH24  %H 1}
       DD    {DD    %e 0}
+      MM    {MM    %m 1}
+      MON   {mon   %m 1}
       MONTH {month %m 1}
       YYYY  {YYYY  %Y 0}
     }
     foreach {class code trim_zeros} [my components] {
       #
-      # create for each component of the date a subobject named by the class
+      # create for each component of the format a subobject named by the class
       #
       ::xowiki::FormField::$class create [self]::$class \
           -name [my name].$class -id [my id].$class 
@@ -542,58 +617,64 @@ namespace eval ::xowiki {
     return $components
   }
   
-  FormField::date instproc value {args} {
-    my instvar value
-    if {[llength $args] == 0} {
-      # getter method
-      return $value
+  FormField::date instproc set_compound_value {} {
+    set value [my value]
+    # my msg "date: value set to '$value'"
+    if {$value ne ""} {
+      set ticks [clock scan $value]
     } else {
-      # setter method
-      set value [lindex $args 0]
-      #my msg "date: value set to '$value'"
-      if {$value ne ""} {
-        set ticks [clock scan $value]
+      # TODO: just for now, should be empty as well, when we have no value
+      set ticks [clock seconds]
+    }
+    # set the value parts for each components
+    foreach {class code trim_zeros} [my components] {
+      if {$ticks ne ""} {
+	set value_part [clock format $ticks -format $code]
+	if {$trim_zeros} {
+	  set value_part [string trimleft $value_part 0]
+	  if {$value_part eq ""} {set value_part 0}
+	}
       } else {
-        # TODO: just for now, should be empty as well, when we have no value
-        set ticks [clock seconds]
+	set value_part ""
       }
-      # set the value parts for each components
-      foreach {class code trim_zeros} [my components] {
-        if {$ticks ne ""} {
-          set value_part [clock format $ticks -format $code]
-          if {$trim_zeros} {set value_part [string trimleft $value_part 0]}
-        } else {
-          set value_part ""
-        }
-        [self]::$class value $value_part
-      }
+      [self]::$class value $value_part
     }
   }
   
   FormField::date instproc get_compound_value {} {
     # Set the internal representation of the date based on the components values.
-    # Internally, the ansi date format ís used.
-    set year ""; set month ""; set day ""
+    # Internally, the ansi date format is used.
+    set year ""; set month ""; set day ""; set hour ""; set min ""; set sec ""
     if {[my isobject [self]::YYYY]}  {set year  [[self]::YYYY  value]}
     if {[my isobject [self]::month]} {set month [[self]::month value]}
+    if {[my isobject [self]::mon]}   {set month [[self]::mon   value]}
+    if {[my isobject [self]::MM]}    {set month [[self]::MM    value]}
     if {[my isobject [self]::DD]}    {set day   [[self]::DD    value]}
-    if {$year eq "" && $month eq "" && $day eq ""} {
+    if {[my isobject [self]::HH24]}  {set hour  [[self]::HH24  value]}
+    if {[my isobject [self]::MI]}    {set min   [[self]::MI    value]}
+    if {[my isobject [self]::SS]}    {set sec   [[self]::SS    value]}
+    if {"$year$month$day$hour$min$sec" eq ""} {
       return ""
     }
     if {$year  eq ""} {set year 2000}
     if {$month eq ""} {set month 1}
     if {$day   eq ""} {set day 1}
-    set ticks [clock scan $year-$month-$day]
+    if {$hour  eq ""} {set hour 0}
+    if {$min   eq ""} {set min 0}
+    if {$sec   eq ""} {set sec 0}
+    #my msg "$year-$month-$day ${hour}:${min}:${sec}"
+    set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]
     # TODO: TZ???
     return [clock format $ticks -format "%Y-%m-%d %T"]
   }
 
   FormField::date instproc pretty_value {v} {
-    # internally, we have ansi format. For displaying the date, don't show time
-    return [clock format [clock scan $v] -format "%Y-%m-%d"]
+    # internally, we have ansi format. For displaying the date, use the display format
+    return [clock format [clock scan $v] -format [string map [list _ " "] [my display_format]]]
   }
 
   FormField::date instproc render_content {} {
+    my set_compound_value
     foreach {class code trim_zeros} [my components] {
       [self]::$class render_content
     }

@@ -519,14 +519,14 @@ namespace eval ::xowiki {
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
           set varname [string range $att 1 end]
-          my set $varname $value
+          if {![string match *.* $att]} {my set $varname $value}
         }
         default {
           # user form content fields
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
           # my msg "value of $att is $value"
-          set __ia($att)  $value
+          if {![string match *.* $att]} {set __ia($att)  $value}
         }
       }
       if {[string match *.* $att]} {
@@ -653,7 +653,7 @@ namespace eval ::xowiki {
     lappend field_names _title 
     foreach fn $form_attributes                        { lappend field_names $fn }
     foreach fn [list _text _description _nls_language] { lappend field_names $fn }
-    #my msg form_atts=$form_attributes
+    #my msg field_names=$field_names
 
     set form_fields [my create_form_fields $field_names]
     if {$anon_instances}  { 
