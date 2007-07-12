@@ -480,7 +480,8 @@ namespace eval ::xowiki {
   Class create PageTemplateForm -superclass WikiForm \
       -parameter {
 	{field_list {
-	  item_id name page_order title creator text anon_instances description nls_language
+	  item_id name page_order title creator text anon_instances 
+          description nls_language
 	}}
       }
 

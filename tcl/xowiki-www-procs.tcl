@@ -393,6 +393,11 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       if {[$f name] eq $name} {set found 1; break}
     }
+    if {!$found && [regexp {^([^.]+)[.](.*)$} $name _ container component]} {
+      # components of a field
+      set f [my lookup_form_field -name $container $form_fields]::$component
+      set found 1
+    }
     if {!$found} {
       error "No form field with name $name found"
     }
@@ -418,7 +423,7 @@ namespace eval ::xowiki {
       foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
 
       set options [list] 
-      if {!$require_category_p} {lappend options [list "" ""]}
+      #if {!$require_category_p} {lappend options [list "--" ""]}
       set value [list]
       foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
         foreach {category_id category_name deprecated_p level} $category break
@@ -494,6 +499,7 @@ namespace eval ::xowiki {
     set validation_errors 0
     set category_ids    [list]
     array set __ia [my set instance_attributes]
+    array set containers [list]
 
     # we have a form and get all form variables
       
@@ -506,7 +512,7 @@ namespace eval ::xowiki {
           foreach v $value {lappend category_ids $v}
         }
         __* {
-          # other internal variables (like __object names) are ignored
+          # other internal variables (like __object_name) are ignored
         }
         _* {
           # instance attribute fields
@@ -521,6 +527,28 @@ namespace eval ::xowiki {
           set value [$f value [::xo::cc form_parameter $att]]
           # my msg "value of $att is $value"
           set __ia($att)  $value
+        }
+      }
+      if {[string match *.* $att]} {
+        foreach {container component} [split $att .] break
+        lappend containers($container) $component
+      }
+    }
+
+    #
+    # In a second iteration, combine the values from the components 
+    # of a container to the value of the container.
+    #
+    foreach c [array names containers] {
+      switch -glob -- $c {
+        __* {}
+        _* {
+          set f  [my lookup_form_field -name $c $form_fields]
+          my set [string range $c 1 end] [$f get_compound_value]
+        }
+        default {
+          set f  [my lookup_form_field -name $c $form_fields]
+          set __ia($c) [$f get_compound_value]
         }
       }
     }

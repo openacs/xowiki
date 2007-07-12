@@ -175,13 +175,17 @@ namespace eval ::xowiki {
     # render definition (without label, error message, help text)
     my render_form_widget
   }
-
+  
   FormField instproc render_form_widget {} {
-    # This is the most general form widget. If no special rendere
-    # is defined, we fall back to this one, which is in most cases 
-    # a simple input type=string field.
-    set atts [my get_attributes type size id name value]
-    ::html::div -class form-widget {::html::input $atts {}}
+    # This method provides the form-widget wrapper
+    ::html::div -class form-widget { my render_content }
+  }
+
+  FormField instproc render_content {} {
+    # This is the most general widget content renderer. 
+    # If no special renderer is defined, we fall back to this one, 
+    # which is in most cases  a simple input fied of type string.
+    ::html::input [my get_attributes type size maxlength id name value] {}
   } 
   
   FormField instproc render_error_msg {} {
@@ -279,11 +283,9 @@ namespace eval ::xowiki {
     my type hidden
     my set widget_type text(inform)
   }
-  FormField::inform instproc render_form_widget {} {
-    ::html::div -class form-widget {
-      ::html::t [my value]
-      ::html::input [my get_attributes type id name value] {}
-    }
+  FormField::inform instproc render_content {} {
+    ::html::t [my value]
+    ::html::input [my get_attributes type id name value] {}
   }
   FormField::inform instproc render_help_text {} {
   }
@@ -296,6 +298,7 @@ namespace eval ::xowiki {
 
   Class FormField::text -superclass FormField -parameter {
     {size 80}
+    maxlength
   }
   FormField::text instproc initialize {} {
     my set widget_type text
@@ -319,11 +322,10 @@ namespace eval ::xowiki {
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
 
-  FormField::textarea instproc render_form_widget {} {
-    ::html::div -class form-widget {
-      ::html::textarea [my get_attributes id name cols rows style] {
-        ::html::t [my value]
-      }}
+  FormField::textarea instproc render_content {} {
+    ::html::textarea [my get_attributes id name cols rows style] {
+      ::html::t [my value]
+    }
   }
 
   ###########################################################
@@ -375,7 +377,7 @@ namespace eval ::xowiki {
     }
     my set options [my get_attributes editor plugins width height folder_id javascript]
   }
-  FormField::richtext::xinha instproc render_form_widget {} {
+  FormField::richtext::xinha instproc render_content {} {
     # we use for the time being the initialization of xinha based on 
     # the site master
     set ::acs_blank_master(xinha) 1
@@ -399,19 +401,6 @@ namespace eval ::xowiki {
     next
   }
 
-  ###########################################################
-  #
-  # ::xowiki::FormField::date
-  #
-  ###########################################################
-
-  Class FormField::date -superclass FormField -parameter {format}
-  FormField::date instproc initialize {} {
-    my set widget_type date
-    if {[my exists format]} {
-      my set format [string map [list _ " "] [my format]]
-    }
-  }
 
   ###########################################################
   #
@@ -426,17 +415,15 @@ namespace eval ::xowiki {
   FormField::radio instproc initialize {} {
     my set widget_type text(radio)
   }
-  FormField::radio instproc render_form_widget {} {
+  FormField::radio instproc render_content {} {
     set value [my value]
-    ::html::div -class form-widget {
-      foreach o [my options] {
-        foreach {label rep} $o break
-        set atts [list id [my id]:$rep name [my name] type radio value $rep]
-        if {$value eq $rep} {lappend atts checked checked}
-        ::html::input $atts {}
-        html::t "$label  "
-        if {![my horizontal]} {html::br}
-      }
+    foreach o [my options] {
+      foreach {label rep} $o break
+      set atts [list id [my id]:$rep name [my name] type radio value $rep]
+      if {$value eq $rep} {lappend atts checked checked}
+      ::html::input $atts {}
+      html::t "$label  "
+      if {![my horizontal]} {html::br}
     }
   }
 
@@ -453,20 +440,41 @@ namespace eval ::xowiki {
   FormField::select instproc initialize {} {
     my set widget_type text(select)
   }
-  FormField::select instproc render_form_widget {} {
-    ::html::div -class form-widget {
-      set atts [my get_attributes id name]
-      if {[my multiple]} {lappend atts multiple [my multiple]}
-      ::html::select $atts {
-        foreach o [my options] {
-          foreach {label rep} $o break
-          set atts [list value $rep]
-          #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
-          if {[lsearch [my value] $rep] > -1} {
-            lappend atts selected on
-          }
-          ::html::option $atts {::html::t $label}
-    }}}
+  FormField::select instproc render_content {} {
+    set atts [my get_attributes id name]
+    if {[my multiple]} {lappend atts multiple [my multiple]}
+    set options [my options]
+    if {![my required]} {
+      set options [linsert $options 0 [list "--" ""]]
+    }
+    ::html::select $atts {
+      foreach o $options {
+        foreach {label rep} $o break
+        set atts [list value $rep]
+        #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
+        if {[lsearch [my value] $rep] > -1} {
+          lappend atts selected on
+        }
+        ::html::option $atts {::html::t $label}
+    }}
+  }
+
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::DD
+  #
+  ###########################################################
+
+  Class FormField::DD -superclass FormField -superclass FormField::select
+  FormField::DD instproc initialize {} {
+    my options {
+      {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} {10 10}
+      {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19} {20 20}
+      {21 21} {22 22} {23 23} {24 24} {25 25} {26 26} {27 27} {28 28} {29 29} {30 30}
+      {31 31}
+    }
+    next
   }
 
   ###########################################################
@@ -475,7 +483,7 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::month -superclass FormField -superclass FormField::select
+  Class FormField::month -superclass FormField::select
   FormField::month instproc initialize {} {
     # localized values are in acs-lang.localization-mon
     my options {
@@ -483,6 +491,112 @@ namespace eval ::xowiki {
       {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
     }
     next
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::YYYY
+  #
+  ###########################################################
+
+  Class FormField::YYYY -superclass FormField::text -parameter {
+    {size 4}
+    {maxlength 4}
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::date
+  #
+  ###########################################################
+
+  Class FormField::date -superclass FormField -parameter {{format "DD MONTH YYYY"}}
+  FormField::date instproc initialize {} {
+    my set widget_type date
+    if {[my exists format]} {
+      my set format [string map [list _ " "] [my format]]
+    }
+    my array set format_map {
+      DD    {DD    %e 0}
+      MONTH {month %m 1}
+      YYYY  {YYYY  %Y 0}
+    }
+    foreach {class code trim_zeros} [my components] {
+      #
+      # create for each component of the date a subobject named by the class
+      #
+      ::xowiki::FormField::$class create [self]::$class \
+          -name [my name].$class -id [my id].$class 
+    }
+  }
+
+  FormField::date instproc components {} {
+    set components [list]
+    foreach c [split [my format]] {
+      if {![my exists format_map($c)]} {
+        error "Unknown format component: $c. \
+		Valid compontents are [my array names format_map]"
+      }
+      eval lappend components [my set format_map($c)]
+    }
+    return $components
+  }
+  
+  FormField::date instproc value {args} {
+    my instvar value
+    if {[llength $args] == 0} {
+      # getter method
+      return $value
+    } else {
+      # setter method
+      set value [lindex $args 0]
+      #my msg "date: value set to '$value'"
+      if {$value ne ""} {
+        set ticks [clock scan $value]
+      } else {
+        # TODO: just for now, should be empty as well, when we have no value
+        set ticks [clock seconds]
+      }
+      # set the value parts for each components
+      foreach {class code trim_zeros} [my components] {
+        if {$ticks ne ""} {
+          set value_part [clock format $ticks -format $code]
+          if {$trim_zeros} {set value_part [string trimleft $value_part 0]}
+        } else {
+          set value_part ""
+        }
+        [self]::$class value $value_part
+      }
+    }
+  }
+  
+  FormField::date instproc get_compound_value {} {
+    # Set the internal representation of the date based on the components values.
+    # Internally, the ansi date format ís used.
+    set year ""; set month ""; set day ""
+    if {[my isobject [self]::YYYY]}  {set year  [[self]::YYYY  value]}
+    if {[my isobject [self]::month]} {set month [[self]::month value]}
+    if {[my isobject [self]::DD]}    {set day   [[self]::DD    value]}
+    if {$year eq "" && $month eq "" && $day eq ""} {
+      return ""
+    }
+    if {$year  eq ""} {set year 2000}
+    if {$month eq ""} {set month 1}
+    if {$day   eq ""} {set day 1}
+    set ticks [clock scan $year-$month-$day]
+    # TODO: TZ???
+    return [clock format $ticks -format "%Y-%m-%d %T"]
+  }
+
+  FormField::date instproc pretty_value {v} {
+    # internally, we have ansi format. For displaying the date, don't show time
+    return [clock format [clock scan $v] -format "%Y-%m-%d"]
+  }
+
+  FormField::date instproc render_content {} {
+    foreach {class code trim_zeros} [my components] {
+      [self]::$class render_content
+    }
   }
 
   ###########################################################

@@ -1296,7 +1296,9 @@ namespace eval ::xowiki {
         } elseif {[my exists $varname]} {
           set value [my $varname]
         } else {
-          set value "**** unknown variable '$varname' ****"
+          my msg "**** unknown variable '$varname' ****"
+          #set value **** unknown variable '$varname' ****"
+          set value ""
         }
       }
     }
