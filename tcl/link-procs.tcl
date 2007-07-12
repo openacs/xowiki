@@ -12,22 +12,25 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create ExternalLink -parameter {
-    href label title
+    href label title target
   }
   ExternalLink instproc render {} {
-    my instvar href label title
+    my instvar href label title target
     set title_att ""
-    if {[info exists title]} {set title_att "title='$title'"}
+    if {[info exists title]} {append  title_att " title='$title'"}
+    if {[info exists target]} {append title_att " target='$target'"}
     return "<a $title_att class='external' href='$href'>$label</a>"
   }
 
   Class create Link -parameter {
     type name lang stripped_name label page 
     folder_id package_id 
-    title
+    title target
   }
-  Link instproc title_att {} {
-    if {[my exists title]} {return "title='[my title]'"} {return ""}
+  Link instproc atts {} {
+    set atts ""
+    if {[my exists title]} {append atts " title='[my title]'"}
+    if {[my exists target]} {append atts " target='[my target]'"}
   }
   Link instproc init {} {
     set class [self class]::[my type]
@@ -42,7 +45,7 @@ namespace eval ::xowiki {
     ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
-    return "<a [my title_att] href='$href'>$label</a>"
+    return "<a [my atts] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
     return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
