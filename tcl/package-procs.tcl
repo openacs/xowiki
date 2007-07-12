@@ -244,7 +244,11 @@ namespace eval ::xowiki {
     my set delivery ns_return
     set page [my resolve_page [my set object] method]
     if {$page ne ""} {
-      return [my call $page $method]
+      if {[$page procsearch $method] eq ""} {
+	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
+      } else {
+	return [my call $page $method]
+      }
     } else {
       # the requested page was not found, provide an error message and 
       # an optional link for creating the page
