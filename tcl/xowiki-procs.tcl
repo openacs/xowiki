@@ -67,6 +67,7 @@ namespace eval ::xowiki {
   ::xowiki::Page::slot::description set datatype text
 
   ::xowiki::Page::slot::text set pretty_name #xowiki.Page-text#
+  ::xowiki::Page::slot::text set spec "richtext"
   ::xowiki::Page::slot::text set datatype text
 
   ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
@@ -134,10 +135,12 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name form_constraints -datatype text
       } \
       -form ::xowiki::FormForm
+
   ::Generic::CrClass create FormInstance -superclass PageInstance \
       -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
-      -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" \
-      -form ::xowiki::FormInstanceEditForm
+      -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
+#      -form ::xowiki::FormInstanceEditForm
+#TODO delete FormInstanceEditForm
 
   #
   # create various extra tables, indices and views
@@ -1223,7 +1226,7 @@ namespace eval ::xowiki {
 
   FormInstance instproc form_attributes {} {
     #
-    # this method returns the form attributes (not including _*)
+    # this method returns the form attributes (including _*)
     #
     my instvar page_template
     set dont_edit [concat [[my info class] edit_atts] [list title] \
@@ -1234,13 +1237,13 @@ namespace eval ::xowiki {
     set field_names [list]
     if {$template ne ""} {
       foreach {var _} [my template_vars $template] {
-        if {[string match _* $var]} continue
+        #if {[string match _* $var]} continue
 	if {[lsearch $dont_edit $var] == -1} {lappend field_names $var}
       }
     } else {
       set form [lindex [my get_from_template form] 0]
       foreach {match 1 att} [regexp -all -inline [template::adp_variable_regexp] $form] {
-        if {[string match _* $att]} continue
+        #if {[string match _* $att]} continue
         lappend field_names $att
       }
       dom parse -simple -html $form doc
@@ -1253,7 +1256,7 @@ namespace eval ::xowiki {
             && $node_name ne "select" 
           } continue
 	set att [$field getAttribute name]
-        if {[string match _* $att]} continue
+        #if {[string match _* $att]} continue
 	if {[lsearch $field_names $att] == -1} {
 	  lappend field_names $att
 	}
@@ -1324,6 +1327,10 @@ namespace eval ::xowiki {
     return $content
   }
 
+  FormInstance instproc is_new_entry {old_name} {
+    return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]
+  }
+
   FormInstance instproc save_data {old_name category_ids} {
     my log "-- [self args]"
     my instvar package_id name
@@ -1332,7 +1339,7 @@ namespace eval ::xowiki {
       # if the newly created item was in production mode, but ordinary entries
       # are not, change on the first save the status to ready
       #
-      if {[my publish_status] eq "production" && $old_name eq [my revision_id]} {
+      if {[my is_new_entry $old_name]} {
         if {![$package_id get_parameter production_mode 0]} {
           my set publish_status "ready"
         }

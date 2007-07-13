@@ -260,7 +260,7 @@ namespace eval ::xowiki {
       }
     }
     # 
-    # set tthe following defaults manually
+    # set the following defaults manually
     #
     $data set creator [::xo::get_user_name [::xo::cc user_id]]
     $data set nls_language [ad_conn locale]

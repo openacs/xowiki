@@ -234,6 +234,10 @@ namespace eval ::xowiki {
         my set $key [$package_id query_parameter $key]
       }
     }
+    if {$new} {
+      my set creator [::xo::get_user_name [::xo::cc user_id]]
+      my set nls_language [ad_conn locale]
+    }
 
     set object_type [my info class]
     if {!$new && $object_type eq "::xowiki::Object" && [my set name] eq "::$folder_id"} {
@@ -376,7 +380,7 @@ namespace eval ::xowiki {
     {-configuration ""}
   } {
     set short_spec [my get_short_spec $name]
-    #my msg "create form field '$name', short_spec = '$short_spec"
+    #my msg "create form field '$name', short_spec = '$short_spec', slot=$slot"
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
@@ -612,6 +616,13 @@ namespace eval ::xowiki {
     return $form_fields
   }
 
+  FormInstance instproc show_fields {form_fields} {
+    # this method is for debugging only
+    set msg ""
+    foreach f $form_fields { append msg "[$f name] [$f info class], " }
+    my msg $msg
+  }
+
   FormInstance instproc edit {
     {-validation_errors ""}
   } {
@@ -620,24 +631,16 @@ namespace eval ::xowiki {
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
 
+    if {[my is_new_entry [my name]]} {
+      my set creator [::xo::get_user_name [::xo::cc user_id]]
+      my set nls_language [ad_conn locale]
+    }
+
     if {$form eq ""} {
       #
       # Since we have no form, we create it on the fly
       # from the template variables and the form field specifications.
       #
-      set template [lindex [my get_from_template text] 0]
-      #TODO rethink. form-attributes are set below
-      foreach {var _} [my template_vars $template] {
-        switch -glob $var {
-          _* {
-            # we need no variables for the instance attributes
-          }
-          default {
-            set varname __ia($var)
-            if {![info exists $varname]} {set $varname ""}
-          }
-        }
-      }
       set form "<FORM></FORM>"
       set formgiven 0
     } else {
@@ -647,19 +650,38 @@ namespace eval ::xowiki {
     set form_attributes [my form_attributes]
     #my msg form_attributes=$form_attributes
 
-    set field_names [list]
-    lappend field_names _name
+    # 
+    # Remove the fields already included in auto_fields form the form_attributes.
+    # The final list field_names determines the order of the fields in the form.
+    #
+    set auto_fields [list _name _page_order _creator _title _text _description _nls_language]
+    set reduced_form_attributes $form_attributes
+    foreach f $auto_fields {
+      set p [lsearch $reduced_form_attributes $f]
+      if {$p > -1} {
+        set auto_field_in_form($f) 1
+        set reduced_form_attributes [lreplace $reduced_form_attributes $p $p]
+      } 
+    }
+    #my msg reduced_form_attributes=$reduced_form_attributes
+
+    set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
-    lappend field_names _title 
-    foreach fn $form_attributes                        { lappend field_names $fn }
+    lappend field_names _title _creator
+    foreach fn $reduced_form_attributes                { lappend field_names $fn }
     foreach fn [list _text _description _nls_language] { lappend field_names $fn }
     #my msg field_names=$field_names
 
     set form_fields [my create_form_fields $field_names]
-    if {$anon_instances}  { 
+    if {$anon_instances} {
       set f [my lookup_form_field -name _name $form_fields]
-      $f spec hidden
+      $f config_from_spec hidden
     }
+    if {![info exists auto_field_in_form(_text)]} {
+      set f [my lookup_form_field -name _text $form_fields]
+      $f config_from_spec hidden
+    }
+    #my show_fields $form_fields
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
