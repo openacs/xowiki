@@ -247,6 +247,7 @@ namespace eval ::xowiki {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
+        #my log "--invoke $page $method" 
 	return [my call $page $method]
       }
     } else {
@@ -691,8 +692,7 @@ namespace eval ::xowiki {
   #
 
   Package ad_instproc google-sitemap {
-    -maxentries
-
+    {-max_entries ""}
     {-changefreq "daily"}
     {-priority "0.5"}
   } {
@@ -708,34 +708,36 @@ namespace eval ::xowiki {
     set package_id [my id]
     set folder_id [::$package_id folder_id]
    
-    set limit_clause [expr {[info exists maxentries] ? " limit $maxentries" : ""}]
     set timerange_clause ""
     
     set content {<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.google.com/schemas/sitemap/0.84">
 }
-    db_foreach [my qn get_pages] \
-        "select s.body, p.name, p.creator, p.title, p.page_id,\
-                p.object_type as content_type, p.last_modified, p.description  \
-        from xowiki_pagex p, syndication s, cr_items ci  \
-        where ci.parent_id = $folder_id and ci.live_revision = s.object_id \
-              and s.object_id = p.page_id $timerange_clause \
-        order by p.last_modified desc $limit_clause \
-        " {
-          #my log "--found $name"
-          if {[string match "::*" $name]} continue
-          if {$content_type eq "::xowiki::PageTemplate::"} continue
 
-          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-          
-          set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
-          append content <url> \n\
-              <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
-              <lastmod>$time</lastmod> \n\
-              <changefreq>$changefreq</changefreq> \n\
-              <priority>$priority</priority> \n\
-              </url> \n
-        }
+    set sql [::xo::db::sql select \
+                 -vars "s.body, p.name, p.creator, p.title, p.page_id,\
+                p.object_type as content_type, p.last_modified, p.description" \
+                 -from "xowiki_pagex p, syndication s, cr_items ci" \
+                 -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+              and s.object_id = p.page_id $timerange_clause" \
+                 -orderby "p.last_modified desc" \
+                 -limit $max_entries]
+    my log $sql
+    db_foreach [my qn get_pages] $sql {
+      #my log "--found $name"
+      if {[string match "::*" $name]} continue
+      if {$content_type eq "::xowiki::PageTemplate::"} continue
+      
+      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      
+      set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+      append content <url> \n\
+          <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
+          <lastmod>$time</lastmod> \n\
+          <changefreq>$changefreq</changefreq> \n\
+          <priority>$priority</priority> \n\
+          </url> \n
+    }
     
     append content </urlset> \n
     #set t text/plain
@@ -783,8 +785,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc google-sitemapindex {} {
-    # deprecated
-    ::xowiki::Page [self proc]
+    [self class] [self proc]
   }
 
   Package instproc edit-new {} {
