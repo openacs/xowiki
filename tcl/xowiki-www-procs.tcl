@@ -752,6 +752,7 @@ namespace eval ::xowiki {
         $f render_item
       }
     } $fcn
+
     #
     # append some fields after the HTML contents of the form 
     #
