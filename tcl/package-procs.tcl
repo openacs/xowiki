@@ -464,7 +464,7 @@ namespace eval ::xowiki {
       # but the package admin should not have necessarily the rights to change it
       set folder_id [::xowiki::Page require_folder \
 			 -name xowiki -package_id $id \
-			 -content_types ::xowki::Page* ]
+			 -content_types ::xowiki::Page* ]
     }
 
     if {![::xotcl::Object isobject ::$folder_id]} {
