@@ -14,17 +14,17 @@ namespace eval ::xowiki {
   }
 
   ad_proc -private ::xowiki::before-uninstall {} {
-      ::xowiki::sc::unregister_implementations
-      ::xowiki::notifications-uninstall
+    ::xowiki::sc::unregister_implementations
+    ::xowiki::notifications-uninstall
 
-      # Delete object types
-      
-      content::type::delete -content_type ::xowiki::Object -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
-      content::type::delete -content_type ::xowiki::PageInstance -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
-      content::type::delete -content_type ::xowiki::PageTemplate -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
-      content::type::delete -content_type ::xowiki::File -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
-      content::type::delete -content_type ::xowiki::PlainPage -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
-      content::type::delete -content_type ::xowiki::Page -drop_children_p 1 -drop_table_p 1 -drop_objects_p 1
+    # Unregister all types from all folders 
+    ::xowiki::Page folder_type_unregister_all 
+
+    # Delete object types
+    foreach type [::xowiki::Page object_types -subtypes_first true] {
+      ::xo::db::sql::content_type drop_type -content_type $type \
+          -drop_children_p t -drop_table_p t -drop_objects_p t
+    }
   }
 
 
