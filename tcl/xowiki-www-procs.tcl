@@ -756,11 +756,14 @@ namespace eval ::xowiki {
     #
     # append some fields after the HTML contents of the form 
     #
+    set submit_button_class ""
     $root appendFromScript {    
       # append category fields
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
+        } elseif {[$f info class] eq "::xowiki::FormField::richtext::wym"} {
+          set submit_button_class "wymupdate"
         }
       }
 
@@ -771,7 +774,7 @@ namespace eval ::xowiki {
         }
       }
       ::html::br 
-      ::html::input -type submit
+      ::html::input -type submit -class $submit_button_class
     }
     set form [lindex [$root selectNodes //form] 0]
     if {$form eq ""} {

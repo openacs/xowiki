@@ -163,8 +163,15 @@ namespace eval ::xowiki {
   } {
     set pairs [list]
     foreach attribute $args {
+      set l [split $attribute]
+      if {[llength $l] > 1} {
+        foreach {attribute HTMLattribute} $l break
+      } else {
+        set HTMLattribute $attribute
+      }
+      #my msg "[my name] check for $attribute => [my exists $attribute]"
       if {[my exists $attribute]} {
-        lappend pairs $attribute [my set $attribute]
+        lappend pairs $HTMLattribute [my set $attribute]
       }
     }
     return $pairs
@@ -316,14 +323,16 @@ namespace eval ::xowiki {
     {cols 80}
     {spell false}
     style
+    CSSclass
   }
   FormField::textarea instproc initialize {} {
     my set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
+    next
   }
 
   FormField::textarea instproc render_content {} {
-    ::html::textarea [my get_attributes id name cols rows style] {
+    ::html::textarea [my get_attributes id name cols rows style {CSSclass class}] {
       ::html::t [my value]
     }
   }
@@ -347,8 +356,11 @@ namespace eval ::xowiki {
     # Reclass the editor based on the attribute 'editor' if necessary
     # and call initialize again in this case...
     my display_field false
-    if {[my editor] eq "xinha" && [my info class] ne "[self class]::xinha"} {
-      my class [self class]::xinha
+    if {[my editor] eq ""} {
+      next
+    } elseif {[my info class] ne "[self class]::[my editor]"} {
+      my class [self class]::[my editor]
+    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
       my initialize
     } else {
       next
@@ -357,6 +369,29 @@ namespace eval ::xowiki {
   FormField::richtext instproc pretty_value {v} {
     # for richtext, perform no output escaping
     return $v
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::richtext::wym
+  #
+  ###########################################################
+  Class FormField::richtext::wym -superclass FormField::richtext -parameter {
+    {editor wym}
+    {CSSclass wymeditor}
+  }
+  FormField::richtext::wym instproc initialize {} {
+    next
+    my set widget_type richtext
+    ::xowiki::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
+    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.js"
+    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.js"
+    ::xowiki::Page requireJS {
+      var $j = jQuery.noConflict();
+      $j(function() {
+        $j(".wymeditor").wymeditor();
+      });
+    }
   }
 
   ###########################################################
