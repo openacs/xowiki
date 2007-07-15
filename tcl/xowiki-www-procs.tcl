@@ -389,24 +389,6 @@ namespace eval ::xowiki {
     return $f
   }
 
-  PageInstance instproc lookup_form_field {
-    -name 
-    form_fields
-  } {
-    set found 0
-    foreach f $form_fields {
-      if {[$f name] eq $name} {set found 1; break}
-    }
-    if {!$found && [regexp {^([^.]+)[.](.*)$} $name _ container component]} {
-      # components of a field
-      set f [my lookup_form_field -name $container $form_fields]::$component
-      set found 1
-    }
-    if {!$found} {
-      error "No form field with name $name found"
-    }
-    return $f
-  }
 }
 
 namespace eval ::xowiki {
@@ -614,13 +596,6 @@ namespace eval ::xowiki {
       }
     }
     return $form_fields
-  }
-
-  FormInstance instproc show_fields {form_fields} {
-    # this method is for debugging only
-    set msg ""
-    foreach f $form_fields { append msg "[$f name] [$f info class], " }
-    my msg $msg
   }
 
   FormInstance instproc edit {

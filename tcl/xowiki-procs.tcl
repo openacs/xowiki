@@ -56,7 +56,7 @@ namespace eval ::xowiki {
   ::xowiki::Page::slot::name set required true
   ::xowiki::Page::slot::name set help_text #xowiki.Page-name-help_text#
   ::xowiki::Page::slot::name set datatype text
-  ::xowiki::Page::slot::name set validator validate_name
+  ::xowiki::Page::slot::name set validator name
 
   ::xowiki::Page::slot::title set pretty_name #xowiki.Page-title#
   ::xowiki::Page::slot::title set required true
@@ -135,7 +135,8 @@ namespace eval ::xowiki {
         ::Generic::Attribute new -attribute_name form \
             -datatype text -sqltype long_text -default ""
         ::Generic::Attribute new -attribute_name form_constraints \
-            -datatype text -sqltype long_text -default ""
+            -datatype text -sqltype long_text -default "" \
+            -validator form_constraints
       } \
       -form ::xowiki::FormForm
 
@@ -795,7 +796,7 @@ namespace eval ::xowiki {
     return $field_name:$spec
   }
 
-  Page instproc validate_name {name} {
+  Page instproc validate=name {name} {
     upvar nls_language nls_language
     my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
     set success [::xowiki::validate_name]
@@ -864,6 +865,37 @@ namespace eval ::xowiki {
       }
     }
   }
+
+  #
+  # Some utility functions, called on different kind of pages
+  # 
+
+  Page instproc lookup_form_field {
+    -name 
+    form_fields
+  } {
+    set found 0
+    foreach f $form_fields {
+      if {[$f name] eq $name} {set found 1; break}
+    }
+    if {!$found && [regexp {^([^.]+)[.](.*)$} $name _ container component]} {
+      # components of a field
+      set f [my lookup_form_field -name $container $form_fields]::$component
+      set found 1
+    }
+    if {!$found} {
+      error "No form field with name $name found"
+    }
+    return $f
+  }
+
+  Page instproc show_fields {form_fields} {
+    # this method is for debugging only
+    set msg ""
+    foreach f $form_fields { append msg "[$f name] [$f info class], " }
+    my msg $msg
+  }
+
 
   #
   # Methods of ::xowiki::PlainPage
@@ -1147,39 +1179,39 @@ namespace eval ::xowiki {
     return [my include_portlet [list form-menu -form_item_id [my item_id]]]
   }
 
-  Page instproc new_name {name} {
-    if {$name ne ""} {
-      my instvar package_id
-      set name [my complete_name $name]
-      set name [::$package_id normalize_name $name]
-      set suffix ""; set i 0
-      set folder_id [my parent_id]
-      while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
-        set suffix -[incr i]
-      }
-      set name $name$suffix
-    }
-    return $name
-  }
+#   Page instproc new_name {name} {
+#     if {$name ne ""} {
+#       my instvar package_id
+#       set name [my complete_name $name]
+#       set name [::$package_id normalize_name $name]
+#       set suffix ""; set i 0
+#       set folder_id [my parent_id]
+#       while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
+#         set suffix -[incr i]
+#       }
+#       set name $name$suffix
+#     }
+#     return $name
+#   }
 
-  Page instproc create-new {} {
-    my instvar package_id
-    set name [my new_name [::xo::cc form_parameter name ""]]
-    set class [::xo::cc form_parameter class ::xowiki::Page]
-    if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
-      set class [::xo::cc form_parameter class ::xowiki::Page]
-      set f [$class new -destroy_on_cleanup \
-                 -name $name \
-                 -package_id $package_id \
-                 -parent_id [my parent_id] \
-                 -publish_status "production" \
-                 -title [my title] \
-                 -text [list [::xo::cc form_parameter content ""] text/html]]
-      $f save_new
-      $package_id returnredirect \
-          [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
-    }
-  }
+#   Page instproc create-new {} {
+#     my instvar package_id
+#     set name [my new_name [::xo::cc form_parameter name ""]]
+#     set class [::xo::cc form_parameter class ::xowiki::Page]
+#     if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
+#       set class [::xo::cc form_parameter class ::xowiki::Page]
+#       set f [$class new -destroy_on_cleanup \
+#                  -name $name \
+#                  -package_id $package_id \
+#                  -parent_id [my parent_id] \
+#                  -publish_status "production" \
+#                  -title [my title] \
+#                  -text [list [::xo::cc form_parameter content ""] text/html]]
+#       $f save_new
+#       $package_id returnredirect \
+#           [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
+#     }
+#   }
 
   Form instproc create-new {} {
     my instvar package_id
@@ -1219,6 +1251,37 @@ namespace eval ::xowiki {
   Form instproc list {} {
     my view [my include_portlet [list form-instances -form_item_id [my item_id]]]
   }
+
+
+  Form instproc validate=form_constraints {form_constraints} {
+    #
+    #
+    #
+    if {[regexp {[\[\]]} $form_constraints]} {
+      my uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]
+      return 0
+    }
+    #
+    # Create from fields from all specs and report, if there are any errors
+    #
+    foreach name_and_spec $form_constraints {
+      foreach {spec_name short_spec} [split $name_and_spec :] break
+      #my msg "checking spec '$short_spec' for form field '$spec_name'"
+      if {[catch {
+        set f [my create_form_field \
+                   -name $spec_name \
+                   -slot [my find_slot $spec_name] \
+                   -spec $short_spec]
+        $f destroy
+      } errorMsg]} {
+        my uplevel [list set errorMsg $errorMsg]
+        #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
+        return 0
+      }
+    }
+    return 1
+  }
+
 
   #
   # Methods of ::xowiki::FormInstance

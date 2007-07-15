@@ -50,6 +50,7 @@ namespace eval ::xowiki {
     set show_page_order [[$data package_id] show_page_order]
     if {!$show_page_order} { my f.page_order "= hidden" } 
     if {$autoname}         { my f.name       "= hidden"}
+    set form_fields [list]
 
     foreach __field $field_list {
 
@@ -78,6 +79,7 @@ namespace eval ::xowiki {
 
         set __spec ${__field}:[$f asWidgetSpec]
         set __wspec [lindex $__spec 0]
+        lappend form_fields $f
       }
 
       if {[string first "richtext" $__wspec] > -1} {
@@ -88,7 +90,13 @@ namespace eval ::xowiki {
       #my log "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
     }
+
+    # setting form fields for later use in validator
+    # $data show_fields $form_fields
+    my set form_fields $form_fields
+
     my set fields $__fields
+
   }
 
   proc ::xowiki::locales {} {
@@ -189,6 +197,25 @@ namespace eval ::xowiki {
     }
     return 1
   }
+
+
+  proc ::xowiki::validate_form_constraints {} {
+    upvar form_constraints form_constraints
+    my instvar data
+    set f [$data lookup_form_field -name form_constraints [my set form_fields]]
+    $f value $form_constraints
+    set validation_error [$f validate $data]
+    if {$validation_error ne ""} {
+      util_user_message -message "Error in form constraints: $validation_error"
+      set success 0
+    } else {
+      set success 1
+    }
+    return $success
+  }
+
+
+
 
   WikiForm instproc data_from_form {{-new 0}} {
     my instvar data
@@ -588,8 +615,7 @@ namespace eval ::xowiki {
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
 
-    
-    set category_spec [$data get_short_spec @categories]
+    set category_spec [$data get_short_spec _categories]
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {my set with_categories false}
     }
@@ -672,6 +698,7 @@ namespace eval ::xowiki {
                 already in this folder}}
           {text {\[::xowiki::validate_form_text\]} {From must contain a valid template}}
           {form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}
+          {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
         }}
     }
 

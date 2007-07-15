@@ -54,18 +54,26 @@ namespace eval ::xowiki {
 
   FormField instproc validate {obj} {
     my instvar name required value
+
     if {$required && $value eq ""} {
       my instvar label
       return [_ acs-templating.Element_is_required]
     }
     # todo: value type checker (through subtypes, check only if necessary)
     if {[my validator] ne ""} {
-      set r [$obj [my validator] $value]
-      #my msg "validator [my validator] /[$obj procsearch [my validator]]/ returned $r"
+      set errorMsg ""
+      #
+      # The validator might set the variable errorMsg in this scope.
+      #
+      #my msg "call [my validator] '$value'" 
+      set r [$obj validate=[my validator] $value]
       if {$r != 1} {
-        set cl [namespace tail [lindex [$obj procsearch [my validator]] 0]]
-        # my msg xowiki.$cl-[my validator]
-        return [_ xowiki.$cl-[my validator]]
+        #
+        # We have an error message. Get the class name from procsearch and construct
+        # a message key based on the class and the name of the validator.
+        #
+        set cl [namespace tail [lindex [$obj procsearch validate=[my validator]] 0]]
+        return [_ xowiki.$cl-validate_[my validator] [list value $value errorMsg $errorMsg]]
       }
     }
     return ""
@@ -87,32 +95,47 @@ namespace eval ::xowiki {
         help_text=* {my help_text [lindex [split $s =] 1]}
         *=*         {
           set l [split $s =]
-          set value [lindex $l 1]
+          foreach {attribute value} $l break
+          set definition_class [lindex [my procsearch $attribute] 0]
+          if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
+            error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
+          }
           if {[catch {
             #
-            # we want to allow e.g. options=[xowiki::locales] 
+            # We want to allow a programmer to use e.g. options=[xowiki::locales] 
             #
-            # TODO: Make sure, that validaton of form fields does not allow
-            # square brackets.
+            # Note: do not allow users to use [] via forms, since they might
+            # execute arbitrary commands. The validator for the form fields 
+            # makes sure, that the input specs are free from square brackets.
+            #
             if {[string match {\[*\]} $value]} {
               set value [subst $value]
             }
             my [lindex $l 0] $value
           } errMsg]} {
-            my msg "Error during setting attribute [lindex $l 0] to value [lindex $l 1]: $errMsg"
+            error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
           }
         }
         default {
           if {[my isclass [self class]::$s]} {
             my class [self class]::$s
           } else {
-            my msg "Ignoring unknown spec for entry [my name]: '$s'"
+            #my msg "Ignoring unknown spec for entry [my name]: '$s'"
+            error [_ xowiki.error-form_constraint-unknown_spec_entry [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
           }
         }
       }
     }
     ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
-    #my msg "[my name]: '$spec' calling initialize class=[my info class]\n"
+    #
+    # It is possible, that a default value of a form field is changed through a spec.
+    # Since only the configuration might set values, checking value for "" seems safe here.
+    #
+    if {[my value] eq "" && [my exists default] && [my default] ne ""} {
+      # my msg "reset value to [my default]"
+      my value [my default]
+    }
+
     if {[lang::util::translator_mode_p]} {
       my mixin "::xo::TRN-Mode"
     }
@@ -257,7 +280,6 @@ namespace eval ::xowiki {
         if {$value eq $v} {return [my localize $label]}
       }
     }
-    # todo: if we can do locale substituion per langauge of the item
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $v]
   }
 
@@ -618,6 +640,10 @@ namespace eval ::xowiki {
     {format "DD MONTH YYYY"}
     {display_format "%Y-%m-%d %T"}
   }
+  # The default of a date might be all relative dates
+  # supported by clock scan. These include "now", "tomorrow",
+  # "yesterday", "next week", .... use _ for blanks
+
   FormField::date instproc initialize {} {
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
@@ -654,12 +680,11 @@ namespace eval ::xowiki {
   
   FormField::date instproc set_compound_value {} {
     set value [my value]
-    # my msg "date: value set to '$value'"
+    #my msg "date: value set to '$value'"
     if {$value ne ""} {
-      set ticks [clock scan $value]
+      set ticks [clock scan [string map [list _ " "] $value]]
     } else {
-      # TODO: just for now, should be empty as well, when we have no value
-      set ticks [clock seconds]
+      set ticks ""
     }
     # set the value parts for each components
     foreach {class code trim_zeros} [my components] {
