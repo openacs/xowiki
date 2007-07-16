@@ -609,6 +609,10 @@ namespace eval ::xowiki {
     if {[my is_new_entry [my name]]} {
       my set creator [::xo::get_user_name [::xo::cc user_id]]
       my set nls_language [ad_conn locale]
+      if {!$anon_instances} {
+        my set title ""
+        my set name ""
+      }
     }
 
     if {$form eq ""} {
