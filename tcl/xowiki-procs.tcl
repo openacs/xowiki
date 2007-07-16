@@ -1255,7 +1255,7 @@ namespace eval ::xowiki {
 
   Form instproc validate=form_constraints {form_constraints} {
     #
-    #
+    # First check for invalid meta characters for security reasons.
     #
     if {[regexp {[\[\]]} $form_constraints]} {
       my uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]

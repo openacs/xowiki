@@ -606,15 +606,6 @@ namespace eval ::xowiki {
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
 
-    if {[my is_new_entry [my name]]} {
-      my set creator [::xo::get_user_name [::xo::cc user_id]]
-      my set nls_language [ad_conn locale]
-      if {!$anon_instances} {
-        my set title ""
-        my set name ""
-      }
-    }
-
     if {$form eq ""} {
       #
       # Since we have no form, we create it on the fly
@@ -688,6 +679,12 @@ namespace eval ::xowiki {
       # 
       # display the current values
       #
+
+      if {[my is_new_entry [my name]]} {
+	my set creator [::xo::get_user_name [::xo::cc user_id]]
+	my set nls_language [ad_conn locale]
+      }
+
       array set __ia [my set instance_attributes]
       foreach att $field_names {
         switch -glob $att {
@@ -704,7 +701,16 @@ namespace eval ::xowiki {
             }
           }
         }
+	set ff($att) $f
       }
+
+      # for named entries, just set the entry fields to empty,
+      # without changing the instance variables
+      if {!$anon_instances && [my is_new_entry [my name]]} {
+	$ff(_title) value ""
+	$ff(_name) value ""
+      }
+
     }
     
     

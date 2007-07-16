@@ -60,23 +60,53 @@ namespace eval ::xowiki {
       return [_ acs-templating.Element_is_required]
     }
     # todo: value type checker (through subtypes, check only if necessary)
+    # 
+    #my msg "[my name] [my info class] validator=[my validator]"
     if {[my validator] ne ""} {
       set errorMsg ""
       #
       # The validator might set the variable errorMsg in this scope.
       #
-      #my msg "call [my validator] '$value'" 
-      set r [$obj validate=[my validator] $value]
+      set validator_method check=[my validator]
+      set proc_info [my procsearch $validator_method]
+      #my msg "[my name] [my info class] validator_method=$validator_method $proc_info"
+      if {$proc_info ne ""} {
+	#my msg "call field specific validator $validator_method '$value'" 
+	set r [my $validator_method $value]
+      } else {
+	set validator_method validate=[my validator]
+	set proc_info [$obj procsearch $validator_method]
+	#my msg "call object level validator $validator_method '$value'" 
+	set r [$obj $validator_method $value]
+      }
       if {$r != 1} {
         #
         # We have an error message. Get the class name from procsearch and construct
         # a message key based on the class and the name of the validator.
         #
-        set cl [namespace tail [lindex [$obj procsearch validate=[my validator]] 0]]
+        set cl [namespace tail [lindex $proc_info 0]]
         return [_ xowiki.$cl-validate_[my validator] [list value $value errorMsg $errorMsg]]
       }
     }
     return ""
+  }
+
+  FormField instproc reset_parameter {} {
+    # reset application specific parameters (defined below ::xowiki::FormField)
+    # such that searchDefaults will pick up the new defaults, when a form field
+    # is reclassed.
+    for {set c [my info class]} {$c ne "::xowiki::FormField"} {set c [$c info superclass]} {
+      #my msg "[my name] parameters ($c) = [$c info parameter]"
+      foreach p [$c info parameter] {
+	set l [split $p]
+	if {[llength $l] != 2} continue
+	set var [lindex $l 0]
+	if {[my exists $var]} {
+	  #my msg "[my name] unset  '$var'"
+	  my unset $var
+	}
+      }
+    }
   }
 
   FormField instproc config_from_spec {spec} {
@@ -119,6 +149,9 @@ namespace eval ::xowiki {
         default {
           if {[my isclass [self class]::$s]} {
             my class [self class]::$s
+	    my reset_parameter
+	    #my msg "[my name] searchDefaults"
+	    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
           } else {
             #my msg "Ignoring unknown spec for entry [my name]: '$s'"
             error [_ xowiki.error-form_constraint-unknown_spec_entry [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
@@ -126,7 +159,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+
     #
     # It is possible, that a default value of a form field is changed through a spec.
     # Since only the configuration might set values, checking value for "" seems safe here.
@@ -331,7 +364,25 @@ namespace eval ::xowiki {
   }
   FormField::text instproc initialize {} {
     my set widget_type text
-    foreach p [list size] {if {[my exists $p]} {my set html($p) [my $p]}}
+    foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::numeric
+  #
+  ###########################################################
+
+  Class FormField::numeric -superclass FormField::text -parameter {
+    {validator numeric}
+  }
+  FormField::numeric instproc initialize {} {
+    my validator numeric
+    next
+    my set widget_type numeric
+  }
+  FormField::numeric instproc check=numeric {value} {
+    return [string is double $value]
   }
 
   ###########################################################
@@ -381,8 +432,18 @@ namespace eval ::xowiki {
     if {[my editor] eq ""} {
       next
     } elseif {[my info class] ne "[self class]::[my editor]"} {
-      my class [self class]::[my editor]
-    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+      set editor_class [self class]::[my editor]
+      if {![my isclass $editor_class]} {
+	set editors [list]
+	foreach c [::xowiki::FormField::richtext info subclass] {
+	  lappend editors [namespace tail $c]
+	}
+	error [_ xowiki.error-form_constraint-unknown_editor \
+		   [list name [my name] editor [my editor] editors $editors]]
+      }
+      my class $editor_class
+      my reset_parameter
+      ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
       my initialize
     } else {
       next
