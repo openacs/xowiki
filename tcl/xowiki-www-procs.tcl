@@ -758,8 +758,8 @@ namespace eval ::xowiki {
           $f render_error_msg
         }
       }
-      ::html::br 
-      ::html::input -type submit -class $submit_button_class
+      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup -name __form_button_ok]
+      $f render_content
     }
     set form [lindex [$root selectNodes //form] 0]
     if {$form eq ""} {

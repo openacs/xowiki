@@ -9,6 +9,7 @@
   <msg key="edit_link">edit tags</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
   <msg key="error-form_constraint-unknown_attribute">From field '%name%' has unknown attribute '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_editor">Unknown editor %editor%. Possible values are: %editors%</msg>
   <msg key="error-form_constraint-unknown_spec_entry">From field '%name%' has unknown specification '%entry%'</msg>
   <msg key="error-includelet-adp_syntax_invalid">Syntax: adp &amp;lt;name of adp-file&amp;gt; {&amp;lt;argument list&amp;gt;}&lt;br/&gt;
 
@@ -27,10 +28,12 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
   <msg key="form-menu-answer_link">Anwers</msg>
   <msg key="form-menu-new_link">Fill out</msg>
+  <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
   <msg key="index">Index</msg>
   <msg key="new">New Page</msg>
   <msg key="notifications">Notifications</msg>
+  <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Description</msg>
   <msg key="Page-name">Name</msg>

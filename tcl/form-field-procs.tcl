@@ -318,6 +318,25 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
+  # ::xowiki::FormField::submit_button
+  #
+  ###########################################################
+
+  Class FormField::submit_button -superclass FormField 
+  FormField::submit_button  instproc initialize {} {
+    my set type submit
+  }
+  FormField::submit_button instproc render_content {} {
+    my set value [::xo::localize [_ xowiki.Form-submit_button]]
+    ::html::div -class form-button {
+      #::html::br 
+      ::html::input [my get_attributes type {CSSclass class} value] {}
+      my render_localizer
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::FormField::hidden
   #
   ###########################################################
