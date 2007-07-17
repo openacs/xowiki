@@ -1316,13 +1316,13 @@ namespace eval ::xowiki {
     set template [lindex [my get_from_template text] 0]
     #set field_names [list _name _title _description _creator _nls_language _page_order]
     set field_names [list]
-    if {$template ne ""} {
+    set form [lindex [my get_from_template form] 0]
+    if {$form eq ""} {
       foreach {var _} [my template_vars $template] {
         #if {[string match _* $var]} continue
 	if {[lsearch $dont_edit $var] == -1} {lappend field_names $var}
       }
     } else {
-      set form [lindex [my get_from_template form] 0]
       foreach {match 1 att} [regexp -all -inline [template::adp_variable_regexp] $form] {
         #if {[string match _* $att]} continue
         lappend field_names $att
@@ -1387,16 +1387,13 @@ namespace eval ::xowiki {
       }
     }
 
-    set f [my create_form_field -name $varname -slot [my find_slot $varname] \
+    set f [my create_form_field -name $varname \
+               -slot [my find_slot [string trimleft $varname _]] \
                -configuration [list -value $value]]
+    set v $value
     set value [$f pretty_value $value]
+    #my msg "$varname [$f info class]  before=$v after pretty_value=$value"
     #my msg [$f serialize]
-    
-    #set short_spec [my get_short_spec $name]
-    #if {$short_spec ne ""} {
-    #  set f [FormField new -volatile -name $name -spec $short_spec]
-    #  return [$f pretty_value $value]
-    #}
     
     return $before$value
   }

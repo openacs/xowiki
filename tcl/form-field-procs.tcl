@@ -31,6 +31,7 @@ namespace eval ::xowiki {
   Class FormField -parameter {
     {required false} 
     {display_field true} 
+    {inline false} 
     {type text} 
     {label} 
     {name} 
@@ -67,24 +68,25 @@ namespace eval ::xowiki {
       #
       # The validator might set the variable errorMsg in this scope.
       #
+      set success 1
       set validator_method check=[my validator]
       set proc_info [my procsearch $validator_method]
       if {$proc_info ne ""} {
         # we have a slot checker, call it
 	#my msg "call field specific validator $validator_method '$value'" 
-	set r [my $validator_method $value]
+	set success [my $validator_method $value]
       } 
-      if {$r == 1} {
+      if {$success == 1} {
         # the previous check was ok, check now for a validator on the
         # object level
 	set validator_method validate=[my validator]
 	set proc_info [$obj procsearch $validator_method]
         if {$proc_info ne ""} {
           #my msg "call object level validator $validator_method '$value'" 
-          set r [$obj $validator_method $value]
+          set success [$obj $validator_method $value]
         }
       }
-      if {$r == 0} {
+      if {$success == 0} {
         #
         # We have an error message. Get the class name from procsearch and construct
         # a message key based on the class and the name of the validator.
@@ -245,8 +247,14 @@ namespace eval ::xowiki {
   
   FormField instproc render {} {
     # In case, we use an asHTML of a FormField, we use this
-    # render definition (without label, error message, help text)
-    my render_form_widget
+    # render definition 
+    if {[my inline]} {
+      # with label, error message, help text
+      my render_form_widget
+    } else {
+      # without label, error message, help text
+      my render_item
+    }
   }
   
   FormField instproc render_form_widget {} {

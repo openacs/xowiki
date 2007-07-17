@@ -733,6 +733,7 @@ namespace eval ::xowiki {
       # insert automatic form fields on top 
       foreach att $field_names {
         if {$formgiven && ![string match _* $att]} continue
+        if {[info exists auto_field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
         $f render_item
       }
