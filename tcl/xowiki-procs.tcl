@@ -539,7 +539,13 @@ namespace eval ::xowiki {
             -actual_query $query
         if {$package_id != 0} {
           $package_id context [::xo::Context new -volatile]
-          set page [$package_id resolve_page [my lang]:[$package_id set object] __m]
+          set object_name [$package_id set object]
+          # A user might force the language by preceding the 
+          # name with a language prefix.
+          if {![regexp {^..:} $object_name]} {
+            set object_name [my lang]:$object_name
+          }
+          set page [$package_id resolve_page $object_name __m]
           #my msg "cross package reference $page_name ==> $page, package_id=$package_id"
         }
         #my log "--resolve --> $page"
