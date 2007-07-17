@@ -69,17 +69,22 @@ namespace eval ::xowiki {
       #
       set validator_method check=[my validator]
       set proc_info [my procsearch $validator_method]
-      #my msg "[my name] [my info class] validator_method=$validator_method $proc_info"
       if {$proc_info ne ""} {
+        # we have a slot checker, call it
 	#my msg "call field specific validator $validator_method '$value'" 
 	set r [my $validator_method $value]
-      } else {
+      } 
+      if {$r == 1} {
+        # the previous check was ok, check now for a validator on the
+        # object level
 	set validator_method validate=[my validator]
 	set proc_info [$obj procsearch $validator_method]
-	#my msg "call object level validator $validator_method '$value'" 
-	set r [$obj $validator_method $value]
+        if {$proc_info ne ""} {
+          #my msg "call object level validator $validator_method '$value'" 
+          set r [$obj $validator_method $value]
+        }
       }
-      if {$r != 1} {
+      if {$r == 0} {
         #
         # We have an error message. Get the class name from procsearch and construct
         # a message key based on the class and the name of the validator.
@@ -111,10 +116,15 @@ namespace eval ::xowiki {
 
   FormField instproc config_from_spec {spec} {
     my instvar type options widget_type
+
     if {[my info class] eq [self class]} {
-      # Check, wether a class was already set. we do it this way
-      # to allow multiple additive config_from_spec invocations
-      my class  [self class]::$type
+      # Check, wether the actual class of the formfield differs from the
+      # generic FromField class. If yes, the object was already 
+      # reclassed to a concrete form field type. Since config_from_spec
+      # can be called multiple times, we want to do the reclassing only
+      # once.
+      my class [self class]::$type
+      ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
 
     foreach s [split $spec ,] {
