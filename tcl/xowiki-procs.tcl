@@ -523,23 +523,32 @@ namespace eval ::xowiki {
 		    -actual_query [::xo::cc actual_query]]
     } else {
       #
-      # we include a wiki page, tailorable
+      # Include a wiki page, tailorable.
       #
-      # for the resolver, we create a fresh context to avoid recursive loops, when
-      # e.g. revision_id is set...
+      # For the resolver, we create a fresh context to avoid recursive loops, when
+      # e.g. revision_id is set through a query parameter...
       #
-      $package_id context [::xo::Context new -volatile]
-      set page [$package_id resolve_page $page_name __m]
+      set last_context [expr {[my exists context] ? $context : "::xo::cc"}]
+
       if {[regexp {^/(/[^?]*)[?]?(.*)$} $page_name _ url query]} {
-        # here we handle cross package xowiki includes
+        #
+        # Handle cross package xowiki includes.
+        # Note, that package::initialize might change the package id.
+        #
         ::xowiki::Package initialize -parameter {{-m view}} -url $url \
             -actual_query $query
         if {$package_id != 0} {
-          set page [$package_id resolve_page [$package_id set object] __m]
+          $package_id context [::xo::Context new -volatile]
+          set page [$package_id resolve_page [my lang]:[$package_id set object] __m]
+          #my msg "cross package reference $page_name ==> $page, package_id=$package_id"
         }
         #my log "--resolve --> $page"
+      } else {
+        $package_id context [::xo::Context new -volatile]
+        set page [$package_id resolve_page $page_name __m]
       }
-      $package_id context ::xo::cc
+      $package_id context $last_context
+
       if {$page ne "" && ![$page exists __decoration]} {
         $page set __decoration portlet
       }

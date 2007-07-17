@@ -247,7 +247,7 @@ namespace eval ::xowiki {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
-        #my log "--invoke $page $method" 
+        #my msg "--invoke [my set object] id=$page method=$method" 
 	return [my call $page $method]
       }
     } else {
@@ -299,7 +299,7 @@ namespace eval ::xowiki {
       set exported [$policy defined_methods Package]
       foreach m $exported {
 	#my log "--QP my exists_query_parameter $m = [my exists_query_parameter $m]"
-        if {[::xo::cc exists_query_parameter $m]} {
+        if {[my exists_query_parameter $m]} {
           set method $m  ;# determining the method, similar file extensions
           return [self]
         }
