@@ -960,4 +960,53 @@ namespace eval ::xowiki {
     return $out
   }
 
+
+#   Page instproc new_name {name} {
+#     if {$name ne ""} {
+#       my instvar package_id
+#       set name [my complete_name $name]
+#       set name [::$package_id normalize_name $name]
+#       set suffix ""; set i 0
+#       set folder_id [my parent_id]
+#       while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
+#         set suffix -[incr i]
+#       }
+#       set name $name$suffix
+#     }
+#     return $name
+#   }
+
+#   Page instproc create-new {} {
+#     my instvar package_id
+#     set name [my new_name [::xo::cc form_parameter name ""]]
+#     set class [::xo::cc form_parameter class ::xowiki::Page]
+#     if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
+#       set class [::xo::cc form_parameter class ::xowiki::Page]
+#       set f [$class new -destroy_on_cleanup \
+#                  -name $name \
+#                  -package_id $package_id \
+#                  -parent_id [my parent_id] \
+#                  -publish_status "production" \
+#                  -title [my title] \
+#                  -text [list [::xo::cc form_parameter content ""] text/html]]
+#       $f save_new
+#       $package_id returnredirect \
+#           [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
+#     }
+#   }
+
+  Form instproc create-new {} {
+    my instvar package_id
+    set f [FormInstance new -destroy_on_cleanup \
+               -package_id $package_id \
+               -parent_id [my parent_id] \
+               -publish_status "production" \
+               -page_template [my item_id]]
+    $f set __title_prefix [my title]
+    $f save_new
+    $package_id returnredirect \
+        [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
+  }
+
+
 }

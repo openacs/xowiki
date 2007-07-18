@@ -673,9 +673,10 @@ namespace eval ::xowiki {
     if {$content eq ""} {return 1}
     set clean_content $content
     regsub -all "<br */?>" $clean_content "" clean_content
-    regsub -all "<p */?>" $clean_content "" clean_content
+    regsub -all "</?p */?>" $clean_content "" clean_content
     #ns_log notice "--vaidate_form_content '$content' clean='$clean_content', stripped='[string trim $clean_content]'"
     if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
+    my msg "final text='$text'"
     return 1
   }
 
@@ -696,8 +697,8 @@ namespace eval ::xowiki {
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}
-          {text {\[::xowiki::validate_form_text\]} {From must contain a valid template}}
-          {form {\[::xowiki::validate_form_form\]} {From must contain an HTML form}}
+          {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
+          {form {\[::xowiki::validate_form_form\]} {Form must contain an HTML form}}
           {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
         }}
     }
@@ -707,21 +708,21 @@ namespace eval ::xowiki {
     set item_id [next]
     
     # provide unique ids and names, if form is provided
-    set text [$data set form]
-    if {$text ne ""} {
-      dom parse -simple -html [lindex $text 0] doc
-      $doc documentElement root
-      set id ID$item_id
-      $root setAttribute id $id
-      set fields [$root selectNodes "//*\[@name != ''\]"]
-      foreach field $fields {
-        $field setAttribute name $id.[$field getAttribute name]
-      }
-      # updating is rather crude. we need the item_id in advance to fill it
-      # into the items, but it is returned from saving the file.
-      my log "item_id=$item_id form=[$root asHTML] [$data serialize]"
-      $data update_content [$data revision_id] [list [$root asHTML] [lindex $text 1] ]
-    }
+#     set form [$data set form]
+#     if {$form ne ""} {
+#       dom parse -simple -html [lindex $form 0] doc
+#       $doc documentElement root
+#       set id ID$item_id
+#       $root setAttribute id $id
+#       set fields [$root selectNodes "//*\[@name != ''\]"]
+#       foreach field $fields {
+#         $field setAttribute name $id.[$field getAttribute name]
+#       }
+#       # updating is rather crude. we need the item_id in advance to fill it
+#       # into the items, but it is returned from saving the file.
+#       my log "item_id=$item_id form=[$root asHTML] [$data serialize]"
+#       $data update_content [$data revision_id] [list [$root asHTML] [lindex $form 1] ]
+#     }
     return $item_id
   }
 

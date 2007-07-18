@@ -231,6 +231,11 @@ namespace eval ::xowiki {
       }
       ::xowiki::update_views
     }
+    if {[apm_version_names_compare $from_version_name "0.55"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.55"] > -1} {
+      ns_log notice "-- upgrading to 0.55"
+      ::xowiki::update_views
+    }
   }
 
   ad_proc fix_all_package_ids {} {
