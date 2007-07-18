@@ -1951,7 +1951,7 @@ namespace eval ::xowiki::portlet {
     set base [$package_id pretty_link [$__including_page name]]
     set new_link [$package_id make_link -link $base $__including_page create-new return_url]
     set answer_link [$package_id make_link -link $base $__including_page list return_url]
-    set sql [::xowiki::FormInstance instance_select_query \
+    set sql [::xowiki::FormPage instance_select_query \
                  -count true \
                  -with_subtypes false \
                  -from_clause ", xowiki_page_instance p" \
@@ -2019,7 +2019,7 @@ namespace eval ::xowiki::portlet {
         }
 
     foreach {att order} [split $orderby ,] break
-    set sql [::xowiki::FormInstance instance_select_query \
+    set sql [::xowiki::FormPage instance_select_query \
                  -select_attributes "publish_date creation_user revision_id" \
                  -from_clause ", xowiki_page_instance p" \
                  -with_subtypes 0 \

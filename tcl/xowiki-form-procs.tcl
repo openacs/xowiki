@@ -31,10 +31,11 @@ namespace eval ::xowiki {
         {folderspec ""}
         {autoname 0}
       } -ad_doc {
-          Form Class for XoWiki Pages. 
+        Form Class for XoWiki Pages. 
           
-          You can manipulate the form elements shown by editing the field_list. The following elements are mandatory in field_list
-          and should never be left out:
+	You can manipulate the form elements shown by editing the field_list. 
+	The following elements are mandatory in field_list
+        and should never be left out:
           <ul>
           <li>name
           <li>item_id
@@ -646,25 +647,6 @@ namespace eval ::xowiki {
     #my log "--fields = [my fields]"
   }
 
- Class create FormInstanceEditForm -superclass PageInstanceEditForm \
-    -parameter {
-      {f.name "= text"}
-    }
-
-  FormInstanceEditForm instproc edit_data {} {
-    my log "-- "
-    my instvar page_instance_form_atts data
-    array set __ia [$data set instance_attributes]
-    foreach var $page_instance_form_atts {
-      set __ia($var) [my var $var]
-    }
-    my log "--edit_data ia = [array get __ia]"
-    $data set instance_attributes [array get __ia]
-    foreach __var [my form_vars] {$data set $__var [my var $__var]}
-    set item_id [$data save_data [::xo::cc form_parameter __object_name ""]]
-    return $item_id
-  }
-
   proc ::xowiki::validate_form_text {} {
     upvar text text
     if {$text eq ""} { return 1 }
@@ -674,9 +656,10 @@ namespace eval ::xowiki {
     set clean_content $content
     regsub -all "<br */?>" $clean_content "" clean_content
     regsub -all "</?p */?>" $clean_content "" clean_content
-    #ns_log notice "--vaidate_form_content '$content' clean='$clean_content', stripped='[string trim $clean_content]'"
+    #ns_log notice "--validate_form_content '$content' clean='$clean_content', \
+    #	stripped='[string trim $clean_content]'"
     if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
-    my msg "final text='$text'"
+    #my msg "final text='$text'"
     return 1
   }
 

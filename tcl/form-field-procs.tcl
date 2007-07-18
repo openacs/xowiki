@@ -119,7 +119,6 @@ namespace eval ::xowiki {
 
   FormField instproc config_from_spec {spec} {
     my instvar type options widget_type
-
     if {[my info class] eq [self class]} {
       # Check, wether the actual class of the formfield differs from the
       # generic FromField class. If yes, the object was already 
@@ -466,9 +465,8 @@ namespace eval ::xowiki {
     # Reclass the editor based on the attribute 'editor' if necessary
     # and call initialize again in this case...
     my display_field false
-    if {[my editor] eq ""} {
-      next
-    } elseif {[my info class] ne "[self class]::[my editor]"} {
+
+    if {[my editor] ne "" && [my info class] ne "[self class]::[my editor]"} {
       set editor_class [self class]::[my editor]
       if {![my isclass $editor_class]} {
 	set editors [list]

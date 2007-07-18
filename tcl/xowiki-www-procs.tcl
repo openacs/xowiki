@@ -277,7 +277,7 @@ namespace eval ::xowiki {
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
-    my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
+    #my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
@@ -393,7 +393,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  FormInstance instproc create_category_fields {} {
+  FormPage instproc create_category_fields {} {
     set category_spec [my get_short_spec _categories]
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {return [list]}
@@ -436,7 +436,7 @@ namespace eval ::xowiki {
     return $category_fields
   }
 
-  FormInstance instproc set_form_value {att value} {
+  FormPage instproc set_form_value {att value} {
     my instvar root item_id
     set fields [$root selectNodes "//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
@@ -464,7 +464,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  FormInstance ad_instproc set_form_data {} {
+  FormPage ad_instproc set_form_data {} {
     Store the instance attributes in the form.
   } {
     #my msg "set_form_value instance attributes = [my instance_attributes]"
@@ -478,7 +478,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  FormInstance ad_instproc get_form_data {form_fields} {
+  FormPage ad_instproc get_form_data {form_fields} {
     Get the values from the form and store it as
     instance attributes.
   } {
@@ -552,7 +552,7 @@ namespace eval ::xowiki {
     return [list $validation_errors $category_ids]
   }
 
-  FormInstance instproc form_field_as_html {{-mode edit} before name form_fields} {
+  FormPage instproc form_field_as_html {{-mode edit} before name form_fields} {
     set found 0
     foreach f $form_fields {
       if {[$f name] eq $name} {set found 1; break}
@@ -573,7 +573,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  FormInstance instproc create_form_fields {field_names} {
+  FormPage instproc create_form_fields {field_names} {
 
     set form_fields   [my create_category_fields]
     set cr_field_spec [my get_short_spec _cr_fields]
@@ -598,7 +598,7 @@ namespace eval ::xowiki {
     return $form_fields
   }
 
-  FormInstance instproc edit {
+  FormPage instproc edit {
     {-validation_errors ""}
   } {
     my instvar page_template doc root package_id
@@ -619,28 +619,32 @@ namespace eval ::xowiki {
       set formgiven 1
     }
 
-    set form_attributes [my form_attributes]
-    #my msg form_attributes=$form_attributes
-
+    foreach {form_vars needed_attributes} [my form_attributes] break
+    #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
+    if {$form_vars} {foreach v $needed_attributes {set field_in_form($v) 1}}
+    
     # 
-    # Remove the fields already included in auto_fields form the form_attributes.
+    # Remove the fields already included in auto_fields form the needed_attributes.
     # The final list field_names determines the order of the fields in the form.
     #
     set auto_fields [list _name _page_order _creator _title _text _description _nls_language]
-    set reduced_form_attributes $form_attributes
+    set reduced_attributes $needed_attributes
     foreach f $auto_fields {
-      set p [lsearch $reduced_form_attributes $f]
+      set p [lsearch $reduced_attributes $f]
       if {$p > -1} {
-        set auto_field_in_form($f) 1
-        set reduced_form_attributes [lreplace $reduced_form_attributes $p $p]
+	#if {$form_vars} {
+	  #set auto_field_in_form($f) 1
+	#}
+        set reduced_attributes [lreplace $reduced_attributes $p $p]
       } 
     }
-    #my msg reduced_form_attributes=$reduced_form_attributes
+    #my msg reduced_attributes=$reduced_attributes 
+    #my msg form_fields=[array names field_in_form]
 
     set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
     lappend field_names _title _creator
-    foreach fn $reduced_form_attributes                { lappend field_names $fn }
+    foreach fn $reduced_attributes                     { lappend field_names $fn }
     foreach fn [list _text _description _nls_language] { lappend field_names $fn }
     #my msg field_names=$field_names
 
@@ -649,7 +653,9 @@ namespace eval ::xowiki {
       set f [my lookup_form_field -name _name $form_fields]
       $f config_from_spec hidden
     }
-    if {![info exists auto_field_in_form(_text)]} {
+    # include _text only, if explicitely needed (in form or template)
+    if {[lsearch $needed_attributes _text] == -1} {
+      #my msg "setting text hidden"
       set f [my lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden
     }
@@ -670,11 +676,10 @@ namespace eval ::xowiki {
         #
         # we have no validation erros, so we can save the content
         #
-        my instvar name
         my save_data [::xo::cc form_parameter __object_name ""] $category_ids
-        #my log "--forminstance redirect to [$package_id pretty_link $name]"
+        #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
         $package_id returnredirect \
-            [my query_parameter "return_url" [$package_id pretty_link $name]]
+            [my query_parameter "return_url" [$package_id pretty_link [my name]]]
         return
       }
     } else {
@@ -719,8 +724,9 @@ namespace eval ::xowiki {
     #set form [my regsub_eval  \
     #              [template::adp_variable_regexp] $form \
     #              {my form_field_as_html "\\\1" "\2" $form_fields}]
-    # due to this bug, we postone the replacement after parseing.
-    # TODO maybe we have to have a better escape mechanism for at characters. either in values or in the template
+    # due to this bug, we replace the at-character by \x003 to avoid conflict withe the
+    # input and we insert the fields in the result from tdom.
+
     set form [string map [list @ \x003] $form]
     #my msg form=$form
 
@@ -738,9 +744,10 @@ namespace eval ::xowiki {
 
       # insert automatic form fields on top 
       foreach att $field_names {
-        if {$formgiven && ![string match _* $att]} continue
-        if {[info exists auto_field_in_form($att)]} continue
+        #if {$formgiven && ![string match _* $att]} continue
+        if {[info exists field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
+	#my msg "insert auto_field $att"
         $f render_item
       }
     } $fcn
@@ -999,7 +1006,7 @@ namespace eval ::xowiki {
 
   Form instproc create-new {} {
     my instvar package_id
-    set f [FormInstance new -destroy_on_cleanup \
+    set f [FormPage new -destroy_on_cleanup \
                -package_id $package_id \
                -parent_id [my parent_id] \
                -publish_status "production" \

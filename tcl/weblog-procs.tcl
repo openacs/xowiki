@@ -85,8 +85,8 @@ namespace eval ::xowiki {
         lappend form_items $form_item_id
       }
       append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = cr.revision_id "
-      set base_type ::xowiki::FormInstance
-      set base_table xowiki_form_instancei
+      set base_type ::xowiki::FormPage
+      set base_table xowiki_form_pagei
       lappend attributes instance_attributes
     }
 

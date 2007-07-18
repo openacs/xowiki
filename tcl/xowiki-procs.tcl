@@ -140,11 +140,13 @@ namespace eval ::xowiki {
       } \
       -form ::xowiki::FormForm
 
+  ::Generic::CrClass create FormPage -superclass PageInstance \
+      -pretty_name "XoWiki FormPage" -pretty_plural "XoWiki FormPages" \
+      -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" 
+
   ::Generic::CrClass create FormInstance -superclass PageInstance \
       -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
       -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
-#      -form ::xowiki::FormInstanceEditForm
-#TODO delete FormInstanceEditForm
 
   #
   # create various extra tables, indices and views
@@ -1254,13 +1256,13 @@ namespace eval ::xowiki {
 
 
   #
-  # Methods of ::xowiki::FormInstance
+  # Methods of ::xowiki::FormPage
   #
-  FormInstance instproc footer {} {
+  FormPage instproc footer {} {
     return [my include_portlet [list form-instance-menu]]
   }
 
-  FormInstance instproc form_attributes {} {
+  FormPage instproc form_attributes {} {
     #
     # this method returns the form attributes (including _*)
     #
@@ -1277,6 +1279,7 @@ namespace eval ::xowiki {
         #if {[string match _* $var]} continue
 	if {[lsearch $dont_edit $var] == -1} {lappend field_names $var}
       }
+      set form_vars 0
     } else {
       foreach {match 1 att} [regexp -all -inline [template::adp_variable_regexp] $form] {
         #if {[string match _* $att]} continue
@@ -1297,12 +1300,13 @@ namespace eval ::xowiki {
 	  lappend field_names $att
 	}
       }
+      set form_vars 1
     }
-    return $field_names
+    return [list $form_vars $field_names]
   }
 
 
-  FormInstance instproc get_content {} {
+  FormPage instproc get_content {} {
     my instvar doc root package_id page_template
     set text [lindex [my get_from_template text] 0]
     if {$text ne ""} {
@@ -1312,7 +1316,7 @@ namespace eval ::xowiki {
     } else {
       ::xowiki::Form requireFormCSS
       set form [lindex [my get_from_template form] 0]
-      set field_names [my form_attributes]
+      foreach {form_vars field_names} [my form_attributes] break
       set form_fields [my create_form_fields $field_names]
       set form [my regsub_eval  \
 		    [template::adp_variable_regexp] $form \
@@ -1325,7 +1329,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormInstance instproc get_value {before varname} {
+  FormPage instproc get_value {before varname} {
     #my msg "varname=$varname"
     array set __ia [my set instance_attributes]
     switch -glob $varname {
@@ -1354,18 +1358,18 @@ namespace eval ::xowiki {
     return $before$value
   }
 
-  FormInstance instproc adp_subst {content} {
+  FormPage instproc adp_subst {content} {
     set content [my regsub_eval -noquote true \
-                     [template::adp_variable_regexp] $content {my get_value "\\\1" "\2"}]
+                     [template::adp_variable_regexp] " $content" {my get_value "\\\1" "\2"}]
     #regsub -all  $content {\1@\2;noquote@} content
-    return $content
+    return [string range $content 1 end]
   }
 
-  FormInstance instproc is_new_entry {old_name} {
+  FormPage instproc is_new_entry {old_name} {
     return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]
   }
 
-  FormInstance instproc save_data {old_name category_ids} {
+  FormPage instproc save_data {old_name category_ids} {
     my log "-- [self args]"
     my instvar package_id name
     db_transaction {
