@@ -31,38 +31,39 @@ a.external {
 	background: url(/resources/xowiki/external.png) right center no-repeat;
 	padding-right: 12px;
 }
-h1 {
-	border-bottom: solid silver 1px; color: #222222; 
-	margin-top: 0.5em;	margin-bottom: 0.5em;
-	text-align: left; font-weight: normal;
-}
 
-h2 {
-	border-bottom: 1px solid silver; color: #222222;
-	margin-top: 1em; margin-bottom: 0.25em;
-	text-align: left; font-weight: normal;
-}
 
-h3 {
-	text-indent: 0em; margin-top: 0.75em; margin-bottom: 0.0em;
-	letter-spacing: 0px;  color: #222222;
-	text-align: left; font-weight: bold;
-}
-
-hr {
-   height: 1px; border: none; 
-   color: silver; background-color: silver;
-} 
 div.xowiki-content {background: #fff; font: 10pt Verdana, Arial, Helvetica, sans-serif;}
 /* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%}
-div.xowiki-content h1 {font-size: 24px; margin: 0 0 .5em 0; clear: both;}
-div.xowiki-content h2 {font-size: 16px; clear: both;}
-div.xowiki-content h3 {font-size: 14px}
+div.xowiki-content h1 {
+    font-size: 24px; clear: both;
+    border-bottom: solid silver 1px; color: #222222; 
+    margin-top: 1em;  margin-bottom: 0.5em;
+    text-align: left; font-weight: normal;
+}
+div.xowiki-content h2 {
+    font-size: 16px; 
+    clear: both;
+    border-bottom: 1px solid silver; color: #222222;
+    margin-top: 1em;  margin-bottom: 0.25em;
+    text-align: left; font-weight: normal;
+}
+div.xowiki-content h3 {
+    font-size: 14px
+    text-indent: 0em; 
+    margin-top: 0.75em; margin-bottom: 0.1em;
+    letter-spacing: 0px;  color: #222222;
+    text-align: left; font-weight: bold;
+}
 div.xowiki-content h4 {font-size: 12px; margin: 0;}
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 div.xowiki-content .errorMsg {color: red; font-weight: bold;}
+div.xowiki-content .hr {
+   height: 1px; border: none; 
+   color: silver; background-color: silver;
+}
 
 #bookNavBar { top: 0px; height: 2px; background-color: #859db8; }
 
@@ -114,38 +115,35 @@ div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5p
 }
 div.presence h1 {font-size: 90%; margin-bottom: 0px}
 
-.code {
+div.xowiki-content pre, .code {
     font-family: "Courier", monospace;
 }
 
 .string {
     color: #7D615B;
 }
-div.code {
+div.xowiki-content pre, div.code {
     font-size: 90%;
     font-family: "Courier", monospace;
     white-space: pre;
     margin-right: 15px;
-    padding-right: 5px;
-    border: #cccccc 1px solid;
     margin-left: 15px;
-    padding-left: 5px;
-    padding-bottom: 12px;
-    padding-top: 0px;
+    margin-bottom: 15px;
+    padding: 5px 5px;
     background-color: #FFFFF8;
-    margin-bottom: 16px;
+    border: #cccccc 1px solid;
 }
 
-div.code p i {
+div.xowiki-content pre p i, div.code p i {
     color: #008000;
 }
-div.code  i {
+div.xowiki-content pre i, div.code  i {
     color: #008000;
 }
-div.code p em {
+div.xowiki-content pre em, div.code p em {
     color: #008000;
 }
-div.code  em {
+div.xowiki-content pre em, div.code  em {
     color: #008000;
 }
 strong.code {

@@ -602,7 +602,9 @@ namespace eval ::xowiki {
     {-validation_errors ""}
   } {
     my instvar page_template doc root package_id
-
+    
+    ::xowiki::Form requireFormCSS
+    
     set form [lindex [my get_from_template form] 0]
     set anon_instances [my get_from_template anon_instances]
 
@@ -1008,5 +1010,21 @@ namespace eval ::xowiki {
         [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
   }
 
+
+  if {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1} {
+    ns_log notice "Zen-state: 5.3.2 or newer"
+    Form set extraCSS ""
+  } else {
+    ns_log notice "Zen-state: pre 5.3.1, use backward compatible form css file"
+    Form set extraCSS "zen-forms-backward-compatibility.css"
+  }
+  Form proc requireFormCSS {} {
+    #my msg requireFormCSS
+    set css [my set extraCSS]
+    if {$css ne ""} {
+      #my msg "requireCSS $css"
+      ::xowiki::Page requireCSS $css
+    }
+  }
 
 }
