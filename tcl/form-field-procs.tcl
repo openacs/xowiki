@@ -331,7 +331,7 @@ namespace eval ::xowiki {
         if {$value eq $v} {return [my localize $label]}
       }
     }
-    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $v]
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
   }
 
   ###########################################################
@@ -487,8 +487,8 @@ namespace eval ::xowiki {
     }
   }
   FormField::richtext instproc pretty_value {v} {
-    # for richtext, perform no output escaping
-    return $v
+    # for richtext, perform minimal output escaping
+    return [string map [list @ "&#64;"] $v]
   }
 
   ###########################################################

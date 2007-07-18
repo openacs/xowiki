@@ -713,14 +713,19 @@ namespace eval ::xowiki {
 
     }
     
-    
-    set form [my regsub_eval  \
-                  [template::adp_variable_regexp] $form \
-                  {my form_field_as_html "\\\1" "\2" $form_fields}]
+    # the following command wout be correct, but does not work due to a bug in 
+    # tdom.
+    #set form [my regsub_eval  \
+    #              [template::adp_variable_regexp] $form \
+    #              {my form_field_as_html "\\\1" "\2" $form_fields}]
+    # due to this bug, we postone the replacement after parseing.
+    # TODO maybe we have to have a better escape mechanism for at characters. either in values or in the template
+    set form [string map [list @ \x003] $form]
     #my msg form=$form
 
     dom parse -simple -html $form doc
     $doc documentElement root
+
     ::require_html_procs
     $root firstChild fcn
     #
@@ -738,7 +743,6 @@ namespace eval ::xowiki {
         $f render_item
       }
     } $fcn
-
     #
     # append some fields after the HTML contents of the form 
     #
@@ -771,8 +775,14 @@ namespace eval ::xowiki {
       $form setAttribute class [string trim "$oldCSSClass margin-form"]
     }
     my set_form_data
-    set result [$root asHTML]
-    my view $result
+    set html [$root asHTML]
+    
+    set html [my regsub_eval  \
+                  {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
+                  {my form_field_as_html "\\\1" "\2" $form_fields}]
+
+    #my msg result=$html
+    my view $html
   }
 
 
