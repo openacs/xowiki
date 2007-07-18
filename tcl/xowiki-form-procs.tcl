@@ -635,7 +635,7 @@ namespace eval ::xowiki {
     # The widget_spec functionality might be deprecated in the future.
     #
     foreach __var $page_instance_form_atts {
-      set spec [$data widget_spec_from_folder_object [$data set name] [$template set name]]
+      set spec [$data widget_spec_from_folder_object $__var [$template set name]]
       if {$spec ne ""} {
         my set f.$__var "$__var:$spec"
       }

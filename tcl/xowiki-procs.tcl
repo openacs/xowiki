@@ -1082,7 +1082,7 @@ namespace eval ::xowiki {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
     my instvar page_template
-    foreach {s widget} [[my set parent_id] get_payload widget_specs] {
+    foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&
