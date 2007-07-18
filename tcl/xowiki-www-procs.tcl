@@ -710,7 +710,6 @@ namespace eval ::xowiki {
 	$ff(_title) value ""
 	$ff(_name) value ""
       }
-
     }
     
     # the following command wout be correct, but does not work due to a bug in 
@@ -763,7 +762,9 @@ namespace eval ::xowiki {
           $f render_error_msg
         }
       }
-      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup -name __form_button_ok]
+      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup \
+                 -name __form_button_ok \
+                 -CSSclass $submit_button_class]
       $f render_content
     }
     set form [lindex [$root selectNodes //form] 0]

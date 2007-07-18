@@ -31,7 +31,8 @@ namespace eval ::xowiki {
   Class FormField -parameter {
     {required false} 
     {display_field true} 
-    {inline false} 
+    {inline false}
+    CSSclass
     {type text} 
     {label} 
     {name} 
@@ -433,7 +434,6 @@ namespace eval ::xowiki {
     {cols 80}
     {spell false}
     style
-    CSSclass
   }
   FormField::textarea instproc initialize {} {
     my set widget_type text(textarea)
