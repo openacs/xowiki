@@ -16,7 +16,8 @@ namespace eval ::xowiki {
       -mime_type text/html \
       -cr_attributes {
         if {[::xo::db::has_ltree]} {
-          ::Generic::Attribute new -attribute_name page_order -datatype text -sqltype ltree
+          ::Generic::Attribute new -attribute_name page_order -datatype text \
+	      -sqltype ltree -validator page_order
         }
         ::Generic::Attribute new -attribute_name creator -datatype text
       } \
@@ -823,6 +824,13 @@ namespace eval ::xowiki {
       my set name $name
     }
     return $success
+  }
+  Page instproc validate=page_order {value} {
+    if {[my exists page_order]} {
+      set page_order [string trim $value " ."]
+      my page_order $page_order
+    }
+    return 1
   }
 
   Page instproc update_references {page_id references} {

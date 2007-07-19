@@ -483,9 +483,9 @@ namespace eval ::xowiki {
     instance attributes.
   } {
     set validation_errors 0
-    set category_ids    [list]
-    array set __ia [my set instance_attributes]
+    set category_ids [list]
     array set containers [list]
+    array set __ia [my set instance_attributes]
 
     # we have a form and get all form variables
       
@@ -539,6 +539,9 @@ namespace eval ::xowiki {
       }
     }
     
+    #
+    # Run validators
+    #
     foreach f $form_fields {
       set validation_error [$f validate [self]]
       #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
