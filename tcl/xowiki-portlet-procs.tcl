@@ -74,6 +74,31 @@ namespace eval ::xowiki::portlet {
     return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
   }
 
+  
+  ::xowiki::Portlet proc incr_page_order {p} {
+    regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
+    if {[string is integer -strict $suffix]} {
+      incr suffix
+    } elseif {[string is lower -strict $suffix]} {
+      regexp {^(.*)(.)$} $suffix _ before last
+      if {$last eq "z"} {
+	set last "aa"
+      } else {
+	set last [format %c [expr {[scan $last %c] + 1}]]
+      }
+      set suffix $before$last
+    } elseif {[string is upper -strict $suffix]} {
+      regexp {^(.*)(.)$} $suffix _ before last
+      if {$last eq "Z"} {
+	set last "AA"
+      } else {
+	set last [format %c [expr {[scan $last %c] + 1}]]
+      }
+      set suffix $before$last
+    }
+    return $prefix$suffix
+  }
+
   ::xowiki::Portlet instproc locale_clause {package_id locale} {
     set default_locale [$package_id default_locale]
     set system_locale ""
@@ -1525,6 +1550,7 @@ namespace eval ::xowiki::portlet {
         {__decoration plain}
         {parameter_declaration {
           {-category_id}
+          {-menu_buttons edit-item-button}
         }}
       }
 
@@ -1573,9 +1599,13 @@ namespace eval ::xowiki::portlet {
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
-      set menu [$p include_portlet "edit-item-button"] 
+      set menu [list]
+      foreach b $menu_buttons {
+	set html [$p include_portlet $b]
+	if {$html ne ""} {lappend menu $html}
+      }
       append output "<h$level class='book'>" \
-          "<div style='float: right'>$menu</div>" \
+          "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
@@ -1590,14 +1620,21 @@ namespace eval ::xowiki::portlet {
         {__decoration none}
       }
 
-  item-button instproc render_button {-method -src -return_url} {
-    my get_parameters
-    my instvar __including_page
+  item-button instproc render_button {
+    -page 
+    -method 
+    -src 
+    -alt 
+    -title 
+    -return_url 
+    -page_order
+  } {
     set html ""
-    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
-
+    set package_id [$page package_id]
     set p_link [$package_id pretty_link [$page name]]
-    set edit_link [$package_id make_link -link $p_link $page $method return_url]
+    if {![info exists return_url]} {set return_url $p_link}
+    if {![info exists alt]} {set alt $method}
+    set edit_link [$package_id make_link -link $p_link $page $method return_url page_order]
     if {$edit_link ne ""} {
       set html "<a href=\"$edit_link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
     }
@@ -1608,50 +1645,71 @@ namespace eval ::xowiki::portlet {
       -parameter {
         {parameter_declaration {
           {-page_id}
-          {-title "edit item"}
+          {-title "#xowiki.edit#"}
           {-alt "edit"}
         }}
       }
   
   edit-item-button instproc render {} {
-    return [my render_button -method edit -src /resources/acs-subsite/Edit16.gif]
+    my get_parameters
+    my instvar __including_page
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+    if {[$page istype ::xowiki::FormPage]} {
+      set template [$page page_template]
+      set title "$title [$template title] [$page name]"
+    }
+    return [my render_button \
+		-page $page -method edit \
+		-title $title -alt $alt \
+		-return_url [::xo::cc url] \
+		-src /resources/acs-subsite/Edit16.gif]
   }
-#   {
-#     my get_parameters
-#     my instvar __including_page
-#     set html ""
-#     set page [expr {$page_id ? $page_id : $__including_page}]
 
-#     set p_link [$package_id pretty_link [$page name]]
-#     set edit_link [$package_id make_link -link $p_link $page edit return_url]
-#     if {$edit_link ne ""} {
-#       set html "<a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' alt=\"$alt\" title=\"$title\"></a>"
-#     }
-#     return $html
-#   }
-
-  Class create new-item-button -superclass ::xowiki::portlet::item-button \
+  Class create delete-item-button -superclass ::xowiki::portlet::item-button \
       -parameter {
         {__decoration none}
         {parameter_declaration {
           {-page_id}
-          {-title "new item"}
+          {-title "#xowiki.delete#"}
+          {-alt "delete"}
+        }}
+      }
+
+  delete-item-button instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+    return [my render_button \
+		  -page $page -method delete \
+		  -title $title -alt $alt \
+		  -return_url [::xo::cc url] \
+		  -src /resources/acs-subsite/Delete16.gif]
+  }
+
+  Class create create-item-button -superclass ::xowiki::portlet::item-button \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-page_id}
           {-alt "new"}
         }}
       }
-  
-  new-item-button instproc render {} {
+
+  create-item-button instproc render {} {
     my get_parameters
     my instvar __including_page
-    set html ""
-    set page [expr {$page_id ? $page_id : $__including_page}]
-
-    set p_link [$package_id pretty_link [$page name]]
-    set edit_link [$package_id make_link -link $p_link $page edit return_url]
-    if {$edit_link ne ""} {
-      set html "<a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' alt=\"$alt\" title=\"$title\"></a>"
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+    if {[$page istype ::xowiki::FormPage]} {
+      set template [$page page_template]
+      set page_order [::xowiki::Portlet incr_page_order [$page page_order]]
+      return [my render_button \
+		  -page $template -method create-new \
+		  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
+		  -alt $alt -page_order $page_order \
+		  -return_url [::xo::cc url] \
+		  -src /resources/acs-subsite/Add16.gif]
     }
-    return $html
+    return ""
   }
 
 }

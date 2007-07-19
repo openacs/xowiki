@@ -781,7 +781,11 @@ namespace eval ::xowiki {
     if {$form eq ""} {
       my msg "no form found in page [$page_template name]"
     } else {
-      $form setAttribute action [$package_id pretty_link [my name]]?m=edit method POST
+      if {[my exists_query_parameter "return_url"]} {
+	set return_url [my query_parameter "return_url"]
+      }
+      set url [export_vars -base [$package_id pretty_link [my name]] {{m "edit"} return_url}] 
+      $form setAttribute action $url method POST
       set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
       $form setAttribute class [string trim "$oldCSSClass margin-form"]
     }
@@ -1012,10 +1016,20 @@ namespace eval ::xowiki {
                -parent_id [my parent_id] \
                -publish_status "production" \
                -page_template [my item_id]]
+    
+    # set some default values if they are provided
+    foreach key {name title page_order last_page_id} {
+      if {[$package_id exists_query_parameter $key]} {
+        $f set $key [$package_id query_parameter $key]
+      }
+    }
     $f set __title_prefix [my title]
     $f save_new
+    if {[my exists_query_parameter "return_url"]} {
+      set return_url [my query_parameter "return_url"]
+    }
     $package_id returnredirect \
-        [my query_parameter "return_url" [$package_id pretty_link [$f name]]?m=edit]
+        [export_vars -base [$package_id pretty_link [$f name]] {{m edit} return_url}]
   }
 
 

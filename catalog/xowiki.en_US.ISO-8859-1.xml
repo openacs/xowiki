@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.55" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.56" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
+  <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
   <msg key="delete">Delete</msg>
   <msg key="edit">Edit</msg>
@@ -31,7 +32,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
   <msg key="index">Index</msg>
-  <msg key="new">New Page</msg>
+  <msg key="new_page">New Page</msg>
   <msg key="notifications">Notifications</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Page-creator">Creator</msg>
