@@ -384,7 +384,7 @@ namespace eval ::xowiki {
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
-    #my msg "$name, short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
+    #my msg "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
     return $f
   }
@@ -629,6 +629,7 @@ namespace eval ::xowiki {
     #
     set auto_fields [list _name _page_order _creator _title _text _description _nls_language]
     set reduced_attributes $needed_attributes
+
     foreach f $auto_fields {
       set p [lsearch $reduced_attributes $f]
       if {$p > -1} {
@@ -639,7 +640,7 @@ namespace eval ::xowiki {
       } 
     }
     #my msg reduced_attributes=$reduced_attributes 
-    #my msg form_fields=[array names field_in_form]
+    #my msg fields_from_from=[array names field_in_form]
 
     set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }

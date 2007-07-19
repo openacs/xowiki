@@ -1561,14 +1561,7 @@ namespace eval ::xowiki::portlet {
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
-      set p_link [$package_id pretty_link $name]
-      set edit_link [$package_id make_link -link $p_link $p edit return_url]
-      if {$edit_link ne ""} {
-        set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
-      } else {
-        set edit_markup ""
-      }
-      
+
       $p set unresolved_references 0
       #$p set render_adp 0
       switch [$p info class] {
@@ -1580,14 +1573,89 @@ namespace eval ::xowiki::portlet {
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
+      set menu [$p include_portlet "edit-item-button"] 
       append output "<h$level class='book'>" \
-          $edit_markup \
+          "<div style='float: right'>$menu</div>" \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
     return $output
   }
 }
+
+namespace eval ::xowiki::portlet {
+  Class create item-button \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {__decoration none}
+      }
+
+  item-button instproc render_button {-method -src -return_url} {
+    my get_parameters
+    my instvar __including_page
+    set html ""
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+
+    set p_link [$package_id pretty_link [$page name]]
+    set edit_link [$package_id make_link -link $p_link $page $method return_url]
+    if {$edit_link ne ""} {
+      set html "<a href=\"$edit_link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
+    }
+    return $html
+  }
+
+  Class create edit-item-button -superclass ::xowiki::portlet::item-button \
+      -parameter {
+        {parameter_declaration {
+          {-page_id}
+          {-title "edit item"}
+          {-alt "edit"}
+        }}
+      }
+  
+  edit-item-button instproc render {} {
+    return [my render_button -method edit -src /resources/acs-subsite/Edit16.gif]
+  }
+#   {
+#     my get_parameters
+#     my instvar __including_page
+#     set html ""
+#     set page [expr {$page_id ? $page_id : $__including_page}]
+
+#     set p_link [$package_id pretty_link [$page name]]
+#     set edit_link [$package_id make_link -link $p_link $page edit return_url]
+#     if {$edit_link ne ""} {
+#       set html "<a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' alt=\"$alt\" title=\"$title\"></a>"
+#     }
+#     return $html
+#   }
+
+  Class create new-item-button -superclass ::xowiki::portlet::item-button \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-page_id}
+          {-title "new item"}
+          {-alt "new"}
+        }}
+      }
+  
+  new-item-button instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set html ""
+    set page [expr {$page_id ? $page_id : $__including_page}]
+
+    set p_link [$package_id pretty_link [$page name]]
+    set edit_link [$package_id make_link -link $p_link $page edit return_url]
+    if {$edit_link ne ""} {
+      set html "<a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' alt=\"$alt\" title=\"$title\"></a>"
+    }
+    return $html
+  }
+
+}
+
 
 namespace eval ::xowiki::portlet {
 
