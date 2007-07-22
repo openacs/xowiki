@@ -2077,13 +2077,8 @@ namespace eval ::xowiki::portlet {
     set base [$package_id pretty_link [$__including_page name]]
     set new_link [$package_id make_link -link $base $__including_page create-new return_url]
     set answer_link [$package_id make_link -link $base $__including_page list return_url]
-    set sql [::xowiki::FormPage instance_select_query \
-                 -count true \
-                 -with_subtypes false \
-                 -from_clause ", xowiki_page_instance p" \
-                 -where_clause " p.page_template=$form_item_id and p.page_instance_id=cr.revision_id " \
-                 -folder_id [$package_id folder_id]]
-    set count [db_list [my qn count] $sql]
+    set template [::Generic::CrItem instantiate -item_id $form_item_id]
+    set count [$template count_usages]
     set links [list]
     foreach l [list new_link answer_link] {
       if {[set $l] ne ""} {
@@ -2096,7 +2091,7 @@ namespace eval ::xowiki::portlet {
   }
 
   #############################################################################
-  Class create form-instance-menu \
+  Class create form-entry-menu \
       -superclass ::xowiki::Portlet \
       -parameter {
         {__decoration none}
@@ -2104,7 +2099,7 @@ namespace eval ::xowiki::portlet {
         }}
       }
   
-  form-instance-menu instproc render {} {
+  form-entry-menu instproc render {} {
     my get_parameters
     my instvar __including_page
     set form [$__including_page page_template]
@@ -2113,7 +2108,7 @@ namespace eval ::xowiki::portlet {
   }
 
   #############################################################################
-  Class create form-instances \
+  Class create form-usages \
       -superclass ::xowiki::Portlet \
       -parameter {
         {__decoration none}
@@ -2124,7 +2119,7 @@ namespace eval ::xowiki::portlet {
         }}
       }
   
-  form-instances instproc render {} {
+  form-usages instproc render {} {
     my get_parameters
     my instvar __including_page
 
@@ -2138,9 +2133,10 @@ namespace eval ::xowiki::portlet {
 
     TableWidget t1 -volatile \
         -columns {
+	  ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}
+          AnchorField name -label [_ xowiki.Page-name]  -orderby name
           Field last_modified -label "Modification Date" -orderby last_modified
           Field creation_user -label "By User" -orderby creation_user
-          AnchorField view -label "View"
           ImageField_DeleteIcon delete -label ""
         }
 
@@ -2158,18 +2154,22 @@ namespace eval ::xowiki::portlet {
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
       $p destroy_on_cleanup
       set page_link [$package_id pretty_link $name]
-      
+      regexp {^([^.]+)[.]} $publish_date _ publish_date
+ 
       t1 add \
-          -view $name \
-          -view.href $page_link \
+          -name $name \
+          -name.href $page_link \
           -creation_user [::xo::get_user_name $creation_user] \
           -delete.href [$package_id make_link -link $page_link $p delete return_url] \
+	  -edit.href [$package_id make_link -link $page_link $p edit return_url] \
           -last_modified $publish_date
     }
 
     set base [$package_id pretty_link [$__including_page name]]
     set label [$__including_page name]
-    append html "<p>Instances of Form <a href='$base'>$label</a></p>\n" [t1 asHTML]
+    append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a></p>"]]
+    #"<p>Instances of Form <a href='$base'>$label</a></p>\n" [t1 asHTML]
+    append html [t1 asHTML]
     return $html
   }
 }

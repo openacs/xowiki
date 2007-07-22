@@ -116,7 +116,7 @@ namespace eval ::xowiki {
       -table_name "xowiki_page_instance"  -id_column "page_instance_id" \
       -cr_attributes {
         ::Generic::Attribute new -attribute_name page_template \
-            -datatype integer -sqltype integer
+            -datatype integer -sqltype integer -references cr_items(item_id)
         ::Generic::Attribute new -attribute_name instance_attributes \
             -datatype text -sqltype long_text -default ""
       } \
@@ -1048,6 +1048,23 @@ namespace eval ::xowiki {
   PageTemplate parameter {
     {render_adp 0}
   }
+  PageTemplate instproc count_usages {} {
+    return [::xowiki::PageTemplate count_entries -item_id [my item_id]]
+    #set sql [::xowiki::PageInstance instance_select_query \
+    #            -count true \
+    #            -with_subtypes true \
+    #            -from_clause ", xowiki_page_instance p" \
+    #            -where_clause " p.page_template=[my item_id] and p.page_instance_id=cr.revision_id " \
+    #            -folder_id [[my package_id] folder_id]]
+    #return [db_list [my qn count] $sql]
+  }
+  PageTemplate proc count_usages {-item_id:required} {
+    set count [db_string [my qn count_usages] \
+		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
+			where page_template = $item_id and
+                        page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
+    return $count
+  }
 
   #
   # PageInstance methods
@@ -1215,21 +1232,23 @@ namespace eval ::xowiki {
   }
 
   Form instproc get_content {} {
-    my instvar text
+    my instvar text form
     ::xowiki::Form requireFormCSS
 
+    # we assume, that the richtext is stored as 2-elem list with mime-type
     #my log "-- text='$text'"
     if {[lindex $text 0] ne ""} {
       set content [my substitute_markup [my set text]]
+    } elseif {[lindex $form 0] ne ""} {
+      set content [[self class] disable_input_fields [lindex $form 0]]
     } else {
-      set form [lindex [my set form] 0]
-      set content [[self class] disable_input_fields $form]
+      set content ""
     }
     return $content
   }
 
   Form instproc list {} {
-    my view [my include_portlet [list form-instances -form_item_id [my item_id]]]
+    my view [my include_portlet [list form-usages -form_item_id [my item_id]]]
   }
 
 
@@ -1267,7 +1286,7 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::FormPage
   #
   FormPage instproc footer {} {
-    return [my include_portlet [list form-instance-menu]]
+    return [my include_portlet [list form-entry-menu]]
   }
 
   FormPage instproc form_attributes {} {

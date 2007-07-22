@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.56" locale="de_DE" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.57" locale="de_DE" charset="ISO-8859-1">
 
   <msg key="admin">Verwalten</msg>
   <msg key="back">Zurück</msg>
@@ -8,17 +8,23 @@
   <msg key="delete">Löschen</msg>
   <msg key="edit">Bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
+  <msg key="entries_using_form">Einträge, die das Formular %form% verwenden:</msg>
+  <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte verwenden Sie diese, bevor Sie das Formular löschen.</msg>
   <msg key="Form-form">Formular</msg>
-  <msg key="Form-form_constraints">Formular Einschränkungen</msg>
+  <msg key="Form-form_constraints">Einschränkungen</msg>
+  <msg key="form-menu-answer_link">Einträge für dieses Formular</msg>
+  <msg key="form-menu-new_link">Formular ausfüllen</msg>
   <msg key="index">Index</msg>
   <msg key="notifications">Verständigungen</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Kurzbeschreibung</msg>
   <msg key="Page-name">Name</msg>
+  <msg key="Page-name-help_text">Eindeutige Kurzbezeichnung für einen Eintrag im Ordner; enthält meist nur Kleinbuchstaben</msg>
   <msg key="Page-nls_language">Sprache</msg>
   <msg key="Page-page_order">Abschnitt</msg>
   <msg key="Page-text">Inhalt</msg>
   <msg key="Page-title">Titel der Seite</msg>
+  <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
   <msg key="page_type">Typ der Seite</msg>
   <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
   <msg key="PageInstance-page_template">Seitenvorlage</msg>

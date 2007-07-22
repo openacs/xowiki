@@ -231,9 +231,42 @@ namespace eval ::xowiki {
       }
       ::xowiki::update_views
     }
-    if {[apm_version_names_compare $from_version_name "0.55"] == -1 &&
-        [apm_version_names_compare $to_version_name "0.55"] > -1} {
-      ns_log notice "-- upgrading to 0.55"
+    if {[apm_version_names_compare $from_version_name "0.56"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.56"] > -1} {
+      ns_log notice "-- upgrading to 0.56"
+      db_dml add_integer_column \
+	  "alter table xowiki_page_instance add column npage_template \
+		integer references cr_items(item_id)"
+      db_dml copy_old_values \
+	  "update xowiki_page_instance set npage_template = page_template::integer"
+      db_dml rename_old_column \
+	  "alter table xowiki_page_instance rename page_template to old_page_template"
+      db_dml rename_new_column \
+	  "alter table xowiki_page_instance rename npage_template to page_template"
+      # a few releases later, drop old column
+      if {[db_0or1row in_between_version \
+	       "select 1 from acs_object_types where \
+		object_type = '::xowiki::Form' and supertype = '::xowiki::Page'"]} {
+	# we have a version with a type hierarchy not compatible with the new one.
+	# this comes by updating often from head. 
+	# The likelyhood to have such as version is rather low.
+	ns_log notice "Deleting incompatible version of ::xowiki::Form"
+	::xo::db::sql::content_type drop_type -content_type ::xowiki::FormInstance \
+	    -drop_children_p t -drop_table_p t -drop_objects_p t
+	::xo::db::sql::content_type drop_type -content_type ::xowiki::Form \
+	    -drop_children_p t -drop_table_p t -drop_objects_p t
+      }
+      ::xowiki::update_views
+    }
+
+    if {[apm_version_names_compare $from_version_name "0.65"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.65"] > -1} {
+      ns_log notice "-- upgrading to 0.65"
+      catch {
+	# for new installs, the old column might not exist
+	db_dml drop_old_column \
+	    "alter table xowiki_page_instance drop column old_page_template"
+      }
       ::xowiki::update_views
     }
   }

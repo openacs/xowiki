@@ -284,8 +284,12 @@ namespace eval ::xowiki {
     }
     set context [list [$id instance_name]]
     set title Error
+    set header_stuff [::xowiki::Page header_stuff]
+    set index_link [my make_link -privilege public -link "" $id {} {}]
+    set link [my query_parameter "return_url" ""]
+    if {$link ne ""} {set back_link $link}
     $id return_page -adp $template_file -variables {
-      context title error_msg
+      context title index_link back_link header_stuff error_msg 
     }
   }
 
@@ -306,7 +310,8 @@ namespace eval ::xowiki {
       }
     }
     if {[string match //* $object]} {
-      # we have a reference to another instance, we cant resolve this from this package.
+  
+    # we have a reference to another instance, we cant resolve this from this package.
       # Report back not found
       return ""
     }
@@ -799,7 +804,28 @@ namespace eval ::xowiki {
     return [$page edit -new true -autoname $autoname]
   }
 
+  Package instproc flush_references {-item_id:integer,required -name} {
+    my instvar folder_id id
+    if {$name eq "::$folder_id"} {
+      #my log "--D deleting folder object ::$folder_id"
+      ns_cache flush xotcl_object_cache ::$folder_id
+      ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
+      ns_cache flush xotcl_object_type_cache root_folder-$id
+      ::$folder_id destroy
+    }
+    set key link-*-$name-$folder_id
+    foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
+  }
+
   Package instproc delete {-item_id -name} {
+    #
+    # This delete method does not require an instanantiated object,
+    # while the class-specific delete methods in xowiki-procs need these.
+    # If a (broken) object can't be instantiated, it cannot be deleted.
+    # Therefore we need this package level delete method. 
+    # While the class specific methods are used from the
+    # application pages, the package_level method is used from the admin pages.
+    #
     my instvar folder_id id
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
@@ -808,17 +834,19 @@ namespace eval ::xowiki {
     }
     if {$item_id ne ""} {
       #my log "--D trying to delete $item_id $name"
-      ::Generic::CrItem delete -item_id $item_id
-
-      if {$name eq "::$folder_id"} {
-        #my log "--D deleting folder object ::$folder_id"
-        ns_cache flush xotcl_object_cache ::$folder_id
-        ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
-        ns_cache flush xotcl_object_type_cache root_folder-$id
-        ::$folder_id destroy
+      set object_type [::Generic::CrItem get_object_type -item_id $item_id]
+      # in case of PageTemplate and subtypes, we need to check
+      # for pages using this template
+      set classes [concat $object_type [$object_type info heritage]]
+      if {[lsearch $classes "::xowiki::PageTemplate"] > -1} {
+	set count [::xowiki::PageTemplate count_usages -item_id $item_id]
+	if {$count > 0} {
+	  return [$id error_msg \
+		      [_ xowiki.error-delete_entries_first [list count $count]]]
+	}
       }
-      set key link-*-$name-$folder_id
-      foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
+      $object_type delete -item_id $item_id
+      my flush_references -item_id $item_id -name $name
     } else {
       my log "--D nothing to delete!"
     }

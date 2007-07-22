@@ -864,8 +864,11 @@ namespace eval ::xowiki {
   }
 
   Page instproc delete {} {
-    my instvar package_id item_id name parent_id
-    $package_id delete -name $name -item_id $item_id
+    my instvar package_id item_id name
+    [my info class] delete -item_id $item_id
+    ::$package_id flush_references -item_id $item_id -name $name
+    ::$package_id returnredirect \
+	[my query_parameter "return_url" [$package_id package_url]]
   }
 
   Page instproc save-tags {} {
@@ -1011,6 +1014,17 @@ namespace eval ::xowiki {
 #           [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
 #     }
 #   }
+
+  PageTemplate instproc delete {} {
+    my instvar package_id item_id name
+    set count [my count_entries]
+    my msg count=$count
+    if {$count > 0} {
+      $package_id error_msg [_ xowiki.error-delete_entries_first [list count $count]]
+    } else {
+      next
+    }
+  }
 
   Form instproc create-new {} {
     my instvar package_id
