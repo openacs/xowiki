@@ -1049,7 +1049,7 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PageTemplate instproc count_usages {} {
-    return [::xowiki::PageTemplate count_entries -item_id [my item_id]]
+    return [::xowiki::PageTemplate count_usages -item_id [my item_id]]
     #set sql [::xowiki::PageInstance instance_select_query \
     #            -count true \
     #            -with_subtypes true \
