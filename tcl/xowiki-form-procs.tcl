@@ -50,7 +50,7 @@ namespace eval ::xowiki {
 
     set show_page_order [[$data package_id] show_page_order]
     if {!$show_page_order} { my f.page_order "= hidden" } 
-    if {$autoname}         { my f.name       "= hidden"}
+    if {$autoname}         { my f.name       "= hidden,optional"}
     set form_fields [list]
 
     foreach __field $field_list {
