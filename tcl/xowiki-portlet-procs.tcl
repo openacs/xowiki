@@ -2146,7 +2146,10 @@ namespace eval ::xowiki::portlet {
                  -from_clause ", xowiki_page_instance p" \
                  -with_subtypes 0 \
                  -orderby "$att $order" \
-                 -where_clause " p.page_template = $form_item_id and p.page_instance_id = cr.revision_id " \
+                 -where_clause " p.page_template = $form_item_id \
+			and p.page_instance_id = cr.revision_id \
+                        and ci.publish_status <> 'production' \
+			" \
                  -folder_id [$package_id folder_id]]
 
     db_foreach [my qn get_pages] $sql {

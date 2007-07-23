@@ -145,9 +145,9 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki FormPage" -pretty_plural "XoWiki FormPages" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" 
 
-  ::Generic::CrClass create FormInstance -superclass PageInstance \
-      -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
-      -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
+  #::Generic::CrClass create FormInstance -superclass PageInstance \
+  #    -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
+  #    -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
 
   #
   # create various extra tables, indices and views
@@ -1061,8 +1061,9 @@ namespace eval ::xowiki {
   PageTemplate proc count_usages {-item_id:required} {
     set count [db_string [my qn count_usages] \
 		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
-			where page_template = $item_id and
-                        page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
+			where page_template = $item_id \
+                        and i.publish_status <> 'production' \
+                        and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
     return $count
   }
 
@@ -1415,7 +1416,7 @@ namespace eval ::xowiki {
       my save
       my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
-        my log "--forminstance renaming"
+        my log "--formpage renaming"
         db_dml [my qn update_rename] "update cr_items set name = :name \
                 where item_id = [my item_id]"
       }
