@@ -88,10 +88,10 @@ namespace eval ::xowiki {
   }
   
 
-  RSS instproc limit_clause {} {
+  RSS instproc limit {} {
     my instvar maxentries
     if {[info exists maxentries] && $maxentries ne ""} {
-      return " limit $maxentries"
+      return $maxentries
     } 
     return ""
   }
@@ -114,40 +114,46 @@ namespace eval ::xowiki {
 
     if {$description eq ""} {set description [::$folder_id set description]}
     my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
-
+    
     #my log "--rss WHERE= [my extra_where_clause]"
 
-    set content [my head]
-    db_foreach get_pages \
-        "select s.body, p.name, p.creator, p.title, p.page_id,\
-                p.object_type as content_type, p.last_modified, p.description  \
-        from xowiki_pagex p, syndication s, cr_items ci  \
-        where ci.parent_id = $folder_id and ci.live_revision = s.object_id \
-                and ci.publish_status <> 'production' \
-	        [my extra_where_clause] \
-                and s.object_id = p.page_id \
-        order by p.last_modified desc [my limit_clause] \
-        " {
-          
-          if {[string match "::*" $name]} continue
-          if {$content_type eq "::xowiki::PageTemplate"} continue
+    set sql [::xo::db::sql select \
+                 -vars "s.body, p.name, p.creator, p.title, p.page_id, instance_attributes, \
+                p.object_type as content_type, p.last_modified, p.description" \
+                 -from "syndication s, cr_items ci, xowiki_pagex p left join \
+			xowiki_page_instance on (p.revision_id = page_instance_id)" \
+                 -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+                	and ci.publish_status <> 'production' \
+	        	[my extra_where_clause] \
+                	and s.object_id = p.page_id" \
+                 -orderby "p.last_modified desc" \
+                 -limit [my limit]]
 
-          set description [string trim $description]
-          if {$description eq ""} {set description $body}
-          regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-          
-          if {$title eq ""} {set title $name}
-          #append title " ($content_type)"
-          set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-          append content [my item \
-                              -creator $creator \
-                              -title $title \
-                              -link [::$package_id pretty_link -absolute true -siteurl $siteurl  $name] \
-                              -guid $siteurl/$page_id \
-                              -description $description \
-                              -pubdate $time \
-                             ]
-        }
+    set content [my head]
+    db_foreach get_pages $sql {
+      if {[string match "::*" $name]} continue
+      if {$content_type eq "::xowiki::PageTemplate"} continue
+      
+      set description [string trim $description]
+      if {$description eq ""} {set description $body}
+      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      
+      set link [::xowiki::Portlet detail_link \
+                    -package_id $package_id -name $name \
+                    -absolute true \
+                    -instance_attributes $instance_attributes]
+      if {$title eq ""} {set title $name}
+      #append title " ($content_type)"
+      set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+      append content [my item \
+                          -creator $creator \
+                          -title $title \
+                          -link $link \
+                          -guid $siteurl/$page_id \
+                          -description $description \
+                          -pubdate $time \
+                         ]
+    }
     
     append content [my tail]
     return $content
@@ -212,29 +218,31 @@ namespace eval ::xowiki {
     my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
     
     set content [my head]
-    db_foreach get_pages \
-        "select * from xowiki_podcast_itemi p, cr_items ci, cr_mime_types m \
-        where ci.parent_id = $folder_id and ci.item_id = p.item_id \
+    set sql [::xo::db::sql select \
+                 -vars * \
+                 -from "xowiki_podcast_itemi p, cr_items ci, cr_mime_types m" \
+                 -where  "ci.parent_id = $folder_id and ci.item_id = p.item_id \
               and ci.live_revision = p.object_id \
               and p.mime_type = m.mime_type \
-              and ci.publish_status <> 'production' [my extra_where_clause] \
-        order by p.pub_date asc [my limit_clause] \
-        " {
-          
-          if {$content_type ne "::xowiki::PodcastItem"} continue
-
-          #regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-          
-          if {$title eq ""} {set title $name}
-          #set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-	  set link [::$package_id pretty_link -absolute true -siteurl $siteurl $name]/download.$file_extension
-	  append content [my item \
-			      -author $creator -title $title -subtitle $subtitle \
-                              -description $description \
-			      -link $link -mime_type $mime_type \
-			      -guid $link -pubdate $pub_date -duration $duration \
-			      -keywords $keywords]
-        }
+              and ci.publish_status <> 'production' [my extra_where_clause]" \
+                 -orderby "p.pub_date asc" \
+                 -limit [my limit]]
+             
+    db_foreach get_pages $sql {
+      if {$content_type ne "::xowiki::PodcastItem"} continue
+      
+      #regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      
+      if {$title eq ""} {set title $name}
+      #set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+      set link [::$package_id pretty_link -absolute true -siteurl $siteurl $name]/download.$file_extension
+      append content [my item \
+                          -author $creator -title $title -subtitle $subtitle \
+                          -description $description \
+                          -link $link -mime_type $mime_type \
+                          -guid $link -pubdate $pub_date -duration $duration \
+                          -keywords $keywords]
+    }
     
     append content [my tail]
     return $content
@@ -255,23 +263,26 @@ namespace eval ::xowiki {
     my instvar package_id 
     set folder_id [::$package_id folder_id]
     set where_clause ""
-    set limit_clause ""
+    set limit ""
 
     set last_user ""
     set last_item ""
     set last_clock ""
     if {[my exists user_id]} { append where_clause " and o.creation_user = [my user_id] " }
-    if {[my exists limit]} { append limit_clause  " limit [my limit] " }
+    if {[my exists limit]} { set limit  [my limit] }
 
     ::xo::OrderedComposite items -destroy_on_cleanup
-    db_foreach get_pages "
-      select ci.name, o.creation_user, cr.publish_date, o2.creation_date, cr.item_id, ci.parent_id, cr.title
-      from cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2 
-      where cr.item_id = ci.item_id and o.object_id = cr.revision_id 
-      and o2.object_id = cr.item_id 
-      and ci.parent_id = :folder_id and o.creation_user is not null 
-      $where_clause order by revision_id desc $limit_clause
-    " {
+    set sql [::xo::db::sql select \
+                 -vars "ci.name, o.creation_user, cr.publish_date, o2.creation_date, \
+			cr.item_id, ci.parent_id, cr.title" \
+                 -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
+                 -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id 
+      			and o2.object_id = cr.item_id 
+		      	and ci.parent_id = :folder_id and o.creation_user is not null 
+      			$where_clause" \
+                 -orderby "revision_id desc" \
+                 -limit $limit]
+    db_foreach get_pages $sql {
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
       regexp {^([^.]+)[.][0-9]+(.*)$} $creation_date _ creation_date tz
       set clock [clock scan $publish_date]
@@ -296,7 +307,7 @@ namespace eval ::xowiki {
     # The following loop tries to distinguis between create and modify by age.
     # This does not work in cases, where we get just a limited amount 
     # or restricted entries
-#     if {$limit_clause eq ""} {
+#     if {$limit eq ""} {
 #       foreach i [my reverse [items children]] {
 #         set key seen([$i set item_id])
 #         if {[info exists $key]} {

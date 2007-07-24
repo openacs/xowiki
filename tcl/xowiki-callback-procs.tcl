@@ -259,6 +259,23 @@ namespace eval ::xowiki {
       ::xowiki::update_views
     }
 
+    if {[apm_version_names_compare $from_version_name "0.58"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.58"] > -1} {
+      ns_log notice "-- upgrading to 0.58"
+
+      if {[catch {acs_sc::impl::get_id -owner xowiki -name ::xowiki::FormPage}]} {
+        acs_sc::impl::new_from_spec -spec {
+          name "::xowiki::FormPage"
+          aliases {
+            datasource ::xowiki::datasource
+            url ::xowiki::url
+          }
+          contract_name FtsContentProvider
+          owner xowiki
+        }
+      }
+    }
+
     if {[apm_version_names_compare $from_version_name "0.65"] == -1 &&
         [apm_version_names_compare $to_version_name "0.65"] > -1} {
       ns_log notice "-- upgrading to 0.65"

@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.57" url="http://openacs.org/repository/download/apm/xowiki-0.57.apm">
+    <version name="0.58" url="http://openacs.org/repository/download/apm/xowiki-0.58.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-07-22</release-date>
+        <release-date>2007-07-24</release-date>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of wiki markup commands of systems
@@ -127,11 +127,13 @@ recursive inclusion bug fixed
 0.55: More complete set of FormField classes including 
 composite fields, better mix of HTML forms with 
 auto-generated form components.
+
+0.58: Adding Syndication for FormPage  
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.57"/>
+        <provides url="xowiki" version="0.58"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -139,8 +141,8 @@ auto-generated form components.
         <requires url="xotcl-core" version="0.54"/>
 
         <callbacks>
-            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-install"  proc="::xowiki::after-install"/>
+            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>

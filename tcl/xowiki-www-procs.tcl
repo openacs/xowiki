@@ -366,6 +366,7 @@ namespace eval ::xowiki {
                -required  [expr {[$slot exists required]  ? [$slot set required]  : "false"}] \
                -default   $default \
                -spec      [join $spec_list ,] \
+               -object    [self] \
               ]
 
     $f destroy_on_cleanup
@@ -717,9 +718,9 @@ namespace eval ::xowiki {
 
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
-      if {!$anon_instances && [my is_new_entry [my name]]} {
+      if {[my is_new_entry [my name]]} {
 	$ff(_title) value ""
-	$ff(_name) value ""
+	if {!$anon_instances} {$ff(_name) value ""}
       }
     }
     

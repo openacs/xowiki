@@ -44,6 +44,7 @@ namespace eval ::xowiki {
     {validator ""}
     locale
     default
+    object
   }
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
@@ -177,14 +178,14 @@ namespace eval ::xowiki {
     # Since only the configuration might set values, checking value for "" seems safe here.
     #
     if {[my value] eq "" && [my exists default] && [my default] ne ""} {
-      # my msg "reset value to [my default]"
+      #my msg "reset value to [my default]"
       my value [my default]
     }
 
     if {[lang::util::translator_mode_p]} {
       my mixin "::xo::TRN-Mode"
     }
-    my initialize 
+    my initialize
   }
 
   FormField instproc asWidgetSpec {} {
@@ -420,6 +421,46 @@ namespace eval ::xowiki {
   }
   FormField::numeric instproc check=numeric {value} {
     return [string is double $value]
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::url
+  #
+  ###########################################################
+
+  Class FormField::url -superclass FormField::text -parameter {
+    {link_label}
+  }
+  FormField::url instproc pretty_value {v} {
+    if {$v ne ""} {
+      if {[my exists link_label]} {
+        set link_label [my localize [my link_label]]
+      } else {
+        set link_label $v
+      }
+      return "<a href='$v'>$link_label</a>"
+    }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::detail_link
+  #
+  ###########################################################
+
+  Class FormField::detail_link -superclass FormField::url -parameter {
+    {link_label "#xowiki.weblog-more#"}
+  }
+  FormField::detail_link instproc pretty_value {v} {
+    if {$v eq ""} {
+      my instvar object
+      set v [[$object package_id] pretty_link [$object name]]
+    }
+    if {$v ne ""} {
+      set link_label [my localize [my link_label]]
+      return " <span class='more'>\[ <a href='$v'>$link_label</a> \]</span>"
+    }
   }
 
   ###########################################################

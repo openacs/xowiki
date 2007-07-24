@@ -19,6 +19,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   $page volatile
 
   #ns_log notice "--sc package=[[$page package_id] serialize]"
+  ns_log notice "--sc $page [$page set publish_status]"
 
   if {[$page set publish_status] eq "production"} {
     # no data source for for pages under construction
@@ -113,6 +114,15 @@ namespace eval ::xowiki::sc {
       owner xowiki
     }
     acs_sc::impl::new_from_spec -spec {
+      name "::xowiki::FormPage"
+      aliases {
+        datasource ::xowiki::datasource
+        url ::xowiki::url
+      }
+      contract_name FtsContentProvider
+      owner xowiki
+    }
+    acs_sc::impl::new_from_spec -spec {
       name "::xowiki::File"
       aliases {
         datasource ::xowiki::datasource
@@ -127,6 +137,7 @@ namespace eval ::xowiki::sc {
     acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
     acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PlainPage
     acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::PageInstance
+    acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::FormPage
     acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::File
   }
 }

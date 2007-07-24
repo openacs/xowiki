@@ -69,6 +69,21 @@ namespace eval ::xowiki::portlet {
     return $name
   }
 
+  ::xowiki::Portlet proc detail_link {
+     {-absolute:boolean false} 
+     -package_id 
+     -name 
+     -instance_attributes
+   } {
+    array set ia $instance_attributes
+    if {[info exists ia(detail_link)] && $ia(detail_link) ne ""} {
+      set link $ia(detail_link)
+    } else {
+      set link [::$package_id pretty_link $name]
+    }
+    return $link
+  }
+
   ::xowiki::Portlet instproc screen_name {user_id} {
     acs_user::get -user_id $user_id -array user
     return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
@@ -2128,6 +2143,10 @@ namespace eval ::xowiki::portlet {
       if {$form_item_id == 0} {error "Cannot lookup page $form"}
     }
 
+    #set form_item_id [::xowiki::Form instantiate -item_id $form_item_id]
+    #$form_item_id destroy_on_cleanup
+    #set form_fields [$form_item_id create_form_fields $field_names]
+    
     ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 

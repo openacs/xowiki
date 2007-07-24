@@ -1398,7 +1398,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc save_data {old_name category_ids} {
-    my log "-- [self args]"
+    #my log "-- [self args]"
     my instvar package_id name
     db_transaction {
       #

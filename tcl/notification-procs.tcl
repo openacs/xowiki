@@ -77,7 +77,7 @@ namespace eval ::xowiki::notification {
     @param revision_id
     @param new new or modified item
   } {
-    
+
     if {![info exists page]} {
       set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id]
       $page volatile
