@@ -25,7 +25,7 @@
     # We get the instance_attributes, if these are available. For the
     # time being, we have these only in full mode (no summary)
     if {[my exists instance_attributes]} {
-      set instance_attributes [my instance_attributes]
+      set instance_attributes [my set instance_attributes]
     } else {
       set instance_attributes ""
     }

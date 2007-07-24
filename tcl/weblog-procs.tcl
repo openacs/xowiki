@@ -76,7 +76,7 @@ namespace eval ::xowiki {
     set base_type ::xowiki::Page
     set base_table xowiki_pagei
     set attributes [list cr.revision_id p.publish_date p.title p.creator p.creation_user \
-                        p.description s.body]
+                        p.description s.body instance_attributes]
     if {$instances_of ne ""} {
       set form_items [list]
       foreach t [split $instances_of |] {
@@ -87,7 +87,6 @@ namespace eval ::xowiki {
       append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = cr.revision_id "
       set base_type ::xowiki::FormPage
       set base_table xowiki_form_pagei
-      lappend attributes instance_attributes
     }
 
     # create an item container, which delegates rendering to its children
@@ -99,12 +98,14 @@ namespace eval ::xowiki {
 
     foreach i [split [my exclude_item_ids] ,] {lappend ::xowiki_page_item_id_rendered $i}
     $items set weblog_obj [self]
- 
+
     set sql \
         [list -folder_id $folder_id \
              -select_attributes $attributes \
              -orderby "publish_date desc" \
-             -from_clause "$extra_from_clause , $base_table p left outer join syndication s on s.object_id = p.revision_id" \
+             -from_clause "$extra_from_clause, $base_table p \
+		left outer join syndication s on s.object_id = p.revision_id \
+		left join xowiki_page_instance on (p.revision_id = page_instance_id)" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
@@ -122,7 +123,8 @@ namespace eval ::xowiki {
     set s [$base_type instantiate_objects -sql [eval  $base_type instance_select_query $sql]]
     
     foreach c [$s children] {
-      $c instvar revision_id publish_date title name item_id creator creation_user description body
+      $c instvar revision_id publish_date title name item_id creator creation_user \
+          description body instance_attributes
 
       regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
       set pretty_date [util::age_pretty -timestamp_ansi $publish_date \
@@ -136,6 +138,7 @@ namespace eval ::xowiki {
         $p set creation_user $creation_user
         $p set description [expr {$description eq "" && $body ne ""? \
                                       "[string range $body 0 150]..." : $description}]
+        $p set instance_attributes $instance_attributes
       } else {
         # do full instantiation and rendering
         # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[my isobject ::$revision_id]"
