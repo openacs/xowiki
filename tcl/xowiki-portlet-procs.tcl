@@ -2130,7 +2130,8 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-form_item_id:integer}
           {-form}
-          {-orderby "last_modified,desc"}
+          {-orderby "_last_modified,desc"}
+          {-field_names}
         }}
       }
   
@@ -2138,53 +2139,134 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     my instvar __including_page
 
+    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    set return_url [::xo::cc url]?[::xo::cc actual_query]
+
     if {![info exists form_item_id]} {
       set form_item_id [::xowiki::Form lookup -name $form -parent_id $folder_id]
       if {$form_item_id == 0} {error "Cannot lookup page $form"}
     }
 
-    #set form_item_id [::xowiki::Form instantiate -item_id $form_item_id]
-    #$form_item_id destroy_on_cleanup
-    #set form_fields [$form_item_id create_form_fields $field_names]
-    
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
-    set return_url [::xo::cc url]?[::xo::cc actual_query]
+    set form_item [::xowiki::Form instantiate -item_id $form_item_id]
+    $form_item destroy_on_cleanup
 
-    TableWidget t1 -volatile \
-        -columns {
-	  ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}
-          AnchorField name -label [_ xowiki.Page-name]  -orderby name
-          Field last_modified -label "Modification Date" -orderby last_modified
-          Field creation_user -label "By User" -orderby creation_user
-          ImageField_DeleteIcon delete -label ""
+    if {![info exists field_names]} {
+      set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                  -name @table \
+                  -form_constraints [$form_item form_constraints]]
+      set field_names [split $fn ,]
+    }
+    if {$field_names eq ""} {
+      set field_names {_name _last_modified _creation_user}
+    }
+
+    set sql_atts [list instance_attributes]
+    foreach att [::xowiki::FormPage edit_atts] {set __att($att) 1}
+    set common_atts [list last_modified creation_user]
+    foreach att $common_atts {
+      lappend sql_atts p.$att
+      set __att($att) 1
+    }
+
+    set form_constraints [$form_item form_constraints]
+    set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                           -name @cr_fields \
+                           -form_constraints $form_constraints]
+    set field_spec    [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                           -name @fields \
+                           -form_constraints $form_constraints]
+
+    foreach spec_name $field_names {
+      # TODO: the short_spec does not contain @cr_fields
+      set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                          -name $spec_name \
+                          -form_constraints $form_constraints]
+
+      switch -glob -- $spec_name {
+        __* {error not_allowed}
+        _* {
+          set varname [string range $spec_name 1 end]
+          if {![info exists __att($varname)]} {
+            error "unknown attribute $spec_name"
+          }
+          set f [$form_item create_form_field \
+                     -name $spec_name \
+                     -slot [$form_item find_slot $varname] \
+                     -spec $cr_field_spec,$short_spec]
+          lappend sql_atts p.$varname
         }
+        default {
+          set f [$form_item create_form_field \
+                     -name $spec_name \
+                     -slot "" \
+                     -spec $field_spec,$short_spec]
+        }
+      }
+      lappend form_fields $f
+      set __ff($spec_name) $f
+    }
+    #my msg ff=[array names __ff]
+    #$form_item show_fields $form_fields
 
+    if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
+
+    set cols ""
+    append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}} \n
+    foreach fn $field_names {
+      append cols [list AnchorField $fn -label [$__ff($fn) label] -orderby $fn] \n
+    }
+    append cols [list ImageField_DeleteIcon delete -label ""    ] \n
+
+    TableWidget t1 -volatile -columns $cols
+
+    #
+    # Sorting is done for the time being in tcl. This has the advantage
+    # that page_orders can be sorted with the special mixin and that
+    # instance attributes can be used for sorting as well.
+    #
     foreach {att order} [split $orderby ,] break
-    set sql [::xowiki::FormPage instance_select_query \
-                 -select_attributes "publish_date creation_user revision_id" \
-                 -from_clause ", xowiki_page_instance p" \
-                 -with_subtypes 0 \
-                 -orderby "$att $order" \
-                 -where_clause " p.page_template = $form_item_id \
-			and p.page_instance_id = cr.revision_id \
-                        and ci.publish_status <> 'production' \
-			" \
-                 -folder_id [$package_id folder_id]]
+    if {$att eq "_page_order"} {
+      t1 mixin add ::xo::OrderedComposite::IndexCompare
+    }
+    t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 
-    db_foreach [my qn get_pages] $sql {
+    #
+    # build SQL query and iterate over the results
+    # maybe this could be slightly faster by using instantiate_objects
+    # 
+    set items [::xowiki::FormPage instantiate_all \
+                   -select_attributes $sql_atts \
+                   -from_clause ", xowiki_form_pagex p" \
+                   -with_subtypes false \
+                   -where_clause " p.page_template = $form_item_id \
+			and p.xowiki_form_page_id = cr.revision_id \
+                        and ci.publish_status <> 'production' " \
+                   -folder_id [$package_id folder_id]]
+    $items destroy_on_cleanup
 
-      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
-      $p destroy_on_cleanup
-      set page_link [$package_id pretty_link $name]
-      regexp {^([^.]+)[.]} $publish_date _ publish_date
- 
+    foreach p [$items children] {
+      $p set package_id $package_id
+
+      array set __ia [$p set instance_attributes]
+      set page_link [$package_id pretty_link [$p name]]
+
       t1 add \
-          -name $name \
-          -name.href $page_link \
-          -creation_user [::xo::get_user_name $creation_user] \
           -delete.href [$package_id make_link -link $page_link $p delete return_url] \
-	  -edit.href [$package_id make_link -link $page_link $p edit return_url] \
-          -last_modified $publish_date
+	  -edit.href [$package_id make_link -link $page_link $p edit return_url] 
+      
+      set __c [t1 last_child]
+      $__c set _name.href $page_link
+      foreach __fn $field_names {
+        switch -glob -- $__fn {
+          __* {error not_allowed}
+          _*  {set __value [$p set [string range $__fn 1 end]]}
+          default {set __value $__ia($__fn)}
+        }
+        if {[$__ff($__fn) istype ::xowiki::FormField::richtext]} {
+          $__c set $__fn.richtext 1
+        }
+        $__c set $__fn [$__ff($__fn) pretty_value $__value]
+      }
     }
 
     set base [$package_id pretty_link [$__including_page name]]

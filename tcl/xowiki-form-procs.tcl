@@ -616,7 +616,7 @@ namespace eval ::xowiki {
     set dont_edit [concat [[$data info class] edit_atts] [list title] \
                        [::Generic::CrClass set common_query_atts]]
 
-    set category_spec [$data get_short_spec _categories]
+    set category_spec [$data get_short_spec @categories]
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {my set with_categories false}
     }
@@ -673,19 +673,20 @@ namespace eval ::xowiki {
 
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
     -parameter {
-	{field_list {item_id name page_order title creator text form form_constraints 
-          anon_instances description nls_language}}
-	{f.text "= richtext,height=200px"}
-	{f.form "= richtext,height=200px"}
-        {validate {
-          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                already in this folder}}
-          {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
-          {form {\[::xowiki::validate_form_form\]} {Form must contain an HTML form}}
-          {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
-        }}
+      {field_list {item_id name page_order title creator text form form_constraints 
+        anon_instances description nls_language}}
+      {f.text "= richtext,height=200px"}
+      {f.form "= richtext,height=200px"}
+      {f.form_constraints "="}
+      {validate {
+        {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                                                 already in this folder}}
+        {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
+        {form {\[::xowiki::validate_form_form\]} {Form must contain an HTML form}}
+        {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
+      }}
     }
-
+  
   FormForm instproc new_data {} {
     my instvar data
     set item_id [next]

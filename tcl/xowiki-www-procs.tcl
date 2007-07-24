@@ -311,8 +311,10 @@ namespace eval ::xowiki {
     return $html
   }
 
-  Page instproc find_slot {name} {
-    set start_class [my info class]
+  Page instproc find_slot {-start_class name} {
+    if {![info exists start_class]} {
+      set start_class [my info class]
+    }
     foreach cl [concat $start_class [$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
       if {[my isobject $slotobj]} {
@@ -353,9 +355,9 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
-    if {![my exists name]} {
-      my name ""
-    }
+    #if {![my exists name]} {
+    #  my name ""
+    #}
     set f [FormField new -name $name \
                -id        [::xowiki::Portlet html_id F.[my name].$name] \
                -locale    [my nls_language] \
@@ -395,7 +397,7 @@ namespace eval ::xowiki {
 namespace eval ::xowiki {
 
   FormPage instproc create_category_fields {} {
-    set category_spec [my get_short_spec _categories]
+    set category_spec [my get_short_spec @categories]
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {return [list]}
     }
@@ -580,8 +582,8 @@ namespace eval ::xowiki {
   FormPage instproc create_form_fields {field_names} {
 
     set form_fields   [my create_category_fields]
-    set cr_field_spec [my get_short_spec _cr_fields]
-    set field_spec    [my get_short_spec _fields]
+    set cr_field_spec [my get_short_spec @cr_fields]
+    set field_spec    [my get_short_spec @fields]
 
     foreach att $field_names {
       switch -glob -- $att {

@@ -37,6 +37,8 @@ namespace eval ::xowiki {
         {lang en}
         {render_adp 1}
         {absolute_links 0}
+        last_modified
+        creation_user
       } \
       -form ::xowiki::WikiForm
 
@@ -46,7 +48,7 @@ namespace eval ::xowiki {
      if {![::xotcl::Object isobject ::xowiki::Page::slot]} {
         ::xotcl::Object create ::xowiki::Page::slot
      }
-     foreach parameter {name title description text nls_language} {
+     foreach parameter {name title description text nls_language publish_date creation_user} {
         if {![::xotcl::Object isobject ::xowiki::Page::slot::$parameter]} {
           ::xo::Attribute create ::xowiki::Page::slot::$parameter 
         }
@@ -74,6 +76,11 @@ namespace eval ::xowiki {
   ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
   ::xowiki::Page::slot::nls_language set datatype text
   ::xowiki::Page::slot::nls_language set spec {select,options=[xowiki::locales]}
+
+  ::xowiki::Page::slot::last_modified set pretty_name #xowiki.Page-last_modified#
+  ::xowiki::Page::slot::last_modified set spec date
+
+  ::xowiki::Page::slot::creation_user set spec user_id
 
   ::Generic::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
@@ -137,7 +144,7 @@ namespace eval ::xowiki {
             -datatype text -sqltype long_text -default ""
         ::Generic::Attribute new -attribute_name form_constraints \
             -datatype text -sqltype long_text -default "" \
-            -validator form_constraints
+            -validator form_constraints -spec "textarea,cols=100,rows=2"
       } \
       -form ::xowiki::FormForm
 
@@ -1071,6 +1078,17 @@ namespace eval ::xowiki {
   # PageInstance methods
   #
 
+  PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
+    foreach name_and_spec $form_constraints {
+      foreach {spec_name short_spec} [split $name_and_spec :] break
+      if {$spec_name eq $name} {
+        #my msg "get_short_spec $name returns 1 $short_spec"
+        return $short_spec
+      }
+    }
+    return ""
+  }
+
   PageInstance instproc get_short_spec {name} {
     #my msg "get_short_spec $name"
     my instvar page_template
@@ -1078,22 +1096,11 @@ namespace eval ::xowiki {
     # might be non-existant or empty.
     if {[info exists page_template] && $page_template ne "" &&
         [$page_template exists form_constraints]} {
-      foreach name_and_spec [$page_template form_constraints] {
-        foreach {spec_name short_spec} [split $name_and_spec :] break
-        if {$spec_name eq $name} {
-          #my msg "get_short_spec $name returns 1 $short_spec"
-          return $short_spec
-        }
+      set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                          -name $name -form_constraints [$page_template form_constraints]]
+      if {$short_spec ne ""} {
+        return $short_spec
       }
-      # in case not found, look for name prefixed with _, in cases 
-      # we refer to instance variables of the page
-      #foreach name_and_spec [$page_template form_constraints] {
-      #  foreach {spec_name short_spec} [split $name_and_spec :] break
-      #  if {"_$spec_name" eq $name} {
-      #    my msg "get_short_spec $name returns 2 $short_spec"
-      #    return $short_spec
-      #  }
-      #}
     }
     return ""
   }
@@ -1266,6 +1273,8 @@ namespace eval ::xowiki {
     #
     foreach name_and_spec $form_constraints {
       foreach {spec_name short_spec} [split $name_and_spec :] break
+      if {$spec_name eq "@table"} continue
+
       #my msg "checking spec '$short_spec' for form field '$spec_name'"
       if {[catch {
         set f [my create_form_field \

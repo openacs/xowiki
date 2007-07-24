@@ -166,8 +166,10 @@ namespace eval ::xowiki {
 	    #my msg "[my name] searchDefaults"
 	    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
           } else {
-            #my msg "Ignoring unknown spec for entry [my name]: '$s'"
-            error [_ xowiki.error-form_constraint-unknown_spec_entry [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
+            if {$s ne ""} {
+              error [_ xowiki.error-form_constraint-unknown_spec_entry \
+                         [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
+            }
           }
         }
       }
@@ -421,6 +423,18 @@ namespace eval ::xowiki {
   }
   FormField::numeric instproc check=numeric {value} {
     return [string is double $value]
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::user_id
+  #
+  ###########################################################
+
+  Class FormField::user_id -superclass FormField::numeric -parameter {
+  }
+  FormField::user_id instproc pretty_value {v} {
+    return [::xo::get_user_name $v]
   }
 
   ###########################################################
@@ -867,6 +881,8 @@ namespace eval ::xowiki {
 
   FormField::date instproc pretty_value {v} {
     # internally, we have ansi format. For displaying the date, use the display format
+    # drop of the value after the "." we assume to have a date in the local zone
+    regexp {^([^.]+)[.]} $v _ v
     return [clock format [clock scan $v] -format [string map [list _ " "] [my display_format]]]
   }
 
