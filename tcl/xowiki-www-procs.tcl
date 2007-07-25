@@ -721,7 +721,7 @@ namespace eval ::xowiki {
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
       if {[my is_new_entry [my name]]} {
-	$ff(_title) value ""
+	if {![$ff(_title) istype ::xowiki::FormField::hidden]} {$ff(_title) value ""}
 	if {!$anon_instances} {$ff(_name) value ""}
       }
     }

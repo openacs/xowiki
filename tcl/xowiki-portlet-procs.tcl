@@ -2169,15 +2169,18 @@ namespace eval ::xowiki::portlet {
     }
 
     set form_constraints [$form_item form_constraints]
-    set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
-                           -name @cr_fields \
-                           -form_constraints $form_constraints]
+    # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+    #                            -name @cr_fields \
+    #                            -form_constraints $form_constraints]
+    # if some fields are hidden in the form, there might still be values (creation_user, etc)
+    # maybe filter hidden? ignore for the time being.
+    set cr_field_spec ""
+    #
     set field_spec    [::xowiki::PageInstance get_short_spec_from_form_constraints \
                            -name @fields \
                            -form_constraints $form_constraints]
 
     foreach spec_name $field_names {
-      # TODO: the short_spec does not contain @cr_fields
       set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
                           -name $spec_name \
                           -form_constraints $form_constraints]

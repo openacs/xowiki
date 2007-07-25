@@ -1273,7 +1273,7 @@ namespace eval ::xowiki {
     #
     foreach name_and_spec $form_constraints {
       foreach {spec_name short_spec} [split $name_and_spec :] break
-      if {$spec_name eq "@table"} continue
+      if {$spec_name eq "@table" || $spec_name eq "@categories"} continue
 
       #my msg "checking spec '$short_spec' for form field '$spec_name'"
       if {[catch {

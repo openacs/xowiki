@@ -801,6 +801,7 @@ namespace eval ::xowiki {
     set object_type [my query_parameter object_type "::xowiki::Page"]
     set autoname [my get_parameter autoname 0]
     set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
+    $page set name ""
     return [$page edit -new true -autoname $autoname]
   }
 
