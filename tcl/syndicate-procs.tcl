@@ -22,6 +22,7 @@ namespace eval ::xowiki {
   Class RSS -superclass XMLSyndication -parameter {
     maxentries 
     {name_filter ""}
+    {entries_of ""}
     {days ""}
     {css ""}
     {siteurl "[ad_url]"}
@@ -97,7 +98,7 @@ namespace eval ::xowiki {
   }
 
   RSS instproc extra_where_clause {} {
-    my instvar name_filter days
+    my instvar name_filter days entries_of package_id
     set extra_where_clause ""
     if {$name_filter ne ""} {
       append extra_where_clause " and ci.name ~ E'$name_filter' "
@@ -105,26 +106,47 @@ namespace eval ::xowiki {
     if {$days ne ""} {
       append extra_where_clause " and p.last_modified > (now() + interval '$days days ago')" 
     }
+    if {$entries_of ne ""} {
+      set form_items [list]
+      set folder_id [$package_id folder_id]
+      foreach t [split $entries_of |] {
+        set form_item_id [::xowiki::Form lookup -name $t -parent_id $folder_id]
+        if {$form_item_id == 0} {error "Cannot lookup page $t"}
+        lappend form_items $form_item_id
+      }
+      append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = p.revision_id "
+
+      my set base_table xowiki_form_pagex
+    }
     return $extra_where_clause
   }
 
   RSS instproc render {} {
-    my instvar package_id max_entries name_filter title days description siteurl
+    my instvar package_id max_entries name_filter title days description siteurl base_table
     set folder_id [::$package_id folder_id]
 
     if {$description eq ""} {set description [::$folder_id set description]}
     my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
     
-    #my log "--rss WHERE= [my extra_where_clause]"
+    set base_table xowiki_pagex 
+    set extra_where_clause [my extra_where_clause]
+
+    if {$base_table ne "xowiki_pagex"} {
+      # we assume, we retrieve the entries for a form
+      set extra_from ""
+    } else {
+      # return always instance_attributes
+      set extra_from "left join \
+		xowiki_page_instance on (p.revision_id = page_instance_id)"
+    }
 
     set sql [::xo::db::sql select \
                  -vars "s.body, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.last_modified, p.description" \
-                 -from "syndication s, cr_items ci, xowiki_pagex p left join \
-			xowiki_page_instance on (p.revision_id = page_instance_id)" \
+                 -from "syndication s, cr_items ci, $base_table p $extra_from" \
                  -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
                 	and ci.publish_status <> 'production' \
-	        	[my extra_where_clause] \
+	        	$extra_where_clause \
                 	and s.object_id = p.page_id" \
                  -orderby "p.last_modified desc" \
                  -limit [my limit]]

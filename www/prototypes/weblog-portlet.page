@@ -11,7 +11,7 @@
     {-date ""}
     {-tag ""}
     {-ptag ""}
-    {-instances_of ""}
+    {-entries_of ""}
   }
 
   #
@@ -108,7 +108,7 @@
                -category_id [ns_queryget category_id] \
                -tag $tag \
                -ptag $ptag \
-               -instances_of $instances_of \
+               -entries_of $entries_of \
                -exclude_item_ids $exclude_item_ids \
                -entry_renderer $entry_renderer \
               ]

@@ -273,13 +273,14 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-span "10d"}
           {-name_filter}
+          {-entries_of}
           {-title}
         }}
       }
 
   rss-button instproc render {} {
     my get_parameters
-    set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title}]
+    set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title entries_of}]
     return "<a href=\"$href \" class='rss'>RSS</a>"
   }
 
@@ -1637,19 +1638,26 @@ namespace eval ::xowiki::portlet {
 
   item-button instproc render_button {
     -page 
+    -package_id
     -method 
     -src 
     -alt 
     -title 
     -return_url 
     -page_order
+    -object_type
   } {
     set html ""
-    set package_id [$page package_id]
-    set p_link [$package_id pretty_link [$page name]]
     if {![info exists return_url]} {set return_url $p_link}
     if {![info exists alt]} {set alt $method}
-    set edit_link [$package_id make_link -link $p_link $page $method return_url page_order]
+    if {[$page istype ::xowiki::Package]} {
+      set edit_link  [$package_id make_link $package_id \
+                          edit-new page_order object_type return_url autoname]
+    } else {
+      set p_link [$package_id pretty_link [$page name]]
+      set edit_link [$package_id make_link -link $p_link $page $method return_url page_order]
+    }
+
     if {$edit_link ne ""} {
       set html "<a href=\"$edit_link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
     }
@@ -1674,7 +1682,7 @@ namespace eval ::xowiki::portlet {
       set title "$title [$template title] [$page name]"
     }
     return [my render_button \
-		-page $page -method edit \
+		-page $page -method edit -package_id $package_id \
 		-title $title -alt $alt \
 		-return_url [::xo::cc url] \
 		-src /resources/acs-subsite/Edit16.gif]
@@ -1695,7 +1703,7 @@ namespace eval ::xowiki::portlet {
     my instvar __including_page
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     return [my render_button \
-		  -page $page -method delete \
+		  -page $page -method delete -package_id $package_id \
 		  -title $title -alt $alt \
 		  -return_url [::xo::cc url] \
 		  -src /resources/acs-subsite/Delete16.gif]
@@ -1714,17 +1722,25 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     my instvar __including_page
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+    set page_order [::xowiki::Portlet incr_page_order [$page page_order]]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
-      set page_order [::xowiki::Portlet incr_page_order [$page page_order]]
       return [my render_button \
-		  -page $template -method create-new \
+		  -page $template -method create-new -package_id $package_id \
 		  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
 		  -alt $alt -page_order $page_order \
 		  -return_url [::xo::cc url] \
 		  -src /resources/acs-subsite/Add16.gif]
+    } else {
+      set object_type [$__including_page info class]
+      return [my render_button \
+		  -page $package_id -method edit_new -package_id $package_id \
+		  -title [_ xowiki.create_new_entry_of_type [list type $object_type]] \
+		  -alt $alt -page_order $page_order \
+		  -return_url [::xo::cc url] \
+                  -object_type $object_type \
+		  -src /resources/acs-subsite/Add16.gif]
     }
-    return ""
   }
 
 }
@@ -2162,7 +2178,7 @@ namespace eval ::xowiki::portlet {
 
     set sql_atts [list instance_attributes]
     foreach att [::xowiki::FormPage edit_atts] {set __att($att) 1}
-    set common_atts [list last_modified creation_user]
+    set common_atts [list last_modified creation_user name]
     foreach att $common_atts {
       lappend sql_atts p.$att
       set __att($att) 1

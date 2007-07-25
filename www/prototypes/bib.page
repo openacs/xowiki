@@ -4,7 +4,7 @@
   #
   # A bibliography interface based on weblog.
   # Bibliography entries are typically selected via 
-  # instances_of (PageInstances, FormInstances). 
+  # entries_of (PageInstances, FormInstances). 
   #
   # Gustaf Neumann fecit, May 2007
   #
@@ -14,7 +14,7 @@
     {-category_id ""}
     {-tag ""}
     {-ptag ""}
-    {-instances_of ""}
+    {-entries_of ""}
   }
 
   #
@@ -84,7 +84,7 @@
                -ptag $ptag \
                -no_footer true \
                -sort_composite "method,by_date,desc" \
-               -instances_of $instances_of \
+               -entries_of $entries_of \
                -exclude_item_ids $exclude_item_ids \
                -entry_renderer $entry_renderer \
               ]

@@ -640,7 +640,7 @@ namespace eval ::xowiki {
       }
     }
     foreach o $objects {$o destroy}
-    append msg "$added objects newly inserted, $updated object updated, $replaced objects replaced<p>"
+    append msg "$added objects newly inserted, $updated objects updated, $replaced objects replaced<p>"
   }
 
   #
@@ -649,6 +649,7 @@ namespace eval ::xowiki {
   Package ad_instproc rss {
     -maxentries
     -name_filter
+    -entries_of
     -title
     -days 
   } {
@@ -666,7 +667,9 @@ namespace eval ::xowiki {
     if {![info exists namefilter]} {
       set name_filter  [my get_parameter name_filter ""]
     }
-
+    if {![info exists entries_of]} {
+      set entries_of [my get_parameter entries_of ""]
+    }
     if {![info exists title]} {
       set title [my get_parameter title ""]
       if {$title eq ""} {
@@ -684,6 +687,7 @@ namespace eval ::xowiki {
     set r [RSS new -destroy_on_cleanup \
 	       -package_id [my id] \
 	       -name_filter $name_filter \
+               -entries_of $entries_of \
 	       -title $title \
 	       -days $days]
     

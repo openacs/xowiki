@@ -11,7 +11,7 @@ namespace eval ::xowiki {
     tag
     ptag
     category_id
-    {instances_of ""}
+    {entries_of ""}
     filter_msg
     {sort_composite ""}
     {no_footer false}
@@ -20,12 +20,13 @@ namespace eval ::xowiki {
     {exclude_item_ids 0}
     {summary false}
     {entry_renderer ::xowiki::Weblog::Entry}
+    {entry_flag}
   }
   
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
     my instvar date category_id tag ptag page_number page_size summary items 
-    my instvar name_filter entry_label instances_of sort_composite
+    my instvar name_filter entry_label entries_of sort_composite
     
     my log "--W starting"
     set folder_id [::$package_id set folder_id]
@@ -76,10 +77,10 @@ namespace eval ::xowiki {
     set base_type ::xowiki::Page
     set base_table xowiki_pagei
     set attributes [list cr.revision_id p.publish_date p.title p.creator p.creation_user \
-                        p.description s.body instance_attributes]
-    if {$instances_of ne ""} {
+                        p.description s.body pi.instance_attributes]
+    if {$entries_of ne ""} {
       set form_items [list]
-      foreach t [split $instances_of |] {
+      foreach t [split $entries_of |] {
         set form_item_id [::xowiki::Form lookup -name $t -parent_id $folder_id]
         if {$form_item_id == 0} {error "Cannot lookup page $t"}
         lappend form_items $form_item_id
@@ -105,7 +106,7 @@ namespace eval ::xowiki {
              -orderby "publish_date desc" \
              -from_clause "$extra_from_clause, $base_table p \
 		left outer join syndication s on s.object_id = p.revision_id \
-		left join xowiki_page_instance on (p.revision_id = page_instance_id)" \
+		left join xowiki_page_instance pi on (p.revision_id = pi.page_instance_id)" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
@@ -119,7 +120,8 @@ namespace eval ::xowiki {
     }
     
     set nr_items [db_string count [eval $base_type instance_select_query $sql -count true]]
-    
+    #my msg count=$nr_items
+    #my msg sql=$sql
     set s [$base_type instantiate_objects -sql [eval  $base_type instance_select_query $sql]]
     
     foreach c [$s children] {
@@ -145,10 +147,12 @@ namespace eval ::xowiki {
         set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
 	# in cases, the revision was created already earlier, drop the mixins
 	if {[$p info mixin] ne ""} {$p mixin {}}
+        if {[my exists entry_flag]} {$p set [my entry_flag] 1}
         if {[my no_footer]} {$p set __no_footer 1}
         if {[catch {$p set description [$p render]} errorMsg]} {
           set description "Render Error ($errorMsg) $revision_id $name $title"
         }
+        if {[my exists entry_flag]} {$p unset [my entry_flag]}
 	#my log "--W $p render (mixins=[$p info mixin]) => $description"
       }
       $p set pretty_date $pretty_date
@@ -199,7 +203,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::Weblog instproc render {} {
-    my log "--W begin"
+    #my log "--W begin"
     my instvar items
     #
     # We need the following CSS file for rendering
@@ -209,7 +213,7 @@ namespace eval ::xowiki {
     $items set entry_renderer [my entry_renderer]
     set content [$items render]
     $items destroy_on_cleanup
-    my log "--W end"
+    #my log "--W end"
     return $content
   }
   

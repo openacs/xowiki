@@ -51,7 +51,6 @@ namespace eval ::xowiki {
     if {![my exists id]} {my id [my name]}
     if {[my exists id]}  {my set html(id) [my id]}
     if {[my exists default]} {my set value [my default]}
-    #my msg "calling config_from_spec '[my spec]'"
     my config_from_spec [my spec]
   }
 
@@ -747,11 +746,13 @@ namespace eval ::xowiki {
 
   Class FormField::mon -superclass FormField::select
   FormField::mon instproc initialize {} {
-    # TODO: localized values are in acs-lang.localization-mon
-    my options {
-      {Jan 1} {Feb 2} {Mar 3} {Apr  4} {May  5} {Jun  6}
-      {Jul 7} {Aug 8} {Sep 9} {Oct 10} {Nov 11} {Dec 12}
+    set values [lang::message::lookup [my locale] acs-lang.localization-abmon]
+    set last 0
+    foreach m {1 2 3 4 6 7 8 9 10 11 12} {
+      lappend options [list [lindex $values $last] $m]
+      set last $m
     }
+    my options $options
     next
   }
   ###########################################################
@@ -762,11 +763,13 @@ namespace eval ::xowiki {
 
   Class FormField::month -superclass FormField::select
   FormField::month instproc initialize {} {
-    # TODO: localized values are in acs-lang.localization-mon
-    my options {
-      {January 1} {February 2} {March 3} {April 4} {May 5} {June 6}
-      {July 7} {August 8} {September 9} {October 10} {November 11} {December 12}
+    set values [lang::message::lookup [my locale] acs-lang.localization-mon]
+    set last 0
+    foreach m {1 2 3 4 6 7 8 9 10 11 12} {
+      lappend options [list [lindex $values $last] $m]
+      set last $m
     }
+    my options $options
     next
   }
 
@@ -813,7 +816,7 @@ namespace eval ::xowiki {
       # create for each component of the format a subobject named by the class
       #
       ::xowiki::FormField::$class create [self]::$class \
-          -name [my name].$class -id [my id].$class 
+          -name [my name].$class -id [my id].$class -locale [my locale]
     }
   }
 

@@ -96,7 +96,7 @@ namespace eval ::xowiki {
     if {$content eq ""} {
       set content [my render]
     }
-    my log "--after render"
+    #my log "--after render"
     set footer [my htmlFooter -content $content]
 
     set top_portlets ""
@@ -116,12 +116,8 @@ namespace eval ::xowiki {
       array set views_data [views::get -object_id $item_id]
     }
 
-    # export title, name and text into current scope
+    # import title, name and text into current scope
     my instvar title name text
-
-    ### this was added by dave to address a problem with notifications
-    ### however, this does not work, when e.g. a page is renamed.
-    #set return_url [ad_return_url]
 
     if {[my exists_query_parameter return_url]} {
       set return_url [my query_parameter return_url]
@@ -157,11 +153,18 @@ namespace eval ::xowiki {
       set object_type [$package_id get_parameter object_type [my info class]]
       set rev_link    [$package_id make_link [self] revisions]
       set edit_link   [$package_id make_link [self] edit return_url]
-      set delete_link [$package_id make_link [self] delete return_url] 
-      set new_link    [$package_id make_link $package_id edit-new object_type return_url autoname] 
+      set delete_link [$package_id make_link [self] delete return_url]
+      if {[my istype ::xowiki::FormPage]} {
+        set template_id [my page_template]
+        set form      [$package_id pretty_link [$template_id name]]
+        set new_link  [$package_id make_link -link $form $template_id create-new return_url]
+      } else {
+        set new_link  [$package_id make_link $package_id edit-new object_type return_url autoname] 
+      }
       set admin_link  [$package_id make_link -privilege admin -link admin/ $package_id {} {}] 
       set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
       set create_in_req_locale_link ""
+
       if {[$package_id get_parameter use_connection_locale 0]} {
         $package_id get_name_and_lang_from_path \
             [$package_id set object] req_lang req_local_name
@@ -177,7 +180,7 @@ namespace eval ::xowiki {
         }
       }
 
-      my log "--after context delete_link=$delete_link "
+      #my log "--after context delete_link=$delete_link "
       set template [$folder_id get_payload template]
       set page [self]
 
@@ -355,14 +358,11 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
-    #if {![my exists name]} {
-    #  my name ""
-    #}
     set f [FormField new -name $name \
                -id        [::xowiki::Portlet html_id F.[my name].$name] \
                -locale    [my nls_language] \
                -label     $label \
-               -type      [expr {[$slot exists datatype] ?  [$slot set datatype] : "text"}] \
+               -type      [expr {[$slot exists datatype]  ? [$slot set datatype]  : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
                -validator [expr {[$slot exists validator] ? [$slot set validator] : ""}] \
                -required  [expr {[$slot exists required]  ? [$slot set required]  : "false"}] \

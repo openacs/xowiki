@@ -1296,7 +1296,11 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::FormPage
   #
   FormPage instproc footer {} {
-    return [my include_portlet [list form-entry-menu]]
+    if {[my exists __no_form_page_footer]} {
+      next
+    } else {
+      return [my include_portlet [list form-entry-menu]]
+    }
   }
 
   FormPage instproc form_attributes {} {
