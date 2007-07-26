@@ -61,7 +61,6 @@ namespace eval ::xowiki {
       my instvar label
       return [_ acs-templating.Element_is_required]
     }
-    # todo: value type checker (through subtypes, check only if necessary)
     # 
     #my msg "[my name] [my info class] validator=[my validator]"
     if {[my validator] ne ""} {
@@ -514,6 +513,7 @@ namespace eval ::xowiki {
     javascript
     {height 350px}
     {style "width: 100%"}
+    {validator safe_html}
   }
   FormField::richtext instproc initialize {} {
     # Reclass the editor based on the attribute 'editor' if necessary
@@ -537,6 +537,22 @@ namespace eval ::xowiki {
     } else {
       next
     }
+  }
+  FormField::richtext instproc check=safe_html {value} {
+    # don't check if the user has admin permissions on the package
+    if {[::xo::cc permission \
+                -object_id [::xo::cc package_id] \
+                -privilege admin \
+                -party_id [::xo::cc user_id]]} {
+      set msg ""
+    } else {
+      set msg [ad_html_security_check $value]
+    }
+    if {$msg ne ""} {
+      my uplevel [list set errorMsg $msg]
+      return 0
+    }
+    return 1
   }
   FormField::richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
@@ -747,6 +763,7 @@ namespace eval ::xowiki {
   Class FormField::mon -superclass FormField::select
   FormField::mon instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-abmon]
+    if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
     foreach m {1 2 3 4 6 7 8 9 10 11 12} {
       lappend options [list [lindex $values $last] $m]
@@ -764,6 +781,7 @@ namespace eval ::xowiki {
   Class FormField::month -superclass FormField::select
   FormField::month instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-mon]
+    if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
     foreach m {1 2 3 4 6 7 8 9 10 11 12} {
       lappend options [list [lindex $values $last] $m]

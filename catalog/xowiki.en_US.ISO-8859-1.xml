@@ -66,6 +66,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="publish_status">Published</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="revisions">Revisions</msg>
+  <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="search">Search</msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>
