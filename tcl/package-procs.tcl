@@ -902,7 +902,7 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       create-new        {{item_id write}}
-      list              {{package_id admin}}
+      list              {{package_id read}}
     }
   }
 

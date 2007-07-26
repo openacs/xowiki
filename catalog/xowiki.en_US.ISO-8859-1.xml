@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.57" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.58" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -8,7 +8,7 @@
   <msg key="delete">Delete</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
-  <msg key="entries_using_form">Entries using form %form%</msg>
+  <msg key="entries_using_form">Entries for form %form%</msg>
   <msg key="error-delete_entries_first">This page is still used by %count% entries. Please delete these first before deleting this page.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
   <msg key="error-form_constraint-unknown_attribute">From field '%name%' has unknown attribute '%entry%'</msg>
@@ -32,6 +32,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-menu-answer_link">Entries for this form</msg>
   <msg key="form-menu-new_link">Fill out</msg>
   <msg key="Form-submit_button">       OK       </msg>
+  <msg key="Form-template">Template</msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
   <msg key="index">Index</msg>
   <msg key="new_page">New Page</msg>
@@ -39,6 +40,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Description</msg>
+  <msg key="Page-last_modified">Last Modified</msg>
   <msg key="Page-name">Name</msg>
   <msg key="Page-name-help_text">Shortname to identify an entry within a folder, typically lowercase characters</msg>
   <msg key="Page-nls_language">Language</msg>
