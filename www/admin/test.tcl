@@ -150,8 +150,7 @@ set folder_id [::$package_id folder_id]
 ? {::$folder_id parent_id} $folder_id "parent_id of folder object is folder_id"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$folder_id revision_id]>0}} 1 "revision_id given"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id $folder_id -count true]} 1 \
+? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
     "folder contains the folder object"
 
 test subsection "Create and Render Index Page"
@@ -173,8 +172,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id $folder_id -count true]} 2 \
+? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 2 \
     "folder contains the folder object and the index page"
 #test code [$page_item_id serialize]
 
@@ -238,8 +236,7 @@ set folder_id [::$package_id folder_id]
 ? {::$folder_id parent_id} $folder_id "parent_id of folder object is folder_id"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$folder_id revision_id]>0}} 1 "revision_id given"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id $folder_id -count true]} 2 \
+? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 2 \
     "folder contains the folder object and index"
 
 test subsection "Render Index Page (2nd)"
@@ -278,6 +275,7 @@ test section "New Query: /$instance_name/weblog"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/weblog "url"
 ? {$package_id id} $package_id "the id of the package object = package_id"
+set folder_id [::$package_id folder_id]
 
 test subsection "Create and Render Weblog"
 set content [::$package_id invoke -method $m]
@@ -286,9 +284,7 @@ set content_length [string length $content]
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
 
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 5 \
+? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 5 \
     "folder contains: folder object, index and weblog page (+2 includelets)"
 
 
@@ -349,9 +345,7 @@ test subsection "Check Permissions based on default policy"
     "SWA sees the delete link"
 ? {expr {[::$package_id make_link -privilege admin -link admin/ $package_id {} {}] ne ""}} 1 \
     "SWA sees admin link"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 5 \
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
     "folder contains: folder object, index and weblog page (+2 includelets)"
 
 
@@ -369,9 +363,7 @@ set content [::$package_id invoke -method $m]
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/" \
     "redirect to main instance"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 4 \
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
     "folder contains: folder object, index and weblog page (+1 includelet)"
 
 test subsection "Create a test page named hello"
@@ -388,9 +380,7 @@ set page [::xowiki::Page new \
 $page set_content [string trim [$page text] " \n"]
 $page initialize_loaded_object
 $page save_new
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 5 \
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
     "folder contains: folder object, index and weblog, hello page (+1 includelet)"
 ? {expr {[$page revision_id]>0}} 1 "revision_id given"
 ? {expr {[$page item_id]>0}} 1 "item_id given"
@@ -399,9 +389,7 @@ set item_id1 [$page item_id]
 
 $page append title "- V.2"
 $page save
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 5 \
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
     "still 5 pages"
 ? {expr {[$page revision_id]>$revision_id1}} 1 "revision_id > old revision_id"
 ? {expr {[$page item_id] == $item_id1}} 1 "item id the same"
@@ -422,9 +410,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {db_string count [::xowiki::Page select_query \
-                        -folder_id [$package_id folder_id] \
-                        -count true]} 6 \
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 6 \
     "again, 6 pages"
 
 

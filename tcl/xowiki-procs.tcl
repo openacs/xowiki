@@ -250,59 +250,6 @@ namespace eval ::xowiki {
   # Operations on the whole instance
   #
 
-  Page ad_proc select_query {
-    {-select_attributes ""}
-    {-orderby ""}
-    {-where_clause ""}
-    {-count:boolean false}
-    {-folder_id}
-    {-page_size 20}
-    {-page_number ""}
-    {-extra_where_clause ""}
-    {-extra_from_clause ""}
-  } {
-    returns the SQL-query to select the xowiki pages of the specified folder
-    @select_attributes attributes for the sql query to be retrieved, in addion
-      to ci.item_id acs_objects.object_type, which are always returned
-    @param orderby clause for ordering the solution set
-    @param where_clause clause for restricting the answer set
-    @param count return the query for counting the solutions
-    @param folder_id parent_id
-    @return sql query
-  } {
-    my instvar object_type_key
-    #if {![info exists folder_id]} {my instvar folder_id}
-
-    set attributes [list ci.item_id ci.name p.page_id] 
-    foreach a $select_attributes {
-      if {$a eq "title"} {set a p.title}
-      lappend attributes $a
-    }
-    if {$count} {
-      set attribute_selection "count(*)"
-      set orderby ""      ;# no need to order when we count
-      set page_number  ""      ;# no pagination when count is used
-    } else {
-      set attribute_selection [join $attributes ,]
-    }
-
-    if {$where_clause ne ""} {set where_clause "and $where_clause "}
-    if {$page_number ne ""} {
-      set pagination "offset [expr {$page_size*($page_number-1)}] limit $page_size"
-    } else {
-      set pagination ""
-    }
-    set outer_join [expr {[string first s. $attribute_selection] > -1 ?
-                          "left outer join syndication s on s.object_id = p.revision_id" : ""}]
-    set order_clause [expr {$orderby ne "" ? "ORDER BY $orderby" : ""}]
-    set sql "select $attribute_selection from xowiki_pagei p $outer_join, cr_items ci \
-        $extra_from_clause \
-        where ci.parent_id = $folder_id and ci.item_id = p.item_id and \
-        ci.live_revision = p.page_id $where_clause $extra_where_clause $order_clause $pagination"
-    #my log "--SQL=$sql"
-    return $sql
-  }
-
   #
   # Page marshall/demarshall
   #
@@ -1057,14 +1004,8 @@ namespace eval ::xowiki {
   }
   PageTemplate instproc count_usages {} {
     return [::xowiki::PageTemplate count_usages -item_id [my item_id]]
-    #set sql [::xowiki::PageInstance instance_select_query \
-    #            -count true \
-    #            -with_subtypes true \
-    #            -from_clause ", xowiki_page_instance p" \
-    #            -where_clause " p.page_template=[my item_id] and p.page_instance_id=cr.revision_id " \
-    #            -folder_id [[my package_id] folder_id]]
-    #return [db_list [my qn count] $sql]
   }
+
   PageTemplate proc count_usages {-item_id:required} {
     set count [db_string [my qn count_usages] \
 		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
