@@ -891,8 +891,13 @@ namespace eval ::xowiki {
 
     set entries [list]
     db_foreach [my qn get_popular_tags] \
-        "select count(*) as nr,tag from xowiki_tags \
-         where item_id=$item_id group by tag order by nr limit $limit" {
+        [::xo::db::sql \
+	     -vars "count(*) as nr, tag" \
+	     -from "xowiki_tags" \
+	     -where "item_id=$item_id" \
+	     -groupby "tag" \
+	     -orderby "nr" \
+	     -limit $limit] {
            lappend entries "<a href='$href&ptag=[ad_urlencode $tag]'>$tag ($nr)</a>"
          }
     ns_return 200 text/html "[_ xowiki.popular_tags_label]: [join $entries {, }]"
