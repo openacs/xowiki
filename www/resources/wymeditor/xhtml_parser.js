@@ -47,7 +47,7 @@ function XmlHelper()
 *    # => <br />
 *   this.tag ('br', false, true)
 *    # => <br>
-*   this.tag ('input', $j({type:'text',disabled:true }) )
+*   this.tag ('input', jQuery({type:'text',disabled:true }) )
 *    # => <input type="text" disabled="disabled" />
 */
 XmlHelper.prototype.tag = function(name, options, open)
@@ -67,9 +67,9 @@ XmlHelper.prototype.tag = function(name, options, open)
 *
 *   this.contentTag ('p', 'Hello world!' )
 *    # => <p>Hello world!</p>
-*   this.contentTag('div', this.contentTag('p', "Hello world!"), $j({class : "strong"}))
+*   this.contentTag('div', this.contentTag('p', "Hello world!"), jQuery({class : "strong"}))
 *    # => <div class="strong"><p>Hello world!</p></div>
-*   this.contentTag("select", options, $j({multiple : true}))
+*   this.contentTag("select", options, jQuery({multiple : true}))
 *    # => <select multiple="multiple">...options...</select>
 */
 XmlHelper.prototype.contentTag = function(name, content, options)
@@ -113,7 +113,7 @@ XmlHelper.prototype.escapeOnce = function(xml)
 */
 XmlHelper.prototype._fixDoubleEscape = function(escaped)
 {
-  return escaped.replace(/&amp;([a-z]+|(#\d+));/i, "&$1;");
+  return escaped.replace(/&amp;([a-z]+|(#\d+));/ig, "&$1;");
 }
 
 /*
@@ -1399,20 +1399,24 @@ function XhtmlLexer(parser)
   
   this.mapHandler('Text', 'Text');
 
-  this.addCommentTokens('Text');
-  this.addScriptTokens('Text');
-  this.addCssTokens('Text');
-  this.addTagTokens('Text');
-  
+  this.addTokens();
+
   this.init();
     
   return this;
 }
 
 
-
 XhtmlLexer.prototype.init = function()
 {
+}
+
+XhtmlLexer.prototype.addTokens = function()
+{
+  this.addCommentTokens('Text');
+  this.addScriptTokens('Text');
+  this.addCssTokens('Text');
+  this.addTagTokens('Text');
 }
 
 XhtmlLexer.prototype.addCommentTokens = function(scope)
