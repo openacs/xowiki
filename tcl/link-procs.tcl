@@ -182,7 +182,10 @@ namespace eval ::xowiki {
     }
   }
   
-  Class create ::xowiki::Link::file -superclass ::xowiki::Link::image
+  Class create ::xowiki::Link::file -superclass ::xowiki::Link::image  -parameter {
+    width height align pluginspage pluginurl hidden href target
+    autostart loop volume controls controller mastersound starttime endtime
+  }
   ::xowiki::Link::file instproc resolve {} {
     set item_id [next]
     # my log "-- file, lookup of [my name] returned $item_id"
@@ -191,9 +194,22 @@ namespace eval ::xowiki {
     }
     return $item_id
   }
-  ::xowiki::Link::file instproc render_found {href label} {
-    return "<a href='$href' style='background: url(/resources/xowiki/file.jpg) \
+  ::xowiki::Link::file instproc render_found {internal_href label} {
+    foreach f {
+      width height align pluginspage pluginurl hidden href target
+      autostart loop volume controls controller mastersound starttime endtime
+    } {
+      if {[my exists $f]} {
+	append embed_options "$f = '[my set $f]' "
+      }
+    }
+    if {![info exists embed_options]} {
+      return "<a href='$internal_href' style='background: url(/resources/xowiki/file.jpg) \
         right center no-repeat; padding-right:9px'>$label</a>"
+    } else {
+      set internal_href [string map [list %2e .] $internal_href]
+      return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
+    }
   }
 
   Class create ::xowiki::Link::swf -superclass ::xowiki::Link::file -parameter {
