@@ -8,10 +8,10 @@
     {-page_size:integer 10}
     {-page_number:integer 1}
     {-summary:boolean 0}
-    {-name_filter {:(0|1|2|3|4|5|6|7|8|9)}}
     {-date ""}
     {-tag ""}
     {-ptag ""}
+    {-entries_of en:announcement-entry}
   }
   
   # The name filter is not the most efficient way of selecting
@@ -32,7 +32,6 @@
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
     set day [lc_time_fmt [my set publish_date] "%x"]
-
     set my_footer [my htmlFooter]
 
     append content "<DIV class='announcements' style='clear: both;'>" \
@@ -47,7 +46,7 @@
   # This is executed in the context of the whole weblog object
   #
   Class create AnnouncementsRenderer -instproc render {} {
-    my instvar filter_msg link name prev_page_link next_page_link name_filter title
+    my instvar filter_msg link name prev_page_link next_page_link title
 
     set filter ""
     set prev ""
@@ -67,8 +66,9 @@
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
     set page [my set __page]
+    [my set __parent] instvar weblog_obj
     set rss [$page include_portlet \
-                 "rss-button -title {[$page title]} -entries_of en:announcement-entry"]
+                 "rss-button -title {[$page title]} -entries_of [$weblog_obj entries_of]"]
     #set rss [list [self] [lsort [my info vars]]]
     return "<div class='weblog'> $filter [next] $prev $next <br>$rss</div>"
   }
@@ -109,7 +109,7 @@
                -exclude_item_ids $exclude_item_ids \
                -entry_renderer $entry_renderer \
                -entry_flag __no_form_page_footer \
-               -entries_of en:announcement-entry \
+               -entries_of $entries_of \
               ]
     $w set __page $page
     $w mixin add $renderer

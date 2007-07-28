@@ -466,8 +466,7 @@ namespace eval ::xowiki {
   }
   FormField::detail_link instproc pretty_value {v} {
     if {$v eq ""} {
-      my instvar object
-      set v [[$object package_id] pretty_link [$object name]]
+      return ""
     }
     if {$v ne ""} {
       set link_label [my localize [my link_label]]
