@@ -144,9 +144,10 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     #my log "-- image resolve for $page returned $item_id (name=$name, label=$label) "
     if {$item_id} {
-      set base [::[my package_id] pretty_link -absolute [$page absolute_links] $name]
+      set link [[my package_id] pretty_link -download true \
+                    -absolute [$page absolute_links] $name]
       #my log "--l fully quali [$page absolute_links], base=$base"
-      set link [export_vars -base $base {{m download}} ]
+      #set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
       my render_found $link $label
     } else {

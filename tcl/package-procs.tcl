@@ -104,6 +104,7 @@ namespace eval ::xowiki {
     ressources 1
     revisions 1 
     view-default 1 view-links 1 view-plain 1 oacs-view 1 oacs-view2 1 oacs-view3 1
+    download 1
   }
 
   Package ad_instproc pretty_link {
@@ -111,6 +112,7 @@ namespace eval ::xowiki {
     {-absolute:boolean false} 
     {-siteurl ""}
     {-lang ""} 
+    {-download false} 
     name 
   } {
     Generate a (minimal) link to a wiki page with the specified name.
@@ -120,16 +122,15 @@ namespace eval ::xowiki {
     @param anchor anchor to be added to the link
     @param absolute make an absolute link (including protocol and host)
     @param lang use the specified 2 character language code (rather than computing the value)
+    @param download create download link (without m=download)
     @param name name of the wiki page
   } {
-    #my log "--u name=<$name> // lang=$lang"
+    #my msg "input name=$name, lang=$lang"
     set default_lang [my default_language]
     if {$lang eq ""} {
       if {![regexp {^(..):(.*)$} $name _ lang name]} {
         if {![regexp {^(file|image|swf):(.*)$} $name _ lang name]} {
           set lang $default_lang
-        } else {
-          set lang file
         }
       }
     }
@@ -141,11 +142,16 @@ namespace eval ::xowiki {
       # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    if {$lang ne $default_lang || [[self class] exists www-file($name)]} {
-      return ${host}${package_prefix}${lang}/[ad_urlencode $name]$anchor
+    #my msg "lang=$lang name=$name"
+    set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
+    if {$download} {
+      set url ${host}${package_prefix}download/${lang}/$encoded_name$anchor
+    } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
+      set url ${host}${package_prefix}${lang}/$encoded_name$anchor
     } else {
-      return ${host}${package_prefix}[ad_urlencode $name]$anchor
+      set url ${host}${package_prefix}$encoded_name$anchor
     }
+    return $url
   }
 
   Package instproc init {} {
@@ -393,7 +399,7 @@ namespace eval ::xowiki {
     if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(file|image)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(file|image|download)/(.*)$} $path _ lang local_name]} {
     } else {
       set key queryparm(lang)
       if {[info exists $key]} {
@@ -421,12 +427,10 @@ namespace eval ::xowiki {
         my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name
         set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
-        my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
-        if {$item_id == 0 && $lang eq "file" && [regexp {(.+)/download.} $local_name _ base_name]} {
-	  set item_id [::Generic::CrItem lookup -name file:$base_name -parent_id $folder_id]
-	  if {$item_id == 0} {
-            set item_id [::Generic::CrItem lookup -name swf:$base_name -parent_id $folder_id]
-          }
+        #my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
+        if {$item_id == 0 && $lang eq "download" 
+            && [regexp {^([^/]+)/(.*)$} $local_name _ prefix base_name]} {
+	  set item_id [::Generic::CrItem lookup -name ${prefix}:$base_name -parent_id $folder_id]
 	  if {$item_id != 0} {
 	    upvar $method_var method
 	    set method download

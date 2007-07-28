@@ -257,7 +257,7 @@ namespace eval ::xowiki {
       
       if {$title eq ""} {set title $name}
       #set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-      set link [::$package_id pretty_link -absolute true -siteurl $siteurl $name]/download.$file_extension
+      set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl $name]
       append content [my item \
                           -author $creator -title $title -subtitle $subtitle \
                           -description $description \

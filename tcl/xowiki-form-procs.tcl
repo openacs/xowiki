@@ -141,6 +141,7 @@ namespace eval ::xowiki {
       switch [file extension $fn] {
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
+        .flv {set mime video/x-flv}
       }
     }
     return $mime
@@ -370,7 +371,15 @@ namespace eval ::xowiki {
     if {$upload_file ne "" && $upload_file ne "{}"} {
       $data set upload_file  $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
-      $data set mime_type   [$data form_parameter upload_file.content-type]
+      set mime_type   [$data form_parameter upload_file.content-type]
+      if {$mime_type eq "application/octet-stream"} {
+        set guessed_mime_type [::xowiki::guesstype $upload_file]
+        my msg guess=$guessed_mime_type
+        if {$guessed_mime_type ne "*/*"} {
+          set mime_type $guessed_mime_type
+        }
+      }
+      $data set mime_type $mime_type
     } elseif {[$data exists name]} {
       # my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
