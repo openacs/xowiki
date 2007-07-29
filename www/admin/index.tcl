@@ -36,20 +36,21 @@ TableWidget t1 -volatile \
 
 set base [::$package_id package_url]
 foreach object_type $object_types {
-
-      set return_url [export_vars -base ${base}admin {object_type}]
-
-      t1 add \
-          -object_type $object_type \
-          -instances [db_list count [$object_type instance_select_query \
-                                         -folder_id [::$package_id set folder_id] \
-                                         -count 1 -with_subtypes false]] \
-          -instances.href [export_vars -base ./list {object_type}] \
-          -edit.href   [$package_id make_link $package_id edit-new object_type return_url autoname] \
-          -delete.href [export_vars -base delete-type {object_type}] \
-          -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
-          -delete.title  "Delete all [$object_type pretty_plural] of this instance"
-    }
+  set return_url [export_vars -base ${base}admin {object_type}]
+  if {[catch {set n [db_list count [$object_type instance_select_query \
+                                       -folder_id [::$package_id set folder_id] \
+                                       -count 1 -with_subtypes false]]}]} {
+    set n -
+  }
+  t1 add \
+      -object_type $object_type \
+      -instances $n \
+      -instances.href [export_vars -base ./list {object_type}] \
+      -edit.href   [$package_id make_link $package_id edit-new object_type return_url autoname] \
+      -delete.href [export_vars -base delete-type {object_type}] \
+      -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
+      -delete.title  "Delete all [$object_type pretty_plural] of this instance"
+}
 
 set t1 [t1 asHTML]
 
