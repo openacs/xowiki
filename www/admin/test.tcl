@@ -69,7 +69,6 @@ if {$ns_cache_version_old} {
 }
 
 set tdom_version [package require tdom]
-set tdom_version 0.7.8
 if {$tdom_version < "0.8.0"} {
   ? {set x old} new "xowiki requires at least tdom 0.8.0 (released Aug 2004), \
 	the installed tdom version is to old ($tdom_version).<br>&nbsp;&nbsp;&nbsp;\
