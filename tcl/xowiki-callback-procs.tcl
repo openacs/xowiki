@@ -240,9 +240,9 @@ namespace eval ::xowiki {
       db_dml copy_old_values \
 	  "update xowiki_page_instance set npage_template = cast(page_template as integer)"
       db_dml rename_old_column \
-	  "alter table xowiki_page_instance rename page_template to old_page_template"
+	  "alter table xowiki_page_instance rename column page_template to old_page_template"
       db_dml rename_new_column \
-	  "alter table xowiki_page_instance rename npage_template to page_template"
+	  "alter table xowiki_page_instance rename column npage_template to page_template"
       # a few releases later, drop old column
       if {[db_0or1row in_between_version \
 	       "select 1 from acs_object_types where \
