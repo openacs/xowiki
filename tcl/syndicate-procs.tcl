@@ -104,7 +104,8 @@ namespace eval ::xowiki {
       append extra_where_clause " and ci.name ~ E'$name_filter' "
     }    
     if {$days ne ""} {
-      append extra_where_clause " and p.last_modified > (now() + interval '$days days ago')" 
+      append extra_where_clause "and " \
+          [::xo::db::sql since_interval_condition p.last_modified "$days days"]
     }
     if {$entries_of ne ""} {
       set form_items [list]
