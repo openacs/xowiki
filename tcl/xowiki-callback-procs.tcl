@@ -316,27 +316,16 @@ namespace eval ::xowiki {
   ad_proc update_views {} {
     update all automatic views of xowiki
   } {
-
-    set sql(oracle) "select object_type, content_type.refresh_view(object_type) \
-                     from acs_object_types \
-                     connect by supertype = prior object_type 
-                     start with object_type = '::xowiki::Page'"
-
-    set sql(postgresql) "select object_type,content_type__refresh_view(object_type)
-                      from acs_object_types \
-		      where object_type like '::xowiki::%' \
-                      order by tree_sortkey "
-
-    db_list get_xowiki_types $sql([db_driverkey ""]) 
+    foreach object_type [::xowiki::Page object_types] {
+      ::xo::db::sql::content_type refresh_view -content_type $object_type
+    }
 
     catch {db_dml drop_live_revision_view "drop view xowiki_page_live_revision"}
-
     if {[db_driverkey ""] eq "postgresql"} {
       set sortkeys ", ci.tree_sortkey, ci.max_child_sortkey "
     } else {
       set sortkeys ""
     }
-
     ::xo::db::require view xowiki_page_live_revision \
 	"select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
 	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
