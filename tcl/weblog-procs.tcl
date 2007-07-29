@@ -129,8 +129,8 @@ namespace eval ::xowiki {
       $c instvar revision_id publish_date title name item_id creator creation_user \
           description body instance_attributes
 
-      regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
-      set pretty_date [util::age_pretty -timestamp_ansi $publish_date \
+      set time [::xo::db::tcl_date $publish_date tz]
+      set pretty_date [util::age_pretty -timestamp_ansi $time \
                            -sysdate_ansi [clock_to_ansi [clock seconds]] \
                            -mode_3_fmt "%d %b %Y, at %X"]
       

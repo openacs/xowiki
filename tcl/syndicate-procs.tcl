@@ -159,13 +159,13 @@ namespace eval ::xowiki {
       
       set description [string trim $description]
       if {$description eq ""} {set description $body}
-      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-      
+      if {$title eq ""}       {set title $name}
+      set time [::xo::db::tcl_date $last_modified tz]
       set link [::xowiki::Portlet detail_link \
                     -package_id $package_id -name $name \
                     -absolute true \
                     -instance_attributes $instance_attributes]
-      if {$title eq ""} {set title $name}
+
       #append title " ($content_type)"
       set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
       append content [my item \
@@ -253,11 +253,7 @@ namespace eval ::xowiki {
              
     db_foreach get_pages $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
-      
-      #regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-      
       if {$title eq ""} {set title $name}
-      #set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
       set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl $name]
       append content [my item \
                           -author $creator -title $title -subtitle $subtitle \
@@ -306,8 +302,8 @@ namespace eval ::xowiki {
                  -orderby "revision_id desc" \
                  -limit $limit]
     db_foreach get_pages $sql {
-      regexp {^([^.]+)[.][0-9]+(.*)$} $publish_date _ publish_date tz
-      regexp {^([^.]+)[.][0-9]+(.*)$} $creation_date _ creation_date tz
+      set publish_date [::xo::db::tcl_date $publish_date tz]
+      set creation_date [::xo::db::tcl_date $creation_date tz]
       set clock [clock scan $publish_date]
 
       if {$last_user == $creation_user && $last_item == $item_id && $last_clock ne ""} {

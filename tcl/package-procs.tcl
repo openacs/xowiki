@@ -744,9 +744,9 @@ namespace eval ::xowiki {
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate::"} continue
       
-      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
-      
+      set time [::xo::db::tcl_date $last_modified tz]
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
+
       append content <url> \n\
           <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
           <lastmod>$time</lastmod> \n\
@@ -783,7 +783,7 @@ namespace eval ::xowiki {
                              "select last_modified from acs_objects where package_id = $package_id \
 		order by last_modified desc limit 1"]
 
-      regexp {^([^.]+)[.][0-9]+(.*)$} $last_modified _ time tz
+      set time [::xo::db::tcl_date $last_modified tz]
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
 
       #my log "--site_node::get_from_object_id -object_id $package_id"
