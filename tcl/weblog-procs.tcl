@@ -19,6 +19,7 @@ namespace eval ::xowiki {
     {entry_label "Postings"}
     {exclude_item_ids 0}
     {summary false}
+    {summary_chars 150}
     {entry_renderer ::xowiki::Weblog::Entry}
     {entry_flag}
   }
@@ -26,7 +27,7 @@ namespace eval ::xowiki {
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
     my instvar date category_id tag ptag page_number page_size summary items 
-    my instvar name_filter entry_label entries_of sort_composite
+    my instvar name_filter entry_label entries_of sort_composite summary_chars
     
     my log "--W starting"
     set folder_id [::$package_id set folder_id]
@@ -139,7 +140,7 @@ namespace eval ::xowiki {
                    -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
         $p set description [expr {$description eq "" && $body ne ""? \
-                                      "[string range $body 0 150]..." : $description}]
+                                      "[string range $body 0 $summary_chars]..." : $description}]
         $p set instance_attributes $instance_attributes
       } else {
         # do full instantiation and rendering
