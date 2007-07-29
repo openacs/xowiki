@@ -238,7 +238,7 @@ namespace eval ::xowiki {
 	  "alter table xowiki_page_instance add npage_template \
 		integer references cr_items(item_id)"
       db_dml copy_old_values \
-	  "update xowiki_page_instance set npage_template = page_template::integer"
+	  "update xowiki_page_instance set npage_template = cast(page_template as integer)"
       db_dml rename_old_column \
 	  "alter table xowiki_page_instance rename page_template to old_page_template"
       db_dml rename_new_column \
