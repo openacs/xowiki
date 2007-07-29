@@ -41,14 +41,19 @@ foreach object_type $object_types {
                                        -folder_id [::$package_id set folder_id] \
                                        -count 1 -with_subtypes false]]}]} {
     set n -
+    set add_label ""
+    set add_href ""
+  } else {
+    set add_label [_ xotcl-core.add [list type [$object_type pretty_name]]]
+    set add_href  [$package_id make_link $package_id edit-new object_type return_url autoname]
   }
   t1 add \
       -object_type $object_type \
       -instances $n \
       -instances.href [export_vars -base ./list {object_type}] \
-      -edit.href   [$package_id make_link $package_id edit-new object_type return_url autoname] \
+      -edit.href   $add_href \
       -delete.href [export_vars -base delete-type {object_type}] \
-      -edit.title  [_ xotcl-core.add [list type [$object_type pretty_name]]] \
+      -edit.title  $add_label \
       -delete.title  "Delete all [$object_type pretty_plural] of this instance"
 }
 
