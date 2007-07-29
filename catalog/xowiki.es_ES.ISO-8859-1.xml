@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.58" locale="es_ES" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.59" locale="es_ES" charset="ISO-8859-1">
 
   <msg key="admin">Administrar</msg>
   <msg key="back">Volver</msg>

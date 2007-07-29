@@ -276,6 +276,19 @@ namespace eval ::xowiki {
       }
     }
 
+    if {[apm_version_names_compare $from_version_name "0.59"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.59"] > -1} {
+      ns_log notice "-- upgrading to 0.59"
+      # Remove all old objects of tyoe ::xowiki::FormInstance and the type
+      # from the database.
+      if {[catch {
+        ::xo::db::sql::content_type drop_type -content_type ::xowiki::FormInstance \
+            -drop_children_p t -drop_table_p t -drop_objects_p t
+      } errorMsg]} {
+        ns_log notce "--upgrade produced error: $errorMsg"
+      }
+    }
+
     if {[apm_version_names_compare $from_version_name "0.65"] == -1 &&
         [apm_version_names_compare $to_version_name "0.65"] > -1} {
       ns_log notice "-- upgrading to 0.65"

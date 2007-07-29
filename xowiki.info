@@ -8,137 +8,57 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.58" url="http://openacs.org/repository/download/apm/xowiki-0.58.apm">
+    <version name="0.59" url="http://openacs.org/repository/download/apm/xowiki-0.59.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2007-07-24</release-date>
+        <release-date>2007-07-29</release-date>
         <description format="text/html">&lt;pre&gt;
-XoWiki is a wiki implementation for OpenACS in XOTcl. Instead of
-trying to implement the full set of wiki markup commands of systems
+XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
+trying to implement the full set of Wiki markup commands of systems
 like MediaWiki, XoWiki is based on a rich text editor and focuses more
 on integration with OpenACS (e.g categories, general comments,
-ADP-includes). XoWiki combines aspects of wikis (ease of
+ADP-includes). XoWiki combines aspects of wicks (ease of
 page-creation) with aspects of a content management system (revisions,
 re-usable items, multiple languages). Furthermore, XoWiki allows to
 define different types of links such one could define book-structures
 (where a navigation structure could be built on the fly) or glossaries
 with different kind of word relationships (like synonyms,
-etc.). XoWiki supports pages in multiple languages and is localized
-(currently only for English and German). Currently, rich-text and
-plaintext type entries are supported. Included support for
-ADP-substitution in wiki pages and a file-selector. 
+etc.). XoWiki supports pages in multiple languages and is localized.
 
-0.13 supports page templates and uses the new generic form
-interface. Use of the OO layer for the content repository, reduced
-number of database interactions.
-
-0.18 supports text/enhanced, nice page names,
-import/export. Support for search (::xowiki::Page and
-::xowiki::PlainPage); 
-
-0.20 support ::xowiki::Object, directory object,
-RSS generation into syndication table, improved admin pages; 
-
-0.21: Ajax-based chat added, new attributes creator and page_title for
-all xowiki::Pages;
-
-0.22 improved permission checking. 
-
-0.24 provides link-types, more includeletes (most-recently viewed,
-most frequently accessed pages). 
-
-0.26 provides Weblog support.
-
- 0.27: alignment with xotcl-core
-
-0.28 (use cr_item.name instead of cr_revisions.title), change
-page_title to title (potential incompatibility) to rely more strictly
-to the CR data model (most files are effected).
-
-0.29: tag and improved weblog support. 
-
-0.30:
-symbolic OO interface, nicer links, permission management. 
-
-0.31: per
-package search. 
-
-0.32: new class ::xowiki::File for [[file:readme.pdf]] and
-[[image:picture.jpg]]
-
-0.33: direct inclusion of XoWiki pages via {{en:mypage}}, simpler
-default pages (see xowiki/www/default-pages).
-
-0.34: notifications; 
-
-0.36: prototypes, direct includes, context handling;
-
-0.37: initial regression testing (118 tests);
-
-0.38: production_mode, virtual presence, google-sitemap.
-
-0.39: version diff, provide image properties in XoWiki-pages, specify
-how links can be generated;
-
-0.42: book-style (toc and book portlet, based on YUI treeview), use
-language prefix to avoid clashes, ltree (for ordering);
-
-0.43: support for views package
-
-0.44: DotLRN portlet support 
-
-0.45: auto-naming of pages 
-
-0.46: support for announcement style configuration
-
-0.47: podcast support
-
-0.48: policy management moved to xotcl-core, more detailed 
-form field specification for page instances, flash support, 
-syndication status in www/admin/list, file import/export, 
-style information in css files
-
-0.49: adp-generator, make tags/categories/social software 
-buttons per item in a weblog, oacs-view2 and oacs-view3
-
-0.50: timeline support, new includelets activity-graph, 
-collab-graph, timeline, and user-timeline
-
-0.51: minimal zen support, using new oo interface form 
-xotcl-core, more silent on db-operations in error log
-
-0.52: added full set of padding-* and margin-* flags to
-control image rendering, added allow_edit and allow_delete 
-to includelet &quot;recent&quot;, new includelet &quot;get&quot; to obtain 
-variable binding from different pages, new includelets
-creation-date to get dates nicer formatted, simplified 
-development of derived packages (s5) 
-
-0.53: ::xowiki::Form (will be maybe renamed before release),
-::xowiki::FormInstances (pot. rename). FormFields, form 
-constraints, unnamed instances, some podcast improvements
-improved localization, new includelet &quot;unread-items&quot;,
-export renaming for unnamed entries 
-
-0.54: FormField classes, more internationalization, 
-recursive inclusion bug fixed
-
-0.55: More complete set of FormField classes including 
-composite fields, better mix of HTML forms with 
-auto-generated form components.
-
-0.58: Adding Syndication for FormPage  
+Some features:
+  - cross language links
+  - inclusion of ADP pages
+  - nesting of Wiki-pages
+  - large set of includeable content (includelets)
+  - search
+  - tags
+  - categories
+  - RSS
+  - weblog
+  - podcasts
+  - notifications
+  - web 2.0 gadgets (digg, delicious, my yahoo)
+  - audio embedding
+  - different appearances (template_file)
+  - book-structures
+  - prototype pages
+  - import/export 
+  - virtual presence
+  - analysis of collaboration networks
+  - forms
+  - named/unnamed pages
+  - various security policies
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.58"/>
+        <provides url="xowiki" version="0.59"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.54"/>
+        <requires url="xotcl-core" version="0.55"/>
 
         <callbacks>
             <callback type="after-install"  proc="::xowiki::after-install"/>
