@@ -235,7 +235,7 @@ namespace eval ::xowiki {
         [apm_version_names_compare $to_version_name "0.56"] > -1} {
       ns_log notice "-- upgrading to 0.56"
       db_dml add_integer_column \
-	  "alter table xowiki_page_instance add column npage_template \
+	  "alter table xowiki_page_instance add npage_template \
 		integer references cr_items(item_id)"
       db_dml copy_old_values \
 	  "update xowiki_page_instance set npage_template = page_template::integer"
