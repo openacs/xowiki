@@ -2149,6 +2149,7 @@ namespace eval ::xowiki::portlet {
           {-orderby "_last_modified,desc"}
           {-all:boolean false}
           {-field_names}
+          {-csv false}
         }}
       }
   
@@ -2272,7 +2273,9 @@ namespace eval ::xowiki::portlet {
       set page_link [$package_id pretty_link [$p name]]
 
       t1 add \
+          -delete delete \
           -delete.href [$package_id make_link -link $page_link $p delete return_url] \
+          -edit edit \
 	  -edit.href [$package_id make_link -link $page_link $p edit return_url] 
       
       set __c [t1 last_child]
@@ -2297,11 +2300,15 @@ namespace eval ::xowiki::portlet {
       }
     }
 
+    if {$csv} {
+      return [t1 write_csv]
+    }
+
     set base [$package_id pretty_link [$__including_page name]]
     set label [$__including_page name]
     append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a></p>"]]
-    #"<p>Instances of Form <a href='$base'>$label</a></p>\n" [t1 asHTML]
     append html [t1 asHTML]
+    append html "<a href='[::xo::cc url]?[::xo::cc actual_query]&csv=1'>csv</a>"
     return $html
   }
 }
