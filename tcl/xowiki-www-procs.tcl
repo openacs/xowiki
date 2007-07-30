@@ -1025,10 +1025,15 @@ namespace eval ::xowiki {
 
   PageTemplate instproc delete {} {
     my instvar package_id item_id name
-    set count [my count_entries]
-    my msg count=$count
+    set count [my count_usages -all true]
+    #my msg count=$count
     if {$count > 0} {
-      $package_id error_msg [_ xowiki.error-delete_entries_first [list count $count]]
+      append error_msg \
+          [_ xowiki.error-delete_entries_first [list count $count]] \
+          <p> \
+          [my include_portlet [list form-usages -all true -form_item_id [my item_id]]] \
+          </p>
+      $package_id error_msg $error_msg
     } else {
       next
     }

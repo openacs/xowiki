@@ -359,14 +359,36 @@ namespace eval ::xowiki {
         return $page
       }
     }
+    set page [my import_prototype_page $stripped_object]
+    if {$page eq ""} {
+      my log "no prototype for '$object' found"
+    }
+    return $page
+  }
 
-    set fn [get_server_root]/packages/[my package_key]/www/prototypes/$stripped_object.page
+  Package instproc import_prototype_page {{prototype_name ""}} {
+    set page ""
+    if {$prototype_name eq ""} {
+      set prototype_name [my query_parameter import_prototype_page ""]
+      set via_url 1
+    }
+    if {$prototype_name eq ""} {
+      error "No name for prototype given"
+    }
+    set fn [get_server_root]/packages/[my package_key]/www/prototypes/$prototype_name.page
     #my log "--W check $fn"
     if {[file readable $fn]} {
-      # create from default page
-      my log "--sourcing page definition $fn, using name '$standard_page'"
+      my instvar folder_id id
+      # We have the file. We try to create an item or revision from 
+      # definition in the file system.
+      if {[regexp {^(..):(.*)$} $prototype_name _ lang local_name]} {
+        set name $prototype_name
+      } else {
+        set name en:$prototype_name
+      }
+      #my log "--sourcing page definition $fn, using name '$name'"
       set page [source $fn]
-      $page configure -name $standard_page \
+      $page configure -name $name \
           -parent_id $folder_id -package_id $id 
       if {![$page exists title]} {
         $page set title $object
@@ -374,17 +396,29 @@ namespace eval ::xowiki {
       $page destroy_on_cleanup
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
-      $page save_new
-      return $page
-    } else {
-      my log "no prototype for '$object' found"
-      return ""
+      set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
+      if {$item_id == 0} {
+        $page save_new
+      } else {
+        # get the page from the CR with all variables
+        set p [::Generic::CrItem instantiate -item_id $item_id]
+        $p destroy_on_cleanup
+        # copy all variables from the prototype page 
+        # into the instantiated page 
+        foreach v [$page info vars] {$p set $v [$page set $v]}
+        $p save
+        set page $p
+      }
     }
+    if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
+      my returnredirect [my query_parameter "return_url" [my package_url]]
+    }
+    return $page
   }
 
   Package instproc call {object method} {
     my instvar policy
-    my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
+    #my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
     if {[$policy enforce_permissions $object $method]} {
       #my log "--p calling $object ([$object info class]) '$method'"
       $object $method
@@ -877,6 +911,7 @@ namespace eval ::xowiki {
   
     Class Package -array set require_permission {
       reindex             swa
+      import_prototype_page swa
       rss                 none
       google-sitemap      none
       google-sitemapindex none

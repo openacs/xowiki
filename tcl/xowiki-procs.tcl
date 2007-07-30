@@ -1002,15 +1002,16 @@ namespace eval ::xowiki {
   PageTemplate parameter {
     {render_adp 0}
   }
-  PageTemplate instproc count_usages {} {
-    return [::xowiki::PageTemplate count_usages -item_id [my item_id]]
+  PageTemplate instproc count_usages {{-all false}} {
+    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
   }
 
-  PageTemplate proc count_usages {-item_id:required} {
+  PageTemplate proc count_usages {-item_id:required {-all:boolean false}} {
+    set publish_status_clause [expr {$all ? "" : " and i.publish_status <> 'production' "}]
     set count [db_string [my qn count_usages] \
 		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
 			where page_template = $item_id \
-                        and i.publish_status <> 'production' \
+                        $publish_status_clause \
                         and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
     return $count
   }

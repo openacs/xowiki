@@ -2147,6 +2147,7 @@ namespace eval ::xowiki::portlet {
           {-form_item_id:integer}
           {-form}
           {-orderby "_last_modified,desc"}
+          {-all:boolean false}
           {-field_names}
         }}
       }
@@ -2253,13 +2254,14 @@ namespace eval ::xowiki::portlet {
     # build SQL query and iterate over the results
     # maybe this could be slightly faster by using instantiate_objects
     # 
+    set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
     set items [::xowiki::FormPage instantiate_all \
                    -select_attributes $sql_atts \
                    -from_clause ", xowiki_form_pagex p" \
                    -with_subtypes false \
                    -where_clause " p.page_template = $form_item_id \
 			and p.xowiki_form_page_id = cr.revision_id \
-                        and ci.publish_status <> 'production' " \
+                        $publish_status_clause" \
                    -folder_id [$package_id folder_id]]
     $items destroy_on_cleanup
 

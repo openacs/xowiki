@@ -1,0 +1,17 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Form new \
+    -set name en:news-item \
+    -title "News Item" \
+    -set anon_instances t \
+    -set form {{<form> @_title@ @_description@ @detail_link@ @_nls_language@</form>} text/html} \
+    -set text {<p>@_description@</p><p>@detail_link@</p>} \
+    -set form_constraints {
+      _page_order:hidden 
+      _creator:hidden 
+      _title:text,label=#acs-kernel.common_Title# 
+      {detail_link:detail_link,label=Detail URL}
+    }
+
+
+
