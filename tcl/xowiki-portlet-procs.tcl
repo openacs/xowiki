@@ -2281,7 +2281,13 @@ namespace eval ::xowiki::portlet {
         switch -glob -- $__fn {
           __* {error not_allowed}
           _*  {set __value [$p set [string range $__fn 1 end]]}
-          default {set __value $__ia($__fn)}
+	    default {
+		if {[exists_and_not_null __ia($__fn)]} {
+		    set __value $__ia($__fn)
+		} else {
+		    set __value ""
+		}
+	    }
         }
         if {[$__ff($__fn) istype ::xowiki::FormField::richtext]} {
           $__c set $__fn.richtext 1
