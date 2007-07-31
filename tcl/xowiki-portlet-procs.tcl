@@ -1617,7 +1617,7 @@ namespace eval ::xowiki::portlet {
       }
       set menu [list]
       foreach b $menu_buttons {
-	set html [$p include_portlet $b]
+	set html [$p include_portlet [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
       append output "<h$level class='book'>" \
@@ -1670,6 +1670,7 @@ namespace eval ::xowiki::portlet {
           {-page_id}
           {-title "#xowiki.edit#"}
           {-alt "edit"}
+          {-book_mode false}
         }}
       }
   
@@ -1681,10 +1682,13 @@ namespace eval ::xowiki::portlet {
       set template [$page page_template]
       set title "$title [$template title] [$page name]"
     }
+    set return_url [::xo::cc url]
+    if {$book_mode} {
+      append return_url #[toc anchor [$page name]]
+    }
     return [my render_button \
 		-page $page -method edit -package_id $package_id \
-		-title $title -alt $alt \
-		-return_url [::xo::cc url] \
+		-title $title -alt $alt -return_url $return_url \
 		-src /resources/acs-subsite/Edit16.gif]
   }
 
@@ -1695,6 +1699,7 @@ namespace eval ::xowiki::portlet {
           {-page_id}
           {-title "#xowiki.delete#"}
           {-alt "delete"}
+          {-book_mode false}
         }}
       }
 
@@ -1715,6 +1720,7 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-page_id}
           {-alt "new"}
+          {-book_mode false}
         }}
       }
 

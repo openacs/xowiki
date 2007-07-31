@@ -210,7 +210,7 @@ namespace eval ::xowiki {
   Page array set RE {
     include {([^\\]){{([^<]+?)}}(\s|<|$)?}
     anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
-    div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*<br */?>)?}
+    div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
