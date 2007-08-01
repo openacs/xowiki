@@ -802,7 +802,7 @@ namespace eval ::xowiki {
     if {![info exists ::xowiki_page_item_id_rendered]} {
       return ""
     }
-    my log "--OMIT and not $field in ([join $::xowiki_page_item_id_rendered ,])"
+    #my log "--OMIT and not $field in ([join $::xowiki_page_item_id_rendered ,])"
     return "and not $field in ([join $::xowiki_page_item_id_rendered ,])"
   }
 
