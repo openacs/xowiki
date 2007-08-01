@@ -289,6 +289,16 @@ namespace eval ::xowiki {
       }
     }
 
+    if {[apm_version_names_compare $from_version_name "0.60"] == -1 &&
+        [apm_version_names_compare $to_version_name "0.60"] > -1} {
+      ns_log notice "-- upgrading to 0.60"
+      # load for all xowiki package instances te weblog-portlet prototype page
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page weblog-portlet
+      }
+    }
+
     if {[apm_version_names_compare $from_version_name "0.65"] == -1 &&
         [apm_version_names_compare $to_version_name "0.65"] > -1} {
       ns_log notice "-- upgrading to 0.65"
