@@ -509,6 +509,7 @@ namespace eval ::xowiki {
     plugins 
     folder_id
     width
+    height
     {validator safe_html}
   }
   FormField::richtext instproc initialize {} {
