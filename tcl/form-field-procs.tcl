@@ -509,9 +509,6 @@ namespace eval ::xowiki {
     plugins 
     folder_id
     width
-    javascript
-    {height 350px}
-    {style "width: 100%"}
     {validator safe_html}
   }
   FormField::richtext instproc initialize {} {
@@ -587,7 +584,11 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::richtext::xinha -superclass FormField::richtext 
+  Class FormField::richtext::xinha -superclass FormField::richtext -parameter {
+    javascript
+    {height 350px}
+    {style "width: 100%"}
+  }
   FormField::richtext::xinha instproc initialize {} {
     next
     my set widget_type richtext
@@ -796,7 +797,7 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::YYYY -superclass FormField::text -parameter {
+  Class FormField::YYYY -superclass FormField::numeric -parameter {
     {size 4}
     {maxlength 4}
   }
@@ -908,8 +909,11 @@ namespace eval ::xowiki {
 
   FormField::date instproc render_content {} {
     my set_compound_value
-    foreach {class code trim_zeros} [my components] {
-      [self]::$class render_content
+    my set style "margin: 0px; padding: 0px;"
+    html::fieldset [my get_attributes id style] {
+      foreach {class code trim_zeros} [my components] {
+        [self]::$class render_content
+      }
     }
   }
 
