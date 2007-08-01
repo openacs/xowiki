@@ -48,7 +48,7 @@ namespace eval ::xowiki {
      if {![::xotcl::Object isobject ::xowiki::Page::slot]} {
         ::xotcl::Object create ::xowiki::Page::slot
      }
-     foreach parameter {name title description text nls_language publish_date creation_user} {
+     foreach parameter {name title description text nls_language publish_date creation_user last_modified} {
         if {![::xotcl::Object isobject ::xowiki::Page::slot::$parameter]} {
           ::xo::Attribute create ::xowiki::Page::slot::$parameter 
         }
