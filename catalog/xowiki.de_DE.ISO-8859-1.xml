@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<message_catalog package_key="xowiki" package_version="0.59" locale="de_DE" charset="ISO-8859-1">
+
+  <msg key="admin">Verwalten</msg>
+  <msg key="back">Zurück</msg>
+  <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
+  <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
+  <msg key="delete">Löschen</msg>
+  <msg key="edit">Bearbeiten</msg>
+  <msg key="edit_link">bearbeiten</msg>
+  <msg key="entries_using_form">Einträge für as Formular %form%:</msg>
+  <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte verwenden Sie diese, bevor Sie das Formular löschen.</msg>
+  <msg key="Form-form">Formular</msg>
+  <msg key="Form-form_constraints">Einschränkungen</msg>
+  <msg key="form-menu-answer_link">Einträge für dieses Formular</msg>
+  <msg key="form-menu-new_link">Formular ausfüllen</msg>
+  <msg key="index">Index</msg>
+  <msg key="notifications">Verständigungen</msg>
+  <msg key="Page-creator">Creator</msg>
+  <msg key="Page-description">Kurzbeschreibung</msg>
+  <msg key="Page-name">Name</msg>
+  <msg key="Page-name-help_text">Eindeutige Kurzbezeichnung für einen Eintrag im Ordner; enthält meist nur Kleinbuchstaben</msg>
+  <msg key="Page-nls_language">Sprache</msg>
+  <msg key="Page-page_order">Abschnitt</msg>
+  <msg key="Page-text">Inhalt</msg>
+  <msg key="Page-title">Titel der Seite</msg>
+  <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
+  <msg key="page_type">Typ der Seite</msg>
+  <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
+  <msg key="PageInstance-page_template">Seitenvorlage</msg>
+  <msg key="PageTemplate-anon_instances">Unbenamte Instanzen</msg>
+  <msg key="PodcastItem-duration">Dauer</msg>
+  <msg key="PodcastItem-keywords">Schlüsselworte</msg>
+  <msg key="PodcastItem-pub_date">Publikationsdatum</msg>
+  <msg key="PodcastItem-subtitle">Untertitel</msg>
+  <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
+  <msg key="popular_tags_link">häufige Schlagworte</msg>
+  <msg key="portlet_title_exists_error_long">Ändern Sie entweder den Namen des existierenden Portlets oder den Titel der Xowiki-Seite, die Sie zum Portal hinzufügen wollen.</msg>
+  <msg key="portlet_title_exists_error_short">Es gibt bereits ein Portlet mit dem Titel '%page_title%' in diesem Portal.</msg>
+  <msg key="publish_status">Freigegeben</msg>
+  <msg key="references_label">Verweise auf diese Seite:</msg>
+  <msg key="revisions">Verlauf</msg>
+  <msg key="search">Suche</msg>
+  <msg key="view">Ansehen</msg>
+  <msg key="weblog-more">mehr...</msg>
+  <msg key="your_tags_label">Persönliche Schlagworte</msg>
+</message_catalog>

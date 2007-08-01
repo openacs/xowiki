@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<message_catalog package_key="xowiki" package_version="0.59" locale="en_US" charset="ISO-8859-1">
+
+  <msg key="admin">Admin</msg>
+  <msg key="back">Back</msg>
+  <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
+  <msg key="create_this_page_in_language">Create this page in a different language</msg>
+  <msg key="delete">Delete</msg>
+  <msg key="edit">Edit</msg>
+  <msg key="edit_link">edit tags</msg>
+  <msg key="entries_using_form">Entries for form %form%</msg>
+  <msg key="error-delete_entries_first">This form is still used by %count% entries. Please delete these first before deleting this page.</msg>
+  <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
+  <msg key="error-form_constraint-unknown_attribute">From field '%name%' has unknown attribute '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_editor">Unknown editor %editor%. Possible values are: %editors%</msg>
+  <msg key="error-form_constraint-unknown_spec_entry">From field '%name%' has unknown specification '%entry%'</msg>
+  <msg key="error-includelet-adp_syntax_invalid">Syntax: adp &amp;lt;name of adp-file&amp;gt; {&amp;lt;argument list&amp;gt;}&lt;br/&gt;
+
+Invalid argument list: '%adp%'; must be of form: attribute value pairs (even number of elements)</msg>
+  <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt;
+
+Argument list must contain attribute value pairs (attributes with dashes)</msg>
+  <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
+  <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
+&lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
+  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is to deep</msg>
+  <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
+  <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
+  <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
+  <msg key="Form-form">Form</msg>
+  <msg key="Form-form_constraints">Form Constraints</msg>
+  <msg key="form-menu-answer_link">Entries for this form</msg>
+  <msg key="form-menu-new_link">Fill out</msg>
+  <msg key="Form-submit_button">       OK       </msg>
+  <msg key="Form-template">Template</msg>
+  <msg key="Form-validate_form_constraints">%errorMsg%</msg>
+  <msg key="index">Index</msg>
+  <msg key="new_page">New Page</msg>
+  <msg key="notifications">Notifications</msg>
+  <msg key="numeric-validate_numeric">Invalid numeric value</msg>
+  <msg key="Page-creator">Creator</msg>
+  <msg key="Page-description">Description</msg>
+  <msg key="Page-last_modified">Last Modified</msg>
+  <msg key="Page-name">Name</msg>
+  <msg key="Page-name-help_text">Shortname to identify an entry within a folder, typically lowercase characters</msg>
+  <msg key="Page-nls_language">Language</msg>
+  <msg key="Page-page_order">Section</msg>
+  <msg key="Page-text">Content</msg>
+  <msg key="Page-title">Page Title</msg>
+  <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
+  <msg key="page_type">Page Type</msg>
+  <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
+  <msg key="PageInstance-page_template">Page Instance</msg>
+  <msg key="PageTemplate-anon_instances">Unnamed Entries</msg>
+  <msg key="PodcastItem-duration">Duration</msg>
+  <msg key="PodcastItem-duration-help_text">E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)</msg>
+  <msg key="PodcastItem-keywords">Keywords</msg>
+  <msg key="PodcastItem-keywords-help_text">comma separated itunes keywords, e.g. salt, pepper, shaker, exciting</msg>
+  <msg key="PodcastItem-name-help_text">Can be obtained from the name of the uploaded file</msg>
+  <msg key="PodcastItem-pub_date">Publication Date</msg>
+  <msg key="PodcastItem-subtitle">Subtitle</msg>
+  <msg key="popular_tags_label">Popular tags</msg>
+  <msg key="popular_tags_link">popular tags</msg>
+  <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
+  <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
+  <msg key="publish_status">Published</msg>
+  <msg key="references_label">References to this Page:</msg>
+  <msg key="revisions">Revisions</msg>
+  <msg key="richtext-validate_safe_html">%errorMsg%</msg>
+  <msg key="search">Search</msg>
+  <msg key="view">View</msg>
+  <msg key="weblog-more">more...</msg>
+  <msg key="your_tags_label">Your Tags</msg>
+</message_catalog>

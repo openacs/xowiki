@@ -1,0 +1,40 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "CGI3" -text {
+  #
+  # The parameter declaration sets the context for the 
+  # evaluation. It combines the provided values from an
+  # includelet with the values provided via the url with
+  # the specified default values.
+  #
+  my initialize -parameter {
+    {-object_type ::xowiki::Page}
+    {-text "Hello World"}
+    {-x:integer}
+    {-z:integer 100}
+  }
+
+  #
+  # The classes and objects here are all local to the object, 
+  # as long as no absolute class or object names are used (no leading colons)
+  #
+  
+  Class CGI
+  CGI instproc content {} {
+    my get_parameters
+
+    set vars [info vars]
+    set somevar 100
+    return "Hello \[\[Wiki\]\]-World. It is now \
+	[clock format [clock seconds]]. Somevar=$somevar, vars=$vars,
+	package_id=$package_id, z=3. <em>$text</em>"
+  }
+  
+  # mixin the Class CGI into the payload object of the ::xowiki::Object
+  # since the object renderer queries the method content, it picks up the
+  # above behavior
+  my mixin add CGI
+}
+
+
+

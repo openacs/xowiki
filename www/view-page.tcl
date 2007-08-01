@@ -1,0 +1,1 @@
+set page_title "[$page set page_order] [$page set title]"
