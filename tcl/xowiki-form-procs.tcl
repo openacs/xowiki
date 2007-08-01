@@ -58,12 +58,30 @@ namespace eval ::xowiki {
       # if there is no field spec, use the default from the slot definitions
       set __spec  [expr {[my exists f.$__field] ? [my set f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
-
       #my msg "$__field wspec=$__wspec, spec=$__spec"
-      # 
-      # get first the information from the attribute definitions & given specs
-      #
-      if {[lindex $__wspec 0] eq "="} {
+
+      # check first if we have widget_specs.
+      # TODO: this part is likely to be removed in the future.
+      set s [$data get_rich_text_spec $__field ""]
+      if {$s ne ""} {
+	set __spec $s
+	set __wspec [lindex $__spec 0]
+	# old style folder spec substituion. ugly.
+        if {[my folderspec] ne ""} {
+          # append the folder spec to its options
+          set __newspec [list $__wspec]
+          foreach __e [lrange $__spec 1 end] {
+            foreach {__name __value} $__e break
+            if {$__name eq "options"} {eval lappend __value [my folderspec]}
+            lappend __newspec [list $__name $__value]
+          }
+          #my log "--F rewritten spec is '$__newspec'"
+          set __spec $__newspec
+        }
+      } elseif {[lindex $__wspec 0] eq "="} {
+	# 
+	# get the information from the attribute definitions & given specs
+	#
         set f [$data create_form_field \
                    -name $__field \
                    -slot [$data find_slot $__field] \
@@ -88,7 +106,7 @@ namespace eval ::xowiki {
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
 
-      #my log "--F field <$__field> = $__spec"
+      #my msg "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
     }
 
