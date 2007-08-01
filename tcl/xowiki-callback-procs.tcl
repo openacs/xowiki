@@ -285,7 +285,7 @@ namespace eval ::xowiki {
         ::xo::db::sql::content_type drop_type -content_type ::xowiki::FormInstance \
             -drop_children_p t -drop_table_p t -drop_objects_p t
       } errorMsg]} {
-        ns_log notce "--upgrade produced error: $errorMsg"
+        ns_log notice "--upgrade produced error: $errorMsg"
       }
     }
 
