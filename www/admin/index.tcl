@@ -37,12 +37,12 @@ TableWidget t1 -volatile \
 set base [::$package_id package_url]
 foreach object_type $object_types {
   set return_url [export_vars -base ${base}admin {object_type}]
+  set add_title ""
+  set add_href ""
   if {[catch {set n [db_list count [$object_type instance_select_query \
                                        -folder_id [::$package_id set folder_id] \
                                        -count 1 -with_subtypes false]]}]} {
     set n -
-    set add_title ""
-    set add_href ""
     set delete_title "Delete all such items of this instance"
   } else {
     set add_title [_ xotcl-core.add [list type [$object_type pretty_name]]]

@@ -39,10 +39,12 @@ set category_map_url [export_vars -base \
 
 set actions ""
 foreach type $object_types {
+  set link [$package_id make_link $package_id edit-new {object_type $type} return_url autoname]
+  if {$link eq ""} continue
   append actions [subst {
     Action new \
         -label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
-        -url [export_vars -base [::$package_id package_url] {{edit-new 1} {object_type $type} return_url}] \
+        -url $link \
         -tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
   }]
 }
