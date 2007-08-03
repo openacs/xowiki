@@ -977,6 +977,7 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
+      create-new        {{item_id write}}
     }
 
     Class Object -array set require_permission {
@@ -1016,6 +1017,7 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
+      create-new        {{item_id write}}
     }
 
     Class Object -array set require_permission {
