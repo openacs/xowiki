@@ -611,7 +611,27 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
     if {[string match "http*//*" $link] || [string match "//*" $link]} {
-      regsub {^//} $link / link
+      if {[regsub {^//} $link / link]} {
+	my msg t=[::xowiki::guesstype $link]
+	switch -glob -- [::xowiki::guesstype $link] {
+	  text/css {
+	    ::xowiki::Page requireCSS $link
+	    return $ch
+	  }
+	  application/x-javascript {
+	    ::xowiki::Page requireJS $link
+	    return $ch
+	  }
+	  image/* {
+	    Link create [self]::link \
+		-page [self] \
+		-type localimage -label $label \
+		-href $link
+	    eval [self]::link configure $options
+	    return $ch[[self]::link render]
+	  }
+	}
+      }
       set l [ExternalLink new -label $label -href $link]
       eval $l configure $options
       set html [$l render]
@@ -893,7 +913,7 @@ namespace eval ::xowiki {
   }
 
   PlainPage instproc get_content {} {
-    #my log "-- my class=[my info class]"
+    #my msg "-- my class=[my info class]"
     return [my substitute_markup [my set text]]
   }
   PlainPage instproc set_content {text} {

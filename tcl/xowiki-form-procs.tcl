@@ -62,7 +62,11 @@ namespace eval ::xowiki {
 
       # check first if we have widget_specs.
       # TODO: this part is likely to be removed in the future.
-      set s [$data get_rich_text_spec $__field ""]
+      if {[$data istype ::xowiki::PlainPage] && $__field eq "text"} {
+	set s ""
+      } else {
+	set s [$data get_rich_text_spec $__field ""]
+      }
       if {$s ne ""} {
 	set __spec $s
 	set __wspec [lindex $__spec 0]

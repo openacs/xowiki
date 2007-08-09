@@ -26,6 +26,7 @@ namespace eval ::xowiki {
     type name lang stripped_name label page 
     folder_id package_id 
     title target
+    href
   }
   Link instproc atts {} {
     set atts ""
@@ -182,7 +183,12 @@ namespace eval ::xowiki {
       return "<img class='$cls' src='$link' alt='$label' title='$label' $style>"
     }
   }
-  
+
+  Class create ::xowiki::Link::localimage -superclass ::xowiki::Link::image
+  ::xowiki::Link::localimage instproc render {} {
+    my render_found [my href] [my label]
+  }
+
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image  -parameter {
     width height align pluginspage pluginurl hidden href target
     autostart loop volume controls controller mastersound starttime endtime
