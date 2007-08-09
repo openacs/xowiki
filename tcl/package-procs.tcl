@@ -429,11 +429,12 @@ namespace eval ::xowiki {
   Package instforward check_permissions {%my set policy} %proc
 
   Package instproc get_name_and_lang_from_path {path vlang vlocal_name} {
+    my log path=$path
     my upvar $vlang lang $vlocal_name local_name 
     if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(file|image|download)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(file|image|swf|download)/(.*)$} $path _ lang local_name]} {
     } else {
       set key queryparm(lang)
       if {[info exists $key]} {
