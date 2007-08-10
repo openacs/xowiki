@@ -114,7 +114,9 @@ namespace eval ::xowiki::portlet {
     return $prefix$suffix
   }
 
-  ::xowiki::Portlet instproc locale_clause {r package_id locale} {
+  ::xowiki::Portlet instproc locale_clause {
+    -revisions -items package_id locale
+  } {
     set default_locale [$package_id default_locale]
     set system_locale ""
 
@@ -123,24 +125,24 @@ namespace eval ::xowiki::portlet {
       set locale $default_locale
       set include_system_locale 0
     }
-    #my msg "with_system_locale=$with_system_locale, locale=$locale"
+    #my msg "with_system_locale=$with_system_locale, locale=$locale, default_locale=$default_locale "
 
     set locale_clause ""    
     if {$locale ne ""} {
-      set locale_clause " and $r.nls_language = '$locale'" 
+      set locale_clause " and $revisions.nls_language = '$locale'" 
       if {$with_system_locale} {
         set system_locale [lang::system::locale -package_id $package_id]
         #my msg "system_locale=$system_locale, default_locale=$default_locale"
         if {$system_locale ne $default_locale} {
-          set locale_clause " and ($r.nls_language = '$locale' 
-		or $r.nls_language = '$system_locale' and not exists
+          set locale_clause " and ($revisions.nls_language = '$locale' 
+		or $revisions.nls_language = '$system_locale' and not exists
 		  (select 1 from cr_items i where i.name = '[string range $locale 0 1]:' || 
-		  substring(ci.name,4) and i.parent_id = ci.parent_id))"
+		  substring($items.name,4) and i.parent_id = $items.parent_id))"
         }
       } 
     }
 
-    #my log "--locale $locale, def=$default_locale sys=$system_locale, cl=$locale_clause"
+    #my msg "--locale $locale, def=$default_locale sys=$system_locale, cl=$locale_clause locale_clause=$locale_clause"
     return [list $locale $locale_clause]
   }
 
@@ -341,7 +343,8 @@ namespace eval ::xowiki::portlet {
     set open_item_id [expr {$open_page ne "" ?
                             [CrItem lookup -name $open_page -parent_id $folder_id] : 0}]
 
-    foreach {locale locale_clause} [my locale_clause r $package_id $locale] break
+    foreach {locale locale_clause} \
+        [my locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -468,7 +471,8 @@ namespace eval ::xowiki::portlet {
   
     set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
 
-    foreach {locale locale_clause} [my locale_clause r $package_id $locale] break
+    foreach {locale locale_clause} \
+        [my locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -1152,7 +1156,7 @@ namespace eval ::xowiki::portlet {
           {-expand_all false}
           {-remove_levels 0}
           {-category_id}
-          {-locale "default"}
+          {-locale ""}
         }}
       }
 
@@ -1185,8 +1189,10 @@ namespace eval ::xowiki::portlet {
     if {[my exists category_id]} {
       foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
     }
-    foreach {locale locale_clause} [my locale_clause p $package_id $locale] break
+    foreach {locale locale_clause} \
+        [my locale_clause -revisions p -items p $package_id $locale] break
     #my msg locale_clause=$locale_clause
+
     set sql [::xo::db::sql select \
                  -vars "page_id,  page_order, name, title" \
                  -from "xowiki_page_live_revision p" \
@@ -1575,6 +1581,7 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-category_id}
           {-menu_buttons edit-item-button}
+          {-locale ""}
         }}
       }
 
@@ -1591,11 +1598,15 @@ namespace eval ::xowiki::portlet {
       foreach {cnames extra_where_clause} [my category_clause $category_id] break
     }
 
+    foreach {locale locale_clause} \
+        [my locale_clause -revisions p -items p $package_id $locale] break
+
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \
 		from xowiki_page_live_revision p \
 		where parent_id = [$package_id folder_id] \
 		and not page_order is NULL $extra_where_clause \
+		$locale_clause \
 		[::xowiki::Page container_already_rendered item_id]" ]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order

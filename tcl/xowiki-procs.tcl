@@ -612,7 +612,7 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $label _ label options
     if {[string match "http*//*" $link] || [string match "//*" $link]} {
       if {[regsub {^//} $link / link]} {
-	my msg t=[::xowiki::guesstype $link]
+	#my msg t=[::xowiki::guesstype $link]
 	switch -glob -- [::xowiki::guesstype $link] {
 	  text/css {
 	    ::xowiki::Page requireCSS $link
