@@ -697,6 +697,7 @@ namespace eval ::xowiki {
       if {[my is_new_entry [my name]]} {
 	my set creator [::xo::get_user_name [::xo::cc user_id]]
 	my set nls_language [ad_conn locale]
+	my set name [$package_id query_parameter name ""]
       }
 
       array set __ia [my set instance_attributes]
@@ -1046,20 +1047,32 @@ namespace eval ::xowiki {
                -parent_id [my parent_id] \
                -publish_status "production" \
                -page_template [my item_id]]
-    
-    # set some default values if they are provided
-    foreach key {name title page_order last_page_id} {
-      if {[$package_id exists_query_parameter $key]} {
-        $f set $key [$package_id query_parameter $key]
+
+    set source_item_id [$package_id query_parameter source_item_id ""]
+    if {$source_item_id ne ""} {
+      set source [FormPage instantiate -item_id $source_item_id]
+      $source destroy_on_cleanup
+      $f copy_content_vars -from_object $source
+      #$f set __autoname_prefix "[my name] - "
+      $f set name ""
+      regexp {^.*:(.*)$} [$source set name] _ name
+    } else {
+      # set some default values if they are provided
+      foreach key {name title page_order last_page_id} {
+	if {[$package_id exists_query_parameter $key]} {
+	  $f set $key [$package_id query_parameter $key]
+	}
       }
     }
     $f set __title_prefix [my title]
+
     $f save_new
     if {[my exists_query_parameter "return_url"]} {
       set return_url [my query_parameter "return_url"]
     }
     $package_id returnredirect \
-        [export_vars -base [$package_id pretty_link [$f name]] {{m edit} return_url}]
+        [export_vars -base [$package_id pretty_link [$f name]] \
+	     {{m edit} return_url name}]
   }
 
 

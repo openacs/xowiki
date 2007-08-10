@@ -1636,6 +1636,9 @@ namespace eval ::xowiki::portlet {
       }
       set menu [list]
       foreach b $menu_buttons {
+	if {[info command ::xowiki::portlet::$b] eq ""} {
+	  set b $b-item-button
+	}
 	set html [$p include_portlet [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
@@ -1665,20 +1668,23 @@ namespace eval ::xowiki::portlet {
     -return_url 
     -page_order
     -object_type
+    -source_item_id
   } {
     set html ""
     if {![info exists return_url]} {set return_url $p_link}
     if {![info exists alt]} {set alt $method}
+    if {![info exists src]} {set src [my set src]}
     if {[$page istype ::xowiki::Package]} {
-      set edit_link  [$package_id make_link $package_id \
-                          edit-new page_order object_type return_url autoname]
+      set link  [$package_id make_link $package_id edit-new object_type \
+		     return_url page_order source_item_id]
     } else {
       set p_link [$package_id pretty_link [$page name]]
-      set edit_link [$package_id make_link -link $p_link $page $method return_url page_order]
+      set link [$package_id make_link -link $p_link $page $method \
+		    return_url page_order source_item_id]
     }
 
-    if {$edit_link ne ""} {
-      set html "<a href=\"$edit_link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
+    if {$link ne ""} {
+      set html "<a href=\"$link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
     }
     return $html
   }
@@ -1714,6 +1720,7 @@ namespace eval ::xowiki::portlet {
   Class create delete-item-button -superclass ::xowiki::portlet::item-button \
       -parameter {
         {__decoration none}
+        {src /resources/acs-subsite/Delete16.gif}
         {parameter_declaration {
           {-page_id}
           {-title "#xowiki.delete#"}
@@ -1729,13 +1736,13 @@ namespace eval ::xowiki::portlet {
     return [my render_button \
 		  -page $page -method delete -package_id $package_id \
 		  -title $title -alt $alt \
-		  -return_url [::xo::cc url] \
-		  -src /resources/acs-subsite/Delete16.gif]
+		  -return_url [::xo::cc url]]
   }
 
   Class create create-item-button -superclass ::xowiki::portlet::item-button \
       -parameter {
         {__decoration none}
+        {src /resources/acs-subsite/Add16.gif}
         {parameter_declaration {
           {-page_id}
           {-alt "new"}
@@ -1754,8 +1761,7 @@ namespace eval ::xowiki::portlet {
 		  -page $template -method create-new -package_id $package_id \
 		  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
 		  -alt $alt -page_order $page_order \
-		  -return_url [::xo::cc url] \
-		  -src /resources/acs-subsite/Add16.gif]
+		  -return_url [::xo::cc url]]
     } else {
       set object_type [$__including_page info class]
       return [my render_button \
@@ -1763,10 +1769,44 @@ namespace eval ::xowiki::portlet {
 		  -title [_ xowiki.create_new_entry_of_type [list type $object_type]] \
 		  -alt $alt -page_order $page_order \
 		  -return_url [::xo::cc url] \
-                  -object_type $object_type \
-		  -src /resources/acs-subsite/Add16.gif]
+                  -object_type $object_type]
     }
   }
+
+  Class create copy-item-button -superclass ::xowiki::portlet::item-button \
+      -parameter {
+        {__decoration none}
+        {src /resources/acs-subsite/Copy16.gif}
+        {parameter_declaration {
+          {-page_id}
+          {-alt "copy"}
+          {-book_mode false}
+        }}
+      }
+
+  copy-item-button instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+
+    if {[$page istype ::xowiki::FormPage]} {
+      set template [$page page_template]
+      return [my render_button \
+		  -page $template -method create-new -package_id $package_id \
+		  -title [_ xowiki.copy_entry [list type [$template title]]] \
+		  -alt $alt -source_item_id [$page item_id] \
+		  -return_url [::xo::cc url]]
+    } else {
+      set object_type [$__including_page info class]
+      return [my render_button \
+		  -page $package_id -method edit_new -package_id $package_id \
+		  -title [_ xowiki.copy_entry [list type $object_type]] \
+		  -alt $alt -source_item_id [$page item_id] \
+		  -return_url [::xo::cc url] \
+                  -object_type $object_type]
+    }
+  }
+
 
 }
 

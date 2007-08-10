@@ -844,7 +844,19 @@ namespace eval ::xowiki {
     set object_type [my query_parameter object_type "::xowiki::Page"]
     set autoname [my get_parameter autoname 0]
     set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
-    $page set name ""
+
+    set source_item_id [$id query_parameter source_item_id ""]
+    if {$source_item_id ne ""} {
+      set source [$object_type instantiate -item_id $source_item_id]
+      $source destroy_on_cleanup
+      $page copy_content_vars -from_object $source
+      set name ""
+      regexp {^.*:(.*)$} [$source set name] _ name
+      $page set name $name
+    } else {
+      $page set name ""
+    }
+
     return [$page edit -new true -autoname $autoname]
   }
 
