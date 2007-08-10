@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.59" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.61" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
+  <msg key="copy_entry">Copy Entry</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
   <msg key="delete">Delete</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
   <msg key="entries_using_form">Entries for form %form%</msg>
-  <msg key="error-delete_entries_first">This form is still used by %count% entries. Please delete these first before deleting this page.</msg>
+  <msg key="error-delete_entries_first">This page is still used by %count% entries. Please delete these first before deleting this page.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
   <msg key="error-form_constraint-unknown_attribute">From field '%name%' has unknown attribute '%entry%'</msg>
   <msg key="error-form_constraint-unknown_editor">Unknown editor %editor%. Possible values are: %editors%</msg>
