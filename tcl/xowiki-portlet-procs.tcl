@@ -2243,13 +2243,16 @@ namespace eval ::xowiki::portlet {
       set field_names {_name _last_modified _creation_user}
     }
 
-    set sql_atts [list instance_attributes]
+    set sql_atts [list instance_attributes ci.name]
     foreach att [::xowiki::FormPage edit_atts] {set __att($att) 1}
-    set common_atts [list last_modified creation_user name]
+    set common_atts [list last_modified creation_user]
     foreach att $common_atts {
       lappend sql_atts p.$att
       set __att($att) 1
     }
+    #my msg __att=[array names __att],
+    #my msg sql_atts=$sql_atts
+    #my msg field_names=$field_names
 
     set form_constraints [$form_item form_constraints]
     # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -2259,9 +2262,9 @@ namespace eval ::xowiki::portlet {
     # maybe filter hidden? ignore for the time being.
     set cr_field_spec ""
     #
-    set field_spec    [::xowiki::PageInstance get_short_spec_from_form_constraints \
-                           -name @fields \
-                           -form_constraints $form_constraints]
+    set field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+			-name @fields \
+			-form_constraints $form_constraints]
 
     foreach spec_name $field_names {
       set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -2279,7 +2282,11 @@ namespace eval ::xowiki::portlet {
                      -name $spec_name \
                      -slot [$form_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec]
-          lappend sql_atts p.$varname
+	  if {$spec_name eq "_text"} {
+	    lappend sql_atts "cr.content as text"
+	  } else {
+	    lappend sql_atts p.$varname
+	  }
         }
         default {
           set f [$form_item create_form_field \
@@ -2299,7 +2306,10 @@ namespace eval ::xowiki::portlet {
     set cols ""
     append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}} \n
     foreach fn $field_names {
-      append cols [list AnchorField $fn -label [$__ff($fn) label] -orderby $fn] \n
+      append cols [list AnchorField $fn \
+		       -label [$__ff($fn) label] \
+		       -richtext [$__ff($fn) istype ::xowiki::FormField::richtext] \
+		       -orderby $fn] \n
     }
     append cols [list ImageField_DeleteIcon delete -label ""    ] \n
 
@@ -2323,7 +2333,7 @@ namespace eval ::xowiki::portlet {
     set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
     set items [::xowiki::FormPage instantiate_all \
                    -select_attributes $sql_atts \
-                   -from_clause ", xowiki_form_pagex p" \
+                   -from_clause ", xowiki_form_pagei p" \
                    -with_subtypes false \
                    -where_clause " p.page_template = $form_item_id \
 			and p.xowiki_form_page_id = cr.revision_id \
@@ -2358,9 +2368,8 @@ namespace eval ::xowiki::portlet {
             }
           }
         }
-        if {[$__ff($__fn) istype ::xowiki::FormField::richtext]} {
-          $__c set $__fn.richtext 1
-        }
+	# set always last_modified for default sorting
+	$__c set _last_modified [$p set last_modified]
         $__c set $__fn [$__ff($__fn) pretty_value $__value]
       }
     }
