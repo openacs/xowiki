@@ -145,7 +145,8 @@ namespace eval ::xowiki {
     #my msg "lang=$lang name=$name"
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     if {$download} {
-      set url ${host}${package_prefix}download/${lang}/$encoded_name$anchor
+      #set url ${host}${package_prefix}download/${lang}/$encoded_name$anchor
+      set url ${host}${package_prefix}download/file/$encoded_name$anchor
     } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
       set url ${host}${package_prefix}${lang}/$encoded_name$anchor
     } else {
@@ -466,6 +467,9 @@ namespace eval ::xowiki {
         if {$item_id == 0 && $lang eq "download" 
             && [regexp {^([^/]+)/(.*)$} $local_name _ prefix base_name]} {
 	  set item_id [::Generic::CrItem lookup -name ${prefix}:$base_name -parent_id $folder_id]
+	  if {$item_id == 0} {
+	    set item_id [::Generic::CrItem lookup -name image:$base_name -parent_id $folder_id]
+	  }
 	  if {$item_id != 0} {
 	    upvar $method_var method
 	    set method download

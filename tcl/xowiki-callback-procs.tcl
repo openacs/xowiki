@@ -231,6 +231,7 @@ namespace eval ::xowiki {
       }
       ::xowiki::update_views
     }
+
     if {[apm_version_names_compare $from_version_name "0.56"] == -1 &&
         [apm_version_names_compare $to_version_name "0.56"] > -1} {
       ns_log notice "-- upgrading to 0.56"
@@ -292,10 +293,32 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name "0.60"] == -1 &&
         [apm_version_names_compare $to_version_name "0.60"] > -1} {
       ns_log notice "-- upgrading to 0.60"
-      # load for all xowiki package instances te weblog-portlet prototype page
+      # load for all xowiki package instances the weblog-portlet prototype page
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
 	$package_id import_prototype_page weblog-portlet
+      }
+    }
+
+    set v 0.62
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      # for all xowiki package instances 
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	# rename swf:name and image:name to file:name
+	db_dml change_swf \
+	    "update cr_items set name = 'file' || substring(name,4) \
+		where name like 'swf:%' and parent_id = [$package_id folder_id]"
+	db_dml change_image \
+	    "update cr_items set name = 'file' || substring(name,6) \
+		where name like 'image:%' and parent_id = [$package_id folder_id]"
+	# reload updated prototype pages
+	$package_id import_prototype_page book
+	$package_id import_prototype_page weblog
+	# TODO check: jon.griffin
       }
     }
 

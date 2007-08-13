@@ -164,6 +164,7 @@ namespace eval ::xowiki {
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
+	.swf {set mime application/x-shockwave-flash}
       }
     }
     return $mime

@@ -219,6 +219,19 @@ namespace eval ::xowiki {
     }
   }
 
+  Class create ::xowiki::Link::css -superclass ::xowiki::Link::file -parameter {
+  }
+  ::xowiki::Link::css instproc render_found {href label} {
+    ::xowiki::Page requireCSS $href
+    return ""
+  }
+  Class create ::xowiki::Link::js -superclass ::xowiki::Link::file -parameter {
+  }
+  ::xowiki::Link::js instproc render_found {href label} {
+    ::xowiki::Page requireJS $href
+    return ""
+  }
+
   Class create ::xowiki::Link::swf -superclass ::xowiki::Link::file -parameter {
     width height bgcolor version
     quality wmode align salign play loop menu scale

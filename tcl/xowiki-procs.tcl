@@ -641,22 +641,51 @@ namespace eval ::xowiki {
 
     set name ""
     my instvar parent_id package_id
-    # do we have a language link (it starts with a ':')
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
+      # language link (it starts with a ':')
       set link_type language
-    } elseif {[regexp {^(file|image|swf):(.*)$} $link _ link_type stripped_name]} {
+    } elseif {[regexp {^(file|image|js|css|swf):(.*)$} $link _ \
+		   link_type stripped_name]} {
+      # (typed) file links
       set lang ""
-      set name $link
+      set name file:$stripped_name
+    } elseif {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
+      set link_type language
     } else {
       # do we have a typed link?
-      if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ link_type _ lang  stripped_name]} {
+      if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ \
+		link_type _ lang  stripped_name]} {
         # must be an untyped link; defaults, in case the second regexp does not match either
         set lang ""
-        set link_type link
         set stripped_name $link
+
         regexp {^(..):(.+)$} $link _ lang stripped_name
+	switch -glob -- [::xowiki::guesstype $link] {
+	  text/css {
+	    set link_type css
+	    set name file:$stripped_name
+	  }
+	  application/x-javascript {
+	    set link_type js
+	    set name file:$stripped_name
+	  }
+	  application/x-shockwave-flash {
+	    set link_type swf
+	    set name swf:$stripped_name; # not consistent, but backward compatible
+	  }
+	  image/* {
+	    set link_type image
+	    set name image:$stripped_name
+	  }
+	  default {
+	    set link_type link
+	    set name $stripped_name
+	  }
+	}
       }
     }
+
+    #my msg name=$name,stripped_name=$stripped_name,link_type=$link_type,lang=$lang
     set normalized_name [::$package_id normalize_name $stripped_name]
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
@@ -971,7 +1000,8 @@ namespace eval ::xowiki {
   File instproc get_content {} {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
-    set page_link [$package_id make_link -privilege public [self] download ""]
+    #set page_link [$package_id make_link -privilege public [self] download ""]
+    set page_link [$package_id pretty_link  -download true [my name]]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {
