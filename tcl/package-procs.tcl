@@ -920,7 +920,9 @@ namespace eval ::xowiki {
   Package instproc condition=has_class {query_context value} {
     return [expr {[$query_context query_parameter object_type ""] eq $value}]
   }
-
+  Package instproc condition=has_name {query_context value} {
+    return [regexp $value [$query_context query_parameter name ""]]
+  }
 
   Class create Policy -superclass ::xo::Policy
 
@@ -936,6 +938,7 @@ namespace eval ::xowiki {
       edit-new            {
 	{{has_class ::xowiki::Object} id admin} 
 	{{has_class ::xowiki::FormPage} nobody} 
+	{{has_name {[.](js|css)$}} id admin}
 	{id create}
       }
     }
@@ -980,6 +983,7 @@ namespace eval ::xowiki {
       edit-new            {
 	{{has_class ::xowiki::Object} swa} 
 	{{has_class ::xowiki::FormPage} nobody} 
+	{{has_name {[.](js|css)$}} swa}
 	{id create}
       }
     }
@@ -1020,6 +1024,7 @@ namespace eval ::xowiki {
       edit-new            {
 	{{has_class ::xowiki::Object} swa} 
 	{{has_class ::xowiki::FormPage} nobody} 
+	{{has_name {[.](js|css)$}} swa}
 	{id create}
       }
     }

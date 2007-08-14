@@ -203,6 +203,20 @@ namespace eval ::xowiki {
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name data=[my exists data] MIME [$data set mime_type]"
       set name [$data complete_name $name [$data set upload_file]]
+      # 
+      # Check, if the user is allowed to create a file with the specified
+      # name. Files ending in .css or .js might require special permissions.
+      # Caveat: the error message is always the same.
+      #
+      set package_id [::xo::cc package_id]
+      set computed_link [export_vars -base [$package_id package_url] {{edit-new 1} name 
+			 {object_type ::xowiki::File}}]
+      set granted [$package_id check_permissions -link $computed_link $package_id edit-new]
+      #my msg computed_link=$computed_link,granted=$granted
+      if {!$granted} {
+	util_user_message -message "User not authorized to to create a file named $name"
+	return 0
+      }
     } else {
       if {![regexp {^..:} $name]} {
         if {![info exists nls_language]} {
