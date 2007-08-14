@@ -169,7 +169,8 @@ namespace eval ::xowiki::portlet {
     #my log "--cnames $category_spec -> $cnames"
     return [list $cnames $extra_where_clause]
   }
-  ::xowiki::Portlet instproc get_source {source} {
+
+  ::xowiki::Portlet instproc require_page {source} {
     if {$source ne ""} {
       my instvar package_id
       set page [$package_id resolve_page $source __m]
@@ -182,6 +183,34 @@ namespace eval ::xowiki::portlet {
     }
     return $page
   }  
+
+  ::xowiki::Portlet instproc get_page_order {-source -ordered_pages -pages} {
+    my instvar page_order pages ordered_pages
+    # 
+    # first check, if we can load the page_order from the page
+    # denoted by source
+    #
+    if {[info exists source]} {
+      set p [my require_page $source]
+      if {$p ne ""} {
+	array set ia [$p set instance_attributes]
+	if {[info exists ia(pages)]} {
+	  set pages $ia(pages)
+	} elseif {[info exists ia(ordered_pages)]} {
+	  set ordered_pages $ia(ordered_pages)
+	}
+      }
+    }
+    
+    # compute a list of ordered_pages from pages, if necessary
+    if {[info exists ordered_pages]} {
+      foreach {order page} $ordered_pages {set page_order($page) $order}
+    } else {
+      set i 0
+      foreach page $pages {set page_order($page) [incr i]}
+    }
+  }
+  
 }
 
 namespace eval ::xowiki::portlet {
@@ -243,7 +272,7 @@ namespace eval ::xowiki::portlet {
         }}
       } -instproc render {} {
         my get_parameters
-        set page [my get_source $source]
+        set page [my require_page $source]
         if {[$page exists $variable]} {
           return [$page set $variable]
         } else {
@@ -261,7 +290,7 @@ namespace eval ::xowiki::portlet {
         }}
       } -instproc render {} {
         my get_parameters
-        set page [my get_source $source]
+        set page [my require_page $source]
         set time [$page set creation_date]
         regexp {^([^.]+)[.]} $time _ time
         return [clock format [clock scan $time] -format $format]
@@ -1157,6 +1186,7 @@ namespace eval ::xowiki::portlet {
           {-remove_levels 0}
           {-category_id}
           {-locale ""}
+          {-source ""}
         }}
       }
 
@@ -1177,7 +1207,7 @@ namespace eval ::xowiki::portlet {
     return $anchor
   }
 
-  toc instproc get_nodes {open_page package_id expand_all remove_levels locale} {
+  toc instproc get_nodes {open_page package_id expand_all remove_levels locale source} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
 
@@ -1193,13 +1223,31 @@ namespace eval ::xowiki::portlet {
         [my locale_clause -revisions p -items p $package_id $locale] break
     #my msg locale_clause=$locale_clause
 
+    if {$source ne ""} {
+      my get_page_order -source $source
+      set page_names ('[join [my array names page_order] ',']')
+      set page_order_clause "and name in $page_names"
+      set page_order_att ""
+    } else {
+      set page_order_clause "and not page_order is NULL"
+      set page_order_att "page_order,"
+    }
+
     set sql [::xo::db::sql select \
-                 -vars "page_id,  page_order, name, title" \
+                 -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
                  -where "parent_id=[$package_id folder_id] \
-			and not page_order is NULL \
+			$page_order_clause \
 			$extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
+
+    if {$source ne ""} {
+      # add the page_order to the objects
+      foreach p [$pages children] {
+	$p set page_order [my set page_order([$p set name])]
+      }
+    }
+
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
@@ -1439,7 +1487,7 @@ namespace eval ::xowiki::portlet {
     if {[info exists category_id]} {my set category_id $category_id}
             
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all \
-                          $remove_levels $locale]
+                          $remove_levels $locale $source]
 
     return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
   }
@@ -1455,7 +1503,9 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-edit_links:boolean true}
           {-pages ""}
-          {-ordered_pages}
+          {-ordered_pages ""}
+          {-source}
+          {-menu_buttons edit}
         }}
       }
 
@@ -1465,14 +1515,12 @@ namespace eval ::xowiki::portlet {
     my set package_id $package_id
     my set edit_links $edit_links
 
-    # compute a list of ordered_pages from pages, if necessary
-    if {[info exists ordered_pages]} {
-      foreach {order page} $ordered_pages {set page_order($page) $order}
+    if {[info exists source]} {
+      my get_page_order -source $source
     } else {
-      set i 0
-      foreach page $pages { set page_order($page) [incr i]}
+      my get_page_order -pages $pags -ordered_pages $ordered_pages
     }
-    
+
     # should check for quotes in names
     set page_names ('[join [array names page_order] ',']')
     set pages [::xowiki::Page instantiate_objects -sql \
@@ -1487,25 +1535,19 @@ namespace eval ::xowiki::portlet {
     
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
-    return [my render_children $pages]
+    return [my render_children $pages $menu_buttons]
   }
 
-  selection instproc render_children {pages} {
+  selection instproc render_children {pages menu_buttons} {
     my instvar package_id edit_links
     foreach o [$pages children] {
-      $o instvar page_order title page_id name title 
+      $o instvar page_order title page_id name title
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
       set edit_markup ""
       set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
-      if {$edit_links} {
-        set p_link [$package_id pretty_link $name]
-        set edit_link [$package_id make_link -link $p_link $p edit return_url]
-        if {$edit_link ne ""} {
-          set edit_markup "<div style='float: right'><a href=\"$edit_link\"><image src='/resources/acs-subsite/Edit16.gif' border='0' ></a></div>"
-        }
-      }
       $p set unresolved_references 0
+      
       switch [$p info class] {
         ::xowiki::Form {
           set content [$p render]
@@ -1515,8 +1557,17 @@ namespace eval ::xowiki::portlet {
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
+
+      set menu [list]
+      foreach b $menu_buttons {
+	if {[info command ::xowiki::portlet::$b] eq ""} {
+	  set b $b-item-button
+	}
+	set html [$p include_portlet [list $b -book_mode true]]
+	if {$html ne ""} {lappend menu $html}
+      }
       append output "<h$level class='book'>" \
-          $edit_markup \
+          "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
@@ -1580,7 +1631,7 @@ namespace eval ::xowiki::portlet {
         {__decoration plain}
         {parameter_declaration {
           {-category_id}
-          {-menu_buttons edit-item-button}
+          {-menu_buttons edit}
           {-locale ""}
         }}
       }
@@ -2284,7 +2335,7 @@ namespace eval ::xowiki::portlet {
                      -spec $cr_field_spec,$short_spec]
 	  if {$spec_name eq "_text"} {
 	    lappend sql_atts "cr.content as text"
-	  } else {
+	  } elseif {$spec_name ne "_name"} {
 	    lappend sql_atts p.$varname
 	  }
         }
@@ -2355,6 +2406,10 @@ namespace eval ::xowiki::portlet {
       
       set __c [t1 last_child]
       $__c set _name.href $page_link
+
+      # set always last_modified for default sorting
+      $__c set _last_modified [$p set last_modified]
+
       foreach __fn $field_names {
         switch -glob -- $__fn {
           __* {error not_allowed}
@@ -2368,8 +2423,6 @@ namespace eval ::xowiki::portlet {
             }
           }
         }
-	# set always last_modified for default sorting
-	$__c set _last_modified [$p set last_modified]
         $__c set $__fn [$__ff($__fn) pretty_value $__value]
       }
     }
