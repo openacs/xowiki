@@ -49,7 +49,11 @@ namespace eval ::xowiki {
     return "<a [my atts] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
-    return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
+    if {$href eq ""} {
+      return \[$label\]
+    } else {
+      return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
+    }
   }
   Link instproc render {} {
     my instvar package_id
@@ -73,6 +77,7 @@ namespace eval ::xowiki {
       set title [my label]
       set href [export_vars -base [$package_id package_url] \
                     {{edit-new 1} object_type name title}]
+
       my render_not_found $href [my label]
     }
   }
@@ -155,10 +160,10 @@ namespace eval ::xowiki {
       $page incr unresolved_references
       set last_page_id [$page set item_id]
       set title $label
-      set link [export_vars -base [$package_id package_url] \
-                    {{edit-new 1} {object_type ::xowiki::File} 
-                      {return_url "[$package_id url]"}
-                      name title last_page_id}]
+      set object_type ::xowiki::File
+      set return_url [$package_id url]
+      set link [$package_id make_link $package_id edit-new object_type \
+		    return_url autoname name title] 
       my render_not_found $link $label
     }
   }
