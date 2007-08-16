@@ -310,10 +310,10 @@ namespace eval ::xowiki {
 	::xowiki::Package initialize -package_id $package_id -init_url false
 	# rename swf:name and image:name to file:name
 	db_dml change_swf \
-	    "update cr_items set name = 'file' || substring(name,4) \
+	    "update cr_items set name = 'file' || substr(name,4) \
 		where name like 'swf:%' and parent_id = [$package_id folder_id]"
 	db_dml change_image \
-	    "update cr_items set name = 'file' || substring(name,6) \
+	    "update cr_items set name = 'file' || substr(name,6) \
 		where name like 'image:%' and parent_id = [$package_id folder_id]"
 	# reload updated prototype pages
 	$package_id import_prototype_page book
