@@ -3,6 +3,10 @@
     font-size: 85%;
     color: #9a9a9b;
 }
+div.post {
+    clear: both; 
+    background: #f8f8f8;
+}
 .post p.auth {
     padding: 0 0 0 12px;
     font-size: 85%;

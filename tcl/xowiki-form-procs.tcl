@@ -232,7 +232,7 @@ namespace eval ::xowiki {
         || [$data form_parameter __object_name] ne $name
       } {
       set folder_id [$data parent_id]
-      return [expr {[CrItem lookup -name $name -parent_id $folder_id] == 0}]
+      return [expr {[::xo::db::CrClass lookup -name $name -parent_id $folder_id] == 0}]
     }
     return 1
   }
@@ -657,10 +657,10 @@ namespace eval ::xowiki {
     if {$page_template_id eq ""} {
       set page_template_id [$data set page_template]
     }
-    set template [::Generic::CrItem instantiate -item_id $page_template_id]
+    set template [::xo::db::CrClass get_instance_from_db -item_id $page_template_id]
     $template destroy_on_cleanup
-    set dont_edit [concat [[$data info class] edit_atts] [list title] \
-                       [::Generic::CrClass set common_query_atts]]
+    set dont_edit [concat [[$data info class] array names db_slot] \
+                       [::xo::db::CrClass set common_query_atts]]
 
     set category_spec [$data get_short_spec @categories]
     foreach f [split $category_spec ,] {

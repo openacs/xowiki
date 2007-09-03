@@ -13,8 +13,8 @@
 }
 
 
-set page_id [$package_id resolve_request -path $page_name method]
-set page_id [::Generic::CrItem lookup -name $page_name -parent_id [$package_id folder_id]]
+#set page_id   [$package_id resolve_request -path $page_name method]
+set page_id    [::xo::db::CrClass lookup -name $page_name -parent_id [$package_id folder_id]]
 set page_title [$page_id title]
 
 # for the time being, we add the portlet on the first page (page 0)

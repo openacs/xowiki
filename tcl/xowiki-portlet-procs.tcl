@@ -370,7 +370,7 @@ namespace eval ::xowiki::portlet {
     set content ""
     set folder_id [$package_id folder_id]
     set open_item_id [expr {$open_page ne "" ?
-                            [CrItem lookup -name $open_page -parent_id $folder_id] : 0}]
+                [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
     foreach {locale locale_clause} \
         [my locale_clause -revisions r -items ci $package_id $locale] break
@@ -602,7 +602,7 @@ namespace eval ::xowiki::portlet {
         if {$allow_edit} {
           #set page_link [$package_id pretty_link $name]
           #set edit_link [$package_id make_link $page_link edit return_url]
-          set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+          set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
           $p destroy_on_cleanup
           set page_link [$package_id pretty_link $name]
           set edit_link [$package_id make_link -link $page_link $p edit return_url]
@@ -611,7 +611,7 @@ namespace eval ::xowiki::portlet {
         }
         if {$allow_delete} {
           if {![info exists p]} {
-            set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+            set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
             $p destroy_on_cleanup
           }
           set page_link [$package_id pretty_link $name]
@@ -1544,7 +1544,7 @@ namespace eval ::xowiki::portlet {
       $o instvar page_order title page_id name title
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
       set edit_markup ""
-      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
       $p set unresolved_references 0
       
@@ -1671,7 +1671,7 @@ namespace eval ::xowiki::portlet {
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
-      set p [::Generic::CrItem instantiate -item_id 0 -revision_id $page_id]
+      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
 
       $p set unresolved_references 0
@@ -2224,7 +2224,7 @@ namespace eval ::xowiki::portlet {
     set base [$package_id pretty_link [$__including_page name]]
     set new_link [$package_id make_link -link $base $__including_page create-new return_url]
     set answer_link [$package_id make_link -link $base $__including_page list return_url]
-    set template [::Generic::CrItem instantiate -item_id $form_item_id]
+    set template [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
     set count [$template count_usages]
     set links [list]
     foreach l [list new_link answer_link] {
@@ -2281,7 +2281,7 @@ namespace eval ::xowiki::portlet {
       if {$form_item_id == 0} {error "Cannot lookup page $form"}
     }
 
-    set form_item [::xowiki::Form instantiate -item_id $form_item_id]
+    set form_item [::xowiki::Form get_instance_from_db -item_id $form_item_id]
     $form_item destroy_on_cleanup
 
     if {![info exists field_names]} {
@@ -2295,7 +2295,7 @@ namespace eval ::xowiki::portlet {
     }
 
     set sql_atts [list instance_attributes ci.name]
-    foreach att [::xowiki::FormPage edit_atts] {set __att($att) 1}
+    foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
     set common_atts [list last_modified creation_user]
     foreach att $common_atts {
       lappend sql_atts p.$att
@@ -2382,7 +2382,7 @@ namespace eval ::xowiki::portlet {
     # maybe this could be slightly faster by using instantiate_objects
     # 
     set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
-    set items [::xowiki::FormPage instantiate_all \
+    set items [::xowiki::FormPage get_instances_from_db \
                    -select_attributes $sql_atts \
                    -from_clause ", xowiki_form_pagei p" \
                    -with_subtypes false \

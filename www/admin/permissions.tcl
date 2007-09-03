@@ -10,7 +10,7 @@
 }
 
 if {[info exists item_id]} {
-  set page [::Generic::CrItem instantiate -item_id $item_id]
+  set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
   $page volatile
   set object_id  $item_id
   set page_title "Manage Permissions for Page: [$page name]"

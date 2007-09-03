@@ -43,7 +43,7 @@ namespace eval ::xowiki {
     if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
       set name [my name]
     }
-    ::Generic::CrItem lookup -name $name -parent_id [my folder_id]
+    ::xo::db::CrClass lookup -name $name -parent_id [my folder_id]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] href='$href'>$label</a>"
@@ -202,7 +202,7 @@ namespace eval ::xowiki {
     set item_id [next]
     # my log "-- file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^file:} [my name] image: name]} {
-      set item_id [::Generic::CrItem lookup -name $name -parent_id [my folder_id]]
+      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
     }
     return $item_id
   }
@@ -245,7 +245,7 @@ namespace eval ::xowiki {
     set item_id [next]
     my log "--file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^swf:} [my name] file: name]} {
-      set item_id [::Generic::CrItem lookup -name $name -parent_id [my folder_id]]
+      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
       my log "--file, 2nd lookup of $name returned $item_id"
     }
     return $item_id
@@ -288,7 +288,7 @@ namespace eval ::xowiki {
       #::xowiki::Package initialize -package_id $id
       my log "--u setting package_id to $id"
       # lookup the item from the found folder
-      return [::Generic::CrItem lookup -name [my name] -parent_id [$id set folder_id]]
+      return [::xo::db::CrClass lookup -name [my name] -parent_id [$id set folder_id]]
     }
     #my log "--LINK no page found [my name], [my lang], type=[my type]."
     return 0

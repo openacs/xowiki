@@ -697,7 +697,12 @@ namespace eval ::xowiki {
       if {[my is_new_entry [my name]]} {
 	my set creator [::xo::get_user_name [::xo::cc user_id]]
 	my set nls_language [ad_conn locale]
-	my set name [$package_id query_parameter name ""]
+	#my set name [$package_id query_parameter name ""]
+	# TODO: maybe use __object_name to for POST url to make code 
+	# more straightworward
+        set n [$package_id query_parameter name \
+		   [::xo::cc form_parameter __object_name ""]]
+        if {$n ne ""} { my set name $n }
       }
 
       array set __ia [my set instance_attributes]
@@ -722,7 +727,9 @@ namespace eval ::xowiki {
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
       if {[my is_new_entry [my name]]} {
-	if {![$ff(_title) istype ::xowiki::FormField::hidden]} {$ff(_title) value ""}
+	if {![$ff(_title) istype ::xowiki::FormField::hidden]} {
+	  $ff(_title) value ""
+	}
 	if {!$anon_instances} {$ff(_name) value ""}
       }
     }
@@ -997,7 +1004,7 @@ namespace eval ::xowiki {
 #       set name [::$package_id normalize_name $name]
 #       set suffix ""; set i 0
 #       set folder_id [my parent_id]
-#       while {[CrItem lookup -name $name$suffix -parent_id $folder_id] != 0} {
+#       while {[::xo::db::CrClass lookup -name $name$suffix -parent_id $folder_id] != 0} {
 #         set suffix -[incr i]
 #       }
 #       set name $name$suffix
@@ -1050,7 +1057,7 @@ namespace eval ::xowiki {
 
     set source_item_id [$package_id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
-      set source [FormPage instantiate -item_id $source_item_id]
+      set source [FormPage get_instance_from_db -item_id $source_item_id]
       $source destroy_on_cleanup
       $f copy_content_vars -from_object $source
       #$f set __autoname_prefix "[my name] - "

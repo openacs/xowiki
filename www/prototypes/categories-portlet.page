@@ -30,7 +30,7 @@
     set folder_id [$package_id folder_id]
 
     set open_item_id [expr {$open_page ne "" ?
-                            [CrItem lookup -name $open_page -parent_id $folder_id] : 0}]
+             [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
     set content ""
     foreach tree [category_tree::get_mapped_trees $package_id] {

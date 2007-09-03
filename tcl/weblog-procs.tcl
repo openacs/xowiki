@@ -136,16 +136,19 @@ namespace eval ::xowiki {
       
       if {$summary} {
         # we need always: package_id item_id name title creator creation_user pretty_date
-        set p [Page new -package_id $package_id -item_id $item_id \
+        set p [Page new \
+		   -package_id $package_id \
+		   -item_id $item_id -revision_id $revision_id \
                    -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
         $p set description [expr {$description eq "" && $body ne ""? \
-                                      "[string range $body 0 $summary_chars]..." : $description}]
+                    "[string range $body 0 $summary_chars]..." : \
+		    $description}]
         $p set instance_attributes $instance_attributes
       } else {
         # do full instantiation and rendering
         # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[my isobject ::$revision_id]"
-        set p [::Generic::CrItem instantiate -item_id 0 -revision_id $revision_id]
+        set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $revision_id]
 	# in cases, the revision was created already earlier, drop the mixins
 	if {[$p info mixin] ne ""} {$p mixin {}}
         if {[my exists entry_flag]} {$p set [my entry_flag] 1}

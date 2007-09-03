@@ -10,38 +10,44 @@ namespace eval ::xowiki {
   #
   # create classes for different kind of pages
   #
-  ::Generic::CrClass create Page -superclass ::Generic::CrItem \
+  ::xo::db::CrClass create Page -superclass ::xo::db::CrItem \
       -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
-      -cr_attributes {
+      -slots {
         if {[::xo::db::has_ltree]} {
-          ::Generic::Attribute new -attribute_name page_order -datatype text \
-	      -sqltype ltree -validator page_order
+          ::xo::db::CrAttribute create page_order \
+	      -sqltype ltree -validator page_order -default ""
         }
-        ::Generic::Attribute new -attribute_name creator -datatype text
+        ::xo::db::CrAttribute create creator
+	# The following slots are defined elsewhere, but we override
+	# some default values, such as pretty_names, required state, 
+	# help text etc.
+	::xo::Attribute create name \
+	    -required true \
+	    -help_text #xowiki.Page-name-help_text# \
+	    -validator name
+	::xo::Attribute create title \
+	    -required true
+	::xo::Attribute create descripion \
+	    -spec "textarea,cols=80,rows=2" 
+	::xo::Attribute create text \
+	    -spec "richtext" 
+	::xo::Attribute create nls_language \
+	    -spec {select,options=[xowiki::locales]}
+	::xo::Attribute create last_modified \
+	    -spec date
+	::xo::Attribute create creation_user \
+	    -spec user_id
       } \
       -parameter {
-        page_id
-        {revision_id 0}
-        item_id
-        object_type
-        parent_id
-        package_id
-        name
-        title
-        text
-        description
-        nls_language
-        {folder_id -100}
         {lang en}
         {render_adp 1}
         {absolute_links 0}
-        last_modified
-        creation_user
       } \
       -form ::xowiki::WikiForm
 
+  ::xowiki::Page log "--slots [::xo::slotobjects ::xowiki::Page]"
   # TODO: the following slot definitions are not meant to stay this way.
   # when we change to the xotcl 1.5.0+ slots, this will go away
   if {$::xotcl::version < 1.5} {
@@ -55,104 +61,85 @@ namespace eval ::xowiki {
      }
   }
 
-  ::xowiki::Page::slot::name set pretty_name #xowiki.Page-name#
-  ::xowiki::Page::slot::name set required true
-  ::xowiki::Page::slot::name set help_text #xowiki.Page-name-help_text#
-  ::xowiki::Page::slot::name set datatype text
-  ::xowiki::Page::slot::name set validator name
-
-  ::xowiki::Page::slot::title set pretty_name #xowiki.Page-title#
-  ::xowiki::Page::slot::title set required true
-  ::xowiki::Page::slot::title set datatype text
-
-  ::xowiki::Page::slot::description set pretty_name #xowiki.Page-description#
-  ::xowiki::Page::slot::description set spec "textarea,cols=80,rows=2"
-  ::xowiki::Page::slot::description set datatype text
-
-  ::xowiki::Page::slot::text set pretty_name #xowiki.Page-text#
-  ::xowiki::Page::slot::text set spec "richtext"
-  ::xowiki::Page::slot::text set datatype text
-
-  ::xowiki::Page::slot::nls_language set pretty_name #xowiki.Page-nls_language#
-  ::xowiki::Page::slot::nls_language set datatype text
-  ::xowiki::Page::slot::nls_language set spec {select,options=[xowiki::locales]}
-
-  ::xowiki::Page::slot::last_modified set pretty_name #xowiki.Page-last_modified#
-  ::xowiki::Page::slot::last_modified set spec date
-
-  ::xowiki::Page::slot::creation_user set spec user_id
-
-  ::Generic::CrClass create PlainPage -superclass Page \
+  ::xo::db::CrClass create PlainPage -superclass Page \
       -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
       -table_name "xowiki_plain_page" -id_column "ppage_id" \
       -mime_type text/plain \
       -form ::xowiki::PlainWikiForm
 
-  ::Generic::CrClass create File -superclass Page \
+  ::xo::db::CrClass create File -superclass Page \
       -pretty_name "XoWiki File" -pretty_plural "XoWiki Files" \
       -table_name "xowiki_file" -id_column "file_id" \
       -storage_type file \
       -form ::xowiki::FileForm
 
-  ::Generic::CrClass create PodcastItem -superclass File \
+  ::xo::db::CrClass create PodcastItem -superclass File \
       -pretty_name "Podcast Item" -pretty_plural "Podcast Items" \
       -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
-      -cr_attributes {
-          ::Generic::Attribute new -attribute_name pub_date -datatype date \
-              -sqltype timestamp -spec "date,format=YYYY_MM_DD_HH24_MI"
-          ::Generic::Attribute new -attribute_name duration -datatype text \
-              -help_text "#xowiki.PodcastItem-duration-help_text#"
-          ::Generic::Attribute new -attribute_name subtitle -datatype text
-          ::Generic::Attribute new -attribute_name keywords -datatype text \
-              -help_text "#xowiki.PodcastItem-keywords-help_text#"
+      -slots {
+	::xo::db::CrAttribute create pub_date \
+	    -datatype date \
+	    -sqltype timestamp \
+	    -spec "date,format=YYYY_MM_DD_HH24_MI"
+	::xo::db::CrAttribute create duration \
+	    -help_text "#xowiki.PodcastItem-duration-help_text#"
+	::xo::db::CrAttribute create subtitle
+	::xo::db::CrAttribute create keywords \
+	    -help_text "#xowiki.PodcastItem-keywords-help_text#"
       } \
       -storage_type file \
       -form ::xowiki::PodcastForm
-
-  ::Generic::CrClass create PageTemplate -superclass Page \
+  
+  ::xo::db::CrClass create PageTemplate -superclass Page \
       -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
-      -cr_attributes {
-        ::Generic::Attribute new -attribute_name anon_instances -datatype boolean \
+      -slots {
+        ::xo::db::CrAttribute create anon_instances \
+	    -datatype boolean \
             -sqltype boolean -default "f" 
       } \
       -form ::xowiki::PageTemplateForm
 
-  ::Generic::CrClass create PageInstance -superclass Page \
+  ::xo::db::CrClass create PageInstance -superclass Page \
       -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
       -table_name "xowiki_page_instance"  -id_column "page_instance_id" \
-      -cr_attributes {
-        ::Generic::Attribute new -attribute_name page_template \
-            -datatype integer -sqltype integer -references cr_items(item_id)
-        ::Generic::Attribute new -attribute_name instance_attributes \
-            -datatype text -sqltype long_text -default ""
+      -slots {
+        ::xo::db::CrAttribute create page_template \
+            -datatype integer \
+	    -references cr_items(item_id)
+        ::xo::db::CrAttribute create instance_attributes \
+            -sqltype long_text \
+	    -default ""
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
 
-  ::Generic::CrClass create Object -superclass PlainPage \
+  ::xo::db::CrClass create Object -superclass PlainPage \
       -pretty_name "XoWiki Object" -pretty_plural "XoWiki Objects" \
       -table_name "xowiki_object"  -id_column "xowiki_object_id" \
-      -mime_type text/xotcl \
+      -mime_type text/plain \
       -form ::xowiki::ObjectForm
 
-  ::Generic::CrClass create Form -superclass PageTemplate \
+  ::xo::db::CrClass create Form -superclass PageTemplate \
       -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
       -table_name "xowiki_form"  -id_column "xowiki_form_id" \
-      -cr_attributes {
-        ::Generic::Attribute new -attribute_name form \
-            -datatype text -sqltype long_text -default ""
-        ::Generic::Attribute new -attribute_name form_constraints \
-            -datatype text -sqltype long_text -default "" \
-            -validator form_constraints -spec "textarea,cols=100,rows=2"
+      -slots {
+        ::xo::db::CrAttribute create form \
+            -sqltype long_text \
+	    -default ""
+        ::xo::db::CrAttribute create form_constraints \
+            -sqltype long_text \
+	    -default "" \
+            -validator form_constraints \
+	    -spec "textarea,cols=100,rows=2"
       } \
       -form ::xowiki::FormForm
 
-  ::Generic::CrClass create FormPage -superclass PageInstance \
+  ::xo::db::CrClass create FormPage -superclass PageInstance \
       -pretty_name "XoWiki FormPage" -pretty_plural "XoWiki FormPages" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" 
 
-  #::Generic::CrClass create FormInstance -superclass PageInstance \
+  #::xo::db::CrClass create FormInstance -superclass PageInstance \
   #    -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
   #    -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
 
@@ -466,8 +453,7 @@ namespace eval ::xowiki {
 
     # do we have a wellformed list?
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
-      #my log "--S arg='$arg'"
-      # there is something syntactically wrong
+      # there must be something syntactically wrong
       return [my error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
 
@@ -508,6 +494,7 @@ namespace eval ::xowiki {
         #my log "--resolve --> $page"
       } else {
         $package_id context [::xo::Context new -volatile]
+	my log "--setting context of $package_id to [[$package_id context] serialize]"
         set page [$package_id resolve_page $page_name __m]
       }
       $package_id context $last_context
@@ -731,7 +718,7 @@ namespace eval ::xowiki {
 
   Page instproc adp_subst {content} {
     #my log "--adp_subst in [my name]"
-    set __ignorelist [list RE __defaults name_method object_type_key]
+    set __ignorelist [list RE __defaults name_method object_type_key db_slot]
     foreach __v [my info vars] {
       if {[info exists $__v]} continue
       my instvar $__v
@@ -1140,7 +1127,7 @@ namespace eval ::xowiki {
   PageInstance instproc get_from_template {var} {
     my instvar page_template
     #my log  "-- fetching page_template = $page_template"
-    ::Generic::CrItem instantiate -item_id $page_template
+    ::xo::db::CrClass get_instance_from_db -item_id $page_template
     $page_template destroy_on_cleanup
     return [$page_template set $var]
   }
@@ -1284,7 +1271,6 @@ namespace eval ::xowiki {
     return 1
   }
 
-
   #
   # Methods of ::xowiki::FormPage
   #
@@ -1301,8 +1287,8 @@ namespace eval ::xowiki {
     # this method returns the form attributes (including _*)
     #
     my instvar page_template
-    set dont_edit [concat [[my info class] edit_atts] [list title] \
-                       [::Generic::CrClass set common_query_atts]]
+    set dont_edit [concat [[my info class] array names db_slot] [list title] \
+                       [::xo::db::CrClass set common_query_atts]]
 
     set template [lindex [my get_from_template text] 0]
     #set field_names [list _name _title _description _creator _nls_language _page_order]

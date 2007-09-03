@@ -50,7 +50,7 @@ namespace eval ::xowiki {
 			  -package_id $package_id \
 			  -content_types ::xowki::Page* \
 			  -name xowiki]
-      set r [::CrWikiPage instantiate_all -folder_id $folder_id]
+      set r [::CrWikiPage get_instances_from_db -folder_id $folder_id]
       db_transaction {
         array set map {
           ::CrWikiPage      ::xowiki::Page
@@ -151,7 +151,7 @@ namespace eval ::xowiki {
                 where page_title != '' and revision_id = p.page_id"
 
       db_list delete_deprecated_types_from_ancient_versions \
-	  "select [::xo::db::function_name content_item__delete(i.item_id)] from cr_items i \
+	  "select [::xo::db::sql map_function_name content_item__delete(i.item_id)] from cr_items i \
                 where content_type in ('CrWikiPage', 'CrWikiPlainPage', \
                 'PageInstance', 'PageTemplate','CrNote', 'CrSubNote')"
     }
@@ -322,11 +322,30 @@ namespace eval ::xowiki {
       }
     }
 
-    if {[apm_version_names_compare $from_version_name "0.65"] == -1 &&
-        [apm_version_names_compare $to_version_name "0.65"] > -1} {
-      ns_log notice "-- upgrading to 0.65"
+    set v 0.70
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      # for all xowiki package instances 
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page categories-portlet
+      }
+      # perform the upgrate of 0.62 for the s5 package as well
+      if {[info command ::s5::Package] ne ""} {
+	foreach package_id [::s5::Package instances] {
+	  ::s5::Package initialize -package_id $package_id -init_url false
+	  # rename swf:name and image:name to file:name
+	  db_dml change_swf \
+	      "update cr_items set name = 'file' || substr(name,4) \
+		where name like 'swf:%' and parent_id = [$package_id folder_id]"
+	  db_dml change_image \
+	      "update cr_items set name = 'file' || substr(name,6) \
+		where name like 'image:%' and parent_id = [$package_id folder_id]"
+	}
+      }
       catch {
-	# for new installs, the old column might not exist
+	# for new installs, the old column might not exist, therefor the catch
 	db_dml drop_old_column \
 	    "alter table xowiki_page_instance drop column old_page_template"
       }

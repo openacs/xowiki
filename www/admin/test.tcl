@@ -365,7 +365,7 @@ set content [::$package_id invoke -method $m]
 ? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
     "folder contains: folder object, index and weblog page (+1 includelet)"
 
-test subsection "Create a test page named hello"
+test subsection "Create a test page named hello with package_id $package_id"
 
 set page [::xowiki::Page new \
               -title "Hello World" \
@@ -379,6 +379,7 @@ set page [::xowiki::Page new \
 $page set_content [string trim [$page text] " \n"]
 $page initialize_loaded_object
 $page save_new
+? {$page set package_id} $package_id "package_id $package_id not modified"
 ? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
     "folder contains: folder object, index and weblog, hello page (+1 includelet)"
 ? {expr {[$page revision_id]>0}} 1 "revision_id given"

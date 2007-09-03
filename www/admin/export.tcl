@@ -20,7 +20,7 @@ if {$objects eq ""} {
   db_foreach instance_select $sql { lappend item_ids $item_id }
 } else {
   foreach o $objects {
-    if {[set id [CrItem lookup -name $o -parent_id $folder_id]] != 0} {
+    if {[set id [::xo::db::CrClass lookup -name $o -parent_id $folder_id]] != 0} {
       lappend item_ids $id
     }
   }
@@ -28,7 +28,7 @@ if {$objects eq ""} {
 
 set content ""
 foreach item_id $item_ids {
-  ::Generic::CrItem instantiate -item_id $item_id
+  ::xo::db::CrClass get_instance_from_db -item_id $item_id
   #
   # if the page belongs to an Form/PageTemplate, include it as well
   #
@@ -36,7 +36,7 @@ foreach item_id $item_ids {
     set template_id [$item_id page_template]
     if {[lsearch $item_ids $template_id] == -1 &&
         ![info exists included($template_id)]} {
-      ::Generic::CrItem instantiate -item_id $template_id
+      ::xo::db::CrClass get_instance_from_db -item_id $template_id
       $template_id volatile
       append content [$template_id marshall] \n
       set included($template_id) 1

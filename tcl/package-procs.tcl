@@ -23,9 +23,9 @@ namespace eval ::xowiki {
     when testing e.g. from the developer shell
   } {
     #TODO can most probably further simplified
-    set page [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
+    set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
 
-    #my log "--I instantiate i=$item_id revision_id=$revision_id page=$page"
+    #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page"
 
     $page folder_id [$page set parent_id] 
     if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
@@ -397,12 +397,12 @@ namespace eval ::xowiki {
       $page destroy_on_cleanup
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
-      set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
+      set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
       if {$item_id == 0} {
         $page save_new
       } else {
         # get the page from the CR with all variables
-        set p [::Generic::CrItem instantiate -item_id $item_id]
+        set p [::xo::db::CrClass get_instance_from_db -item_id $item_id]
         $p destroy_on_cleanup
         # copy all variables from the prototype page 
         # into the instantiated page 
@@ -456,19 +456,19 @@ namespace eval ::xowiki {
 
     if {$path ne ""} {
 
-      set item_id [::Generic::CrItem lookup -name $path -parent_id $folder_id]
+      set item_id [::xo::db::CrClass lookup -name $path -parent_id $folder_id]
       my log "--try $path -> $item_id"
       
       if {$item_id == 0} {
         my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name
-        set item_id [::Generic::CrItem lookup -name $name -parent_id $folder_id]
-        #my log "--try $name -> $item_id // ::Generic::CrItem lookup -name $name -parent_id $folder_id"
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
+        #my log "--try $name -> $item_id // ::xo::db::CrClass lookup -name $name -parent_id $folder_id"
         if {$item_id == 0 && $lang eq "download" 
             && [regexp {^([^/]+)/(.*)$} $local_name _ prefix base_name]} {
-	  set item_id [::Generic::CrItem lookup -name ${prefix}:$base_name -parent_id $folder_id]
+	  set item_id [::xo::db::CrClass lookup -name ${prefix}:$base_name -parent_id $folder_id]
 	  if {$item_id == 0} {
-	    set item_id [::Generic::CrItem lookup -name image:$base_name -parent_id $folder_id]
+	    set item_id [::xo::db::CrClass lookup -name image:$base_name -parent_id $folder_id]
 	  }
 	  if {$item_id != 0} {
 	    upvar $method_var method
@@ -476,15 +476,15 @@ namespace eval ::xowiki {
 	  }
 	}
         if {$item_id == 0 && $lang eq "file"} {
-          set item_id [::Generic::CrItem lookup -name swf:$local_name -parent_id $folder_id]
+          set item_id [::xo::db::CrClass lookup -name swf:$local_name -parent_id $folder_id]
           if {$item_id == 0} {
-            set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
+            set item_id [::xo::db::CrClass lookup -name image:$local_name -parent_id $folder_id]
           }
           my log "--try image:$local_name -> $item_id"
         }
         if {$item_id == 0} {
           set nname   [my normalize_name $name]
-          set item_id [::Generic::CrItem lookup -name $nname -parent_id $folder_id]
+          set item_id [::xo::db::CrClass lookup -name $nname -parent_id $folder_id]
           my log "--try $nname -> $item_id"
         }
       } 
@@ -493,7 +493,7 @@ namespace eval ::xowiki {
       set revision_id [my query_parameter revision_id 0]
       set [expr {$revision_id ? "item_id" : "revision_id"}] 0
       #my log "--instantiate item_id $item_id revision_id $revision_id"
-      set r [::Generic::CrItem instantiate -item_id $item_id -revision_id $revision_id]
+      set r [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
       $r destroy_on_cleanup
       #my log "--instantiate done  CONTENT\n[$r serialize]"
       $r set package_id [namespace tail [self]]
@@ -520,7 +520,7 @@ namespace eval ::xowiki {
       if {[catch {eval [nsv_get xotcl_object_cache ::$folder_id]}]} {
         while {1} {
           set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
-            set myid [CrItem lookup -name ::$folder_id -parent_id $folder_id]
+            set myid [::xo::db::CrClass lookup -name ::$folder_id -parent_id $folder_id]
             if {$myid == 0} break; # don't cache ID if invalid
             return $myid
           }]
@@ -634,14 +634,14 @@ namespace eval ::xowiki {
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} continue
 
-      set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+      set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
       if {$item_id != 0} {
 	if {$replace} { ;# we delete the original
-	  ::Generic::CrItem delete -item_id $item_id
+	  ::xo::db::CrClass delete -item_id $item_id
 	  set item_id 0
 	  incr replaced
 	} else {
-	  ::Generic::CrItem instantiate -item_id $item_id
+	  ::xo::db::CrClass get_instance_from_db -item_id $item_id
           $item_id copy_content_vars -from_object $o
 	  $item_id save
 	  incr updated
@@ -656,18 +656,18 @@ namespace eval ::xowiki {
     foreach o $objects {
       if {[$o istype ::xowiki::PageInstance]} {
 	set old_template_id [$o set page_template]
-	set template_id [CrItem lookup \
+	set template_id [::xo::db::CrClass lookup \
 			  -name [::$old_template_id set name] \
 			  -parent_id $folder_id]
         db_transaction {
-          set item_id [CrItem lookup -name [$o set name] -parent_id $folder_id]
+          set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
           if {$item_id != 0} {
 	    if {$replace} { ;# we delete the original
-	      ::Generic::CrItem delete -item_id $item_id
+	      ::xo::db::CrClass delete -item_id $item_id
 	      set item_id 0
 	      incr replaced
 	    } else {
-	      ::Generic::CrItem instantiate -item_id $item_id
+	      ::xo::db::CrClass get_instance_from_db -item_id $item_id
 	      $item_id copy_content_vars -from_object $o
               $item_id set page_template $template_id
 	      $item_id save
@@ -851,7 +851,7 @@ namespace eval ::xowiki {
 
     set source_item_id [$id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
-      set source [$object_type instantiate -item_id $source_item_id]
+      set source [$object_type get_instance_from_db -item_id $source_item_id]
       $source destroy_on_cleanup
       $page copy_content_vars -from_object $source
       set name ""
@@ -894,7 +894,7 @@ namespace eval ::xowiki {
     }
     if {$item_id ne ""} {
       #my log "--D trying to delete $item_id $name"
-      set object_type [::Generic::CrItem get_object_type -item_id $item_id]
+      set object_type [::xo::db::CrClass get_object_type -item_id $item_id]
       # in case of PageTemplate and subtypes, we need to check
       # for pages using this template
       set classes [concat $object_type [$object_type info heritage]]
