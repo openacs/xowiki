@@ -10,6 +10,7 @@ namespace eval ::xowiki {
 
   ::xo::PackageMgr create Package \
       -superclass ::xo::Package \
+      -package_key xowiki \
       -parameter {{folder_id "[::xo::cc query_parameter folder_id 0]"}}
 
   Package ad_proc instantiate_page_from_id {
@@ -40,19 +41,6 @@ namespace eval ::xowiki {
 	-parameter $parameter -init_url false -actual_query ""
     ::$package_id set_url -url [::$package_id pretty_link [$page name]]
     return $page
-  }
-
-  Package ad_proc instances {{-include_unmounted false}} {
-    @return list of package_ids of xowiki instances
-  } {
-    if {$include_unmounted} {
-      return [db_list [my qn get_xowiki_packages] {select package_id \
-        from apm_packages where package_key = 'xowiki'}]
-    } else {
-      return [db_list [my qn get_mounted_packages] {select package_id \
-        from apm_packages p, site_nodes s  \
-        where package_key = 'xowiki' and s.object_id = p.package_id}]
-    }
   }
 
   Package ad_proc get_url_from_id {{-item_id 0} {-revision_id 0}} {

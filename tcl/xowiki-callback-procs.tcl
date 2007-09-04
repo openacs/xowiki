@@ -45,7 +45,7 @@ namespace eval ::xowiki {
 
     if {$to_version_name eq "0.13"} {
       ns_log notice "-- upgrading to 0.13"
-      set package_id [::Generic::package_id_from_package_key xowiki]
+      set package_id [::xo::package_id_from_package_key xowiki]
       set folder_id  [::xowiki::Page require_folder \
 			  -package_id $package_id \
 			  -content_types ::xowki::Page* \
