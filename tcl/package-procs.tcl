@@ -28,10 +28,10 @@ namespace eval ::xowiki {
 
     #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page"
 
-    $page folder_id [$page set parent_id] 
+    set folder_id [$page set parent_id] 
     if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
       set package_id [db_string [my qn get_pid] \
-                          "select package_id from cr_folders where folder_id = [$page $folder_id]"]
+                          "select package_id from cr_folders where folder_id = $folder_id"]
       $page package_id $package_id
     } else {
       set package_id [$page set package_id]
