@@ -537,6 +537,13 @@ namespace eval ::xowiki {
           ::$folder_id set publish_status "production"
           ::$folder_id save_new
           ::$folder_id initialize_loaded_object
+
+          if {[my get_parameter "with_general_comments" 0]} {
+            # Grant automatically permissions to registered user to 
+            # add to general comments to objects under the folder.
+            permission::grant -party_id -2 -object_id $folder_id \
+                -privilege general_comments_create
+          }
         }
       }
       #my log "--f new folder object = ::$folder_id"
@@ -860,7 +867,7 @@ namespace eval ::xowiki {
     foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
   }
 
-  Package instproc delete {-item_id -name} {
+  Package instproc delete {-item_id:required -name:required} {
     #
     # This delete method does not require an instanantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
@@ -878,7 +885,7 @@ namespace eval ::xowiki {
     if {$item_id ne ""} {
       #my log "--D trying to delete $item_id $name"
       set object_type [::Generic::CrItem get_object_type -item_id $item_id]
-      # in case of PageTemplate and subtypes, we need to check
+      # In case of PageTemplate and subtypes, we need to check
       # for pages using this template
       set classes [concat $object_type [$object_type info heritage]]
       if {[lsearch $classes "::xowiki::PageTemplate"] > -1} {
@@ -887,6 +894,18 @@ namespace eval ::xowiki {
 	  return [$id error_msg \
 		      [_ xowiki.error-delete_entries_first [list count $count]]]
 	}
+      }
+      if {[my get_parameter "with_general_comments" 0]} {
+        #
+        # We have general comments. In a first step, we have to delete
+        # these, before we are able to delete the item.
+        #
+        set comment_ids [db_list [my qn get_comments] \
+                   "select comment_id from general_comments where object_id = $item_id"]
+        foreach comment_id $comment_ids { 
+          my log "-- deleting comment $comment_id"
+          ::xo::db::sql::content_item del -item_id $comment_id 
+        }
       }
       $object_type delete -item_id $item_id
       my flush_references -item_id $item_id -name $name
