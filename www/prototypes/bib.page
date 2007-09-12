@@ -26,8 +26,10 @@
     append content "<LI>[next]</LI>\n"
   }
   EntryRenderer instproc by_date {} {
-    array set ia [my set instance_attributes]
-    return "$ia(year)-[format %2d $ia(month)]"
+    if {[my exists instance_attributes]} {
+      array set ia [my set instance_attributes]
+      return "$ia(year)-[format %2d $ia(month)]"
+    }
   }
 
   #
@@ -56,6 +58,8 @@
   my proc content {} {
     my get_parameters
     set page [my info parent]
+
+    if {$entries_of eq ""} {return ""}
 
     if {[$page exists __including_page]} {
       set i [$page set __including_page]
