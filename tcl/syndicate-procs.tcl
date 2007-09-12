@@ -111,9 +111,14 @@ namespace eval ::xowiki {
       set form_items [list]
       set folder_id [$package_id folder_id]
       foreach t [split $entries_of |] {
-        set form_item_id [::xowiki::Form lookup -name $t -parent_id $folder_id]
+        set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
         if {$form_item_id == 0} {error "Cannot lookup page $t"}
         lappend form_items $form_item_id
+      }
+      if {[llength $form_items] == 0} {
+	# In case, we have no form_items to select on, let the query fail 
+	# without causing a SQL error.
+	set form_items [list -1]
       }
       append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = p.revision_id "
 
