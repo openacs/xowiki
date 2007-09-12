@@ -895,7 +895,7 @@ namespace eval ::xowiki {
 
     set entries [list]
     db_foreach [my qn get_popular_tags] \
-        [::xo::db::sql \
+        [::xo::db::sql select \
 	     -vars "count(*) as nr, tag" \
 	     -from "xowiki_tags" \
 	     -where "item_id=$item_id" \
