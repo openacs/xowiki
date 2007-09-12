@@ -951,7 +951,8 @@ namespace eval ::xowiki {
   File instproc get_content {} {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
-    set page_link [$package_id make_link -privilege public [self] download ""]
+    #set page_link [$package_id make_link -privilege public [self] download ""]
+    set page_link [$package_id pretty_link  -download true [my name]]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {

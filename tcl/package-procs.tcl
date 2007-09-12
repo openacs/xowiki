@@ -433,7 +433,7 @@ namespace eval ::xowiki {
     if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(file|image|download)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(file|image|swf|download)/(.*)$} $path _ lang local_name]} {
     } else {
       set key queryparm(lang)
       if {[info exists $key]} {
@@ -470,7 +470,8 @@ namespace eval ::xowiki {
 	    set method download
 	  }
 	}
-        if {$item_id == 0 && $lang eq "file"} {
+
+        if {$item_id == 0 && ($lang eq "file" || $lang eq "swf")} {
           set item_id [::Generic::CrItem lookup -name swf:$local_name -parent_id $folder_id]
           if {$item_id == 0} {
             set item_id [::Generic::CrItem lookup -name image:$local_name -parent_id $folder_id]
