@@ -932,6 +932,9 @@ namespace eval ::xowiki {
       regexp {^(.*):(.*)$} $name _ _t stripped_name
     } else {
       set stripped_name $fn
+      # Internet explorer seems to transmit the full path of the
+      # filename. Just use the last part in such cases as name.
+      regexp {[/\\]([^/\\]+)$} $stripped_name _ stripped_name
     }
     return ${type}:[::$package_id normalize_name $stripped_name]
   }

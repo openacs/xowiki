@@ -147,7 +147,7 @@ namespace eval ::xowiki {
     my instvar data
     my get_uploaded_file
     upvar title title
-    if {$title eq ""} {set title [$data set upload_file]}
+    if {$title eq ""} { set title [$data set upload_file] }
     # my log "--F validate_file returns [$data exists import_file]"
     return [$data exists import_file]
   }
