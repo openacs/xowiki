@@ -82,7 +82,7 @@ namespace eval ::xowiki {
     if {$entries_of ne ""} {
       set form_items [list]
       foreach t [split $entries_of |] {
-        set form_item_id [::xowiki::Form lookup -name $t -parent_id $folder_id]
+        set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
         if {$form_item_id == 0} {error "Cannot lookup page $t"}
         lappend form_items $form_item_id
       }
