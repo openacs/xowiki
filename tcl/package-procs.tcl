@@ -872,7 +872,7 @@ namespace eval ::xowiki {
     foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
   }
 
-  Package instproc delete {-item_id:required -name:required} {
+  Package instproc delete {-item_id -name} {
     #
     # This delete method does not require an instanantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
