@@ -59,7 +59,7 @@ namespace eval ::xowiki::portlet {
     return [string map [list : _ # _] [self]]
   }
 
-  ::xowiki::Portlet proc self_id {} {
+  ::xowiki::Portlet instproc self_id {} {
     return [string map [list : _ # _] [self]]
   }
   ::xowiki::Portlet proc html_id {name} {
@@ -851,7 +851,7 @@ namespace eval ::xowiki::portlet {
     foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
     set tags_with_links [join [lsort $entries] {, }]
 
-    if {![my exists id]} {my set id [::xowiki::Portlet self_id]}
+    if {![my exists id]} {my set id [::xowiki::Portlet html_id]}
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
       (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
@@ -1249,7 +1249,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc ajax_tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet self_id]'>
+    return "<div id='[::xowiki::Portlet html_id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
@@ -1379,7 +1379,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet self_id]'>
+    return "<div id='[::xowiki::Portlet html_id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
