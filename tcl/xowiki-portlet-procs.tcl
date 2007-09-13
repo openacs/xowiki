@@ -862,6 +862,7 @@ namespace eval ::xowiki::portlet {
         {parameter_declaration {
           {-summary 1}
         }}
+        id
       }
   
   my-tags instproc render {} {
@@ -885,16 +886,17 @@ namespace eval ::xowiki::portlet {
     foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
     set tags_with_links [join [lsort $entries] {, }]
 
+    if {![my exists id]} {my set id [::xowiki::Portlet self_id]}
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
-      (<a href='#' onclick='document.getElementById("[self]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
-       <a href='#' onclick='get_popular_tags("$popular_tags_link","[self]");return false;'>#xowiki.popular_tags_link#</a>)
-      <span id='[self]-edit_tags' style='display: none'>
+      (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
+       <a href='#' onclick='get_popular_tags("$popular_tags_link","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
+      <span id='[my id]-edit_tags' style='display: none'>
       <FORM action="$save_tag_link" method='POST'>
         <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
       </span>
-      <span id='[self]-popular_tags' style='display: none'></span><br/>
+      <span id='[my id]-popular_tags' style='display: none'></span><br/>
     }]
     return $content
   }
@@ -1308,7 +1310,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc ajax_tree {js_tree_cmds} {
-    return "<div id='[self]'>
+    return "<div id='[::xowiki::Portlet self_id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
@@ -1438,7 +1440,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc tree {js_tree_cmds} {
-    return "<div id='[self]'>
+    return "<div id='[::xowiki::Portlet self_id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
