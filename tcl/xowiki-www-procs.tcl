@@ -899,9 +899,13 @@ namespace eval ::xowiki {
   }
 
   Page instproc save-tags {} {
-    my instvar package_id item_id
-    ::xowiki::Page save_tags -user_id [::xo::cc user_id] -item_id $item_id \
-        -package_id $package_id [my form_parameter new_tags]
+    my instvar package_id item_id revision_id
+    ::xowiki::Page save_tags \
+	-user_id [::xo::cc user_id] \
+	-item_id $item_id \
+	-revision_id $revision_id \
+        -package_id $package_id \
+	[my form_parameter new_tags]
 
     ::$package_id returnredirect \
         [my query_parameter "return_url" [$package_id url]]

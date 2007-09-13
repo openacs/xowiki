@@ -344,7 +344,13 @@ namespace eval ::xowiki {
   # tag management, get_tags works on instance or gobally
   #
 
-  Page proc save_tags {-package_id:required -item_id:required -user_id:required tags} {
+  Page proc save_tags {
+       -package_id:required 
+       -item_id:required 
+       -revision_id:required 
+       -user_id:required 
+       tags
+     } {
     db_dml [my qn delete_tags] \
         "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
     foreach tag $tags {
@@ -352,7 +358,9 @@ namespace eval ::xowiki {
           "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
            values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
     }
-   }
+    search::queue -object_id $revision_id -event UPDATE
+  }
+
   Page proc get_tags {-package_id:required -item_id -user_id} {
     if {[info exists item_id]} {
       if {[info exists user_id]} {

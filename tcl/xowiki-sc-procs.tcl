@@ -59,13 +59,17 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       }
     }
   }
+  set package_id [$page package_id]
+  foreach tag [::xowiki::Page get_tags -package_id $package_id -item_id $item_id] {
+    set word($tag) 1
+  }
   #ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   return [list object_id $revision_id title [$page title] \
               content $text keywords [array names word] \
               storage_type text mime text/html \
               syndication [list \
-                        link [::[$page package_id] pretty_link -absolute 1 [$page set name]] \
+                        link [$package_id pretty_link -absolute 1 [$page set name]] \
                         description $text \
                         author [$page set creator] \
                         category "" \
