@@ -214,7 +214,7 @@ namespace eval ::xowiki {
   Page proc header_stuff {} {
     set result ""
     foreach file [array names ::need_css] {
-      append result "<link rel='stylesheet' href='$file' media='all' >\n"
+      append result "<link type='text/css' rel='stylesheet' href='$file' media='all' >\n"
     }
     if {[info exists ::js_order]} {
       foreach file $::js_order  {
