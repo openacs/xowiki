@@ -65,6 +65,16 @@ namespace eval ::xowiki::portlet {
   ::xowiki::Portlet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
+    #
+    # For XOTcl object names, strip first the colons
+    set name [string trimleft $name :]
+    
+    # make sure, the ID starts with characters
+    if {![regexp {^[A-Za-z]} $name]} {
+      set name id_$name
+    }
+
+    # replace unwanted characters
     regsub -all {[^A-Za-z0-9_:.-]} $name _ name
     return $name
   }
@@ -1153,6 +1163,7 @@ namespace eval ::xowiki::portlet {
           {-remove_levels 0}
           {-category_id}
         }}
+        id
       }
 
 #"select page_id,  page_order, name, title, \
@@ -1249,7 +1260,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc ajax_tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet html_id [self]]'>
+    return "<div id='[my id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
@@ -1361,7 +1372,7 @@ namespace eval ::xowiki::portlet {
 
 
          treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
             root = [my js_name].tree.getRoot(); 
             [my js_name].objs = new Array();
             $js_tree_cmds
@@ -1379,14 +1390,14 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet html_id [self]]'>
+    return "<div id='[my id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
          getPage: function(href, c) { return true; },
 
          treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
             root = [my js_name].tree.getRoot(); 
             [my js_name].objs = new Array();
             $js_tree_cmds
@@ -1622,8 +1633,14 @@ namespace eval ::xowiki::portlet {
 	set html [$p include_portlet [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
-      append output "<h$level class='book'>" \
-          "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
+      set menu [join $menu "&nbsp;"]
+      if {$menu ne ""} {
+        # <div> not allowed in h*: style='float: right; position: relative; top: -32px
+        set menu "<span style='float: right;'>$menu</span>"
+      }
+
+      append output \
+          "<h$level class='book'>" $menu \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
