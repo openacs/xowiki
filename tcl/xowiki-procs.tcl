@@ -639,7 +639,7 @@ namespace eval ::xowiki {
     } elseif {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       set link_type language
     } else {
-      # do we have a typed link?
+      # do we have a typed link? more than two chars...
       if {![regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ \
 		link_type _ lang  stripped_name]} {
         # must be an untyped link; defaults, in case the second regexp does not match either
@@ -666,7 +666,7 @@ namespace eval ::xowiki {
 	  }
 	  default {
 	    set link_type link
-	    set name $stripped_name
+	    #set name $stripped_name
 	  }
 	}
       }
