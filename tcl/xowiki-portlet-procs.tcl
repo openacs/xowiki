@@ -1436,10 +1436,10 @@ namespace eval ::xowiki::portlet {
       set ajax 0
     }
     my set ajax $ajax
+    if {![my exists id]} {my set id [::xowiki::Portlet html_id [self]]}
     if {[info exists category_id]} {my set category_id $category_id}
             
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all $remove_levels]
-
     return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
   }
 
