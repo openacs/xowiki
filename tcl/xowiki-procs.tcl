@@ -227,13 +227,13 @@ namespace eval ::xowiki {
   Page proc header_stuff {} {
     set result ""
     foreach file [array names ::need_css] {
-      append result "<link rel='stylesheet' href='$file' media='all' />\n"
+      append result "<link rel='stylesheet' href='$file' media='all' >\n"
     }
     if {[info exists ::js_order]} {
       foreach file $::js_order  {
         if {[string match "*;*" $file]} {
           # it is not a file, but some javascipt statements
-          append result "<script language='javascript'>" $file "</script>\n"
+          append result "<script language='javascript' type='text/javascript' >" $file "</script>\n"
         } else {
           append result "<script language='javascript' src='$file' type='text/javascript'>" \
               "</script>\n"
