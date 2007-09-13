@@ -65,6 +65,16 @@ namespace eval ::xowiki::portlet {
   ::xowiki::Portlet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
+    #
+    # For XOTcl object names, strip first the colons
+    set name [string trimleft $name :]
+    
+    # make sure, the ID starts with characters
+    if {![regexp {^[A-Za-z]} $name]} {
+      set name id_$name
+    }
+
+    # replace unwanted characters
     regsub -all {[^A-Za-z0-9_:.-]} $name _ name
     return $name
   }
@@ -1190,6 +1200,7 @@ namespace eval ::xowiki::portlet {
           {-locale ""}
           {-source ""}
         }}
+        id
       }
 
 #"select page_id,  page_order, name, title, \
@@ -1310,7 +1321,7 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc ajax_tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet html_id [self]]'>
+    return "<div id='[my id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
@@ -1422,7 +1433,7 @@ namespace eval ::xowiki::portlet {
 
 
          treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
             root = [my js_name].tree.getRoot(); 
             [my js_name].objs = new Array();
             $js_tree_cmds
@@ -1440,14 +1451,14 @@ namespace eval ::xowiki::portlet {
   }
 
   toc instproc tree {js_tree_cmds} {
-    return "<div id='[::xowiki::Portlet html_id [self]]'>
+    return "<div id='[my id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
 
          getPage: function(href, c) { return true; },
 
          treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[self]'); 
+            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
             root = [my js_name].tree.getRoot(); 
             [my js_name].objs = new Array();
             $js_tree_cmds
@@ -1486,11 +1497,11 @@ namespace eval ::xowiki::portlet {
       set ajax 0
     }
     my set ajax $ajax
+    if {![my exists id]} {my set id [::xowiki::Portlet html_id [self]]}
     if {[info exists category_id]} {my set category_id $category_id}
             
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all \
                           $remove_levels $locale $source]
-
     return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
   }
 
