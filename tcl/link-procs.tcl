@@ -48,6 +48,7 @@ namespace eval ::xowiki {
     return "<a [my atts] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
+    set href [string map [list & "&amp;"] $href]
     return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
   }
   Link instproc render {} {
