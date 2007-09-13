@@ -1706,10 +1706,14 @@ namespace eval ::xowiki::portlet {
 	set html [$p include_portlet [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
-      #div not allowed in h*: style='float: right; position: relative; top: -32px
+      set menu [join $menu "&nbsp;"]
+      if {$menu ne ""} {
+        # <div> not allowed in h*: style='float: right; position: relative; top: -32px
+        set menu "<span style='float: right;'>$menu</span>"
+      }
+
       append output \
-          "<h$level class='book'>" \
-          "<span style='float: right;'>" [join $menu "&nbsp;"] "</span>" \
+          "<h$level class='book'>" $menu \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
