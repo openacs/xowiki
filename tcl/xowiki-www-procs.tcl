@@ -656,10 +656,21 @@ namespace eval ::xowiki {
     #my msg field_names=$field_names
 
     set form_fields [my create_form_fields $field_names]
+
+    # check name field: 
+    #  - if it is not required, hide it,
+    #  - if it is required but hidden, show it anyway 
+    #    (might happen, when e.g. set via @cr_fields ... hidden)
+    set name_field [my lookup_form_field -name _name $form_fields]
     if {$anon_instances} {
-      set f [my lookup_form_field -name _name $form_fields]
-      $f config_from_spec hidden
+      $name_field config_from_spec hidden
+    } else {
+      if {[$name_field istype ::xowiki::FormField::hidden]} {
+        $name_field config_from_spec text,required
+        $name_field type text
+      }
     }
+
     # include _text only, if explicitely needed (in form or template)
     if {[lsearch $needed_attributes _text] == -1} {
       #my msg "setting text hidden"
@@ -734,13 +745,14 @@ namespace eval ::xowiki {
       }
     }
     
-    # the following command wout be correct, but does not work due to a bug in 
+    # The following command would be correct, but does not work due to a bug in 
     # tdom.
-    #set form [my regsub_eval  \
+    # set form [my regsub_eval  \
     #              [template::adp_variable_regexp] $form \
     #              {my form_field_as_html "\\\1" "\2" $form_fields}]
-    # due to this bug, we replace the at-character by \x003 to avoid conflict withe the
-    # input and we insert the fields in the result from tdom.
+    # Due to this bug, we program around and replace the at-character 
+    # by \x003 to avoid conflict withe the input and we replace these
+    # magic chars finally with the fields resulting from tdom.
 
     set form [string map [list @ \x003] $form]
     #my msg form=$form
