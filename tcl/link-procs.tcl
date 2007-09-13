@@ -52,6 +52,7 @@ namespace eval ::xowiki {
     if {$href eq ""} {
       return \[$label\]
     } else {
+      set href [string map [list & "&amp;"] $href]
       return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
     }
   }
