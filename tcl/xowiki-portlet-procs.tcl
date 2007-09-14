@@ -979,8 +979,11 @@ namespace eval ::xowiki::portlet {
                          -object_name [$__including_page title] \
                          $item_id $gc_return_url]
     set gc_comments [general_comments_get_comments $item_id $gc_return_url]
-
-    return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
+    if {$gc_comments ne ""} {
+      return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
+    } else {
+      return "<p>#general-comments.lt_No_comments_available#</p><p>$gc_link</p>"
+    }
   }
   
   Class create digg \
@@ -1683,7 +1686,7 @@ namespace eval ::xowiki::portlet {
 
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
-      set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
+      set level [expr {[regsub -all {[.]} $page_order . page_order] + 1}]
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
       $p destroy_on_cleanup
 

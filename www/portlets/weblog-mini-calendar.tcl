@@ -106,7 +106,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
     set today_p t
   }
   
-  if { $day_of_week == 0} {
+  if { $day_of_week == 1} {
     set beginning_of_week_p t
   } else {
     set beginning_of_week_p f
@@ -130,6 +130,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   } else {
     set class inactive
   }
+
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
       "[export_vars -base $base_url {{date $ansi_date} summary}]" $count $class
   incr day_number
