@@ -988,7 +988,7 @@ namespace eval ::xowiki {
     } else {
       set image ""
     }
-    return "$image<p>[$t asHTML]</p>\n<p>$description</p>"
+    return "$image[$t asHTML]\n<p>$description</p>"
   }
 
   PodcastItem instproc get_content {} {

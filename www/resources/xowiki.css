@@ -6,7 +6,7 @@
 
 div.wiki-menu {
     position: relative; right: 0px; 
-    text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78
+    text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;
 }
 
 #wikicmds {position: relative; top: -24px;  right: 0px; height: 0px;
@@ -36,7 +36,7 @@ a.external {
 div.xowiki-content {background: #fff; font: 10pt Verdana, Arial, Helvetica, sans-serif;}
 /* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
 #main div.column {text-align: left; margin-bottom: 1em;}
-#content      {float: left; width: 70%}
+#content      {float: left; width: 70%;}
 div.xowiki-content h1 {
     font-size: 24px; clear: both;
     border-bottom: solid silver 1px; color: #222222; 
@@ -51,7 +51,7 @@ div.xowiki-content h2 {
     text-align: left; font-weight: normal;
 }
 div.xowiki-content h3 {
-    font-size: 14px
+    font-size: 14px;
     text-indent: 0em; 
     margin-top: 0.75em; margin-bottom: 0.1em;
     letter-spacing: 0px;  color: #222222;
@@ -61,11 +61,11 @@ div.xowiki-content h4 {font-size: 12px; margin: 0;}
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 div.xowiki-content .errorMsg {color: red; font-weight: bold;}
 div.xowiki-content .hr {
-   height: 1px; border: none; 
-   color: silver; background-color: silver;
+    height: 1px; border: none; 
+    background-color: silver;
 }
 
-#bookNavBar { top: 0px; height: 2px; background-color: #859db8; }
+#bookNavBar { top: 0px; height: 2px; background-color: #859db8;}
 
 #content .box h2 {border-bottom: 1px solid #a1a5a9; padding: 5px; background: #f2f2f2; margin: 0 -5px 5px -5px; font-size: 12px;}
 #sidebar {float: right; top: 0px; width: 29%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}
@@ -73,8 +73,8 @@ div.xowiki-content .hr {
 #sidebar h3 {font-size: 11px; margin: 0;}
 #sidebar h4 {font-size: 10px; margin: 0;}
 #sidebar .sidebox li {font-size: 10px; margin: 0;}
-img.found {border-width: 0px; height: 12px}
-img.undefined {border-width: 2px; border-color: #859db8; height: 8px}
+img.found {border-width: 0px; height: 12px;}
+img.undefined {border-width: 2px; border-color: #859db8; height: 8px;}
 
 #left-col   {float: left;  width: 50%; top: 0px;}
 #right-col  {float: right; width: 49%; top: 0px;}
@@ -93,9 +93,9 @@ img.undefined {border-width: 2px; border-color: #859db8; height: 8px}
 #right-col75 {float: right; width: 74%; top: 0px;}
 #right-col80 {float: right; width: 79%; top: 0px;}
 
-#messages .timestamp {font-size: 80%; color: grey}
-#messages .user {font-size: 80%; font-weight: bold; color: grey}
-#messages .message {vertical-align: top}
+#messages .timestamp {font-size: 80%; color: #E1E1E1;}
+#messages .user {font-size: 80%; font-weight: bold; color: #E1E1E1;}
+#messages .message {vertical-align: top;}
 
 .rss {border:1px solid;
 	border-color:#FC9 #630 #330 #F96;
@@ -107,13 +107,13 @@ img.undefined {border-width: 2px; border-color: #859db8; height: 8px}
 	margin:0;
 	margin-right:10px;}
 a:hover.rss {color:#dddddd;}
-a:visited.rss {color: #FFF}
-a:link.rss {color: #FFF}
+a:visited.rss {color: #FFF;}
+a:link.rss {color: #FFF;}
 
 div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5px;
-    border:dotted; border-width:1px;background: #f8f8f8
+    border:dotted; border-width:1px;background: #f8f8f8;
 }
-div.presence h1 {font-size: 90%; margin-bottom: 0px}
+div.presence h1 {font-size: 90%; margin-bottom: 0px;}
 
 div.xowiki-content pre, .code {
     font-family: "Courier", monospace;

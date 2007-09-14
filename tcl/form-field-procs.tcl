@@ -568,6 +568,8 @@ namespace eval ::xowiki {
   FormField::richtext::wym instproc initialize {} {
     next
     my set widget_type richtext
+  }
+  FormField::richtext::wym instproc render_content {} {
     ::xowiki::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
     ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.js"
     ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.js"
@@ -577,6 +579,7 @@ namespace eval ::xowiki {
         $j(".wymeditor").wymeditor();
       });
     }
+    next
   }
 
   ###########################################################
