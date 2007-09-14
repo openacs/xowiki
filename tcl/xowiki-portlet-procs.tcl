@@ -124,8 +124,11 @@ namespace eval ::xowiki::portlet {
     return $prefix$suffix
   }
 
-  ::xowiki::Portlet instproc locale_clause {
-    -revisions -items package_id locale
+  ::xowiki::Portlet proc locale_clause {
+    -revisions 
+    -items 
+    package_id 
+    locale
   } {
     set default_locale [$package_id default_locale]
     set system_locale ""
@@ -135,7 +138,7 @@ namespace eval ::xowiki::portlet {
       set locale $default_locale
       set include_system_locale 0
     }
-    #my msg "with_system_locale=$with_system_locale, locale=$locale, default_locale=$default_locale "
+    #my msg "--L with_system_locale=$with_system_locale, locale=$locale, default_locale=$default_locale"
 
     set locale_clause ""    
     if {$locale ne ""} {
@@ -383,7 +386,7 @@ namespace eval ::xowiki::portlet {
                 [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
     foreach {locale locale_clause} \
-        [my locale_clause -revisions r -items ci $package_id $locale] break
+        [::xowiki::Portlet locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -511,7 +514,7 @@ namespace eval ::xowiki::portlet {
     set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
 
     foreach {locale locale_clause} \
-        [my locale_clause -revisions r -items ci $package_id $locale] break
+        [::xowiki::Portlet locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -1236,7 +1239,7 @@ namespace eval ::xowiki::portlet {
       foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
     }
     foreach {locale locale_clause} \
-        [my locale_clause -revisions p -items p $package_id $locale] break
+        [::xowiki::Portlet locale_clause -revisions p -items p $package_id $locale] break
     #my msg locale_clause=$locale_clause
 
     if {$source ne ""} {
@@ -1666,7 +1669,7 @@ namespace eval ::xowiki::portlet {
     }
 
     foreach {locale locale_clause} \
-        [my locale_clause -revisions p -items p $package_id $locale] break
+        [::xowiki::Portlet locale_clause -revisions p -items p $package_id $locale] break
 
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \

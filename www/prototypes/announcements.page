@@ -66,9 +66,8 @@
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
     set page [my set __page]
-    [my set __parent] instvar weblog_obj
     set rss [$page include_portlet \
-                 "rss-button -title {[$page title]} -entries_of [$weblog_obj entries_of]"]
+                 "rss-button -title {[$page title]} -entries_of [my entries_of]"]
     #set rss [list [self] [lsort [my info vars]]]
     return "<div class='weblog'> $filter [next] $prev $next <br>$rss</div>"
   }
@@ -102,6 +101,7 @@
                -page_number $page_number \
                -summary $summary \
                -date $date \
+	       -locale "default+system" \
                -category_id [ns_queryget category_id] \
                -tag $tag \
                -ptag $ptag \

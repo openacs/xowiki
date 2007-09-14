@@ -12,6 +12,7 @@ namespace eval ::xowiki {
     ptag
     category_id
     {entries_of ""}
+    {locale ""}
     filter_msg
     {sort_composite ""}
     {no_footer false}
@@ -23,14 +24,14 @@ namespace eval ::xowiki {
     {entry_renderer ::xowiki::Weblog::Entry}
     {entry_flag}
   }
-  
+
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
-    my instvar date category_id tag ptag page_number page_size summary items 
+    my instvar date category_id tag ptag page_number page_size summary items locale
     my instvar name_filter entry_label entries_of sort_composite summary_chars
     
     my log "--W starting"
-    set folder_id [::$package_id set folder_id]
+    set folder_id [::$package_id folder_id]
     set filter_msg  ""
     set query_parm ""
     
@@ -91,6 +92,14 @@ namespace eval ::xowiki {
       set base_table xowiki_form_pagei
     }
 
+    if {$locale ne ""} {
+      #set locale "default+system"
+      foreach {locale locale_clause} \
+	  [::xowiki::Portlet locale_clause -revisions p -items ci $package_id $locale] break
+      #my msg "--L locale_clause=$locale_clause"
+      append extra_where_clause $locale_clause
+    }
+    
     # create an item container, which delegates rendering to its children
     set items [::xo::OrderedComposite new -proc render {} {
       set content ""
