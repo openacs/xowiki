@@ -571,8 +571,8 @@ namespace eval ::xowiki {
   }
   FormField::richtext::wym instproc render_content {} {
     ::xowiki::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
-    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.js"
-    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.js"
+    ::xowiki::Page requireJS  "/resources/xowiki/jquery/jquery.js"
+    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
     ::xowiki::Page requireJS {
       var $j = jQuery.noConflict();
       $j(function() {
