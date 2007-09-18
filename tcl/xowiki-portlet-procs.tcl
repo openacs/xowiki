@@ -335,7 +335,7 @@ namespace eval ::xowiki::portlet {
   #
   Class create set-parameter \
       -superclass ::xowiki::Portlet \
-      -parameter {{__decoration plain}}
+      -parameter {{__decoration none}}
 
   set-parameter instproc render {} {
     my get_parameters

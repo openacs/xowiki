@@ -40,8 +40,8 @@ namespace eval ::xowiki {
     set extra_where_clause ""
     
     if {$date ne ""} {
-      #set date_clause "and date_trunc('day',p.publish_date) = '$date'"
-      set date_clause "and [::xo::db::sql date_trunc_expression day p.publish_date $date]"
+      #set date_clause "and date_trunc('day',bt.publish_date) = '$date'"
+      set date_clause "and [::xo::db::sql date_trunc_expression day bt.publish_date $date]"
       set filter_msg "Filtered by date $date"
       set query_parm "&date=$date"
     } else {
@@ -78,8 +78,8 @@ namespace eval ::xowiki {
     }
     set base_type ::xowiki::Page
     set base_table xowiki_pagei
-    set attributes [list cr.revision_id p.publish_date p.title p.creator p.creation_user \
-                        p.description s.body pi.instance_attributes]
+    set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
+                        bt.description s.body pi.instance_attributes]
     if {$entries_of ne ""} {
       set form_items [list]
       foreach t [split $entries_of |] {
@@ -87,7 +87,7 @@ namespace eval ::xowiki {
         if {$form_item_id == 0} {error "Cannot lookup page $t"}
         lappend form_items $form_item_id
       }
-      append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = cr.revision_id "
+      append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
       set base_type ::xowiki::FormPage
       set base_table xowiki_form_pagei
     }
@@ -114,15 +114,15 @@ namespace eval ::xowiki {
         [list -folder_id $folder_id \
              -select_attributes $attributes \
              -orderby "publish_date desc" \
-             -from_clause "$extra_from_clause, $base_table p \
-		left outer join syndication s on s.object_id = p.revision_id \
-		left join xowiki_page_instance pi on (p.revision_id = pi.page_instance_id)" \
+             -base_table $base_table \
+             -from_clause "$extra_from_clause \
+		left outer join syndication s on s.object_id = bt.revision_id \
+		left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id)" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
                 and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
                 and ci.publish_status <> 'production' \
-		and p.revision_id = cr.revision_id \
                 $extra_where_clause" ]
 
     if {$page_number ne ""} {

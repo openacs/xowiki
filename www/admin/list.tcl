@@ -88,8 +88,11 @@ t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 # -page_size 10
 # -page_number 1
 
+# for content_length, we need cr_revision and cannot use the base table
 set attributes [list revision_id content_length creation_user title \
     "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] 
+
+
 if {[::xo::db::has_ltree]} {
   lappend attributes page_order
 }
@@ -105,7 +108,7 @@ db_foreach instance_select \
          -folder_id $folder_id \
          -with_subtypes $with_subtypes \
          -from_clause ", xowiki_page p" \
-         -where_clause "p.page_id = cr.revision_id" \
+         -where_clause "p.page_id = bt.revision_id" \
          -select_attributes $attributes \
          -orderby ci.name \
         ] {

@@ -15,8 +15,7 @@ set folder_id [::$package_id folder_id]
 set item_ids [list] 
 
 if {$objects eq ""} {
-  set sql [$object_type instance_select_query -folder_id $folder_id \
-               -with_subtypes true]
+  set sql [$object_type instance_select_query -folder_id $folder_id -with_subtypes true]
   db_foreach instance_select $sql { lappend item_ids $item_id }
 } else {
   foreach o $objects {
