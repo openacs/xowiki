@@ -13,8 +13,8 @@
   {-folder_id:integer 0}
 }
 
-::$package_id log "--starting... [ns_conn url] [ns_conn query] \
-	form vars = [ns_set array [ns_getform]]"
+::$package_id log "--starting... [ns_conn url] [ns_conn query]"
+#	form vars = [ns_set array [ns_getform]]"
 #::$package_id exists_form_parameter creator
 #::$package_id log "-- [::xo::cc serialize]"
 
