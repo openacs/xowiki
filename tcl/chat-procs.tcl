@@ -55,7 +55,7 @@ namespace eval ::xowiki {
           #set mode streaming
         }
       }
-      my log "--mode $mode"
+      my log "--chat mode $mode"
     }
 
     switch $mode {
