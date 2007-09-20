@@ -93,8 +93,8 @@ img.undefined {border-width: 2px; border-color: #859db8; height: 8px;}
 #right-col75 {float: right; width: 74%; top: 0px;}
 #right-col80 {float: right; width: 79%; top: 0px;}
 
-#messages .timestamp {font-size: 80%; color: #E1E1E1;}
-#messages .user {font-size: 80%; font-weight: bold; color: #E1E1E1;}
+#messages .timestamp {font-size: 80%; color: #717171;}
+#messages .user {font-size: 80%; font-weight: bold; color: #717171;}
 #messages .message {vertical-align: top;}
 
 .rss {border:1px solid;

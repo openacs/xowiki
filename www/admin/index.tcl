@@ -13,7 +13,7 @@
 set context [list]
 set title "Administer all kind of [$object_type set pretty_plural]"
 
-set object_type_key [$object_type set object_type_key]
+#set object_type_key [$object_type set object_type_key]
 set object_types    [$object_type object_types]
 set return_url      [ns_conn url]
 
@@ -35,6 +35,7 @@ TableWidget t1 -volatile \
     }
 
 set base [::$package_id package_url]
+
 foreach object_type $object_types {
   set return_url [export_vars -base ${base}admin {object_type}]
   set add_title ""
