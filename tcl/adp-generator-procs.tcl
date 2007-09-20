@@ -117,7 +117,7 @@ function get_popular_tags(popular_tags_link, prefix) {
     set filename [file dirname [info script]]/../www/$name.adp
     # generate the adp file, if it does not exist
     if {[catch {set f [open $filename w]} errorMsg]} {
-      my log "Error: cannot overwrite $filename, ignoring possible changes"
+      my log "Warning: cannot overwrite $filename, ignoring possible changes"
     } else {
       puts -nonewline $f [my generate]
       close $f
