@@ -287,7 +287,7 @@ namespace eval ::xowiki {
     foreach entry [ns_cache names xowiki_cache link-*-$folder_id] {
       array set tmp [ns_cache get xowiki_cache $entry]
       if {$tmp(item_id) == [$data set item_id]} {
-        ns_cache flush xowiki_cache $entry
+        ::xo::clusterwide ns_cache flush xowiki_cache $entry
       }
     }
     if {![$data istype ::xowiki::Object] &&

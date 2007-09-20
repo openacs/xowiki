@@ -247,8 +247,8 @@ namespace eval ::xowiki {
       # if we edit the folder object, we have to do some extra magic here, 
       # since  the folder object has slightly different naming conventions.
       # ns_log notice "--editing folder object ::$folder_id, FLUSH $page"
-      ns_cache flush xotcl_object_cache [self]
-      ns_cache flush xotcl_object_cache ::$folder_id
+      ::xo::clusterwide ns_cache flush xotcl_object_cache [self]
+      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
       my move ::$folder_id
       set page ::$folder_id
       #ns_log notice "--move page=$page"
@@ -854,7 +854,7 @@ namespace eval ::xowiki {
     #my log "--M set_live_revision($revision_id)"
     ::xo::db::sql::content_item set_live_revision -revision_id $revision_id
     set page_id [my query_parameter "page_id"]
-    ns_cache flush xotcl_object_cache ::$item_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
     ::$package_id returnredirect [my query_parameter "return_url" \
               [export_vars -base [$package_id url] {{m revisions}}]]
   }
@@ -863,8 +863,8 @@ namespace eval ::xowiki {
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id 
     db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
-    ns_cache flush xotcl_object_cache ::$item_id
-    ns_cache flush xotcl_object_cache ::$revision_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
     ::xo::db::sql::content_revision del -revision_id $revision_id
     set redirect [my query_parameter "return_url" \
                       [export_vars -base [$package_id url] {{m revisions}}]]

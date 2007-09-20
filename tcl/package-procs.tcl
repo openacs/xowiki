@@ -863,13 +863,13 @@ namespace eval ::xowiki {
     my instvar folder_id id
     if {$name eq "::$folder_id"} {
       #my log "--D deleting folder object ::$folder_id"
-      ns_cache flush xotcl_object_cache ::$folder_id
-      ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
-      ns_cache flush xotcl_object_type_cache root_folder-$id
+      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
+      ::xo::clusterwide ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
+      ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$id
       ::$folder_id destroy
     }
     set key link-*-$name-$folder_id
-    foreach n [ns_cache names xowiki_cache $key] {ns_cache flush xowiki_cache $n}
+    foreach n [ns_cache names xowiki_cache $key] {::xo::clusterwide ns_cache flush xowiki_cache $n}
   }
 
   Package instproc delete {-item_id -name} {
