@@ -8,8 +8,9 @@ ad_library {
 
 namespace eval ::xowiki {
 
-  ::xo::PackageMgr create Package \
+  ::xo::PackageMgr create ::xowiki::Package \
       -superclass ::xo::Package \
+      -pretty_name "XoWiki" \
       -package_key xowiki \
       -parameter {{folder_id "[::xo::cc query_parameter folder_id 0]"}}
 
@@ -56,7 +57,6 @@ namespace eval ::xowiki {
   #
   # URL and naming management
   #
-  
   Package instproc normalize_name {string} {
     set string [string trim $string]
     # if subst_blank_in_name is turned on, turn spaces into _
@@ -65,7 +65,7 @@ namespace eval ::xowiki {
     }
       return [ns_urldecode $string]
   }
-  
+
   Package instproc default_locale {} {
     # TODO: this might be called quite often. we can optimize this my caching into xo::cc
     if {[ns_conn isconnected] && [my get_parameter use_connection_locale 0]} {
