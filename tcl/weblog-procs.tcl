@@ -115,9 +115,10 @@ namespace eval ::xowiki {
              -select_attributes $attributes \
              -orderby "publish_date desc" \
              -base_table $base_table \
-             -from_clause "$extra_from_clause \
+             -from_clause "\
 		left outer join syndication s on s.object_id = bt.revision_id \
-		left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id)" \
+		left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id) \
+		$extra_from_clause" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
