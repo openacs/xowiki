@@ -33,9 +33,9 @@ namespace eval ::xowiki {
 
   CatTree instproc render {{-tree_style:boolean false}} {
     if {$tree_style} {
-      #::xowiki::Page requireCSS "/resources/acs-templating/mktree.css"
-      ::xowiki::Page requireCSS  "/resources/xowiki/cattree.css"
-      ::xowiki::Page requireJS  "/resources/acs-templating/mktree.js"
+      #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
+      ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
+      ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
       
       foreach c [my children] {append content [$c render] \n}
       return "<ul class='mktree' id='[my name]'>$content</ul>"

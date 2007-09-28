@@ -629,7 +629,7 @@ namespace eval ::xowiki::portlet {
   
   recent instproc render {} {
     my get_parameters
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     TableWidget t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
@@ -702,7 +702,7 @@ namespace eval ::xowiki::portlet {
   
   last-visited instproc render {} {
     my get_parameters
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
     TableWidget t1 -volatile \
         -columns {
@@ -746,7 +746,7 @@ namespace eval ::xowiki::portlet {
   
   most-popular instproc render {} {
     my get_parameters
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
    
     if {[info exists interval]} {
       # 
@@ -827,7 +827,7 @@ namespace eval ::xowiki::portlet {
   
   unread-items instproc render {} {
     my get_parameters
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
     TableWidget t1 -volatile \
         -columns {
@@ -884,7 +884,7 @@ namespace eval ::xowiki::portlet {
   
   tags instproc render {} {
     my get_parameters
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
     if {$popular} {
       set label [_ xowiki.popular_tags_label]
@@ -930,7 +930,7 @@ namespace eval ::xowiki::portlet {
   my-tags instproc render {} {
     my get_parameters
     my instvar __including_page tags
-    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+    ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
     
     set p_link [$package_id pretty_link [$__including_page name]]
     set return_url "[::xo::cc url]?[::xo::cc actual_query]"
@@ -1534,15 +1534,15 @@ namespace eval ::xowiki::portlet {
       "folders" {set s "folders/"}
       "default" {set s ""}
     }
-    ::xowiki::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
-    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
     if {$ajax} {
-       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
-       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
-       ::xowiki::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
+       ::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
+       ::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
+       ::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
     }  
-    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
 
     my set book_mode $book_mode
     if {!$book_mode} {
@@ -1944,15 +1944,15 @@ namespace eval ::xowiki::portlet {
 
   graph instproc graphHTML {-edges -nodes -max_edges -cutoff -base {-attrib node_id}} {
 
-    ::xowiki::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
     set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
     if {[string match "*msie *" $user_agent]} {
       # canvas support for MSIE
-      ::xowiki::Page requireJS "/resources/xowiki/excanvas.js"
+      ::xo::Page requireJS "/resources/xowiki/excanvas.js"
     }
-    ::xowiki::Page requireJS "/resources/xowiki/collab-graph.js"
-    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-    ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    ::xo::Page requireJS "/resources/xowiki/collab-graph.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
 
     set nodesHTML ""
     array set n $nodes
@@ -2200,9 +2200,9 @@ namespace eval ::xowiki::portlet {
   timeline instproc render {} {
     my get_parameters
 
-   ::xowiki::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-   ::xowiki::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
-   ::xowiki::Page requireJS "/resources/xowiki/timeline/api/timeline-api.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    ::xo::Page requireJS "/resources/xowiki/timeline/api/timeline-api.js"
 
    set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
    if {[info exists user_id]} {append data "?user_id=$user_id"}
@@ -2347,7 +2347,7 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     my instvar __including_page
 
-    ::xowiki::Page requireCSS "/resources/acs-templating/lists.css"
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
     if {![info exists form_item_id]} {

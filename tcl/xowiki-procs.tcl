@@ -206,29 +206,6 @@ namespace eval ::xowiki {
   # templating and CSS
   #
 
-  Page proc requireCSS name {set ::need_css($name) 1}
-  Page proc requireJS  name {
-    if {![info exists ::need_js($name)]} {lappend ::js_order $name}
-    set ::need_js($name)  1
-  }
-  Page proc header_stuff {} {
-    set result ""
-    foreach file [array names ::need_css] {
-      append result "<link type='text/css' rel='stylesheet' href='$file' media='all' >\n"
-    }
-    if {[info exists ::js_order]} {
-      foreach file $::js_order  {
-        if {[string match "*;*" $file]} {
-          # it is not a file, but some javascipt statements
-          append result "<script language='javascript' type='text/javascript' >" $file "</script>\n"
-        } else {
-          append result "<script language='javascript' src='$file' type='text/javascript'>" \
-              "</script>\n"
-        }
-      }
-    }
-    return $result
-  }
   Page proc quoted_html_content text {
     list [ad_text_to_html $text] text/html
   }
@@ -626,11 +603,11 @@ namespace eval ::xowiki {
 	#my msg t=[::xowiki::guesstype $link]
 	switch -glob -- [::xowiki::guesstype $link] {
 	  text/css {
-	    ::xowiki::Page requireCSS $link
+	    ::xo::Page requireCSS $link
 	    return $ch
 	  }
 	  application/x-javascript {
-	    ::xowiki::Page requireJS $link
+	    ::xo::Page requireJS $link
 	    return $ch
 	  }
 	  image/* {

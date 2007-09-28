@@ -222,7 +222,7 @@ namespace eval ::xowiki {
     #
     # We need the following CSS file for rendering
     #
-    ::xowiki::Page requireCSS "/resources/xowiki/weblog.css"
+    ::xo::Page requireCSS "/resources/xowiki/weblog.css"
 
     $items set entry_renderer [my entry_renderer]
     set content [$items render]

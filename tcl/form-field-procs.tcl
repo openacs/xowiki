@@ -570,10 +570,10 @@ namespace eval ::xowiki {
     my set widget_type richtext
   }
   FormField::richtext::wym instproc render_content {} {
-    ::xowiki::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
-    ::xowiki::Page requireJS  "/resources/xowiki/jquery/jquery.js"
-    ::xowiki::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
-    ::xowiki::Page requireJS {
+    ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
+    ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
+    ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
+    ::xo::Page requireJS {
       var $j = jQuery.noConflict();
       $j(function() {
         $j(".wymeditor").wymeditor();

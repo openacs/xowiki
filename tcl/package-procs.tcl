@@ -278,7 +278,7 @@ namespace eval ::xowiki {
     }
     set context [list [$id instance_name]]
     set title Error
-    set header_stuff [::xowiki::Page header_stuff]
+    set header_stuff [::xo::Page header_stuff]
     set index_link [my make_link -privilege public -link "" $id {} {}]
     set link [my query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}

@@ -228,13 +228,13 @@ namespace eval ::xowiki {
   Class create ::xowiki::Link::css -superclass ::xowiki::Link::file -parameter {
   }
   ::xowiki::Link::css instproc render_found {href label} {
-    ::xowiki::Page requireCSS $href
+    ::xo::Page requireCSS $href
     return ""
   }
   Class create ::xowiki::Link::js -superclass ::xowiki::Link::file -parameter {
   }
   ::xowiki::Link::js instproc render_found {href label} {
-    ::xowiki::Page requireJS $href
+    ::xo::Page requireJS $href
     return ""
   }
 
@@ -252,7 +252,7 @@ namespace eval ::xowiki {
     return $item_id
   }
   ::xowiki::Link::swf instproc render_found {href label} {
-    ::xowiki::Page requireJS /resources/xowiki/swfobject.js
+    ::xo::Page requireJS /resources/xowiki/swfobject.js
     my instvar package_id name
     #set link [$package_id pretty_link -absolute true  -siteurl http://localhost:8003 $name]/download.swf
     foreach {width height bgcolor version} {320 240 #999999 7} break
@@ -295,9 +295,9 @@ namespace eval ::xowiki {
     return 0
   }
   ::xowiki::Link::glossary instproc render_found {href label} {
-    ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
-    ::xowiki::Page requireJS  "/resources/xowiki/popup-handler.js"
-    ::xowiki::Page requireJS  "/resources/xowiki/overlib/overlib.js"
+    ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
+    ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
+    ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     return "<a href='$href' onclick=\"showInfo('$href?master=0','$label'); return false;\"\
         style='background: url(/resources/xowiki/glossary.gif) right center no-repeat; padding-right:14px'
         >$label</a>"

@@ -60,7 +60,7 @@ namespace eval ::xowiki {
 
     switch $mode {
       polling {
-        ::xowiki::Page requireJS  "/resources/xowiki/get-http-object.js"
+        ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
         set jspath packages/xowiki/www/ajax/chat.js
         set login_url ${path}ajax/chat?m=login&$context
         set get_update  "chatSendCmd(\"$path/ajax/chat?m=get_new&$context\",chatReceiver)"

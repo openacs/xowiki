@@ -196,7 +196,7 @@ namespace eval ::xowiki {
       } else {
 
         # use adp file
-        foreach css [$package_id get_parameter extra_css ""] {::xowiki::Page requireCSS $css}
+        foreach css [$package_id get_parameter extra_css ""] {::xo::Page requireCSS $css}
         # refetch it, since it might have been changed via set-parameter
         set template_file [my query_parameter "template_file" \
                                [::$package_id get_parameter template_file view-default]]
@@ -204,7 +204,7 @@ namespace eval ::xowiki {
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file
         }
-        set header_stuff [::xowiki::Page header_stuff]
+        set header_stuff [::xo::Page header_stuff]
         $package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
           content footer package_id
@@ -1114,8 +1114,7 @@ namespace eval ::xowiki {
     #my msg requireFormCSS
     set css [my set extraCSS]
     if {$css ne ""} {
-      #my msg "requireCSS $css"
-      ::xowiki::Page requireCSS $css
+      ::xo::Page requireCSS $css
     }
   }
 
