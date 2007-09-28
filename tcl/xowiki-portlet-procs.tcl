@@ -547,6 +547,7 @@ namespace eval ::xowiki::portlet {
   
   ::xowiki::PortletClass create categories-recent \
       -superclass ::xowiki::Portlet \
+      -cacheable true -personalized false -aggregating true \
       -parameter {
         {title "Recently Changed Pages by Categories"}
         {parameter_declaration {
