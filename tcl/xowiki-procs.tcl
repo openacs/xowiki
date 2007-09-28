@@ -421,6 +421,16 @@ namespace eval ::xowiki {
 #     ::xo::show_stack
 #     next
 #   }
+  
+  Page instproc save args {
+    [my package_id] flush_page_fragment_cache
+    next
+  }
+
+  Page instproc save_new args {
+    [my package_id] flush_page_fragment_cache
+    next
+  }
 
   Page instproc initialize_loaded_object {} {
     my instvar title
@@ -471,6 +481,7 @@ namespace eval ::xowiki {
       set page [::xowiki::portlet::$page_name new \
 		    -package_id $package_id \
 		    -name $page_name \
+                    -locale [::xo::cc locale] \
 		    -actual_query [::xo::cc actual_query]]
     } else {
       #
@@ -491,6 +502,7 @@ namespace eval ::xowiki {
         if {$package_id != 0} {
           $package_id context [::xo::Context new -volatile]
           set object_name [$package_id set object]
+          #set object_name $page_name
           # A user might force the language by preceding the 
           # name with a language prefix.
           if {![regexp {^..:} $object_name]} {
@@ -502,7 +514,7 @@ namespace eval ::xowiki {
         #my log "--resolve --> $page"
       } else {
         $package_id context [::xo::Context new -volatile]
-	my log "--setting context of $package_id to [[$package_id context] serialize]"
+	#my log "--setting context of $package_id to [[$package_id context] serialize]"
         set page [$package_id resolve_page $page_name __m]
       }
       $package_id context $last_context
@@ -526,6 +538,10 @@ namespace eval ::xowiki {
       }
       if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
 	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
+      }
+      set c [$page info class]
+      if {[$c exists cacheable] && [$c cacheable]} {
+	$page mixin add ::xowiki::portlet::page_fragment_cache
       }
 
       if {[catch {set html [$page render]} errorMsg]} {

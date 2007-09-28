@@ -67,10 +67,9 @@ namespace eval ::xowiki {
   }
 
   Package instproc default_locale {} {
-    # TODO: this might be called quite often. we can optimize this my caching into xo::cc
-    if {[ns_conn isconnected] && [my get_parameter use_connection_locale 0]} {
-      # we are connected, return the connection locale
-      set locale [lang::conn::locale]
+    if {[my get_parameter use_connection_locale 0]} {
+      # we return the connection locale (if not connected the system locale)
+      set locale [::xo::cc locale]
     } else {
       # return either the package locale or the site-wide locale
       set locale [lang::system::locale -package_id [my id]]
@@ -914,10 +913,18 @@ namespace eval ::xowiki {
       }
       $object_type delete -item_id $item_id
       my flush_references -item_id $item_id -name $name
+      my flush_page_fragment_cache
     } else {
       my log "--D nothing to delete!"
     }
     my returnredirect [my query_parameter "return_url" [$id package_url]]
+  }
+
+  Package instproc flush_page_fragment_cache {} {
+    foreach entry [ns_cache names xowiki_cache PF-[my id]-agg-*] {
+      ns_log notice "::xo::clusterwide ns_cache flush xowiki_cache $entry"
+      ::xo::clusterwide ns_cache flush xowiki_cache $entry
+    }
   }
 
   #
