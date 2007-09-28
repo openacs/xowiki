@@ -150,10 +150,11 @@ namespace eval ::xowiki {
                  -vars "s.body, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.last_modified, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
-                 -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+                 -where "ci.parent_id = $folder_id \
+			and ci.live_revision = s.object_id \
                 	and ci.publish_status <> 'production' \
-	        	$extra_where_clause \
-                	and s.object_id = p.page_id" \
+                	and s.object_id = p.page_id \
+	        	$extra_where_clause"\
                  -orderby "p.last_modified desc" \
                  -limit [my limit]]
 
