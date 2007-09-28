@@ -598,7 +598,7 @@ namespace eval ::xowiki {
     if {![my exists plugins]} {
       my plugins \
           [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
-               -default [parameter::get_from_package_key \
+               -default [::xo::parameter get_from_package_key \
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
     my set options [my get_attributes editor plugins width height folder_id javascript]
