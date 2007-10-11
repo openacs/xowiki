@@ -53,7 +53,7 @@ namespace eval ::xowiki {
       set filler [expr {[string first firefox $user_agent] >- 1 ?
                         "<!-- [string repeat deadbef 100] -->" : ""
                       }]
-      set css_link [expr {[string match /* $css] ? $css : "/resources/xowiki/$css"}]
+      set css_link [expr {[string match "/*" $css] ? $css : "/resources/xowiki/$css"}]
       return "\n<?xml-stylesheet type='text/css' href='$css_link' ?>\n$filler"
     }
     return ""

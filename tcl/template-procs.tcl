@@ -41,7 +41,7 @@ clude, where it is
   # set the stack frame at which the template is being parsed so that
   # other procedures can reference variables cleanly
   variable parse_level
-  lappend parse_level [expr [info level] - $uplevel]
+  lappend parse_level [expr {[info level] - $uplevel}]
 
   set __adp_out [template::adp_parse [template::util::url_to_file $src] $varlist]
 

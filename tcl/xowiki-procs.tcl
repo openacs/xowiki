@@ -580,8 +580,8 @@ namespace eval ::xowiki {
   Page instproc div {ch arg} {
     if {$arg eq "content"} {
       return "$ch<div id='content' class='column'>"
-    } elseif {[string match left-col* $arg] \
-              || [string match right-col* $arg] \
+    } elseif {[string match "left-col*" $arg] \
+              || [string match "right-col*" $arg] \
               || $arg eq "sidebar"} {
       return "$ch<div id='$arg' class='column'>"
     } elseif {$arg eq "box"} {
