@@ -233,10 +233,9 @@ namespace eval ::xowiki {
   }
 
 
-  Package instproc invoke {-method} {
-    my set mime_type text/html
-    my set delivery ns_return
+  Package instproc invoke {-method {-error_template error-template}} {
     set page [my resolve_page [my set object] method]
+    #my log "--r resolve_page returned $page"
     if {$page ne ""} {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
@@ -257,22 +256,13 @@ namespace eval ::xowiki {
       } else {
         set edit_snippet ""
       }
-      return [my error_msg "Page <b>'[my set object]'</b> is not available. $edit_snippet"]
-    }
-  }
-  Package instproc reply_to_user {text} {
-    if {[::xo::cc exists __continuation]} {
-      eval [::xo::cc set __continuation]
-    } else {
-      if {[string length $text] > 1} {
-        [my set delivery] 200 [my set mime_type] $text
-      }
+      return [my error_msg -template_file $error_template \
+		  "Page <b>'[my set object]'</b> is not available. $edit_snippet"]
     }
   }
 
-  Package instproc error_msg {error_msg} {
+  Package instproc error_msg {{-template_file error-template} error_msg} {
     my instvar id
-    set template_file error-template
     if {![regexp {^[./]} $template_file]} {
       set template_file /packages/xowiki/www/$template_file
     }
@@ -282,8 +272,10 @@ namespace eval ::xowiki {
     set index_link [my make_link -privilege public -link "" $id {} {}]
     set link [my query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
+    set top_portlets ""; set content $error_msg
     $id return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg 
+      top_portlets content
     }
   }
 
@@ -303,7 +295,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    if {[string match //* $object]} {
+    if {[string match "//*" $object]} {
   
     # we have a reference to another instance, we cant resolve this from this package.
       # Report back not found
@@ -408,7 +400,7 @@ namespace eval ::xowiki {
     my instvar policy
     #my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
     if {[$policy enforce_permissions $object $method]} {
-      #my log "--p calling $object ([$object info class]) '$method'"
+      #my msg "--p calling $object ([$object info class]) '$method'"
       $object $method
     } else {
       my log "not allowed to call $object $method"
@@ -548,42 +540,6 @@ namespace eval ::xowiki {
     
     my set folder_id $folder_id
   }
-
-  Package instproc return_page {-adp:required -variables -form} {
-    #my log "--vars=[self args]"
-    set __vars [list]
-    foreach _var $variables {
-      if {[llength $_var] == 2} {
-        lappend __vars [lindex $_var 0] [uplevel subst [lindex $_var 1]]
-      } else {
-        set localvar local.$_var
-        upvar $_var $localvar
-        if {[array exists $localvar]} {
-          lappend __vars &$_var $localvar
-        } elseif {[info exists $localvar]} {
-          # ignore undefined variables
-          lappend __vars $_var [set $localvar]
-        }
-      }
-    }
-
-    if {[info exists form]} {
-      set level [template::adp_level]
-      foreach f [uplevel #$level info vars ${form}:*] {
-        lappend __vars &$f $f
-        upvar #$level $f $f
-      }
-    }
-    #my log "--before adp"   ; # $__vars
-    set text [template::adp_include $adp $__vars]
-
-    if { [lang::util::translator_mode_p] } {
-      set text [::xo::localize $text 1]
-    }
-    #my log "--after adp"
-    return $text
-  }
-
 
 
   ###############################################################
