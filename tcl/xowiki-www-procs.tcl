@@ -81,7 +81,7 @@ namespace eval ::xowiki {
   
   Page instproc view {{content ""}} {
     # view is used only for the toplevel call, when the xowiki page is viewed
-    # this is not inteded for embedded wiki pages
+    # this is not intended for embedded wiki pages
     my instvar package_id item_id 
     $package_id instvar folder_id  ;# this is the root folder
     ::xowiki::Page set recursion_count 0
@@ -100,7 +100,7 @@ namespace eval ::xowiki {
     set footer [my htmlFooter -content $content]
 
     set top_portlets ""
-    set vp [$package_id get_parameter "top_portlet" ""]
+    set vp [string trim [$package_id get_parameter "top_portlet" ""]]
     if {$vp ne ""} {
       set top_portlets [my include_portlet $vp]
     }
