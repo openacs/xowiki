@@ -1097,9 +1097,12 @@ namespace eval ::xowiki {
     if {[my exists_query_parameter "return_url"]} {
       set return_url [my query_parameter "return_url"]
     }
+    if {[my exists_query_parameter "template_file"]} {
+      set template_file [my query_parameter "template_file"]
+    }
     $package_id returnredirect \
         [export_vars -base [$package_id pretty_link [$f name]] \
-	     {{m edit} return_url name}]
+	     {{m edit} return_url name template_file}]
   }
 
 
