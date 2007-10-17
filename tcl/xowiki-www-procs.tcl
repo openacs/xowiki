@@ -742,6 +742,21 @@ namespace eval ::xowiki {
 	  $ff(_title) value ""
 	}
 	if {!$anon_instances} {$ff(_name) value ""}
+        foreach var {title detail_link text} {
+          if {[my exists_query_parameter $var]} {
+            set value [my query_parameter $var]
+            switch -- $var {
+              detail_link {
+                set f [my lookup_form_field -name $var $form_fields]
+                $f value $value
+              }
+              title - text {
+                set f [my lookup_form_field -name _$var $form_fields]
+              }
+            }
+            $f value $value
+          }
+        }
       }
     }
     
@@ -1100,9 +1115,14 @@ namespace eval ::xowiki {
     if {[my exists_query_parameter "template_file"]} {
       set template_file [my query_parameter "template_file"]
     }
+    foreach var {return_url template_file title detail_link text} {
+      if {[my exists_query_parameter $var]} {
+        set $var [my query_parameter $var]
+      }
+    }
     $package_id returnredirect \
         [export_vars -base [$package_id pretty_link [$f name]] \
-	     {{m edit} return_url name template_file}]
+	     {{m edit} return_url name template_file title detail_link text}]
   }
 
 
