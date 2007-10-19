@@ -2408,7 +2408,7 @@ namespace eval ::xowiki::portlet {
                      -slot [$form_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec]
 	  if {$spec_name eq "_text"} {
-	    lappend sql_atts "cr.content as text"
+	    lappend sql_atts "bt.content as text"
 	  } elseif {$spec_name ne "_name"} {
 	    lappend sql_atts p.$varname
 	  }
@@ -2461,7 +2461,7 @@ namespace eval ::xowiki::portlet {
                    -from_clause ", xowiki_form_pagei p" \
                    -with_subtypes false \
                    -where_clause " p.page_template = $form_item_id \
-			and p.xowiki_form_page_id = cr.revision_id \
+			and p.xowiki_form_page_id = bt.revision_id \
                         $publish_status_clause" \
                    -folder_id [$package_id folder_id]]
     $items destroy_on_cleanup
