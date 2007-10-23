@@ -2309,6 +2309,10 @@ namespace eval ::xowiki::portlet {
       
       set __c [t1 last_child]
       $__c set _name.href $page_link
+
+      # set always last_modified for default sorting
+      $__c set _last_modified [$p set last_modified]
+
       foreach __fn $field_names {
         switch -glob -- $__fn {
           __* {error not_allowed}
