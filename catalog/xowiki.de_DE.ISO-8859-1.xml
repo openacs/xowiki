@@ -8,7 +8,7 @@
   <msg key="delete">Löschen</msg>
   <msg key="edit">Bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
-  <msg key="entries_using_form">Einträge für as Formular %form%:</msg>
+  <msg key="entries_using_form">Einträge für das Formular %form%:</msg>
   <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte verwenden Sie diese, bevor Sie das Formular löschen.</msg>
   <msg key="Form-form">Formular</msg>
   <msg key="Form-form_constraints">Einschränkungen</msg>
