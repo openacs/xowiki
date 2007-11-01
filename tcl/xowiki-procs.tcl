@@ -440,8 +440,8 @@ namespace eval ::xowiki {
     my instvar name
     return [my error_during_render "[_ xowiki.error_in_includelet]<br/>\n$msg"]
   }
-
-  Page instproc include_portlet {arg} {
+  
+  Page instproc instantiate_portlet_object {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
     set package_id [my package_id]
@@ -500,35 +500,48 @@ namespace eval ::xowiki {
         $page set __decoration portlet
       }
     }
-
     if {$page ne ""} {
-      my set __last_includelet $page
-      $page destroy_on_cleanup
-      $page set __including_page [self]
       $page set __caller_parameters [lrange $arg 1 end] 
-      #$page set __decoration portlet
-      foreach {att value} [$page set __caller_parameters] {
-	switch -- $att {
-	  -decoration {$page set __decoration $value}
-	  -title {$page set title $value}
-	}
-      }
-      if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
-	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
-      }
-      set c [$page info class]
-      if {[$c exists cacheable] && [$c cacheable]} {
-	$page mixin add ::xowiki::portlet::page_fragment_cache
-      }
+      $page destroy_on_cleanup
+      my set __last_includelet $page
+      $page set __including_page [self]
+    }
+    return $page
+  }
 
-      if {[catch {set html [$page render]} errorMsg]} {
-        set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
+  Page instproc render_portlet_object {page} {
+    #$page set __decoration portlet
+    foreach {att value} [$page set __caller_parameters] {
+      switch -- $att {
+        -decoration {$page set __decoration $value}
+        -title {$page set title $value}
       }
-      #my log "--include portlet returns $html"
-      return $html
-    } else {
+    }
+    if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
+      $page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
+    }
+    set c [$page info class]
+    if {[$c exists cacheable] && [$c cacheable]} {
+      $page mixin add ::xowiki::portlet::page_fragment_cache
+    }
+    
+    if {[catch {set html [$page render]} errorMsg]} {
+      set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
+    }
+    #my log "--include portlet returns $html"
+    return $html
+  }
+
+  Page ad_instproc include_portlet {arg} {
+    Include the html of the includelet. The method generates
+    an includelet object (might be an other xowiki page) and
+    renders it and returns either html or an error message.
+  } {
+    set page [my instantiate_portlet_object $arg]
+    if {$page eq ""} {
       return [my error_during_render [_ xowiki.error-includelet-unknown]]
     }
+    return [my render_portlet_object $page]
   }
 
   Page instproc include {ch arg ch2} {
