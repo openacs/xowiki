@@ -805,6 +805,48 @@ namespace eval ::xowiki::portlet {
   }
 }
 
+
+namespace eval ::xowiki::portlet {
+  #############################################################################
+  #
+  # list the most frequent visitors
+  #
+
+  ::xowiki::PortletClass create most-frequent-visitors \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {title "Most Frequent Users"}
+        {parameter_declaration {
+          {-max_entries:integer "15"}
+        }}
+      }
+  
+  most-frequent-visitors instproc render {} {
+    my get_parameters
+    ::xo::Page requireCSS "/resources/acs-templating/lists.css"
+   
+    TableWidget t1 -volatile \
+        -columns {
+          Field user  -label Visitors -html { align right }
+          Field count -label Visits -html { align right }
+        }
+    db_foreach [my qn get_pages] \
+          [::xo::db::sql select \
+               -vars "sum(count) as sum, user_id"  \
+               -from "xowiki_last_visited"  \
+               -groupby "user_id" \
+               -orderby "sum desc" \
+               -limit $max_entries] {
+                 t1 add \
+                     -user [::xo::get_user_name $user_id] \
+                     -count $sum
+               }
+    return [t1 asHTML]
+  }
+
+}
+
+
 namespace eval ::xowiki::portlet {
   #############################################################################
   #

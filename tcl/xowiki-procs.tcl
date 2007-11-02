@@ -526,6 +526,7 @@ namespace eval ::xowiki {
     }
     
     if {[catch {set html [$page render]} errorMsg]} {
+      set page_name [$page name]
       set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
     }
     #my log "--include portlet returns $html"

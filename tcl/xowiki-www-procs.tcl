@@ -646,7 +646,7 @@ namespace eval ::xowiki {
       } 
     }
     #my msg reduced_attributes=$reduced_attributes 
-    #my msg fields_from_from=[array names field_in_form]
+    #my msg fields_from_form=[array names field_in_form]
 
     set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
