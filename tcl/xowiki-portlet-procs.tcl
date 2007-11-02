@@ -727,7 +727,7 @@ namespace eval ::xowiki::portlet {
   Class create most-frequent-visitors \
       -superclass ::xowiki::Portlet \
       -parameter {
-        {title "Most Frequent Users"}
+        {title "Most Frequent Visitors"}
         {parameter_declaration {
           {-max_entries:integer "15"}
         }}
