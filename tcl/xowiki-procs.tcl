@@ -744,7 +744,7 @@ namespace eval ::xowiki {
       [my info class] instvar $__v
     }
     set __ignorelist [list __v __ignorelist __varlist __template_variables__ \
-                          text item_id content lang_links]
+                          text item_id content lang_links long_text_slots]
     set __varlist [list]
     set __template_variables__ "<ul>\n"
     foreach __v [lsort [info vars]] {
