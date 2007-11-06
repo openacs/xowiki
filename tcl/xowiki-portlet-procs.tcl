@@ -834,6 +834,7 @@ namespace eval ::xowiki::portlet {
           [::xo::db::sql select \
                -vars "sum(count) as sum, user_id"  \
                -from "xowiki_last_visited"  \
+               -where "package_id = $package_id"  \
                -groupby "user_id" \
                -orderby "sum desc" \
                -limit $max_entries] {
