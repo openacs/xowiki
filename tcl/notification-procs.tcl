@@ -68,7 +68,6 @@ namespace eval ::xowiki::notification {
       #
       set node_id [db_string get_node_id "select node_id from site_nodes where object_id = $id"]
       set url [site_node::get_url -node_id $node_id]
-      ns_log notice "--get_url is package_id, return $url"
       return $url
     }
     if {[category::get_name $id] ne ""} {
