@@ -61,8 +61,28 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki::notification {
 
-  ad_proc -private get_url {revision_id} {
-    return [::xowiki::url $revision_id]
+  ad_proc -private get_url {id} {
+    if {[db_0or1row is_package_id "select 1 from apm_packages where package_id = $id"]} {
+      #
+      # the specified id is an package_id
+      #
+      set node_id [db_string get_node_id "select node_id from site_nodes where object_id = $id"]
+      set url [site_node::get_url -node_id $node_id]
+      ns_log notice "--get_url is package_id, return $url"
+      return $url
+    }
+    if {[category::get_name $id] ne ""} {
+      #
+      # the specified id is a category_id
+      #
+      # if we would know the package_id here, we could return something like
+      #     /xowiki/weblog-portlet?summary=1&category_id=8380
+      # however, since we have only a category_id, which might be mapped to
+      # multiple xowiki instances, we give up here.
+      return /categories
+    }
+    # id is an revision_id
+    return [::xowiki::url $id]
   }
   
   
