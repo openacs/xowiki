@@ -818,6 +818,39 @@ namespace eval ::xowiki::portlet {
   }
 }
 
+namespace eval ::xowiki::portlet {
+  #############################################################################
+  #
+  # list the most frequent visitors
+  #
+
+  ::xowiki::PortletClass create rss-client \
+      -superclass ::xowiki::Portlet \
+      -parameter {
+        {title "RSS client"}
+        {parameter_declaration {
+          {-url:required}
+          {-max_entries:integer "15"}
+        }}
+      }
+  
+  rss-client instproc render {} {
+    my get_parameters
+    set feed [::xowiki::RSS-client new -url $url -volatile]
+    my msg "feed=$feed"
+    set channel [$feed channel]
+    my msg "channel=$channel"
+    set html "<H1>[$channel title]</H1>"
+    append html "<UL>\n"
+    foreach item [ $feed items ] {
+      #my msg "[$item title]"
+      append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>...</a>\n"
+    }
+    append html "</UL>\n"
+    return $html
+  }
+
+}
 
 namespace eval ::xowiki::portlet {
   #############################################################################

@@ -19,7 +19,7 @@ namespace eval ::xowiki {
     return <$name$attsXML>[string map $xmlMap $value]</$name>
   }
 
-  Class RSS -superclass XMLSyndication -parameter {
+  Class create RSS -superclass XMLSyndication -parameter {
     maxentries 
     {name_filter ""}
     {entries_of ""}
@@ -379,3 +379,187 @@ namespace eval ::xowiki {
     return $result
   }
 }
+
+namespace eval ::xowiki {
+  # This is the class representing an RSS client
+  Class create RSS-client -parameter url
+    
+  # Constructor for a given URI
+  RSS-client instproc init {} {
+    my parse [my load]
+  }
+  
+  RSS-client instproc load { } {
+    set r [::xo::HttpRequest new -url [my url] -volatile]
+    my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
+    set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
+    return [$r set data]
+  }
+
+  RSS-client instproc parse { data} {
+    set doc [ dom parse $data ]
+    set root [ $doc documentElement ]
+
+    switch [RSS-client getRSSVersion $doc] {
+      0.91 - 0.92 - 0.93 - 2.0 {
+        my array set xpath {
+          title		{/rss/channel/title/text()}
+          link		{/rss/channel/link/text()}
+          imgNode	{/rss/channel/image/title}
+          imgTitle	{/rss/channel/image/title/text()}
+          imgLink	{/rss/channel/image/url/text()}
+          imgWidth	{/rss/channel/image/width/text()}
+          imgHeight	{/rss/channel/image/height/text()}
+          stories	{/rss/channel/item}
+          itemTitle	{title/text()}
+          itemLink	{link/text()}
+          itemPubDate	{pubDate/text()}
+          itemDesc	{description/text()}
+        }
+      }
+      1.0 {
+        my array set xpath {
+          title		{/rdf:RDF/*[local-name()='channel']/*[local-name()='title']/text()}
+          link		{/rdf:RDF/*[local-name()='channel']/*[local-name()='link']/text()}
+          imgNode	{/rdf:RDF/*[local-name()='image']}
+          imgTitle	{/rdf:RDF/*[local-name()='image']/*[local-name()='title']/text()}
+          imgLink	{/rdf:RDF/*[local-name()='image']/*[local-name()='url']/text()}
+          imgWidth	{/rdf:RDF/*[local-name()='image']/*[local-name()='width']/text()}
+          imgHeight	{/rdf:RDF/*[local-name()='image']/*[local-name()='height']/text()}
+          stories	{/rdf:RDF/*[local-name()='item']}
+          itemTitle	{*[local-name()='title']/text()}
+          itemLink	{*[local-name()='link']/text()}
+          itemPubDate	{*[local-name()='pubDate']/text()}
+          itemDesc	{*[local-name()='description']/text()}
+        }
+        
+      }
+      default {
+        error "Unssupported schema [RSS-client getRSSVersion $doc]"
+      }
+    }
+
+    # Channel
+    set cN [ $root child 1 channel ]
+    set channel [::xowiki::RSS-client::channel create [self]::channel -root $cN]
+    puts $channel
+
+    # Items
+    my set items {}
+    set stories [$root selectNodes [my set xpath(stories)] ]
+    foreach iN $stories {
+      my lappend items [::xowiki::RSS-client::item new -childof [self] -node $iN ]
+    }
+  }
+
+  # returns the XPath Query for a given type
+  RSS-client instproc xpath { key } {
+    return [my set xpath($key)]
+  }
+
+  # returns the channel object
+  RSS-client instproc channel {} {
+    return [self]::channel
+  }
+
+  # returns a list of items
+  RSS-client instproc items {} {
+    return [my set items]
+  }
+
+  # detects the RSS version of the document
+  RSS-client proc getRSSVersion {doc} {
+    set root [$doc documentElement]
+    switch [$root nodeName] {
+      rss {
+        if {[$root hasAttribute version]} {
+          return [$root getAttribute version]
+        }
+        # Best guess as most stuff is optional...
+        return 0.92
+      }
+      rdf:RDF {
+        return 1.0
+      }
+      default {
+        return 0
+      }
+    }
+  }
+
+  # this namespace contains some utility methods
+  RSS-client proc node_uri {node xpath} {
+    set n [$node selectNode $xpath]
+    if {$n ne ""} {
+      # Only if there is a lonely &, quote it back to an entity.
+      return [string map { & %26 } [$n nodeValue]]
+    } else {
+      return ""
+    }
+  }
+  
+  RSS-client proc node_text {node xpath} {
+    set n [$node selectNode $xpath]
+    if {$n ne ""} {
+      return [$n nodeValue]
+    } else {
+      return ""
+    }
+  }
+
+  # this class is used to contain rss items
+  Class create RSS-client::item -parameter node
+  RSS-client::item instforward xpath {%my info parent} %proc
+
+  # get the title
+  RSS-client::item instproc title { } {
+    return [::xowiki::RSS-client node_text [my node] [my xpath itemTitle]]
+  }
+
+  # get the link
+  RSS-client::item instproc link {} {
+    return [::xowiki::RSS-client node_uri [my node] [my xpath itemLink]]
+  }
+
+  # get the description
+  RSS-client::item instproc description {} {
+    return [::xowiki::RSS-client node_text [my node] [my xpath itemDesc]]
+  }
+
+  # return the publication date as string
+  RSS-client::item instproc pubDate {} {
+    return [::xowiki::RSS-client node_text [my node] [my xpath itemPubDate]]
+  }
+
+
+  # this class contains information on the channel
+  Class create RSS-client::channel -parameter root
+  RSS-client::channel instforward xpath {%my info parent} %proc
+
+  # get the title
+  RSS-client::channel instproc title { } {
+    return [::xowiki::RSS-client node_text [my root] [my xpath title]]
+  }
+
+  # get the image link
+  RSS-client::channel instproc imgLink {} {
+    return [::xowiki::RSS-client node_uri [my root] [my xpath imgLink]]
+  }
+
+  # get the image title
+  RSS-client::channel instproc imgTitle {} {
+    return [::xowiki::RSS-client node_text [my root] [my xpath imgTitle]]
+  }
+  
+  # get the image width
+  RSS-client::channel instproc imgWidth {} {
+    return [::xowiki::RSS-client node_text [my root] [my xpath imgWidth]]
+  }
+  # get the image height
+  RSS-client::channel instproc imgHeight {} {
+    return [::xowiki::RSS-client node_text [my root] [my xpath imgHeight]]
+  }
+  
+
+}
+
