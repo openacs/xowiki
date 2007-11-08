@@ -326,17 +326,30 @@ namespace eval ::xowiki::portlet {
       -parameter {
         {__decoration none}
         {parameter_declaration {
-          {-variable:required }
+          {-variable}
+          {-form_variable}
           {-source ""}
         }}
       } -instproc render {} {
         my get_parameters
-        set page [my require_page $source]
-        if {[$page exists $variable]} {
-          return [$page set $variable]
-        } else {
-          return "no such variable $variable in page [$page set name]"
+        if {![info exists variable] && ![info exists form_variable]} {
+          return "either -variable or -form_variable must be specified"
         }
+        set page [my require_page $source]
+
+        if {[info exists variable] && [$page exists $variable]} {
+          return [$page set $variable]
+        } 
+        if {[info exists form_variable] && [$page exists instance_attributes]} {
+          array set __ia [$page set instance_attributes]
+          if {[info exists __ia($form_variable)]} {
+            return $__ia($form_variable)
+          }
+        }
+        if {[info exists variable]} {
+          return "no such variable $variable defined in page [$page set name]"
+        }
+        return "no such form_variable $form_variable defined in page [$page set name]"
       }
  
   ::xowiki::PortletClass create creation-date \
