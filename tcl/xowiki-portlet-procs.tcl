@@ -73,6 +73,12 @@ namespace eval ::xowiki::portlet {
     return $result
   }
 
+  ::xowiki::Portlet instproc initialize {} {
+    # This method is called at a time after init and before render.
+    # It can be used to alter specified parameter from the user,
+    # or to influence the rendering of a decoration (e.g. title etc.)
+  }
+  
   ::xowiki::Portlet instproc js_name {} {
     return [string map [list : _ # _] [self]]
   }
@@ -117,7 +123,6 @@ namespace eval ::xowiki::portlet {
     return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
   }
 
-  
   ::xowiki::Portlet proc incr_page_order {p} {
     regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
     if {[string is integer -strict $suffix]} {
@@ -833,18 +838,25 @@ namespace eval ::xowiki::portlet {
           {-max_entries:integer "15"}
         }}
       }
+
+  rss-client instproc initialize {} {
+    my instvar feed
+    my get_parameters
+    my set feed [::xowiki::RSS-client new -url $url -destroy_on_cleanup]
+    my title [ [$feed channel] title]
+  }
   
   rss-client instproc render {} {
+    my instvar feed
     my get_parameters
-    set feed [::xowiki::RSS-client new -url $url -volatile]
-    my msg "feed=$feed"
     set channel [$feed channel]
-    my msg "channel=$channel"
-    set html "<H1>[$channel title]</H1>"
-    append html "<UL>\n"
+    #set html "<H1>[$channel title]</H1>"
+    set html "<UL>\n"
+    set i 0
     foreach item [ $feed items ] {
       #my msg "[$item title]"
-      append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>...</a>\n"
+      append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>#xowiki.weblog-more#</a>\n"
+      if {[incr i] >= $max_entries} break
     }
     append html "</UL>\n"
     return $html

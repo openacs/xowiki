@@ -391,12 +391,15 @@ namespace eval ::xowiki {
   
   RSS-client instproc load { } {
     set r [::xo::HttpRequest new -url [my url] -volatile]
-    my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
+    #my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
     set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
-    return [$r set data]
+    set xml [$r set data]
+    set charset utf-8
+    regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
+    return [encoding convertfrom $charset $xml]
   }
 
-  RSS-client instproc parse { data} {
+  RSS-client instproc parse {data} {
     set doc [ dom parse $data ]
     set root [ $doc documentElement ]
 
