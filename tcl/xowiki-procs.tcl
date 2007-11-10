@@ -449,14 +449,14 @@ namespace eval ::xowiki {
     If the page_name does not contain a language prefix,
     the language prefix of the including page is used.
   } {
-    if {$source ne ""} {
+    if {$page_name ne ""} {
       set page ""
       #
       # take a local copy of the package_id, since it is possible
       # that the variable package_id might changed to another instance.
       #
       set package_id [my package_id]
-      if {[regexp {^/(/.+)$} $source _ url]} {
+      if {[regexp {^/(/.+)$} $page_name _ url]} {
 	#
 	# Handle cross package resolve requests
 	# Note, that package::initialize might change the package id.
@@ -484,11 +484,11 @@ namespace eval ::xowiki {
       } else {
 	set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
 	$package_id context [::xo::Context new -volatile]
-	set page [$package_id resolve_page $source __m]
+	set page [$package_id resolve_page $page_name __m]
 	$package_id context $last_context
       }
       if {$page eq ""} {
-	error "Cannot find page '$source'"
+	error "Cannot find page '$page_name'"
       }
       $page destroy_on_cleanup
     } else {

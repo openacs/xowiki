@@ -396,7 +396,7 @@ namespace eval ::xowiki {
     set xml [$r set data]
     set charset utf-8
     regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
-    return [encoding convertfrom $charset $xml]
+    return [encoding convertfrom [string tolower $charset] $xml]
   }
 
   RSS-client instproc parse {data} {
