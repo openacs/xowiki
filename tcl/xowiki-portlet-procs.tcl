@@ -206,18 +206,8 @@ namespace eval ::xowiki::portlet {
     return [list $cnames $extra_where_clause]
   }
 
-  ::xowiki::Portlet instproc require_page {source} {
-    if {$source ne ""} {
-      my instvar package_id
-      set page [$package_id resolve_page $source __m]
-      if {$page eq ""} {
-        error "Cannot find page '$source'"
-      }
-      $page destroy_on_cleanup
-    } else {
-      set page [my set __including_page]
-    }
-    return $page
+  ::xowiki::Portlet instproc resolve_page_name {page_name} {
+    return [[my set __including_page] resolve_included_page_name $page_name]
   }  
 
   ::xowiki::Portlet instproc get_page_order {-source -ordered_pages -pages} {
@@ -227,7 +217,7 @@ namespace eval ::xowiki::portlet {
     # denoted by source
     #
     if {[info exists source]} {
-      set p [my require_page $source]
+      set p [my resolve_page_name $source]
       if {$p ne ""} {
 	array set ia [$p set instance_attributes]
 	if {[info exists ia(pages)]} {
@@ -340,7 +330,7 @@ namespace eval ::xowiki::portlet {
         if {![info exists variable] && ![info exists form_variable]} {
           return "either -variable or -form_variable must be specified"
         }
-        set page [my require_page $source]
+        set page [my resolve_page_name $source]
 
         if {[info exists variable] && [$page exists $variable]} {
           return [$page set $variable]
@@ -367,7 +357,7 @@ namespace eval ::xowiki::portlet {
         }}
       } -instproc render {} {
         my get_parameters
-        set page [my require_page $source]
+        set page [my resolve_page_name $source]
         set time [$page set creation_date]
         regexp {^([^.]+)[.]} $time _ time
         return [clock format [clock scan $time] -format $format]

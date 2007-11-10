@@ -441,6 +441,62 @@ namespace eval ::xowiki {
     return [my error_during_render "[_ xowiki.error_in_includelet]<br/>\n$msg"]
   }
   
+  Page ad_instproc resolve_included_page_name {page_name} {
+    Determine the page object for the specified page name.
+    The specified page name might have the form 
+    //some_other_instance/page_name, in which case the 
+    page is resolved from some other package instance.
+    If the page_name does not contain a language prefix,
+    the language prefix of the including page is used.
+  } {
+    if {$source ne ""} {
+      set page ""
+      #
+      # take a local copy of the package_id, since it is possible
+      # that the variable package_id might changed to another instance.
+      #
+      set package_id [my package_id]
+      if {[regexp {^/(/.+)$} $source _ url]} {
+	#
+	# Handle cross package resolve requests
+	# Note, that package::initialize might change the package id.
+	#
+	::xowiki::Package initialize -parameter {{-m view}} -url $url \
+	    -actual_query ""
+	if {$package_id != 0} {
+	  #
+	  # For the resolver, we create a fresh context to avoid recursive loops, when
+	  # e.g. revision_id is set through a query parameter...
+	  #
+	  set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
+	  $package_id context [::xo::Context new -volatile]
+	  set object_name [$package_id set object]
+	  #
+	  # A user might force the language by preceding the
+	  # name with a language prefix.
+	  #
+	  if {![regexp {^..:} $object_name]} {
+	    set object_name [my lang]:$object_name
+	  }
+	  set page [$package_id resolve_page $object_name __m]
+	  $package_id context $last_context
+	}
+      } else {
+	set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
+	$package_id context [::xo::Context new -volatile]
+	set page [$package_id resolve_page $source __m]
+	$package_id context $last_context
+      }
+      if {$page eq ""} {
+	error "Cannot find page '$source'"
+      }
+      $page destroy_on_cleanup
+    } else {
+      set page [self]
+    }
+    return $page
+  }
+
   Page instproc instantiate_portlet_object {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
@@ -464,42 +520,17 @@ namespace eval ::xowiki {
       #
       # Include a wiki page, tailorable.
       #
-      # For the resolver, we create a fresh context to avoid recursive loops, when
-      # e.g. revision_id is set through a query parameter...
-      #
-      set last_context [expr {[my exists context] ? $context : "::xo::cc"}]
-
-      if {[regexp {^/(/[^?]*)[?]?(.*)$} $page_name _ url query]} {
-        #
-        # Handle cross package xowiki includes.
-        # Note, that package::initialize might change the package id.
-        #
-        ::xowiki::Package initialize -parameter {{-m view}} -url $url \
-            -actual_query $query
-        if {$package_id != 0} {
-          $package_id context [::xo::Context new -volatile]
-          set object_name [$package_id set object]
-          #set object_name $page_name
-          # A user might force the language by preceding the 
-          # name with a language prefix.
-          if {![regexp {^..:} $object_name]} {
-            set object_name [my lang]:$object_name
-          }
-          set page [$package_id resolve_page $object_name __m]
-          #my msg "cross package reference $page_name ==> $page, package_id=$package_id"
-        }
-        #my log "--resolve --> $page"
-      } else {
-        $package_id context [::xo::Context new -volatile]
-	#my log "--setting context of $package_id to [[$package_id context] serialize]"
-        set page [$package_id resolve_page $page_name __m]
-      }
-      $package_id context $last_context
-
+      set page [my resolve_included_page_name $page_name]
+      
       if {$page ne "" && ![$page exists __decoration]} {
+	# 
+	# we use as default decoration for included pages
+	# the "portlet" decoration
+	#
         $page set __decoration portlet
       }
     }
+
     if {$page ne ""} {
       $page set __caller_parameters [lrange $arg 1 end] 
       $page destroy_on_cleanup
