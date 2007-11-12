@@ -534,11 +534,11 @@ namespace eval ::xowiki {
     if {$page ne ""} {
       $page set __caller_parameters [lrange $arg 1 end] 
       $page destroy_on_cleanup
+      my set __last_includelet $page
+      $page set __including_page [self]
       if {[$page istype ::xowiki::Portlet]} {
         $page initialize
       }
-      my set __last_includelet $page
-      $page set __including_page [self]
     }
     return $page
   }
