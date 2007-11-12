@@ -2399,7 +2399,7 @@ namespace eval ::xowiki::portlet {
         lappend links "<a href='[set $l]'>$label</a>"
       }
     }
-    return "<div class='wiki-menu'>[join $links { &middot; }]</div>\n"
+    return "<div style='clear: both;'><div class='wiki-menu'>[join $links { &middot; }]</div></div>\n"
   }
 
   #############################################################################
@@ -2416,7 +2416,8 @@ namespace eval ::xowiki::portlet {
     my instvar __including_page
     set form [$__including_page page_template]
     set base [$package_id pretty_link [$form name]]
-    return "<div class='wiki-menu'><a href='$base'>Form [$form name]</a></div>\n"
+    return "<div style='clear: both;'><div class='wiki-menu'><a href='$base'>Form [$form name]</a>\
+	</div></div>\n"
   }
 
   #############################################################################
