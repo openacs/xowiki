@@ -63,7 +63,7 @@ function get_popular_tags(popular_tags_link, prefix) {
   <FORM action='/search/search'><INPUT  id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" /></FORM> 
 </div>
 </div>
-@top_portlets;noquote@
+@top_includelets;noquote@
 @content;noquote@
 @footer;noquote@
 </div> <!-- class='xowiki-content' -->

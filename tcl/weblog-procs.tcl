@@ -95,7 +95,7 @@ namespace eval ::xowiki {
     if {$locale ne ""} {
       #set locale "default+system"
       foreach {locale locale_clause} \
-	  [::xowiki::Portlet locale_clause -revisions bt -items ci $package_id $locale] break
+	  [::xowiki::Includelet locale_clause -revisions bt -items ci $package_id $locale] break
       #my msg "--L locale_clause=$locale_clause"
       append extra_where_clause $locale_clause
     }

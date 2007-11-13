@@ -36,7 +36,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 @toc;noquote@
 </div></div>
-<div style="float:right; width: 70%;">@top_portlets;noquote@
+<div style="float:right; width: 70%;">@top_includelets;noquote@
 
 <if @book_prev_link@ not nil or @book_relpos@ not nil or @book_next_link@ not nil>
 <div class="book-navigation" style="background: #f8f8f8; border: 1px solid #a9a9a9;  width: 500px;">
@@ -85,7 +85,7 @@ function get_popular_tags(popular_tags_link, prefix) {
       &="per_object_categories_with_links" 
       &="digg_link" &="delicious_link" &="my_yahoo_link" 
       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image" 
-      &="top_portlets" &="page">
+      &="top_includelets" &="page">
 </div>
 
 </div>

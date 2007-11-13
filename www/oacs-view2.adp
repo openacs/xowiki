@@ -86,7 +86,7 @@ table.mini-calendar {width: 200px ! important;}
 #sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
 </style>
 <div style='float: left; width: 62%'>
-@top_portlets;noquote@
+@top_includelets;noquote@
 @content;noquote@
 </div>  <!-- float left -->
 <div id='sidebar' class='column'>

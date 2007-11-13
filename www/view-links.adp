@@ -16,7 +16,7 @@
   <FORM action='/search/search'><INPUT  id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" /></FORM> 
 </div>
 </div>
-@top_portlets;noquote@
+@top_includelets;noquote@
 @content;noquote@
 
 </div> <!-- class='xowiki-content' -->

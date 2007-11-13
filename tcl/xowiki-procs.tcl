@@ -497,7 +497,7 @@ namespace eval ::xowiki {
     return $page
   }
 
-  Page instproc instantiate_portlet_object {arg} {
+  Page instproc instantiate_includelet {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
     set package_id [my package_id]
@@ -508,10 +508,10 @@ namespace eval ::xowiki {
       return [my error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
 
-    # the include is either a portlet class, or a wiki page
-    if {[my isclass ::xowiki::portlet::$page_name]} {
+    # the include is either a includelet class, or a wiki page
+    if {[my isclass ::xowiki::includelet::$page_name]} {
       # direct call, without page, not tailorable
-      set page [::xowiki::portlet::$page_name new \
+      set page [::xowiki::includelet::$page_name new \
 		    -package_id $package_id \
 		    -name $page_name \
                     -locale [::xo::cc locale] \
@@ -536,14 +536,14 @@ namespace eval ::xowiki {
       $page destroy_on_cleanup
       my set __last_includelet $page
       $page set __including_page [self]
-      if {[$page istype ::xowiki::Portlet]} {
+      if {[$page istype ::xowiki::Includelet]} {
         $page initialize
       }
     }
     return $page
   }
 
-  Page instproc render_portlet_object {page} {
+  Page instproc render_includelet {page} {
     #$page set __decoration portlet
     foreach {att value} [$page set __caller_parameters] {
       switch -- $att {
@@ -552,34 +552,39 @@ namespace eval ::xowiki {
       }
     }
     if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
-      $page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
+      $page mixin add ::xowiki::includelet::decoration=[$page set __decoration]
     }
     set c [$page info class]
     if {[$c exists cacheable] && [$c cacheable]} {
-      $page mixin add ::xowiki::portlet::page_fragment_cache
+      $page mixin add ::xowiki::includelet::page_fragment_cache
     }
     
     if {[catch {set html [$page render]} errorMsg]} {
       set page_name [$page name]
       set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
     }
-    #my log "--include portlet returns $html"
+    #my log "--include includelet returns $html"
     return $html
   }
 
-  Page ad_instproc include_portlet {arg} {
+  Page instproc include_portlet {arg} {
+    my log "+++ method [self proc] of [self class] is deprecated"
+    return [my include $arg]
+  }
+
+  Page ad_instproc include {arg} {
     Include the html of the includelet. The method generates
     an includelet object (might be an other xowiki page) and
     renders it and returns either html or an error message.
   } {
-    set page [my instantiate_portlet_object $arg]
+    set page [my instantiate_includelet $arg]
     if {$page eq ""} {
       return [my error_during_render [_ xowiki.error-includelet-unknown]]
     }
-    return [my render_portlet_object $page]
+    return [my render_includelet $page]
   }
 
-  Page instproc include {ch arg ch2} {
+  Page instproc include_content {ch arg ch2} {
     # make recursion depth a global variable to ease the deletion etc.
     if {[catch {incr ::xowiki_inclusion_depth}]} {
       set ::xowiki_inclusion_depth 1
@@ -618,8 +623,8 @@ namespace eval ::xowiki {
       # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
       # We have to change this back
       regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
-      set html [my include_portlet $arg]
-      #my log "--include portlet returns $html"
+      set html [my include $arg]
+      #my log "--include includelet returns $html"
       incr ::xowiki_inclusion_depth -1
       return $ch$html$ch2
     }
@@ -755,7 +760,7 @@ namespace eval ::xowiki {
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
       set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub_eval $RE(include) $l {my include "\\\1" "\2" "\3"}]
+      set l [my regsub_eval $RE(include) $l {my include_content "\\\1" "\2" "\3"}]
       regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       append content [string range $l 1 end] \n
@@ -1258,7 +1263,7 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::Form
   #
   Form instproc footer {} {
-    return [my include_portlet [list form-menu -form_item_id [my item_id]]]
+    return [my include [list form-menu -form_item_id [my item_id]]]
   }
 
   Form proc disable_input_fields {form} {
@@ -1288,7 +1293,7 @@ namespace eval ::xowiki {
   }
 
   Form instproc list {} {
-    my view [my include_portlet [list form-usages -form_item_id [my item_id]]]
+    my view [my include [list form-usages -form_item_id [my item_id]]]
   }
 
 
@@ -1330,7 +1335,7 @@ namespace eval ::xowiki {
     if {[my exists __no_form_page_footer]} {
       next
     } else {
-      return [my include_portlet [list form-entry-menu]]
+      return [my include [list form-entry-menu]]
     }
   }
 

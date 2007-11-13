@@ -167,7 +167,7 @@ namespace eval ::xowiki {
       if {$description eq ""} {set description $body}
       if {$title eq ""}       {set title $name}
       set time [::xo::db::tcl_date $last_modified tz]
-      set link [::xowiki::Portlet detail_link \
+      set link [::xowiki::Includelet detail_link \
                     -package_id $package_id -name $name \
                     -absolute true \
                     -instance_attributes $instance_attributes]

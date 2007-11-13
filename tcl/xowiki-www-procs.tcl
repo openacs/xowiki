@@ -31,7 +31,7 @@ namespace eval ::xowiki {
         ![my exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
-      set tag_content "[my include_portlet my-tags]<br>"
+      set tag_content "[my include my-tags]<br>"
       set tag_includelet [my set __last_includelet]
       set tags [$tag_includelet set tags]
     } else {
@@ -41,27 +41,27 @@ namespace eval ::xowiki {
 
     if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
       append footer "<div style='float: right'>" \
-          [my include_portlet [list digg -description $description -url $url]] "</div>\n"
+          [my include [list digg -description $description -url $url]] "</div>\n"
     }
 
     if {[$package_id get_parameter "with_delicious" 0] && [info exists url]} {
       append footer "<div style='float: right; padding-right: 10px;'>" \
-          [my include_portlet [list delicious -description $description -url $url -tags $tags]] \
+          [my include [list delicious -description $description -url $url -tags $tags]] \
           "</div>\n"
     }
 
     if {[$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
       append footer "<div style='float: right; padding-right: 10px;'>" \
-          [my include_portlet [list my-yahoo-publisher \
+          [my include [list my-yahoo-publisher \
                                    -publisher [::xo::get_user_name [::xo::cc user_id]] \
                                    -rssurl "$package_url?rss"]] \
           "</div>\n"
     }
 
-    append footer [my include_portlet my-references]  <br>
+    append footer [my include my-references]  <br>
     
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
-      append footer [my include_portlet my-categories]  <br>
+      append footer [my include my-categories]  <br>
       set categories_includelet [my set __last_includelet]
     }
 
@@ -69,7 +69,7 @@ namespace eval ::xowiki {
 
     if {[$package_id get_parameter "with_general_comments" 0] &&
         ![my exists_query_parameter no_gc]} {
-      append footer [my include_portlet my-general-comments] <br>
+      append footer [my include my-general-comments] <br>
     }
 
     return  "<div style='clear: both; text-align: left; font-size: 85%;'>$footer</div>\n"
@@ -99,10 +99,10 @@ namespace eval ::xowiki {
     #my log "--after render"
     set footer [my htmlFooter -content $content]
 
-    set top_portlets ""
-    set vp [string trim [$package_id get_parameter "top_portlet" ""]]
+    set top_includelets ""
+    set vp [string trim [$package_id get_parameter "top_includelet" ""]]
     if {$vp ne ""} {
-      set top_portlets [my include_portlet $vp]
+      set top_includelets [my include $vp]
     }
 
     if {[$package_id get_parameter "with_user_tracking" 1]} {
@@ -210,7 +210,7 @@ namespace eval ::xowiki {
           content footer package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           notification_subscribe_link notification_image 
-          top_portlets page
+          top_includelets page
           views_data
         }
       }
@@ -359,7 +359,7 @@ namespace eval ::xowiki {
       set default ""
     }
     set f [FormField new -name $name \
-               -id        [::xowiki::Portlet html_id F.[my name].$name] \
+               -id        [::xowiki::Includelet html_id F.[my name].$name] \
                -locale    [my nls_language] \
                -label     $label \
                -type      [expr {[$slot exists datatype]  ? [$slot set datatype]  : "text"}] \
@@ -1074,7 +1074,7 @@ namespace eval ::xowiki {
       append error_msg \
           [_ xowiki.error-delete_entries_first [list count $count]] \
           <p> \
-          [my include_portlet [list form-usages -all true -form_item_id [my item_id]]] \
+          [my include [list form-usages -all true -form_item_id [my item_id]]] \
           </p>
       $package_id error_msg $error_msg
     } else {

@@ -79,7 +79,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>
 <div style="float:right; width: 70%;">
-@top_portlets;noquote@
+@top_includelets;noquote@
 @content;noquote@
 </div>
 

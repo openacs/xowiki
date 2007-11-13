@@ -351,6 +351,30 @@ namespace eval ::xowiki {
       }
       ::xowiki::update_views
     }
+
+    set v 0.77
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      # load for all xowiki package instances the weblog-portlet prototype page
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page announcements
+	$package_id import_prototype_page news
+	$package_id import_prototype_page weblog-portlet
+      }
+      copy_parameter top_portlet top_includelet
+    }
+  }
+
+  proc copy_parameter {from to} {
+    set parameter_obj [::xo::parameter get_parameter_object \
+                           -parameter_name $from -package_key xowiki]
+    if {$parameter_obj eq ""} {error "no such parameter $from"}
+    foreach package_id [::xowiki::Package instances] {
+      set value [$parameter_obj get -package_id $package_id]
+      parameter::set_value -package_id $package_id -parameter $to -value $value
+    }
   }
 
   ad_proc fix_all_package_ids {} {

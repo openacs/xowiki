@@ -88,7 +88,7 @@ function get_popular_tags(popular_tags_link, prefix) {
   }
 
   ADP_Generator instproc content_part {} {
-    return "@top_portlets;noquote@\n@content;noquote@"
+    return "@top_includelets;noquote@\n@content;noquote@"
   }
 
 

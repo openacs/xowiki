@@ -111,7 +111,7 @@ div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
 </div></div>  <!-- background -->
 </div>
 <div style="float:right; width: 70%;">
-@top_portlets;noquote@
+@top_includelets;noquote@
 @content;noquote@
 </div> <!-- right 70% -->
 

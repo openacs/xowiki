@@ -8,7 +8,7 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.76" url="http://openacs.org/repository/download/apm/xowiki-0.76.apm">
+    <version name="0.77" url="http://openacs.org/repository/download/apm/xowiki-0.77.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
@@ -54,12 +54,12 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.76"/>
+        <provides url="xowiki" version="0.77"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.76"/>
+        <requires url="xotcl-core" version="0.77"/>
 
         <callbacks>
             <callback type="after-install"  proc="::xowiki::after-install"/>
@@ -78,7 +78,7 @@ Some features:
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_portlet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki portlet (defined in ::xowiki::portlet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki portlets."/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, the connection locale (depending on the browser setting) is used to determine the default language, in which a page is presented, whenever possible. Users with different locales will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used as default." section_name="URL"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>

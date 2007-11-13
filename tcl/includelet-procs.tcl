@@ -5,15 +5,15 @@ ad_library {
     @author Gustaf Neumann
     @cvs-id $Id$
 }
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #
-  # Define a meta-class for creating Portlet classes.
+  # Define a meta-class for creating Includelet classes.
   # We use a meta-class for making it easier to define properties
-  # on classes of portlets, which can be used without instantiating
+  # on classes of includelets, which can be used without instantiating
   # it. One can for example use the query from the page fragment 
   # cache the caching properties of the class.
   #
-  Class create ::xowiki::PortletClass \
+  Class create ::xowiki::IncludeletClass \
       -superclass ::xotcl::Class \
       -parameter {
         {localized true} 
@@ -22,9 +22,9 @@ namespace eval ::xowiki::portlet {
         {aggregating false}
       }
 
-  # The general superclass for portlets
+  # The general superclass for includelets
 
-  Class create ::xowiki::Portlet \
+  Class create ::xowiki::Includelet \
       -superclass ::xo::Context \
       -parameter {
         {name ""} 
@@ -34,9 +34,9 @@ namespace eval ::xowiki::portlet {
         {id}
       }
 
-  ::xowiki::Portlet proc describe_includelets {portlet_classes} {
-    my log "--plc=$portlet_classes "
-    foreach cl $portlet_classes {
+  ::xowiki::Includelet proc describe_includelets {includelet_classes} {
+    my log "--plc=$includelet_classes "
+    foreach cl $includelet_classes {
       set result ""
       append result "{{<b>[namespace tail $cl]</b>"
       foreach p [$cl info parameter] {
@@ -62,9 +62,9 @@ namespace eval ::xowiki::portlet {
       my describe_includelets [$cl info subclass]
     }
   }
-  ::xowiki::Portlet proc available_includelets {} {
+  ::xowiki::Includelet proc available_includelets {} {
     if {[my array exists html]} {my array unset html}
-    my describe_includelets [::xowiki::Portlet info subclass]
+    my describe_includelets [::xowiki::Includelet info subclass]
     set result "<UL>"
     foreach d [lsort [my array names html]] {
       append result "<LI>" [my set html($d)] "</LI>" \n
@@ -73,20 +73,20 @@ namespace eval ::xowiki::portlet {
     return $result
   }
 
-  ::xowiki::Portlet instproc initialize {} {
+  ::xowiki::Includelet instproc initialize {} {
     # This method is called at a time after init and before render.
     # It can be used to alter specified parameter from the user,
     # or to influence the rendering of a decoration (e.g. title etc.)
   }
   
-  ::xowiki::Portlet instproc js_name {} {
+  ::xowiki::Includelet instproc js_name {} {
     return [string map [list : _ # _] [self]]
   }
 
-  ::xowiki::Portlet instproc self_id {} {
+  ::xowiki::Includelet instproc self_id {} {
     return [string map [list : _ # _] [self]]
   }
-  ::xowiki::Portlet proc html_id {name} {
+  ::xowiki::Includelet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
     #
@@ -103,27 +103,27 @@ namespace eval ::xowiki::portlet {
     return $name
   }
 
-  ::xowiki::Portlet proc detail_link {
+  ::xowiki::Includelet proc detail_link {
      {-absolute:boolean false} 
      -package_id 
      -name 
      -instance_attributes
    } {
-    array set ia $instance_attributes
-    if {[info exists ia(detail_link)] && $ia(detail_link) ne ""} {
-      set link $ia(detail_link)
+    array set __ia $instance_attributes
+    if {[info exists __ia(detail_link)] && $__ia(detail_link) ne ""} {
+      set link $__ia(detail_link)
     } else {
       set link [::$package_id pretty_link $name]
     }
     return $link
   }
 
-  ::xowiki::Portlet instproc screen_name {user_id} {
+  ::xowiki::Includelet instproc screen_name {user_id} {
     acs_user::get -user_id $user_id -array user
     return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
   }
 
-  ::xowiki::Portlet proc incr_page_order {p} {
+  ::xowiki::Includelet proc incr_page_order {p} {
     regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
     if {[string is integer -strict $suffix]} {
       incr suffix
@@ -147,7 +147,7 @@ namespace eval ::xowiki::portlet {
     return $prefix$suffix
   }
 
-  ::xowiki::Portlet proc locale_clause {
+  ::xowiki::Includelet proc locale_clause {
     -revisions 
     -items 
     package_id 
@@ -182,7 +182,7 @@ namespace eval ::xowiki::portlet {
     return [list $locale $locale_clause]
   }
 
-  ::xowiki::Portlet instproc category_clause {category_spec {item_ref p.item_id}} {
+  ::xowiki::Includelet instproc category_clause {category_spec {item_ref p.item_id}} {
     # the category_spec has the syntax "a,b,c|d,e", where the values are category_ids
     # pipe symbols are or-operations, commas are and-operations;
     # no parenthesis are permitted
@@ -206,11 +206,11 @@ namespace eval ::xowiki::portlet {
     return [list $cnames $extra_where_clause]
   }
 
-  ::xowiki::Portlet instproc resolve_page_name {page_name} {
+  ::xowiki::Includelet instproc resolve_page_name {page_name} {
     return [[my set __including_page] resolve_included_page_name $page_name]
   }  
 
-  ::xowiki::Portlet instproc get_page_order {-source -ordered_pages -pages} {
+  ::xowiki::Includelet instproc get_page_order {-source -ordered_pages -pages} {
     my instvar page_order pages ordered_pages
     # 
     # first check, if we can load the page_order from the page
@@ -239,27 +239,27 @@ namespace eval ::xowiki::portlet {
   
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
-  ::xowiki::PortletClass create available-includelets \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create available-includelets \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "The following includelets can be used in a page"}
       }
 
   available-includelets instproc render {} {
     my get_parameters
-    return [::xowiki::Portlet available_includelets]
+    return [::xowiki::Includelet available_includelets]
   }
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   # Page Fragment Cache
   # 
   # The following mixin-class implements page fragment caching in the
   # xowiki-cache. Caching can be turned on for every
-  # ::xowiki::PortletClass instance.
+  # ::xowiki::IncludeletClass instance.
   #
   # Fragment caching depends in the class variables
   #   - cacheable    (the mixin is only registered, when cacheable is set to true)
@@ -267,7 +267,7 @@ namespace eval ::xowiki::portlet {
   #   - localized    (dependency on locale)
   #   - personalized (dependency on userid)
   #
-  Class create ::xowiki::portlet::page_fragment_cache  -instproc render {} {
+  Class create ::xowiki::includelet::page_fragment_cache  -instproc render {} {
     set c [my info class]
     #
     # Construct a key based on the class parameters and the 
@@ -281,11 +281,11 @@ namespace eval ::xowiki::portlet {
     return [ns_cache eval xowiki_cache $key next]
   }
 }  
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
-  # dotlrn style portlet decoration for includelets
+  # dotlrn style includelet decoration for includelets
   #
-  Class create ::xowiki::portlet::decoration=portlet -instproc render {} {
+  Class create ::xowiki::includelet::decoration=portlet -instproc render {} {
     my instvar package_id name title
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
@@ -301,23 +301,23 @@ namespace eval ::xowiki::portlet {
        } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
         <div $id class='portlet'>[next]</div></div>}
        }]
-  Class create ::xowiki::portlet::decoration=plain -instproc render {} {
+  Class create ::xowiki::includelet::decoration=plain -instproc render {} {
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
     return "<div $id class='$class'>[next]</div>"
   }
 
-  Class create ::xowiki::portlet::decoration=rightbox -instproc render {} {
+  Class create ::xowiki::includelet::decoration=rightbox -instproc render {} {
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
     return "<div class='rightbox'><div $id class='$class'>[next]</div></div>"
   }
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
 
-  ::xowiki::PortletClass create get \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create get \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -347,8 +347,8 @@ namespace eval ::xowiki::portlet {
         return "no such form_variable $form_variable defined in page [$page set name]"
       }
  
-  ::xowiki::PortletClass create creation-date \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create creation-date \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -366,8 +366,8 @@ namespace eval ::xowiki::portlet {
   #############################################################################
   # rss button
   #
-  ::xowiki::PortletClass create rss-button \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create rss-button \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -387,8 +387,8 @@ namespace eval ::xowiki::portlet {
   #############################################################################
   # set-parameter "includelet"
   #
-  ::xowiki::PortletClass create set-parameter \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create set-parameter \
+      -superclass ::xowiki::Includelet \
       -parameter {{__decoration none}}
 
   set-parameter instproc render {} {
@@ -404,17 +404,17 @@ namespace eval ::xowiki::portlet {
   }
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
-  # valid parameters for he categories portlet are
+  # valid parameters for he categories includelet are
   #     tree_name: match pattern, if specified displays only the trees 
   #                with matching names
   #     no_tree_name: if specified, tree names are not displayed
   #     open_page: name (e.g. en:iMacs) of the page to be opened initially
   #     tree_style: boolean, default: true, display based on mktree
 
-  ::xowiki::PortletClass create categories \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create categories \
+      -superclass ::xowiki::Includelet \
       -cacheable true -personalized false -aggregating true \
       -parameter {
         {title "Categories"}
@@ -442,7 +442,7 @@ namespace eval ::xowiki::portlet {
                 [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
     foreach {locale locale_clause} \
-        [::xowiki::Portlet locale_clause -revisions r -items ci $package_id $locale] break
+        [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -543,7 +543,7 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # display recent entries by categories
@@ -553,8 +553,8 @@ namespace eval ::xowiki::portlet {
   #     tree_name: match pattern, if specified displays only the trees with matching names
   #     max_entries: show given number of new entries
   
-  ::xowiki::PortletClass create categories-recent \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create categories-recent \
+      -superclass ::xowiki::Includelet \
       -cacheable true -personalized false -aggregating true \
       -parameter {
         {title "Recently Changed Pages by Categories"}
@@ -571,7 +571,7 @@ namespace eval ::xowiki::portlet {
     set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
 
     foreach {locale locale_clause} \
-        [::xowiki::Portlet locale_clause -revisions r -items ci $package_id $locale] break
+        [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
     set trees [expr {$have_locale ?
@@ -618,14 +618,14 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # display recent entries 
   #
   
-  ::xowiki::PortletClass create recent \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create recent \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Recently Changed Pages"}
         {parameter_declaration {
@@ -693,14 +693,14 @@ namespace eval ::xowiki::portlet {
   }
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # display last visited entries 
   #
   
-  ::xowiki::PortletClass create last-visited \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create last-visited \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Last Visited Pages"}
         {parameter_declaration {
@@ -736,14 +736,14 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # list the most popular pages
   #
 
-  ::xowiki::PortletClass create most-popular \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create most-popular \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Most Popular Pages"}
         {parameter_declaration {
@@ -813,14 +813,14 @@ namespace eval ::xowiki::portlet {
   }
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # list the most frequent visitors
   #
 
-  ::xowiki::PortletClass create rss-client \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create rss-client \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "RSS client"}
         {parameter_declaration {
@@ -854,14 +854,14 @@ namespace eval ::xowiki::portlet {
 
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # list the most frequent visitors
   #
 
-  ::xowiki::PortletClass create most-frequent-visitors \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create most-frequent-visitors \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Most Frequent Visitors"}
         {parameter_declaration {
@@ -896,7 +896,7 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # Display unread items
@@ -907,8 +907,8 @@ namespace eval ::xowiki::portlet {
   # consider what to do with auto-created stuff (put it into 'production' state?)
   # 
 
-  ::xowiki::PortletClass create unread-items \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create unread-items \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Unread Items"}
         {parameter_declaration {
@@ -955,14 +955,14 @@ namespace eval ::xowiki::portlet {
 
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # Show the tags
   #
 
-  ::xowiki::PortletClass create tags \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create tags \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {title "Tags"}
         {parameter_declaration {
@@ -1008,8 +1008,8 @@ namespace eval ::xowiki::portlet {
                   ""}]
   }
 
-  ::xowiki::PortletClass create my-tags \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create my-tags \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -1039,7 +1039,7 @@ namespace eval ::xowiki::portlet {
     foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
     set tags_with_links [join [lsort $entries] {, }]
 
-    if {![my exists id]} {my set id [::xowiki::Portlet html_id [self]]}
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
       (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
@@ -1055,8 +1055,8 @@ namespace eval ::xowiki::portlet {
   }
 
   
-  ::xowiki::PortletClass create my-categories \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create my-categories \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -1109,8 +1109,8 @@ namespace eval ::xowiki::portlet {
     return $content
   }
 
-  ::xowiki::PortletClass create my-general-comments \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create my-general-comments \
+      -superclass ::xowiki::Includelet \
       -parameter {{__decoration none}}
   
   my-general-comments instproc render {} {
@@ -1129,8 +1129,8 @@ namespace eval ::xowiki::portlet {
     }
   }
   
-  ::xowiki::PortletClass create digg \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create digg \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -1151,8 +1151,8 @@ namespace eval ::xowiki::portlet {
     return "<a href='$digg_link'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a>"
   }
 
-  ::xowiki::PortletClass create delicious \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create delicious \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -1183,8 +1183,8 @@ namespace eval ::xowiki::portlet {
   }
 
 
-  ::xowiki::PortletClass create my-yahoo-publisher \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create my-yahoo-publisher \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -1205,8 +1205,8 @@ namespace eval ::xowiki::portlet {
     return "<a href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' border='0' align='middle' alt='Add to My Yahoo!'></a>"
   }
 
-  ::xowiki::PortletClass create my-references \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create my-references \
+      -superclass ::xowiki::Includelet \
       -parameter {{__decoration none}}
   
   my-references instproc render {} {
@@ -1240,12 +1240,12 @@ namespace eval ::xowiki::portlet {
 
 }
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
   # presence
   #
-  ::xowiki::PortletClass create presence \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create presence \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration rightbox}
         {parameter_declaration {
@@ -1327,12 +1327,12 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
-  # portlets based on order
+  # includelets based on order
   #
-  ::xowiki::PortletClass create toc \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create toc \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -1379,7 +1379,7 @@ namespace eval ::xowiki::portlet {
       foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
     }
     foreach {locale locale_clause} \
-        [::xowiki::Portlet locale_clause -revisions p -items p $package_id $locale] break
+        [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
     #my msg locale_clause=$locale_clause
 
     if {$source ne ""} {
@@ -1643,7 +1643,7 @@ namespace eval ::xowiki::portlet {
       set ajax 0
     }
     my set ajax $ajax
-    if {![my exists id]} {my set id [::xowiki::Portlet html_id [self]]}
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     if {[info exists category_id]} {my set category_id $category_id}
             
     set js_tree_cmds [my get_nodes $open_page $package_id $expand_all \
@@ -1655,8 +1655,8 @@ namespace eval ::xowiki::portlet {
   # Selection
   #
   # TODO: base book (and toc) on selection
-  ::xowiki::PortletClass create selection \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create selection \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -1719,10 +1719,10 @@ namespace eval ::xowiki::portlet {
 
       set menu [list]
       foreach b $menu_buttons {
-	if {[info command ::xowiki::portlet::$b] eq ""} {
+	if {[info command ::xowiki::includelet::$b] eq ""} {
 	  set b $b-item-button
 	}
-	set html [$p include_portlet [list $b -book_mode true]]
+	set html [$p include [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
       append output "<h$level class='book'>" \
@@ -1733,8 +1733,8 @@ namespace eval ::xowiki::portlet {
     return $output
   }
 
-  ::xowiki::PortletClass create composite-form \
-      -superclass ::xowiki::portlet::selection \
+  ::xowiki::IncludeletClass create composite-form \
+      -superclass ::xowiki::includelet::selection \
       -parameter {
         {parameter_declaration {
           {-edit_links:boolean false}
@@ -1784,8 +1784,8 @@ namespace eval ::xowiki::portlet {
   #############################################################################
   # book style
   #
-  ::xowiki::PortletClass create book \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create book \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -1809,7 +1809,7 @@ namespace eval ::xowiki::portlet {
     }
 
     foreach {locale locale_clause} \
-        [::xowiki::Portlet locale_clause -revisions p -items p $package_id $locale] break
+        [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
 
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \
@@ -1846,10 +1846,10 @@ namespace eval ::xowiki::portlet {
       }
       set menu [list]
       foreach b $menu_buttons {
-	if {[info command ::xowiki::portlet::$b] eq ""} {
+	if {[info command ::xowiki::includelet::$b] eq ""} {
 	  set b $b-item-button
 	}
-	set html [$p include_portlet [list $b -book_mode true]]
+	set html [$p include [list $b -book_mode true]]
 	if {$html ne ""} {lappend menu $html}
       }
       set menu [join $menu "&nbsp;"]
@@ -1867,9 +1867,9 @@ namespace eval ::xowiki::portlet {
   }
 }
 
-namespace eval ::xowiki::portlet {
-  ::xowiki::PortletClass create item-button \
-      -superclass ::xowiki::Portlet \
+namespace eval ::xowiki::includelet {
+  ::xowiki::IncludeletClass create item-button \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
       }
@@ -1905,7 +1905,7 @@ namespace eval ::xowiki::portlet {
     return $html
   }
 
-  ::xowiki::PortletClass create edit-item-button -superclass ::xowiki::portlet::item-button \
+  ::xowiki::IncludeletClass create edit-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {
         {parameter_declaration {
           {-page_id}
@@ -1933,7 +1933,7 @@ namespace eval ::xowiki::portlet {
 		-src /resources/acs-subsite/Edit16.gif]
   }
 
-  ::xowiki::PortletClass create delete-item-button -superclass ::xowiki::portlet::item-button \
+  ::xowiki::IncludeletClass create delete-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {src /resources/acs-subsite/Delete16.gif}
@@ -1955,7 +1955,7 @@ namespace eval ::xowiki::portlet {
 		  -return_url [::xo::cc url]]
   }
 
-  ::xowiki::PortletClass create create-item-button -superclass ::xowiki::portlet::item-button \
+  ::xowiki::IncludeletClass create create-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {src /resources/acs-subsite/Add16.gif}
@@ -1970,7 +1970,7 @@ namespace eval ::xowiki::portlet {
     my get_parameters
     my instvar __including_page
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
-    set page_order [::xowiki::Portlet incr_page_order [$page page_order]]
+    set page_order [::xowiki::Includelet incr_page_order [$page page_order]]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       return [my render_button \
@@ -1989,7 +1989,7 @@ namespace eval ::xowiki::portlet {
     }
   }
 
-  ::xowiki::PortletClass create copy-item-button -superclass ::xowiki::portlet::item-button \
+  ::xowiki::IncludeletClass create copy-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {src /resources/acs-subsite/Copy16.gif}
@@ -2027,10 +2027,10 @@ namespace eval ::xowiki::portlet {
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
 
-  ::xowiki::PortletClass create graph \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create graph \
+      -superclass ::xowiki::Includelet \
       -parameter {{__decoration plain}}
 
   graph instproc graphHTML {-edges -nodes -max_edges -cutoff -base {-attrib node_id}} {
@@ -2096,9 +2096,9 @@ function draw() {
   }
 }
 
-namespace eval ::xowiki::portlet {
-  ::xowiki::PortletClass create collab-graph \
-      -superclass ::xowiki::portlet::graph \
+namespace eval ::xowiki::includelet {
+  ::xowiki::IncludeletClass create collab-graph \
+      -superclass ::xowiki::includelet::graph \
       -parameter {
         {parameter_declaration {
           {-max_edges 70} 
@@ -2179,8 +2179,8 @@ namespace eval ::xowiki::portlet {
   }
 
 
-  ::xowiki::PortletClass create activity-graph \
-      -superclass ::xowiki::portlet::graph \
+  ::xowiki::IncludeletClass create activity-graph \
+      -superclass ::xowiki::includelet::graph \
       -parameter {
         {parameter_declaration {
           {-max_edges 70} 
@@ -2277,8 +2277,8 @@ namespace eval ::xowiki::portlet {
     return $result
   }
 
-  ::xowiki::PortletClass create timeline \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create timeline \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
           -user_id 
@@ -2350,7 +2350,7 @@ YAHOO.util.Event.addListener(window, 'load',   onLoad());
   }]
   }
 
-  ::xowiki::PortletClass create user-timeline \
+  ::xowiki::IncludeletClass create user-timeline \
       -superclass timeline \
       -parameter {
         {parameter_declaration {
@@ -2371,10 +2371,10 @@ YAHOO.util.Event.addListener(window, 'load',   onLoad());
 }
 
 
-namespace eval ::xowiki::portlet {
+namespace eval ::xowiki::includelet {
   #############################################################################
-  ::xowiki::PortletClass create form-menu \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create form-menu \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -2403,8 +2403,8 @@ namespace eval ::xowiki::portlet {
   }
 
   #############################################################################
-  ::xowiki::PortletClass create form-entry-menu \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create form-entry-menu \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -2421,8 +2421,8 @@ namespace eval ::xowiki::portlet {
   }
 
   #############################################################################
-  ::xowiki::PortletClass create form-usages \
-      -superclass ::xowiki::Portlet \
+  ::xowiki::IncludeletClass create form-usages \
+      -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
