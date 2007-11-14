@@ -1116,10 +1116,12 @@ namespace eval ::xowiki {
   #
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
+    # todo: should be made faster. no need to parse on every call
     foreach name_and_spec $form_constraints {
-      foreach {spec_name short_spec} [split $name_and_spec :] break
+      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+      #foreach {spec_name short_spec} [split $name_and_spec :] break
       if {$spec_name eq $name} {
-        #my msg "get_short_spec $name returns 1 $short_spec"
+        #my msg "get_short_spec $name returns '$short_spec'"
         return $short_spec
       }
     }
@@ -1309,7 +1311,8 @@ namespace eval ::xowiki {
     # Create from fields from all specs and report, if there are any errors
     #
     foreach name_and_spec $form_constraints {
-      foreach {spec_name short_spec} [split $name_and_spec :] break
+      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+      #foreach {spec_name short_spec} [split $name_and_spec :] break
       if {$spec_name eq "@table" || $spec_name eq "@categories"} continue
 
       #my msg "checking spec '$short_spec' for form field '$spec_name'"

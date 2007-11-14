@@ -116,8 +116,73 @@ namespace eval ::xowiki {
     }
   }
 
+  FormField instproc interprete_condition {cond} {
+    set package_id [[my object] package_id]
+    set policy [$package_id set policy]
+    set success [$policy check_privilege \
+                     -user_id [::xo::cc user_id] \
+                     -package_id $package_id $cond [self] view]
+    return $success
+  }
+  
+  FormField instproc interprete_single_spec {s} {
+    if {$s eq ""} return
+    
+    if {[regexp {^([^=?]+)[?]([^:]*)[:](.*)$} $s _ condition true_spec false_spec]} {
+      #my msg "--c=$condition,true_spec=$true_spec,false_spec=$false_spec"
+      if {[my interprete_condition $condition]} {
+        my interprete_single_spec $true_spec
+      } else {
+        my interprete_single_spec $false_spec
+      }
+      return
+    }
+    switch -glob $s {
+      optional    {my set required false}
+      required    {my set required true}
+      label=*     {my label     [lindex [split $s =] 1]}
+      help_text=* {my help_text [lindex [split $s =] 1]}
+      *=*         {
+        set l [split $s =]
+        foreach {attribute value} $l break
+        set definition_class [lindex [my procsearch $attribute] 0]
+        if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
+          error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
+        }
+        if {[catch {
+          #
+          # We want to allow a programmer to use e.g. options=[xowiki::locales] 
+          #
+          # Note: do not allow users to use [] via forms, since they might
+          # execute arbitrary commands. The validator for the form fields 
+          # makes sure, that the input specs are free from square brackets.
+          #
+          if {[string match {\[*\]} $value]} {
+            set value [subst $value]
+          }
+          my [lindex $l 0] $value
+        } errMsg]} {
+          error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
+        }
+      }
+      default {
+        if {[my isclass [self class]::$s]} {
+          my class [self class]::$s
+          my reset_parameter
+          #my msg "[my name] searchDefaults"
+          ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+        } else {
+          if {$s ne ""} {
+            error [_ xowiki.error-form_constraint-unknown_spec_entry \
+                       [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
+          }
+        }
+      }
+    }
+  }
+
   FormField instproc config_from_spec {spec} {
-    my instvar type options widget_type
+    my instvar type
     if {[my info class] eq [self class]} {
       # Check, wether the actual class of the formfield differs from the
       # generic FromField class. If yes, the object was already 
@@ -129,48 +194,7 @@ namespace eval ::xowiki {
     }
 
     foreach s [split $spec ,] {
-      switch -glob $s {
-        optional    {my set required false}
-        required    {my set required true}
-        label=*     {my label     [lindex [split $s =] 1]}
-        help_text=* {my help_text [lindex [split $s =] 1]}
-        *=*         {
-          set l [split $s =]
-          foreach {attribute value} $l break
-          set definition_class [lindex [my procsearch $attribute] 0]
-          if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
-            error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
-          }
-          if {[catch {
-            #
-            # We want to allow a programmer to use e.g. options=[xowiki::locales] 
-            #
-            # Note: do not allow users to use [] via forms, since they might
-            # execute arbitrary commands. The validator for the form fields 
-            # makes sure, that the input specs are free from square brackets.
-            #
-            if {[string match {\[*\]} $value]} {
-              set value [subst $value]
-            }
-            my [lindex $l 0] $value
-          } errMsg]} {
-            error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
-          }
-        }
-        default {
-          if {[my isclass [self class]::$s]} {
-            my class [self class]::$s
-	    my reset_parameter
-	    #my msg "[my name] searchDefaults"
-	    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
-          } else {
-            if {$s ne ""} {
-              error [_ xowiki.error-form_constraint-unknown_spec_entry \
-                         [list name [my name] entry $s x "Unknown spec entry for entry '$s'"]]
-            }
-          }
-        }
-      }
+      my interprete_single_spec $s
     }
 
     #
