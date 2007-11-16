@@ -31,6 +31,7 @@ namespace eval ::xowiki {
   Class FormField -parameter {
     {required false} 
     {display_field true} 
+    {hide_value false} 
     {inline false}
     CSSclass
     {type text} 
@@ -118,10 +119,17 @@ namespace eval ::xowiki {
 
   FormField instproc interprete_condition {cond} {
     set package_id [[my object] package_id]
-    set policy [$package_id set policy]
-    set success [$policy check_privilege \
-                     -user_id [::xo::cc user_id] \
-                     -package_id $package_id $cond [self] view]
+    #set policy [$package_id set policy]
+    #set success [$policy check_privilege \
+    #                 -user_id [::xo::cc user_id] \
+    #                 -package_id $package_id $cond [self] view]
+    if {[::xo::cc info methods role=$cond] ne ""} {
+      set success [::xo::cc role=$cond \
+                       -user_id [::xo::cc user_id] \
+                       -package_id $package_id]
+    } else {
+      set success 0
+    }
     return $success
   }
   
@@ -395,7 +403,7 @@ namespace eval ::xowiki {
   }
   FormField::hidden instproc render_help_text {} {
   }
-  
+
   ###########################################################
   #
   # ::xowiki::FormField::inform

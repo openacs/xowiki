@@ -131,7 +131,7 @@ namespace eval ::xowiki {
             -sqltype long_text \
 	    -default "" \
             -validator form_constraints \
-	    -spec "textarea,cols=100,rows=2"
+	    -spec "textarea,cols=100,rows=5"
       } \
       -form ::xowiki::FormForm
 
@@ -1116,14 +1116,17 @@ namespace eval ::xowiki {
   #
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
-    # todo: should be made faster. no need to parse on every call
-    foreach name_and_spec $form_constraints {
-      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
-      #foreach {spec_name short_spec} [split $name_and_spec :] break
-      if {$spec_name eq $name} {
-        #my msg "get_short_spec $name returns '$short_spec'"
-        return $short_spec
+    # for the time being we cache the form_constraints per request as a global
+    # variable, which is reclaimed at the end of the connection
+    set varname ::xowiki_$form_constraints
+    if {![info exists $varname]} {
+      foreach name_and_spec $form_constraints {
+        regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+        set ${varname}($spec_name) $short_spec
       }
+    }
+    if {[info exists ${varname}($name)]} {
+      return [set ${varname}($name)]
     }
     return ""
   }
@@ -1155,7 +1158,6 @@ namespace eval ::xowiki {
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    my instvar page_template
     foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
@@ -1185,9 +1187,11 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_from_template {var} {
     my instvar page_template
-    #my log  "-- fetching page_template = $page_template"
-    ::xo::db::CrClass get_instance_from_db -item_id $page_template
-    $page_template destroy_on_cleanup
+    if {[info command ::$page_template] eq ""} {
+      #my log  "-- fetching page_template = $page_template"
+      ::xo::db::CrClass get_instance_from_db -item_id $page_template
+      $page_template destroy_on_cleanup
+    }
     return [$page_template set $var]
   }
 
@@ -1430,11 +1434,11 @@ namespace eval ::xowiki {
     set f [my create_form_field -name $varname \
                -slot [my find_slot [string trimleft $varname _]] \
                -configuration [list -value $value]]
-    set v $value
-    set value [$f pretty_value $value]
-    #my msg "$varname [$f info class]  before=$v after pretty_value=$value"
-    #my msg [$f serialize]
-    
+    if {[$f hide_value]} {
+      set value ""
+    } else {
+      set value [$f pretty_value $value]
+    }
     return $before$value
   }
 
