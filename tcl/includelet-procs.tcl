@@ -381,7 +381,39 @@ namespace eval ::xowiki::includelet {
   rss-button instproc render {} {
     my get_parameters
     set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title entries_of}]
+    ::xo::Page requireLink -rel alternate -type application/rss+xml -title RSS -href $href
     return "<a href=\"$href \" class='rss'>RSS</a>"
+  }
+
+  #############################################################################
+  # bookmarklet button
+  #
+  ::xowiki::IncludeletClass create bookmarklet-button \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-siteurl ""}
+          {-label ""}
+        }}
+      }
+
+  bookmarklet-button instproc render {} {
+    my get_parameters
+    set url [$package_id pretty_link -absolute 1 -siteurl $siteurl news-item]
+    if {$label eq ""} {set label "Add to [$package_id instance_name]"}
+    set href [subst -nocommands -nobackslash {
+      javascript:d=document;w=window;t='';
+      if(d.selection){t=d.selection.createRange().text} else 
+      if(d.getSelection){t=d.getSelection()} else 
+      if(w.getSelection){t=w.getSelection()} 
+      void(w.open('$url?m=create-new&title='+escape(d.title)+
+                    '&detail_link='+escape(d.location.href)+'&text='+escape(t),
+                    '_blank','scrollbars=yes,width=500,height=575,status=yes,
+                    resizable=yes,scrollbars=yes'))
+    }]
+    regsub -all {[\n ]+} $href " " href
+    return "<a href=\"$href \" title='$label' class='rss'>$label</a>"
   }
 
   #############################################################################
