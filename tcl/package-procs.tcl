@@ -977,6 +977,10 @@ namespace eval ::xowiki {
     Class File -array set require_permission {
       download           {{package_id read}}
     }
+    Class Form -array set require_permission {
+      create-new        {{item_id write}}
+      list              {{package_id read}}
+    }
   }
   
   Policy policy3 -contains {
@@ -1017,6 +1021,10 @@ namespace eval ::xowiki {
     }
     Class File -array set require_permission {
       download           {{package_id read}}
+    }
+    Class Form -array set require_permission {
+      create-new        {{item_id write}}
+      list              {{item_id read}}
     }
   }
 
