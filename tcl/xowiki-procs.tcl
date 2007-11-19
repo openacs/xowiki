@@ -415,6 +415,13 @@ namespace eval ::xowiki {
     next
   }
 
+  Page instproc get_instance_attributes {} {
+    if {[my exists instance_attributes]} {
+      return [my set instance_attributes]
+    }
+    return ""
+  }
+
   Page instproc regsub_eval {{-noquote:boolean false} re string cmd} {
     if {$noquote} {
       set map { \[ \\[ \] \\] \$ \\$ \\ \\\\}
