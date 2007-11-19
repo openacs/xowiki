@@ -69,10 +69,10 @@ namespace eval ::xowiki {
 
     if {[$package_id get_parameter "with_general_comments" 0] &&
         ![my exists_query_parameter no_gc]} {
-      append footer [my include my-general-comments] <br>
+      append footer [my include my-general-comments] 
     }
 
-    return  "<div style='clear: both; text-align: left; font-size: 85%;'>$footer</div>\n"
+    return  "<div class='footer'>$footer</div>\n"
   }
 
 }
@@ -742,7 +742,7 @@ namespace eval ::xowiki {
 	  $ff(_title) value ""
 	}
 	if {!$anon_instances} {$ff(_name) value ""}
-        foreach var {title detail_link text} {
+        foreach var [list title detail_link text description] {
           if {[my exists_query_parameter $var]} {
             set value [my query_parameter $var]
             switch -- $var {
@@ -750,7 +750,7 @@ namespace eval ::xowiki {
                 set f [my lookup_form_field -name $var $form_fields]
                 $f value $value
               }
-              title - text {
+              title - text - description {
                 set f [my lookup_form_field -name _$var $form_fields]
               }
             }

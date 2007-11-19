@@ -30,12 +30,23 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   }
 
   $page absolute_links 1
+  $page set __no_form_page_footer 1
   #ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 
   set html [$page render]
+
+  $page unset __no_form_page_footer
+
   set text [ad_html_text_convert -from text/html -to text/plain -- $html]
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
+  set found [string first {[1]} $text]
+  $page log "search=$found,text=$text"
+  if {$found > -1} {
+    append description {<![CDATA[} \n $html { ]]>}
+  } else {
+    set description [string map [list "&" "&amp;" < "&lt;" > "&gt;"] $text]
+  }
   #::xowiki::notification::do_notifications -page $page -html $html -text $text
 
   #ns_log notice "--sc INDEXING $revision_id -> $text"
@@ -65,16 +76,21 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   }
   #ns_log notice "--sc keywords $revision_id -> [array names word]"
 
+  set pubDate [::xo::db::tcl_date [$page set last_modified] tz]
+  set link [::xowiki::Includelet detail_link \
+                    -package_id $package_id -name [$page set name] \
+                    -absolute true \
+                    -instance_attributes [$page get_instance_attributes]]
+
   return [list object_id $revision_id title [$page title] \
-              content $text keywords [array names word] \
+              content $html keywords [array names word] \
               storage_type text mime text/html \
-              syndication [list \
-                        link [$package_id pretty_link -absolute 1 [$page set name]] \
-                        description $text \
-                        author [$page set creator] \
-                        category "" \
-                        guid "$item_id" \
-                        pubDate [$page set last_modified]] \
+              syndication [list link [string map [list & "&amp;"] $link] \
+                               description $description \
+                               author [$page set creator] \
+                               category "" \
+                               guid "$item_id" \
+                               pubDate $pubDate] \
              ]
 }
 

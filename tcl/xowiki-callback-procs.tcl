@@ -365,6 +365,19 @@ namespace eval ::xowiki {
       }
       copy_parameter top_portlet top_includelet
     }
+
+    set v 0.78
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      # load for all xowiki package instances the weblog-portlet prototype page
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page news
+	$package_id import_prototype_page weblog-portlet
+      }
+      copy_parameter top_portlet top_includelet
+    }
   }
 
   proc copy_parameter {from to} {

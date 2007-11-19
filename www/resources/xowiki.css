@@ -156,3 +156,10 @@ strong.code {
 }
 div.collab-graph div {font-size: 85%;}
 div.activity-graph div {font-size: 85%;}
+
+
+div.news-item {clear: both; border: 1px solid #a9a9a9; padding: 15px 15px; margin: 10px 10px; background: #f8f8f8;}
+div.news-item h2 {display: inline; font-weight: bolder;}
+div.news-item .footer {margin-left: 20px; margin-right: 20px;}
+
+div.xowiki-content .footer {clear: both; text-align: left; font-size: 85%;}
