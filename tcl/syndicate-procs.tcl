@@ -64,6 +64,7 @@ namespace eval ::xowiki {
     return "<?xml version='1.0' encoding='utf-8'?>[my css_link]
 <rss version='2.0'
   xmlns:ent='http://www.purl.org/NET/ENT/1.0/'
+  xmlns:content='http://purl.org/rss/1.0/modules/content/'
   xmlns:dc='http://purl.org/dc/elements/1.1/'>
 <channel>
   [my tag title $title]
@@ -147,7 +148,7 @@ namespace eval ::xowiki {
     }
 
     set sql [::xo::db::sql select \
-                 -vars "s.body, p.name, p.creator, p.title, p.page_id, instance_attributes, \
+                 -vars "s.body, s.rss_xml_frag, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.last_modified, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
                  -where "ci.parent_id = $folder_id \
@@ -158,32 +159,37 @@ namespace eval ::xowiki {
                  -orderby "p.last_modified desc" \
                  -limit [my limit]]
 
+#     set content [my head]
+#     my log "--TITLE=[my title], DESC=[my description]"
+#     db_foreach get_pages $sql {
+#       if {[string match "::*" $name]} continue
+#       if {$content_type eq "::xowiki::PageTemplate"} continue
+#       set description [string trim $description]
+#       if {$description eq ""} {set description $body}
+#       if {$title eq ""}       {set title $name}
+#       set time [::xo::db::tcl_date $last_modified tz]
+#       set link [::xowiki::Includelet detail_link \
+#                     -package_id $package_id -name $name \
+#                     -absolute true \
+#                     -instance_attributes $instance_attributes]
+#       #append title " ($content_type)"
+#       set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
+#       append content [my item \
+#                           -creator $creator \
+#                           -title $title \
+#                           -link $link \
+#                           -guid $siteurl/$page_id \
+#                           -description $description \
+#                           -pubdate $time \
+#                          ]
+#     }
+
     set content [my head]
     db_foreach get_pages $sql {
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate"} continue
-      
-      set description [string trim $description]
-      if {$description eq ""} {set description $body}
-      if {$title eq ""}       {set title $name}
-      set time [::xo::db::tcl_date $last_modified tz]
-      set link [::xowiki::Includelet detail_link \
-                    -package_id $package_id -name $name \
-                    -absolute true \
-                    -instance_attributes $instance_attributes]
-
-      #append title " ($content_type)"
-      set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-      append content [my item \
-                          -creator $creator \
-                          -title $title \
-                          -link $link \
-                          -guid $siteurl/$page_id \
-                          -description $description \
-                          -pubdate $time \
-                         ]
-    }
-    
+      append content $rss_xml_frag
+    }    
     append content [my tail]
     return $content
   }
