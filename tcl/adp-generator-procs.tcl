@@ -88,7 +88,7 @@ function get_popular_tags(popular_tags_link, prefix) {
   }
 
   ADP_Generator instproc content_part {} {
-    return "@top_includelets;noquote@\n@content;noquote@"
+    return "@top_includelets;noquote@\n<h1>@title@</h1>\n@content;noquote@"
   }
 
 
@@ -139,7 +139,7 @@ function get_popular_tags(popular_tags_link, prefix) {
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">
-<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
+<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8;">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="categories -open_page @name@  -decoration plain">
