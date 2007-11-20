@@ -923,7 +923,11 @@ namespace eval ::xowiki {
       my update_references $item_id [lsort -unique $references]
     }
     set html [expr {$render_adp ? [my adp_subst $content] : $content}]
-    if {![my exists __no_footer]} {append html [my footer]}
+    append html "<DIV class='content-chunk-footer'>"
+    if {![my exists __no_footer]} {
+      append html [my footer]
+    }
+    append html "</DIV>\n"
     return $html
   }
 

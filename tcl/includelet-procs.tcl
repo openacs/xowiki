@@ -1157,7 +1157,7 @@ namespace eval ::xowiki::includelet {
     if {$gc_comments ne ""} {
       return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
     } else {
-      return "<p>#general-comments.lt_No_comments_available#</p><p>$gc_link</p>"
+      return "<p>$gc_link</p>"
     }
   }
   

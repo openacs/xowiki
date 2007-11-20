@@ -14,7 +14,8 @@ namespace eval ::xowiki {
     my instvar package_id description
     if {[my exists __no_footer]} {return ""}
 
-    set footer "<hr/>"
+    #set footer "<hr/>"
+    set footer ""
 
     if {$description eq ""} {
       set description [my get_description $content]
@@ -31,7 +32,7 @@ namespace eval ::xowiki {
         ![my exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
-      set tag_content "[my include my-tags]<br>"
+      set tag_content [my include my-tags]
       set tag_includelet [my set __last_includelet]
       set tags [$tag_includelet set tags]
     } else {
@@ -72,7 +73,7 @@ namespace eval ::xowiki {
       append footer [my include my-general-comments] 
     }
 
-    return  "<div class='footer'>$footer</div>\n"
+    return  "<div class='item-footer'>$footer</div>\n"
   }
 
 }
