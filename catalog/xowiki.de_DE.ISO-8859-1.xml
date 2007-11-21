@@ -16,6 +16,7 @@
   <msg key="form-menu-answer_link">Einträge für dieses Formular</msg>
   <msg key="form-menu-new_link">Formular ausfüllen</msg>
   <msg key="index">Index</msg>
+  <msg key="new_page">Neuer Eintrag</msg>
   <msg key="notifications">Verständigungen</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Kurzbeschreibung</msg>
@@ -42,6 +43,7 @@
   <msg key="references_label">Verweise auf diese Seite:</msg>
   <msg key="revisions">Verlauf</msg>
   <msg key="search">Suche</msg>
+  <msg key="title">Titel</msg>
   <msg key="view">Ansehen</msg>
   <msg key="weblog-more">mehr...</msg>
   <msg key="your_tags_label">Persönliche Schlagworte</msg>

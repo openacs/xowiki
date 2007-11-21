@@ -1095,8 +1095,15 @@ namespace eval ::xowiki {
   PodcastItem instproc get_content {} {
     set content [next]
     append content <ul>
-    foreach i {title subtitle creator pub_date duration keywords} {
-      append content "<li><em>$i:</em> [my set $i]\n"
+    foreach {label var} {
+      #xowiki.title# title 
+      #xowiki.PodcastItem-subtitle# subtitle 
+      #xowiki.Page-creator# creator 
+      #xowiki.PodcastItem-pub_date# pub_date 
+      #xowiki.PodcastItem-duration# duration 
+      #xowiki.PodcastItem-keywords# keywords
+    } {
+      append content "<li><em>$label:</em> [my set $var]\n"
     }
     append content </ul>
     return $content
