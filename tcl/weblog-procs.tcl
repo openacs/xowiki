@@ -81,6 +81,7 @@ namespace eval ::xowiki {
     set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
                         bt.description s.body pi.instance_attributes]
     if {$entries_of ne ""} {
+      my instvar form_items
       set form_items [list]
       foreach t [split $entries_of |] {
         set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]

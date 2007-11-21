@@ -12,9 +12,9 @@ namespace eval ::xowiki {
   
   Page instproc htmlFooter {{-content ""}} {
     my instvar package_id description
+
     if {[my exists __no_footer]} {return ""}
 
-    #set footer "<hr/>"
     set footer ""
 
     if {$description eq ""} {
