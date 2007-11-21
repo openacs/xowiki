@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.59" locale="es_ES" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.78" locale="es_ES" charset="ISO-8859-1">
 
   <msg key="admin">Administrar</msg>
   <msg key="back">Volver</msg>
+  <msg key="categories">Categorías</msg>
   <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="delete">Borrar</msg>
   <msg key="edit">Editar</msg>

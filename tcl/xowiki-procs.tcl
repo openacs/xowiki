@@ -445,7 +445,7 @@ namespace eval ::xowiki {
 
   Page instproc error_in_includelet {arg msg} {
     my instvar name
-    return [my error_during_render "[_ xowiki.error_in_includelet]<br/>\n$msg"]
+    return [my error_during_render "[_ xowiki.error_in_includelet]<br />\n$msg"]
   }
   
   Page ad_instproc resolve_included_page_name {page_name} {

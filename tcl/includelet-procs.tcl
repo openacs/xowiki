@@ -1081,7 +1081,7 @@ namespace eval ::xowiki::includelet {
         <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
       </span>
-      <span id='[my id]-popular_tags' style='display: none'></span><br/>
+      <span id='[my id]-popular_tags' style='display: none'></span><br />
     }]
     return $content
   }
@@ -1136,7 +1136,7 @@ namespace eval ::xowiki::includelet {
       lappend entries $entry
     }
     if {[llength $entries]>0} {
-      set content "Categories: [join $entries {, }]"
+      set content "#xowiki.categories#: [join $entries {, }]"
     }
     return $content
   }
