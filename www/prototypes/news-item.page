@@ -4,13 +4,15 @@
     -set name en:news-item \
     -title "News Item" \
     -set anon_instances t \
-    -set form {{<form> @_title@ @_description@ @detail_link@ @_nls_language@</form>} text/html} \
-    -set text {<p>@_description@</p><p>@detail_link@</p>} \
+    -set form {{<form> @_title@ @detail_link@ @_text@ @_nls_language@ @_publish_status@</form>} text/html} \
+    -set text {<p>@_text@</p><p>@detail_link@</p>} \
     -set form_constraints {
-      _page_order:hidden 
-      _creator:hidden 
-      _title:text,label=#acs-kernel.common_Title# 
-      {detail_link:detail_link,label=Detail URL}
+     _page_order:hidden
+     _description:hidden
+     {_publish_status:radio,options={live ready} {draft production},label=#xowiki.publish_status#}
+     _creator:hidden
+     _title:text,label=#acs-kernel.common_Title#
+     {detail_link:detail_link,label=Source}
     }
 
 
