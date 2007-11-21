@@ -62,7 +62,10 @@ namespace eval ::xowiki {
     append footer [my include my-references] 
     
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
-      append footer [my include my-categories]  <br>
+      set html [my include my-categories]
+      if {$html ne ""} {
+	append footer $html <br>
+      }
       set categories_includelet [my set __last_includelet]
     }
 
