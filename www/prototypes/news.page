@@ -14,12 +14,25 @@
     {-entries_of en:news-item}
   }
 
+  my get_parameters
   #
   # Don't add the footer (with tags, general comments, etc.) to the
   # aggregated page, since this can be confusing..
   #
   [my info parent] set __no_footer 1
+
+  #
+  # Provide a tailored link for the wiki menu
+  #
+  set forms [::xowiki::Weblog instantiate_forms \
+                 -entries_of $entries_of \
+                 -package_id $package_id]
+  set template_id [lindex $forms 0]
+  set form_link [$package_id pretty_link [$template_id name]]
+  set new_link  [$package_id make_link -link $form_link $template_id create-new return_url]
   
+  [my info parent] set __link(new) $new_link
+
   #
   # The following definition is the default rendering per 
   # news entry. This is executed in the context of every displayed page.

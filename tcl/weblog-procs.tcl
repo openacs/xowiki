@@ -25,6 +25,29 @@ namespace eval ::xowiki {
     {entry_flag}
   }
 
+  ::xowiki::Weblog proc instantiate_forms {-entries_of:required -package_id:required} {
+    set folder_id [::$package_id folder_id]
+    set form_items [list]
+    foreach t [split $entries_of |] {
+      set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
+      if {$form_item_id == 0} {
+        # the form does not exist in the CR. Maybe we can create it
+        # via a prototype page?
+        regexp {^.+:(.*)$} $t _ t
+        set page [$package_id import_prototype_page $t]
+        if {$page ne ""} {set form_item_id [$page item_id]}
+      }
+      if {$form_item_id == 0} {error "Cannot lookup page $t"}
+        
+      # make sure, the form object exists (when no item is available)
+      if {![my isobject ::$form_item_id]} {
+        ::xo::db::CrClass get_instance_from_db -item_id $form_item_id
+      }
+      lappend form_items $form_item_id
+    }
+    return $form_items
+  }
+
   ::xowiki::Weblog instproc init {} {
     my instvar filter_msg package_id nr_items next_page_link prev_page_link
     my instvar date category_id tag ptag page_number page_size summary items locale
@@ -82,12 +105,9 @@ namespace eval ::xowiki {
                         bt.description s.body pi.instance_attributes]
     if {$entries_of ne ""} {
       my instvar form_items
-      set form_items [list]
-      foreach t [split $entries_of |] {
-        set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
-        if {$form_item_id == 0} {error "Cannot lookup page $t"}
-        lappend form_items $form_item_id
-      }
+      set form_items [::xowiki::Weblog instantiate_forms \
+                          -entries_of $entries_of \
+                          -package_id $package_id]
       append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
       set base_type ::xowiki::FormPage
       set base_table xowiki_form_pagei
