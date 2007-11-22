@@ -383,9 +383,12 @@ namespace eval ::xowiki {
         # get the page from the CR with all variables
         set p [::xo::db::CrClass get_instance_from_db -item_id $item_id]
         $p destroy_on_cleanup
-        # copy all variables from the prototype page 
+        # copy all scalar variables from the prototype page 
         # into the instantiated page 
-        foreach v [$page info vars] {$p set $v [$page set $v]}
+        foreach v [$page info vars] {
+          if {[$page array exists $v]} continue ;# don't copy arrays
+          $p set $v [$page set $v]
+        }
         $p save
         set page $p
       }

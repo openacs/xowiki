@@ -790,10 +790,11 @@ namespace eval ::xowiki {
       [my info class] instvar $__v
     }
     set __ignorelist [list __v __ignorelist __varlist __template_variables__ \
-                          text item_id content lang_links long_text_slots]
+                          text item_id content lang_links]
     set __varlist [list]
     set __template_variables__ "<ul>\n"
     foreach __v [lsort [info vars]] {
+      if {[array exists $__v]} continue ;# don't report  arrays
       if {[lsearch -exact $__ignorelist $__v]>-1} continue
       lappend __varlist $__v
       append __template_variables__ "<li><b>$__v:</b> '[set $__v]'\n"
