@@ -824,16 +824,20 @@ namespace eval ::xowiki {
     return $template_value
   }
 
-  Page instproc get_description {content} {
+  Page instproc get_description {-nr_chars content} {
     my instvar revision_id
     set description [my set description]
     if {$description eq "" && $content ne ""} {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set description [db_string [my qn get_description_from_syndication] \
+      set body [db_string [my qn get_description_from_syndication] \
                            "select body from syndication where object_id = $revision_id" \
                            -default ""]
+      set description [ad_html_text_convert -from text/html -to text/plain -- $body]
+    }
+    if {[info exists nr_chars] && [string length $description] > $nr_chars} {
+      set description [string range $description 0 $nr_chars]...
     }
     return $description
   }
@@ -1271,6 +1275,7 @@ namespace eval ::xowiki {
     $payload set package_id [my set package_id]
     if {[catch {$payload contains $cmd} error ]} {
       ns_log error "content $cmd lead to error: $error"
+      ::xo::clusterwide ns_cache flush xotcl_object_cache [my item_id]
     }
     #my log "call init mixins=[my info mixin]//[$payload info mixin]"
     $payload init

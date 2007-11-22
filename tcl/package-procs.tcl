@@ -814,7 +814,7 @@ namespace eval ::xowiki {
     return [$page edit -new true -autoname $autoname]
   }
 
-  Package instproc flush_references {-item_id:integer,required -name} {
+  Package instproc flush_references {-item_id:integer,required -name:required} {
     my instvar folder_id id
     if {$name eq "::$folder_id"} {
       #my log "--D deleting folder object ::$folder_id"

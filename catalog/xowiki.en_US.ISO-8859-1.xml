@@ -38,6 +38,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
   <msg key="index">Index</msg>
   <msg key="new_page">New Page</msg>
+  <msg key="news-source">Source</msg>
+  <msg key="news-teaser">Teaser</msg>
   <msg key="notifications">Notifications</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Page-creator">Creator</msg>

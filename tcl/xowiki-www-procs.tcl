@@ -11,15 +11,12 @@ ad_library {
 namespace eval ::xowiki {
   
   Page instproc htmlFooter {{-content ""}} {
-    my instvar package_id description
+    my instvar package_id
 
     if {[my exists __no_footer]} {return ""}
 
     set footer ""
-
-    if {$description eq ""} {
-      set description [my get_description $content]
-    }
+    set description [my get_description $content]
     
     #set ::META(description) $description
 

@@ -19,10 +19,11 @@ namespace eval ::xowiki {
     {name_filter ""}
     {entry_label "Postings"}
     {exclude_item_ids 0}
-    {summary false}
-    {summary_chars 150}
     {entry_renderer ::xowiki::Weblog::Entry}
     {entry_flag}
+    {summary false}
+    {summary_chars 150}
+    {compute_summary false}
   }
 
   ::xowiki::Weblog proc instantiate_forms {-entries_of:required -package_id:required} {
@@ -172,9 +173,11 @@ namespace eval ::xowiki {
 		   -item_id $item_id -revision_id $revision_id \
                    -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
-        $p set description [expr {$description eq "" && $body ne ""? \
-                    "[string range $body 0 $summary_chars]..." : \
-		    $description}]
+        if {$description eq "" && [my compute_summary] && $body ne ""} {
+          $p set description  [my get_description -nr_chars $summary_chars $body]
+        } else {
+          $p set description $description
+        }
         $p set instance_attributes $instance_attributes
       } else {
         # do full instantiation and rendering
@@ -246,7 +249,8 @@ namespace eval ::xowiki {
     #
     ::xo::Page requireCSS "/resources/xowiki/weblog.css"
 
-    $items set entry_renderer [my entry_renderer]
+    #$items set entry_renderer [my entry_renderer]
+
     set content [$items render]
     $items destroy_on_cleanup
     #my log "--W end"

@@ -44,7 +44,6 @@
     set link [::xowiki::Includelet detail_link \
                   -package_id $package_id -name $name \
                   -instance_attributes [my get_instance_attributes]]
-    #set link [::$package_id pretty_link $name]
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
@@ -53,10 +52,9 @@
 
     set edit_button [my include [list edit-item-button -book_mode true]]
     if {$edit_button ne ""} {set edit_button "<div style='float: right'>$edit_button</div>"}
-
     append content "<DIV class='news-item' style='clear: both;'>" $edit_button \
-        "<h2><a href='$link'>$title</a></h2>" \
-        "&nbsp;<span class='date'>($day)</span><br/> " \
+        "<div class='item-header'><h2><a href='$link'>$title</a></h2>" \
+        "&nbsp;<span class='date'>($day)</span></div>\n" \
         $description $more $my_footer \n\
         "</DIV>"
   }
