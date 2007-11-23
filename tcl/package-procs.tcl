@@ -214,18 +214,18 @@ namespace eval ::xowiki {
       lappend args [list m $method]
       set computed_link [uplevel export_vars -base [list $base] [list $args]]
     }
-    
+
+    set party_id [::xo::cc user_id]
     if {[info exists privilege]} {
       set granted [expr {$privilege eq "public" ? 1 :
-                 [permission::permission_p \
-                      -object_id $id -privilege $privilege \
-                      -party_id [::xo::cc user_id]] }]
+                  [permission::permission_p \
+                      -object_id $id -privilege $privilege -party_id $party_id] }]
     } else {
       # determine privilege from policy
-      set granted [my check_permissions -link $computed_link $object $method]
+      set granted [my check_permissions -user_id $party_id -package_id $id -link $computed_link $object $method]
       #my log "--p $id check_permissions $object $method ==> $granted"
     }
-
+    #my log "granted=$granted $computed_link"
     if {$granted} {
       return $computed_link
     }
@@ -400,9 +400,11 @@ namespace eval ::xowiki {
   }
 
   Package instproc call {object method} {
-    my instvar policy
-    #my log "--call enforce_permissions $object $method -> [$policy enforce_permissions $object $method]"
-    if {[$policy enforce_permissions $object $method]} {
+    my instvar policy id
+    set allowed [$policy enforce_permissions \
+                     -package_id $id -user_id [::xo::cc user_id] \
+                     $object $method]
+    if {$allowed} {
       #my msg "--p calling $object ([$object info class]) '$method'"
       $object $method
     } else {
@@ -412,7 +414,6 @@ namespace eval ::xowiki {
   Package instforward check_permissions {%my set policy} %proc
 
   Package instproc get_name_and_lang_from_path {path vlang vlocal_name} {
-    my log path=$path
     my upvar $vlang lang $vlocal_name local_name 
     if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
