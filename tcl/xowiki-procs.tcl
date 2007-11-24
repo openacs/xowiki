@@ -746,7 +746,7 @@ namespace eval ::xowiki {
         -folder_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} error]} {
-      return "${ch}<div class='errorMsg'>Error during processing of options: $error</div>"
+      return "${ch}<div class='errorMsg'>Error during processing of options [list $options]: $error</div>"
     } else {
       return $ch[[self]::link render]
     }
