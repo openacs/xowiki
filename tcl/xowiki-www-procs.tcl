@@ -513,6 +513,10 @@ namespace eval ::xowiki {
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
           set varname [string range $att 1 end]
+          # get rid of strange utf-8 characters hex C2AD (firefox bug?)
+          # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
+          if {$varname eq "text"} {regsub -all "­" $value "" value}
+          # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
           if {![string match *.* $att]} {my set $varname $value}
         }
         default {
@@ -699,7 +703,10 @@ namespace eval ::xowiki {
         #
         # we have no validation erros, so we can save the content
         #
-        my save_data [::xo::cc form_parameter __object_name ""] $category_ids
+        my save_data \
+            -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
+            [::xo::cc form_parameter __object_name ""] $category_ids
+
         #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
         $package_id returnredirect \
             [my query_parameter "return_url" [$package_id pretty_link [my name]]]

@@ -41,7 +41,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
   set found [string first {[1]} $text]
-  $page log "search=$found,text=$text"
+  $page log "search=$found,html=$html,text=$text"
   if {$found > -1} {
     append description {<![CDATA[} \n $html { ]]>}
   } else {
@@ -76,7 +76,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   }
   #ns_log notice "--sc keywords $revision_id -> [array names word]"
 
-  set pubDate [::xo::db::tcl_date [$page set last_modified] tz]
+  set pubDate [::xo::db::tcl_date [$page set publish_date] tz]
   set link [::xowiki::Includelet detail_link \
                     -package_id $package_id -name [$page set name] \
                     -absolute true \

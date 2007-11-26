@@ -886,8 +886,9 @@ namespace eval ::xowiki {
   }
   
   FormField::date instproc set_compound_value {} {
-    set value [my value]
-    #my msg "date: value set to '$value'"
+    #my msg "original value '[my value]'"
+    set value [::xo::db::tcl_date [my value] tz]
+    #my msg "transformed value '$value'"
     if {$value ne ""} {
       set ticks [clock scan [string map [list _ " "] $value]]
     } else {

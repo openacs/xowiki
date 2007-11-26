@@ -597,12 +597,12 @@ namespace eval ::xowiki {
 	} else {
 	  ::xo::db::CrClass get_instance_from_db -item_id $item_id
           $item_id copy_content_vars -from_object $o
-	  $item_id save
+	  $item_id save -use_given_publish_date true
 	  incr updated
 	}
       }
       if {$item_id == 0} {
-        set n [$o save_new]
+        set n [$o save_new -use_given_publish_date true]
         incr added
       }
     }
@@ -624,13 +624,13 @@ namespace eval ::xowiki {
 	      ::xo::db::CrClass get_instance_from_db -item_id $item_id
 	      $item_id copy_content_vars -from_object $o
               $item_id set page_template $template_id
-	      $item_id save
+	      $item_id save -use_given_publish_date true
 	      incr updated
 	    }
 	  }
 	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
 	    $o set page_template $template_id
-            $o save_new
+            $o save_new -use_given_publish_date true
             incr added
           }
         }
@@ -841,10 +841,24 @@ namespace eval ::xowiki {
     # application pages, the package_level method is used from the admin pages.
     #
     my instvar folder_id id
+    #
+    # if no item_id given, take it from the query parameter
+    #
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
       #my log "--D item_id from query parameter $item_id"
-      set name    [my query_parameter name]
+    }
+    #
+    # if name given, take it from the query parameter
+    #
+    if {![info exists name]} {
+      set name [my query_parameter name]
+    }
+    if {$item_id eq "" && $name ne ""} {
+      if {[set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]] == 0} {
+        ns_log notice "lookup of '$name' failed"
+        set item_id ""
+      }
     }
     if {$item_id ne ""} {
       #my log "--D trying to delete $item_id $name"

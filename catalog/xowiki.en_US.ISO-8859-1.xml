@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.78" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.79" locale="en_US" charset="ISO-8859-1">
 
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
@@ -49,6 +49,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-name-help_text">Shortname to identify an entry within a folder, typically lowercase characters</msg>
   <msg key="Page-nls_language">Language</msg>
   <msg key="Page-page_order">Section</msg>
+  <msg key="Page-publish_date">Publish Date</msg>
   <msg key="Page-text">Content</msg>
   <msg key="Page-title">Page Title</msg>
   <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>

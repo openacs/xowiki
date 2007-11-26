@@ -106,7 +106,7 @@ namespace eval ::xowiki {
     }    
     if {$days ne ""} {
       append extra_where_clause "and " \
-          [::xo::db::sql since_interval_condition p.last_modified "$days days"]
+          [::xo::db::sql since_interval_condition p.publish_date "$days days"]
     }
     if {$entries_of ne ""} {
       set form_items [list]
@@ -149,14 +149,14 @@ namespace eval ::xowiki {
 
     set sql [::xo::db::sql select \
                  -vars "s.body, s.rss_xml_frag, p.name, p.creator, p.title, p.page_id, instance_attributes, \
-                p.object_type as content_type, p.last_modified, p.description" \
+                p.object_type as content_type, p.publish_date, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
                  -where "ci.parent_id = $folder_id \
 			and ci.live_revision = s.object_id \
                 	and ci.publish_status <> 'production' \
                 	and s.object_id = p.page_id \
 	        	$extra_where_clause"\
-                 -orderby "p.last_modified desc" \
+                 -orderby "p.publish_date desc" \
                  -limit [my limit]]
 
 #     set content [my head]
@@ -167,7 +167,7 @@ namespace eval ::xowiki {
 #       set description [string trim $description]
 #       if {$description eq ""} {set description $body}
 #       if {$title eq ""}       {set title $name}
-#       set time [::xo::db::tcl_date $last_modified tz]
+#       set time [::xo::db::tcl_date $publish_date tz]
 #       set link [::xowiki::Includelet detail_link \
 #                     -package_id $package_id -name $name \
 #                     -absolute true \

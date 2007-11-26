@@ -56,8 +56,9 @@ TableWidget t1 -volatile \
     -actions $actions \
     -columns {
       BulkAction objects -id name -actions {
-            Action new -label export -tooltip export -url export
-          }
+        Action new -label export -tooltip export -url export
+        Action new -label delete -tooltip delete -url bulk-delete
+      }
       ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}
       if {$::individual_permissions} {
         ImageAnchorField permissions -src /resources/xowiki/permissions.png -width 16 \

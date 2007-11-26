@@ -35,6 +35,8 @@ namespace eval ::xowiki {
 	    -spec "richtext" 
 	::xo::Attribute create nls_language \
 	    -spec {select,options=[xowiki::locales]}
+	::xo::Attribute create publish_date \
+	    -spec date
 	::xo::Attribute create last_modified \
 	    -spec date
 	::xo::Attribute create creation_user \
@@ -928,6 +930,7 @@ namespace eval ::xowiki {
       my update_references $item_id [lsort -unique $references]
     }
     set html [expr {$render_adp ? [my adp_subst $content] : $content}]
+ns_log notice "render of '$content' gives '$html'"
     append html "<DIV class='content-chunk-footer'>"
     if {![my exists __no_footer]} {
       append html [my footer]
@@ -1477,7 +1480,7 @@ namespace eval ::xowiki {
     return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]
   }
 
-  FormPage instproc save_data {old_name category_ids} {
+  FormPage instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my instvar package_id name
     db_transaction {
@@ -1493,8 +1496,8 @@ namespace eval ::xowiki {
        # could be optimized, if we do not want to have categories (form constraints?)
       category::map_object -remove_old -object_id [my item_id] $category_ids
 
-      my save
-      my log "-- old_name $old_name, name $name"
+      my save -use_given_publish_date $use_given_publish_date
+      # my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
         my log "--formpage renaming"
         db_dml [my qn update_rename] "update cr_items set name = :name \

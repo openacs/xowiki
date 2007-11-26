@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.78" locale="es_ES" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" package_version="0.79" locale="es_ES" charset="ISO-8859-1">
 
   <msg key="admin">Administrar</msg>
   <msg key="back">Volver</msg>
@@ -11,12 +11,14 @@
   <msg key="Form-form">Forme</msg>
   <msg key="index">Índice</msg>
   <msg key="new_page">Nueva Página</msg>
+  <msg key="news-source">Origen</msg>
   <msg key="notifications">Notificaciones</msg>
   <msg key="Page-creator">Autor</msg>
   <msg key="Page-description">Descripción</msg>
   <msg key="Page-name">Nombre</msg>
   <msg key="Page-nls_language">Idioma</msg>
   <msg key="Page-page_order">Sección</msg>
+  <msg key="Page-publish_date">Fecha de publicación</msg>
   <msg key="Page-text">Contenido</msg>
   <msg key="Page-title">Título de la Página</msg>
   <msg key="page_type">Tipo de Página</msg>
