@@ -958,24 +958,31 @@ ns_log notice "render of '$content' gives '$html'"
   #
   # Some utility functions, called on different kind of pages
   # 
+  Page instproc form_field_index {nodes} {
+    set marker ::__computed_form_field_names($nodes)
+    if {[info exists $marker]} return
+
+    foreach n $nodes {
+      if {![$n istype ::xowiki::FormField]} continue
+      set ::_form_field_names([$n name]) $n
+      my form_field_index [$n info children]
+    }
+    set $marker 1
+  }
 
   Page instproc lookup_form_field {
     -name 
     form_fields
   } {
-    set found 0
-    foreach f $form_fields {
-      if {[$f name] eq $name} {set found 1; break}
+    set key ::_form_field_names($name)
+    #my msg "form_fields=$form_fields, search for $name"
+    my form_field_index $form_fields
+
+    #my msg "FOUND($name)=[info exists $key]"
+    if {[info exists $key]} {
+      return [set $key]
     }
-    if {!$found && [regexp {^([^.]+)[.](.*)$} $name _ container component]} {
-      # components of a field
-      set f [my lookup_form_field -name $container $form_fields]::$component
-      set found 1
-    }
-    if {!$found} {
-      error "No form field with name $name found"
-    }
-    return $f
+    error "No form field with name $name found"
   }
 
   Page instproc show_fields {form_fields} {

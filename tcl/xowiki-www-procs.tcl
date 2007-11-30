@@ -523,8 +523,7 @@ namespace eval ::xowiki {
           # user form content fields
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [::xo::cc form_parameter $att]]
-          # my msg "value of $att is $value"
-          if {![string match *.* $att]} {set __ia($att)  $value}
+          if {![string match *.* $att]} {set __ia($att) $value}
         }
       }
       if {[string match *.* $att]} {

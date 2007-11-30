@@ -168,6 +168,7 @@ namespace eval ::xowiki {
           if {[string match {\[*\]} $value]} {
             set value [subst $value]
           }
+          #my msg "my [lindex $l 0] $value"
           my [lindex $l 0] $value
         } errMsg]} {
           error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
@@ -210,7 +211,7 @@ namespace eval ::xowiki {
     # Since only the configuration might set values, checking value for "" seems safe here.
     #
     if {[my value] eq "" && [my exists default] && [my default] ne ""} {
-      #my msg "reset value to [my default]"
+      #my msg "+++ reset value to [my default]"
       my value [my default]
     }
 
@@ -709,11 +710,12 @@ namespace eval ::xowiki {
       foreach o $options {
         foreach {label rep} $o break
         set atts [list value $rep]
-        #my msg "lsearch {[my value]} $value ==> [lsearch [my value] $value]"
+        #my msg "lsearch {[my value]} $rep ==> [lsearch [my value] $rep]"
         if {[lsearch [my value] $rep] > -1} {
           lappend atts selected on
         }
         ::html::option $atts {::html::t $label}
+        ::html::t \n
     }}
   }
 
@@ -852,6 +854,7 @@ namespace eval ::xowiki {
   # "yesterday", "next week", .... use _ for blanks
 
   FormField::date instproc initialize {} {
+    #my msg "DATE has value [my value]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
     my array set format_map {
@@ -871,6 +874,7 @@ namespace eval ::xowiki {
       ::xowiki::FormField::$class create [self]::$class \
           -name [my name].$class -id [my id].$class -locale [my locale]
     }
+    #my set_compound_value
   }
 
   FormField::date instproc components {} {
@@ -905,6 +909,7 @@ namespace eval ::xowiki {
       } else {
 	set value_part ""
       }
+      #my msg "ticks=$ticks [self]::$class value $value_part"
       [self]::$class value $value_part
     }
   }
@@ -985,6 +990,80 @@ namespace eval ::xowiki {
     my options $options
     next
   }
+
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::event
+  #
+  ###########################################################
+
+  Class FormField::event -superclass FormField -parameter {
+    {components ""}
+  }
+
+  FormField::event instproc initialize {} {
+    #my msg "EVENT has value [my value]"
+    my set widget_type event
+    my set structure {
+      {start date,format=DD_MONTH_YYYY_HH24_MI,default=now,label=Vortragsbeginn}
+      {end   date,format=HH24_MI,default=now,label=Vortragsende}
+      {location text,label=Ort}
+      {summary richtext}
+    }
+    foreach entry [my set structure] {
+      foreach {name spec} $entry break
+      #
+      # create for each component a form field
+      #
+      my lappend components \
+          [::xowiki::FormField create [self]::$name \
+               -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
+    }
+    #foreach c [my components] {my msg "c=$c v='[$c value]'"}
+  }
+
+  FormField::event instproc set_compound_value {} {
+    #my msg "original value '[my value]'"
+    set value [my value]
+    # set the value parts for each components
+    array set {} $value
+    foreach c [my components] {
+      # Set only those parts, for which attribute values pairs are given.
+      # Components might have own default values...
+      if {[info exists ([$c name])]} {
+        $c value $([$c name])
+      } 
+    }
+  }
+  
+  FormField::event instproc get_compound_value {} {
+    # Set the internal representation based on the components values.
+    set value [list]
+    foreach c [my components] {
+      lappend value [$c name] [$c value]
+    }
+    #my msg "compound value=$value"
+    return $value
+  }
+
+  FormField::event instproc pretty_value {v} {
+    return pretty=[my value]
+  }
+
+  FormField::event instproc render_content {} {
+    #my msg ""
+    my set_compound_value
+    my set style "margin: 0px; padding: 0px;"
+    html::fieldset [my get_attributes id style] {
+      foreach c [my components] {
+        $c render
+      }
+    }
+  }
+
+
+
 
   ###########################################################
   #

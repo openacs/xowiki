@@ -407,10 +407,9 @@ namespace eval ::xowiki::includelet {
       if(d.selection){t=d.selection.createRange().text} else 
       if(d.getSelection){t=d.getSelection()} else 
       if(w.getSelection){t=w.getSelection()} 
-      void(w.open('$url?m=create-new&title='+escape(d.title)+
-                    '&detail_link='+escape(d.location.href)+'&text='+escape(t),
-                    '_blank','scrollbars=yes,width=500,height=575,status=yes,
-                    resizable=yes,scrollbars=yes'))
+      void(open('$url?m=create-new&title='+escape(d.title)+
+                    '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
+                    'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
     }]
     regsub -all {[\n ]+} $href " " href
     return "<a href=\"$href \" title='$label' class='rss'>$label</a>"
