@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <message_catalog package_key="xowiki" package_version="0.79" locale="de_DE" charset="ISO-8859-1">
 
+  <msg key="abstract">Zusammenfassung</msg>
   <msg key="admin">Verwalten</msg>
   <msg key="back">Zurück</msg>
   <msg key="categories">Kategorien</msg>
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
   <msg key="delete">Löschen</msg>
+  <msg key="details">Nähere Information</msg>
   <msg key="edit">Bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
   <msg key="entries_using_form">Einträge für das Formular %form%:</msg>
   <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte verwenden Sie diese, bevor Sie das Formular löschen.</msg>
+  <msg key="event">Termin</msg>
+  <msg key="event-end_of_lecture">Vortragsende</msg>
+  <msg key="event-hourprefix"> um </msg>
+  <msg key="event-location">Ort</msg>
+  <msg key="event-start_of_lecture">Vortragsbeginn</msg>
+  <msg key="event-title_of_lecture">Vortragstitel</msg>
   <msg key="Form-form">Formular</msg>
   <msg key="Form-form_constraints">Einschränkungen</msg>
   <msg key="form-menu-answer_link">Einträge für dieses Formular</msg>
@@ -47,6 +55,8 @@
   <msg key="revisions">Verlauf</msg>
   <msg key="search">Suche</msg>
   <msg key="title">Titel</msg>
+  <msg key="title_of_event">Titel
+</msg>
   <msg key="view">Ansehen</msg>
   <msg key="weblog-more">mehr...</msg>
   <msg key="your_tags_label">Persönliche Schlagworte</msg>

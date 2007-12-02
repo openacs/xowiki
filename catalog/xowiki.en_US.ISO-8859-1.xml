@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <message_catalog package_key="xowiki" package_version="0.79" locale="en_US" charset="ISO-8859-1">
 
+  <msg key="abstract">Abstract</msg>
   <msg key="admin">Admin</msg>
   <msg key="back">Back</msg>
   <msg key="categories">Categories</msg>
@@ -8,6 +9,7 @@
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
   <msg key="delete">Delete</msg>
+  <msg key="details">Details</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
   <msg key="entries_using_form">Entries for form %form%</msg>
@@ -28,6 +30,12 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-nesting_to_deep">Nesting of includelets is to deep</msg>
   <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
   <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
+  <msg key="event">Event</msg>
+  <msg key="event-end_of_lecture">End of Lecture</msg>
+  <msg key="event-hourprefix"> at </msg>
+  <msg key="event-location">Location</msg>
+  <msg key="event-start_of_lecture">Start of Lecture</msg>
+  <msg key="event-title_of_lecture">Title of Lecture</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
@@ -75,6 +83,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="search">Search</msg>
+  <msg key="title_of_event">Title
+</msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>
   <msg key="your_tags_label">Your Tags</msg>

@@ -51,7 +51,7 @@ namespace eval ::xowiki {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
     if {[my exists id]}  {my set html(id) [my id]}
-    if {[my exists default]} {my set value [my default]}
+    #if {[my exists default]} {my set value [my default]}
     my config_from_spec [my spec]
   }
 
@@ -201,10 +201,12 @@ namespace eval ::xowiki {
       my class [self class]::$type
       ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
-
+    regsub -all {,\s+} $spec , spec
     foreach s [split $spec ,] {
       my interprete_single_spec $s
     }
+
+    my initialize
 
     #
     # It is possible, that a default value of a form field is changed through a spec.
@@ -218,7 +220,7 @@ namespace eval ::xowiki {
     if {[lang::util::translator_mode_p]} {
       my mixin "::xo::TRN-Mode"
     }
-    my initialize
+
   }
 
   FormField instproc asWidgetSpec {} {
@@ -597,6 +599,8 @@ namespace eval ::xowiki {
   Class FormField::richtext::wym -superclass FormField::richtext -parameter {
     {editor wym}
     {CSSclass wymeditor}
+    width
+    height
   }
   FormField::richtext::wym instproc initialize {} {
     next
@@ -606,12 +610,29 @@ namespace eval ::xowiki {
     ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
     ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
     ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
-    ::xo::Page requireJS {
-      var $j = jQuery.noConflict();
-      $j(function() {
-        $j(".wymeditor").wymeditor();
-      });
+    regsub -all {[.]} [my id] {\\\\.} JID
+    set config ""
+    if {[my exists height] || [my exists width]} {
+      set height_cmd ""
+      set width_cmd ""
+      if {[my exists height]} {set height_cmd "wym_box.find(wym._options.iframeSelector).css('height','[my height]');"}
+      if {[my exists width]}  {set width_cmd "wym_box.css('width', '[my width]');"}
+      set postInit [subst -nocommand -nobackslash {
+        postInit: function(wym) {
+          wym_box = jQuery(".wym_box");
+          $height_cmd
+          $width_cmd
+        }}]
+      set config "{
+        $postInit
+      }"
     }
+    ::xo::Page requireJS [subst -nocommand -nobackslash {
+      jQuery(function() {
+        jQuery("#$JID").wymeditor($config);
+      });
+    }]
+
     next
   }
   ###########################################################
@@ -841,11 +862,85 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
+  # ::xowiki::CompoundField
+  #
+  ###########################################################
+
+  Class CompoundField -superclass FormField -parameter {
+    {components ""}
+  }
+
+  CompoundField instproc value {args} {
+    if {[llength $args] == 0} {
+      set v [my get_compound_value]
+      #my msg "[my name]: reading compound value => '$v'"
+      return $v
+    } else {
+      #my msg "[my name]: setting compound value => '[lindex $args 0]'"
+      my set_compound_value [lindex $args 0]
+    }
+  }
+
+  CompoundField instproc set_compound_value {value} {
+    array set {} $value
+    # set the value parts for each components
+    foreach c [my components] {
+      # Set only those parts, for which attribute values pairs are
+      # given.  Components might have their own default values, which
+      # we do not want to overwrite ...
+      if {[info exists ([$c name])]} {
+        $c value $([$c name])
+      } 
+    }
+  }
+  
+  CompoundField instproc get_compound_value {} {
+    # Set the internal representation based on the components values.
+    set value [list]
+    foreach c [my components] {
+      lappend value [$c name] [$c value]
+    }
+    #my msg "[my name]: get_compound_value returns value=$value"
+    return $value
+  }
+
+  CompoundField instproc get_component {component_name} {
+    set key component_index([my name].$component_name)
+    if {[my exists $key]} {
+      return [my set $key]
+    }
+    error "no component named $component_name of compound field [my name]"
+  }
+
+  CompoundField instproc render_content {} {
+    #
+    # Render content within in a fieldset, but with labels etc.
+    #
+    my set style "margin: 0px; padding: 0px;"
+    html::fieldset [my get_attributes id style] {
+      foreach c [my components] { $c render }
+    }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::label
+  #
+  ###########################################################
+
+  Class FormField::label -superclass FormField -parameter {}
+  FormField::label instproc initialize {} {next}
+  FormField::label instproc render_content {} {
+    html::t [my value]
+  }
+
+  ###########################################################
+  #
   # ::xowiki::FormField::date
   #
   ###########################################################
 
-  Class FormField::date -superclass FormField -parameter {
+  Class FormField::date -superclass CompoundField -parameter {
     {format "DD MONTH YYYY"}
     {display_format "%Y-%m-%d %T"}
   }
@@ -867,31 +962,35 @@ namespace eval ::xowiki {
       MONTH {month %m 1}
       YYYY  {YYYY  %Y 0}
     }
-    foreach {class code trim_zeros} [my components] {
+
+    foreach element [split [my format]] {
+      if {![my exists format_map($element)]} {
+        #
+        # We add undefined formats as literal texts in the edit form
+        #
+        set name $element
+        set c [::xowiki::FormField::label create [self]::$name \
+                   -name [my name].$name -id [my id].$name -locale [my locale] -value $element]
+        my lappend components $c
+        continue
+      }
+      foreach {class code trim_zeros} [my set format_map($element)] break
       #
-      # create for each component of the format a subobject named by the class
+      # create for each component a form field
       #
-      ::xowiki::FormField::$class create [self]::$class \
-          -name [my name].$class -id [my id].$class -locale [my locale]
+      set name $class
+      set c [::xowiki::FormField::$class create [self]::$name \
+               -name [my name].$name -id [my id].$name -locale [my locale]]
+      $c set code $code
+      $c set trim_zeros $trim_zeros
+      my lappend components $c
     }
-    #my set_compound_value
+    #my msg "DATE [my name] has value after initialize '[my value]'"
   }
 
-  FormField::date instproc components {} {
-    set components [list]
-    foreach c [split [my format]] {
-      if {![my exists format_map($c)]} {
-        error "Unknown format component: $c. \
-		Valid compontents are [my array names format_map]"
-      }
-      eval lappend components [my set format_map($c)]
-    }
-    return $components
-  }
-  
-  FormField::date instproc set_compound_value {} {
+  FormField::date instproc set_compound_value {value} {
     #my msg "original value '[my value]'"
-    set value [::xo::db::tcl_date [my value] tz]
+    set value [::xo::db::tcl_date $value tz]
     #my msg "transformed value '$value'"
     if {$value ne ""} {
       set ticks [clock scan [string map [list _ " "] $value]]
@@ -899,18 +998,19 @@ namespace eval ::xowiki {
       set ticks ""
     }
     # set the value parts for each components
-    foreach {class code trim_zeros} [my components] {
+    foreach c [my components] {
+      if {[$c istype ::xowiki::FormField::label]} continue
       if {$ticks ne ""} {
-	set value_part [clock format $ticks -format $code]
-	if {$trim_zeros} {
+	set value_part [clock format $ticks -format [$c set code]]
+	if {[$c set trim_zeros]} {
 	  set value_part [string trimleft $value_part 0]
 	  if {$value_part eq ""} {set value_part 0}
 	}
       } else {
 	set value_part ""
       }
-      #my msg "ticks=$ticks [self]::$class value $value_part"
-      [self]::$class value $value_part
+      #my msg "ticks=$ticks $c value $value_part"
+      $c value $value_part
     }
   }
   
@@ -938,23 +1038,28 @@ namespace eval ::xowiki {
     #my msg "$year-$month-$day ${hour}:${min}:${sec}"
     set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]
     # TODO: TZ???
+    #my msg "DATE [my name] get_compound_value returns [clock format $ticks -format {%Y-%m-%d %T}]"
     return [clock format $ticks -format "%Y-%m-%d %T"]
   }
 
   FormField::date instproc pretty_value {v} {
-    # internally, we have ansi format. For displaying the date, use the display format
-    # drop of the value after the "." we assume to have a date in the local zone
+    #
+    # Internally, we use the ansi date format. For displaying the date, 
+    # use the specified display format and present the time localized.
+    #
+    # Drop of the value after the "." we assume to have a date in the local zone
     regexp {^([^.]+)[.]} $v _ v
-    return [clock format [clock scan $v] -format [string map [list _ " "] [my display_format]]]
+    #return [clock format [clock scan $v] -format [string map [list _ " "] [my display_format]]]
+    return [lc_time_fmt $v [string map [list _ " "] [my display_format]] [my locale]]
   }
 
   FormField::date instproc render_content {} {
-    my set_compound_value
+    #
+    # render the content inline withing a fieldset, without labels etc.
+    #
     my set style "margin: 0px; padding: 0px;"
     html::fieldset [my get_attributes id style] {
-      foreach {class code trim_zeros} [my components] {
-        [self]::$class render_content
-      }
+      foreach c [my components] { $c render_content }
     }
   }
 
@@ -992,78 +1097,70 @@ namespace eval ::xowiki {
   }
 
 
+
   ###########################################################
   #
   # ::xowiki::FormField::event
   #
   ###########################################################
 
-  Class FormField::event -superclass FormField -parameter {
-    {components ""}
+  Class FormField::event -superclass CompoundField -parameter {
   }
 
   FormField::event instproc initialize {} {
     #my msg "EVENT has value [my value]"
     my set widget_type event
     my set structure {
-      {start date,format=DD_MONTH_YYYY_HH24_MI,default=now,label=Vortragsbeginn}
-      {end   date,format=HH24_MI,default=now,label=Vortragsende}
-      {location text,label=Ort}
-      {summary richtext}
+      {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_lecture#}}
+      {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI,
+                default=now,label=#xowiki.event-start_of_lecture#,display_format=%Q_%X}}
+      {dtend   date,format=HH24_MI,default=now,label=#xowiki.event-end_of_lecture#,display_format=%X}
+      {location text,label=#xowiki.event-location#}
     }
     foreach entry [my set structure] {
       foreach {name spec} $entry break
       #
       # create for each component a form field
       #
-      my lappend components \
-          [::xowiki::FormField create [self]::$name \
-               -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
+      set c [::xowiki::FormField create [self]::$name \
+                 -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
+      my set component_index([my name].$name) $c
+      my lappend components $c
     }
-    #foreach c [my components] {my msg "c=$c v='[$c value]'"}
-  }
-
-  FormField::event instproc set_compound_value {} {
-    #my msg "original value '[my value]'"
-    set value [my value]
-    # set the value parts for each components
-    array set {} $value
-    foreach c [my components] {
-      # Set only those parts, for which attribute values pairs are given.
-      # Components might have own default values...
-      if {[info exists ([$c name])]} {
-        $c value $([$c name])
-      } 
-    }
-  }
-  
-  FormField::event instproc get_compound_value {} {
-    # Set the internal representation based on the components values.
-    set value [list]
-    foreach c [my components] {
-      lappend value [$c name] [$c value]
-    }
-    #my msg "compound value=$value"
-    return $value
   }
 
   FormField::event instproc pretty_value {v} {
-    return pretty=[my value]
-  }
+    array set {} [my value]
+    set dtstart [my get_component dtstart]
+    set dtstart_val [$dtstart value]
+    set dtstart_iso [::xo::ical clock_to_iso [clock scan $dtstart_val]]
 
-  FormField::event instproc render_content {} {
-    #my msg ""
-    my set_compound_value
-    my set style "margin: 0px; padding: 0px;"
-    html::fieldset [my get_attributes id style] {
-      foreach c [my components] {
-        $c render
-      }
+    set dtend [my get_component dtend]
+    set dtend_val [$dtend value]
+    set dtend_txt ""
+    if {$dtend_val ne ""} {
+      set dtend_iso [::xo::ical clock_to_iso [clock scan $dtend_val]]
+      set dtend_txt " - <abbr class='dtend' title='$dtend_iso'>[$dtend pretty_value $dtend_val]</abbr>"
     }
+
+    set summary_txt "<span class='summary'>[[my get_component summary] value]</span>"
+
+    set location [my get_component location]
+    set location_val [$location value]
+    set location_txt ""
+    if {$location_val ne ""} {
+      set location_txt "[$location label]: <span class='location'>$location_val</span>"
+    }
+
+    append result \
+        "<div class='vevent'>" \
+        $summary_txt " " \
+        "<abbr class='dtstart' title='$dtstart_iso'>[$dtstart pretty_value $dtstart_val]</abbr>" \
+        $dtend_txt <br> \
+        $location_txt \
+        "</div>" 
+    return $result
   }
-
-
-
 
   ###########################################################
   #

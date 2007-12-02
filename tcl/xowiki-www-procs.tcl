@@ -445,6 +445,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc set_form_value {att value} {
+    #my msg "set_form_value $att $value"
     my instvar root item_id
     set fields [$root selectNodes "//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
@@ -729,6 +730,7 @@ namespace eval ::xowiki {
 
       array set __ia [my set instance_attributes]
       foreach att $field_names {
+        #my msg "setting HTML att $att"
         switch -glob $att {
           __* {}
           _* {
@@ -738,7 +740,9 @@ namespace eval ::xowiki {
           }
           default {
             set f [my lookup_form_field -name $att $form_fields]
+            #my msg "check $att f=$f [info exists __ia($att)]"
             if {[info exists __ia($att)]} {
+              #my msg "setting $f ([$f info class]) value $__ia($att)"
               $f value $__ia($att)
             }
           }
@@ -813,8 +817,14 @@ namespace eval ::xowiki {
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f info class] eq "::xowiki::FormField::richtext::wym"} {
+        } elseif {[$f istype "::xowiki::FormField::richtext::wym"]} {
           set submit_button_class "wymupdate"
+        } elseif {[$f istype "::xowiki::CompoundField"]} {
+          foreach c [$f components] {
+            if {[$c istype "::xowiki::FormField::richtext::wym"]} {
+              set submit_button_class "wymupdate"; break
+            }
+          }
         }
       }
 
