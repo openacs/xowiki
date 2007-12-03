@@ -36,7 +36,7 @@
 DTSTART:$dtstart
 DTEND:$dtend
 $body
-URL:[[my package_id] pretty_link -absolute true -siteurl "http://localhost:8003" [my name]]
+URL:[[my package_id] pretty_link -absolute true [my name]]
 END:VEVENT}]
   }
 
