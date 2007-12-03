@@ -953,7 +953,7 @@ namespace eval ::xowiki {
     #my msg "DATE has value [my value]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
-    my array set defaults {year 2000 month 1 day 1 hour 0 min 0 sec 0}
+    my array set defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
     my array set format_map {
       SS    {SS    %S 1}
       MI    {MI    %M 1}
