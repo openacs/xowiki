@@ -930,12 +930,13 @@ namespace eval ::xowiki {
       my update_references $item_id [lsort -unique $references]
     }
     set html [expr {$render_adp ? [my adp_subst $content] : $content}]
-ns_log notice "render of '$content' gives '$html'"
-    append html "<DIV class='content-chunk-footer'>"
-    if {![my exists __no_footer]} {
-      append html [my footer]
+    if {[::xo::cc get_parameter content-type text/html] eq "text/html"} {
+      append html "<DIV class='content-chunk-footer'>"
+      if {![my exists __no_footer]} {
+        append html [my footer]
+      }
+      append html "</DIV>\n"
     }
-    append html "</DIV>\n"
     return $html
   }
 

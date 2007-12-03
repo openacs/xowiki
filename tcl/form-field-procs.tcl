@@ -898,6 +898,7 @@ namespace eval ::xowiki {
     # Set the internal representation based on the components values.
     set value [list]
     foreach c [my components] {
+      #my msg "lappending [$c name] [$c value] "
       lappend value [$c name] [$c value]
     }
     #my msg "[my name]: get_compound_value returns value=$value"
@@ -952,6 +953,7 @@ namespace eval ::xowiki {
     #my msg "DATE has value [my value]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
+    my array set defaults {year 2000 month 1 day 1 hour 0 min 0 sec 0}
     my array set format_map {
       SS    {SS    %S 1}
       MI    {MI    %M 1}
@@ -989,7 +991,7 @@ namespace eval ::xowiki {
   }
 
   FormField::date instproc set_compound_value {value} {
-    #my msg "original value '[my value]'"
+    #my msg "[my name] original value '[my value]' // passed='$value'"
     set value [::xo::db::tcl_date $value tz]
     #my msg "transformed value '$value'"
     if {$value ne ""} {
@@ -997,6 +999,13 @@ namespace eval ::xowiki {
     } else {
       set ticks ""
     }
+    my set defaults(year)  [clock format $ticks -format %Y]
+    my set defaults(month) [clock format $ticks -format %m]
+    my set defaults(day)   [clock format $ticks -format %e]
+    my set defaults(hour)  [clock format $ticks -format %H]
+    my set defaults(min)   [clock format $ticks -format %M]
+    #my set defaults(sec)   [clock format $ticks -format %S]
+
     # set the value parts for each components
     foreach c [my components] {
       if {[$c istype ::xowiki::FormField::label]} continue
@@ -1029,12 +1038,9 @@ namespace eval ::xowiki {
     if {"$year$month$day$hour$min$sec" eq ""} {
       return ""
     }
-    if {$year  eq ""} {set year 2000}
-    if {$month eq ""} {set month 1}
-    if {$day   eq ""} {set day 1}
-    if {$hour  eq ""} {set hour 0}
-    if {$min   eq ""} {set min 0}
-    if {$sec   eq ""} {set sec 0}
+    foreach v [list year month day hour min sec] {
+      if {[set $v] eq ""} {set $v [my set defaults($v)]}
+    }
     #my msg "$year-$month-$day ${hour}:${min}:${sec}"
     set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]
     # TODO: TZ???
@@ -1127,6 +1133,16 @@ namespace eval ::xowiki {
       my set component_index([my name].$name) $c
       my lappend components $c
     }
+  }
+
+  FormField::event instproc get_compound_value {} {
+    set dtstart  [my get_component dtstart]
+    set dtend    [my get_component dtend]
+    set end_day  [lindex [$dtstart value] 0]
+    set end_time [lindex [$dtend value] 1]
+    $dtend value "$end_day $end_time"
+    #my msg "[$dtend name] set to '$end_day $end_time' ==> $dtend, [$dtend value]"
+    next
   }
 
   FormField::event instproc pretty_value {v} {

@@ -538,18 +538,20 @@ namespace eval ::xowiki {
     # of a container to the value of the container.
     #
     foreach c [array names containers] {
-      switch -glob -- $c {
-        __* {}
-        _* {
-          set f  [my lookup_form_field -name $c $form_fields]
-          my set [string range $c 1 end] [$f get_compound_value]
-        }
-        default {
-          set f  [my lookup_form_field -name $c $form_fields]
-          set __ia($c) [$f get_compound_value]
-        }
-      }
-    }
+       switch -glob -- $c {
+         __* {}
+         _* {
+           set f  [my lookup_form_field -name $c $form_fields]
+           my set [string range $c 1 end] [$f value]
+         }
+         default {
+           set f  [my lookup_form_field -name $c $form_fields]
+           #my msg "compute value of $c"
+           set __ia($c) [$f value]
+           #my msg "__ia($c) is set to '[$f value]'"
+         }
+       }
+     }
     
     #
     # Run validators
@@ -562,7 +564,7 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
-    #my log "--set instance attributes to [array get __ia]"
+    #my msg "--set instance attributes to [array get __ia]"
     my set instance_attributes [array get __ia]
     return [list $validation_errors $category_ids]
   }
