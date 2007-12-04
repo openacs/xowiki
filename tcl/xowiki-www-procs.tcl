@@ -73,6 +73,11 @@ namespace eval ::xowiki {
       append footer [my include my-general-comments] 
     }
 
+    if {$footer ne ""} {
+      # make sure, the 
+      append footer "<div class='visual-clear'><!-- --></div>"
+    }
+
     return  "<div class='item-footer'>$footer</div>\n"
   }
 

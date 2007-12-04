@@ -5,6 +5,7 @@
 /*#at-a-glance td.today  {color: #003b53;}*/
 
 
+.visual-clear {clear: both; display: block;}
 div.wiki-menu {
     position: relative; right: 0px; 
     text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;
