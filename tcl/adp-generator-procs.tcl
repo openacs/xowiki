@@ -77,7 +77,7 @@ function get_popular_tags(popular_tags_link, prefix) {
    <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'>#xowiki.search#</a> &middot;
   <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
 <div id='do_search' style='display: none'> 
-  <FORM action='/search/search'><INPUT  id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" /></FORM> 
+  <FORM action='/search/search'><div><INPUT id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" ></div></FORM> 
 </div>
 </div>}
   }

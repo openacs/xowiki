@@ -273,9 +273,10 @@ namespace eval ::xowiki {
     [my set __parent] instvar weblog_obj
 
     set link [::$package_id pretty_link $name]
+    regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
-    append more "<p></p>"
+    #append more "<p></p>"
 
     append content "<DIV class='post' style='clear: both;'>" \
         "<h2><a href='$link'>$title</a></h2>" \

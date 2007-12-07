@@ -486,6 +486,7 @@ namespace eval ::xowiki {
       } else {
         set link_label $v
       }
+      regsub -all & $v "&amp;" v
       return "<a href='$v'>$link_label</a>"
     }
   }
@@ -505,6 +506,7 @@ namespace eval ::xowiki {
     }
     if {$v ne ""} {
       set link_label [my localize [my link_label]]
+      regsub -all & $v "&amp;" v
       return " <span class='more'>\[ <a href='$v'>$link_label</a> \]</span>"
     }
   }

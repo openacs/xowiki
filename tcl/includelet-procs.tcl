@@ -381,6 +381,7 @@ namespace eval ::xowiki::includelet {
   rss-button instproc render {} {
     my get_parameters
     set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title entries_of}]
+    regsub -all & $href "&amp;" href
     ::xo::Page requireLink -rel alternate -type application/rss+xml -title RSS -href $href
     return "<a href=\"$href \" class='rss'>RSS</a>"
   }
@@ -412,6 +413,7 @@ namespace eval ::xowiki::includelet {
                     'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
     }]
     regsub -all {[\n ]+} $href " " href
+    regsub -all & $href "&amp;" href
     return "<a href=\"$href \" title='$label' class='rss'>$label</a>"
   }
 
@@ -1080,7 +1082,7 @@ namespace eval ::xowiki::includelet {
         <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
       </span>
-      <span id='[my id]-popular_tags' style='display: none'></span><br />
+      <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
     return $content
   }
@@ -1179,7 +1181,8 @@ namespace eval ::xowiki::includelet {
       {title     "[string range [$__including_page title] 0 74]"}
       {body_text "[string range $description 0 349]"}
     }]
-    return "<a href='$digg_link'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!' border='1'/></a>"
+    regsub -all & $digg_link "&amp;" digg_link
+    return "<a class='image-button' href='$digg_link'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!'></a>"
   }
 
   ::xowiki::IncludeletClass create delicious \
@@ -1210,7 +1213,8 @@ namespace eval ::xowiki::includelet {
       {notes "[string range $description 0 199]"}
       tags
     }]
-    return "<a href='$delicious_link'><img src='http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif' width='14' height='14' border='0' alt='Add to your del.icio.us' />del.icio.us</a>"
+    regsub -all & $delicious_link "&amp;" delicious_link
+    return "<a class='image-button' href='$delicious_link'><img src='http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif' width='14' height='14' alt='Add to your del.icio.us' />del.icio.us</a>"
   }
 
 
@@ -1233,7 +1237,7 @@ namespace eval ::xowiki::includelet {
     set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 
-    return "<a href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' border='0' align='middle' alt='Add to My Yahoo!'></a>"
+    return "<a class='image-button' href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' align='middle' alt='Add to My Yahoo!'></a>"
   }
 
   ::xowiki::IncludeletClass create my-references \
@@ -1931,7 +1935,7 @@ namespace eval ::xowiki::includelet {
     }
 
     if {$link ne ""} {
-      set html "<a href=\"$link\"><image src='$src' border='0' alt=\"$alt\" title=\"$title\"></a>"
+      set html "<a class='image-button' href=\"$link\"><img src='$src' alt=\"$alt\" title=\"$title\"></a>"
     }
     return $html
   }

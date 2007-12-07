@@ -44,9 +44,10 @@
     set link [::xowiki::Includelet detail_link \
                   -package_id $package_id -name $name \
                   -instance_attributes [my get_instance_attributes]]
+    regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
-    append more "<p></p>"
+    #append more "<p></p>"
     set day [lc_time_fmt [my set publish_date] "%x"]
     set my_footer [my htmlFooter]
 
