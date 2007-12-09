@@ -325,6 +325,34 @@ namespace eval ::xowiki {
     return $success
   }
 
+  Page instproc condition=regexp {query_context value} {
+    #
+    # Conditon for conditional checks in policy rules
+    # The match condition is called with an attribute 
+    # name and a pattern like in
+    #
+    #  edit               {
+    #    {{regexp {name {(weblog|index)$}}} package_id admin} 
+    #    {package_id write}
+    #  }
+    #
+    # This example specifies that for a page ending with
+    # weblog or index, the method "edit" is only allowed
+    # for package admins.
+    #
+    #my msg "query_context='$query_context', value='$value'"
+    if {[llength $value] != 2} {
+      error "two arguments for regexp required, [llength $value] passed (arguments='$value')"
+    }
+    if {[catch {
+      set success [regexp [lindex $value 1] [my set [lindex $value 0]]]
+    } errorMsg]} {
+      my log "error during regexp: $errorMsg"
+      set success 0
+    }
+    return $success
+  }
+
   Page instproc copy_content_vars {-from_object:required} {
     array set excluded_var {
       folder_id 1 package_id 1 absolute_links 1 lang_links 1 

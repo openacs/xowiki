@@ -935,7 +935,10 @@ namespace eval ::xowiki {
       view               none
       revisions          {{package_id write}}
       diff               {{package_id write}}
-      edit               {{{match {name {*weblog}}} package_id admin} {package_id write}}
+      edit               {
+        {{regexp {name {(weblog|index)$}}} package_id admin} 
+        {package_id write}
+      }
       save-form-data     {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
@@ -980,7 +983,10 @@ namespace eval ::xowiki {
       view               {{package_id read}}
       revisions          {{package_id write}}
       diff               {{package_id write}}
-      edit               {{{match {name {*weblog}}} package_id admin} {package_id write}}
+      edit               {
+        {{regexp {name {(weblog|index)$}}} package_id admin} 
+        {package_id write}
+      }
       make-live-revision {{package_id write}}
       delete-revision    swa
       delete             swa
