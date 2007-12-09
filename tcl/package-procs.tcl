@@ -783,7 +783,7 @@ namespace eval ::xowiki {
       array set info [site_node::get_from_object_id -object_id $package_id]
 
       append content <sitemap> \n\
-          <loc>[ad_url]$info(url)?google-sitemap</loc> \n\
+          <loc>[ad_url]$info(url)sitemap.xml</loc> \n\
           <lastmod>$time</lastmod> \n\
           </sitemap> 
     }
