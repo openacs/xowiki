@@ -22,7 +22,7 @@
   [my info parent] set __no_footer 1
 
   #
-  # Provide a tailored link for the wiki menu
+  # Provide a tailored link for creating new pages in the wiki menu
   #
   set forms [::xowiki::Weblog instantiate_forms \
                  -entries_of $entries_of \
