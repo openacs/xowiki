@@ -223,7 +223,7 @@ namespace eval ::xowiki {
     } else {
       # determine privilege from policy
       set granted [my check_permissions -user_id $party_id -package_id $id -link $computed_link $object $method]
-      #my log "--p $id check_permissions $object $method ==> $granted"
+      #my msg "--p $id check_permissions $object $method ==> $granted"
     }
     #my log "granted=$granted $computed_link"
     if {$granted} {
@@ -935,7 +935,7 @@ namespace eval ::xowiki {
       view               none
       revisions          {{package_id write}}
       diff               {{package_id write}}
-      edit               {{package_id write}}
+      edit               {{{match {name {*weblog}}} package_id admin} {package_id write}}
       save-form-data     {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
@@ -980,7 +980,7 @@ namespace eval ::xowiki {
       view               {{package_id read}}
       revisions          {{package_id write}}
       diff               {{package_id write}}
-      edit               {{package_id write}}
+      edit               {{{match {name {*weblog}}} package_id admin} {package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    swa
       delete             swa
