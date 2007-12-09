@@ -58,16 +58,20 @@ namespace eval ::xowiki {
       # if there is no field spec, use the default from the slot definitions
       set __spec  [expr {[my exists f.$__field] ? [my set f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
-      #my msg "$__field wspec=$__wspec, spec=$__spec"
+      #my msg "$__field: wspec=$__wspec, spec=$__spec"
 
       # check first if we have widget_specs.
       # TODO: this part is likely to be removed in the future.
-      if {[$data istype ::xowiki::PlainPage] && $__field eq "text"} {
+      if {
+          [$data istype ::xowiki::PlainPage] && $__field eq "text"
+          || [$data istype ::xowiki::File]   && $__field eq "text"
+        } {
 	set s ""
       } else {
 	set s [$data get_rich_text_spec $__field ""]
       }
       if {$s ne ""} {
+        #my msg "we got richtext spec for $__field = '$s'"
 	set __spec $s
 	set __wspec [lindex $__spec 0]
 	# old style folder spec substituion. ugly.
