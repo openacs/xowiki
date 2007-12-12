@@ -1167,7 +1167,11 @@ namespace eval ::xowiki {
     set location_val [$location value]
     set location_txt ""
     if {$location_val ne ""} {
-      set location_txt "[$location label]: <span class='location'>$location_val</span>"
+      set location_label [$location label]
+      if {[regexp {^#(.+)#$} $location_label _ msg_key]} {
+	set location_label [lang::message::lookup [my locale] $msg_key]
+      }
+      set location_txt "$location_label: <span class='location'>$location_val</span>"
     }
 
     append result \
