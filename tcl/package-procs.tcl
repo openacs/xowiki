@@ -222,7 +222,15 @@ namespace eval ::xowiki {
                       -object_id $id -privilege $privilege -party_id $party_id] }]
     } else {
       # determine privilege from policy
-      set granted [my check_permissions -user_id $party_id -package_id $id -link $computed_link $object $method]
+      if {[catch {
+	set granted [my check_permissions \
+			 -user_id $party_id \
+			 -package_id $id \
+			 -link $computed_link $object $method]
+      } errorMsg ]} {
+	my log "error in check_permissions: $errorMsg"
+	set granted 0
+      }
       #my msg "--p $id check_permissions $object $method ==> $granted"
     }
     #my log "granted=$granted $computed_link"
