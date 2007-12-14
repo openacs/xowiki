@@ -217,6 +217,7 @@ namespace eval ::xowiki {
 
     set party_id [::xo::cc user_id]
     if {[info exists privilege]} {
+      #my log "-- checking priv $privilege for [self args]"
       set granted [expr {$privilege eq "public" ? 1 :
                   [permission::permission_p \
                       -object_id $id -privilege $privilege -party_id $party_id] }]

@@ -517,7 +517,7 @@ namespace eval ::xowiki {
         _* {
           # instance attribute fields
           set f     [my lookup_form_field -name $att $form_fields]
-          set value [$f value [::xo::cc form_parameter $att]]
+          set value [$f value [string trim [::xo::cc form_parameter $att]]]
           set varname [string range $att 1 end]
           # get rid of strange utf-8 characters hex C2AD (firefox bug?)
           # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
@@ -528,7 +528,7 @@ namespace eval ::xowiki {
         default {
           # user form content fields
           set f     [my lookup_form_field -name $att $form_fields]
-          set value [$f value [::xo::cc form_parameter $att]]
+          set value [$f value [string trim [::xo::cc form_parameter $att]]]
           if {![string match *.* $att]} {set __ia($att) $value}
         }
       }

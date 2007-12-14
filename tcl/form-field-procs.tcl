@@ -862,6 +862,84 @@ namespace eval ::xowiki {
     {maxlength 4}
   }
 
+
+  ###########################################################
+  #
+  # ::xowiki::FormField::image_url
+  #
+  ###########################################################
+
+  Class FormField::image_url -superclass FormField::text -parameter {
+    {validator image_check}
+    href cssclass
+    {float left} width height 
+    padding {padding-right 10px} padding-left padding-top padding-bottom
+    margin margin-left margin-right margin-top margin-bottom
+    border border-width position top botton left right
+  }
+  FormField::image_url instproc entry_name {value} {
+    if {![regexp -nocase {/([^/]+)[.](gif|jpg|jpeg|png)} $value _ name ext]} {
+      return ""
+    }
+    return image:$name.$ext
+  }
+  FormField::image_url instproc check=image_check {value} {
+    if {$value eq ""} {return 1}
+    set entry_name [my entry_name $value]
+    if {$entry_name eq ""} {
+      my log "--img '$value' does not appear to be an image"
+      # no image?
+      return 0
+    }
+    set folder_id [[my object] set parent_id]
+    if {[::xo::db::CrClass lookup -name $entry_name -parent_id $folder_id]} {
+      my log "--img entry named $entry_name exists already"
+      # file exists already
+      return 1
+    }
+    if {[catch {
+      set r [::xo::HttpRequest new -url $value -volatile]
+      set img [$r set data]
+    } errorMsg]} {
+      # cannot transfer image
+      my log "--img cannot tranfer image '$value' ($errorMsg)"
+      return 0
+    }
+    set import_file [ns_tmpnam]
+    ::xowiki::write_file $import_file $img
+    set file_object [::xowiki::File new -destroy_on_cleanup \
+                         -title $entry_name \
+                         -name $entry_name \
+                         -parent_id $folder_id \
+                         -package_id [[my object] package_id] \
+                         -creation_user [::xo::cc user_id] \
+                        ]
+    $file_object set import_file $import_file
+    $file_object save_new
+    return 1
+  }
+  FormField::image_url instproc pretty_value {v} {
+    set entry_name [my entry_name $v]
+    if {$entry_name eq ""} {
+      return ""
+    }
+    my instvar object
+    set l [::xowiki::Link new -destroy_on_cleanup \
+               -name $entry_name -page $object -type image -label [my label] \
+               -folder_id [$object parent_id] -package_id [$object package_id]]
+    foreach option {
+        href cssclass
+        float width height 
+        padding padding-right padding-left padding-top padding-bottom
+        margin margin-left margin-right margin-top margin-bottom
+        border border-width position top botton left right
+    } {
+      if {[my exists $option]} {$l set $option [my set $option]}
+    }
+    set html [$l render]
+    return $html
+  }
+
   ###########################################################
   #
   # ::xowiki::CompoundField

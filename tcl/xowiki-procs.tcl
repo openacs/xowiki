@@ -246,11 +246,7 @@ namespace eval ::xowiki {
 
   File instproc marshall {} {
     set fn [my full_file_name]
-    set F [open $fn]
-    fconfigure $F -translation binary
-    set C [read $F]
-    close $F
-    my set __file_content [::base64::encode $C]
+    my set __file_content [::base64::encode [::xowiki::read_file $fn]]
     next
   }
 
@@ -273,10 +269,7 @@ namespace eval ::xowiki {
     # we have to care about recoding the file content
     my instvar import_file __file_content
     set import_file [ns_tmpnam]
-    set F [open $import_file w]
-    fconfigure $F -translation binary
-    puts -nonewline $F [::base64::decode $__file_content]
-    close $F
+    ::xowiki::write_file $import_file [::base64::decode $__file_content]
   }
 
   # set default values. 
