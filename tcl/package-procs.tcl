@@ -59,6 +59,7 @@ namespace eval ::xowiki {
   #
   Package instproc normalize_name {string} {
     set string [string trim $string]
+    regsub -all \# $string _ string
     # if subst_blank_in_name is turned on, turn spaces into _
     if {[my get_parameter subst_blank_in_name 1] != 0} {
       regsub -all { +} $string "_" string
