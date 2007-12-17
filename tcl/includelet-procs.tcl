@@ -73,19 +73,10 @@ namespace eval ::xowiki::includelet {
     return $result
   }
 
-  ::xowiki::Includelet instproc initialize {} {
-    # This method is called at a time after init and before render.
-    # It can be used to alter specified parameter from the user,
-    # or to influence the rendering of a decoration (e.g. title etc.)
+  ::xowiki::Includelet proc js_name {name} {
+    return [string map [list : _ # _] $name]
   }
   
-  ::xowiki::Includelet instproc js_name {} {
-    return [string map [list : _ # _] [self]]
-  }
-
-  ::xowiki::Includelet instproc self_id {} {
-    return [string map [list : _ # _] [self]]
-  }
   ::xowiki::Includelet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
@@ -116,11 +107,6 @@ namespace eval ::xowiki::includelet {
       set link [::$package_id pretty_link $name]
     }
     return $link
-  }
-
-  ::xowiki::Includelet instproc screen_name {user_id} {
-    acs_user::get -user_id $user_id -array user
-    return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
   }
 
   ::xowiki::Includelet proc incr_page_order {p} {
@@ -236,7 +222,21 @@ namespace eval ::xowiki::includelet {
       foreach page $pages {set page_order($page) [incr i]}
     }
   }
+
+  ::xowiki::Includelet instproc initialize {} {
+    # This method is called at a time after init and before render.
+    # It can be used to alter specified parameter from the user,
+    # or to influence the rendering of a decoration (e.g. title etc.)
+  }
   
+  ::xowiki::Includelet instproc js_name {} {
+    return [[self class] js_name [self]]
+  }
+
+  ::xowiki::Includelet instproc screen_name {user_id} {
+    acs_user::get -user_id $user_id -array user
+    return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
+  }  
 }
 
 namespace eval ::xowiki::includelet {

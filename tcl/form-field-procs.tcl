@@ -28,7 +28,7 @@ namespace eval ::xowiki {
   # ::xowiki::FormField (Base Class)
   #
   ###########################################################
-  Class FormField -parameter {
+  Class FormField -superclass ::xo::tdom::Object -parameter {
     {required false} 
     {display_field true} 
     {hide_value false} 
@@ -256,31 +256,6 @@ namespace eval ::xowiki {
     return $spec
   }
 
-  FormField ad_instproc get_attributes {
-    args
-  } {
-    Get a list of attribute value pairs
-    of instance attributes. It returns only those
-    pairs for which a value exists.
-
-    @return flattened list of attribute value pairs
-  } {
-    set pairs [list]
-    foreach attribute $args {
-      set l [split $attribute]
-      if {[llength $l] > 1} {
-        foreach {attribute HTMLattribute} $l break
-      } else {
-        set HTMLattribute $attribute
-      }
-      #my msg "[my name] check for $attribute => [my exists $attribute]"
-      if {[my exists $attribute]} {
-        lappend pairs $HTMLattribute [my set $attribute]
-      }
-    }
-    return $pairs
-  }
-  
   FormField instproc render {} {
     # In case, we use an asHTML of a FormField, we use this
     # render definition 
