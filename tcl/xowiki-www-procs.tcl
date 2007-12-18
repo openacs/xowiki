@@ -215,13 +215,19 @@ namespace eval ::xowiki {
           set template_file /packages/xowiki/www/$template_file
         }
         set header_stuff [::xo::Page header_stuff]
+        #
+        # pass variables for properties doc and body
+        # example: set property_body(class) "yui-skin-sam"
+        #
+        my instvar property_body property_doc
+
         $package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
           content footer package_id
           rev_link edit_link delete_link new_link admin_link index_link 
           notification_subscribe_link notification_image 
           top_includelets page
-          views_data
+          views_data property_body property_doc
         }
       }
     } else {
