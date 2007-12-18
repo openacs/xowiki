@@ -1260,7 +1260,7 @@ namespace eval ::xowiki {
       return $spec
     }
     # get widget spec from attribute definition 
-    set f [my create_form_field -name $name -slot [my find_slot $name]]
+    set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     if {$f ne ""} {
       return [$f asWidgetSpec]
     }
@@ -1405,7 +1405,7 @@ namespace eval ::xowiki {
 
       #my msg "checking spec '$short_spec' for form field '$spec_name'"
       if {[catch {
-        set f [my create_form_field \
+        set f [my create_raw_form_field \
                    -name $spec_name \
                    -slot [my find_slot $spec_name] \
                    -spec $short_spec]
@@ -1435,8 +1435,8 @@ namespace eval ::xowiki {
     # this method returns the form attributes (including _*)
     #
     my instvar page_template
-    set dont_edit [concat [[my info class] array names db_slot] [list title] \
-                       [::xo::db::CrClass set common_query_atts]]
+    set allvars [concat [[my info class] array names db_slot] \
+                     [::xo::db::CrClass set common_query_atts]]
 
     set template [lindex [my get_from_template text] 0]
     #set field_names [list _name _title _description _creator _nls_language _page_order]
@@ -1445,7 +1445,7 @@ namespace eval ::xowiki {
     if {$form eq ""} {
       foreach {var _} [my template_vars $template] {
         #if {[string match _* $var]} continue
-	if {[lsearch $dont_edit $var] == -1} {lappend field_names $var}
+	if {[lsearch $allvars $var] == -1} {lappend field_names $var}
       }
       set form_vars 0
     } else {
@@ -1515,7 +1515,7 @@ namespace eval ::xowiki {
       }
     }
 
-    set f [my create_form_field -name $varname \
+    set f [my create_raw_form_field -name $varname \
                -slot [my find_slot [string trimleft $varname _]] \
                -configuration [list -value $value]]
     if {[$f hide_value]} {
@@ -1533,11 +1533,11 @@ namespace eval ::xowiki {
     return [string range $content 1 end]
   }
 
-  FormPage instproc is_new_entry {old_name} {
+  Page instproc is_new_entry {old_name} {
     return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]
   }
 
-  FormPage instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
+  Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my instvar package_id name
     db_transaction {

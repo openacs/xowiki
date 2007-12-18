@@ -1258,35 +1258,35 @@ namespace eval ::xowiki {
   proc test_form_fields {} {
     set ::_ ""
     set o [Object new -destroy_on_cleanup]
-    # mixin methods for create_form_field
+    # mixin methods for create_raw_form_field
     $o mixin ::xowiki::Page
 
-    set f0 [$o create_form_field -name test \
+    set f0 [$o create_raw_form_field -name test \
                 -slot ::xowiki::Page::slot::name]
     ? {$f0 asWidgetSpec} \
         {text {label #xowiki.Page-name#}  {html {size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text"
 
-    set f0 [$o create_form_field -name test \
+    set f0 [$o create_raw_form_field -name test \
                 -slot ::xowiki::Page::slot::name -spec inform]
     ? {$f0 asWidgetSpec} \
         {text(inform) {label #xowiki.Page-name#}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text + inform"
 
-    set f0 [$o create_form_field -name test \
+    set f0 [$o create_raw_form_field -name test \
                 -slot ::xowiki::Page::slot::name -spec optional]
     ? {$f0 asWidgetSpec} \
         {text,optional {label #xowiki.Page-name#}  {html {size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
         "name with help_text + optional"
 
-    set f1 [$o create_form_field -name test \
+    set f1 [$o create_raw_form_field -name test \
                -slot ::xowiki::Page::slot::description \
                -spec "textarea,cols=80,rows=2"]
     ? {$f1 asWidgetSpec} \
         {text(textarea),nospell,optional {label #xowiki.Page-description#}  {html {cols 80 rows 2 }} } \
         "textarea,cols=80,rows=2"
 
-    set f2 [$o create_form_field -name test \
+    set f2 [$o create_raw_form_field -name test \
                 -slot ::xowiki::Page::slot::nls_language \
                 -spec {select,options=[xowiki::locales]}]
     ? {$f2 asWidgetSpec} \
@@ -1295,7 +1295,7 @@ namespace eval ::xowiki {
 
 
     $o mixin ::xowiki::PodcastItem
-    set f3 [$o create_form_field -name test \
+    set f3 [$o create_raw_form_field -name test \
                 -slot ::xowiki::PodcastItem::slot::pub_date]
     ? {$f3 asWidgetSpec} \
         {date,optional {label #xowiki.PodcastItem-pub_date#}  {format {YYYY MM DD HH24 MI}} } \
