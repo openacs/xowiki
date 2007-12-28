@@ -2530,7 +2530,7 @@ namespace eval ::xowiki::includelet {
           if {![info exists __att($varname)]} {
             error "unknown attribute $spec_name"
           }
-          set f [$form_item create_form_field \
+          set f [$form_item create_raw_form_field \
                      -name $spec_name \
                      -slot [$form_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec]
@@ -2541,7 +2541,7 @@ namespace eval ::xowiki::includelet {
 	  }
         }
         default {
-          set f [$form_item create_form_field \
+          set f [$form_item create_raw_form_field \
                      -name $spec_name \
                      -slot "" \
                      -spec $field_spec,$short_spec]

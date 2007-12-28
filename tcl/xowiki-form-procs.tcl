@@ -475,7 +475,12 @@ namespace eval ::xowiki {
     if {$widgetinfo ne ""} {
       foreach {y m day hour min} $widgetinfo break
       set t [clock scan "${hour}:$min $m/$day/$y"]
-      return [clock format $t -format "%y-%m-%d %T"]
+      #
+      # be sure to avoid bad side effects from LANG environment variable
+      #
+      set ::env(LANG) en_US.UTF-8 
+      return [clock format $t]
+      #return [clock format $t -format "%y-%m-%d %T"]
     }
     return ""
   }
