@@ -400,9 +400,12 @@ namespace eval ::xowiki {
     #my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
     set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
     set xml [$r set data]
-    set charset utf-8
-    regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
-    return [encoding convertfrom [string tolower $charset] $xml]
+    return $xml
+    # the following does not appear to be necessary due to changes in http-client-procs. 
+    #set charset utf-8
+    #regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
+    #ns_log notice "charse=$charset,xml=$xml"
+    #return [encoding convertfrom [string tolower $charset] $xml]
   }
 
   RSS-client instproc parse {data} {
