@@ -54,7 +54,7 @@
     set edit_button [my include [list edit-item-button -book_mode true]]
     if {$edit_button ne ""} {set edit_button "<div style='float: right'>$edit_button</div>"}
     append content "<DIV class='news-item' style='clear: both;'>" $edit_button \
-        "<div class='item-header'><h2><a href='$link'>$title</a></h2>" \
+        "<div class='item-header'><h2><a href='$link'>[ad_quotehtml $title]</a></h2>" \
         "&nbsp;<span class='date'>($day)</span></div>\n" \
         $description $more $my_footer \n\
         "</DIV>"
