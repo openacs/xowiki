@@ -12,7 +12,10 @@ namespace eval ::xowiki {
       -superclass ::xo::Package \
       -pretty_name "XoWiki" \
       -package_key xowiki \
-      -parameter {{folder_id "[::xo::cc query_parameter folder_id 0]"}}
+      -parameter {
+	{folder_id "[::xo::cc query_parameter folder_id 0]"}
+	{force_refresh_login true}
+      }
 
   Package ad_proc instantiate_page_from_id {
     {-revision_id 0} 
