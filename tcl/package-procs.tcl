@@ -218,6 +218,7 @@ namespace eval ::xowiki {
       lappend args [list m $method]
       set computed_link [uplevel export_vars -base [list $base] [list $args]]
     }
+    regsub -all & $computed_link "&amp;" computed_link
 
     set party_id [::xo::cc user_id]
     if {[info exists privilege]} {

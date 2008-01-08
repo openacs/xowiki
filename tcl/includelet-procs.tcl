@@ -1075,13 +1075,11 @@ namespace eval ::xowiki::includelet {
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
-      (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="inline";return false;'>#xowiki.edit_link#</a>,
+      (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="block";return false;'>#xowiki.edit_link#</a>,
        <a href='#' onclick='get_popular_tags("$popular_tags_link","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
-      <span id='[my id]-edit_tags' style='display: none'>
-      <FORM action="$save_tag_link" method='POST'>
+      <FORM id='[my id]-edit_tags' style='display: none' action="$save_tag_link" method='POST'>
         <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
-      </span>
       <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
     return $content

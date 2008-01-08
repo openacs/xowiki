@@ -216,6 +216,11 @@ table.mini-calendar {width: 200px ! important;}
   #
   ADP_Generator create oacs-view3 -master 1 -footer 1 \
     -extra_header_stuff {
+      <style type='text/css'>
+         table.mini-calendar {width: 227px ! important;font-size: 80%;}
+         div.tags h3 {font-size: 80%;}
+         div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
+      </style>
       <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
       <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
@@ -226,11 +231,7 @@ table.mini-calendar {width: 200px ! important;}
     -proc content_part {} {
        return [subst -novariables -nobackslashes \
 {<div style="float:left; width: 245px; font-size: 85%;">
-<style type='text/css'>
-table.mini-calendar {width: 227px ! important;font-size: 80%;}
-div.tags h3 {font-size: 80%;}
-div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
-</style>
+
 
 <div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
