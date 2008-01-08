@@ -44,7 +44,7 @@ foreach type $object_types {
   append actions [subst {
     Action new \
         -label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
-        -url $link \
+        -url "$link" \
         -tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
   }]
 }

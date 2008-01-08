@@ -342,6 +342,7 @@ namespace eval ::xowiki {
         if {$value eq $v} {return [my localize $label]}
       }
     }
+    #my log "mapping $v"
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
   }
 
