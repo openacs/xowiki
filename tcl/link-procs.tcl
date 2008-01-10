@@ -52,7 +52,6 @@ namespace eval ::xowiki {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      set href [string map [list & "&amp;"] $href]
       return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
     }
   }
@@ -76,10 +75,11 @@ namespace eval ::xowiki {
       set object_type [[$page info class] set object_type]
       set name [my name]
       set title [my label]
-      set href [export_vars -base [$package_id package_url] \
-                    {{edit-new 1} object_type name title}]
+      set new_link  [$package_id make_link $package_id edit-new object_type name title] 
+      #set href [export_vars -base [$package_id package_url] \
+      #              {{edit-new 1} object_type name title}]
 
-      my render_not_found $href [my label]
+      my render_not_found $new_link [my label]
     }
   }
 
