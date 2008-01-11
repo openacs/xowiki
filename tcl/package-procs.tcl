@@ -246,6 +246,20 @@ namespace eval ::xowiki {
     return ""
   }
 
+  Package instproc create_new_snippet {
+    {-object_type ::xowiki::Page}
+    provided_name
+  } {
+    my get_name_and_lang_from_path $provided_name lang local_name
+    set name ${lang}:$local_name
+    set new_link [my make_link [my id] edit-new object_type return_url name] 
+    if {$new_link ne ""} {
+      return "<p>Do you want to create page <a href='$new_link'>$name</a> new?"
+    } else {
+      return ""
+    }
+  }
+
 
   Package instproc invoke {-method {-error_template error-template}} {
     set page [my resolve_page [my set object] method]
@@ -260,16 +274,7 @@ namespace eval ::xowiki {
     } else {
       # the requested page was not found, provide an error message and 
       # an optional link for creating the page
-      my instvar id
-      my get_name_and_lang_from_path [my set object] lang local_name
-      set name ${lang}:$local_name
-      set object_type ::xowiki::Page ;# for the time being; maybe a parameter?
-      set new_link    [my make_link $id edit-new object_type return_url name] 
-      if {$new_link ne ""} {
-        set edit_snippet "<p>Do you want to create page <a href='$new_link'>$name</a> new?"
-      } else {
-        set edit_snippet ""
-      }
+      set edit_snippet [my create_new_snippet [my set object]]
       return [my error_msg -template_file $error_template \
 		  "Page <b>'[my set object]'</b> is not available. $edit_snippet"]
     }
