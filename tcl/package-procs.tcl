@@ -175,7 +175,7 @@ namespace eval ::xowiki {
   #
   # conditional links
   #
-  Package ad_instproc make_link {-privilege -link object method args} {
+  Package ad_instproc make_link {{-with_entities 1} -privilege -link object method args} {
     Creates conditionally a link for use in xowiki. When the generated link 
     will be activated, the specified method of the object will be invoked.
     make_link checks in advance, wether the actual user has enough 
@@ -218,7 +218,9 @@ namespace eval ::xowiki {
       lappend args [list m $method]
       set computed_link [uplevel export_vars -base [list $base] [list $args]]
     }
-    regsub -all & $computed_link "&amp;" computed_link
+    if {$with_entities} {
+      regsub -all & $computed_link "&amp;" computed_link
+    }
 
     set party_id [::xo::cc user_id]
     if {[info exists privilege]} {

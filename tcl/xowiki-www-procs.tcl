@@ -221,7 +221,7 @@ namespace eval ::xowiki {
         #
         array set property_body [::xo::Page get_property body]
         array set property_doc  [::xo::Page get_property doc]
-
+        # ns_log notice "XOWIKI body=[::xo::Page get_property body]"
         $package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
           content footer package_id
@@ -695,7 +695,6 @@ namespace eval ::xowiki {
     return $field_names
   }
 
-
   Page instproc save_attributes {} {
     my instvar package_id
     set field_names [my field_names]
@@ -730,7 +729,7 @@ namespace eval ::xowiki {
           [my query_parameter "return_url" [$package_id pretty_link [my name]]]
       return
     } else {
-      # todo: handle errors
+      # todo: handle errors in a user friendly way
       my log "we have $validation_errors validation_errors"
     }
     $package_id returnredirect \
@@ -932,7 +931,7 @@ namespace eval ::xowiki {
       set f [::xowiki::FormField::submit_button new -destroy_on_cleanup \
                  -name __form_button_ok \
                  -CSSclass $submit_button_class]
-      $f render_content
+      $f render_input
     }
     set form [lindex [$root selectNodes //form] 0]
     if {$form eq ""} {

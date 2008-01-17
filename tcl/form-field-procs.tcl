@@ -270,10 +270,10 @@ namespace eval ::xowiki {
   
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    ::html::div -class form-widget { my render_content }
+    ::html::div -class form-widget { my render_input }
   }
 
-  FormField instproc render_content {} {
+  FormField instproc render_input {} {
     # This is the most general widget content renderer. 
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
@@ -356,7 +356,7 @@ namespace eval ::xowiki {
   FormField::submit_button  instproc initialize {} {
     my set type submit
   }
-  FormField::submit_button instproc render_content {} {
+  FormField::submit_button instproc render_input {} {
     my set value [::xo::localize [_ xowiki.Form-submit_button]]
     ::html::div -class form-button {
       #::html::br 
@@ -394,7 +394,7 @@ namespace eval ::xowiki {
     my type hidden
     my set widget_type text(inform)
   }
-  FormField::inform instproc render_content {} {
+  FormField::inform instproc render_input {} {
     ::html::t [my value]
     ::html::input [my get_attributes type id name value] {}
   }
@@ -505,7 +505,7 @@ namespace eval ::xowiki {
     next
   }
 
-  FormField::textarea instproc render_content {} {
+  FormField::textarea instproc render_input {} {
     ::html::textarea [my get_attributes id name cols rows style {CSSclass class}] {
       ::html::t [my value]
     }
@@ -584,7 +584,7 @@ namespace eval ::xowiki {
     next
     my set widget_type richtext
   }
-  FormField::richtext::wym instproc render_content {} {
+  FormField::richtext::wym instproc render_input {} {
     ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
     ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
     ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
@@ -635,7 +635,7 @@ namespace eval ::xowiki {
     }
     my set options [my get_attributes editor plugins width height folder_id javascript]
   }
-  FormField::richtext::xinha instproc render_content {} {
+  FormField::richtext::xinha instproc render_input {} {
     # we use for the time being the initialization of xinha based on 
     # the site master
     set ::acs_blank_master(xinha) 1
@@ -673,7 +673,7 @@ namespace eval ::xowiki {
   FormField::radio instproc initialize {} {
     my set widget_type text(radio)
   }
-  FormField::radio instproc render_content {} {
+  FormField::radio instproc render_input {} {
     set value [my value]
     foreach o [my options] {
       foreach {label rep} $o break
@@ -698,7 +698,7 @@ namespace eval ::xowiki {
   FormField::select instproc initialize {} {
     my set widget_type text(select)
   }
-  FormField::select instproc render_content {} {
+  FormField::select instproc render_input {} {
     set atts [my get_attributes id name]
     if {[my multiple]} {lappend atts multiple [my multiple]}
     set options [my options]
@@ -969,7 +969,7 @@ namespace eval ::xowiki {
     error "no component named $component_name of compound field [my name]"
   }
 
-  CompoundField instproc render_content {} {
+  CompoundField instproc render_input {} {
     #
     # Render content within in a fieldset, but with labels etc.
     #
@@ -987,7 +987,7 @@ namespace eval ::xowiki {
 
   Class FormField::label -superclass FormField -parameter {}
   FormField::label instproc initialize {} {next}
-  FormField::label instproc render_content {} {
+  FormField::label instproc render_input {} {
     html::t [my value]
   }
 
@@ -1115,19 +1115,19 @@ namespace eval ::xowiki {
     return [lc_time_fmt $v [string map [list _ " "] [my display_format]] [my locale]]
   }
 
-  FormField::date instproc render_content {} {
+  FormField::date instproc render_input {} {
     #
     # render the content inline withing a fieldset, without labels etc.
     #
     my set style "margin: 0px; padding: 0px;"
     html::fieldset [my get_attributes id style] {
-      foreach c [my components] { $c render_content }
+      foreach c [my components] { $c render_input }
     }
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::boolean
+  # ::Xowiki::boolean
   #
   ###########################################################
 
