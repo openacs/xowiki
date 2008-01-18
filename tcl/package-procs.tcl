@@ -439,7 +439,7 @@ namespace eval ::xowiki {
     if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
     } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(file|image|swf|download)/(.*)$} $path _ lang local_name]} {
+    } elseif {[regexp {^(file|image|swf|download|tag)/(.*)$} $path _ lang local_name]} {
     } else {
       set key queryparm(lang)
       if {[info exists $key]} {
@@ -486,6 +486,15 @@ namespace eval ::xowiki {
           }
           my log "--try image:$local_name -> $item_id"
         }
+        if {$item_id == 0 && $lang eq "tag"} {
+	  set tag $local_name
+	  set summary [::xo::cc query_parameter summary 0]
+	  set weblog_page [my get_parameter weblog_page]
+	  my get_name_and_lang_from_path $weblog_page lang local_name
+	  set name $lang:$local_name
+	  my set object $weblog_page
+	  ::xo::cc set actual_query tag=$tag&summary=$summary
+	}
         if {$item_id == 0} {
           set nname   [my normalize_name $name]
           set item_id [::xo::db::CrClass lookup -name $nname -parent_id $folder_id]

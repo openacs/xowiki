@@ -1031,10 +1031,12 @@ namespace eval ::xowiki::includelet {
     if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
     set base_url [$package_id pretty_link $page]
 
+    set href [$package_id package_url]/tag/
     db_foreach [my qn get_counts] $sql {
       set s [expr {$summary ? "&summary=$summary" : ""}]
-      set href $base_url?$tag_type=[ad_urlencode $tag]$s
-      lappend entries "$tag <a href='$href'>($nr)</a>"
+      #set href $base_url?$tag_type=[ad_urlencode $tag]$s
+      #lappend entries "$tag <a href='$href'>($nr)</a>"
+      lappend entries "$tag <a rel='tag' href='$href[ad_urlencode $tag]'>($nr)</a>"
     }
     return [expr {[llength $entries]  > 0 ? 
                   "<h3>$label</h3> <BLOCKQUOTE>[join $entries {, }]</BLOCKQUOTE>\n" :
@@ -1066,10 +1068,13 @@ namespace eval ::xowiki::includelet {
 
     set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
                          -item_id [$__including_page item_id] -package_id $package_id]]
-    set href [$package_id package_url]$weblog_page?summary=$summary
+    set href [$package_id package_url]$weblog_page?summary=$summary&tag
 
     set entries [list]
-    foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
+
+    #foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
+    set href [$package_id package_url]/tag/
+    foreach tag $tags {lappend entries "<a rel='tag' href='$href[ad_urlencode $tag]?summary=$summary'>$tag</a>"}
     set tags_with_links [join [lsort $entries] {, }]
 
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}

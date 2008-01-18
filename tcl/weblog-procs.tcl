@@ -205,7 +205,8 @@ namespace eval ::xowiki {
     }
     
     array set smsg {1 full 0 summary}
-    set flink "<a href='[::xo::cc url]?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
+    set weblog_href [$package_id package_url][$package_id get_parameter weblog_page]
+    set flink "<a href='$weblog_href?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
@@ -214,7 +215,7 @@ namespace eval ::xowiki {
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
       
       if {$filter_msg ne ""} {
-        append filter_msg ", $range of $nr_items $entry_label (<a href='[::xo::cc url]'>all</a>, $flink)"
+        append filter_msg ", $range of $nr_items $entry_label (<a href='$weblog_href'>all</a>, $flink)"
       } else {
         append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
       }
