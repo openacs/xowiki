@@ -157,18 +157,18 @@ namespace eval ::xowiki {
       set context [list $title]
       set autoname    [$package_id get_parameter autoname 0]
       set object_type [$package_id get_parameter object_type [my info class]]
-      set rev_link    [$package_id make_link [self] revisions]
-      set edit_link   [$package_id make_link [self] edit return_url]
-      set delete_link [$package_id make_link [self] delete return_url]
+      set rev_link    [$package_id make_link -with_entities 0 [self] revisions]
+      set edit_link   [$package_id make_link -with_entities 0 [self] edit return_url]
+      set delete_link [$package_id make_link -with_entities 0 [self] delete return_url]
       if {[my exists __link(new)]} {
         set new_link [my set __link(new)]
       } else {
         if {[my istype ::xowiki::FormPage]} {
           set template_id [my page_template]
           set form      [$package_id pretty_link [$template_id name]]
-          set new_link  [$package_id make_link -link $form $template_id create-new return_url]
+          set new_link  [$package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
         } else {
-          set new_link  [$package_id make_link $package_id edit-new object_type return_url autoname] 
+          set new_link  [$package_id make_link -with_entities 0 $package_id edit-new object_type return_url autoname] 
         }
       }
       set admin_link  [$package_id make_link -privilege admin -link admin/ $package_id {} {}] 
