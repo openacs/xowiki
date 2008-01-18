@@ -351,6 +351,7 @@ namespace eval ::xowiki {
     {-spec ""} 
     {-configuration ""}
   } {
+    set save_slot $slot
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
       set slot [::xo::Attribute new -pretty_name $name -datatype text -volatile -noinit]
@@ -386,6 +387,7 @@ namespace eval ::xowiki {
                -default   $default \
                -spec      [join $spec_list ,] \
                -object    [self] \
+               -slot      $save_slot \
               ]
 
     $f destroy_on_cleanup
@@ -712,18 +714,43 @@ namespace eval ::xowiki {
     foreach {validation_errors category_ids} \
         [my get_form_data -field_names $query_field_names $form_fields] break
     if {$validation_errors == 0} {
+      #
+      # we have no validation erros, so we can save the content
+      #
+      set update_without_revision [$package_id query_parameter replace 0]
+
       foreach form_field $form_fields {
+        # fix richtext content in accordance with oacs conventions
         if {[$form_field istype ::xowiki::FormField::richtext]} {
           $form_field value [list [$form_field value] text/html]
         }
       }
-      #
-      # we have no validation erros, so we can save the content
-      #
-      my save_data \
-          -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
-          [::xo::cc form_parameter __object_name ""] $category_ids
-
+      if {$update_without_revision} {
+        # field-wise update without revision
+        set update_instance_attributes 0
+        foreach form_field $form_fields {
+          set s [$form_field slot]
+          if {$s eq ""} {
+            # empty slot means that we have an instance_attribute; 
+            # we save all in one statement below
+            set update_instance_attributes 1
+          } else {
+            error "Not implemented yet"
+            my update_attribute_from_slot $s [$form_field value]
+          }
+        }
+        if {$update_instance_attributes} {
+          set s [my find_slot instance_attributes]
+          my update_attribute_from_slot $s [my instance_attributes]
+        }
+      } else {
+        #
+        # perform standard bult update (with revision)
+        # 
+        my save_data \
+            -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
+            [::xo::cc form_parameter __object_name ""] $category_ids
+      }
       #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
       $package_id returnredirect \
           [my query_parameter "return_url" [$package_id pretty_link [my name]]]

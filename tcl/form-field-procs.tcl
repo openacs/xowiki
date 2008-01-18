@@ -46,6 +46,7 @@ namespace eval ::xowiki {
     locale
     default
     object
+    slot
   }
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
