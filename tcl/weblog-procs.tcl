@@ -155,7 +155,7 @@ namespace eval ::xowiki {
     set nr_items [db_string count [eval $base_type instance_select_query $sql -count true]]
     #my msg count=$nr_items
     #my msg sql=$sql
-    set s [$base_type instantiate_objects -sql [eval  $base_type instance_select_query $sql]]
+    set s [$base_type instantiate_objects -sql [eval $base_type instance_select_query $sql]]
     
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \

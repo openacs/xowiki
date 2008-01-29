@@ -627,12 +627,12 @@ namespace eval ::xowiki {
 	} else {
 	  ::xo::db::CrClass get_instance_from_db -item_id $item_id
           $item_id copy_content_vars -from_object $o
-	  $item_id save -use_given_publish_date true
+	  $item_id save -use_given_publish_date [$item_id exists publish_date]
 	  incr updated
 	}
       }
       if {$item_id == 0} {
-        set n [$o save_new -use_given_publish_date true]
+        set n [$o save_new -use_given_publish_date [$o exists publish_date]]
         incr added
       }
     }
@@ -654,13 +654,13 @@ namespace eval ::xowiki {
 	      ::xo::db::CrClass get_instance_from_db -item_id $item_id
 	      $item_id copy_content_vars -from_object $o
               $item_id set page_template $template_id
-	      $item_id save -use_given_publish_date true
+	      $item_id save -use_given_publish_date [$item_id exists publish_date]
 	      incr updated
 	    }
 	  }
 	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
 	    $o set page_template $template_id
-            $o save_new -use_given_publish_date true
+            $o save_new -use_given_publish_date [$o exists publish_date]
             incr added
           }
         }
@@ -779,6 +779,7 @@ namespace eval ::xowiki {
     }
     
     append content </urlset> \n
+
     #set t text/plain
     set t text/xml
     ns_return 200 $t $content
