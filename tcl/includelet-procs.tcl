@@ -1663,15 +1663,26 @@ namespace eval ::xowiki::includelet {
       "folders" {set s "folders/"}
       "default" {set s ""}
     }
-    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    set version 2.4.1
+    if {$s ne ""} {
+      ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
+    } else {
+      ::xo::Page requireCSS http://yui.yahooapis.com/$version/build/treeview/assets/skins/sam/treeview.css
+    }
+    #::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    #::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    ::xo::Page requireJS  http://yui.yahooapis.com/$version/build/yahoo/yahoo-min.js
+    ::xo::Page requireJS  http://yui.yahooapis.com/$version/build/event/event-min.js
     if {$ajax} {
-       ::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
-       ::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
-       ::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
+      #::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
+      #::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
+      #::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
+      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/yahoo-dom-event/yahoo-dom-event.js
+      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/connection/connection-min.js
+      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/animation/animation-min.js
     }  
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
+    #::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
+    ::xo::Page requireJS http://yui.yahooapis.com/$version/build/treeview/treeview-min.js
 
     my set book_mode $book_mode
     if {!$book_mode} {
@@ -1915,7 +1926,8 @@ namespace eval ::xowiki::includelet {
   item-button instproc render_button {
     -page 
     -package_id
-    -method 
+    -method
+    -link
     -src 
     -alt 
     -title 
@@ -1928,15 +1940,16 @@ namespace eval ::xowiki::includelet {
     if {![info exists return_url]} {set return_url $p_link}
     if {![info exists alt]} {set alt $method}
     if {![info exists src]} {set src [my set src]}
-    if {[$page istype ::xowiki::Package]} {
-      set link  [$package_id make_link $package_id edit-new object_type \
-		     return_url page_order source_item_id]
-    } else {
-      set p_link [$package_id pretty_link [$page name]]
-      set link [$package_id make_link -link $p_link $page $method \
-		    return_url page_order source_item_id]
+    if {![info exists link] || $link eq ""} {
+      if {[$page istype ::xowiki::Package]} {
+	set link  [$package_id make_link $package_id edit-new object_type \
+		       return_url page_order source_item_id]
+      } else {
+	set p_link [$package_id pretty_link [$page name]]
+	set link [$package_id make_link -link $p_link $page $method \
+		      return_url page_order source_item_id]
+      }
     }
-
     if {$link ne ""} {
       set html "<a class='image-button' href=\"$link\"><img src='$src' alt=\"$alt\" title=\"$title\"></a>"
     }
@@ -1971,7 +1984,8 @@ namespace eval ::xowiki::includelet {
 		-src /resources/acs-subsite/Edit16.gif]
   }
 
-  ::xowiki::IncludeletClass create delete-item-button -superclass ::xowiki::includelet::item-button \
+  ::xowiki::IncludeletClass create delete-item-button \
+      -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {src /resources/acs-subsite/Delete16.gif}
@@ -1992,6 +2006,31 @@ namespace eval ::xowiki::includelet {
 		  -title $title -alt $alt \
 		  -return_url [::xo::cc url]]
   }
+
+ ::xowiki::IncludeletClass create view-item-button \
+      -superclass ::xowiki::includelet::item-button \
+      -parameter {
+        {__decoration none}
+        {src /resources/acs-subsite/Zoom16.gif}
+        {parameter_declaration {
+          {-page_id}
+          {-title "#xowiki.view#"}
+          {-alt "view"}
+          {-link ""}
+          {-book_mode false}
+        }}
+      }
+
+  view-item-button instproc render {} {
+    my get_parameters
+    my instvar __including_page
+    set page [expr {[info exists page_id] ? $page_id : $__including_page}]
+    return [my render_button \
+		-page $page -method view -package_id $package_id \
+		-link $link -title $title -alt $alt \
+		-return_url [::xo::cc url]]
+  }
+
 
   ::xowiki::IncludeletClass create create-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {

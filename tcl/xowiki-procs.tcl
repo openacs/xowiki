@@ -981,7 +981,7 @@ namespace eval ::xowiki {
     set html [expr {$render_adp ? [my adp_subst $content] : $content}]
     if {[::xo::cc get_parameter content-type text/html] eq "text/html"} {
       append html "<DIV class='content-chunk-footer'>"
-      if {![my exists __no_footer]} {
+      if {![my exists __no_footer] && ![::xo::cc get_parameter __no_footer 0]} {
         append html [my footer]
       }
       append html "</DIV>\n"

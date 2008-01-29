@@ -45,7 +45,7 @@ foreach object_type $object_types {
     set delete_title "Delete all such items of this instance"
   } else {
     set add_title [_ xotcl-core.add [list type [$object_type pretty_name]]]
-    set add_href  [$package_id make_link $package_id edit-new object_type return_url autoname]
+    set add_href  [$package_id make_link -with_entities 0 $package_id edit-new object_type return_url autoname]
     set delete_title "Delete all [$object_type pretty_plural] of this instance"
   }
   t1 add \
