@@ -469,7 +469,17 @@ namespace eval ::xowiki {
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
       switch $type {
-        checkbox {$field setAttribute checked true}
+        checkbox {
+          #my msg "CHECKBOX value='$value', [$field hasAttribute checked], [expr {$value == false}]"
+          if {[catch {set f [expr $value ? 1 : 0]}]} {set f 1}
+          if {$value eq "" || $f == 0} {
+            if {[$field hasAttribute checked]} {
+              $field removeAttribute checked
+            }
+          } else {
+            $field setAttribute checked true
+          }
+        }
         radio {
           set inputvalue [$field getAttribute value]
           if {$inputvalue eq $value} {
@@ -487,13 +497,24 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  FormPage ad_instproc set_form_data {} {
-    Store the instance attributes in the form.
+  FormPage ad_instproc set_form_data {form_fields} {
+    Store the instance attributes or default values in the form.
   } {
     #my msg "set_form_value instance attributes = [my instance_attributes]"
-    foreach {att value} [my instance_attributes] {
-      #my msg "set_form_value $att '$value'"
-      my set_form_value $att $value
+    array set __ia [my instance_attributes]
+    foreach f $form_fields {
+      set att [$f name]
+      # just handle fields of the form entry 
+      if {![my exists field_in_form($att)]} continue
+      #my msg "set form_value to form-field $att __ia($att)"
+      if {[info exists __ia($att)]} {
+        #my msg "my set_form_value from ia $att $__ia($att)"
+        my set_form_value $att $__ia($att)
+      } else {
+        # we have no instance attributes, use the default value from the form field
+        #my msg "no instance attribute, set form_value $att '[$f value]'"
+        my set_form_value $att [$f value]
+      }
     }
   }
 }
@@ -519,6 +540,7 @@ namespace eval ::xowiki {
       
     foreach att $field_names {
       #my msg "getting att=$att"
+      set processed($att) 1
       switch -glob -- $att {
         __category_* {
           set f [my lookup_form_field -name $att $form_fields]
@@ -573,9 +595,47 @@ namespace eval ::xowiki {
      }
     
     #
-    # Run validators
+    # Postprocess based on form fields. The first round was a processing
+    # based on the transmitted input fields of the forms. Now we use
+    # the formfields to complete the data and to validate it.
     #
     foreach f $form_fields {
+      #my msg "validate $f [$f name] [info exists processed([$f name])]"
+       set att [$f name]
+ 
+       # Certain form field types (e.g. checkboxes) are not transmitted, if not
+       # checked. Therefore, we have not processed these fields above and
+       # have to do it now.
+       
+       if {![info exists processed($att)]} {
+         #my msg "form field $att not yet processed"
+         switch -glob -- $att {
+           __* {
+             # other internal variables (like __object_name) are ignored
+           }
+           _* {
+             # instance attribute fields
+             set value [$f value ""]
+             set varname [string range $att 1 end]
+             if {![string match *.* $att]} {my set $varname $value}
+           }
+           default {
+             # user form content fields
+             if {[$f istype ::xowiki::FormField::boolean]} {
+               # boolean not "checked" means false
+               set value f
+             } else {
+               set value [$f value ""]
+             }
+             if {![string match *.* $att]} {set __ia($att)  $value}
+           }
+         }
+       }
+
+       #
+       # Run validators
+       #
+  
       set validation_error [$f validate [self]]
       #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
       if {$validation_error ne ""} {
@@ -972,7 +1032,7 @@ namespace eval ::xowiki {
       set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
       $form setAttribute class [string trim "$oldCSSClass margin-form"]
     }
-    my set_form_data
+    my set_form_data $form_fields
     set html [$root asHTML]
     
     set html [my regsub_eval  \

@@ -1509,6 +1509,7 @@ namespace eval ::xowiki {
           set value [my $varname]
         } else {
           my log "**** unknown variable '$varname' ****"
+          #my msg "**** [my set instance_attributes]"
           set value ""
         }
       }
