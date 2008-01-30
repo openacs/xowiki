@@ -140,7 +140,7 @@ namespace eval ::xowiki {
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
         href cssclass
-        float width height 
+        center float width height 
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
@@ -169,13 +169,14 @@ namespace eval ::xowiki {
     }
   }
   ::xowiki::Link::image instproc render_found {link label} {
-    set style ""
+    set style ""; set pre ""; set post ""
     foreach a {
-      float width height 
+      float width height center
       padding padding-right padding-left padding-top padding-bottom
       margin margin-left margin-right margin-top margin-bottom
       border border-width position top botton left right
     } {
+      if {$a eq "center"} {set pre "<center>"; set post "</center>"; continue}
       if {[my exists $a]} {append style "$a: [my set $a];"}
     }
     if {$style ne ""} {set style "style='$style'"}
@@ -186,7 +187,8 @@ namespace eval ::xowiki {
       if {[string match "java*" $href]} {set href .}
       return "<a href='$href'><img class='$cls' src='$link' alt='$label' title='$label' $style></a>"
     } else {
-      return "<img class='$cls' src='$link' alt='$label' title='$label' $style>"
+      
+      return "$pre<img class='$cls' src='$link' alt='$label' title='$label' $style>$post"
     }
   }
 
