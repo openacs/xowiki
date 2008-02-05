@@ -482,6 +482,7 @@ namespace eval ::xowiki {
         }
         radio {
           set inputvalue [$field getAttribute value]
+          #my msg "radio: compare input '$inputvalue' with '$value'"
           if {$inputvalue eq $value} {
             $field setAttribute checked true
           }

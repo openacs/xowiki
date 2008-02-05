@@ -1485,14 +1485,16 @@ namespace eval ::xowiki {
       ::xowiki::Form requireFormCSS
       set form [lindex [my get_from_template form] 0]
       foreach {form_vars field_names} [my form_attributes] break
+      my array unset field_in_form
+      if {$form_vars} {foreach v $field_names {my set field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
       set form [my regsub_eval  \
 		    [template::adp_variable_regexp] $form \
 		    {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
-
+      
       dom parse -simple -html $form doc
       $doc documentElement root
-      my set_form_data
+      my set_form_data  $form_fields
       return [Form disable_input_fields [$root asHTML]]
     }
   }
