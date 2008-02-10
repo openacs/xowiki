@@ -42,6 +42,7 @@ foreach item_id $item_ids {
     }
   }
   $item_id volatile
+  #ns_log notice "exporting $item_id [$item_id name]"
   append content [$item_id marshall] \n
 }
 

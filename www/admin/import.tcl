@@ -27,7 +27,11 @@ ad_form \
       }
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
-      set f [open $upload_tmpfile]; set content [read $f]; close $f
+      set f [open $upload_tmpfile]; 
+      # if we do not set translation binary,
+      # backslashes at the end of the lines might be lost
+      fconfigure $f -translation binary; 
+      set content [read $f]; close $f
 
       foreach o [::xowiki::Page allinstances] { $o destroy }
       if {[catch {namespace eval ::xo::import $content} error]} {
