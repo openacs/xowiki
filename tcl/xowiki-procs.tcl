@@ -45,6 +45,7 @@ namespace eval ::xowiki {
       -parameter {
         {lang en}
         {render_adp 1}
+        {do_substitutions 1}
         {absolute_links 0}
       } \
       -form ::xowiki::WikiForm
@@ -811,6 +812,7 @@ namespace eval ::xowiki {
     if {[my set mime_type] eq "text/enhanced"} {
       set source [ad_enhanced_text_to_html $source]
     }
+    if {![my do_substitutions]} {return [lindex $source 0]}
     set content ""
     set l " "; #use one byte trailer for regexps for escaped content
     foreach l0 [split [lindex $source 0] \n] {
