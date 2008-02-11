@@ -176,8 +176,10 @@ namespace eval ::xowiki {
       margin margin-left margin-right margin-top margin-bottom
       border border-width position top botton left right
     } {
-      if {$a eq "center"} {set pre "<center>"; set post "</center>"; continue}
-      if {[my exists $a]} {append style "$a: [my set $a];"}
+      if {[my exists $a]} {
+        if {$a eq "center"} {set pre "<center>"; set post "</center>"; continue}
+        append style "$a: [my set $a];"
+      }
     }
     if {$style ne ""} {set style "style='$style'"}
     set label [string map [list ' "&#39;"] $label]
