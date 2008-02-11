@@ -575,6 +575,8 @@ namespace eval ::xowiki {
       }
     }
 
+    #my msg "containers = [array names containers]"
+
     #
     # In a second iteration, combine the values from the components 
     # of a container to the value of the container.
@@ -584,10 +586,12 @@ namespace eval ::xowiki {
          __* {}
          _* {
            set f  [my lookup_form_field -name $c $form_fields]
+           set processed($c) 1
            my set [string range $c 1 end] [$f value]
          }
          default {
            set f  [my lookup_form_field -name $c $form_fields]
+           set processed($c) 1
            #my msg "compute value of $c"
            set __ia($c) [$f value]
            #my msg "__ia($c) is set to '[$f value]'"
