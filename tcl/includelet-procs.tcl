@@ -1404,13 +1404,9 @@ namespace eval ::xowiki::includelet {
     return $anchor
   }
 
-  toc instproc get_nodes {open_page package_id expand_all remove_levels locale source} {
+  toc instproc build_toc {package_id locale source} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
-
-    set js ""
-    set node() root
-    set node_cnt 0
 
     set extra_where_clause ""
     if {[my exists category_id]} {
@@ -1447,19 +1443,40 @@ namespace eval ::xowiki::includelet {
 
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
+    return $pages
+  }
 
-    my set jsobjs ""
+  toc instproc href {package_id book_mode name} {
+    if {$book_mode} {
+      set href [$package_id url]#[toc anchor $name]
+    } else {
+      set href [$package_id pretty_link $name]
+    }
+    return $href
+  }
+
+  toc instproc page_number {page_order remove_levels} {
+    #my log "o: $page_order"
+    set displayed_page_order $page_order
+    for {set i 0} {$i < $remove_levels} {incr i} {
+      regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
+    }
+    return $displayed_page_order
+  }
+
+  toc instproc yui_tree {pages open_page package_id expand_all remove_levels} {
+    my instvar navigation page_name book_mode
+    array set navigation {parent "" position 0 current ""}
+
+    set js ""
+    set node() root
+    set node_cnt 0
     #my log "--book read [llength [$pages children]] pages"
 
     foreach o [$pages children] {
-      $o instvar page_order title page_id name title 
+      $o instvar page_order title page_id name  
 
-      #my log "o: $page_order"
-      set displayed_page_order $page_order
-      for {set i 0} {$i < $remove_levels} {incr i} {
-	regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
-      }
-      set label "$displayed_page_order $title"
+      set label "[my page_number $page_order $remove_levels] $title"
       set id tmpNode[incr node_cnt]
       set node($page_order) $id
       set jsobj [my js_name].objs\[$node_cnt\]
@@ -1467,11 +1484,7 @@ namespace eval ::xowiki::includelet {
       set page_name($node_cnt) $name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
 
-      if {$book_mode} {
-	set href [$package_id url]#[toc anchor $name]
-      } else {
-	set href [$package_id pretty_link $name]
-      }
+      set href [my href $package_id $book_mode $name]
       
       if {$expand_all} {
 	set expand "true"
@@ -1496,7 +1509,6 @@ namespace eval ::xowiki::includelet {
 	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
 	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n" \
           ""
-      my lappend jsobjs $jsobj
 
     }
     set navigation(count) $node_cnt
@@ -1655,34 +1667,30 @@ namespace eval ::xowiki::includelet {
   }
 
 
-  toc instproc render {} {
+  toc instproc render_yui_tree {pages s} {
     my get_parameters
-
-    switch -- $style {
-      "menu" {set s "menu/"}
-      "folders" {set s "folders/"}
-      "default" {set s ""}
-    }
     set version 2.4.1
+    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
     if {$s ne ""} {
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
     } else {
-      ::xo::Page requireCSS http://yui.yahooapis.com/$version/build/treeview/assets/skins/sam/treeview.css
+      ::xo::Page requireCSS /resources/ajaxhelper/yui/yahoo/treeview/assets/skins/sam/treeview.css
+      #::xo::Page requireCSS http://yui.yahooapis.com/$version/build/treeview/assets/skins/sam/treeview.css
     }
-    #::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-    #::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
-    ::xo::Page requireJS  http://yui.yahooapis.com/$version/build/yahoo/yahoo-min.js
-    ::xo::Page requireJS  http://yui.yahooapis.com/$version/build/event/event-min.js
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
+    #::xo::Page requireJS  http://yui.yahooapis.com/$version/build/yahoo/yahoo-min.js
+    #::xo::Page requireJS  http://yui.yahooapis.com/$version/build/event/event-min.js
     if {$ajax} {
-      #::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
-      #::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
-      #::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
-      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/yahoo-dom-event/yahoo-dom-event.js
-      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/connection/connection-min.js
-      ::xo::Page requireJS http://yui.yahooapis.com/$version/build/animation/animation-min.js
+      ::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
+      ::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
+      ::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
+      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/yahoo-dom-event/yahoo-dom-event.js
+      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/connection/connection-min.js
+      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/animation/animation-min.js
     }  
-    #::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
-    ::xo::Page requireJS http://yui.yahooapis.com/$version/build/treeview/treeview-min.js
+    ::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
+    #::xo::Page requireJS http://yui.yahooapis.com/$version/build/treeview/treeview-min.js
 
     my set book_mode $book_mode
     if {!$book_mode} {
@@ -1692,12 +1700,52 @@ namespace eval ::xowiki::includelet {
       set ajax 0
     }
     my set ajax $ajax
+            
+    set js_tree_cmds [my yui_tree $pages $open_page $package_id $expand_all $remove_levels]
+    return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
+  }
+
+  toc instproc render_list {pages} {
+    my get_parameters
+    set html "<UL>\n"
+    set level 0
+    foreach o [$pages children] {
+      $o instvar page_order title page_id name
+      set page_number [my page_number $page_order $remove_levels]
+      set new_level [regsub -all {[.]} $page_number . _]
+      if {$new_level > $level} {
+	for {set l $level} {$l < $new_level} {incr l} {append html "<ul>\n"}
+	set level $new_level
+      } elseif {$new_level < $level} {
+	for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
+	set level $new_level
+      }
+      set href [my href $package_id $book_mode $name]
+      append html "<li><a href='$href'>$page_number $title</a>\n"
+    }
+    for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
+    return $html
+  }
+
+  toc instproc render {} {
+    my get_parameters
+    set list_mode 0
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     if {[info exists category_id]} {my set category_id $category_id}
-            
-    set js_tree_cmds [my get_nodes $open_page $package_id $expand_all \
-                          $remove_levels $locale $source]
-    return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
+
+    switch -- $style {
+      "menu" {set s "menu/"}
+      "folders" {set s "folders/"}
+      "list"    {set s ""; set list_mode 1}
+      "default" {set s ""}
+    }
+    set pages [my build_toc $package_id $locale $source]
+
+    if {$list_mode} {
+      return [my render_list $pages]
+    } else {
+      return [my render_yui_tree $pages $s]
+    }
   }
 
   #############################################################################
