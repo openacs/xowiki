@@ -30,7 +30,7 @@ ad_form \
       set f [open $upload_tmpfile]; 
       # if we do not set translation binary,
       # backslashes at the end of the lines might be lost
-      fconfigure $f -translation binary; 
+      fconfigure $f -translation binary -encoding utf-8; 
       set content [read $f]; close $f
 
       foreach o [::xowiki::Page allinstances] { $o destroy }
