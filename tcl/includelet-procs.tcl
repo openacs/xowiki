@@ -360,7 +360,7 @@ namespace eval ::xowiki::includelet {
         set page [my resolve_page_name $source]
         set time [$page set creation_date]
         regexp {^([^.]+)[.]} $time _ time
-        return [lc_time_fmt [clock format [clock scan $time] -format "%Y-%m-%d %H:%M:%S"] $format]
+        return [lc_time_fmt [clock format [clock scan $time] -format "%Y-%m-%d %H:%M:%S"] $format [my locale]]
         #return [clock format [clock scan $time] -format $format]
       }
 
