@@ -162,13 +162,15 @@ namespace eval ::xowiki {
 
   proc ::xowiki::guesstype {fn} {
     set mime [ns_guesstype $fn]
-    if {$mime eq "*/*"} {
+    if {$mime eq "*/*" || $mime eq "application/octet-stream"} {
       # ns_guesstype was failing
       switch [file extension $fn] {
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
 	.swf {set mime application/x-shockwave-flash}
+        .wmv {set mime video/x-ms-wmv}
+	.class - .jar  {set mime application/java}
       }
     }
     return $mime
