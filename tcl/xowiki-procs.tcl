@@ -1,5 +1,5 @@
 ad_library {
-    XoWiki - main libraray classes and objects
+    XoWiki - main library classes and objects
 
     @creation-date 2006-01-10
     @author Gustaf Neumann

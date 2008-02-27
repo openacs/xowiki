@@ -49,7 +49,7 @@ if {$page_id eq ""} {
     db_transaction {
       set element_id [portal::add_element \
 			  -portal_id $portal_id \
-			  -portlet_name [xowiki_portlet::get_my_name] \
+			  -portlet_name [xowiki_portlet name] \
 			  -pretty_name $page_title \
 			  -force_region [parameter::get_from_package_key \
 					     -parameter "xowiki_portal_content_force_region" \
