@@ -59,7 +59,7 @@ Some features:
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.79"/>
+        <requires url="xotcl-core" version="0.81"/>
 
         <callbacks>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
