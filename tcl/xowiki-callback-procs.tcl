@@ -1,5 +1,5 @@
 ad_library {
-    XoWiki - Notification procs
+    XoWiki - Callback procs
 
     @creation-date 2006-08-08
     @author Gustaf Neumann
@@ -468,6 +468,14 @@ namespace eval ::xowiki {
     }
     ::xowiki::update_views
     return $result
+  }
+
+  proc unmounted_instances {} {
+    return [db_list unmounted_instances {
+      select package_id from apm_packages p where not exists 
+      (select 1 from site_nodes where object_id = p.package_id) 
+      and p.package_key = 'xowiki'
+    }]
   }
 
   proc form_upgrade {} {

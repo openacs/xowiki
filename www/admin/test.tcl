@@ -59,7 +59,7 @@ test case "XoWiki Test Cases"
 test section "Basic Setup"
 
 test hint "Using XOTcl $::xotcl::version$::xotcl::patchlevel"
-? {expr {$::xotcl::version < 1.4}} 0 "XOTcl Version $::xotcl::version >= 1.4"
+? {expr {$::xotcl::version < 1.5}} 0 "XOTcl Version $::xotcl::version >= 1.5"
 
 set ns_cache_version_old [catch {ns_cache names xowiki_cache xxx}]
 if {$ns_cache_version_old} {
@@ -89,6 +89,9 @@ if {[site_node::exists_p -url /$instance_name]} {
     site_node::unmount -node_id $info(node_id)
   }
   site_node::delete -node_id $info(node_id)
+  # remove the package instance
+  apm_package_instance_delete $info(object_id)
+  
   #test code [array get info]
 }
 
@@ -113,7 +116,7 @@ array set node [site_node::get -url /]
 site_node::instantiate_and_mount \
     -parent_node_id $node(node_id) \
     -node_name $instance_name \
-    -package_name xowiki \
+    -package_name $instance_name \
     -package_key xowiki
 #test code [array get node]
 
