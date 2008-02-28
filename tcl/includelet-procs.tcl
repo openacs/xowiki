@@ -34,6 +34,22 @@ namespace eval ::xowiki::includelet {
         {id}
       }
 
+  ::xowiki::Includelet proc require_YUI_CSS {{-version 2.5.0} {-ajaxhelper true} path} {
+    if {$ajaxhelper} {
+      ::xo::Page requireCSS "/resources/ajaxhelper/yui/$path"
+    } else {
+      ::xo::Page requireCSS "http://yui.yahooapis.com/$version/build/$path"
+    }
+  }
+
+  ::xowiki::Includelet proc require_YUI_JS {{-version 2.5.0} {-ajaxhelper true} path} {
+    if {$ajaxhelper} {
+      ::xo::Page requireJS "/resources/ajaxhelper/yui/$path"
+    } else {
+      ::xo::Page requireJS "http://yui.yahooapis.com/$version/build/$path"
+    }
+  }    
+    
   ::xowiki::Includelet proc describe_includelets {includelet_classes} {
     my log "--plc=$includelet_classes "
     foreach cl $includelet_classes {
@@ -1670,28 +1686,22 @@ namespace eval ::xowiki::includelet {
 
   toc instproc render_yui_tree {pages s} {
     my get_parameters
-    set version 2.4.1
+    set ajaxhelper 1
+
     ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
-    if {$s ne ""} {
-      ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
-    } else {
-      ::xo::Page requireCSS /resources/ajaxhelper/yui/yahoo/treeview/assets/skins/sam/treeview.css
-      #::xo::Page requireCSS http://yui.yahooapis.com/$version/build/treeview/assets/skins/sam/treeview.css
+    if {$s eq ""} {
+      ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper \
+          treeview/assets/skins/sam/treeview.css
     }
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/yahoo/yahoo.js"
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
-    #::xo::Page requireJS  http://yui.yahooapis.com/$version/build/yahoo/yahoo-min.js
-    #::xo::Page requireJS  http://yui.yahooapis.com/$version/build/event/event-min.js
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo/yahoo-min.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "event/event-min.js"
+
     if {$ajax} {
-      ::xo::Page requireJS "/resources/ajaxhelper/yui/dom/dom.js"             ;# ANIM
-      ::xo::Page requireJS "/resources/ajaxhelper/yui/connection/connection.js"
-      ::xo::Page requireJS "/resources/ajaxhelper/yui/animation/animation.js" ;# ANIM
-      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/yahoo-dom-event/yahoo-dom-event.js
-      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/connection/connection-min.js
-      #::xo::Page requireJS http://yui.yahooapis.com/$version/build/animation/animation-min.js
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "dom/dom-min.js"    ;# ANIM
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "connection/connection-min.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "animation/animation-min.js"   ;# ANIM
     }  
-    ::xo::Page requireJS "/resources/ajaxhelper/yui/treeview/treeview.js"
-    #::xo::Page requireJS http://yui.yahooapis.com/$version/build/treeview/treeview-min.js
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "treeview/treeview.js"
 
     my set book_mode $book_mode
     if {!$book_mode} {
