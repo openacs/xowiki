@@ -198,7 +198,7 @@ namespace eval ::xowiki {
 
   Page set recursion_count 0
   Page array set RE {
-    include {([^\\]){{([^<]+?)}}(\s|<|$)?}
+    include {([^\\]){{([^<]+?)}}([<\s]|$)}
     anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
     div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
@@ -800,7 +800,7 @@ namespace eval ::xowiki {
         -folder_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} error]} {
-      return "${ch}<div class='errorMsg'>Error during processing of options [list $options]: $error</div>"
+      return "${ch}<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$error</blockquote></div>"
     } else {
       return $ch[[self]::link render]
     }
