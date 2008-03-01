@@ -497,7 +497,7 @@ namespace eval ::xowiki {
 
   Page instproc error_in_includelet {arg msg} {
     my instvar name
-    return [my error_during_render "[_ xowiki.error_in_includelet]<br />\n$msg"]
+    return [my error_during_render "[_ xowiki.error_in_includelet]<br >\n$msg"]
   }
   
   Page ad_instproc resolve_included_page_name {page_name} {
@@ -903,7 +903,7 @@ namespace eval ::xowiki {
     return [my substitute_markup [my set text]]
   }
   Page instproc set_content {text} {
-    my text [list [string map [list >> "\n<br />&gt;&gt;" << "&lt;&lt;\n"] \
+    my text [list [string map [list >> "\n&gt;&gt;" << "&lt;&lt;\n"] \
                        [string trim $text " \n"]] text/html]
   }
 
