@@ -13,13 +13,12 @@
     <a href="@notification_subscribe_link@">@notification_image;noquote@</a> &middot;</if>
   <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'>#xowiki.search#</a> &middot;
   <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
-<span id='do_search' style='display: none'> 
+<div id='do_search' style='display: none'> 
   <FORM action='/search/search'><INPUT  id='do_search_q' name='q' type='text'><INPUT type="hidden" name="search_package_id" value="@package_id@" /></FORM> 
-</span>
+</div>
 </div> <!-- </legend> -->
 <if @page_title@ not nil>
 <h2>@page_title@</h2>
-</if>
 </if>
 @content;noquote@
 </div>

@@ -295,23 +295,24 @@ table.mini-calendar {width: 200px ! important;}
 
 <if @book_prev_link@ not nil or @book_relpos@ not nil or @book_next_link@ not nil>
 <div class="book-navigation" style="background: #f8f8f8; border: 1px solid #a9a9a9;  width: 500px;">
-<table width='100%'>
+<table width='100%' 
+  summary='This table provides a progress bar and buttons for next and previous pages'>
    <tr>
    <td width='20'>
    <if @book_prev_link@ not nil>
         <a href="@book_prev_link@" accesskey='p' ID="bookNavPrev.a" onclick='return TocTree.getPage("@book_prev_link@");'>
-        <img border='0' alt='Previous' src='/resources/xowiki/previous.png' width='15px' ID="bookNavPrev.img"></a>
+        <img border='0' alt='Previous' src='/resources/xowiki/previous.png' width='15' ID="bookNavPrev.img"></a>
     </if>
     <else>
         <a href="" accesskey='p' ID="bookNavPrev.a" onclick="">
-        <img border='0' alt='No Previous' src='/resources/xowiki/previous-end.png' width='15px' ID="bookNavPrev.img"></a>
+        <img border='0' alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' ID="bookNavPrev.img"></a>
     </else>
      </td>
 
    <td>
    <if @book_relpos@ not nil>
      <table style='display: inline; text-align: center;'>
-     <tr><td width='450px' style='font-size: 75%'><div style='width: @book_relpos@;' ID='bookNavBar'></div><span ID='bookNavRelPosText'>@book_relpos@</span></td></tr>
+     <tr><td width='450' style='font-size: 75%'><div style='width: @book_relpos@;' ID='bookNavBar'></div><span ID='bookNavRelPosText'>@book_relpos@</span></td></tr>
      </table>
    </if>
    </td>
@@ -319,11 +320,11 @@ table.mini-calendar {width: 200px ! important;}
    <td width='20' ID="bookNavNext">
    <if @book_next_link@ not nil>
         <a href="@book_next_link@" accesskey='n' ID="bookNavNext.a" onclick='return TocTree.getPage("@book_next_link@");'>
-        <img border='0' alt='Next' src='/resources/xowiki/next.png' width='15px' ID="bookNavNext.img"></a>
+        <img border='0' alt='Next' src='/resources/xowiki/next.png' width='15' ID="bookNavNext.img"></a>
    </if>
     <else>
         <a href="" accesskey='n' ID="bookNavNext.a" onclick="">
-       <img border='0' alt='No Next' src='/resources/xowiki/next-end.png' width='15px' ID="bookNavNext.img"></a>
+       <img border='0' alt='No Next' src='/resources/xowiki/next-end.png' width='15' ID="bookNavNext.img"></a>
     </else>
    </td>
    </tr>
