@@ -165,12 +165,14 @@ div.news-item h2 {display: inline; font-weight: bolder;}
 /*div.xowiki-content div.news-item .item-footer {margin-left: 20px; margin-right: 20px;}*/
 
 div.xowiki-content .item-footer {
-    clear: both; 
-    text-align: left; font-size: 85%; 
+    clear: both;
+    text-align: left; font-size: 85%;
     margin-left: 10px; margin-right: 10px; margin-top: 5px;
     padding-top: 5px;
     border-top: 1px solid; border-color: #c8c8c8; 
-    color: #555555; 
+    color: #555555;
 }
 div.xowiki-content .content-chunk-footer {clear: both;}
 div.xowiki-content .image-button img {border: 0px;}
+
+div.book-navigation img {border: 0px;}
