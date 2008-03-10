@@ -39,7 +39,8 @@ set category_map_url [export_vars -base \
 
 set actions ""
 foreach type $object_types {
-  set link [$package_id make_link $package_id edit-new {object_type $type} return_url autoname]
+  set link [$package_id make_link -with_entities 0 \
+                $package_id edit-new {object_type $type} return_url autoname]
   if {$link eq ""} continue
   append actions [subst {
     Action new \

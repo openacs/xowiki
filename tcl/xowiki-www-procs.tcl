@@ -606,46 +606,51 @@ namespace eval ::xowiki {
     #
     foreach f $form_fields {
       #my msg "validate $f [$f name] [info exists processed([$f name])]"
-       set att [$f name]
+      set att [$f name]
  
-       # Certain form field types (e.g. checkboxes) are not transmitted, if not
-       # checked. Therefore, we have not processed these fields above and
-       # have to do it now.
-       
-       if {![info exists processed($att)]} {
-         #my msg "form field $att not yet processed"
-         switch -glob -- $att {
-           __* {
-             # other internal variables (like __object_name) are ignored
-           }
-           _* {
-             # instance attribute fields
-             set value [$f value ""]
-             set varname [string range $att 1 end]
-             if {![string match *.* $att]} {my set $varname $value}
-           }
-           default {
-             # user form content fields
-             if {[$f istype ::xowiki::FormField::boolean]} {
-               # boolean not "checked" means false
-               set value f
-             } else {
-               set value [$f value ""]
-             }
-             if {![string match *.* $att]} {set __ia($att)  $value}
-           }
+      # Certain form field types (e.g. checkboxes) are not transmitted, if not
+      # checked. Therefore, we have not processed these fields above and
+      # have to do it now.
+      
+      if {![info exists processed($att)]} {
+	#my msg "form field $att not yet processed"
+	switch -glob -- $att {
+	  __* {
+	    # other internal variables (like __object_name) are ignored
+	  }
+	  _* {
+	    # instance attribute fields
+	    set varname [string range $att 1 end]
+            set preset ""
+            if {[my exists $varname]} {set preset [my set $varname]}
+            set v [$f value_if_nothing_is_returned_from_from $preset]
+            set value [$f value $v]
+            if {$v ne $preset} {
+              if {![string match *.* $att]} {my set $varname $value}
+            }
+	  }
+	  default {
+	    # user form content fields
+            set preset ""
+            if {[info exists __ia($att)]} {set preset $__ia($att)}
+            set v [$f value_if_nothing_is_returned_from_from $preset]
+            set value [$f value $v]
+            if {$v ne $preset} {
+              if {![string match *.* $att]} {set __ia($att) $value}
+            }
+	  }
          }
-       }
-
+      }
+      
        #
        # Run validators
        #
   
-      set validation_error [$f validate [self]]
-      #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
-      if {$validation_error ne ""} {
-        $f error_msg $validation_error
-        incr validation_errors
+       set validation_error [$f validate [self]]
+       #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
+       if {$validation_error ne ""} {
+	 $f error_msg $validation_error
+	 incr validation_errors
       }
     }
     #my msg "--set instance attributes to [array get __ia]"
@@ -661,7 +666,7 @@ namespace eval ::xowiki {
     if {!$found} {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
-    #my msg "$name mode=$mode type=[$f set type]"
+    #my msg "$found $name mode=$mode type=[$f set type] value=[$f value]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
     } else {
@@ -810,7 +815,7 @@ namespace eval ::xowiki {
         }
       } else {
         #
-        # perform standard bult update (with revision)
+        # perform standard update (with revision)
         # 
         my save_data \
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
@@ -826,6 +831,27 @@ namespace eval ::xowiki {
     }
     $package_id returnredirect \
         [my query_parameter "return_url" [$package_id pretty_link [my name]]]
+  }
+
+
+  FormPage instproc load_values_into_form_fields {form_fields} {
+    array set __ia [my set instance_attributes]
+    foreach f $form_fields {
+      set att [$f name]
+      switch -glob $att {
+        __* {}
+        _* {
+          set varname [string range $att 1 end]
+          $f value [my set $varname]
+        }
+        default {
+          if {[info exists __ia($att)]} {
+            #my msg "setting $f ([$f info class]) value $__ia($att)"
+            $f value $__ia($att)
+          }
+        }
+      }
+    }
   }
 
   FormPage instproc edit {
@@ -915,26 +941,28 @@ namespace eval ::xowiki {
       }
 
       array set __ia [my set instance_attributes]
-      foreach att $field_names {
-        #my msg "setting HTML att $att"
-        switch -glob $att {
-          __* {}
-          _* {
-            set f [my lookup_form_field -name $att $form_fields]
-            set varname [string range $att 1 end]
-            $f value [my set $varname]
-          }
-          default {
-            set f [my lookup_form_field -name $att $form_fields]
-            #my msg "check $att f=$f [info exists __ia($att)]"
-            if {[info exists __ia($att)]} {
-              #my msg "setting $f ([$f info class]) value $__ia($att)"
-              $f value $__ia($att)
-            }
-          }
-        }
-	set ff($att) $f
-      }
+      my load_values_into_form_fields $form_fields
+      foreach f $form_fields {set ff([$f name]) $f }
+#       foreach att $field_names {
+#         #my msg "setting HTML att $att"
+#         switch -glob $att {
+#           __* {}
+#           _* {
+#             set f [my lookup_form_field -name $att $form_fields]
+#             set varname [string range $att 1 end]
+#             $f value [my set $varname]
+#           }
+#           default {
+#             set f [my lookup_form_field -name $att $form_fields]
+#             #my msg "check $att f=$f [info exists __ia($att)]"
+#             if {[info exists __ia($att)]} {
+#               #my msg "setting $f ([$f info class]) value $__ia($att)"
+#               $f value $__ia($att)
+#             }
+#           }
+#         }
+# 	set ff($att) $f
+#       }
 
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
@@ -1254,25 +1282,6 @@ namespace eval ::xowiki {
 #     return $name
 #   }
 
-#   Page instproc create-new {} {
-#     my instvar package_id
-#     set name [my new_name [::xo::cc form_parameter name ""]]
-#     set class [::xo::cc form_parameter class ::xowiki::Page]
-#     if {[::xotcl::Object isclass $class] && [$class info heritage ::xowiki::Page] ne ""} { 
-#       set class [::xo::cc form_parameter class ::xowiki::Page]
-#       set f [$class new -destroy_on_cleanup \
-#                  -name $name \
-#                  -package_id $package_id \
-#                  -parent_id [my parent_id] \
-#                  -publish_status "production" \
-#                  -title [my title] \
-#                  -text [list [::xo::cc form_parameter content ""] text/html]]
-#       $f save_new
-#       $package_id returnredirect \
-#           [my query_parameter "return_url" [$package_id pretty_link $name]?m=edit]
-#     }
-#   }
-
   PageTemplate instproc delete {} {
     my instvar package_id item_id name
     set count [my count_usages -all true]
@@ -1289,14 +1298,30 @@ namespace eval ::xowiki {
     }
   }
 
-  Form instproc create-new {} {
+  Page instproc default_instance_attributes {} {
+    #
+    # Provide the default list of instance attributes to derived
+    # FormPages.
+    #
+    # We want to be able to create FormPages from all pages.
+    # by defining this method, we allow derived applications
+    # to provide their own set of instance attributes
+    return [list]
+  }
+
+  Page instproc create-new {} {
     my instvar package_id
+    set instance_attributes [my default_instance_attributes]
+
     set f [FormPage new -destroy_on_cleanup \
                -package_id $package_id \
                -parent_id [my parent_id] \
                -publish_status "production" \
+               -instance_attributes $instance_attributes \
                -page_template [my item_id]]
-
+    #
+    # if we copy an item, we use source_item_id to provide defaults
+    #
     set source_item_id [$package_id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
@@ -1306,7 +1331,9 @@ namespace eval ::xowiki {
       $f set name ""
       regexp {^.*:(.*)$} [$source set name] _ name
     } else {
-      # set some default values if they are provided
+      #
+      # set some default values from query parameters
+      #
       foreach key {name title page_order last_page_id} {
 	if {[$package_id exists_query_parameter $key]} {
 	  $f set $key [$package_id query_parameter $key]

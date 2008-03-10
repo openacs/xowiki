@@ -336,6 +336,10 @@ namespace eval ::xowiki {
     return $v
   }
 
+  FormField instproc value_if_nothing_is_returned_from_from {default} {
+    return $default
+  }
+
   FormField instproc pretty_value {v} {
     if {[my exists options]} {
       foreach o [my set options] {
@@ -1134,6 +1138,9 @@ namespace eval ::xowiki {
 
   Class FormField::boolean -superclass FormField::radio -parameter {
     {default t}
+  }
+  FormField::boolean instproc value_if_nothing_is_returned_from_from {default} {
+    return f
   }
   FormField::boolean instproc initialize {} {
     # should be with cvs head message catalogs:

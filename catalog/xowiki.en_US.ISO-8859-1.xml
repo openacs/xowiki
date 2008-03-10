@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="xowiki" package_version="0.79" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" locale="en_US" charset="ISO-8859-1">
 
   <msg key="abstract">Abstract</msg>
   <msg key="admin">Admin</msg>
@@ -39,8 +39,11 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
-  <msg key="form-menu-answer_link">Entries for this form</msg>
-  <msg key="form-menu-new_link">Fill out</msg>
+  <msg key="form-menu-button-answers">Entries for this form</msg>
+  <msg key="form-menu-button-form">Form %form_name%</msg>
+  <msg key="form-menu-button-new">Fill out</msg>
+  <msg key="form-menu-button-wf">Workflow %form_name%</msg>
+  <msg key="form-menu-button-wf-instances">Instances of %form_name%</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>

@@ -2091,7 +2091,8 @@ namespace eval ::xowiki::includelet {
   }
 
 
-  ::xowiki::IncludeletClass create create-item-button -superclass ::xowiki::includelet::item-button \
+  ::xowiki::IncludeletClass create create-item-button \
+      -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {src /resources/acs-subsite/Add16.gif}
@@ -2509,51 +2510,74 @@ YAHOO.util.Event.addListener(window, 'load',   onLoad());
 
 namespace eval ::xowiki::includelet {
   #############################################################################
+  Class create form-menu-button \
+      -parameter {
+        form
+        method
+        link
+        package_id
+        base
+        return_url
+        {label_suffix ""}
+      }
+  form-menu-button instproc render {} {
+    my instvar package_id base form method return_url label_suffix link
+    if {![info exists link]} {
+      set link [$package_id make_link -link $base $form $method return_url]
+    }
+    if {$link eq ""} {
+      return ""
+    }
+    set msg_key [namespace tail [my info class]]
+    set label [_ xowiki.$msg_key [list form_name [$form name]]]$label_suffix
+    return "<a href='$link'>$label</a>"
+  }
+
+  Class form-menu-button-new -superclass form-menu-button -parameter {
+    {method create-new}
+  }
+  Class form-menu-button-answers -superclass form-menu-button -parameter {
+    {method list}
+  }
+  form-menu-button-answers instproc render {} {
+    set count [[my form] count_usages]
+    my label_suffix " ($count)"
+    next
+  }
+
+  Class form-menu-button-form -superclass form-menu-button -parameter {
+    {method view}
+  }
+
+
   ::xowiki::IncludeletClass create form-menu \
       -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
-          {-form_item_id:integer,required}
+          {-form_item_id:integer}
+          {-buttons {new answers}}
+          {-button_objs}
+          {-return_url}
         }}
       }
   
   form-menu instproc render {} {
     my get_parameters
-    # todo return_url
     my instvar __including_page
-    set base [$package_id pretty_link [$__including_page name]]
-    set new_link [$package_id make_link -link $base $__including_page create-new return_url]
-    set answer_link [$package_id make_link -link $base $__including_page list return_url]
-    set template [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
-    set count [$template count_usages]
-    set links [list]
-    foreach l [list new_link answer_link] {
-      if {[set $l] ne ""} {
-        set label #xowiki.form-menu-$l#
-        if {$l eq "answer_link"} {append label " ($count) "}
-        lappend links "<a href='[set $l]'>$label</a>"
+    if {![info exists button_objs]} {
+      set form [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
+      set base [$package_id pretty_link [$form name]]
+      foreach b $buttons {
+        set obj  [form-menu-button-$b new -volatile -package_id $package_id \
+                      -base $base -form $form]
+        if {[info exists return_url]} {$obj return_url $return_url}
+        lappend button_objs $obj
       }
     }
+    set links [list]
+    foreach b $button_objs { lappend links [$b render] }
     return "<div style='clear: both;'><div class='wiki-menu'>[join $links { &middot; }]</div></div>\n"
-  }
-
-  #############################################################################
-  ::xowiki::IncludeletClass create form-entry-menu \
-      -superclass ::xowiki::Includelet \
-      -parameter {
-        {__decoration none}
-        {parameter_declaration {
-        }}
-      }
-  
-  form-entry-menu instproc render {} {
-    my get_parameters
-    my instvar __including_page
-    set form [$__including_page page_template]
-    set base [$package_id pretty_link [$form name]]
-    return "<div style='clear: both;'><div class='wiki-menu'><a href='$base'>Form [$form name]</a>\
-	</div></div>\n"
   }
 
   #############################################################################
@@ -2574,6 +2598,7 @@ namespace eval ::xowiki::includelet {
   form-usages instproc render {} {
     my get_parameters
     my instvar __including_page
+    set o $__including_page
 
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
@@ -2584,12 +2609,12 @@ namespace eval ::xowiki::includelet {
     }
 
     set form_item [::xowiki::Form get_instance_from_db -item_id $form_item_id]
-    $form_item destroy_on_cleanup
+    set form_constraints [$form_item get_form_constraints $o]
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name @table \
-                  -form_constraints [$form_item form_constraints]]
+                  -form_constraints $form_constraints]
       set field_names [split $fn ,]
     }
     if {$field_names eq ""} {
@@ -2607,7 +2632,6 @@ namespace eval ::xowiki::includelet {
     #my msg sql_atts=$sql_atts
     #my msg field_names=$field_names
 
-    set form_constraints [$form_item form_constraints]
     # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
     #                            -name @cr_fields \
     #                            -form_constraints $form_constraints]

@@ -353,6 +353,8 @@ namespace eval ::xowiki {
       publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
     }
     foreach var [$from_object info vars] {
+      # don't copy vars starting with "__"
+      if {[string match "__*" $var]} continue
       if {![info exists excluded_var($var)]} {
         my set $var [$from_object set $var]
       }
@@ -1025,13 +1027,24 @@ namespace eval ::xowiki {
   }
 
   Page instproc lookup_form_field {
-    -name 
+    -name:required
     form_fields
   } {
     set key ::_form_field_names($name)
     #my msg "form_fields=$form_fields, search for $name"
     my form_field_index $form_fields
 
+    #my msg "FOUND($name)=[info exists $key]"
+    if {[info exists $key]} {
+      return [set $key]
+    }
+    error "No form field with name $name found"
+  }
+
+  Page instproc lookup_cached_form_field {
+    -name:required
+  } {
+    set key ::_form_field_names($name)
     #my msg "FOUND($name)=[info exists $key]"
     if {[info exists $key]} {
       return [set $key]
@@ -1219,23 +1232,19 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_short_spec {name} {
-    #my msg "get_short_spec $name"
     my instvar page_template
-    # in the old-fashioned 2-form page-instance create, page_template
-    # might be non-existant or empty.
-    if {[info exists page_template] && $page_template ne "" &&
-        [$page_template exists form_constraints]} {
-      set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
-                          -name $name -form_constraints [$page_template form_constraints]]
-      if {$short_spec ne ""} {
-        return $short_spec
-      }
+    set form_constraints [my get_from_template form_constraints]
+    #my msg "get_short_spec $name c=$form_constraints"
+    if {$form_constraints ne ""} {
+      return [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                  -name $name -form_constraints $form_constraints]
     }
     return ""
   }
 
   PageInstance instproc get_field_label {name value} {
     set short_spec [my get_short_spec $name]
+    #my msg "short_spec for $name = '$short_spec'"
     if {$short_spec ne ""} {
       set f [FormField new -volatile -name $name -spec $short_spec]
       return [$f pretty_value $value]
@@ -1272,14 +1281,26 @@ namespace eval ::xowiki {
     return $default_spec
   }
 
+  PageInstance instproc get_form_id {} {
+    return [my page_template]
+  }
+ 
+  Page instproc get_form_constraints {form_item} {
+    # Whis method determines the form constraints typically
+    # from the form item object (::xowiki::Form)
+    # We define it as a method of Page to ease overloading.
+    return [$form_item form_constraints]
+  }
+
   PageInstance instproc get_from_template {var} {
     my instvar page_template
-    if {[info command ::$page_template] eq ""} {
+    set form_id [my get_form_id]
+    if {![my isobject ::$form_id]} {
       #my log  "-- fetching page_template = $page_template"
-      ::xo::db::CrClass get_instance_from_db -item_id $page_template
-      $page_template destroy_on_cleanup
+      ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
-    return [$page_template set $var]
+    if {[::$form_id exists $var]} {return [::$form_id set $var]}
+    return ""
   }
 
   PageInstance instproc get_content {} {
@@ -1299,6 +1320,7 @@ namespace eval ::xowiki {
     array set __ia [my template_vars $content]
     # add extra variables as instance attributes
     array set __ia [my set instance_attributes]
+
     foreach var [array names __ia] {
       #my log "-- set $var [list $__ia($var)]"
       # TODO: just for the lookup, whether a field is a richt text field,
@@ -1314,6 +1336,10 @@ namespace eval ::xowiki {
       my set $var [my get_field_label $var $value]
     }
     next
+  }
+  PageInstance instproc count_usages {{-all false}} {
+    # TODO: if we continue this approach, this method should go into Page
+    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
   }
 
   #
@@ -1386,7 +1412,9 @@ namespace eval ::xowiki {
     return $content
   }
 
-  Form instproc list {} {
+
+  Page instproc list {} {
+    # todo move me
     my view [my include [list form-usages -form_item_id [my item_id]]]
   }
 
@@ -1426,11 +1454,31 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::FormPage
   #
+  FormPage instproc initialize_loaded_object {} {
+    if {[my exists page_template]} {
+      ::xo::db::CrClass get_instance_from_db -item_id [my page_template]
+    }
+    my array set __ia [my instance_attributes]
+    next
+  }
+
+  FormPage instproc property {name} {
+    if {[string match "_*" $name]} {
+      set key [string range $name 1 end]
+    } {
+      set key  __ia($name)
+    }
+    if {[my exists $key]} {
+      return [my set $key]
+    }
+    return ""
+  }
+
   FormPage instproc footer {} {
     if {[my exists __no_form_page_footer]} {
       next
     } else {
-      return [my include [list form-entry-menu]]
+      return [my include [list form-menu -form_item_id $form_item_id -buttons form]]
     }
   }
 
@@ -1492,38 +1540,27 @@ namespace eval ::xowiki {
       my array unset field_in_form
       if {$form_vars} {foreach v $field_names {my set field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
+      my load_values_into_form_fields $form_fields
       set form [my regsub_eval  \
 		    [template::adp_variable_regexp] $form \
 		    {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
       
       dom parse -simple -html $form doc
       $doc documentElement root
-      my set_form_data  $form_fields
+      my set_form_data $form_fields
       return [Form disable_input_fields [$root asHTML]]
     }
   }
 
   FormPage instproc get_value {before varname} {
     #my msg "varname=$varname"
-    array set __ia [my set instance_attributes]
-    switch -glob $varname {
-      _*      {set value [my set [string range $varname 1 end]]}
-      default {
-        if {[info exists __ia($varname)]} {
-          set value [set __ia($varname)]
-        } elseif {[my exists $varname]} {
-          set value [my $varname]
-        } else {
-          my log "**** unknown variable '$varname' ****"
-          #my msg "**** [my set instance_attributes]"
-          set value ""
-        }
-      }
-    }
+    set value [my property $varname]
 
+    # todo: might be more efficient to check, if it exists already
     set f [my create_raw_form_field -name $varname \
                -slot [my find_slot [string trimleft $varname _]] \
                -configuration [list -value $value]]
+
     if {[$f hide_value]} {
       set value ""
     } else {
@@ -1545,6 +1582,8 @@ namespace eval ::xowiki {
 
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
+    # never cache __ia
+    my array unset __ia
     my instvar package_id name
     db_transaction {
       #

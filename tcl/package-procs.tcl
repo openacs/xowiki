@@ -175,7 +175,7 @@ namespace eval ::xowiki {
   #
   # conditional links
   #
-  Package ad_instproc make_link {{-with_entities 1} -privilege -link object method args} {
+  Package ad_instproc make_link {{-with_entities 0} -privilege -link object method args} {
     Creates conditionally a link for use in xowiki. When the generated link 
     will be activated, the specified method of the object will be invoked.
     make_link checks in advance, wether the actual user has enough 
@@ -611,12 +611,17 @@ namespace eval ::xowiki {
     set added 0
     set replaced 0
     set updated 0
+    set todo [list]
 
     foreach o $objects {
       $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
 
       # page instances have references to page templates, add these first
-      if {[$o istype ::xowiki::PageInstance]} continue
+      if {[$o istype ::xowiki::PageInstance]} {
+        lappend todo $o
+        continue
+      }
+      my log "importing (1st round) $o [$o name] [$o info class]"
 
       set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
       if {$item_id != 0} {
@@ -637,32 +642,48 @@ namespace eval ::xowiki {
       }
     }
 
-    foreach o $objects {
-      if {[$o istype ::xowiki::PageInstance]} {
+    while {[llength $todo] > 0} {
+      my log "importing (2nd round) todo=$todo"
+      set c 0
+      set found 0
+      foreach o $todo {
 	set old_template_id [$o set page_template]
 	set template_id [::xo::db::CrClass lookup \
-			  -name [::$old_template_id set name] \
-			  -parent_id $folder_id]
-        db_transaction {
-          set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
-          if {$item_id != 0} {
-	    if {$replace} { ;# we delete the original
-	      ::xo::db::CrClass delete -item_id $item_id
-	      set item_id 0
-	      incr replaced
-	    } else {
-	      ::xo::db::CrClass get_instance_from_db -item_id $item_id
-	      $item_id copy_content_vars -from_object $o
-              $item_id set page_template $template_id
-	      $item_id save -use_given_publish_date [$item_id exists publish_date]
-	      incr updated
-	    }
-	  }
-	  if {$item_id == 0} {  ;# the item does not exist -> update reference and save
-	    $o set page_template $template_id
-            $o save_new -use_given_publish_date [$o exists publish_date]
-            incr added
+                             -name [::$old_template_id set name] \
+                             -parent_id $folder_id ]
+        if {$template_id == 0} {
+          my log "importing (2nd round) delay import of $o"
+          incr c
+        } else {
+          set todo [lreplace $todo $c $c]
+          set found 1
+          break
+        }
+      }
+      if {$found == 0} {
+        my log "can't resolve dependencies in $todo"
+        break
+      }
+      my log "importing (2nd round) process $o, todo=$todo"
+      db_transaction {
+        set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
+        if {$item_id != 0} {
+          if {$replace} { ;# we delete the original
+            ::xo::db::CrClass delete -item_id $item_id
+            set item_id 0
+            incr replaced
+          } else {
+            ::xo::db::CrClass get_instance_from_db -item_id $item_id
+            $item_id copy_content_vars -from_object $o
+            $item_id set page_template $template_id
+            $item_id save -use_given_publish_date [$item_id exists publish_date]
+            incr updated
           }
+        }
+        if {$item_id == 0} {  ;# the item does not exist -> update reference and save
+          $o set page_template $template_id
+          $o save_new -use_given_publish_date [$o exists publish_date]
+          incr added
         }
       }
     }
