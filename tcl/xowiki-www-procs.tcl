@@ -506,7 +506,7 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry 
-      if {![my exists field_in_form($att)]} continue
+      if {![my exists __field_in_form($att)]} continue
       #my msg "set form_value to form-field $att __ia($att)"
       if {[info exists __ia($att)]} {
         #my msg "my set_form_value from ia $att $__ia($att)"
@@ -666,6 +666,7 @@ namespace eval ::xowiki {
     if {!$found} {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
+
     #my msg "$found $name mode=$mode type=[$f set type] value=[$f value]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
@@ -725,8 +726,8 @@ namespace eval ::xowiki {
     my instvar package_id
     foreach {form_vars needed_attributes} [my form_attributes] break
     #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
-    my array unset field_in_form
-    if {$form_vars} {foreach v $needed_attributes {my set field_in_form($v) 1}}
+    my array unset __field_in_form
+    if {$form_vars} {foreach v $needed_attributes {my set __field_in_form($v) 1}}
     
     # 
     # Remove the fields already included in auto_fields form the needed_attributes.
@@ -745,7 +746,7 @@ namespace eval ::xowiki {
       } 
     }
     #my msg reduced_attributes=$reduced_attributes 
-    #my msg fields_from_form=[array names field_in_form]
+    #my msg fields_from_form=[my array names __field_in_form]
 
     set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
@@ -893,7 +894,7 @@ namespace eval ::xowiki {
     }
 
     # include _text only, if explicitely needed (in form or template)
-    if {![my exists field_in_form(_text)]} {
+    if {![my exists __field_in_form(_text)]} {
       #my msg "setting text hidden"
       set f [my lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden
@@ -1016,7 +1017,7 @@ namespace eval ::xowiki {
       # insert automatic form fields on top 
       foreach att $field_names {
         #if {$formgiven && ![string match _* $att]} continue
-        if {[my exists field_in_form($att)]} continue
+        if {[my exists __field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
 	#my msg "insert auto_field $att"
         $f render_item

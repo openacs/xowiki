@@ -1245,6 +1245,7 @@ namespace eval ::xowiki {
   PageInstance instproc get_field_label {name value} {
     set short_spec [my get_short_spec $name]
     #my msg "short_spec for $name = '$short_spec'"
+
     if {$short_spec ne ""} {
       set f [FormField new -volatile -name $name -spec $short_spec]
       return [$f pretty_value $value]
@@ -1322,7 +1323,7 @@ namespace eval ::xowiki {
     array set __ia [my set instance_attributes]
 
     foreach var [array names __ia] {
-      #my log "-- set $var [list $__ia($var)]"
+      my log "-- set $var [list $__ia($var)]"
       # TODO: just for the lookup, whether a field is a richt text field,
       # there should be a more efficient and easier way...
       if {[string match "richtext*" [my get_field_type $var text]]} {
@@ -1537,8 +1538,8 @@ namespace eval ::xowiki {
       ::xowiki::Form requireFormCSS
       set form [lindex [my get_from_template form] 0]
       foreach {form_vars field_names} [my form_attributes] break
-      my array unset field_in_form
-      if {$form_vars} {foreach v $field_names {my set field_in_form($v) 1}}
+      my array unset __field_in_form
+      if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
       my load_values_into_form_fields $form_fields
       set form [my regsub_eval  \
@@ -1582,8 +1583,9 @@ namespace eval ::xowiki {
 
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
-    # never cache __ia
+    # never cache __ia or __field_in_form
     my array unset __ia
+    my array unset __field_in_form
     my instvar package_id name
     db_transaction {
       #
