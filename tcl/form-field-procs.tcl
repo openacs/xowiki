@@ -280,6 +280,25 @@ namespace eval ::xowiki {
     # which is in most cases  a simple input fied of type string.
     ::html::input [my get_attributes type size maxlength id name value] {}
   } 
+
+  FormField instproc render_item {} {
+    ::html::div -class form-item-wrapper {
+      ::html::div -class form-label {
+        ::html::label -for [my id] {
+          ::html::t [my label]
+        }
+        if {[my required]} {
+          ::html::div -class form-required-mark {
+            ::html::t " (#acs-templating.required#)"
+          }
+        }
+      }
+      my render_form_widget
+      my render_help_text
+      my render_error_msg
+      html::t \n
+    }
+  }
   
   FormField instproc render_error_msg {} {
     if {[my error_msg] ne ""} {
@@ -306,25 +325,6 @@ namespace eval ::xowiki {
   FormField instproc render_localizer {} {
     # Just an empty fall-back method.
     # This method will be overloaded in trn mode by a mixin.
-  }
-
-  FormField instproc render_item {} {
-    ::html::div -class form-item-wrapper {
-      ::html::div -class form-label {
-        ::html::label -for [my id] {
-          ::html::t [my label]
-        }
-        if {[my required]} {
-          ::html::div -class form-required-mark {
-            ::html::t " (#acs-templating.required#)"
-          }
-        }
-      }
-      my render_form_widget
-      my render_help_text
-      my render_error_msg
-      html::t \n
-    }
   }
 
   FormField instproc localize {v} {
@@ -360,14 +360,11 @@ namespace eval ::xowiki {
   Class FormField::submit_button -superclass FormField 
   FormField::submit_button  instproc initialize {} {
     my set type submit
+    my set value [::xo::localize [_ xowiki.Form-submit_button]]
   }
   FormField::submit_button instproc render_input {} {
-    my set value [::xo::localize [_ xowiki.Form-submit_button]]
-    ::html::div -class form-button {
-      #::html::br 
-      ::html::input [my get_attributes type {CSSclass class} value] {}
-      my render_localizer
-    }
+    ::html::input [my get_attributes name type {CSSclass class} value] {}
+    my render_localizer
   }
 
   ###########################################################

@@ -855,6 +855,15 @@ namespace eval ::xowiki {
     }
   }
 
+  FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
+    ::html::div -class form-button {
+      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup \
+                 -name __form_button_ok \
+                 -CSSclass $CSSclass]
+      $f render_input
+    }
+  }
+
   FormPage instproc edit {
     {-validation_errors ""}
   } {
@@ -944,26 +953,6 @@ namespace eval ::xowiki {
       array set __ia [my set instance_attributes]
       my load_values_into_form_fields $form_fields
       foreach f $form_fields {set ff([$f name]) $f }
-#       foreach att $field_names {
-#         #my msg "setting HTML att $att"
-#         switch -glob $att {
-#           __* {}
-#           _* {
-#             set f [my lookup_form_field -name $att $form_fields]
-#             set varname [string range $att 1 end]
-#             $f value [my set $varname]
-#           }
-#           default {
-#             set f [my lookup_form_field -name $att $form_fields]
-#             #my msg "check $att f=$f [info exists __ia($att)]"
-#             if {[info exists __ia($att)]} {
-#               #my msg "setting $f ([$f info class]) value $__ia($att)"
-#               $f value $__ia($att)
-#             }
-#           }
-#         }
-# 	set ff($att) $f
-#       }
 
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
@@ -1043,17 +1032,16 @@ namespace eval ::xowiki {
         }
       }
 
-      # insert unreported errors and add a submit field at bottom
+      # insert unreported errors 
       foreach f $form_fields {
         if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
           $f render_error_msg
         }
       }
-      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup \
-                 -name __form_button_ok \
-                 -CSSclass $submit_button_class]
-      $f render_input
+      # add a submit field(s) at bottom
+      my render_form_action_buttons -CSSclass $submit_button_class
     }
+
     set form [lindex [$root selectNodes //form] 0]
     if {$form eq ""} {
       my msg "no form found in page [$page_template name]"
