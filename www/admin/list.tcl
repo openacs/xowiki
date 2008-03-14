@@ -72,9 +72,7 @@ TableWidget t1 -volatile \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
       Field syndicated -label "RSS" -html {style "padding: 2px;"}
-      if {[::xo::db::has_ltree]} {
-        AnchorField page_order -label [_ xowiki.order] -orderby page_order -html {style "padding: 2px;"}
-      }
+      AnchorField page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
       AnchorField name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
       AnchorField title -label [_ xowiki.Page-title] -orderby title
       Field object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
@@ -92,12 +90,7 @@ t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 
 # for content_length, we need cr_revision and cannot use the base table
 set attributes [list revision_id content_length creation_user title \
-    "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified"] 
-
-
-if {[::xo::db::has_ltree]} {
-  lappend attributes page_order
-}
+    "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified" page_order] 
 
 set folder_id [::$package_id folder_id]
 foreach i [db_list get_syndicated {
@@ -145,9 +138,7 @@ db_foreach instance_select \
 		[export_vars -base [$package_id package_url]admin/set-publish-state \
 		     {state revision_id return_url}]
           }
-          if {[::xo::db::has_ltree]} {
-	    [t1 last_child] set page_order $page_order
-          }
+	  [t1 last_child] set page_order $page_order
         }
 
 set t1 [t1 asHTML]

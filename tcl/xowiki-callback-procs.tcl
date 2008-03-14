@@ -389,6 +389,12 @@ namespace eval ::xowiki {
       }
       copy_parameter top_portlet top_includelet
     }
+    set v 0.83
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      ::xowiki::add_ltree_order_column
+    }
   }
 
   proc copy_parameter {from to} {
@@ -450,24 +456,20 @@ namespace eval ::xowiki {
   }
 
   ad_proc add_ltree_order_column {} {
-    add ltree order column, if ltree is configured
+    add page_order of type ltree, when ltree is configured (otherwise string)
   } {
-    if {[::xo::db::has_ltree]} {
-      # catch sql statement to allow multiple runs
-      catch {::xo::db::sql::content_type create_attribute \
-                 -content_type ::xowiki::Page \
-                 -attribute_name page_order \
-                 -datatype text \
-                 -pretty_name Order \
-                 -column_spec ltree}
- 
-      ::xo::db::require index -table xowiki_page -col page_order -using gist
-      set result 1
-    } else {
-      set result 0
-    }
+    # catch sql statement to allow multiple runs
+    catch {::xo::db::sql::content_type create_attribute \
+	       -content_type ::xowiki::Page \
+	       -attribute_name page_order \
+	       -datatype text \
+	       -pretty_name Order \
+	       -column_spec [::xo::db::sql map_datatype ltree]}
+    
+    ::xo::db::require index -table xowiki_page -col page_order \
+	-using [expr {[::xo::db::has_ltree] ? "gist" : ""}]
     ::xowiki::update_views
-    return $result
+    return 1
   }
 
   proc unmounted_instances {} {

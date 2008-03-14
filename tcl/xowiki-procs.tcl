@@ -15,10 +15,8 @@ namespace eval ::xowiki {
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
       -slots {
-        if {[::xo::db::has_ltree]} {
-          ::xo::db::CrAttribute create page_order \
-	      -sqltype ltree -validator page_order -default ""
-        }
+	::xo::db::CrAttribute create page_order \
+	    -sqltype ltree -validator page_order -default ""
         ::xo::db::CrAttribute create creator
 	# The following slots are defined elsewhere, but we override
 	# some default values, such as pretty_names, required state, 
@@ -175,11 +173,8 @@ namespace eval ::xowiki {
         time    timestamp"
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id
-
-
-  if {[::xo::db::has_ltree]} {
-    ::xo::db::require index -table xowiki_page -col page_order -using gist
-  }
+  ::xo::db::require index -table xowiki_page -col page_order \
+      -using [expr {[::xo::db::has_ltree] ? "gist" : ""}]
 
   set sortkeys [expr {[db_driverkey ""] eq "oracle" ? "" : ", ci.tree_sortkey, ci.max_child_sortkey"}]
   ::xo::db::require view xowiki_page_live_revision \
@@ -256,12 +251,8 @@ namespace eval ::xowiki {
     my set parent_id $parent_id
     my set package_id $package_id 
     my set creation_user $creation_user
-    #
-    # if we import from an instance without page_orders into an instance
-    # with page_orders, we need default values
-    if {[::xo::db::has_ltree] && ![my exists page_order]} {
-      my set page_order ""
-    }
+    # if we import from an old database without page_order, take care about this
+    if {![my exists page_order]} {my set page_order ""}
     # in the general case, no more actions required
   }
 

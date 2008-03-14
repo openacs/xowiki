@@ -558,17 +558,7 @@ namespace eval ::xowiki::includelet {
       } else {
         foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
         set increasing [expr {$direction ne "desc"}]
-        
-        #
-        # If we have ltree, we query the order_column from the database, 
-        # otherwise we don't retrieve it, but set the Tcl variable page_order empty.
-        #
-        if {[::xo::db::has_ltree]} {
-          set order_column ", p.page_order" 
-        } else {
-          set order_column ""
-          set page_order ""
-        }
+	set order_column ", p.page_order" 
 
         db_foreach [my qn get_pages] \
             "select ci.item_id, ci.name, ci.content_type, r.title, category_id $order_column from $sql" {

@@ -169,7 +169,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc show_page_order {} {
-    return [expr {[::xo::db::has_ltree] && [my get_parameter display_page_order 1]}]
+    return [my get_parameter display_page_order 1]
   }
 
   #
