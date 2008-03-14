@@ -2609,7 +2609,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set form_item [::xowiki::Form get_instance_from_db -item_id $form_item_id]
-    set form_constraints [$form_item get_form_constraints $o]
+    set form_constraints [$form_item get_form_constraints]
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \

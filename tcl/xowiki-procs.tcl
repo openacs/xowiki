@@ -1233,11 +1233,13 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_short_spec {name} {
     my instvar page_template
-    set form_constraints [my get_from_template form_constraints]
-    #my msg "get_short_spec $name c=$form_constraints"
+    #set form_constraints [my get_from_template form_constraints]
+    set form_constraints [my get_form_constraints]
     if {$form_constraints ne ""} {
-      return [::xowiki::PageInstance get_short_spec_from_form_constraints \
+      set s [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name $name -form_constraints $form_constraints]
+      #my msg "get_short_spec $name c=$form_constraints => '$s'"
+      return $s
     }
     return ""
   }
@@ -1286,11 +1288,9 @@ namespace eval ::xowiki {
     return [my page_template]
   }
  
-  Page instproc get_form_constraints {form_item} {
-    # Whis method determines the form constraints typically
-    # from the form item object (::xowiki::Form)
-    # We define it as a method of Page to ease overloading.
-    return [$form_item form_constraints]
+  PageInstance instproc get_form_constraints {} {
+    # We define it as a method to ease overloading.
+    return [my get_from_template form_constraints]
   }
 
   PageInstance instproc get_from_template {var} {
@@ -1300,6 +1300,7 @@ namespace eval ::xowiki {
       #my log  "-- fetching page_template = $page_template"
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
+    #my msg "form_id=$form_id, [$form_id name]"
     if {[::$form_id exists $var]} {return [::$form_id set $var]}
     return ""
   }
@@ -1413,6 +1414,10 @@ namespace eval ::xowiki {
     return $content
   }
 
+  Form instproc get_form_constraints {} {
+    # We define it as a method to ease overloading.
+    return [my form_constraints]
+  }
 
   Page instproc list {} {
     # todo move me
