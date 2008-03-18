@@ -219,6 +219,7 @@ namespace eval ::xowiki {
 
   Page instproc marshall {} {
     my instvar name
+    my unset_temporary_instance_variables
     if {[regexp {^..:[0-9]+$} $name] ||
         [regexp {^[0-9]+$} $name]} {
       #
@@ -1577,11 +1578,16 @@ namespace eval ::xowiki {
     return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]
   }
 
-  Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
-    #my log "-- [self args]"
-    # never cache __ia or __field_in_form
+  Page instproc unset_temporary_instance_variables {} {
+    # never save/cache __ia or __field_in_form
     my array unset __ia
     my array unset __field_in_form
+  }
+
+  Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
+    #my log "-- [self args]"
+    my unset_temporary_instance_variables
+
     my instvar package_id name
     db_transaction {
       #
