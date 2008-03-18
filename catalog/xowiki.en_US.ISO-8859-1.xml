@@ -90,5 +90,6 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
 </msg>
   <msg key="view">View</msg>
   <msg key="weblog-more">more...</msg>
+  <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>
   <msg key="your_tags_label">Your Tags</msg>
 </message_catalog>
