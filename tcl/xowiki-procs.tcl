@@ -1476,7 +1476,7 @@ namespace eval ::xowiki {
     if {[my exists __no_form_page_footer]} {
       next
     } else {
-      return [my include [list form-menu -form_item_id $form_item_id -buttons form]]
+      return [my include [list form-menu -form_item_id [my page_template] -buttons form]]
     }
   }
 
