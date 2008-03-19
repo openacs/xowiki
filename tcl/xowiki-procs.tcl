@@ -1292,7 +1292,7 @@ namespace eval ::xowiki {
       #my log  "-- fetching page_template = $page_template"
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
-    #my msg "form_id=$form_id, [$form_id name]"
+    #my msg "form_id=$form_id, [$form_id name] $var?[::$form_id exists $var]"
     if {[::$form_id exists $var]} {return [::$form_id set $var]}
     return ""
   }
@@ -1460,7 +1460,7 @@ namespace eval ::xowiki {
     next
   }
 
-  FormPage instproc property {name} {
+  FormPage instproc property {name {default ""}} {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
     } {
@@ -1469,7 +1469,7 @@ namespace eval ::xowiki {
     if {[my exists $key]} {
       return [my set $key]
     }
-    return ""
+    return $default
   }
 
   FormPage instproc footer {} {
