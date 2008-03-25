@@ -425,7 +425,18 @@ namespace eval ::xowiki {
     my set widget_type text
     foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
+  ###########################################################
+  #
+  # ::xowiki::FormField::password
+  #
+  ###########################################################
 
+  Class FormField::password -superclass FormField::text 
+  FormField::password instproc initialize {} {
+    next
+    my set widget_type password
+    my type password
+  }
   ###########################################################
   #
   # ::xowiki::FormField::numeric
