@@ -1383,10 +1383,13 @@ namespace eval ::xowiki {
   Form proc dom_disable_input_fields {{-with_submit 0} root} {
     set fields [$root selectNodes "//button | //input | //optgroup | //option | //select | //textarea "]
     foreach field $fields {
-      if {$with_submit == 0 && [$field getAttribute type] eq "submit"} continue
+      set type ""
+      if {[$field hasAttribute type]} {set type [$field getAttribute type]}
+      if {$type eq "submit" && !$with_submit} continue
       # Disabled fields are not transmitted from the form;
-      # some applications expect it to be transmitted, so don't disable it...
-      if {[$field getAttribute type] eq "hidden"} continue
+      # some applications expect hidden fields to be transmitted
+      # to identify the context, so don't disable it...
+      if {$type eq "hidden"} continue
       $field setAttribute disabled "disabled"
     }
   }
