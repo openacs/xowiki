@@ -271,7 +271,7 @@ namespace eval ::xowiki {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
         #my msg "--invoke [my set object] id=$page method=$method" 
-	return [my call $page $method]
+	return [my call $page $method ""]
       }
     } else {
       # the requested page was not found, provide an error message and 
@@ -420,14 +420,14 @@ namespace eval ::xowiki {
     return $page
   }
 
-  Package instproc call {object method} {
+  Package instproc call {object method options} {
     my instvar policy id
     set allowed [$policy enforce_permissions \
                      -package_id $id -user_id [::xo::cc user_id] \
                      $object $method]
     if {$allowed} {
       #my msg "--p calling $object ([$object info class]) '$method'"
-      $object $method
+      eval $object $method $options
     } else {
       my log "not allowed to call $object $method"
     }

@@ -1380,13 +1380,21 @@ namespace eval ::xowiki {
     return [my include [list form-menu -form_item_id [my item_id]]]
   }
 
-  Form proc disable_input_fields {form} {
-    dom parse -simple -html $form doc
-    $doc documentElement root
+  Form proc dom_disable_input_fields {{-with_submit 0} root} {
     set fields [$root selectNodes "//button | //input | //optgroup | //option | //select | //textarea "]
     foreach field $fields {
+      if {$with_submit == 0 && [$field getAttribute type] eq "submit"} continue
+      # Disabled fields are not transmitted from the form;
+      # some applications expect it to be transmitted, so don't disable it...
+      if {[$field getAttribute type] eq "hidden"} continue
       $field setAttribute disabled "disabled"
     }
+  }
+
+  Form proc disable_input_fields {{-with_submit 0} form} {
+    dom parse -simple -html $form doc
+    $doc documentElement root
+    my disable_input_fields_dom $root
     return [$root asHTML]
   }
 
@@ -1480,7 +1488,13 @@ namespace eval ::xowiki {
     }
   }
 
+
   FormPage instproc form_attributes {} {
+    my log "DEPRECATRED, use 'field_names_from_form' instead "
+    return [my field_names_from_form]
+  }
+
+  FormPage instproc field_names_from_form {} {
     #
     # this method returns the form attributes (including _*)
     #
@@ -1497,7 +1511,7 @@ namespace eval ::xowiki {
         #if {[string match _* $var]} continue
 	if {[lsearch $allvars $var] == -1} {lappend field_names $var}
       }
-      set form_vars 0
+      set from_HTML_form 0
     } else {
       foreach {match 1 att} [regexp -all -inline [template::adp_variable_regexp] $form] {
         #if {[string match _* $att]} continue
@@ -1518,9 +1532,9 @@ namespace eval ::xowiki {
 	  lappend field_names $att
 	}
       }
-      set form_vars 1
+      set from_HTML_form 1
     }
-    return [list $form_vars $field_names]
+    return [list $from_HTML_form $field_names]
   }
 
 
@@ -1534,7 +1548,7 @@ namespace eval ::xowiki {
     } else {
       ::xowiki::Form requireFormCSS
       set form [lindex [my get_from_template form] 0]
-      foreach {form_vars field_names} [my form_attributes] break
+      foreach {form_vars field_names} [my field_names_from_form] break
       my array unset __field_in_form
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]

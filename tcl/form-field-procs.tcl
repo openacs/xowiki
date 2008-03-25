@@ -33,7 +33,9 @@ namespace eval ::xowiki {
     {display_field true} 
     {hide_value false} 
     {inline false}
+    {disabled}
     CSSclass
+    form-widget-CSSclass
     {type text} 
     {label} 
     {name} 
@@ -47,7 +49,9 @@ namespace eval ::xowiki {
     default
     object
     slot
+    answer
   }
+  FormField set abstract 1
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
@@ -193,12 +197,12 @@ namespace eval ::xowiki {
 
   FormField instproc config_from_spec {spec} {
     my instvar type
-    if {[my info class] eq [self class]} {
-      # Check, wether the actual class of the formfield differs from the
-      # generic FromField class. If yes, the object was already 
-      # reclassed to a concrete form field type. Since config_from_spec
-      # can be called multiple times, we want to do the reclassing only
-      # once.
+    if {[[my info class] exists abstract]} {
+      # had earlier here: [my info class] eq [self class]
+      # Check, wether the actual class is a concrete class (mapped to
+      # concrete field type) or an abstact class.  Since
+      # config_from_spec can be called multiple times, we want to do
+      # the reclassing only once.
       my class [self class]::$type
       ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
@@ -271,14 +275,16 @@ namespace eval ::xowiki {
   
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    ::html::div -class form-widget { my render_input }
+    set class form-widget
+    if {[my exists form-widget-CSSclass]} {append class " [my form-widget-CSSclass]"}
+    ::html::div -class $class { my render_input }
   }
 
   FormField instproc render_input {} {
     # This is the most general widget content renderer. 
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
-    ::html::input [my get_attributes type size maxlength id name value] {}
+    ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class}] {}
   } 
 
   FormField instproc render_item {} {
@@ -363,7 +369,9 @@ namespace eval ::xowiki {
     my set value [::xo::localize [_ xowiki.Form-submit_button]]
   }
   FormField::submit_button instproc render_input {} {
-    ::html::input [my get_attributes name type {CSSclass class} value] {}
+    # don't disable submit buttons
+    if {[my type] eq "submit"} {my unset -nocomplain disabled}
+    ::html::input [my get_attributes name type {CSSclass class} value disabled] {}
     my render_localizer
   }
 
@@ -398,7 +406,7 @@ namespace eval ::xowiki {
   }
   FormField::inform instproc render_input {} {
     ::html::t [my value]
-    ::html::input [my get_attributes type id name value] {}
+    ::html::input [my get_attributes type id name value disabled {CSSclass class}] {}
   }
   FormField::inform instproc render_help_text {} {
   }
@@ -508,7 +516,7 @@ namespace eval ::xowiki {
   }
 
   FormField::textarea instproc render_input {} {
-    ::html::textarea [my get_attributes id name cols rows style {CSSclass class}] {
+    ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
       ::html::t [my value]
     }
   }
@@ -679,7 +687,8 @@ namespace eval ::xowiki {
     set value [my value]
     foreach o [my options] {
       foreach {label rep} $o break
-      set atts [list id [my id]:$rep name [my name] type radio value $rep]
+      set atts [my get_attributes disabled {CSSclass class}]
+      lappend atts id [my id]:$rep name [my name] type radio value $rep
       if {$value eq $rep} {lappend atts checked checked}
       ::html::input $atts {}
       html::t "$label  "
@@ -701,7 +710,7 @@ namespace eval ::xowiki {
     my set widget_type text(select)
   }
   FormField::select instproc render_input {} {
-    set atts [my get_attributes id name]
+    set atts [my get_attributes id name disabled]
     if {[my multiple]} {lappend atts multiple [my multiple]}
     set options [my options]
     if {![my required]} {
@@ -710,7 +719,8 @@ namespace eval ::xowiki {
     ::html::select $atts {
       foreach o $options {
         foreach {label rep} $o break
-        set atts [list value $rep]
+        set atts [my get_attributes disabled]
+        lappend atts value $rep
         #my msg "lsearch {[my value]} $rep ==> [lsearch [my value] $rep]"
         if {[lsearch [my value] $rep] > -1} {
           lappend atts selected on

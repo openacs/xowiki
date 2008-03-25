@@ -461,7 +461,7 @@ namespace eval ::xowiki {
   FormPage instproc set_form_value {att value} {
     #my msg "set_form_value $att $value"
     my instvar root item_id
-    set fields [$root selectNodes "//*\[@name='$att'\]"]
+    set fields [$root selectNodes "//form//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
     foreach field $fields {
       # TODO missing: textarea
@@ -471,7 +471,7 @@ namespace eval ::xowiki {
       switch $type {
         checkbox {
           #my msg "CHECKBOX value='$value', [$field hasAttribute checked], [expr {$value == false}]"
-          if {[catch {set f [expr $value ? 1 : 0]}]} {set f 1}
+          if {[catch {set f [expr {$value ? 1 : 0}]}]} {set f 1}
           if {$value eq "" || $f == 0} {
             if {[$field hasAttribute checked]} {
               $field removeAttribute checked
@@ -724,7 +724,7 @@ namespace eval ::xowiki {
 
   FormPage instproc field_names {} {
     my instvar package_id
-    foreach {form_vars needed_attributes} [my form_attributes] break
+    foreach {form_vars needed_attributes} [my field_names_from_form] break
     #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
     my array unset __field_in_form
     if {$form_vars} {foreach v $needed_attributes {my set __field_in_form($v) 1}}
@@ -866,6 +866,7 @@ namespace eval ::xowiki {
 
   FormPage instproc edit {
     {-validation_errors ""}
+    {-disable_input_fields 0}
   } {
     my instvar page_template doc root package_id
     
@@ -909,7 +910,6 @@ namespace eval ::xowiki {
       $f config_from_spec hidden
     }
     #my show_fields $form_fields
-
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -1052,11 +1052,19 @@ namespace eval ::xowiki {
       set url [export_vars -base [$package_id pretty_link [my name]] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
       set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
-      $form setAttribute class [string trim "$oldCSSClass margin-form"]
+      if {[lsearch -exact $oldCSSClass margin-form] == -1} {
+        $form setAttribute class [string trim "$oldCSSClass margin-form"]
+      }
     }
     my set_form_data $form_fields
+    if {$disable_input_fields} {
+      # (a) disable explicit input fields
+      foreach f $form_fields {$f disabled disabled}
+      # (b) disable input in HTML-specified fields
+      Form dom_disable_input_fields $root
+    }
+    my post_process_edit_fields $root $form_fields
     set html [$root asHTML]
-    
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
                   {my form_field_as_html "\\\1" "\2" $form_fields}]
@@ -1065,7 +1073,11 @@ namespace eval ::xowiki {
     my view $html
   }
 
-
+  FormPage instproc post_process_edit_fields {dom_root form_field} {
+    # Part of the input fields comes from HTML, part comes via $form_fields
+    # We offer here the possibility to iterate over the fields before they
+    # are presented; can be overloaded
+  }
 
   File instproc download {} {
     my instvar text mime_type package_id item_id revision_id
