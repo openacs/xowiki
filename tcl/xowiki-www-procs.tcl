@@ -654,7 +654,8 @@ namespace eval ::xowiki {
       }
     }
     #my msg "--set instance attributes to [array get __ia]"
-    my set instance_attributes [array get __ia]
+    my instance_attributes [array get __ia]
+    my array set __ia [my instance_attributes]
     return [list $validation_errors $category_ids]
   }
 
