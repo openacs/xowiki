@@ -169,7 +169,7 @@ set page_item_id [$package_id resolve_page $object $m]
 ? {::$page_item_id name} en:index "name of resolved index page"
 ? {::$page_item_id istype ::xowiki::Page} 1 "type or subtype of ::xowiki::Page"
 
-set content [$package_id call $page_item_id $m]
+set content [$package_id call $page_item_id $m ""]
 set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
@@ -255,7 +255,7 @@ set page_item_id [$package_id resolve_page $object $m]
 ? {::$page_item_id name} en:index "name of resolved index page"
 ? {::$page_item_id istype ::xowiki::Page} 1 "type or subtype of ::xowiki::Page"
 
-set content [$package_id call $page_item_id $m]
+set content [$package_id call $page_item_id $m ""]
 set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
