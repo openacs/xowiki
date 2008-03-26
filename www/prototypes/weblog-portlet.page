@@ -8,6 +8,7 @@
     {-page_size:integer 10}
     {-page_number:integer 1}
     {-summary:boolean 0}
+    {-category_id ""}
     {-date ""}
     {-tag ""}
     {-ptag ""}
@@ -102,7 +103,7 @@
                -page_number $page_number \
                -summary $summary \
                -date $date \
-               -category_id [ns_queryget category_id] \
+               -category_id $category_id \
                -tag $tag \
                -ptag $ptag \
                -entries_of $entries_of \
