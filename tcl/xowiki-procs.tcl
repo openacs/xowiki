@@ -1276,6 +1276,12 @@ namespace eval ::xowiki {
     return $default_spec
   }
 
+  PageInstance instproc get_form {} {
+    set form [my get_from_template form]
+    if {[llength $form] == 2 && [lindex $form 1] eq "text/html"} {set form [lindex $form 0]}
+    return $form
+  }
+
   PageInstance instproc get_form_id {} {
     return [my page_template]
   }
@@ -1292,7 +1298,8 @@ namespace eval ::xowiki {
       #my log  "-- fetching page_template = $page_template"
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
-    #my msg "form_id=$form_id, [$form_id name] $var?[::$form_id exists $var]"
+    #my msg "form_id=$form_id ([$form_id name]), $var ?[::$form_id exists $var] page instance=[::$form_id istype ::xowiki::PageInstance] -> [$form_id info class]"
+    if {[::$form_id istype ::xowiki::PageInstance]} {return [::$form_id property $var]}
     if {[::$form_id exists $var]} {return [::$form_id set $var]}
     return ""
   }
@@ -1497,7 +1504,7 @@ namespace eval ::xowiki {
     return [my field_names_from_form]
   }
 
-  FormPage instproc field_names_from_form {} {
+  FormPage instproc field_names_from_form {{-form ""}} {
     #
     # this method returns the form attributes (including _*)
     #
@@ -1508,7 +1515,7 @@ namespace eval ::xowiki {
     set template [lindex [my get_from_template text] 0]
     #set field_names [list _name _title _description _creator _nls_language _page_order]
     set field_names [list]
-    set form [lindex [my get_from_template form] 0]
+    if {$form eq ""} {set form [my get_form]}
     if {$form eq ""} {
       foreach {var _} [my template_vars $template] {
         #if {[string match _* $var]} continue
@@ -1550,8 +1557,8 @@ namespace eval ::xowiki {
       return [next]
     } else {
       ::xowiki::Form requireFormCSS
-      set form [lindex [my get_from_template form] 0]
-      foreach {form_vars field_names} [my field_names_from_form] break
+      set form [my get_form]
+      foreach {form_vars field_names} [my field_names_from_form -form $form] break
       my array unset __field_in_form
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]

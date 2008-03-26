@@ -723,9 +723,9 @@ namespace eval ::xowiki {
     return $form_fields
   }
 
-  FormPage instproc field_names {} {
+  FormPage instproc field_names {{-form ""}} {
     my instvar package_id
-    foreach {form_vars needed_attributes} [my field_names_from_form] break
+    foreach {form_vars needed_attributes} [my field_names_from_form -form $form] break
     #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
     my array unset __field_in_form
     if {$form_vars} {foreach v $needed_attributes {my set __field_in_form($v) 1}}
@@ -758,7 +758,7 @@ namespace eval ::xowiki {
     return $field_names
   }
 
-  Page instproc field_names {} {
+  Page instproc field_names {{-form ""}} {
     array set dont_modify [list item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1]
     set field_names [list]
     foreach field_name [[my info class] array names db_slot] {
@@ -873,8 +873,13 @@ namespace eval ::xowiki {
     
     ::xowiki::Form requireFormCSS
     
-    set form [lindex [my get_from_template form] 0]
+    set form [my get_form]
     set anon_instances [my get_from_template anon_instances]
+    #my msg anon_instances=$anon_instances
+    #my msg form=$form
+
+    set field_names [my field_names -form $form]
+    set form_fields [my create_form_fields $field_names]
 
     if {$form eq ""} {
       #
@@ -886,9 +891,6 @@ namespace eval ::xowiki {
     } else {
       set formgiven 1
     }
-
-    set field_names [my field_names]
-    set form_fields [my create_form_fields $field_names]
 
     # check name field: 
     #  - if it is not required, hide it,

@@ -50,6 +50,8 @@ namespace eval ::xowiki {
     object
     slot
     answer
+    feedback_answer_correct
+    feedback_answer_incorrect
   }
   FormField set abstract 1
   FormField instproc init {} {
