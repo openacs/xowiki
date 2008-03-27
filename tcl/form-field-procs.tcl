@@ -70,27 +70,29 @@ namespace eval ::xowiki {
       return [_ acs-templating.Element_is_required]
     }
     # 
-    #my msg "[my name] [my info class] validator=[my validator]"
-    if {[my validator] ne ""} {
+    #my msg "++ [my name] [my info class] validator=[my validator] ([llength [my validator]])"
+    foreach validator [my validator] {
       set errorMsg ""
       #
       # The validator might set the variable errorMsg in this scope.
       #
       set success 1
-      set validator_method check=[my validator]
+      set validator_method check=$validator
       set proc_info [my procsearch $validator_method]
+      #my msg "++ check for validator $validator_method returns $proc_info"
       if {$proc_info ne ""} {
         # we have a slot checker, call it
-	#my msg "call field specific validator $validator_method '$value'" 
+	#my msg "++ call field specific validator $validator_method '$value'" 
 	set success [my $validator_method $value]
       } 
       if {$success == 1} {
         # the previous check was ok, check now for a validator on the
         # object level
-	set validator_method validate=[my validator]
+	set validator_method validate=$validator
 	set proc_info [$obj procsearch $validator_method]
+        #my msg "++ check for validator $validator_method returns $proc_info"
         if {$proc_info ne ""} {
-          #my msg "call object level validator $validator_method '$value'" 
+          #my msg "++ call object level validator $validator_method '$value'" 
           set success [$obj $validator_method $value]
         }
       }
@@ -100,7 +102,7 @@ namespace eval ::xowiki {
         # a message key based on the class and the name of the validator.
         #
         set cl [namespace tail [lindex $proc_info 0]]
-        return [_ xowiki.$cl-validate_[my validator] [list value $value errorMsg $errorMsg]]
+        return [_ xowiki.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
       }
     }
     return ""
@@ -111,15 +113,13 @@ namespace eval ::xowiki {
     # such that searchDefaults will pick up the new defaults, when a form field
     # is reclassed.
     for {set c [my info class]} {$c ne "::xowiki::FormField"} {set c [$c info superclass]} {
-      #my msg "[my name] parameters ($c) = [$c info parameter]"
-      foreach p [$c info parameter] {
-	set l [split $p]
-	if {[llength $l] != 2} continue
-	set var [lindex $l 0]
-	if {[my exists $var]} {
-	  #my msg "[my name] unset  '$var'"
-	  my unset $var
-	}
+      foreach s [$c info slots] {
+        if {![$s exists default]} continue
+	set var [$s name]
+        set key processed($var)
+        if {[info exists $key]} continue
+        my set $var [$s default]
+        set $key 1
       }
     }
   }
@@ -185,8 +185,9 @@ namespace eval ::xowiki {
         if {[my isclass [self class]::$s]} {
           my class [self class]::$s
           my reset_parameter
-          #my msg "[my name] searchDefaults"
-          ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+          #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
+          #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+          #my msg "[my name] [self] [my info class] after searchDefaults, validator='[my validator]'"
         } else {
           if {$s ne ""} {
             error [_ xowiki.error-form_constraint-unknown_spec_entry \
@@ -206,6 +207,7 @@ namespace eval ::xowiki {
       # config_from_spec can be called multiple times, we want to do
       # the reclassing only once.
       my class [self class]::$type
+      # TODO: reset_parameter? needed?
       ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
     regsub -all {,\s+} $spec , spec
@@ -361,6 +363,28 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
+  # helper method for extending slots: 
+  # either, we make a meta class for form-fields, or this should 
+  # should go into xotcl-core
+  #
+  ###########################################################
+
+  ::Serializer exportMethods {
+    ::xotcl::Class instproc extend_slot 
+  }
+  Class instproc extend_slot {name value} {
+    # create a mirroring slot and add the specified value to the default
+    foreach c [my info heritage] {
+      if {[info command ${c}::slot::$name] ne ""} {
+        set value [concat [list $value] [${c}::slot::$name default]]
+        break
+      }
+    }
+    my slots [list Attribute validator -default $value]
+  }
+
+  ###########################################################
+  #
   # ::xowiki::FormField::submit_button
   #
   ###########################################################
@@ -445,11 +469,9 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::numeric -superclass FormField::text -parameter {
-    {validator numeric}
-  }
+  Class FormField::numeric -superclass FormField::text \
+      -extend_slot validator numeric
   FormField::numeric instproc initialize {} {
-    my validator numeric
     next
     my set widget_type numeric
   }
@@ -540,21 +562,22 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::richtext -superclass FormField::textarea -parameter {
-    {editor xinha} 
-    plugins 
-    folder_id
-    width
-    height
-    {validator safe_html}
-  }
+  Class FormField::richtext -superclass FormField::textarea \
+      -extend_slot validator safe_html \
+      -parameter {
+        {editor xinha} 
+        plugins 
+        folder_id
+        width
+        height
+      }
   FormField::richtext instproc initialize {} {
     # Reclass the editor based on the attribute 'editor' if necessary
     # and call initialize again in this case...
     my display_field false
+    set editor_class [self class]::[my editor]
 
-    if {[my editor] ne "" && [my info class] ne "[self class]::[my editor]"} {
-      set editor_class [self class]::[my editor]
+    if {[my editor] ne "" && ![my hasclass $editor_class]} {
       if {![my isclass $editor_class]} {
 	set editors [list]
 	foreach c [::xowiki::FormField::richtext info subclass] {
@@ -563,11 +586,14 @@ namespace eval ::xowiki {
 	error [_ xowiki.error-form_constraint-unknown_editor \
 		   [list name [my name] editor [my editor] editors $editors]]
       }
-      my class $editor_class
+      #my class $editor_class
+      my mixin add $editor_class
+      #my msg "+++ (1) [my name] [my info precedence] V=[my validator]"
       my reset_parameter
-      ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+      #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
       my initialize
     } else {
+      #my msg "+++ (2) [my name] [my info precedence] V=[my validator]"
       next
     }
   }
@@ -870,14 +896,15 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::image_url -superclass FormField::text -parameter {
-    {validator image_check}
-    href cssclass
-    {float left} width height 
-    padding {padding-right 10px} padding-left padding-top padding-bottom
-    margin margin-left margin-right margin-top margin-bottom
-    border border-width position top botton left right
-  }
+  Class FormField::image_url -superclass FormField::text \
+      -extend_slot validator image_check \
+      -parameter {
+        href cssclass
+        {float left} width height 
+        padding {padding-right 10px} padding-left padding-top padding-bottom
+        margin margin-left margin-right margin-top margin-bottom
+        border border-width position top botton left right
+      }
   FormField::image_url instproc entry_name {value} {
     if {![regexp -nocase {/([^/]+)[.](gif|jpg|jpeg|png)} $value _ name ext]} {
       return ""

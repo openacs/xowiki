@@ -402,12 +402,13 @@ namespace eval ::xowiki {
     {-configuration ""}
   } {
     set short_spec [my get_short_spec $name]
-    #my msg "create form field '$name', short_spec = '$short_spec', slot=$slot"
+    #my msg "create form-field '$name', short_spec = '$short_spec', slot=$slot"
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     #my msg "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
+    #my msg "created form-field '$name' $f [$f info class] validator=[$f validator]" ;#p=[$f info precedence] 
     return $f
   }
 
@@ -642,15 +643,15 @@ namespace eval ::xowiki {
          }
       }
       
-       #
-       # Run validators
-       #
+      #
+      # Run validators
+      #
   
-       set validation_error [$f validate [self]]
-       #my msg "validation of [$f name] with value '[$f value]' returns $validation_error"
-       if {$validation_error ne ""} {
-	 $f error_msg $validation_error
-	 incr validation_errors
+      set validation_error [$f validate [self]]
+      #my msg "validation of [$f name] with value '[$f value]' returns '$validation_error'"
+      if {$validation_error ne ""} {
+        $f error_msg $validation_error
+        incr validation_errors
       }
     }
     #my msg "--set instance attributes to [array get __ia]"
