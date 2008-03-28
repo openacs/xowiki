@@ -839,7 +839,7 @@ namespace eval ::xowiki {
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f info class] eq "::xowiki::FormField::richtext::wym"} {
+        } elseif {[$f ismixin "::xowiki::FormField::richtext::wym"]} {
           set submit_button_class "wymupdate"
         }
       }

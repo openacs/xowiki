@@ -532,6 +532,7 @@ namespace eval ::xowiki {
 		   [list name [my name] editor [my editor] editors $editors]]
       }
       #my class $editor_class
+      foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
       my mixin add $editor_class
       my reset_parameter
       my set __initialized 1
@@ -582,6 +583,7 @@ namespace eval ::xowiki {
     {editor wym}
     {CSSclass wymeditor}
   }
+  FormField::richtext::wym set editor_mixin 1
   FormField::richtext::wym instproc initialize {} {
     next
     my set widget_type richtext
@@ -610,6 +612,7 @@ namespace eval ::xowiki {
     {height 350px}
     {style "width: 100%"}
   }
+  FormField::richtext::xinha set editor_mixin 1
   FormField::richtext::xinha instproc initialize {} {
     next
     my set widget_type richtext
