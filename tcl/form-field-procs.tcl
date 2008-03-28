@@ -1093,7 +1093,7 @@ namespace eval ::xowiki {
   # "yesterday", "next week", .... use _ for blanks
 
   FormField::date instproc initialize {} {
-    #my msg "DATE has value [my value]"
+    #my msg "DATE has value [my value] format=[my format]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
     my array set defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
@@ -1116,7 +1116,7 @@ namespace eval ::xowiki {
         set name $element
         set c [::xowiki::FormField::label create [self]::$name \
                    -name [my name].$name -id [my id].$name -locale [my locale] -value $element]
-        my lappend components $c
+        if {[lsearch [my components] $c] == -1} {my lappend components $c}
         continue
       }
       foreach {class code trim_zeros} [my set format_map($element)] break
@@ -1128,7 +1128,7 @@ namespace eval ::xowiki {
                -name [my name].$name -id [my id].$name -locale [my locale]]
       $c set code $code
       $c set trim_zeros $trim_zeros
-      my lappend components $c
+      if {[lsearch [my components] $c] == -1} {my lappend components $c}
     }
     #my msg "DATE [my name] has value after initialize '[my value]'"
   }
