@@ -365,6 +365,8 @@ namespace eval ::xowiki {
   FormField::hidden instproc initialize {} {
     my type hidden
     my set widget_type text(hidden)
+    # remove mixins in case of retyping
+    my mixin ""
   }
   FormField::hidden instproc render_item {} {
     # don't render the labels
