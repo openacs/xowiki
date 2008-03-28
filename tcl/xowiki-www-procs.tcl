@@ -665,7 +665,6 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       if {[$f name] eq $name} {set found 1; break}
     } 
-    my msg "form_field $name, found = $found"
     if {!$found} {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
@@ -1031,7 +1030,7 @@ namespace eval ::xowiki {
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f istype "::xowiki::FormField::richtext::wym"]} {
+        } elseif {[$f ismixin "::xowiki::FormField::richtext::wym"]} {
           set submit_button_class "wymupdate"
         } elseif {[$f istype "::xowiki::CompoundField"]} {
           foreach c [$f components] {

@@ -580,7 +580,7 @@ namespace eval ::xowiki {
     #
     # TODO: this should be made a slot setting
     #
-    #my msg "args=$args,[llength $args]"
+    #my msg "setting editor for [my name], args=$args,[llength $args]"
     if {[llength $args] == 0} {return [my set editor]}
     set editor [lindex $args 0]
     if {[my exists editor] && $editor eq [my set editor] && [my exists __initialized]} return
@@ -596,8 +596,8 @@ namespace eval ::xowiki {
 	error [_ xowiki.error-form_constraint-unknown_editor \
 		   [list name [my name] editor [my editor] editors $editors]]
       }
+      foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
       my mixin add $editor_class
-      set old_class [my info class]
       #my msg "MIXIN $editor: [my info precedence]"
       my reset_parameter
       my set __initialized 1
@@ -658,7 +658,7 @@ namespace eval ::xowiki {
     ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
     ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
     ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
-    regsub -all {[.]} [my id] {\\\\.} JID
+    regsub -all {[.:]} [my id] {\\\\&} JID
     set config ""
     if {[my exists height] || [my exists width]} {
       set height_cmd ""
@@ -712,11 +712,11 @@ namespace eval ::xowiki {
     if {![my exists style]} {my set style "width: 100%"}
   }
   FormField::richtext::xinha instproc render_input {} {
-    if {![my istype FormField::richtext]} {
+    if {![my istype ::xowiki::FormField::richtext]} {
       # TODO remove me: this would be an alternative to the mixin removal,
       # but we would have to do it in textarea as well, so the mixin 
       # removal in hidden seems the better option ...
-      my msg NORICH=[my info precedence]
+      my msg NORICH=cl=[my info class],p?[my info precedence]
       next
     } else {
       # we use for the time being the initialization of xinha based on 
