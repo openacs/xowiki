@@ -512,13 +512,13 @@ namespace eval ::xowiki {
     height
     {validator safe_html}
   }
-  FormField::richtext instproc initialize {} {
-    # Reclass the editor based on the attribute 'editor' if necessary
-    # and call initialize again in this case...
-    my display_field false
+  FormField::richtext instproc editor {args} {
+    if {[llength $args] == 0} {return [my set editor]}
+    set editor [lindex $args 0]
+    if {[my exists editor] && $editor eq [my set editor] && [my exists __initialized]} return
 
-    if {[my editor] ne "" && [my info class] ne "[self class]::[my editor]"} {
-      set editor_class [self class]::[my editor]
+    set editor_class [self class]::$editor
+    if {$editor ne "" && ![my hasclass $editor_class]} {
       if {![my isclass $editor_class]} {
 	set editors [list]
 	foreach c [::xowiki::FormField::richtext info subclass] {
@@ -527,14 +527,22 @@ namespace eval ::xowiki {
 	error [_ xowiki.error-form_constraint-unknown_editor \
 		   [list name [my name] editor [my editor] editors $editors]]
       }
-      my class $editor_class
+      #my class $editor_class
+      my mixin add $editor_class
       my reset_parameter
-      ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
-      my initialize
-    } else {
-      next
-    }
+      my set __initialized 1
+      #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+    } 
+    my set editor $editor
   }
+
+  FormField::richtext instproc initialize {} {
+    # Reclass the editor based on the attribute 'editor' if necessary
+    # and call initialize again in this case...
+    my display_field false
+    next
+  }
+
   FormField::richtext instproc check=safe_html {value} {
     # don't check if the user has admin permissions on the package
     if {[::xo::cc permission \
