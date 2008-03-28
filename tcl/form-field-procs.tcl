@@ -102,16 +102,16 @@ namespace eval ::xowiki {
     # reset application specific parameters (defined below ::xowiki::FormField)
     # such that searchDefaults will pick up the new defaults, when a form field
     # is reclassed.
-    for {set c [my info class]} {$c ne "::xowiki::FormField"} {set c [$c info superclass]} {
+    foreach c [my info precedence] {
+      if {$c eq "::xowiki::FormField"} break
       #my msg "[my name] parameters ($c) = [$c info parameter]"
       foreach p [$c info parameter] {
-	set l [split $p]
-	if {[llength $l] != 2} continue
-	set var [lindex $l 0]
-	if {[my exists $var]} {
-	  #my msg "[my name] unset  '$var'"
-	  my unset $var
-	}
+	if {[llength $p] != 2} continue
+	set var [lindex $p 0]
+        set key processed($var)
+        if {[info exists $key]} continue
+        my set $var [lindex $p 1]
+        set $key 1
       }
     }
   }
@@ -505,14 +505,15 @@ namespace eval ::xowiki {
   ###########################################################
 
   Class FormField::richtext -superclass FormField::textarea -parameter {
-    {editor xinha} 
     plugins 
     folder_id
     width
     height
     {validator safe_html}
   }
+
   FormField::richtext instproc editor {args} {
+    #my msg argsd=$args,[llength $args]
     if {[llength $args] == 0} {return [my set editor]}
     set editor [lindex $args 0]
     if {[my exists editor] && $editor eq [my set editor] && [my exists __initialized]} return
@@ -534,6 +535,11 @@ namespace eval ::xowiki {
       #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     } 
     my set editor $editor
+  }
+
+  FormField::richtext instproc init {} {
+    my set editor xinha ;# set the default editor
+    next
   }
 
   FormField::richtext instproc initialize {} {
