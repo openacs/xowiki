@@ -1047,7 +1047,7 @@ namespace eval ::xowiki {
   Page instproc show_fields {form_fields} {
     # this method is for debugging only
     set msg ""
-    foreach f $form_fields { append msg "[$f name] [$f info class], " }
+    foreach f $form_fields { append msg "[$f name] [namespace tail [$f info class]], " }
     my msg $msg
   }
 
@@ -1435,7 +1435,7 @@ namespace eval ::xowiki {
   }
 
 
-  Form instproc validate=form_constraints {form_constraints} {
+  Page instproc validate=form_constraints {form_constraints} {
     #
     # First check for invalid meta characters for security reasons.
     #

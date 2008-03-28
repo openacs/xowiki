@@ -665,6 +665,7 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       if {[$f name] eq $name} {set found 1; break}
     } 
+    my msg "form_field $name, found = $found"
     if {!$found} {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
@@ -908,12 +909,16 @@ namespace eval ::xowiki {
     }
 
     # include _text only, if explicitely needed (in form or template)
+    #my msg "+++ is text needed? [my exists __field_in_form(_text)]"
+
     if {![my exists __field_in_form(_text)]} {
       #my msg "setting text hidden"
       set f [my lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden
     }
+
     #my show_fields $form_fields
+
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -1013,6 +1018,7 @@ namespace eval ::xowiki {
         if {[my exists __field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
 	#my msg "insert auto_field $att"
+        #if {[$f name] eq "form"} {my msg [$f serialize]}
         $f render_item
       }
     } $fcn

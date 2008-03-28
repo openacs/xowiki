@@ -79,10 +79,10 @@ namespace eval ::xowiki {
       set success 1
       set validator_method check=$validator
       set proc_info [my procsearch $validator_method]
-      #my msg "++ check for validator $validator_method returns $proc_info"
+      #my msg "++ [my name]: field-level validator exists ? [expr {$proc_info ne {}}]"
       if {$proc_info ne ""} {
         # we have a slot checker, call it
-	#my msg "++ call field specific validator $validator_method '$value'" 
+	#my msg "++ call-field level validator $validator_method '$value'" 
 	set success [my $validator_method $value]
       } 
       if {$success == 1} {
@@ -90,9 +90,9 @@ namespace eval ::xowiki {
         # object level
 	set validator_method validate=$validator
 	set proc_info [$obj procsearch $validator_method]
-        #my msg "++ check for validator $validator_method returns $proc_info"
+        #my msg "++ [my name]: page-level validator exists ? [expr {$proc_info ne {}}]"
         if {$proc_info ne ""} {
-          #my msg "++ call object level validator $validator_method '$value'" 
+          #my msg "++ call page-level validator $validator_method '$value'" 
           set success [$obj $validator_method $value]
         }
       }
@@ -112,7 +112,10 @@ namespace eval ::xowiki {
     # reset application specific parameters (defined below ::xowiki::FormField)
     # such that searchDefaults will pick up the new defaults, when a form field
     # is reclassed.
-    for {set c [my info class]} {$c ne "::xowiki::FormField"} {set c [$c info superclass]} {
+
+    #my msg "reset along [my info precedence]"
+    foreach c [my info precedence] {
+      if {$c eq "::xowiki::FormField"} break
       foreach s [$c info slots] {
         if {![$s exists default]} continue
 	set var [$s name]
@@ -175,7 +178,6 @@ namespace eval ::xowiki {
           if {[string match {\[*\]} $value]} {
             set value [subst $value]
           }
-          #my msg "my [lindex $l 0] $value"
           my [lindex $l 0] $value
         } errMsg]} {
           error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
@@ -185,6 +187,7 @@ namespace eval ::xowiki {
         if {[my isclass [self class]::$s]} {
           my class [self class]::$s
           my reset_parameter
+          my initialize
           #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
           #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
           #my msg "[my name] [self] [my info class] after searchDefaults, validator='[my validator]'"
@@ -376,7 +379,7 @@ namespace eval ::xowiki {
     # create a mirroring slot and add the specified value to the default
     foreach c [my info heritage] {
       if {[info command ${c}::slot::$name] ne ""} {
-        set value [concat [list $value] [${c}::slot::$name default]]
+        set value [concat $value [${c}::slot::$name default]]
         break
       }
     }
@@ -411,6 +414,8 @@ namespace eval ::xowiki {
   FormField::hidden instproc initialize {} {
     my type hidden
     my set widget_type text(hidden)
+    # remove mixins in case of retyping
+    my mixin ""
   }
   FormField::hidden instproc render_item {} {
     # don't render the labels
@@ -565,38 +570,53 @@ namespace eval ::xowiki {
   Class FormField::richtext -superclass FormField::textarea \
       -extend_slot validator safe_html \
       -parameter {
-        {editor xinha} 
         plugins 
         folder_id
         width
         height
       }
-  FormField::richtext instproc initialize {} {
-    # Reclass the editor based on the attribute 'editor' if necessary
-    # and call initialize again in this case...
-    my display_field false
-    set editor_class [self class]::[my editor]
+  
+  FormField::richtext instproc editor {args} {
+    #
+    # TODO: this should be made a slot setting
+    #
+    #my msg "args=$args,[llength $args]"
+    if {[llength $args] == 0} {return [my set editor]}
+    set editor [lindex $args 0]
+    if {[my exists editor] && $editor eq [my set editor] && [my exists __initialized]} return
 
-    if {[my editor] ne "" && ![my hasclass $editor_class]} {
+    set editor_class [self class]::$editor
+    if {$editor ne "" && ![my hasclass $editor_class]} {
       if {![my isclass $editor_class]} {
 	set editors [list]
 	foreach c [::xowiki::FormField::richtext info subclass] {
+          if {![$c exists editor_mixin]} continue
 	  lappend editors [namespace tail $c]
 	}
 	error [_ xowiki.error-form_constraint-unknown_editor \
 		   [list name [my name] editor [my editor] editors $editors]]
       }
-      #my class $editor_class
       my mixin add $editor_class
-      #my msg "+++ (1) [my name] [my info precedence] V=[my validator]"
+      set old_class [my info class]
+      #my msg "MIXIN $editor: [my info precedence]"
       my reset_parameter
-      #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+      my set __initialized 1
+    } 
+    my set editor $editor
+  }
+
+  FormField::richtext instproc initialize {} {
+    my display_field false
+    next
+    if {![my exists editor]} {my set editor xinha} ;# set the default editor
+    if {![my exists __initialized]} {
+      # Mixin the editor based on the attribute 'editor' if necessary
+      # and call initialize again in this case...
+      my editor [my set editor]
       my initialize
-    } else {
-      #my msg "+++ (2) [my name] [my info precedence] V=[my validator]"
-      next
     }
   }
+
   FormField::richtext instproc check=safe_html {value} {
     # don't check if the user has admin permissions on the package
     if {[::xo::cc permission \
@@ -629,6 +649,7 @@ namespace eval ::xowiki {
     width
     height
   }
+  FormField::richtext::wym set editor_mixin 1
   FormField::richtext::wym instproc initialize {} {
     next
     my set widget_type richtext
@@ -670,9 +691,10 @@ namespace eval ::xowiki {
 
   Class FormField::richtext::xinha -superclass FormField::richtext -parameter {
     javascript
-    {height 350px}
-    {style "width: 100%"}
+    {height}
+    {style}
   }
+  FormField::richtext::xinha set editor_mixin 1
   FormField::richtext::xinha instproc initialize {} {
     next
     my set widget_type richtext
@@ -683,29 +705,42 @@ namespace eval ::xowiki {
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
     my set options [my get_attributes editor plugins width height folder_id javascript]
+    # for the time being, we can't set the defaults via parameter, 
+    # but only manually, since the editor is used as a mixin, the parameter
+    # would have precedence over the defaults of subclasses
+    if {![my exists height]} {my set height 350px}
+    if {![my exists style]} {my set style "width: 100%"}
   }
   FormField::richtext::xinha instproc render_input {} {
-    # we use for the time being the initialization of xinha based on 
-    # the site master
-    set ::acs_blank_master(xinha) 1
-    set quoted [list]
-    foreach e [my plugins] {lappend quoted '$e'}
-    set ::acs_blank_master(xinha.plugins) [join $quoted ", "]
-    
-    array set o [my set options]
-    set xinha_options ""
-    foreach e {width height folder_id fs_package_id file_types attach_parent_id} {
-      if {[info exists o($e)]} {
-        append xinha_options "xinha_config.$e = '$o($e)';\n"
+    if {![my istype FormField::richtext]} {
+      # TODO remove me: this would be an alternative to the mixin removal,
+      # but we would have to do it in textarea as well, so the mixin 
+      # removal in hidden seems the better option ...
+      my msg NORICH=[my info precedence]
+      next
+    } else {
+      # we use for the time being the initialization of xinha based on 
+      # the site master
+      set ::acs_blank_master(xinha) 1
+      set quoted [list]
+      foreach e [my plugins] {lappend quoted '$e'}
+      set ::acs_blank_master(xinha.plugins) [join $quoted ", "]
+      
+      array set o [my set options]
+      set xinha_options ""
+      foreach e {width height folder_id fs_package_id file_types attach_parent_id} {
+        if {[info exists o($e)]} {
+          append xinha_options "xinha_config.$e = '$o($e)';\n"
+        }
       }
+      append xinha_options "xinha_config.package_id = '[::xo::cc package_id]';\n"
+      if {[info exists o(javascript)]} {
+        append xinha_options $o(javascript) \n
+      }
+      set ::acs_blank_master(xinha.options) $xinha_options
+      lappend ::acs_blank_master__htmlareas [my id]
+      next
     }
-    append xinha_options "xinha_config.package_id = '[::xo::cc package_id]';\n"
-    if {[info exists o(javascript)]} {
-      append xinha_options $o(javascript) \n
-    }
-    set ::acs_blank_master(xinha.options) $xinha_options
-    lappend ::acs_blank_master__htmlareas [my id]
-    next
   }
 
 
