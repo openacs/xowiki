@@ -163,6 +163,7 @@ namespace eval ::xowiki {
 	    my reset_parameter
 	    #my msg "[my name] searchDefaults"
 	    ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+            my initialize
           } else {
             if {$s ne ""} {
               error [_ xowiki.error-form_constraint-unknown_spec_entry \
@@ -537,16 +538,16 @@ namespace eval ::xowiki {
     my set editor $editor
   }
 
-  FormField::richtext instproc init {} {
-    my set editor xinha ;# set the default editor
-    next
-  }
-
   FormField::richtext instproc initialize {} {
-    # Reclass the editor based on the attribute 'editor' if necessary
-    # and call initialize again in this case...
     my display_field false
     next
+    if {![my exists editor]} {my set editor xinha} ;# set the default editor
+    if {![my exists __initialized]} {
+      # Reclass the editor based on the attribute 'editor' if necessary
+      # and call initialize again in this case...
+      my editor [my set editor]
+      my initialize
+    }
   }
 
   FormField::richtext instproc check=safe_html {value} {
