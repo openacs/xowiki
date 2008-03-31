@@ -1490,6 +1490,22 @@ namespace eval ::xowiki {
     return $default
   }
 
+  FormPage instproc set_property {name value} {
+    if {[string match "_*" $name]} {
+      set key [string range $name 1 end]
+      set instance_attributes_refresh 0
+    } {
+      set key  __ia($name)
+      set instance_attributes_refresh 1
+    }
+    my set $key $value
+    if {$instance_attributes_refresh} {
+      my instance_attributes [my array get __ia]
+    }
+    return $value
+  }
+
+
   FormPage instproc footer {} {
     if {[my exists __no_form_page_footer]} {
       next
