@@ -729,7 +729,9 @@ namespace eval ::xowiki {
     foreach {form_vars needed_attributes} [my field_names_from_form -form $form] break
     #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
     my array unset __field_in_form
+    my array unset __field_needed
     if {$form_vars} {foreach v $needed_attributes {my set __field_in_form($v) 1}}
+    foreach v $needed_attributes {my set __field_needed($v) 1}
     
     # 
     # Remove the fields already included in auto_fields form the needed_attributes.
@@ -914,10 +916,9 @@ namespace eval ::xowiki {
       }
     }
 
-    # include _text only, if explicitely needed (in form or template)
-    #my msg "+++ is text needed? [my exists __field_in_form(_text)]"
+    # include _text only, if explicitely needed (in form needed(_text)]"
 
-    if {![my exists __field_in_form(_text)]} {
+    if {![my exists __field_needed(_text)]} {
       #my msg "setting text hidden"
       set f [my lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden

@@ -2749,7 +2749,7 @@ namespace eval ::xowiki::includelet {
 
     set base [$package_id pretty_link [$__including_page name]]
     set label [$__including_page name]
-    append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a></p>"]]
+    append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
     append html [t1 asHTML]
     append html "<a href='[::xo::cc url]?[::xo::cc actual_query]&csv=1'>csv</a>"
     return $html

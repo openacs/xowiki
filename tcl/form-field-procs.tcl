@@ -35,6 +35,7 @@ namespace eval ::xowiki {
     {inline false}
     {disabled}
     CSSclass
+    style
     form-widget-CSSclass
     {type text} 
     {label} 
@@ -125,6 +126,7 @@ namespace eval ::xowiki {
         set $key 1
       }
     }
+    if {[my exists disabled]} {my unset disabled}
   }
 
   FormField instproc interprete_condition {cond} {
@@ -547,7 +549,6 @@ namespace eval ::xowiki {
     {rows 2}
     {cols 80}
     {spell false}
-    style
   }
   FormField::textarea instproc initialize {} {
     my set widget_type text(textarea)
@@ -716,7 +717,9 @@ namespace eval ::xowiki {
       # TODO remove me: this would be an alternative to the mixin removal,
       # but we would have to do it in textarea as well, so the mixin 
       # removal in hidden seems the better option ...
-      my msg NORICH=cl=[my info class],p?[my info precedence]
+      my set disableOutputEscaping true
+      my mixin "";# TODO should get better, wym missing as well....
+      #my msg NORICH=cl=[my info class],p?[my info precedence],v=[my value]
       next
     } else {
       # we use for the time being the initialization of xinha based on 
@@ -1072,10 +1075,16 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::label -superclass FormField -parameter {}
+  Class FormField::label -superclass FormField -parameter {
+    {disableOutputEscaping false}
+  }
   FormField::label instproc initialize {} {next}
   FormField::label instproc render_input {} {
-    html::t [my value]
+    if {[my disableOutputEscaping]} {
+      ::html::t -disableOutputEscaping [my value]
+    } else {
+      ::html::t [my value]
+    }
   }
 
   ###########################################################
