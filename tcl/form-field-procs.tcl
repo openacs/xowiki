@@ -66,7 +66,7 @@ namespace eval ::xowiki {
   FormField instproc validate {obj} {
     my instvar name required value
 
-    if {$required && $value eq ""} {
+    if {$required && $value eq "" && ![my istype ::xowiki::FormField::hidden]} {
       my instvar label
       return [_ acs-templating.Element_is_required]
     }
@@ -104,6 +104,7 @@ namespace eval ::xowiki {
         #
         set cl [namespace tail [lindex $proc_info 0]]
         return [_ xowiki.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
+        #return [::lang::message::lookup "" xowiki.$cl-validate_$validator %errorMsg% [list value $value errorMsg $errorMsg] 1]
       }
     }
     return ""
@@ -136,18 +137,29 @@ namespace eval ::xowiki {
     #                 -user_id [::xo::cc user_id] \
     #                 -package_id $package_id $cond [self] view]
     if {[::xo::cc info methods role=$cond] ne ""} {
-      set success [::xo::cc role=$cond \
-                       -user_id [::xo::cc user_id] \
-                       -package_id $package_id]
+      if {$cond eq "creator"} {
+	set success [::xo::cc role=$cond \
+			 -object [my object] \
+			 -user_id [::xo::cc user_id] \
+			 -package_id $package_id]
+      } else {
+	set success [::xo::cc role=$cond \
+			 -user_id [::xo::cc user_id] \
+			 -package_id $package_id]
+      }
     } else {
       set success 0
     }
     return $success
   }
   
+  FormField instproc remove_omit {} {
+    set m ::xowiki::FormField::omit
+    if {[my ismixin $m]} {my mixin remove $m}
+  }
+
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
-    
     if {[regexp {^([^=?]+)[?]([^:]*)[:](.*)$} $s _ condition true_spec false_spec]} {
       #my msg "--c=$condition,true_spec=$true_spec,false_spec=$false_spec"
       if {[my interprete_condition $condition]} {
@@ -158,8 +170,9 @@ namespace eval ::xowiki {
       return
     }
     switch -glob $s {
-      optional    {my set required false}
-      required    {my set required true}
+      optional    {my set required false; my remove_omit}
+      required    {my set required true; my remove_omit}
+      omit        {my mixin add [::xowiki::FormField::omit]}
       label=*     {my label     [lindex [split $s =] 1]}
       help_text=* {my help_text [lindex [split $s =] 1]}
       *=*         {
@@ -188,6 +201,7 @@ namespace eval ::xowiki {
       default {
         if {[my isclass [self class]::$s]} {
           my class [self class]::$s
+	  my remove_omit
           my reset_parameter
           my initialize
           #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
@@ -428,6 +442,20 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
+  # ::xowiki::FormField::omit
+  #
+  ###########################################################
+
+  Class FormField::omit -superclass FormField
+  FormField::omit instproc render_item {} {
+    # don't render the labels
+    #my render_form_widget
+  }
+  FormField::omit instproc render_help_text {} {
+  }
+
+  ###########################################################
+  #
   # ::xowiki::FormField::inform
   #
   ###########################################################
@@ -455,6 +483,7 @@ namespace eval ::xowiki {
     maxlength
   }
   FormField::text instproc initialize {} {
+    my type text
     my set widget_type text
     foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
@@ -780,11 +809,12 @@ namespace eval ::xowiki {
   ###########################################################
 
   Class FormField::select -superclass FormField -parameter {
-    {options ""}
+    {options}
     {multiple "false"}
   }
   FormField::select instproc initialize {} {
     my set widget_type text(select)
+    if {![my exists options]} {my options [list]}
   }
   FormField::select instproc render_input {} {
     set atts [my get_attributes id name disabled]
@@ -1079,6 +1109,11 @@ namespace eval ::xowiki {
     {disableOutputEscaping false}
   }
   FormField::label instproc initialize {} {next}
+  FormField::label instproc render_item {} {
+    # sanity check; required and label do not fit well together
+    if {[my required]} {my required false}
+    next
+  }
   FormField::label instproc render_input {} {
     if {[my disableOutputEscaping]} {
       ::html::t -disableOutputEscaping [my value]
