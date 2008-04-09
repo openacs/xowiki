@@ -582,6 +582,12 @@ namespace eval ::xowiki {
   FormField::textarea instproc initialize {} {
     my set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
+    if {![my istype ::xowiki::FormField::richtext] && [my exists editor]} {
+      # downgrading
+      #my msg "downgrading [my info class]"
+      foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
+      foreach v {editor options} {if {[my exists $v]} {my unset $v}}
+    }
     next
   }
 
