@@ -90,6 +90,7 @@ namespace eval ::xowiki {
 	# 
 	# get the information from the attribute definitions & given specs
 	#
+        #my msg "spec=$__spec,wspec=$__wspec"
         set f [$data create_raw_form_field \
                    -name $__field \
                    -slot [$data find_slot $__field] \

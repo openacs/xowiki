@@ -56,7 +56,9 @@ if {$page_id eq ""} {
 					     -package_key "xowiki-portlet"]
 		     ]
       portal::set_element_param $element_id package_id $package_id
-      portal::set_element_param $element_id page_name [$page_id name]
+      # in case, someone wants language-specific includelets
+      #regexp {^..:(.*)$} $page_name _ page_name
+      portal::set_element_param $element_id page_name $page_name
     }
     ad_returnredirect $referer
   }

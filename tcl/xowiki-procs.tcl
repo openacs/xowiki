@@ -193,12 +193,14 @@ namespace eval ::xowiki {
 
   Page set recursion_count 0
   Page array set RE {
-    include {([^\\]){{([^<]+?)}}([&<\s]|$)}
-    anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
-    div     {()([^\\])&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*)?}
+    include {{{([^<]+?)}}([&<\s]|$)}
+    anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
+    div     {&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
+  Page set markupmap(escape)   [list "\\\[\[" \01   "\\\{\{" \02   {\\&lt;&lt;} \03]
+  Page set markupmap(unescape) [list \01 "\[\["     \02 "\{\{"     \03 {&lt;&lt;}  ]
 
   #
   # templating and CSS
@@ -468,20 +470,22 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Page instproc regsub_eval {{-noquote:boolean false} re string cmd} {
+  Page instproc regsub_eval {{-noquote:boolean false} re string cmd {prefix ""}} {
     if {$noquote} {
       set map { \[ \\[ \] \\] \$ \\$ \\ \\\\}
     } else {
       set map { \" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\}
     }
-#     my msg "re=$re, string=$string cmd=$cmd"
-#     set c [regsub -all $re [string map { \[ \\[ \] \\] \
-#                                             \$ \\$ \\ \\\\} $string] \
-#                "\[$cmd\]"]
-#     my msg c=$c
-#     set s [subst $c]
-#     my msg s=$s
-#     return $s
+    if {0 && $prefix eq "1"} {
+      my msg "re=$re, string=$string cmd=$cmd"
+      set c [regsub -all $re [string map $map $string] "\[$cmd\]"]
+      my msg c0=$c
+      regsub -all {\\1([$]?)\\2} $c {\\\\\1} c1
+      my msg c1=$c1
+      set s [subst $c1]
+      my msg s=$s
+      return $s
+    }
     uplevel [list subst [regsub -all $re [string map $map $string] "\[$cmd\]"]]
   }
 
@@ -637,7 +641,7 @@ namespace eval ::xowiki {
     return [my render_includelet $page]
   }
 
-  Page instproc include_content {ch arg ch2} {
+  Page instproc include_content {arg ch2} {
     # make recursion depth a global variable to ease the deletion etc.
     if {[catch {incr ::xowiki_inclusion_depth}]} {
       set ::xowiki_inclusion_depth 1
@@ -670,7 +674,7 @@ namespace eval ::xowiki {
                          [_ xowiki.error-includelet-error_during_adp_evaluation]]
       }
 
-      return $ch$page$ch2
+      return $page$ch2
     } else {
       # we have a direct (adp-less include)
       # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
@@ -679,26 +683,26 @@ namespace eval ::xowiki {
       set html [my include $arg]
       #my log "--include includelet returns $html"
       incr ::xowiki_inclusion_depth -1
-      return $ch$html$ch2
+      return $html$ch2
     }
   }
 
-  Page instproc div {ch arg} {
+  Page instproc div {arg} {
     if {$arg eq "content"} {
-      return "$ch<div id='content' class='column'>"
+      return "<div id='content' class='column'>"
     } elseif {[string match "left-col*" $arg] \
               || [string match "right-col*" $arg] \
               || $arg eq "sidebar"} {
-      return "$ch<div id='$arg' class='column'>"
+      return "<div id='$arg' class='column'>"
     } elseif {$arg eq "box"} {
-      return "$ch<div class='box'>"
+      return "<div class='box'>"
     } elseif {$arg eq ""} {
-      return "$ch</div>"
+      return "</div>"
     } else {
-      return $ch
+      return ""
     }
   }
-  Page instproc anchor {ch arg} {
+  Page instproc anchor {arg} {
     set label $arg
     set link $arg
     set options ""
@@ -710,11 +714,11 @@ namespace eval ::xowiki {
 	switch -glob -- [::xowiki::guesstype $link] {
 	  text/css {
 	    ::xo::Page requireCSS $link
-	    return $ch
+	    return ""
 	  }
 	  application/x-javascript {
 	    ::xo::Page requireJS $link
-	    return $ch
+	    return ""
 	  }
 	  image/* {
 	    Link create [self]::link \
@@ -722,7 +726,7 @@ namespace eval ::xowiki {
 		-type localimage -label $label \
 		-href $link
 	    eval [self]::link configure $options
-	    return $ch[[self]::link render]
+	    return [[self]::link render]
 	  }
 	}
       }
@@ -730,7 +734,7 @@ namespace eval ::xowiki {
       eval $l configure $options
       set html [$l render]
       $l destroy
-      return "$ch$html"
+      return $html
     }
 
     set name ""
@@ -796,35 +800,35 @@ namespace eval ::xowiki {
     if {[catch {eval [self]::link configure $options} error]} {
       return "${ch}<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$error</blockquote></div>"
     } else {
-      return $ch[[self]::link render]
+      return [[self]::link render]
     }
   }
 
 
+
+
   Page instproc substitute_markup {source} {
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
-    $baseclass instvar RE
+    $baseclass instvar RE markupmap
     #my log "-- baseclass for RE = $baseclass"
-    if {[my set mime_type] eq "text/enhanced"} {
-      set source [ad_enhanced_text_to_html $source]
-    }
-    if {![my do_substitutions]} {return [lindex $source 0]}
     set content ""
     set l " "; #use one byte trailer for regexps for escaped content
     foreach l0 [split [lindex $source 0] \n] {
-      append l $l0
+      append l [string map $markupmap(escape) $l0]
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
-      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
-      set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub_eval $RE(include) $l {my include_content "\\\1" "\2" "\3"}]
-      regsub -all $RE(clean) $l {\1} l
+      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"} "1"]
+      set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
+      set l [my regsub_eval $RE(include) $l {my include_content "\1" "\2"}]
+      #regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
+      set l [string map $markupmap(unescape) $l]
       append content [string range $l 1 end] \n
       set l " "
     }
     #my log "--substitute_markup returns $content"
     return $content
   }
+
 
   Page instproc adp_subst {content} {
     #my log "--adp_subst in [my name]"
@@ -1060,12 +1064,15 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PlainPage array set RE {
-    include {([^\\]){{(.+?)}}[ \n\r]}
-    anchor  {([^\\])\\\[\\\[([^\]]+?)\\\]\\\]}
-    div     {()([^\\])>>([^<]*?)<<}
+    include {{{(.+?)}}([ \n\r])}
+    anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
+    div     {()>>([^<]*?)<<}
     clean   {[\\](\{\{|>>|\[\[)}
     clean2  {(--DUMMY NOT USED--)}
   }
+  PlainPage set markupmap(escape)   [list "\\\[\[" \01  "\\\{\{" \02   {\<<} \03]
+  PlainPage set markupmap(unescape) [list \01 "\[\["    \02 "\{\{"     \03 {<<}]
+
 
   PlainPage instproc get_content {} {
     #my msg "-- my class=[my info class]"
@@ -1076,14 +1083,16 @@ namespace eval ::xowiki {
   }
 
   PlainPage instproc substitute_markup {source} {
-    [self class] instvar RE
+    [self class] instvar RE markupmap
     set content ""
     foreach l [split $source \n] {
       set l " $l"
-      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1" "\2"}]
-      set l [my regsub_eval $RE(div)     $l {my div     "\2" "\3"}]
-      set l [my regsub_eval $RE(include) $l {my include "\1" "\2" ""}]
-      regsub -all $RE(clean) $l {\1} l
+      set l [string map $markupmap(escape) $l]
+      set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"}]
+      set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
+      set l [my regsub_eval $RE(include) $l {my include_content "\1" ""}]
+      #regsub -all $RE(clean) $l {\1} l
+      set l [string map $markupmap(unescape) $l]
       append content [string range $l 1 end] \n
     }
     return $content
