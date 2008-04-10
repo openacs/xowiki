@@ -647,13 +647,13 @@ namespace eval ::xowiki {
       set ::xowiki_inclusion_depth 1
     }
     if {$::xowiki_inclusion_depth > 10} {
-      return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]
+      return [my error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]
     }
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
         incr ::xowiki_inclusion_depth -1
-        return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
+        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
@@ -662,7 +662,7 @@ namespace eval ::xowiki {
       if {[llength $adp_args] % 2 == 1} {
         incr ::xowiki_inclusion_depth -1
         set adp $adp_args
-        return ${ch}[my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
+        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
@@ -670,7 +670,7 @@ namespace eval ::xowiki {
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
         incr ::xowiki_inclusion_depth -1
-        return ${ch}[my error_in_includelet $arg \
+        return [my error_in_includelet $arg \
                          [_ xowiki.error-includelet-error_during_adp_evaluation]]
       }
 
@@ -798,7 +798,7 @@ namespace eval ::xowiki {
         -folder_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} error]} {
-      return "${ch}<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$error</blockquote></div>"
+      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$error</blockquote></div>"
     } else {
       return [[self]::link render]
     }
