@@ -1512,6 +1512,14 @@ namespace eval ::xowiki {
     return $value
   }
 
+  FormPage instproc get_property {-source -name:required {-default ""}} {
+    if {![info exists source]} {
+      set page [self]
+    } else {
+      set page [my resolve_included_page_name $source]
+    }
+    return [$page property $name $default]
+  }
 
   FormPage instproc footer {} {
     if {[my exists __no_form_page_footer]} {

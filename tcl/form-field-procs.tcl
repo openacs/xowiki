@@ -155,7 +155,7 @@ namespace eval ::xowiki {
   
   FormField instproc remove_omit {} {
     set m ::xowiki::FormField::omit
-    if {[my ismixin $m]} {my mixin remove $m}
+    if {[my ismixin $m]} {my mixin delete $m}
   }
 
   FormField instproc interprete_single_spec {s} {
@@ -170,9 +170,12 @@ namespace eval ::xowiki {
       return
     }
     switch -glob $s {
-      optional    {my set required false; my remove_omit}
+      optional    {my set required false}
       required    {my set required true; my remove_omit}
-      omit        {my mixin add [::xowiki::FormField::omit]}
+      omit        {my mixin add ::xowiki::FormField::omit}
+      noomit      {my remove_omit}
+      disabled    {my disabled disabled}
+      enabled     {my unset -nocomplain disabled}
       label=*     {my label     [lindex [split $s =] 1]}
       help_text=* {my help_text [lindex [split $s =] 1]}
       *=*         {
@@ -653,6 +656,14 @@ namespace eval ::xowiki {
     }
   }
 
+  FormField::richtext instproc render_richtext_as_div {} {
+    #my msg "[my get_attributes id style {CSSclass class}]"
+    ::html::div [my get_attributes id style {CSSclass class}] {
+      ::html::t -disableOutputEscaping [my value]
+    }
+    ::html::div
+  }
+
   FormField::richtext instproc check=safe_html {value} {
     # don't check if the user has admin permissions on the package
     if {[::xo::cc permission \
@@ -691,33 +702,38 @@ namespace eval ::xowiki {
     my set widget_type richtext
   }
   FormField::richtext::wym instproc render_input {} {
-    ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
-    ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
-    ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
-    regsub -all {[.:]} [my id] {\\\\&} JID
-    set config ""
-    if {[my exists height] || [my exists width]} {
-      set height_cmd ""
-      set width_cmd ""
-      if {[my exists height]} {set height_cmd "wym_box.find(wym._options.iframeSelector).css('height','[my height]');"}
-      if {[my exists width]}  {set width_cmd "wym_box.css('width', '[my width]');"}
-      set postInit [subst -nocommand -nobackslash {
-        postInit: function(wym) {
-          wym_box = jQuery(".wym_box");
-          $height_cmd
-          $width_cmd
-        }}]
-      set config "{
+    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    if {![my istype ::xowiki::FormField::richtext] || $disabled} {
+      my render_richtext_as_div
+    } else {
+      ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
+      ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
+      ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
+      regsub -all {[.:]} [my id] {\\\\&} JID
+      set config ""
+      if {[my exists height] || [my exists width]} {
+        set height_cmd ""
+        set width_cmd ""
+        if {[my exists height]} {set height_cmd "wym_box.find(wym._options.iframeSelector).css('height','[my height]');"}
+        if {[my exists width]}  {set width_cmd "wym_box.css('width', '[my width]');"}
+        set postInit [subst -nocommand -nobackslash {
+          postInit: function(wym) {
+            wym_box = jQuery(".wym_box");
+            $height_cmd
+            $width_cmd
+          }}]
+        set config "{
         $postInit
       }"
+      }
+      ::xo::Page requireJS [subst -nocommand -nobackslash {
+        jQuery(function() {
+          jQuery("#$JID").wymeditor($config);
+        });
+      }]
+      
+      next
     }
-    ::xo::Page requireJS [subst -nocommand -nobackslash {
-      jQuery(function() {
-        jQuery("#$JID").wymeditor($config);
-      });
-    }]
-
-    next
   }
   ###########################################################
   #
@@ -745,17 +761,12 @@ namespace eval ::xowiki {
     # but only manually, since the editor is used as a mixin, the parameter
     # would have precedence over the defaults of subclasses
     if {![my exists height]} {my set height 350px}
-    if {![my exists style]} {my set style "width: 100%"}
+    if {![my exists style]} {my set style "width: 100%;"}
   }
   FormField::richtext::xinha instproc render_input {} {
-    if {![my istype ::xowiki::FormField::richtext]} {
-      # TODO remove me: this would be an alternative to the mixin removal,
-      # but we would have to do it in textarea as well, so the mixin 
-      # removal in hidden seems the better option ...
-      my set disableOutputEscaping true
-      my mixin "";# TODO should get better, wym missing as well....
-      #my msg NORICH=cl=[my info class],p?[my info precedence],v=[my value]
-      next
+    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    if {![my istype ::xowiki::FormField::richtext] || $disabled} {
+      my render_richtext_as_div
     } else {
       # we use for the time being the initialization of xinha based on 
       # the site master
