@@ -347,7 +347,7 @@ namespace eval ::xowiki {
       catch {
 	# for new installs, the old column might not exist, therefor the catch
 	db_dml drop_old_column \
-	    "alter table xowiki_page_instance drop column old_page_template"
+	    "alter table xowiki_page_instance drop column old_page_template cascade"
       }
       ::xowiki::update_views
     }

@@ -199,8 +199,8 @@ namespace eval ::xowiki {
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
-  Page set markupmap(escape)   [list "\\\[\[" \01   "\\\{\{" \02   {\\&lt;&lt;} \03]
-  Page set markupmap(unescape) [list \01 "\[\["     \02 "\{\{"     \03 {&lt;&lt;}  ]
+  Page set markupmap(escape)   [list "\\\[\[" \03\01 "\\\{\{" \03\02  {\\&lt;&lt;} \03\03]
+  Page set markupmap(unescape) [list \03\01 "\[\["    \03\02 "\{\{"   \03\03 {&lt;&lt;}  ]
 
   #
   # templating and CSS
@@ -1070,8 +1070,8 @@ namespace eval ::xowiki {
     clean   {[\\](\{\{|>>|\[\[)}
     clean2  {(--DUMMY NOT USED--)}
   }
-  PlainPage set markupmap(escape)   [list "\\\[\[" \01  "\\\{\{" \02   {\<<} \03]
-  PlainPage set markupmap(unescape) [list \01 "\[\["    \02 "\{\{"     \03 {<<}]
+  PlainPage set markupmap(escape)   [list "\\\[\["  \03\01  "\\\{\{"  \03\02   {\<<}  \03\03]
+  PlainPage set markupmap(unescape) [list  \03\01 "\[\["     \03\02 "\{\{"      \03\03 {<<}]
 
 
   PlainPage instproc get_content {} {

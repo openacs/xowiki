@@ -879,8 +879,13 @@ namespace eval ::xowiki {
       ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$id
       ::$folder_id destroy
     }
-    set key link-*-$name-$folder_id
-    foreach n [ns_cache names xowiki_cache $key] {::xo::clusterwide ns_cache flush xowiki_cache $n}
+    my flush_name_cache -name $name -parent_id $folder_id
+  }
+
+  Package instproc flush_name_cache {-name:required -parent_id:required} {
+    # Different machines in the cluster might have different entries in their caches.
+    # Since we use wild-cards to find these, it has to be done on every machine
+    ::xo::clusterwide xo::cache_flush_all xowiki_cache link-*-$name-$parent_id
   }
 
   Package instproc delete {-item_id -name} {
