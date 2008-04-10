@@ -48,18 +48,9 @@ namespace eval ::xowiki {
       } \
       -form ::xowiki::WikiForm
 
-  ::xowiki::Page log "--slots [::xo::slotobjects ::xowiki::Page]"
-  # TODO: the following slot definitions are not meant to stay this way.
-  # when we change to the xotcl 1.5.0+ slots, this will go away
   if {$::xotcl::version < 1.5} {
-     if {![::xotcl::Object isobject ::xowiki::Page::slot]} {
-        ::xotcl::Object create ::xowiki::Page::slot
-     }
-     foreach parameter {name title description text nls_language publish_date creation_user last_modified} {
-        if {![::xotcl::Object isobject ::xowiki::Page::slot::$parameter]} {
-          ::xo::Attribute create ::xowiki::Page::slot::$parameter 
-        }
-     }
+    ::xowiki::Page log "Error: at least, XOTcl 1.5 is required.\
+	You seem to use XOTcl $::xotcl::version !!!"
   }
 
   ::xo::db::CrClass create PlainPage -superclass Page \
@@ -811,8 +802,12 @@ namespace eval ::xowiki {
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
     $baseclass instvar RE markupmap
     #my log "-- baseclass for RE = $baseclass"
+    if {[my set mime_type] eq "text/enhanced"} {
+      set source [ad_enhanced_text_to_html $source]
+    }
+    if {![my do_substitutions]} {return [lindex $source 0]}
     set content ""
-    set l " "; #use one byte trailer for regexps for escaped content
+    set l ""; 
     foreach l0 [split [lindex $source 0] \n] {
       append l [string map $markupmap(escape) $l0]
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
@@ -822,8 +817,8 @@ namespace eval ::xowiki {
       #regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       set l [string map $markupmap(unescape) $l]
-      append content [string range $l 1 end] \n
-      set l " "
+      append content $l \n
+      set l ""
     }
     #my log "--substitute_markup returns $content"
     return $content
@@ -1084,16 +1079,19 @@ namespace eval ::xowiki {
 
   PlainPage instproc substitute_markup {source} {
     [self class] instvar RE markupmap
+
+    if {![my do_substitutions]} {
+      return $source
+    }
     set content ""
     foreach l [split $source \n] {
-      set l " $l"
       set l [string map $markupmap(escape) $l]
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"}]
       set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
       set l [my regsub_eval $RE(include) $l {my include_content "\1" ""}]
       #regsub -all $RE(clean) $l {\1} l
       set l [string map $markupmap(unescape) $l]
-      append content [string range $l 1 end] \n
+      append content $l \n
     }
     return $content
   }

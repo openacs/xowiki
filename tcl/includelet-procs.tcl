@@ -1260,7 +1260,9 @@ namespace eval ::xowiki::includelet {
 
     set item_id [$__including_page item_id] 
     set refs [list]
-    db_foreach [my qn get_references] "SELECT page,ci.name,f.package_id \
+    # The same image might be linked both, as img or file on one page, 
+    # so we need DISTINCT.
+    db_foreach [my qn get_references] "SELECT DISTINCT page,ci.name,f.package_id \
         from xowiki_references,cr_items ci,cr_folders f \
         where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
           ::xowiki::Package require $package_id
