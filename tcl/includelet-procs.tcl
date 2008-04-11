@@ -2596,7 +2596,7 @@ namespace eval ::xowiki::includelet {
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
     if {![info exists form_item_id]} {
-      set form_item_id [::xo::db::CrClass lookup -name $form -parent_id $folder_id]
+      set form_item_id [::xo::db::CrClass lookup -name $form -parent_id [$package_id folder_id]]
       if {$form_item_id == 0} {error "Cannot lookup page $form"}
     }
 
