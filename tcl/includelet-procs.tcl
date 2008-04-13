@@ -1250,6 +1250,11 @@ namespace eval ::xowiki::includelet {
     return "<a class='image-button' href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' align='middle' alt='Add to My Yahoo!'></a>"
   }
 
+
+  #
+  # my-references lists the pages which are refering to the 
+  # including page
+  #
   ::xowiki::IncludeletClass create my-references \
       -superclass ::xowiki::Includelet \
       -parameter {{__decoration none}}
@@ -1278,6 +1283,43 @@ namespace eval ::xowiki::includelet {
     set result ""
     if {$references ne " "} {
       append result "#xowiki.references_label# $references"
+    }
+    if {$lang(undefined) ne ""} {
+      append result "#xowiki.create_this_page_in_language# $lang(undefined)"
+    }
+    return $result
+  }
+
+  #
+  # my-refers lists the pages which are refered to by the 
+  # including page
+  #
+  ::xowiki::IncludeletClass create my-refers \
+      -superclass ::xowiki::Includelet \
+      -parameter {{__decoration none}}
+  
+  my-refers instproc render {} {
+    my get_parameters
+    my instvar __including_page
+
+    set item_id [$__including_page item_id] 
+    set refs [list]
+    db_foreach [my qn get_references] "SELECT reference,ci.name,f.package_id \
+        from xowiki_references,cr_items ci,cr_folders f \
+        where page=$item_id and ci.item_id = reference and ci.parent_id = f.folder_id" {
+          ::xowiki::Package require $package_id
+          lappend refs "<a href='[$package_id pretty_link $name]'>$name</a>"
+        }
+    set references [join $refs ", "]
+
+    array set lang {found "" undefined ""}
+    foreach i [$__including_page array names lang_links] {
+      set lang($i) [join [$__including_page set lang_links($i)] ", "]
+    }
+    append references " " $lang(found)
+    set result ""
+    if {$references ne " "} {
+      append result "#xowiki.references_of_label# $references"
     }
     if {$lang(undefined) ne ""} {
       append result "#xowiki.create_this_page_in_language# $lang(undefined)"

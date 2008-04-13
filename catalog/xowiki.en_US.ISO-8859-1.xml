@@ -63,6 +63,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-publish_date">Publish Date</msg>
   <msg key="Page-text">Content</msg>
   <msg key="Page-title">Page Title</msg>
+  <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
   <msg key="page_type">Page Type</msg>
   <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
@@ -83,6 +84,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
   <msg key="publish_status">Published</msg>
   <msg key="references_label">References to this Page:</msg>
+  <msg key="references_of_label">References of this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="search">Search</msg>

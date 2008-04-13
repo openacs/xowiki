@@ -34,8 +34,18 @@ namespace eval ::xowiki {
     if {[my exists target]} {append atts " target='[my target]'"}
   }
   Link instproc init {} {
+    my instvar page name
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
+    if {![my exists stripped_name]} {
+      # set stripped name and lang from provided name
+      my instvar stripped_name lang
+      regexp {^(..):(.*)$} $name _ lang stripped_name
+    }
+    if {![my exists label]}      {my label $name}
+    if {![my exists folder_id]}  {my folder_id [$page parent_id]}
+    if {![my exists package_id]} {my package_id [$page package_id]}
+
     #my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
