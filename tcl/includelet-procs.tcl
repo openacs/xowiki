@@ -2786,7 +2786,7 @@ namespace eval ::xowiki::includelet {
         }
       }
       set unless_clause [join $expr_clause ||]
-      my msg $unless_clause
+      #my msg $unless_clause
     } else {
       set unless_clause false
     }
