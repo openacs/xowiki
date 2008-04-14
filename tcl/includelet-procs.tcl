@@ -2624,7 +2624,9 @@ namespace eval ::xowiki::includelet {
           {-form}
           {-orderby "_last_modified,desc"}
           {-all:boolean false}
+          {-publish_states "ready|life"}
           {-field_names}
+          {-unless}
           {-csv false}
         }}
       }
@@ -2642,7 +2644,7 @@ namespace eval ::xowiki::includelet {
       if {$form_item_id == 0} {error "Cannot lookup page $form"}
     }
 
-    set form_item [::xowiki::Form get_instance_from_db -item_id $form_item_id]
+    set form_item [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
     set form_constraints [$form_item get_form_constraints]
 
     if {![info exists field_names]} {
@@ -2741,7 +2743,23 @@ namespace eval ::xowiki::includelet {
     # build SQL query and iterate over the results
     # maybe this could be slightly faster by using instantiate_objects
     # 
-    set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
+    if {$all} {
+      # legacy
+      set publish_status_clause ""
+    } elseif [info exists publish_states] {
+      array set valid_state [list production 1 ready 1 life 1 expired 1]
+      set clauses [list]
+      foreach state [split $publish_states |] {
+        if {![info exists valid_state($state)]} {
+          error "no such state: '$state'; valid states are: production, ready, life, expired"
+        }
+        lappend clauses "ci.publish_status='$state'"
+      }
+      set publish_status_clause " and ([join $clauses { or }])"
+    } else {
+      set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
+    }
+
     set items [::xowiki::FormPage get_instances_from_db \
                    -select_attributes $sql_atts \
                    -from_clause ", xowiki_form_pagei p" \
@@ -2752,10 +2770,31 @@ namespace eval ::xowiki::includelet {
                    -folder_id [$package_id folder_id]]
     $items destroy_on_cleanup
 
+    if {[info exists unless]} {
+      #my msg unless=$unless
+      #example for unless: wf_current_state = closed|accepted || x = 1
+      set expr_clause [list]
+      foreach clause [split [string map [list || \x00] $unless] \x00] {
+        if {[regexp {^(.+)\s*([=])\s*(.*)$} $clause _ lhs op rhs_expr]} {
+          set lhs "\$__ia([string trim $lhs])"
+          set op eq
+          foreach p [split $rhs_expr |] {
+            lappend expr_clause "$lhs $op {$p}"
+          }
+        } else {
+          my msg "ignoring $clause"
+        }
+      }
+      set unless_clause [join $expr_clause ||]
+      my msg $unless_clause
+    } else {
+      set unless_clause false
+    }
+
     foreach p [$items children] {
       $p set package_id $package_id
-
       array set __ia [$p set instance_attributes]
+      if {[expr $unless_clause]} continue
       set page_link [$package_id pretty_link [$p name]]
 
       t1 add \
@@ -2791,8 +2830,8 @@ namespace eval ::xowiki::includelet {
       return [t1 write_csv]
     }
 
-    set base [$package_id pretty_link [$__including_page name]]
-    set label [$__including_page name]
+    set base [$package_id pretty_link [$form_item name]]
+    set label [$form_item name]
     append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
     append html [t1 asHTML]
     append html "<a href='[::xo::cc url]?[::xo::cc actual_query]&csv=1'>csv</a>"
