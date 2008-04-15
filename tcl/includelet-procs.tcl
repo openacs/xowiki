@@ -2618,7 +2618,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create form-usages \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {__decoration none}
+        {__decoration plain}
         {parameter_declaration {
           {-form_item_id:integer}
           {-form}
@@ -2627,7 +2627,7 @@ namespace eval ::xowiki::includelet {
           {-publish_states "ready|life"}
           {-field_names}
           {-unless}
-          {-csv false}
+          {-csv true}
         }}
       }
   
@@ -2826,15 +2826,29 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    if {$csv} {
-      return [t1 write_csv]
+    my instvar name
+    set includelet_key ""
+    foreach var {name form_item_id form publish_states field_names unless} {
+      if {[info exists $var]} {append includelet_key $var : [set $var] ,}
+    }
+    
+    set given_includelet_key [::xo::cc query_parameter includelet_key ""]
+    if {$given_includelet_key ne ""} {
+      if {$given_includelet_key eq $includelet_key} {
+        return [t1 write_csv]
+      } else {
+        return ""
+      }
     }
 
     set base [$package_id pretty_link [$form_item name]]
     set label [$form_item name]
     append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
     append html [t1 asHTML]
-    append html "<a href='[::xo::cc url]?[::xo::cc actual_query]&csv=1'>csv</a>"
+    if {$csv} {
+      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]"
+      append html "<a href='$csv_href'>csv</a>"
+    }
     return $html
   }
 }
