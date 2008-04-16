@@ -402,7 +402,8 @@ namespace eval ::xowiki {
     #
     # The usage of the label does not seem to be very useful.
     #
-    set tree_id [category_tree::get_id $tree_name [my locale]]
+    #set tree_id [category_tree::get_id $tree_name [my locale]]
+    set tree_id [category_tree::get_id $tree_name]
     if {$tree_id eq ""} {
       my msg "cannot lookup category tree name '$tree_name'"
       return
