@@ -439,7 +439,7 @@ namespace eval ::xowiki {
         if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
         set category_name [ad_quotehtml [lang::util::localize $category_name]]
         if { $level>1 } {
-          set category_name "[string repeat {&nbsp;} [expr {2*$level -4}]]..$category_name"
+          set category_name "[string repeat {&nbsp;} [expr {2*$level-4}]]..$category_name"
         }
         lappend options [list $category_name $category_id]
       }
@@ -568,6 +568,7 @@ namespace eval ::xowiki {
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [string trim [::xo::cc form_parameter $att]]]
           if {![string match *.* $att]} {set __ia($att) $value}
+          if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
         }
       }
       if {[string match *.* $att]} {
@@ -657,7 +658,7 @@ namespace eval ::xowiki {
     #my msg "--set instance attributes to [array get __ia]"
     my instance_attributes [array get __ia]
     my array set __ia [my instance_attributes]
-    return [list $validation_errors $category_ids]
+    return [list $validation_errors [lsort -unique $category_ids]]
   }
 
   FormPage instproc form_field_as_html {{-mode edit} before name form_fields} {
