@@ -975,6 +975,7 @@ namespace eval ::xowiki {
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
+    unset references
     set html [expr {$render_adp ? [my adp_subst $content] : $content}]
     if {[::xo::cc get_parameter content-type text/html] eq "text/html"} {
       append html "<DIV class='content-chunk-footer'>"
