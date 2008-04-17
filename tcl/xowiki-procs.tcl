@@ -1486,6 +1486,82 @@ namespace eval ::xowiki {
     next
   }
 
+  FormPage proc get_children {
+      -base_item_id 
+      -folder_id 
+      -form_fields 
+      {-publish_status ready}
+      {-h_where}
+      {-always_queried_attributes {_name _last_modified _creation_user}}
+    } {
+    #
+    # Get query attributes for all tables (to allow e.g. sorting by time)
+    #
+    set sql_atts [list bt.instance_attributes]
+    foreach att $always_queried_attributes {
+      set name [string range $att 1 end]
+      if {$name eq "name"} {
+        lappend sql_atts ci.$name
+      } else {
+        lappend sql_atts bt.$name
+      }
+    }
+    #
+    # Collect SQL attributes from form_fields
+    #
+    foreach f $form_fields {
+      if {![$f exists __base_field]} continue
+      set field_name [$f name]
+      if {$field_name eq "_text"} {
+        lappend sql_atts "bt.content as text"
+      } elseif {[lsearch -exact $always_queried_attributes $field_name] == -1} {
+        lappend sql_atts bt.[$f set __base_field]
+      }
+    }
+    #my msg sql_atts=$sql_atts
+
+    #
+    # Build WHERE clause 
+    # 
+    if {$publish_status eq "all"} {
+      # legacy
+      set publish_status_clause ""
+    } else {
+      array set valid_state [list production 1 ready 1 life 1 expired 1]
+      set clauses [list]
+      foreach state [split $publish_status |] {
+        if {![info exists valid_state($state)]} {
+          error "no such state: '$state'; valid states are: production, ready, life, expired"
+        }
+        lappend clauses "ci.publish_status='$state'"
+      }
+      set publish_status_clause " and ([join $clauses { or }])"
+    }
+    set filter_clause ""
+    if {[info exists h_where] && [::xo::db::has_hstore]} {
+      #set filter_clause " and '$h_where' <@ bt.hkey"
+    }
+
+    set orderby ""; set page_size 20; set page_number ""; set base_table "cr_revisions"
+    set sql  [::xowiki::FormPage instance_select_query \
+		    -select_attributes $sql_atts \
+		    -from_clause "" \
+		    -where_clause " bt.page_template = $base_item_id \
+			$publish_status_clause $filter_clause" \
+		    -orderby $orderby \
+		    -with_subtypes false \
+		    -folder_id $folder_id \
+		    -page_size $page_size \
+		    -page_number $page_number \
+		    -base_table xowiki_form_pagei \
+                 ]
+    my log $sql
+    set items [::xowiki::FormPage instantiate_objects -sql $sql \
+                   -object_class ::xowiki::FormPage]
+    return $items
+  }
+
+
   FormPage instproc property {name {default ""}} {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]

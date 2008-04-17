@@ -2623,10 +2623,10 @@ namespace eval ::xowiki::includelet {
           {-form_item_id:integer}
           {-form}
           {-orderby "_last_modified,desc"}
-          {-all:boolean false}
-          {-publish_states "ready|life"}
+          {-publish_status "ready"}
           {-field_names}
           {-unless}
+          {-where}
           {-csv true}
         }}
       }
@@ -2635,7 +2635,7 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     my instvar __including_page
     set o $__including_page
-
+    my log "start render"
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
@@ -2657,62 +2657,13 @@ namespace eval ::xowiki::includelet {
       set field_names {_name _last_modified _creation_user}
     }
 
-    set sql_atts [list instance_attributes ci.name]
-    foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
-    set common_atts [list last_modified creation_user]
-    foreach att $common_atts {
-      lappend sql_atts p.$att
-      set __att($att) 1
-    }
-    #my msg __att=[array names __att],
-    #my msg sql_atts=$sql_atts
-    #my msg field_names=$field_names
-
-    # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
-    #                            -name @cr_fields \
-    #                            -form_constraints $form_constraints]
-    # if some fields are hidden in the form, there might still be values (creation_user, etc)
-    # maybe filter hidden? ignore for the time being.
-    set cr_field_spec ""
-    #
-    set field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
-			-name @fields \
-			-form_constraints $form_constraints]
-
-    foreach spec_name $field_names {
-      set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
-                          -name $spec_name \
+    set form_fields [::xowiki::FormPage get_table_form_fields \
+                          -base_item $form_item \
+                          -field_names $field_names \
                           -form_constraints $form_constraints]
-
-      switch -glob -- $spec_name {
-        __* {error not_allowed}
-        _* {
-          set varname [string range $spec_name 1 end]
-          if {![info exists __att($varname)]} {
-            error "unknown attribute $spec_name"
-          }
-          set f [$form_item create_raw_form_field \
-                     -name $spec_name \
-                     -slot [$form_item find_slot $varname] \
-                     -spec $cr_field_spec,$short_spec]
-	  if {$spec_name eq "_text"} {
-	    lappend sql_atts "bt.content as text"
-	  } elseif {$spec_name ne "_name"} {
-	    lappend sql_atts p.$varname
-	  }
-        }
-        default {
-          set f [$form_item create_raw_form_field \
-                     -name $spec_name \
-                     -slot "" \
-                     -spec $field_spec,$short_spec]
-        }
-      }
-      lappend form_fields $f
-      set __ff($spec_name) $f
-    }
-    #my msg ff=[array names __ff]
-    #$form_item show_fields $form_fields
+    # $form_item show_fields $form_fields
+    foreach f $form_fields {set __ff([$f name]) $f}
+    my log "get form_fields done"
 
     if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
@@ -2725,76 +2676,56 @@ namespace eval ::xowiki::includelet {
 		       -orderby $fn] \n
     }
     append cols [list ImageField_DeleteIcon delete -label ""    ] \n
-
     TableWidget t1 -volatile -columns $cols
 
     #
-    # Sorting is done for the time being in tcl. This has the advantage
-    # that page_orders can be sorted with the special mixin and that
+    # Sorting is done for the time being in Tcl. This has the advantage
+    # that page_order can be sorted with the special mixin and that
     # instance attributes can be used for sorting as well.
     #
     foreach {att order} [split $orderby ,] break
     if {$att eq "_page_order"} {
       t1 mixin add ::xo::OrderedComposite::IndexCompare
     }
+    #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
     t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+
+    # 
+    # Compute filter clauses
+    #
+    set init_vars [list]
+    array set uc {tcl false h ""}
+    if {[info exists unless]} {
+      array set uc [::xowiki::FormPage filter_expression $unless ||]
+      set init_vars [concat $init_vars $uc(vars)]
+    }
+    array set wc {tcl true h ""}
+    if {[info exists where]} {
+      array set wc [::xowiki::FormPage filter_expression $where &&]
+      set init_vars [concat $init_vars $wc(vars)]
+    }
+    #my msg uc=[array get uc]
+    #my msg wc=[array get wc]
 
     #
     # build SQL query and iterate over the results
-    # maybe this could be slightly faster by using instantiate_objects
     # 
-    if {$all} {
-      # legacy
-      set publish_status_clause ""
-    } elseif [info exists publish_states] {
-      array set valid_state [list production 1 ready 1 life 1 expired 1]
-      set clauses [list]
-      foreach state [split $publish_states |] {
-        if {![info exists valid_state($state)]} {
-          error "no such state: '$state'; valid states are: production, ready, life, expired"
-        }
-        lappend clauses "ci.publish_status='$state'"
-      }
-      set publish_status_clause " and ([join $clauses { or }])"
-    } else {
-      set publish_status_clause [expr {$all ? "" : " and ci.publish_status <> 'production' "}]
-    }
-
-    set items [::xowiki::FormPage get_instances_from_db \
-                   -select_attributes $sql_atts \
-                   -from_clause ", xowiki_form_pagei p" \
-                   -with_subtypes false \
-                   -where_clause " p.page_template = $form_item_id \
-			and p.xowiki_form_page_id = bt.revision_id \
-                        $publish_status_clause" \
+    set items [::xowiki::FormPage get_children \
+                   -base_item_id $form_item_id \
+                   -form_fields $form_fields \
+                   -publish_status $publish_status \
+                   -always_queried_attributes [list _name _last_modified _creation_user] \
+                   -h_where $wc(h) \
                    -folder_id [$package_id folder_id]]
-    $items destroy_on_cleanup
+    my log "query done"
 
-    if {[info exists unless]} {
-      #my msg unless=$unless
-      #example for unless: wf_current_state = closed|accepted || x = 1
-      set expr_clause [list]
-      foreach clause [split [string map [list || \x00] $unless] \x00] {
-        if {[regexp {^(.+)\s*([=])\s*(.*)$} $clause _ lhs op rhs_expr]} {
-          set lhs "\$__ia([string trim $lhs])"
-          set op eq
-          foreach p [split $rhs_expr |] {
-            lappend expr_clause "$lhs $op {$p}"
-          }
-        } else {
-          my msg "ignoring $clause"
-        }
-      }
-      set unless_clause [join $expr_clause ||]
-      #my msg $unless_clause
-    } else {
-      set unless_clause false
-    }
-
+    my log "insert into table"
     foreach p [$items children] {
       $p set package_id $package_id
-      array set __ia [$p set instance_attributes]
-      if {[expr $unless_clause]} continue
+      array set __ia $init_vars
+      array set __ia [$p instance_attributes]
+      if {[expr $uc(tcl)]} continue
+      if {![expr $wc(tcl)]} continue
       set page_link [$package_id pretty_link [$p name]]
 
       t1 add \
@@ -2810,21 +2741,10 @@ namespace eval ::xowiki::includelet {
       $__c set _last_modified [$p set last_modified]
 
       foreach __fn $field_names {
-        switch -glob -- $__fn {
-          __* {error not_allowed}
-          _*  {set __value [$p set [string range $__fn 1 end]]}
-          default {
-            if {[info exists __ia($__fn)]} {
-              set __value $__ia($__fn)
-            } else {
-              # the field was added after the current entry was created
-              set __value ""
-            }
-          }
-        }
-        $__c set $__fn [$__ff($__fn) pretty_value $__value]
+        $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
     }
+    my log "insert into table done"
 
     my instvar name
     set includelet_key ""
@@ -2849,6 +2769,7 @@ namespace eval ::xowiki::includelet {
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]"
       append html "<a href='$csv_href'>csv</a>"
     }
+    my log "render done"
     return $html
   }
 }

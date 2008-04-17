@@ -416,6 +416,95 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
+  FormPage proc get_table_form_fields {
+     -base_item 
+     -field_names 
+     -form_constraints
+   } {
+
+    #set sql_atts [list ci.name bt.instance_attributes]
+    foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
+    foreach att [list last_modified creation_user] {
+      lappend sql_atts bt.$att
+      set __att($att) 1
+    }
+    
+    # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+    #                            -name @cr_fields \
+    #                            -form_constraints $form_constraints]
+    # if some fields are hidden in the form, there might still be values (creation_user, etc)
+    # maybe filter hidden? ignore for the time being.
+
+    set cr_field_spec ""
+    set field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+			-name @fields \
+			-form_constraints $form_constraints]
+
+    foreach field_name $field_names {
+      set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                          -name $field_name \
+                          -form_constraints $form_constraints]
+
+      switch -glob -- $field_name {
+        __* {error not_allowed}
+        _* {
+          set varname [string range $field_name 1 end]
+          if {![info exists __att($varname)]} {
+            error "unknown attribute $field_name"
+          }
+          set f [$base_item create_raw_form_field \
+                     -name $field_name \
+                     -slot [$base_item find_slot $varname] \
+                     -spec $cr_field_spec,$short_spec]
+          $f set __base_field $varname
+        }
+        default {
+          set f [$base_item create_raw_form_field \
+                     -name $field_name \
+                     -slot "" \
+                     -spec $field_spec,$short_spec]
+        }
+      }
+      lappend form_fields $f
+    }
+    return $form_fields
+  }
+
+  FormPage proc h_double_quote {value} {
+    if {[regexp {[ ,\"\\=>]} $value]} {
+      set value \"[string map [list \" \\\\\" \\ \\\\ ' \\\\'] $value]\"
+    }
+    return $value
+  }
+
+  FormPage proc filter_expression {
+    input_expr
+    logical_op
+  } {
+    #my msg unless=$unless
+    #example for unless: wf_current_state = closed|accepted || x = 1
+    set tcl_clause [list]
+    set h_clause [list]
+    set vars [list]
+    foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
+      if {[regexp {^(.+)\s*([=])\s*(.*)$} $clause _ lhs op rhs_expr]} {
+        set lhs [string trim $lhs]
+        set hleft [my h_double_quote $lhs]
+        set tleft "\$__ia($lhs)"
+        lappend vars $lhs ""
+        set op eq
+        foreach p [split $rhs_expr |] {
+          lappend tcl_clause "$tleft $op {$p}"
+          lappend h_clause "$hleft=>[my h_double_quote $p]"
+        }
+      } else {
+        my msg "ignoring $clause"
+      }
+    }
+    return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] vars $vars]
+    #my msg $expression
+  }
+
   FormPage instproc create_category_fields {} {
     set category_spec [my get_short_spec @categories]
     foreach f [split $category_spec ,] {
