@@ -89,7 +89,9 @@ namespace eval ::xowiki {
       #set href [export_vars -base [$package_id package_url] \
       #              {{edit-new 1} object_type name title}]
 
-      my render_not_found $new_link [my label]
+      set html [my render_not_found $new_link [my label]]
+      $page lappend __unresolved_references $html
+      return $html
     }
   }
 
@@ -175,7 +177,8 @@ namespace eval ::xowiki {
       set return_url [$package_id url]
       set link [$package_id make_link $package_id edit-new object_type \
 		    return_url autoname name title] 
-      my render_not_found $link $label
+      set html [my render_not_found $link $label]
+      return $html
     }
   }
   ::xowiki::Link::image instproc render_found {link label} {

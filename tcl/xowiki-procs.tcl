@@ -975,6 +975,7 @@ namespace eval ::xowiki {
     regexp {^(..):(.*)$} $name _ lang name
     set references [list]
     set unresolved_references 0
+    my set __unresolved_references [list]
     #my log "--W setting unresolved_references to 0  [info exists unresolved_references]"
     set content [my get_content]
     #my log "--W after content [info exists unresolved_references] [my exists unresolved_references] ?? [info vars]"
