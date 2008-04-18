@@ -13,9 +13,10 @@ namespace eval ::xowiki {
       -pretty_name "XoWiki" \
       -package_key xowiki \
       -parameter {
-	{folder_id "[::xo::cc query_parameter folder_id 0]"}
+	{folder_id 0}
 	{force_refresh_login true}
       }
+  # {folder_id "[::xo::cc query_parameter folder_id 0]"}
 
   Package ad_proc instantiate_page_from_id {
     {-revision_id 0} 
@@ -316,9 +317,9 @@ namespace eval ::xowiki {
         }
       }
     }
+    
     if {[string match "//*" $object]} {
-  
-    # we have a reference to another instance, we cant resolve this from this package.
+        # we have a reference to another instance, we cant resolve this from this package.
       # Report back not found
       return ""
     }
@@ -461,7 +462,7 @@ namespace eval ::xowiki {
     if {$path ne ""} {
 
       set item_id [::xo::db::CrClass lookup -name $path -parent_id $folder_id]
-      my log "--try $path -> $item_id"
+      my log "--try $path ($folder_id) -> $item_id"
       
       if {$item_id == 0} {
         my get_name_and_lang_from_path $path lang local_name

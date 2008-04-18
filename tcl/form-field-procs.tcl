@@ -393,28 +393,6 @@ namespace eval ::xowiki {
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
   }
 
-  FormField instproc config_from_form {form_name} {
-    set package_id [[my object] package_id]
-    set form_item_id [::xo::db::CrClass lookup -name $form_name -parent_id [$package_id folder_id]]
-    if {$form_item_id == 0} {error "Cannot lookup page $form"}
-
-    array set wc {tcl true h ""}
-    if {[info exists where]} {
-      array set wc [::xowiki::FormPage filter_expression $where &&]
-      set init_vars [concat $init_vars $wc(vars)]
-    }
-    
-    set items [::xowiki::FormPage get_children \
-                   -base_item_id $form_item_id \
-                   -form_fields [list] \
-                   -publish_status ready \
-                   -always_queried_attributes [list _name _title _last_modified _creation_user] \
-                   -h_where $wc(h) \
-                   -folder_id [$package_id folder_id]]
-    foreach i [$items children] {lappend options [list [$i title] [$i name]]}
-    my options $options
-  }
-
   FormField instproc config_from_category_tree {tree_name} {
     # Get the options of a select or rado from the specified
     # category tree.
@@ -905,12 +883,11 @@ namespace eval ::xowiki {
     {options}
     {multiple "false"}
     {category_tree}
-    {form}
   }
+
   FormField::select instproc initialize {} {
     my set widget_type text(select)
     if {[my exists category_tree]} {my config_from_category_tree [my category_tree]}
-    if {[my exists form]} {my config_from_form [my form]}
     if {![my exists options]} {my options [list]}
   }
   FormField::select instproc render_input {} {
@@ -943,7 +920,33 @@ namespace eval ::xowiki {
     {form}
     {as_box false}
   }
-  
+  FormField instproc config_from_form {form_name} {
+    set form [[my object] resolve_included_page_name $form_name]
+    if {$form eq ""} {error "Cannot lookup Form '$form_name'"}
+
+    set prefix ""
+    regexp {^(//[^/]+/)} $form_name _ prefix
+
+    array set wc {tcl true h ""}
+    if {[info exists where]} {
+      array set wc [::xowiki::FormPage filter_expression $where &&]
+      set init_vars [concat $init_vars $wc(vars)]
+    }
+    
+    set items [::xowiki::FormPage get_children \
+                   -base_item_id [$form item_id] \
+                   -form_fields [list] \
+                   -publish_status ready \
+                   -always_queried_attributes [list _name _title _last_modified _creation_user] \
+                   -h_where $wc(h) \
+                   -folder_id [$form parent_id]]
+    foreach i [$items children] {lappend options [list [$i title] $prefix[$i name]]}
+    my options $options
+  }
+  FormField::form_page instproc initialize {} {
+    if {[my exists form]} {my config_from_form [my form]}
+    next
+  }
   FormField::form_page instproc pretty_value {v} {
     set package_id [[my object] package_id]
     if {[my multiple]} {

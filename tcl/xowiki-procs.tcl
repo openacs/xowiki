@@ -509,6 +509,10 @@ namespace eval ::xowiki {
 	# Handle cross package resolve requests
 	# Note, that package::initialize might change the package id.
 	#
+	#
+	# TODO: We assume here that the package is an xowiki package.
+	#       The package might be as well a subclass of xowiki...
+	#
 	::xowiki::Package initialize -parameter {{-m view}} -url $url \
 	    -actual_query ""
 	if {$package_id != 0} {
