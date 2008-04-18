@@ -509,9 +509,11 @@ namespace eval ::xowiki {
 	# Handle cross package resolve requests
 	# Note, that package::initialize might change the package id.
 	#
-	#
 	# TODO: We assume here that the package is an xowiki package.
 	#       The package might be as well a subclass of xowiki...
+	#       For now, we fixed the problem to perform reclassing in
+        #       ::xo::Package init and calling a per-package instance 
+        #       method "initialize"
 	#
 	::xowiki::Package initialize -parameter {{-m view}} -url $url \
 	    -actual_query ""
