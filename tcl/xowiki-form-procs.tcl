@@ -425,7 +425,7 @@ namespace eval ::xowiki {
         }
       }
       $data set mime_type $mime_type
-    } elseif {[$data exists name]} {
+    } elseif {[$data name] ne ""} {
       # my log "--F no upload_file provided [lsort [$data info vars]]"
       if {[$data exists mime_type]} {
         my log "--mime_type=[$data set mime_type]"
