@@ -265,7 +265,8 @@ namespace eval ::xowiki {
     my log "cmd=$cmd"
   }
   Page instproc category_import {-name -description -locale -categories} {
-    set tree_id [category_tree::get_id $name $locale]
+    # ignore locale in get_id for now, since it seems broken
+    set tree_id [category_tree::get_id $name]
     set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
     if {$tree_id eq ""} {
       # we have to import the category tree
