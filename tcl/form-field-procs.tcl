@@ -373,66 +373,8 @@ namespace eval ::xowiki {
   }
 
   FormField instproc pretty_value {v} {
-    if {[my exists options]} {
-      if {[my exists multiple] && [my set multiple]} {
-        foreach o [my set options] {
-          foreach {label value} $o break
-          set labels($value) [my localize $label]
-        }
-        set values [list]
-        foreach i $v {lappend values $labels($i)}
-        return [join $values {, }]
-      } else {
-        foreach o [my set options] {
-          foreach {label value} $o break
-          if {$value eq $v} {return [my localize $label]}
-        }
-      }
-    }
     #my log "mapping $v"
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
-  }
-
-  FormField instproc config_from_category_tree {tree_name} {
-    # Get the options of a select or rado from the specified
-    # category tree.
-    #
-    # We could config as well from the mapped category tree,
-    # and get required and multiple from there....
-    #
-    # The usage of the label does not seem to be very useful.
-    #
-    #set tree_id [category_tree::get_id $tree_name [my locale]]
-    set tree_id [category_tree::get_id $tree_name]
-    if {$tree_id eq ""} {
-      my msg "cannot lookup category tree name '$tree_name'"
-      return
-    }
-    #
-    # In case there are multiple trees with the same named map,
-    # take the first one to avoid confusions.
-    #
-    #my msg tree_id=$tree_id
-    set tree_id [lindex $tree_id 0]
-    set subtree_id ""
-    set options [list] 
-
-    foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
-      foreach {category_id category_name deprecated_p level} $category break
-      #if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
-      #lappend value $category_id
-      set category_name [ad_quotehtml [lang::util::localize $category_name]]
-      if { $level>1 } {
-        set category_name "[string repeat {&nbsp;} [expr {2*$level-4}]]..$category_name"
-      }
-      lappend options [list $category_name $category_id]
-    }
-    my options $options
-    my set is_category_field 1
-    # my msg label_could_be=$tree_name,existing=[my label]
-    # if {![my exists label]} {
-    #    my label $tree_name
-    # }
   }
 
   ###########################################################
@@ -844,6 +786,85 @@ namespace eval ::xowiki {
     }
   }
 
+  ###########################################################
+  #
+  # ::xowiki::FormField::enumeration
+  #
+  ###########################################################
+
+  # abstract superclass for select and radio
+  Class FormField::enumeration -superclass FormField -parameter {
+    {options}
+    {category_tree}
+  }
+  FormField::enumeration instproc initialize {} {
+    if {[my exists category_tree]} {
+      my config_from_category_tree [my category_tree]
+    }
+  }
+  FormField::enumeration abstract instproc render_input {}
+
+  FormField::enumeration instproc pretty_value {v} {
+    if {[my exists category_label($v)]} {
+      return [my set category_label($v)]
+    }
+    if {[my exists multiple] && [my set multiple]} {
+      foreach o [my set options] {
+        foreach {label value} $o break
+        set labels($value) [my localize $label]
+      }
+      set values [list]
+      foreach i $v {lappend values $labels($i)}
+      return [join $values {, }]
+    } else {
+      foreach o [my set options] {
+        foreach {label value} $o break
+        if {$value eq $v} {return [my localize $label]}
+      }
+    }
+  }
+  FormField::enumeration instproc config_from_category_tree {tree_name} {
+    # Get the options of a select or rado from the specified
+    # category tree.
+    #
+    # We could config as well from the mapped category tree,
+    # and get required and multiple from there....
+    #
+    # The usage of the label does not seem to be very useful.
+    #
+    #set tree_id [category_tree::get_id $tree_name [my locale]]
+    set tree_id [category_tree::get_id $tree_name]
+    if {$tree_id eq ""} {
+      my msg "cannot lookup category tree name '$tree_name'"
+      return
+    }
+    #
+    # In case there are multiple trees with the same named map,
+    # take the first one to avoid confusions.
+    #
+    #my msg tree_id=$tree_id
+    set tree_id [lindex $tree_id 0]
+    set subtree_id ""
+    set options [list] 
+
+    foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
+      foreach {category_id category_name deprecated_p level} $category break
+      #if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
+      #lappend value $category_id
+      set category_name [ad_quotehtml [lang::util::localize $category_name]]
+      my set category_label($category_id) $category_name
+      if { $level>1 } {
+        set category_name "[string repeat {&nbsp;} [expr {2*$level-4}]]..$category_name"
+      }
+      lappend options [list $category_name $category_id]
+    }
+    my options $options
+    my set is_category_field 1
+    # my msg label_could_be=$tree_name,existing=[my label]
+    # if {![my exists label]} {
+    #    my label $tree_name
+    # }
+  }
 
   ###########################################################
   #
@@ -851,14 +872,12 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::radio -superclass FormField -parameter {
-    {options ""}
+  Class FormField::radio -superclass FormField::enumeration -parameter {
     {horizontal false}
-    {category_tree}
   }
   FormField::radio instproc initialize {} {
     my set widget_type text(radio)
-    if {[my exists category_tree]} {my config_from_category_tree [my category_tree]}
+    next
   }
   FormField::radio instproc render_input {} {
     set value [my value]
@@ -873,21 +892,20 @@ namespace eval ::xowiki {
     }
   }
 
+
   ###########################################################
   #
   # ::xowiki::FormField::select
   #
   ###########################################################
 
-  Class FormField::select -superclass FormField -parameter {
-    {options}
+  Class FormField::select -superclass FormField::enumeration -parameter {
     {multiple "false"}
-    {category_tree}
   }
 
   FormField::select instproc initialize {} {
     my set widget_type text(select)
-    if {[my exists category_tree]} {my config_from_category_tree [my category_tree]}
+    next
     if {![my exists options]} {my options [list]}
   }
   FormField::select instproc render_input {} {
@@ -956,7 +974,12 @@ namespace eval ::xowiki {
         set labels($value) "<a href='$href'>$label</a>"
       }
       set values [list]
-      foreach i $v {lappend values $labels($i)}
+      foreach i $v {
+        if {[catch {lappend values $labels($i)}]} {
+          my msg "can't determine label for value '$i'"
+          lappend values $i
+        }
+      }
       return [join $values {, }]
     } else {
       foreach o [my set options] {

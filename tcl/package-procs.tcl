@@ -615,7 +615,6 @@ namespace eval ::xowiki {
     set todo [list]
 
     foreach o $objects {
-      $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
 
       # page instances have references to page templates, add these first
       if {[$o istype ::xowiki::PageInstance]} {
@@ -623,6 +622,8 @@ namespace eval ::xowiki {
         continue
       }
       my log "importing (1st round) $o [$o name] [$o info class]"
+
+      $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
 
       set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
       if {$item_id != 0} {
@@ -648,6 +649,7 @@ namespace eval ::xowiki {
       set c 0
       set found 0
       foreach o $todo {
+        $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
 	set old_template_id [$o set page_template]
 	set template_id [::xo::db::CrClass lookup \
                              -name [::$old_template_id set name] \

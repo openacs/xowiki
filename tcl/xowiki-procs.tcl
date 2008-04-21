@@ -208,8 +208,6 @@ namespace eval ::xowiki {
   #
   # Page marshall/demarshall
   #
-
-
   Page instproc marshall {} {
     my instvar name
     my unset_temporary_instance_variables
@@ -239,6 +237,92 @@ namespace eval ::xowiki {
     my set __file_content [::base64::encode [::xowiki::read_file $fn]]
     next
   }
+  
+  Page instproc category_export {tree_name} {
+    # ignore locale in get_id for now, since it seems broken
+    set tree_id [category_tree::get_id $tree_name]
+    # make sure to have only one tree_id, in case there are multiple
+    # trees with the same name (arrgh)
+    set tree_id [lindex $tree_id 0]
+    array set data [category_tree::get_data $tree_id]
+    set categories [list]
+    if {[my exists __category_map]} {array set cm [my set __category_map]}
+    foreach category [category_tree::get_tree $tree_id] {
+      foreach {category_id category_name deprecated_p level} $category break
+      lappend categories $level $category_name
+      set names($level) $category_name
+      set node_name $tree_name
+      for {set l 1} {$l <= $level} {incr l} {append node_name /$names($l)}
+      set cm($category_id) $node_name
+    }
+    set cmd [list my category_import \
+                 -name $tree_name -description $data(description) \
+                 -locale [lang::system::site_wide_locale] \
+                 -categories $categories]
+    my append __category_command \n $cmd
+    my set __category_map [array get cm]
+    my log "data=[array get data]"
+    my log "cmd=$cmd"
+  }
+  Page instproc category_import {-name -description -locale -categories} {
+    set tree_id [category_tree::get_id $name $locale]
+    set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
+    if {$tree_id eq ""} {
+      # we have to import the category tree
+      my log "...importing category tree $name"
+      category_tree::import -name $name -description $description \
+          -locale $locale -categories $categories
+    }
+    #
+    # build reverse category_map
+    foreach category [category_tree::get_tree $tree_id] {
+      foreach {category_id category_name deprecated_p level} $category break
+      lappend categories $level $category_name
+      set names($level) $category_name
+      set node_name $name
+      for {set l 1} {$l <= $level} {incr l} {append node_name /$names($l)}
+      set ::__xowiki_reverse_category_map($node_name) $category_id
+    }
+  }
+
+  Form instproc marshall {} {
+    set form_fields [my create_form_fields_from_form_constraints \
+                         [my get_form_constraints]]
+    foreach f $form_fields {
+      if {[$f exists category_tree]} {
+        set tree_key ::__xowiki_exported_category_tree([$f category_tree])
+        my lappend __category_use [$f name] [$f category_tree]
+        if {[info exists $tree_key]} continue
+        set $tree_key 1
+        my log "name [my name] uses [$f category_tree]"
+        my category_export [$f category_tree]
+      }
+    }
+    next
+  }
+
+  FormPage instproc marshall {} {
+    my instvar page_template
+    if {[$page_template exists __category_map]} {
+      my log "we have a category_map"
+      array set cm [$page_template set __category_map]
+      array set use [$page_template set __category_use]
+      set ia [list]
+      foreach {name value} [my instance_attributes] {
+        my log "check $name $value [info exists use($name)] [info exists cm($value)]"
+        if {[info exists use($name)] && [info exists cm($value)]} {
+          lappend ia $name $cm($value)
+          my log "...mapped to $name $cm($value)"
+        } else {
+          lappend ia $name $value
+        }
+      }
+      my set instance_attributes $ia
+      #my msg "setting instance_attributes $ia"
+    }
+    next
+  }
+
 
   Page instproc demarshall {-parent_id -package_id -creation_user} {
     # this method is the counterpart of marshall
@@ -256,26 +340,73 @@ namespace eval ::xowiki {
     my instvar import_file __file_content
     set import_file [ns_tmpnam]
     ::xowiki::write_file $import_file [::base64::decode $__file_content]
+    unset __file_content
   }
 
   # set default values. 
   # todo: with slots, it should be easier to set default values
-  # for non existing variables
+  # for non-existing variables
   PageInstance instproc demarshall {args} {
-    # some older versions do not have anon_instances
+    # some older versions do not have anon_instances and no slots
     if {![my exists anon_instances]} {
       my set anon_instances "f"
     }
     next
   }
   Form instproc demarshall {args} {
-    # some older versions do not have anon_instances
+    # some older versions do not have anon_instances and no slots
     if {![my exists anon_instances]} {
       my set anon_instances "t"
+    }
+    # handle category import
+    if {[my exists __category_command]} {
+      eval [my set __category_command]
+      my log "reverse map: [array get ::__xowiki_reverse_category_map]"
+    }
+    next
+  }
+  FormPage instproc demarshall {args} {
+    #
+    # FormPages must be demarshalled after Form, since Form builds
+    # the reverse category map.
+    #
+    #my log "reverse map ?[info exists ::__xowiki_reverse_category_map]"
+    if {[info exists ::__xowiki_reverse_category_map]} {
+      #my log "we have a category_map"
+      #
+      # replace all symbolic category values by the mapped IDs
+      #
+      set ia [list]
+      array set use [[my page_template] set __category_use]
+      foreach {name value} [my instance_attributes] {
+        if {[info exists use($name)]} {
+          if {[info exists ::__xowiki_reverse_category_map($value)]} {
+            #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
+            lappend ia $name $::__xowiki_reverse_category_map($value)
+          } elseif {$value eq ""} {
+            lappend ia $name ""
+          } else {
+            my msg "cannot map value '$value' (category tree: $use($name))\
+		of [my name] to an ID; maybe there is some\
+		same_named category tree with less entries..."
+            lappend ia $name ""
+          }
+          #my log "...mapped to $name $::__xowiki_reverse_category_map($value)"
+        } else {
+          lappend ia $name $value
+        }
+      }
+      my set instance_attributes $ia
+      #my log "saving instance_attributes $ia"
     }
     next
   }
 
+  ############################################
+  #
+  # conditions for policy rules
+  #
+  ############################################
   Page instproc condition=match {query_context value} {
     #
     # Conditon for conditional checks in policy rules
@@ -1450,34 +1581,44 @@ namespace eval ::xowiki {
   }
 
 
+  Page instproc create_form_fields_from_form_constraints {form_constraints} {
+    #
+    # Create form-fields from form constraints.
+    # Since create_raw_form_field uses destroy_on_cleanup, we do not
+    # have to care here about destroying the objects.
+    #
+    set form_fields [list]
+    foreach name_and_spec $form_constraints {
+      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+      if {$spec_name eq "@table" || $spec_name eq "@categories"} continue
+      
+      #my msg "checking spec '$short_spec' for form field '$spec_name'"
+      lappend form_fields [my create_raw_form_field \
+                   -name $spec_name \
+                   -slot [my find_slot $spec_name] \
+                   -spec $short_spec]
+    }
+    return $form_fields
+  }
+
   Page instproc validate=form_constraints {form_constraints} {
     #
     # First check for invalid meta characters for security reasons.
     #
     if {[regexp {[\[\]]} $form_constraints]} {
-      my uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]
+      my uplevel [list set errorMsg \
+                      [_ xowiki.error-form_constraint-invalid_characters]]
       return 0
     }
     #
     # Create from fields from all specs and report, if there are any errors
     #
-    foreach name_and_spec $form_constraints {
-      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
-      #foreach {spec_name short_spec} [split $name_and_spec :] break
-      if {$spec_name eq "@table" || $spec_name eq "@categories"} continue
-
-      #my msg "checking spec '$short_spec' for form field '$spec_name'"
-      if {[catch {
-        set f [my create_raw_form_field \
-                   -name $spec_name \
-                   -slot [my find_slot $spec_name] \
-                   -spec $short_spec]
-        $f destroy
-      } errorMsg]} {
-        my uplevel [list set errorMsg $errorMsg]
-        #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
-        return 0
-      }
+    if {[catch {
+      my create_form_fields_from_form_constraints $form_constraints
+    } errorMsg]} {
+      my uplevel [list set errorMsg $errorMsg]
+      #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
+      return 0
     }
     return 1
   }
