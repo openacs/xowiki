@@ -676,13 +676,15 @@ namespace eval ::xowiki {
 	  set page [$package_id resolve_page $object_name __m]
 	  $package_id context $last_context
 	}
+        $last_package_id set_url -url $last_url
+
       } else {
 	set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
 	$package_id context [::xo::Context new -volatile]
 	set page [$package_id resolve_page $page_name __m]
 	$package_id context $last_context
       }
-      $last_package_id set_url -url $last_url
+
       if {$page eq ""} {
 	error "Cannot find page '$page_name'"
       }
