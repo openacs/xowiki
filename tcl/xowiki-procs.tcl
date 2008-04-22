@@ -639,8 +639,16 @@ namespace eval ::xowiki {
       if {[regexp {^/(/.+)$} $page_name _ url]} {
 	#
 	# Handle cross package resolve requests
+        #
 	# Note, that package::initialize might change the package id.
-	#
+	# Preserving the package-url is just necessary, if for some
+        # reason the same package is initialized here with a different 
+        # url. This could be done probably with a flag to initialize,
+        # but we get below the object name from the package_id...
+        #
+        set last_package_id $package_id
+        set last_url [$package_id url]
+        #
 	# TODO: We assume here that the package is an xowiki package.
 	#       The package might be as well a subclass of xowiki...
 	#       For now, we fixed the problem to perform reclassing in
@@ -649,6 +657,7 @@ namespace eval ::xowiki {
 	#
 	::xowiki::Package initialize -parameter {{-m view}} -url $url \
 	    -actual_query ""
+
 	if {$package_id != 0} {
 	  #
 	  # For the resolver, we create a fresh context to avoid recursive loops, when
@@ -673,6 +682,7 @@ namespace eval ::xowiki {
 	set page [$package_id resolve_page $page_name __m]
 	$package_id context $last_context
       }
+      $last_package_id set_url -url $last_url
       if {$page eq ""} {
 	error "Cannot find page '$page_name'"
       }

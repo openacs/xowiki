@@ -939,8 +939,9 @@ namespace eval ::xowiki {
     {as_box false}
   }
   FormField instproc config_from_form {form_name} {
-    set form [[my object] resolve_included_page_name $form_name]
-    if {$form eq ""} {error "Cannot lookup Form '$form_name'"}
+    my instvar form_obj prefix
+    set form_obj [[my object] resolve_included_page_name $form_name]
+    if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
 
     set prefix ""
     regexp {^(//[^/]+/)} $form_name _ prefix
@@ -952,13 +953,13 @@ namespace eval ::xowiki {
     }
     
     set items [::xowiki::FormPage get_children \
-                   -base_item_id [$form item_id] \
+                   -base_item_id [$form_obj item_id] \
                    -form_fields [list] \
                    -publish_status ready \
                    -always_queried_attributes [list _name _title _last_modified _creation_user] \
                    -h_where $wc(h) \
-                   -folder_id [$form parent_id]]
-    foreach i [$items children] {lappend options [list [$i title] $prefix[$i name]]}
+                   -folder_id [$form_obj parent_id]]
+    foreach i [$items children] {lappend options [list [$i title] [$i name]]}
     my options $options
   }
   FormField::form_page instproc initialize {} {
@@ -966,7 +967,11 @@ namespace eval ::xowiki {
     next
   }
   FormField::form_page instproc pretty_value {v} {
-    set package_id [[my object] package_id]
+    my instvar form_obj prefix
+    if {![info exists form_obj]} {
+      error "No form specified for form_field [my name]"
+    }
+    set package_id [$form_obj package_id]
     if {[my multiple]} {
       foreach o [my set options] {
         foreach {label value} $o break
@@ -986,7 +991,7 @@ namespace eval ::xowiki {
         foreach {label value} $o break
         if {$value eq $v} {
           if {[my as_box]} {
-            return [[my object] include [list $value -decoration rightbox]] 
+            return [[my object] include [list $prefix$value -decoration rightbox]] 
           }
           set href [$package_id pretty_link $value]
           return "<a href='$href'>$label</a>"
