@@ -506,7 +506,7 @@ namespace eval ::xowiki::includelet {
       lappend trees [list $tree_id $my_tree_name]
     }
 
-    my msg "[llength $trees] == 0 && $tree_name"
+    #my msg "[llength $trees] == 0 && $tree_name"
     if {[llength $trees] == 0 && $tree_name ne ""} {
       # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
       # try to get these
@@ -515,7 +515,7 @@ namespace eval ::xowiki::includelet {
         lappend trees [list [lindex [category_tree::get_id $tree_name] 0] $name]
       }
     }
-    my msg "[llength $trees] == 0 && $tree_name"
+    #my msg "[llength $trees] == 0 && $tree_name"
     foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
       if {!$no_tree_name} {

@@ -265,7 +265,7 @@ namespace eval ::xowiki {
     my log "cmd=$cmd"
   }
   Page instproc category_export_referenced_categories {form_fields} {
-    my log "--ff=$form_fields"
+    #my log "--ff=$form_fields"
     foreach f $form_fields {
       if {[$f exists category_tree]} {
         set tree_key ::__xowiki_exported_category_tree([$f category_tree])
@@ -278,7 +278,7 @@ namespace eval ::xowiki {
     }
   }
   Page instproc category_import {-name -description -locale -categories} {
-    my msg "catetegoy_import [self args]"
+    #my msg "catetegoy_import [self args]"
     # ignore locale in get_id for now, since it seems broken
     set tree_id [category_tree::get_id $name]
     set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
@@ -346,6 +346,11 @@ namespace eval ::xowiki {
     my set creation_user $creation_user
     # if we import from an old database without page_order, take care about this
     if {![my exists page_order]} {my set page_order ""}
+    # handle category import
+    if {[my exists __category_command]} {
+      eval [my set __category_command]
+      #my log "reverse map: [array get ::__xowiki_reverse_category_map]"
+    }
     # in the general case, no more actions required
   }
 
@@ -373,27 +378,17 @@ namespace eval ::xowiki {
     if {![my exists anon_instances]} {
       my set anon_instances "t"
     }
-    # handle category import
-    if {[my exists __category_command]} {
-      eval [my set __category_command]
-      my log "reverse map: [array get ::__xowiki_reverse_category_map]"
-    }
     next
   }
   FormPage instproc demarshall {args} {
     my instvar page_template
     #
-    # handle category import
-    if {[my exists __category_command]} {
-      eval [my set __category_command]
-      #my msg "reverse map: [array get ::__xowiki_reverse_category_map]"
-    }
     #
     # FormPages must be demarshalled after Form, since Form builds
     # the reverse category map.
     #
     set category_ids [list]
-    #my msg "reverse map ?[info exists ::__xowiki_reverse_category_map] [my name] [$page_template exists __category_use]"
+
     if {[info exists ::__xowiki_reverse_category_map] 
         && [$page_template exists __category_use]
       } {
@@ -406,11 +401,11 @@ namespace eval ::xowiki {
       foreach {name value} [my instance_attributes] {
         #my msg "use($name) --> [info exists use($name)]"
         if {[info exists use($name)]} {
+	  #my msg "try to map value '$value' (category tree: $use($name))"
           if {[info exists ::__xowiki_reverse_category_map($value)]} {
-            my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
+            #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
             lappend ia $name $::__xowiki_reverse_category_map($value)
             lappend category_ids $::__xowiki_reverse_category_map($value)
-            my msg category_ids=$category_ids
           } elseif {$value eq ""} {
             lappend ia $name ""
           } else {

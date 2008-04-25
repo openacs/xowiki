@@ -603,103 +603,14 @@ namespace eval ::xowiki {
   Package ad_instproc import {-user_id -folder_id {-replace 0} -objects} {
     import the specified pages into the xowiki instance
   } {
-    set package_id [my id]
     if {![info exists folder_id]}  {set folder_id  [my folder_id]}
     if {![info exists user_id]}    {set user_id    [::xo::cc user_id]}
     if {![info exists objects]}    {set objects    [::xowiki::Page allinstances]}
 
     set msg "processing objects: $objects<p>"
-    set added 0
-    set replaced 0
-    set updated 0
-    set todo [list]
-
-    foreach o $objects {
-
-      # page instances have references to page templates, add these first
-      if {[$o istype ::xowiki::PageInstance]} {
-        lappend todo $o
-        continue
-      }
-      my log "importing (1st round) $o [$o name] [$o info class]"
-
-      $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
-
-      set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
-      if {$item_id != 0} {
-	if {$replace} { ;# we delete the original
-	  ::xo::db::CrClass delete -item_id $item_id
-	  set item_id 0
-	  incr replaced
-	} else {
-	  ::xo::db::CrClass get_instance_from_db -item_id $item_id
-          $item_id copy_content_vars -from_object $o
-	  $item_id save -use_given_publish_date [$item_id exists publish_date]
-	  incr updated
-	}
-      }
-      if {$item_id == 0} {
-        set n [$o save_new -use_given_publish_date [$o exists publish_date]]
-        $o set item_id $n
-        incr added
-      }
-    }
-
-    while {[llength $todo] > 0} {
-      my log "importing (2nd round) todo=$todo"
-      set c 0
-      set found 0
-      foreach o $todo {
-        $o demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
-	set old_template_id [$o set page_template]
-	set template_id [::xo::db::CrClass lookup \
-                             -name [::$old_template_id set name] \
-                             -parent_id $folder_id ]
-        if {$template_id == 0} {
-          my log "importing (2nd round) delay import of $o"
-          incr c
-        } else {
-          set todo [lreplace $todo $c $c]
-          set found 1
-          break
-        }
-      }
-      if {$found == 0} {
-        my log "can't resolve dependencies in $todo"
-        break
-      }
-      my log "importing (2nd round) process $o, todo=$todo"
-      db_transaction {
-        set item_id [::xo::db::CrClass lookup -name [$o set name] -parent_id $folder_id]
-        if {$item_id != 0} {
-          if {$replace} { ;# we delete the original
-            ::xo::db::CrClass delete -item_id $item_id
-            set item_id 0
-            incr replaced
-          } else {
-            ::xo::db::CrClass get_instance_from_db -item_id $item_id
-            $item_id copy_content_vars -from_object $o
-            $item_id set page_template $template_id
-            $item_id save -use_given_publish_date [$item_id exists publish_date]
-            incr updated
-          }
-        }
-        if {$item_id == 0} {  ;# the item does not exist -> update reference and save
-          $o set page_template $template_id
-          set n [$o save_new -use_given_publish_date [$o exists publish_date]]
-          $o set item_id $n
-          incr added
-        }
-      }
-    }
-    foreach o $objects {
-      if {[$o exists __category_ids]} {
-        my msg "$o map_categories [$o set __category_ids] // [$o item_id]"
-        $o map_categories [$o set __category_ids]
-      }
-      $o destroy
-    }
-    append msg "$added objects newly inserted, $updated objects updated, $replaced objects replaced<p>"
+    set importer [Importer new -package_id [my id] -folder_id $folder_id -user_id $user_id]
+    $importer import_all -replace $replace -objects $objects
+    append msg [$importer report]
   }
 
   #
@@ -968,6 +879,9 @@ namespace eval ::xowiki {
       ::xo::clusterwide ns_cache flush xowiki_cache $entry
     }
   }
+
+
+
 
   #
   # policy management
