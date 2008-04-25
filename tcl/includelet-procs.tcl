@@ -197,7 +197,7 @@ namespace eval ::xowiki::includelet {
       foreach cid_and [split $cid_or ,] {
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
-           where object_id = p.item_id and category_id = $cid_and)"
+           where object_id = $item_ref and category_id = $cid_and)"
       }
       lappend or_names "[join $and_names { and }]"
       lappend ors "([join $ands { and }])"
@@ -495,12 +495,28 @@ namespace eval ::xowiki::includelet {
         [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
 
     set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
-    set trees [expr {$have_locale ?
+    set mapped_trees [expr {$have_locale ?
                      [category_tree::get_mapped_trees $package_id $locale] :
                      [category_tree::get_mapped_trees $package_id]}]
-    foreach tree $trees {
+
+    set trees [list]
+    foreach tree $mapped_trees {
       foreach {tree_id my_tree_name ...} $tree {break}
       if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
+      lappend trees [list $tree_id $my_tree_name]
+    }
+
+    if {[llength $trees] == 0 && $tree_name ne ""} {
+      # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
+      # try to get these
+      foreach name $tree_name {
+        #lappend trees [list [lindex [category_tree::get_id $tree_name $locale] 0]  $name]
+        lappend trees [list [lindex [category_tree::get_id $tree_name] 0] $name]
+      }
+    }
+    
+    foreach tree $trees {
+      foreach {tree_id my_tree_name ...} $tree {break}
       if {!$no_tree_name} {
         append content "<h3>$my_tree_name</h3>"
       }
@@ -2625,6 +2641,7 @@ namespace eval ::xowiki::includelet {
           {-orderby "_last_modified,desc"}
           {-publish_status "ready"}
           {-field_names}
+          {-category_id}
           {-unless}
           {-where}
           {-csv true}
@@ -2710,16 +2727,21 @@ namespace eval ::xowiki::includelet {
     #
     # build SQL query and iterate over the results
     # 
+    my log "exists category_id [info exists category_id]"
+    set extra_where_clause ""
+    if {[info exists category_id]} {
+      foreach {cnames extra_where_clause} [my category_clause $category_id bt.item_id] break
+    }
     set items [::xowiki::FormPage get_children \
                    -base_item_id $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
+                   -extra_where_clause $extra_where_clause \
                    -h_where $wc(h) \
                    -folder_id [$package_id folder_id]]
     my log "query done"
 
-    my log "insert into table"
     foreach p [$items children] {
       $p set package_id $package_id
       array set __ia $init_vars
@@ -2744,7 +2766,6 @@ namespace eval ::xowiki::includelet {
         $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
     }
-    my log "insert into table done"
 
     my instvar name
     set includelet_key ""

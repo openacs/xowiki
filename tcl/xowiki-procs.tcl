@@ -1652,6 +1652,7 @@ namespace eval ::xowiki {
       -folder_id 
       -form_fields 
       {-publish_status ready}
+      {-extra_where_clause ""}
       {-h_where}
       {-always_queried_attributes {_name _last_modified _creation_user}}
     } {
@@ -1699,8 +1700,8 @@ namespace eval ::xowiki {
       set publish_status_clause " and ([join $clauses { or }])"
     }
     set filter_clause ""
-    if {[info exists h_where] && [::xo::db::has_hstore]} {
-      #set filter_clause " and '$h_where' <@ bt.hkey"
+    if {[info exists h_where] && $h_where ne "" && [::xo::db::has_hstore]} {
+      set filter_clause " and '$h_where' <@ bt.hkey"
     }
 
     set orderby ""; set page_size 20; set page_number ""; set base_table "cr_revisions"
@@ -1708,7 +1709,7 @@ namespace eval ::xowiki {
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
 		    -where_clause " bt.page_template = $base_item_id \
-			$publish_status_clause $filter_clause" \
+			$publish_status_clause $filter_clause $extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \
 		    -folder_id $folder_id \

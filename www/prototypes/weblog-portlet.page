@@ -41,6 +41,12 @@
         "<span class='date'>$pretty_date</span></p>" \
         $description $more $my_footer \n\
         "</DIV>"
+    if {[my do_substitutions] == 0} {
+      # the including weblog will do otherwise the substitutions
+      set content [string map [list "\{\{" "\\\{\{"] $content]
+    }
+    #my log "--W entry done [self] [my info class] subst=[my do_substitutions] [my name]"
+    return $content
   }
 
   #

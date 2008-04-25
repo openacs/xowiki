@@ -389,11 +389,23 @@ namespace eval ::xowiki {
       }
       copy_parameter top_portlet top_includelet
     }
+
     set v 0.83
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
       ::xowiki::add_ltree_order_column
+    }
+
+    set v 0.86
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page weblog
+	$package_id import_prototype_page weblog-portlet
+      }
     }
   }
 
