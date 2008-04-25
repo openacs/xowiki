@@ -264,7 +264,21 @@ namespace eval ::xowiki {
     my log "data=[array get data]"
     my log "cmd=$cmd"
   }
+  Page instproc category_export_referenced_categories {form_fields} {
+    my log "--ff=$form_fields"
+    foreach f $form_fields {
+      if {[$f exists category_tree]} {
+        set tree_key ::__xowiki_exported_category_tree([$f category_tree])
+        my lappend __category_use [$f name] [$f category_tree]
+        if {[info exists $tree_key]} continue
+        set $tree_key 1
+        my log "name [my name] uses [$f category_tree]"
+        my category_export [$f category_tree]
+      }
+    }
+  }
   Page instproc category_import {-name -description -locale -categories} {
+    my msg "catetegoy_import [self args]"
     # ignore locale in get_id for now, since it seems broken
     set tree_id [category_tree::get_id $name]
     set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
@@ -286,34 +300,34 @@ namespace eval ::xowiki {
     }
   }
 
+
   Form instproc marshall {} {
     set form_fields [my create_form_fields_from_form_constraints \
                          [my get_form_constraints]]
-    foreach f $form_fields {
-      if {[$f exists category_tree]} {
-        set tree_key ::__xowiki_exported_category_tree([$f category_tree])
-        my lappend __category_use [$f name] [$f category_tree]
-        if {[info exists $tree_key]} continue
-        set $tree_key 1
-        my log "name [my name] uses [$f category_tree]"
-        my category_export [$f category_tree]
-      }
-    }
+    my log "--ff=$form_fields"
+    my category_export_referenced_categories $form_fields
     next
   }
 
   FormPage instproc marshall {} {
+    # handle form_fields for derived instances
+    set form_fields [my create_form_fields_from_form_constraints \
+                         [my get_form_constraints]]
+    #my log "--ff2=$form_fields"
+    my category_export_referenced_categories $form_fields
+
+    # handle form_fields in associated parent
     my instvar page_template
     if {[$page_template exists __category_map]} {
-      my log "we have a category_map"
+      #my log "we have a category_map"
       array set cm [$page_template set __category_map]
       array set use [$page_template set __category_use]
       set ia [list]
       foreach {name value} [my instance_attributes] {
-        my log "check $name $value [info exists use($name)] [info exists cm($value)]"
+        #my log "check $name $value [info exists use($name)] [info exists cm($value)]"
         if {[info exists use($name)] && [info exists cm($value)]} {
           lappend ia $name $cm($value)
-          my log "...mapped to $name $cm($value)"
+          my msg "...[my name] field: $name $value mapped to $cm($value)"
         } else {
           lappend ia $name $value
         }
@@ -367,23 +381,36 @@ namespace eval ::xowiki {
     next
   }
   FormPage instproc demarshall {args} {
+    my instvar page_template
+    #
+    # handle category import
+    if {[my exists __category_command]} {
+      eval [my set __category_command]
+      #my msg "reverse map: [array get ::__xowiki_reverse_category_map]"
+    }
     #
     # FormPages must be demarshalled after Form, since Form builds
     # the reverse category map.
     #
-    #my log "reverse map ?[info exists ::__xowiki_reverse_category_map]"
-    if {[info exists ::__xowiki_reverse_category_map]} {
+    set category_ids [list]
+    #my msg "reverse map ?[info exists ::__xowiki_reverse_category_map] [my name] [$page_template exists __category_use]"
+    if {[info exists ::__xowiki_reverse_category_map] 
+        && [$page_template exists __category_use]
+      } {
       #my log "we have a category_map"
       #
       # replace all symbolic category values by the mapped IDs
       #
       set ia [list]
-      array set use [[my page_template] set __category_use]
+      array set use [$page_template set __category_use]
       foreach {name value} [my instance_attributes] {
+        #my msg "use($name) --> [info exists use($name)]"
         if {[info exists use($name)]} {
           if {[info exists ::__xowiki_reverse_category_map($value)]} {
-            #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
+            my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
             lappend ia $name $::__xowiki_reverse_category_map($value)
+            lappend category_ids $::__xowiki_reverse_category_map($value)
+            my msg category_ids=$category_ids
           } elseif {$value eq ""} {
             lappend ia $name ""
           } else {
@@ -400,7 +427,9 @@ namespace eval ::xowiki {
       my set instance_attributes $ia
       #my log "saving instance_attributes $ia"
     }
-    next
+    set r [next]
+    my set __category_ids [lsort -unique $category_ids]
+    return $r
   }
 
   ############################################
@@ -1878,6 +1907,12 @@ namespace eval ::xowiki {
     my array unset __field_in_form
   }
 
+  Page instproc map_categories {category_ids} {
+    # could be optimized, if we do not want to have categories (form constraints?)
+    my log "--category::map_object -remove_old -object_id [my item_id] <$category_ids>"
+    category::map_object -remove_old -object_id [my item_id] $category_ids
+  }
+
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my unset_temporary_instance_variables
@@ -1893,8 +1928,7 @@ namespace eval ::xowiki {
           my set publish_status "ready"
         }
       }
-       # could be optimized, if we do not want to have categories (form constraints?)
-      category::map_object -remove_old -object_id [my item_id] $category_ids
+      my map_categories $category_ids
 
       my save -use_given_publish_date $use_given_publish_date
       # my log "-- old_name $old_name, name $name"

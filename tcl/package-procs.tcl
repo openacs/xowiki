@@ -640,6 +640,7 @@ namespace eval ::xowiki {
       }
       if {$item_id == 0} {
         set n [$o save_new -use_given_publish_date [$o exists publish_date]]
+        $o set item_id $n
         incr added
       }
     }
@@ -685,12 +686,19 @@ namespace eval ::xowiki {
         }
         if {$item_id == 0} {  ;# the item does not exist -> update reference and save
           $o set page_template $template_id
-          $o save_new -use_given_publish_date [$o exists publish_date]
+          set n [$o save_new -use_given_publish_date [$o exists publish_date]]
+          $o set item_id $n
           incr added
         }
       }
     }
-    foreach o $objects {$o destroy}
+    foreach o $objects {
+      if {[$o exists __category_ids]} {
+        my msg "$o map_categories [$o set __category_ids] // [$o item_id]"
+        $o map_categories [$o set __category_ids]
+      }
+      $o destroy
+    }
     append msg "$added objects newly inserted, $updated objects updated, $replaced objects replaced<p>"
   }
 
