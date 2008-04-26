@@ -287,7 +287,7 @@ namespace eval ::xowiki {
       my log "...importing category tree $name"
       category_tree::import -name $name -description $description \
           -locale $locale -categories $categories
-      set tree_id [category_tree::get_id $tree_name]
+      set tree_id [category_tree::get_id $name]
     }
     #
     # build reverse category_map

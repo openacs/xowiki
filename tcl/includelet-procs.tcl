@@ -515,7 +515,13 @@ namespace eval ::xowiki::includelet {
         lappend trees [list [lindex [category_tree::get_id $tree_name] 0] $name]
       }
     }
-    #my msg "[llength $trees] == 0 && $tree_name"
+
+    #my msg "nr trees = [llength $trees] && $tree_name"
+    if {[llength $trees] == 0} {
+      # safety net
+      return ""
+    }
+
     foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
       if {!$no_tree_name} {
@@ -539,11 +545,11 @@ namespace eval ::xowiki::includelet {
         set category($cid) $c
         lappend categories $cid
       }
-      
+     
       set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
 		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
 		and ci.content_type not in ('::xowiki::PageTemplate') \
-		and category_id in ([join $categories ,]) \
+		and c.category_id in ([join $categories ,]) \
 		and r.revision_id = ci.live_revision \
 		and p.page_id = r.revision_id \
                 and ci.publish_status <> 'production'"
