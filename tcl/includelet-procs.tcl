@@ -516,10 +516,11 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    #my msg "nr trees = [llength $trees] && $tree_name"
+    #my msg "nr trees = [llength $trees], tree:name = '$tree_name'"
     if {[llength $trees] == 0} {
-      # safety net
-      return ""
+      error "No category tree found\n\
+	(mapped trees = [llength $mapped_trees],\n\
+	tree_name = '$tree_name')"
     }
 
     foreach tree $trees {
