@@ -186,12 +186,12 @@ namespace eval ::xowiki {
   Page array set RE {
     include {{{([^<]+?)}}([&<\s]|$)}
     anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
-    div     {&gt;&gt;([^&<]*?)&lt;&lt;()([ \n]*)?}
+    div     {&gt;&gt;([^&<]*?)&lt;&lt;([ \n]*)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
     clean2  { <br */?> *(<div)}
   }
-  Page set markupmap(escape)   [list "\\\[\[" \03\01 "\\\{\{" \03\02  {\\&lt;&lt;} \03\03]
-  Page set markupmap(unescape) [list \03\01 "\[\["    \03\02 "\{\{"   \03\03 {&lt;&lt;}  ]
+  Page set markupmap(escape)   [list "\\\[\[" \03\01 "\\\{\{" \03\02  "\\&gt;&gt;" \03\03]
+  Page set markupmap(unescape) [list \03\01 "\[\["    \03\02 "\{\{"   \03\03 "&gt;&gt;"  ]
 
   #
   # templating and CSS
@@ -1238,12 +1238,12 @@ namespace eval ::xowiki {
   PlainPage array set RE {
     include {{{(.+?)}}([ \n\r])}
     anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
-    div     {()>>([^<]*?)<<}
+    div     {>>([^<]*?)<<}
     clean   {[\\](\{\{|>>|\[\[)}
     clean2  {(--DUMMY NOT USED--)}
   }
-  PlainPage set markupmap(escape)   [list "\\\[\["  \03\01  "\\\{\{"  \03\02   {\<<}  \03\03]
-  PlainPage set markupmap(unescape) [list  \03\01 "\[\["     \03\02 "\{\{"      \03\03 {<<}]
+  PlainPage set markupmap(escape)   [list "\\\[\["  \03\01  "\\\{\{"  \03\02   {\>>}  \03\03]
+  PlainPage set markupmap(unescape) [list  \03\01 "\[\["     \03\02 "\{\{"      \03\03 {>>}]
 
 
   PlainPage instproc get_content {} {

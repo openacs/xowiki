@@ -2007,7 +2007,7 @@ namespace eval ::xowiki::includelet {
         }
         default { 
           set content [$p get_content]
-          set content [string map [list "\{\{" "\\\{\{"] $content]
+          #set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
       set menu [list]
