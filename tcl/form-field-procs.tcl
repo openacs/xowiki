@@ -6,7 +6,7 @@ ad_library {
     @cvs-id $Id$
 }
 
-namespace eval ::xowiki {
+namespace eval ::xowiki::formfield {
 
   # Second approximation for form fields.
   # FormFields are objects, which can be outputed as well in ad_forms
@@ -28,7 +28,7 @@ namespace eval ::xowiki {
   # ::xowiki::FormField (Base Class)
   #
   ###########################################################
-  Class FormField -superclass ::xo::tdom::Object -parameter {
+  Class create FormField -superclass ::xo::tdom::Object -parameter {
     {required false} 
     {display_field true} 
     {hide_value false} 
@@ -66,7 +66,7 @@ namespace eval ::xowiki {
   FormField instproc validate {obj} {
     my instvar name required value
 
-    if {$required && $value eq "" && ![my istype ::xowiki::FormField::hidden]} {
+    if {$required && $value eq "" && ![my istype ::xowiki::formfield::hidden]} {
       my instvar label
       return [_ acs-templating.Element_is_required]
     }
@@ -111,13 +111,13 @@ namespace eval ::xowiki {
   }
 
   FormField instproc reset_parameter {} {
-    # reset application specific parameters (defined below ::xowiki::FormField)
+    # reset application specific parameters (defined below ::xowiki::formfield::FormField)
     # such that searchDefaults will pick up the new defaults, when a form field
     # is reclassed.
 
     #my msg "reset along [my info precedence]"
     foreach c [my info precedence] {
-      if {$c eq "::xowiki::FormField"} break
+      if {$c eq "::xowiki::formfield::FormField"} break
       foreach s [$c info slots] {
         if {![$s exists default]} continue
 	set var [$s name]
@@ -154,7 +154,7 @@ namespace eval ::xowiki {
   }
   
   FormField instproc remove_omit {} {
-    set m ::xowiki::FormField::omit
+    set m ::xowiki::formfield::omit
     if {[my ismixin $m]} {my mixin delete $m}
   }
 
@@ -172,7 +172,7 @@ namespace eval ::xowiki {
     switch -glob $s {
       optional    {my set required false}
       required    {my set required true; my remove_omit}
-      omit        {my mixin add ::xowiki::FormField::omit}
+      omit        {my mixin add ::xowiki::formfield::omit}
       noomit      {my remove_omit}
       disabled    {my disabled disabled}
       enabled     {my unset -nocomplain disabled}
@@ -401,16 +401,16 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::submit_button
+  # ::xowiki::formfield::submit_button
   #
   ###########################################################
 
-  Class FormField::submit_button -superclass FormField 
-  FormField::submit_button  instproc initialize {} {
+  Class submit_button -superclass FormField 
+  submit_button  instproc initialize {} {
     my set type submit
     my set value [::xo::localize [_ xowiki.Form-submit_button]]
   }
-  FormField::submit_button instproc render_input {} {
+  submit_button instproc render_input {} {
     # don't disable submit buttons
     if {[my type] eq "submit"} {my unset -nocomplain disabled}
     ::html::input [my get_attributes name type {CSSclass class} value disabled] {}
@@ -419,121 +419,121 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::hidden
+  # ::xowiki::formfield::hidden
   #
   ###########################################################
 
-  Class FormField::hidden -superclass FormField
-  FormField::hidden instproc initialize {} {
+  Class hidden -superclass FormField
+  hidden instproc initialize {} {
     my type hidden
     my set widget_type text(hidden)
     # remove mixins in case of retyping
     my mixin ""
   }
-  FormField::hidden instproc render_item {} {
+  hidden instproc render_item {} {
     # don't render the labels
     my render_form_widget
   }
-  FormField::hidden instproc render_help_text {} {
+  hidden instproc render_help_text {} {
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::omit
+  # ::xowiki::formfield::omit
   #
   ###########################################################
 
-  Class FormField::omit -superclass FormField
-  FormField::omit instproc render_item {} {
+  Class omit -superclass FormField
+  omit instproc render_item {} {
     # don't render the labels
     #my render_form_widget
   }
-  FormField::omit instproc render_help_text {} {
+  omit instproc render_help_text {} {
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::inform
+  # ::xowiki::formfield::inform
   #
   ###########################################################
   
-  Class FormField::inform -superclass FormField
-  FormField::inform instproc initialize {} {
+  Class inform -superclass FormField
+  inform instproc initialize {} {
     my type hidden
     my set widget_type text(inform)
   }
-  FormField::inform instproc render_input {} {
+  inform instproc render_input {} {
     ::html::t [my value]
     ::html::input [my get_attributes type id name value disabled {CSSclass class}] {}
   }
-  FormField::inform instproc render_help_text {} {
+  inform instproc render_help_text {} {
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::text
+  # ::xowiki::formfield::text
   #
   ###########################################################
 
-  Class FormField::text -superclass FormField -parameter {
+  Class text -superclass FormField -parameter {
     {size 80}
     maxlength
   }
-  FormField::text instproc initialize {} {
+  text instproc initialize {} {
     my type text
     my set widget_type text
     foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
   ###########################################################
   #
-  # ::xowiki::FormField::password
+  # ::xowiki::formfield::password
   #
   ###########################################################
 
-  Class FormField::password -superclass FormField::text 
-  FormField::password instproc initialize {} {
+  Class password -superclass text 
+  password instproc initialize {} {
     next
     my set widget_type password
     my type password
   }
   ###########################################################
   #
-  # ::xowiki::FormField::numeric
+  # ::xowiki::formfield::numeric
   #
   ###########################################################
 
-  Class FormField::numeric -superclass FormField::text \
+  Class numeric -superclass text \
       -extend_slot validator numeric
-  FormField::numeric instproc initialize {} {
+  numeric instproc initialize {} {
     next
     my set widget_type numeric
   }
-  FormField::numeric instproc check=numeric {value} {
+  numeric instproc check=numeric {value} {
     return [string is double $value]
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::user_id
+  # ::xowiki::formfield::user_id
   #
   ###########################################################
 
-  Class FormField::user_id -superclass FormField::numeric -parameter {
+  Class user_id -superclass numeric -parameter {
   }
-  FormField::user_id instproc pretty_value {v} {
+  user_id instproc pretty_value {v} {
     return [::xo::get_user_name $v]
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::url
+  # ::xowiki::formfield::url
   #
   ###########################################################
 
-  Class FormField::url -superclass FormField::text -parameter {
+  Class url -superclass text -parameter {
     {link_label}
   }
-  FormField::url instproc pretty_value {v} {
+  url instproc pretty_value {v} {
     if {$v ne ""} {
       if {[my exists link_label]} {
         set link_label [my localize [my link_label]]
@@ -547,14 +547,14 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::detail_link
+  # ::xowiki::formfield::detail_link
   #
   ###########################################################
 
-  Class FormField::detail_link -superclass FormField::url -parameter {
+  Class detail_link -superclass url -parameter {
     {link_label "#xowiki.weblog-more#"}
   }
-  FormField::detail_link instproc pretty_value {v} {
+  detail_link instproc pretty_value {v} {
     if {$v eq ""} {
       return ""
     }
@@ -567,19 +567,19 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::textarea
+  # ::xowiki::formfield::textarea
   #
   ###########################################################
 
-  Class FormField::textarea -superclass FormField -parameter {
+  Class textarea -superclass FormField -parameter {
     {rows 2}
     {cols 80}
     {spell false}
   }
-  FormField::textarea instproc initialize {} {
+  textarea instproc initialize {} {
     my set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
-    if {![my istype ::xowiki::FormField::richtext] && [my exists editor]} {
+    if {![my istype ::xowiki::formfield::richtext] && [my exists editor]} {
       # downgrading
       #my msg "downgrading [my info class]"
       foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
@@ -588,7 +588,7 @@ namespace eval ::xowiki {
     next
   }
 
-  FormField::textarea instproc render_input {} {
+  textarea instproc render_input {} {
     ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
       ::html::t [my value]
     }
@@ -596,11 +596,11 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::richtext
+  # ::xowiki::formfield::richtext
   #
   ###########################################################
 
-  Class FormField::richtext -superclass FormField::textarea \
+  Class richtext -superclass textarea \
       -extend_slot validator safe_html \
       -parameter {
         plugins 
@@ -609,7 +609,7 @@ namespace eval ::xowiki {
         height
       }
   
-  FormField::richtext instproc editor {args} {
+  richtext instproc editor {args} {
     #
     # TODO: this should be made a slot setting
     #
@@ -622,7 +622,7 @@ namespace eval ::xowiki {
     if {$editor ne "" && ![my hasclass $editor_class]} {
       if {![my isclass $editor_class]} {
 	set editors [list]
-	foreach c [::xowiki::FormField::richtext info subclass] {
+	foreach c [::xowiki::formfield::richtext info subclass] {
           if {![$c exists editor_mixin]} continue
 	  lappend editors [namespace tail $c]
 	}
@@ -638,7 +638,7 @@ namespace eval ::xowiki {
     my set editor $editor
   }
 
-  FormField::richtext instproc initialize {} {
+  richtext instproc initialize {} {
     my display_field false
     next
     if {![my exists editor]} {my set editor xinha} ;# set the default editor
@@ -650,7 +650,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormField::richtext instproc render_richtext_as_div {} {
+  richtext instproc render_richtext_as_div {} {
     #my msg "[my get_attributes id style {CSSclass class}]"
     ::html::div [my get_attributes id style {CSSclass class}] {
       ::html::t -disableOutputEscaping [my value]
@@ -658,7 +658,7 @@ namespace eval ::xowiki {
     ::html::div
   }
 
-  FormField::richtext instproc check=safe_html {value} {
+  richtext instproc check=safe_html {value} {
     # don't check if the user has admin permissions on the package
     if {[::xo::cc permission \
                 -object_id [::xo::cc package_id] \
@@ -674,30 +674,30 @@ namespace eval ::xowiki {
     }
     return 1
   }
-  FormField::richtext instproc pretty_value {v} {
+  richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
     return [string map [list @ "&#64;"] $v]
   }
 
   ###########################################################
   #
-  # ::xowiki::FormField::richtext::wym
+  # ::xowiki::formfield::richtext::wym
   #
   ###########################################################
-  Class FormField::richtext::wym -superclass FormField::richtext -parameter {
+  Class richtext::wym -superclass richtext -parameter {
     {editor wym}
     {CSSclass wymeditor}
     width
     height
   }
-  FormField::richtext::wym set editor_mixin 1
-  FormField::richtext::wym instproc initialize {} {
+  richtext::wym set editor_mixin 1
+  richtext::wym instproc initialize {} {
     next
     my set widget_type richtext
   }
-  FormField::richtext::wym instproc render_input {} {
+  richtext::wym instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-    if {![my istype ::xowiki::FormField::richtext] || $disabled} {
+    if {![my istype ::xowiki::formfield::richtext] || $disabled} {
       my render_richtext_as_div
     } else {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
@@ -731,17 +731,17 @@ namespace eval ::xowiki {
   }
   ###########################################################
   #
-  # ::xowiki::FormField::richtext::xinha
+  # ::xowiki::formfield::richtext::xinha
   #
   ###########################################################
 
-  Class FormField::richtext::xinha -superclass FormField::richtext -parameter {
+  Class richtext::xinha -superclass richtext -parameter {
     javascript
     {height}
     {style}
   }
-  FormField::richtext::xinha set editor_mixin 1
-  FormField::richtext::xinha instproc initialize {} {
+  richtext::xinha set editor_mixin 1
+  richtext::xinha instproc initialize {} {
     next
     my set widget_type richtext
     if {![my exists plugins]} {
@@ -757,9 +757,9 @@ namespace eval ::xowiki {
     if {![my exists height]} {my set height 350px}
     if {![my exists style]} {my set style "width: 100%;"}
   }
-  FormField::richtext::xinha instproc render_input {} {
+  richtext::xinha instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-    if {![my istype ::xowiki::FormField::richtext] || $disabled} {
+    if {![my istype ::xowiki::formfield::richtext] || $disabled} {
       my render_richtext_as_div
     } else {
       # we use for the time being the initialization of xinha based on 
@@ -788,23 +788,23 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::enumeration
+  # ::xowiki::formfield::enumeration
   #
   ###########################################################
 
   # abstract superclass for select and radio
-  Class FormField::enumeration -superclass FormField -parameter {
+  Class enumeration -superclass FormField -parameter {
     {options}
     {category_tree}
   }
-  FormField::enumeration instproc initialize {} {
+  enumeration instproc initialize {} {
     if {[my exists category_tree]} {
       my config_from_category_tree [my category_tree]
     }
   }
-  FormField::enumeration abstract instproc render_input {}
+  enumeration abstract instproc render_input {}
 
-  FormField::enumeration instproc pretty_value {v} {
+  enumeration instproc pretty_value {v} {
     if {[my exists category_label($v)]} {
       return [my set category_label($v)]
     }
@@ -823,7 +823,7 @@ namespace eval ::xowiki {
       }
     }
   }
-  FormField::enumeration instproc config_from_category_tree {tree_name} {
+  enumeration instproc config_from_category_tree {tree_name} {
     # Get the options of a select or rado from the specified
     # category tree.
     #
@@ -868,18 +868,18 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::radio
+  # ::xowiki::formfield::radio
   #
   ###########################################################
 
-  Class FormField::radio -superclass FormField::enumeration -parameter {
+  Class radio -superclass enumeration -parameter {
     {horizontal false}
   }
-  FormField::radio instproc initialize {} {
+  radio instproc initialize {} {
     my set widget_type text(radio)
     next
   }
-  FormField::radio instproc render_input {} {
+  radio instproc render_input {} {
     set value [my value]
     foreach o [my options] {
       foreach {label rep} $o break
@@ -895,20 +895,20 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::select
+  # ::xowiki::formfield::select
   #
   ###########################################################
 
-  Class FormField::select -superclass FormField::enumeration -parameter {
+  Class select -superclass enumeration -parameter {
     {multiple "false"}
   }
 
-  FormField::select instproc initialize {} {
+  select instproc initialize {} {
     my set widget_type text(select)
     next
     if {![my exists options]} {my options [list]}
   }
-  FormField::select instproc render_input {} {
+  select instproc render_input {} {
     set atts [my get_attributes id name disabled]
     if {[my multiple]} {lappend atts multiple [my multiple]}
     set options [my options]
@@ -931,14 +931,14 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::form_page
+  # ::xowiki::formfield::form_page
   #
   ###########################################################
-  Class FormField::form_page -superclass FormField::select -parameter {
+  Class form_page -superclass select -parameter {
     {form}
     {as_box false}
   }
-  FormField instproc config_from_form {form_name} {
+  form_page instproc config_from_form {form_name} {
     my instvar form_obj prefix
     set form_obj [[my object] resolve_included_page_name $form_name]
     if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
@@ -962,11 +962,11 @@ namespace eval ::xowiki {
     foreach i [$items children] {lappend options [list [$i title] [$i name]]}
     my options $options
   }
-  FormField::form_page instproc initialize {} {
+  form_page instproc initialize {} {
     if {[my exists form]} {my config_from_form [my form]}
     next
   }
-  FormField::form_page instproc pretty_value {v} {
+  form_page instproc pretty_value {v} {
     my instvar form_obj prefix
     if {![info exists form_obj]} {
       error "No form specified for form_field [my name]"
@@ -1002,12 +1002,12 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::DD
+  # ::xowiki::formfield::DD
   #
   ###########################################################
 
-  Class FormField::DD -superclass FormField -superclass FormField::select
-  FormField::DD instproc initialize {} {
+  Class DD -superclass FormField -superclass select
+  DD instproc initialize {} {
     my options {
       {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} {10 10}
       {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19} {20 20}
@@ -1019,12 +1019,12 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::HH24
+  # ::xowiki::formfield::HH24
   #
   ###########################################################
 
-  Class FormField::HH24 -superclass FormField -superclass FormField::select
-  FormField::HH24 instproc initialize {} {
+  Class HH24 -superclass FormField -superclass select
+  HH24 instproc initialize {} {
     my options {
       {00  0} {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} 
       {10 10} {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19} 
@@ -1035,12 +1035,12 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::MI
+  # ::xowiki::formfield::MI
   #
   ###########################################################
 
-  Class FormField::MI -superclass FormField -superclass FormField::select
-  FormField::MI instproc value args {
+  Class MI -superclass FormField -superclass select
+  MI instproc value args {
     if {[llength $args] == 0} {return [my set value]} else {
       set v [lindex $args 0]
       if {$v eq ""} {return [my set value ""]} else {
@@ -1049,7 +1049,7 @@ namespace eval ::xowiki {
       }
     }
   }
-  FormField::MI instproc initialize {} {
+  MI instproc initialize {} {
     my options {
       {00  0} {05  5} {10 10} {15 15} {20 20} {25 25} 
       {30 30} {35 35} {40 40} {45 45} {50 50} {55 55}
@@ -1059,12 +1059,12 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::MM
+  # ::xowiki::formfield::MM
   #
   ###########################################################
 
-  Class FormField::MM -superclass FormField -superclass FormField::select
-  FormField::MM instproc initialize {} {
+  Class MM -superclass FormField -superclass select
+  MM instproc initialize {} {
     my options {
       {01  1} {02  2} {03 3} {04 4} {05 5} {06 6} {07 7} {08 8} {09 9} {10 10}
       {11 11} {12 12} 
@@ -1073,12 +1073,12 @@ namespace eval ::xowiki {
   }
   ###########################################################
   #
-  # ::xowiki::FormField::mon
+  # ::xowiki::formfield::mon
   #
   ###########################################################
 
-  Class FormField::mon -superclass FormField::select
-  FormField::mon instproc initialize {} {
+  Class mon -superclass select
+  mon instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-abmon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
@@ -1091,12 +1091,12 @@ namespace eval ::xowiki {
   }
   ###########################################################
   #
-  # ::xowiki::FormField::month
+  # ::xowiki::formfield::month
   #
   ###########################################################
 
-  Class FormField::month -superclass FormField::select
-  FormField::month instproc initialize {} {
+  Class month -superclass select
+  month instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-mon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
@@ -1110,11 +1110,11 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::YYYY
+  # ::xowiki::formfield::YYYY
   #
   ###########################################################
 
-  Class FormField::YYYY -superclass FormField::numeric -parameter {
+  Class YYYY -superclass numeric -parameter {
     {size 4}
     {maxlength 4}
   }
@@ -1122,11 +1122,11 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::image_url
+  # ::xowiki::formfield::image_url
   #
   ###########################################################
 
-  Class FormField::image_url -superclass FormField::text \
+  Class image_url -superclass text \
       -extend_slot validator image_check \
       -parameter {
         href cssclass
@@ -1135,14 +1135,14 @@ namespace eval ::xowiki {
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
       }
-  FormField::image_url instproc entry_name {value} {
+  image_url instproc entry_name {value} {
     set value [string map [list %2e .] $value]
     if {![regexp -nocase {/([^/]+)[.](gif|jpg|jpeg|png)} $value _ name ext]} {
       return ""
     }
     return image:$name.$ext
   }
-  FormField::image_url instproc check=image_check {value} {
+  image_url instproc check=image_check {value} {
     if {$value eq ""} {return 1}
     set entry_name [my entry_name $value]
     if {$entry_name eq ""} {
@@ -1177,7 +1177,7 @@ namespace eval ::xowiki {
     $file_object save_new
     return 1
   }
-  FormField::image_url instproc pretty_value {v} {
+  image_url instproc pretty_value {v} {
     set entry_name [my entry_name $v]
     if {$entry_name eq ""} {
       return ""
@@ -1264,20 +1264,20 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::label
+  # ::xowiki::formfield::label
   #
   ###########################################################
 
-  Class FormField::label -superclass FormField -parameter {
+  Class label -superclass FormField -parameter {
     {disableOutputEscaping false}
   }
-  FormField::label instproc initialize {} {next}
-  FormField::label instproc render_item {} {
+  label instproc initialize {} {next}
+  label instproc render_item {} {
     # sanity check; required and label do not fit well together
     if {[my required]} {my required false}
     next
   }
-  FormField::label instproc render_input {} {
+  label instproc render_input {} {
     if {[my disableOutputEscaping]} {
       ::html::t -disableOutputEscaping [my value]
     } else {
@@ -1287,11 +1287,11 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::date
+  # ::xowiki::formfield::date
   #
   ###########################################################
 
-  Class FormField::date -superclass CompoundField -parameter {
+  Class date -superclass CompoundField -parameter {
     {format "DD MONTH YYYY"}
     {display_format "%Y-%m-%d %T"}
   }
@@ -1299,7 +1299,7 @@ namespace eval ::xowiki {
   # supported by clock scan. These include "now", "tomorrow",
   # "yesterday", "next week", .... use _ for blanks
 
-  FormField::date instproc initialize {} {
+  date instproc initialize {} {
     #my msg "DATE has value [my value] format=[my format]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
@@ -1321,7 +1321,7 @@ namespace eval ::xowiki {
         # We add undefined formats as literal texts in the edit form
         #
         set name $element
-        set c [::xowiki::FormField::label create [self]::$name \
+        set c [::xowiki::formfield::label create [self]::$name \
                    -name [my name].$name -id [my id].$name -locale [my locale] -value $element]
         if {[lsearch [my components] $c] == -1} {my lappend components $c}
         continue
@@ -1331,7 +1331,7 @@ namespace eval ::xowiki {
       # create for each component a form field
       #
       set name $class
-      set c [::xowiki::FormField::$class create [self]::$name \
+      set c [::xowiki::formield::$class create [self]::$name \
                -name [my name].$name -id [my id].$name -locale [my locale]]
       $c set code $code
       $c set trim_zeros $trim_zeros
@@ -1340,7 +1340,7 @@ namespace eval ::xowiki {
     #my msg "DATE [my name] has value after initialize '[my value]'"
   }
 
-  FormField::date instproc set_compound_value {value} {
+  date instproc set_compound_value {value} {
     #my msg "[my name] original value '[my value]' // passed='$value'"
     set value [::xo::db::tcl_date $value tz]
     #my msg "transformed value '$value'"
@@ -1358,7 +1358,7 @@ namespace eval ::xowiki {
 
     # set the value parts for each components
     foreach c [my components] {
-      if {[$c istype ::xowiki::FormField::label]} continue
+      if {[$c istype ::xowiki::formfield::label]} continue
       if {$ticks ne ""} {
 	set value_part [clock format $ticks -format [$c set code]]
 	if {[$c set trim_zeros]} {
@@ -1373,7 +1373,7 @@ namespace eval ::xowiki {
     }
   }
   
-  FormField::date instproc get_compound_value {} {
+  date instproc get_compound_value {} {
     # Set the internal representation of the date based on the components values.
     # Internally, the ansi date format is used.
     set year ""; set month ""; set day ""; set hour ""; set min ""; set sec ""
@@ -1398,7 +1398,7 @@ namespace eval ::xowiki {
     return [clock format $ticks -format "%Y-%m-%d %T"]
   }
 
-  FormField::date instproc pretty_value {v} {
+  date instproc pretty_value {v} {
     #
     # Internally, we use the ansi date format. For displaying the date, 
     # use the specified display format and present the time localized.
@@ -1409,7 +1409,7 @@ namespace eval ::xowiki {
     return [lc_time_fmt $v [string map [list _ " "] [my display_format]] [my locale]]
   }
 
-  FormField::date instproc render_input {} {
+  date instproc render_input {} {
     #
     # render the content inline withing a fieldset, without labels etc.
     #
@@ -1425,13 +1425,13 @@ namespace eval ::xowiki {
   #
   ###########################################################
 
-  Class FormField::boolean -superclass FormField::radio -parameter {
+  Class boolean -superclass radio -parameter {
     {default t}
   }
-  FormField::boolean instproc value_if_nothing_is_returned_from_from {default} {
+  boolean instproc value_if_nothing_is_returned_from_from {default} {
     return f
   }
-  FormField::boolean instproc initialize {} {
+  boolean instproc initialize {} {
     # should be with cvs head message catalogs:
     # my options {{#acs-kernel.common_No# f} {#acs-kernel.common_Yes# t}}
     my options {{No f} {#acs-kernel.common_Yes# t}}
@@ -1440,12 +1440,12 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::scale
+  # ::xowiki::formfield::scale
   #
   ###########################################################
 
-  Class FormField::scale -superclass FormField::radio -parameter {{n 5} {horizontal true}}
-  FormField::scale instproc initialize {} {
+  Class scale -superclass radio -parameter {{n 5} {horizontal true}}
+  scale instproc initialize {} {
     my instvar n
     set options [list]
     for {set i 1} {$i <= $n} {incr i} {
@@ -1459,14 +1459,14 @@ namespace eval ::xowiki {
 
   ###########################################################
   #
-  # ::xowiki::FormField::event
+  # ::xowiki::formfield::event
   #
   ###########################################################
 
-  Class FormField::event -superclass CompoundField -parameter {
+  Class event -superclass CompoundField -parameter {
   }
 
-  FormField::event instproc initialize {} {
+  event instproc initialize {} {
     #my msg "EVENT has value [my value]"
     my set widget_type event
     my set structure {
@@ -1481,14 +1481,14 @@ namespace eval ::xowiki {
       #
       # create for each component a form field
       #
-      set c [::xowiki::FormField create [self]::$name \
+      set c [::xowiki::formfield::FormField create [self]::$name \
                  -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
       my set component_index([my name].$name) $c
       my lappend components $c
     }
   }
 
-  FormField::event instproc get_compound_value {} {
+  event instproc get_compound_value {} {
     set dtstart  [my get_component dtstart]
     set dtend    [my get_component dtend]
     set end_day  [lindex [$dtstart value] 0]
@@ -1498,7 +1498,7 @@ namespace eval ::xowiki {
     next
   }
 
-  FormField::event instproc pretty_value {v} {
+  event instproc pretty_value {v} {
     array set {} [my value]
     set dtstart [my get_component dtstart]
     set dtstart_val [$dtstart value]

@@ -97,7 +97,7 @@ namespace eval ::xowiki {
                    -spec [lindex $__spec 1] \
                   ]
 
-        if {[$f istype ::xowiki::FormField::richtext] &&
+        if {[$f istype ::xowiki::formfield::richtext] &&
             [my folderspec] ne ""} {
           # insert the folder id into the spec for the 
           # oacsfs plugin to access the correct filestore instance

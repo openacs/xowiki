@@ -2402,6 +2402,7 @@ namespace eval ::xowiki::includelet {
                    -orderby "revision_id desc" \
                    -limit $max_activities]
 
+    #my msg "tmp exists [::xo::db::require exists_table XOWIKI_TMP_ACTIVITY]"
     set tt [::xo::db::temp_table new \
                 -name XOWIKI_TMP_ACTIVITY \
                 -query $query \
@@ -2689,7 +2690,7 @@ namespace eval ::xowiki::includelet {
     foreach fn $field_names {
       append cols [list AnchorField $fn \
 		       -label [$__ff($fn) label] \
-		       -richtext [$__ff($fn) istype ::xowiki::FormField::richtext] \
+		       -richtext [$__ff($fn) istype ::xowiki::formfield::richtext] \
 		       -orderby $fn] \n
     }
     append cols [list ImageField_DeleteIcon delete -label ""    ] \n

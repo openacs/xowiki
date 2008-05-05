@@ -376,7 +376,7 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
-    set f [FormField new -name $name \
+    set f [::xowiki::formfield::FormField new -name $name \
                -id        [::xowiki::Includelet html_id F.[my name].$name] \
                -locale    [my nls_language] \
                -label     $label \
@@ -532,7 +532,7 @@ namespace eval ::xowiki {
         }
         lappend options [list $category_name $category_id]
       }
-      set f [FormField new \
+      set f [::xowiki::formfield::FormField new \
                  -name "__category_${tree_name}_$tree_id" \
                  -locale [my nls_language] \
                  -label $tree_name \
@@ -886,7 +886,7 @@ namespace eval ::xowiki {
 
       foreach form_field $form_fields {
         # fix richtext content in accordance with oacs conventions
-        if {[$form_field istype ::xowiki::FormField::richtext]} {
+        if {[$form_field istype ::xowiki::formfield::richtext]} {
           $form_field value [list [$form_field value] text/html]
         }
       }
@@ -951,7 +951,7 @@ namespace eval ::xowiki {
 
   FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
     ::html::div -class form-button {
-      set f [::xowiki::FormField::submit_button new -destroy_on_cleanup \
+      set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
                  -name __form_button_ok \
                  -CSSclass $CSSclass]
       $f render_input
@@ -1000,7 +1000,7 @@ namespace eval ::xowiki {
     if {$anon_instances} {
       $name_field config_from_spec hidden
     } else {
-      if {[$name_field istype ::xowiki::FormField::hidden]} {
+      if {[$name_field istype ::xowiki::formfield::hidden]} {
         $name_field config_from_spec text,required
         $name_field type text
       }
@@ -1063,7 +1063,7 @@ namespace eval ::xowiki {
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
       if {[my is_new_entry [my name]]} {
-	if {![$ff(_title) istype ::xowiki::FormField::hidden]} {
+	if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
 	  $ff(_title) value ""
 	}
 	if {!$anon_instances} {$ff(_name) value ""}
@@ -1128,11 +1128,11 @@ namespace eval ::xowiki {
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f ismixin "::xowiki::FormField::richtext::wym"]} {
+        } elseif {[$f ismixin "::xowiki::formfield::richtext::wym"]} {
           set submit_button_class "wymupdate"
         } elseif {[$f istype "::xowiki::CompoundField"]} {
           foreach c [$f components] {
-            if {[$c istype "::xowiki::FormField::richtext::wym"]} {
+            if {[$c istype "::xowiki::formfield::richtext::wym"]} {
               set submit_button_class "wymupdate"; break
             }
           }

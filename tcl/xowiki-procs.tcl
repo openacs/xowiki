@@ -1187,7 +1187,7 @@ namespace eval ::xowiki {
     if {[info exists $marker]} return
 
     foreach n $nodes {
-      if {![$n istype ::xowiki::FormField]} continue
+      if {![$n istype ::xowiki::formfield::FormField]} continue
       set ::_form_field_names([$n name]) $n
       my form_field_index [$n info children]
     }
@@ -1425,7 +1425,7 @@ namespace eval ::xowiki {
     #my msg "short_spec for $name = '$short_spec'"
 
     if {$short_spec ne ""} {
-      set f [FormField new -volatile -name $name -spec $short_spec]
+      set f [::xowiki::formfield::FormField new -volatile -name $name -spec $short_spec]
       return [$f pretty_value $value]
     }
     return $value
