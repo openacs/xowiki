@@ -2385,6 +2385,7 @@ namespace eval ::xowiki::includelet {
         }}
       }
   
+
   activity-graph instproc render {} {
     my get_parameters
 
@@ -2392,30 +2393,24 @@ namespace eval ::xowiki::includelet {
       return "You must login to see the [namespace tail [self class]]"
     }
 
-    set folder_id [$package_id folder_id]    
-    
-    # there must be a better way to handle temporaray tables safely....
-    catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE}}
-
-    set sql "create global temporary table XOWIKI_TEMP_TABLE on commit preserve rows as "
-    set subquery [::xo::db::sql select \
-                    -vars "i.item_id, revision_id, creation_user" \
-                    -from "cr_revisions cr, cr_items i, acs_objects o" \
-                    -where "cr.item_id = i.item_id and i.parent_id = $folder_id \
+    set query [::xo::db::sql select \
+                   -vars "i.item_id, revision_id, creation_user" \
+                   -from "cr_revisions cr, cr_items i, acs_objects o" \
+                   -where "cr.item_id = i.item_id \
+                            and i.parent_id = [$package_id folder_id] \
                             and o.object_id = revision_id" \
-                    -orderby "revision_id desc" \
-                    -limit $max_activities]
-    
-    # this is currently a rather ugly hack to get the suff quicky working in oracle.
-    # TODO: cleanup, different methods for oracle and postgres for handling temporary tables
-    if {[catch {db_dml [my qn get_n_most_recent_contributions] $sql$subquery}]} {
-       db_dml . "insert into XOWIKI_TEMP_TABLE (item_id,revision_id,creation_user) ($subquery)"
-    }
+                   -orderby "revision_id desc" \
+                   -limit $max_activities]
 
+    set tt [::xo::db::temp_table new \
+                -name XOWIKI_TMP_ACTIVITY \
+                -query $query \
+                -vars "item_id, revision_id, creation_user"]
+    
     set total 0
     db_foreach [my qn get_activities] {
-      select count(revision_id),item_id, creation_user  
-      from XOWIKI_TEMP_TABLE 
+      select count(revision_id) as count, item_id, creation_user  
+      from XOWIKI_TMP_ACTIVITY
       where creation_user is not null 
       group by item_id, creation_user
     } {
@@ -2426,10 +2421,7 @@ namespace eval ::xowiki::includelet {
       incr $count_var $count
       set user($creation_user) "[::xo::get_user_name $creation_user] ([set $count_var])"
     }
-
-    if {[catch {db_dml [my qn drop_temp_table] {drop table XOWIKI_TEMP_TABLE}} ]} {
-      db_dml [my qn trunc_temp_table] {truncate table XOWIKI_TEMP_TABLE }
-    }
+    $tt destroy
 
     if {[array size i] == 0} {
       append result "<p>No activities found</p>"
