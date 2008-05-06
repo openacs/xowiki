@@ -1678,7 +1678,7 @@ namespace eval ::xowiki {
       -form_fields 
       {-publish_status ready}
       {-extra_where_clause ""}
-      {-h_where}
+      {-h_where ""}
       {-always_queried_attributes {_name _last_modified _creation_user}}
     } {
     #
@@ -1724,9 +1724,11 @@ namespace eval ::xowiki {
       }
       set publish_status_clause " and ([join $clauses { or }])"
     }
+
     set filter_clause ""
-    if {[info exists h_where] && $h_where ne "" && [::xo::db::has_hstore]} {
-      set filter_clause " and '$h_where' <@ bt.hkey"
+    array set wc $h_where
+    if {$h_where ne "" && [::xo::db::has_hstore]} {
+      set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
 
     set orderby ""; set page_size 20; set page_number ""; set base_table "cr_revisions"
@@ -1745,6 +1747,16 @@ namespace eval ::xowiki {
     my log $sql
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class ::xowiki::FormPage]
+    my log nr_items=[$items children]
+
+    if {$h_where ne "" && ![::xo::db::has_hstore]} {
+      set init_vars $hw(vars)
+      foreach p [$items children] {
+        array set __ia $init_vars
+        array set __ia [$p instance_attributes]
+        if {![expr $wc(tcl)]} {$items delete $p}
+      }
+    }
     return $items
   }
 

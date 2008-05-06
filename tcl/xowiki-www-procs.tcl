@@ -747,6 +747,7 @@ namespace eval ::xowiki {
     #my msg "--set instance attributes to [array get __ia]"
     my instance_attributes [array get __ia]
     my array set __ia [my instance_attributes]
+    #my msg category_ids=$category_ids
     return [list $validation_errors [lsort -unique $category_ids]]
   }
 

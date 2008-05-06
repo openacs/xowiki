@@ -479,6 +479,7 @@ namespace eval ::xowiki::includelet {
           {-order_items_by "title,asc"}
           {-category_ids ""}
           {-except_category_ids ""}
+          {-ordered_composite}
         }}
       }
 
@@ -546,14 +547,37 @@ namespace eval ::xowiki::includelet {
         set category($cid) $c
         lappend categories $cid
       }
-     
-      set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
+
+      if {[info exists ordered_composite]} {
+        set items [list]
+        foreach c [$ordered_composite children] {lappend items [$c item_id]}
+        if {[llength $items]<1} {set items -4711}
+
+        if {$count} {
+          set sql "category_object_map c
+             where c.object_id in ([join $items ,]) "
+        } else {
+          # TODO: the non-count-part for the ordered_composite is not
+          # tested yet. Although "ordered compostite" can be used
+          # only programmatically for now, the code below should be
+          # tested. It would be as well possible to obtain titles and
+          # names etc. from the ordered composite, resulting in a
+          # faster SQL like above.
+          set sql "category_object_map c, cr_items ci, cr_revisions r
+            where c.object_id in ([join $items ,])
+              and c.object_id = ci.item_id and 
+              and r.revision_id = ci.live_revision 
+           "
+        }
+      } else {
+        set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
 		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
 		and ci.content_type not in ('::xowiki::PageTemplate') \
 		and c.category_id in ([join $categories ,]) \
 		and r.revision_id = ci.live_revision \
 		and p.page_id = r.revision_id \
                 and ci.publish_status <> 'production'"
+      }
 
       if {$except_category_ids ne ""} {
         append sql \
@@ -585,7 +609,7 @@ namespace eval ::xowiki::includelet {
 	set order_column ", p.page_order" 
 
         db_foreach [my qn get_pages] \
-            "select ci.item_id, ci.name, ci.content_type, r.title, category_id $order_column from $sql" {
+            "select ci.item_id, ci.name, r.title, category_id $order_column from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
               set prefix ""
@@ -2393,28 +2417,27 @@ namespace eval ::xowiki::includelet {
       return "You must login to see the [namespace tail [self class]]"
     }
 
-    set query [::xo::db::sql select \
+    set tmp_table_name XOWIKI_TMP_ACTIVITY
+    #my msg "tmp exists [::xo::db::require exists_table $tmp_table_name]"
+    set tt [::xo::db::temp_table new \
+                -name $tmp_table_name \
+                -query [::xo::db::sql select \
                    -vars "i.item_id, revision_id, creation_user" \
                    -from "cr_revisions cr, cr_items i, acs_objects o" \
                    -where "cr.item_id = i.item_id \
                             and i.parent_id = [$package_id folder_id] \
                             and o.object_id = revision_id" \
                    -orderby "revision_id desc" \
-                   -limit $max_activities]
-
-    #my msg "tmp exists [::xo::db::require exists_table XOWIKI_TMP_ACTIVITY]"
-    set tt [::xo::db::temp_table new \
-                -name XOWIKI_TMP_ACTIVITY \
-                -query $query \
+                   -limit $max_activities] \
                 -vars "item_id, revision_id, creation_user"]
     
     set total 0
-    db_foreach [my qn get_activities] {
+    db_foreach [my qn get_activities] "
       select count(revision_id) as count, item_id, creation_user  
-      from XOWIKI_TMP_ACTIVITY
+      from $tmp_table_name 
       where creation_user is not null 
       group by item_id, creation_user
-    } {
+   " {
       lappend i($item_id) $creation_user $count
       incr total $count
       set count_var user_count($creation_user)
@@ -2646,6 +2669,7 @@ namespace eval ::xowiki::includelet {
           {-unless}
           {-where}
           {-csv true}
+          {-with_categories}
         }}
       }
   
@@ -2726,7 +2750,7 @@ namespace eval ::xowiki::includelet {
     #my msg wc=[array get wc]
 
     #
-    # build SQL query and iterate over the results
+    # get an ordered composite of the base set (currently including extra_where clause)
     # 
     my log "exists category_id [info exists category_id]"
     set extra_where_clause ""
@@ -2739,16 +2763,30 @@ namespace eval ::xowiki::includelet {
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
                    -extra_where_clause $extra_where_clause \
-                   -h_where $wc(h) \
+                   -h_where [array get wc] \
                    -folder_id [$package_id folder_id]]
-    my log "query done"
+
+    if {[info exists with_categories]} {
+      if {$extra_where_clause eq ""} {
+        set base_items $items
+      } else {
+        set base_items [::xowiki::FormPage get_children \
+                   -base_item_id $form_item_id \
+                   -form_fields $form_fields \
+                   -publish_status $publish_status \
+                   -always_queried_attributes [list _name _last_modified _creation_user] \
+                   -h_where [array get wc] \
+                   -folder_id [$package_id folder_id]]
+      }
+    }
+    my log "queries done"
 
     foreach p [$items children] {
       $p set package_id $package_id
       array set __ia $init_vars
       array set __ia [$p instance_attributes]
       if {[expr $uc(tcl)]} continue
-      if {![expr $wc(tcl)]} continue
+      #if {![expr $wc(tcl)]} continue ;# already handled in get_children
       set page_link [$package_id pretty_link [$p name]]
 
       t1 add \
@@ -2792,6 +2830,12 @@ namespace eval ::xowiki::includelet {
       append html "<a href='$csv_href'>csv</a>"
     }
     my log "render done"
+
+    if {[info exists with_categories]} {
+      set category_html [$o include [list categories -count 1 -tree_name $with_categories \
+                                         -ordered_composite $base_items]]
+      return "<div style='width: 15%; float: left;'>$category_html</div></div width='69%'>$html</div>\n"
+    }
     return $html
   }
 }

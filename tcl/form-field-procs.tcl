@@ -202,8 +202,8 @@ namespace eval ::xowiki::formfield {
         }
       }
       default {
-        if {[my isclass [self class]::$s]} {
-          my class [self class]::$s
+        if {[my isclass ::xowiki::formfield::$s]} {
+          my class ::xowiki::formfield::$s
 	  my remove_omit
           my reset_parameter
           my initialize
@@ -228,7 +228,7 @@ namespace eval ::xowiki::formfield {
       # concrete field type) or an abstact class.  Since
       # config_from_spec can be called multiple times, we want to do
       # the reclassing only once.
-      my class [self class]::$type
+      my class ::xowiki::formfield::$type
       # TODO: reset_parameter? needed?
       ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
@@ -1331,7 +1331,7 @@ namespace eval ::xowiki::formfield {
       # create for each component a form field
       #
       set name $class
-      set c [::xowiki::formield::$class create [self]::$name \
+      set c [::xowiki::formfield::$class create [self]::$name \
                -name [my name].$name -id [my id].$name -locale [my locale]]
       $c set code $code
       $c set trim_zeros $trim_zeros
