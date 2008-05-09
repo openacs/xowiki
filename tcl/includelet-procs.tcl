@@ -1086,12 +1086,15 @@ namespace eval ::xowiki::includelet {
     if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
     set base_url [$package_id pretty_link $page]
 
-    set href [$package_id package_url]/tag/
+    set href [$package_id package_url]tag/
     db_foreach [my qn get_counts] $sql {
-      set s [expr {$summary ? "&summary=$summary" : ""}]
+      set q [list]
+      if {$summary} {lappend q "summary=$summary"}
+      if {$popular} {lappend q "popular=$popular"}
+      set link $href$tag?[join $q &]
       #set href $base_url?$tag_type=[ad_urlencode $tag]$s
       #lappend entries "$tag <a href='$href'>($nr)</a>"
-      lappend entries "$tag <a rel='tag' href='$href[ad_urlencode $tag]'>($nr)</a>"
+      lappend entries "$tag <a rel='tag' href='$link'>($nr)</a>"
     }
     return [expr {[llength $entries]  > 0 ? 
                   "<h3>$label</h3> <BLOCKQUOTE>[join $entries {, }]</BLOCKQUOTE>\n" :

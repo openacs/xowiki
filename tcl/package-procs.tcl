@@ -490,11 +490,13 @@ namespace eval ::xowiki {
         if {$item_id == 0 && $lang eq "tag"} {
 	  set tag $local_name
 	  set summary [::xo::cc query_parameter summary 0]
+	  set popular [::xo::cc query_parameter popular 0]
+	  set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	  set weblog_page [my get_parameter weblog_page]
 	  my get_name_and_lang_from_path $weblog_page lang local_name
 	  set name $lang:$local_name
 	  my set object $weblog_page
-	  ::xo::cc set actual_query tag=$tag&summary=$summary
+	  ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
 	}
         if {$item_id == 0} {
           set nname   [my normalize_name $name]

@@ -1731,7 +1731,7 @@ namespace eval ::xowiki {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
 
-    set orderby ""; set page_size 20; set page_number ""; set base_table "cr_revisions"
+    set orderby ""; set page_size 20; set page_number ""
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
