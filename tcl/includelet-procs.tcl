@@ -2739,12 +2739,12 @@ namespace eval ::xowiki::includelet {
     # Compute filter clauses
     #
     set init_vars [list]
-    array set uc {tcl false h ""}
+    array set uc {tcl false h "" vars ""}
     if {[info exists unless]} {
       array set uc [::xowiki::FormPage filter_expression $unless ||]
       set init_vars [concat $init_vars $uc(vars)]
     }
-    array set wc {tcl true h ""}
+    array set wc {tcl true h "" vars ""}
     if {[info exists where]} {
       array set wc [::xowiki::FormPage filter_expression $where &&]
       set init_vars [concat $init_vars $wc(vars)]
