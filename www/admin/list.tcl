@@ -67,8 +67,8 @@ TableWidget t1 -volatile \
             -alt permsissions -label "" -html {style "padding: 2px;"}
       }
       if {$::with_publish_status} {
-	ImageAnchorField publish_status -src "" -width 8 \
-            -height 8 -border 0 -title "Toggle Publish Status" \
+	ImageAnchorField publish_status -orderby publish_status.src -src "" \
+	    -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
       }
       Field syndicated -label "RSS" -html {style "padding: 2px;"}
