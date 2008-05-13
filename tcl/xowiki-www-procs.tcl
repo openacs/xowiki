@@ -578,6 +578,7 @@ namespace eval ::xowiki {
           }
         }
         hidden -
+        password -
         text {  $field setAttribute value $value}
         default {my msg "can't handle $type so far $att=$value"}
       }
