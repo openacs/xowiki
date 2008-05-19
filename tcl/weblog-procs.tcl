@@ -258,15 +258,6 @@ namespace eval ::xowiki {
     return $content
   }
   
-  proc ::xo::update_query_variable {old_query var value} {
-    set query [list [list $var $value]]
-    foreach pair [split $old_query &] {
-      foreach {key value} [split $pair =] break
-      if {$key eq $var} continue
-      lappend query [list [ns_urldecode $key] [ns_urldecode $value]]
-    }
-    return $query
-  }
 
   # default layout for weblog entries
   Class create ::xowiki::Weblog::EntryRenderer -instproc render {} {

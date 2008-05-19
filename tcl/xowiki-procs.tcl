@@ -1750,7 +1750,7 @@ namespace eval ::xowiki {
     my log nr_items=[$items children]
 
     if {$h_where ne "" && ![::xo::db::has_hstore]} {
-      set init_vars $hw(vars)
+      set init_vars $wc(vars)
       foreach p [$items children] {
         array set __ia $init_vars
         array set __ia [$p instance_attributes]
