@@ -548,6 +548,32 @@ namespace eval ::xowiki {
     return $category_fields
   }
 
+  FormPage instproc get_form_value {att} {
+    my instvar root item_id
+    set fields [$root selectNodes "//form//*\[@name='$att'\]"] 
+    if {$fields eq ""} {return ""}
+    foreach field $fields {
+      set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
+      switch $type {
+	checkbox {
+	  my msg "get_form_value not implemented for $type"
+	}
+	radio {
+	  my msg "get_form_value not implemented for $type"
+	}
+	hidden -
+	password -
+	text { 
+	  if {[$field hasAttribute value]} {
+	    return [$field getAttribute value]
+	  }
+	}
+	default {my msg "can't handle $type so far $att=$value"}
+      }
+    }
+    return ""
+  }
+
   FormPage instproc set_form_value {att value} {
     #my msg "set_form_value $att $value"
     my instvar root item_id
@@ -603,9 +629,14 @@ namespace eval ::xowiki {
         #my msg "my set_form_value from ia $att $__ia($att)"
         my set_form_value $att $__ia($att)
       } else {
-        # we have no instance attributes, use the default value from the form field
-        #my msg "no instance attribute, set form_value $att '[$f value]'"
-        my set_form_value $att [$f value]
+
+	# do we have a value in the form? If yes, keep it.
+	set form_value [my get_form_value $att]
+	#  my msg "no instance attribute, set form_value $att '[$f value]' form_value=$form_value"
+	if {$att eq ""} {
+	  # we have no instance attributes, use the default value from the form field
+	  my set_form_value $att [$f value]
+	}
       }
     }
   }
@@ -657,6 +688,7 @@ namespace eval ::xowiki {
           # user form content fields
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [string trim [::xo::cc form_parameter $att]]]
+	  #my msg "value of $att ($f) = '$value'" 
           if {![string match *.* $att]} {set __ia($att) $value}
           if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
         }
@@ -668,7 +700,7 @@ namespace eval ::xowiki {
     }
 
     #my msg "containers = [array names containers]"
-
+    #my msg "ia=[array get __ia]"
     #
     # In a second iteration, combine the values from the components 
     # of a container to the value of the container.
