@@ -26,6 +26,10 @@ if {$objects eq ""} {
 }
 
 set content ""
+ns_set put [ns_conn outputheaders] "Content-Type" "text/plain"
+ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=export.xotcl"
+ReturnHeaders 
+
 foreach item_id $item_ids {
   ::xo::db::CrClass get_instance_from_db -item_id $item_id
   #
@@ -37,13 +41,15 @@ foreach item_id $item_ids {
         ![info exists included($template_id)]} {
       ::xo::db::CrClass get_instance_from_db -item_id $template_id
       $template_id volatile
-      append content [$template_id marshall] \n
+      #append content [$template_id marshall] \n
+      ns_write "[$template_id marshall] \n" 
       set included($template_id) 1
     }
   }
   $item_id volatile
   #ns_log notice "exporting $item_id [$item_id name]"
-  append content [$item_id marshall] \n
+  #append content [$item_id marshall] \n
+  ns_write "[$item_id marshall] \n" 
 }
 
-ns_return 200 text/plain $content
+#ns_return 200 text/plain $content
