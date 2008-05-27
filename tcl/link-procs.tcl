@@ -38,9 +38,11 @@ namespace eval ::xowiki {
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
     if {![my exists stripped_name]} {
-      # set stripped name and lang from provided name
+      # set stripped name and lang from provided name or to the default
       my instvar stripped_name lang
-      regexp {^(..):(.*)$} $name _ lang stripped_name
+      if {![regexp {^(..):(.*)$} $name _ lang stripped_name]} {
+        set stripped_name $name; set lang ""
+      }
     }
     if {![my exists label]}      {my label $name}
     if {![my exists folder_id]}  {my folder_id [$page parent_id]}
@@ -53,7 +55,7 @@ namespace eval ::xowiki {
     if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
       set name [my name]
     }
-    ::xo::db::CrClass lookup -name $name -parent_id [my folder_id]
+    return [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] href='$href'>$label</a>"
