@@ -704,7 +704,7 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       regsub -all {[.:]} [my id] {\\\\&} JID
-      set config ""
+      set config [list "skin: 'default'"]
       if {[my exists height] || [my exists width]} {
         set height_cmd ""
         set width_cmd ""
@@ -716,9 +716,10 @@ namespace eval ::xowiki::formfield {
             $height_cmd
             $width_cmd
           }}]
-        set config "{
-        $postInit
-      }"
+        lappend config $postInit
+      }
+      if {$config ne ""} {
+	set config \{[join $config ,]\}
       }
       ::xo::Page requireJS [subst -nocommand -nobackslash {
         jQuery(function() {

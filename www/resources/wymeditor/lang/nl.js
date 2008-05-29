@@ -1,6 +1,4 @@
-﻿if(!WYM_STRINGS) var WYM_STRINGS = new Array();
-
-var WYM_STRINGS_NL = {
+WYMeditor.STRINGS['nl'] = {
     Strong:           'Sterk benadrukken',
     Emphasis:         'Benadrukken',
     Superscript:      'Bovenschrift',
@@ -17,15 +15,15 @@ var WYM_STRINGS_NL = {
     Table:            'Tabel',
     HTML:             'HTML',
     Paragraph:        'Paragraaf',
-    Heading_1:        'Hoofding 1',
-    Heading_2:        'Hoofding 2',
-    Heading_3:        'Hoofding 3',
-    Heading_4:        'Hoofding 4',
-    Heading_5:        'Hoofding 5',
-    Heading_6:        'Hoofding 6',
+    Heading_1:        'Kop 1',
+    Heading_2:        'Kop 2',
+    Heading_3:        'Kop 3',
+    Heading_4:        'Kop 4',
+    Heading_5:        'Kop 5',
+    Heading_6:        'Kop 6',
     Preformatted:     'Voorgeformatteerd',
-    Blockquote:       'Aanhaling',
-    Table_Header:     'Tabel hoofding',
+    Blockquote:       'Citaat',
+    Table_Header:     'Tabel-kop',
     URL:              'URL',
     Title:            'Titel',
     Alternative_Text: 'Alternatieve tekst',
@@ -37,11 +35,10 @@ var WYM_STRINGS_NL = {
     Choose:           'Kiezen',
     Preview:          'Voorbeeld bekijken',
     Paste_From_Word:  'Plakken uit Word',
-    Tools:            'Tools',
-    Containers:       'Containers',
-    Classes:          'Classes',
+    Tools:            'Hulpmiddelen',
+    Containers:       'Teksttypes',
+    Classes:          'Klassen',
     Status:           'Status',
     Source_Code:      'Broncode'
 };
 
-WYM_STRINGS['nl'] = WYM_STRINGS_NL;
