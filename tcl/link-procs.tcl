@@ -51,7 +51,7 @@ namespace eval ::xowiki {
     #my log "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
-    #my log "--lookup of [my name] -page [my page]"
+    #my msg "--lookup of [my name] -page [my page]"
     if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
       set name [my name]
     }
@@ -71,7 +71,7 @@ namespace eval ::xowiki {
     my instvar package_id
     set page [my page]
     set item_id [my resolve]
-    my log "--u resolve returns $item_id"
+    #my msg "--u resolve returns $item_id"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
@@ -85,6 +85,14 @@ namespace eval ::xowiki {
     } else {
       $page incr unresolved_references
       set object_type [[$page info class] set object_type]
+      if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
+        # TODO: this is a temporary solution. we should find a way to
+        # pass similar to file or image entries the type of this
+        # entry. Maybe we can get the type as well from a kind of
+        # blackboard, where the type of the "edit" wiki-menu-entry is
+        # stored as well.
+        set object_type ::xowiki::Page
+      }
       set name [my name]
       set title [my label]
       set new_link  [$package_id make_link $package_id edit-new object_type name title] 

@@ -869,6 +869,7 @@ namespace eval ::xowiki {
     }
   }
   Page instproc anchor {arg} {
+    #my msg [self args]
     set label $arg
     set link $arg
     set options ""

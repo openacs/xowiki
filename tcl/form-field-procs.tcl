@@ -607,6 +607,7 @@ namespace eval ::xowiki::formfield {
         folder_id
         width
         height
+        {wiki false}
       }
   
   richtext instproc editor {args} {
@@ -653,7 +654,11 @@ namespace eval ::xowiki::formfield {
   richtext instproc render_richtext_as_div {} {
     #my msg "[my get_attributes id style {CSSclass class}]"
     ::html::div [my get_attributes id style {CSSclass class}] {
-      ::html::t -disableOutputEscaping [my value]
+      if {[my wiki]} {
+        ::html::t -disableOutputEscaping [[my object] substitute_markup  [list [my value] text/html]]
+      } else {
+        ::html::t -disableOutputEscaping [my value]
+      }
     }
     ::html::div
   }
