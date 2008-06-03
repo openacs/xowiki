@@ -2767,19 +2767,20 @@ namespace eval ::xowiki::includelet {
                    -always_queried_attributes [list _name _last_modified _creation_user] \
                    -extra_where_clause $extra_where_clause \
                    -h_where [array get wc] \
-                   -folder_id [$package_id folder_id]]
+                   -package_id $package_id]
 
     if {[info exists with_categories]} {
       if {$extra_where_clause eq ""} {
         set base_items $items
       } else {
+        # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_children \
                    -base_item_id $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
                    -h_where [array get wc] \
-                   -folder_id [$package_id folder_id]]
+                   -package_id $package_id]
       }
     }
     my log "queries done"

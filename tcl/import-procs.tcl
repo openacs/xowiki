@@ -34,14 +34,17 @@ namespace eval ::xowiki {
 	::xo::db::CrClass get_instance_from_db -item_id $item_id
 	$item_id copy_content_vars -from_object $object
 	if {[info exists base_object]} {$item_id set page_template $base_object}
-	$item_id save -use_given_publish_date [$item_id exists publish_date]
+	$item_id save -use_given_publish_date [$item_id exists publish_date] \
+            -modifying_user [$object set modifying_user]
 	#my msg "$item_id updated: [$object name]"
 	my incr updated
       }
     }
     if {$item_id == 0} {
       if {[info exists base_object]} {$object set page_template $base_object}
-      set n [$object save_new -use_given_publish_date [$object exists publish_date]]
+      set n [$object save_new -use_given_publish_date [$object exists publish_date] \
+            -modifying_user [$object set modifying_user] \
+            ]
       $object set item_id $n
       set item_id $object
       #my msg "$object added: [$object name]"
@@ -57,7 +60,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Importer instproc import_all {-replace -user_id -objects:required } {
+  Importer instproc import_all {-replace -objects:required } {
     my instvar package_id folder_id
     set todo [list]
     foreach o $objects {

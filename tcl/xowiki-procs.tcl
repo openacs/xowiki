@@ -211,6 +211,10 @@ namespace eval ::xowiki {
   Page instproc marshall {} {
     my instvar name
     my unset_temporary_instance_variables
+    set old_creation_user  [my creation_user]
+    set old_modifying_user [my set modifying_user]
+    my set creation_user   [my map_party $old_creation_user]
+    my set modifying_user  [my map_party $old_modifying_user]
     if {[regexp {^..:[0-9]+$} $name] ||
         [regexp {^[0-9]+$} $name]} {
       #
@@ -229,6 +233,8 @@ namespace eval ::xowiki {
     } else {
       set content [my serialize]
     }
+    my set creation_user  $old_creation_user
+    my set modifying_user $old_modifying_user
     return $content
   }
 
@@ -259,7 +265,7 @@ namespace eval ::xowiki {
                  -name $tree_name -description $data(description) \
                  -locale [lang::system::site_wide_locale] \
                  -categories $categories]
-    my append __category_command \n $cmd
+    my append __map_command \n $cmd
     my set __category_map [array get cm]
     my log "data=[array get data]"
     my log "cmd=$cmd"
@@ -328,7 +334,7 @@ namespace eval ::xowiki {
         #my log "check $name $value [info exists use($name)] [info exists cm($value)]"
         if {[info exists use($name)] && [info exists cm($value)]} {
           lappend ia $name $cm($value)
-          my msg "...[my name] field: $name $value mapped to $cm($value)"
+          #my msg "...[my name] field: $name $value mapped to $cm($value)"
         } else {
           lappend ia $name $value
         }
@@ -339,17 +345,68 @@ namespace eval ::xowiki {
     next
   }
 
+  Page instproc map_party {party_id} {
+    my log "+++ $party_id"
+    # So far, we just handle users, but we should support parties in
+    # the future as well.
+    if {$party_id eq ""} {
+      return ""
+    }
+    acs_user::get -user_id $party_id -array info
+    set result [list]
+    foreach a {username email first_names last_name screen_name url} {
+      lappend result $a $info($a)
+    }
+    return $result
+  }
+
+  Page instproc reverse_map_party {-entry -default_party} {
+    # So far, we just handle users, but we should support parties in
+    # the future as well.
+    array set "" $entry
+    if {$(email) ne ""} {
+      set id [party::get_by_email -email $(email)]
+      if {$id ne ""} { return $id }
+    } 
+    if {$(username) ne ""} {
+      set id [acs_user::get_by_username -username $(username)]
+      if {$id ne ""} { return $id }
+    }
+    my log "+++ create a new user username=${username}, email=$(email)"
+    array set status [auth::create_user -user_name $(username) --email $(email) \
+                          -first_names $(first_names) -last_name $(last_name) \
+                          -screen_name $(screen_name) -url $(url)]
+    if {$status(creation_status) eq "ok"} {
+      return $status(user_id)
+    }
+    my log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
+    return $default_party
+  }
+
+ 
+  Page instproc map_party_attribute {-attribute -default_party} {
+    if {![my exists $attribute]} {
+      my set $attribute $default_party
+    } elseif {[llength [my set $attribute]] < 2} {
+      my set $attribute $default_party
+    } else {
+      my set $attribute [my reverse_map_party \
+                             -entry [my set $attribute] \
+                             -default_party $default_party]
+    }
+  }
 
   Page instproc demarshall {-parent_id -package_id -creation_user} {
     # this method is the counterpart of marshall
     my set parent_id $parent_id
     my set package_id $package_id 
-    my set creation_user $creation_user
+    my map_party_attribute -attribute creation_user  -default_party $creation_user
+    my map_party_attribute -attribute modifying_user -default_party $creation_user
     # if we import from an old database without page_order, take care about this
     if {![my exists page_order]} {my set page_order ""}
     # handle category import
-    if {[my exists __category_command]} {
-      eval [my set __category_command]
+    if {[my exists __map_command]} {
+      eval [my set __map_command]
       #my log "reverse map: [array get ::__xowiki_reverse_category_map]"
     }
     # in the general case, no more actions required
@@ -491,7 +548,7 @@ namespace eval ::xowiki {
 
   Page instproc copy_content_vars {-from_object:required} {
     array set excluded_var {
-      folder_id 1 package_id 1 absolute_links 1 lang_links 1 
+      folder_id 1 package_id 1 absolute_links 1 lang_links 1 modifying_user 1
       publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
     }
     foreach var [$from_object info vars] {
@@ -1675,7 +1732,7 @@ namespace eval ::xowiki {
 
   FormPage proc get_children {
       -base_item_id 
-      -folder_id 
+      -package_id 
       -form_fields 
       {-publish_status ready}
       {-extra_where_clause ""}
@@ -1728,7 +1785,10 @@ namespace eval ::xowiki {
 
     set filter_clause ""
     array set wc $h_where
-    if {$h_where ne "" && [::xo::db::has_hstore]} {
+    set use_hstore [expr {[::xo::db::has_hstore] && 
+                          [$package_id get_parameter use_hstore 0] 
+                        }]
+    if {$h_where ne "" && $use_hstore} {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
 
@@ -1740,7 +1800,7 @@ namespace eval ::xowiki {
 			$publish_status_clause $filter_clause $extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \
-		    -folder_id $folder_id \
+		    -folder_id [$package_id folder_id] \
 		    -page_size $page_size \
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
@@ -1750,7 +1810,7 @@ namespace eval ::xowiki {
                    -object_class ::xowiki::FormPage]
     my log nr_items=[$items children]
 
-    if {$h_where ne "" && ![::xo::db::has_hstore]} {
+    if {$h_where ne "" && !$use_hstore} {
       set init_vars $wc(vars)
       foreach p [$items children] {
         array set __ia $init_vars

@@ -964,7 +964,7 @@ namespace eval ::xowiki::formfield {
                    -publish_status ready \
                    -always_queried_attributes [list _name _title _last_modified _creation_user] \
                    -h_where $wc(h) \
-                   -folder_id [$form_obj parent_id]]
+                   -package_id [$form_obj package_id]]
     foreach i [$items children] {lappend options [list [$i title] [$i name]]}
     my options $options
   }
