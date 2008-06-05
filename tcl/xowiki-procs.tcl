@@ -1256,13 +1256,28 @@ namespace eval ::xowiki {
     -name:required
     form_fields
   } {
-    set key ::_form_field_names($name)
     #my msg "form_fields=$form_fields, search for $name"
     my form_field_index $form_fields
 
+    set key ::_form_field_names($name)
     #my msg "FOUND($name)=[info exists $key]"
     if {[info exists $key]} {
       return [set $key]
+    }
+    #
+    # We have here a non-existing form-field. Maybe the entry in the
+    # form was dynamically created...  
+    #
+    # For forms with variable numbers of entries, we allow wild-cards
+    # in the field-names of the form constraints.
+    #
+    foreach name_and_spec [my get_form_constraints] {
+      regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+      if {[string match $spec_name $name]} {
+	set f [my create_form_fields_from_form_constraints [list $name:$short_spec]]
+	set $key $f
+	return $f
+      }
     }
     error "No form field with name $name found"
   }
