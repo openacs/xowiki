@@ -37,13 +37,20 @@ foreach item_id $item_ids {
   #
   if {[$item_id istype ::xowiki::PageInstance]} {
     set template_id [$item_id page_template]
-    if {[lsearch $item_ids $template_id] == -1 &&
-        ![info exists included($template_id)]} {
-      ::xo::db::CrClass get_instance_from_db -item_id $template_id
-      $template_id volatile
-      #append content [$template_id marshall] \n
-      ns_write "[$template_id marshall] \n" 
-      set included($template_id) 1
+    while {1} {
+      if {[lsearch $item_ids $template_id] == -1 &&
+          ![info exists included($template_id)]} {
+        ::xo::db::CrClass get_instance_from_db -item_id $template_id
+        $template_id volatile
+        #append content [$template_id marshall] \n
+        ns_write "[$template_id marshall] \n" 
+        set included($template_id) 1
+      }
+      if {[$template_id istype ::xowiki::PageInstance]} {
+        set template_id [$template_id page_template]
+      } else {
+        break
+      }
     }
   }
   $item_id volatile

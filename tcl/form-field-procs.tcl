@@ -520,6 +520,10 @@ namespace eval ::xowiki::formfield {
 
   Class user_id -superclass numeric -parameter {
   }
+  user_id instproc initialize {} {
+    next
+    my set is_party_id 1
+  }
   user_id instproc pretty_value {v} {
     return [::xo::get_user_name $v]
   }
