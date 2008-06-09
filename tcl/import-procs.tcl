@@ -43,7 +43,7 @@ namespace eval ::xowiki {
     if {$item_id == 0} {
       if {[info exists base_object]} {$object set page_template $base_object}
       set n [$object save_new -use_given_publish_date [$object exists publish_date] \
-            -modifying_user [$object set modifying_user] \
+            -creation_user [$object set modifying_user] \
             ]
       $object set item_id $n
       set item_id $object
