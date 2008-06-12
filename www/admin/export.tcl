@@ -40,8 +40,9 @@ foreach item_id $item_ids {
     while {1} {
       if {[lsearch $item_ids $template_id] == -1 &&
           ![info exists included($template_id)]} {
-        ::xo::db::CrClass get_instance_from_db -item_id $template_id
+        set x [::xo::db::CrClass get_instance_from_db -item_id $template_id]
         $template_id volatile
+        ns_log notice "--exporting needed [$item_id name] ($template_id) //$x [$x info class], m=[$template_id marshall] "
         #append content [$template_id marshall] \n
         ns_write "[$template_id marshall] \n" 
         set included($template_id) 1
@@ -54,7 +55,7 @@ foreach item_id $item_ids {
     }
   }
   $item_id volatile
-  #ns_log notice "exporting $item_id [$item_id name]"
+  ns_log notice "--exporting $item_id [$item_id name]"
   #append content [$item_id marshall] \n
   ns_write "[$item_id marshall] \n" 
 }

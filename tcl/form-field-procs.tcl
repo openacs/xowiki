@@ -80,7 +80,7 @@ namespace eval ::xowiki::formfield {
       set success 1
       set validator_method check=$validator
       set proc_info [my procsearch $validator_method]
-      #my msg "++ [my name]: field-level validator exists ? [expr {$proc_info ne {}}]"
+      #my msg "++ [my name]: field-level validator exists '$validator_method' ? [expr {$proc_info ne {}}]"
       if {$proc_info ne ""} {
         # we have a slot checker, call it
 	#my msg "++ call-field level validator $validator_method '$value'" 
@@ -221,6 +221,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc config_from_spec {spec} {
+    #my log "spec=$spec [my info class] [[my info class] exists abstract]"
     my instvar type
     if {[[my info class] exists abstract]} {
       # had earlier here: [my info class] eq [self class]
@@ -228,7 +229,11 @@ namespace eval ::xowiki::formfield {
       # concrete field type) or an abstact class.  Since
       # config_from_spec can be called multiple times, we want to do
       # the reclassing only once.
-      my class ::xowiki::formfield::$type
+      if {[my isclass ::xowiki::formfield::$type]} {
+        my class ::xowiki::formfield::$type
+      } else {
+        my class ::xowiki::formfield::text
+      }
       # TODO: reset_parameter? needed?
       ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
     }
@@ -528,6 +533,19 @@ namespace eval ::xowiki::formfield {
     return [::xo::get_user_name $v]
   }
 
+ ###########################################################
+  #
+  # ::xowiki::formfield::party_id
+  #
+  ###########################################################
+
+  Class party_id -superclass user_id \
+      -extend_slot validator party_id_check
+  party_id instproc check=party_id_check {value} {
+    if {$value eq ""} {return 1}
+    return [db_0or1row dbq..check_party "select 1 from parties where party_id = :value"]
+  }
+
   ###########################################################
   #
   # ::xowiki::formfield::url
@@ -659,6 +677,8 @@ namespace eval ::xowiki::formfield {
     #my msg "[my get_attributes id style {CSSclass class}]"
     ::html::div [my get_attributes id style {CSSclass class}] {
       if {[my wiki]} {
+        [my object] set unresolved_references 0
+        [my object] set __unresolved_references [list]
         ::html::t -disableOutputEscaping [[my object] substitute_markup  [list [my value] text/html]]
       } else {
         ::html::t -disableOutputEscaping [my value]

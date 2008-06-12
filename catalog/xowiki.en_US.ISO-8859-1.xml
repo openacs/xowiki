@@ -47,6 +47,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
+  <msg key="FormPage-assignee">Assignee</msg>
+  <msg key="FormPage-state">State</msg>
   <msg key="index">Index</msg>
   <msg key="new_page">New Page</msg>
   <msg key="news-source">Source</msg>
@@ -69,6 +71,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
   <msg key="PageInstance-page_template">Page Instance</msg>
   <msg key="PageTemplate-anon_instances">Unnamed Entries</msg>
+  <msg key="party_id-validate_party_id_check">Value is not a valid party_id</msg>
   <msg key="PodcastItem-duration">Duration</msg>
   <msg key="PodcastItem-duration-help_text">E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)</msg>
   <msg key="PodcastItem-keywords">Keywords</msg>

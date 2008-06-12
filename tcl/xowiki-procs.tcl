@@ -129,13 +129,17 @@ namespace eval ::xowiki {
 
   ::xo::db::CrClass create FormPage -superclass PageInstance \
       -pretty_name "XoWiki FormPage" -pretty_plural "XoWiki FormPages" \
-      -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" 
+      -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
+      -slots {
+        ::xo::db::CrAttribute create assignee \
+            -datatype integer \
+	    -references parties(party_id) \
+            -spec "party_id" 
+        ::xo::db::CrAttribute create state -default ""
+      }
 
-  #::xo::db::CrClass create FormInstance -superclass PageInstance \
-  #    -pretty_name "XoWiki FormInstance" -pretty_plural "XoWiki FormInstances" \
-  #    -table_name "xowiki_form_instance" -id_column "xowiki_form_instance_id" 
+  ::xo::db::require index -table xowiki_form_page -col assignee
 
-  #
   # create various extra tables, indices and views
   #
   ::xo::db::require table xowiki_references \
@@ -363,11 +367,15 @@ namespace eval ::xowiki {
       my set instance_attributes $ia
       #my msg "setting instance_attributes $ia"
     }
-    next
+    set old_assignee [my assignee]
+    my set assignee  [my map_party $old_assignee]
+    set r [next]
+    my set assignee  $old_assignee
+    return $r
   }
 
   Page instproc map_party {party_id} {
-    my log "+++ $party_id"
+    #my log "+++ $party_id"
     # So far, we just handle users, but we should support parties in
     # the future as well.
     if {$party_id eq ""} {
@@ -405,7 +413,7 @@ namespace eval ::xowiki {
   }
 
  
-  Page instproc reverse_map_party_attribute {-attribute -default_party} {
+  Page instproc reverse_map_party_attribute {-attribute {-default_party 0}} {
     if {![my exists $attribute]} {
       my set $attribute $default_party
     } elseif {[llength [my set $attribute]] < 2} {
@@ -462,6 +470,7 @@ namespace eval ::xowiki {
   FormPage instproc demarshall {-parent_id -package_id -creation_user} {
     my instvar page_template
     #
+    my reverse_map_party_attribute -attribute assignee 
     #
     # FormPages must be demarshalled after Form, since Form builds
     # the reverse category map.
