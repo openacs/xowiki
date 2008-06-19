@@ -401,8 +401,8 @@ namespace eval ::xowiki {
       set id [acs_user::get_by_username -username $(username)]
       if {$id ne ""} { return $id }
     }
-    my log "+++ create a new user username=${username}, email=$(email)"
-    array set status [auth::create_user -user_name $(username) --email $(email) \
+    my log "+++ create a new user username=$(username), email=$(email)"
+    array set status [auth::create_user -username $(username) -email $(email) \
                           -first_names $(first_names) -last_name $(last_name) \
                           -screen_name $(screen_name) -url $(url)]
     if {$status(creation_status) eq "ok"} {
@@ -1584,6 +1584,7 @@ namespace eval ::xowiki {
   PageInstance instproc get_from_template {var} {
     my instvar page_template
     set form_id [my get_form_id]
+    #my msg "$var template_id=$page_template, form_id=$form_id"
     if {![my isobject ::$form_id]} {
       #my log  "-- fetching page_template = $page_template"
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
@@ -1972,6 +1973,7 @@ namespace eval ::xowiki {
       # we have a template
       return [next]
     } else {
+      #my msg "we have a form '[my get_form]'"
       ::xowiki::Form requireFormCSS
       set form [my get_form]
       foreach {form_vars field_names} [my field_names_from_form -form $form] break

@@ -1330,7 +1330,7 @@ namespace eval ::xowiki::formfield {
   # "yesterday", "next week", .... use _ for blanks
 
   date instproc initialize {} {
-    #my msg "DATE has value [my value] format=[my format]"
+    #my msg "DATE has value [my value]//d=[my default] format=[my format]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
     my array set defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
@@ -1367,11 +1367,11 @@ namespace eval ::xowiki::formfield {
       $c set trim_zeros $trim_zeros
       if {[lsearch [my components] $c] == -1} {my lappend components $c}
     }
-    #my msg "DATE [my name] has value after initialize '[my value]'"
   }
 
   date instproc set_compound_value {value} {
     #my msg "[my name] original value '[my value]' // passed='$value'"
+    if {$value eq ""} {return}
     set value [::xo::db::tcl_date $value tz]
     #my msg "transformed value '$value'"
     if {$value ne ""} {

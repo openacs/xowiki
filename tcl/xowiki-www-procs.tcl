@@ -1461,6 +1461,9 @@ namespace eval ::xowiki {
                -publish_status "production" \
                -instance_attributes $instance_attributes \
                -page_template [my item_id]]
+    if {[my exists state]} {
+      $f set state [my set state]
+    }
     #
     # if we copy an item, we use source_item_id to provide defaults
     #
