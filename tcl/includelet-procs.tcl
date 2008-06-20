@@ -519,9 +519,10 @@ namespace eval ::xowiki::includelet {
 
     #my msg "nr trees = [llength $trees], tree:name = '$tree_name'"
     if {[llength $trees] == 0} {
-      error "No category tree found\n\
+      my log "No category tree found\n\
 	(mapped trees = [llength $mapped_trees],\n\
 	tree_name = '$tree_name')"
+      return ""
     }
 
     foreach tree $trees {

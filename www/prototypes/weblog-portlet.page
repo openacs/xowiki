@@ -41,10 +41,6 @@
         "<span class='date'>$pretty_date</span></p>" \
         $description $more $my_footer \n\
         "</DIV>"
-    if {[my do_substitutions] == 0} {
-      # the including weblog will do otherwise the substitutions
-      set content [string map [list "\{\{" "\\\{\{"] $content]
-    }
     #my log "--W entry done [self] [my info class] subst=[my do_substitutions] [my name]"
     return $content
   }
@@ -83,14 +79,16 @@
 
     if {[$page exists __including_page]} {
       set i [$page set __including_page]
-      set exclude_item_ids [$i item_id]
-      $i set render_adp 0  ;# no double substitutions
       #my log "--W including page $i"
+      set exclude_item_ids [$i item_id]
+      $i set render_adp 0  ;# no double adp substitutions
+      $i do_substitutions 0;# no double substitutions in parent
     } else {
       #my log "--W NO including page"
       set exclude_item_ids [$page item_id]
       $page set __no_footer 1
     }
+    $page do_substitutions 0; # no double substitutions in page
 
     # on the weblog-portlet page, an edit-new should not create an object
     ::xo::cc set_parameter object_type ::xowiki::Page
@@ -122,6 +120,3 @@
   }
   
 }
-
-
-

@@ -104,14 +104,26 @@ namespace eval ::xowiki {
     set base_table xowiki_pagei
     set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
                         bt.description s.body pi.instance_attributes]
+    
+    set class_clause \
+        " and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object')"
+
     if {$entries_of ne ""} {
-      my instvar form_items
-      set form_items [::xowiki::Weblog instantiate_forms \
-                          -entries_of $entries_of \
-                          -package_id $package_id]
-      append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
-      set base_type ::xowiki::FormPage
-      set base_table xowiki_form_pagei
+      if {[string match "::*" $entries_of]} {
+        # xotcl classes were provided as a filter
+        set class_clause \
+            " and ci.content_type in ('[join [split $entries_of { }] ',']')"
+      } else {
+        # we use a form as a filter
+        my instvar form_items
+        set form_items [::xowiki::Weblog instantiate_forms \
+                            -entries_of $entries_of \
+                            -package_id $package_id]
+        append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
+        set base_type ::xowiki::FormPage
+        set base_table xowiki_form_pagei
+        set class_clause ""
+      }
     }
 
     if {$locale ne ""} {
@@ -144,7 +156,7 @@ namespace eval ::xowiki {
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
 		[::xowiki::Page container_already_rendered ci.item_id] \
-                and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object') \
+                $class_clause \
                 and ci.publish_status <> 'production' \
                 $extra_where_clause" ]
 
