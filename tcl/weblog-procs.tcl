@@ -32,10 +32,20 @@ namespace eval ::xowiki {
     foreach t [split $entries_of |] {
       set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
       if {$form_item_id == 0} {
-        # the form does not exist in the CR. Maybe we can create it
+        # The form does not exist in the CR. Maybe we can create it
         # via a prototype page?
         regexp {^.+:(.*)$} $t _ t
+	#my msg "Form $t does not exist, try to load via prototype page"
+	# The following approach is not the best and should be
+	# replaced by a better definition of 'contains". The
+	# method "contains" overloads new and stuffs in an additional
+	# argument "-childof...", which causes problems for the 
+	# "new" methods in the database, which do not know about
+	# this argument...
+	set XOTclClassMixins [::xotcl::Class info instmixin]
+	::xotcl::Class instmixin {}
         set page [$package_id import_prototype_page $t]
+	::xotcl::Class instmixin $XOTclClassMixins
         if {$page ne ""} {set form_item_id [$page item_id]}
       }
       if {$form_item_id == 0} {error "Cannot lookup page $t"}

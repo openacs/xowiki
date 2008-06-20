@@ -1657,7 +1657,7 @@ namespace eval ::xowiki {
         -actual_query [::xo::cc actual_query]
     $payload set package_id [my set package_id]
     if {[catch {$payload contains $cmd} error ]} {
-      ns_log error "content $cmd lead to error: $error"
+      ns_log error "content $cmd lead to error: $error\nDetails: $::errorInfo\n"
       ::xo::clusterwide ns_cache flush xotcl_object_cache [my item_id]
     }
     #my log "call init mixins=[my info mixin]//[$payload info mixin]"
