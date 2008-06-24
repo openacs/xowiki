@@ -1112,7 +1112,7 @@ namespace eval ::xowiki::formfield {
     set values [lang::message::lookup [my locale] acs-lang.localization-abmon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
-    foreach m {1 2 3 4 6 7 8 9 10 11 12} {
+    foreach m {1 2 3 4 5 6 7 8 9 10 11 12} {
       lappend options [list [lindex $values $last] $m]
       set last $m
     }
@@ -1130,7 +1130,7 @@ namespace eval ::xowiki::formfield {
     set values [lang::message::lookup [my locale] acs-lang.localization-mon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
-    foreach m {1 2 3 4 6 7 8 9 10 11 12} {
+    foreach m {1 2 3 4 5 6 7 8 9 10 11 12} {
       lappend options [list [lindex $values $last] $m]
       set last $m
     }
