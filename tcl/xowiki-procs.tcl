@@ -1094,7 +1094,7 @@ namespace eval ::xowiki {
 
 
   Page instproc adp_subst {content} {
-    #my log "--adp_subst in [my name]"
+    #my msg "--adp_subst in [my name] vars=[my info vars]"
     set __ignorelist [list RE __defaults name_method object_type_key db_slot]
     foreach __v [my info vars] {
       if {[info exists $__v]} continue
@@ -1993,7 +1993,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_value {before varname} {
-    #my msg "varname=$varname"
+    #my msg "varname=$varname, val=[my property $varname]"
     set value [my property $varname]
 
     # todo: might be more efficient to check, if it exists already

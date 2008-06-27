@@ -981,7 +981,7 @@ namespace eval ::xowiki::formfield {
       array set wc [::xowiki::FormPage filter_expression $where &&]
       set init_vars [concat $init_vars $wc(vars)]
     }
-    
+    set options [list]    
     set items [::xowiki::FormPage get_children \
                    -base_item_id [$form_obj item_id] \
                    -form_fields [list] \
