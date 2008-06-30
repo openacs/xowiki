@@ -1049,6 +1049,7 @@ namespace eval ::xowiki {
     }
 
     #my show_fields $form_fields
+    my log "__form_action [my form_parameter __form_action {}]"
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
@@ -1069,10 +1070,14 @@ namespace eval ::xowiki {
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
 
-        #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
-        $package_id returnredirect \
-            [my query_parameter "return_url" [$package_id pretty_link [my name]]]
-        return
+	set redirect_method [my form_parameter __form_redirect_method "view"]
+	if {$redirect_method eq "__none"} {
+	  return
+	} else {
+	  #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
+	  set url [$package_id pretty_link [my name]]?m=$redirect_method
+	  $package_id returnredirect [my query_parameter "return_url" $url]
+	}
       }
     } else {
       # 
