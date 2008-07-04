@@ -494,9 +494,12 @@ namespace eval ::xowiki {
         set lhs [string trim $lhs]
         if {[string range $lhs 0 0] eq "_"} {
           set sql_var [string range $lhs 1 end]
-          foreach p [split $rhs_expr |] {
-            lappend sql_clause "$sql_var $sql_op($op) '$p'"
-          }
+	  set rhs [split $rhs_expr |] 
+	  if {[llength $rhs]>1} {
+	    lappend sql_clause "$sql_var in ('[join $rhs ',']')"
+	  } else {
+            lappend sql_clause "$sql_var $sql_op($op) '$rhs'"
+	  }
         } else {
           set hleft [my h_double_quote $lhs]
           set tleft "\$__ia($lhs)"
