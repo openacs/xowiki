@@ -1840,6 +1840,13 @@ namespace eval ::xowiki {
     if {$h_where ne "" && $use_hstore} {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
+    #my msg "exists sql=[info exists wc(sql)]"
+    if {$wc(sql) ne ""} {
+      foreach filter $wc(sql) {
+        append filter_clause "and $filter"
+      }
+    }
+    #my msg filter_clause=$filter_clause
 
     set orderby ""; set page_size 20; set page_number ""
     set sql  [::xowiki::FormPage instance_select_query \

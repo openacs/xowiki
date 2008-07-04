@@ -179,8 +179,9 @@ namespace eval ::xowiki::formfield {
       label=*     {my label     [lindex [split $s =] 1]}
       help_text=* {my help_text [lindex [split $s =] 1]}
       *=*         {
-        set l [split $s =]
-        foreach {attribute value} $l break
+        set p [string first = $s]
+        set attribute [string range $s 0 $p-1]
+        set value [string range $s $p+1 end]
         set definition_class [lindex [my procsearch $attribute] 0]
         if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
           error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
@@ -196,9 +197,9 @@ namespace eval ::xowiki::formfield {
           if {[string match {\[*\]} $value]} {
             set value [subst $value]
           }
-          my [lindex $l 0] $value
+          my $attribute $value
         } errMsg]} {
-          error "Error during setting attribute '[lindex $l 0]' to value '[lindex $l 1]': $errMsg"
+          error "Error during setting attribute '$attribute' to value '$value': $errMsg"
         }
       }
       default {
@@ -966,20 +967,21 @@ namespace eval ::xowiki::formfield {
   ###########################################################
   Class form_page -superclass select -parameter {
     {form}
+    {where}
     {as_box false}
   }
   form_page instproc config_from_form {form_name} {
-    my instvar form_obj prefix
+    my instvar form_obj prefix where
     set form_obj [[my object] resolve_included_page_name $form_name]
     if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
 
     set prefix ""
     regexp {^(//[^/]+/)} $form_name _ prefix
 
-    array set wc {tcl true h ""}
+    array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
       array set wc [::xowiki::FormPage filter_expression $where &&]
-      set init_vars [concat $init_vars $wc(vars)]
+      #my msg "where '$where' => wc=[array get wc]"
     }
     set options [list]    
     set items [::xowiki::FormPage get_children \
@@ -987,7 +989,7 @@ namespace eval ::xowiki::formfield {
                    -form_fields [list] \
                    -publish_status ready \
                    -always_queried_attributes [list _name _title _last_modified _creation_user] \
-                   -h_where $wc(h) \
+                   -h_where [array get wc] \
                    -package_id [$form_obj package_id]]
     foreach i [$items children] {lappend options [list [$i title] [$i name]]}
     my options $options

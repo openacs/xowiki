@@ -2740,12 +2740,12 @@ namespace eval ::xowiki::includelet {
     # Compute filter clauses
     #
     set init_vars [list]
-    array set uc {tcl false h "" vars ""}
+    array set uc {tcl false h "" vars "" sql ""}
     if {[info exists unless]} {
       array set uc [::xowiki::FormPage filter_expression $unless ||]
       set init_vars [concat $init_vars $uc(vars)]
     }
-    array set wc {tcl true h "" vars ""}
+    array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
       array set wc [::xowiki::FormPage filter_expression $where &&]
       set init_vars [concat $init_vars $wc(vars)]
@@ -2756,11 +2756,12 @@ namespace eval ::xowiki::includelet {
     #
     # get an ordered composite of the base set (currently including extra_where clause)
     # 
-    my log "exists category_id [info exists category_id]"
+    #my log "exists category_id [info exists category_id]"
     set extra_where_clause ""
     if {[info exists category_id]} {
       foreach {cnames extra_where_clause} [my category_clause $category_id bt.item_id] break
     }
+
     set items [::xowiki::FormPage get_children \
                    -base_item_id $form_item_id \
                    -form_fields $form_fields \

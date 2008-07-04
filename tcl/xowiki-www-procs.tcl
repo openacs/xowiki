@@ -481,27 +481,39 @@ namespace eval ::xowiki {
     input_expr
     logical_op
   } {
+    array set tcl_op {= eq}
+    array set sql_op {= =}
     #my msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
     set h_clause [list]
     set vars [list]
+    set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
       if {[regexp {^(.+)\s*([=])\s*(.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
-        set hleft [my h_double_quote $lhs]
-        set tleft "\$__ia($lhs)"
-        lappend vars $lhs ""
-        set op eq
-        foreach p [split $rhs_expr |] {
-          lappend tcl_clause "$tleft $op {$p}"
-          lappend h_clause "$hleft=>[my h_double_quote $p]"
+        if {[string range $lhs 0 0] eq "_"} {
+          set sql_var [string range $lhs 1 end]
+          foreach p [split $rhs_expr |] {
+            lappend sql_clause "$sql_var $sql_op($op) '$p'"
+          }
+        } else {
+          set hleft [my h_double_quote $lhs]
+          set tleft "\$__ia($lhs)"
+          lappend vars $lhs ""
+          set op eq
+          foreach p [split $rhs_expr |] {
+            lappend tcl_clause "$tleft $tcl_op($op) {$p}"
+            lappend h_clause "$hleft=>[my h_double_quote $p]"
+          }
         }
       } else {
         my msg "ignoring $clause"
       }
     }
-    return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] vars $vars]
+    if {[llength $tcl_clause] == 0} {set tcl_clause [list true]}
+    return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] \
+                vars $vars sql $sql_clause]
     #my msg $expression
   }
 
