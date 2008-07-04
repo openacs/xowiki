@@ -180,8 +180,8 @@ namespace eval ::xowiki::formfield {
       help_text=* {my help_text [lindex [split $s =] 1]}
       *=*         {
         set p [string first = $s]
-        set attribute [string range $s 0 $p-1]
-        set value [string range $s $p+1 end]
+        set attribute [string range $s 0 [expr {$p-1}]]
+        set value [string range $s [expr {$p+1}] end]
         set definition_class [lindex [my procsearch $attribute] 0]
         if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
           error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]

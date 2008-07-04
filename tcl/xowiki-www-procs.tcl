@@ -501,7 +501,6 @@ namespace eval ::xowiki {
           set hleft [my h_double_quote $lhs]
           set tleft "\$__ia($lhs)"
           lappend vars $lhs ""
-          set op eq
           foreach p [split $rhs_expr |] {
             lappend tcl_clause "$tleft $tcl_op($op) {$p}"
             lappend h_clause "$hleft=>[my h_double_quote $p]"
