@@ -294,7 +294,7 @@ namespace eval ::xowiki {
     }
   }
   Page instproc category_import {-name -description -locale -categories} {
-    #my msg "catetegoy_import [self args]"
+    #my msg "...catetegoy_import [self args]"
     # ignore locale in get_id for now, since it seems broken
     set tree_id [category_tree::get_id $name]
     set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
@@ -315,6 +315,7 @@ namespace eval ::xowiki {
       for {set l 1} {$l <= $level} {incr l} {append node_name /$names($l)}
       set ::__xowiki_reverse_category_map($node_name) $category_id
     }
+    #my msg "...catetegoy_import reverse map [array names ::__xowiki_reverse_category_map]"
   }
 
 
@@ -337,7 +338,9 @@ namespace eval ::xowiki {
     my instvar page_template
     if {[$page_template exists __instance_attribute_map]} {
       my msg "we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
-      array set cm [$page_template set __category_map]
+      if {[$page_template exists __category_map]} {
+        array set cm  [$page_template set __category_map]
+      }
       array set use [$page_template set __instance_attribute_map]
       set ia [list]
       foreach {name value} [my instance_attributes] {
@@ -351,7 +354,7 @@ namespace eval ::xowiki {
             #my msg "...[my name] field: $name $value mapped to $cm($value)"
           } elseif {$use($name) eq "party_id"} {
             #
-            # map a part_id
+            # map a party_id
             #
             set mapped_value [my map_party $value]
             my msg "map party_id for $name to $mapped_value"
@@ -393,6 +396,7 @@ namespace eval ::xowiki {
     # So far, we just handle users, but we should support parties in
     # the future as well.
     array set "" $entry
+    #return $default_party
     if {$(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }
