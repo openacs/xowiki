@@ -286,8 +286,8 @@ set content_length [string length $content]
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
 
-? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 5 \
-    "folder contains: folder object, index and weblog page (+2 includelets)"
+? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 4 \
+    "folder contains: folder object, index and weblog page (+1 includelet)"
 
 
 
@@ -347,8 +347,8 @@ test subsection "Check Permissions based on default policy"
     "SWA sees the delete link"
 ? {expr {[::$package_id make_link -privilege admin -link admin/ $package_id {} {}] ne ""}} 1 \
     "SWA sees admin link"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
-    "folder contains: folder object, index and weblog page (+2 includelets)"
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+    "folder contains: folder object, index and weblog page (+1 includelet)"
 
 
 ########################################################################
@@ -365,8 +365,8 @@ set content [::$package_id invoke -method $m]
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/" \
     "redirect to main instance"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
-    "folder contains: folder object, index and weblog page (+1 includelet)"
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+    "folder contains: folder object, index and weblog page (+0 includelet)"
 
 test subsection "Create a test page named hello with package_id $package_id"
 
@@ -383,8 +383,8 @@ $page set_content [string trim [$page text] " \n"]
 $page initialize_loaded_object
 $page save_new
 ? {$page set package_id} $package_id "package_id $package_id not modified"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
-    "folder contains: folder object, index and weblog, hello page (+1 includelet)"
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+    "folder contains: folder object, index and weblog, hello page (+0 includelet)"
 ? {expr {[$page revision_id]>0}} 1 "revision_id given"
 ? {expr {[$page item_id]>0}} 1 "item_id given"
 set revision_id1 [$page revision_id]
@@ -392,8 +392,8 @@ set item_id1 [$page item_id]
 
 $page append title "- V.2"
 $page save
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 5 \
-    "still 5 pages"
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+    "still 4 pages"
 ? {expr {[$page revision_id]>$revision_id1}} 1 "revision_id > old revision_id"
 ? {expr {[$page item_id] == $item_id1}} 1 "item id the same"
 
@@ -413,8 +413,8 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 6 \
-    "again, 6 pages"
+? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+    "again, 4 pages"
 
 
 ########################################################################
