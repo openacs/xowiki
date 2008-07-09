@@ -337,14 +337,15 @@ namespace eval ::xowiki {
     # handle form_fields in associated parent
     my instvar page_template
     if {[$page_template exists __instance_attribute_map]} {
-      my msg "we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
+      #my log "+++ we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
       if {[$page_template exists __category_map]} {
         array set cm  [$page_template set __category_map]
+        #my log "+++ we have a category map for [my name] in the page_template [$page_template name]"
       }
       array set use [$page_template set __instance_attribute_map]
       set ia [list]
       foreach {name value} [my instance_attributes] {
-        my msg "marshall check $name $value [info exists use($name)] [info exists cm($value)]"
+        #my msg "marshall check $name $value [info exists use($name)] [info exists cm($value)]"
         if {[info exists use($name)]} {
           if {[info exists cm($value)]} {
             #
@@ -357,7 +358,7 @@ namespace eval ::xowiki {
             # map a party_id
             #
             set mapped_value [my map_party $value]
-            my msg "map party_id for $name to $mapped_value"
+            #my msg "map party_id for $name to $mapped_value"
             lappend ia $name $mapped_value
           } else {
             lappend ia $name $value
@@ -381,8 +382,8 @@ namespace eval ::xowiki {
     #my log "+++ $party_id"
     # So far, we just handle users, but we should support parties in
     # the future as well.
-    if {$party_id eq ""} {
-      return ""
+    if {$party_id eq "" || $party_id == 0} {
+      return $party_id
     }
     acs_user::get -user_id $party_id -array info
     set result [list]
@@ -394,9 +395,9 @@ namespace eval ::xowiki {
 
   Page instproc reverse_map_party {-entry -default_party} {
     # So far, we just handle users, but we should support parties in
-    # the future as well.
+    # the future as well.http://localhost:8003/nimawf/admin/export
     array set "" $entry
-    #return $default_party
+    return $default_party
     if {$(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }

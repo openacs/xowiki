@@ -31,6 +31,9 @@ ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=ex
 ReturnHeaders 
 
 foreach item_id $item_ids {
+  # check, if the page was already included
+  if {[info exists included($item_id)]} {continue}
+
   ::xo::db::CrClass get_instance_from_db -item_id $item_id
   #
   # if the page belongs to an Form/PageTemplate, include it as well
@@ -38,8 +41,7 @@ foreach item_id $item_ids {
   if {[$item_id istype ::xowiki::PageInstance]} {
     set template_id [$item_id page_template]
     while {1} {
-      if {[lsearch $item_ids $template_id] == -1 &&
-          ![info exists included($template_id)]} {
+      if {![info exists included($template_id)]} {
         set x [::xo::db::CrClass get_instance_from_db -item_id $template_id]
         $template_id volatile
         ns_log notice "--exporting needed [$item_id name] ($template_id) //$x [$x info class], m=[$template_id marshall] "
@@ -47,6 +49,8 @@ foreach item_id $item_ids {
         ns_write "[$template_id marshall] \n" 
         set included($template_id) 1
       }
+      # in case, the template_id has another template,
+      # iterate...
       if {[$template_id istype ::xowiki::PageInstance]} {
         set template_id [$template_id page_template]
       } else {
