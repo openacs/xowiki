@@ -393,13 +393,10 @@ namespace eval ::xowiki {
     return $result
   }
 
-  Page instproc reverse_map_party {-entry -default_party {-keep_user_ids 0}} {
+  Page instproc reverse_map_party {-entry -default_party {-create_user_ids 0}} {
     # So far, we just handle users, but we should support parties in
     # the future as well.http://localhost:8003/nimawf/admin/export
-    if {!$keep_user_ids} {
-      # we do not want to create new parties
-      return $default_party
-    }
+
     array set "" $entry
     if {$(email) ne ""} {
       set id [party::get_by_email -email $(email)]
@@ -409,19 +406,21 @@ namespace eval ::xowiki {
       set id [acs_user::get_by_username -username $(username)]
       if {$id ne ""} { return $id }
     }
-    my log "+++ create a new user username=$(username), email=$(email)"
-    array set status [auth::create_user -username $(username) -email $(email) \
-                          -first_names $(first_names) -last_name $(last_name) \
-                          -screen_name $(screen_name) -url $(url)]
-    if {$status(creation_status) eq "ok"} {
-      return $status(user_id)
+    if {$create_user_ids} {
+      my log "+++ create a new user username=$(username), email=$(email)"
+      array set status [auth::create_user -username $(username) -email $(email) \
+			    -first_names $(first_names) -last_name $(last_name) \
+			    -screen_name $(screen_name) -url $(url)]
+      if {$status(creation_status) eq "ok"} {
+	return $status(user_id)
+      }
+      my log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
     }
-    my log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
     return $default_party
   }
 
  
-  Page instproc reverse_map_party_attribute {-attribute {-default_party 0} {-keep_user_ids 0}} {
+  Page instproc reverse_map_party_attribute {-attribute {-default_party 0} {-create_user_ids 0}} {
     if {![my exists $attribute]} {
       my set $attribute $default_party
     } elseif {[llength [my set $attribute]] < 2} {
@@ -430,18 +429,18 @@ namespace eval ::xowiki {
       my set $attribute [my reverse_map_party \
                              -entry [my set $attribute] \
                              -default_party $default_party \
-                             -keep_user_ids $keep_user_ids]
+                             -create_user_ids $create_user_ids]
     }
   }
 
-  Page instproc demarshall {-parent_id -package_id -creation_user {-keep_user_ids 0}} {
+  Page instproc demarshall {-parent_id -package_id -creation_user {-create_user_ids 0}} {
     # this method is the counterpart of marshall
     my set parent_id $parent_id
     my set package_id $package_id 
     my reverse_map_party_attribute -attribute creation_user  \
-        -default_party $creation_user -keep_user_ids $keep_user_ids
+        -default_party $creation_user -create_user_ids $create_user_ids
     my reverse_map_party_attribute -attribute modifying_user \
-        -default_party $creation_user -keep_user_ids $keep_user_ids
+        -default_party $creation_user -create_user_ids $create_user_ids
     # if we import from an old database without page_order, take care about this
     if {![my exists page_order]} {my set page_order ""}
     # handle category import
@@ -478,10 +477,10 @@ namespace eval ::xowiki {
     }
     next
   }
-  FormPage instproc demarshall {-parent_id -package_id -creation_user {-keep_user_ids 0}} {
+  FormPage instproc demarshall {-parent_id -package_id -creation_user {-create_user_ids 0}} {
     my instvar page_template
     #
-    my reverse_map_party_attribute -attribute assignee -keep_user_ids $keep_user_ids
+    my reverse_map_party_attribute -attribute assignee -create_user_ids $create_user_ids
     #
     # FormPages must be demarshalled after Form, since Form builds
     # the reverse category map.
@@ -509,8 +508,8 @@ namespace eval ::xowiki {
             lappend ia $name [my reverse_map_party \
                                   -entry $value \
                                   -default_party $creation_user \
-                                  -keep_user_ids $keep_user_ids]
-            #my msg "field $name mapping $value to [my reverse_map_party -entry $value -default_party $creation_user  -keep_user_ids $keep_user_ids]"
+                                  -create_user_ids $create_user_ids]
+            #my msg "field $name mapping $value to [my reverse_map_party -entry $value -default_party $creation_user  -create_user_ids $create_user_ids]"
           } elseif {$value eq ""} {
             lappend ia $name ""
           } else {

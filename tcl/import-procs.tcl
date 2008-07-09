@@ -21,9 +21,10 @@ namespace eval ::xowiki {
     return "$added objects newly inserted, $updated objects updated, $replaced objects replaced<p>"
   }
 
-  Importer instproc import {-object -replace -base_object -keep_user_ids} {
+  Importer instproc import {-object -replace -base_object -create_user_ids} {
     my instvar package_id folder_id user_id
-    $object demarshall -parent_id $folder_id -package_id $package_id -creation_user $user_id
+    $object demarshall -parent_id $folder_id -package_id $package_id \
+	-creation_user $user_id -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
     if {$item_id != 0} {
       if {$replace} { ;# we delete the original
@@ -60,7 +61,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Importer instproc import_all {-replace -objects:required {-keep_user_ids 0}} {
+  Importer instproc import_all {-replace -objects:required {-create_user_ids 0}} {
     my instvar package_id folder_id
     set todo [list]
     foreach o $objects {
@@ -70,7 +71,7 @@ namespace eval ::xowiki {
         continue
       }
       my log "importing (1st round) $o [$o name] [$o info class]"
-      my import -object $o -replace $replace -keep_user_ids $keep_user_ids
+      my import -object $o -replace $replace -create_user_ids $create_user_ids
     }
 
     while {[llength $todo] > 0} {
@@ -101,7 +102,11 @@ namespace eval ::xowiki {
         break
       }
       my log "importing (2nd round) process $o, todo=$todo"
-      my import -object $o -replace $replace -base_object $template_id -keep_user_ids $keep_user_ids
+      my import \
+	  -object $o \
+	  -replace $replace \
+	  -base_object $template_id \
+	  -create_user_ids $create_user_ids
     }
     foreach o $objects {$o destroy}
   }
