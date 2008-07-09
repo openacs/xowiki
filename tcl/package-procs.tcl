@@ -602,7 +602,7 @@ namespace eval ::xowiki {
   # Package import
   #
 
-  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects} {
+  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects {-keep_user_ids 0}} {
     import the specified pages into the xowiki instance
   } {
     if {![info exists folder_id]}  {set folder_id  [my folder_id]}
@@ -611,7 +611,7 @@ namespace eval ::xowiki {
 
     set msg "processing objects: $objects<p>"
     set importer [Importer new -package_id [my id] -folder_id $folder_id -user_id $user_id]
-    $importer import_all -replace $replace -objects $objects
+    $importer import_all -replace $replace -objects $objects -keep_user_ids $keep_user_ids
     append msg [$importer report]
   }
 

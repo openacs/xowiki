@@ -393,11 +393,14 @@ namespace eval ::xowiki {
     return $result
   }
 
-  Page instproc reverse_map_party {-entry -default_party} {
+  Page instproc reverse_map_party {-entry -default_party {-keep_user_ids 0}} {
     # So far, we just handle users, but we should support parties in
     # the future as well.http://localhost:8003/nimawf/admin/export
+    if {!$keep_user_ids} {
+      # we do not want to create new parties
+      return $default_party
+    }
     array set "" $entry
-    #return $default_party
     if {$(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }
@@ -418,7 +421,7 @@ namespace eval ::xowiki {
   }
 
  
-  Page instproc reverse_map_party_attribute {-attribute {-default_party 0}} {
+  Page instproc reverse_map_party_attribute {-attribute {-default_party 0} {-keep_user_ids 0}} {
     if {![my exists $attribute]} {
       my set $attribute $default_party
     } elseif {[llength [my set $attribute]] < 2} {
@@ -426,16 +429,19 @@ namespace eval ::xowiki {
     } else {
       my set $attribute [my reverse_map_party \
                              -entry [my set $attribute] \
-                             -default_party $default_party]
+                             -default_party $default_party \
+                             -keep_user_ids $keep_user_ids]
     }
   }
 
-  Page instproc demarshall {-parent_id -package_id -creation_user} {
+  Page instproc demarshall {-parent_id -package_id -creation_user {-keep_user_ids 0}} {
     # this method is the counterpart of marshall
     my set parent_id $parent_id
     my set package_id $package_id 
-    my reverse_map_party_attribute -attribute creation_user  -default_party $creation_user
-    my reverse_map_party_attribute -attribute modifying_user -default_party $creation_user
+    my reverse_map_party_attribute -attribute creation_user  \
+        -default_party $creation_user -keep_user_ids $keep_user_ids
+    my reverse_map_party_attribute -attribute modifying_user \
+        -default_party $creation_user -keep_user_ids $keep_user_ids
     # if we import from an old database without page_order, take care about this
     if {![my exists page_order]} {my set page_order ""}
     # handle category import
@@ -472,10 +478,10 @@ namespace eval ::xowiki {
     }
     next
   }
-  FormPage instproc demarshall {-parent_id -package_id -creation_user} {
+  FormPage instproc demarshall {-parent_id -package_id -creation_user {-keep_user_ids 0}} {
     my instvar page_template
     #
-    my reverse_map_party_attribute -attribute assignee 
+    my reverse_map_party_attribute -attribute assignee -keep_user_ids $keep_user_ids
     #
     # FormPages must be demarshalled after Form, since Form builds
     # the reverse category map.
@@ -502,8 +508,9 @@ namespace eval ::xowiki {
           } elseif {$use($name) eq "party_id"} {
             lappend ia $name [my reverse_map_party \
                                   -entry $value \
-                                  -default_party $creation_user]
-            #my msg "field $name mapping $value to [my reverse_map_party -entry $value -default_party $creation_user]"
+                                  -default_party $creation_user \
+                                  -keep_user_ids $keep_user_ids]
+            #my msg "field $name mapping $value to [my reverse_map_party -entry $value -default_party $creation_user  -keep_user_ids $keep_user_ids]"
           } elseif {$value eq ""} {
             lappend ia $name ""
           } else {
