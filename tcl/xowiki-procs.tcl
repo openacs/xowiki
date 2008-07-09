@@ -397,7 +397,7 @@ namespace eval ::xowiki {
     # So far, we just handle users, but we should support parties in
     # the future as well.http://localhost:8003/nimawf/admin/export
     array set "" $entry
-    return $default_party
+    #return $default_party
     if {$(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }
