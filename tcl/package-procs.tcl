@@ -751,6 +751,10 @@ namespace eval ::xowiki {
 <sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
 }
     foreach package_id  [::xowiki::Package instances] {
+      if {![::xo::parameter get -package_id $package_id \
+	       -parameter include_in_google_sitemap_index -default 1]} {
+	continue
+      } 
       set last_modified [db_string [my qn get_newest_modification_date] \
                              "select last_modified from acs_objects where package_id = $package_id \
 		order by last_modified desc limit 1"]

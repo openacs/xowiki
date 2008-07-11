@@ -62,14 +62,15 @@ Some features:
         <requires url="xotcl-core" version="0.86"/>
 
         <callbacks>
-            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
+            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. This attribute can only be shown, when ltree is available." section_name="Form"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="include_in_google_sitemap_index"  default="1" description="include the package in the google sitemap index"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="When specified, a button for adding the content to myyahoo is added, containing the specified publisher" section_name="Options"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
