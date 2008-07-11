@@ -1063,7 +1063,7 @@ namespace eval ::xowiki {
     }
 
     #my show_fields $form_fields
-    my log "__form_action [my form_parameter __form_action {}]"
+    #my log "__form_action [my form_parameter __form_action {}]"
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
@@ -1071,9 +1071,25 @@ namespace eval ::xowiki {
       # we have to valiate and save the form data
       #
       foreach {validation_errors category_ids} [my get_form_data $form_fields] break
+
       if {$validation_errors != 0} {
         #my msg "$validation_errors errors in $form_fields"
-        #foreach f $form_fields { my msg "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
+        #foreach f $form_fields { my log "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
+        #
+        # In case we are triggered internally, we might not have a 
+        # a connection, so we don't present the form with the 
+        # error messages again, but we return simply the validation
+        # problems.
+        #
+        if {[$package_id exists __batch_mode]} {
+          set errors [list]
+          foreach f $form_fields { 
+            if {[$f error_msg] ne ""} {
+              lappend errors [list field [$f name] value [$f set value] error [$f error_msg]]
+            }
+          }
+          error "[llength $errors] validation error(s): $errors"
+        }
         # reset the name in error cases to the original one
         my set name [my form_parameter __object_name]
       } else {
