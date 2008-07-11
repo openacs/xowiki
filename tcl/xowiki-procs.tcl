@@ -1399,10 +1399,7 @@ namespace eval ::xowiki {
   }
   File instproc complete_name {name {fn ""}} {
     my instvar mime_type package_id
-    switch -glob -- $mime_type {
-      image/* {set type image}
-      default {set type file}
-    }
+    set type file
     if {$name ne ""} {
       set stripped_name $name
       regexp {^(.*):(.*)$} $name _ _t stripped_name
@@ -1454,10 +1451,10 @@ namespace eval ::xowiki {
         -mod_user [::xo::get_user_name $creation_user] \
         -size [file size [my full_file_name]]
 
-    if {$link_type eq "image"} {
+    if {[string match image/* $mime_type]} {
       set l [Link new -volatile \
                  -page [self] \
-                 -type $link_type -name $name -lang "" \
+                 -type image -name $name -lang "" \
                  -stripped_name $stripped_name -label $label \
                  -folder_id $parent_id -package_id $package_id]
       set image "<div >[$l render]</div>"
