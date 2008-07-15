@@ -1323,7 +1323,10 @@ namespace eval ::xowiki {
 	return $f
       }
     }
-    error "No form field with name $name found"
+    set names [list]
+    foreach f $form_fields {lappend names [$f name]}
+    error "No form field with name $name found\
+	(available fields: [lsort [array names ::_form_field_names]])"
   }
 
   Page instproc lookup_cached_form_field {
@@ -1342,6 +1345,7 @@ namespace eval ::xowiki {
     set msg ""
     foreach f $form_fields { append msg "[$f name] [namespace tail [$f info class]], " }
     my msg $msg
+    my log "XXX ff: $msg"
   }
 
 

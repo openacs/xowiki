@@ -1088,7 +1088,7 @@ namespace eval ::xowiki {
               lappend errors [list field [$f name] value [$f set value] error [$f error_msg]]
             }
           }
-	  set evaluation_error ""
+	  set evaluation_errors ""
 	  if {[$package_id exists __evaluation_error]} {
 	    set evaluation_errors "\nEvaluation error: [$package_id set __evaluation_error]"
 	    $package_id unset __evaluation_error
