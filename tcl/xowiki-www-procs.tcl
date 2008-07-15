@@ -1088,7 +1088,12 @@ namespace eval ::xowiki {
               lappend errors [list field [$f name] value [$f set value] error [$f error_msg]]
             }
           }
-          error "[llength $errors] validation error(s): $errors"
+	  set evaluation_error ""
+	  if {[$package_id exists __evaluation_error]} {
+	    set evaluation_errors "\nEvaluation error: [$package_id set __evaluation_error]"
+	    $package_id unset __evaluation_error
+	  }
+          error "[llength $errors] validation error(s): $errors $evaluation_errors"
         }
         # reset the name in error cases to the original one
         my set name [my form_parameter __object_name]
