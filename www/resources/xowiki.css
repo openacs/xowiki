@@ -21,24 +21,34 @@ div.portlet #wikicmds {float: inherit ! important; top: 0px ! important; height:
 #wikicmds a:hover {text-decoration: underline;}
 #wikicmds a:active {color: rgb(255,153,51);}
 #cmdbar {
-	background: transparent repeat-x url(/resources/xowiki/aqua.png);
-	border-bottom: solid 1px rgb(221,221,221);
-	font-family: sans-serif;  font-size: 85%;
-	padding: 0.25em 0.5em 0.25em 0.5em;
-	color: #7A7A78;
-	margin-bottom: 2px;
-}
-a.external {
-	color: #002bb8;
-	background: url(/resources/xowiki/external.png) right center no-repeat;
-	padding-right: 12px;
+    background: transparent repeat-x url(/resources/xowiki/aqua.png);
+    border-bottom: solid 1px rgb(221,221,221);
+    font-family: sans-serif;  font-size: 85%;
+    padding: 0.25em 0.5em 0.25em 0.5em;
+    color: #7A7A78;
+    margin-bottom: 2px;
 }
 
+div.xowiki-content {
+    font: 10pt Verdana, Arial, Helvetica, sans-serif;
+}
 
-div.xowiki-content {font: 10pt Verdana, Arial, Helvetica, sans-serif;}
-/* table, td  {font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif; color: #000;}*/
-#main div.column {text-align: left; margin-bottom: 1em;}
-#content      {float: left; width: 70%;}
+/* link types */
+div.xowiki-content a.external {
+    color: #002bb8;
+    background: url(/resources/xowiki/external.png) right center no-repeat;
+    padding-right: 12px;
+}
+div.xowiki-content a.file {
+    background: url(/resources/xowiki/file.jpg) right center no-repeat; 
+    padding-right: 9px;
+}
+div.xowiki-content a.glossary {
+    background: url(/resources/xowiki/glossary.gif) right center no-repeat; 
+    padding-right: 14px;
+}
+
+/* headings */
 div.xowiki-content h1 {
     /* font-size: 24px; */
     clear: both;
@@ -70,6 +80,10 @@ div.xowiki-content .hr {
     height: 1px; border: none; 
     background-color: silver;
 }
+
+/* region handling */
+#main div.column {text-align: left; margin-bottom: 1em;}
+#content      {float: left; width: 70%;}
 
 #bookNavBar { top: 0px; height: 2px; background-color: #859db8;}
 

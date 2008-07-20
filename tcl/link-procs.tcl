@@ -7,26 +7,40 @@ ad_library {
 }
   
 namespace eval ::xowiki {
-
   #
   # generic links
   #
-  Class create ExternalLink -parameter {
-    href label title target
+  Class create BaseLink -parameter {
+    cssclass href label title target
   }
+
+  BaseLink instproc mk_css_class {-additional {-default ""}} {
+    set cls [expr {[my exists cssclass] ? [my cssclass] : $default}]
+    if {[info exists additional]} {
+      if {$cls eq ""} {set cls $additional} else {append cls " " $additional}
+    }
+    if {$cls ne ""} {set cls "class='$cls'"}
+    return $cls 
+  }
+
+  #
+  # external links
+  #
+  Class create ExternalLink -superclass BaseLink 
   ExternalLink instproc render {} {
     my instvar href label title target
     set title_att ""
     if {[info exists title]} {append  title_att " title='$title'"}
     if {[info exists target]} {append title_att " target='$target'"}
-    return "<a $title_att class='external' href='$href'>$label</a>"
+    return "<a $title_att [my mk_css_class -additional external] href='$href'>$label</a>"
   }
 
-  Class create Link -parameter {
-    type name lang stripped_name label page 
+  #
+  # internal links
+  #
+  Class create Link -superclass BaseLink -parameter {
+    type name lang stripped_name page 
     folder_id package_id 
-    title target
-    href
   }
   Link instproc atts {} {
     set atts ""
@@ -58,13 +72,14 @@ namespace eval ::xowiki {
     return [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
   }
   Link instproc render_found {href label} {
-    return "<a [my atts] href='$href'>$label</a>"
+    return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a href='$href'> \[ </a>$label <a href='$href'> \] </a>"
+      return "<a [my mk_css_class] href='$href'> \[ </a>$label\
+	<a [my mk_css_class] href='$href'> \] </a>"
     }
   }
   Link instproc render {} {
@@ -134,22 +149,22 @@ namespace eval ::xowiki {
     my instvar lang name package_id
     set item_id [my resolve]
     if {$item_id} {
-      set css_class "found"
+      set image_css_class "found"
       set link [$package_id pretty_link -lang $lang [my stripped_name]]
     } else {
-      set css_class "undefined"
+      set image_css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
       set link [$package_id make_link $package_id \
                     edit-new object_type name last_page_id]
     }
     # my log "--lang_link=$link"
-    if {[my exists return_only] && [my return_only] ne $css_class} {
+    if {[my exists return_only] && [my return_only] ne $image_css_class} {
       set link ""
     }
     if {$link ne ""} {
-      $page lappend lang_links($css_class) \
-          "<a href='$link'><img class='$css_class' \
+      $page lappend lang_links($image_css_class) \
+          "<a href='$link' [my mk_css_class]><img class='$image_css_class' \
                 src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
     }
     return ""
@@ -161,7 +176,7 @@ namespace eval ::xowiki {
  
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
-        href cssclass
+        href
         center float width height 
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
@@ -206,14 +221,14 @@ namespace eval ::xowiki {
     }
     if {$style ne ""} {set style "style='$style'"}
     set label [string map [list ' "&#39;"] $label]
-    set cls [expr {[my exists cssclass] ? [my cssclass] : "xowikiimage"}]
+    set cls [my mk_css_class -default image]
     if {[my exists href]} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
-      return "<a href='$href'><img class='$cls' src='$link' alt='$label' title='$label' $style></a>"
+      set css_class
+      return "$pre<a $cls href='$href'><img $cls src='$link' alt='$label' title='$label' $style></a>$post"
     } else {
-      
-      return "$pre<img class='$cls' src='$link' alt='$label' title='$label' $style>$post"
+      return "$pre<img $cls src='$link' alt='$label' title='$label' $style>$post"
     }
   }
 
@@ -253,8 +268,7 @@ namespace eval ::xowiki {
       }
     }
     if {![info exists embed_options]} {
-      return "<a href='$internal_href' style='background: url(/resources/xowiki/file.jpg) \
-        right center no-repeat; padding-right:9px'>$label</a>"
+      return "<a href='$internal_href' [my mk_css_class -additional file]>$label</a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
@@ -438,8 +452,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     return "<a href='$href' onclick=\"showInfo('$href?master=0','$label'); return false;\"\
-        style='background: url(/resources/xowiki/glossary.gif) right center no-repeat; padding-right:14px'
-        >$label</a>"
+        [my mk_css_class -additional glossary]>$label</a>"
   }
 
   #
