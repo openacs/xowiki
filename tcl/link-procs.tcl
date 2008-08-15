@@ -30,7 +30,7 @@ namespace eval ::xowiki {
   ExternalLink instproc render {} {
     my instvar href label title target
     set title_att ""
-    if {[info exists title]} {append  title_att " title='$title'"}
+    if {[info exists title]}  {append  title_att " title='[string map [list ' {&#39;}] $title]'"}
     if {[info exists target]} {append title_att " target='$target'"}
     return "<a $title_att [my mk_css_class -additional external] href='$href'>$label</a>"
   }
@@ -44,7 +44,7 @@ namespace eval ::xowiki {
   }
   Link instproc atts {} {
     set atts ""
-    if {[my exists title]} {append atts " title='[my title]'"}
+    if {[my exists title]}  {append atts " title='[string map [list ' {&#39;}] [my title]]'"}
     if {[my exists target]} {append atts " target='[my target]'"}
   }
   Link instproc init {} {

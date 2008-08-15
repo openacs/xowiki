@@ -946,10 +946,7 @@ namespace eval ::xowiki {
       return $page$ch2
     } else {
       # we have a direct (adp-less include)
-      # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
-      # We have to change this back
-      regsub -all {([^\\])&quot;}  $arg "\\1\"" arg
-      set html [my include $arg]
+      set html [my include [my undoublequote $arg]]
       #my log "--include includelet returns $html"
       incr ::xowiki_inclusion_depth -1
       return $html$ch2
@@ -971,6 +968,12 @@ namespace eval ::xowiki {
       return ""
     }
   }
+  Page instproc undoublequote string {
+    # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
+    # We have to change this back
+    regsub -all {([^\\])&quot;} $string "\\1\"" string
+    return $string
+  }
   Page instproc anchor {arg} {
     #my msg [self args]
     set label $arg
@@ -978,6 +981,7 @@ namespace eval ::xowiki {
     set options ""
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
+    set options [my undoublequote $options]
     if {[string match "http*//*" $link] || [string match "//*" $link]} {
       if {[regsub {^//} $link / link]} {
 	#my msg t=[::xowiki::guesstype $link]
