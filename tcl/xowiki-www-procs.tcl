@@ -49,9 +49,11 @@ namespace eval ::xowiki {
     }
 
     if {[$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
+      set publisher [$package_id get_parameter "my_yahoo_publisher" \
+                         [::xo::get_user_name [::xo::cc user_id]]]
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [my include [list my-yahoo-publisher \
-                                   -publisher [::xo::get_user_name [::xo::cc user_id]] \
+                                   -publisher $publisher \
                                    -rssurl "$package_url?rss"]] \
           "</div>\n"
     }
