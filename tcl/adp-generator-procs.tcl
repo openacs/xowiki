@@ -56,12 +56,12 @@ function get_popular_tags(popular_tags_link, prefix) {
   <property name="&doc">property_doc</property>
   <property name="header_stuff">
   <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
-  @header_stuff;noquote@[my extra_header_stuff]
+  [my extra_header_stuff]@header_stuff;noquote@
   [my ajax_tag_definition]
   </property>
   <property name="head">
   <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
-  @header_stuff;noquote@[my extra_header_stuff]
+  [my extra_header_stuff]@header_stuff;noquote@
   [my ajax_tag_definition]
   </property>}]\n
   }
