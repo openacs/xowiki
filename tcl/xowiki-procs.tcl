@@ -2060,6 +2060,8 @@ namespace eval ::xowiki {
     my unset_temporary_instance_variables
 
     my instvar package_id name
+    #my msg "save_data old='$old_name' current='$name'"
+
     db_transaction {
       #
       # if the newly created item was in production mode, but ordinary entries
@@ -2076,6 +2078,7 @@ namespace eval ::xowiki {
       # my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
         my log "--formpage renaming"
+        #my msg "do rename from $old_name to $name"
         db_dml [my qn update_rename] "update cr_items set name = :name \
                 where item_id = [my item_id]"
       }

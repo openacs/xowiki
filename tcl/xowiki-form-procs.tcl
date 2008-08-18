@@ -200,11 +200,8 @@ namespace eval ::xowiki {
     my instvar data
 
     set old_name [::xo::cc form_parameter __object_name ""]
-    if {$name eq $old_name && $name ne ""} {
-      # do not change names, which are already validated;
-      # otherwise, autonamed entries might get an unwanted en:prefix
-      return 1
-    }
+    #my msg "validate: old='$old_name', current='$name'"
+
     # my log "--F validate_name data=[my exists data]"
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
@@ -225,20 +222,27 @@ namespace eval ::xowiki {
 	return 0
       }
     } else {
-      if {![regexp {^..:} $name]} {
-        if {![info exists nls_language]} {
-          set nls_language [lang::conn::locale]
-        }
-        set name [$data complete_name $name $nls_language]
-      }
+      set stripped_name $name
+      regexp {^..:(.*)$} $name _ stripped_name
+      set new_nls_language [$data form_parameter nls_language {}]
+      set name [$data complete_name $stripped_name $new_nls_language]
     }
     set name [::$package_id normalize_name $name]
 
+    #my msg "validate: old='$old_name', new='$name'"
+    if {$name eq $old_name && $name ne ""} {
+      # do not change names, which are already validated;
+      # otherwise, autonamed entries might get an unwanted en:prefix
+      return 1
+    }
+
     # check, if we try to create a new item with an existing name
+    #my msg "validate: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
     if {[$data form_parameter __new_p 0]
-        || [$data form_parameter __object_name] ne $name
+        || $old_name ne $name
       } {
       set folder_id [$data parent_id]
+      #my msg "exists in db [::xo::db::CrClass lookup -name $name -parent_id $folder_id]"
       return [expr {[::xo::db::CrClass lookup -name $name -parent_id $folder_id] == 0}]
     }
     return 1
@@ -260,8 +264,18 @@ namespace eval ::xowiki {
     return $success
   }
 
-
-
+##  We could strip the language prefix from the name, since it is essentially
+##  ignored... but we keep it for informational purposes
+#
+#   WikiForm instproc set_form_data {} {
+#     next
+#     #my msg "name in form=[my var name]"
+#     set name_in_form [my var name]
+#     if {[regexp {^..:(.*)$} $name_in_form _ stripped_name]} {
+#       # use stripped "name" in form to avoid possible confusions
+#       my var name $stripped_name
+#     }
+#   }
 
   WikiForm instproc data_from_form {{-new 0}} {
     my instvar data
