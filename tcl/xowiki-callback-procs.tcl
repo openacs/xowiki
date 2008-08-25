@@ -407,6 +407,44 @@ namespace eval ::xowiki {
 	$package_id import_prototype_page weblog-portlet
       }
     }
+
+    set v 0.90
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      set dir [acs_package_root_dir xowiki]
+      foreach file {
+        tcl/xowiki-portlet-procs.tcl
+        www/delete-revision.tcl www/delete.tcl www/edit.tcl www/revisions.tcl
+        www/index.adp www/index.tcl 
+        www/view.adp www/view.tcl
+        www/make-live-revision.tcl www/popular_tags.tcl www/save_tags.tcl www/weblog.tcl
+        www/portlets/categories-recent.adp
+        www/portlets/categories-recent.tcl
+        www/portlets/categories.adp
+        www/portlets/categories.tcl
+        www/portlets/last-visited.adp
+        www/portlets/last-visited.tcl
+        www/portlets/most-popular.adp
+        www/portlets/most-popular.tcl
+        www/portlets/recent.adp 
+        www/portlets/recent.tcl 
+        www/portlets/rss-button.adp
+        www/portlets/rss-button.tcl
+        www/portlets/tags.tcl
+        www/portlets/weblog.adp
+        www/portlets/weblog.tcl
+        www/portlets/wiki.adp
+        www/portlets/wiki.tcl
+        www/prototypes/announcements.page 
+        www/admin/regression_test.tcl
+      } {
+        if {[file exists $dir/$file]} {
+          ns_log notice "Deleting obsolete file $dir/$file"
+          file delete $dir/$file
+        }
+      }
+    }
   }
 
   proc copy_parameter {from to} {
