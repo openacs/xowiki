@@ -277,7 +277,7 @@ namespace eval ::xowiki {
     # setting up folder id for file selector (use community folder if available)
     #
     set fs_folder_id ""
-    if {[info commands ::dotlrn_fs::get_community_shared_folder]} {
+    if {[info commands ::dotlrn_fs::get_community_shared_folder] ne ""} {
       # ... we have dotlrn installed
       set cid [::dotlrn_community::get_community_id]
       if {$cid ne ""} {
