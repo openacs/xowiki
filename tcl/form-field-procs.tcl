@@ -64,8 +64,9 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc validate {obj} {
-    my instvar name required value
-
+    my instvar name required
+    # use the 'value' method to deal e.g. with compound fields
+    set value [my value]
     if {$required && $value eq "" && ![my istype ::xowiki::formfield::hidden]} {
       my instvar label
       return [_ acs-templating.Element_is_required]
@@ -203,7 +204,10 @@ namespace eval ::xowiki::formfield {
         }
       }
       default {
-        if {[my isclass ::xowiki::formfield::$s]} {
+	# Check, if the spec value $s is a class. 
+	# Don't allow to use namespaced values, since we would run 
+	# into a recursive loop for richtext::wym (could be altered there as well).
+        if {[my isclass ::xowiki::formfield::$s] && ![string match "*:*" $s]} {
           my class ::xowiki::formfield::$s
 	  my remove_omit
           my reset_parameter
@@ -1151,7 +1155,6 @@ namespace eval ::xowiki::formfield {
     {maxlength 4}
   }
 
-
   ###########################################################
   #
   # ::xowiki::formfield::image_url
@@ -1239,6 +1242,20 @@ namespace eval ::xowiki::formfield {
 
   Class CompoundField -superclass FormField -parameter {
     {components ""}
+  } -extend_slot validator compound
+
+  CompoundField instproc check=compound {value} {
+    #my msg "check compound in [my components]"
+    foreach c [my components] {
+      set error [$c validate [self]]
+      if {$error ne ""} {
+	set msg "[$c label]: $error"
+	my uplevel [list set errorMsg $msg]
+	#util_user_message -message "Error in compound field [$c name]: $error"
+	return 0
+      }
+    }
+    return 1
   }
 
   CompoundField instproc value {args} {
@@ -1420,6 +1437,10 @@ namespace eval ::xowiki::formfield {
     if {"$year$month$day$hour$min$sec" eq ""} {
       return ""
     }
+    # Validation happens after the value is retrieved.
+    # To avoid errors in "clock scan", fix the year if necessary
+    if {![string is integer $year]} {set year 0}
+
     foreach v [list year month day hour min sec] {
       if {[set $v] eq ""} {set $v [my set defaults($v)]}
     }
