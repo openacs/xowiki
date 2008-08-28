@@ -38,6 +38,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="event-start_of_lecture">Start of Lecture</msg>
   <msg key="event-title_of_lecture">Title of Lecture</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
+  <msg key="form-created">Created form</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Form Constraints</msg>
   <msg key="form-menu-button-answers">Entries for this form</msg>
@@ -47,6 +48,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-menu-button-wf-instances">Instances of %form_name%</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
+  <msg key="form-updated">Updated form</msg>
   <msg key="Form-validate_form_constraints">%errorMsg%</msg>
   <msg key="FormPage-assignee">Assignee</msg>
   <msg key="FormPage-state">State</msg>

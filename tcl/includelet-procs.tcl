@@ -2672,8 +2672,10 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-unless}
           {-where}
-          {-csv true}
           {-with_categories}
+          {-csv true}
+          {-voting_form}
+          {-generate}
         }}
       }
   
@@ -2698,7 +2700,10 @@ namespace eval ::xowiki::includelet {
                   -name @table \
                   -form_constraints $form_constraints]
       set field_names [split $fn ,]
+    } elseif {[string match "*,*" $field_names] } {
+      set field_names [split $field_names ,]
     }
+
     if {$field_names eq ""} {
       set field_names {_name _last_modified _creation_user}
     }
@@ -2714,14 +2719,14 @@ namespace eval ::xowiki::includelet {
     if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
     set cols ""
-    append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}} \n
+    append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
     foreach fn $field_names {
       append cols [list AnchorField $fn \
 		       -label [$__ff($fn) label] \
 		       -richtext [$__ff($fn) istype ::xowiki::formfield::richtext] \
 		       -orderby $fn] \n
     }
-    append cols [list ImageField_DeleteIcon delete -label ""    ] \n
+    append cols [list ImageField_DeleteIcon delete -label "" -no_csv 1] \n
     TableWidget t1 -volatile -columns $cols
 
     #
@@ -2812,6 +2817,11 @@ namespace eval ::xowiki::includelet {
       }
     }
 
+    #
+    # If there are multiple includelets on a single page,
+    # we have to identify the right one for e.g. producing the
+    # csv table. Therefore, we compute an includelet_key
+    #
     my instvar name
     set includelet_key ""
     foreach var {name form_item_id form publish_states field_names unless} {
@@ -2820,21 +2830,30 @@ namespace eval ::xowiki::includelet {
     
     set given_includelet_key [::xo::cc query_parameter includelet_key ""]
     if {$given_includelet_key ne ""} {
-      if {$given_includelet_key eq $includelet_key} {
-        return [t1 write_csv]
-      } else {
-        return ""
+      if {$given_includelet_key eq $includelet_key && [info exists generate]} {
+        if {$generate eq "csv"} {
+          return [t1 write_csv]
+        } elseif {$generate eq "voting_form"} {
+          return [my generate_voting_form $voting_form t1 $field_names]
+        }
       }
+      return ""
     }
 
+    set links [list]
     set base [$package_id pretty_link [$form_item name]]
     set label [$form_item name]
     append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
     append html [t1 asHTML]
     if {$csv} {
-      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]"
-      append html "<a href='$csv_href'>csv</a>"
+      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=csv"
+      lappend links "<a href='$csv_href'>csv</a>"
     }
+    if {[info exists voting_form]} {
+      set href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=voting_form"
+      lappend links " <a href='$href'>Generate Voting Form $voting_form</a>"
+    }
+    append html [join $links ,]
     my log "render done"
 
     if {[info exists with_categories]} {
@@ -2843,6 +2862,56 @@ namespace eval ::xowiki::includelet {
       return "<div style='width: 15%; float: left;'>$category_html</div></div width='69%'>$html</div>\n"
     }
     return $html
+  }
+
+  form-usages instproc generate_voting_form {form_name t1 field_names} { 
+    set form "<form> How do you rate<br /> 
+    <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
+      <tbody> 
+        <tr> 
+          <td style='border-style: none; text-align: right;'> </td> 
+          <td style='border-style: none; text-align: left; width: 150px;'>&nbsp;very good<br /></td> 
+          <td align='right' style='border-style: none; text-align: right; width: 150px;'>&nbsp;very bad<br /></td> 
+        </tr> \n"
+ 
+    # We use here the table t1 to preserve sorting etc. 
+    # The basic assumption is that every line of the table has an instance variable
+    # corresponding to the wanted field name. This is guaranteed by the construction
+    # in form-usages.
+    set count 0
+    set table_field_names [list]
+    foreach t [$t1 children] {
+      incr count
+      lappend table_field_names $count
+      foreach __fn $field_names {
+        append form "<tr><td>[$t set $__fn]</td><td align='center' colspan='2'>@$count@</td></tr>\n"
+      }
+    }
+
+    append form "</tbody></table></form>\n"
+    lappend table_field_names _last_modified _creation_user
+
+    set item_id [::xo::db::CrClass lookup -name $form_name -parent_id [[my package_id] folder_id]]
+    if {$item_id == 0} {
+      set f [::xowiki::Form new \
+                 -package_id [my package_id] \
+                 -parent_id [[my package_id] folder_id] \
+                 -name $form_name \
+                 -anon_instances t \
+                 -form [list $form text/html] \
+                 -form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
+                   @table:[join $table_field_names ,]" \
+                ]
+      $f save_new
+      $f destroy
+      set action created
+    } else {
+      ::xowiki::Form get_instance_from_db -item_id $item_id
+      $item_id form [list $form text/html]
+      $item_id save
+      set action updated
+    }
+    return "#xowiki.form-$action# <a href='[[my package_id] pretty_link $form_name]'>$form_name</a>"
   }
 }
  
