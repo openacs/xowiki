@@ -2869,7 +2869,7 @@ namespace eval ::xowiki::includelet {
     <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
       <tbody> 
         <tr> 
-          <td style='border-style: none; text-align: right;'> </td> 
+          <td style='border-style: none;'> </td> 
           <td style='border-style: none; text-align: left; width: 150px;'>&nbsp;very good<br /></td> 
           <td align='right' style='border-style: none; text-align: right; width: 150px;'>&nbsp;very bad<br /></td> 
         </tr> \n"
@@ -2883,9 +2883,14 @@ namespace eval ::xowiki::includelet {
     foreach t [$t1 children] {
       incr count
       lappend table_field_names $count
+      # In most situations, it seems useful to have just one field in
+      # the voting table. If there are multiple, we use a comma to
+      # separate the values (looks bettern than separate columns).
+      set field_contents [list]
       foreach __fn $field_names {
-        append form "<tr><td>[$t set $__fn]</td><td align='center' colspan='2'>@$count@</td></tr>\n"
+        lappend field_contents [$t set $__fn]
       }
+      append form "<tr><td>[join $field_contents {, }]</td><td align='center' colspan='2'>@$count@</td></tr>\n"
     }
 
     append form "</tbody></table></form>\n"
