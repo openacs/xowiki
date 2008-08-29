@@ -2675,6 +2675,7 @@ namespace eval ::xowiki::includelet {
           {-with_categories}
           {-csv true}
           {-voting_form}
+          {-voting_form_form ""}
           {-generate}
         }}
       }
@@ -2834,7 +2835,7 @@ namespace eval ::xowiki::includelet {
         if {$generate eq "csv"} {
           return [t1 write_csv]
         } elseif {$generate eq "voting_form"} {
-          return [my generate_voting_form $voting_form t1 $field_names]
+          return [my generate_voting_form $voting_form $voting_form_form t1 $field_names]
         }
       }
       return ""
@@ -2864,7 +2865,7 @@ namespace eval ::xowiki::includelet {
     return $html
   }
 
-  form-usages instproc generate_voting_form {form_name t1 field_names} { 
+  form-usages instproc generate_voting_form {form_name form_form t1 field_names} { 
     set form "<form> How do you rate<br /> 
     <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
       <tbody> 
@@ -2896,23 +2897,49 @@ namespace eval ::xowiki::includelet {
     append form "</tbody></table></form>\n"
     lappend table_field_names _last_modified _creation_user
 
+    # Check, of we have a form for editing the generated form. If yes, we will
+    # instantiate a form page from it.
+    set form_form_id 0 
+    if {$form_form ne ""} { 
+      set form_form_id  [::xo::db::CrClass lookup -name $form_form -parent_id [[my package_id] folder_id]] 
+    } 
+    # The normal form requires for rich-text the 2 element list as content
+    if {$form_form_id == 0} { set form [list $form text/html] }
+
     set item_id [::xo::db::CrClass lookup -name $form_name -parent_id [[my package_id] folder_id]]
     if {$item_id == 0} {
-      set f [::xowiki::Form new \
-                 -package_id [my package_id] \
-                 -parent_id [[my package_id] folder_id] \
-                 -name $form_name \
-                 -anon_instances t \
-                 -form [list $form text/html] \
-                 -form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
+      
+      if {$form_form_id == 0} {
+        set f [::xowiki::Form new \
+                   -package_id [my package_id] \
+                   -parent_id [[my package_id] folder_id] \
+                   -name $form_name \
+                   -anon_instances t \
+                   -form $form \
+                   -form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
                    @table:[join $table_field_names ,]" \
-                ]
+                  ]
+      } else {
+        set f [::xowiki::FormPage new \
+                   -page_template $form_form_id \
+                   -package_id [my package_id] \
+                   -parent_id [[my package_id] folder_id] \
+                   -name $form_name]
+        $f set_property anon_instances t
+        $f set_property form $form
+        $f set_property form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
+                   @table:[join $table_field_names ,]"
+      }
       $f save_new
       $f destroy
       set action created
     } else {
       ::xowiki::Form get_instance_from_db -item_id $item_id
-      $item_id form [list $form text/html]
+      if {$form_form_id == 0} {
+        $item_id form $form
+      } else {
+        $item_id set_property form $form
+      }
       $item_id save
       set action updated
     }
