@@ -1500,7 +1500,23 @@ namespace eval ::xowiki {
   Page instproc create-new {} {
     my instvar package_id
     set instance_attributes [my default_instance_attributes]
+    set original_package_id $package_id
 
+    if {[my exists_query_parameter "package_instance"]} {
+      set package_instance [my query_parameter "package_instance"]
+      #
+      # Initialize the target package and set the local
+      # variable package_id.
+      #
+      if {[catch {
+        ::xowiki::Package initialize \
+            -url $package_instance -user_id [::xo::cc user_id] \
+            -actual_query ""} errorMsg]} {
+        return [$original_package_id error_msg \
+                    "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
+      }
+      my parent_id [$package_id folder_id]
+     }
     set f [FormPage new -destroy_on_cleanup \
                -package_id $package_id \
                -parent_id [my parent_id] \
@@ -1513,7 +1529,7 @@ namespace eval ::xowiki {
     #
     # if we copy an item, we use source_item_id to provide defaults
     #
-    set source_item_id [$package_id query_parameter source_item_id ""]
+    set source_item_id [my query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $source destroy_on_cleanup
@@ -1526,8 +1542,8 @@ namespace eval ::xowiki {
       # set some default values from query parameters
       #
       foreach key {name title page_order last_page_id} {
-	if {[$package_id exists_query_parameter $key]} {
-	  $f set $key [$package_id query_parameter $key]
+	if {[my exists_query_parameter $key]} {
+	  $f set $key [my query_parameter $key]
 	}
       }
     }
@@ -1545,9 +1561,11 @@ namespace eval ::xowiki {
         set $var [my query_parameter $var]
       }
     }
+
     $package_id returnredirect \
         [export_vars -base [$package_id pretty_link [$f name]] \
 	     {{m edit} return_url name template_file title detail_link text}]
+
   }
 
 

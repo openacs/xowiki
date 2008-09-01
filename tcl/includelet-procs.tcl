@@ -2645,7 +2645,13 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
     if {![info exists button_objs]} {
       set form [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
-      set base [$package_id pretty_link [$form name]]
+      set form_package_id [$form package_id]
+      #
+      # "Package require" is just a part of "Package initialize" creating 
+      # the package object if needed
+      #
+      ::xowiki::Package require $form_package_id
+      set base [[$form package_id] pretty_link [$form name]]
       foreach b $buttons {
         set obj  [form-menu-button-$b new -volatile -package_id $package_id \
                       -base $base -form $form]
