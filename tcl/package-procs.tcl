@@ -159,15 +159,113 @@ namespace eval ::xowiki {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
-    (3) per instance parameters from the folder object (computable)
-    (4) standard OpenACS package parameter
+    (3) form fields from the parameter_page FormPage
+    (4) per instance parameters from the folder object (computable)
+    (5) standard OpenACS package parameter
   } {
+    #my log "search for $attribute"
     set value [::xo::cc get_parameter $attribute]
     if {$value eq ""} {set value [my query_parameter $attribute]}
+    if {$value eq "" && $attribute ne "parameter_page"} {
+      #
+      # Try to get the parameter from the parameter_page.  We have to
+      # be very cautious here to avoid recursive calls (e.g. when
+      # resolve_page_name needs as well parameters such as
+      # use_connection_locale or subst_blank_in_name, etc.).
+      #
+      set pp [my get_parameter parameter_page ""]
+      if {$pp ne ""} {
+        if {![regexp {/?..:} $pp]} {
+          my log "Error: Name of parameter page '$pp' of package [my id] must contain a language prefix"
+        } else {
+          set page [my resolve_page_name $pp]
+          if {$page eq ""} {
+            my log "Error: Could not resolve parameter page '$pp' of package [my id]."
+          }
+          if {$page ne "" && [$page exists instance_attributes]} {
+            array set __ia [$page set instance_attributes]
+            if {[info exists __ia($attribute)]} {
+              set value $__ia($attribute)
+              #my log "got value='$value'"
+            }
+          }
+        }
+      }
+    }
     if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
     if {$value eq ""} {set value [next]}
+    #my log "           $attribute returns '$value'"
     return $value
   }
+
+  Package instproc resolve_page_name {{-lang} page_name} {
+    set page ""
+    #
+    # take a local copy of the package_id, since it is possible
+    # that the variable package_id might changed to another instance.
+    #
+    set package_id [my id]
+    if {[regexp {^/(/.+)$} $page_name _ url]} {
+      #
+      # Handle cross package resolve requests
+      #
+      # Note, that package::initialize might change the package id.
+      # Preserving the package-url is just necessary, if for some
+      # reason the same package is initialized here with a different 
+      # url. This could be done probably with a flag to initialize,
+      # but we get below the object name from the package_id...
+      #
+      #my log "cross package request $page_name"
+      #
+      set last_package_id $package_id
+      set last_url [my url]
+      #
+      # TODO: We assume here that the package is an xowiki package.
+      #       The package might be as well a subclass of xowiki...
+      #       For now, we fixed the problem to perform reclassing in
+      #       ::xo::Package init and calling a per-package instance 
+      #       method "initialize"
+      #
+      ::xowiki::Package initialize -parameter {{-m view}} -url $url \
+          -actual_query ""
+      #my log "url=$url=>[$package_id serialize]"
+      
+      if {$package_id != 0} {
+        #
+        # For the resolver, we create a fresh context to avoid recursive loops, when
+        # e.g. revision_id is set through a query parameter...
+        #
+        set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
+        $package_id context [::xo::Context new -volatile]
+        set object_name [$package_id set object]
+        #my log "cross package request got object=$object_name"
+        #
+        # A user might force the language by preceding the
+        # name with a language prefix.
+        #
+        #my log "check '$object_name' for lang prefix"
+        if {![regexp {^..:} $object_name]} {
+          if {![info exists lang]} {
+            set lang [my default_language]
+          }
+          set object_name ${lang}:$object_name
+        }
+        set page [$package_id resolve_page -simple true $object_name __m]
+        $package_id context $last_context
+      }
+      $last_package_id set_url -url $last_url
+      
+    } else {
+      # It is not a cross package request
+      set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
+      $package_id context [::xo::Context new -volatile]
+      set page [$package_id resolve_page $page_name __m]
+      $package_id context $last_context
+    }
+    #my log "returning $page"
+    return $page
+  }
+
 
   Package instproc show_page_order {} {
     return [my get_parameter display_page_order 1]
@@ -304,7 +402,8 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_page {object method_var} {
+  Package instproc resolve_page {{-simple false} object method_var} {
+    #my log "resolve_page '$object'"
     upvar $method_var method
     my instvar folder_id id policy
     #
@@ -336,9 +435,11 @@ namespace eval ::xowiki {
     # second, resolve object level methods
     #
     #my log "--o try index '$object'"
-    set page [my resolve_request -path $object method]
+    set page [my resolve_request -simple $simple -path $object method]
     #my log "--o page is '$page'"
-    if {$page ne ""} {
+    if {$simple || $page ne ""} {
+      if {$page ne ""} {
+      }
       return $page
     }
 
@@ -456,7 +557,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_request {-path method_var} {
+  Package instproc resolve_request {{-simple false} -path method_var} {
     my instvar folder_id
     #my log "--u [self args]"
     [self class] instvar queryparm
@@ -466,7 +567,13 @@ namespace eval ::xowiki {
 
       set item_id [::xo::db::CrClass lookup -name $path -parent_id $folder_id]
       my log "--try $path ($folder_id) -> $item_id"
-      
+      if {$simple} {
+        if {$item_id != 0} {
+          set r [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+        }
+        return [expr {$item_id ? $item_id : ""}]
+      }
+
       if {$item_id == 0} {
         my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name
@@ -513,7 +620,6 @@ namespace eval ::xowiki {
       set [expr {$revision_id ? "item_id" : "revision_id"}] 0
       #my log "--instantiate item_id $item_id revision_id $revision_id"
       set r [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
-      $r destroy_on_cleanup
       #my log "--instantiate done  CONTENT\n[$r serialize]"
       $r set package_id [namespace tail [self]]
       return $r
@@ -789,7 +895,6 @@ namespace eval ::xowiki {
     set source_item_id [$id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       set source [$object_type get_instance_from_db -item_id $source_item_id]
-      $source destroy_on_cleanup
       $page copy_content_vars -from_object $source
       set name ""
       regexp {^.*:(.*)$} [$source set name] _ name

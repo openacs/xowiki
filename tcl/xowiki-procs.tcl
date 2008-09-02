@@ -758,65 +758,10 @@ namespace eval ::xowiki {
     the language prefix of the including page is used.
   } {
     if {$page_name ne ""} {
-      set page ""
-      #
-      # take a local copy of the package_id, since it is possible
-      # that the variable package_id might changed to another instance.
-      #
-      set package_id [my package_id]
-      if {[regexp {^/(/.+)$} $page_name _ url]} {
-	#
-	# Handle cross package resolve requests
-        #
-	# Note, that package::initialize might change the package id.
-	# Preserving the package-url is just necessary, if for some
-        # reason the same package is initialized here with a different 
-        # url. This could be done probably with a flag to initialize,
-        # but we get below the object name from the package_id...
-        #
-        set last_package_id $package_id
-        set last_url [$package_id url]
-        #
-	# TODO: We assume here that the package is an xowiki package.
-	#       The package might be as well a subclass of xowiki...
-	#       For now, we fixed the problem to perform reclassing in
-        #       ::xo::Package init and calling a per-package instance 
-        #       method "initialize"
-	#
-	::xowiki::Package initialize -parameter {{-m view}} -url $url \
-	    -actual_query ""
-
-	if {$package_id != 0} {
-	  #
-	  # For the resolver, we create a fresh context to avoid recursive loops, when
-	  # e.g. revision_id is set through a query parameter...
-	  #
-	  set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
-	  $package_id context [::xo::Context new -volatile]
-	  set object_name [$package_id set object]
-	  #
-	  # A user might force the language by preceding the
-	  # name with a language prefix.
-	  #
-	  if {![regexp {^..:} $object_name]} {
-	    set object_name [my lang]:$object_name
-	  }
-	  set page [$package_id resolve_page $object_name __m]
-	  $package_id context $last_context
-	}
-        $last_package_id set_url -url $last_url
-
-      } else {
-	set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
-	$package_id context [::xo::Context new -volatile]
-	set page [$package_id resolve_page $page_name __m]
-	$package_id context $last_context
-      }
-
+      set page [[my package_id] resolve_page_name -lang [my lang] $page_name]
       if {$page eq ""} {
-	error "Cannot find page '$page_name'"
+        error "Cannot find page '$page_name'"
       }
-      $page destroy_on_cleanup
     } else {
       set page [self]
     }
@@ -1190,7 +1135,7 @@ namespace eval ::xowiki {
       foreach {page_name var_name} [split $s ,] break
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[my exists name] ? [my set name] : $page_name}]
-      #my msg "--w T.name = '$name' var=$page_name, $var_name $field_name "
+      #my msg "--w T.name = '$name' var=$page_name ([string match $page_name $name]), $var_name $field_name ([string match $var_name $field_name])"
       if {[string match $page_name $name] &&
           [string match $var_name $field_name]} {
         set spec $widget_spec

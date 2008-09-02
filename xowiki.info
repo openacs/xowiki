@@ -8,7 +8,7 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.92" url="http://openacs.org/repository/download/apm/xowiki-0.92.apm">
+    <version name="0.93" url="http://openacs.org/repository/download/apm/xowiki-0.93.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
@@ -54,7 +54,7 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.92"/>
+        <provides url="xowiki" version="0.93"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -62,10 +62,10 @@ Some features:
         <requires url="xotcl-core" version="0.89"/>
 
         <callbacks>
-            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
-            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
+            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
+            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
@@ -74,6 +74,8 @@ Some features:
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="Name of the publisher, when posting urls to my yahoo (use in connection with with_yahoo_publisher)" section_name="Options"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="parameter_page"  description="::xowiki::FormPage to search for parameters. The page name has to contain a language prefix and can refer to a different xowiki instance.
+Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;."/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
