@@ -1014,17 +1014,25 @@ namespace eval ::xowiki::includelet {
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
 
-    set or_clause "or i.item_id in (select x.page_id from xowiki_last_visited x, acs_objects o  \
-      where x.time < o.last_modified and x.page_id = o.object_id and x.package_id = $package_id)
-"
+    set or_clause "or i.item_id in (
+	select x.page_id 
+	from xowiki_last_visited x, acs_objects o  \
+	where x.time < o.last_modified 
+	and x.page_id = o.object_id 
+	and x.package_id = $package_id
+        and x.user_id = [::xo::cc user_id]
+     )"
+
+    set or_clause ""
 
     db_foreach [my qn get_pages] \
        [::xo::db::sql select \
             -vars "a.title, i.name" \
             -from "xowiki_page p, cr_items i, acs_objects a "  \
-            -where "(i.item_id not in (select x.page_id from xowiki_last_visited x 
-                        where x.user_id = [::xo::cc user_id] and  x.package_id = $package_id) 
-                    $or_clause
+            -where "(i.item_id not in (
+			select x.page_id from xowiki_last_visited x 
+                        where x.user_id = [::xo::cc user_id] and x.package_id = $package_id
+		    ) $or_clause
                     )
                     and i.live_revision = p.page_id 
                     and i.parent_id = [$package_id folder_id] 
