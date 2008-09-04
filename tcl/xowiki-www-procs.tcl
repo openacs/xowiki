@@ -88,8 +88,9 @@ namespace eval ::xowiki {
 namespace eval ::xowiki {
   
   Page instproc view {{content ""}} {
-    # view is used only for the toplevel call, when the xowiki page is viewed
-    # this is not intended for embedded wiki pages
+    # The method view is used primarily for the toplevel call, when
+    # the xowiki page is viewed.  It is not intended for e.g. embedded
+    # wiki pages (see include).
     my instvar package_id item_id 
     $package_id instvar folder_id  ;# this is the root folder
     ::xowiki::Page set recursion_count 0
@@ -153,7 +154,7 @@ namespace eval ::xowiki {
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
     #}
-    my log "--after options"
+    #my log "--after options master=$master"
 
     if {$master} {
       set context [list $title]
@@ -206,8 +207,8 @@ namespace eval ::xowiki {
           ns_return 200 text/html $content
         }
       } else {
-
         # use adp file
+        #my log "use adp"
         foreach css [$package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
         # refetch it, since it might have been changed via set-parameter
         set template_file [my query_parameter "template_file" \
@@ -333,7 +334,7 @@ namespace eval ::xowiki {
                   -variables {item_id edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link}]
     template::util::lpop parse_level
-    #my log "--e html length [string length $html]"
+    #my log "--edit html length [string length $html]"
     return $html
   }
 
@@ -844,7 +845,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc create_form_fields {field_names} {
-    set form_fields   [my create_category_fields]
+    set form_fields [my create_category_fields]
     foreach att $field_names {
       if {[string match "__*" $att]} continue
       lappend form_fields [my create_form_field $att]
@@ -970,7 +971,6 @@ namespace eval ::xowiki {
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
       }
-      #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
       $package_id returnredirect \
           [my query_parameter "return_url" [$package_id pretty_link [my name]]]
       return
@@ -1115,9 +1115,9 @@ namespace eval ::xowiki {
 	if {$redirect_method eq "__none"} {
 	  return
 	} else {
-	  #my log "--forminstance redirect to [$package_id pretty_link [my name]]"
 	  set url [$package_id pretty_link [my name]]?m=$redirect_method
 	  $package_id returnredirect [my query_parameter "return_url" $url]
+          return
 	}
       }
     } else {
@@ -1256,7 +1256,7 @@ namespace eval ::xowiki {
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
                   {my form_field_as_html "\\\1" "\2" $form_fields}]
 
-    #my msg result=$html
+    #my log "calling VIEW with HTML [string length $html]"
     my view $html
   }
 

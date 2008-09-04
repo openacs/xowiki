@@ -94,6 +94,7 @@ namespace eval ::xowiki {
       set filter_msg "Filtered by category [join $cnames {, }]"
       set query_parm "&category_id=$category_id"
     }
+#my msg "tag=$tag"
     if {$tag ne ""} {
       set filter_msg "Filtered by your tag $tag"
       append extra_from_clause ",xowiki_tags tags "
@@ -101,12 +102,14 @@ namespace eval ::xowiki {
         tags.user_id = [::xo::cc user_id]" 
       set query_parm "&tag=[ad_urlencode $tag]"
     }
+#my msg "ptag=$ptag"
     if {$ptag ne ""} {
       set filter_msg "Filtered by popular tag $ptag"
       append extra_from_clause ",xowiki_tags tags "
       append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :ptag " 
       set query_parm "&ptag=[ad_urlencode $ptag]"
     }
+#my msg filter_msg=$filter_msg 
     if {$name_filter ne ""} {
       append extra_where_clause "and ci.name ~ E'$name_filter' "
     }

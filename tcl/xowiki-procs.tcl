@@ -1478,6 +1478,7 @@ namespace eval ::xowiki {
     my instvar page_template
     #set form_constraints [my get_from_template form_constraints]
     set form_constraints [my get_form_constraints]
+    #my msg "fc of [my name] = $form_constraints"
     if {$form_constraints ne ""} {
       set s [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name $name -form_constraints $form_constraints]
@@ -1537,9 +1538,14 @@ namespace eval ::xowiki {
     return [my page_template]
   }
  
-  PageInstance instproc get_form_constraints {} {
+  PageInstance instproc get_form_constraints {{-trylocal false}} {
     # We define it as a method to ease overloading.
-    return [my get_from_template form_constraints]
+    #my msg "is_form=[my isform]"
+    if {$trylocal && [my isform]} {
+      return [my property form_constraints]
+    } else {
+      return [my get_from_template form_constraints]
+    }
   }
 
   PageInstance instproc get_from_template {var} {
@@ -1551,7 +1557,11 @@ namespace eval ::xowiki {
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
     #my msg "form_id=$form_id ([$form_id name]), $var ?[::$form_id exists $var] page instance=[::$form_id istype ::xowiki::PageInstance] -> [$form_id info class]"
-    if {[::$form_id istype ::xowiki::PageInstance]} {return [::$form_id property $var]}
+    #my msg "self=[my name], parent=[$form_id name] [::$form_id istype ::xowiki::PageInstance]"
+    if {[::$form_id istype ::xowiki::PageInstance]} {
+      #my msg "returning [::$form_id property $var]"
+      return [::$form_id property $var]
+    }
     if {[::$form_id exists $var]} {return [::$form_id set $var]}
     return ""
   }
@@ -1676,7 +1686,7 @@ namespace eval ::xowiki {
     return $content
   }
 
-  Form instproc get_form_constraints {} {
+  Form instproc get_form_constraints args {
     # We define it as a method to ease overloading.
     return [my form_constraints]
   }
@@ -1838,13 +1848,20 @@ namespace eval ::xowiki {
     return $items
   }
 
+  FormPage instproc property_key {name} {
+    if {[regexp {^_([^_].*)$} $name _ varname]} {
+      return $varname
+    } {
+      return __ia($name)
+    }
+  }
+  FormPage instproc exists_property {name} {
+    return [my exists [my property_key $name]]
+  }
 
   FormPage instproc property {name {default ""}} {
-    if {[string match "_*" $name]} {
-      set key [string range $name 1 end]
-    } {
-      set key  __ia($name)
-    }
+    set key  [my property_key $name]
+    # my msg "$key [my exists $key] //[my array names __ia]//"
     if {[my exists $key]} {
       return [my set $key]
     }
@@ -1875,11 +1892,21 @@ namespace eval ::xowiki {
     return [$page property $name $default]
   }
 
+  FormPage instproc isform {} {
+    return [my exists_property form_constraints]
+  }
+
   FormPage instproc footer {} {
     if {[my exists __no_form_page_footer]} {
       next
     } else {
-      return [my include [list form-menu -form_item_id [my page_template] -buttons form]]
+      set is_form [my property is_form__ 0]
+      if {[my isform]} {
+        return [my include [list form-menu -form_item_id [my item_id] \
+                                -buttons [list new answers [list form [my page_template]]]]]
+      } else {
+        return [my include [list form-menu -form_item_id [my page_template] -buttons form]]
+      }
     }
   }
 

@@ -2652,17 +2652,20 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     my instvar __including_page
     if {![info exists button_objs]} {
-      set form [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
-      set form_package_id [$form package_id]
-      #
-      # "Package require" is just a part of "Package initialize" creating 
-      # the package object if needed
-      #
-      ::xowiki::Package require $form_package_id
-      set base [[$form package_id] pretty_link [$form name]]
       foreach b $buttons {
-        set obj  [form-menu-button-$b new -volatile -package_id $package_id \
-                      -base $base -form $form]
+        if {[llength $b]>1} {
+          foreach {button id} $b break
+        } else {
+          foreach {button id} [list $b $form_item_id] break
+        }
+        set form [::xo::db::CrClass get_instance_from_db -item_id $id]
+        #
+        # "Package require" is just a part of "Package initialize" creating 
+        # the package object if needed
+        #
+        ::xowiki::Package require [$form package_id]
+        set obj  [form-menu-button-$button new -volatile -package_id $package_id \
+                      -base [[$form package_id] pretty_link [$form name]] -form $form]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
       }
@@ -2708,7 +2711,8 @@ namespace eval ::xowiki::includelet {
     }
 
     set form_item [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
-    set form_constraints [$form_item get_form_constraints]
+    set form_constraints [$form_item get_form_constraints -trylocal true]
+    #my msg fc=[$form_item get_form_constraints]
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -2948,7 +2952,7 @@ namespace eval ::xowiki::includelet {
       $f destroy
       set action created
     } else {
-      ::xowiki::Form get_instance_from_db -item_id $item_id
+      ::xo::db::CrClass get_instance_from_db -item_id $item_id
       if {$form_form_id == 0} {
         $item_id form $form
       } else {
