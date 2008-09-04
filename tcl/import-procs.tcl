@@ -14,15 +14,26 @@ namespace eval ::xowiki {
     {package_id} {folder_id} {user_id}
   }
   Importer instproc init {} {
+    my set log ""
     my destroy_on_cleanup
+  }
+  Importer instproc report_lines {} {
+    return "<table>[my set log]</table>"
+  }
+  Importer instproc report_line {obj operation} {
+    set href [[$obj package_id] pretty_link [$obj name]]
+    my append log "<tr><td>$operation</td><td><a href='$href'>[$obj name]</a></td></tr>\n"
   }
   Importer instproc report {} {
     my instvar added updated replaced
-    return "$added objects newly inserted, $updated objects updated, $replaced objects replaced<p>"
+    return "$added objects newly inserted,\
+	$updated objects updated, $replaced objects replaced<p>\
+	[my report_lines]"
   }
 
   Importer instproc import {-object -replace -base_object -create_user_ids} {
     my instvar package_id folder_id user_id
+
     $object demarshall -parent_id $folder_id -package_id $package_id \
 	-creation_user $user_id -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
@@ -30,6 +41,7 @@ namespace eval ::xowiki {
       if {$replace} { ;# we delete the original
 	::xo::db::CrClass delete -item_id $item_id
 	set item_id 0
+        my report_line $object replaced
 	my incr replaced
       } else {
 	::xo::db::CrClass get_instance_from_db -item_id $item_id
@@ -38,6 +50,7 @@ namespace eval ::xowiki {
 	$item_id save -use_given_publish_date [$item_id exists publish_date] \
             -modifying_user [$object set modifying_user]
 	#my msg "$item_id updated: [$object name]"
+        my report_line $item_id updated
 	my incr updated
       }
     }
@@ -49,6 +62,7 @@ namespace eval ::xowiki {
       $object set item_id $n
       set item_id $object
       #my msg "$object added: [$object name]"
+      my report_line $object added
       my incr added
     }
     #

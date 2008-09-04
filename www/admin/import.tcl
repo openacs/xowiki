@@ -9,8 +9,6 @@
   {replace 0}
 }
 
-
-
 set msg ""
 ad_form \
     -name upload_form \
@@ -44,11 +42,18 @@ ad_form \
       fconfigure $f -translation binary -encoding utf-8; 
       set content [read $f]; close $f
 
-      foreach o [::xowiki::Page allinstances] { $o destroy }
+      foreach o [::xowiki::Page allinstances] { 
+        set preexists($o) 1
+      }
       if {[catch {namespace eval ::xo::import $content} error]} {
         set msg "Error: $error"
       } else {
-        set msg [$package_id import -replace $replace -create_user_ids $create_user_ids]
+        set objects [list]
+        foreach o [::xowiki::Page allinstances] {
+          if {![info exists preexists($o)]} {lappend objects $o}
+        }
+        set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
+                     -objects $objects]
       }
       namespace delete ::xo::import
     }
