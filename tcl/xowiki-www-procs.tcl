@@ -246,10 +246,12 @@ namespace eval ::xowiki {
   Page instproc edit {
     {-new:boolean false} 
     {-autoname:boolean false}
-    {-validaton_errors ""}
+    {-validation_errors ""}
   } {
     my instvar package_id item_id revision_id
     $package_id instvar folder_id  ;# this is the root folder
+
+    #my msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors"
 
     # set some default values if they are provided
     foreach key {name title page_order last_page_id} {
@@ -298,9 +300,9 @@ namespace eval ::xowiki {
     }
     #my log "--u submit_link=$submit_link qp=[my query_parameter return_url]"
 
-    # we have to do template mangling here; ad_form_template writes form 
-    # variables into the actual parselevel, so we have to be in our
-    # own level in order to access an pass these
+    # We have to do template mangling here; ad_form_template writes
+    # form variables into the actual parselevel, so we have to be in
+    # our own level in order to access an pass these.
     variable ::template::parse_level
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
@@ -311,7 +313,6 @@ namespace eval ::xowiki {
         -folderspec [expr {$fs_folder_id ne "" ?"folder_id $fs_folder_id":""}] \
         -submit_link $submit_link \
         -autoname $autoname
-
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {

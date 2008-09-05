@@ -434,9 +434,9 @@ namespace eval ::xowiki {
     #
     # second, resolve object level methods
     #
-    #my log "--o try index '$object'"
+    #my log "--o try '$object'"
     set page [my resolve_request -simple $simple -path $object method]
-    #my log "--o page is '$page'"
+    #my log "--o page is '$page' simple=$simple"
     if {$simple || $page ne ""} {
       if {$page ne ""} {
       }
@@ -564,16 +564,15 @@ namespace eval ::xowiki {
     set item_id 0
 
     if {$path ne ""} {
-
+      # todo: caching opportunity?
       set item_id [::xo::db::CrClass lookup -name $path -parent_id $folder_id]
-      my log "--try $path ($folder_id) -> $item_id"
       if {$simple} {
         if {$item_id != 0} {
           set r [::xo::db::CrClass get_instance_from_db -item_id $item_id]
         }
         return [expr {$item_id ? $item_id : ""}]
       }
-
+      my log "--try $path ($folder_id) -> $item_id"
       if {$item_id == 0} {
         my get_name_and_lang_from_path $path lang local_name
         set name ${lang}:$local_name

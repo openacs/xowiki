@@ -54,7 +54,6 @@ namespace eval ::xowiki {
     set form_fields [list]
 
     foreach __field $field_list {
-
       # if there is no field spec, use the default from the slot definitions
       set __spec  [expr {[my exists f.$__field] ? [my set f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
@@ -83,14 +82,14 @@ namespace eval ::xowiki {
             if {$__name eq "options"} {eval lappend __value [my folderspec]}
             lappend __newspec [list $__name $__value]
           }
-          #my log "--F rewritten spec is '$__newspec'"
+          #my msg "--F rewritten spec is '$__newspec'"
           set __spec $__newspec
         }
       } elseif {[lindex $__wspec 0] eq "="} {
 	# 
 	# get the information from the attribute definitions & given specs
 	#
-        #my msg "spec=$__spec,wspec=$__wspec"
+
         set f [$data create_raw_form_field \
                    -name $__field \
                    -slot [$data find_slot $__field] \
