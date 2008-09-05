@@ -1537,8 +1537,13 @@ namespace eval ::xowiki {
   PageInstance instproc get_form_id {} {
     return [my page_template]
   }
- 
+
   PageInstance instproc get_form_constraints {{-trylocal false}} {
+    # PageInstances have no form_constraints
+    return ""
+  }
+ 
+  FormPage instproc get_form_constraints {{-trylocal false}} {
     # We define it as a method to ease overloading.
     #my msg "is_form=[my isform]"
     if {$trylocal && [my isform]} {
