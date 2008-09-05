@@ -20,13 +20,13 @@ if {![info exists object_type]} {
   set per_type 0
   set supertype ::xowiki::Page
   set object_types [$supertype object_types]
-  set title "List of all kind of [$supertype set pretty_plural]"
+  set page_title "List of all kind of [$supertype set pretty_plural]"
   set with_subtypes true
   set object_type $supertype
 } else {
   set per_type 1
   set object_types [list $object_type]
-  set title "Index of [$object_type set pretty_plural]"
+  set page_title "Index of [$object_type set pretty_plural]"
   set with_subtypes false
 }
 
@@ -142,3 +142,5 @@ db_foreach instance_select \
         }
 
 set t1 [t1 asHTML]
+# db_foreach clobbers title, so re-establish it
+set title $page_title
