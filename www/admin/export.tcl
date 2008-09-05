@@ -49,6 +49,9 @@ foreach item_id $item_ids {
         ns_write "[$template_id marshall] \n" 
         set included($template_id) 1
       }
+      if {![::xo::db::CrClass isobject $template_id]} {
+        ::xo::db::CrClass get_instance_from_db -item_id $template_id
+      }
       # in case, the template_id has another template,
       # iterate...
       if {[$template_id istype ::xowiki::PageInstance]} {
