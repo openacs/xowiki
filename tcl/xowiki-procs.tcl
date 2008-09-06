@@ -1469,9 +1469,13 @@ namespace eval ::xowiki {
   #
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
-    # for the time being we cache the form_constraints per request as a global
-    # variable, which is reclaimed at the end of the connection
-    set varname ::xowiki_$form_constraints
+    # For the time being we cache the form_constraints per request as a global
+    # variable, which is reclaimed at the end of the connection. 
+    #
+    # We have to take care, that the variable name does not contain namespace-prefixes
+    regsub -all :: $form_constraints ":_:_" var_name_suffix
+    
+    set varname ::xowiki_$var_name_suffix
     if {![info exists $varname]} {
       foreach name_and_spec $form_constraints {
         regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
