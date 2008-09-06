@@ -678,12 +678,22 @@ namespace eval ::xowiki {
 
   Page instproc complete_name {name {nls_language ""}} {
     if {![regexp {^..:} $name]} {
+      # prepend the language prefix only, if the entry is not empty
       if {$name ne ""} {
-        # prepend the language prefix only, if the entry is not empty
+        if {[my istype ::xowiki::PageInstance]} {
+          #
+          # Do not add a language prefix to anonymous pages
+          #
+          set anon_instances [my get_from_template anon_instances f]
+          if {$anon_instances} {
+            return $name
+          }
+        }
         if {$nls_language eq ""} {set nls_language [my set nls_language]}
         set name [string range $nls_language 0 1]:$name
       }
     }
+    return $name
   }
 
 #   Page instproc init {} {    
@@ -1553,22 +1563,54 @@ namespace eval ::xowiki {
     }
   }
 
-  PageInstance instproc get_from_template {var} {
-    my instvar page_template
+  PageInstance ad_instproc get_from_template {var {default ""}} {
+    Get a property from the parent object (template). The parent
+    object might by either an ::xowiki::Form or an ::xowiki::FormPage
+
+    @return either the property value or a default value
+  } {
+    #my msg "get $var from template"
     set form_id [my get_form_id]
-    #my msg "$var template_id=$page_template, form_id=$form_id"
+    # add here a "my require_cr_object $id" ???
     if {![my isobject ::$form_id]} {
-      #my log  "-- fetching page_template = $page_template"
+      # The page does not exist, we fetch it
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
     }
-    #my msg "form_id=$form_id ([$form_id name]), $var ?[::$form_id exists $var] page instance=[::$form_id istype ::xowiki::PageInstance] -> [$form_id info class]"
-    #my msg "self=[my name], parent=[$form_id name] [::$form_id istype ::xowiki::PageInstance]"
+    # The resulting page should be either a Form (PageTemplate) or
+    # a FormPage (PageInstance)
+    #
+    # my msg "parent of self [my name] is [$form_id name] type [::$form_id info class]"
+    #
+    # If it is as well a PageInstance, we find the information in the
+    # properties of this page.
+    #
     if {[::$form_id istype ::xowiki::PageInstance]} {
-      #my msg "returning [::$form_id property $var]"
+      #my msg "returning parent property [::$form_id property $var]"
       return [::$form_id property $var]
     }
-    if {[::$form_id exists $var]} {return [::$form_id set $var]}
-    return ""
+    #
+    # .... otherwise, it should be an instance variable ....
+    #
+    if {[::$form_id exists $var]} {
+      #my msg "returning parent instvar [::$form_id set $var]"
+      return [::$form_id set $var]
+    }
+    #
+    # .... or, we try to resolve it against a local property.
+    #
+    # This case is needed in the workflow case, where e.g. anon_instances
+    # is tried to be catched from the first form, which might not contain 
+    # it, if e.g. the first form is a plain wiki page.
+    #
+    if {[my istype ::xowiki::FormPage] && [my exists_property $var]} {
+      #my msg "returning local property [my property $var]"
+      return [my property $var]
+    }
+    #
+    # if everything fails, return the default.
+    #
+    #my msg "returning the default, parent is of type [::$form_id info class]"
+    return $default
   }
 
   PageInstance instproc get_content {} {

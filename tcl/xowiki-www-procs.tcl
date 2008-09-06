@@ -1012,7 +1012,7 @@ namespace eval ::xowiki {
       $f render_input
     }
   }
-
+  
   FormPage instproc edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
@@ -1021,17 +1021,15 @@ namespace eval ::xowiki {
     ::xowiki::Form requireFormCSS
 
     set form [my get_form]
-    set anon_instances [my get_from_template anon_instances]
-    #my msg anon_instances=$anon_instances
+    set anon_instances [my get_from_template anon_instances f]
     #my msg form=$form
-    if {$anon_instances eq ""} {
-      set form_id [my get_form_id]
-      if {![$form_id istype ::xowiki::Form]} {
-        # TODO should we use _anon_instances?
-        set anon_instances [my property anon_instances]
-        set form "<FORM>[lindex [$form_id set text] 0]</FORM>"
-      }
-    }
+    #my msg anon_instances=$anon_instances
+
+    # The following code should be obsolete
+    # set form_id [my get_form_id]
+    # if {![$form_id istype ::xowiki::Form]} {
+    #   set form "<FORM>[lindex [$form_id set text] 0]</FORM>"
+    # }
 
     set field_names [my field_names -form $form]
     set form_fields [my create_form_fields $field_names]
