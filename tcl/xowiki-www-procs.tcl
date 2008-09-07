@@ -1016,6 +1016,7 @@ namespace eval ::xowiki {
   FormPage instproc edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
+    {-view true}
   } {
     my instvar page_template doc root package_id
     ::xowiki::Form requireFormCSS
@@ -1046,14 +1047,14 @@ namespace eval ::xowiki {
     }
 
     # check name field: 
-    #  - if it is not required, hide it,
+    #  - if it is for anon instances, hide it,
     #  - if it is required but hidden, show it anyway 
     #    (might happen, when e.g. set via @cr_fields ... hidden)
     set name_field [my lookup_form_field -name _name $form_fields]
     if {$anon_instances} {
       $name_field config_from_spec hidden
     } else {
-      if {[$name_field istype ::xowiki::formfield::hidden]} {
+      if {[$name_field istype ::xowiki::formfield::hidden] && [$name_field required] == true} {
         $name_field config_from_spec text,required
         $name_field type text
       }
@@ -1256,7 +1257,11 @@ namespace eval ::xowiki {
                   {my form_field_as_html "\\\1" "\2" $form_fields}]
 
     #my log "calling VIEW with HTML [string length $html]"
-    my view $html
+    if {$view} {
+      my view $html
+    } else {
+      return $html
+    }
   }
 
   FormPage instproc post_process_edit_fields {dom_root form_field} {
@@ -1511,6 +1516,7 @@ namespace eval ::xowiki {
         ::xowiki::Package initialize \
             -url $package_instance -user_id [::xo::cc user_id] \
             -actual_query ""} errorMsg]} {
+        ns_log error "$errorMsg\n$::errorInfo"
         return [$original_package_id error_msg \
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
