@@ -34,6 +34,7 @@ namespace eval ::xowiki::formfield {
     {hide_value false} 
     {inline false}
     {disabled}
+    {show_raw_value}
     CSSclass
     style
     form-widget-CSSclass
@@ -116,6 +117,12 @@ namespace eval ::xowiki::formfield {
     # such that searchDefaults will pick up the new defaults, when a form field
     # is reclassed.
 
+    if {[my exists per_object_behavior]} {
+      # remove per-object mixin from the "behavior"
+      my mixin delete [my set per_object_behavior]
+      my unset per_object_behavior
+    }
+
     #my msg "reset along [my info precedence]"
     foreach c [my info precedence] {
       if {$c eq "::xowiki::formfield::FormField"} break
@@ -128,7 +135,9 @@ namespace eval ::xowiki::formfield {
         set $key 1
       }
     }
-    if {[my exists disabled]} {my unset disabled}
+    if {[my exists disabled]} {
+      my set_disabled 0
+    }
   }
 
   FormField instproc interprete_condition {cond} {
@@ -158,6 +167,38 @@ namespace eval ::xowiki::formfield {
     set m ::xowiki::formfield::omit
     if {[my ismixin $m]} {my mixin delete $m}
   }
+  FormField instproc set_disabled {disable} {
+    #my msg "[my name] set disabled $disable"
+    if {$disable} {
+      my set disabled true
+    } else {
+      my unset -nocomplain disabled
+    }
+  }
+
+  FormField instproc behavior {mixin} {
+    #
+    # Specify the behavior of a form field via 
+    # per object mixins
+    #
+    set obj [my object]
+    set pkgctx [[$obj package_id] context]
+    if {[$pkgctx exists embedded_context]} {
+      set ctx [$pkgctx set embedded_context]
+      set classname ${ctx}::$mixin
+      #my msg ctx=$ctx-viewer=$mixin,found=[my isclass $classname]
+      # TODO: search different places for the mixin. Special namespace?
+      if {[my isclass $classname]} {
+        if {[my exists per_object_behavior]} {
+          my mixin delete [my set per_object_behavior]
+        }
+        my mixin add $classname
+        my set per_object_behavior $classname
+      } else {
+        my msg "Could not find mixin '$mixin'"
+      }
+    }
+  }
 
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
@@ -175,8 +216,8 @@ namespace eval ::xowiki::formfield {
       required    {my set required true; my remove_omit}
       omit        {my mixin add ::xowiki::formfield::omit}
       noomit      {my remove_omit}
-      disabled    {my disabled disabled}
-      enabled     {my unset -nocomplain disabled}
+      disabled    {my set_disabled true}
+      enabled     {my set_disabled false}
       label=*     {my label     [lindex [split $s =] 1]}
       help_text=* {my help_text [lindex [split $s =] 1]}
       *=*         {
@@ -204,14 +245,18 @@ namespace eval ::xowiki::formfield {
         }
       }
       default {
-	# Check, if the spec value $s is a class. 
-	# Don't allow to use namespaced values, since we would run 
-	# into a recursive loop for richtext::wym (could be altered there as well).
+        # Check, if the spec value $s is a class. 
+        set old_class [my info class]
+        # Don't allow to use namespaced values, since we would run 
+        # into a recursive loop for richtext::wym (could be altered there as well).
         if {[my isclass ::xowiki::formfield::$s] && ![string match "*:*" $s]} {
           my class ::xowiki::formfield::$s
 	  my remove_omit
-          my reset_parameter
-          my initialize
+          if {$old_class ne [my info class]} {
+            #my msg "reset class from $old_class to [my info class]"
+            my reset_parameter
+            my initialize
+          }
           #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
           #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
           #my msg "[my name] [self] [my info class] after searchDefaults, validator='[my validator]'"
@@ -385,6 +430,14 @@ namespace eval ::xowiki::formfield {
   FormField instproc pretty_value {v} {
     #my log "mapping $v"
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
+  }
+
+  FormField instproc field_value {v} {
+    if {[my exists show_raw_value]} {
+      return $v
+    } else {
+      return [my pretty_value]
+    }
   }
 
   ###########################################################
@@ -832,6 +885,7 @@ namespace eval ::xowiki::formfield {
     {options}
     {category_tree}
   }
+  enumeration set abstract 1
   enumeration instproc initialize {} {
     if {[my exists category_tree]} {
       my config_from_category_tree [my category_tree]
@@ -966,48 +1020,22 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
-  # ::xowiki::formfield::form_page
+  # ::xowiki::formfield::abstract_page
   #
   ###########################################################
-  Class form_page -superclass select -parameter {
-    {form}
-    {where}
+  Class abstract_page -superclass select -parameter {
     {as_box false}
   }
-  form_page instproc config_from_form {form_name} {
-    my instvar form_obj prefix where
-    set form_obj [[my object] resolve_included_page_name $form_name]
-    if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
+  abstract_page set abstract 1
 
-    set prefix ""
-    regexp {^(//[^/]+/)} $form_name _ prefix
-
-    array set wc {tcl true h "" vars "" sql ""}
-    if {[info exists where]} {
-      array set wc [::xowiki::FormPage filter_expression $where &&]
-      #my msg "where '$where' => wc=[array get wc]"
-    }
-    set options [list]    
-    set items [::xowiki::FormPage get_children \
-                   -base_item_id [$form_obj item_id] \
-                   -form_fields [list] \
-                   -publish_status ready \
-                   -always_queried_attributes [list _name _title _last_modified _creation_user] \
-                   -h_where [array get wc] \
-                   -package_id [$form_obj package_id]]
-    foreach i [$items children] {lappend options [list [$i title] [$i name]]}
-    my options $options
-  }
-  form_page instproc initialize {} {
-    if {[my exists form]} {my config_from_form [my form]}
+  abstract_page instproc initialize {} {
+    my compute_options
     next
   }
-  form_page instproc pretty_value {v} {
-    my instvar form_obj prefix
-    if {![info exists form_obj]} {
-      error "No form specified for form_field [my name]"
-    }
-    set package_id [$form_obj package_id]
+  
+  abstract_page instproc pretty_value {} {
+    my instvar package_prefix package_id
+
     if {[my multiple]} {
       foreach o [my set options] {
         foreach {label value} $o break
@@ -1027,7 +1055,7 @@ namespace eval ::xowiki::formfield {
         foreach {label value} $o break
         if {$value eq $v} {
           if {[my as_box]} {
-            return [[my object] include [list $prefix$value -decoration rightbox]] 
+            return [[my object] include [list $package_prefix$value -decoration rightbox]] 
           }
           set href [$package_id pretty_link $value]
           return "<a href='$href'>$label</a>"
@@ -1035,6 +1063,100 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::form_page
+  #
+  ###########################################################
+  Class form_page -superclass abstract_page -parameter {
+    {form}
+    {where}
+  }
+  form_page instproc compute_options {} {
+    my instvar form_obj package_prefix where
+    
+    if {![my exists form]} {
+      return
+    }
+    set form_name [my form]
+
+    set form_obj [[my object] resolve_included_page_name $form_name]
+    if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
+
+    set package_prefix ""
+    regexp {^(//[^/]+/)} $form_name _ package_prefix
+
+    array set wc {tcl true h "" vars "" sql ""}
+    if {[info exists where]} {
+      array set wc [::xowiki::FormPage filter_expression $where &&]
+      #my msg "where '$where' => wc=[array get wc]"
+    }
+    set options [list]    
+    set items [::xowiki::FormPage get_children \
+                   -base_item_id [$form_obj item_id] \
+                   -form_fields [list] \
+                   -publish_status ready \
+                   -always_queried_attributes [list _name _title _last_modified _creation_user] \
+                   -h_where [array get wc] \
+                   -package_id [$form_obj package_id]]
+    foreach i [$items children] {lappend options [list [$i title] [$i name]]}
+    my options $options
+  }
+
+  form_page instproc pretty_value {v} {
+    if {![my exists form_obj]} {
+      error "No form specified for form_field [my name]"
+    }
+    my set package_id [$form_obj package_id]
+    next
+  }
+
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::page
+  #
+  ###########################################################
+  Class page -superclass abstract_page -parameter {
+    {type ::xowiki::Page}
+    {with_subtypes false}
+    {glob}
+  }
+  page instproc compute_options {} {
+    my instvar type with_subtypes glob package_prefix
+    # We could use the package_prefix like in form_page when refering to pages 
+    # in different packages. 
+    set package_prefix ""
+
+    set extra_where_clause ""
+    if {[my exists glob]} {
+      set glob [string map [list * %] $glob]
+      set extra_where_clause " and ci.name like '$glob'"
+    }
+
+    set package_id [[my object] package_id]
+    set options [list]
+    db_foreach instance_select \
+        [$type instance_select_query \
+             -folder_id [$package_id folder_id] \
+             -with_subtypes $with_subtypes \
+             -select_attributes [list title] \
+             -from_clause ", xowiki_page p" \
+             -where_clause "p.page_id = bt.revision_id $extra_where_clause" \
+             -orderby ci.name \
+            ] {
+              lappend options [list $name $name]
+            }
+    my options $options
+  }
+
+  page instproc pretty_value {v} {
+    my set package_id [[my object] package_id]
+    next
+  }
+
+
 
   ###########################################################
   #
@@ -1258,6 +1380,18 @@ namespace eval ::xowiki::formfield {
     return 1
   }
 
+  CompoundField instproc set_disabled {disable} {
+    #my msg "[my name] set disabled $disable"
+    if {$disable} {
+      my set disabled true
+    } else {
+      my unset -nocomplain disabled
+    }
+    foreach c [my components] {
+      $c set_disabled $disable
+    }
+  }
+
   CompoundField instproc value {args} {
     if {[llength $args] == 0} {
       set v [my get_compound_value]
@@ -1349,7 +1483,7 @@ namespace eval ::xowiki::formfield {
   # "yesterday", "next week", .... use _ for blanks
 
   date instproc initialize {} {
-    #my msg "DATE has value [my value]//d=[my default] format=[my format]"
+    #my msg "DATE has value [my value]//d=[my default] format=[my format] disabled?[my exists disabled]"
     my set widget_type date
     my set format [string map [list _ " "] [my format]]
     my array set defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
@@ -1372,6 +1506,7 @@ namespace eval ::xowiki::formfield {
         set name $element
         set c [::xowiki::formfield::label create [self]::$name \
                    -name [my name].$name -id [my id].$name -locale [my locale] -value $element]
+        $c set_disabled [my exists disabled]
         if {[lsearch [my components] $c] == -1} {my lappend components $c}
         continue
       }
@@ -1382,6 +1517,7 @@ namespace eval ::xowiki::formfield {
       set name $class
       set c [::xowiki::formfield::$class create [self]::$name \
                -name [my name].$name -id [my id].$name -locale [my locale]]
+      $c set_disabled [my exists disabled]
       $c set code $code
       $c set trim_zeros $trim_zeros
       if {[lsearch [my components] $c] == -1} {my lappend components $c}
@@ -1389,7 +1525,7 @@ namespace eval ::xowiki::formfield {
   }
 
   date instproc set_compound_value {value} {
-    #my msg "[my name] original value '[my value]' // passed='$value'"
+    #my msg "[my name] original value '[my value]' // passed='$value' disa?[my exists disabled]"
     if {$value eq ""} {return}
     set value [::xo::db::tcl_date $value tz]
     #my msg "transformed value '$value'"
