@@ -3,6 +3,7 @@
 
   <msg key="abstract">Abstract</msg>
   <msg key="admin">Admin</msg>
+  <msg key="admin_title">Administer this package ...</msg>
   <msg key="back">Back</msg>
   <msg key="categories">Categories</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
@@ -10,9 +11,11 @@
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
   <msg key="delete">Delete</msg>
+  <msg key="delete_title">Delete this page ...</msg>
   <msg key="details">Details</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
+  <msg key="edit_title">Edit this page ...</msg>
   <msg key="entries_using_form">Entries for form %form%</msg>
   <msg key="error-delete_entries_first">This page is still used by %count% entries. Please delete these first before deleting this page.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
@@ -49,14 +52,18 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
   <msg key="form-updated">Updated form</msg>
-  <msg key="Form-validate_form_constraints">%errorMsg%</msg>
+  <msg key="form-validate_form">%errorMsg%</msg>
+  <msg key="Form-validate_form_constraints">Invalid Form %errorMsg%</msg>
   <msg key="FormPage-assignee">Assignee</msg>
   <msg key="FormPage-state">State</msg>
   <msg key="index">Index</msg>
+  <msg key="index_title">Go to the start page of this package ...</msg>
   <msg key="new_page">New Page</msg>
+  <msg key="new_title">Create a new page ...</msg>
   <msg key="news-source">Source</msg>
   <msg key="news-teaser">Teaser</msg>
   <msg key="notifications">Notifications</msg>
+  <msg key="notifications_title">Manage notifications ...</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Description</msg>
@@ -92,12 +99,15 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="references_of_label">References of this Page:</msg>
   <msg key="revisions">Revisions</msg>
+  <msg key="revisions_title">Show revisions of this page ...</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="search">Search</msg>
+  <msg key="search_title">Search pages of this package ...</msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title
 </msg>
   <msg key="view">View</msg>
+  <msg key="view_title">View this page ...</msg>
   <msg key="weblog-more">more...</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>
   <msg key="your_tags_label">Your Tags</msg>
