@@ -2693,12 +2693,14 @@ namespace eval ::xowiki::includelet {
           {-csv true}
           {-voting_form}
           {-voting_form_form ""}
+          {-voting_form_anon_instances "t"}
           {-generate}
         }}
       }
   
   form-usages instproc render {} {
     my get_parameters
+
     my instvar __including_page
     set o $__including_page
     my log "start render"
@@ -2846,14 +2848,23 @@ namespace eval ::xowiki::includelet {
     foreach var {name form_item_id form publish_states field_names unless} {
       if {[info exists $var]} {append includelet_key $var : [set $var] ,}
     }
-    
+
+    if {[info exists voting_form]} {
+      # if the user provided a voting form name without a language prefix,
+      # add one.
+      if {![regexp {^..:} $voting_form]} {
+        set obj [my set __including_page]
+        set voting_form [$obj lang]:$voting_form
+      }
+    }
+
     set given_includelet_key [::xo::cc query_parameter includelet_key ""]
     if {$given_includelet_key ne ""} {
       if {$given_includelet_key eq $includelet_key && [info exists generate]} {
         if {$generate eq "csv"} {
           return [t1 write_csv]
         } elseif {$generate eq "voting_form"} {
-          return [my generate_voting_form $voting_form $voting_form_form t1 $field_names]
+          return [my generate_voting_form $voting_form $voting_form_form t1 $field_names $voting_form_anon_instances]
         }
       }
       return ""
@@ -2883,7 +2894,8 @@ namespace eval ::xowiki::includelet {
     return $html
   }
 
-  form-usages instproc generate_voting_form {form_name form_form t1 field_names} { 
+  form-usages instproc generate_voting_form {form_name form_form t1 field_names voting_form_anon_instances} {
+    #my msg "generate_voting anon=$voting_form_anon_instances"
     set form "<form> How do you rate<br /> 
     <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
       <tbody> 
@@ -2932,7 +2944,7 @@ namespace eval ::xowiki::includelet {
                    -package_id [my package_id] \
                    -parent_id [[my package_id] folder_id] \
                    -name $form_name \
-                   -anon_instances t \
+                   -anon_instances $voting_form_anon_instances \
                    -form $form \
                    -form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
                    @table:[join $table_field_names ,]" \
@@ -2943,7 +2955,7 @@ namespace eval ::xowiki::includelet {
                    -package_id [my package_id] \
                    -parent_id [[my package_id] folder_id] \
                    -name $form_name]
-        $f set_property anon_instances t
+        $f set_property anon_instances $voting_form_anon_instances
         $f set_property form $form
         $f set_property form_constraints "@fields:scale,n=7,inline=true @cr_fields:hidden @categories:off\n\
                    @table:[join $table_field_names ,]"
