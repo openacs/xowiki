@@ -841,6 +841,7 @@ namespace eval ::xowiki {
     }
     
     if {[catch {set html [$page render]} errorMsg]} {
+      ns_log error "$errorMsg\n$::errorInfo"
       set page_name [$page name]
       set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
     }
@@ -891,6 +892,7 @@ namespace eval ::xowiki {
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
+        ns_log error "$errorMsg\n$::errorInfo"
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level 
         incr ::xowiki_inclusion_depth -1
@@ -1026,8 +1028,9 @@ namespace eval ::xowiki {
         -stripped_name $normalized_name -label $label \
         -folder_id $parent_id -package_id $package_id
     
-    if {[catch {eval [self]::link configure $options} error]} {
-      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$error</blockquote></div>"
+    if {[catch {eval [self]::link configure $options} errorMsg]} {
+      ns_log error "$errorMsg\n$::errorInfo"
+      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
       return [[self]::link render]
     }
@@ -1504,14 +1507,15 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_field_label {name value} {
     set short_spec [my get_short_spec $name]
-    #my msg "short_spec for $name = '$short_spec'"
-
     if {$short_spec ne ""} {
       set f [::xowiki::formfield::FormField new -volatile -name $name -spec $short_spec]
-      return [$f pretty_value $value]
+      if {![$f exists show_raw_value]} {
+        set value [$f field_value $value]
+      }
     }
     return $value
   }
+
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
@@ -1717,7 +1721,7 @@ namespace eval ::xowiki {
   Form proc disable_input_fields {{-with_submit 0} form} {
     dom parse -simple -html $form doc
     $doc documentElement root
-    my disable_input_fields_dom $root
+    my dom_disable_input_fields -with_submit $with_submit $root
     return [$root asHTML]
   }
 
@@ -1728,6 +1732,7 @@ namespace eval ::xowiki {
     # we assume, that the richtext is stored as 2-elem list with mime-type
     #my log "-- text='$text'"
     if {[lindex $text 0] ne ""} {
+      my do_substitutions 0
       set content [my substitute_markup [my set text]]
     } elseif {[lindex $form 0] ne ""} {
       set content [[self class] disable_input_fields [lindex $form 0]]
@@ -1783,6 +1788,7 @@ namespace eval ::xowiki {
     if {[catch {
       my create_form_fields_from_form_constraints $form_constraints
     } errorMsg]} {
+      ns_log error "$errorMsg\n$::errorInfo"
       my uplevel [list set errorMsg $errorMsg]
       #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
       return 0
@@ -2039,8 +2045,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_value {before varname} {
-    #my msg "varname=$varname, val=[my property $varname]"
-    set value [my property $varname]
+     set value [my property $varname]
 
     # todo: might be more efficient to check, if it exists already
     set f [my create_raw_form_field -name $varname \
@@ -2049,7 +2054,7 @@ namespace eval ::xowiki {
 
     if {[$f hide_value]} {
       set value ""
-    } else {
+    } elseif {![$f exists show_raw_value]} {
       set value [$f pretty_value $value]
     }
     return $before$value

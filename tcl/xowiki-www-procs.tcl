@@ -161,7 +161,11 @@ namespace eval ::xowiki {
       set autoname    [$package_id get_parameter autoname 0]
       set object_type [$package_id get_parameter object_type [my info class]]
       set rev_link    [$package_id make_link -with_entities 0 [self] revisions]
-      set edit_link   [$package_id make_link -with_entities 0 [self] edit return_url]
+      if {[$package_id query_parameter m ""] eq "edit"} {
+        set view_link   [$package_id make_link -with_entities 0 [self] view return_url]
+      } else {
+        set edit_link   [$package_id make_link -with_entities 0 [self] edit return_url]
+      }
       set delete_link [$package_id make_link -with_entities 0 [self] delete return_url]
       if {[my exists __link(new)]} {
         set new_link [my set __link(new)]
@@ -228,7 +232,7 @@ namespace eval ::xowiki {
         $package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
           content footer package_id
-          rev_link edit_link delete_link new_link admin_link index_link 
+          rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 
           top_includelets page
           views_data property_body property_doc
@@ -1165,11 +1169,25 @@ namespace eval ::xowiki {
       }
     }
     
+    # some final sanity checks
+    foreach f $form_fields {
+      if {[$f exists disabled]} {
+        # don't mark disabled fields as required
+        if {[$f required]} {
+          $f required false
+        }
+        #don't show the help-text, if you cannot input
+        if {[$f help_text] ne ""} {
+          $f help_text ""
+        }
+      }
+    }
+
     # The following command would be correct, but does not work due to a bug in 
     # tdom.
     # set form [my regsub_eval  \
     #              [template::adp_variable_regexp] $form \
-    #              {my form_field_as_html "\\\1" "\2" $form_fields}]
+    #              {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     # Due to this bug, we program around and replace the at-character 
     # by \x003 to avoid conflict withe the input and we replace these
     # magic chars finally with the fields resulting from tdom.
@@ -1254,7 +1272,7 @@ namespace eval ::xowiki {
     set html [$root asHTML]
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
-                  {my form_field_as_html "\\\1" "\2" $form_fields}]
+                  {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
 
     #my log "calling VIEW with HTML [string length $html]"
     if {$view} {
