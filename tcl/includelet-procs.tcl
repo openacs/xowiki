@@ -1221,14 +1221,22 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
     set item_id [$__including_page item_id] 
     set gc_return_url [$package_id url]
-    set gc_link     [general_comments_create_link \
-                         -object_name [$__including_page title] \
-                         $item_id $gc_return_url]
+    # Even, if general_comments is turned on, don't offer the
+    # link to add comments, unless the user is logged in.
+    # Otherwise, this attracts spammers and search bots
+    if {[::xo::cc user_id] != 0} {
+      set gc_link [general_comments_create_link \
+                       -object_name [$__including_page title] \
+                       $item_id $gc_return_url]
+      set gc_link <p>$gc_link</p>
+    } else {
+      set gc_link ""
+    }
     set gc_comments [general_comments_get_comments $item_id $gc_return_url]
     if {$gc_comments ne ""} {
-      return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p><p>$gc_link</p>"
+      return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p>$gc_link"
     } else {
-      return "<p>$gc_link</p>"
+      return "$gc_link"
     }
   }
   
