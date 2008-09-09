@@ -1279,6 +1279,26 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::youtube_url
+  #
+  ###########################################################
+  Class youtube_url -superclass text
+  youtube_url set urlre {^http://www.youtube.com/watch[?]v=(.*)$}
+  
+  youtube_url instproc pretty_value {v} {
+    if {[regexp [[self class] set urlre] $v _ name]} {
+      return "<object width='425' height='344'>
+<param name='movie' value='http://www.youtube.com/v/$name&fs=1'></param>
+<param name='allowFullScreen' value='true'></param>
+<embed src='http://www.youtube.com/v/$name&fs=1' type='application/x-shockwave-flash' allowfullscreen='true' width='425' height='344'></embed>
+</object>\n"
+    } else {
+      return "'$v' does not look like a youtube url"
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::image_url
   #
   ###########################################################
