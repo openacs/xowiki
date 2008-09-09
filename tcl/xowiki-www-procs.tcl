@@ -88,9 +88,9 @@ namespace eval ::xowiki {
 namespace eval ::xowiki {
   
   Page instproc view {{content ""}} {
-    # The method view is used primarily for the toplevel call, when
+    # The method "view" is used primarily for the toplevel call, when
     # the xowiki page is viewed.  It is not intended for e.g. embedded
-    # wiki pages (see include).
+    # wiki pages (see include), since it contains full framing, etc.
     my instvar package_id item_id 
     $package_id instvar folder_id  ;# this is the root folder
     ::xowiki::Page set recursion_count 0
@@ -102,12 +102,14 @@ namespace eval ::xowiki {
       $template_file before_render [self]
     }
     
+    # the content may be passed by other methods (e.g. edit) to 
+    # make use of the same templating machinery below.
     if {$content eq ""} {
       set content [my render]
+      #my log "--after render"
     }
-    #my log "--after render"
-    set footer [my htmlFooter -content $content]
 
+    set footer [my htmlFooter -content $content]
     set top_includelets ""
     set vp [string trim [$package_id get_parameter "top_includelet" ""]]
     if {$vp ne ""} {
@@ -1115,6 +1117,12 @@ namespace eval ::xowiki {
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
 
+        # The data might have references. We render do the rendering here
+        # instead on every view (which would be safer, but slower). This is
+        # roughly the counterpart to edit_data and save_data in ad_forms.
+        set content [my render  -update_references]
+        #my msg "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
+
 	set redirect_method [my form_parameter __form_redirect_method "view"]
 	if {$redirect_method eq "__none"} {
 	  return
@@ -1213,7 +1221,6 @@ namespace eval ::xowiki {
         if {[my exists __field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
 	#my msg "insert auto_field $att"
-        #if {[$f name] eq "form"} {my msg [$f serialize]}
         $f render_item
       }
     } $fcn

@@ -737,7 +737,7 @@ namespace eval ::xowiki::formfield {
       if {[my wiki]} {
         [my object] set unresolved_references 0
         [my object] set __unresolved_references [list]
-        ::html::t -disableOutputEscaping [[my object] substitute_markup  [list [my value] text/html]]
+        ::html::t -disableOutputEscaping [[my object] substitute_markup [list [my value] text/html]]
       } else {
         ::html::t -disableOutputEscaping [my value]
       }

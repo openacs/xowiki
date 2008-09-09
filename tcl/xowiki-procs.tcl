@@ -1213,7 +1213,7 @@ namespace eval ::xowiki {
     my set __unresolved_references [list]
     #my log "--W setting unresolved_references to 0  [info exists unresolved_references]"
     set content [my get_content]
-    #my log "--W after content [info exists unresolved_references] [my exists unresolved_references] ?? [info vars]"
+    #my msg "we have the content, update=$update_references, unresolved=$unresolved_references"
     if {$update_references || $unresolved_references > 0} {
       my update_references $item_id [lsort -unique $references]
     }
@@ -1547,13 +1547,18 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_form {} {
+    # get the (HTML) form of the ::xowiki::PageTemplates/::xowiki::Form
     set form [my get_from_template form]
     if {[llength $form] == 2 && [lindex $form 1] eq "text/html"} {set form [lindex $form 0]}
     return $form
   }
 
-  PageInstance instproc get_form_id {} {
-    return [my page_template]
+  PageInstance instproc get_template_object {} {
+    set id [my page_template]
+    if {![my isobject ::$id]} {
+      ::xo::db::CrClass get_instance_from_db -item_id $id
+    }
+    return ::$id
   }
 
   PageInstance instproc get_form_constraints {{-trylocal false}} {
@@ -1578,37 +1583,33 @@ namespace eval ::xowiki {
     @return either the property value or a default value
   } {
     #my msg "get $var from template"
-    set form_id [my get_form_id]
-    # add here a "my require_cr_object $id" ???
-    if {![my isobject ::$form_id]} {
-      # The page does not exist, we fetch it
-      ::xo::db::CrClass get_instance_from_db -item_id $form_id
-    }
+    set form_obj [my get_template_object]
     # The resulting page should be either a Form (PageTemplate) or
     # a FormPage (PageInstance)
     #
-    # my msg "parent of self [my name] is [$form_id name] type [::$form_id info class]"
+    # my msg "parent of self [my name] is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
     # properties of this page.
     #
-    if {[::$form_id istype ::xowiki::PageInstance]} {
-      #my msg "returning parent property [::$form_id property $var]"
-      return [::$form_id property $var]
+    if {[$form_obj istype ::xowiki::PageInstance]} {
+      #my msg "returning parent property [$form_obj property $var]"
+      return [$form_obj property $var]
     }
     #
     # .... otherwise, it should be an instance variable ....
     #
-    if {[::$form_id exists $var]} {
-      #my msg "returning parent instvar [::$form_id set $var]"
-      return [::$form_id set $var]
+    if {[$form_obj exists $var]} {
+      #my msg "returning parent instvar [$form_obj set $var]"
+      return [$form_obj set $var]
     }
     #
     # .... or, we try to resolve it against a local property.
     #
-    # This case is needed in the workflow case, where e.g. anon_instances
-    # is tried to be catched from the first form, which might not contain 
-    # it, if e.g. the first form is a plain wiki page.
+    # This case is currently needed in the workflow case, where
+    # e.g. anon_instances is tried to be catched from the first form,
+    # which might not contain it, if e.g. the first form is a plain
+    # wiki page.
     #
     if {[my istype ::xowiki::FormPage] && [my exists_property $var]} {
       #my msg "returning local property [my property $var]"
@@ -1617,7 +1618,7 @@ namespace eval ::xowiki {
     #
     # if everything fails, return the default.
     #
-    #my msg "returning the default, parent is of type [::$form_id info class]"
+    #my msg "returning the default, parent is of type [$form_obj info class]"
     return $default
   }
 
