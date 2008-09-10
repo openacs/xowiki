@@ -1893,7 +1893,6 @@ namespace eval ::xowiki {
     my log $sql
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class ::xowiki::FormPage]
-    my log nr_items=[$items children]
 
     if {$h_where ne "" && !$use_hstore} {
       set init_vars $wc(vars)

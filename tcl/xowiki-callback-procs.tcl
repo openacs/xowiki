@@ -408,6 +408,12 @@ namespace eval ::xowiki {
 	$package_id import_prototype_page news
 	$package_id import_prototype_page weblog-portlet
       }
+      # To iterate over all kind of xowiki packages, we could do
+      # foreach package [concat ::xowiki::Package [::xowiki::Package info subclass]] {
+      #    foreach package_id [$package instances] {
+      #       ...
+      #    }
+      # }
       copy_parameter top_portlet top_includelet
     }
     set v 0.79

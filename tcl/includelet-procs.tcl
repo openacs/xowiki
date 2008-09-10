@@ -2711,7 +2711,6 @@ namespace eval ::xowiki::includelet {
 
     my instvar __including_page
     set o $__including_page
-    my log "start render"
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
@@ -2743,7 +2742,6 @@ namespace eval ::xowiki::includelet {
                           -form_constraints $form_constraints]
     # $form_item show_fields $form_fields
     foreach f $form_fields {set __ff([$f name]) $f}
-    my log "get form_fields done"
 
     if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
@@ -2819,7 +2817,7 @@ namespace eval ::xowiki::includelet {
                    -package_id $package_id]
       }
     }
-    my log "queries done"
+    #my log "queries done"
 
     foreach p [$items children] {
       $p set package_id $package_id
@@ -2892,7 +2890,7 @@ namespace eval ::xowiki::includelet {
       lappend links " <a href='$href'>Generate Voting Form $voting_form</a>"
     }
     append html [join $links ,]
-    my log "render done"
+    #my log "render done"
 
     if {[info exists with_categories]} {
       set category_html [$o include [list categories -count 1 -tree_name $with_categories \
