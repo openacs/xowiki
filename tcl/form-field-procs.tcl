@@ -1285,6 +1285,10 @@ namespace eval ::xowiki::formfield {
   Class youtube_url -superclass text
   youtube_url set urlre {^http://www.youtube.com/watch[?]v=(.*)$}
   
+  youtube_url instproc initialize {} {
+    next
+    if {[my help_text] eq ""} {my help_text "#xowiki.formfield-youtube_url-help_text#"}
+  }
   youtube_url instproc pretty_value {v} {
     if {$v eq ""} {
       return ""
@@ -1314,12 +1318,16 @@ namespace eval ::xowiki::formfield {
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
       }
+  image_url instproc initialize {} {
+    next
+    if {[my help_text] eq ""} {my help_text "#xowiki.formfield-image_url-help_text#"}
+  }
   image_url instproc entry_name {value} {
     set value [string map [list %2e .] $value]
     if {![regexp -nocase {/([^/]+)[.](gif|jpg|jpeg|png)} $value _ name ext]} {
       return ""
     }
-    return image:$name.$ext
+    return file:$name.$ext
   }
   image_url instproc check=image_check {value} {
     if {$value eq ""} {return 1}
@@ -1343,12 +1351,14 @@ namespace eval ::xowiki::formfield {
       my log "--img cannot tranfer image '$value' ($errorMsg)"
       return 0
     }
+    #my msg "guess mime_type of $entry_name = [::xowiki::guesstype $entry_name]"
     set import_file [ns_tmpnam]
     ::xowiki::write_file $import_file $img
     set file_object [::xowiki::File new -destroy_on_cleanup \
                          -title $entry_name \
                          -name $entry_name \
                          -parent_id $folder_id \
+                         -mime_type [::xowiki::guesstype $entry_name] \
                          -package_id [[my object] package_id] \
                          -creation_user [::xo::cc user_id] \
                         ]

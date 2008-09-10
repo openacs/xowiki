@@ -54,6 +54,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-updated">Updated form</msg>
   <msg key="form-validate_form">%errorMsg%</msg>
   <msg key="Form-validate_form_constraints">Invalid Form %errorMsg%</msg>
+  <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
+  <msg key="formfield-youtube_url-help_text">Cut&amp;Paste URL of YouTube video (http://www.youtube.com/....)</msg>
   <msg key="FormPage-assignee">Assignee</msg>
   <msg key="FormPage-state">State</msg>
   <msg key="index">Index</msg>
