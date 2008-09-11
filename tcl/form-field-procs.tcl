@@ -1719,7 +1719,7 @@ namespace eval ::xowiki::formfield {
   }
 
   event instproc initialize {} {
-    #my msg "EVENT has value [my value]"
+    if {[my exists __initialized]} return
     my set widget_type event
     my set structure {
       {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_lecture#}}
@@ -1738,9 +1738,13 @@ namespace eval ::xowiki::formfield {
       my set component_index([my name].$name) $c
       my lappend components $c
     }
+    my set __initialized 1
   }
 
   event instproc get_compound_value {} {
+    if {![my exists __initialized]} {
+      return ""
+    }
     set dtstart  [my get_component dtstart]
     set dtend    [my get_component dtend]
     set end_day  [lindex [$dtstart value] 0]
