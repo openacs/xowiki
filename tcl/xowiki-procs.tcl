@@ -1925,13 +1925,24 @@ namespace eval ::xowiki {
     return $default
   }
 
-  FormPage instproc set_property {name value} {
+  FormPage instproc set_publish_status {value} {
+    if {[lsearch -exact [list production ready] $value] == -1} {
+      error "invalid value '$value'; use 'production' or 'ready'"
+    }
+    my set publish_status $value
+  }
+
+  FormPage instproc set_property {{-new 0} name value} {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
       set instance_attributes_refresh 0
     } {
       set key  __ia($name)
       set instance_attributes_refresh 1
+    }
+    if {!$new && ![my exists $key]} {
+      error "property '$name' ($key) does not exist. \
+        you might use flag '-new 1' for set_property to create new properties\n[lsort [my info vars]]"
     }
     my set $key $value
     if {$instance_attributes_refresh} {
