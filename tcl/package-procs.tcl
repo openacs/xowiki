@@ -923,6 +923,12 @@ namespace eval ::xowiki {
     ::xo::clusterwide xo::cache_flush_all xowiki_cache link-*-$name-$parent_id
   }
 
+  Package instproc delete_revision {-revision_id:required -item_id:required} {
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+    ::xo::db::sql::content_revision del -revision_id $revision_id
+  }
+
   Package instproc delete {-item_id -name} {
     #
     # This delete method does not require an instanantiated object,

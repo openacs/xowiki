@@ -1330,9 +1330,9 @@ namespace eval ::xowiki {
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id 
     db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
-    ::xo::db::sql::content_revision del -revision_id $revision_id
+    # do real deletion via package
+    $package_id delete_revision -revision_id $revision_id -item_id $item_id
+    # Take care about UI specific stuff....
     set redirect [my query_parameter "return_url" \
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
