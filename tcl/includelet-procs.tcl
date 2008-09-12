@@ -149,6 +149,24 @@ namespace eval ::xowiki::includelet {
     return $prefix$suffix
   }
 
+  ::xowiki::Includelet proc publish_status_clause {{-base_table ci} value} {
+    if {$value eq "all"} {
+      # legacy
+      set publish_status_clause ""
+    } else {
+      array set valid_state [list production 1 ready 1 life 1 expired 1]
+      set clauses [list]
+      foreach state [split $value |] {
+        if {![info exists valid_state($state)]} {
+          error "no such state: '$state'; valid states are: production, ready, life, expired"
+        }
+        lappend clauses "$base_table.publish_status='$state'"
+      }
+      set publish_status_clause " and ([join $clauses { or }])"
+    }
+    return $publish_status_clause
+  }
+
   ::xowiki::Includelet proc locale_clause {
     -revisions 
     -items 
@@ -207,6 +225,8 @@ namespace eval ::xowiki::includelet {
     #my log "--cnames $category_spec -> $cnames"
     return [list $cnames $extra_where_clause]
   }
+
+
 
   ::xowiki::Includelet instproc resolve_page_name {page_name} {
     return [[my set __including_page] resolve_included_page_name $page_name]
@@ -2634,7 +2654,11 @@ namespace eval ::xowiki::includelet {
     {method list}
   }
   form-menu-button-answers instproc render {} {
-    set count [[my form] count_usages]
+    set (publish_status) ready
+    array set "" [::xowiki::PageInstance get_list_from_form_constraints \
+                      -name @table_properties \
+                      -form_constraints [[my form] get_form_constraints -trylocal true]]
+    set count [[my form] count_usages -publish_status $(publish_status)]
     my label_suffix " ($count)"
     next
   }
@@ -2722,6 +2746,22 @@ namespace eval ::xowiki::includelet {
     set form_item [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
     set form_constraints [$form_item get_form_constraints -trylocal true]
     #my msg fc=[$form_item get_form_constraints]
+
+    # load table properties; order_by won't work due to comma, but solve that later (TODO)
+    set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
+                              -name @table_properties \
+                              -form_constraints $form_constraints]
+    foreach {attr value} $table_properties {
+      switch $attr {
+        orderby - publish_status -  category_id - unless -
+        where -   with_categories - csv - voting_form -
+        voting_form_form - voting_form_anon_instances {
+          set $attr $value
+          #my msg " set $attr $value"
+        }
+        default {error "unknown table property '$attr' provided"}
+      }
+    }
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \

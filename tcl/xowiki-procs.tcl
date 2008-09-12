@@ -1456,12 +1456,12 @@ namespace eval ::xowiki {
   PageTemplate parameter {
     {render_adp 0}
   }
-  PageTemplate instproc count_usages {{-all false}} {
-    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
+  PageTemplate instproc count_usages {{-publish_status ready}} {
+    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -publish_status $publish_status]
   }
 
-  PageTemplate proc count_usages {-item_id:required {-all:boolean false}} {
-    set publish_status_clause [expr {$all ? "" : " and i.publish_status <> 'production' "}]
+  PageTemplate proc count_usages {-item_id:required {-publish_status ready}} {
+    set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table i $publish_status]
     set count [db_string [my qn count_usages] \
 		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
 			where page_template = $item_id \
@@ -1473,6 +1473,21 @@ namespace eval ::xowiki {
   #
   # PageInstance methods
   #
+
+  PageInstance proc get_list_from_form_constraints {-name -form_constraints} {
+    set spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
+                  -name $name \
+                  -form_constraints $form_constraints]
+    set result [list]
+    foreach spec [split $spec ,] {
+      if {[regexp {^([^=]+)=(.*)$} $spec _ attr value]} {
+        lappend result $attr $value
+      } else {
+        my log "can't parse $spec in attribute and value; ignoring"
+      }
+    }
+    return $result
+  }
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
     # For the time being we cache the form_constraints per request as a global
@@ -1659,10 +1674,10 @@ namespace eval ::xowiki {
     }
     next
   }
-  PageInstance instproc count_usages {{-all false}} {
-    # TODO: if we continue this approach, this method should go into Page
-    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
-  }
+  #   PageInstance instproc count_usages {{-all false}} {
+  #     # TODO: if we continue this approach, this method should go into Page
+  #     return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
+  #   }
 
   #
   # Methods of ::xowiki::Object
@@ -1726,7 +1741,21 @@ namespace eval ::xowiki {
     dom parse -simple -html $form doc
     $doc documentElement root
     my dom_disable_input_fields -with_submit $with_submit $root
+    set form [lindex [$root selectNodes //form] 0]
+    Form add_dom_attribute_value $form class "margin-form"
     return [$root asHTML]
+  }
+
+  Form proc add_dom_attribute_value {dom_node attr value} {
+    if {[$dom_node hasAttribute $attr]} {
+      set old_value [$dom_node getAttribute $attr]
+      if {[lsearch -exact $old_value $value] == -1} {
+        append value " " $old_value
+      } else {
+        set value $old_value
+      }
+    }
+    $dom_node setAttribute $attr $value
   }
 
   Form instproc get_content {} {
@@ -1766,7 +1795,7 @@ namespace eval ::xowiki {
     set form_fields [list]
     foreach name_and_spec $form_constraints {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
-      if {$spec_name eq "@table" || $spec_name eq "@categories"} continue
+      if {[string match "@table*" $spec_name] || $spec_name eq "@categories"} continue
       
       #my msg "checking spec '$short_spec' for form field '$spec_name'"
       lappend form_fields [my create_raw_form_field \
@@ -1849,21 +1878,7 @@ namespace eval ::xowiki {
     #
     # Build WHERE clause 
     # 
-    if {$publish_status eq "all"} {
-      # legacy
-      set publish_status_clause ""
-    } else {
-      array set valid_state [list production 1 ready 1 life 1 expired 1]
-      set clauses [list]
-      foreach state [split $publish_status |] {
-        if {![info exists valid_state($state)]} {
-          error "no such state: '$state'; valid states are: production, ready, life, expired"
-        }
-        lappend clauses "ci.publish_status='$state'"
-      }
-      set publish_status_clause " and ([join $clauses { or }])"
-    }
-
+    set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table ci $publish_status]
     set filter_clause ""
     array set wc $h_where
     set use_hstore [expr {[::xo::db::has_hstore] && 
@@ -2047,14 +2062,22 @@ namespace eval ::xowiki {
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
       my load_values_into_form_fields $form_fields
+
+      # deactivate form-fields and do some final sanity checks
+      foreach f $form_fields {$f set_disabled 1}
+      my form_fields_sanity_check $form_fields
+
       set form [my regsub_eval  \
 		    [template::adp_variable_regexp] $form \
 		    {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
       
+      # we parse the form just for the margin-form.... maybe regsub?
       dom parse -simple -html $form doc
       $doc documentElement root
-      my set_form_data $form_fields
-      return [Form disable_input_fields [$root asHTML]]
+      set form_node [lindex [$root selectNodes //form] 0]
+      Form add_dom_attribute_value $form_node class "margin-form"
+      #my set_form_data $form_fields
+      return [$root asHTML]
     }
   }
 

@@ -821,7 +821,7 @@ namespace eval ::xowiki {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
 
-    #my msg "$found $name mode=$mode type=[$f set type] value=[$f value]"
+    #my msg "$found $name mode=$mode type=[$f set type] value=[$f value] disa=[$f exists disabled]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
     } else {
@@ -1019,6 +1019,21 @@ namespace eval ::xowiki {
     }
   }
   
+  FormPage instproc form_fields_sanity_check {form_fields} {
+    foreach f $form_fields {
+      if {[$f exists disabled]} {
+        # don't mark disabled fields as required
+        if {[$f required]} {
+          $f required false
+        }
+        #don't show the help-text, if you cannot input
+        if {[$f help_text] ne ""} {
+          $f help_text ""
+        }
+      }
+    }
+  }
+
   FormPage instproc edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
@@ -1176,20 +1191,9 @@ namespace eval ::xowiki {
         }
       }
     }
-    
+
     # some final sanity checks
-    foreach f $form_fields {
-      if {[$f exists disabled]} {
-        # don't mark disabled fields as required
-        if {[$f required]} {
-          $f required false
-        }
-        #don't show the help-text, if you cannot input
-        if {[$f help_text] ne ""} {
-          $f help_text ""
-        }
-      }
-    }
+    my form_fields_sanity_check $form_fields
 
     # The following command would be correct, but does not work due to a bug in 
     # tdom.
@@ -1263,10 +1267,7 @@ namespace eval ::xowiki {
       }
       set url [export_vars -base [$package_id pretty_link [my name]] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
-      set oldCSSClass [expr {[$form hasAttribute class] ? [$form getAttribute class] : ""}]
-      if {[lsearch -exact $oldCSSClass margin-form] == -1} {
-        $form setAttribute class [string trim "$oldCSSClass margin-form"]
-      }
+      Form add_dom_attribute_value $form class "margin-form"
     }
     my set_form_data $form_fields
     if {$disable_input_fields} {
