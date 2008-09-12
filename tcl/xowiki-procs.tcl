@@ -1674,10 +1674,10 @@ namespace eval ::xowiki {
     }
     next
   }
-  #   PageInstance instproc count_usages {{-all false}} {
-  #     # TODO: if we continue this approach, this method should go into Page
-  #     return [::xowiki::PageTemplate count_usages -item_id [my item_id] -all $all]
-  #   }
+
+  PageInstance instproc count_usages {{-publish_status ready}} {
+    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -publish_status $publish_status]
+  }
 
   #
   # Methods of ::xowiki::Object
