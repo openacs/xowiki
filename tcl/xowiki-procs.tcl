@@ -768,7 +768,7 @@ namespace eval ::xowiki {
     the language prefix of the including page is used.
   } {
     if {$page_name ne ""} {
-      set page [[my package_id] resolve_page_name -lang [my lang] $page_name]
+      set page [[my package_id] resolve_page_name_and_init_context -lang [my lang] $page_name]
       if {$page eq ""} {
         error "Cannot find page '$page_name'"
       }

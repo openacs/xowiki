@@ -178,7 +178,7 @@ namespace eval ::xowiki {
         if {![regexp {/?..:} $pp]} {
           my log "Error: Name of parameter page '$pp' of package [my id] must contain a language prefix"
         } else {
-          set page [my resolve_page_name $pp]
+          set page [::xo::cc cache [list [self] resolve_page_name $pp]]
           if {$page eq ""} {
             my log "Error: Could not resolve parameter page '$pp' of package [my id]."
           }
@@ -198,7 +198,31 @@ namespace eval ::xowiki {
     return $value
   }
 
-  Package instproc resolve_page_name {{-lang} page_name} {
+  Package instproc resolve_page_name {page_name} {
+    #
+    # This is a very simple version for resolving page names in an
+    # package instance.  It can be called either a plain page name
+    # with a language prefix (as stored in the CR) for the current
+    # package, or with a path (starting with a //) pointing to an
+    # xowiki instance followed by the page name.
+    #
+    # Examples
+    #    ... resolve_page_name en:index
+    #    ... resolve_page_name //xowiki/en:somepage
+    #
+    # The method returns either the page object or empty ("").
+    #
+    set package_id [my id]
+    if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
+      array set "" [site_node::get_from_url -url $url]
+      set package_id $(package_id)
+      ::xowiki::Package require $package_id
+    }
+    #my log "final resolve $package_id '$page_name'"
+    return [$package_id resolve_request -simple true -path $page_name method_var]
+  }
+
+  Package instproc resolve_page_name_and_init_context {{-lang} page_name} {
     set page ""
     #
     # take a local copy of the package_id, since it is possible
