@@ -939,7 +939,10 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
     set options [my undoublequote $options]
-    if {[string match "http*//*" $link] || [string match "//*" $link]} {
+    if {[string match "http*//*" $link] 
+        || [string match "ftp://*" $link]
+        || [string match "//*" $link]
+      } {
       if {[regsub {^//} $link / link]} {
 	#my msg t=[::xowiki::guesstype $link]
 	switch -glob -- [::xowiki::guesstype $link] {
