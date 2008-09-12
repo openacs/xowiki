@@ -2983,3 +2983,28 @@ namespace eval ::xowiki::includelet {
   }
 }
  
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  #
+  # Show an iframe as includelet
+  #
+  ::xowiki::IncludeletClass create iframe \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {parameter_declaration {
+           {-title ""}
+           {-url:required}
+           {-width "100%"}
+           {-height "500px"}
+        }}
+      }
+
+  iframe instproc render {} {
+    my get_parameters
+    
+    if {$title eq ""} {set title $url}
+    set content "<iframe src='$url' width='$width' height='$height'></iframe>"
+    append content "<p><a href='$url' title='$title'>$title</a></p>"
+    return $content
+  }
+}
