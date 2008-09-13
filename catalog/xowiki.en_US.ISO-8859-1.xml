@@ -35,10 +35,13 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
   <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
   <msg key="event">Event</msg>
+  <msg key="event-end_of_event">End Time</msg>
   <msg key="event-end_of_lecture">End of Lecture</msg>
   <msg key="event-hourprefix"> at </msg>
   <msg key="event-location">Location</msg>
+  <msg key="event-start_of_event">Start Time</msg>
   <msg key="event-start_of_lecture">Start of Lecture</msg>
+  <msg key="event-title_of_event">Title</msg>
   <msg key="event-title_of_lecture">Title of Lecture</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="form-created">Created form</msg>

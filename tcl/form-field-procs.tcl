@@ -253,8 +253,9 @@ namespace eval ::xowiki::formfield {
           my class ::xowiki::formfield::$s
 	  my remove_omit
           if {$old_class ne [my info class]} {
-            #my msg "reset class from $old_class to [my info class]"
+            #my msg "[my name]: reset class from $old_class to [my info class]"
             my reset_parameter
+            my set __state reset
             my initialize
           }
           #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
@@ -292,6 +293,8 @@ namespace eval ::xowiki::formfield {
       my interprete_single_spec $s
     }
 
+    #my msg "[my name]: after specs"
+    my set __state after_specs
     my initialize
 
     #
@@ -792,10 +795,11 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       regsub -all {[.:]} [my id] {\\\\&} JID
       set config [list "skin: 'default'"]
+      #my msg "wym, h [my exists height] || w [my exists width]"
       if {[my exists height] || [my exists width]} {
         set height_cmd ""
         set width_cmd ""
-        if {[my exists height]} {set height_cmd "wym_box.find(wym._options.iframeSelector).css('height','[my height]');"}
+        if {[my exists height]} {set height_cmd "jQuery(wym._box).find(wym._options.iframeSelector).css('height','[my height]');"}
         if {[my exists width]}  {set width_cmd "wym_box.css('width', '[my width]');"}
         set postInit [subst -nocommand -nobackslash {
           postInit: function(wym) {
@@ -1529,6 +1533,9 @@ namespace eval ::xowiki::formfield {
       MONTH {month %m 1}
       YYYY  {YYYY  %Y 0}
     }
+    #my msg "[my name] initialize date, format=[my format] components=[my components]"
+    foreach c [my components] {$c destroy}
+    my components [list]
 
     foreach element [split [my format]] {
       if {![my exists format_map($element)]} {
@@ -1549,6 +1556,7 @@ namespace eval ::xowiki::formfield {
       set name $class
       set c [::xowiki::formfield::$class create [self]::$name \
                -name [my name].$name -id [my id].$name -locale [my locale]]
+      #my msg "creating [my name].$name"
       $c set_disabled [my exists disabled]
       $c set code $code
       $c set trim_zeros $trim_zeros
@@ -1716,18 +1724,27 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class event -superclass CompoundField -parameter {
+    {multiday false}
   }
 
   event instproc initialize {} {
-    if {[my exists __initialized]} return
+    #my msg "event initialize [my exists __initialized], multi=[my multiday] state=[my set __state]"
+    if {[my set __state] ne "after_specs"} return
     my set widget_type event
-    my set structure {
-      {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_lecture#}}
-      {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI,
-                default=now,label=#xowiki.event-start_of_lecture#,display_format=%Q_%X}}
-      {dtend   date,format=HH24_MI,default=now,label=#xowiki.event-end_of_lecture#,display_format=%X}
-      {location text,label=#xowiki.event-location#}
+    if {[my multiday]} {
+      set dtend_format DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI
+      set dtend_display_format %Q_%X
+    } else {
+      set dtend_format HH24_MI
+      set dtend_display_format %X
     }
+    my set structure [subst {
+      {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_event#}}
+      {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI,
+               default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
+      {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
+      {location text,label=#xowiki.event-location#}
+    }]
     foreach entry [my set structure] {
       foreach {name spec} $entry break
       #
@@ -1747,10 +1764,14 @@ namespace eval ::xowiki::formfield {
     }
     set dtstart  [my get_component dtstart]
     set dtend    [my get_component dtend]
-    set end_day  [lindex [$dtstart value] 0]
-    set end_time [lindex [$dtend value] 1]
-    $dtend value "$end_day $end_time"
-    #my msg "[$dtend name] set to '$end_day $end_time' ==> $dtend, [$dtend value]"
+    if {![my multiday]} {
+      # If the event is not a multi-day-event, the end_day is not
+      # given by the dtend widget, but is taken from dtstart.
+      set end_day  [lindex [$dtstart value] 0]
+      set end_time [lindex [$dtend value] 1]
+      $dtend value "$end_day $end_time"
+      #my msg "[$dtend name] set to '$end_day $end_time' ==> $dtend, [$dtend value]"
+    }
     next
   }
 
