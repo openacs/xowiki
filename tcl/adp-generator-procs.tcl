@@ -191,7 +191,7 @@ table.mini-calendar {width: 200px ! important;}
 <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" 
 	 &__including_page=page 
-         summary="0" noparens="1">
+         summary="0" noparens="0">
 <include src="/packages/xowiki/www/portlets/include" 
 	 &__including_page=page 
 	 portlet="tags -decoration plain">

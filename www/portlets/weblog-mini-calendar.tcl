@@ -1,11 +1,3 @@
-#
-# The following time range specifies the dates between the navigation
-# arrows of the weblog mini calendar should be. Without a limitation,
-# crawler will iterate over this pages until they reach infinite past
-# or infinite future. 
-#
-set earliest_date "2006-01-1"
-set latest_date   "1 year"
 
 ::xo::Page requireCSS "/resources/calendar/calendar.css"
 set package_id        [::xo::cc package_id]
@@ -50,6 +42,43 @@ set months_list    [dt_month_names]
 set curr_month_idx [expr {[dt_trim_leading_zeros [clock format $now -format "%m"]]-1}]
 set curr_month     [lindex $months_list $curr_month_idx ]
 
+set first_day_of_week [lc_get firstdayofweek]
+set week_days [lc_get abday]
+multirow create days_of_week day_short
+for {set i 0} {$i < 7} {incr i} {
+  multirow append days_of_week [lindex $week_days [expr {($i + $first_day_of_week) % 7}]]
+}
+
+set innersql "from xowiki_pagei p, cr_items ci \
+        where ci.parent_id = $folder_id \
+        and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
+        and ci.content_type not in ('::xowiki::PageTemplate', '::xowiki::Form') \
+        and ci.item_id != $including_item_id \
+        and ci.publish_status <> 'production' "
+
+db_foreach entries_this_month "select count(ci.item_id) as c, 
+        [::xo::db::sql date_trunc day p.publish_date] as d \
+        $innersql
+        and [::xo::db::sql date_trunc_expression month p.publish_date $year-$month-01] \
+        group by [::xo::db::sql date_trunc day p.publish_date]" {
+          set entries([lindex $d 0]) $c
+        }
+
+#
+# The following time range specifies the dates between the navigation
+# arrows of the weblog mini calendar should be. Without a limitation,
+# crawler will iterate over this pages until they reach infinite past
+# or infinite future. 
+#
+#set earliest_date "2006-01-1"
+#set latest_date   "1 year"
+#
+# Compute the available time range
+#
+set dates [db_list_of_lists get_dates "select min([::xo::db::sql date_trunc day p.publish_date]),max([::xo::db::sql date_trunc day p.publish_date]) $innersql"]
+set earliest_date [::xo::db::tcl_date [lindex $dates 0 0] _]
+set latest_date   [::xo::db::::tcl_date [lindex $dates 0 end] _]
+
 if {$prev_mon < [clock scan $earliest_date]} {
   set prev_month_url ""
 } else {
@@ -63,25 +92,6 @@ if {$next_mon > [clock scan $latest_date]} {
   set next_month_url [export_vars -base $base_url {{date $next_month} page_num summary}]
 }
 
-set first_day_of_week [lc_get firstdayofweek]
-set week_days [lc_get abday]
-multirow create days_of_week day_short
-for {set i 0} {$i < 7} {incr i} {
-  multirow append days_of_week [lindex $week_days [expr {($i + $first_day_of_week) % 7}]]
-}
-
-db_foreach entries_this_month "select count(ci.item_id) as c, 
-        [::xo::db::sql date_trunc day p.publish_date] as d \
-        from xowiki_pagei p, cr_items ci \
-        where ci.parent_id = $folder_id \
-        and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
-        and ci.content_type not in ('::xowiki::PageTemplate') \
-        and ci.item_id != $including_item_id \
-        and ci.publish_status <> 'production' \
-        and [::xo::db::sql date_trunc_expression month p.publish_date $year-$month-01] \
-        group by [::xo::db::sql date_trunc day p.publish_date]" {
-          set entries([lindex $d 0]) $c
-        }
 
 multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url count class
 
@@ -134,7 +144,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
 
   # ns_log notice "--D julian_date = $julian_date [dt_julian_to_ansi $julian_date] //$ansi_date"
   set count [expr {[info exists entries($ansi_date)] ? 
-                   ([info exists noparens] ? $entries($ansi_date) : "($entries($ansi_date))") 
+                   ([info exists noparens] && $noparens ? $entries($ansi_date) : "($entries($ansi_date))") 
                    : ""}]
   if {$today_p} {
     set class today

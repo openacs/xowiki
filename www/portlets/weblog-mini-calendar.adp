@@ -1,4 +1,4 @@
-<table class="mini-calendar" cellpadding="0" cellspacing="0">
+<table class="mini-calendar weblog-mini-calendar" cellpadding="0" cellspacing="0">
   <tr>
     <td colspan="4">
       <table class="header" cellspacing="0" cellpadding="0">

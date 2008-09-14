@@ -198,3 +198,20 @@ div.book-navigation img {border: 0px;}
 div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
     color: #7A7A78;
 }
+
+/* Make the weblog-mini-calendar slightly nicer by alignig its columns 
+   and extending the width as it was with styles before zen.
+*/
+.weblog-mini-calendar {width: 100%;}
+.weblog-mini-calendar table {width: 100%;}
+/* header of the calendar */
+.weblog-mini-calendar .back { text-align: left; }
+.weblog-mini-calendar .current_view { text-align: center; }
+.weblog-mini-calendar .forward { text-align: right; }
+.weblog-mini-calendar .forward, .weblog-mini-calendar .back {
+    width: 20px;
+}
+/* the body-part of the calendar */
+.weblog-mini-calendar #at-a-glance td {
+    text-align: right;
+}
