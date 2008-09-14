@@ -41,9 +41,6 @@ set now       [clock scan $date]
 set prev_mon  [clock scan "1 month ago" -base $now]
 set next_mon  [clock scan "1 month" -base $now]
 
-set earliest_date "2008-08-1"
-set latest_date "1 month"
-
 set date_list [dt_ansi_to_list $date]
 set year      [dt_trim_leading_zeros [lindex $date_list 0]]
 set month     [dt_trim_leading_zeros [lindex $date_list 1]]
