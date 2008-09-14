@@ -141,10 +141,9 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   } else {
     set end_of_week_p f
   }
-
   # ns_log notice "--D julian_date = $julian_date [dt_julian_to_ansi $julian_date] //$ansi_date"
   set count [expr {[info exists entries($ansi_date)] ? 
-                   ([info exists noparens] && $noparens ? $entries($ansi_date) : "($entries($ansi_date))") 
+                   ([info exists noparens] && $noparens ? "$entries($ansi_date)" : "($entries($ansi_date))") 
                    : ""}]
   if {$today_p} {
     set class today

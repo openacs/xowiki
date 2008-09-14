@@ -212,6 +212,5 @@ div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
     width: 20px;
 }
 /* the body-part of the calendar */
-.weblog-mini-calendar #at-a-glance td {
-    text-align: right;
-}
+.weblog-mini-calendar #at-a-glance td              { text-align: right; }
+.weblog-mini-calendar #at-a-glance td.active:hover { text-align: right; }
