@@ -1,3 +1,12 @@
+#
+# The following time range specifies the dates between the navigation
+# arrows of the weblog mini calendar should be. Without a limitation,
+# crawler will iterate over this pages until they reach infinite past
+# or infinite future. 
+#
+set earliest_date "2006-01-1"
+set latest_date   "1 year"
+
 ::xo::Page requireCSS "/resources/calendar/calendar.css"
 set package_id        [::xo::cc package_id]
 set folder_id         [$__including_page set parent_id]
@@ -12,12 +21,6 @@ set date [ns_queryget date]
 if {![exists_and_not_null date]} {
   set date [dt_sysdate]
 } 
-
-#if {[exists_and_not_null page_num]} {
-#    set page_num "&page_num=$page_num"
-#} else {
-#    set page_num ""
-#}
 
 array set message_key_array {
     list #acs-datetime.List#
@@ -35,21 +38,34 @@ if {[catch {
 }
 
 set now       [clock scan $date]
+set prev_mon  [clock scan "1 month ago" -base $now]
+set next_mon  [clock scan "1 month" -base $now]
+
+set earliest_date "2008-08-1"
+set latest_date "1 month"
+
 set date_list [dt_ansi_to_list $date]
 set year      [dt_trim_leading_zeros [lindex $date_list 0]]
 set month     [dt_trim_leading_zeros [lindex $date_list 1]]
 set day       [dt_trim_leading_zeros [lindex $date_list 2]]
 
-set months_list [dt_month_names]
-set curr_month_idx  [expr {[dt_trim_leading_zeros [clock format $now -format "%m"]]-1}]
+set months_list    [dt_month_names]
+set curr_month_idx [expr {[dt_trim_leading_zeros [clock format $now -format "%m"]]-1}]
+set curr_month     [lindex $months_list $curr_month_idx ]
 
-set curr_month [lindex $months_list $curr_month_idx ]
-set prev_month [clock format [clock scan "1 month ago" -base $now] -format "%Y-%m-%d"]
-set next_month [clock format [clock scan "1 month" -base $now] -format "%Y-%m-%d"]
-set prev_month_url [export_vars -base $base_url {{date $prev_month} page_num summary}]
-set next_month_url [export_vars -base $base_url {{date $next_month} page_num summary}]
-#set next_month_url "$base_url?date=[ad_urlencode $next_month]${page_num}"
-    
+if {$prev_mon < [clock scan $earliest_date]} {
+  set prev_month_url ""
+} else {
+  set prev_month     [clock format $prev_mon -format "%Y-%m-%d"]
+  set prev_month_url [export_vars -base $base_url {{date $prev_month} page_num summary}]
+}
+if {$next_mon > [clock scan $latest_date]} {
+  set next_month_url ""
+} else {
+  set next_month     [clock format $next_mon -format "%Y-%m-%d"]
+  set next_month_url [export_vars -base $base_url {{date $next_month} page_num summary}]
+}
+
 set first_day_of_week [lc_get firstdayofweek]
 set week_days [lc_get abday]
 multirow create days_of_week day_short
