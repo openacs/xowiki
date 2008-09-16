@@ -2076,7 +2076,10 @@ namespace eval ::xowiki {
       $doc documentElement root
       set form_node [lindex [$root selectNodes //form] 0]
       Form add_dom_attribute_value $form_node class "margin-form"
-      #my set_form_data $form_fields
+      # The following two commands are for non-generated form contents
+      my set_form_data $form_fields
+      Form dom_disable_input_fields $root 
+      # Return finally the result
       return [$root asHTML]
     }
   }

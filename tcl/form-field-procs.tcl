@@ -1037,7 +1037,7 @@ namespace eval ::xowiki::formfield {
     next
   }
   
-  abstract_page instproc pretty_value {} {
+  abstract_page instproc pretty_value {v} {
     my instvar package_prefix package_id
 
     if {[my multiple]} {
@@ -1079,7 +1079,7 @@ namespace eval ::xowiki::formfield {
   }
   form_page instproc compute_options {} {
     my instvar form_obj package_prefix where
-    
+    #my msg "[my name] compute_options [my exists form]"
     if {![my exists form]} {
       return
     }
@@ -1112,7 +1112,7 @@ namespace eval ::xowiki::formfield {
     if {![my exists form_obj]} {
       error "No form specified for form_field [my name]"
     }
-    my set package_id [$form_obj package_id]
+    my set package_id [[my set form_obj] package_id]
     next
   }
 

@@ -584,10 +584,10 @@ namespace eval ::xowiki {
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       switch $type {
 	checkbox {
-	  my msg "get_form_value not implemented for $type"
+	  #my msg "get_form_value not implemented for $type"
 	}
 	radio {
-	  my msg "get_form_value not implemented for $type"
+	  #my msg "get_form_value not implemented for $type"
 	}
 	hidden -
 	password -
@@ -596,7 +596,9 @@ namespace eval ::xowiki {
 	    return [$field getAttribute value]
 	  }
 	}
-	default {my msg "can't handle $type so far $att=$value"}
+	default {
+          #my msg "can't handle $type so far $att=$value"
+        }
       }
     }
     return ""
@@ -1527,7 +1529,8 @@ namespace eval ::xowiki {
     return [list]
   }
 
-  Page instproc create-new {} {
+  Page instproc create-new {{-view_method edit}} {
+my msg "Page create-new, my mixins=[my info mixin], view_method=$view_method"
     my instvar package_id
     set instance_attributes [my default_instance_attributes]
     set original_package_id $package_id
@@ -1547,7 +1550,7 @@ namespace eval ::xowiki {
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
       my parent_id [$package_id folder_id]
-     }
+    }
     set f [FormPage new -destroy_on_cleanup \
                -package_id $package_id \
                -parent_id [my parent_id] \
@@ -1595,7 +1598,7 @@ namespace eval ::xowiki {
 
     $package_id returnredirect \
         [export_vars -base [$package_id pretty_link [$f name]] \
-	     {{m edit} return_url name template_file title detail_link text}]
+	     [list [list m $view_method] return_url name template_file title detail_link text]]
 
   }
 
