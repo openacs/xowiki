@@ -1530,7 +1530,6 @@ namespace eval ::xowiki {
   }
 
   Page instproc create-new {{-view_method edit}} {
-my msg "Page create-new, my mixins=[my info mixin], view_method=$view_method"
     my instvar package_id
     set instance_attributes [my default_instance_attributes]
     set original_package_id $package_id
