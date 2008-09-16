@@ -11,7 +11,7 @@
     {-date ""}
     {-tag ""}
     {-ptag ""}
-    {-entries_of en:announcement-talk}
+    {-entries_of en:announcement-talk|en:announcement-workshop}
   }
 
   #
@@ -48,9 +48,9 @@ END:VEVENT
   Class create IcalRenderer -instproc render {} {
     return [subst {BEGIN:VCALENDAR
 VERSION:2.0
-[next]
-END:VCALENDAR}]
-  }
+[next]END:VCALENDAR
+}]
+}
   
   my proc content {} {
     my get_parameters
