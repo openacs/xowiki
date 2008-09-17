@@ -56,6 +56,14 @@ namespace eval ::xowiki::formfield {
     feedback_answer_incorrect
   }
   FormField set abstract 1
+
+  FormField proc fc_encode {string} {
+    return [string map [list , __COMMA__] $string]
+  }
+  FormField proc fc_decode {string} {
+    return [string map [list __COMMA__ ,] $string]
+  }
+
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
@@ -290,7 +298,7 @@ namespace eval ::xowiki::formfield {
     }
     regsub -all {,\s+} $spec , spec
     foreach s [split $spec ,] {
-      my interprete_single_spec $s
+      my interprete_single_spec [FormField fc_decode $s]
     }
 
     #my msg "[my name]: after specs"
@@ -433,6 +441,14 @@ namespace eval ::xowiki::formfield {
   FormField instproc pretty_value {v} {
     #my log "mapping $v"
     return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
+  }
+
+  FormField instproc has_instance_variable {var value} {
+    if {[my exists $var] && [my set $var] eq $value} {return 1}
+    return 0
+  }
+  FormField instproc process_user_input {} {
+    # to be overloaded
   }
 
   FormField instproc field_value {v} {
@@ -1463,12 +1479,48 @@ namespace eval ::xowiki::formfield {
     return $value
   }
 
+  CompoundField instproc create_components {spec_list} {
+    #
+    # Build a component structure based on a list of specs
+    # of the form {name spec}.
+    #
+    my set structure $spec_list
+    my set components [list]
+    foreach entry $spec_list {
+      foreach {name spec} $entry break
+      #
+      # create for each component a form field
+      #
+      set c [::xowiki::formfield::FormField create [self]::$name \
+                 -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
+      my set component_index([my name].$name) $c
+      my lappend components $c
+    }
+  }
+
   CompoundField instproc get_component {component_name} {
     set key component_index([my name].$component_name)
     if {[my exists $key]} {
       return [my set $key]
     }
     error "no component named $component_name of compound field [my name]"
+  }
+
+  CompoundField instproc get_named_sub_component args {
+    # Iterate along the argument list to get components of a deeply
+    # nested structure For example,
+    #
+    #    my get_named_sub_component a b
+    #
+    # returns the object of the subcomponent "b" of component "a"
+    set component_name [my name]
+    set sub [self]
+    foreach e $args {
+      append component_name .$e
+      #my msg "check $sub set component_index($component_name)"
+      set sub [$sub set component_index($component_name)]
+    }
+    return $sub
   }
 
   CompoundField instproc render_input {} {
@@ -1478,6 +1530,22 @@ namespace eval ::xowiki::formfield {
     my set style "margin: 0px; padding: 0px;"
     html::fieldset [my get_attributes id style] {
       foreach c [my components] { $c render }
+    }
+  }
+
+  CompoundField instproc has_instance_variable {var value} {
+    set r [next]
+    if {$r} {return 1}
+    foreach c [my components] { 
+      set r [$c has_instance_variable $var $value]
+      if {$r} {return 1}
+    }
+    return 0
+  }
+
+  CompoundField instproc process_user_input {} {
+    foreach c [my components] { 
+      $c process_user_input
     }
   }
 
@@ -1738,23 +1806,13 @@ namespace eval ::xowiki::formfield {
       set dtend_format HH24_MI
       set dtend_display_format %X
     }
-    my set structure [subst {
+    my create_components [subst {
       {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_event#}}
       {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI,
                default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
       {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
       {location text,label=#xowiki.event-location#}
     }]
-    foreach entry [my set structure] {
-      foreach {name spec} $entry break
-      #
-      # create for each component a form field
-      #
-      set c [::xowiki::formfield::FormField create [self]::$name \
-                 -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
-      my set component_index([my name].$name) $c
-      my lappend components $c
-    }
     my set __initialized 1
   }
 
@@ -1790,7 +1848,6 @@ namespace eval ::xowiki::formfield {
     }
 
     set summary_txt "<span class='summary'>[[my get_component summary] value]</span>"
-
     set location [my get_component location]
     set location_val [$location value]
     set location_txt ""

@@ -1930,6 +1930,7 @@ namespace eval ::xowiki {
       return __ia($name)
     }
   }
+
   FormPage instproc exists_property {name} {
     return [my exists [my property_key $name]]
   }

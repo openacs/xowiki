@@ -740,27 +740,41 @@ namespace eval ::xowiki {
     # of a container to the value of the container.
     #
     foreach c [array names containers] {
-       switch -glob -- $c {
-         __* {}
-         _* {
-           set f  [my lookup_form_field -name $c $form_fields]
-           set processed($c) 1
-           my set [string range $c 1 end] [$f value]
-         }
-         default {
-           set f  [my lookup_form_field -name $c $form_fields]
-           set processed($c) 1
-           #my msg "compute value of $c"
-           set __ia($c) [$f value]
-           #my msg "__ia($c) is set to '[$f value]'"
-         }
-       }
-     }
+      switch -glob -- $c {
+        __* {}
+        _* {
+          set f  [my lookup_form_field -name $c $form_fields]
+          set processed($c) 1
+          my set [string range $c 1 end] [$f value]
+        }
+        default {
+          set f  [my lookup_form_field -name $c $form_fields]
+          set processed($c) 1
+          #my msg "compute value of $c"
+          set __ia($c) [$f value]
+          #my msg "__ia($c) is set to '[$f value]'"
+        }
+      }
+    }
     
     #
-    # Postprocess based on form fields. The first round was a processing
-    # based on the transmitted input fields of the forms. Now we use
-    # the formfields to complete the data and to validate it.
+    # Postprocess based on form fields based on form-fields methods.
+    # Postprocessing might force to refresh some values in __ia()
+    #
+    foreach f $form_fields {
+      $f process_user_input
+      if {[$f exists __refresh_instance_attributes]} {
+        #my msg "refresh"
+        foreach {att val} [$f set __refresh_instance_attributes] {
+          set __ia($att) $val
+        }
+      }
+    }
+    
+    #
+    # The first round was a processing based on the transmitted input
+    # fields of the forms. Now we use the formfields to complete the
+    # data and to validate it.
     #
     foreach f $form_fields {
       #my msg "validate $f [$f name] [info exists processed([$f name])]"
@@ -800,6 +814,8 @@ namespace eval ::xowiki {
          }
       }
       
+
+  
       #
       # Run validators
       #
@@ -1243,7 +1259,7 @@ namespace eval ::xowiki {
       foreach f $form_fields {
         if {[string match "__category_*" [$f name]]} {
           $f render_item
-        } elseif {[$f ismixin "::xowiki::formfield::richtext::wym"]} {
+        } elseif {[$f has_instance_variable editor wym]} {
           set submit_button_class "wymupdate"
         } elseif {[$f istype "::xowiki::CompoundField"]} {
           foreach c [$f components] {
