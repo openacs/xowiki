@@ -2147,7 +2147,7 @@ namespace eval ::xowiki {
       if {$old_name ne $name} {
         #my msg "do rename from $old_name to $name"
         $package_id flush_name_cache -name $old_name -parent_id [my parent_id]
-        my rename -old_name $old_name -new_name $new_name
+        my rename -old_name $old_name -new_name $name
       }
     }
     return [my item_id]
