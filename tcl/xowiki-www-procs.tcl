@@ -160,7 +160,7 @@ namespace eval ::xowiki {
 
     if {$master} {
       set context [list $title]
-      ::xo::Page set_property doc title $title
+      ::xo::Page set_property doc title "[$package_id instance_name] - $title"
       set autoname    [$package_id get_parameter autoname 0]
       set object_type [$package_id get_parameter object_type [my info class]]
       set rev_link    [$package_id make_link -with_entities 0 [self] revisions]
@@ -337,10 +337,13 @@ namespace eval ::xowiki {
     }
 
     set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
+    ::xo::Page set_property doc title "[$package_id instance_name] - $edit_form_page_title"
+
+    array set property_doc [::xo::Page get_property doc]
     set html [$package_id return_page -adp /packages/xowiki/www/edit \
                   -form f1 \
                   -variables {item_id edit_form_page_title context formTemplate
-                    view_link back_link rev_link index_link}]
+                    view_link back_link rev_link index_link property_doc}]
     template::util::lpop parse_level
     #my log "--edit html length [string length $html]"
     return $html

@@ -1,5 +1,6 @@
 <master>
   <property name="title">@edit_form_page_title;noquote@</property>
+  <property name="&doc">property_doc</property>
   <property name="context">@context;noquote@</property>
   <property name="focus">note.title</property>
 
