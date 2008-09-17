@@ -160,6 +160,7 @@ namespace eval ::xowiki {
 
     if {$master} {
       set context [list $title]
+      ::xo::Page set_property doc title $title
       set autoname    [$package_id get_parameter autoname 0]
       set object_type [$package_id get_parameter object_type [my info class]]
       set rev_link    [$package_id make_link -with_entities 0 [self] revisions]
