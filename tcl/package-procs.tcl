@@ -945,6 +945,7 @@ namespace eval ::xowiki {
     # Different machines in the cluster might have different entries in their caches.
     # Since we use wild-cards to find these, it has to be done on every machine
     ::xo::clusterwide xo::cache_flush_all xowiki_cache link-*-$name-$parent_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $parent_id-$name
   }
 
   Package instproc delete_revision {-revision_id:required -item_id:required} {

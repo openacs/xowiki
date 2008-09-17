@@ -2145,10 +2145,9 @@ namespace eval ::xowiki {
       my save -use_given_publish_date $use_given_publish_date
       # my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
-        my log "--formpage renaming"
         #my msg "do rename from $old_name to $name"
-        db_dml [my qn update_rename] "update cr_items set name = :name \
-                where item_id = [my item_id]"
+        $package_id flush_name_cache -name $old_name -parent_id [my parent_id]
+        my rename -old_name $old_name -new_name $new_name
       }
     }
     return [my item_id]
