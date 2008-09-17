@@ -620,14 +620,25 @@ namespace eval ::xowiki {
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
       switch $type {
         checkbox {
-          #my msg "CHECKBOX value='$value', [$field hasAttribute checked], [expr {$value == false}]"
-          if {[catch {set f [expr {$value ? 1 : 0}]}]} {set f 1}
-          if {$value eq "" || $f == 0} {
-            if {[$field hasAttribute checked]} {
+          #my msg "$att: CHECKBOX value='$value', [$field hasAttribute checked], [$field hasAttribute value]"
+          if {[$field hasAttribute value]} {
+            set form_value [$field getAttribute value]
+            #my msg "$att: form_value=$form_value, my value=$value"
+            if {[lsearch -exact $value $form_value] > -1} {
+              $field setAttribute checked true
+            } elseif {[$field hasAttribute checked]} {
               $field removeAttribute checked
             }
           } else {
-            $field setAttribute checked true
+            my msg "$att: CHECKBOX entry has no value"
+            if {[catch {set f [expr {$value ? 1 : 0}]}]} {set f 1}
+            if {$value eq "" || $f == 0} {
+              if {[$field hasAttribute checked]} {
+                $field removeAttribute checked
+              }
+            } else {
+              $field setAttribute checked true
+            }
           }
         }
         radio {
@@ -663,14 +674,13 @@ namespace eval ::xowiki {
         #my msg "my set_form_value from ia $att $__ia($att)"
         my set_form_value $att $__ia($att)
       } else {
-
-	# do we have a value in the form? If yes, keep it.
-	set form_value [my get_form_value $att]
-	#  my msg "no instance attribute, set form_value $att '[$f value]' form_value=$form_value"
-	if {$att eq ""} {
-	  # we have no instance attributes, use the default value from the form field
-	  my set_form_value $att [$f value]
-	}
+        # do we have a value in the form? If yes, keep it.
+        set form_value [my get_form_value $att]
+        #my msg "no instance attribute, set form_value $att '[$f value]' form_value=$form_value"
+        if {$att eq ""} {
+          # we have no instance attributes, use the default value from the form field
+          my set_form_value $att [$f value]
+        }
       }
     }
   }
@@ -692,9 +702,10 @@ namespace eval ::xowiki {
     if {![info exists field_names]} {
       set field_names [::xo::cc array names form_parameter]
     }
+    #my msg "fields [::xo::cc array get form_parameter]"
 
     # we have a form and get all form variables
-      
+    
     foreach att $field_names {
       #my msg "getting att=$att"
       set processed($att) 1
@@ -707,32 +718,32 @@ namespace eval ::xowiki {
         __* {
           # other internal variables (like __object_name) are ignored
         }
-        _* {
-          # instance attribute fields
-          set f     [my lookup_form_field -name $att $form_fields]
-          set value [$f value [string trim [::xo::cc form_parameter $att]]]
-          set varname [string range $att 1 end]
-          # get rid of strange utf-8 characters hex C2AD (firefox bug?)
-          # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
-          if {$varname eq "text"} {regsub -all "­" $value "" value}
-          # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
-          if {![string match *.* $att]} {my set $varname $value}
-        }
+         _* {
+           # instance attribute fields
+           set f     [my lookup_form_field -name $att $form_fields]
+           set value [$f value [string trim [::xo::cc form_parameter $att]]]
+           set varname [string range $att 1 end]
+           # get rid of strange utf-8 characters hex C2AD (firefox bug?)
+           # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
+           if {$varname eq "text"} {regsub -all "­" $value "" value}
+           # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
+           if {![string match *.* $att]} {my set $varname $value}
+         }
         default {
-          # user form content fields
+           # user form content fields
           set f     [my lookup_form_field -name $att $form_fields]
           set value [$f value [string trim [::xo::cc form_parameter $att]]]
-	  #my msg "value of $att ($f) = '$value'" 
+          #my msg "value of $att ($f) = '$value'" 
           if {![string match *.* $att]} {set __ia($att) $value}
           if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
         }
       }
       if {[string match *.* $att]} {
         foreach {container component} [split $att .] break
-        lappend containers($container) $component
+         lappend containers($container) $component
       }
     }
-
+    
     #my msg "containers = [array names containers]"
     #my msg "ia=[array get __ia]"
     #
@@ -814,12 +825,9 @@ namespace eval ::xowiki {
          }
       }
       
-
-  
       #
       # Run validators
       #
-  
       set validation_error [$f validate [self]]
       #my msg "validation of [$f name] with value '[$f value]' returns '$validation_error'"
       if {$validation_error ne ""} {

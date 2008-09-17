@@ -1001,6 +1001,38 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::checkbox
+  #
+  ###########################################################
+
+  Class checkbox -superclass enumeration -parameter {
+    {horizontal false}
+  }
+  checkbox instproc initialize {} {
+    my set multiple true
+    my set widget_type text(checkbox)
+    next
+  }
+  checkbox instproc value_if_nothing_is_returned_from_from {default} {
+    return ""
+  }
+  checkbox instproc render_input {} {
+    # identical to radio, except "checkbox" type and lsearch;
+    # maybe we can push this up to enumeration....
+    set value [my value]
+    foreach o [my options] {
+      foreach {label rep} $o break
+      set atts [my get_attributes disabled {CSSclass class}]
+      lappend atts id [my id]:$rep name [my name] type checkbox value $rep
+      if {[lsearch -exact $value $rep] > -1} {lappend atts checked checked}
+      ::html::input $atts {}
+      html::t "$label  "
+      if {![my horizontal]} {html::br}
+    }
+  }
+
 
   ###########################################################
   #
