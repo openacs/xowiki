@@ -1265,16 +1265,11 @@ namespace eval ::xowiki {
     $root appendFromScript {    
       # append category fields
       foreach f $form_fields {
+        #my msg "[$f name]: is wym? [$f has_instance_variable editor wym]"
         if {[string match "__category_*" [$f name]]} {
           $f render_item
         } elseif {[$f has_instance_variable editor wym]} {
           set submit_button_class "wymupdate"
-        } elseif {[$f istype "::xowiki::CompoundField"]} {
-          foreach c [$f components] {
-            if {[$c istype "::xowiki::formfield::richtext::wym"]} {
-              set submit_button_class "wymupdate"; break
-            }
-          }
         }
       }
 
