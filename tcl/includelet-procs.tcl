@@ -942,25 +942,31 @@ namespace eval ::xowiki::includelet {
     my instvar feed
     my get_parameters
     my set feed [::xowiki::RSS-client new -url $url -destroy_on_cleanup]
-    my title [ [$feed channel] title]
+    if {[info command [$feed channel]] ne ""} {
+      my title [ [$feed channel] title]
+    }
   }
   
   rss-client instproc render {} {
     my instvar feed
     my get_parameters
-    set channel [$feed channel]
-    #set html "<H1>[$channel title]</H1>"
-    set html "<UL>\n"
-    set i 0
-    foreach item [ $feed items ] {
-      #my msg "[$item title]"
-      append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>#xowiki.weblog-more#</a>\n"
-      if {[incr i] >= $max_entries} break
+    if {[info command [$feed channel]] eq ""} {
+      set detail ""
+      if {[$feed exists errorMessage]} {set detail \n[$feed set errorMessage]}
+      return "No data available from $url<br>$detail"
+    } else {
+      set channel [$feed channel]
+      #set html "<H1>[$channel title]</H1>"
+      set html "<UL>\n"
+      set i 0
+      foreach item [ $feed items ] {
+        append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>#xowiki.weblog-more#</a>\n"
+        if {[incr i] >= $max_entries} break
+      }
+      append html "</UL>\n"
+      return $html
     }
-    append html "</UL>\n"
-    return $html
   }
-
 }
 
 namespace eval ::xowiki::includelet {

@@ -392,15 +392,20 @@ namespace eval ::xowiki {
     
   # Constructor for a given URI
   RSS-client instproc init {} {
-    my parse [my load]
+    set XML [my load]
+    if {$XML ne ""} {
+      my parse [my load]
+    }
   }
   
   RSS-client instproc load { } {
     set r [::xo::HttpRequest new -url [my url] -volatile]
     #my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
-    set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
-    set xml [$r set data]
-    return $xml
+    #set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
+    if {[$r exists status] && [$r set status] eq "canceled"} {
+      my set errorMessage [$r set cancel_message]
+    }
+    return [$r set data]
     # the following does not appear to be necessary due to changes in http-client-procs. 
     #set charset utf-8
     #regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset
@@ -454,7 +459,6 @@ namespace eval ::xowiki {
     # Channel
     set cN [ $root child 1 channel ]
     set channel [::xowiki::RSS-client::channel create [self]::channel -root $cN]
-    puts $channel
 
     # Items
     my set items {}
