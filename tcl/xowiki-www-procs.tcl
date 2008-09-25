@@ -731,11 +731,16 @@ namespace eval ::xowiki {
          }
         default {
            # user form content fields
-          set f     [my lookup_form_field -name $att $form_fields]
-          set value [$f value [string trim [::xo::cc form_parameter $att]]]
-          #my msg "value of $att ($f) = '$value'" 
-          if {![string match *.* $att]} {set __ia($att) $value}
-          if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
+          if {[regexp {^(.+)[.](tmpfile|content-type)} $att _ file field]} {
+            set f [my lookup_form_field -name $file $form_fields]
+            $f $field [string trim [::xo::cc form_parameter $att]]
+          } else {
+            set f     [my lookup_form_field -name $att $form_fields]
+            set value [$f value [string trim [::xo::cc form_parameter $att]]]
+            #my msg "value of $att ($f) = '$value'" 
+            if {![string match *.* $att]} {set __ia($att) $value}
+            if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
+          }
         }
       }
       if {[string match *.* $att]} {
@@ -1262,6 +1267,7 @@ namespace eval ::xowiki {
     # append some fields after the HTML contents of the form 
     #
     set submit_button_class ""
+    set has_file 0
     $root appendFromScript {    
       # append category fields
       foreach f $form_fields {
@@ -1270,6 +1276,9 @@ namespace eval ::xowiki {
           $f render_item
         } elseif {[$f has_instance_variable editor wym]} {
           set submit_button_class "wymupdate"
+        }
+        if {[$f has_instance_variable type file]} {
+          set has_file 1
         }
       }
 
@@ -1292,6 +1301,7 @@ namespace eval ::xowiki {
       }
       set url [export_vars -base [$package_id pretty_link [my name]] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
+      if {$has_file} {$form setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $form class "margin-form"
     }
     my set_form_data $form_fields
@@ -1322,12 +1332,16 @@ namespace eval ::xowiki {
   }
 
   File instproc download {} {
-    my instvar text mime_type package_id item_id revision_id
+    my instvar mime_type package_id
     $package_id set mime_type $mime_type
     set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] && 
                                [info command ::bgdelivery] ne ""}]
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
+    if {[my exists_query_parameter filename]} {
+      set filename [my query_parameter filename]
+      ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=$filename"
+    }
     #my log "--F FILE=[my full_file_name]"
     return [my full_file_name]
   }

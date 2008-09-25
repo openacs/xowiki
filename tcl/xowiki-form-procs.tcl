@@ -171,6 +171,7 @@ namespace eval ::xowiki {
 	.swf {set mime application/x-shockwave-flash}
         .wmv {set mime video/x-ms-wmv}
 	.class - .jar  {set mime application/java}
+        default {set mime application/octet-stream}
       }
     }
     return $mime

@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target
+    cssclass href label title target extra_query_parameter
   }
 
   BaseLink instproc mk_css_class {-additional {-default ""}} {
@@ -266,6 +266,9 @@ namespace eval ::xowiki {
       if {[my exists $f]} {
 	append embed_options "$f = '[my set $f]' "
       }
+    }
+    if {[my exists extra_query_parameter]} {
+      set internal_href [export_vars -base $internal_href [my extra_query_parameter]]
     }
     if {![info exists embed_options]} {
       return "<a href='$internal_href' [my mk_css_class -additional file]>$label</a>"

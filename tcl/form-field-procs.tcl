@@ -501,6 +501,73 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::file
+  #
+  ###########################################################
+
+  Class file -superclass FormField -parameter {
+    {size 40}
+    link_label
+  }
+  file instproc tmpfile {value}      {my set [self proc] $value}
+  file instproc content-type {value} {my set [self proc] $value}
+  file instproc initialize {} {
+    my type file
+    my set widget_type file(file)
+    next
+  }
+  file instproc entry_name {value} {
+    set entry_name file:[[my object] name]-[my name]
+  }
+  file instproc process_user_input {} {
+    my instvar value
+
+    if {[my value] eq ""} {
+      # nothing to do
+      return
+    }
+    set folder_id [[my object] set parent_id]
+    set entry_name [my entry_name $value]
+    #my msg "guess mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type]"
+
+    if {[set id [::xo::db::CrClass lookup -name $entry_name -parent_id $folder_id]]} {
+      # file entry exists already, create a new revision
+      set file_object [::xo::db::CrClass get_instance_from_db -item_id $id]
+      $file_object set import_file [my set tmpfile]
+      $file_object set mime_type [::xowiki::guesstype $entry_name]
+      $file_object set title $value
+      $file_object save
+    } else {
+      # create a new file 
+      set file_object [::xowiki::File new -destroy_on_cleanup \
+                           -title $value \
+                           -name $entry_name \
+                           -parent_id $folder_id \
+                           -mime_type [::xowiki::guesstype $entry_name] \
+                           -package_id [[my object] package_id] \
+                           -creation_user [::xo::cc user_id] ]
+      $file_object set import_file [my set tmpfile]
+      $file_object save_new
+    }
+  }
+
+  file instproc pretty_value {v} {
+    if {$v ne ""} {
+      if {[my exists link_label]} {
+        set link_label [my localize [my link_label]]
+      } else {
+        set link_label $v
+      }
+      set l [::xowiki::Link new -volatile \
+                 -page [my object] \
+                 -extra_query_parameter [list [list filename $v]] \
+                 -type file -name [my entry_name $v] -label $link_label]
+      return [$l render]
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::hidden
   #
   ###########################################################
