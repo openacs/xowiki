@@ -14,7 +14,7 @@ namespace eval ::xowiki {
       -package_key xowiki \
       -parameter {
 	{folder_id 0}
-	{force_refresh_login true}
+	{force_refresh_login false}
       }
   # {folder_id "[::xo::cc query_parameter folder_id 0]"}
 
@@ -345,12 +345,12 @@ namespace eval ::xowiki {
       regsub -all & $computed_link "&amp;" computed_link
     }
 
-    set party_id [::xo::cc user_id]
+    #set party_id [::xo::cc user_id]
+    set party_id [::xo::cc set untrusted_user_id]
     if {[info exists privilege]} {
       #my log "-- checking priv $privilege for [self args]"
       set granted [expr {$privilege eq "public" ? 1 :
-                  [permission::permission_p \
-                      -object_id $id -privilege $privilege -party_id $party_id] }]
+                         [::xo::cc permission -object_id $id -privilege $privilege -party_id $party_id] }]
     } else {
       # determine privilege from policy
       if {[catch {
