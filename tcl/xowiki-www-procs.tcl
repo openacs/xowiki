@@ -780,7 +780,7 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       $f process_user_input
       if {[$f exists __refresh_instance_attributes]} {
-        #my msg "refresh"
+        #my msg "refresh [$f set __refresh_instance_attributes]"
         foreach {att val} [$f set __refresh_instance_attributes] {
           set __ia($att) $val
         }

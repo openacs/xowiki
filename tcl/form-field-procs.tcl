@@ -529,9 +529,9 @@ namespace eval ::xowiki::formfield {
       # nothing to do
       return
     }
-    regsub -all {\\+} $value {/} value  ;# fix IE upload values
+    regsub -all {\\+} $value {/} value  ;# fix IE upload path
     set value [::file tail $value]
-    [my object] set_property -new 1 [my name] $value
+    my set __refresh_instance_attributes [list [my name] $value]
 
     set folder_id [[my object] set parent_id]
     set entry_name [my entry_name $value]
