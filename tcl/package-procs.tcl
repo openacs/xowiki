@@ -915,6 +915,17 @@ namespace eval ::xowiki {
     set autoname [my get_parameter autoname 0]
     set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
 
+    if {$object_type eq "::xowiki::PageInstance"} {
+      #
+      # If we create a PageInstance via the ad_form based
+      # PageInstanceForm, we have to provide the page_template here to
+      # be able to validate the name, where "complete_name" needs
+      # access to the ::xowiki::PageTemplate of the
+      # ::xowiki::PageInstance.
+      #
+      $page set page_template [my form_parameter page_template]
+    }
+
     set source_item_id [$id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       set source [$object_type get_instance_from_db -item_id $source_item_id]
