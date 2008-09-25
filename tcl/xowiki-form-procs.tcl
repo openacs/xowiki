@@ -206,7 +206,7 @@ namespace eval ::xowiki {
     $data instvar package_id
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name data=[my exists data] MIME [$data set mime_type]"
-      set name [$data complete_name $name [$data set upload_file]]
+      set name [$data build_name $name [$data set upload_file]]
       # 
       # Check, if the user is allowed to create a file with the specified
       # name. Files ending in .css or .js might require special permissions.
@@ -222,10 +222,7 @@ namespace eval ::xowiki {
 	return 0
       }
     } else {
-      set stripped_name $name
-      regexp {^..:(.*)$} $name _ stripped_name
-      set new_nls_language [$data form_parameter nls_language {}]
-      set name [$data complete_name $stripped_name $new_nls_language]
+      set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
     }
     set name [::$package_id normalize_name $name]
 

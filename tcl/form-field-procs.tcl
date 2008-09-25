@@ -517,7 +517,10 @@ namespace eval ::xowiki::formfield {
     next
   }
   file instproc entry_name {value} {
-    set entry_name file:[[my object] name]-[my name]
+    set obj [my object]
+    set name [$obj build_name -nls_language [$obj form_parameter nls_language {}]]
+    regsub -all : $name _ object_name
+    return file:$object_name-[my name]
   }
   file instproc process_user_input {} {
     my instvar value
@@ -526,15 +529,24 @@ namespace eval ::xowiki::formfield {
       # nothing to do
       return
     }
+    regsub -all {\\+} $value {/} value  ;# fix IE upload values
+    set value [::file tail $value]
+    [my object] set_property -new 1 [my name] $value
+
     set folder_id [[my object] set parent_id]
     set entry_name [my entry_name $value]
-    #my msg "guess mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type]"
+
+    set content_type [my set content-type]
+    if {$content_type eq "application/octetstream"} {
+      set content_type [::xowiki::guesstype $value]
+    }
+    #my msg "mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
 
     if {[set id [::xo::db::CrClass lookup -name $entry_name -parent_id $folder_id]]} {
       # file entry exists already, create a new revision
       set file_object [::xo::db::CrClass get_instance_from_db -item_id $id]
       $file_object set import_file [my set tmpfile]
-      $file_object set mime_type [::xowiki::guesstype $entry_name]
+      $file_object set mime_type $content_type
       $file_object set title $value
       $file_object save
     } else {
@@ -543,7 +555,7 @@ namespace eval ::xowiki::formfield {
                            -title $value \
                            -name $entry_name \
                            -parent_id $folder_id \
-                           -mime_type [::xowiki::guesstype $entry_name] \
+                           -mime_type $content_type \
                            -package_id [[my object] package_id] \
                            -creation_user [::xo::cc user_id] ]
       $file_object set import_file [my set tmpfile]

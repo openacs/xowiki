@@ -1125,7 +1125,7 @@ namespace eval ::xowiki {
     }
 
     #my show_fields $form_fields
-    #my log "__form_action [my form_parameter __form_action {}]"
+    #my msg "__form_action [my form_parameter __form_action {}]"
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"

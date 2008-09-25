@@ -919,7 +919,7 @@ namespace eval ::xowiki {
       #
       # If we create a PageInstance via the ad_form based
       # PageInstanceForm, we have to provide the page_template here to
-      # be able to validate the name, where "complete_name" needs
+      # be able to validate the name, where "build_name" needs
       # access to the ::xowiki::PageTemplate of the
       # ::xowiki::PageInstance.
       #

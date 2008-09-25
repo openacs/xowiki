@@ -676,21 +676,29 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%my set package_id} %proc
   Page instforward exists_form_parameter {%my set package_id} %proc
 
-  Page instproc complete_name {name {nls_language ""}} {
-    if {![regexp {^..:} $name]} {
-      # prepend the language prefix only, if the entry is not empty
-      if {$name ne ""} {
-        if {[my istype ::xowiki::PageInstance]} {
-          #
-          # Do not add a language prefix to anonymous pages
-          #
-          set anon_instances [my get_from_template anon_instances f]
-          if {$anon_instances} {
-            return $name
-          }
+  Page instproc build_name {{-nls_language ""}} {
+    #
+    # Build the name of the page, based on the provided nls_language
+    # This method strips existing language-prefixes and uses the
+    # provided nls_language or the instance variable for the new name.
+    # It handles as well anonymous pages, which are never equipped
+    # with language prefixes. ::xowiki::File has its own method.
+    #
+    set name [my name]
+    set stripped_name $name
+    regexp {^..:(.*)$} $name _ stripped_name
+    # prepend the language prefix only, if the entry is not empty
+    if {$stripped_name ne ""} {
+      if {[my istype ::xowiki::PageInstance]} {
+        #
+        # Do not add a language prefix to anonymous pages
+        #
+        set anon_instances [my get_from_template anon_instances f]
+        if {$anon_instances} {
+          return $stripped_name
         }
-        if {$nls_language eq ""} {set nls_language [my set nls_language]}
-        set name [string range $nls_language 0 1]:$name
+        if {$nls_language eq ""} {set nls_language [my nls_language]}
+        set name [string range $nls_language 0 1]:$stripped_name
       }
     }
     return $name
@@ -1366,7 +1374,7 @@ namespace eval ::xowiki {
   File parameter {
     {render_adp 0}
   }
-  File instproc complete_name {name {fn ""}} {
+  File instproc build_name {name {fn ""}} {
     my instvar mime_type package_id
     set type file
     if {$name ne ""} {
