@@ -40,7 +40,13 @@ namespace eval ::xowiki {
   #
   Class create Link -superclass BaseLink -parameter {
     type name lang stripped_name page 
-    folder_id package_id 
+    parent_id package_id 
+  }
+  Link instproc folder_id args {
+    # This method is deprecated
+    # just for backward compatibility
+    my log "--deprecated [self proc] [self args]"
+    eval my parent_id $args
   }
   Link instproc atts {} {
     set atts ""
@@ -59,7 +65,7 @@ namespace eval ::xowiki {
       }
     }
     if {![my exists label]}      {my label $name}
-    if {![my exists folder_id]}  {my folder_id [$page parent_id]}
+    if {![my exists parent_id]}  {my parent_id [$page parent_id]}
     if {![my exists package_id]} {my package_id [$page package_id]}
 
     #my log "--L link has class [my info class] // $class"
@@ -69,7 +75,7 @@ namespace eval ::xowiki {
     if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
       set name [my name]
     }
-    return [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
+    return [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
@@ -189,7 +195,7 @@ namespace eval ::xowiki {
     #my log "-- image resolve for $page returned $item_id (name=$name, label=$label) "
     if {$item_id} {
       set link [[my package_id] pretty_link -download true \
-                    -absolute [$page absolute_links] $name]
+                    -absolute [$page absolute_links] -parent_id [my parent_id] $name]
       #my log "--l fully quali [$page absolute_links], base=$base"
       #set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
@@ -254,7 +260,7 @@ namespace eval ::xowiki {
     set item_id [next]
     # my log "-- file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^file:} [my name] image: name]} {
-      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
+      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
     }
     return $item_id
   }
@@ -310,7 +316,7 @@ namespace eval ::xowiki {
     set item_id [next]
     my log "--file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^swf:} [my name] file: name]} {
-      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my folder_id]]
+      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
       my log "--file, 2nd lookup of $name returned $item_id"
     }
     return $item_id
@@ -445,7 +451,7 @@ namespace eval ::xowiki {
       #::xowiki::Package initialize -package_id $id
       my log "--u setting package_id to $id"
       # lookup the item from the found folder
-      return [::xo::db::CrClass lookup -name [my name] -parent_id [$id set folder_id]]
+      return [::xo::db::CrClass lookup -name [my name] -parent_id [$id set parent_id]]
     }
     #my log "--LINK no page found [my name], [my lang], type=[my type]."
     return 0
@@ -464,7 +470,7 @@ namespace eval ::xowiki {
 
   Class LinkCache
   LinkCache instproc resolve {} {
-    set key link-[my type]-[my name]-[my folder_id]
+    set key link-[my type]-[my name]-[my parent_id]
     while {1} {
       array set r [ns_cache eval xowiki_cache $key {
         set id [next]

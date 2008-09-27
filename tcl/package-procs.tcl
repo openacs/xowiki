@@ -85,6 +85,7 @@ namespace eval ::xowiki {
   Package instproc default_language {} {
     return [string range [my default_locale] 0 1]
   }
+
   Package array set www-file {
     admin 1
     diff 1
@@ -98,12 +99,67 @@ namespace eval ::xowiki {
     view-default 1 view-links 1 view-plain 1 oacs-view 1 oacs-view2 1 oacs-view3 1
     download 1
   }
+  
+  Package instproc get_lang_and_name {-path -name vlang vlocal_name} {
+    my upvar $vlang lang $vlocal_name local_name 
+    if {[info exists path]} {
+      # 
+      # Determine lang and name from a path with slashes
+      #
+      if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
+      } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
+      } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
+      } elseif {[regexp {^(file|image|swf|download/file|tag)/(.*)$} $path _ lang local_name]} {
+      } else {
+        set local_name $path
+        set lang [my default_language]
+      }
+    } elseif {[info exists name]} {
+      # 
+      # Determine lang and name from a names as it stored in the database
+      #
+      if {![regexp {^(..):(.*)$} $name _ lang local_name]} {
+        if {![regexp {^(file|image|swf):(.*)$} $name _ lang local_name]} {
+          set local_name $name
+          set lang [my default_language]
+        }
+      }
+    }
+  }
+
+  Package instproc folder_path {{-parent_id ""}} {
+    #
+    # handle different parent_ids
+    #
+    if {$parent_id ne "" && $parent_id != [my folder_id]} {
+      ::xo::db::CrClass get_instance_from_db -item_id $parent_id
+      return [$parent_id name]/
+    } else {
+      return ""
+    }
+  }
+    
+
+  Package ad_instproc external_name {
+    {-parent_id ""}
+    name 
+  } {
+    Generate a name with a potentially inserted parent name
+
+    @param parent_id parent_id (for now just for download)
+    @param name name of the wiki page
+  } {
+    my get_lang_and_name -name $name lang stripped_name
+    set folder [my folder_path -parent_id $parent_id]
+    return ${lang}:$folder$stripped_name
+  }
 
   Package ad_instproc pretty_link {
     {-anchor ""} 
     {-absolute:boolean false} 
     {-siteurl ""}
     {-lang ""} 
+    {-parent_id ""}
     {-download false} 
     name 
   } {
@@ -115,34 +171,45 @@ namespace eval ::xowiki {
     @param absolute make an absolute link (including protocol and host)
     @param lang use the specified 2 character language code (rather than computing the value)
     @param download create download link (without m=download)
+    @param parent_id parent_id (for now just for download)
     @param name name of the wiki page
   } {
     #my msg "input name=$name, lang=$lang"
     set default_lang [my default_language]
+    
     if {$lang eq ""} {
-      if {![regexp {^(..):(.*)$} $name _ lang name]} {
-        if {![regexp {^(file|image|swf):(.*)$} $name _ lang name]} {
-          set lang $default_lang
-        }
-      }
+      my get_lang_and_name -name $name lang name
     }
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
     set package_prefix [my get_parameter package_prefix [my package_url]]
     if {$package_prefix eq "/" && [string length $lang]>2} {
-      # don't compact the the path for images etc. to avoid conflicts with e.g. //../image/*
+      # don't compact the the path for images etc. to avoid conflicts
+      # with e.g. //../image/*
       set package_prefix [my package_url]
     }
     #my msg "lang=$lang name=$name"
+
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
+    set folder [my folder_path -parent_id $parent_id]
+
     if {$download} {
-      #set url ${host}${package_prefix}download/${lang}/$encoded_name$anchor
-      set url ${host}${package_prefix}download/file/$encoded_name$anchor
+      #
+      # use the special download (file) syntax
+      #
+      set url ${host}${package_prefix}download/file/$folder$encoded_name$anchor
     } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
-      set url ${host}${package_prefix}${lang}/$encoded_name$anchor
+      #
+      # If files are physical files in the www directory, add the
+      # language prefix
+      #
+      set url ${host}${package_prefix}${lang}/$folder$encoded_name$anchor
     } else {
-      set url ${host}${package_prefix}$encoded_name$anchor
+      #
+      # Use the short notation without language prefix
+      #
+      set url ${host}${package_prefix}$folder$encoded_name$anchor
     }
     return $url
   }
@@ -163,7 +230,6 @@ namespace eval ::xowiki {
     (4) per instance parameters from the folder object (computable)
     (5) standard OpenACS package parameter
   } {
-    #my log "search for $attribute"
     set value [::xo::cc get_parameter $attribute]
     if {$value eq ""} {set value [my query_parameter $attribute]}
     if {$value eq "" && $attribute ne "parameter_page"} {
@@ -375,7 +441,7 @@ namespace eval ::xowiki {
     {-object_type ::xowiki::Page}
     provided_name
   } {
-    my get_name_and_lang_from_path $provided_name lang local_name
+    my get_lang_and_name -path $provided_name lang local_name
     set name ${lang}:$local_name
     set new_link [my make_link [my id] edit-new object_type return_url name] 
     if {$new_link ne ""} {
@@ -563,24 +629,6 @@ namespace eval ::xowiki {
   }
   Package instforward check_permissions {%my set policy} %proc
 
-  Package instproc get_name_and_lang_from_path {path vlang vlocal_name} {
-    my upvar $vlang lang $vlocal_name local_name 
-    if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
-    } elseif {[regexp {^(file|image|swf|download|tag)/(.*)$} $path _ lang local_name]} {
-    } else {
-      set key queryparm(lang)
-      if {[info exists $key]} {
-        set lang [set $key]
-      } else {
-        # we can't determine lang from name, or query parameter, so take default
-        set lang [my default_language]
-      }
-      set local_name $path
-    }
-  }
-
   Package instproc resolve_request {{-simple false} -path method_var} {
     my instvar folder_id
     #my log "--u [self args]"
@@ -588,45 +636,49 @@ namespace eval ::xowiki {
     set item_id 0
 
     if {$path ne ""} {
-      # todo: caching opportunity?
+      #
+      # Try first a direct lookup of whatever we got
+      #
       set item_id [::xo::db::CrClass lookup -name $path -parent_id $folder_id]
       if {$simple} {
         if {$item_id != 0} {
-          set r [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+          return [::xo::db::CrClass get_instance_from_db -item_id $item_id]
         }
-        return [expr {$item_id ? $item_id : ""}]
+        return ""
       }
+
       my log "--try $path ($folder_id) -> $item_id"
       if {$item_id == 0} {
-        my get_name_and_lang_from_path $path lang local_name
+        my get_lang_and_name -path $path lang local_name
         set name ${lang}:$local_name
-        set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
-        #my log "--try $name -> $item_id // ::xo::db::CrClass lookup -name $name -parent_id $folder_id"
-        if {$item_id == 0 && $lang eq "download" 
-            && [regexp {^([^/]+)/(.*)$} $local_name _ prefix base_name]} {
-	  set item_id [::xo::db::CrClass lookup -name ${prefix}:$base_name -parent_id $folder_id]
-	  if {$item_id == 0} {
-	    set item_id [::xo::db::CrClass lookup -name image:$base_name -parent_id $folder_id]
-	  }
-	  if {$item_id != 0} {
+
+        if {$lang eq "download/file" || $lang eq "file"} { 
+          # handle subitems, currently only for files
+          if {[regexp {^([^/]+)/(.*)$} $local_name _ parent local_name]} {
+            set parent_id [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
+          } else {
+            set parent_id $folder_id
+          }
+	  set item_id [::xo::db::CrClass lookup -name file:$local_name -parent_id $parent_id]
+
+	  if {$item_id != 0 && $lang eq "download/file"} {
 	    upvar $method_var method
 	    set method download
 	  }
-	}
-        if {$item_id == 0 && $lang eq "file"} {
-          set item_id [::xo::db::CrClass lookup -name swf:$local_name -parent_id $folder_id]
-          if {$item_id == 0} {
-            set item_id [::xo::db::CrClass lookup -name image:$local_name -parent_id $folder_id]
-          }
-          my log "--try image:$local_name -> $item_id"
         }
+
+        if {$item_id == 0} {
+          set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
+          #my msg "--try $name -> $item_id // ::xo::db::CrClass lookup -name $name -parent_id $folder_id"
+        }
+
         if {$item_id == 0 && $lang eq "tag"} {
 	  set tag $local_name
 	  set summary [::xo::cc query_parameter summary 0]
 	  set popular [::xo::cc query_parameter popular 0]
 	  set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	  set weblog_page [my get_parameter weblog_page]
-	  my get_name_and_lang_from_path $weblog_page lang local_name
+	  my get_lang_and_name -path $weblog_page lang local_name
 	  set name $lang:$local_name
 	  my set object $weblog_page
 	  ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
@@ -1035,7 +1087,21 @@ namespace eval ::xowiki {
     }
   }
 
+  #
+  # Perform per connection parameter caching.  Using the
+  # per-connection cache speeds later lookups up by a factor of 15.
+  # Repeated parameter lookups are quite likely
+  #
 
+  Class ParameterCache
+  ParameterCache instproc get_parameter {attribute {default ""}} {
+    set key [list [self proc] $attribute]
+    if {[::xo::cc cache_exists $key]} {
+      return [::xo::cc cache_get $key]
+    }
+    return [::xo::cc cache_set $key [next]]
+  }
+  Package instmixin add ParameterCache
 
 
   #

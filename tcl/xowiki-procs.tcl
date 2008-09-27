@@ -1405,7 +1405,7 @@ namespace eval ::xowiki {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
-    set page_link [$package_id pretty_link  -download true [my name]]
+    set page_link [$package_id pretty_link -download true -parent_id [my parent_id] [my name]]
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {
@@ -1417,7 +1417,7 @@ namespace eval ::xowiki {
                }]
 
     regsub {[.][0-9]+([^0-9])} [my set last_modified] {\1} last_modified
-    regexp {^([^:]+):(.*)$} $name _ link_type stripped_name
+    $package_id get_lang_and_name -name $name lang stripped_name
     set label $stripped_name
 
     $t add \

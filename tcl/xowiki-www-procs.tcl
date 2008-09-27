@@ -186,8 +186,7 @@ namespace eval ::xowiki {
       set create_in_req_locale_link ""
 
       if {[$package_id get_parameter use_connection_locale 0]} {
-        $package_id get_name_and_lang_from_path \
-            [$package_id set object] req_lang req_local_name
+        $package_id get_lang_and_name -path [$package_id set object] req_lang req_local_name
         set default_lang [$package_id default_language]
         if {$req_lang ne $default_lang} {
           set l [Link create new -destroy_on_cleanup \

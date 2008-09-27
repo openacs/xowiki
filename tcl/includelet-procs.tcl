@@ -763,7 +763,7 @@ namespace eval ::xowiki::includelet {
     
     db_foreach [my qn get_pages] \
         [::xo::db::sql select \
-             -vars "i.name, r.title, p.page_id, r.publish_date, \
+             -vars "i.name, r.title, p.page_id, r.publish_date, i.parent_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
              -from "cr_items i, cr_revisions r, xowiki_page p" \
              -where "i.parent_id = [$package_id folder_id] \
@@ -773,27 +773,22 @@ namespace eval ::xowiki::includelet {
              -orderby "publish_date desc" \
              -limit $max_entries ] {
 
+        set page_link [$package_id pretty_link -parent_id $parent_id $name]
         t1 add \
             -title $title \
-            -title.href [$package_id pretty_link $name] \
+            -title.href $page_link \
             -date $formatted_date
 
         if {$allow_edit} {
-          #set page_link [$package_id pretty_link $name]
-          #set edit_link [$package_id make_link $page_link edit return_url]
           set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-          $p destroy_on_cleanup
-          set page_link [$package_id pretty_link $name]
           set edit_link [$package_id make_link -link $page_link $p edit return_url]
-          my log "page_link=$page_link, edit=$edit_link"
+          #my log "page_link=$page_link, edit=$edit_link"
           [t1 last_child] set edit.href $edit_link
         }
         if {$allow_delete} {
           if {![info exists p]} {
             set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-            $p destroy_on_cleanup
           }
-          set page_link [$package_id pretty_link $name]
           set delete_link [$package_id make_link -link $page_link $p delete return_url]
           [t1 last_child] set delete.href $delete_link
         }
@@ -828,7 +823,7 @@ namespace eval ::xowiki::includelet {
 
     db_foreach [my qn get_pages] \
        [::xo::db::sql select \
-            -vars "r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
+            -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
             -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
             -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
 	    and r.revision_id = p.page_id and x.user_id = [::xo::cc user_id] \
@@ -838,7 +833,7 @@ namespace eval ::xowiki::includelet {
         {
           t1 add \
               -title $title \
-              -title.href [$package_id pretty_link $name] 
+              -title.href [$package_id pretty_link -parent_id $parent_id $name] 
         }
     return [t1 asHTML]
   }
@@ -881,17 +876,17 @@ namespace eval ::xowiki::includelet {
       set since_condition "and [::xo::db::sql since_interval_condition time $interval]"
       db_foreach [my qn get_pages] \
           [::xo::db::sql select \
-               -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name" \
+               -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
                -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production' \
             $since_condition" \
-               -groupby "x.page_id, r.title, i.name" \
+               -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "nr_different_users desc" \
                -limit $max_entries ] {
                  t1 add \
                      -title $title \
-                     -title.href [$package_id pretty_link $name] \
+                     -title.href [$package_id pretty_link -parent_id $parent_id $name] \
                      -users $nr_different_users
                }
     } else {
@@ -904,16 +899,16 @@ namespace eval ::xowiki::includelet {
           }
       db_foreach [my qn get_pages] \
           [::xo::db::sql select \
-               -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name"  \
+               -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
                -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
             and x.package_id = $package_id and i.publish_status <> 'production'" \
-               -groupby "x.page_id, r.title, i.name" \
+               -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "sum desc" \
                -limit $max_entries] {
                  t1 add \
                      -title $title \
-                     -title.href [$package_id pretty_link $name] \
+                     -title.href [$package_id pretty_link -parent_id $parent_id $name] \
                      -users $nr_different_users \
                      -count $sum
                }
@@ -1053,7 +1048,7 @@ namespace eval ::xowiki::includelet {
 
     db_foreach [my qn get_pages] \
        [::xo::db::sql select \
-            -vars "a.title, i.name" \
+            -vars "a.title, i.name, i.parent_id" \
             -from "xowiki_page p, cr_items i, acs_objects a "  \
             -where "(i.item_id not in (
 			select x.page_id from xowiki_last_visited x 
@@ -1069,7 +1064,7 @@ namespace eval ::xowiki::includelet {
         {
           t1 add \
               -title $title \
-              -title.href [$package_id pretty_link $name] 
+              -title.href [$package_id pretty_link -parent_id $parent_id $name] 
         }
     return [t1 asHTML]
   }
@@ -1118,7 +1113,7 @@ namespace eval ::xowiki::includelet {
     }
     set entries [list]
 
-    if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
+    if {![info exists page]} {set page [$package_id get_parameter weblog_page]}
     set base_url [$package_id pretty_link $page]
 
     set href [$package_id package_url]tag/
@@ -1398,11 +1393,11 @@ namespace eval ::xowiki::includelet {
 
     set item_id [$__including_page item_id] 
     set refs [list]
-    db_foreach [my qn get_references] "SELECT reference,ci.name,f.package_id \
+    db_foreach [my qn get_references] "SELECT reference,ci.name,f.package_id,ci.parent_id \
         from xowiki_references,cr_items ci,cr_folders f \
         where page=$item_id and ci.item_id = reference and ci.parent_id = f.folder_id" {
           ::xowiki::Package require $package_id
-          lappend refs "<a href='[$package_id pretty_link $name]'>$name</a>"
+          lappend refs "<a href='[$package_id pretty_link -parent_id $parent_id $name]'>$name</a>"
         }
     set references [join $refs ", "]
 
@@ -1940,7 +1935,6 @@ namespace eval ::xowiki::includelet {
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
       set edit_markup ""
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-      $p destroy_on_cleanup
       $p set unresolved_references 0
       
       switch [$p info class] {
@@ -2067,7 +2061,6 @@ namespace eval ::xowiki::includelet {
       $o instvar page_order title page_id name title 
       set level [expr {[regsub -all {[.]} $page_order . page_order] + 1}]
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-      $p destroy_on_cleanup
 
       $p set unresolved_references 0
       #$p set render_adp 0
@@ -2132,7 +2125,7 @@ namespace eval ::xowiki::includelet {
 	set link  [$package_id make_link $package_id edit-new object_type \
 		       return_url page_order source_item_id]
       } else {
-	set p_link [$package_id pretty_link [$page name]]
+	set p_link [$package_id pretty_link -parent_id [$page parent_id] [$page name]]
 	set link [$package_id make_link -link $p_link $page $method \
 		      return_url page_order source_item_id]
       }

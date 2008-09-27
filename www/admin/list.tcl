@@ -23,11 +23,13 @@ if {![info exists object_type]} {
   set page_title "List of all kind of [$supertype set pretty_plural]"
   set with_subtypes true
   set object_type $supertype
+  set with_children true
 } else {
   set per_type 1
   set object_types [list $object_type]
   set page_title "Index of [$object_type set pretty_plural]"
   set with_subtypes false
+  set with_children true
 }
 
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
@@ -69,9 +71,9 @@ TableWidget t1 -volatile \
       if {$::with_publish_status} {
 	ImageAnchorField publish_status -orderby publish_status.src -src "" \
 	    -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-            -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;"}
+            -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
       }
-      Field syndicated -label "RSS" -html {style "padding: 2px;"}
+      Field syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
       AnchorField page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
       AnchorField name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
       AnchorField title -label [_ xowiki.Page-title] -orderby title
@@ -89,8 +91,8 @@ t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 # -page_number 1
 
 # for content_length, we need cr_revision and cannot use the base table
-set attributes [list revision_id content_length creation_user title \
-    "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified" page_order] 
+set attributes [list revision_id content_length creation_user title page_order parent_id \
+                    "to_char(last_modified,'YYYY-MM-DD HH24:MI:SS') as last_modified" ]
 
 set folder_id [::$package_id folder_id]
 foreach i [db_list get_syndicated {
@@ -104,10 +106,12 @@ db_foreach instance_select \
          -with_subtypes $with_subtypes \
          -from_clause ", xowiki_page p" \
          -where_clause "p.page_id = bt.revision_id" \
+         -with_children $with_children \
          -select_attributes $attributes \
          -orderby ci.name \
         ] {
-          set page_link [::$package_id pretty_link $name]
+          set page_link [::$package_id pretty_link -parent_id $parent_id $name]
+          set name [::$package_id external_name -parent_id $parent_id $name]
 
           t1 add \
               -name $name \

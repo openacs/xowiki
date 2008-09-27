@@ -517,10 +517,7 @@ namespace eval ::xowiki::formfield {
     next
   }
   file instproc entry_name {value} {
-    set obj [my object]
-    set name [$obj build_name -nls_language [$obj form_parameter nls_language {}]]
-    regsub -all : $name _ object_name
-    return file:$object_name-[my name]
+    return [list name file:[my name] parent_id [[my object] item_id]]
   }
   file instproc process_user_input {} {
     my instvar value
@@ -534,7 +531,7 @@ namespace eval ::xowiki::formfield {
     my set __refresh_instance_attributes [list [my name] $value]
 
     set folder_id [[my object] set parent_id]
-    set entry_name [my entry_name $value]
+    array set entry_info [my entry_name $value]
 
     set content_type [my set content-type]
     if {$content_type eq "application/octetstream"} {
@@ -542,7 +539,7 @@ namespace eval ::xowiki::formfield {
     }
     #my msg "mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
 
-    if {[set id [::xo::db::CrClass lookup -name $entry_name -parent_id $folder_id]]} {
+    if {[set id [::xo::db::CrClass lookup -name $entry_info(name) -parent_id $entry_info(parent_id)]]} {
       # file entry exists already, create a new revision
       set file_object [::xo::db::CrClass get_instance_from_db -item_id $id]
       $file_object set import_file [my set tmpfile]
@@ -553,8 +550,8 @@ namespace eval ::xowiki::formfield {
       # create a new file 
       set file_object [::xowiki::File new -destroy_on_cleanup \
                            -title $value \
-                           -name $entry_name \
-                           -parent_id $folder_id \
+                           -name $entry_info(name) \
+                           -parent_id $entry_info(parent_id) \
                            -mime_type $content_type \
                            -package_id [[my object] package_id] \
                            -creation_user [::xo::cc user_id] ]
@@ -570,10 +567,11 @@ namespace eval ::xowiki::formfield {
       } else {
         set link_label $v
       }
+      array set entry_info [my entry_name $v]
       set l [::xowiki::Link new -volatile \
                  -page [my object] \
                  -extra_query_parameter [list [list filename $v]] \
-                 -type file -name [my entry_name $v] -label $link_label]
+                 -type file -name $entry_info(name) -label $link_label -parent_id $entry_info(parent_id)]
       return [$l render]
     }
   }
