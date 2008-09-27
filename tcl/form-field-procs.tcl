@@ -459,6 +459,25 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  FormField instproc pretty_image {-parent_id entry_name} {
+    if {$entry_name eq ""} return
+    my instvar object
+    set l [::xowiki::Link new -destroy_on_cleanup \
+               -name $entry_name -page $object -type image -label [my label] \
+               -parent_id $parent_id]
+    foreach option {
+        href cssclass
+        float width height 
+        padding padding-right padding-left padding-top padding-bottom
+        margin margin-left margin-right margin-top margin-bottom
+        border border-width position top botton left right
+    } {
+      if {[my exists $option]} {$l set $option [my set $option]}
+    }
+    set html [$l render]
+    return $html
+  }
+
   ###########################################################
   #
   # helper method for extending slots: 
@@ -523,7 +542,9 @@ namespace eval ::xowiki::formfield {
     my instvar value
 
     if {[my value] eq ""} {
-      # nothing to do
+      # nothing to do, keep the old value
+      set value [[my object] form_parameter __old_value_[my name] ""]
+      my set __refresh_instance_attributes [list [my name] $value]
       return
     }
     regsub -all {\\+} $value {/} value  ;# fix IE upload path
@@ -560,20 +581,55 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  file instproc label_or_value {v} {
+    if {[my exists link_label]} {
+      return [my localize [my link_label]]
+    }
+    return $v
+  }
+
   file instproc pretty_value {v} {
     if {$v ne ""} {
-      if {[my exists link_label]} {
-        set link_label [my localize [my link_label]]
-      } else {
-        set link_label $v
-      }
       array set entry_info [my entry_name $v]
       set l [::xowiki::Link new -volatile \
                  -page [my object] \
                  -extra_query_parameter [list [list filename $v]] \
-                 -type file -name $entry_info(name) -label $link_label -parent_id $entry_info(parent_id)]
+                 -label [my label_or_value $v] \
+                 -type file -name $entry_info(name) -parent_id $entry_info(parent_id)]
       return [$l render]
     }
+  }
+
+  file instproc render_input {} {
+    my instvar value
+    set package_id [[my object] package_id]
+    array set entry_info [my entry_name $value]
+    set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
+    if {![my istype image]} {
+      set href [export_vars -base $href [list [list filename $value]]]
+    }
+    next
+    ::html::t " "
+    ::html::input -type hidden -name __old_value_[my name] -value $value
+    ::html::a -href $href {::html::t [my label_or_value $value] }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::image
+  #
+  ###########################################################
+
+  Class image -superclass file -parameter {
+    href cssclass
+    {float left} width height 
+    padding padding-right padding-left padding-top padding-bottom
+    margin margin-left margin-right margin-top margin-bottom
+    border border-width position top botton left right
+  }
+  image instproc pretty_value {v} {
+    array set entry_info [my entry_name $v]
+    return [my pretty_image -parent_id $entry_info(parent_id) $entry_info(name)]
   }
 
   ###########################################################
@@ -1497,24 +1553,7 @@ namespace eval ::xowiki::formfield {
   }
   image_url instproc pretty_value {v} {
     set entry_name [my entry_name $v]
-    if {$entry_name eq ""} {
-      return ""
-    }
-    my instvar object
-    set l [::xowiki::Link new -destroy_on_cleanup \
-               -name $entry_name -page $object -type image -label [my label] \
-               -folder_id [$object parent_id] -package_id [$object package_id]]
-    foreach option {
-        href cssclass
-        float width height 
-        padding padding-right padding-left padding-top padding-bottom
-        margin margin-left margin-right margin-top margin-bottom
-        border border-width position top botton left right
-    } {
-      if {[my exists $option]} {$l set $option [my set $option]}
-    }
-    set html [$l render]
-    return $html
+    return [my pretty_image -parent_id [$object parent_id] $entry_name]
   }
 
   ###########################################################
