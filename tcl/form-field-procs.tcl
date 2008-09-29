@@ -737,7 +737,7 @@ namespace eval ::xowiki::formfield {
   numeric instproc convert_to_internal {} {
     if {[my value] ne ""} {
       set value [lc_parse_number [my value] [my locale] [my set is_integer]]
-      my set __refresh_instance_attributes [list [my name] $value]
+      my set __refresh_instance_attributes [list [my name] [expr {$value}]]
       return
     }
   }
