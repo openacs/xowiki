@@ -447,8 +447,12 @@ namespace eval ::xowiki::formfield {
     if {[my exists $var] && [my set $var] eq $value} {return 1}
     return 0
   }
-  FormField instproc process_user_input {} {
+  FormField instproc convert_to_internal {} {
     # to be overloaded
+  }
+  FormField instproc convert_to_external {value} {
+    # to be overloaded
+    return $value
   }
 
   FormField instproc field_value {v} {
@@ -538,7 +542,7 @@ namespace eval ::xowiki::formfield {
   file instproc entry_name {value} {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
-  file instproc process_user_input {} {
+  file instproc convert_to_internal {} {
     my instvar value
 
     if {[my value] eq ""} {
@@ -717,17 +721,33 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class numeric -superclass text \
-      -extend_slot validator numeric
+  Class numeric -superclass text -parameter {
+    {format %.2f}
+  } -extend_slot validator numeric 
   numeric instproc initialize {} {
     next
     my set widget_type numeric
+    # check, if we we have an integer format
+    my set is_integer [regexp {%[0.9.]*d} [my format]]
+  }
+  numeric instproc convert_to_external value {
+    if {$value ne ""} {return [lc_numeric $value [my format] [my locale]]}
+    return $value
+  }
+  numeric instproc convert_to_internal {} {
+    if {[my value] ne ""} {
+      set value [lc_parse_number [my value] [my locale] [my set is_integer]]
+      my set __refresh_instance_attributes [list [my name] $value]
+      return
+    }
   }
   numeric instproc check=numeric {value} {
-    #return [string is double $value]
-    #my msg "locale=[my locale] catch {lc_parse_number $value [my locale]}=[catch {lc_parse_number $value [my locale]}]"
-    return [expr {[catch {lc_parse_number $value [my locale]}] == 0}]
+    return [expr {[catch {lc_parse_number $value [my locale] [my set is_integer]}] == 0}]
   }
+  numeric instproc pretty_value value {
+    return [my convert_to_external $value]
+  }
+
 
   ###########################################################
   #
@@ -1693,9 +1713,9 @@ namespace eval ::xowiki::formfield {
     return 0
   }
 
-  CompoundField instproc process_user_input {} {
+  CompoundField instproc convert_to_internal {} {
     foreach c [my components] { 
-      $c process_user_input
+      $c convert_to_internal
     }
   }
 

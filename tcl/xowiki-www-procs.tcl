@@ -671,14 +671,14 @@ namespace eval ::xowiki {
       #my msg "set form_value to form-field $att __ia($att)"
       if {[info exists __ia($att)]} {
         #my msg "my set_form_value from ia $att $__ia($att)"
-        my set_form_value $att $__ia($att)
+        my set_form_value $att [$f convert_to_external $__ia($att)]
       } else {
         # do we have a value in the form? If yes, keep it.
         set form_value [my get_form_value $att]
         #my msg "no instance attribute, set form_value $att '[$f value]' form_value=$form_value"
         if {$att eq ""} {
           # we have no instance attributes, use the default value from the form field
-          my set_form_value $att [$f value]
+          my set_form_value $att [$f convert_to_external [$f value]]
         }
       }
     }
@@ -773,20 +773,6 @@ namespace eval ::xowiki {
     }
     
     #
-    # Postprocess based on form fields based on form-fields methods.
-    # Postprocessing might force to refresh some values in __ia()
-    #
-    foreach f $form_fields {
-      $f process_user_input
-      if {[$f exists __refresh_instance_attributes]} {
-        #my msg "refresh [$f set __refresh_instance_attributes]"
-        foreach {att val} [$f set __refresh_instance_attributes] {
-          set __ia($att) $val
-        }
-      }
-    }
-    
-    #
     # The first round was a processing based on the transmitted input
     # fields of the forms. Now we use the formfields to complete the
     # data and to validate it.
@@ -839,6 +825,23 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
+    
+    if {$validation_errors == 0} {
+      #
+      # Postprocess based on form fields based on form-fields methods.
+      # Postprocessing might force to refresh some values in __ia()
+      #
+      foreach f $form_fields {
+        $f convert_to_internal
+        if {[$f exists __refresh_instance_attributes]} {
+          #my msg "refresh [$f set __refresh_instance_attributes]"
+          foreach {att val} [$f set __refresh_instance_attributes] {
+            set __ia($att) $val
+          }
+        }
+      }
+    }
+
     #my msg "--set instance attributes to [array get __ia]"
     my instance_attributes [array get __ia]
     my array set __ia [my instance_attributes]
@@ -1032,12 +1035,12 @@ namespace eval ::xowiki {
         __* {}
         _* {
           set varname [string range $att 1 end]
-          $f value [my set $varname]
+          $f value [$f convert_to_external [my set $varname]]
         }
         default {
           if {[info exists __ia($att)]} {
             #my msg "setting $f ([$f info class]) value $__ia($att)"
-            $f value $__ia($att)
+            $f value [$f convert_to_external $__ia($att)]
           }
         }
       }
@@ -1214,13 +1217,13 @@ namespace eval ::xowiki {
             switch -- $var {
               detail_link {
                 set f [my lookup_form_field -name $var $form_fields]
-                $f value $value
+                $f value [$f convert_to_external $value]
               }
               title - text - description {
                 set f [my lookup_form_field -name _$var $form_fields]
               }
             }
-            $f value $value
+            $f value [$f convert_to_external $value]
           }
         }
       }
