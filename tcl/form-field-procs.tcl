@@ -81,7 +81,7 @@ namespace eval ::xowiki::formfield {
       return [_ acs-templating.Element_is_required]
     }
     # 
-    #my msg "++ [my name] [my info class] validator=[my validator] ([llength [my validator]])"
+    #my msg "++ [my name] [my info class] validator=[my validator] ([llength [my validator]]) value=$value"
     foreach validator [my validator] {
       set errorMsg ""
       #
@@ -103,8 +103,8 @@ namespace eval ::xowiki::formfield {
 	set proc_info [$obj procsearch $validator_method]
         #my msg "++ [my name]: page-level validator exists ? [expr {$proc_info ne {}}]"
         if {$proc_info ne ""} {
-          #my msg "++ call page-level validator $validator_method '$value'" 
           set success [$obj $validator_method $value]
+          #my msg "++ call page-level validator $validator_method '$value' returns $success" 
         }
       }
       if {$success == 0} {
@@ -724,7 +724,9 @@ namespace eval ::xowiki::formfield {
     my set widget_type numeric
   }
   numeric instproc check=numeric {value} {
-    return [string is double $value]
+    #return [string is double $value]
+    #my msg "locale=[my locale] catch {lc_parse_number $value [my locale]}=[catch {lc_parse_number $value [my locale]}]"
+    return [expr {[catch {lc_parse_number $value [my locale]}] == 0}]
   }
 
   ###########################################################

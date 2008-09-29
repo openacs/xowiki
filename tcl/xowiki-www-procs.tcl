@@ -1115,7 +1115,7 @@ namespace eval ::xowiki {
       }
     }
 
-    # include _text only, if explicitely needed (in form needed(_text)]"
+    # include _text only, if explicitly needed (in form needed(_text)]"
 
     if {![my exists __field_needed(_text)]} {
       #my msg "setting text hidden"
@@ -1589,6 +1589,7 @@ namespace eval ::xowiki {
     set f [FormPage new -destroy_on_cleanup \
                -package_id $package_id \
                -parent_id [my parent_id] \
+               -nls_language [my nls_language] \
                -publish_status "production" \
                -instance_attributes $instance_attributes \
                -page_template [my item_id]]

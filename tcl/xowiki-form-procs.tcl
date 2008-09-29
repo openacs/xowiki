@@ -222,6 +222,7 @@ namespace eval ::xowiki {
 	return 0
       }
     } else {
+      $data name $name
       set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
     }
     set name [::$package_id normalize_name $name]
