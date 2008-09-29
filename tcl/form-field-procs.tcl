@@ -1575,7 +1575,7 @@ namespace eval ::xowiki::formfield {
   }
   image_url instproc pretty_value {v} {
     set entry_name [my entry_name $v]
-    return [my pretty_image -parent_id [$object parent_id] $entry_name]
+    return [my pretty_image -parent_id [[my object] parent_id] $entry_name]
   }
 
   ###########################################################
