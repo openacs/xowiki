@@ -731,7 +731,14 @@ namespace eval ::xowiki::formfield {
     my set is_integer [regexp {%[0.9.]*d} [my format]]
   }
   numeric instproc convert_to_external value {
-    if {$value ne ""} {return [lc_numeric $value [my format] [my locale]]}
+    if {$value ne ""} {
+      if { [catch "lc_numeric $value [my format] [my locale]" result] } {
+        util_user_message -message "[my label]: $result"
+        scan $value [my format] converted_value
+        return $converted_value
+      }
+      return $result
+    }
     return $value
   }
   numeric instproc convert_to_internal {} {
