@@ -316,10 +316,11 @@ namespace eval ::xowiki {
 
     # Use always the name of the frist xowiki instance (required for sub-packages,
     # which might not have the script dir)
-    set first_instance_id [::xo::parameter get_package_id_from_package_key -package_key xowiki]
+    set first_instance_id [::xowiki::Package first_instance -party_id [::xo::cc user_id] -privilege read]
     if {$first_instance_id ne ""} {
       ::xowiki::Package require $first_instance_id
       set folder_spec [list script_dir [$first_instance_id package_url]]
+      #my msg using-[$first_instance_id package_url]-for-[::xo::cc user_id] 
     }
     
     if {$fs_folder_id ne ""} {lappend folder_spec folder_id $fs_folder_id}
