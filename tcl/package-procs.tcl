@@ -288,6 +288,7 @@ namespace eval ::xowiki {
     set package_id [my id]
     if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
       array set "" [site_node::get_from_url -url $url]
+      if {$(package_id) eq ""} {return ""}
       set package_id $(package_id)
       ::xowiki::Package require $package_id
     }
