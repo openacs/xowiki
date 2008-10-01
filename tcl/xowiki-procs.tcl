@@ -701,7 +701,6 @@ namespace eval ::xowiki {
       }
       if {$nls_language eq ""} {set nls_language [my nls_language]}
       set name [string range $nls_language 0 1]:$stripped_name
-      my msg name-now=$name
     }
     return $name
   }
