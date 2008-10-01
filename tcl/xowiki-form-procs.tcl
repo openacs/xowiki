@@ -98,10 +98,14 @@ namespace eval ::xowiki {
 
         if {[$f istype ::xowiki::formfield::richtext] &&
             [my folderspec] ne ""} {
-          # insert the folder id into the spec for the 
-          # oacsfs plugin to access the correct filestore instance
-          foreach {key value} [my folderspec] break
-          $f $key $value
+          # Insert the folder_id and the script_dir into the spec for
+          # the oacsfs plugin to access the correct filestore instance
+          # and to find the script directory
+          foreach {key value} [my folderspec] {
+            $f $key $value
+          }
+          # We have to reinitialize for exporting these values asWidgetSpec
+          $f initialize
         }
 
         set __spec ${__field}:[$f asWidgetSpec]

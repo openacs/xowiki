@@ -313,12 +313,24 @@ namespace eval ::xowiki {
     lappend parse_level [info level]    
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
     #my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
+
+    # Use always the name of the frist xowiki instance (required for sub-packages,
+    # which might not have the script dir)
+    set first_instance_id [::xo::parameter get_package_id_from_package_key -package_key xowiki]
+    if {$first_instance_id ne ""} {
+      ::xowiki::Package require $first_instance_id
+      set folder_spec [list script_dir [$first_instance_id package_url]]
+    }
+    
+    if {$fs_folder_id ne ""} {lappend folder_spec folder_id $fs_folder_id}
+    
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
-        -folderspec [expr {$fs_folder_id ne "" ?"folder_id $fs_folder_id":""}] \
+        -folderspec $folder_spec \
         -submit_link $submit_link \
         -autoname $autoname
+
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {

@@ -866,6 +866,7 @@ namespace eval ::xowiki::formfield {
       -parameter {
         plugins 
         folder_id
+        script_dir
         width
         height
         {wiki false}
@@ -1020,7 +1021,7 @@ namespace eval ::xowiki::formfield {
                -default [::xo::parameter get_from_package_key \
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
-    my set options [my get_attributes editor plugins width height folder_id javascript]
+    my set options [my get_attributes editor plugins width height folder_id script_dir javascript]
     # for the time being, we can't set the defaults via parameter, 
     # but only manually, since the editor is used as a mixin, the parameter
     # would have precedence over the defaults of subclasses
