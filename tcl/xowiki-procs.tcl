@@ -2103,9 +2103,12 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_value {before varname} {
-
+    #
+    # Read a property (instance attribute) and return
+    # its pretty value in variable substitutions.
+    #
     if {![my exists_property $varname]} {
-      # we check for current_user here. In case the property does
+      # We check for current_user here. In case the property does
       # not exist, we provide a value from the currently connected
       # user.
       if {$varname eq "current_user"} {
