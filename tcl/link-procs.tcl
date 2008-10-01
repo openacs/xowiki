@@ -72,7 +72,7 @@ namespace eval ::xowiki {
   }
   Link instproc resolve {} {
     #my msg "--lookup of [my name] -page [my page]"
-    return [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
+    return [::xo::db::CrClass lookup -name [my name] -parent_id [my parent_id]]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
