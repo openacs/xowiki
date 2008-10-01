@@ -1089,17 +1089,14 @@ namespace eval ::xowiki {
       if {[info exists $__v]} continue
       [my info class] instvar $__v
     }
-    set __ignorelist [list __v __ignorelist __varlist __template_variables__ \
+    set __ignorelist [list __v __vars __l __ignorelist __varlist \
+                          __last_includelet __unresolved_references \
                           text item_id content lang_links]
-    set __varlist [list]
-    set __template_variables__ "<ul>\n"
-    foreach __v [lsort [info vars]] {
-      if {[array exists $__v]} continue ;# don't report  arrays
-      if {[lsearch -exact $__ignorelist $__v]>-1} continue
-      lappend __varlist $__v
-      append __template_variables__ "<li><b>$__v:</b> '[set $__v]'\n"
-    }
-    append __template_variables__ "</ul>\n"
+
+    # set variable current_user to ease personalization
+    set current_user [::xo::cc user_id]
+
+    set __vars [info vars]
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
     #my log "--adp before adp_eval '[template::adp_level]'"
     #
@@ -1107,20 +1104,30 @@ namespace eval ::xowiki {
     # that the buffer overflows. In Aolserver 4.5, we can increase the
     # buffer size. In 4.0.10, we are out of luck.
     #
-    set l [string length $content]
-    if {[catch {set bufsize [ns_adp_ctl bufsize]}]} {
-      set bufsize 0
+    set __l [string length $content]
+    if {[catch {set __bufsize [ns_adp_ctl bufsize]}]} {
+      set __bufsize 0
     }
-    if {$bufsize > 0 && $l > $bufsize} {
+    if {$__bufsize > 0 && $__l > $__bufsize} {
       # we have aolserver 4.5, we can increase the bufsize
-      ns_adp_ctl bufsize [expr {$l + 1024}]
+      ns_adp_ctl bufsize [expr {$__l + 1024}]
     }
     set template_code [template::adp_compile -string $content]
     set my_parse_level [template::adp_level]
-    if {[catch {set template_value [template::adp_eval template_code]} errMsg]} {
+    if {[catch {set template_value [template::adp_eval template_code]} __errMsg]} {
+      # compute list of possible variables
+      set __varlist [list]
+      set __template_variables__ "<ul>\n"
+      foreach __v [lsort $__vars] {
+        if {[array exists $__v]} continue ;# don't report  arrays
+        if {[lsearch -exact $__ignorelist $__v]>-1} continue
+        lappend __varlist $__v
+        append __template_variables__ "<li><b>$__v:</b> '[set $__v]'\n"
+      }
+      append __template_variables__ "</ul>\n"
       set ::template::parse_level $my_parse_level 
       #my log "--adp after adp_eval '[template::adp_level]' mpl=$my_parse_level"
-      return "<div class='errorMsg'>Error in Page $name: $errMsg</div>$content<p>Possible values are$__template_variables__"
+      return "<div class='errorMsg'>Error in Page $name: $__errMsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }
@@ -1145,8 +1152,11 @@ namespace eval ::xowiki {
 
   Page instproc get_content {} {
     #my log "--"
-    return [my substitute_markup [my set text]]
+    set content [my set text]
+    if {[my render_adp]} {set content [my adp_subst $content]}
+    return [my substitute_markup $content]
   }
+
   Page instproc set_content {text} {
     my text [list [string map [list >> "\n&gt;&gt;" << "&lt;&lt;\n"] \
                        [string trim $text " \n"]] text/html]
@@ -1214,7 +1224,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc render {-update_references:switch} {
-    my instvar item_id revision_id references lang render_adp unresolved_references parent_id
+    my instvar item_id revision_id references lang unresolved_references parent_id
     my array set lang_links {found "" undefined ""}
     #my log "-- my class=[my info class]"
     set name [my set name]
@@ -1229,15 +1239,14 @@ namespace eval ::xowiki {
       my update_references $item_id [lsort -unique $references]
     }
     unset references
-    set html [expr {$render_adp ? [my adp_subst $content] : $content}]
     if {[::xo::cc get_parameter content-type text/html] eq "text/html"} {
-      append html "<DIV class='content-chunk-footer'>"
+      append content "<DIV class='content-chunk-footer'>"
       if {![my exists __no_footer] && ![::xo::cc get_parameter __no_footer 0]} {
-        append html [my footer]
+        append content [my footer]
       }
-      append html "</DIV>\n"
+      append content "</DIV>\n"
     }
-    return $html
+    return $content
   }
 
   Page instproc record_last_visited {-user_id} {
@@ -1339,10 +1348,10 @@ namespace eval ::xowiki {
   PlainPage set markupmap(escape)   [list "\\\[\["  \03\01  "\\\{\{"  \03\02   {\>>}  \03\03]
   PlainPage set markupmap(unescape) [list  \03\01 "\[\["     \03\02 "\{\{"      \03\03 {>>}]
 
-
   PlainPage instproc get_content {} {
-    #my msg "-- my class=[my info class]"
-    return [my substitute_markup [my set text]]
+    set content [my set text]
+    if {[my render_adp]} {set content [my adp_subst $content]}
+    return [my substitute_markup $content]
   }
   PlainPage instproc set_content {text} {
     my text $text
@@ -1690,10 +1699,11 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::Object
   #
-
   Object instproc get_content {} {
     if {[[self]::payload info methods content] ne ""} {
-      return  [my substitute_markup [[self]::payload content]]
+      set content [[self]::payload content]
+      if {[my render_adp]} {set content [my adp_subst $content]}
+      return  [my substitute_markup $content]
     } else {
       return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
     }
@@ -1916,10 +1926,9 @@ namespace eval ::xowiki {
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
                  ]
-    my log $sql
+    #my log $sql
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class ::xowiki::FormPage]
-
     if {$h_where ne "" && !$use_hstore} {
       set init_vars $wc(vars)
       foreach p [$items children] {
@@ -2095,6 +2104,9 @@ namespace eval ::xowiki {
 
   FormPage instproc get_value {before varname} {
      set value [my property $varname]
+
+    # todo: do we have to check for current_user here?
+    #set current_user [::xo::cc user_id]
 
     # todo: might be more efficient to check, if it exists already
     set f [my create_raw_form_field -name $varname \
