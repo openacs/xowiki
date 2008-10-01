@@ -1961,13 +1961,6 @@ namespace eval ::xowiki {
     return $default
   }
 
-  FormPage instproc set_publish_status {value} {
-    if {[lsearch -exact [list production ready] $value] == -1} {
-      error "invalid value '$value'; use 'production' or 'ready'"
-    }
-    my set publish_status $value
-  }
-
   FormPage instproc set_property {{-new 0} name value} {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
@@ -1994,6 +1987,13 @@ namespace eval ::xowiki {
       set page [my resolve_included_page_name $source]
     }
     return [$page property $name $default]
+  }
+
+  FormPage instproc set_publish_status {value} {
+    if {[lsearch -exact [list production ready] $value] == -1} {
+      error "invalid value '$value'; use 'production' or 'ready'"
+    }
+    my set publish_status $value
   }
 
   FormPage instproc isform {} {
@@ -2103,20 +2103,28 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_value {before varname} {
-     set value [my property $varname]
 
-    # todo: do we have to check for current_user here?
-    #set current_user [::xo::cc set untrusted_user_id]
+    if {![my exists_property $varname]} {
+      # we check for current_user here. In case the property does
+      # not exist, we provide a value from the currently connected
+      # user.
+      if {$varname eq "current_user"} {
+        set value [::xo::cc set untrusted_user_id]
+      } else {
+        set value ""
+      }
+    } else {
+      set value [my property $varname]
 
-    # todo: might be more efficient to check, if it exists already
-    set f [my create_raw_form_field -name $varname \
-               -slot [my find_slot [string trimleft $varname _]] \
-               -configuration [list -value $value]]
-
-    if {[$f hide_value]} {
-      set value ""
-    } elseif {![$f exists show_raw_value]} {
-      set value [$f pretty_value $value]
+      # todo: might be more efficient to check, if it exists already
+      set f [my create_raw_form_field -name $varname \
+                 -slot [my find_slot [string trimleft $varname _]] \
+                 -configuration [list -value $value]]
+      if {[$f hide_value]} {
+        set value ""
+      } elseif {![$f exists show_raw_value]} {
+        set value [$f pretty_value $value]
+      }
     }
     return $before$value
   }
