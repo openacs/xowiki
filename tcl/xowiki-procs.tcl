@@ -1094,7 +1094,7 @@ namespace eval ::xowiki {
                           text item_id content lang_links]
 
     # set variable current_user to ease personalization
-    set current_user [::xo::cc user_id]
+    set current_user [::xo::cc set untrusted_user_id]
 
     set __vars [info vars]
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
@@ -2106,7 +2106,7 @@ namespace eval ::xowiki {
      set value [my property $varname]
 
     # todo: do we have to check for current_user here?
-    #set current_user [::xo::cc user_id]
+    #set current_user [::xo::cc set untrusted_user_id]
 
     # todo: might be more efficient to check, if it exists already
     set f [my create_raw_form_field -name $varname \
