@@ -150,8 +150,14 @@ namespace eval ::xowiki {
     @param name name of the wiki page
   } {
     my get_lang_and_name -name $name lang stripped_name
-    set folder [my folder_path -parent_id $parent_id]
-    return ${lang}:$folder$stripped_name
+    if {[regexp {^::[0-9]+$} $name]} {
+      # special rule for folder objects. Will be most probably
+      # removed...
+      return $name
+    } else {
+      set folder [my folder_path -parent_id $parent_id]
+      return ${lang}:$folder$stripped_name
+    }
   }
 
   Package ad_instproc pretty_link {
@@ -179,6 +185,7 @@ namespace eval ::xowiki {
     
     if {$lang eq ""} {
       my get_lang_and_name -name $name lang name
+      #my msg "lang=$lang, name=$name"
     }
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
@@ -705,7 +712,7 @@ namespace eval ::xowiki {
 
   Package instproc require_folder_object { } {
     my instvar id folder_id
-    #my log "--f [my isobject ::$folder_id] folder_id=$folder_id"
+    #my msg "--f [my isobject ::$folder_id] folder_id=$folder_id"
 
     if {$folder_id == 0} {
       # TODO: we should make a parameter allowed_page_types (see content_types), 
@@ -751,7 +758,7 @@ namespace eval ::xowiki {
           }
         }
       }
-      #my log "--f new folder object = ::$folder_id"
+      #my msg "--f new folder object = ::$folder_id"
       #::$folder_id proc destroy {} {my log "--f "; next}
       ::$folder_id set package_id $id
       ::$folder_id destroy_on_cleanup

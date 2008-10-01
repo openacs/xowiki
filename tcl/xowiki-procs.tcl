@@ -687,6 +687,7 @@ namespace eval ::xowiki {
     set name [my name]
     set stripped_name $name
     regexp {^..:(.*)$} $name _ stripped_name
+
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
       if {[my istype ::xowiki::PageInstance]} {
@@ -697,9 +698,10 @@ namespace eval ::xowiki {
         if {$anon_instances} {
           return $stripped_name
         }
-        if {$nls_language eq ""} {set nls_language [my nls_language]}
-        set name [string range $nls_language 0 1]:$stripped_name
       }
+      if {$nls_language eq ""} {set nls_language [my nls_language]}
+      set name [string range $nls_language 0 1]:$stripped_name
+      my msg name-now=$name
     }
     return $name
   }
@@ -1027,15 +1029,19 @@ namespace eval ::xowiki {
       }
     }
 
+    set anchor ""
+    regexp {^([^#]+)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
+
     #my msg name=$name,stripped_name=$stripped_name,link_type=$link_type,lang=$lang
     set normalized_name [::$package_id normalize_name $stripped_name]
+
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
     if {$label eq $arg} {set label $stripped_name}
 
     Link create [self]::link \
         -page [self] \
-        -type $link_type -name $name -lang $lang \
+        -type $link_type -name $name -lang $lang -anchor $anchor \
         -stripped_name $normalized_name -label $label \
         -folder_id $parent_id -package_id $package_id
     

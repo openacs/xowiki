@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target extra_query_parameter
+    cssclass href label title target extra_query_parameter anchor
   }
 
   BaseLink instproc mk_css_class {-additional {-default ""}} {
@@ -72,9 +72,6 @@ namespace eval ::xowiki {
   }
   Link instproc resolve {} {
     #my msg "--lookup of [my name] -page [my page]"
-    if {![regexp {(.*?)(\#|%23)+(.*)$} [my name] full_name name anchor_tag anchor]} {
-      set name [my name]
-    }
     return [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
   }
   Link instproc render_found {href label} {
@@ -96,12 +93,7 @@ namespace eval ::xowiki {
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-	if {![regexp {(.*?)(\#|%23)+(.*)$} [my stripped_name] full_name name anchor_tag anchor]} {
-	    set name [my stripped_name]
-	    set anchor ""
-	}
-	set href [::$package_id pretty_link -lang [my lang] -anchor $anchor $name]
-
+      set href [::$package_id pretty_link -lang [my lang] -anchor [my anchor] [my name]]
       my render_found $href [my label]
     } else {
       $page incr unresolved_references
