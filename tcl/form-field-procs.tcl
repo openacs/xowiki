@@ -52,6 +52,7 @@ namespace eval ::xowiki::formfield {
     object
     slot
     answer
+    correct_when
     feedback_answer_correct
     feedback_answer_incorrect
   }
@@ -455,6 +456,61 @@ namespace eval ::xowiki::formfield {
     return $value
   }
 
+  FormField instproc answer_check=eq {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    return [expr {$value eq $arg1}]
+  }
+  FormField instproc answer_check=gt {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    return [expr {$value > $arg1}]
+  }
+  FormField instproc answer_check=ge {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    return [expr {$value >= $arg1}]
+  }
+  FormField instproc answer_check=lt {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    return [expr {$value < $arg1}]
+  }
+  FormField instproc answer_check=le {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    return [expr {$value <= $arg1}]
+  }
+  FormField instproc answer_check=btwn {} {
+    my instvar value
+    set arg1 [lindex [my correct_when] 1]
+    set arg2 [lindex [my correct_when] 2]
+    return [expr {$value >= $arg1 && $value <= $arg2}]
+  }
+  FormField instproc answer_check=in {} {
+    my instvar value
+    set values [lrange [my correct_when] 1 end]
+    return [expr {[lsearch -exact $values $value] > -1}]
+  }
+
+  FormField instproc answer_is_correct {} {
+    if {[my exists correct_when]} {
+      set op [lindex [my correct_when] 0]
+      if {[my procsearch answer_check=$op] ne ""} {
+        set r [my answer_check=$op]
+        if {$r == 0} {return -1} {return 1}
+      } else {
+        error "invalid operator '$op'"
+      }
+    } elseif {![my exists answer]} {
+      return 0
+    } elseif {[my value] ne [my answer]} {
+      return -1
+    } else {
+      return 1
+    }
+  }
+
   FormField instproc field_value {v} {
     if {[my exists show_raw_value]} {
       return $v
@@ -754,7 +810,10 @@ namespace eval ::xowiki::formfield {
   numeric instproc pretty_value value {
     return [my convert_to_external $value]
   }
-
+  numeric instproc answer_check=eq {} {
+    # use numeric equality
+    return [expr {[my value] == [lindex [my correct_when] 1]}]
+  }
 
   ###########################################################
   #
