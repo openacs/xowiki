@@ -492,6 +492,9 @@ namespace eval ::xowiki::formfield {
     set values [lrange [my correct_when] 1 end]
     return [expr {[lsearch -exact $values $value] > -1}]
   }
+  FormField instproc answer_check=match {} {
+    return [string match [lindex [my correct_when] 1] [my value]]
+  }
 
   FormField instproc answer_is_correct {} {
     if {[my exists correct_when]} {
