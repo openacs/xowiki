@@ -11,6 +11,24 @@ ad_page_contract {
   {file_types "*"}
 } 
 
+set HTML_NothingSelected [_ acs-templating.HTMLArea_SelectImageNothingSelected]
+switch $selector_type {
+  "image" {
+    set HTML_Title  [_ acs-templating.HTMLArea_SelectImageTitle]
+    set HTML_Legend [_ acs-templating.HTMLArea_SelectImage]
+    set HTML_Preview [_ acs-templating.HTMLArea_SelectImagePreview]
+    set HTML_UploadTitle [_ acs-templating.HTMLArea_SelectImageUploadTitle]
+    set HTML_Context "COMMUNITY NAME"
+  }
+  "file" {
+    set HTML_Title  [_ acs-templating.HTMLArea_SelectFileTitle]
+    set HTML_Legend [_ acs-templating.HTMLArea_SelectFile]
+    set HTML_Preview [_ acs-templating.HTMLArea_SelectImagePreview]
+    set HTML_UploadTitle [_ acs-templating.HTMLArea_SelectFileUploadTitle]
+    set HTML_Context "COMMUNITY NAME"
+  }
+}
+
 if {![info exists fs_package_id]} {
   # we have not filestore package_id. This must be the first call.
   if {[info exists folder_id]} {
@@ -37,21 +55,41 @@ if {![info exists fs_package_id]} {
         # probably not what user wants; could return error instead
         set id [apm_version_id_from_package_key $key]
         set mount_url [site_node::get_children -all -package_key $key -node_id $id]
-        array set site_node [site_node::get -url $mount_url]
-        set fs_package_id $site_node(package_id)
+        if {$mount_url ne ""} {
+          array set site_node [site_node::get -url $mount_url]
+          set fs_package_id $site_node(package_id)
+        }
     }
   }
 }
 
+set write_p 0
+set error_msg ""
+set folder_name "*** unknown ***"
+array set formerror [list upload_file $error_msg]
+
 if {![info exists folder_id]} {
+  if {![info exists fs_package_id]} {
+    # The folder_id was not specified, the fs_package_id was not
+    # specified, and we could not locate any usable file-storage.  We
+    # give up with a semi-i18ned message, nobody should ever see
+    # this...
+    set error_msg "[_ file-storage.lt_bad_folder_id_folder_].\nPerhaps you have no file-storage package mounted?"
+    array set formerror [list upload_file $error_msg]
+    ad_complain $error_msg
+    return
+  }
   set folder_id [fs_get_root_folder -package_id $fs_package_id] 
   set root_folder_id $folder_id
 }
 
 if {![fs_folder_p $folder_id]} {
-  ad_complain [_ file-storage.lt_The_specified_folder__1]
+  set error_msg [_ file-storage.lt_The_specified_folder__1]
+  array set formerror [list upload_file $error_msg]
+  ad_complain $error_msg
   return
 }
+
 
 # now we have at least a valid folder_id and a valid fs_package_id
 if {![info exists root_folder_id]} {
@@ -147,10 +185,7 @@ if {[permission::permission_p -party_id $user_id -object_id $folder_id \
         }
         
       }
-} else {
-  set write_p 0
 }
-
 
 # display the contents
 
@@ -297,23 +332,7 @@ db_multirow -extend {
   regsub -all {\#} $file_url {%23} file_url
 }
 
-set HTML_NothingSelected [_ acs-templating.HTMLArea_SelectImageNothingSelected]
-switch $selector_type {
-  "image" {
-    set HTML_Title  [_ acs-templating.HTMLArea_SelectImageTitle]
-    set HTML_Legend [_ acs-templating.HTMLArea_SelectImage]
-    set HTML_Preview [_ acs-templating.HTMLArea_SelectImagePreview]
-    set HTML_UploadTitle [_ acs-templating.HTMLArea_SelectImageUploadTitle]
-    set HTML_Context "COMMUNITY NAME"
-  }
-  "file" {
-    set HTML_Title  [_ acs-templating.HTMLArea_SelectFileTitle]
-    set HTML_Legend [_ acs-templating.HTMLArea_SelectFile]
-    set HTML_Preview [_ acs-templating.HTMLArea_SelectImagePreview]
-    set HTML_UploadTitle [_ acs-templating.HTMLArea_SelectFileUploadTitle]
-    set HTML_Context "COMMUNITY NAME"
-  }
-}
+
 
 
 ad_return_template

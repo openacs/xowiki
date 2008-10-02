@@ -110,9 +110,14 @@ select, input, button { font: 11px Tahoma,Verdana,sans-serif; }
         border="0"/> @up_name@</a></div>
     </if>		
     <div style="margin-left:10px;margin-bottom:3px;"><img src="/resources/file-storage/folder.gif"/> @folder_name@</div>
-    <form action="" method="get" name="fs">
-      <listtemplate name="contents"></listtemplate>
-    </form>
+    <if @error_msg@ eq "">
+      <form action="" method="get" name="fs">
+        <listtemplate name="contents"></listtemplate>
+      </form>
+    </if>
+    <else>
+      @error_msg@
+    </else>
   </fieldset>
 
   
