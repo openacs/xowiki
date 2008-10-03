@@ -1244,6 +1244,7 @@ namespace eval ::xowiki {
 
     # some final sanity checks
     my form_fields_sanity_check $form_fields
+    my post_process_form_fields $form_fields
 
     # The following command would be correct, but does not work due to a bug in 
     # tdom.
@@ -1326,7 +1327,7 @@ namespace eval ::xowiki {
       # (b) disable input in HTML-specified fields
       Form dom_disable_input_fields $root
     }
-    my post_process_edit_fields $root $form_fields
+    my post_process_dom_tree $doc $root $form_fields
     set html [$root asHTML]
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
@@ -1340,10 +1341,16 @@ namespace eval ::xowiki {
     }
   }
 
-  FormPage instproc post_process_edit_fields {dom_root form_field} {
+
+  FormPage instproc post_process_form_fields {form_fields} {
+    # We offer here the possibility to iterate over the form fields before it
+    # before they are rendered
+  }
+
+  FormPage instproc post_process_dom_tree {dom_doc dom_root form_fields} {
     # Part of the input fields comes from HTML, part comes via $form_fields
-    # We offer here the possibility to iterate over the fields before they
-    # are presented; can be overloaded
+    # We offer here the possibility to iterate over the dom tree before it
+    # is presented; can be overloaded
   }
 
   File instproc download {} {

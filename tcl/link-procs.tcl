@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target extra_query_parameter anchor
+    cssclass href label title target extra_query_parameter {anchor ""}
   }
 
   BaseLink instproc mk_css_class {-additional {-default ""}} {
