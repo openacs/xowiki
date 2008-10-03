@@ -12,7 +12,7 @@ ad_page_contract {
 } 
 
 set HTML_NothingSelected [_ acs-templating.HTMLArea_SelectImageNothingSelected]
-switch $selector_type {
+switch -- $selector_type {
   "image" {
     set HTML_Title  [_ acs-templating.HTMLArea_SelectImageTitle]
     set HTML_Legend [_ acs-templating.HTMLArea_SelectImage]

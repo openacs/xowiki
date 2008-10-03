@@ -220,7 +220,7 @@ namespace eval ::xowiki::formfield {
       }
       return
     }
-    switch -glob $s {
+    switch -glob -- $s {
       optional    {my set required false}
       required    {my set required true; my remove_omit}
       omit        {my mixin add ::xowiki::formfield::omit}
