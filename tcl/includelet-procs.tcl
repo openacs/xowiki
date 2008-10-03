@@ -2730,6 +2730,7 @@ namespace eval ::xowiki::includelet {
           {-voting_form_form ""}
           {-voting_form_anon_instances "t"}
           {-generate}
+          {-with_form_link true}
         }}
       }
   
@@ -2924,8 +2925,12 @@ namespace eval ::xowiki::includelet {
     set links [list]
     set base [$package_id pretty_link [$form_item name]]
     set label [$form_item name]
-    append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
+
+    if {$with_form_link} {
+      append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
+    }
     append html [t1 asHTML]
+
     if {$csv} {
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=csv"
       lappend links "<a href='$csv_href'>csv</a>"
