@@ -364,6 +364,7 @@ namespace eval ::xowiki::formfield {
       # without label, error message, help text
       my render_item
     }
+    my set __rendered 1
   }
   
   FormField instproc render_form_widget {} {
@@ -378,6 +379,7 @@ namespace eval ::xowiki::formfield {
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
     ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class}] {}
+    my set __rendered 1
   } 
 
   FormField instproc render_item {} {
