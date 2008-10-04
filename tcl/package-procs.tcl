@@ -149,15 +149,18 @@ namespace eval ::xowiki {
     @param parent_id parent_id (for now just for download)
     @param name name of the wiki page
   } {
-    my get_lang_and_name -name $name lang stripped_name
     if {[regexp {^::[0-9]+$} $name]} {
       # special rule for folder objects. Will be most probably
       # removed...
       return $name
-    } else {
-      set folder [my folder_path -parent_id $parent_id]
-      return ${lang}:$folder$stripped_name
-    }
+    } 
+    set folder [my folder_path -parent_id $parent_id]
+    if {[regexp {^[0-9]+$} $name]} {
+      # the name looks like an unnamed entry
+      return $folder$name
+    } 
+    my get_lang_and_name -name $name lang stripped_name
+    return ${lang}:$folder$stripped_name
   }
 
   Package ad_instproc pretty_link {
