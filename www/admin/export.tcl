@@ -12,17 +12,63 @@
 }
 
 set folder_id [::$package_id folder_id]
-set item_ids [list] 
 
+ns_log notice "objects=$objects"
+#
+# In a first step, get the items_ids of the objects which are explicitly exported
+#
 if {$objects eq ""} {
   set sql [$object_type instance_select_query -folder_id $folder_id -with_subtypes true]
-  db_foreach instance_select $sql { lappend item_ids $item_id }
+  db_foreach instance_select $sql { set items($item_id) 1 }
 } else {
   foreach o $objects {
-    if {[set id [::xo::db::CrClass lookup -name $o -parent_id $folder_id]] != 0} {
-      lappend item_ids $id
+    ns_log notice "lookup of $o in $folder_id returns [::xo::db::CrClass lookup -name $o -parent_id $folder_id]"
+    if {[set item_id [::xo::db::CrClass lookup -name $o -parent_id $folder_id]] != 0} {
+      set items($item_id) 1 
     }
   }
+}
+
+#
+# In a second step, include the objects which should be exported implicitly
+#
+foreach item_id [array names items] {
+  # 
+  # load the objects
+  #
+  ::xo::db::CrClass get_instance_from_db -item_id $item_id
+}
+
+while {1} {
+  set new 0
+  ns_log notice "--export works on [array names items]"
+  foreach item_id [array names items] {
+    #
+    # For PageInstances (or its subtypes), include the parent-objects as well
+    #
+    if {[$item_id istype ::xowiki::PageInstance]} {
+      set template_id [$item_id page_template]
+      if {![info exists items($template_id)]} {
+        ns_log notice "--export including parent-object $template_id [$template_id name]"
+        set items($template_id) 1
+        ::xo::db::CrClass get_instance_from_db -item_id $template_id
+        set new 1
+      }
+    }
+    #
+    # check for child objects of the item
+    #
+    set sql [$object_type instance_select_query -folder_id $item_id -with_subtypes true]
+    db_foreach instance_select $sql {
+      if {![info exists items($item_id)]} {
+        ::xo::db::CrClass get_instance_from_db -item_id $item_id
+        ns_log notice "--export including child $item_id [$item_id name]"
+        set items($item_id) 1 
+        set new 1
+      }
+    }
+  }
+  if {!$new} break
 }
 
 set content ""
@@ -30,38 +76,7 @@ ns_set put [ns_conn outputheaders] "Content-Type" "text/plain"
 ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=export.xotcl"
 ReturnHeaders 
 
-foreach item_id $item_ids {
-  # check, if the page was already included
-  if {[info exists included($item_id)]} {continue}
-
-  ::xo::db::CrClass get_instance_from_db -item_id $item_id
-  #
-  # if the page belongs to an Form/PageTemplate, include it as well
-  #
-  if {[$item_id istype ::xowiki::PageInstance]} {
-    set template_id [$item_id page_template]
-    while {1} {
-      if {![info exists included($template_id)]} {
-        set x [::xo::db::CrClass get_instance_from_db -item_id $template_id]
-        $template_id volatile
-        ns_log notice "--exporting needed [$item_id name] ($template_id) //$x [$x info class], m=[$template_id marshall] "
-        #append content [$template_id marshall] \n
-        ns_write "[$template_id marshall] \n" 
-        set included($template_id) 1
-      }
-      if {![::xo::db::CrClass isobject $template_id]} {
-        ::xo::db::CrClass get_instance_from_db -item_id $template_id
-      }
-      # in case, the template_id has another template,
-      # iterate...
-      if {[$template_id istype ::xowiki::PageInstance]} {
-        set template_id [$template_id page_template]
-      } else {
-        break
-      }
-    }
-  }
-  $item_id volatile
+foreach item_id [array names items] {
   ns_log notice "--exporting $item_id [$item_id name]"
   #append content [$item_id marshall] \n
   ns_write "[$item_id marshall] \n" 

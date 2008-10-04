@@ -595,7 +595,7 @@ namespace eval ::xowiki {
   Page instproc copy_content_vars {-from_object:required} {
     array set excluded_var {
       folder_id 1 package_id 1 absolute_links 1 lang_links 1 modifying_user 1
-      publish_status 1 item_id 1 revision_id 1 last_modified 1 parent_id 1
+      publish_status 1 item_id 1 revision_id 1 last_modified 1
     }
     foreach var [$from_object info vars] {
       # don't copy vars starting with "__"
@@ -1681,7 +1681,7 @@ namespace eval ::xowiki {
     array set __ia [my set instance_attributes]
 
     foreach var [array names __ia] {
-      my log "-- set $var [list $__ia($var)]"
+      #my log "-- set $var [list $__ia($var)]"
       # TODO: just for the lookup, whether a field is a richt text field,
       # there should be a more efficient and easier way...
       if {[string match "richtext*" [my get_field_type $var text]]} {

@@ -31,10 +31,10 @@ namespace eval ::xowiki {
 	[my report_lines]"
   }
 
-  Importer instproc import {-object -replace -base_object -create_user_ids} {
-    my instvar package_id folder_id user_id
+  Importer instproc import {-object:required -replace -create_user_ids} {
+    my instvar package_id user_id
 
-    $object demarshall -parent_id $folder_id -package_id $package_id \
+    $object demarshall -parent_id [$object parent_id] -package_id $package_id \
 	-creation_user $user_id -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
     if {$item_id != 0} {
@@ -46,19 +46,17 @@ namespace eval ::xowiki {
       } else {
 	::xo::db::CrClass get_instance_from_db -item_id $item_id
 	$item_id copy_content_vars -from_object $object
-	if {[info exists base_object]} {$item_id set page_template $base_object}
 	$item_id save -use_given_publish_date [$item_id exists publish_date] \
             -modifying_user [$object set modifying_user]
+        $object set item_id [$item_id item_id]
 	#my msg "$item_id updated: [$object name]"
         my report_line $item_id updated
 	my incr updated
       }
     }
     if {$item_id == 0} {
-      if {[info exists base_object]} {$object set page_template $base_object}
       set n [$object save_new -use_given_publish_date [$object exists publish_date] \
-            -creation_user [$object set modifying_user] \
-            ]
+            -creation_user [$object set modifying_user] ]
       $object set item_id $n
       set item_id $object
       #my msg "$object added: [$object name]"
@@ -76,52 +74,113 @@ namespace eval ::xowiki {
   }
 
   Importer instproc import_all {-replace -objects:required {-create_user_ids 0}} {
-    my instvar package_id folder_id
-    set todo [list]
+    #
+    # Extact information from objects to be imported, that might be
+    # changed later in the objects.
+    #
     foreach o $objects {
-      # page instances have references to page templates, add these first
-      if {[$o istype ::xowiki::PageInstance]} {
-        lappend todo $o
-        continue
+      #
+      # Remember old item_ids and old_names for pages with
+      # item_ids. Only these can have parents (page_templates) or
+      # child_objects
+      #
+      if {[$o exists item_id]}   {
+        set item_ids([$o item_id]) $o
+        set old_names([$o item_id]) [$o name]
+      } {
+        $o item_id ""
       }
-      my log "importing (1st round) $o [$o name] [$o info class]"
-      my import -object $o -replace $replace -create_user_ids $create_user_ids
+      # Remember old parent_ids for name-mapping, names are
+      # significant per parent_id.
+      if {[$o exists parent_id]} {
+        set parent_ids([$o item_id]) [$o parent_id]
+      } {
+        $o parent_id ""
+      }
+      set todo($o) 1
     }
+    #my msg "item_ids=[array names item_ids], parent_ids=[array names parent_ids]"
 
-    while {[llength $todo] > 0} {
-      #my log "importing (2nd round) todo=$todo"
-      set c 0
-      set found 0
-      foreach o $todo {
-	set old_template_id [$o set page_template]
-	set old_template_name [::$old_template_id set name] 
-	if {[lsearch $todo ::$old_template_id] > -1} {
-	  #my msg "*** delay import of $o ($old_template_id not processed yet)"
-	  incr c
-	  continue
-	}
-	set template_id [::xo::db::CrClass lookup -name $old_template_name -parent_id $folder_id ]
-        if {$template_id == 0} {
-          #my msg "delay import of $o ($old_template_id [$old_template_id set name] missing)"
-          incr c
-	  continue
+    #
+    # Make a fix-point iteration during import. Do only import, when
+    # all prerequirement pages are already loaded.
+    #
+    while {[llength [array names todo]] > 0} {
+      set new 0
+      foreach o [array names todo] {
+        #my msg "work on $o [$o info class] [$o name]"
+
+        set old_name      [$o name]
+        set old_item_id   [$o item_id]
+        set old_parent_id [$o parent_id]
+
+        # page instances have references to page templates, add the templates first
+        if {[$o istype ::xowiki::PageInstance]} {
+          set old_template_id [$o page_template]
+          if {![info exists old_names($old_template_id)]} {
+            set new 0
+            my msg "need name for $old_template_id. Maybe item_ids for PageTemplate missing?"
+            break
+          }
+          
+          set template_name_key $parent_ids($old_template_id)-$old_names($old_template_id)
+          if {![info exists name_map($template_name_key)]} {
+            #my msg "... delay import of $o (no object with name $template_name_key) imported"
+            continue
+          }
         }
-	#my msg "can import $o ($old_template_id [$old_template_id set name] not missing)"
-	set todo [lreplace $todo $c $c]
-	set found 1
-	break
+
+        if {[info exists item_ids($old_parent_id)]} {
+          # we have a child object
+          if {![info exists id_map($old_parent_id)]} {
+            #my msg "... delay import of $o (map of parent_id $old_parent_id missing)"
+            continue
+          }
+        }
+
+        # Now, all requirements are met, parent-object and
+        # child-object conditions are fulfilled. We have to map
+        # page_template for PageInstances and parent_ids for child
+        # objects to new IDs.
+        #
+        if {[$o istype ::xowiki::PageInstance]} {
+          #my msg "importing page_instance, map $template_name_key to $name_map($template_name_key)"
+          $o page_template $name_map($template_name_key)
+        }
+
+        if {[info exists item_ids($old_parent_id)]} {
+          $o set parent_id $id_map($old_parent_id)
+        } else {
+          $o set parent_id [my folder_id]
+        }
+
+        # Everything is mapped, we can now do the import.
+        
+        my import \
+            -object $o \
+            -replace $replace \
+            -create_user_ids $create_user_ids
+
+        # Maintain the maps and mark the item as done.
+
+        if {$old_item_id ne ""} {
+          set id_map($old_item_id) [$o item_id]
+        }
+        set name_map($old_parent_id-$old_name) [$o item_id]
+        
+        unset todo($o)
+        set new 1
       }
-      if {$found == 0} {
-        my log "can't resolve dependencies in $todo"
+      if {$new == 0} {
+        my msg "could not import [array names todo]"
         break
       }
-      my log "importing (2nd round) process $o, todo=$todo"
-      my import \
-	  -object $o \
-	  -replace $replace \
-	  -base_object $template_id \
-	  -create_user_ids $create_user_ids
     }
+    #my msg "final name_map=[array get name_map], id_map=[array get id_map]"
+
+    #
+    # final cleanup
+    #
     foreach o $objects {$o destroy}
   }
 
