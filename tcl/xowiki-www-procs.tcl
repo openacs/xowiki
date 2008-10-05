@@ -1372,9 +1372,11 @@ namespace eval ::xowiki {
     my instvar package_id name item_id
     set context [list [list [$package_id url] $name ] [_ xotcl-core.revisions]]
     set title "[_ xotcl-core.revision_title] '$name'"
+    ::xo::Page set_property doc title $title
     set content [next]
+    array set property_doc [::xo::Page get_property doc]
     $package_id return_page -adp /packages/xowiki/www/revisions -variables {
-      content context {page_id $item_id} title
+      content context {page_id $item_id} title property_doc
     }
   }
 
@@ -1489,11 +1491,13 @@ namespace eval ::xowiki {
 
     set title "Differences for [my set name]"
     set context [list $title]
-
     set content [::xowiki::html_diff $text2 $text1]
+    ::xo::Page set_property doc title $title
+    array set property_doc [::xo::Page get_property doc]
+
     $package_id return_page -adp /packages/xowiki/www/diff -variables {
       content title context
-      time1 time2 user1 user2 revision_id1 revision_id2
+      time1 time2 user1 user2 revision_id1 revision_id2 property_doc
     }
   }
 

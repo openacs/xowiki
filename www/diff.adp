@@ -1,5 +1,6 @@
 <master>
   <property name="title">@title;noquote@</property>
+  <property name="&doc">property_doc</property>
   <property name="context">@context;noquote@</property>
   <property name="header_stuff">
 <style type='text/css'>
