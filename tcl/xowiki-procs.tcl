@@ -139,6 +139,7 @@ namespace eval ::xowiki {
       }
 
   ::xo::db::require index -table xowiki_form_page -col assignee
+  ::xo::db::require index -table xowiki_page_instance -col page_template
 
   # create various extra tables, indices and views
   #
@@ -1874,18 +1875,18 @@ namespace eval ::xowiki {
   }
 
   FormPage proc get_children {
-      -base_item_id 
-      -package_id 
-      -form_fields 
-      {-publish_status ready}
-      {-extra_where_clause ""}
-      {-h_where ""}
-      {-always_queried_attributes {_name _last_modified _creation_user}}
-    } {
+       -base_item_id 
+       -package_id 
+       -form_fields 
+       {-publish_status ready}
+       {-extra_where_clause ""}
+       {-h_where ""}
+       {-always_queried_attributes {_name _last_modified _creation_user}}
+     } {
     #
     # Get query attributes for all tables (to allow e.g. sorting by time)
     #
-    set sql_atts [list bt.instance_attributes]
+    set sql_atts [list bt.instance_attributes ci.parent_id]
     foreach att $always_queried_attributes {
       set name [string range $att 1 end]
       if {$name eq "name"} {
@@ -1894,6 +1895,7 @@ namespace eval ::xowiki {
         lappend sql_atts bt.$name
       }
     }
+    
     #
     # Collect SQL attributes from form_fields
     #
@@ -1902,6 +1904,8 @@ namespace eval ::xowiki {
       set field_name [$f name]
       if {$field_name eq "_text"} {
         lappend sql_atts "bt.content as text"
+      } elseif {$field_name eq "_publish_status"} {
+        lappend sql_atts ci.[$f set __base_field]
       } elseif {[lsearch -exact $always_queried_attributes $field_name] == -1} {
         lappend sql_atts bt.[$f set __base_field]
       }
@@ -1929,6 +1933,9 @@ namespace eval ::xowiki {
     #my msg filter_clause=$filter_clause
 
     set orderby ""; set page_size 20; set page_number ""
+    # -parent_id empty means to get instances, regardless of 
+    # parent_id. Under the assumption, the page_template constrains
+    # the query enough to make it fast...
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
@@ -1936,7 +1943,7 @@ namespace eval ::xowiki {
 			$publish_status_clause $filter_clause $extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \
-		    -folder_id [$package_id folder_id] \
+		    -parent_id "" \
 		    -page_size $page_size \
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \

@@ -452,10 +452,9 @@ namespace eval ::xowiki {
      -form_constraints
    } {
 
-    #set sql_atts [list ci.name bt.instance_attributes]
+    array set __att [list publish_status 1]
     foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
     foreach att [list last_modified creation_user] {
-      lappend sql_atts bt.$att
       set __att($att) 1
     }
     

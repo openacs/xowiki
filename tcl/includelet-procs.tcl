@@ -2871,7 +2871,8 @@ namespace eval ::xowiki::includelet {
       array set __ia [$p instance_attributes]
       if {[expr $uc(tcl)]} continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_children
-      set page_link [$package_id pretty_link [$p name]]
+
+      set page_link [$package_id pretty_link -parent_id [$p parent_id] [$p name]]
 
       t1 add \
           -delete delete \
@@ -2888,6 +2889,7 @@ namespace eval ::xowiki::includelet {
       foreach __fn $field_names {
         $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
+      $__c set _name [$package_id external_name -parent_id [$p parent_id] [$p name]]
     }
 
     #
@@ -2923,7 +2925,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set links [list]
-    set base [$package_id pretty_link [$form_item name]]
+    set base [$package_id pretty_link -parent_id [$form_item parent_id] [$form_item name]]
     set label [$form_item name]
 
     if {$with_form_link} {
