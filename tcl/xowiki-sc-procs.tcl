@@ -41,7 +41,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #set text [ad_text_to_html $html]; #this could be used for entity encoded html text in rss entries
   
   set found [string first {[1]} $text]
-  $page log "search=$found,html=$html,text=$text"
+  $page log "--sc search=$found,html=$html,text=$text"
   if {$found > -1} {
     append description {<![CDATA[} \n $html { ]]>}
   } else {

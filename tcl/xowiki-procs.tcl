@@ -182,9 +182,19 @@ namespace eval ::xowiki {
             and ci.publish_status <> 'production'"
 
   #
+  # We do here the same as in xotcl-core/tcl/05-db-procs.tcl
+  # Read there for the reasons, why the cache is not created in
+  # a -init file.....
+  #
+  if {[catch {ns_cache flush xowiki_cache NOTHING}]} {
+    ns_log notice "xotcl-core: creating xowiki cache"
+    ns_cache create xowiki_cache -size 200000
+  }
+
+
+  #
   # Page definitions
   #
-
 
   Page set recursion_count 0
   Page array set RE {

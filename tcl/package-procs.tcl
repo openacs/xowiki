@@ -126,6 +126,18 @@ namespace eval ::xowiki {
       }
     }
   }
+  
+  Package instproc get_parent_and_name {-path -folder_id vparent vlocal_name} {
+    my upvar $vparent parent $vlocal_name local_name 
+
+    if {[regexp {^([^/]+)/(.*)$} $path _ parent local_name]} {
+      return [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
+    } else {
+      set parent ""
+      set local_name $path
+      return $folder_id
+    }
+  }
 
   Package instproc folder_path {{-parent_id ""}} {
     #
@@ -665,11 +677,9 @@ namespace eval ::xowiki {
 
         if {$lang eq "download/file" || $lang eq "file"} { 
           # handle subitems, currently only for files
-          if {[regexp {^([^/]+)/(.*)$} $local_name _ parent local_name]} {
-            set parent_id [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
-          } else {
-            set parent_id $folder_id
-          }
+          set parent_id [my get_parent_and_name \
+                             -path $local_name -folder_id $folder_id \
+                             parent local_name]
 	  set item_id [::xo::db::CrClass lookup -name file:$local_name -parent_id $parent_id]
 
 	  if {$item_id != 0 && $lang eq "download/file"} {
@@ -679,7 +689,10 @@ namespace eval ::xowiki {
         }
 
         if {$item_id == 0} {
-          set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
+          set parent_id [my get_parent_and_name \
+                             -path $local_name -folder_id $folder_id \
+                             parent local_name]
+          set item_id [::xo::db::CrClass lookup -name $local_name -parent_id $parent_id]
           #my msg "--try $name -> $item_id // ::xo::db::CrClass lookup -name $name -parent_id $folder_id"
         }
 
@@ -1003,8 +1016,9 @@ namespace eval ::xowiki {
     return [$page edit -new true -autoname $autoname]
   }
 
-  Package instproc flush_references {-item_id:integer,required -name:required} {
+  Package instproc flush_references {-item_id:integer,required -name:required -parent_id} {
     my instvar folder_id id
+    if {![info exists parent_id]} {set parent_id $folder_id}
     if {$name eq "::$folder_id"} {
       #my log "--D deleting folder object ::$folder_id"
       ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
@@ -1012,7 +1026,7 @@ namespace eval ::xowiki {
       ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$id
       ::$folder_id destroy
     }
-    my flush_name_cache -name $name -parent_id $folder_id
+    my flush_name_cache -name $name -parent_id $parent_id
   }
 
   Package instproc flush_name_cache {-name:required -parent_id:required} {

@@ -132,9 +132,15 @@ namespace eval ::xowiki {
 
   proc ::xowiki::locales {} {
     set locales [lang::system::get_locales]
-    set defpos [lsearch $locales [lang::conn::locale]]
-    set locales [linsert [lreplace $locales $defpos $defpos] 0 \
-                     [lang::conn::locale]]
+    if {[ns_conn isconnected]} {
+      #
+      # Reorder the locales and put the connection locale to the front
+      # in case we have a connection
+      #
+      set defpos [lsearch $locales [lang::conn::locale]]
+      set locales [linsert [lreplace $locales $defpos $defpos] 0 \
+                       [lang::conn::locale]]
+    }
     foreach l $locales {lappend lpairs [list $l $l]}
     return $lpairs
   }
