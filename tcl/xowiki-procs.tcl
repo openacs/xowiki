@@ -241,7 +241,7 @@ namespace eval ::xowiki {
       set old_name $name
       set server [ns_info server]
       set port [ns_config ns/server/${server}/module/nssock port]
-      set name [ns_info address]:${port}/[my item_id]
+      set name [ns_info address]:${port}-[my item_id]
       set content [my serialize]
       set name $old_name
     } else {
