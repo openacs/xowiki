@@ -2792,9 +2792,11 @@ namespace eval ::xowiki::includelet {
     set cols ""
     append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
     foreach fn $field_names {
+      #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
+      #                    || [$__ff($fn) istype ::xowiki::formfield::richtext]}]
       append cols [list AnchorField $fn \
 		       -label [$__ff($fn) label] \
-		       -richtext [$__ff($fn) istype ::xowiki::formfield::richtext] \
+		       -richtext 1 \
 		       -orderby $fn] \n
     }
     append cols [list ImageField_DeleteIcon delete -label "" -no_csv 1] \n
