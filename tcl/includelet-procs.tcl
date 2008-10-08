@@ -1515,6 +1515,7 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create toc \
       -superclass ::xowiki::Includelet \
+      -cacheable true -personalized false -aggregating true \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
