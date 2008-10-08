@@ -1934,6 +1934,14 @@ namespace eval ::xowiki {
     next
   }
 
+  FormPage instproc condition=in_state {query_context value} {
+    # possible values can be or-ed together (e.g. initial|final)
+    foreach v [split $value |] {
+      if {[my state] eq $} {return 1}
+    }
+    return 0
+  }
+
   FormPage proc get_children {
        -base_item_id 
        -package_id 
