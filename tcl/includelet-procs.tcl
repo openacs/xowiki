@@ -2719,7 +2719,7 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-form_item_id:integer}
           {-form}
-          {-orderby "_last_modified,desc"}
+          {-orderby "__last_modified,desc"}
           {-publish_status "ready"}
           {-field_names}
           {-category_id}
@@ -2791,16 +2791,16 @@ namespace eval ::xowiki::includelet {
     if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
     set cols ""
-    append cols {ImageField_EditIcon edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+    append cols {ImageField_EditIcon _edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
     foreach fn $field_names {
       #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
       #                    || [$__ff($fn) istype ::xowiki::formfield::richtext]}]
-      append cols [list AnchorField $fn \
+      append cols [list AnchorField _$fn \
 		       -label [$__ff($fn) label] \
 		       -richtext 1 \
-		       -orderby $fn] \n
+		       -orderby _$fn] \n
     }
-    append cols [list ImageField_DeleteIcon delete -label "" -no_csv 1] \n
+    append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
     TableWidget t1 -volatile -columns $cols
 
     #
@@ -2809,7 +2809,7 @@ namespace eval ::xowiki::includelet {
     # instance attributes can be used for sorting as well.
     #
     foreach {att order} [split $orderby ,] break
-    if {$att eq "_page_order"} {
+    if {$att eq "__page_order"} {
       t1 mixin add ::xo::OrderedComposite::IndexCompare
     }
     #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
@@ -2878,21 +2878,21 @@ namespace eval ::xowiki::includelet {
       set page_link [$package_id pretty_link -parent_id [$p parent_id] [$p name]]
 
       t1 add \
-          -delete delete \
-          -delete.href [$package_id make_link -link $page_link $p delete return_url] \
-          -edit edit \
-	  -edit.href [$package_id make_link -link $page_link $p edit return_url] 
+          -_delete delete \
+          -_delete.href [$package_id make_link -link $page_link $p delete return_url] \
+          -_edit edit \
+	  -_edit.href [$package_id make_link -link $page_link $p edit return_url] 
       
       set __c [t1 last_child]
-      $__c set _name.href $page_link
+      $__c set __name.href $page_link
 
       # set always last_modified for default sorting
-      $__c set _last_modified [$p set last_modified]
+      $__c set __last_modified [$p set last_modified]
 
       foreach __fn $field_names {
-        $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
+        $__c set _$__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
-      $__c set _name [$package_id external_name -parent_id [$p parent_id] [$p name]]
+      $__c set __name [$package_id external_name -parent_id [$p parent_id] [$p name]]
     }
 
     #
