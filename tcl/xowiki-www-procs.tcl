@@ -1636,7 +1636,6 @@ namespace eval ::xowiki {
     set source_item_id [my query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
-      $source destroy_on_cleanup
       $f copy_content_vars -from_object $source
       #$f set __autoname_prefix "[my name] - "
       $f set name ""

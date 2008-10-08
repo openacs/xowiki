@@ -692,7 +692,6 @@ namespace eval ::xowiki {
       set page_template_id [$data set page_template]
     }
     set template [::xo::db::CrClass get_instance_from_db -item_id $page_template_id]
-    $template destroy_on_cleanup
     set dont_edit [concat [[$data info class] array names db_slot] \
                        [::xo::db::CrClass set common_query_atts]]
 

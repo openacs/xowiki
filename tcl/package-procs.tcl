@@ -620,7 +620,6 @@ namespace eval ::xowiki {
       } else {
         # get the page from the CR with all variables
         set p [::xo::db::CrClass get_instance_from_db -item_id $item_id]
-        $p destroy_on_cleanup
         # copy all scalar variables from the prototype page 
         # into the instantiated page 
         foreach v [$page info vars] {
