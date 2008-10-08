@@ -169,9 +169,12 @@ namespace eval ::xowiki {
       return $name
     } 
     set folder [my folder_path -parent_id $parent_id]
-    my get_lang_and_name -name $name lang stripped_name
-    #return ${lang}:$folder$stripped_name
-    return $folder$stripped_name
+    if {$folder ne ""} {
+      my get_lang_and_name -name $name lang stripped_name
+      return $folder$stripped_name
+    }
+    return $name
+
   }
 
   Package ad_instproc pretty_link {
@@ -1332,7 +1335,7 @@ namespace eval ::xowiki {
     Class FormPage -array set require_permission {
       view               creator 
       edit               {
-        {{in_state initial} creator} admin
+        {{in_state initial|suspended|working} creator} admin
       }
     }
     Class Form -array set require_permission {

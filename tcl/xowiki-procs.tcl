@@ -1937,6 +1937,7 @@ namespace eval ::xowiki {
   FormPage instproc condition=in_state {query_context value} {
     # possible values can be or-ed together (e.g. initial|final)
     foreach v [split $value |] {
+      #my msg "check [my state] eq $v"
       if {[my state] eq $v} {return 1}
     }
     return 0
