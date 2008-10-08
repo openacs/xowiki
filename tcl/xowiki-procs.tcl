@@ -160,6 +160,8 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_last_visited -col user_id,package_id
   ::xo::db::require index -table xowiki_last_visited -col time
 
+  
+
   # Oracle has a limit of 3118 characters for keys, therefore no text as type for "tag"
   ::xo::db::require table xowiki_tags \
        "item_id integer references cr_items(item_id) on delete cascade,
@@ -182,6 +184,62 @@ namespace eval ::xowiki {
             and p.page_id = cr.revision_id  \
             and ci.publish_status <> 'production'"
 
+
+  #############################
+  #
+  # A simple autoname handler
+  #
+  # The autoname handler has the purpose to generate new names based
+  # on a stem and a parent_id. Typically this is used for the
+  # autonaming of FormPages. The goal is to generate "nice" names,
+  # i.e. with rather small numbers.
+  #
+  # Instead of using the table below, another option would be to use
+  # multiple sequences. However, these sequences would have dynamic
+  # names, it is not clear, whether there are certain limits on the
+  # number of sequences (in PostgresSQL or Oracle), the database 
+  # dependencies would be larger than in this simple approach.
+  #
+  ::xo::db::require table xowiki_autonames \
+       "parent_id integer references acs_objects(object_id) ON DELETE CASCADE,
+        name    varchar(3000),
+        count   integer"
+  ::xo::db::require index -table xowiki_autonames -col parent_id,name -unique true
+
+  Object create autoname
+  autoname proc generate {-parent_id -name} {
+    db_transaction {
+      set already_recorded [db_0or1row [my qn autoname_query] "
+       select count from xowiki_autonames
+       where parent_id = $parent_id and name = :name"]
+      
+      if {$already_recorded} {
+        incr count
+        db_dml [my qn update_autoname_counter] \
+            "update xowiki_autonames set count = count + 1 \
+              where parent_id = $parent_id and name = :name"
+      } else {
+        set count 1
+        db_dml [my qn insert_autoname_counter] \
+            "insert into xowiki_autonames (parent_id, name, count) \
+             values ($parent_id, :name, $count)"
+      }
+    }
+    return $name$count
+  }
+
+  autoname proc new {-parent_id -name} {
+    while {1} {
+      set generated_name [my generate -parent_id $parent_id -name $name]
+      if {[::xo::db::CrClass lookup -name $generated_name -parent_id $parent_id] eq 0} {
+        return $generated_name
+      }
+    }
+  }
+  
+  #############################
+  #
+  # Create the xowiki_cache
   #
   # We do here the same as in xotcl-core/tcl/05-db-procs.tcl
   # Read there for the reasons, why the cache is not created in
@@ -192,7 +250,7 @@ namespace eval ::xowiki {
     ns_cache create xowiki_cache -size 200000
   }
 
-
+  #############################
   #
   # Page definitions
   #
@@ -701,15 +759,15 @@ namespace eval ::xowiki {
 
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
-      if {[my istype ::xowiki::PageInstance]} {
+      #if {[my istype ::xowiki::PageInstance]} {
         #
         # Do not add a language prefix to anonymous pages
         #
-        set anon_instances [my get_from_template anon_instances f]
-        if {$anon_instances} {
-          return $stripped_name
-        }
-      }
+        #set anon_instances [my get_from_template anon_instances f]
+        #if {$anon_instances} {
+        #  return $stripped_name
+        #}
+      #}
       if {$nls_language eq ""} {set nls_language [my nls_language]}
       set name [string range $nls_language 0 1]:$stripped_name
     }
@@ -1264,6 +1322,8 @@ namespace eval ::xowiki {
     }
     return $content
   }
+
+
 
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
@@ -2095,14 +2155,17 @@ namespace eval ::xowiki {
       return [next]
     } else {
       #my msg "we have a form '[my get_form]'"
-      ::xowiki::Form requireFormCSS
       set form [my get_form]
+      if {$form eq ""} {return ""}
+
+      ::xowiki::Form requireFormCSS
+
       foreach {form_vars field_names} [my field_names_from_form -form $form] break
       my array unset __field_in_form
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
       my load_values_into_form_fields $form_fields
-
+        
       # deactivate form-fields and do some final sanity checks
       foreach f $form_fields {$f set_disabled 1}
       my form_fields_sanity_check $form_fields
@@ -2182,7 +2245,6 @@ namespace eval ::xowiki {
     my unset_temporary_instance_variables
 
     my instvar package_id name
-    #my msg "save_data old='$old_name' current='$name'"
 
     db_transaction {
       #
@@ -2197,7 +2259,7 @@ namespace eval ::xowiki {
       my map_categories $category_ids
 
       my save -use_given_publish_date $use_given_publish_date
-      # my log "-- old_name $old_name, name $name"
+      #my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
         #my msg "do rename from $old_name to $name"
         $package_id flush_name_cache -name $old_name -parent_id [my parent_id]

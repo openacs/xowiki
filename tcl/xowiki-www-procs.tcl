@@ -1122,7 +1122,7 @@ namespace eval ::xowiki {
     #    (might happen, when e.g. set via @cr_fields ... hidden)
     set name_field [my lookup_form_field -name _name $form_fields]
     if {$anon_instances} {
-      $name_field config_from_spec hidden
+      #$name_field config_from_spec hidden
     } else {
       if {[$name_field istype ::xowiki::formfield::hidden] && [$name_field required] == true} {
         $name_field config_from_spec text,required
@@ -1207,9 +1207,11 @@ namespace eval ::xowiki {
 	#my set name [$package_id query_parameter name ""]
 	# TODO: maybe use __object_name to for POST url to make code 
 	# more straightworward
-        set n [$package_id query_parameter name \
-		   [::xo::cc form_parameter __object_name ""]]
-        if {$n ne ""} { my set name $n }
+        #set n [$package_id query_parameter name \
+	#	   [::xo::cc form_parameter __object_name ""]]
+        #if {$n ne ""} { 
+        #  my name $n 
+        #}
       }
 
       array set __ia [my set instance_attributes]
@@ -1219,10 +1221,16 @@ namespace eval ::xowiki {
       # for named entries, just set the entry fields to empty,
       # without changing the instance variables
       if {[my is_new_entry [my name]]} {
-	if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
+        if {$anon_instances} {
+          set name [autoname new -name [$page_template name] -parent_id $page_template]
+          #my msg "generated name=$name, page_template-name=[$page_template name]"
+          $ff(_name) value $name
+        } else {
+          $ff(_name) value ""
+        }
+        if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
 	  $ff(_title) value ""
 	}
-	if {!$anon_instances} {$ff(_name) value ""}
         foreach var [list title detail_link text description] {
           if {[my exists_query_parameter $var]} {
             set value [my query_parameter $var]
