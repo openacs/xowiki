@@ -41,7 +41,7 @@
   <msg key="page_type">Typ der Seite</msg>
   <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
   <msg key="PageInstance-page_template">Seitenvorlage</msg>
-  <msg key="PageTemplate-anon_instances">Unbenamte Instanzen</msg>
+  <msg key="PageTemplate-anon_instances">Automatische Namensvergabe</msg>
   <msg key="PodcastItem-duration">Dauer</msg>
   <msg key="PodcastItem-keywords">Schlüsselworte</msg>
   <msg key="PodcastItem-pub_date">Publikationsdatum</msg>
