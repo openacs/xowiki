@@ -1291,6 +1291,60 @@ namespace eval ::xowiki {
   #}
   
   #my log "--set granted [policy4 check_permissions -user_id 0 -package_id 0 function f]"
+
+  #
+  # an example with in_state condition...
+  #
+  Policy policy5 -contains {
+
+    Class Package -array set require_permission {
+      reindex             {{id admin}}
+      rss                 none
+      google-sitemap      none
+      google-sitemapindex none
+      delete              swa
+      edit-new            {
+        {{has_class ::xowiki::Object} swa}
+        {{has_class ::xowiki::FormPage} nobody}
+        {{has_name {[.](js|css)$}} swa}
+        {id create}
+      }
+    }
+    
+    Class Page -array set require_permission {
+      view               {{item_id read}}
+      revisions          {{item_id write}}
+      diff               {{item_id write}}
+      edit               {{item_id write}}
+      make-live-revision {{item_id write}}
+      delete-revision    swa
+      delete             swa
+      save-tags          login
+      popular-tags       login
+      create-new         {{item_id write}}
+    }
+    
+    Class Object -array set require_permission {
+      edit               swa
+    }
+    Class File -array set require_permission {
+      download           {{package_id read}}
+    }
+    Class FormPage -array set require_permission {
+      view               creator 
+      edit               {
+        {{in_state initial} creator} admin
+      }
+    }
+    Class Form -array set require_permission {
+      view              admin
+      edit              admin
+      list              admin
+      create-new        {{item_id write}}
+    }
+  }
+
+
 }
 
 
