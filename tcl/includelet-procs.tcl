@@ -2758,7 +2758,8 @@ namespace eval ::xowiki::includelet {
                               -form_constraints $form_constraints]
     foreach {attr value} $table_properties {
       switch $attr {
-        orderby - publish_status -  category_id - unless -
+        orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
+        publish_status -  category_id - unless -
         where -   with_categories - csv - voting_form -
         voting_form_form - voting_form_anon_instances {
           set $attr $value
