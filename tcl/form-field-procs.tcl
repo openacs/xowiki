@@ -490,6 +490,7 @@ namespace eval ::xowiki {
     style
   }
   FormField::textarea instproc initialize {} {
+    foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
     my set widget_type text(textarea)
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
     next
