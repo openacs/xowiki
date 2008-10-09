@@ -100,7 +100,7 @@ namespace eval ::xowiki {
     download 1
   }
   
-  Package instproc get_lang_and_name {-path -name -default_lang vlang vlocal_name} {
+  Package instproc get_lang_and_name {-path -name {-default_lang ""} vlang vlocal_name} {
     my upvar $vlang lang $vlocal_name local_name 
     if {[info exists path]} {
       # 
@@ -112,7 +112,7 @@ namespace eval ::xowiki {
       } elseif {[regexp {^(file|image|swf|download/file|tag)/(.*)$} $path _ lang local_name]} {
       } else {
         set local_name $path
-        if {![info exists default_lang]} {set default_lang [my default_language]}
+        if {$default_lang eq ""} {set default_lang [my default_language]}
         set lang $default_lang
       }
     } elseif {[info exists name]} {
@@ -122,7 +122,7 @@ namespace eval ::xowiki {
       if {![regexp {^(..):(.*)$} $name _ lang local_name]} {
         if {![regexp {^(file|image|swf):(.*)$} $name _ lang local_name]} {
           set local_name $name
-          if {![info exists default_lang]} {set default_lang [my default_language]}
+          if {$default_lang eq ""} {set default_lang [my default_language]}
           set lang $default_lang
         }
       }
@@ -164,12 +164,14 @@ namespace eval ::xowiki {
     @param name name of the wiki page
   } {
     if {[regexp {^::[0-9]+$} $name]} {
-      # special rule for folder objects. Will be most probably
-      # removed...
+      # Special rule for folder objects. Folder object will be most
+      # probably removed in future releases.
       return $name
     } 
     set folder [my folder_path -parent_id $parent_id]
     if {$folder ne ""} {
+      # Return the stripped name for sub-items, the parent has already
+      # the language prefix
       my get_lang_and_name -name $name lang stripped_name
       return $folder$stripped_name
     }
@@ -545,17 +547,36 @@ namespace eval ::xowiki {
     if {$object eq ""} {
       # we have no object, but as well no method callable on the package
       set object [$id get_parameter index_page "index"]
+      #my log "--o object is now '$object'"
     }
     #
     # second, resolve object level methods
     #
     #my log "--o try '$object'"
-    set page [my resolve_request -simple $simple -path $object method]
+    set page [my resolve_request -default_lang [::xo::cc lang] -simple $simple -path $object method]
     #my log "--o page is '$page' simple=$simple"
     if {$simple || $page ne ""} {
       if {$page ne ""} {
       }
       return $page
+    }
+    #
+    # Make a second attempt in the default language, if it is diffent
+    # from the connection language. This is not optimal, since it is
+    # just relevant for the cases, where the language was not
+    # explicitely given. It would be nice to have e.g. a list of
+    # language preferences which could be checked, but this would
+    # require a different structure. The underlying methods are used
+    # for two different cases: (a) complete an non-fully specified
+    # entry, and (b) search whether such an entry exists. Not
+    # undoable, but this should wait for the next release.
+    if {[::xo::cc lang] ne [my default_language]} {
+      set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
+      if {$simple || $page ne ""} {
+        if {$page ne ""} {
+        }
+        return $page
+      }
     }
 
     # stripped object is the object without a language prefix
@@ -566,7 +587,7 @@ namespace eval ::xowiki {
     set standard_page [$id get_parameter ${object}_page]
     #my log "--o standard_page '$standard_page'"
     if {$standard_page ne ""} {
-      set page [my resolve_request -path $standard_page method]
+      set page [my resolve_request -default_lang [::xo::cc lang] -path $standard_page method]
       if {$page ne ""} {
         return $page
       }
@@ -575,7 +596,7 @@ namespace eval ::xowiki {
       set standard_page "en:$stripped_object"
       # maybe we are calling from a different language, but the
       # standard page with en: was already instantiated
-      set page [my resolve_request -path $standard_page method]
+      set page [my resolve_request -default_lang [::xo::cc lang] -path $standard_page method]
       if {$page ne ""} {
         return $page
       }
@@ -653,7 +674,7 @@ namespace eval ::xowiki {
   }
   Package instforward check_permissions {%my set policy} %proc
 
-  Package instproc resolve_request {{-simple false} -path method_var} {
+  Package instproc resolve_request {{-default_lang ""} {-simple false} -path method_var} {
     my instvar folder_id
     #my log "--u [self args]"
     [self class] instvar queryparm
@@ -672,13 +693,13 @@ namespace eval ::xowiki {
         return ""
       }
 
-      my log "--try $path ($folder_id/$parent_id) -> $item_id"
+      #my log "--try $path ($folder_id/$parent_id) -> $item_id"
       if {$item_id == 0} {
         set nname [my normalize_name $path]
         
-        my get_lang_and_name -path $nname lang stripped_name
+        my get_lang_and_name -default_lang $default_lang -path $nname lang stripped_name
         set name ${lang}:$stripped_name
-        my log "--setting name to '$name', stripped_name='$stripped_name'"
+        #my log "--setting name to '$name', stripped_name='$stripped_name'"
 
         if {$lang eq "download/file" || $lang eq "file"} { 
           # handle subitems, currently only for files
@@ -697,7 +718,7 @@ namespace eval ::xowiki {
 	  set popular [::xo::cc query_parameter popular 0]
 	  set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	  set weblog_page [my get_parameter weblog_page]
-	  my get_lang_and_name -path $weblog_page lang stripped_name
+	  my get_lang_and_name -default_lang $default_lang -path $weblog_page lang stripped_name
 	  set name $lang:$stripped_name
 	  my set object $weblog_page
 	  ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
@@ -707,14 +728,14 @@ namespace eval ::xowiki {
           set parent_id [my get_parent_and_name \
                              -path $name -folder_id $folder_id \
                              parent local_name]
-          my get_lang_and_name -path $local_name lang stripped_name
+          my get_lang_and_name -default_lang $default_lang -path $local_name lang stripped_name
           set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
-          my log "--try  ${lang}:$stripped_name ($folder_id/$parent_id) -> $item_id"
+          #my log "--try  ${lang}:$stripped_name ($folder_id/$parent_id) -> $item_id"
         }
 
         if {$item_id == 0} {
           set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
-          my log "--try $stripped_name ($folder_id/$parent_id) -> $item_id"
+          #my log "--try $stripped_name ($folder_id/$parent_id) -> $item_id"
         }
        
       } 
