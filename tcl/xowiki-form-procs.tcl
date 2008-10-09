@@ -399,7 +399,7 @@ namespace eval ::xowiki {
       set mime_type   [$data form_parameter upload_file.content-type]
       if {$mime_type eq "application/octet-stream"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
-        my msg guess=$guessed_mime_type
+        #my msg guess=$guessed_mime_type
         if {$guessed_mime_type ne "*/*"} {
           set mime_type $guessed_mime_type
         }
