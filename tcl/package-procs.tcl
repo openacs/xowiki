@@ -553,7 +553,7 @@ namespace eval ::xowiki {
     # second, resolve object level methods
     #
     #my log "--o try '$object'"
-    set page [my resolve_request -default_lang [::xo::cc lang] -simple $simple -path $object method]
+    set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
     #my log "--o page is '$page' simple=$simple"
     if {$simple || $page ne ""} {
       if {$page ne ""} {
@@ -570,14 +570,14 @@ namespace eval ::xowiki {
     # for two different cases: (a) complete an non-fully specified
     # entry, and (b) search whether such an entry exists. Not
     # undoable, but this should wait for the next release.
-    if {[::xo::cc lang] ne [my default_language]} {
-      set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
-      if {$simple || $page ne ""} {
-        if {$page ne ""} {
-        }
-        return $page
-      }
-    }
+#     if {[::xo::cc lang] ne [my default_language]} {
+#       set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
+#       if {$simple || $page ne ""} {
+#         if {$page ne ""} {
+#         }
+#         return $page
+#       }
+#     }
 
     # stripped object is the object without a language prefix
     set stripped_object $object

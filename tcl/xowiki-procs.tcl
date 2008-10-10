@@ -1070,8 +1070,6 @@ namespace eval ::xowiki {
       # (typed) file links
       set lang ""
       set name file:$stripped_name
-    } elseif {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
-      set link_type language
     } else {
       # do we have a typed link? more than two chars...
       if {[regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ \
@@ -1415,6 +1413,30 @@ namespace eval ::xowiki {
     foreach f $form_fields { append msg "[$f name] [namespace tail [$f info class]], " }
     my msg $msg
     my log "XXX ff: $msg"
+  }
+
+
+
+  Page instproc translate {-from -to text} {
+    set langpair $from|$to
+    set ie UTF8
+    #set url [export_vars -base http://translate.google.com/translate_t {langpair text}]
+    #set r [xo::HttpRequest new -url $url]
+    set r [xo::HttpRequest new -url http://translate.google.com/translate_t \
+	       -post_data [export_vars {langpair text ie}] \
+	       -content_type application/x-www-form-urlencoded]
+    #my msg status=[$r set status]
+    if {[$r set status] eq "finished"} {
+      set data [$r set data]
+      dom parse -simple -html $data doc
+      $doc documentElement root
+      set n [$root selectNodes {//div[@id="result_box"]}]
+      #my msg "$text $from=>$to [$n asText]"
+      return [$n asText]
+    } else {
+      util_user_message -message "Could not translate text, \
+	status=[$r set status] reason=[$r set cancel_message]"
+    }
   }
 
 

@@ -97,14 +97,19 @@ namespace eval ::xowiki {
       my render_found $href [my label]
     } else {
       $page incr unresolved_references
-      set object_type [[$page info class] set object_type]
-      if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
-        # TODO: this is a temporary solution. we should find a way to
-        # pass similar to file or image entries the type of this
-        # entry. Maybe we can get the type as well from a kind of
-        # blackboard, where the type of the "edit" wiki-menu-entry is
-        # stored as well.
-        set object_type ::xowiki::Page
+      if {[$page exists __unresolved_object_type]} {
+	# get the desired object_type for unresoved entries
+	set object_type [$page set __unresolved_object_type]
+      } else {
+	set object_type [[$page info class] set object_type]
+	if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
+	  # TODO: this is a temporary solution. we should find a way to
+	  # pass similar to file or image entries the type of this
+	  # entry. Maybe we can get the type as well from a kind of
+	  # blackboard, where the type of the "edit" wiki-menu-entry is
+	  # stored as well.
+	  set object_type ::xowiki::Page
+	}
       }
       set name [my name]
       set title [my label]

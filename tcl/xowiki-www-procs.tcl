@@ -1188,11 +1188,18 @@ namespace eval ::xowiki {
         #my msg "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
 
 	set redirect_method [my form_parameter __form_redirect_method "view"]
+#my msg "__form_redir=$redirect_method" 
+#my msg "__form params= [::xo::cc array get form_parameter]"
 	if {$redirect_method eq "__none"} {
 	  return
 	} else {
-	  set url [$package_id pretty_link [my name]]?m=$redirect_method
-	  $package_id returnredirect [my query_parameter "return_url" $url]
+	  set url [$package_id pretty_link -lang en [my name]]?m=$redirect_method
+	  set return_url [$package_id get_parameter return_url $url]
+	  # we had query_parameter here. however, to be able to
+	  # process the output of ::xo::cc set_parameter ...., we
+	  # changed it to "parameter".
+	  #my msg "return_url=$return_url"
+	  $package_id returnredirect $return_url
           return
 	}
       }
