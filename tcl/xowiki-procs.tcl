@@ -991,7 +991,7 @@ namespace eval ::xowiki {
       return $page$ch2
     } else {
       # we have a direct (adp-less include)
-      set html [my include [my undoublequote $arg]]
+      set html [my include [my unescape $arg]]
       #my log "--include includelet returns $html"
       incr ::xowiki_inclusion_depth -1
       return $html$ch2
@@ -1013,12 +1013,13 @@ namespace eval ::xowiki {
       return ""
     }
   }
-  Page instproc undoublequote string {
+
+  Page instproc unescape string {
     # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
     # We have to change this back
-    regsub -all {([^\\])&quot;} $string "\\1\"" string
-    return $string
+    return [string map [list "&quot;" \" "&amp;" & "&semicolon;" {;} ] $string]
   }
+
   Page instproc anchor {arg} {
     #my msg [self args]
     set label $arg
@@ -1026,7 +1027,7 @@ namespace eval ::xowiki {
     set options ""
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
-    set options [my undoublequote $options]
+    set options [my unescape $options]
     if {[string match "http*//*" $link] 
         || [string match "ftp://*" $link]
         || [string match "//*" $link]
@@ -1433,6 +1434,10 @@ namespace eval ::xowiki {
   }
   PlainPage set markupmap(escape)   [list "\\\[\["  \03\01  "\\\{\{"  \03\02   {\>>}  \03\03]
   PlainPage set markupmap(unescape) [list  \03\01 "\[\["     \03\02 "\{\{"      \03\03 {>>}]
+
+  PlainPage instproc unescape string {
+    return $string
+  }
 
   PlainPage instproc get_content {} {
     set content [my set text]
