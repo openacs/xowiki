@@ -2793,13 +2793,21 @@ namespace eval ::xowiki::includelet {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name @table \
                   -form_constraints $form_constraints]
-      set field_names [split $fn ,]
+      set raw_field_names [split $fn ,]
     } elseif {[string match "*,*" $field_names] } {
-      set field_names [split $field_names ,]
+      set raw_field_names [split $field_names ,]
     }
 
-    if {$field_names eq ""} {
-      set field_names {_name _last_modified _creation_user}
+    if {$raw_field_names eq ""} {
+      set raw_field_names {_name _last_modified _creation_user}
+    }
+
+    # finally, evaluate conditions if included
+    set field_names [list]
+    foreach f $raw_field_names {
+      set _ [string trim [::xowiki::formfield::FormField get_single_spec \
+			      -package_id $package_id $f]]
+      if {$_ ne ""} {lappend field_names $_}
     }
 
     set form_fields [::xowiki::FormPage get_table_form_fields \

@@ -149,12 +149,7 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  FormField instproc interprete_condition {cond} {
-    set package_id [[my object] package_id]
-    #set policy [$package_id set policy]
-    #set success [$policy check_privilege \
-    #                 -user_id [::xo::cc user_id] \
-    #                 -package_id $package_id $cond [self] view]
+  FormField proc interprete_condition {-package_id cond} {
     if {[::xo::cc info methods role=$cond] ne ""} {
       if {$cond eq "creator"} {
 	set success [::xo::cc role=$cond \
@@ -172,6 +167,19 @@ namespace eval ::xowiki::formfield {
     return $success
   }
   
+  FormField set cond_regexp {^([^=?]+)[?]([^:]*)[:](.*)$}
+
+  FormField proc get_single_spec {-package_id string} {
+    if {[regexp [my set cond_regexp] $string _ condition true_spec false_spec]} {
+      if {[my interprete_condition -package_id $package_id $condition]} {
+	return [my get_single_spec $true_spec]
+      } else {
+	return [my get_single_spec $false_spec]
+      }
+    }
+    return $string
+  }
+
   FormField instproc remove_omit {} {
     set m ::xowiki::formfield::omit
     if {[my ismixin $m]} {my mixin delete $m}
@@ -211,15 +219,9 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
-    if {[regexp {^([^=?]+)[?]([^:]*)[:](.*)$} $s _ condition true_spec false_spec]} {
-      #my msg "--c=$condition,true_spec=$true_spec,false_spec=$false_spec"
-      if {[my interprete_condition $condition]} {
-        my interprete_single_spec $true_spec
-      } else {
-        my interprete_single_spec $false_spec
-      }
-      return
-    }
+    set package_id [[my object] package_id]
+    set s [::xowiki::formfield::FormField get_single_spec -package_id $package_id $s]
+
     switch -glob -- $s {
       optional    {my set required false}
       required    {my set required true; my remove_omit}
@@ -906,7 +908,7 @@ namespace eval ::xowiki::formfield {
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
     if {![my istype ::xowiki::formfield::richtext] && [my exists editor]} {
       # downgrading
-      my msg "downgrading [my info class]"
+      #my msg "downgrading [my info class]"
       foreach m [my info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
       foreach v {editor options} {if {[my exists $v]} {my unset $v}}
     }
