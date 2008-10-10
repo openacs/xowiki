@@ -902,25 +902,35 @@ namespace eval ::xowiki {
     return $page
   }
 
-  Page instproc render_includelet {page} {
-    #$page set __decoration portlet
-    foreach {att value} [$page set __caller_parameters] {
+  Page instproc render_includelet {includelet} {
+    #
+    # The passed includelet is either an instance of ::xowiki::Page or
+    # of ::xowiki::Includelet
+    #
+    foreach {att value} [$includelet set __caller_parameters] {
       switch -- $att {
-        -decoration {$page set __decoration $value}
-        -title {$page set title $value}
+        -decoration {$includelet set __decoration $value}
+        -title {$includelet set title $value}
       }
     }
-    if {[$page exists __decoration] && [$page set __decoration] ne "none"} {
-      $page mixin add ::xowiki::includelet::decoration=[$page set __decoration]
+    if {[$includelet exists __decoration] && [$includelet set __decoration] ne "none"} {
+      $includelet mixin add ::xowiki::includelet::decoration=[$includelet set __decoration]
     }
-    set c [$page info class]
+
+    set c [$includelet info class]
     if {[$c exists cacheable] && [$c cacheable]} {
-      $page mixin add ::xowiki::includelet::page_fragment_cache
+      $includelet mixin add ::xowiki::includelet::page_fragment_cache
     }
-    
-    if {[catch {set html [$page render]} errorMsg]} {
+
+    if {[$includelet istype ::xowiki::Includelet]} {
+      # call this always
+      $includelet include_head_entries
+    }
+
+    # "render" might be cached
+    if {[catch {set html [$includelet render]} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
-      set page_name [$page name]
+      set page_name [$includelet name]
       set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
     }
     #my log "--include includelet returns $html"

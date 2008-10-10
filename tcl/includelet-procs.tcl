@@ -263,6 +263,15 @@ namespace eval ::xowiki::includelet {
     }
   }
 
+  ::xowiki::Includelet instproc include_head_entries {} {
+    # The purpose of this method is to contain all calls to include
+    # CSS files, javascript, etc. in the HTML Head. This kind of
+    # requirements could as well be included e.g. in render, but this
+    # won't work, if "render" is cached.  This method is called before
+    # render to be executed even when render is not due to caching.
+    # It is intended to be overloaded by subclasses.
+  }
+
   ::xowiki::Includelet instproc initialize {} {
     # This method is called at a time after init and before render.
     # It can be used to alter specified parameter from the user,
@@ -1515,7 +1524,7 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create toc \
       -superclass ::xowiki::Includelet \
-      -cacheable false -personalized false -aggregating true \
+      -cacheable true -personalized false -aggregating true \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -1812,12 +1821,11 @@ namespace eval ::xowiki::includelet {
   }
 
 
-  toc instproc render_yui_tree {pages s} {
-    my get_parameters
+  toc instproc include_head_entries_yui_tree {ajax style} {
     set ajaxhelper 1
 
-    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${s}tree.css"
-    if {$s eq ""} {
+    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${style}tree.css"
+    if {$style eq ""} {
       ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper \
           treeview/assets/skins/sam/treeview.css
     }
@@ -1830,6 +1838,11 @@ namespace eval ::xowiki::includelet {
       ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "animation/animation-min.js"   ;# ANIM
     }  
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "treeview/treeview.js"
+  }
+
+
+  toc instproc render_yui_tree {pages style} {
+    my get_parameters
 
     my set book_mode $book_mode
     if {!$book_mode} {
@@ -1864,6 +1877,13 @@ namespace eval ::xowiki::includelet {
     }
     for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
     return $html
+  }
+
+  toc instproc include_head_entries {} {
+    my get_parameters
+    if {$style ne "list"} {
+      my include_head_entries_yui_tree $ajax $style
+    }
   }
 
   toc instproc render {} {
