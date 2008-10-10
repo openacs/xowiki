@@ -339,9 +339,11 @@ namespace eval ::xowiki::includelet {
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
     set html [next]
+    set localized_title [::xo::localize $title]
     set link [expr {[string match "*:*" $name] ? 
-                    "<a href='[$package_id pretty_link $name]'>$title</a>" : 
-                    $title}]
+                    "<a href='[$package_id pretty_link $name]'>$localized_title</a>" : 
+                    $localized_title}]
+    ::xo::render_localizer
     return [subst [[self class] set template]]
   } -set template [expr {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1 ? 
        {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
@@ -500,7 +502,7 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -cacheable true -personalized false -aggregating true \
       -parameter {
-        {title "Categories"}
+        {title "#xowiki.categories#"}
         {parameter_declaration {
           {-tree_name ""}
           {-tree_style:boolean 1}
@@ -679,7 +681,7 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -cacheable true -personalized false -aggregating true \
       -parameter {
-        {title "Recently Changed Pages by Categories"}
+        {title "#xowiki.recently_changed_pages_by_categories#"}
         {parameter_declaration {
           {-max_entries:integer 10}
           {-tree_name ""}
@@ -749,7 +751,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create recent \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "Recently Changed Pages"}
+        {title "#xowiki.recently_changed_pages#"}
         {parameter_declaration {
           {-max_entries:integer 10}
           {-allow_edit:boolean false}
@@ -764,7 +766,7 @@ namespace eval ::xowiki::includelet {
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
         -columns {
-          Field date -label "Modification Date"
+          Field date -label [_ xowiki.Page-last_modified]
           if {[[my info parent] set allow_edit]} {
             ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
           }
@@ -819,7 +821,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create last-visited \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "Last Visited Pages"}
+        {title "#xowiki.last_visited_pages#"}
         {parameter_declaration {
           {-max_entries:integer 20}
         }}
@@ -862,7 +864,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create most-popular \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "Most Popular Pages"}
+        {title "#xowiki.most_popular_pages#"}
         {parameter_declaration {
           {-max_entries:integer "10"}
           {-interval}
@@ -907,8 +909,8 @@ namespace eval ::xowiki::includelet {
       TableWidget t1 -volatile \
           -columns {
             AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
-            Field count -label Visits -html { align right }
-            Field users -label Visitors -html { align right }
+            Field count -label [_ xowiki.includelets-visits] -html { align right }
+            Field users -label [_ xowiki.includelet-visitors] -html { align right }
           }
       db_foreach [my qn get_pages] \
           [::xo::db::sql select \
@@ -939,7 +941,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create rss-client \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "RSS client"}
+        {title "#xowiki.rss_client#"}
         {parameter_declaration {
           {-url:required}
           {-max_entries:integer "15"}
@@ -986,7 +988,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create most-frequent-visitors \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "Most Frequent Visitors"}
+        {title "#xowiki.most_frequent_visitors#"}
         {parameter_declaration {
           {-max_entries:integer "15"}
         }}
@@ -1033,7 +1035,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create unread-items \
       -superclass ::xowiki::Includelet \
       -parameter {
-        {title "Unread Items"}
+        {title "#xowiki.unread_items#"}
         {parameter_declaration {
           {-max_entries:integer 20}
         }}

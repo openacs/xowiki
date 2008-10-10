@@ -8,11 +8,11 @@
     <singleton-p>f</singleton-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.102" url="http://openacs.org/repository/download/apm/xowiki-0.102.apm">
+    <version name="0.103" url="http://openacs.org/repository/download/apm/xowiki-0.103.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2008-10-09</release-date>
+        <release-date>2008-10-10</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -54,23 +54,24 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.102"/>
+        <provides url="xowiki" version="0.103"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.97"/>
+        <requires url="xotcl-core" version="0.98"/>
 
         <callbacks>
-            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
-            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
+            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
+            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. " section_name="Form"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="include_in_google_sitemap_index"  default="1" description="include the package in the google sitemap index"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="Name of the publisher, when posting urls to my yahoo (use in connection with with_yahoo_publisher)" section_name="Options"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
@@ -82,6 +83,7 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_portlet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki portlet (defined in ::xowiki::portlet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki portlets."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, the connection locale (depending on the browser setting) is used to determine the default language, in which a page is presented, whenever possible. Users with different locales will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used as default." section_name="URL"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>

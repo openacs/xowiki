@@ -79,7 +79,7 @@ TableWidget t1 -volatile \
       AnchorField title -label [_ xowiki.Page-title] -orderby title
       Field object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
       Field size -label "Size" -orderby size -html {align right style "padding: 2px;"}
-      Field last_modified -label "Last Modified" -orderby last_modified
+      Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
       Field mod_user -label "By User" -orderby mod_user
       ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
     }

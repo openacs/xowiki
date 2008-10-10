@@ -61,8 +61,13 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="formfield-youtube_url-help_text">Cut&amp;Paste URL of YouTube video (http://www.youtube.com/....)</msg>
   <msg key="FormPage-assignee">Assignee</msg>
   <msg key="FormPage-state">State</msg>
+  <msg key="includelet-visitors">Visitors</msg>
+  <msg key="includelets-visits">Visits</msg>
   <msg key="index">Index</msg>
   <msg key="index_title">Go to the start page of this package ...</msg>
+  <msg key="last_visited_pages">Last Visited Pages</msg>
+  <msg key="most_frequent_visitors">Most Frequent Visitors</msg>
+  <msg key="most_popular_pages">Most Popular Pages</msg>
   <msg key="new_page">New Page</msg>
   <msg key="new_title">Create a new page ...</msg>
   <msg key="news-source">Source</msg>
@@ -101,16 +106,20 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
   <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
   <msg key="publish_status">Published</msg>
+  <msg key="recently_changed_pages">Recently Changed Pages</msg>
+  <msg key="recently_changed_pages_by_categories">Recently Changed Pages (by categories)</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="references_of_label">References of this Page:</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="revisions_title">Show revisions of this page ...</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
+  <msg key="rss_client">RSS Client</msg>
   <msg key="search">Search</msg>
   <msg key="search_title">Search pages of this package ...</msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title
 </msg>
+  <msg key="unread_items">Unread Items</msg>
   <msg key="view">View</msg>
   <msg key="view_title">View this page ...</msg>
   <msg key="weblog-more">more...</msg>
