@@ -2808,7 +2808,7 @@ namespace eval ::xowiki::includelet {
     set field_names [list]
     foreach f $raw_field_names {
       set _ [string trim [::xowiki::formfield::FormField get_single_spec \
-			      -package_id $package_id $f]]
+			      -object $o -package_id $package_id $f]]
       if {$_ ne ""} {lappend field_names $_}
     }
 

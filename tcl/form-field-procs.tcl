@@ -149,11 +149,11 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  FormField proc interprete_condition {-package_id cond} {
+  FormField proc interprete_condition {-package_id -object cond} {
     if {[::xo::cc info methods role=$cond] ne ""} {
       if {$cond eq "creator"} {
 	set success [::xo::cc role=$cond \
-			 -object [my object] \
+			 -object $object \
 			 -user_id [::xo::cc user_id] \
 			 -package_id $package_id]
       } else {
@@ -169,12 +169,12 @@ namespace eval ::xowiki::formfield {
   
   FormField set cond_regexp {^([^=?]+)[?]([^:]*)[:](.*)$}
 
-  FormField proc get_single_spec {-package_id string} {
+  FormField proc get_single_spec {-package_id -object string} {
     if {[regexp [my set cond_regexp] $string _ condition true_spec false_spec]} {
-      if {[my interprete_condition -package_id $package_id $condition]} {
-	return [my get_single_spec $true_spec]
+      if {[my interprete_condition -package_id $package_id -object $object $condition]} {
+	return [my get_single_spec -package_id $package_id -object $object $true_spec]
       } else {
-	return [my get_single_spec $false_spec]
+	return [my get_single_spec -package_id $package_id -object $object $false_spec]
       }
     }
     return $string
@@ -219,8 +219,10 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
-    set package_id [[my object] package_id]
-    set s [::xowiki::formfield::FormField get_single_spec -package_id $package_id $s]
+
+    set object [my object]
+    set package_id [$object package_id]
+    set s [::xowiki::formfield::FormField get_single_spec -object $object -package_id $package_id $s]
 
     switch -glob -- $s {
       optional    {my set required false}
@@ -1736,7 +1738,9 @@ namespace eval ::xowiki::formfield {
       # create for each component a form field
       #
       set c [::xowiki::formfield::FormField create [self]::$name \
-                 -name [my name].$name -id [my id].$name -locale [my locale] -spec $spec]
+                 -name [my name].$name -id [my id].$name \
+                 -locale [my locale] -object [my object] \
+                 -spec $spec]
       my set component_index([my name].$name) $c
       my lappend components $c
     }
@@ -1856,7 +1860,9 @@ namespace eval ::xowiki::formfield {
         #
         set name $element
         set c [::xowiki::formfield::label create [self]::$name \
-                   -name [my name].$name -id [my id].$name -locale [my locale] -value $element]
+                   -name [my name].$name -id [my id].$name \
+                   -locale [my locale] -object [my object] \
+                   -value $element]
         $c set_disabled [my exists disabled]
         if {[lsearch [my components] $c] == -1} {my lappend components $c}
         continue
@@ -1867,7 +1873,8 @@ namespace eval ::xowiki::formfield {
       #
       set name $class
       set c [::xowiki::formfield::$class create [self]::$name \
-               -name [my name].$name -id [my id].$name -locale [my locale]]
+                 -name [my name].$name -id [my id].$name \
+                 -locale [my locale] -object [my object]]
       #my msg "creating [my name].$name"
       $c set_disabled [my exists disabled]
       $c set code $code
