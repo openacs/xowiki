@@ -1026,6 +1026,7 @@ namespace eval ::xowiki::formfield {
     {CSSclass wymeditor}
     width
     height
+    {skin silver}
     {plugins "hovertools resizable"}
   }
   richtext::wym set editor_mixin 1
@@ -1051,7 +1052,9 @@ namespace eval ::xowiki::formfield {
 	append postinit "wym.resizable();\n"
       }
       regsub -all {[.:]} [my id] {\\\\&} JID
-      set config [list {skin: 'default'}]
+      
+      # possible skins are per in the distribution: "default", "sliver", "minimal" and "twopanels"
+      set config [list "skin: '[my skin]'"]
 
       #my msg "wym, h [my exists height] || w [my exists width]"
       if {[my exists height] || [my exists width]} {
