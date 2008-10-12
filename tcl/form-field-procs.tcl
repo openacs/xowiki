@@ -1026,6 +1026,7 @@ namespace eval ::xowiki::formfield {
     {CSSclass wymeditor}
     width
     height
+    {plugins "hovertools resizable"}
   }
   richtext::wym set editor_mixin 1
   richtext::wym instproc initialize {} {
@@ -1040,8 +1041,18 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
       ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
+      set postinit ""
+      if {[lsearch -exact [my plugins] hovertools] > -1} {
+	::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/hovertools/jquery.wymeditor.hovertools.js"
+	append postinit "wym.hovertools();\n"
+      }
+      if {[lsearch -exact [my plugins] resizable] > -1} {
+	::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/resizable/jquery.wymeditor.resizable.js"
+	append postinit "wym.resizable();\n"
+      }
       regsub -all {[.:]} [my id] {\\\\&} JID
-      set config [list "skin: 'default'"]
+      set config [list {skin: 'default'}]
+
       #my msg "wym, h [my exists height] || w [my exists width]"
       if {[my exists height] || [my exists width]} {
         set height_cmd ""
@@ -1053,6 +1064,7 @@ namespace eval ::xowiki::formfield {
             wym_box = jQuery(".wym_box");
             $height_cmd
             $width_cmd
+            $postinit
           }}]
         lappend config $postInit
       }
