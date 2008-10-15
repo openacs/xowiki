@@ -509,6 +509,20 @@ set content [::$package_id invoke -method $m]
 ? {string first Error $content} -1 "page contains no error"
 ? {expr {[string first 3: $content]>-1}} 1 "page contains three revisions"
 
+########################################################################
+test section "Small tests"
+test subsection "Filter expressions"
+
+? {::xowiki::FormPage filter_expression \
+    "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
+    "tcl true h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}" filter_expr_where_1
+? {::xowiki::FormPage filter_expression \
+    "_assignee<=123 && y>=123" &&} \
+    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '{123 }'}}} filter_expr_where_2
+? {::xowiki::FormPage filter_expression \
+    "_state= closed|accepted || x = 1" ||} \
+    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted ')}}} filter_expr_unless_1
+
 
 ns_write "<p>
 <hr>

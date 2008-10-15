@@ -519,7 +519,7 @@ namespace eval ::xowiki {
     set vars [list]
     set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
-      if {[regexp {^(\w+)\s*([=<>]|<=|>=)\s*([[:alnum:]_|]*)$} $clause _ lhs op rhs_expr]} {
+      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
         if {[string range $lhs 0 0] eq "_"} {
           set sql_var [string range $lhs 1 end]
