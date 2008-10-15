@@ -75,6 +75,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="notifications">Notifications</msg>
   <msg key="notifications_title">Manage notifications ...</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
+  <msg key="Page-creation_user">Creation User</msg>
   <msg key="Page-creator">Creator</msg>
   <msg key="Page-description">Description</msg>
   <msg key="Page-last_modified">Last Modified</msg>
