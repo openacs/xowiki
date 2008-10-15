@@ -2819,7 +2819,12 @@ namespace eval ::xowiki::includelet {
     # $form_item show_fields $form_fields
     foreach f $form_fields {set __ff([$f name]) $f}
 
-    if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
+#    if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
+
+    # TODO: wiki-substituion is just hacked in here. maybe it makes
+    # more sense to use it as a default for _text, but we have to
+    # check all the nested cases to avoid double-substitutions.
+    if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
 
     set cols ""
     append cols {ImageField_EditIcon _edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
@@ -2852,13 +2857,13 @@ namespace eval ::xowiki::includelet {
     set init_vars [list]
     array set uc {tcl false h "" vars "" sql ""}
     if {[info exists unless]} {
-      set unless [::xowiki::Includelet html_to_text $unless]
+      #set unless [::xowiki::Includelet html_to_text $unless]
       array set uc [::xowiki::FormPage filter_expression $unless ||]
       set init_vars [concat $init_vars $uc(vars)]
     }
     array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
-      set where [::xowiki::Includelet html_to_text $where]
+      # set where [::xowiki::Includelet html_to_text $where]
       array set wc [::xowiki::FormPage filter_expression $where &&]
       set init_vars [concat $init_vars $wc(vars)]
     }
@@ -2874,7 +2879,7 @@ namespace eval ::xowiki::includelet {
       foreach {cnames extra_where_clause} [my category_clause $category_id bt.item_id] break
     }
 
-    set items [::xowiki::FormPage get_children \
+    set items [::xowiki::FormPage get_form_entries \
                    -base_item_id $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
@@ -2888,7 +2893,7 @@ namespace eval ::xowiki::includelet {
         set base_items $items
       } else {
         # difference to variable items: just the extra_where_clause
-        set base_items [::xowiki::FormPage get_children \
+        set base_items [::xowiki::FormPage get_form_entries \
                    -base_item_id $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
@@ -2904,7 +2909,7 @@ namespace eval ::xowiki::includelet {
       array set __ia $init_vars
       array set __ia [$p instance_attributes]
       if {[expr $uc(tcl)]} continue
-      #if {![expr $wc(tcl)]} continue ;# already handled in get_children
+      #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 
       set page_link [$package_id pretty_link -parent_id [$p parent_id] [$p name]]
 

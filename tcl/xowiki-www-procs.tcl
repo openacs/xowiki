@@ -510,8 +510,8 @@ namespace eval ::xowiki {
     input_expr
     logical_op
   } {
-    array set tcl_op {= eq}
-    array set sql_op {= =}
+    array set tcl_op {= eq < < > > >= >= <= <=}
+    array set sql_op {= =  < < > > >= >= <= <=}
     #my msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
@@ -519,7 +519,7 @@ namespace eval ::xowiki {
     set vars [list]
     set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
-      if {[regexp {^(.+)\s*([=])\s*(.*)$} $clause _ lhs op rhs_expr]} {
+      if {[regexp {^(\w+)\s*([=<>]|<=|>=)\s*(\w*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
         if {[string range $lhs 0 0] eq "_"} {
           set sql_var [string range $lhs 1 end]
@@ -535,7 +535,12 @@ namespace eval ::xowiki {
           lappend vars $lhs ""
           foreach p [split $rhs_expr |] {
             lappend tcl_clause "$tleft $tcl_op($op) {$p}"
-            lappend h_clause "$hleft=>[my h_double_quote $p]"
+            if {$op eq "="} {
+              # TODO: think about a solution for other operators with
+              # hstore maybe: extracting it by a query via hstore and
+              # compare in plain SQL
+              lappend h_clause "$hleft=>[my h_double_quote $p]"
+            }
           }
         }
       } else {

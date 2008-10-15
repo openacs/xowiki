@@ -1017,7 +1017,7 @@ namespace eval ::xowiki {
   Page instproc unescape string {
     # Some browsers change {{cmd -flag "..."}} into {{cmd -flag &quot;...&quot;}}
     # We have to change this back
-    return [string map [list "&quot;" \" "&amp;" & "&semicolon;" {;} ] $string]
+    return [string map [list "&gt;" > "&lt;" < "&quot;" \" "&amp;" & "&semicolon;" {;} ] $string]
   }
 
   Page instproc anchor {arg} {
@@ -1980,7 +1980,7 @@ namespace eval ::xowiki {
     return 0
   }
 
-  FormPage proc get_children {
+  FormPage proc get_form_entries {
        -base_item_id 
        -package_id 
        -form_fields 
@@ -2009,7 +2009,7 @@ namespace eval ::xowiki {
       if {![$f exists __base_field]} continue
       set field_name [$f name]
       if {$field_name eq "_text"} {
-        lappend sql_atts "bt.content as text"
+        lappend sql_atts "bt.data as text"
       } elseif {$field_name eq "_publish_status"} {
         lappend sql_atts ci.[$f set __base_field]
       } elseif {[lsearch -exact $always_queried_attributes $field_name] == -1} {
@@ -2054,7 +2054,7 @@ namespace eval ::xowiki {
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
                  ]
-    #my log $sql
+    my log $sql
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class ::xowiki::FormPage]
     if {$h_where ne "" && !$use_hstore} {

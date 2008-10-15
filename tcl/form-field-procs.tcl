@@ -1013,7 +1013,11 @@ namespace eval ::xowiki::formfield {
   }
   richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
-    return [string map [list @ "&#64;"] $v]
+    if {[my wiki]} {
+      return [[my object] substitute_markup [list $v text/html]]
+    } else {
+      return [string map [list @ "&#64;"] $v]
+    }
   }
 
   ###########################################################
@@ -1391,7 +1395,7 @@ namespace eval ::xowiki::formfield {
       #my msg "where '$where' => wc=[array get wc]"
     }
     set options [list]    
-    set items [::xowiki::FormPage get_children \
+    set items [::xowiki::FormPage get_form_entries \
                    -base_item_id [$form_obj item_id] \
                    -form_fields [list] \
                    -publish_status ready \
