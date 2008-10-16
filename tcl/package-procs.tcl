@@ -1147,7 +1147,7 @@ namespace eval ::xowiki {
 
   Class ParameterCache
   ParameterCache instproc get_parameter {attribute {default ""}} {
-    set key [list [self proc] $attribute]
+    set key [list [my id] [self proc] $attribute]
     if {[::xo::cc cache_exists $key]} {
       return [::xo::cc cache_get $key]
     }
