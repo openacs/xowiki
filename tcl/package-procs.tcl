@@ -244,11 +244,11 @@ namespace eval ::xowiki {
     #my log "--R creating + folder_object"
     next
     my require_folder_object
-    my set policy [my get_parameter security_policy ::xowiki::policy1]
+    my set policy [my get_parameter -check_query_parameter false security_policy ::xowiki::policy1]
     #my proc destroy {} {my log "--P "; next}
   }
 
-  Package ad_instproc get_parameter {attribute {default ""}} {
+  Package ad_instproc get_parameter {{-check_query_parameter true} attribute {default ""}} {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
@@ -257,7 +257,7 @@ namespace eval ::xowiki {
     (5) standard OpenACS package parameter
   } {
     set value [::xo::cc get_parameter $attribute]
-    if {$value eq ""} {set value [my query_parameter $attribute]}
+    if {$check_query_parameter && $value eq ""} {set value [my query_parameter $attribute]}
     if {$value eq "" && $attribute ne "parameter_page"} {
       #
       # Try to get the parameter from the parameter_page.  We have to
@@ -285,7 +285,7 @@ namespace eval ::xowiki {
       }
     }
     if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
-    if {$value eq ""} {set value [next]}
+    if {$value eq ""} {set value [next $attribute $default]}
     #my log "           $attribute returns '$value'"
     return $value
   }
@@ -1033,9 +1033,10 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [$object_type get_instance_from_db -item_id $source_item_id]
       $page copy_content_vars -from_object $source
-      set name ""
-      regexp {^.*:(.*)$} [$source set name] _ name
+      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [$source name]]"
+      my get_lang_and_name -name $name lang name
       $page set name $name
+      my msg nls=[$page nls_language],source-nls=[$source nls_language],page=$page,name=$name
     } else {
       $page set name ""
     }
@@ -1146,7 +1147,7 @@ namespace eval ::xowiki {
   #
 
   Class ParameterCache
-  ParameterCache instproc get_parameter {attribute {default ""}} {
+  ParameterCache instproc get_parameter {{-check_query_parameter true} attribute {default ""}} {
     set key [list [my id] [self proc] $attribute]
     if {[::xo::cc cache_exists $key]} {
       return [::xo::cc cache_get $key]
