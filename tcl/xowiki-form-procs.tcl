@@ -357,7 +357,9 @@ namespace eval ::xowiki {
     # set the following defaults manually
     #
     $data set creator [::xo::get_user_name [::xo::cc user_id]]
-    $data set nls_language [ad_conn locale]
+    if {[$data name] eq ""} {
+      $data set nls_language [::xo::cc locale]
+    }
     next
   }
 
@@ -440,7 +442,7 @@ namespace eval ::xowiki {
       if {[db_0or1row check_mimetype {select 1 from cr_mime_types 
 	where mime_type = :mime_type}] == 0 || $mime_type eq "application/octet-stream"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
-        my msg guess=$guessed_mime_type
+        #my msg guess=$guessed_mime_type
         if {$guessed_mime_type ne "*/*"} {
           set mime_type $guessed_mime_type
         }

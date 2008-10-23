@@ -518,10 +518,17 @@ test subsection "Filter expressions"
     "tcl true h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}" filter_expr_where_1
 ? {::xowiki::FormPage filter_expression \
     "_assignee<=123 && y>=123" &&} \
-    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '{123 }'}}} filter_expr_where_2
+    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '{123 }'}}} \
+    filter_expr_where_2
+? {::xowiki::FormPage filter_expression \
+    "betreuer contains en:person1" &&} \
+    {tcl {[lsearch $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
+    filter_expr_where_3
+
 ? {::xowiki::FormPage filter_expression \
     "_state= closed|accepted || x = 1" ||} \
-    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted ')}}} filter_expr_unless_1
+    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted ')}}} \
+    filter_expr_unless_1
 
 
 ns_write "<p>
