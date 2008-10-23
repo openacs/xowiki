@@ -265,10 +265,11 @@ namespace eval ::xowiki {
         my set $key [$package_id query_parameter $key]
       }
     }
-    if {$new} {
-      my set creator [::xo::get_user_name [::xo::cc user_id]]
-      my set nls_language [ad_conn locale]
-    }
+    # the following is handled by new-request of the wiki form
+    #if {$new} {
+      #my set creator [::xo::get_user_name [::xo::cc user_id]]
+      #my set nls_language [ad_conn locale]
+    #}
 
     set object_type [my info class]
     if {!$new && $object_type eq "::xowiki::Object" && [my set name] eq "::$folder_id"} {
@@ -512,6 +513,7 @@ namespace eval ::xowiki {
   } {
     array set tcl_op {= eq < < > > >= >= <= <=}
     array set sql_op {= =  < < > > >= >= <= <=}
+    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {[lsearch $lhs_var {$rhs}] > -1}}
     #my msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
@@ -519,27 +521,45 @@ namespace eval ::xowiki {
     set vars [list]
     set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
-      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
+      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
         if {[string range $lhs 0 0] eq "_"} {
-          set sql_var [string range $lhs 1 end]
+          set lhs_var [string range $lhs 1 end]
 	  set rhs [split $rhs_expr |] 
-	  if {[llength $rhs]>1} {
-	    lappend sql_clause "$sql_var in ('[join $rhs ',']')"
+	  if {[info exists op_map($op,sql)]} {
+	    lappend sql_clause [subst -nocommands $op_map($op,sql)]
+	    if {[my exists $lhs_var]} {
+	      set lhs_var "\[my set $lhs_var\]"
+	      lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+	    } else {
+	      my msg "ignoring unknown variable $lhs_var in expression"
+	    }
+	  } elseif {[llength $rhs]>1} {
+	    lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
 	  } else {
-            lappend sql_clause "$sql_var $sql_op($op) '$rhs'"
+            lappend sql_clause "$lhs_var $sql_op($op) '$rhs'"
 	  }
         } else {
           set hleft [my h_double_quote $lhs]
-          set tleft "\$__ia($lhs)"
           lappend vars $lhs ""
-          foreach p [split $rhs_expr |] {
-            lappend tcl_clause "$tleft $tcl_op($op) {$p}"
+	  if {$op eq "contains"} {
+	    #make approximate query
+	    set lhs_var instance_attributes
+	    set rhs $rhs_expr
+	    lappend sql_clause [subst -nocommands $op_map($op,sql)]
+	  }
+          set lhs_var "\$__ia($lhs)"
+          foreach rhs [split $rhs_expr |] {
+	    if {[info exists op_map($op,tcl)]} {
+	      lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+	    } else {
+	      lappend tcl_clause "$lhs_var $tcl_op($op) {$rhs}"
+	    }
             if {$op eq "="} {
               # TODO: think about a solution for other operators with
               # hstore maybe: extracting it by a query via hstore and
               # compare in plain SQL
-              lappend h_clause "$hleft=>[my h_double_quote $p]"
+              lappend h_clause "$hleft=>[my h_double_quote $rhs]"
             }
           }
         }
@@ -548,6 +568,7 @@ namespace eval ::xowiki {
       }
     }
     if {[llength $tcl_clause] == 0} {set tcl_clause [list true]}
+    #my msg sql=$sql_clause,tcl=$tcl_clause
     return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] \
                 vars $vars sql $sql_clause]
     #my msg $expression
@@ -1649,9 +1670,10 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $f copy_content_vars -from_object $source
-      #$f set __autoname_prefix "[my name] - "
-      $f set name ""
-      regexp {^.*:(.*)$} [$source set name] _ name
+      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [my name]]"
+      $package_id get_lang_and_name -name $name lang name
+      $f set name $name
+      my msg nls=[$f nls_language],source-nls=[$source nls_language]
     } else {
       #
       # set some default values from query parameters
