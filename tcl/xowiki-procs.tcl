@@ -886,7 +886,7 @@ namespace eval ::xowiki {
 	# we use as default decoration for included pages
 	# the "portlet" decoration
 	#
-        $page set __decoration portlet
+        $page set __decoration [$package_id get_parameter default-portlet-decoration portlet]
       }
     }
 
