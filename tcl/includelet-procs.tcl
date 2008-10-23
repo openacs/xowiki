@@ -352,6 +352,23 @@ namespace eval ::xowiki::includelet {
        } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
         <div $id class='portlet'>[next]</div></div>}
        }]
+
+  Class create ::xowiki::includelet::decoration=edit -instproc render {} {
+    my instvar package_id name title
+    set class [namespace tail [my info class]]
+    set id [expr {[my exists id] ? "id='[my id]'" : ""}]
+    set html [next]
+    set localized_title [::xo::localize $title]
+    set edit_button [my include [list edit-item-button -book_mode true]]
+    set link [expr {[string match "*:*" $name] ? 
+                    "<a href='[$package_id pretty_link $name]'>$localized_title</a>" : 
+                    $localized_title}]
+    return [subst [[self class] set template]]
+  } -set template {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
+    <div><div style='float:right;'>$edit_button</div></div></div>
+    <div $id class='portlet'>$html</div></div></div>
+  }
+
   Class create ::xowiki::includelet::decoration=plain -instproc render {} {
     set class [namespace tail [my info class]]
     set id [expr {[my exists id] ? "id='[my id]'" : ""}]
@@ -2798,6 +2815,8 @@ namespace eval ::xowiki::includelet {
       set raw_field_names [split $fn ,]
     } elseif {[string match "*,*" $field_names] } {
       set raw_field_names [split $field_names ,]
+    } else {
+      set raw_field_names $field_names
     }
 
     if {$raw_field_names eq ""} {
