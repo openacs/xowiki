@@ -1556,6 +1556,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-locale ""}
           {-source ""}
+          {-match ""}
         }}
         id
       }
@@ -1577,7 +1578,7 @@ namespace eval ::xowiki::includelet {
     return $anchor
   }
 
-  toc instproc build_toc {package_id locale source} {
+  toc instproc build_toc {package_id locale source match} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
 
@@ -1606,6 +1607,12 @@ namespace eval ::xowiki::includelet {
 			$page_order_clause \
 			$extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
+
+    if {$match ne "" && $page_order_att ne ""} {
+      foreach p [$pages children] {
+	if {![string match $match [$p set page_order]]} {$pages delete $p}
+      }
+    }
 
     if {$source ne ""} {
       # add the page_order to the objects
@@ -1917,7 +1924,7 @@ namespace eval ::xowiki::includelet {
       "list"    {set s ""; set list_mode 1}
       "default" {set s ""}
     }
-    set pages [my build_toc $package_id $locale $source]
+    set pages [my build_toc $package_id $locale $source $match]
 
     if {$list_mode} {
       return [my render_list $pages]
@@ -1940,6 +1947,7 @@ namespace eval ::xowiki::includelet {
           {-ordered_pages ""}
           {-source}
           {-menu_buttons edit}
+	  {-match ""}
         }}
       }
 
@@ -1965,6 +1973,12 @@ namespace eval ::xowiki::includelet {
 		[::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
       $p set page_order $page_order([$p set name])
+    }
+
+    if {$match ne ""} {
+      foreach p [$pages children] {
+	if {![string match $match [$p set page_order]]} {$pages delete $p}
+      }
     }
     
     $pages mixin add ::xo::OrderedComposite::IndexCompare
@@ -2066,6 +2080,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-menu_buttons edit}
           {-locale ""}
+	  {-match ""}
         }}
       }
 
@@ -2100,6 +2115,12 @@ namespace eval ::xowiki::includelet {
       append output "<div class='filter'>Filtered by categories: $cnames</div>"
     }
     set return_url [::xo::cc url]
+
+    if {$match ne ""} {
+      foreach p [$pages children] {
+	if {![string match $match [$p set page_order]]} {$pages delete $p}
+      }
+    }
 
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
