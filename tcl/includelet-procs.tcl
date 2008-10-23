@@ -1556,7 +1556,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-locale ""}
           {-source ""}
-          {-match ""}
+          {-range ""}
         }}
         id
       }
@@ -1578,7 +1578,7 @@ namespace eval ::xowiki::includelet {
     return $anchor
   }
 
-  toc instproc build_toc {package_id locale source match} {
+  toc instproc build_toc {package_id locale source range} {
     my instvar navigation page_name book_mode
     array set navigation {parent "" position 0 current ""}
 
@@ -1608,12 +1608,18 @@ namespace eval ::xowiki::includelet {
 			$extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
 
-    if {$match ne "" && $page_order_att ne ""} {
+    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    if {$range ne "" && $page_order_att ne ""} {
+      foreach {from to} [split $range -] break
       foreach p [$pages children] {
-	if {![string match $match [$p set page_order]]} {$pages delete $p}
+	if {[$pages __value_compare [$p set page_order] $from 0] == -1
+	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+	  $pages delete $p
+	}
       }
     }
 
+    $pages orderby page_order
     if {$source ne ""} {
       # add the page_order to the objects
       foreach p [$pages children] {
@@ -1621,8 +1627,6 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
-    $pages orderby page_order
     return $pages
   }
 
@@ -1924,7 +1928,7 @@ namespace eval ::xowiki::includelet {
       "list"    {set s ""; set list_mode 1}
       "default" {set s ""}
     }
-    set pages [my build_toc $package_id $locale $source $match]
+    set pages [my build_toc $package_id $locale $source $range]
 
     if {$list_mode} {
       return [my render_list $pages]
@@ -1947,7 +1951,7 @@ namespace eval ::xowiki::includelet {
           {-ordered_pages ""}
           {-source}
           {-menu_buttons edit}
-	  {-match ""}
+	  {-range ""}
         }}
       }
 
@@ -1975,13 +1979,17 @@ namespace eval ::xowiki::includelet {
       $p set page_order $page_order([$p set name])
     }
 
-    if {$match ne ""} {
+    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    if {$range ne ""} {
+      foreach {from to} [split $range -] break
       foreach p [$pages children] {
-	if {![string match $match [$p set page_order]]} {$pages delete $p}
+	if {[$pages __value_compare [$p set page_order] $from 0] == -1
+	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+	  $pages delete $p
+	}
       }
     }
     
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
     return [my render_children $pages $menu_buttons]
   }
@@ -2080,7 +2088,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-menu_buttons edit}
           {-locale ""}
-	  {-match ""}
+	  {-range ""}
         }}
       }
 
@@ -2116,9 +2124,13 @@ namespace eval ::xowiki::includelet {
     }
     set return_url [::xo::cc url]
 
-    if {$match ne ""} {
+    if {$range ne ""} {
+      foreach {from to} [split $range -] break
       foreach p [$pages children] {
-	if {![string match $match [$p set page_order]]} {$pages delete $p}
+	if {[$pages __value_compare [$p set page_order] $from 0] == -1
+	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+	  $pages delete $p
+	}
       }
     }
 
