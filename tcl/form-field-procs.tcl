@@ -691,7 +691,7 @@ namespace eval ::xowiki::formfield {
 
   Class image -superclass file -parameter {
     href cssclass
-    {float left} width height 
+    float width height 
     padding padding-right padding-left padding-top padding-bottom
     margin margin-left margin-right margin-top margin-bottom
     border border-width position top botton left right
