@@ -1660,9 +1660,15 @@ namespace eval ::xowiki {
                -publish_status "production" \
                -instance_attributes $instance_attributes \
                -page_template [my item_id]]
+
     if {[my exists state]} {
       $f set state [my set state]
     }
+    # Call the application specific initialization, when a FormPage is
+    # initially created. This is used to control the live-cycle of
+    # FormPages.
+    $f initialize
+
     #
     # if we copy an item, we use source_item_id to provide defaults
     #
@@ -1673,7 +1679,7 @@ namespace eval ::xowiki {
       set name "[::xowiki::autoname generate -parent_id $source_item_id -name [my name]]"
       $package_id get_lang_and_name -name $name lang name
       $f set name $name
-      my msg nls=[$f nls_language],source-nls=[$source nls_language]
+      #my msg nls=[$f nls_language],source-nls=[$source nls_language]
     } else {
       #
       # set some default values from query parameters

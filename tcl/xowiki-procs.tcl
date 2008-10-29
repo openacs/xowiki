@@ -1970,6 +1970,9 @@ namespace eval ::xowiki {
     my array set __ia [my instance_attributes]
     next
   }
+  FormPage instproc initialize {} {
+    # can be overloaded
+  }
 
   FormPage instproc condition=in_state {query_context value} {
     # possible values can be or-ed together (e.g. initial|final)
@@ -2082,7 +2085,7 @@ namespace eval ::xowiki {
 
   FormPage instproc property {name {default ""}} {
     set key  [my property_key $name]
-    # my msg "$key [my exists $key] //[my array names __ia]//"
+    #my msg "$key [my exists $key] //[my array names __ia]//"
     if {[my exists $key]} {
       return [my set $key]
     }
@@ -2163,7 +2166,8 @@ namespace eval ::xowiki {
     if {$form eq ""} {
       foreach {var _} [my template_vars $template] {
         #if {[string match _* $var]} continue
-	if {[lsearch $allvars $var] == -1} {lappend field_names $var}
+	if {[lsearch $allvars $var] == -1 
+            && [lsearch $field_names $var] == -1} {lappend field_names $var}
       }
       set from_HTML_form 0
     } else {
