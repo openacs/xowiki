@@ -1121,7 +1121,7 @@ namespace eval ::xowiki {
     set anon_instances [my get_from_template anon_instances f]
     #my msg form=$form
     #my msg anon_instances=$anon_instances
-
+    
     # The following code should be obsolete
     # set form_id [my get_form_id]
     # if {![$form_id istype ::xowiki::Form]} {
@@ -1664,8 +1664,9 @@ namespace eval ::xowiki {
     if {[my exists state]} {
       $f set state [my set state]
     }
+
     # Call the application specific initialization, when a FormPage is
-    # initially created. This is used to control the live-cycle of
+    # initially created. This is used to control the life-cycle of
     # FormPages.
     $f initialize
 
