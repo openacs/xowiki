@@ -18,8 +18,6 @@ namespace eval ::xowiki {
     set footer ""
     set description [my get_description $content]
     
-    #set ::META(description) $description
-
     if {[ns_conn isconnected]} {
       set url         "[ns_conn location][::xo::cc url]"
       set package_url "[ns_conn location][$package_id package_url]"
@@ -220,10 +218,18 @@ namespace eval ::xowiki {
         set template_file [my query_parameter "template_file" \
                                [::$package_id get_parameter template_file view-default]]
 
+	# if the template_file does not have a path, assume it in xowiki/www
         if {![regexp {^[./]} $template_file]} {
           set template_file /packages/xowiki/www/$template_file
         }
+	
         set header_stuff [::xo::Page header_stuff]
+	if {[info command ::template::head::add_meta] ne ""} {
+	  template::head::add_meta -name language -content [my lang]
+	  template::head::add_meta -name description -content [my description]
+	  template::head::add_meta -name keywords -content [$package_id get_parameter keywords ""]
+	}
+
         #
         # pass variables for properties doc and body
         # example: ::xo::Page set_property body class "yui-skin-sam"
@@ -1504,14 +1510,18 @@ namespace eval ::xowiki {
 
   Page instproc diff {} {
     my instvar package_id
+
     set compare_id [my query_parameter "compare_revision_id" 0]
     if {$compare_id == 0} {
       return ""
     }
-    set my_page [::xowiki::Package instantiate_page_from_id -revision_id [my set revision_id]]
+    ::xo::Page requireCSS /resources/xowiki/xowiki.css
+    set my_page [::xowiki::Package instantiate_page_from_id -revision_id [my revision_id]]
     $my_page volatile
 
-    set html1 [$my_page render]
+    if {[catch {set html1 [$my_page render]} errorMsg]} {
+      set html2 "Error rendering [my revision_id]: $errorMsg"
+    }
     set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
     set user1 [::xo::get_user_name [$my_page set creation_user]]
     set time1 [$my_page set creation_date]
@@ -1522,7 +1532,9 @@ namespace eval ::xowiki {
     $other_page volatile
     #$other_page absolute_links 1
 
-    set html2 [$other_page render]
+    if {[catch {set html2 [$other_page render]} errorMsg]} {
+      set html2 "Error rendering $compare_id: $errorMsg"
+    }
     set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
     set user2 [::xo::get_user_name [$other_page set creation_user]]
     set time2 [$other_page set creation_date]
@@ -1531,12 +1543,16 @@ namespace eval ::xowiki {
 
     set title "Differences for [my set name]"
     set context [list $title]
+
+    #set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
     set content [::xowiki::html_diff $text2 $text1]
+
     ::xo::Page set_property doc title $title
     array set property_doc [::xo::Page get_property doc]
+    set header_stuff [::xo::Page header_stuff]
 
     $package_id return_page -adp /packages/xowiki/www/diff -variables {
-      content title context
+      content title context header_stuff
       time1 time2 user1 user2 revision_id1 revision_id2 property_doc
     }
   }

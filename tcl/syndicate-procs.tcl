@@ -452,7 +452,9 @@ namespace eval ::xowiki {
         
       }
       default {
-        error "Unssupported schema [RSS-client getRSSVersion $doc]"
+	my set errorMessage "Unsupported RSS schema [RSS-client getRSSVersion $doc]"
+	return
+        #error "Unsupported schema [RSS-client getRSSVersion $doc]"
       }
     }
 

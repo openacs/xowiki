@@ -1991,6 +1991,9 @@ namespace eval ::xowiki {
        {-extra_where_clause ""}
        {-h_where ""}
        {-always_queried_attributes {_name _last_modified _creation_user}}
+       {-orderby ""}
+       {-page_size 20}
+       {-page_number ""}
      } {
     #
     # Get query attributes for all tables (to allow e.g. sorting by time)
@@ -2041,9 +2044,8 @@ namespace eval ::xowiki {
     }
     #my msg filter_clause=$filter_clause
 
-    set orderby ""; set page_size 20; set page_number ""
     # -parent_id empty means to get instances, regardless of 
-    # parent_id. Under the assumption, the page_template constrains
+    # parent_id. Under the assumption, page_template constrains
     # the query enough to make it fast...
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
