@@ -296,6 +296,9 @@ namespace eval ::xowiki {
     if {[info exists page_order] && $page_order ne ""} {
       set page_order [string trim $page_order " ."]
     }
+    #$data set text [::xowiki::tidy [$data set text]]-
+    foreach {text format} [my var text] break
+    my var text [list [list [::xowiki::tidy $text] $format]]
   }
   WikiForm instproc update_references {} {
     my instvar data folder_id
