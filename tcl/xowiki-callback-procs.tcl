@@ -495,11 +495,10 @@ namespace eval ::xowiki {
     }
   }
 
-  proc ::xowiki::tidy args {eval ::xowiki::Tidy clean $args}
-
-  Object create Tidy
-  Tidy proc clean {text} {
-    if {[[::xo::cc package_id] get_parameter tidy 0]} { 
+  Object create tidy
+  tidy proc clean {text} {
+    if {[[::xo::cc package_id] get_parameter tidy 0] 
+        && [info command ::util::which] ne ""} { 
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
 	set in_file [ns_tmpnam]
@@ -507,9 +506,9 @@ namespace eval ::xowiki {
 	catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
 	file delete $in_file
 	#my msg o=$output
-	regexp <body>\n(.*)\n</body> $output _ output
-	#my msg o=$output
-	return $output
+	regexp <body>\n(.*)\n</body> $output _ text
+	#my msg o=$text
+	return $text
       }
     }
     return $text

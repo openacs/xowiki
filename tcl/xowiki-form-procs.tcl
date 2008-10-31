@@ -296,10 +296,10 @@ namespace eval ::xowiki {
     if {[info exists page_order] && $page_order ne ""} {
       set page_order [string trim $page_order " ."]
     }
-    #$data set text [::xowiki::tidy [$data set text]]-
     foreach {text format} [my var text] break
-    my var text [list [list [::xowiki::tidy $text] $format]]
+    my var text [list [list [::xowiki::tidy clean $text] $format]]
   }
+
   WikiForm instproc update_references {} {
     my instvar data folder_id
     if {![my istype PageInstanceForm]} {
@@ -754,7 +754,7 @@ namespace eval ::xowiki {
     if {$form eq ""} {return 1}
     dom parse -simple -html [lindex $form 0] doc
     $doc documentElement root
-    return [expr {[$root nodeName] eq "form"}]
+    return [expr {$root ne "" && [$root nodeName] eq "form"}]
   }
 
   Class create FormForm -superclass ::xowiki::PageTemplateForm \
@@ -768,7 +768,7 @@ namespace eval ::xowiki {
         {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                  already in this folder}}
         {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
-        {form {\[::xowiki::validate_form_form\]} {Form must contain an HTML form}}
+        {form {\[::xowiki::validate_form_form\]} {Form must contain a toplevel HTML form element}}
         {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
       }}
     }
