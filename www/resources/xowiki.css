@@ -133,7 +133,9 @@ a:link.rss {color: #FFF;}
 div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5px;
     border:dotted; border-width:1px;background: #f8f8f8;
 }
-div.presence h1 {font-size: 90%; margin-bottom: 0px;}
+div.presence div.title {font-size: 90%; margin-bottom: 0px;
+        border-bottom: solid silver 1px; color: #222222; 
+}
 
 div.xowiki-content pre, .code {
     font-family: "Courier", monospace;

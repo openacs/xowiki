@@ -1145,7 +1145,7 @@ namespace eval ::xowiki {
     set l ""; 
     foreach l0 [split [lindex $source 0] \n] {
       append l [string map $markupmap(escape) $l0]
-      if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} continue
+      if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"} "1"]
       set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
       set l [my regsub_eval $RE(include) $l {my include_content "\1" "\2"}]

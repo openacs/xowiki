@@ -1532,7 +1532,7 @@ namespace eval ::xowiki::includelet {
     set users [expr {$count == 0 ? "No registered users" : 
                      $count == 1 ? "1 registered user" : 
                      "$count registered users"}]
-    return "<H1>$users$what$when</H1>$output"
+    return "<div class='title'>$users$what$when</div>$output"
   }
 }
 

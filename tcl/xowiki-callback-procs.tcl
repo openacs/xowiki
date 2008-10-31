@@ -504,7 +504,7 @@ namespace eval ::xowiki {
       if {$tidycmd ne ""} {
 	set in_file [ns_tmpnam]
 	::xowiki::write_file $in_file $text
-	catch {exec $tidycmd -q -ashtml < $in_file 2> /dev/null} output
+	catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
 	file delete $in_file
 	#my msg o=$output
 	regexp <body>\n(.*)\n</body> $output _ output
