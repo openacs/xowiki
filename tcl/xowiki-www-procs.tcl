@@ -1543,9 +1543,12 @@ namespace eval ::xowiki {
 
     set title "Differences for [my set name]"
     set context [list $title]
-
-    #set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
-    set content [::xowiki::html_diff $text2 $text1]
+    
+    # try util::html diff if it is available and works
+    if {[catch {set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]}]} {
+      # otherwise, fall back to proven text based diff
+      set content [::xowiki::html_diff $text2 $text1]
+    }
 
     ::xo::Page set_property doc title $title
     array set property_doc [::xo::Page get_property doc]
