@@ -45,7 +45,7 @@ namespace eval ::xowiki {
   Link instproc folder_id args {
     # This method is deprecated
     # just for backward compatibility
-    my log "--deprecated [self proc] [self args]"
+    my log "--deprecated [self proc] [self args], called from [self callingobject] [self callingproc]"
     eval my parent_id $args
   }
   Link instproc atts {} {
