@@ -190,7 +190,7 @@ namespace eval ::xowiki {
           set l [Link create new -destroy_on_cleanup \
                      -page [self] -type language -stripped_name $req_local_name \
                      -name ${default_lang}:$req_local_name -lang $default_lang \
-                     -label $req_local_name -folder_id $folder_id \
+                     -label $req_local_name -parent_id $folder_id \
                      -package_id $package_id -init \
                      -return_only undefined]
           $l render

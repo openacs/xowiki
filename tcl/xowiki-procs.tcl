@@ -1120,7 +1120,7 @@ namespace eval ::xowiki {
         -page [self] \
         -type $link_type -name $name -lang $lang -anchor $anchor \
         -stripped_name $normalized_name -label $label \
-        -folder_id $parent_id -package_id $package_id
+        -parent_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
@@ -1555,7 +1555,7 @@ namespace eval ::xowiki {
                  -page [self] \
                  -type image -name $name -lang "" \
                  -stripped_name $stripped_name -label $label \
-                 -folder_id $parent_id -package_id $package_id]
+                 -parent_id $parent_id -package_id $package_id]
       set image "<div >[$l render]</div>"
     } else {
       set image ""
