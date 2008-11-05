@@ -713,12 +713,12 @@ namespace eval ::xowiki {
 	    set method download
 	  }
         } elseif {$lang eq "tag"} {
-	  set tag $local_name
 	  set summary [::xo::cc query_parameter summary 0]
 	  set popular [::xo::cc query_parameter popular 0]
 	  set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	  set weblog_page [my get_parameter weblog_page]
 	  my get_lang_and_name -default_lang $default_lang -path $weblog_page lang stripped_name
+	  set tag $stripped_name
 	  set name $lang:$stripped_name
 	  my set object $weblog_page
 	  ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
