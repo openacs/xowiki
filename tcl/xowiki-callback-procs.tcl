@@ -697,4 +697,19 @@ namespace eval ::xowiki {
     close $F
   }
 
+  ad_proc -public -callback subsite::url -impl apm_package {
+    {-package_id:required}
+    {-object_id:required}
+    {-type ""}
+  } {
+    return the page_url for an object of type tasks_task
+  } {
+    ns_log notice "got package_id=$package_id, object_id=$object_id, type=$type"
+    ::xowiki::Package initialize -package_id $package_id
+    if {[::xotcl::Object isobject ::$package_id]} {
+      return [$package_id package_url]
+    } else {
+      return ""
+    }
+  }
 }

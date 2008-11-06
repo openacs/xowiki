@@ -34,10 +34,9 @@ if {![info exists object_type]} {
 
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
                       [::$package_id url]}]
-# set up categories
-set category_map_url [export_vars -base \
-              [site_node::get_package_url -package_key categories]cadmin/one-object \
-                          { { object_id $package_id } }]
+set category_url [export_vars \
+                      -base [site_node::get_package_url -package_key categories]cadmin/object-map \
+                      { { object_id $package_id } {ctx_id $package_id} }]
 
 set actions ""
 foreach type $object_types {
@@ -49,6 +48,8 @@ foreach type $object_types {
         -label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
         -url "$link" \
         -tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
+    Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
+        -url $category_url
   }]
 }
 

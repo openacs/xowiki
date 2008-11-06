@@ -15,10 +15,16 @@ set title "Administer all kind of [$object_type set pretty_plural]"
 
 set object_types    [$object_type object_types]
 set return_url      [ns_conn url]
+set category_url [export_vars \
+                      -base [site_node::get_package_url -package_key categories]cadmin/object-map \
+                      { { object_id $package_id } {ctx_id $package_id} }]
 
+lang::message::lookup "" xowiki.admin " "
 TableWidget t1 -volatile \
     -actions [subst {
       Action new -label "all pages" -url list
+      Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
+          -url $category_url
       Action new -label parameters -url \
           [export_vars -base /shared/parameters {package_id return_url}]
       Action new -label export -url export
@@ -60,7 +66,3 @@ foreach object_type $object_types {
 
 set t1 [t1 asHTML]
 
-# set up categories
-set category_map_url [export_vars -base \
-          [site_node::get_package_url -package_key categories]cadmin/object-map \
-                          { { object_id $package_id } }]
