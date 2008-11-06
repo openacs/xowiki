@@ -1183,7 +1183,7 @@ namespace eval ::xowiki::formfield {
     }
   }
   enumeration instproc config_from_category_tree {tree_name} {
-    # Get the options of a select or rado from the specified
+    # Get the options of a select or radio from the specified
     # category tree.
     #
     # We could config as well from the mapped category tree,
@@ -1192,24 +1192,26 @@ namespace eval ::xowiki::formfield {
     # The usage of the label does not seem to be very useful.
     #
     #set tree_id [category_tree::get_id $tree_name [my locale]]
-    set tree_id [category_tree::get_id $tree_name]
+
+    set package_id [[my object] package_id]
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale [my locale] \
+                      -names $tree_name -output tree_id]
+    
+    # In case there are multiple trees with the same name,
+    # take the first one.
+    #
+    set tree_id [lindex $tree_ids 0]
+
     if {$tree_id eq ""} {
-      my msg "cannot lookup category tree name '$tree_name'"
+      my msg "cannot lookup mapped category tree name '$tree_name'"
       return
     }
-    #
-    # In case there are multiple trees with the same named map,
-    # take the first one to avoid confusions.
-    #
-    #my msg tree_id=$tree_id
-    set tree_id [lindex $tree_id 0]
     set subtree_id ""
     set options [list] 
 
-    foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
+    foreach category [::xowiki::Category get_category_infos \
+                          -subtree_id $subtree_id -tree_id $tree_id] {
       foreach {category_id category_name deprecated_p level} $category break
-      #if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
-      #lappend value $category_id
       set category_name [ad_quotehtml [lang::util::localize $category_name]]
       my set category_label($category_id) $category_name
       if { $level>1 } {

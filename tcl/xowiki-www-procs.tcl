@@ -582,6 +582,11 @@ namespace eval ::xowiki {
 
   FormPage instproc create_category_fields {} {
     set category_spec [my get_short_spec @categories]
+    # Per default, no category fields in FormPages, since the can be 
+    # handled in more detail via form-fields.
+    if {$category_spec eq ""} {return [list]}
+
+    # a value of "off" turns the off as well
     foreach f [split $category_spec ,] {
       if {$f eq "off"} {return [list]}
     }
@@ -598,7 +603,8 @@ namespace eval ::xowiki {
       set options [list] 
       #if {!$require_category_p} {lappend options [list "--" ""]}
       set value [list]
-      foreach category [category_tree::get_tree -subtree_id $subtree_id $tree_id] {
+      foreach category [::xowiki::Category get_category_infos \
+                            -subtree_id $subtree_id -tree_id $tree_id] {
         foreach {category_id category_name deprecated_p level} $category break
         if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
         set category_name [ad_quotehtml [lang::util::localize $category_name]]

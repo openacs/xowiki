@@ -547,17 +547,9 @@ namespace eval ::xowiki::includelet {
     foreach {locale locale_clause} \
         [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
 
-    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
-    set mapped_trees [expr {$have_locale ?
-                     [category_tree::get_mapped_trees $package_id $locale] :
-                     [category_tree::get_mapped_trees $package_id]}]
-
-    set trees [list]
-    foreach tree $mapped_trees {
-      foreach {tree_id my_tree_name ...} $tree {break}
-      if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
-      lappend trees [list $tree_id $my_tree_name]
-    }
+    set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+                   -names $tree_name \
+                   -output {tree_id tree_name}]
 
     #my msg "[llength $trees] == 0 && $tree_name"
     if {[llength $trees] == 0 && $tree_name ne ""} {
@@ -569,10 +561,9 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    #my msg "nr trees = [llength $trees], tree:name = '$tree_name'"
     if {[llength $trees] == 0} {
-      my log "No category tree found\n\
-	(mapped trees = [llength $mapped_trees],\n\
+      my log "No mapped category tree found\n\
+	(mapped trees = [llength $trees],\n\
 	tree_name = '$tree_name')"
       return ""
     }
@@ -585,9 +576,7 @@ namespace eval ::xowiki::includelet {
       set categories [list]
       set pos 0
       set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
-      set category_infos [expr {$have_locale ?
-                                [category_tree::get_tree $tree_id $locale] :
-                                [category_tree::get_tree $tree_id]}]
+      set category_infos [::xowiki::Category get_category_infos -locale $locale -tree_id $tree_id]
 
       foreach category_info $category_infos {
         foreach {cid category_label deprecated_p level} $category_info {break}
@@ -714,17 +703,10 @@ namespace eval ::xowiki::includelet {
     foreach {locale locale_clause} \
         [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
 
-    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
-    set trees [expr {$have_locale ?
-                     [category_tree::get_mapped_trees $package_id $locale] :
-                     [category_tree::get_mapped_trees $package_id]}]
-
-    foreach tree $trees {
-      foreach {tree_id my_tree_name ...} $tree {break}
-      if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
-      lappend tree_ids $tree_id
-    }
-    if {[info exists tree_ids]} {
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+                      -names $tree_name -output tree_id]
+    
+    if {$tree_ids ne ""} {
       set tree_select_clause "and c.tree_id in ([join $tree_ids ,])"
     } else {
       set tree_select_clause ""

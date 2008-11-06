@@ -33,16 +33,19 @@
              [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
     set content ""
-    foreach tree [category_tree::get_mapped_trees $package_id] {
+
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id \
+                      -names $tree_name -output {tree_id tree_name}]
+
+    foreach tree $tree_ids {
       foreach {tree_id my_tree_name ...} $tree {break}
-      if {$tree_name ne "" && ![string match $tree_name $my_tree_name]} continue
       if {!$no_tree_name} {
         append content "<h3>$my_tree_name</h3>"
       }
       set categories [list]
       set pos 0
       set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
-      foreach category_info [category_tree::get_tree $tree_id] {
+      foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
         foreach {cid category_label deprecated_p level} $category_info {break}
         set c [::xowiki::Category new -orderby pos -category_id $cid -package_id $package_id \
                    -level $level -label $category_label -pos [incr pos]]

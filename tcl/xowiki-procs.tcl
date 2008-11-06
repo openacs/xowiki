@@ -326,7 +326,7 @@ namespace eval ::xowiki {
     array set data [category_tree::get_data $tree_id]
     set categories [list]
     if {[my exists __category_map]} {array set cm [my set __category_map]}
-    foreach category [category_tree::get_tree $tree_id] {
+    foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
       foreach {category_id category_name deprecated_p level} $category break
       lappend categories $level $category_name
       set names($level) $category_name
@@ -364,19 +364,21 @@ namespace eval ::xowiki {
   }
   Page instproc category_import {-name -description -locale -categories} {
     #my msg "...catetegoy_import [self args]"
-    # ignore locale in get_id for now, since it seems broken
-    set tree_id [category_tree::get_id $name]
-    set tree_id [lindex $tree_id 0]; # handle multiple trees with same name
+
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+                      -names [list $name] -output tree_id]
+    set tree_id [lindex $tree_ids 0]; # handle multiple mapped trees with same name
     if {$tree_id eq ""} {
       # we have to import the category tree
       my log "...importing category tree $name"
-      category_tree::import -name $name -description $description \
-          -locale $locale -categories $categories
-      set tree_id [category_tree::get_id $name]
+      set tree_id [category_tree::import -name $name -description $description \
+                       -locale $locale -categories $categories
+                   set tree_id [category_tree::get_id $name]]
+      category_tree::map -tree_id $tree_id -object_id [my package_id]
     }
     #
     # build reverse category_map
-    foreach category [category_tree::get_tree $tree_id] {
+    foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
       foreach {category_id category_name deprecated_p level} $category break
       lappend categories $level $category_name
       set names($level) $category_name
