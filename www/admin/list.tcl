@@ -38,7 +38,10 @@ set category_url [export_vars \
                       -base [site_node::get_package_url -package_key categories]cadmin/object-map \
                       { { object_id $package_id } {ctx_id $package_id} }]
 
-set actions ""
+set actions [subst {
+  Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
+      -url $category_url
+}]
 foreach type $object_types {
   set link [$package_id make_link -with_entities 0 \
                 $package_id edit-new {object_type $type} return_url autoname]
@@ -48,8 +51,6 @@ foreach type $object_types {
         -label "[_ xotcl-core.add [list type [$type pretty_name]]]" \
         -url "$link" \
         -tooltip  "[_ xotcl-core.add_long [list type [$type pretty_name]]]"
-    Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
-        -url $category_url
   }]
 }
 
