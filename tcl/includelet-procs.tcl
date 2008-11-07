@@ -2160,7 +2160,12 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
+        {return_url ""}
       }
+
+  item-button instproc initialize {} {
+      if {[my return_url] eq "" } { my return_url [[my package_id] url]}
+  }
 
   item-button instproc render_button {
     -page 
@@ -2176,7 +2181,7 @@ namespace eval ::xowiki::includelet {
     -source_item_id
   } {
     set html ""
-    if {![info exists return_url]} {set return_url $p_link}
+    if {![info exists return_url] || $return_url eq ""} {set return_url [$package_id url]}
     if {![info exists alt]} {set alt $method}
     if {![info exists src]} {set src [my set src]}
     if {![info exists link] || $link eq ""} {
@@ -2207,13 +2212,13 @@ namespace eval ::xowiki::includelet {
   
   edit-item-button instproc render {} {
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       set title "$title [$template title] [$page name]"
     }
-    set return_url [::xo::cc url]
+    
     if {$book_mode} {
       append return_url #[toc anchor [$page name]]
     }
@@ -2238,12 +2243,12 @@ namespace eval ::xowiki::includelet {
 
   delete-item-button instproc render {} {
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     return [my render_button \
 		  -page $page -method delete -package_id $package_id \
 		  -title $title -alt $alt \
-		  -return_url [::xo::cc url]]
+		  -return_url $return_url]
   }
 
  ::xowiki::IncludeletClass create view-item-button \
@@ -2262,12 +2267,12 @@ namespace eval ::xowiki::includelet {
 
   view-item-button instproc render {} {
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     return [my render_button \
 		-page $page -method view -package_id $package_id \
 		-link $link -title $title -alt $alt \
-		-return_url [::xo::cc url]]
+		-return_url $return_url]
   }
 
 
@@ -2285,7 +2290,7 @@ namespace eval ::xowiki::includelet {
 
   create-item-button instproc render {} {
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     set page_order [::xowiki::Includelet incr_page_order [$page page_order]]
     if {[$page istype ::xowiki::FormPage]} {
@@ -2294,14 +2299,14 @@ namespace eval ::xowiki::includelet {
 		  -page $template -method create-new -package_id $package_id \
 		  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
 		  -alt $alt -page_order $page_order \
-		  -return_url [::xo::cc url]]
+		  -return_url $return_url]
     } else {
       set object_type [$__including_page info class]
       return [my render_button \
 		  -page $package_id -method edit_new -package_id $package_id \
 		  -title [_ xowiki.create_new_entry_of_type [list type $object_type]] \
 		  -alt $alt -page_order $page_order \
-		  -return_url [::xo::cc url] \
+		  -return_url $return_url \
                   -object_type $object_type]
     }
   }
@@ -2319,7 +2324,7 @@ namespace eval ::xowiki::includelet {
 
   copy-item-button instproc render {} {
     my get_parameters
-    my instvar __including_page
+    my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
 
     if {[$page istype ::xowiki::FormPage]} {
@@ -2328,14 +2333,14 @@ namespace eval ::xowiki::includelet {
 		  -page $template -method create-new -package_id $package_id \
 		  -title [_ xowiki.copy_entry [list type [$template title]]] \
 		  -alt $alt -source_item_id [$page item_id] \
-		  -return_url [::xo::cc url]]
+		  -return_url $return_url]
     } else {
       set object_type [$__including_page info class]
       return [my render_button \
 		  -page $package_id -method edit_new -package_id $package_id \
 		  -title [_ xowiki.copy_entry [list type $object_type]] \
 		  -alt $alt -source_item_id [$page item_id] \
-		  -return_url [::xo::cc url] \
+		  -return_url $return_url \
                   -object_type $object_type]
     }
   }
