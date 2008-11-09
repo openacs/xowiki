@@ -98,6 +98,18 @@ namespace eval ::xowiki {
         $o parent_id ""
       }
       set todo($o) 1
+      
+      #
+      # Handle import of categories in the first pass
+      #
+      if {[$o exists __map_command]} {
+        $o package_id [my package_id]
+        $o eval [$o set __map_command]
+      }
+      # FIXME remove?
+      #if {[$o exists __category_map]} {
+      #  array set ::__category_map [$o set __category_map]
+      #}
     }
     #my msg "item_ids=[array names item_ids], parent_ids=[array names parent_ids]"
 
@@ -128,6 +140,7 @@ namespace eval ::xowiki {
             #my msg "... delay import of $o (no object with name $template_name_key) imported"
             continue
           }
+          #my msg "we found entry for name_map($template_name_key) = $name_map($template_name_key)"
         }
 
         if {[info exists item_ids($old_parent_id)]} {
@@ -144,8 +157,9 @@ namespace eval ::xowiki {
         # objects to new IDs.
         #
         if {[$o istype ::xowiki::PageInstance]} {
-          #my msg "importing page_instance, map $template_name_key to $name_map($template_name_key)"
+          #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
           $o page_template $name_map($template_name_key)
+          #my msg "exists template? [my isobject [$o page_template]]"
         }
 
         if {[info exists item_ids($old_parent_id)]} {
@@ -155,11 +169,12 @@ namespace eval ::xowiki {
         }
 
         # Everything is mapped, we can now do the import.
-        
+       
         my import \
             -object $o \
             -replace $replace \
             -create_user_ids $create_user_ids
+        #my msg "import for $o done, name=[$o name]"
 
         # Maintain the maps and mark the item as done.
 
@@ -167,6 +182,8 @@ namespace eval ::xowiki {
           set id_map($old_item_id) [$o item_id]
         }
         set name_map($old_parent_id-$old_name) [$o item_id]
+        #my msg "setting name_map($old_parent_id-$old_name)=$name_map($old_parent_id-$old_name), o=$o, old_item_id=$old_item_id"
+        #set ::__xowiki_import_object([$o item_id]) [self]
         
         unset todo($o)
         set new 1

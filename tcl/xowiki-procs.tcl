@@ -318,11 +318,11 @@ namespace eval ::xowiki {
   }
   
   Page instproc category_export {tree_name} {
-    # Ignore locale in get_id for now, since it seems broken
-    set tree_id [category_tree::get_id $tree_name]
-    # Make sure to have only one tree_id, in case there are multiple
-    # trees with the same name (arrgh).
-    set tree_id [lindex $tree_id 0]
+    # Ignore locale in get_id for now, since it seems broken    
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id [my package_id] \
+                      -names [list $tree_name] -output tree_id]
+    # Make sure to have only one tree_id, in case multiple trees are mapped with the same name.
+    set tree_id [lindex $tree_ids 0]; # handle multiple mapped trees with same name
     array set data [category_tree::get_data $tree_id]
     set categories [list]
     if {[my exists __category_map]} {array set cm [my set __category_map]}
@@ -344,7 +344,7 @@ namespace eval ::xowiki {
     my log "cmd=$cmd"
   }
   Page instproc build_instance_attribute_map {form_fields} {
-    foreach f $form_fields {lappend fns [list [$f name] [$f info class]]}
+    #foreach f $form_fields {lappend fns [list [$f name] [$f info class]]}
     #my msg "page [my name] build_instance_attribute_map $fns"
     foreach f $form_fields {
       #my msg "$f [$f name] cat_tree [$f exists category_tree] is fc: [$f exists is_category_field]"
@@ -352,7 +352,7 @@ namespace eval ::xowiki {
         #my msg "page [my name] field [$f name] is a category_id"
         set tree_key ::__xowiki_exported_category_tree([$f category_tree])
         my lappend __instance_attribute_map [$f name] [list category [$f category_tree]]
-        if {[info exists $tree_key]} continue
+        #if {[info exists $tree_key]} continue
         set $tree_key 1
         #my log "name [my name] uses [$f category_tree]"
         my category_export [$f category_tree]
@@ -363,19 +363,25 @@ namespace eval ::xowiki {
     }
   }
   Page instproc category_import {-name -description -locale -categories} {
-    #my msg "...catetegoy_import [self args]"
+    # Execute the category import for every tree name only once per request
+    set key ::__xowiki_category_import($name)
+    if {[info exists $key]} return
 
-    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+    # ok, it is the first request
+    #my msg "... catetegoy_import [self args]"
+
+    # Do we have a tree with the specified named mapped?
+    set tree_ids [::xowiki::Category get_mapped_trees -object_id [my package_id] -locale $locale \
                       -names [list $name] -output tree_id]
     set tree_id [lindex $tree_ids 0]; # handle multiple mapped trees with same name
     if {$tree_id eq ""} {
-      # we have to import the category tree
+      # The tree is not mapped, we import the category tree
       my log "...importing category tree $name"
       set tree_id [category_tree::import -name $name -description $description \
-                       -locale $locale -categories $categories
-                   set tree_id [category_tree::get_id $name]]
+                       -locale $locale -categories $categories]
       category_tree::map -tree_id $tree_id -object_id [my package_id]
     }
+
     #
     # build reverse category_map
     foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
@@ -386,7 +392,9 @@ namespace eval ::xowiki {
       for {set l 1} {$l <= $level} {incr l} {append node_name /$names($l)}
       set ::__xowiki_reverse_category_map($node_name) $category_id
     }
-    #my msg "...catetegoy_import reverse map [array names ::__xowiki_reverse_category_map]"
+    #my msg "... catetegoy_import reverse map [array names ::__xowiki_reverse_category_map]"
+    # mark the tree with this name as already imported
+    set $key 1
   }
 
 
@@ -408,22 +416,22 @@ namespace eval ::xowiki {
     # handle form_fields in associated parent
     my instvar page_template
     if {[$page_template exists __instance_attribute_map]} {
-      #my log "+++ we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
+      my log "+++ we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
       if {[$page_template exists __category_map]} {
         array set cm  [$page_template set __category_map]
-        #my log "+++ we have a category map for [my name] in the page_template [$page_template name]"
+        my log "+++ we have a category map for [my name] in the page_template [$page_template name]"
       }
       array set use [$page_template set __instance_attribute_map]
       set ia [list]
       foreach {name value} [my instance_attributes] {
-        #my msg "marshall check $name $value [info exists use($name)] [info exists cm($value)]"
+        my log "marshall check $name $value [info exists use($name)] [info exists cm($value)]"
         if {[info exists use($name)]} {
           if {[info exists cm($value)]} {
             #
             # map a category item
             #
             lappend ia $name $cm($value)
-            #my msg "...[my name] field: $name $value mapped to $cm($value)"
+            my log "...[my name] field: $name $value mapped to $cm($value)"
           } elseif {$use($name) eq "party_id"} {
             #
             # map a party_id
@@ -440,7 +448,7 @@ namespace eval ::xowiki {
         }
       }
       my set instance_attributes $ia
-      #my msg "setting instance_attributes $ia"
+      my log "setting instance_attributes $ia"
     }
     set old_assignee [my assignee]
     my set assignee  [my map_party $old_assignee]
@@ -515,10 +523,10 @@ namespace eval ::xowiki {
     # if we import from an old database without page_order, take care about this
     if {![my exists page_order]} {my set page_order ""}
     # handle category import
-    if {[my exists __map_command]} {
-      eval [my set __map_command]
-      #my log "reverse map: [array get ::__xowiki_reverse_category_map]"
-    }
+    #if {[my exists __map_command]} {
+    #  eval [my set __map_command]
+    #  #my log "reverse map: [array get ::__xowiki_reverse_category_map]"
+    #}
     # in the general case, no more actions required
   }
 
@@ -557,24 +565,38 @@ namespace eval ::xowiki {
     # the reverse category map.
     #
     set category_ids [list]
+    my get_template_object
+
+    #set import_page_template $::__xowiki_import_object($page_template)
+    #my msg "[my name] check cm=[info exists ::__xowiki_reverse_category_map] && am=[$import_page_template exists __instance_attribute_map] -- [my exists __instance_attribute_map] // [my instance_attributes]"
 
     if {[info exists ::__xowiki_reverse_category_map] 
-        && [$page_template exists __instance_attribute_map]
+        && [my exists __instance_attribute_map]
       } {
-      #my log "we have a instance_attribute_map"
+      #my msg "we have a instance_attribute_map"
+
       #
       # replace all symbolic category values by the mapped IDs
       #
       set ia [list]
-      array set use [$page_template set __instance_attribute_map]
+      array set use [my set __instance_attribute_map]
       foreach {name value} [my instance_attributes] {
         #my msg "use($name) --> [info exists use($name)]"
         if {[info exists use($name)]} {
 	  #my msg "try to map value '$value' (category tree: $use($name))"
+
           if {[info exists ::__xowiki_reverse_category_map($value)]} {
             #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
             lappend ia $name $::__xowiki_reverse_category_map($value)
             lappend category_ids $::__xowiki_reverse_category_map($value)
+            #my msg "...mapped to $name $::__xowiki_reverse_category_map($value)"
+#          } elseif {[info exists ::__category_map($value)]} {
+#            ### FIXME REMOVE?
+#            my msg "we have a category mapping for $value"
+#            set value $::__category_map($value)
+#            lappend ia $name $::__xowiki_reverse_category_map($value)
+#            lappend category_ids $::__xowiki_reverse_category_map($value)
+#            my msg "...mapped to $name $::__xowiki_reverse_category_map($value)"            
           } elseif {$use($name) eq "party_id"} {
             lappend ia $name [my reverse_map_party \
                                   -entry $value \
@@ -587,9 +609,9 @@ namespace eval ::xowiki {
             my msg "cannot map value '$value' (category tree: $use($name))\
 		of [my name] to an ID; maybe there is some\
 		same_named category tree with less entries..."
+            my msg "reverse category map has values [lsort [array names ::__xowiki_reverse_category_map]]"
             lappend ia $name ""
           }
-          #my log "...mapped to $name $::__xowiki_reverse_category_map($value)"
         } else {
           lappend ia $name $value
         }
