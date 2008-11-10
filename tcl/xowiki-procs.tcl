@@ -318,11 +318,18 @@ namespace eval ::xowiki {
   }
   
   Page instproc category_export {tree_name} {
+    #
+    # Build a command to rebuild the category tree on imports
+    # (__map_command). In addition this method builds and maintains a
+    # category map, which maps internal IDs into symbolic values
+    # (__category_map).
+    #
     # Ignore locale in get_id for now, since it seems broken    
     set tree_ids [::xowiki::Category get_mapped_trees -object_id [my package_id] \
                       -names [list $tree_name] -output tree_id]
-    # Make sure to have only one tree_id, in case multiple trees are mapped with the same name.
-    set tree_id [lindex $tree_ids 0]; # handle multiple mapped trees with same name
+    # Make sure to have only one tree_id, in case multiple trees are
+    # mapped with the same name.
+    set tree_id [lindex $tree_ids 0]
     array set data [category_tree::get_data $tree_id]
     set categories [list]
     if {[my exists __category_map]} {array set cm [my set __category_map]}
@@ -338,30 +345,42 @@ namespace eval ::xowiki {
                  -name $tree_name -description $data(description) \
                  -locale [lang::system::site_wide_locale] \
                  -categories $categories]
-    my append __map_command \n $cmd
+    if {![my exists __map_command] || [string first $cmd [my set __map_command]] == -1} {
+      my append __map_command \n $cmd
+    }
     my set __category_map [array get cm]
-    my log "data=[array get data]"
-    my log "cmd=$cmd"
+    #my log "cmd=$cmd"
   }
+
   Page instproc build_instance_attribute_map {form_fields} {
+    #
+    # Build the data structure for mapping internal values (IDs) into
+    # string representations and vice versa. In particular, it builds
+    # and maintains the __instance_attribute_map, which is an
+    # associative list (attribute/value pairs) for form-field attributes.
+    #
     #foreach f $form_fields {lappend fns [list [$f name] [$f info class]]}
     #my msg "page [my name] build_instance_attribute_map $fns"
+    if {[my exists  __instance_attribute_map]} {
+      array set cm [my set __instance_attribute_map]
+    }
     foreach f $form_fields {
+      set multiple [expr {[$f exists multiple] ? [$f set multiple] : 0}]
       #my msg "$f [$f name] cat_tree [$f exists category_tree] is fc: [$f exists is_category_field]"
       if {[$f exists category_tree] && [$f exists is_category_field]} {
-        #my msg "page [my name] field [$f name] is a category_id"
-        set tree_key ::__xowiki_exported_category_tree([$f category_tree])
-        my lappend __instance_attribute_map [$f name] [list category [$f category_tree]]
-        #if {[info exists $tree_key]} continue
-        set $tree_key 1
-        #my log "name [my name] uses [$f category_tree]"
+        #my msg "page [my name] field [$f name] is a category_id from [$f category_tree]"
+        set cm([$f name]) [list category [$f category_tree] $multiple]
         my category_export [$f category_tree]
       } elseif {[$f exists is_party_id]} {
         #my msg "page [my name] field [$f name] is a party_id"
-        my lappend __instance_attribute_map [$f name] party_id
+        set cm([$f name]) [list party_id $multiple]
       }
     }
+    if {[array exists cm]} {
+      my set __instance_attribute_map [array get cm]
+    }
   }
+
   Page instproc category_import {-name -description -locale -categories} {
     # Execute the category import for every tree name only once per request
     set key ::__xowiki_category_import($name)
@@ -399,56 +418,86 @@ namespace eval ::xowiki {
 
 
   Form instproc marshall {} {
-    set form_fields [my create_form_fields_from_form_constraints \
-                         [my get_form_constraints]]
-    my log "--ff=$form_fields"
-    my build_instance_attribute_map $form_fields
+    #set form_fields [my create_form_fields_from_form_constraints \
+    #                     [my get_form_constraints]]
+    #my log "--ff=$form_fields"
+    #my build_instance_attribute_map $form_fields
     next
+  }
+  
+  FormPage instproc map_values {map_type values} {
+    # Map a list of values (for multi-valued form fields) 
+    # my log "map_values $map_type, $values"
+    set mapped_values [list]
+    foreach value $values {lappend mapped_values [my map_value $map_type $value]}
+    return $mapped_values
+  }
+
+  FormPage instproc map_value {map_type value} {
+    #my log "map_value $map_type, $value"
+    if {$map_type eq "category"} {
+      #
+      # map a category item
+      #
+      array set cm [my set __category_map]
+      return $cm($value)
+    } elseif {$map_type eq "party_id"} {
+      #
+      # map a party_id
+      #
+      return [my map_party $value]
+    } else {
+      return $value
+    }
   }
 
   FormPage instproc marshall {} {
-    # handle form_fields for derived instances
+    #
+    # Handle mapping from IDs to symbolic representations in
+    # form-field values. We perform the mapping on xowiki::FormPages
+    # and not on xowiki::Forms, since a single xowiki::FormPages might
+    # use different xowiki::Forms in its life-cycle.
+    #
+    # Note, that only types of form-fields implied by the derived form
+    # constraints are recognized. E.g. in workflows, it might be
+    # necessary to move e.g. category definitions into the global form
+    # constraints.
+    #
     set form_fields [my create_form_fields_from_form_constraints \
                          [my get_form_constraints]]
-    #my log "--ff2=$form_fields"
     my build_instance_attribute_map $form_fields
-
-    # handle form_fields in associated parent
-    my instvar page_template
-    if {[$page_template exists __instance_attribute_map]} {
-      my log "+++ we have an instance_attribute_map for [my name] in the page_template [$page_template name]"
-      if {[$page_template exists __category_map]} {
-        array set cm  [$page_template set __category_map]
-        my log "+++ we have a category map for [my name] in the page_template [$page_template name]"
-      }
-      array set use [$page_template set __instance_attribute_map]
+    
+    # In case we have a mapping from IDs to external values, use it
+    # and rewrite instance attributes. Note, that the marshalled
+    # objects have to be flushed from memory later since the
+    # representation of instances_attributes is changed by this
+    # method.
+    #
+    if {[my exists __instance_attribute_map]} {
+      # my log "+++ we have an instance_attribute_map for [my name]"
+      # my log "+++ starting with instance_attributes [my instance_attributes]"
+      array set use [my set __instance_attribute_map]
+      array set multiple_index [list category 2 party_id 1]
       set ia [list]
       foreach {name value} [my instance_attributes] {
-        my log "marshall check $name $value [info exists use($name)] [info exists cm($value)]"
+        #my log "marshall check $name $value [info exists use($name)]"
         if {[info exists use($name)]} {
-          if {[info exists cm($value)]} {
-            #
-            # map a category item
-            #
-            lappend ia $name $cm($value)
-            my log "...[my name] field: $name $value mapped to $cm($value)"
-          } elseif {$use($name) eq "party_id"} {
-            #
-            # map a party_id
-            #
-            set mapped_value [my map_party $value]
-            #my msg "map party_id for $name to $mapped_value"
-            lappend ia $name $mapped_value
+          set map_type [lindex $use($name) 0]
+          set multiple [lindex $use($name) $multiple_index($map_type)]
+          #my log "+++ marshall check $name $value m=?$multiple"
+
+          if {$multiple} {
+            lappend ia $name [my map_values $map_type $value]
           } else {
-            lappend ia $name $value
-            #my msg "no way to map $name kind: $use($name)"
+            lappend ia $name [my map_value $map_type $value]
           }
         } else {
+          # nothing to map
           lappend ia $name $value
         }
       }
       my set instance_attributes $ia
-      my log "setting instance_attributes $ia"
+      #my log "+++ setting instance_attributes $ia"
     }
     set old_assignee [my assignee]
     my set assignee  [my map_party $old_assignee]
@@ -520,13 +569,9 @@ namespace eval ::xowiki {
         -default_party $creation_user -create_user_ids $create_user_ids
     my reverse_map_party_attribute -attribute modifying_user \
         -default_party $creation_user -create_user_ids $create_user_ids
-    # if we import from an old database without page_order, take care about this
+    # If we import from an old database without page_order, provide a
+    # default value
     if {![my exists page_order]} {my set page_order ""}
-    # handle category import
-    #if {[my exists __map_command]} {
-    #  eval [my set __map_command]
-    #  #my log "reverse map: [array get ::__xowiki_reverse_category_map]"
-    #}
     # in the general case, no more actions required
   }
 
@@ -536,6 +581,7 @@ namespace eval ::xowiki {
     my instvar import_file __file_content
     set import_file [ns_tmpnam]
     ::xowiki::write_file $import_file [::base64::decode $__file_content]
+    catch {my unset full_file_name}
     unset __file_content
   }
 
@@ -550,25 +596,57 @@ namespace eval ::xowiki {
     next
   }
   Form instproc demarshall {args} {
-    # some older versions do not have anon_instances and no slots
+    # Some older versions do not have anon_instances and no slots
     if {![my exists anon_instances]} {
       my set anon_instances "t"
     }
     next
   }
+
+
+  FormPage instproc reverse_map_values {map_type values category_ids_name} {
+    # Apply reverse_map_value to a list of values (for multi-valued
+    # form fields)
+    my upvar $category_ids_name category_ids
+    set mapped_values [list]
+    foreach value $values {lappend mapped_values [my reverse_map_value $map_type $value category_ids]}
+    return $mapped_values
+  }
+
+  FormPage instproc reverse_map_value {map_type value category_ids_name} {
+    # Perform the inverse function of map_value. During export, internal
+    # representations are exchanged by string representations, which are
+    # mapped here again to internal representations
+    my upvar $category_ids_name category_ids
+    if {[info exists ::__xowiki_reverse_category_map($value)]} {
+      #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
+      lappend category_ids $::__xowiki_reverse_category_map($value)
+      return $::__xowiki_reverse_category_map($value)
+    } elseif {$map_type eq "party_id"} {
+      return [my reverse_map_party \
+                  -entry $value \
+                  -default_party $creation_user \
+                  -create_user_ids $create_user_ids]
+    } elseif {$value eq ""} {
+      return ""
+    } else {
+      my msg "cannot map value '$value' (map_type $map_type)\
+		of [my name] to an ID; maybe there is some\
+		same_named category tree with less entries..."
+      my msg "reverse category map has values [lsort [array names ::__xowiki_reverse_category_map]]"
+      return ""
+    }
+  }
+
   FormPage instproc demarshall {-parent_id -package_id -creation_user {-create_user_ids 0}} {
-    my instvar page_template
-    #
+    # reverse map assingees
     my reverse_map_party_attribute -attribute assignee -create_user_ids $create_user_ids
     #
-    # FormPages must be demarshalled after Form, since Form builds
-    # the reverse category map.
-    #
+    # The function will compute the category_ids, which are were used
+    # to categorize this objects in the source instance.
     set category_ids [list]
-    my get_template_object
 
-    #set import_page_template $::__xowiki_import_object($page_template)
-    #my msg "[my name] check cm=[info exists ::__xowiki_reverse_category_map] && am=[$import_page_template exists __instance_attribute_map] -- [my exists __instance_attribute_map] // [my instance_attributes]"
+    #my msg "[my name] check cm=[info exists ::__xowiki_reverse_category_map] && iam=[my exists __instance_attribute_map]"
 
     if {[info exists ::__xowiki_reverse_category_map] 
         && [my exists __instance_attribute_map]
@@ -580,44 +658,26 @@ namespace eval ::xowiki {
       #
       set ia [list]
       array set use [my set __instance_attribute_map]
+      array set multiple_index [list category 2 party_id 1]
       foreach {name value} [my instance_attributes] {
         #my msg "use($name) --> [info exists use($name)]"
         if {[info exists use($name)]} {
 	  #my msg "try to map value '$value' (category tree: $use($name))"
-
-          if {[info exists ::__xowiki_reverse_category_map($value)]} {
-            #my msg "map value '$value' (category tree: $use($name)) of [my name] to an ID"
-            lappend ia $name $::__xowiki_reverse_category_map($value)
-            lappend category_ids $::__xowiki_reverse_category_map($value)
-            #my msg "...mapped to $name $::__xowiki_reverse_category_map($value)"
-#          } elseif {[info exists ::__category_map($value)]} {
-#            ### FIXME REMOVE?
-#            my msg "we have a category mapping for $value"
-#            set value $::__category_map($value)
-#            lappend ia $name $::__xowiki_reverse_category_map($value)
-#            lappend category_ids $::__xowiki_reverse_category_map($value)
-#            my msg "...mapped to $name $::__xowiki_reverse_category_map($value)"            
-          } elseif {$use($name) eq "party_id"} {
-            lappend ia $name [my reverse_map_party \
-                                  -entry $value \
-                                  -default_party $creation_user \
-                                  -create_user_ids $create_user_ids]
-            #my msg "field $name mapping $value to [my reverse_map_party -entry $value -default_party $creation_user  -create_user_ids $create_user_ids]"
-          } elseif {$value eq ""} {
-            lappend ia $name ""
+          set map_type [lindex $use($name) 0]
+          set multiple [lindex $use($name) $multiple_index($map_type)]
+          if {$multiple eq ""} {set multiple 1}
+          if {$multiple} {
+            lappend ia $name [my reverse_map_values $map_type $value category_ids]
           } else {
-            my msg "cannot map value '$value' (category tree: $use($name))\
-		of [my name] to an ID; maybe there is some\
-		same_named category tree with less entries..."
-            my msg "reverse category map has values [lsort [array names ::__xowiki_reverse_category_map]]"
-            lappend ia $name ""
+            lappend ia $name [my reverse_map_value $map_type $value category_ids]
           }
         } else {
+          # nothing to map
           lappend ia $name $value
         }
       }
       my set instance_attributes $ia
-      #my log "saving instance_attributes $ia"
+      #my msg  "[my name] saving instance_attributes $ia"
     }
     set r [next]
     my set __category_ids [lsort -unique $category_ids]
@@ -2312,7 +2372,7 @@ namespace eval ::xowiki {
 
   Page instproc map_categories {category_ids} {
     # could be optimized, if we do not want to have categories (form constraints?)
-    my log "--category::map_object -remove_old -object_id [my item_id] <$category_ids>"
+    #my log "--category::map_object -remove_old -object_id [my item_id] <$category_ids>"
     category::map_object -remove_old -object_id [my item_id] $category_ids
   }
 
