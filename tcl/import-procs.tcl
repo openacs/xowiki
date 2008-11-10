@@ -32,6 +32,11 @@ namespace eval ::xowiki {
   }
 
   Importer instproc import {-object:required -replace -create_user_ids} {
+    #
+    # Import a single object. In essence, this method demarshalls a
+    # single object and inserts it (or updates it) in the database. It
+    # takes as well care about categories.
+    # 
     my instvar package_id user_id
 
     $object demarshall -parent_id [$object parent_id] -package_id $package_id \
@@ -71,9 +76,15 @@ namespace eval ::xowiki {
       #my msg "$item_id map_categories [object set __category_ids] // [$item_id item_id]"
       $item_id map_categories [$object set __category_ids]
     }
+
+    $package_id flush_references -item_id [$object item_id] -name [$object name]
   }
 
   Importer instproc import_all {-replace -objects:required {-create_user_ids 0}} {
+    #
+    # Import a series of objects. This method takes care especially
+    # about dependencies of objects, which is reflected by the order
+    # of object-imports.
     #
     # Extact information from objects to be imported, that might be
     # changed later in the objects.
@@ -199,6 +210,8 @@ namespace eval ::xowiki {
     # final cleanup
     #
     foreach o $objects {$o destroy}
+
+    [my package_id] flush_page_fragment_cache
   }
 
 
