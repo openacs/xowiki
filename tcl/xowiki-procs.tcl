@@ -1026,7 +1026,7 @@ namespace eval ::xowiki {
     return [my include $arg]
   }
 
-  Page ad_instproc include {arg} {
+  Page ad_instproc include {-configure arg} {
     Include the html of the includelet. The method generates
     an includelet object (might be an other xowiki page) and
     renders it and returns either html or an error message.
@@ -1034,6 +1034,9 @@ namespace eval ::xowiki {
     set page [my instantiate_includelet $arg]
     if {$page eq ""} {
       return [my error_during_render [_ xowiki.error-includelet-unknown]]
+    }
+    if {[info exists configure]} {
+      eval $page configure $configure
     }
     return [my render_includelet $page]
   }
