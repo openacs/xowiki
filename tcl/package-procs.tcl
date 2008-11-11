@@ -1126,15 +1126,20 @@ namespace eval ::xowiki {
       }
       $object_type delete -item_id $item_id
       my flush_references -item_id $item_id -name $name
-      my flush_page_fragment_cache
+      my flush_page_fragment_cache -scope agg
     } else {
       my log "--D nothing to delete!"
     }
     my returnredirect [my query_parameter "return_url" [$id package_url]]
   }
 
-  Package instproc flush_page_fragment_cache {} {
-    foreach entry [ns_cache names xowiki_cache PF-[my id]-agg-*] {
+  Package instproc flush_page_fragment_cache {{-scope agg}} {
+    switch -- $socpe {
+      agg {set key PF-[my id]-agg-*}
+      all {set key PF-[my id]-*}
+      default {error "unknown cope for flushing page fragment cache"}
+    }
+    foreach entry [ns_cache names xowiki_cache $key] {
       ns_log notice "::xo::clusterwide ns_cache flush xowiki_cache $entry"
       ::xo::clusterwide ns_cache flush xowiki_cache $entry
     }

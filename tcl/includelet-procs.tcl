@@ -327,7 +327,18 @@ namespace eval ::xowiki::includelet {
     append key "-$c [my set __caller_parameters]"
     if {[$c localized]}    {append key -[my locale]}
     if {[$c personalized]} {append key -[::xo::cc user_id]}
-    return [ns_cache eval xowiki_cache $key next]
+    set HTML [ns_cache eval xowiki_cache $key next]
+    if {[catch {set data [ns_cache get xowiki_cache $key-data]}]} {
+      my cache_includelet_data $key-data
+    } else {
+      #my msg "eval $data"
+      eval $data
+    }
+    return $HTML
+  } -instproc cache_includelet_data {key} {
+    #my msg "data=[next]"
+    set data [next]
+    if {$data ne ""} {ns_cache set xowiki_cache $key $data}
   }
 }  
 namespace eval ::xowiki::includelet {
@@ -1551,6 +1562,12 @@ namespace eval ::xowiki::includelet {
   toc instproc current {} {return [my set navigation(current)]}
   toc instproc position {} {return [my set navigation(position)]}
   toc instproc page_name {p} {return [my set page_name($p)]}
+  toc instproc cache_includelet_data {key} {
+    append data \
+	[list my array set navigation [my array get navigation]] \n \
+	[list my array set page_name [my array get page_name]] \n
+    return $data
+  }
 
   toc proc anchor {name} {
     # try to strip the language prefix from the name
