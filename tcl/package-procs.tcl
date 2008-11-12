@@ -552,9 +552,8 @@ namespace eval ::xowiki {
     #
     # second, resolve object level methods
     #
-    #my log "--o try '$object'"
     set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
-    #my log "--o page is '$page' simple=$simple"
+    #my msg "--o try '$object' -default_lang [my default_language] -simple $simple returns '$page'"
     if {$simple || $page ne ""} {
       if {$page ne ""} {
       }
@@ -585,22 +584,23 @@ namespace eval ::xowiki {
 
     # try standard page
     set standard_page [$id get_parameter ${object}_page]
-    #my log "--o standard_page '$standard_page'"
+    #my msg "--o standard_page '$standard_page'"
     if {$standard_page ne ""} {
       set page [my resolve_request -default_lang [::xo::cc lang] -path $standard_page method]
       if {$page ne ""} {
         return $page
       }
-    } else {
-      regexp {../([^/]+)$} $object _ object
-      set standard_page "en:$stripped_object"
+
       # maybe we are calling from a different language, but the
       # standard page with en: was already instantiated
-      set page [my resolve_request -default_lang [::xo::cc lang] -path $standard_page method]
+      set standard_page "en:$stripped_object"
+      set page [my resolve_request -default_lang en -path $standard_page method]
+      #my msg "resolve -default_lang en -path $standard_page returns --> $page"
       if {$page ne ""} {
         return $page
       }
     }
+    #my msg "we have to import a prototype page for $stripped_object"
     set page [my import_prototype_page $stripped_object]
     if {$page eq ""} {
       my log "no prototype for '$object' found"
