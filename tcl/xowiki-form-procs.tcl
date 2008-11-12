@@ -284,6 +284,14 @@ namespace eval ::xowiki {
 #     }
 #   }
 
+  WikiForm instproc tidy {} {
+    upvar #[template::adp_level] text text
+    if {[info exists text]} {
+      foreach {text format} [my var text] break
+      my var text [list [list [::xowiki::tidy clean $text] $format]]
+    }
+  }
+  
   WikiForm instproc data_from_form {{-new 0}} {
     my instvar data
     if {[$data exists_form_parameter text.format]} {
@@ -296,8 +304,7 @@ namespace eval ::xowiki {
     if {[info exists page_order] && $page_order ne ""} {
       set page_order [string trim $page_order " ."]
     }
-    foreach {text format} [my var text] break
-    my var text [list [list [::xowiki::tidy clean $text] $format]]
+    my tidy
   }
 
   WikiForm instproc update_references {} {
@@ -409,7 +416,9 @@ namespace eval ::xowiki {
       -parameter {
         {f.text "= textarea,cols=80,rows=10"}
       }
-
+  PlainWikiForm instproc tidy {} {
+    # nothing
+  }
   #
   # File Form
   #
@@ -431,7 +440,9 @@ namespace eval ::xowiki {
                                                    already in this folder}}
           }}
         }
-
+  FileForm instproc tidy {} {
+    # nothing
+  }
 
   FileForm instproc get_uploaded_file {} {
     my instvar data
@@ -565,6 +576,7 @@ namespace eval ::xowiki {
     next
   }
 
+
   ObjectForm instproc new_request {} {
     my instvar data
     permission::require_permission \
@@ -612,6 +624,9 @@ namespace eval ::xowiki {
         }
         {with_categories  false}
       }
+  PageInstanceForm instproc tidy {} {
+    # nothing
+  }
   PageInstanceForm instproc set_submit_link_edit {} {
     my instvar folder_id data
     set object_type [[$data info class] object_type]
@@ -647,6 +662,9 @@ namespace eval ::xowiki {
         {with_categories   true}
         {textfieldspec     {text(textarea),nospell {html {cols 60 rows 5}}}}
       }
+  PageInstanceEditForm instproc tidy {} {
+    # nothing
+  }
 
   PageInstanceEditForm instproc new_data {} {
     my instvar data
