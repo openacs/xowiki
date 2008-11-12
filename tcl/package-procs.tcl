@@ -1134,7 +1134,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc flush_page_fragment_cache {{-scope agg}} {
-    switch -- $socpe {
+    switch -- $scope {
       agg {set key PF-[my id]-agg-*}
       all {set key PF-[my id]-*}
       default {error "unknown cope for flushing page fragment cache"}
