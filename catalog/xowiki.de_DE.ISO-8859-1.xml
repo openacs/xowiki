@@ -6,6 +6,7 @@
   <msg key="admin_title">Verwaltungsoptionen für dieses Paket ...</msg>
   <msg key="back">Zurück</msg>
   <msg key="categories">Kategorien</msg>
+  <msg key="content">Inhalt</msg>
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
   <msg key="delete">Löschen</msg>
