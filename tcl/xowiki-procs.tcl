@@ -434,14 +434,14 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc map_value {map_type value} {
-    #my log "map_value $map_type, $value"
-    if {$map_type eq "category"} {
+    my log "map_value $map_type, $value"
+    if {$map_type eq "category" && $value ne ""} {
       #
       # map a category item
       #
       array set cm [my set __category_map]
       return $cm($value)
-    } elseif {$map_type eq "party_id"} {
+    } elseif {$map_type eq "party_id" && $value ne ""} {
       #
       # map a party_id
       #

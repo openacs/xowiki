@@ -78,8 +78,11 @@ ReturnHeaders
 
 foreach item_id [array names items] {
   ns_log notice "--exporting $item_id [$item_id name]"
-  #append content [$item_id marshall] \n
-  ns_write "[$item_id marshall] \n" 
+  if {[catch {set obj [$item_id marshall]} errorMsg]} {
+    ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg"
+  } else {
+    ns_write "$obj\n" 
+  }
 }
 
 #ns_return 200 text/plain $content
