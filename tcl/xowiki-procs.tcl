@@ -932,7 +932,7 @@ namespace eval ::xowiki {
     if {$page_name ne ""} {
       set page [[my package_id] resolve_page_name_and_init_context -lang [my lang] $page_name]
       if {$page eq ""} {
-        error "Cannot find page '$page_name'"
+        error "Cannot find page '$page_name' to be included in page '[my name]'"
       }
     } else {
       set page [self]
