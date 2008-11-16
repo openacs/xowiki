@@ -376,7 +376,7 @@ namespace eval ::xowiki {
       # It is not a cross package request
       set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
       $package_id context [::xo::Context new -volatile]
-      set page [$package_id resolve_page $page_name __m]
+      set page [$package_id resolve_page -lang $lang $page_name __m]
       $package_id context $last_context
     }
     #my log "returning $page"
@@ -519,10 +519,15 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_page {{-simple false} object method_var} {
-    #my log "resolve_page '$object'"
+  Package instproc resolve_page {{-simple false} -lang object method_var} {
+    my log "resolve_page '$object'"
     upvar $method_var method
     my instvar folder_id id policy
+
+    # get the default language if not specified
+    if {![info exists lang]} {
+      set lang [my default_language]
+    }
     #
     # first, resolve package level methods
     #
@@ -552,8 +557,8 @@ namespace eval ::xowiki {
     #
     # second, resolve object level methods
     #
-    set page [my resolve_request -default_lang [my default_language] -simple $simple -path $object method]
-    #my msg "--o try '$object' -default_lang [my default_language] -simple $simple returns '$page'"
+    set page [my resolve_request -default_lang $lang -simple $simple -path $object method]
+    #my msg "--o try '$object' -default_lang $lang -simple $simple returns '$page'"
     if {$simple || $page ne ""} {
       if {$page ne ""} {
       }
