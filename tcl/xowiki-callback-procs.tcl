@@ -337,6 +337,9 @@ namespace eval ::xowiki {
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
 
+      # make sure, the page_order is added for the upgrade
+      ::xowiki::add_ltree_order_column
+
       # for all xowiki package instances 
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
