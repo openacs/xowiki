@@ -2326,7 +2326,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormPage instproc get_value {before varname} {
+  FormPage instproc get_value {{-field_spec ""} {-cr_field_spec ""} before varname} {
     #
     # Read a property (instance attribute) and return
     # its pretty value in variable substitutions.
@@ -2343,10 +2343,10 @@ namespace eval ::xowiki {
     } else {
       set value [my property $varname]
 
-      # todo: might be more efficient to check, if it exists already
-      set f [my create_raw_form_field -name $varname \
-                 -slot [my find_slot [string trimleft $varname _]] \
-                 -configuration [list -value $value]]
+      # todo: might be more efficient to check, if the field exists already
+      set f [my create_form_field -cr_field_spec $cr_field_spec -field_spec $field_spec $varname]
+      $f value $value
+
       if {[$f hide_value]} {
         set value ""
       } elseif {![$f exists show_raw_value]} {
@@ -2357,9 +2357,15 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc adp_subst {content} {
+    # Get the default field specs once and pass it to every field creation
+    set field_spec [my get_short_spec @fields]
+    set cr_field_spec [my get_short_spec @cr_fields]
+
+    # Iterate over the variables for substitution
     set content [my regsub_eval -noquote true \
-                     [template::adp_variable_regexp] " $content" {my get_value "\\\1" "\2"}]
-    #regsub -all  $content {\1@\2;noquote@} content
+                     [template::adp_variable_regexp] " $content" \
+		     {my get_value -field_spec $field_spec -cr_field_spec $cr_field_spec "\\\1" "\2"}]
+
     return [string range $content 1 end]
   }
 
