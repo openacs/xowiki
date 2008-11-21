@@ -118,7 +118,7 @@ jQuery.extend(WYMeditor, {
 
 */
 
-    VERSION             : "0.5-a2",
+    VERSION             : "0.5-b2",
     INSTANCES           : [],
     STRINGS             : [],
     SKINS               : [],
@@ -739,7 +739,7 @@ WYMeditor.editor.prototype.init = function() {
       //store the instance index in the wymbox element
       //but keep it compatible with jQuery < 1.2.3, see #122
       if( jQuery.isFunction( jQuery.fn.data ) )
-        jQuery(this._box).data(WYMeditor.WYM_INDEX, this._index);
+        jQuery.data(this._box.get(0), WYMeditor.WYM_INDEX, this._index);
       
       var h = WYMeditor.Helper;
 
@@ -3422,14 +3422,14 @@ WYMeditor.XhtmlSaxListener.prototype.replaceNamedEntities = function(xhtml)
 
 WYMeditor.XhtmlSaxListener.prototype.joinRepeatedEntities = function(xhtml)
 {
-  var tags = 'em|strong|sub|sup|acronym|pre|del|blockquote|address';
+  var tags = 'em|strong|sub|sup|acronym|pre|del|address';
   return xhtml.replace(new RegExp('<\/('+tags+')><\\1>' ,''),'').
   replace(new RegExp('(\s*<('+tags+')>\s*){2}(.*)(\s*<\/\\2>\s*){2}' ,''),'<\$2>\$3<\$2>');
 };
 
 WYMeditor.XhtmlSaxListener.prototype.removeEmptyTags = function(xhtml)
 {
-  return xhtml.replace(new RegExp('<('+this.block_tags.join("|")+')>(<br \/>|&#160;|&nbsp;|\\s)*<\/\\1>' ,'g'),'');
+  return xhtml.replace(new RegExp('<('+this.block_tags.join("|").replace(/\|td/,'')+')>(<br \/>|&#160;|&nbsp;|\\s)*<\/\\1>' ,'g'),'');
 };
 
 WYMeditor.XhtmlSaxListener.prototype.getResult = function()
