@@ -72,7 +72,7 @@ namespace eval ::xowiki {
   }
   Link instproc resolve {} {
     #my msg "--lookup of [my name] -page [my page]"
-    return [::xo::db::CrClass lookup -name [my name] -parent_id [my parent_id]]
+    return [[my package_id] lookup -name [my name] -parent_id [my parent_id]]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
@@ -257,7 +257,7 @@ namespace eval ::xowiki {
     set item_id [next]
     # my log "-- file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^file:} [my name] image: name]} {
-      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
+      set item_id [[my package_id] lookup -name $name -parent_id [my parent_id]]
     }
     return $item_id
   }
@@ -313,7 +313,7 @@ namespace eval ::xowiki {
     set item_id [next]
     my log "--file, lookup of [my name] returned $item_id"
     if {$item_id == 0 && [regsub {^swf:} [my name] file: name]} {
-      set item_id [::xo::db::CrClass lookup -name $name -parent_id [my parent_id]]
+      set item_id [[my package_id] lookup -name $name -parent_id [my parent_id]]
       my log "--file, 2nd lookup of $name returned $item_id"
     }
     return $item_id

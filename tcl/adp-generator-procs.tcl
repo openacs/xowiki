@@ -91,9 +91,11 @@ function get_popular_tags(popular_tags_link, prefix) {
   }
 
   ADP_Generator instproc content_part {} {
-    return "@top_includelets;noquote@\n<h1>@title@</h1>\n@content;noquote@"
+    return "@top_includelets;noquote@\n\
+     <if @page_context@ not nil><h1>@title@ (@page_context@)</h1></if>\n\
+     <else><h1>@title@</h1></else>\n\
+     @content;noquote@"
   }
-
 
   ADP_Generator instproc generate {} {
     my instvar master wikicmds footer

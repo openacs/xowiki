@@ -230,7 +230,23 @@ namespace eval ::xowiki::includelet {
     return [list $cnames $extra_where_clause]
   }
 
-
+  ::xowiki::Includelet proc parent_id_clause {
+     {-bt bt}
+     -base_package_id:required
+  } {
+    #
+    # Get the package path and from it, the folder_ids. The parent_id
+    # of the returned pages should be a direct child of the folder.
+    #
+    set packages [$base_package_id package_path]
+    if {[llength $packages] > 0} {
+      set parent_ids [list [$base_package_id folder_id]]
+      foreach p [$packages] {lappend parent_ids [$p folder_id]}
+      return "$bt.parent_id in ([join $parent_ids ,])"
+    } else {
+      return "$bt.parent_id = [$base_package_id folder_id]"
+    }
+  }
 
   ::xowiki::Includelet instproc resolve_page_name {page_name} {
     return [[my set __including_page] resolve_included_page_name $page_name]
@@ -772,14 +788,22 @@ namespace eval ::xowiki::includelet {
   recent instproc render {} {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
+    set admin_p [::xo::cc permission -object_id $package_id -privilege admin \
+                     -party_id [::xo::cc set untrusted_user_id]]
+    set show_heritage $admin_p
+    
     TableWidget t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
+        -set show_heritage $admin_p \
         -columns {
           Field date -label [_ xowiki.Page-last_modified]
           if {[[my info parent] set allow_edit]} {
             ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
           }
+          if {[[my info parent] set show_heritage]} {
+            AnchorField inherited -label ""
+          } 
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
             ImageField_DeleteIcon delete -label ""
@@ -788,17 +812,18 @@ namespace eval ::xowiki::includelet {
     
     db_foreach [my qn get_pages] \
         [::xo::db::sql select \
-             -vars "i.name, r.title, p.page_id, r.publish_date, i.parent_id, \
+             -vars "i.name, r.title, p.page_id, r.publish_date, i.parent_id, o.package_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
-             -from "cr_items i, cr_revisions r, xowiki_page p" \
-             -where "i.parent_id = [$package_id folder_id] \
+             -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
+             -where "[::xowiki::Includelet parent_id_clause -bt i -base_package_id $package_id] \
                 and r.revision_id = i.live_revision \
+                and i.item_id = o.object_id \
                 and p.page_id = r.revision_id \
 		and i.publish_status <> 'production'" \
              -orderby "publish_date desc" \
              -limit $max_entries ] {
 
-        set page_link [$package_id pretty_link -parent_id $parent_id $name]
+        set page_link [[my package_id] pretty_link -parent_id $parent_id $name]
         t1 add \
             -title $title \
             -title.href $page_link \
@@ -816,6 +841,26 @@ namespace eval ::xowiki::includelet {
           }
           set delete_link [$package_id make_link -link $page_link $p delete return_url]
           [t1 last_child] set delete.href $delete_link
+        }
+        if {$show_heritage} {
+          if {$package_id == [my package_id]} {
+            set href ""
+            set title "" 
+            set alt ""
+            set class ""
+            set label ""
+          } else {
+            # provide a link to the original
+            set href [$package_id pretty_link -parent_id $parent_id $name]
+            set label [$package_id instance_name]
+            set title [_ xowiki.view_in_context [list context $label]]
+            set alt $title
+            set class "inherited"
+          }
+          [t1 last_child] set inherited $label
+          [t1 last_child] set inherited.href $href
+          [t1 last_child] set inherited.title $title
+          [t1 last_child] set inherited.CSSclass $class
         }
       }
     return [t1 asHTML]

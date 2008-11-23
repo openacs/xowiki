@@ -89,12 +89,13 @@ namespace eval ::xowiki {
     # The method "view" is used primarily for the toplevel call, when
     # the xowiki page is viewed.  It is not intended for e.g. embedded
     # wiki pages (see include), since it contains full framing, etc.
-    my instvar package_id item_id 
-    $package_id instvar folder_id  ;# this is the root folder
+    my instvar item_id 
     ::xowiki::Page set recursion_count 0
+    set page_package_id    [my package_id]
+    set context_package_id [::xo::cc package_id]
 
     set template_file [my query_parameter "template_file" \
-                           [::$package_id get_parameter template_file view-default]]
+                           [::$context_package_id get_parameter template_file view-default]]
 
     if {[my isobject ::xowiki::$template_file]} {
       $template_file before_render [self]
@@ -109,17 +110,17 @@ namespace eval ::xowiki {
 
     set footer [my htmlFooter -content $content]
     set top_includelets ""
-    set vp [string trim [$package_id get_parameter "top_includelet" ""]]
+    set vp [string trim [$context_package_id get_parameter "top_includelet" ""]]
     if {$vp ne ""} {
       set top_includelets [my include $vp]
     }
 
-    if {[$package_id get_parameter "with_user_tracking" 1]} {
+    if {[$context_package_id get_parameter "with_user_tracking" 1]} {
       my record_last_visited
     }
 
     # Deal with the views package (many thanks to Malte for this snippet!)
-    if {[$package_id get_parameter with_views_package_if_available 1] 
+    if {[$context_package_id get_parameter with_views_package_if_available 1] 
 	&& [apm_package_installed_p "views"]} {
       views::record_view -object_id $item_id -viewer_id [::xo::cc user_id]
       array set views_data [views::get -object_id $item_id]
@@ -132,7 +133,7 @@ namespace eval ::xowiki {
       set return_url [my query_parameter return_url]
     }
     
-    if {[$package_id get_parameter "with_notifications" 1]} {
+    if {[$context_package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
@@ -142,7 +143,7 @@ namespace eval ::xowiki {
                  {{return_url $notifications_return_url}
                    {pretty_name $notification_text} 
                    {type_id $notification_type} 
-                   {object_id $package_id}}]
+                   {object_id $context_package_id}}]
         set notification_image \
            "<img style='border: 0px;' src='/resources/xowiki/email.png' \
 	    alt='$notification_text' title='$notification_text'>"
@@ -150,7 +151,7 @@ namespace eval ::xowiki {
     }
     #my log "--after notifications [info exists notification_image]"
 
-    set master [$package_id get_parameter "master" 1]
+    set master [$context_package_id get_parameter "master" 1]
     #if {[my exists_query_parameter "edit_return_url"]} {
     #  set return_url [my query_parameter "edit_return_url"]
     #}
@@ -158,40 +159,44 @@ namespace eval ::xowiki {
 
     if {$master} {
       set context [list $title]
-      ::xo::Page set_property doc title "[$package_id instance_name] - $title"
-      set autoname    [$package_id get_parameter autoname 0]
-      set object_type [$package_id get_parameter object_type [my info class]]
-      set rev_link    [$package_id make_link -with_entities 0 [self] revisions]
-      if {[$package_id query_parameter m ""] eq "edit"} {
-        set view_link   [$package_id make_link -with_entities 0 [self] view return_url]
+      #my msg "$context_package_id title=[$context_package_id instance_name] - $title"
+      #my msg "::xo::cc package_id = [::xo::cc package_id]  ::xo::cc url= [::xo::cc url] "
+      ::xo::Page set_property doc title "[$context_package_id instance_name] - $title"
+      set autoname    [$page_package_id get_parameter autoname 0]
+      set object_type [$page_package_id get_parameter object_type [my info class]]
+      set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
+
+      if {[$context_package_id query_parameter m ""] eq "edit"} {
+        set view_link   [$page_package_id make_link -with_entities 0 [self] view return_url]
       } else {
-        set edit_link   [$package_id make_link -with_entities 0 [self] edit return_url]
+        set edit_link   [$page_package_id make_link -with_entities 0 [self] edit return_url]
       }
-      set delete_link [$package_id make_link -with_entities 0 [self] delete return_url]
+      set delete_link [$page_package_id make_link -with_entities 0 [self] delete return_url]
       if {[my exists __link(new)]} {
         set new_link [my set __link(new)]
       } else {
         if {[my istype ::xowiki::FormPage]} {
           set template_id [my page_template]
-          set form      [$package_id pretty_link [$template_id name]]
-          set new_link  [$package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
+          set form      [$page_package_id pretty_link [$template_id name]]
+          set new_link  [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
         } else {
-          set new_link  [$package_id make_link -with_entities 0 $package_id edit-new object_type return_url autoname] 
+          set new_link  [$page_package_id make_link -with_entities 0 $page_package_id edit-new object_type return_url autoname] 
         }
       }
-      set admin_link  [$package_id make_link -privilege admin -link admin/ $package_id {} {}] 
-      set index_link  [$package_id make_link -privilege public -link "" $package_id {} {}]
+      set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
+      set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
       set create_in_req_locale_link ""
 
-      if {[$package_id get_parameter use_connection_locale 0]} {
-        $package_id get_lang_and_name -path [$package_id set object] req_lang req_local_name
-        set default_lang [$package_id default_language]
+      $context_package_id instvar folder_id  ;# this is the root folder
+      if {[$context_package_id get_parameter use_connection_locale 0]} {
+        $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
+        set default_lang [$page_package_id default_language]
         if {$req_lang ne $default_lang} {
           set l [Link create new -destroy_on_cleanup \
                      -page [self] -type language -stripped_name $req_local_name \
                      -name ${default_lang}:$req_local_name -lang $default_lang \
                      -label $req_local_name -parent_id $folder_id \
-                     -package_id $package_id -init \
+                     -package_id $context_package_id -init \
                      -return_only undefined]
           $l render
         }
@@ -213,10 +218,10 @@ namespace eval ::xowiki {
       } else {
         # use adp file
         #my log "use adp"
-        foreach css [$package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
+        foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
         # refetch it, since it might have been changed via set-parameter
         set template_file [my query_parameter "template_file" \
-                               [::$package_id get_parameter template_file view-default]]
+                               [::$context_package_id get_parameter template_file view-default]]
 
 	# if the template_file does not have a path, assume it in xowiki/www
         if {![regexp {^[./]} $template_file]} {
@@ -227,7 +232,7 @@ namespace eval ::xowiki {
 	if {[info command ::template::head::add_meta] ne ""} {
 	  template::head::add_meta -name language -content [my lang]
 	  template::head::add_meta -name description -content [my description]
-	  template::head::add_meta -name keywords -content [$package_id get_parameter keywords ""]
+	  template::head::add_meta -name keywords -content [$context_package_id get_parameter keywords ""]
 	}
 
         #
@@ -236,10 +241,14 @@ namespace eval ::xowiki {
         #
         array set property_body [::xo::Page get_property body]
         array set property_doc  [::xo::Page get_property doc]
-        # ns_log notice "XOWIKI body=[::xo::Page get_property body]"
-        $package_id return_page -adp $template_file -variables {
+        
+        if {$page_package_id != $context_package_id} {
+          set page_context [$page_package_id instance_name]
+        }
+
+        $context_package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
-          content footer package_id
+          content footer {package_id $context_package_id} page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 
           top_includelets page
