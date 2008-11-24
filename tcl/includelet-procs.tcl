@@ -248,6 +248,54 @@ namespace eval ::xowiki::includelet {
     }
   }
 
+  ::xowiki::Includelet proc listing {
+                                     -package_id
+                                     {-count:boolean false}
+                                     {-folder_id}
+                                     {-parent_id}
+                                     {-page_size 20}
+                                     {-page_number ""}
+                                     {-orderby ""}
+                                   } {
+    if {$count} {
+      set attribute_selection "count(*)"
+      set orderby ""      ;# no need to order when we count
+      set page_number  ""      ;# no pagination when count is used
+    } else {
+      set attribute_selection "i.name, r.title, p.page_id, r.publish_date, i.parent_id, o.package_id, \
+                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date"
+    }
+    if {$page_number ne ""} {
+      set limit $page_size
+      set offset [expr {$page_size*($page_number-1)}]
+    } else {
+      set limit ""
+      set offset ""
+    }
+    set sql [::xo::db::sql select \
+                 -vars $attribute_selection \
+                 -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
+                 -where "[::xowiki::Includelet parent_id_clause -bt i -base_package_id $package_id] \
+                     and r.revision_id = i.live_revision \
+                     and i.item_id = o.object_id \
+                     and p.page_id = r.revision_id \
+		     and i.publish_status <> 'production'" \
+                 -orderby $orderby \
+                 -limit $limit -offset $offset]
+
+    if {$count} {
+      return [db_string [my qn presence_count_users] $sql]
+    } else {
+      set s [::xowiki::Page instantiate_objects -sql $sql]
+      return $s
+    }
+  }
+
+
+  #
+  # inherited methods for all includelets
+  #
+
   ::xowiki::Includelet instproc resolve_page_name {page_name} {
     return [[my set __including_page] resolve_included_page_name $page_name]
   }  
@@ -809,20 +857,15 @@ namespace eval ::xowiki::includelet {
             ImageField_DeleteIcon delete -label ""
           }
         }
-    
-    db_foreach [my qn get_pages] \
-        [::xo::db::sql select \
-             -vars "i.name, r.title, p.page_id, r.publish_date, i.parent_id, o.package_id, \
-                to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
-             -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
-             -where "[::xowiki::Includelet parent_id_clause -bt i -base_package_id $package_id] \
-                and r.revision_id = i.live_revision \
-                and i.item_id = o.object_id \
-                and p.page_id = r.revision_id \
-		and i.publish_status <> 'production'" \
-             -orderby "publish_date desc" \
-             -limit $max_entries ] {
 
+    set listing [::xowiki::Includelet listing \
+                     -package_id $package_id -page_number 1 -page_size $max_entries \
+                     -orderby "publish_date desc"]
+
+    foreach entry [$listing children] {
+        $entry instvar name parent_id title formatted_date page_id 
+        set entry_package_id [$entry set package_id]
+      
         set page_link [[my package_id] pretty_link -parent_id $parent_id $name]
         t1 add \
             -title $title \
@@ -831,7 +874,7 @@ namespace eval ::xowiki::includelet {
 
         if {$allow_edit} {
           set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-          set edit_link [$package_id make_link -link $page_link $p edit return_url]
+          set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
           #my log "page_link=$page_link, edit=$edit_link"
           [t1 last_child] set edit.href $edit_link
         }
@@ -839,11 +882,11 @@ namespace eval ::xowiki::includelet {
           if {![info exists p]} {
             set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
           }
-          set delete_link [$package_id make_link -link $page_link $p delete return_url]
+          set delete_link [$entry_package_id make_link -link $page_link $p delete return_url]
           [t1 last_child] set delete.href $delete_link
         }
         if {$show_heritage} {
-          if {$package_id == [my package_id]} {
+          if {$entry_package_id == [my package_id]} {
             set href ""
             set title "" 
             set alt ""
@@ -851,8 +894,8 @@ namespace eval ::xowiki::includelet {
             set label ""
           } else {
             # provide a link to the original
-            set href [$package_id pretty_link -parent_id $parent_id $name]
-            set label [$package_id instance_name]
+            set href [$entry_package_id pretty_link -parent_id $parent_id $name]
+            set label [$entry_package_id instance_name]
             set title [_ xowiki.view_in_context [list context $label]]
             set alt $title
             set class "inherited"

@@ -118,11 +118,13 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="rss_client">RSS Client</msg>
   <msg key="search">Search</msg>
   <msg key="search_title">Search pages of this package ...</msg>
+  <msg key="select_link_target">To create a click, click on a page name </msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title
 </msg>
   <msg key="unread_items">Unread Items</msg>
   <msg key="view">View</msg>
+  <msg key="view_in_context">View page in original context %context%</msg>
   <msg key="view_title">View this page ...</msg>
   <msg key="weblog-more">more...</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>

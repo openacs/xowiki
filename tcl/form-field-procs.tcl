@@ -1097,6 +1097,7 @@ namespace eval ::xowiki::formfield {
     javascript
     {height}
     {style}
+    {wiki_p true}
   }
   richtext::xinha set editor_mixin 1
   richtext::xinha instproc initialize {} {
@@ -1108,12 +1109,13 @@ namespace eval ::xowiki::formfield {
                -default [::xo::parameter get_from_package_key \
                              -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
     }
-    my set options [my get_attributes editor plugins width height folder_id script_dir javascript]
+    my set options [my get_attributes editor plugins width height folder_id script_dir javascript wiki_p]
     # for the time being, we can't set the defaults via parameter, 
     # but only manually, since the editor is used as a mixin, the parameter
     # would have precedence over the defaults of subclasses
     if {![my exists height]} {my set height 350px}
     if {![my exists style]} {my set style "width: 100%;"}
+    if {![my exists wiki_p]} {my set wiki_p 1}
   }
   richtext::xinha instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
@@ -1129,7 +1131,7 @@ namespace eval ::xowiki::formfield {
       
       array set o [my set options]
       set xinha_options ""
-      foreach e {width height folder_id fs_package_id file_types attach_parent_id} {
+      foreach e {width height folder_id fs_package_id file_types attach_parent_id wiki_p package_id} {
         if {[info exists o($e)]} {
           append xinha_options "xinha_config.$e = '$o($e)';\n"
         }
