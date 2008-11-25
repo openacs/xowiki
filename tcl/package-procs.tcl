@@ -644,11 +644,11 @@ namespace eval ::xowiki {
     #
     if {![info exists parent_id]} {set parent_id [my folder_id]}
     set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-    my msg "lookup $name $parent_id returns $item_id"
+    #my msg "lookup $name $parent_id returns $item_id"
     if {$item_id == 0} {
       foreach package [my package_path] {
         set item_id [$package lookup -name $name]
-        my msg "lookup from package $package $name returns $item_id"
+        #my msg "lookup from package $package $name returns $item_id"
         if {$item_id != 0} break
       }
     }

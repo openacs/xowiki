@@ -1688,6 +1688,7 @@ namespace eval ::xowiki {
       my parent_id [$package_id folder_id]
     }
     set f [FormPage new -destroy_on_cleanup \
+               -name "" \
                -package_id $package_id \
                -parent_id [my parent_id] \
                -nls_language [my nls_language] \
