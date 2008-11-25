@@ -536,10 +536,6 @@ namespace eval ::xowiki {
       set lang [my default_language]
     }
 
-    # stripped object is the object without a language prefix
-    set stripped_object $object
-    regexp {^..:(.*)$} $object _ stripped_object
-
     #
     # first, resolve package level methods
     #
@@ -574,6 +570,10 @@ namespace eval ::xowiki {
     if {$simple || $page ne ""} {
       return $page
     }
+
+    # stripped object is the object without a language prefix
+    set stripped_object $object
+    regexp {^..:(.*)$} $object _ stripped_object
 
     # try standard page
     set standard_page [$id get_parameter ${object}_page]
