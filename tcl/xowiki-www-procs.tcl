@@ -688,7 +688,7 @@ namespace eval ::xowiki {
               $field removeAttribute checked
             }
           } else {
-            my msg "$att: CHECKBOX entry has no value"
+            #my msg "$att: CHECKBOX entry has no value"
             if {[catch {set f [expr {$value ? 1 : 0}]}]} {set f 1}
             if {$value eq "" || $f == 0} {
               if {[$field hasAttribute checked]} {
