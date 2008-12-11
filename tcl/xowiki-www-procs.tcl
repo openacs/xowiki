@@ -538,6 +538,7 @@ namespace eval ::xowiki {
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
       if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
+        set rhs_expr [string trim $rhs_expr]
         if {[string range $lhs 0 0] eq "_"} {
           set lhs_var [string range $lhs 1 end]
 	  set rhs [split $rhs_expr |] 
