@@ -146,8 +146,12 @@ namespace eval ::xowiki {
     # handle different parent_ids
     #
     if {$parent_id ne "" && $parent_id != [my folder_id]} {
-      ::xo::db::CrClass get_instance_from_db -item_id $parent_id
-      return [$parent_id name]/
+      if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
+        return ""
+      } else {
+        ::xo::db::CrClass get_instance_from_db -item_id $parent_id
+        return [$parent_id name]/
+      }
     } else {
       return ""
     }
