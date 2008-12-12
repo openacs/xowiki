@@ -217,6 +217,7 @@ div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
 .weblog-mini-calendar #at-a-glance td              { text-align: right; padding-right: 3px;}
 .weblog-mini-calendar #at-a-glance td.active:hover { text-align: right; }
 
+/* includelet "recent" */
 div.recent div.portlet .list-table td.list {
     padding: 8px 4px;
 }
@@ -224,4 +225,14 @@ div.xowiki-content a.inherited {
     background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat; 
     padding-right: 14px;
     font-size: 65%;
+}
+
+/* mc stuff */
+div.xowiki-content table.mchoice td.selection {
+    width: 25px;
+    padding: 0px 5px 0px 25px;
+}
+div.xowiki-content form.feedback td.selection {
+    width: 25px;
+    padding: 0px 5px 0px 25px;
 }
