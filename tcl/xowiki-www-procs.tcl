@@ -1667,7 +1667,13 @@ namespace eval ::xowiki {
     return [list]
   }
 
-  Page instproc create-new {{-view_method edit}} {
+  Page instproc create-or-use args {
+    my msg ""
+    # can be overloaded
+    eval my create-new $args
+  }
+
+  Page instproc create-new {{-view_method edit} {-name ""}} {
     my instvar package_id
     set instance_attributes [my default_instance_attributes]
     set original_package_id $package_id
@@ -1681,7 +1687,8 @@ namespace eval ::xowiki {
       if {[catch {
         ::xowiki::Package initialize \
             -url $package_instance -user_id [::xo::cc user_id] \
-            -actual_query ""} errorMsg]} {
+            -actual_query ""
+      } errorMsg]} {
         ns_log error "$errorMsg\n$::errorInfo"
         return [$original_package_id error_msg \
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
@@ -1689,7 +1696,8 @@ namespace eval ::xowiki {
       my parent_id [$package_id folder_id]
     }
     set f [FormPage new -destroy_on_cleanup \
-               -name "" \
+               -name $name \
+               -text "" \
                -package_id $package_id \
                -parent_id [my parent_id] \
                -nls_language [my nls_language] \
@@ -1700,6 +1708,9 @@ namespace eval ::xowiki {
     if {[my exists state]} {
       $f set state [my set state]
     }
+
+    # Make sure to load the instance attributes
+    $f array set __ia [$f instance_attributes]
 
     # Call the application specific initialization, when a FormPage is
     # initially created. This is used to control the life-cycle of

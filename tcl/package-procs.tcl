@@ -146,6 +146,9 @@ namespace eval ::xowiki {
     # handle different parent_ids
     #
     if {$parent_id ne "" && $parent_id != [my folder_id]} {
+      # The item might be in a folder along the folder path.  so it
+      # will be found by the object resolver. For the time being, we
+      # do nothing more about this.
       if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
         return ""
       } else {
@@ -1263,7 +1266,8 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
-      create-new        {{item_id write}}
+      create-new         {{item_id write}}
+      create-or-use      {{item_id write}}
     } -set default_permission {{package_id write}}
 
     Class Object -array set require_permission {
@@ -1274,6 +1278,7 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
       list              {{package_id read}}
     }
   }
@@ -1311,6 +1316,7 @@ namespace eval ::xowiki {
       save-tags          login
       popular-tags       login
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
     }
 
     Class Object -array set require_permission {
@@ -1321,6 +1327,7 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
       list              {{package_id read}}
     }
   }
@@ -1356,6 +1363,7 @@ namespace eval ::xowiki {
       save-tags          login
       popular-tags       login
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
     }
 
     Class Object -array set require_permission {
@@ -1366,6 +1374,7 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
       list              {{item_id read}}
     }
   }
@@ -1408,6 +1417,7 @@ namespace eval ::xowiki {
       save-tags          login
       popular-tags       login
       create-new         {{item_id write}}
+      create-or-use      {{item_id write}}
     }
     
     Class Object -array set require_permission {
@@ -1427,6 +1437,7 @@ namespace eval ::xowiki {
       edit              admin
       list              admin
       create-new        {{item_id write}}
+      create-or-use     {{item_id write}}
     }
   }
 
