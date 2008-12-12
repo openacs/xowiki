@@ -2896,6 +2896,8 @@ namespace eval ::xowiki::includelet {
           {-voting_form_anon_instances "t"}
           {-generate}
           {-with_form_link true}
+          {-wf}
+          {-buttons "edit delete"}
         }}
       }
   
@@ -2963,24 +2965,35 @@ namespace eval ::xowiki::includelet {
     # $form_item show_fields $form_fields
     foreach f $form_fields {set __ff([$f name]) $f}
 
-#    if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
+    # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
     # TODO: wiki-substituion is just hacked in here. maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
     if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
 
+    foreach b $buttons {set use_button($b) 1}
+
     set cols ""
-    append cols {ImageField_EditIcon _edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+    if {[info exists use_button(edit)]} {
+      append cols {ImageField_EditIcon _edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+    }
+    if {[info exists use_button(view)]} {
+      append cols {ImageField_ViewIcon _view -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+    }
     foreach fn $field_names {
       #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
       #                    || [$__ff($fn) istype ::xowiki::formfield::richtext]}]
       append cols [list AnchorField _$fn \
 		       -label [$__ff($fn) label] \
 		       -richtext 1 \
-		       -orderby _$fn] \n
+		       -orderby _$fn \
+		      ] \n
     }
-    append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
+    if {[info exists use_button(delete)]} {
+      append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
+    }
+
     TableWidget t1 -volatile -columns $cols
 
     #
@@ -3045,6 +3058,9 @@ namespace eval ::xowiki::includelet {
       }
     }
     #my log "queries done"
+    if {[info exists wf]} {
+      set wf_link [$package_id pretty_link $wf]
+    }
 
     foreach p [$items children] {
       $p set package_id $package_id
@@ -3055,17 +3071,44 @@ namespace eval ::xowiki::includelet {
 
       set page_link [$package_id pretty_link -parent_id [$p parent_id] [$p name]]
 
-      t1 add \
-          -_delete delete \
-          -_delete.href [$package_id make_link -link $page_link $p delete return_url] \
-          -_edit edit \
-	  -_edit.href [$package_id make_link -link $page_link $p edit return_url] 
+      if {[info exists wf]} {
+	set view_link $wf_link?m=create-or-use&p.form=[$p name]
+      } else {
+	set view_link $page_link
+      }
       
+      t1 add
       set __c [t1 last_child]
-      $__c set __name.href $page_link
+
+      if {[info exists use_button(edit)]} {
+	$__c set _edit edit
+	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url] 
+      }
+      if {[info exists use_button(view)]} {
+	$__c set _view view
+	$__c set _view.href $view_link
+      }
+      if {[info exists use_button(delete)]} {
+	$__c set _delete delete
+	$__c set _delete.href [$package_id make_link -link $page_link $p delete return_url] 
+      }
+
+      if {![info exists use_button(view)]} {
+	#
+	# Set always a view link, if we have no view button ...
+	#
+	if {[info exists __ff(_name)]} {
+	  # .... on _name ....
+	  $__c set __name.href $view_link
+	} else {
+	  # .... otherwise on the first form_field
+	  $__c set _[lindex $field_names 0].href $view_link
+	}
+      }
 
       # set always last_modified for default sorting
       $__c set __last_modified [$p set last_modified]
+
 
       foreach __fn $field_names {
         $__c set _$__fn [$__ff($__fn) pretty_value [$p property $__fn]]
