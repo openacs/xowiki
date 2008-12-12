@@ -1668,7 +1668,6 @@ namespace eval ::xowiki {
   }
 
   Page instproc create-or-use args {
-    my msg ""
     # can be overloaded
     eval my create-new $args
   }
