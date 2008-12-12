@@ -1790,9 +1790,10 @@ namespace eval ::xowiki::formfield {
     set sub [self]
     foreach e $args {
       append component_name .$e
-      if {![info exists component_index($component_name)]} {
+      if {![$sub exists component_index($component_name)]} {
 	return 0
       }
+      set sub [$sub set component_index($component_name)]
     }
     return 1
   }
