@@ -1778,9 +1778,28 @@ namespace eval ::xowiki::formfield {
     error "no component named $component_name of compound field [my name]"
   }
 
+  CompoundField instproc exists_named_sub_component args {
+    # Iterate along the argument list to check components of a deeply
+    # nested structure. For example,
+    #
+    #    my check_named_sub_component a b
+    #
+    # returns 0 or one depending whether there exists a component "a"
+    # with a subcomponent "b".
+    set component_name [my name]
+    set sub [self]
+    foreach e $args {
+      append component_name .$e
+      if {![info exists component_index($component_name)]} {
+	return 0
+      }
+    }
+    return 1
+  }
+
   CompoundField instproc get_named_sub_component args {
     # Iterate along the argument list to get components of a deeply
-    # nested structure For example,
+    # nested structure. For example,
     #
     #    my get_named_sub_component a b
     #
