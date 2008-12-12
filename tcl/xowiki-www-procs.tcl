@@ -1672,7 +1672,7 @@ namespace eval ::xowiki {
     eval my create-new $args
   }
 
-  Page instproc create-new {{-view_method edit} {-name ""}} {
+  Page instproc create-new {{-view_method edit} {-name ""} {-nls_language ""}} {
     my instvar package_id
     set instance_attributes [my default_instance_attributes]
     set original_package_id $package_id
@@ -1694,12 +1694,15 @@ namespace eval ::xowiki {
       }
       my parent_id [$package_id folder_id]
     }
+    if {$nls_language eq ""} {
+      set nls_language [my nls_language]
+    }
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
                -text "" \
                -package_id $package_id \
                -parent_id [my parent_id] \
-               -nls_language [my nls_language] \
+               -nls_language $nls_language \
                -publish_status "production" \
                -instance_attributes $instance_attributes \
                -page_template [my item_id]]
