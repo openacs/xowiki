@@ -238,7 +238,8 @@ namespace eval ::xowiki::formfield {
         set attribute [string range $s 0 [expr {$p-1}]]
         set value [string range $s [expr {$p+1}] end]
         set definition_class [lindex [my procsearch $attribute] 0]
-        if {[string match "::xotcl::*" $definition_class] || $definition_class eq ""} {
+	set method [my info methods $attribute]
+        if {[string match "::xotcl::*" $definition_class] || $method eq ""} {
           error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
         }
         if {[catch {
@@ -2004,8 +2005,8 @@ namespace eval ::xowiki::formfield {
   }
   boolean instproc initialize {} {
     # should be with cvs head message catalogs:
-    # my options {{#acs-kernel.common_No# f} {#acs-kernel.common_Yes# t}}
-    my options {{No f} {#acs-kernel.common_Yes# t}}
+    my options {{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}}
+    #my options {{No f} {#acs-kernel.common_Yes# t}}
     next
   }
 
