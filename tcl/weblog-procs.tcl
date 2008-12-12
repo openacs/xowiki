@@ -116,7 +116,7 @@ namespace eval ::xowiki {
     set base_type ::xowiki::Page
     set base_table xowiki_pagei
     set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
-                        bt.description s.body pi.instance_attributes]
+                        ci.parent_id bt.description s.body pi.instance_attributes]
     
     set class_clause \
         " and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object')"
@@ -184,7 +184,7 @@ namespace eval ::xowiki {
     
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \
-          description body instance_attributes
+          parent_id description body instance_attributes
 
       set time [::xo::db::tcl_date $publish_date tz]
       set pretty_date [util::age_pretty -timestamp_ansi $time \
@@ -192,9 +192,9 @@ namespace eval ::xowiki {
                            -mode_3_fmt "%d %b %Y, at %X"]
       
       if {$summary} {
-        # we need always: package_id item_id name title creator creation_user pretty_date
+        # we need always: package_id item_id parent_id name title creator creation_user pretty_date
         set p [Page new \
-		   -package_id $package_id \
+		   -package_id $package_id -parent_id $parent_id \
 		   -item_id $item_id -revision_id $revision_id \
                    -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
