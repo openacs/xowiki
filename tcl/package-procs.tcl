@@ -609,6 +609,16 @@ namespace eval ::xowiki {
         return $page
       }
     }
+
+    # Maybe, a prototype page was imported with language en:, but the current language is different
+    if {$lang ne "en"} {
+      set page [my resolve_request -default_lang en -path $stripped_object method]
+      #my msg "resolve -default_lang en -path $stripped_object returns --> $page"
+      if {$page ne ""} {
+	return $page
+      }
+    }
+
     #my msg "we have to import a prototype page for $stripped_object"
     set page [my import_prototype_page $stripped_object]
     if {$page eq ""} {
