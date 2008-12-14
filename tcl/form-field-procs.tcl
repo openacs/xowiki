@@ -799,9 +799,13 @@ namespace eval ::xowiki::formfield {
   numeric instproc convert_to_external value {
     if {$value ne ""} {
       if { [catch "lc_numeric $value [my format] [my locale]" result] } {
-        util_user_message -message "[my label]: $result"
-        scan $value [my format] converted_value
-        return $converted_value
+        util_user_message -message "[my label]: $result (locale=[my locale])"
+	#my msg [list lc_numeric $value [my format] [my locale]]
+        if {[catch {scan $value [my format] converted_value}]} {
+	  return $value
+	} else {
+	  return $converted_value
+	}
       }
       return $result
     }
@@ -1041,7 +1045,7 @@ namespace eval ::xowiki::formfield {
   }
   richtext::wym instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-    if {![my istype ::xowiki::formfield::richtext] || $disabled} {
+    if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
@@ -1099,6 +1103,9 @@ namespace eval ::xowiki::formfield {
     {height}
     {style}
     {wiki_p true}
+    {inplace false}
+    {slim true}
+    {CSSclass xinha}
   }
   richtext::xinha set editor_mixin 1
   richtext::xinha instproc initialize {} {
@@ -1114,10 +1121,27 @@ namespace eval ::xowiki::formfield {
     # for the time being, we can't set the defaults via parameter, 
     # but only manually, since the editor is used as a mixin, the parameter
     # would have precedence over the defaults of subclasses
-    if {![my exists height]} {my set height 350px}
+    if {![my exists slim]} {my set slim false} 
     if {![my exists style]} {my set style "width: 100%;"}
+    if {![my exists height]} {my set height 350px}
     if {![my exists wiki_p]} {my set wiki_p 1}
+    if {![my exists inplace]} {my set inplace false} 
+    if {[my set inplace]} {
+      ::xo::Page requireJS  "/resources/xowiki/xinha-inplace.js"
+      if {![info exists ::__xinha_inplace_init_done]} {
+	template::add_body_handler -event onload -script "xinhaInplace.init();"
+	set ::__xinha_inplace_init_done 1 
+      }
+    }
+    if {[my set slim]} {
+      my lappend options javascript {
+	xinha_config.toolbar  = [['popupeditor', 'bold','italic','createlink','insertimage','separator'], 
+				 ['killword','removeformat'] 
+				];
+      }
+    }
   }
+
   richtext::xinha instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
     if {![my istype ::xowiki::formfield::richtext] || $disabled} {
@@ -1143,7 +1167,18 @@ namespace eval ::xowiki::formfield {
       }
       set ::acs_blank_master(xinha.options) $xinha_options
       lappend ::acs_blank_master__htmlareas [my id]
-      next
+
+      if {[my inplace]} {
+	::html::div [my get_attributes id name {CSSclass class} disabled] {
+	  ::html::t -disableOutputEscaping  [my value]
+	}
+	my set hiddenid [my id]__HIDDEN__
+	my set type hidden
+	::html::input [my get_attributes {hiddenid id} name type value] {}
+      } else {
+	#::html::div [my get_attributes id name cols rows style {CSSclass class} disabled] {}
+	next
+      }
     }
   }
 
