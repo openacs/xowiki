@@ -227,6 +227,10 @@ div.xowiki-content a.inherited {
     font-size: 65%;
 }
 
+div.xowiki-content .margin-form fieldset .form-item-wrapper {
+    padding: 0px 0px 0px 0px;
+}
+
 /* mc stuff */
 div.xowiki-content table.mchoice td.selection {
     width: 25px;
