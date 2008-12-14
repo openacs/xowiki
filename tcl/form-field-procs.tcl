@@ -1136,7 +1136,7 @@ namespace eval ::xowiki::formfield {
     if {[my set slim]} {
       my lappend options javascript {
 	xinha_config.toolbar  = [['popupeditor', 'bold','italic','createlink','insertimage','separator'], 
-				 ['killword','removeformat'] 
+				 ['killword','removeformat','htmlmode'] 
 				];
       }
     }
