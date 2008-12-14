@@ -1129,7 +1129,7 @@ namespace eval ::xowiki::formfield {
     if {[my set inplace]} {
       ::xo::Page requireJS  "/resources/xowiki/xinha-inplace.js"
       if {![info exists ::__xinha_inplace_init_done]} {
-	template::add_body_handler -event onload -script "xinhaInplace.init();"
+	template::add_body_handler -event onload -script "xinha.inplace.init();"
 	set ::__xinha_inplace_init_done 1 
       }
     }
