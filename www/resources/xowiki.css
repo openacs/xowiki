@@ -33,7 +33,7 @@ div.xowiki-content {
     font: 10pt Verdana, Arial, Helvetica, sans-serif;
 }
 
-/* link types */
+/* appearance of link types */
 div.xowiki-content a.external {
     color: #002bb8;
     background: url(/resources/xowiki/external.png) right center no-repeat;
@@ -46,6 +46,32 @@ div.xowiki-content a.file {
 div.xowiki-content a.glossary {
     background: url(/resources/xowiki/glossary.gif) right center no-repeat; 
     padding-right: 14px;
+}
+
+/* appearance of item-buttons */
+div.xowiki-content a.edit-item-button {
+    background: url(/resources/acs-subsite/Edit16.gif) right center no-repeat; 
+    padding-right: 16px;
+}
+div.xowiki-content a.delete-item-button {
+    background: url(/resources/acs-subsite/Delete16.gif) right center no-repeat; 
+    padding-right: 16px;
+}
+div.xowiki-content a.view-item-button {
+    background: url(/resources/acs-subsite/Zoom16.gif) right center no-repeat; 
+    padding-right: 16px;
+}
+div.xowiki-content a.create-item-button {
+    background: url( /resources/acs-subsite/Add16.gif) right center no-repeat; 
+    padding-right: 16px;
+}
+div.xowiki-content a.copy-item-button {
+    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
+    padding-right: 16px;
+}
+div.xowiki-content a.copy-item-button {
+    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
+    padding-right: 16px;
 }
 
 /* headings */

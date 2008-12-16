@@ -2277,7 +2277,6 @@ namespace eval ::xowiki::includelet {
     -package_id
     -method
     -link
-    -src 
     -alt 
     -title 
     -return_url 
@@ -2288,7 +2287,6 @@ namespace eval ::xowiki::includelet {
     set html ""
     if {![info exists return_url] || $return_url eq ""} {set return_url [$package_id url]}
     if {![info exists alt]} {set alt $method}
-    if {![info exists src]} {set src [my set src]}
     if {![info exists link] || $link eq ""} {
       if {[$page istype ::xowiki::Package]} {
 	set link  [$package_id make_link $package_id edit-new object_type \
@@ -2300,7 +2298,8 @@ namespace eval ::xowiki::includelet {
       }
     }
     if {$link ne ""} {
-      set html "<a class='image-button' href=\"$link\"><img src='$src' alt=\"$alt\" title=\"$title\"></a>"
+      set button_class [namespace tail [my info class]]
+      set html "<a class='$button_class' href=\"$link\" alt=\"$alt\" title=\"$title\"></a>"
     }
     return $html
   }
@@ -2329,15 +2328,13 @@ namespace eval ::xowiki::includelet {
     }
     return [my render_button \
 		-page $page -method edit -package_id $package_id \
-		-title $title -alt $alt -return_url $return_url \
-		-src /resources/acs-subsite/Edit16.gif]
+		-title $title -alt $alt -return_url $return_url]
   }
 
   ::xowiki::IncludeletClass create delete-item-button \
       -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
-        {src /resources/acs-subsite/Delete16.gif}
         {parameter_declaration {
           {-page_id}
           {-title "#xowiki.delete#"}
@@ -2360,7 +2357,6 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
-        {src /resources/acs-subsite/Zoom16.gif}
         {parameter_declaration {
           {-page_id}
           {-title "#xowiki.view#"}
@@ -2385,7 +2381,6 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
-        {src /resources/acs-subsite/Add16.gif}
         {parameter_declaration {
           {-page_id}
           {-alt "new"}
@@ -2419,7 +2414,6 @@ namespace eval ::xowiki::includelet {
   ::xowiki::IncludeletClass create copy-item-button -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
-        {src /resources/acs-subsite/Copy16.gif}
         {parameter_declaration {
           {-page_id}
           {-alt "copy"}
@@ -3283,4 +3277,5 @@ namespace eval ::xowiki::includelet {
     append content "<p><a href='$url' title='$title'>$title</a></p>"
     return $content
   }
+
 }
