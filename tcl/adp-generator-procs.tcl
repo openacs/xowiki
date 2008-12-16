@@ -76,7 +76,7 @@ function get_popular_tags(popular_tags_link, prefix) {
   <if @delete_link@ not nil><a href="@delete_link@" accesskey='d' title='#xowiki.delete_title#'>#xowiki.delete#</a> &middot; </if>
   <if @admin_link@ not nil><a href="@admin_link@" accesskey='a' title='#xowiki.admin_title#'>#xowiki.admin#</a> &middot; </if>
   <if @notification_subscribe_link@ not nil><a href='/notifications/manage' title='#xowiki.notifications_title#'>#xowiki.notifications#</a> 
-      <a href="@notification_subscribe_link@">@notification_image;noquote@</a> &middot; </if>  
+      <a href="@notification_subscribe_link@" class="notification-image-button"></a> &middot; </if>  
    <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'  title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
   <if @index_link@ not nil><a href="@index_link@" accesskey='i' title='#xowiki.index_title#'>#xowiki.index#</a></if>
 <div id='do_search' style='display: none'> 

@@ -13,8 +13,8 @@
 set context [list]
 set title "Administer all kind of [$object_type set pretty_plural]"
 
-set object_types    [$object_type object_types]
-set return_url      [ns_conn url]
+set object_types [$object_type object_types]
+set return_url   [ns_conn url]
 set category_url [export_vars \
                       -base [site_node::get_package_url -package_key categories]cadmin/object-map \
                       { { object_id $package_id } {ctx_id $package_id} }]
@@ -34,8 +34,8 @@ TableWidget t1 -volatile \
     -columns {
       Field object_type -label [_ xowiki.page_type]
       AnchorField instances -label Instances -html {align center}
-      ImageField_AddIcon edit -label "Add" -html {align center}
-      ImageField_DeleteIcon delete -label "Delete All" \
+      AnchorField edit -CSSclass add-item-button -label "Add" -html {align center}
+      AnchorField delete -CSSclass delete-item-button -label "Delete All" \
           -html {align center onClick "return(confirm('Delete really all?'));"}
     }
 
@@ -58,9 +58,11 @@ foreach object_type $object_types {
       -object_type  $object_type \
       -instances    $n \
       -instances.href [export_vars -base ./list {object_type}] \
+      -edit         "" \
       -edit.href    $add_href \
-      -delete.href  [export_vars -base delete-type {object_type}] \
       -edit.title   $add_title \
+      -delete       "" \
+      -delete.href  [export_vars -base delete-type {object_type}] \
       -delete.title $delete_title
 }
 

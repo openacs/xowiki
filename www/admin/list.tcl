@@ -64,7 +64,7 @@ TableWidget t1 -volatile \
         Action new -label export -tooltip export -url export
         Action new -label delete -tooltip delete -url bulk-delete
       }
-      ImageField_EditIcon edit -label "" -html {style "padding: 2px;"}
+      AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
       if {$::individual_permissions} {
         ImageAnchorField permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
@@ -83,7 +83,7 @@ TableWidget t1 -volatile \
       Field size -label "Size" -orderby size -html {align right style "padding: 2px;"}
       Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
       Field mod_user -label "By User" -orderby mod_user
-      ImageField_DeleteIcon delete -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
+      AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
     }
 
 foreach {att order} [split $orderby ,] break
@@ -123,9 +123,13 @@ db_foreach instance_select \
               -last_modified $last_modified \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
+              -edit "" \
               -edit.href [export_vars -base $page_link {{m edit} return_url}] \
+              -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
-              -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}]
+              -delete "" \
+              -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}] \
+              -delete.title #xowiki.delete# 
           if {$::individual_permissions} {
             [t1 last_child] set permissions.href \
                 [export_vars -base permissions {item_id return_url}] 

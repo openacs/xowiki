@@ -847,14 +847,14 @@ namespace eval ::xowiki::includelet {
         -columns {
           Field date -label [_ xowiki.Page-last_modified]
           if {[[my info parent] set allow_edit]} {
-            ImageField_EditIcon edit -label "" -html {style "padding-right: 2px;"}
+            AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"}
           }
           if {[[my info parent] set show_heritage]} {
             AnchorField inherited -label ""
           } 
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
-            ImageField_DeleteIcon delete -label ""
+            AnchorField delete -CSSclass delete-item-button -label ""
           }
         }
 
@@ -877,6 +877,7 @@ namespace eval ::xowiki::includelet {
           set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
           #my log "page_link=$page_link, edit=$edit_link"
           [t1 last_child] set edit.href $edit_link
+          [t1 last_child] set edit ""
         }
         if {$allow_delete} {
           if {![info exists p]} {
@@ -884,6 +885,7 @@ namespace eval ::xowiki::includelet {
           }
           set delete_link [$entry_package_id make_link -link $page_link $p delete return_url]
           [t1 last_child] set delete.href $delete_link
+          [t1 last_child] set delete ""
         }
         if {$show_heritage} {
           if {$entry_package_id == [my package_id]} {
@@ -2970,10 +2972,10 @@ namespace eval ::xowiki::includelet {
 
     set cols ""
     if {[info exists use_button(edit)]} {
-      append cols {ImageField_EditIcon _edit -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+      append cols {AnchorField _edit -CSSclass edit-item-button -label "" -html {style "padding: 2px;"} -no_csv 1} \n
     }
     if {[info exists use_button(view)]} {
-      append cols {ImageField_ViewIcon _view -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+      append cols {AnchorField _view -CSSclass view-item-button -label "" -html {style "padding: 2px;"} -no_csv 1} \n
     }
     foreach fn $field_names {
       #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
@@ -2985,7 +2987,8 @@ namespace eval ::xowiki::includelet {
 		      ] \n
     }
     if {[info exists use_button(delete)]} {
-      append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
+      #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
+      append cols [list AnchorField _delete -CSSclass delete-item-button -label "" -no_csv 1] \n
     }
 
     TableWidget t1 -volatile -columns $cols
@@ -3075,15 +3078,18 @@ namespace eval ::xowiki::includelet {
       set __c [t1 last_child]
 
       if {[info exists use_button(edit)]} {
-	$__c set _edit edit
+	$__c set _edit ""
+	$__c set _edit.title #xowiki.edit#
 	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url] 
       }
       if {[info exists use_button(view)]} {
-	$__c set _view view
+	$__c set _view ""
+	$__c set _view.title #xowiki.view#
 	$__c set _view.href $view_link
       }
       if {[info exists use_button(delete)]} {
-	$__c set _delete delete
+	$__c set _delete ""
+	$__c set _delete.title #xowiki.delete#
 	$__c set _delete.href [$package_id make_link -link $page_link $p delete return_url] 
       }
 
