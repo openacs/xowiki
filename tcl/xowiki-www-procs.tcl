@@ -111,7 +111,7 @@ namespace eval ::xowiki {
     set footer [my htmlFooter -content $content]
     set top_includelets ""
     set vp [string trim [$context_package_id get_parameter "top_includelet" ""]]
-    if {$vp ne ""} {
+    if {$vp ne "" && $vp ne "none"} {
       set top_includelets [my include $vp]
     }
 
