@@ -288,7 +288,9 @@ namespace eval ::xowiki {
     upvar #[template::adp_level] text text
     if {[info exists text]} {
       foreach {text format} [my var text] break
-      my var text [list [list [::xowiki::tidy clean $text] $format]]
+      if {[info exists format]} {
+        my var text [list [list [::xowiki::tidy clean $text] $format]]
+      }
     }
   }
   
