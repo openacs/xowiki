@@ -850,7 +850,7 @@ namespace eval ::xowiki::includelet {
             AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"}
           }
           if {[[my info parent] set show_heritage]} {
-            AnchorField inherited -label ""
+            AnchorField inherited -label "" -CSSclass inherited
           } 
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
@@ -905,7 +905,7 @@ namespace eval ::xowiki::includelet {
           [t1 last_child] set inherited $label
           [t1 last_child] set inherited.href $href
           [t1 last_child] set inherited.title $title
-          [t1 last_child] set inherited.CSSclass $class
+          #[t1 last_child] set inherited.CSSclass $class
         }
       }
     return [t1 asHTML]
