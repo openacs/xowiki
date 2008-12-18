@@ -264,7 +264,7 @@ namespace eval ::xowiki {
     (5) standard OpenACS package parameter
   } {
     set value [::xo::cc get_parameter $attribute]
-    if {$check_query_parameter && $value eq ""} {set value [my query_parameter $attribute]}
+    if {$check_query_parameter && $value eq ""} {set value [string trim [my query_parameter $attribute]]}
     if {$value eq "" && $attribute ne "parameter_page"} {
       #
       # Try to get the parameter from the parameter_page.  We have to
