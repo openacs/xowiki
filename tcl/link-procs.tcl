@@ -32,7 +32,7 @@ namespace eval ::xowiki {
     set title_att ""
     if {[info exists title]}  {append  title_att " title='[string map [list ' {&#39;}] $title]'"}
     if {[info exists target]} {append title_att " target='$target'"}
-    return "<a $title_att [my mk_css_class -additional external] href='$href'>$label<span class='external'></span></a>"
+    return "<a $title_att [my mk_css_class -additional external] href='$href'>$label<span class='external'>&nbsp;</span></a>"
   }
 
   #
@@ -274,7 +274,7 @@ namespace eval ::xowiki {
       set internal_href [export_vars -base $internal_href [my extra_query_parameter]]
     }
     if {![info exists embed_options]} {
-      return "<a href='$internal_href' [my mk_css_class -additional file]>$label<span class='file'></span></a></a>"
+      return "<a href='$internal_href' [my mk_css_class -additional file]>$label<span class='file'>&nbsp;</span></a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
