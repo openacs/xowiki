@@ -847,14 +847,14 @@ namespace eval ::xowiki::includelet {
         -columns {
           Field date -label [_ xowiki.Page-last_modified]
           if {[[my info parent] set allow_edit]} {
-            AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"}
+            AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"} -richtext 1
           }
           if {[[my info parent] set show_heritage]} {
             AnchorField inherited -label "" -CSSclass inherited
           } 
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
-            AnchorField delete -CSSclass delete-item-button -label ""
+            AnchorField delete -CSSclass delete-item-button -label "" -richtext 1
           }
         }
 
@@ -2972,10 +2972,10 @@ namespace eval ::xowiki::includelet {
 
     set cols ""
     if {[info exists use_button(edit)]} {
-      append cols {AnchorField _edit -CSSclass edit-item-button -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+      append cols {AnchorField _edit -CSSclass edit-item-button -label "" -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     if {[info exists use_button(view)]} {
-      append cols {AnchorField _view -CSSclass view-item-button -label "" -html {style "padding: 2px;"} -no_csv 1} \n
+      append cols {AnchorField _view -CSSclass view-item-button -label "" -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     foreach fn $field_names {
       #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
@@ -2988,7 +2988,7 @@ namespace eval ::xowiki::includelet {
     }
     if {[info exists use_button(delete)]} {
       #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
-      append cols [list AnchorField _delete -CSSclass delete-item-button -label "" -no_csv 1] \n
+      append cols [list AnchorField _delete -CSSclass delete-item-button -label "" -no_csv 1 -richtext 1] \n
     }
 
     TableWidget t1 -volatile -columns $cols
