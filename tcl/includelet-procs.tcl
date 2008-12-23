@@ -251,7 +251,7 @@ namespace eval ::xowiki::includelet {
   ::xowiki::Includelet proc glob_clause {{-base_table ci} {-attribute name} value} {
     # Return a clause for name matching.
     # value uses * for matching
-    set glob [string map [list * %] $name]
+    set glob [string map [list * %] $value]
     return " and $base_table.$attribute like '$glob'"
   }
 
@@ -3361,7 +3361,7 @@ namespace eval ::xowiki::includelet {
     }]
     set extra_where_clause { and mime_type like 'image/%'}
     if {$glob ne ""} {
-      append extra_where_clause [::xowiki::Includelet glob_clause $glob]
+      append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
     }
     set listing [::xowiki::Includelet listing \
                      -package_id $package_id \
