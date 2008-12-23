@@ -77,50 +77,50 @@ div.xowiki-content a.copy-item-button {
 }
 */
 /* positions 
-   Add16         -1,-0
-   Copy16        -1,-22
-   Delete16      -1,-44
-   Edit16        -1,-66
-   New16         -1,-88
-   Open16        -1,-110
-   Preferences16 -1,-132
-   Properties16  -1,-154
-   Zoom16        -1,-176
-   ZoomIn16      -1,-198
-   ZoomOut16     -1,-220
-   email.png     -1,-242
-   external.png  -1,-264
-   file.png      -1,-286
+   Add16         -2,-1
+   Copy16        -2,-22
+   Delete16      -2,-44
+   Edit16        -2,-66
+   New16         -2,-88
+   Open16        -2,-110
+   Preferences16 -2,-132
+   Properties16  -2,-154
+   Zoom16        -2,-176
+   ZoomIn16      -2,-198
+   ZoomOut16     -2,-220
+   email.png     -2,-242
+   external.png  -2,-264
+   file.png      -2,-286
    transparent.png  -1,-308
 */
 div.xowiki-content a.edit-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -66px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -66px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.delete-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -44px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -44px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.view-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -176px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -176px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.create-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -0px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.copy-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -22px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -22px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
     width: 16px; height: 16px;
 }
 div.xowiki-content a.add-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -1px -0px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
     padding-right: 16px;
     text-decoration: none;
 }
