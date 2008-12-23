@@ -231,7 +231,7 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc parent_id_clause {
-     {-bt bt}
+     {-base_table bt}
      -base_package_id:required
   } {
     #
@@ -242,11 +242,22 @@ namespace eval ::xowiki::includelet {
     if {[llength $packages] > 0} {
       set parent_ids [list [$base_package_id folder_id]]
       foreach p [$packages] {lappend parent_ids [$p folder_id]}
-      return "$bt.parent_id in ([join $parent_ids ,])"
+      return "$base_table.parent_id in ([join $parent_ids ,])"
     } else {
-      return "$bt.parent_id = [$base_package_id folder_id]"
+      return "$base_table.parent_id = [$base_package_id folder_id]"
     }
   }
+
+  ::xowiki::Includelet proc glob_clause {{-base_table ci} {-attribute name} value} {
+    # Return a clause for name matching.
+    # value uses * for matching
+    set glob [string map [list * %] $name]
+    return " and $base_table.$attribute like '$glob'"
+  }
+
+  #
+  # Other helpers
+  #
 
   ::xowiki::Includelet proc listing {
                                      -package_id
@@ -256,13 +267,14 @@ namespace eval ::xowiki::includelet {
                                      {-page_size 20}
                                      {-page_number ""}
                                      {-orderby ""}
+				     {-extra_where_clause ""}
                                    } {
     if {$count} {
       set attribute_selection "count(*)"
       set orderby ""      ;# no need to order when we count
       set page_number  ""      ;# no pagination when count is used
     } else {
-      set attribute_selection "i.name, r.title, p.page_id, r.publish_date, i.parent_id, o.package_id, \
+      set attribute_selection "i.name, r.title, p.page_id, r.publish_date, r.mime_type, i.parent_id, o.package_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date"
     }
     if {$page_number ne ""} {
@@ -275,11 +287,11 @@ namespace eval ::xowiki::includelet {
     set sql [::xo::db::sql select \
                  -vars $attribute_selection \
                  -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
-                 -where "[::xowiki::Includelet parent_id_clause -bt i -base_package_id $package_id] \
+                 -where "[::xowiki::Includelet parent_id_clause -base_table i -base_package_id $package_id] \
                      and r.revision_id = i.live_revision \
                      and i.item_id = o.object_id \
                      and p.page_id = r.revision_id \
-		     and i.publish_status <> 'production'" \
+		     and i.publish_status <> 'production' $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
 
@@ -3080,7 +3092,8 @@ namespace eval ::xowiki::includelet {
       if {[info exists use_button(edit)]} {
 	$__c set _edit "&nbsp;"
 	$__c set _edit.title #xowiki.edit#
-	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url] 
+	#set template_file view-default
+	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url template_file] 
       }
       if {[info exists use_button(view)]} {
 	$__c set _view "&nbsp;"
@@ -3284,4 +3297,90 @@ namespace eval ::xowiki::includelet {
     return $content
   }
 
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  #
+  # present images in an YUI carousel
+  #
+  ::xowiki::IncludeletClass create yui-carousel \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {parameter_declaration {
+           {-title ""}
+           {-width "600"}
+           {-height "400"}
+           {-glob ""}
+        }}
+      }
+
+  yui-carousel instproc render {} {
+    my get_parameters
+
+    set ajaxhelper 0
+    ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper carousel/assets/skins/sam/carousel.css
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "element/element-beta-min.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "carousel/carousel-beta-min.js"
+    ::xo::Page set_property body class "yui-skin-sam "
+
+    set ID container_[::xowiki::Includelet html_id [self]]
+    ::xo::Page requireJS [subst {
+        YAHOO.util.Event.onDOMReady(function (ev) {
+            var carousel    = new YAHOO.widget.Carousel("$ID",{ 
+	      isCircular: true, numVisible: 1
+	    });
+                
+            carousel.render(); // get ready for rendering the widget
+            carousel.show();   // display the widget
+                    
+        });
+    }]
+
+    ::xo::Page requireStyle [subst {
+    
+    #$ID {
+        margin: 0 auto;
+    }
+
+    .yui-carousel-element li {
+        height: ${height}px;
+        width: ${width}px;
+    }
+    
+    .yui-carousel-element .yui-carousel-item-selected {
+        opacity: 1;
+    }
+
+    .yui-skin-sam .yui-carousel-nav ul li {
+        margin: 0;
+    }
+
+
+    }]
+    set extra_where_clause { and mime_type like 'image/%'}
+    if {$glob ne ""} {
+      append extra_where_clause [::xowiki::Includelet glob_clause $glob]
+    }
+    set listing [::xowiki::Includelet listing \
+                     -package_id $package_id \
+		     -extra_where_clause $extra_where_clause \
+                     -orderby "name asc"]
+
+
+    set content "<div id='$ID'><ol>\n"
+
+    foreach entry [$listing children] {
+      $entry instvar mime_type name
+      if {[string match image/* $mime_type]} {
+	set link [$package_id pretty_link -download true $name]
+        append content "<li> <img src='$link' height='$height' width='$width'></li>\n"
+	#append content "<li> <img src='$link'></li>\n"
+      }
+    }
+    append content "</ol></div>\n<div id='spotlight'></div>\n"
+    #if {$title eq ""} {set title $url}
+    return $content
+  }
 }

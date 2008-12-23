@@ -1473,8 +1473,7 @@ namespace eval ::xowiki::formfield {
 
     set extra_where_clause ""
     if {[my exists glob]} {
-      set glob [string map [list * %] $glob]
-      set extra_where_clause " and ci.name like '$glob'"
+      append extra_where_clause [::xowiki::Includelet glob_clause $glob]
     }
 
     set package_id [[my object] package_id]
