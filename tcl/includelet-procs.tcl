@@ -3384,3 +3384,29 @@ namespace eval ::xowiki::includelet {
     return $content
   }
 }
+
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # gravatar 
+  #
+  # user image based on email address
+  # for details: see http://en.gravatar.com/
+  #
+  ::xowiki::IncludeletClass create gravatar \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-email:required}
+          {-size 80}
+        }}
+      }
+
+  gravatar instproc render {} {
+    my get_parameters
+    package require md5
+    set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
+    return "<img src='http://www.gravatar.com/avatar/$md5?size=$size' alt='$email'>"
+  }
+}
