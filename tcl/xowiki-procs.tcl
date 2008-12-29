@@ -1115,12 +1115,19 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
     set options [my unescape $options]
-    if {[string match "http*//*" $link] 
-        || [string match "ftp://*" $link]
-        || [string match "//*" $link]
-      } {
+
+    # Get the package_id from the provided path, and - if found -
+    # return the shortened link relative to it.
+    set package_id [[my package_id] resolve_package_path $link link]
+
+    if {$package_id == 0} {
+      # we treat all such links like external links
       if {[regsub {^//} $link / link]} {
-	#my msg t=[::xowiki::guesstype $link]
+        #
+        # For local links (starting with //), we provide
+        # a direct treatment. Javascript and CSS files are
+        # included, images are rendered directly.
+        #
 	switch -glob -- [::xowiki::guesstype $link] {
 	  text/css {
 	    ::xo::Page requireCSS $link
@@ -1133,22 +1140,23 @@ namespace eval ::xowiki {
 	  image/* {
 	    Link create [self]::link \
 		-page [self] \
-		-type localimage -label $label \
+                -name "" \
+		-type localimage [list -label $label] \
 		-href $link
 	    eval [self]::link configure $options
 	    return [[self]::link render]
 	  }
 	}
       }
-      set l [ExternalLink new -label $label -href $link]
+      set l [ExternalLink new [list -label $label] -href $link]
       eval $l configure $options
       set html [$l render]
       $l destroy
       return $html
     }
 
+    set parent_id [$package_id folder_id]
     set name ""
-    my instvar parent_id package_id
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       # language link (it starts with a ':')
       set link_type language
@@ -1205,8 +1213,8 @@ namespace eval ::xowiki {
 
     Link create [self]::link \
         -page [self] \
-        -type $link_type -name $name -lang $lang -anchor $anchor \
-        -stripped_name $normalized_name -label $label \
+        -type $link_type [list -name $name] -lang $lang [list -anchor $anchor] \
+        [list -stripped_name $normalized_name] [list -label $label] \
         -parent_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} errorMsg]} {
@@ -1229,7 +1237,8 @@ namespace eval ::xowiki {
     }
     if {![my do_substitutions]} {return [lindex $source 0]}
     set content ""
-    set l ""; 
+    set l ""
+    my log "--- lindex '$source' 0"
     foreach l0 [split [lindex $source 0] \n] {
       append l [string map $markupmap(escape) $l0]
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}

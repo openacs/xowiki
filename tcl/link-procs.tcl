@@ -68,10 +68,10 @@ namespace eval ::xowiki {
     if {![my exists parent_id]}  {my parent_id [$page parent_id]}
     if {![my exists package_id]} {my package_id [$page package_id]}
 
-    #my log "--L link has class [my info class] // $class"
+    #my msg "--L link has class [my info class] // $class"
   }
   Link instproc resolve {} {
-    #my msg "--lookup of [my name] -page [my page]"
+    #my msg "--lookup of [my name] -page [my page] -> [[my package_id] lookup -name [my name] -parent_id [my parent_id]]"
     return [[my package_id] lookup -name [my name] -parent_id [my parent_id]]
   }
   Link instproc render_found {href label} {
@@ -202,7 +202,7 @@ namespace eval ::xowiki {
       set last_page_id [$page set item_id]
       set title $label
       set object_type ::xowiki::File
-      set return_url [$package_id url]
+      set return_url [::xo::cc url]
       set link [$package_id make_link $package_id edit-new object_type \
 		    return_url autoname name title] 
       set html [my render_not_found $link $label]
@@ -228,7 +228,6 @@ namespace eval ::xowiki {
     if {[my exists href]} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
-      set css_class
       return "$pre<a $cls href='$href'><img $cls src='$link' alt='$label' title='$label' $style></a>$post"
     } else {
       return "$pre<img $cls src='$link' alt='$label' title='$label' $style>$post"

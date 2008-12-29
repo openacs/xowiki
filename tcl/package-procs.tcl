@@ -297,6 +297,40 @@ namespace eval ::xowiki {
     return $value
   }
 
+  Package instproc resolve_package_path {path name_var} {
+    #
+    # In case, we can resolve the path against an xowiki instance,
+    # require the package, set the provide name of the object and
+    # return the package_id. If we cannot resolve the name, turn 0.
+    #
+    my upvar $name_var name
+    if {[regexp {^/(/.*)$} $path _ path]} {
+      array set "" [site_node::get_from_url -url $path]
+      if {$(package_key) eq "acs-subsite"} {
+        # the main site
+        return 0
+      }
+      set package_id $(package_id)
+      set package_class [::xo::PackageMgr get_package_class_from_package_key $(package_key)]
+      if {$package_class ne ""} {
+        # we found an xo::Package, but is it an xowiki package?
+        set classes [concat $package_class [$package_class info heritage]]
+        if {[lsearch $classes ::xowiki::Package] > -1} {
+          # yes, it is an xowiki::package, compute the name and return the package_id
+          ::xowiki::Package require $package_id
+          set name [string range $path [string length $(url)] end]
+          return $package_id
+        }
+      }
+    } elseif {!([string match "http*//*" $path] 
+                || [string match "ftp://*" $path]
+                )} {
+      return [my id]
+    }
+
+    return 0
+  }
+
   Package instproc resolve_page_name {page_name} {
     #
     # This is a very simple version for resolving page names in an
@@ -639,7 +673,7 @@ namespace eval ::xowiki {
     foreach package_instance_url $package_path {
       #my msg "compare $package_instance_url eq $package_url"
       if {$package_instance_url eq $package_url} continue
-      lappend packages ::[::xowiki::Package initialize -url $package_instance_url/[my set object] -keep_cc true]
+      lappend packages ::[::xowiki::Package initialize -url $package_instance_url/[my set object] -keep_cc true -init_url false]
     }
 
     # final sanity check, in case package->initialize is broken
