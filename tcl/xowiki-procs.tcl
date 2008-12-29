@@ -1202,9 +1202,11 @@ namespace eval ::xowiki {
     }
 
     set anchor ""
-    regexp {^([^#]+)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
+    regexp {^([^#]*)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
 
-    #my msg name=$name,stripped_name=$stripped_name,link_type=$link_type,lang=$lang
+    #my msg name=$name,stripped_name=$stripped_name,link_type=$link_type,lang=$lang,a=$anchor
+    if {$stripped_name eq ""} {regexp {:([^:]+)$} [my name] _ stripped_name}
+
     set normalized_name [::$package_id normalize_name $stripped_name]
 
     if {$lang  eq ""}   {set lang [my lang]}
