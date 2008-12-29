@@ -403,7 +403,17 @@ namespace eval ::xowiki::includelet {
     append key "-$c [my set __caller_parameters]"
     if {[$c localized]}    {append key -[my locale]}
     if {[$c personalized]} {append key -[::xo::cc user_id]}
+    #
+    # Get the HTML from the rendered includelet by calling "next"
+    #
     set HTML [ns_cache eval xowiki_cache $key next]
+    #
+    # Some side-effects might be necessary, even when the HTML output
+    # of the includelet is cached (e.g. some associative arrays,
+    # etc.).  For this purpose, we provide here a means to cache
+    # additional some "includelet data", if the includelet provides
+    # it.
+    #
     if {[catch {set data [ns_cache get xowiki_cache $key-data]}]} {
       my cache_includelet_data $key-data
     } else {
@@ -3402,11 +3412,16 @@ namespace eval ::xowiki::includelet {
           {-size 80}
         }}
       }
+  
+  gravatar proc url {-email {-size 80}} {
+    # reusable helper proc to compute an gravatar URL
+    package require md5
+    set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
+    return http://www.gravatar.com/avatar/$md5?size=$size
+  }
 
   gravatar instproc render {} {
     my get_parameters
-    package require md5
-    set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
-    return "<img src='http://www.gravatar.com/avatar/$md5?size=$size' alt='$email'>"
+    return "<img src='[gravatar url -email $email -size $size]' alt='$email'>"
   }
 }
