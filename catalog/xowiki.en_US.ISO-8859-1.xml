@@ -89,6 +89,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-title">Page Title</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
+  <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lower case letters, underscore, digits and dots</msg>
   <msg key="page_type">Page Type</msg>
   <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
   <msg key="PageInstance-page_template">Page Instance</msg>
