@@ -23,9 +23,12 @@ namespace eval ::xowiki {
 	{f.text "= richtext,editor=xinha"}
         {f.description "="}
         {f.nls_language "="}
-        {validate
-          {{name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                already in this folder}}}}
+        {validate {
+          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
+                already in this folder}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; \
+                might only contain upper and lower case letters, underscore, digits and dots}}
+        }}
         {with_categories true}
         {submit_link "view"}
         {folderspec ""}
@@ -255,20 +258,28 @@ namespace eval ::xowiki {
     return 1
   }
 
-
-  proc ::xowiki::validate_form_constraints {} {
-    upvar form_constraints form_constraints
+  proc ::xowiki::validate_form_field {field_name} {
+    #
+    # Generic ad_compliant validator using validation methods from
+    # form_fields
+    #
+    upvar $field_name $field_name
     my instvar data
-    set f [$data lookup_form_field -name form_constraints [my set form_fields]]
-    $f value $form_constraints
+    #
+    # Get the form-field and set its value....
+    #
+    set f [$data lookup_form_field -name $field_name [my set form_fields]]
+    $f value [set $field_name]
     set validation_error [$f validate $data]
+    #
+    # If we get an error, we report it as well via util-user message
+    # 
+    #my msg "***** field_name = $field_name, cls=[$f info class] validation_error=$validation_error"
     if {$validation_error ne ""} {
-      util_user_message -message "Error in form constraints: $validation_error"
-      set success 0
-    } else {
-      set success 1
+      util_user_message -message "Error in field [$f label]: $validation_error"
+      return 0
     }
-    return $success
+    return 1
   }
 
 ##  We could strip the language prefix from the name, since it is essentially
@@ -435,9 +446,11 @@ namespace eval ::xowiki {
             {html {size 30}} }}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
-                                                          a upload file must be provided}}
+                       a upload file must be provided}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
+                       might only contain upper and lower case letters, underscore, digits and dots}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                                                   already in this folder}}
+                       already in this folder}}
           }}
         }
   FileForm instproc tidy {} {
@@ -502,9 +515,11 @@ namespace eval ::xowiki {
 	  description}}
         {validate {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
-                                                          a upload file must be provided}}
+                       a upload file must be provided}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                                                   already in this folder}}
+                       already in this folder}}
+          {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
+                       might only contain upper and lower case letters, underscore, digits and dots}}
           {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
           }}
       }
@@ -786,8 +801,10 @@ namespace eval ::xowiki {
         {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                  already in this folder}}
         {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
+        {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; 
+               might only contain upper and lower case letters, underscore, digits and dots}}
         {form {\[::xowiki::validate_form_form\]} {Form must contain a toplevel HTML form element}}
-        {form_constraints {\[::xowiki::validate_form_constraints\]} {Invalid form constraints}}
+        {form_constraints {\[::xowiki::validate_form_field form_constraints\]} {Invalid form constraints}}
       }}
     }
   
