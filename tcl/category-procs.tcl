@@ -32,6 +32,7 @@ namespace eval ::xowiki {
   CatTree instproc open_tree {} {;}
 
   CatTree instproc render {{-tree_style:boolean false}} {
+    set content ""
     if {$tree_style} {
       #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
       ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
