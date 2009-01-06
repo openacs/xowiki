@@ -852,6 +852,7 @@ namespace eval ::xowiki::includelet {
           {-max_entries:integer 10}
           {-allow_edit:boolean false}
           {-allow_delete:boolean false}
+          {-pretty_age off}
         }}
       }
   
@@ -889,10 +890,16 @@ namespace eval ::xowiki::includelet {
         set entry_package_id [$entry set package_id]
       
         set page_link [[my package_id] pretty_link -parent_id $parent_id $name]
+        switch -- $pretty_age {
+	  1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]]}
+	  2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2]}
+	  default {set age $formatted_date}
+	}
+
         t1 add \
             -title $title \
             -title.href $page_link \
-            -date $formatted_date
+            -date $age
 
         if {$allow_edit} {
           set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]

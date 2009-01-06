@@ -4,6 +4,7 @@
   <msg key="abstract">Abstract</msg>
   <msg key="admin">Admin</msg>
   <msg key="admin_title">Administer this package ...</msg>
+  <msg key="ago">%time% ago</msg>
   <msg key="back">Back</msg>
   <msg key="categories">Categories</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
@@ -11,6 +12,8 @@
   <msg key="copy_entry">Copy Entry</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
+  <msg key="day">day</msg>
+  <msg key="days">days</msg>
   <msg key="delete">Delete</msg>
   <msg key="delete_title">Delete this page ...</msg>
   <msg key="details">Details</msg>
@@ -62,11 +65,17 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="formfield-youtube_url-help_text">Cut&amp;Paste URL of YouTube video (http://www.youtube.com/....)</msg>
   <msg key="FormPage-assignee">Assignee</msg>
   <msg key="FormPage-state">State</msg>
+  <msg key="hour">hour</msg>
+  <msg key="hours">hours</msg>
   <msg key="includelet-visitors">Visitors</msg>
   <msg key="includelets-visits">Visits</msg>
   <msg key="index">Index</msg>
   <msg key="index_title">Go to the start page of this package ...</msg>
   <msg key="last_visited_pages">Last Visited Pages</msg>
+  <msg key="minute">minute</msg>
+  <msg key="minutes">minutes</msg>
+  <msg key="month">month</msg>
+  <msg key="months">months</msg>
   <msg key="most_frequent_visitors">Most Frequent Visitors</msg>
   <msg key="most_popular_pages">Most Popular Pages</msg>
   <msg key="new_page">New Page</msg>
@@ -119,6 +128,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="rss_client">RSS Client</msg>
   <msg key="search">Search</msg>
   <msg key="search_title">Search pages of this package ...</msg>
+  <msg key="second">second</msg>
+  <msg key="seconds">seconds</msg>
   <msg key="select_link_target">To create a click, click on a page name </msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title
@@ -128,6 +139,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="view_in_context">View page in original context %context%</msg>
   <msg key="view_title">View this page ...</msg>
   <msg key="weblog-more">more...</msg>
+  <msg key="week">week</msg>
+  <msg key="weeks">weeks</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>
   <msg key="your_tags_label">Your Tags</msg>
 </message_catalog>

@@ -4,8 +4,8 @@
   <msg key="admin">Administrar</msg>
   <msg key="back">Volver</msg>
   <msg key="categories">Categorías</msg>
-  <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="content">Contenido</msg>
+  <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="delete">Borrar</msg>
   <msg key="edit">Editar</msg>
   <msg key="edit_link">editar tags</msg>
