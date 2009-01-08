@@ -240,7 +240,7 @@ namespace eval ::xowiki::formfield {
         set definition_class [lindex [my procsearch $attribute] 0]
 	set method [my info methods $attribute]
         if {[string match "::xotcl::*" $definition_class] || $method eq ""} {
-          error [_ xowiki.error-form_constraint-unknown_attribute [list name [my name] entry $attribute]]
+          error [_ xowiki.error-form_constraint-unknown_attribute [list class [my info class] name [my name] entry $attribute]]
         }
         if {[catch {
           #
