@@ -1228,20 +1228,21 @@ namespace eval ::xowiki {
   }
 
 
-
-
-  Page instproc substitute_markup {source} {
+  Page instproc substitute_markup {content} {
+    #
+    # The provided content and the returned result are strings
+    # containing HTML (unless we have other rich-text encodings).
+    #
     set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
     $baseclass instvar RE markupmap
     #my log "-- baseclass for RE = $baseclass"
     if {[my set mime_type] eq "text/enhanced"} {
-      set source [ad_enhanced_text_to_html $source]
+      set content [ad_enhanced_text_to_html $content]
     }
-    if {![my do_substitutions]} {return [lindex $source 0]}
+    if {![my do_substitutions]} {return $content}
     set content ""
     set l ""
-    my log "--- lindex '$source' 0"
-    foreach l0 [split [lindex $source 0] \n] {
+    foreach l0 [split $content \n] {
       append l [string map $markupmap(escape) $l0]
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"} "1"]
@@ -1259,6 +1260,10 @@ namespace eval ::xowiki {
 
 
   Page instproc adp_subst {content} {
+    #
+    # The provided content and the returned result are strings
+    # containing HTML.
+    #
     #my msg "--adp_subst in [my name] vars=[my info vars]"
     set __ignorelist [list RE __defaults name_method object_type_key db_slot]
     foreach __v [my info vars] {
@@ -1278,7 +1283,7 @@ namespace eval ::xowiki {
     set current_user [::xo::cc set untrusted_user_id]
 
     set __vars [info vars]
-    regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content
+    regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content_noquote
     #my log "--adp before adp_eval '[template::adp_level]'"
     #
     # The adp buffer has limited size. For large pages, it might happen
@@ -1293,9 +1298,14 @@ namespace eval ::xowiki {
       # we have aolserver 4.5, we can increase the bufsize
       ns_adp_ctl bufsize [expr {$__l + 1024}]
     }
-    set template_code [template::adp_compile -string $content]
+    set template_code [template::adp_compile -string $content_noquote]
     set my_parse_level [template::adp_level]
     if {[catch {set template_value [template::adp_eval template_code]} __errMsg]} {
+      #
+      # Something went wrong during substitution; prepare a
+      # user-friendly error message containing a listing of the
+      # available variables.
+      #
       # compute list of possible variables
       set __varlist [list]
       set __template_variables__ "<ul>\n"
@@ -1333,9 +1343,11 @@ namespace eval ::xowiki {
 
   Page instproc get_content {} {
     #my log "--"
-    set content [my set text]
-    if {[my render_adp]} {set content [my adp_subst $content]}
-    return [my substitute_markup $content]
+    foreach {html mime} [my set text] break
+    if {[my render_adp]} {
+      set html [my adp_subst $html]
+    }
+    return [my substitute_markup $html]
   }
 
   Page instproc set_content {text} {
@@ -1561,22 +1573,28 @@ namespace eval ::xowiki {
   }
 
   PlainPage instproc get_content {} {
-    set content [my set text]
-    if {[my render_adp]} {set content [my adp_subst $content]}
-    return [my substitute_markup $content]
+    set html [my set text]
+    if {[my render_adp]} {
+      set html [my adp_subst $html]
+    }
+    return [my substitute_markup $html]
   }
   PlainPage instproc set_content {text} {
     my text $text
   }
 
-  PlainPage instproc substitute_markup {source} {
+  PlainPage instproc substitute_markup {content} {
+    #
+    # The provided content and the returned result are strings
+    # containing plain text.
+    #
     [self class] instvar RE markupmap
 
     if {![my do_substitutions]} {
-      return $source
+      return $content
     }
     set content ""
-    foreach l [split $source \n] {
+    foreach l [split $content \n] {
       set l [string map $markupmap(escape) $l]
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"}]
       set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
@@ -1870,9 +1888,9 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_content {} {
-    set raw_template [my get_from_template text]
-    set T  [my adp_subst [lindex $raw_template 0]]
-    return [my substitute_markup [list $T [lindex $raw_template 1]]]
+    foreach {html mime} [my get_from_template text] break
+    set html [my adp_subst $html]
+    return [my substitute_markup $html]
   }
   PageInstance instproc template_vars {content} {
     set result [list]
@@ -1913,11 +1931,13 @@ namespace eval ::xowiki {
   #
   Object instproc get_content {} {
     if {[[self]::payload info methods content] ne ""} {
-      set content [[self]::payload content]
-      if {[my render_adp]} {set content [my adp_subst $content]}
-      return  [my substitute_markup $content]
-    } else {
-      return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
+      foreach {html mime} [[self]::payload content] break
+      if {[my render_adp]} {
+        set html [my adp_subst $html]
+        return [my substitute_markup $content]
+      } else {
+        return [list "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>" text/html]
+      }
     }
   }
 
@@ -1996,7 +2016,8 @@ namespace eval ::xowiki {
     #my log "-- text='$text'"
     if {[lindex $text 0] ne ""} {
       my do_substitutions 0
-      set content [my substitute_markup [my set text]]
+      foreach {html mime} [my set text] break
+      set content [my substitute_markup $html]
     } elseif {[lindex $form 0] ne ""} {
       set content [[self class] disable_input_fields [lindex $form 0]]
     } else {
