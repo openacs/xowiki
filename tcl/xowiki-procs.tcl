@@ -1240,7 +1240,7 @@ namespace eval ::xowiki {
       set content [ad_enhanced_text_to_html $content]
     }
     if {![my do_substitutions]} {return $content}
-    set content ""
+    set output ""
     set l ""
     foreach l0 [split $content \n] {
       append l [string map $markupmap(escape) $l0]
@@ -1251,11 +1251,11 @@ namespace eval ::xowiki {
       #regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       set l [string map $markupmap(unescape) $l]
-      append content $l \n
+      append output $l \n
       set l ""
     }
-    #my log "--substitute_markup returns $content"
-    return $content
+    #my log "--substitute_markup returns $output"
+    return $output
   }
 
 
