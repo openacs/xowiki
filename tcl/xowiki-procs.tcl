@@ -1342,7 +1342,8 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_content {} {
-    #my log "--"
+    #my msg "-- '[my set text]'"
+    set html ""; set mime ""
     foreach {html mime} [my set text] break
     if {[my render_adp]} {
       set html [my adp_subst $html]
@@ -1888,6 +1889,7 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_content {} {
+    set html ""; set mime ""
     foreach {html mime} [my get_from_template text] break
     set html [my adp_subst $html]
     return [my substitute_markup $html]
@@ -1931,6 +1933,7 @@ namespace eval ::xowiki {
   #
   Object instproc get_content {} {
     if {[[self]::payload info methods content] ne ""} {
+      set html ""; set mime ""
       foreach {html mime} [[self]::payload content] break
       if {[my render_adp]} {
         set html [my adp_subst $html]
@@ -2016,6 +2019,7 @@ namespace eval ::xowiki {
     #my log "-- text='$text'"
     if {[lindex $text 0] ne ""} {
       my do_substitutions 0
+      set html ""; set mime ""
       foreach {html mime} [my set text] break
       set content [my substitute_markup $html]
     } elseif {[lindex $form 0] ne ""} {
