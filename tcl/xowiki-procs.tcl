@@ -1366,7 +1366,7 @@ namespace eval ::xowiki {
     if {[my exists page_order]} {
       set page_order [string trim $value " ."]
       my page_order $page_order
-      return [expr {![regexp {[^0-9a-zA-Z_]} $page_order]}]
+      return [expr {![regexp {[^0-9a-zA-Z_.]} $page_order]}]
     }
     return 1
   }
