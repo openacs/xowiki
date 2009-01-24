@@ -1448,7 +1448,7 @@ namespace eval ::xowiki {
 
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
-    if {![info exists user_id]} {set user_id [ad_conn user_id]}
+    if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
       db_dml [my qn update_last_visisted] \
