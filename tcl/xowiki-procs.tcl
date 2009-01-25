@@ -1933,13 +1933,14 @@ namespace eval ::xowiki {
   #
   Object instproc get_content {} {
     if {[[self]::payload info methods content] ne ""} {
-      set html ""; set mime ""
-      foreach {html mime} [[self]::payload content] break
+      set html [[self]::payload content]
+      #my msg render-adp=[my render_adp]
       if {[my render_adp]} {
         set html [my adp_subst $html]
-        return [my substitute_markup $content]
+        return [my substitute_markup $html]
       } else {
-        return [list "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>" text/html]
+        #return "<pre>[string map {> &gt; < &lt;} [my set text]]</pre>"
+        return $html
       }
     }
   }
