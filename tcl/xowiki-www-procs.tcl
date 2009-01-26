@@ -230,9 +230,14 @@ namespace eval ::xowiki {
 	
         set header_stuff [::xo::Page header_stuff]
 	if {[info command ::template::head::add_meta] ne ""} {
-	  template::head::add_meta -name language -content [my lang]
-	  template::head::add_meta -name description -content [my description]
-	  template::head::add_meta -name keywords -content [$context_package_id get_parameter keywords ""]
+          set meta(lang) [my lang]
+          set meta(description) [my description]
+          set meta(keyworkds) [$context_package_id get_parameter keywords ""]
+          foreach i [array names meta] {
+            # don't set empty meta tags
+            if {$meta($i) eq ""} continue
+            template::head::add_meta -name $i -content $meta($i)
+          }
 	}
 
         #
