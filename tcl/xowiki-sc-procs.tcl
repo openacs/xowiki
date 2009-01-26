@@ -16,7 +16,6 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #ns_log notice "--sc datasource called with revision_id = $revision_id"
 
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
-  $page volatile
 
   #ns_log notice "--sc package=[[$page package_id] serialize]"
   ns_log notice "--sc $page [$page set publish_status]"

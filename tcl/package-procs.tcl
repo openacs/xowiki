@@ -31,7 +31,7 @@ namespace eval ::xowiki {
     #TODO can most probably further simplified
     set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
 
-    #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page"
+    #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page, package_id=[$page set package_id]"
 
     set folder_id [$page set parent_id] 
     if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
@@ -1360,6 +1360,7 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
+      view              admin
       create-new        {{item_id write}}
       create-or-use     {{item_id write}}
       list              {{package_id read}}

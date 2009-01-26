@@ -175,14 +175,9 @@ namespace eval ::xowiki {
       if {[my exists __link(new)]} {
         set new_link [my set __link(new)]
       } else {
-        if {[my istype ::xowiki::FormPage]} {
-          set template_id [my page_template]
-          set form      [$page_package_id pretty_link [$template_id name]]
-          set new_link  [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
-        } else {
-          set new_link  [$page_package_id make_link -with_entities 0 $page_package_id edit-new object_type return_url autoname] 
-        }
+	set new_link [my new_link $page_package_id]
       }
+
       set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
       set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
       set create_in_req_locale_link ""
@@ -232,7 +227,13 @@ namespace eval ::xowiki {
 	if {[info command ::template::head::add_meta] ne ""} {
           set meta(lang) [my lang]
           set meta(description) [my description]
-          set meta(keyworkds) [$context_package_id get_parameter keywords ""]
+	  set meta(keywords) ""
+	  if {[my istype ::xowiki::FormPage]} {
+	    set meta(keywords) [string trim [my property keywords]]
+	  }
+	  if {$meta(keywords) eq ""} {
+	    set meta(keywords) [$context_package_id get_parameter keywords ""]
+	  }
           foreach i [array names meta] {
             # don't set empty meta tags
             if {$meta($i) eq ""} continue
@@ -268,6 +269,9 @@ namespace eval ::xowiki {
 
 
 namespace eval ::xowiki {
+  Page instproc new_link {page_package_id} {
+    return [$page_package_id make_link -with_entities 0 $page_package_id edit-new object_type return_url autoname]
+  }
 
   Page instproc edit {
     {-new:boolean false} 
@@ -476,6 +480,11 @@ namespace eval ::xowiki {
 }
 
 namespace eval ::xowiki {
+  FormPage instproc new_link {page_package_id} {
+    set template_id [my page_template]
+    set form [$page_package_id pretty_link [$template_id name]]
+    return [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
+  }
 
   FormPage proc get_table_form_fields {
      -base_item 
