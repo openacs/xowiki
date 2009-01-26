@@ -970,7 +970,7 @@ namespace eval ::xowiki::includelet {
             -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
             -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
             -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
-	    and r.revision_id = p.page_id and x.user_id = [::xo::cc user_id] \
+	    and r.revision_id = p.page_id and x.user_id = [::xo::cc set untrusted_user_id] \
 	    and x.package_id = $package_id  and i.publish_status <> 'production'" \
             -orderby "visited_date desc" \
             -limit $max_entries] \
