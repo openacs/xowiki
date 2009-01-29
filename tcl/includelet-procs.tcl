@@ -628,10 +628,31 @@ namespace eval ::xowiki::includelet {
           {-order_items_by "title,asc"}
           {-category_ids ""}
           {-except_category_ids ""}
+          {-allow_edit false}
           {-ordered_composite}
         }}
       }
 
+  
+  categories instproc category_tree_missing {{-name ""} -object_id -locale {-allow_edit false}} {
+    # todo i18n
+    # next steps: handle allow_edit for cases, where category tree was found
+    if {$name eq ""} {
+      set msg "No category tree found."
+    } else {
+      set msg "No category tree with name '$name' found."
+    }
+    [my package_id] flush_page_fragment_cache -scope agg
+    set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc user_id]]
+    if {$allow_edit && $allow_p} {
+      set href "admin/manage_categories?object_id=$object_id"
+      set html [[my set __including_page] include [list edit-item-button -link $href]]
+      return "<div class='errorMsg'>$msg</div> Manage Categories? $html"
+    } else {
+      my log $msg
+      return "<div class='errorMsg'>$msg</div>"
+    }
+  }
   
   categories instproc render {} {
     my get_parameters
@@ -653,16 +674,16 @@ namespace eval ::xowiki::includelet {
       # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
       # try to get these
       foreach name $tree_name {
-        #lappend trees [list [lindex [category_tree::get_id $tree_name $locale] 0]  $name]
-        lappend trees [list [lindex [category_tree::get_id $tree_name] 0] $name]
+        #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
+        set tree_id [lindex [category_tree::get_id $tree_name] 0]
+        if {$tree_id ne ""} {
+          lappend trees [list $tree_id $name]
+        }
       }
     }
 
     if {[llength $trees] == 0} {
-      my log "No mapped category tree found\n\
-	(mapped trees = [llength $trees],\n\
-	tree_name = '$tree_name')"
-      return ""
+      return [my category_tree_missing -name $name -object_id $package_id -locale $locale -allow_edit $allow_edit]
     }
 
     foreach tree $trees {
@@ -2342,6 +2363,7 @@ namespace eval ::xowiki::includelet {
           {-title "#xowiki.edit#"}
           {-alt "edit"}
           {-book_mode false}
+          {-link ""}
         }}
       }
   
@@ -2358,7 +2380,7 @@ namespace eval ::xowiki::includelet {
       append return_url #[toc anchor [$page name]]
     }
     return [my render_button \
-		-page $page -method edit -package_id $package_id \
+		-page $page -method edit -package_id $package_id -link $link \
 		-title $title -alt $alt -return_url $return_url]
   }
 

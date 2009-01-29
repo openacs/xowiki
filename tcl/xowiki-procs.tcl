@@ -950,6 +950,7 @@ namespace eval ::xowiki {
       # there must be something syntactically wrong
       return [my error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
+    #my msg "includelet: [lindex $arg 0], caller parms ? '[lrange $arg 1 end]'"
 
     # the include is either a includelet class, or a wiki page
     if {[my isclass ::xowiki::includelet::$page_name]} {

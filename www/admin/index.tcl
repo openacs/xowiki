@@ -15,9 +15,7 @@ set title "Administer all kind of [$object_type set pretty_plural]"
 
 set object_types [$object_type object_types]
 set return_url   [ns_conn url]
-set category_url [export_vars \
-                      -base [site_node::get_package_url -package_key categories]cadmin/object-map \
-                      { { object_id $package_id } {ctx_id $package_id} }]
+set category_url [export_vars -base manage_categories { { object_id $package_id } }]
 
 lang::message::lookup "" xowiki.admin " "
 TableWidget t1 -volatile \
