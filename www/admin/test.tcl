@@ -528,6 +528,35 @@ if {[llength $p] == 1} {
 
 ########################################################################
 test section "Small tests"
+
+test subsection "Link resolver"
+set p [::xowiki::Page info instances]
+? {llength $p} 1 "expect only one instance"
+
+foreach {link result external} {
+  hello 1 0
+  en:hello 1 0
+  xxx 0 0
+  //XOWIKI-TEST/hello 1 0
+  //XOWIKI-TEST/en:hello 1 0
+  //XOWIKI-TEST/en/hello 0 0
+  //forums 1 1
+  //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 1 0
+} {
+  set l [$p create_link $link]
+  switch [$l info class] {
+    ::xowiki::Link {
+      ? {expr {[$l resolve] > 0}} $result "Can resolve link $link"
+    }
+    ::xowiki::ExternalLink {
+      ? {expr {$external == 1}} $result "found external link"
+    }
+  }
+  $l destroy
+}
+
+
+
 test subsection "Filter expressions"
 
 ? {::xowiki::FormPage filter_expression \

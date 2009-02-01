@@ -1108,7 +1108,30 @@ namespace eval ::xowiki {
     return [string map [list "&gt;" > "&lt;" < "&quot;" \" "&amp;" & "&semicolon;" {;} ] $string]
   }
 
-  Page instproc anchor {arg} {
+
+  Page instproc normalize_internal_link_name {name stripped_name lang} {
+    set anchor ""
+    set query ""
+    # remove anchor
+    regexp {^([^#]*)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
+    # remove query part
+    regexp {^(.*)[?]([^?]+)$} $stripped_name _ stripped_name query
+    
+
+    # if we have an empty stripped name, it is a link to the current
+    # page, maybe in a different language
+    if {$stripped_name eq ""} {
+      regexp {:([^:]+)$} $name _ stripped_name
+    }
+    
+    set normalized_name [[my package_id] normalize_name $stripped_name]
+    
+    if {$lang  eq ""}   {set lang [my lang]}
+    if {$name  eq ""}   {set name $lang:$normalized_name}
+    return [list name $name lang $lang normalized_name $normalized_name anchor $anchor]
+  }
+
+  Page instproc create_link {arg} {
     #my msg [self args]
     set label $arg
     set link $arg
@@ -1145,15 +1168,13 @@ namespace eval ::xowiki {
 		-type localimage [list -label $label] \
 		-href $link
 	    eval [self]::link configure $options
-	    return [[self]::link render]
+	    return [self]::link
 	  }
 	}
       }
       set l [ExternalLink new [list -label $label] -href $link]
       eval $l configure $options
-      set html [$l render]
-      $l destroy
-      return $html
+      return $l
     }
 
     set parent_id [$package_id folder_id]
@@ -1167,8 +1188,8 @@ namespace eval ::xowiki {
       set lang ""
       set name file:$stripped_name
     } else {
-      # do we have a typed link? more than two chars...
-      if {[regexp {^([^:][^:][^:]+):((..):)?(.+)$} $link _ \
+      # do we have a typed link? prefix has more than two chars...
+      if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \
 		link_type _ lang  stripped_name]} {
         set name file:$stripped_name
       } else {
@@ -1202,30 +1223,32 @@ namespace eval ::xowiki {
       }
     }
 
-    set anchor ""
-    regexp {^([^#]*)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
+    array set "" [my normalize_internal_link_name $name $stripped_name $lang]
 
-    #my msg name=$name,stripped_name=$stripped_name,link_type=$link_type,lang=$lang,a=$anchor
-    if {$stripped_name eq ""} {regexp {:([^:]+)$} [my name] _ stripped_name}
-
-    set normalized_name [::$package_id normalize_name $stripped_name]
-
-    if {$lang  eq ""}   {set lang [my lang]}
-    if {$name  eq ""}   {set name $lang:$normalized_name}
-    if {$label eq $arg} {set label $stripped_name}
+    if {$label eq $arg} {set label $(normalized_name)}
 
     Link create [self]::link \
         -page [self] \
-        -type $link_type [list -name $name] -lang $lang [list -anchor $anchor] \
-        [list -stripped_name $normalized_name] [list -label $label] \
+        -type $link_type [list -name $(name)] -lang $(lang) [list -anchor $(anchor)] \
+        [list -stripped_name $(normalized_name)] [list -label $label] \
         -parent_id $parent_id -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
-      return [[self]::link render]
+      return [self]::link
     }
+  }
+
+
+  Page instproc anchor {arg} {
+    if {[catch {set l [my create_link $arg]} errorMsg]} {
+      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
+    }
+    set html [$l render]
+    $l destroy
+    return $html
   }
 
 

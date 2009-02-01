@@ -39,7 +39,7 @@ namespace eval ::xowiki {
   # internal links
   #
   Class create Link -superclass BaseLink -parameter {
-    type name lang stripped_name page 
+    {type link} name lang stripped_name page 
     parent_id package_id 
   }
   Link instproc folder_id args {
