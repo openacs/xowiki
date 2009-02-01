@@ -683,7 +683,7 @@ namespace eval ::xowiki::includelet {
     }
 
     if {[llength $trees] == 0} {
-      return [my category_tree_missing -name $name -object_id $package_id -locale $locale -allow_edit $allow_edit]
+      return [my category_tree_missing -name $tree_name -object_id $package_id -locale $locale -allow_edit $allow_edit]
     }
 
     foreach tree $trees {

@@ -20,8 +20,14 @@ test proc without_ns_form {cmd} {
   rename ::ns_queryget ::ns_queryget.orig
   rename ::ns_querygetall ::ns_querygetall.orig
   rename ::ad_returnredirect ::ad_returnredirect.orig
-  proc ::ns_queryget key {::xo::cc form_parameter $key ""}
-  proc ::ns_querygetall key {::xo::cc form_parameter $key {{}} }
+  proc ::ns_queryget key {
+    #ns_log notice "queryget $key => [::xo::cc form_parameter $key {}]"; 
+    ::xo::cc form_parameter $key ""
+  }
+  proc ::ns_querygetall key {
+    #ns_log notice "querygetall $key => [list [::xo::cc form_parameter $key {}]]"
+    list [::xo::cc form_parameter $key {}] 
+  }
   proc ::ad_returnredirect url {::xo::cc returnredirect $url}
   if {[catch {set r [uplevel $cmd]} errmsg]} {
     if {$errmsg ne ""} {test code "error in command: $errmsg [info exists r]"}
@@ -41,7 +47,7 @@ proc ? {cmd expected {msg ""}} {
    set r [uplevel $cmd]
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
-     test errmsg "$msg returned '$r' ne '$expected'"
+     test errmsg "$msg returned <br>&nbsp;&nbsp;&nbsp;'$r' ne <br>&nbsp;&nbsp;&nbsp;'$expected'"
    } else {
      test okmsg "$msg - passed ([t1 diff] ms)"
    }
@@ -461,6 +467,9 @@ regexp {name="__key_signature" value="([^\"]+)"} $content _ signature
 set title [$returned_item_id title]
 set text [lindex [$returned_item_id text] 0]
 
+? {set title} {Hello World- V.2}
+? {set text}  {Hello [[Wiki]] World.}
+
 ########################################################################
 test section "Submit edited hello page via weblink"
 
@@ -481,21 +490,21 @@ test section "Submit edited hello page via weblink"
       name en:hello 
       object_type ::xowiki::Page 
       text.format text/html 
-      creator {Gustaf Neumann} 
+      creator {{Gustaf Neumann}} 
       description {{this is the description}}
-      text {$text ... just testing ..<br />} 
+      text {{$text ... just testing ..<br />}} 
       nls_language en_US 
       folder_id $returned_folder_id 
-      title {$title}
+      title {{$title - saved}}
       item_id $returned_item_id }]
 
 set content [test without_ns_form {::$package_id invoke -method $m}]
 ? {string first Error $content} -1 "page contains no error"
-
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/hello" \
     "redirect to hello page"
 
+foreach p [::xowiki::Page info instances] {$p destroy}
 ########################################################################
 test section "Query revisions for hello page via weblink"
 
@@ -506,6 +515,14 @@ test section "Query revisions for hello page via weblink"
     -user_id [lindex $swas 0]
 
 set content [::$package_id invoke -method $m]
+
+set p [::xowiki::Page info instances]
+? {llength $p} 1 "expect only one instance"
+if {[llength $p] == 1} {
+  ? {$p set title} {Hello World- V.2 - saved} "saved title is ok"
+  ? {lindex [$p set text] 0} {Hello [[Wiki]] World. ... just testing ..<br />} "saved text is ok"
+}
+
 ? {string first Error $content} -1 "page contains no error"
 ? {expr {[string first 3: $content]>-1}} 1 "page contains three revisions"
 
@@ -518,7 +535,7 @@ test subsection "Filter expressions"
     "tcl true h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}" filter_expr_where_1
 ? {::xowiki::FormPage filter_expression \
     "_assignee<=123 && y>=123" &&} \
-    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '{123 }'}}} \
+    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
     filter_expr_where_2
 ? {::xowiki::FormPage filter_expression \
     "betreuer contains en:person1" &&} \
@@ -527,7 +544,7 @@ test subsection "Filter expressions"
 
 ? {::xowiki::FormPage filter_expression \
     "_state= closed|accepted || x = 1" ||} \
-    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted ')}}} \
+    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
     filter_expr_unless_1
 
 
