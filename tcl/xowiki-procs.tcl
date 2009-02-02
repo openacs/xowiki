@@ -559,7 +559,30 @@ namespace eval ::xowiki {
       }
       set adp [string map {&nbsp; " "} $adp]
       set adp_fn [lindex $adp 0]
-      if {![string match "/*" $adp_fn]} {set adp_fn /packages/xowiki/www/$adp_fn}
+      #
+      # For security reasons, don't allow absolute paths to different
+      # packages.  All allowed includelets must be made available
+      # under xowiki/www (preferable xowiki/www/portlets/*). If the
+      # provided path contains a admin/* admin rights are required.
+      #
+      if {[string match "/*" $adp_fn]} {
+        return "No absolute paths are allowed, adp includes must be provided via xowiki/www/*! $ch2"
+      }
+      if {[string match "admin/*" $adp_fn]} {
+        set allowed [::xo::cc permission \
+                         -object_id [my package_id] -privilege admin \
+                         -party_id [::xo::cc user_id]]
+        if {!$allowed} {
+          return "page can only be included by an admin! $ch2"
+        }
+      }
+      set adp_fn /packages/xowiki/www/$adp_fn
+      #
+      # alternatively, we could allow url-based includes, and then using
+      # set node [site_node::get -url [ad_conn url]]
+      # permission::require_permission -object_id $node(object_id) -privilege read
+      # ... or admin/* based checks like in rp.
+
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
         incr ::xowiki_inclusion_depth -1
