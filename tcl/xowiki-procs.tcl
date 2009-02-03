@@ -533,6 +533,17 @@ namespace eval ::xowiki {
 	$page mixin add ::xowiki::portlet::decoration=[$page set __decoration]
       }
 
+      if {[$page istype ::xowiki::Page]} {
+        set package_id [$page set package_id]
+        set allowed [[$package_id set policy] check_permissions \
+                         -package_id $package_id \
+                         -user_id [::xo::cc set untrusted_user_id] \
+                         $page view]
+        if {!$allowed} {
+          return "<div class='errorMsg'>Unsufficient priviledges to view content of [$page name].</div>"
+        }
+      }
+
       if {[catch {set html [$page render]} errorMsg]} {
         set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
       }
