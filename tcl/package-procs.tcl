@@ -1229,7 +1229,7 @@ namespace eval ::xowiki {
     } -set default_permission {{package_id write}}
 
     Class Object -array set require_permission {
-      edit               {{package_id admin}}
+      edit               swa
     }
     Class File -array set require_permission {
       download           none
