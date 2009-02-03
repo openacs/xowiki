@@ -1204,7 +1204,7 @@ namespace eval ::xowiki {
       google-sitemapindex none
       delete              {{id admin}}
       edit-new            {
-	{{has_class ::xowiki::Object} id admin} 
+	{{has_class ::xowiki::Object} swa} 
 	{{has_class ::xowiki::FormPage} nobody} 
 	{{has_name {[.](js|css)$}} id admin}
 	{id create}
