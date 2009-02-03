@@ -1036,6 +1036,16 @@ namespace eval ::xowiki {
     if {$page eq ""} {
       return [my error_during_render [_ xowiki.error-includelet-unknown]]
     }
+    if {[$page istype ::xowiki::Page]} {
+      set package_id [$page package_id]
+      set allowed [[$package_id set policy] check_permissions \
+                       -package_id $package_id \
+                       -user_id [::xo::cc set untrusted_user_id] \
+                       $page view]
+      if {!$allowed} {
+        return "<div class='errorMsg'>Unsufficient priviledges to view content of [$page name].</div>"
+      }
+    }
     if {[info exists configure]} {
       eval $page configure $configure
     }
