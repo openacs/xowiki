@@ -326,7 +326,7 @@ namespace eval ::xowiki {
       ### danger: update references does an ad_eval, which breaks the [template::adp_level]
       ### ad_form! don't do it in pageinstanceforms.
       $data render_adp false
-      $data render -update_references
+      $data render -update_references true
     }
     # Delete the link cache entries for this entry.
     # The logic could be made more intelligent to delete entries is more rare cases, like
