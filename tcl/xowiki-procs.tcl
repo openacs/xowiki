@@ -1158,9 +1158,10 @@ namespace eval ::xowiki {
     }
     
     set normalized_name [[my package_id] normalize_name $stripped_name]
-    
+    #my msg "input: [self args]"
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
+    #my msg result=[list name $name lang $lang normalized_name $normalized_name anchor $anchor]
     return [list name $name lang $lang normalized_name $normalized_name anchor $anchor]
   }
 
@@ -1230,7 +1231,7 @@ namespace eval ::xowiki {
         set lang ""
         set stripped_name $link
 
-        regexp {^(..):(.+)$} $link _ lang stripped_name
+        regexp {^(..)[:](.+)$} $link _ lang stripped_name
 	switch -glob -- [::xowiki::guesstype $link] {
 	  text/css {
 	    set link_type css

@@ -89,7 +89,7 @@ namespace eval ::xowiki {
     my instvar package_id
     set page [my page]
     set item_id [my resolve]
-    #my msg "--u resolve [my name] returns $item_id, page=[$page name] vars=[lsort [$page info vars]]"
+    #my msg "--u resolve [my name] returns $item_id, page=[$page name]"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
