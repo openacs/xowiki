@@ -930,6 +930,27 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::code_listing
+  #
+  ###########################################################
+
+  Class code_listing -superclass textarea -parameter {
+    {rows 20}
+    {cols 80}
+  }
+  code_listing instproc pretty_value {v} {
+    [my object] do_substitutions 0
+    if {[info command api_tclcode_to_html] ne ""} {
+      set html [api_tclcode_to_html [my value]]
+      regsub -all "\n?\r</FONT></EM>" $html </FONT></EM> html
+      return "<pre class='code'>$html</pre>"
+    } else {
+      return "<pre class='code'>[string map [list & {&amp;} < {&lt;} > {&gt;}]  [my value]]</pre>"
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::richtext
   #
   ###########################################################
