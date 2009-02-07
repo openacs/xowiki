@@ -213,7 +213,7 @@ namespace eval ::xowiki {
         if {[my exists entry_flag]} {$p set [my entry_flag] 1}
         if {[my no_footer]} {$p set __no_footer 1}
 #        if {[catch {$p set description [$p render]} errorMsg]} {}
-        if {[catch {$p set description [$p get_content]} errorMsg]} {
+        if {[catch {$p set description [$p render -with_footer false]} errorMsg]} {
           set description "Render Error ($errorMsg) $revision_id $name $title"
         }
         if {[my exists entry_flag]} {$p unset [my entry_flag]}

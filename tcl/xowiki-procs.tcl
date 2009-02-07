@@ -1398,7 +1398,7 @@ namespace eval ::xowiki {
     return $description
   }
 
-  Page instproc get_content {} {
+  Page instproc render_content {} {
     #my msg "-- '[my set text]'"
     set html ""; set mime ""
     foreach {html mime} [my set text] break
@@ -1475,23 +1475,38 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Page instproc render {-update_references:switch} {
-    my instvar item_id revision_id references lang unresolved_references parent_id
+  Page instproc get_content {} {
+    return [my render -with_footer false]
+  }
+
+  Page instproc render {{-update_references:boolean false} {-with_footer:boolean true}} {
+    #
+    # prepare language links
+    #
     my array set lang_links {found "" undefined ""}
-    #my log "-- my class=[my info class]"
-    set name [my set name]
-    regexp {^(..):(.*)$} $name _ lang name
-    set references [list]
-    set unresolved_references 0
+    #
+    # prepare references management
+    #
+    my set references [list]
+    #my msg "[my name] setting unresolved_references 0"
+    my set unresolved_references 0
     my set __unresolved_references [list]
-    #my log "--W setting unresolved_references to 0  [info exists unresolved_references]"
-    set content [my get_content]
+    #
+    # get page content and care about reference management
+    #
+    set content [my render_content]
+    #
+    # record references and clear it
+    #
     #my msg "we have the content, update=$update_references, unresolved=$unresolved_references"
-    if {$update_references || $unresolved_references > 0} {
-      my update_references $item_id [lsort -unique $references]
+    if {$update_references || [my set unresolved_references] > 0} {
+      my update_references [my item_id] [lsort -unique [my set references]]
     }
-    unset references
-    if {[::xo::cc get_parameter content-type text/html] eq "text/html"} {
+    my unset references
+    #
+    # handle footer
+    #
+    if {$with_footer && [::xo::cc get_parameter content-type text/html] eq "text/html"} {
       append content "<DIV class='content-chunk-footer'>"
       if {![my exists __no_footer] && ![::xo::cc get_parameter __no_footer 0]} {
         append content [my footer]
@@ -1630,7 +1645,7 @@ namespace eval ::xowiki {
     return $string
   }
 
-  PlainPage instproc get_content {} {
+  PlainPage instproc render_content {} {
     set html [my set text]
     if {[my render_adp]} {
       set html [my adp_subst $html]
@@ -1698,7 +1713,7 @@ namespace eval ::xowiki {
     return [my set full_file_name]
   }
     
-  File instproc get_content {} {
+  File instproc render_content {} {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
@@ -1738,7 +1753,7 @@ namespace eval ::xowiki {
     return "$image[$t asHTML]\n<p>$description</p>"
   }
 
-  PodcastItem instproc get_content {} {
+  PodcastItem instproc render_content {} {
     set content [next]
     append content <ul>
     foreach {label var} {
@@ -1945,7 +1960,7 @@ namespace eval ::xowiki {
     return $default
   }
 
-  PageInstance instproc get_content {} {
+  PageInstance instproc render_content {} {
     set html ""; set mime ""
     foreach {html mime} [my get_from_template text] break
     set html [my adp_subst $html]
@@ -1988,7 +2003,7 @@ namespace eval ::xowiki {
   #
   # Methods of ::xowiki::Object
   #
-  Object instproc get_content {} {
+  Object instproc render_content {} {
     if {[[self]::payload info methods content] ne ""} {
       set html [[self]::payload content]
       #my msg render-adp=[my render_adp]
@@ -2069,7 +2084,7 @@ namespace eval ::xowiki {
     $dom_node setAttribute $attr $value
   }
 
-  Form instproc get_content {} {
+  Form instproc render_content {} {
     my instvar text form
     ::xowiki::Form requireFormCSS
 
@@ -2380,7 +2395,7 @@ namespace eval ::xowiki {
   }
 
 
-  FormPage instproc get_content {} {
+  FormPage instproc render_content {} {
     my instvar doc root package_id page_template
     set text [lindex [my get_from_template text] 0]
     if {$text ne ""} {

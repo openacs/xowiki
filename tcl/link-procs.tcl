@@ -89,7 +89,7 @@ namespace eval ::xowiki {
     my instvar package_id
     set page [my page]
     set item_id [my resolve]
-    #my msg "--u resolve returns $item_id"
+    #my msg "--u resolve [my name] returns $item_id, page=[$page name] vars=[lsort [$page info vars]]"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
@@ -445,7 +445,7 @@ namespace eval ::xowiki {
       my set package_id $id
       #my log "-- INITIALIZE $id"
       #::xowiki::Package initialize -package_id $id
-      my log "--u setting package_id to $id"
+      #my log "--u setting package_id to $id"
       # lookup the item from the found folder
       return [::xo::db::CrClass lookup -name [my name] -parent_id [$id set parent_id]]
     }

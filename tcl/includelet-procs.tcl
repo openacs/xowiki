@@ -2147,7 +2147,7 @@ namespace eval ::xowiki::includelet {
           set content [$p render]
         }
         default { 
-          set content [$p get_content]
+          set content [$p render -with_footer false]
           set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
@@ -2285,7 +2285,7 @@ namespace eval ::xowiki::includelet {
           set content [$p render]
         }
         default { 
-          set content [$p get_content]
+          set content [$p render -with_footer false]
           #set content [string map [list "\{\{" "\\\{\{"] $content]
         }
       }
