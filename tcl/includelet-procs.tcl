@@ -662,7 +662,7 @@ namespace eval ::xowiki::includelet {
       set msg "No category tree with name '$name' found."
     }
     [my package_id] flush_page_fragment_cache -scope agg
-    set html <div class='errorMsg'>$msg</div>
+    set html "<div class='errorMsg'>$msg</div>"
     if {$edit_html ne ""} {
       return "$html Manage Categories? $edit_html"
     }
