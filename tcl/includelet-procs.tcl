@@ -657,7 +657,9 @@ namespace eval ::xowiki::includelet {
   categories instproc category_tree_missing {{-name ""} -edit_html} {
     # todo i18n
     if {$name eq ""} {
-      set msg "No category tree found."
+      #set msg "No category tree found."
+      # maybe it is better to stay quiet in case, no category name was provided
+      set msg ""
     } else {
       set msg "No category tree with name '$name' found."
     }
