@@ -35,7 +35,7 @@ if {![info exists object_type]} {
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
                       [::$package_id url]}]
 
-set category_url [export_vars -base manage_categories { { object_id $package_id } }]
+set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
 set actions [subst {
   Action new -label "[lang::message::lookup {} categories.Categories Categories]" \

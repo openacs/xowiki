@@ -525,7 +525,7 @@ namespace eval ::xowiki {
 
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     set page [my resolve_page [my set object] method]
-    #my log "--r resolve_page returned $page"
+    my log "--r resolve_page returned $page"
     if {$page ne ""} {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
@@ -574,19 +574,24 @@ namespace eval ::xowiki {
     }
 
     #
-    # first, resolve package level methods
+    # First, resolve package level methods, 
+    # having the syntax PACKAGE_URL?METHOD&....
     #
+
     if {$object eq ""} {
+      #
+      # We allow only to call methods defined by the policy
+      #
       set exported [[my set policy] defined_methods Package]
       foreach m $exported {
-	#my log "--QP my exists_query_parameter $m = [my exists_query_parameter $m]"
+	#my msg "--QP my exists_query_parameter $m = [my exists_query_parameter $m]"
         if {[my exists_query_parameter $m]} {
           set method $m  ;# determining the method, similar file extensions
           return [self]
         }
       }
     }
-    
+
     if {[string match "//*" $object]} {
         # we have a reference to another instance, we cant resolve this from this package.
       # Report back not found
@@ -913,6 +918,10 @@ namespace eval ::xowiki {
   # user callable methods on package level
   #
 
+  #
+  # reindex (for site wide search)
+  #
+
   Package ad_instproc reindex {} {
     reindex all items of this package
   } {
@@ -925,23 +934,6 @@ namespace eval ::xowiki {
       #search::queue -object_id $page_id -event DELETE
       search::queue -object_id $page_id -event INSERT
     }
-  }
-
-  #
-  # Package import
-  #
-
-  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects {-create_user_ids 0}} {
-    import the specified pages into the xowiki instance
-  } {
-    if {![info exists folder_id]}  {set folder_id  [my folder_id]}
-    if {![info exists user_id]}    {set user_id    [::xo::cc user_id]}
-    if {![info exists objects]}    {set objects    [::xowiki::Page allinstances]}
-
-    set msg "processing objects: $objects<p>"
-    set importer [Importer new -package_id [my id] -folder_id $folder_id -user_id $user_id]
-    $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
-    append msg [$importer report]
   }
 
   #
@@ -1106,6 +1098,10 @@ namespace eval ::xowiki {
     [self class] [self proc]
   }
 
+  #
+  # Create new pages
+  #
+
   Package instproc edit-new {} {
     my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
@@ -1136,6 +1132,53 @@ namespace eval ::xowiki {
     }
 
     return [$page edit -new true -autoname $autoname]
+  }
+
+  #
+  # manage categories
+  #
+
+  Package instproc manage-categories {} {
+    set object_id [my query_parameter object_id]
+    if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
+
+    # flush could be made more precise in the future
+    [my id] flush_page_fragment_cache -scope agg
+
+    my returnredirect [site_node::get_package_url -package_key categories]cadmin/object-map?ctx_id=$object_id&object_id=$object_id
+  }
+
+  #
+  # edit a single category tree
+  #
+
+  Package instproc edit-category-tree {} {
+    set object_id [my query_parameter object_id]
+    if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
+    set tree_id   [my query_parameter tree_id]
+    if {![string is integer -strict $tree_id]}   { return [my error_msg "No valid tree_id provided!"] }
+
+    # flush could be made more precise in the future
+    [my id] flush_page_fragment_cache -scope agg
+    my returnredirect [site_node::get_package_url -package_key categories]cadmin/tree-view?tree_id=$tree_id&ctx_id=$object_id&object_id=$object_id
+  }
+
+
+  #
+  # Package import
+  #
+
+  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects {-create_user_ids 0}} {
+    import the specified pages into the xowiki instance
+  } {
+    if {![info exists folder_id]}  {set folder_id  [my folder_id]}
+    if {![info exists user_id]}    {set user_id    [::xo::cc user_id]}
+    if {![info exists objects]}    {set objects    [::xowiki::Page allinstances]}
+
+    set msg "processing objects: $objects<p>"
+    set importer [Importer new -package_id [my id] -folder_id $folder_id -user_id $user_id]
+    $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
+    append msg [$importer report]
   }
 
   Package instproc flush_references {-item_id:integer,required -name:required -parent_id} {
@@ -1277,6 +1320,8 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      manage-categories   {{id admin}}
+      edit-category-tree  {{id admin}}
       delete              {{id admin}}
       edit-new            {
 	{{has_class ::xowiki::Object} swa} 
@@ -1327,6 +1372,8 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      manage-categories   {{id admin}}
+      edit-category-tree  {{id admin}}
       delete              swa
       edit-new            {
 	{{has_class ::xowiki::Object} swa} 
@@ -1378,6 +1425,8 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      manage-categories   {{id admin}}
+      edit-category-tree  {{id admin}}
       delete              swa
       edit-new            {
 	{{has_class ::xowiki::Object} swa} 
@@ -1432,6 +1481,8 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      manage-categories   {{id admin}}
+      edit-category-tree  {{id admin}}
       delete              swa
       edit-new            {
         {{has_class ::xowiki::Object} swa}

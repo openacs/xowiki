@@ -633,25 +633,40 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
-  
-  categories instproc category_tree_missing {{-name ""} -object_id -locale {-allow_edit false}} {
+  categories instproc category_tree_edit_button {-object_id:integer -locale {-allow_edit false} -tree_id:integer} {
+    set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc set untrusted_user_id]]
+    if {$allow_edit && $allow_p} {
+      if {[info exists tree_id]} {
+        #
+        # If a tree_id is given, edit directly the category tree ...
+        #
+        set href "[[my package_id] package_url]?edit-category-tree&object_id=$object_id&tree_id=$tree_id"
+        return [[my set __including_page] include \
+                    [list edit-item-button -link $href -title "Edit Category Tree" -target _blank]]
+      } else {
+        #
+        # ... otherwise, manage categories (allow defining new category trees, map/unmap, etc.)
+        #
+        set href "[[my package_id] package_url]?manage-categories&object_id=$object_id"
+        return [[my set __including_page] include \
+                    [list edit-item-button -link $href -title "Manage Categories" -target _blank]]]
+      }
+    }
+    return ""
+  }
+  categories instproc category_tree_missing {{-name ""} -edit_html} {
     # todo i18n
-    # next steps: handle allow_edit for cases, where category tree was found
     if {$name eq ""} {
       set msg "No category tree found."
     } else {
       set msg "No category tree with name '$name' found."
     }
     [my package_id] flush_page_fragment_cache -scope agg
-    set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc user_id]]
-    if {$allow_edit && $allow_p} {
-      set href "admin/manage_categories?object_id=$object_id"
-      set html [[my set __including_page] include [list edit-item-button -link $href]]
-      return "<div class='errorMsg'>$msg</div> Manage Categories? $html"
-    } else {
-      my log $msg
-      return "<div class='errorMsg'>$msg</div>"
+    set html <div class='errorMsg'>$msg</div>
+    if {$edit_html ne ""} {
+      return "$html Manage Categories? $edit_html"
     }
+    return $html
   }
   
   categories instproc render {} {
@@ -682,14 +697,21 @@ namespace eval ::xowiki::includelet {
       }
     }
 
+    set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit]
     if {[llength $trees] == 0} {
-      return [my category_tree_missing -name $tree_name -object_id $package_id -locale $locale -allow_edit $allow_edit]
+      return [my category_tree_missing -name $tree_name -edit_html $edit_html]
     }
 
     foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
+
+      set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit -tree_id $tree_id]
+      #append content "<div style='float:right;'>$edit_html</div>\n"
+
       if {!$no_tree_name} {
-        append content "<h3>$my_tree_name</h3>"
+        append content "<h3>$my_tree_name $edit_html</h3>"
+      } elseif {$edit_html ne ""} {
+        append content "$edit_html<br>"
       }
       set categories [list]
       set pos 0
@@ -708,9 +730,16 @@ namespace eval ::xowiki::includelet {
         lappend categories $cid
       }
 
+      if {[llength $categories] == 0} {
+        return $content
+      }
+
       if {[info exists ordered_composite]} {
         set items [list]
         foreach c [$ordered_composite children] {lappend items [$c item_id]}
+
+        # If we have no item, provide a dummy one to avoid sql error
+        # later
         if {[llength $items]<1} {set items -4711}
 
         if {$count} {
@@ -2335,6 +2364,7 @@ namespace eval ::xowiki::includelet {
     -page_order
     -object_type
     -source_item_id
+    {-target ""}
   } {
     set html ""
     if {![info exists return_url] || $return_url eq ""} {set return_url [$package_id url]}
@@ -2351,7 +2381,11 @@ namespace eval ::xowiki::includelet {
     }
     if {$link ne ""} {
       set button_class [namespace tail [my info class]]
-      set html "<a class='$button_class' href=\"$link\" alt=\"$alt\" title=\"$title\">&nbsp;</a>"
+      set props ""
+      if {$alt ne ""} {append props "alt=\"$alt\" "}
+      if {$title ne ""} {append props "title=\"$title\" "}
+      if {$target ne ""} {append props "target=\"$target\" "}
+      set html "<a class='$button_class' href=\"$link\" $props>&nbsp;</a>"
     }
     return $html
   }
@@ -2364,6 +2398,7 @@ namespace eval ::xowiki::includelet {
           {-alt "edit"}
           {-book_mode false}
           {-link ""}
+          {-target ""}
         }}
       }
   
@@ -2373,7 +2408,7 @@ namespace eval ::xowiki::includelet {
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
-      set title "$title [$template title] [$page name]"
+      #set title "$title [$template title] [$page name]"
     }
     
     if {$book_mode} {
@@ -2381,7 +2416,7 @@ namespace eval ::xowiki::includelet {
     }
     return [my render_button \
 		-page $page -method edit -package_id $package_id -link $link \
-		-title $title -alt $alt -return_url $return_url]
+		-title $title -alt $alt -return_url $return_url -target $target]
   }
 
   ::xowiki::IncludeletClass create delete-item-button \

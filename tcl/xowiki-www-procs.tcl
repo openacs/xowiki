@@ -1152,6 +1152,15 @@ namespace eval ::xowiki {
           $f help_text ""
         }
       }
+      if {[$f name] eq "_name"} {
+        # never omit _name, this would cause problems with autonames
+        if {[lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
+          $f remove_omit
+          $f class ::xowiki::formfield::hidden
+          $f initialize
+        }
+        #my msg "$f [$f name] [$f info class] [$f info mixin]"
+      }
     }
   }
 
@@ -1260,8 +1269,6 @@ namespace eval ::xowiki {
         #my msg "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
 
 	set redirect_method [my form_parameter __form_redirect_method "view"]
-#my msg "__form_redir=$redirect_method" 
-#my msg "__form params= [::xo::cc array get form_parameter]"
 	if {$redirect_method eq "__none"} {
 	  return
 	} else {
@@ -1297,9 +1304,12 @@ namespace eval ::xowiki {
       my load_values_into_form_fields $form_fields
       foreach f $form_fields {set ff([$f name]) $f }
 
-      # for named entries, just set the entry fields to empty,
+      # For named entries, just set the entry fields to empty,
       # without changing the instance variables
+
+      #my msg "my is_new_entry [my name] = [my is_new_entry [my name]]"
       if {[my is_new_entry [my name]]} {
+        #my msg "anon_instances=$anon_instances"
         if {$anon_instances} {
           set name [autoname new -name [$page_template name] -parent_id $page_template]
           #my msg "generated name=$name, page_template-name=[$page_template name]"
