@@ -1124,9 +1124,9 @@ namespace eval ::xowiki {
       set source [$object_type get_instance_from_db -item_id $source_item_id]
       $page copy_content_vars -from_object $source
       set name "[::xowiki::autoname generate -parent_id $source_item_id -name [$source name]]"
-      my get_lang_and_name -name $name lang name
+      #my get_lang_and_name -name $name lang name
       $page set name $name
-      my msg nls=[$page nls_language],source-nls=[$source nls_language],page=$page,name=$name
+      #my msg nls=[$page nls_language],source-nls=[$source nls_language],page=$page,name=$name
     } else {
       $page set name ""
     }

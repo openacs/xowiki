@@ -225,7 +225,7 @@ namespace eval ::xowiki {
 	
         set header_stuff [::xo::Page header_stuff]
 	if {[info command ::template::head::add_meta] ne ""} {
-          set meta(lang) [string range [my nls_language] 0 1]
+          set meta(lang) [my lang]
           set meta(description) [my description]
 	  set meta(keywords) ""
 	  if {[my istype ::xowiki::FormPage]} {
@@ -269,9 +269,9 @@ namespace eval ::xowiki {
 
 
 namespace eval ::xowiki {
-  Page instproc new_link {-name -title page_package_id} {
+  Page instproc new_link {-name -title -nls_language page_package_id} {
     return [$page_package_id make_link -with_entities 0 $page_package_id \
-		edit-new object_type name title return_url autoname]
+		edit-new object_type name title nls_language return_url autoname]
   }
 
   Page instproc edit {
@@ -285,7 +285,7 @@ namespace eval ::xowiki {
     #my msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors"
 
     # set some default values if they are provided
-    foreach key {name title page_order last_page_id} {
+    foreach key {name title page_order last_page_id nls_language} {
       if {[$package_id exists_query_parameter $key]} {
         my set $key [$package_id query_parameter $key]
       }
@@ -481,10 +481,11 @@ namespace eval ::xowiki {
 }
 
 namespace eval ::xowiki {
-  FormPage instproc new_link {-name -title page_package_id} {
+  FormPage instproc new_link {-name -title -nls_language page_package_id} {
     set template_id [my page_template]
     set form [$page_package_id pretty_link [$template_id name]]
-    return [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url name title]
+    return [$page_package_id make_link -with_entities 0 -link $form $template_id \
+		create-new return_url name title nls_language]
   }
 
   FormPage proc get_table_form_fields {
@@ -1733,8 +1734,9 @@ namespace eval ::xowiki {
       my parent_id [$package_id folder_id]
     }
     if {$nls_language eq ""} {
-      set nls_language [my nls_language]
+      set nls_langauge [my query_parameter nls_language [my nls_language]]
     }
+
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
                -text "" \
@@ -1772,7 +1774,7 @@ namespace eval ::xowiki {
       #
       # set some default values from query parameters
       #
-      foreach key {name title page_order last_page_id} {
+      foreach key {name title page_order last_page_id nls_language} {
 	if {[my exists_query_parameter $key]} {
 	  $f set $key [my query_parameter $key]
 	}
