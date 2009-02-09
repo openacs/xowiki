@@ -41,7 +41,6 @@ namespace eval ::xowiki {
 	    -spec user_id
       } \
       -parameter {
-        {lang en}
         {render_adp 1}
         {do_substitutions 1}
         {absolute_links 0}
@@ -829,6 +828,9 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%my set package_id} %proc
   Page instforward exists_form_parameter {%my set package_id} %proc
 
+  Page instproc lang {} {
+    return [string range [my nls_language] 0 1]
+  }
   Page instproc build_name {{-nls_language ""}} {
     #
     # Build the name of the page, based on the provided nls_language
@@ -853,7 +855,7 @@ namespace eval ::xowiki {
         #}
       #}
       if {$nls_language eq ""} {set nls_language [my nls_language]}
-      set name [string range $nls_language 0 1]:$stripped_name
+      set name [my lang]:$stripped_name
     }
     return $name
   }
@@ -1158,7 +1160,7 @@ namespace eval ::xowiki {
     }
     
     set normalized_name [[my package_id] normalize_name $stripped_name]
-    #my msg "input: [self args]"
+    #my msg "input: [self args] - lang=[my lang], [my nls_language]"
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
     #my msg result=[list name $name lang $lang normalized_name $normalized_name anchor $anchor]
@@ -1278,7 +1280,7 @@ namespace eval ::xowiki {
 
   Page instproc anchor {arg} {
     if {[catch {set l [my create_link $arg]} errorMsg]} {
-      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
+      return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
     }
     set html [$l render]
     $l destroy

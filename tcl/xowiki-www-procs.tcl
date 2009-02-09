@@ -225,7 +225,7 @@ namespace eval ::xowiki {
 	
         set header_stuff [::xo::Page header_stuff]
 	if {[info command ::template::head::add_meta] ne ""} {
-          set meta(lang) [my lang]
+          set meta(lang) [string range [my nls_language] 0 1]
           set meta(description) [my description]
 	  set meta(keywords) ""
 	  if {[my istype ::xowiki::FormPage]} {
@@ -269,8 +269,9 @@ namespace eval ::xowiki {
 
 
 namespace eval ::xowiki {
-  Page instproc new_link {page_package_id} {
-    return [$page_package_id make_link -with_entities 0 $page_package_id edit-new object_type return_url autoname]
+  Page instproc new_link {-name -title page_package_id} {
+    return [$page_package_id make_link -with_entities 0 $page_package_id \
+		edit-new object_type name title return_url autoname]
   }
 
   Page instproc edit {
@@ -480,10 +481,10 @@ namespace eval ::xowiki {
 }
 
 namespace eval ::xowiki {
-  FormPage instproc new_link {page_package_id} {
+  FormPage instproc new_link {-name -title page_package_id} {
     set template_id [my page_template]
     set form [$page_package_id pretty_link [$template_id name]]
-    return [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url]
+    return [$page_package_id make_link -with_entities 0 -link $form $template_id create-new return_url name title]
   }
 
   FormPage proc get_table_form_fields {

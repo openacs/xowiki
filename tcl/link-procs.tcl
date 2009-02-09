@@ -111,9 +111,7 @@ namespace eval ::xowiki {
 	  set object_type ::xowiki::Page
 	}
       }
-      set name [my name]
-      set title [my label]
-      set new_link [$page new_link $package_id]
+      set new_link [$page new_link -name [my name] -title [my label] $package_id]
       #set href [export_vars -base [$package_id package_url] \
       #              {{edit-new 1} object_type name title}]
 
