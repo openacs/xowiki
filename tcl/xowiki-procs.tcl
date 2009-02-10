@@ -571,6 +571,14 @@ namespace eval ::xowiki {
     # If we import from an old database without page_order, provide a
     # default value
     if {![my exists page_order]} {my set page_order ""}
+    # Check, if nls_language and lang are aligned.
+    if {[regexp {^(..):} [my name] _ lang]} {
+      if {[string range [my nls_language] 0 1] ne $lang} {
+        set old_nls_language [my nls_language]
+        my nls_language [my get_nls_language_from_lang $lang]
+        ns_log notice "nls_language for item [my name] set from $old_nls_language to [my nls_language]"
+      }
+    }
     # in the general case, no more actions required
   }
 
@@ -831,6 +839,20 @@ namespace eval ::xowiki {
   Page instproc lang {} {
     return [string range [my nls_language] 0 1]
   }
+
+  Page instproc get_nls_language_from_lang {lang} {
+    # Return the first nls_language matching the provided lang
+    # prefix. This method is not precise (when e.g. two nls_languages
+    # are defined with the same lang), but the only thing relvant is
+    # the lang anyhow.  If nothing matches return empty.
+    foreach nls_language [lang::system::get_locales] {
+      if {[string range $nls_language] eq $lang} {
+        return $nls_language
+      }
+    }
+    return ""
+  }
+
   Page instproc build_name {{-nls_language ""}} {
     #
     # Build the name of the page, based on the provided nls_language

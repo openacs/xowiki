@@ -1781,7 +1781,10 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc set_compound_value {value} {
-    array set {} $value
+    if {[catch {array set {} $value} errorMsg]} {
+      # this branch could be taken, when the field was retyped
+      ns_log notice "CompoundField: error during setting compound value with $value: $errorMsg"
+    }
     # set the value parts for each components
     foreach c [my components] {
       # Set only those parts, for which attribute values pairs are
