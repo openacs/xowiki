@@ -6,6 +6,7 @@ test set failed 0
 test proc case msg {ad_return_top_of_page "<title>$msg</title><h2>$msg</h2>"} 
 test proc section msg    {my reset; ns_write "<hr><h3>$msg</h3>"} 
 test proc subsection msg {ns_write "<h4>$msg</h4>"} 
+test proc subsubsection msg {ns_write "<h5>$msg</h5>"} 
 test proc errmsg msg     {ns_write "ERROR: $msg<BR/>"; test incr failed}
 test proc okmsg msg      {ns_write "OK: $msg<BR/>"; test incr passed}
 test proc code msg       {ns_write "<pre>$msg</pre>"}
@@ -517,7 +518,7 @@ test section "Query revisions for hello page via weblink"
 set content [::$package_id invoke -method $m]
 
 set p [::xowiki::Page info instances]
-? {llength $p} 1 "expect only one instance"
+? {llength $p} 1 "expect only one page instance"
 if {[llength $p] == 1} {
   ? {$p set title} {Hello World- V.2 - saved} "saved title is ok"
   ? {lindex [$p set text] 0} {Hello [[Wiki]] World. ... just testing ..<br />} "saved text is ok"
@@ -531,29 +532,50 @@ test section "Small tests"
 
 test subsection "Link resolver"
 set p [::xowiki::Page info instances]
-? {llength $p} 1 "expect only one instance"
+? {llength $p} 1 "expect only one page instance"
 
-foreach {link result external} {
-  hello 1 0
-  en:hello 1 0
-  xxx 0 0
-  //XOWIKI-TEST/hello 1 0
-  //XOWIKI-TEST/en:hello 1 0
-  //XOWIKI-TEST/en/hello 0 0
-  //forums 1 1
-  //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 1 0
-} {
-  set l [$p create_link $link]
-  switch [$l info class] {
-    ::xowiki::Link {
-      ? {expr {[$l resolve] > 0}} $result "Can resolve link $link"
+proc xowiki-test-links {p tests} {
+  foreach {link result external} $tests {
+    set l [$p create_link $link]
+    switch [$l info class] {
+      ::xowiki::Link         { ? {expr {[$l resolve] > 0}} $result "Can resolve link $link" }
+      ::xowiki::ExternalLink { ? {expr {$external == 1}} $result "found external link" }
     }
-    ::xowiki::ExternalLink {
-      ? {expr {$external == 1}} $result "found external link"
-    }
+    $l destroy
   }
-  $l destroy
 }
+test subsubsection "Testing links on english page"
+xowiki-test-links $p {
+    hello 1 0
+    en:hello 1 0
+    de:hello 0 0
+    xxx 0 0
+    //XOWIKI-TEST/hello 1 0
+    //XOWIKI-TEST/en:hello 1 0
+    //XOWIKI-TEST/de:hello 0 0
+    //XOWIKI-TEST/en/hello 0 0
+    //forums 1 1
+    //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 1 0
+    //XOWIKI-TEST/en:weblog?m=create-new&p.exercise_form=en:l1 1 0
+}
+
+# make page a german page
+$p nls_language de_DE
+test subsubsection "Testing links on german page"
+xowiki-test-links $p {
+    hello 0 0
+    en:hello 1 0
+    de:hello 0 0
+    xxx 0 0
+    //XOWIKI-TEST/hello 0 0
+    //XOWIKI-TEST/en:hello 1 0
+    //XOWIKI-TEST/de:hello 0 0
+    //XOWIKI-TEST/en/hello 0 0
+    //forums 1 1
+    //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 0 0
+    //XOWIKI-TEST/en:weblog?m=create-new&p.exercise_form=en:l1 1 0
+}
+
 
 
 
