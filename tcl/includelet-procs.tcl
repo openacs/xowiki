@@ -2134,7 +2134,7 @@ namespace eval ::xowiki::includelet {
     if {[info exists source]} {
       my get_page_order -source $source
     } else {
-      my get_page_order -pages $pags -ordered_pages $ordered_pages
+      my get_page_order -pages $pages -ordered_pages $ordered_pages
     }
 
     # should check for quotes in names
