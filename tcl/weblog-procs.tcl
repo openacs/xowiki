@@ -26,11 +26,12 @@ namespace eval ::xowiki {
     {compute_summary false}
   }
 
-  ::xowiki::Weblog proc instantiate_forms {-entries_of:required -package_id:required} {
+  ::xowiki::Weblog proc instantiate_forms {{-default_lang ""} -entries_of:required -package_id:required} {
     set folder_id [::$package_id folder_id]
     set form_items [list]
     foreach t [split $entries_of |] {
-      set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
+      # Entry $t might contain a package prefix
+      set form_item_id [$package_id lookup -default_lang $default_lang -name $t]
       if {$form_item_id == 0} {
         # The form does not exist in the CR. Maybe we can create it
         # via a prototype page?

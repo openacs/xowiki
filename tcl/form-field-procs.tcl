@@ -1397,7 +1397,7 @@ namespace eval ::xowiki::formfield {
   }
   
   abstract_page instproc pretty_value {v} {
-    my instvar package_prefix package_id
+    my instvar package_id
 
     if {[my multiple]} {
       foreach o [my set options] {
@@ -1408,7 +1408,7 @@ namespace eval ::xowiki::formfield {
       set values [list]
       foreach i $v {
         if {[catch {lappend values $labels($i)}]} {
-          my msg "can't determine label for value '$i'"
+          my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
           lappend values $i
         }
       }
@@ -1418,7 +1418,7 @@ namespace eval ::xowiki::formfield {
         foreach {label value} $o break
         if {$value eq $v} {
           if {[my as_box]} {
-            return [[my object] include [list $package_prefix$value -decoration rightbox]] 
+            return [[my object] include [list $value -decoration rightbox]] 
           }
           set href [$package_id pretty_link $value]
           return "<a href='$href'>$label</a>"
@@ -1437,18 +1437,22 @@ namespace eval ::xowiki::formfield {
     {where}
   }
   form_page instproc compute_options {} {
-    my instvar form_obj package_prefix where
+    my instvar form_obj where
     #my msg "[my name] compute_options [my exists form]"
     if {![my exists form]} {
       return
     }
     set form_name [my form]
+    set package_id [[my object] package_id]
+    set form_objs [::xowiki::Weblog instantiate_forms \
+                       -default_lang [[my object] lang] \
+                       -entries_of $form_name -package_id $package_id]
 
-    set form_obj [[my object] resolve_included_page_name $form_name]
-    if {$form_obj eq ""} {error "Cannot lookup Form '$form_name'"}
-
-    set package_prefix ""
-    regexp {^(//[^/]+/)} $form_name _ package_prefix
+    #set form_obj [[my object] resolve_included_page_name $form_name]
+    if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}
+    
+    set form_object_item_ids [list]
+    foreach form_obj $form_objs {lappend form_object_item_ids [$form_obj item_id]}
 
     array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
@@ -1457,13 +1461,27 @@ namespace eval ::xowiki::formfield {
     }
     set options [list]    
     set items [::xowiki::FormPage get_form_entries \
-                   -base_item_id [$form_obj item_id] \
+                   -base_item_ids $form_object_item_ids \
                    -form_fields [list] \
                    -publish_status ready \
-                   -always_queried_attributes [list _name _title _last_modified _creation_user] \
+                   -always_queried_attributes [list _name _title _last_modified _creation_user _object_package_id] \
                    -h_where [array get wc] \
-                   -package_id [$form_obj package_id]]
-    foreach i [$items children] {lappend options [list [$i title] [$i name]]}
+                   -package_id $package_id]
+    foreach i [$items children] {
+      #
+      # If the form_page has a different package_id, prepend the
+      # package_url to the name. TODO: We assume here, that the form_pages
+      # have not special parent_id.
+      #
+      set object_package_id [$i set object_package_id]
+      if {$package_id != $object_package_id} {
+        set package_prefix /[$object_package_id package_url]
+      } else {
+        set package_prefix ""
+      }
+
+      lappend options [list [$i title] $package_prefix[$i name]]
+    }
     my options $options
   }
 
@@ -1487,10 +1505,7 @@ namespace eval ::xowiki::formfield {
     {glob}
   }
   page instproc compute_options {} {
-    my instvar type with_subtypes glob package_prefix
-    # We could use the package_prefix like in form_page when refering to pages 
-    # in different packages. 
-    set package_prefix ""
+    my instvar type with_subtypes glob
 
     set extra_where_clause ""
     if {[my exists glob]} {

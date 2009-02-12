@@ -331,7 +331,24 @@ namespace eval ::xowiki {
     return 0
   }
 
-  Package instproc resolve_page_name {page_name} {
+  Package instproc get_package_id_from_page_name {{-default_lang ""} page_name} {
+    #
+    # Return package id + reminding page name
+    #
+    set package_id [my id]
+    if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
+      array set "" [site_node::get_from_url -url $url]
+      if {$(package_id) eq ""} {return ""}
+      set package_id $(package_id)
+      ::xowiki::Package require $package_id
+      my get_lang_and_name -default_lang $default_lang -path $page_name lang stripped_name
+      set page_name $lang:$stripped_name
+    }
+    #my msg [self args]->[list package_id $package_id page_name $page_name]
+    return [list package_id $package_id page_name $page_name]
+  }
+
+  Package instproc resolve_page_name {{-default_lang ""} page_name} {
     #
     # This is a very simple version for resolving page names in an
     # package instance.  It can be called either a plain page name
@@ -345,15 +362,11 @@ namespace eval ::xowiki {
     #
     # The method returns either the page object or empty ("").
     #
-    set package_id [my id]
-    if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
-      array set "" [site_node::get_from_url -url $url]
-      if {$(package_id) eq ""} {return ""}
-      set package_id $(package_id)
-      ::xowiki::Package require $package_id
-    }
-    #my log "final resolve $package_id '$page_name'"
-    return [$package_id resolve_request -simple true -path $page_name method_var]
+    array set "" [my get_package_id_from_page_name $page_name]
+    if {![info exists (package_id)]} {return ""}
+    
+    #my log "final resolve $(package_id) '$(page_name)'"
+    return [$(package_id) resolve_request -default_lang $default_lang -simple true -path $(page_name) method_var]
   }
 
   Package instproc resolve_page_name_and_init_context {{-lang} page_name} {
@@ -689,15 +702,24 @@ namespace eval ::xowiki {
     return $packages
   }
 
-  Package instproc lookup {-name:required -parent_id} {
+  Package instproc lookup {{-default_lang ""} -name:required -parent_id} {
     #
     # Lookup of names from a given parent_id or from the list of
     # configured instances (obtained via package_path).
     #
-    if {![info exists parent_id]} {set parent_id [my folder_id]}
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-    #my msg "lookup $name $parent_id returns $item_id"
+    array set "" [my get_package_id_from_page_name -default_lang $default_lang $name]
+    #my msg "result = [array get {}]"
+    if {![info exists (package_id)]} {
+      return 0
+    }
+    
+    if {![info exists parent_id]} {set parent_id [$(package_id) folder_id]}
+    set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
+    #my msg "lookup $name $parent_id in package $(package_id) returns $item_id"
     if {$item_id == 0} {
+      #
+      # Is the page inherited along the package path?
+      #
       foreach package [my package_path] {
         set item_id [$package lookup -name $name]
         #my msg "lookup from package $package $name returns $item_id"

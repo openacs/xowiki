@@ -2206,7 +2206,7 @@ namespace eval ::xowiki {
   }
 
   FormPage proc get_form_entries {
-       -base_item_id 
+       -base_item_ids 
        -package_id 
        -form_fields 
        {-publish_status ready}
@@ -2272,7 +2272,7 @@ namespace eval ::xowiki {
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
-		    -where_clause " bt.page_template = $base_item_id \
+		    -where_clause " bt.page_template in ([join $base_item_ids ,]) \
 			$publish_status_clause $filter_clause $extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \

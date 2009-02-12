@@ -1820,41 +1820,24 @@ namespace eval ::xowiki::includelet {
 
   toc instproc yui_tree {pages open_page package_id expand_all remove_levels} {
     my instvar navigation page_name book_mode
-    array set navigation {parent "" position 0 current ""}
 
     set js ""
     set node() root
     set node_cnt 0
     #my log "--book read [llength [$pages children]] pages"
+    #append js "$node().expand();\n"
 
     foreach o [$pages children] {
-      $o instvar page_order title page_id name  
+      $o instvar page_order title name  
 
       set label "[my page_number $page_order $remove_levels] $title"
       set id tmpNode[incr node_cnt]
       set node($page_order) $id
-      set jsobj [my js_name].objs\[$node_cnt\]
+      set jsobj  [my js_name].objs\[$node_cnt\]
+      set href   [my href $package_id $book_mode $name]
+      set expand [expr {[my exists open_node($page_order)]}]
 
-      set page_name($node_cnt) $name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
-
-      set href [my href $package_id $book_mode $name]
-      
-      if {$expand_all} {
-	set expand "true"
-      } else {
-	set expand [expr {$open_page eq $name} ? "true" : "false"]
-	if {$expand} {
-	  set navigation(parent) $parent
-	  set navigation(position) $node_cnt
-	  set navigation(current) $page_order
-	  for {set p $parent} {$p ne ""} {} {
-	    if {![info exists node($p)]} break
-	    append js "$node($p).expand();\n"
-	    if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
-	  }
-	}
-      }
       set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
       set refvar [expr {[my set ajax] ? "ref" : "href"}]
       regsub -all {\"} $label {\"} label
@@ -1865,8 +1848,6 @@ namespace eval ::xowiki::includelet {
           ""
 
     }
-    set navigation(count) $node_cnt
-    #my log "--COUNT=$node_cnt"
     return $js
   }
 
@@ -2000,7 +1981,7 @@ namespace eval ::xowiki::includelet {
     </div>"
   }
 
-  toc instproc tree {js_tree_cmds} {
+  toc instproc non_ajax_tree {js_tree_cmds} {
     return "<div id='[my id]'>
       <script type = 'text/javascript'>
       var [my js_name] = {
@@ -2043,38 +2024,94 @@ namespace eval ::xowiki::includelet {
 
   toc instproc render_yui_tree {pages style} {
     my get_parameters
-
+    #
+    # Render the tree with the yui widget (with or without ajax)
+    #
     my set book_mode $book_mode
-    if {!$book_mode} {
-      ###### my set book_mode [[my set __including_page] exists __is_book_page]
-    } elseif $ajax {
+    if {$book_mode} {
       #my log "--warn: cannot use bookmode with ajax, resetting ajax"
       set ajax 0
     }
     my set ajax $ajax
-            
+    # do the hard work here....
     set js_tree_cmds [my yui_tree $pages $open_page $package_id $expand_all $remove_levels]
-    return [expr {$ajax ? [my ajax_tree $js_tree_cmds ] : [my tree $js_tree_cmds ]}]
+    if {$ajax} {
+      return [my ajax_tree $js_tree_cmds]
+    }
+    return [my non_ajax_tree $js_tree_cmds]
+  }
+
+  toc instproc build_navigation {pages} {
+    #
+    # compute associative arrays open_node and navigation (position
+    # and current)
+    #
+    my get_parameters
+    my instvar navigation page_name
+    array set navigation {position 0 current ""}
+
+    # the top node is always open
+    my set open_node() true
+    set node_cnt 0
+    foreach o [$pages children] {
+      $o instvar page_order name
+      incr node_cnt
+      set page_name($node_cnt) $name
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+      #
+      # If we are on the provided $open_page, we remember our position
+      # for the progress bar.
+      set on_current_node [expr {$open_page eq $name} ? "true" : "false"]
+      if {$on_current_node} {
+        set navigation(position) $node_cnt
+        set navigation(current) $page_order
+      }
+      if {$expand_all} {
+        my set open_node($page_order) true
+      } elseif {$on_current_node} {
+        my set open_node($page_order) true
+        # make sure to open all nodes to the top
+        for {set p $parent} {$p ne ""} {} {
+          my set open_node($p) true
+          if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
+        }
+      }
+    }
+    set navigation(count) $node_cnt
+    #my log OPEN=[lsort [my array names open_node]]
   }
 
   toc instproc render_list {pages} {
     my get_parameters
+    my instvar navigation page_name
+    #
+    # Build a reduced toc tree based on pure HTML (no javascript or
+    # ajax involved).  If an open_page is specified, produce an as
+    # small as possible tree and omit all non-visible nodes.
+    #
+
     set html "<UL>\n"
     set level 0
     foreach o [$pages children] {
-      $o instvar page_order title page_id name
+      $o instvar page_order title name
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
       set page_number [my page_number $page_order $remove_levels]
-      set new_level [regsub -all {[.]} $page_number . _]
-      if {$new_level > $level} {
-	for {set l $level} {$l < $new_level} {incr l} {append html "<ul>\n"}
-	set level $new_level
-      } elseif {$new_level < $level} {
-	for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
-	set level $new_level
+
+      set new_level [regsub -all {[.]} [$o set page_order] . _]
+      if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
+        if {$new_level > $level} {
+          for {set l $level} {$l < $new_level} {incr l} {append html "<ul>\n"}
+          set level $new_level
+        } elseif {$new_level < $level} {
+          for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
+          set level $new_level
+        }
+        set href [my href $package_id $book_mode $name]
+        set highlight [if {$open_page eq $name} {set _ "style = 'font-weight:bold;'"} {}]
+        append html "<li><a $highlight href='$href'>$page_number $title</a>\n"
       }
-      set href [my href $package_id $book_mode $name]
-      append html "<li><a href='$href'>$page_number $title</a>\n"
     }
+    # close all levels
     for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
     return $html
   }
@@ -2098,8 +2135,17 @@ namespace eval ::xowiki::includelet {
       "list"    {set s ""; set list_mode 1}
       "default" {set s ""}
     }
+    #
+    # Collect the pages
+    #
     set pages [my build_toc $package_id $locale $source $range]
-
+    #
+    # Build the general navigation structure using associative arrays
+    #
+    my build_navigation $pages
+    #
+    # Call a render on the created structure
+    #
     if {$list_mode} {
       return [my render_list $pages]
     } else {
@@ -3120,7 +3166,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set items [::xowiki::FormPage get_form_entries \
-                   -base_item_id $form_item_id \
+                   -base_item_ids $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
@@ -3134,7 +3180,7 @@ namespace eval ::xowiki::includelet {
       } else {
         # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_form_entries \
-                   -base_item_id $form_item_id \
+                   -base_item_ids $form_item_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
