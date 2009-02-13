@@ -666,10 +666,24 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_form_value {att} {
+    #
+    # Return the value contained in an HTML input field of the FORM
+    # provided via the instance variable root.
+    #
     my instvar root item_id
     set fields [$root selectNodes "//form//*\[@name='$att'\]"] 
     if {$fields eq ""} {return ""}
     foreach field $fields {
+      #
+      # Handling first TEXTARA 
+      #
+      if {[$field nodeName] eq "textarea"} {
+	return [$field nodeValue]
+      }
+      if {[$field nodeName] ne "input"} continue
+      #
+      # Handling now just INPUT types (only one needed so far)
+      #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       switch $type {
 	checkbox {
@@ -686,7 +700,7 @@ namespace eval ::xowiki {
 	  }
 	}
 	default {
-          #my msg "can't handle $type so far $att=$value"
+          #my log "can't handle $type so far $att=$value"
         }
       }
     }
@@ -695,17 +709,31 @@ namespace eval ::xowiki {
 
   FormPage instproc set_form_value {att value} {
     #my msg "set_form_value $att $value"
+    #
+    # Feed the provided value into an HTML form provided via the
+    # instance variable root.
+    #
     my instvar root item_id
     set fields [$root selectNodes "//form//*\[@name='$att'\]"]
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
+
     foreach field $fields {
-      # TODO missing: textarea
+      #
+      # We handle textarea and input fields
+      #
       if {[$field nodeName] eq "textarea"} {
-         foreach node [$field childNodes] {$node delete}
-         $field appendFromScript {::html::t $value}
-         continue
+	#
+	# For TEXTAREA, delete the existing content and insert the new
+	# content as text
+	#
+	foreach node [$field childNodes] {$node delete}
+	$field appendFromScript {::html::t $value}
       }
       if {[$field nodeName] ne "input"} continue
+      #
+      # We handle now only INPUT types, but we have to differntiate
+      # between different kinds of inputs.
+      #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
       switch $type {
