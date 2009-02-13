@@ -1187,8 +1187,9 @@ namespace eval ::xowiki {
           $f help_text ""
         }
       }
-      if {[$f name] eq "_name"} {
-        # never omit _name, this would cause problems with autonames
+      if {[$f name] eq "_name" || [$f name] eq "_nls_language"} {
+        # Never omit these fields, this would cause problems with
+        # autonames and empty languages. Set these fields to hidden.
         if {[lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
           $f remove_omit
           $f class ::xowiki::formfield::hidden
@@ -1830,7 +1831,7 @@ namespace eval ::xowiki {
 
     $package_id returnredirect \
         [export_vars -base [$package_id pretty_link [$f name]] \
-	     [list [list m $view_method] return_url name template_file title detail_link text]]
+	     [list [list m $view_method] return_url template_file title detail_link text]]
 
   }
 
