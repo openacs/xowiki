@@ -700,6 +700,11 @@ namespace eval ::xowiki {
     #my msg "found field = $fields xp=//*\[@name='$att'\]"
     foreach field $fields {
       # TODO missing: textarea
+      if {[$field nodeName] eq "textarea"} {
+         foreach node [$field childNodes] {$node delete}
+         $field appendFromScript {::html::t $value}
+         continue
+      }
       if {[$field nodeName] ne "input"} continue
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
@@ -736,7 +741,7 @@ namespace eval ::xowiki {
         hidden -
         password -
         text {  $field setAttribute value $value}
-        default {my msg "can't handle $type so far $att=$value"}
+        default {my log "can't handle $type so far $att=$value"}
       }
     }
   }

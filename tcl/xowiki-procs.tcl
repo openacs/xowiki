@@ -846,7 +846,7 @@ namespace eval ::xowiki {
     # are defined with the same lang), but the only thing relvant is
     # the lang anyhow.  If nothing matches return empty.
     foreach nls_language [lang::system::get_locales] {
-      if {[string range $nls_language] eq $lang} {
+      if {[string range $nls_language 0 1] eq $lang} {
         return $nls_language
       }
     }
