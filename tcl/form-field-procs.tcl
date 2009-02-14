@@ -442,7 +442,7 @@ namespace eval ::xowiki::formfield {
     return $v
   }
 
-  FormField instproc value_if_nothing_is_returned_from_from {default} {
+  FormField instproc value_if_nothing_is_returned_from_form {default} {
     return $default
   }
 
@@ -1326,7 +1326,7 @@ namespace eval ::xowiki::formfield {
     my set widget_type text(checkbox)
     next
   }
-  checkbox instproc value_if_nothing_is_returned_from_from {default} {
+  checkbox instproc value_if_nothing_is_returned_from_form {default} {
     return ""
   }
   checkbox instproc render_input {} {
@@ -2093,7 +2093,7 @@ namespace eval ::xowiki::formfield {
   Class boolean -superclass radio -parameter {
     {default t}
   }
-  boolean instproc value_if_nothing_is_returned_from_from {default} {
+  boolean instproc value_if_nothing_is_returned_from_form {default} {
     return f
   }
   boolean instproc initialize {} {

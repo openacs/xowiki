@@ -913,25 +913,28 @@ namespace eval ::xowiki {
 	  _* {
 	    # instance attribute fields
 	    set varname [string range $att 1 end]
-            set preset ""
-            if {[my exists $varname]} {set preset [my set $varname]}
-            set v [$f value_if_nothing_is_returned_from_from $preset]
+            set default ""
+            if {[my exists $varname]} {set default [my set $varname]}
+            set v [$f value_if_nothing_is_returned_from_form $default]
             set value [$f value $v]
-            if {$v ne $preset} {
+            if {$v ne $default} {
               if {![string match *.* $att]} {my set $varname $value}
             }
 	  }
 	  default {
 	    # user form content fields
-            set preset ""
-            if {[info exists __ia($att)]} {set preset $__ia($att)}
-            set v [$f value_if_nothing_is_returned_from_from $preset]
+            set default ""
+            # The reason, why we set in the next line the default to
+            # the old value is due to "show-solution" in the qti
+            # use-case. Maybe one should alter this use-case to
+            # simplify the semantics here.
+            if {[info exists __ia($att)]} {set default $__ia($att)}
+            set v [$f value_if_nothing_is_returned_from_form $default]
+            #my msg "value_if_nothing_is_returned_from_form '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
-            if {$v ne $preset} {
-              if {![string match *.* $att]} {set __ia($att) $value}
-            }
+            if {![string match *.* $att]} {set __ia($att) $value}
 	  }
-         }
+        }
       }
       
       #

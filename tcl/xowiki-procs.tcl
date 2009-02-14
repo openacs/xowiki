@@ -170,6 +170,9 @@ namespace eval ::xowiki {
         time    timestamp"
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id
+  ::xo::db::require index -table xowiki_tags -col user_id,package_id
+  ::xo::db::require index -table xowiki_tags -col package_id
+
   ::xo::db::require index -table xowiki_page -col page_order \
       -using [expr {[::xo::db::has_ltree] ? "gist" : ""}]
 
