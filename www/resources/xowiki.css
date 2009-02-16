@@ -309,6 +309,36 @@ div.xowiki-content a.inherited {
     font-size: 65%;
 }
 
+
+div.xowiki-content fieldset.compound-field {
+    margin: 0px; padding: 0px;
+}
+
+/* child selectors are apparently not supported by IE 5 and 6, 
+   but the content is usable in IE anyhow; maybe we have to use the
+   parent-node hack
+   
+     background-color: expression(/currentpage/.test(this.parentNode.className)? "#eff" : "#ef0");
+   
+   or the nesting hack
+   
+     div * { margin-left: 20px; }
+     div * * { margin-left: 0}
+   
+   as well...
+*/
+div.xowiki-content  div.hidden-field-set > div.form-label {
+    display: none; 
+}
+div.xowiki-content  div.hidden-field-set > div.form-widget {
+    margin-left: 0px; 
+}
+div.xowiki-content  div.hidden-field-set > div.form-widget > .compound-field {
+    border: 0px; 
+}
+
+
+
 div.xowiki-content .margin-form fieldset .form-item-wrapper {
     padding: 0px 0px 0px 0px;
 }

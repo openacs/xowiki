@@ -863,7 +863,7 @@ namespace eval ::xowiki {
       }
       if {[string match *.* $att]} {
         foreach {container component} [split $att .] break
-         lappend containers($container) $component
+        lappend containers($container) $component
       }
     }
     
@@ -886,7 +886,7 @@ namespace eval ::xowiki {
           set processed($c) 1
           #my msg "compute value of $c"
           set __ia($c) [$f value]
-          #my msg "__ia($c) is set to '[$f value]'"
+          #my msg "__ia($c) is set to '$__ia($c)'"
         }
       }
     }

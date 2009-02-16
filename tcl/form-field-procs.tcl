@@ -37,7 +37,8 @@ namespace eval ::xowiki::formfield {
     {show_raw_value}
     CSSclass
     style
-    form-widget-CSSclass
+    {form_widget_CSSclass form-widget}
+    {form_item_wrapper_CSSclass form-item-wrapper}
     {type text} 
     {label} 
     {name} 
@@ -374,9 +375,7 @@ namespace eval ::xowiki::formfield {
   
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    set class form-widget
-    if {[my exists form-widget-CSSclass]} {append class " [my form-widget-CSSclass]"}
-    ::html::div -class $class { my render_input }
+    ::html::div -class [my form_widget_CSSclass] { my render_input }
   }
 
   FormField instproc render_input {} {
@@ -388,7 +387,7 @@ namespace eval ::xowiki::formfield {
   } 
 
   FormField instproc render_item {} {
-    ::html::div -class form-item-wrapper {
+    ::html::div -class [my form_item_wrapper_CSSclass] {
       ::html::div -class form-label {
         ::html::label -for [my id] {
           ::html::t [my label]
@@ -1756,6 +1755,7 @@ namespace eval ::xowiki::formfield {
 
   Class CompoundField -superclass FormField -parameter {
     {components ""}
+    {CSSclass compound-field}
   } -extend_slot validator compound
 
   CompoundField instproc check=compound {value} {
@@ -1892,8 +1892,7 @@ namespace eval ::xowiki::formfield {
     #
     # Render content within in a fieldset, but with labels etc.
     #
-    my set style "margin: 0px; padding: 0px;"
-    html::fieldset [my get_attributes id style] {
+   html::fieldset [my get_attributes id {CSSclass class}] {
       foreach c [my components] { $c render }
     }
   }
