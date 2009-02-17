@@ -1749,7 +1749,7 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
-  # ::xowiki::CompoundField
+  # ::xowiki::formfield::CompoundField
   #
   ###########################################################
 
@@ -1886,6 +1886,20 @@ namespace eval ::xowiki::formfield {
       set sub [$sub set component_index($component_name)]
     }
     return $sub
+  }
+
+  CompoundField instproc get_named_sub_component_value {{-default ""} args} {
+    if {[eval my exists_named_sub_component $args]} {
+      return [[eval my get_named_sub_component $args] value]
+    } else {
+      return $default
+    }
+  }
+
+  CompoundField instproc generate_fieldnames {{-prefix "v-"} n} {
+    set names [list]
+    for {set i 1} {$i <= $n} {incr i} {lappend names $prefix$i}
+    return $names
   }
 
   CompoundField instproc render_input {} {

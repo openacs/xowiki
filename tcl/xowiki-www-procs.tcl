@@ -781,6 +781,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc set_form_data {form_fields} {
     Store the instance attributes or default values in the form.
   } {
+    ::require_html_procs
     #my msg "set_form_value instance attributes = [my instance_attributes]"
     array set __ia [my instance_attributes]
     foreach f $form_fields {
@@ -814,7 +815,9 @@ namespace eval ::xowiki {
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
+    my instvar __ia
     if {[my exists instance_attributes]} {
+      array unset __ia
       array set __ia [my set instance_attributes]
     }
     if {![info exists field_names]} {
@@ -947,26 +950,17 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
-    
+    my log validation_errors=$validation_errors
     if {$validation_errors == 0} {
       #
       # Postprocess based on form fields based on form-fields methods.
-      # Postprocessing might force to refresh some values in __ia()
       #
       foreach f $form_fields {
         $f convert_to_internal
-        if {[$f exists __refresh_instance_attributes]} {
-          #my msg "refresh [$f set __refresh_instance_attributes]"
-          foreach {att val} [$f set __refresh_instance_attributes] {
-            set __ia($att) $val
-          }
-        }
-      }
+      }        
     }
 
-    #my msg "--set instance attributes to [array get __ia]"
     my instance_attributes [array get __ia]
-    my array set __ia [my instance_attributes]
     #my msg category_ids=$category_ids
     return [list $validation_errors [lsort -unique $category_ids]]
   }
