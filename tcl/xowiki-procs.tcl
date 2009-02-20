@@ -1684,27 +1684,26 @@ namespace eval ::xowiki {
     my text $text
   }
 
-  PlainPage instproc substitute_markup {content} {
+  PlainPage instproc substitute_markup {raw_content} {
     #
-    # The provided content and the returned result are strings
-    # containing plain text.
+    # The provided text is a raw text, that is transformed into HTML
+    # markup for links etc.
     #
     [self class] instvar RE markupmap
-
     if {![my do_substitutions]} {
-      return $content
+      return $raw_content
     }
-    set content ""
-    foreach l [split $content \n] {
+    set html ""
+    foreach l [split $raw_content \n] {
       set l [string map $markupmap(escape) $l]
       set l [my regsub_eval $RE(anchor)  $l {my anchor  "\1"}]
       set l [my regsub_eval $RE(div)     $l {my div     "\1"}]
       set l [my regsub_eval $RE(include) $l {my include_content "\1" ""}]
       #regsub -all $RE(clean) $l {\1} l
       set l [string map $markupmap(unescape) $l]
-      append content $l \n
+      append html $l \n
     }
-    return $content
+    return $html
   }
 
   #

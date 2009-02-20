@@ -97,6 +97,7 @@ namespace eval ::xowiki {
     ressources 1
     revisions 1 
     view-default 1 view-links 1 view-plain 1 oacs-view 1 oacs-view2 1 oacs-view3 1
+    view-book 1 view-book-no-ajax 1 view-oacs-docs 1
     download 1
   }
   
