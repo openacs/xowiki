@@ -189,6 +189,7 @@ namespace eval ::xowiki {
 
   Package ad_instproc pretty_link {
     {-anchor ""} 
+    {-query ""} 
     {-absolute:boolean false} 
     {-siteurl ""}
     {-lang ""} 
@@ -214,6 +215,7 @@ namespace eval ::xowiki {
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
+    if {$query ne ""} {set query ?$query}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
     set package_prefix [my get_parameter package_prefix [my package_url]]
     if {$package_prefix eq "/" && [string length $lang]>2} {
@@ -231,18 +233,18 @@ namespace eval ::xowiki {
       #
       # use the special download (file) syntax
       #
-      set url ${host}${package_prefix}download/file/$folder$encoded_name$anchor
+      set url ${host}${package_prefix}download/file/$folder$encoded_name$query$anchor
     } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
       #
       # If files are physical files in the www directory, add the
       # language prefix
       #
-      set url ${host}${package_prefix}$folder${lang}/$encoded_name$anchor
+      set url ${host}${package_prefix}$folder${lang}/$encoded_name$query$anchor
     } else {
       #
       # Use the short notation without language prefix
       #
-      set url ${host}${package_prefix}$folder$encoded_name$anchor
+      set url ${host}${package_prefix}$folder$encoded_name$query$anchor
     }
     #my msg "final url=$url"
     return $url

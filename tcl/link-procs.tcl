@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target extra_query_parameter {anchor ""}
+    cssclass href label title target extra_query_parameter {anchor ""} {query ""}
   }
 
   BaseLink instproc mk_css_class {-additional {-default ""}} {
@@ -93,7 +93,8 @@ namespace eval ::xowiki {
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      set href [::$package_id pretty_link -lang [my lang] -anchor [my anchor] [my name]]
+      set href [::$package_id pretty_link -lang [my lang] \
+		    -anchor [my anchor] -query [my query] [my name]]
       my render_found $href [my label]
     } else {
       $page incr unresolved_references
@@ -111,7 +112,8 @@ namespace eval ::xowiki {
 	  set object_type ::xowiki::Page
 	}
       }
-      set new_link [$page new_link -name [my name] -title [my label] -nls_language [$page nls_language] $package_id]
+      set new_link [$page new_link -name [my name] -title [my label] \
+			-nls_language [$page nls_language] $package_id]
       #set href [export_vars -base [$package_id package_url] \
       #              {{edit-new 1} object_type name title}]
 

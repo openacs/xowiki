@@ -1176,7 +1176,6 @@ namespace eval ::xowiki {
     regexp {^([^#]*)(\#|%23)(.*)$} $stripped_name _ stripped_name . anchor
     # remove query part
     regexp {^(.*)[?]([^?]+)$} $stripped_name _ stripped_name query
-    
 
     # if we have an empty stripped name, it is a link to the current
     # page, maybe in a different language
@@ -1189,7 +1188,7 @@ namespace eval ::xowiki {
     if {$lang  eq ""}   {set lang [my lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
     #my msg result=[list name $name lang $lang normalized_name $normalized_name anchor $anchor]
-    return [list name $name lang $lang normalized_name $normalized_name anchor $anchor]
+    return [list name $name lang $lang normalized_name $normalized_name anchor $anchor query $query]
   }
 
   Page instproc create_link {arg} {
@@ -1290,7 +1289,8 @@ namespace eval ::xowiki {
 
     Link create [self]::link \
         -page [self] \
-        -type $link_type [list -name $(name)] -lang $(lang) [list -anchor $(anchor)] \
+        -type $link_type [list -name $(name)] -lang $(lang) \
+	[list -anchor $(anchor)] [list -query $(query)] \
         [list -stripped_name $(normalized_name)] [list -label $label] \
         -parent_id $parent_id -package_id $package_id
     
