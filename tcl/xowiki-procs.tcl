@@ -1079,6 +1079,34 @@ namespace eval ::xowiki {
     return [my render_includelet $page]
   }
 
+  Page instproc check_adp_include_path { adp_fn } {
+    #
+    # For security reasons, don't allow arbitrary paths to different
+    # packages.  All allowed includelets must be made available
+    # under xowiki/www (preferable xowiki/www/portlets/*). If the
+    # provided path contains a admin/* admin rights are required.
+    #
+    if {[string match "admin/*" $adp_fn]} {} {
+      set allowed [::xo::cc permission \
+		       -object_id [my package_id] -privilege admin \
+		       -party_id [::xo::cc user_id]]
+      if {!$allowed} {
+	return [list allowed $allowed msg "Page can only be included by an admin!" fn ""]
+      }
+    }
+    if {[string match "/*" $adp_fn] || [string match "../*" $adp_fn]} {
+      # Never allow absolute paths.
+      #
+      # Alternatively, we could allow url-based includes, and then using
+      # set node [site_node::get -url [ad_conn url]]
+      # permission::require_permission -object_id $node(object_id) -privilege read
+      # ... or admin/* based checks like in rp.
+      #
+      return [list allowed 0 msg "Invalid name for adp_include" fn ""]
+    }
+    return [list allowed 1 msg "" fn /packages/[[my package_id] package_key]/www/$adp_fn]
+  }
+
   Page instproc include_content {arg ch2} {
     # make recursion depth a global variable to ease the deletion etc.
     if {[catch {incr ::xowiki_inclusion_depth}]} {
@@ -1094,37 +1122,24 @@ namespace eval ::xowiki {
         return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
       set adp [string map {&nbsp; " "} $adp]
-      set adp_fn [lindex $adp 0]
       #
-      # For security reasons, don't allow absolute paths to different
-      # packages.  All allowed includelets must be made available
-      # under xowiki/www (preferable xowiki/www/portlets/*). If the
-      # provided path contains a admin/* admin rights are required.
+      # Check the provided name of the adp file
       #
-      if {[string match "/*" $adp_fn]} {
-        return "No absolute paths are allowed, adp includes must be provided via xowiki/www/*! $ch2"
+      array set "" [my check_adp_include_path [lindex $adp 0]]
+      if {!$(allowed)} {
+        return [my error_in_includelet $arg $(msg)]
       }
-      if {[string match "admin/*" $adp_fn]} {
-        set allowed [::xo::cc permission \
-                         -object_id [my package_id] -privilege admin \
-                         -party_id [::xo::cc user_id]]
-        if {!$allowed} {
-          return "page can only be included by an admin! $ch2"
-        }
-      }
-      set adp_fn /packages/xowiki/www/$adp_fn
+      set adp_fn $(fn)
       #
-      # alternatively, we could allow url-based includes, and then using
-      # set node [site_node::get -url [ad_conn url]]
-      # permission::require_permission -object_id $node(object_id) -privilege read
-      # ... or admin/* based checks like in rp.
-
+      # check the provided arguments
+      #
       set adp_args [lindex $adp 1]
       if {[llength $adp_args] % 2 == 1} {
         incr ::xowiki_inclusion_depth -1
         set adp $adp_args
         return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
       }
+
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
