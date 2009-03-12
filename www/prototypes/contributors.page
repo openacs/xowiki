@@ -24,6 +24,7 @@
           -contributor [::xo::get_user_name $creation_user] \
           -count $count
     }
+    [my info parent] render_adp 1
     return "The following users have contributed to this xowiki instance:<p>[t1 asHTML]</p>"
   }
   
