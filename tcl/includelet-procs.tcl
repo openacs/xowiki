@@ -158,11 +158,11 @@ namespace eval ::xowiki::includelet {
       # legacy
       set publish_status_clause ""
     } else {
-      array set valid_state [list production 1 ready 1 life 1 expired 1]
+      array set valid_state [list production 1 ready 1 live 1 expired 1]
       set clauses [list]
       foreach state [split $value |] {
         if {![info exists valid_state($state)]} {
-          error "no such state: '$state'; valid states are: production, ready, life, expired"
+          error "no such state: '$state'; valid states are: production, ready, live, expired"
         }
         lappend clauses "$base_table.publish_status='$state'"
       }
