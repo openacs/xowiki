@@ -120,7 +120,7 @@ namespace eval ::xowiki::notification {
 
     set state [expr {[$page set last_modified] eq [$page set creation_date] ? "New" : "Updated"}]
     set instance_name [::$package_id instance_name]
-    
+
     #ns_log notice "--n per directory [$page set title] ($state)"
     notification::new \
         -type_id [notification::type::get_type_id -short_name xowiki_notif] \
@@ -129,7 +129,7 @@ namespace eval ::xowiki::notification {
         -notif_subject "\[$instance_name\] [$page set title] ($state)" \
         -notif_text $text \
         -notif_html $html \
-        -notif_user [$page set creation_user]
+        -notif_user [expr {[$page exists modifying_user] ? [$page set modifying_user] :  [$page set creation_user]}]
 
     #ns_log notice "--n find categories [$page set title] ($state)"
 
