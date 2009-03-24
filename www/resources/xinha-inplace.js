@@ -57,20 +57,7 @@ xinha.inplace.init = function() {
  *
  */	
 xinha.inplace.finish = function() {
-  var elements = document.getElementsByTagName('*');
-  var nrElements = elements.length;
-  for (i = 0, j = 0; i < nrElements; i++) {
-    if (elements[i].className == 'xinha') {
-      var htmlText = elements[i].innerHTML;
-      var hiddenId = elements[i].id + '__HIDDEN__';
-      var hidden = document.getElementById(hiddenId);
-      if (hidden == undefined) {
-	//console.log('ignoring ' + hiddenId);
-      } else {
-	hidden.value = htmlText;
-      }
-    }
-  }
+//  nothing to do for now
 };
 
 /*
@@ -85,7 +72,7 @@ xinha.inplace.setEventHandler = function(element) {
     this.style.backgroundColor = xinha.inplace.hoverColor;
   }
   element.onmouseout = function() {this.style.backgroundColor = xinha.inplace.backgroundColor;}
-  element.ondblclick = function() {xinha.inplace.openEditor(this);}
+  element.ondblclick = function() {xinha.inplace.openEditor(this.id);}
   return element;
 };
 
@@ -96,20 +83,28 @@ xinha.inplace.setEventHandler = function(element) {
  * content of the given element. On a save operation, this content of
  * the element will be replaced by the content of the textarea.
  */
-xinha.inplace.openEditor = function(element) {
-  // use two IDs to locate later the editForm and the textArea
+xinha.inplace.openEditor = function(editId) {
+  // Use id rather then element to make it easier to call this
+  // function for other contexts.
+  var element = document.getElementById(editId);
+
+  // Use three IDs to locate later the editForm, the textArea and the
+  // content:
   var editFormId = element.id + '__FORM__';
   var textAreaId = element.id + '__TEXTAREA__';
+  var contentId = element.id + '__CONTENT__';
 
-  // create editForm and form elements
+  // Create editForm and form elements
   var editForm = document.createElement('form');
   var textArea = document.createElement('textarea');
   var saveButton = document.createElement('input');
   var cancelButton = document.createElement('input');
+  
+  var content = document.getElementById(contentId);
 
   // configure textArea, editForm and buttons
   textArea.id = textAreaId;
-  textArea.value = element.innerHTML;
+  textArea.value = content.innerHTML;
   textArea.style.width  = element.style.width ?  element.style.width  : element.offsetWidth  + 'px';
   textArea.style.height = element.style.height ? element.style.height : (element.offsetHeight + 25) + 'px';
   textArea.focus();
@@ -162,7 +157,12 @@ xinha.inplace.closeEditor = function(id, element, replace, htmlText) {
   var editForm = document.getElementById(id);
   // update text of the div, 
   if (replace) {
-    element.innerHTML = htmlText;
+    var contentId = element.id + "__CONTENT__";
+    var hiddenId = element.id + "__HIDDEN__";
+    var content = document.getElementById(contentId);
+    var hidden = document.getElementById(hiddenId);
+    content.innerHTML = htmlText;
+    hidden.value = htmlText;
   }
   // make div visible and remove editor
   element.style.display = 'block';

@@ -1188,9 +1188,16 @@ namespace eval ::xowiki::formfield {
       set ::acs_blank_master(xinha.options) $xinha_options
       lappend ::acs_blank_master__htmlareas [my id]
 
-      if {[my inplace]} {
+      if {[my set inplace]} {
 	::html::div [my get_attributes id name {CSSclass class} disabled] {
-	  ::html::t -disableOutputEscaping  [my value]
+          set href \#
+          set onclick "xinha.inplace.openEditor('[my id]');return false;"
+          ::html::a -style "float: right;" -class edit-item-button -href $href -onclick $onclick {
+            ::html::t  -disableOutputEscaping &nbsp;
+          }
+          ::html::div -id "[my id]__CONTENT__" {
+            ::html::t -disableOutputEscaping  [my value]
+          }
 	}
 	my set hiddenid [my id]__HIDDEN__
 	my set type hidden

@@ -1438,7 +1438,7 @@ namespace eval ::xowiki {
       list              {{package_id read}}
     }
   }
-  
+
   Policy policy3 -contains {
     #
     # we require side wide admin rights for deletions

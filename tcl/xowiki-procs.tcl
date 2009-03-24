@@ -1531,6 +1531,15 @@ namespace eval ::xowiki {
     # prepare references management
     #
     my set references [list]
+    if {[my exists __extra_references]} {
+      #
+      # xowiki content-flow uses extra references, e.g. to forms.
+      # TODO: provide a better interface for providing these kind of
+      # non-link references.
+      #
+      my set references [my set __extra_references]
+      my unset __extra_references
+    }
     #my msg "[my name] setting unresolved_references 0"
     my set unresolved_references 0
     my set __unresolved_references [list]
@@ -1541,7 +1550,7 @@ namespace eval ::xowiki {
     #
     # record references and clear it
     #
-    #my msg "we have the content, update=$update_references, unresolved=$unresolved_references"
+    #my msg "we have the content, update=$update_references, unresolved=[my set unresolved_references]"
     if {$update_references || [my set unresolved_references] > 0} {
       my update_references [my item_id] [lsort -unique [my set references]]
     }
