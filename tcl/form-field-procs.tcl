@@ -1300,6 +1300,7 @@ namespace eval ::xowiki::formfield {
 
   Class radio -superclass enumeration -parameter {
     {horizontal false}
+    {forced_name}
   }
   radio instproc initialize {} {
     my set widget_type text(radio)
@@ -1310,7 +1311,8 @@ namespace eval ::xowiki::formfield {
     foreach o [my options] {
       foreach {label rep} $o break
       set atts [my get_attributes disabled {CSSclass class}]
-      lappend atts id [my id]:$rep name [my name] type radio value $rep
+      if {[my exists forced_name]} {set name [my forced_name]} {set name [my name]}
+      lappend atts id [my id]:$rep name $name type radio value $rep
       if {$value eq $rep} {lappend atts checked checked}
       ::html::input $atts {}
       html::t "$label  "
