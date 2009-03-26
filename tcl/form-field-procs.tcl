@@ -1416,11 +1416,13 @@ namespace eval ::xowiki::formfield {
       set values [list]
       foreach i $v {
         if {[catch {lappend values $labels($i)}]} {
-          my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
-          lappend values $i
+          #my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
+          set labels($i) $i
         }
+        set href [$package_id pretty_link $i]
+        lappend hrefs "<a href='$href'>$labels($i)</a>"
       }
-      return [join $values {, }]
+      return [join $hrefs {, }]
     } else {
       foreach o [my set options] {
         foreach {label value} $o break

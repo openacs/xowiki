@@ -142,6 +142,16 @@ namespace eval ::xowiki {
     return $folder_id
   }
 
+  Package instproc get_page_from_name {-name:required} {
+    # Check if an instance with this name exists in the current package.
+    my get_lang_and_name -name $name lang stripped_name
+    set item_id [my lookup -name $lang:$stripped_name]
+    if {$item_id != 0} {
+      return [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+    }
+    return ""
+  }
+
   Package instproc folder_path {{-parent_id ""}} {
     #
     # handle different parent_ids
@@ -538,10 +548,9 @@ namespace eval ::xowiki {
     }
   }
 
-
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     set page [my resolve_page [my set object] method]
-    my log "--r resolve_page returned $page"
+    #my log "--r resolve_page returned $page [$page name]"
     if {$page ne ""} {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
@@ -790,7 +799,7 @@ namespace eval ::xowiki {
                      -package_id $id -user_id [::xo::cc user_id] \
                      $object $method]
     if {$allowed} {
-      #my msg "--p calling $object ([$object info class]) '$method'"
+      #my log "--p calling $object ([$object name] [$object info class]) '$method'"
       eval $object $method $options
     } else {
       my log "not allowed to call $object $method"

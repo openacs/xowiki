@@ -812,6 +812,7 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
+    #my log "get_form_data [self] [my name]"
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
@@ -823,7 +824,7 @@ namespace eval ::xowiki {
     if {![info exists field_names]} {
       set field_names [::xo::cc array names form_parameter]
     }
-    #my msg "fields [::xo::cc array get form_parameter]"
+    #my msg "fields $field_names, "
 
     # we have a form and get all form variables
     
@@ -1032,7 +1033,7 @@ namespace eval ::xowiki {
   FormPage instproc field_names {{-form ""}} {
     my instvar package_id
     foreach {form_vars needed_attributes} [my field_names_from_form -form $form] break
-    #my msg "form_vars=$form_vars needed_attributes=$needed_attributes"
+    #my log "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
     my array unset __field_in_form
     my array unset __field_needed
     if {$form_vars} {foreach v $needed_attributes {my set __field_in_form($v) 1}}
@@ -1217,6 +1218,7 @@ namespace eval ::xowiki {
     # }
 
     set field_names [my field_names -form $form]
+    #my log field_names=$field_names
     set form_fields [my create_form_fields $field_names]
 
     if {$form eq ""} {
@@ -1253,7 +1255,7 @@ namespace eval ::xowiki {
     }
 
     #my show_fields $form_fields
-    #my msg "__form_action [my form_parameter __form_action {}]"
+    #my log "__form_action [my form_parameter __form_action {}]"
 
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
@@ -1348,10 +1350,10 @@ namespace eval ::xowiki {
           #my msg "generated name=$name, page_template-name=[$page_template name]"
           $ff(_name) value $name
         } else {
-          $ff(_name) value ""
+          $ff(_name) value [$ff(_name) default]
         }
         if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
-	  $ff(_title) value ""
+	  $ff(_title) value [$ff(_title) default]
 	}
         foreach var [list title detail_link text description] {
           if {[my exists_query_parameter $var]} {
@@ -1742,9 +1744,70 @@ namespace eval ::xowiki {
     eval my create-new $args
   }
 
+  Page instproc create_form_page_instance {
+    -name:required 
+    -package_id 
+    {-instance_attributes ""}
+    {-default_variables ""}
+    {-nls_language ""}
+    {-publish_status production} 
+    {-source_item_id ""}
+  } {
+    my msg ""
+    set ia [my default_instance_attributes]
+    foreach {att value} $instance_attributes {lappend ia $att $value}
+
+    if {$nls_language eq ""} {
+      set nls_language [my query_parameter nls_language [my nls_language]]
+    }
+    if {![info exists package_id]} {
+      set package_id [my package_id]
+    }
+
+    set f [FormPage new -destroy_on_cleanup \
+               -name $name \
+               -text "" \
+               -package_id $package_id \
+               -parent_id [my parent_id] \
+               -nls_language $nls_language \
+               -publish_status "production" \
+               -instance_attributes $ia \
+               -page_template [my item_id]]
+
+    if {[my exists state]} {
+      $f set state [my set state]
+    }
+
+    # Make sure to load the instance attributes
+    $f array set __ia [$f instance_attributes]
+
+    # Call the application specific initialization, when a FormPage is
+    # initially created. This is used to control the life-cycle of
+    # FormPages.
+    $f initialize
+
+    #
+    # if we copy an item, we use source_item_id to provide defaults
+    #
+    if {$source_item_id ne ""} {
+      set source [FormPage get_instance_from_db -item_id $source_item_id]
+      $f copy_content_vars -from_object $source
+      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [my name]]"
+      $package_id get_lang_and_name -name $name lang name
+      $f set name $name
+      #my msg nls=[$f nls_language],source-nls=[$source nls_language]
+    }
+    foreach {att value} $default_variables {
+      $f set $att $value
+    }
+
+    # Finally provide base for auto-titles
+    $f set __title_prefix [my title]
+    return $f
+  }
+
   Page instproc create-new {{-view_method edit} {-name ""} {-nls_language ""}} {
     my instvar package_id
-    set instance_attributes [my default_instance_attributes]
     set original_package_id $package_id
 
     if {[my exists_query_parameter "package_instance"]} {
@@ -1764,56 +1827,25 @@ namespace eval ::xowiki {
       }
       my parent_id [$package_id folder_id]
     }
-    if {$nls_language eq ""} {
-      set nls_langauge [my query_parameter nls_language [my nls_language]]
-    }
-
-    set f [FormPage new -destroy_on_cleanup \
-               -name $name \
-               -text "" \
-               -package_id $package_id \
-               -parent_id [my parent_id] \
-               -nls_language $nls_language \
-               -publish_status "production" \
-               -instance_attributes $instance_attributes \
-               -page_template [my item_id]]
-
-    if {[my exists state]} {
-      $f set state [my set state]
-    }
-
-    # Make sure to load the instance attributes
-    $f array set __ia [$f instance_attributes]
-
-    # Call the application specific initialization, when a FormPage is
-    # initially created. This is used to control the life-cycle of
-    # FormPages.
-    $f initialize
 
     #
-    # if we copy an item, we use source_item_id to provide defaults
+    # collect some default values from query parameters
     #
-    set source_item_id [my query_parameter source_item_id ""]
-    if {$source_item_id ne ""} {
-      set source [FormPage get_instance_from_db -item_id $source_item_id]
-      $f copy_content_vars -from_object $source
-      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [my name]]"
-      $package_id get_lang_and_name -name $name lang name
-      $f set name $name
-      #my msg nls=[$f nls_language],source-nls=[$source nls_language]
-    } else {
-      #
-      # set some default values from query parameters
-      #
-      foreach key {name title page_order last_page_id nls_language} {
-	if {[my exists_query_parameter $key]} {
-	  $f set $key [my query_parameter $key]
-	}
+    set default_variables [list]
+    foreach key {name title page_order last_page_id nls_language} {
+      if {[my exists_query_parameter $key]} {
+        lappend default_variables $key [my query_parameter $key]
       }
     }
-    $f set __title_prefix [my title]
+
+    set f [my create_form_page_instance \
+               -name $name \
+               -nls_language $nls_language \
+               -default_variables $default_variables \
+               -source_item_id [my query_parameter source_item_id ""]]
 
     $f save_new
+ 
     if {[my exists_query_parameter "return_url"]} {
       set return_url [my query_parameter "return_url"]
     }

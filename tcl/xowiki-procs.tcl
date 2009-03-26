@@ -1976,7 +1976,7 @@ namespace eval ::xowiki {
     # The resulting page should be either a Form (PageTemplate) or
     # a FormPage (PageInstance)
     #
-    # my msg "parent of self [my name] is [$form_obj name] type [$form_obj info class]"
+    #my msg "parent of self [my name] is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
     # properties of this page.
@@ -2000,6 +2000,7 @@ namespace eval ::xowiki {
     # which might not contain it, if e.g. the first form is a plain
     # wiki page.
     #
+    #my msg "resolve property $var=>[my exists_property $var]"
     if {[my istype ::xowiki::FormPage] && [my exists_property $var]} {
       #my msg "returning local property [my property $var]"
       return [my property $var]
