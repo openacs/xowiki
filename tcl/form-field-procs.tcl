@@ -1124,7 +1124,7 @@ namespace eval ::xowiki::formfield {
     {style}
     {wiki_p true}
     {inplace false}
-    {slim true}
+    {slim false}
     {CSSclass xinha}
   }
   richtext::xinha set editor_mixin 1
@@ -1155,8 +1155,9 @@ namespace eval ::xowiki::formfield {
     }
     if {[my set slim]} {
       my lappend options javascript {
-	xinha_config.toolbar  = [['popupeditor', 'bold','italic','createlink','insertimage','separator'], 
-				 ['killword','removeformat','htmlmode'] 
+	xinha_config.toolbar  = [['popupeditor', 'formatblock', 'bold','italic','createlink','insertimage'], 
+				 ['separator','insertorderedlist','insertunorderedlist','outdent','indent'],
+				 ['separator','killword','removeformat','htmlmode'] 
 				];
       }
     }
