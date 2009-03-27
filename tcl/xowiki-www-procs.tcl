@@ -816,13 +816,15 @@ namespace eval ::xowiki {
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
-    my instvar __ia
+    my instvar __ia package_id
+    set cc [$package_id context]
     if {[my exists instance_attributes]} {
       array unset __ia
       array set __ia [my set instance_attributes]
     }
+
     if {![info exists field_names]} {
-      set field_names [::xo::cc array names form_parameter]
+      set field_names [$cc array names form_parameter]
     }
     #my msg "fields $field_names, "
 
@@ -834,7 +836,7 @@ namespace eval ::xowiki {
       switch -glob -- $att {
         __category_* {
           set f [my lookup_form_field -name $att $form_fields]
-          set value [$f value [::xo::cc form_parameter $att]]
+          set value [$f value [$cc form_parameter $att]]
           foreach v $value {lappend category_ids $v}
         }
         __* {
@@ -843,7 +845,7 @@ namespace eval ::xowiki {
          _* {
            # instance attribute fields
            set f     [my lookup_form_field -name $att $form_fields]
-           set value [$f value [string trim [::xo::cc form_parameter $att]]]
+           set value [$f value [string trim [$cc form_parameter $att]]]
            set varname [string range $att 1 end]
            # get rid of strange utf-8 characters hex C2AD (firefox bug?)
            # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
@@ -855,10 +857,10 @@ namespace eval ::xowiki {
            # user form content fields
           if {[regexp {^(.+)[.](tmpfile|content-type)} $att _ file field]} {
             set f [my lookup_form_field -name $file $form_fields]
-            $f $field [string trim [::xo::cc form_parameter $att]]
+            $f $field [string trim [$cc form_parameter $att]]
           } else {
             set f     [my lookup_form_field -name $att $form_fields]
-            set value [$f value [string trim [::xo::cc form_parameter $att]]]
+            set value [$f value [string trim [$cc form_parameter $att]]]
             #my msg "value of $att ($f) = '$value'" 
             if {![string match *.* $att]} {set __ia($att) $value}
             if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
@@ -1256,7 +1258,6 @@ namespace eval ::xowiki {
 
     #my show_fields $form_fields
     #my log "__form_action [my form_parameter __form_action {}]"
-
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -1307,12 +1308,13 @@ namespace eval ::xowiki {
 	if {$redirect_method eq "__none"} {
 	  return
 	} else {
-	  set url [$package_id pretty_link -lang en [my name]]?m=$redirect_method
+          if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
+	  set url [$package_id pretty_link -parent_id [my parent_id] -lang en [my name]]$qp
 	  set return_url [$package_id get_parameter return_url $url]
 	  # we had query_parameter here. however, to be able to
 	  # process the output of ::xo::cc set_parameter ...., we
 	  # changed it to "parameter".
-	  #my msg "return_url=$return_url"
+	  #my msg "[my name]: url=$url, return_url=$return_url"
 	  $package_id returnredirect $return_url
           return
 	}
@@ -1449,7 +1451,7 @@ namespace eval ::xowiki {
       if {[my exists_query_parameter "return_url"]} {
 	set return_url [my query_parameter "return_url"]
       }
-      set url [export_vars -base [$package_id pretty_link [my name]] {{m "edit"} return_url}] 
+      set url [export_vars -base [$package_id pretty_link -parent_id [my parent_id] [my name]] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
       if {$has_file} {$form setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $form class "margin-form"
@@ -1747,30 +1749,30 @@ namespace eval ::xowiki {
   Page instproc create_form_page_instance {
     -name:required 
     -package_id 
+    -parent_id
+    {-text ""}
     {-instance_attributes ""}
     {-default_variables ""}
     {-nls_language ""}
     {-publish_status production} 
     {-source_item_id ""}
   } {
-    my msg ""
     set ia [my default_instance_attributes]
     foreach {att value} $instance_attributes {lappend ia $att $value}
 
     if {$nls_language eq ""} {
       set nls_language [my query_parameter nls_language [my nls_language]]
     }
-    if {![info exists package_id]} {
-      set package_id [my package_id]
-    }
-
+    if {![info exists package_id]} { set package_id [my package_id] }
+    if {![info exists parent_id]}  { set parent_id [my parent_id] }
+    
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
-               -text "" \
+               -text $text \
                -package_id $package_id \
-               -parent_id [my parent_id] \
+               -parent_id $parent_id \
                -nls_language $nls_language \
-               -publish_status "production" \
+               -publish_status $publish_status \
                -instance_attributes $ia \
                -page_template [my item_id]]
 

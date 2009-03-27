@@ -65,6 +65,10 @@ namespace eval ::xowiki::formfield {
   FormField proc fc_decode {string} {
     return [string map [list __COMMA__ ,] $string]
   }
+  #FormField proc fc_decode_colon {string} {
+  #  return [string map [list __COLON__ :] $string]
+  #}
+
 
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
@@ -835,6 +839,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class user_id -superclass numeric -parameter {
+    {format %d}
   }
   user_id instproc initialize {} {
     next

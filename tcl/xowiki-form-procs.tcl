@@ -211,12 +211,14 @@ namespace eval ::xowiki {
   proc ::xowiki::validate_name {} {
     upvar name name nls_language nls_language
     my instvar data
+    $data instvar package_id
+    set cc [$package_id context]
 
-    set old_name [::xo::cc form_parameter __object_name ""]
+    set old_name [$cc form_parameter __object_name ""]
     #my msg "validate: old='$old_name', current='$name'"
 
     # my log "--F validate_name data=[my exists data]"
-    $data instvar package_id
+
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
       #my log "--mime validate_name data=[my exists data] MIME [$data set mime_type]"
       set name [$data build_name $name [$data set upload_file]]
@@ -225,7 +227,7 @@ namespace eval ::xowiki {
       # name. Files ending in .css or .js might require special permissions.
       # Caveat: the error message is always the same.
       #
-      set package_id [::xo::cc package_id]
+      set package_id [$cc package_id]
       set computed_link [export_vars -base [$package_id package_url] {{edit-new 1} name 
 			 {object_type ::xowiki::File}}]
       set granted [$package_id check_permissions -link $computed_link $package_id edit-new]
