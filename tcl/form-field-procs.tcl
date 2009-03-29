@@ -1977,6 +1977,10 @@ namespace eval ::xowiki::formfield {
     } else {
       ::html::t [my value]
     }
+    # Include labels as hidden fields to avoid surprises when
+    # switching field types to labels.
+    my set type hidden
+    next
   }
 
   ###########################################################
