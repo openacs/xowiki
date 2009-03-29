@@ -1187,14 +1187,14 @@ namespace eval ::xowiki {
           $f help_text ""
         }
       }
-      if {[$f name] eq "_name" || [$f name] eq "_nls_language"} {
+      if {[$f exists transmit_field_always] 
+          && [lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
         # Never omit these fields, this would cause problems with
-        # autonames and empty languages. Set these fields to hidden.
-        if {[lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
-          $f remove_omit
-          $f class ::xowiki::formfield::hidden
-          $f initialize
-        }
+        # autonames and empty languages. Set these fields to hidden
+        # instead.
+        $f remove_omit
+        $f class ::xowiki::formfield::hidden
+        $f initialize
         #my msg "$f [$f name] [$f info class] [$f info mixin]"
       }
     }
@@ -1374,6 +1374,9 @@ namespace eval ::xowiki {
         }
       }
     }
+
+    $ff(_name) set transmit_field_always 1
+    $ff(_nls_language) set transmit_field_always 1
 
     # some final sanity checks
     my form_fields_sanity_check $form_fields

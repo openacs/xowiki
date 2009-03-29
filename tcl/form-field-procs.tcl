@@ -383,10 +383,22 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_input {} {
+    #
     # This is the most general widget content renderer. 
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
+    #
     ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class}] {}
+    #
+    # Disabled fieds are not returned by the browsers. For some
+    # fields, we require to be sent. therefore we include in these
+    # cases the value in an additional hidden field. Maybe we should
+    # change in the future the "name" of the disabled entry to keep
+    # some hypothetical html-checker quiet.
+    #
+    if {[my exists disabled] && [my exists transmit_field_always]} {
+      ::html::input [list type hidden name [my name] value [my set value]] {}
+    }
     my set __rendered 1
   } 
 
