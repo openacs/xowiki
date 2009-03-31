@@ -1373,10 +1373,10 @@ namespace eval ::xowiki {
           }
         }
       }
-    }
 
-    $ff(_name) set transmit_field_always 1
-    $ff(_nls_language) set transmit_field_always 1
+      $ff(_name) set transmit_field_always 1
+      $ff(_nls_language) set transmit_field_always 1
+    }
 
     # some final sanity checks
     my form_fields_sanity_check $form_fields
