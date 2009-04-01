@@ -1648,7 +1648,7 @@ namespace eval ::xowiki {
     set msg ""
     foreach f $form_fields { append msg "[$f name] [namespace tail [$f info class]], " }
     my msg $msg
-    my log "XXX ff: $msg"
+    my log "form_fields: $msg"
   }
 
 
