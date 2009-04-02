@@ -708,7 +708,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc set_form_value {att value} {
-    #my msg "set_form_value $att $value"
+    #my msg "set_form_value '$att' to '$value'"
     #
     # Feed the provided value into an HTML form provided via the
     # instance variable root.
@@ -788,9 +788,9 @@ namespace eval ::xowiki {
       set att [$f name]
       # just handle fields of the form entry 
       if {![my exists __field_in_form($att)]} continue
-      #my msg "set form_value to form-field $att __ia($att)"
+      #my msg "set form_value to form-field $att __ia($att) [info exists  __ia($att)]"
       if {[info exists __ia($att)]} {
-        #my msg "my set_form_value from ia $att $__ia($att)"
+        #my msg "my set_form_value from ia $att '$__ia($att)', external='[$f convert_to_external $__ia($att)]' f.value=[$f value]"
         my set_form_value $att [$f convert_to_external $__ia($att)]
       } else {
         # do we have a value in the form? If yes, keep it.
@@ -812,7 +812,7 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
-    #my log "get_form_data [self] [my name]"
+    #my msg "get_form_data [self] [my name]"
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
@@ -861,7 +861,7 @@ namespace eval ::xowiki {
           } else {
             set f     [my lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
-            #my msg "value of $att ($f) = '$value'" 
+            #my msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]" 
             if {![string match *.* $att]} {set __ia($att) $value}
             if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
           }
@@ -1207,18 +1207,14 @@ namespace eval ::xowiki {
   } {
     my instvar page_template doc root package_id
     ::xowiki::Form requireFormCSS
+    #my msg "edit [self args]"
+    #my log "edit [self args]"
 
     set form [my get_form]
     set anon_instances [my get_from_template anon_instances f]
     #my msg form=$form
     #my msg anon_instances=$anon_instances
     
-    # The following code should be obsolete
-    # set form_id [my get_form_id]
-    # if {![$form_id istype ::xowiki::Form]} {
-    #   set form "<FORM>[lindex [$form_id set text] 0]</FORM>"
-    # }
-
     set field_names [my field_names -form $form]
     #my log field_names=$field_names
     set form_fields [my create_form_fields $field_names]
@@ -1256,8 +1252,17 @@ namespace eval ::xowiki {
       $f config_from_spec hidden
     }
 
+    if {[my exists_form_parameter __disabled_fields]} {
+      # Disable some form-fields since these are disabled in the form
+      # as well.
+      foreach name [my form_parameter __disabled_fields] {
+        set f [my lookup_form_field -name $name $form_fields]
+        $f disabled disabled
+      }
+    }
+
     #my show_fields $form_fields
-    #my log "__form_action [my form_parameter __form_action {}]"
+    #my msg "__form_action [my form_parameter __form_action {}]"
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -1311,7 +1316,7 @@ namespace eval ::xowiki {
           if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
 	  set url [$package_id pretty_link -parent_id [my parent_id] -lang en [my name]]$qp
 	  set return_url [$package_id get_parameter return_url $url]
-	  # we had query_parameter here. however, to be able to
+	  # We had query_parameter here. however, to be able to
 	  # process the output of ::xo::cc set_parameter ...., we
 	  # changed it to "parameter".
 	  #my msg "[my name]: url=$url, return_url=$return_url"
@@ -1319,11 +1324,16 @@ namespace eval ::xowiki {
           return
 	}
       }
+    }  elseif {[my form_parameter __form_action ""] eq "view-form-data" && ![my exists __feedback_mode]} {
+      # We have nothing to save (maybe everything is read.only). Check
+      # __feedback_mode to prevent recursive loops.
+      set redirect_method [my form_parameter __form_redirect_method "view"]
+      #my log "__redirect_method=$redirect_method"
+      return [my view]
     } else {
       # 
       # display the current values
       #
-
       if {[my is_new_entry [my name]]} {
 	my set creator [::xo::get_user_name [::xo::cc user_id]]
 	my set nls_language [ad_conn locale]
@@ -1421,7 +1431,7 @@ namespace eval ::xowiki {
     set button_class(wym) ""
     set button_class(xinha) ""
     set has_file 0
-    $root appendFromScript {    
+    $root appendFromScript {
       # append category fields
       foreach f $form_fields {
         #my msg "[$f name]: is wym? [$f has_instance_variable editor wym]"
@@ -1464,7 +1474,16 @@ namespace eval ::xowiki {
       # (a) disable explicit input fields
       foreach f $form_fields {$f disabled disabled}
       # (b) disable input in HTML-specified fields
-      Form dom_disable_input_fields $root
+      set disabled [Form dom_disable_input_fields $root]
+      #
+      # Collect these variables in a hiddden field to be able to
+      # distinguish later between e.g. un unchecked checkmark and an
+      # disabled field. Maybe, we have to add the fields from case (a)
+      # as well.
+      #
+      $root appendFromScript {
+        ::html::input -type hidden -name "__disabled_fields" -value $disabled
+      }
     }
     my post_process_dom_tree $doc $root $form_fields
     set html [$root asHTML]

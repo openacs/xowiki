@@ -1354,8 +1354,17 @@ namespace eval ::xowiki::formfield {
     my set widget_type text(checkbox)
     next
   }
+
+
   checkbox instproc value_if_nothing_is_returned_from_form {default} {
-    return ""
+    # Here we have to distinguish between two cases to:
+    # - edit mode: somebody has removed a mark from a check button;
+    #   this means: clear the field
+    # - view mode: the fields were deactivted (made insensitive);
+    #   this means: keep the old value
+
+    #my msg "[my name] disabled=[my exists disabled]"
+    if {[my exists disabled]} {return $default} else {return ""}
   }
   checkbox instproc render_input {} {
     # identical to radio, except "checkbox" type and lsearch;
@@ -2142,7 +2151,7 @@ namespace eval ::xowiki::formfield {
     {default t}
   }
   boolean instproc value_if_nothing_is_returned_from_form {default} {
-    return f
+    if {[my exists disabled]} {return $default} else {return f}
   }
   boolean instproc initialize {} {
     # should be with cvs head message catalogs:

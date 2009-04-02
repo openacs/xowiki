@@ -2103,6 +2103,7 @@ namespace eval ::xowiki {
 
   Form proc dom_disable_input_fields {{-with_submit 0} root} {
     set fields [$root selectNodes "//button | //input | //optgroup | //option | //select | //textarea "]
+    set disabled [list]
     foreach field $fields {
       set type ""
       if {[$field hasAttribute type]} {set type [$field getAttribute type]}
@@ -2112,7 +2113,14 @@ namespace eval ::xowiki {
       # to identify the context, so don't disable it...
       if {$type eq "hidden"} continue
       $field setAttribute disabled "disabled"
+      lappend disabled [$field getAttribute name]
     }
+
+    #set fa [$root selectNodes {//input[@name='__form_action']}]
+    #if {$fa ne ""} {
+    #  $fa setAttribute value "view-form-data"
+    #}
+    return $disabled
   }
 
   Form proc disable_input_fields {{-with_submit 0} form} {
