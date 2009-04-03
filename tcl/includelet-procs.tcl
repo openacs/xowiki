@@ -3050,7 +3050,7 @@ namespace eval ::xowiki::includelet {
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }
-    my msg fc=$form_constraints
+    #my msg fc=$form_constraints
 
     # load table properties; order_by won't work due to comma, but solve that later (TODO)
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
