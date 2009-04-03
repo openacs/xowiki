@@ -519,7 +519,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_is_correct {} {
-    my msg "[my name] ([my info class]): value=[my value], answer=[expr {[my exists answer]?[my set answer]:{NONE}}]"
+    #my msg "[my name] ([my info class]): value=[my value], answer=[expr {[my exists answer]?[my set answer]:{NONE}}]"
     if {[my exists correct_when]} {
       set op [lindex [my correct_when] 0]
       if {[my procsearch answer_check=$op] ne ""} {
