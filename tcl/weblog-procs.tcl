@@ -26,10 +26,10 @@ namespace eval ::xowiki {
     {compute_summary false}
   }
 
-  ::xowiki::Weblog proc instantiate_forms {{-default_lang ""} -entries_of:required -package_id:required} {
+  ::xowiki::Weblog proc instantiate_forms {{-default_lang ""} -forms:required -package_id:required} {
     set folder_id [::$package_id folder_id]
-    set form_items [list]
-    foreach t [split $entries_of |] {
+    set form_item_ids [list]
+    foreach t [split $forms |] {
       # Entry $t might contain a package prefix
       set form_item_id [$package_id lookup -default_lang $default_lang -name $t]
       if {$form_item_id == 0} {
@@ -55,9 +55,9 @@ namespace eval ::xowiki {
       if {![my isobject ::$form_item_id]} {
         ::xo::db::CrClass get_instance_from_db -item_id $form_item_id
       }
-      lappend form_items $form_item_id
+      lappend form_item_ids $form_item_id
     }
-    return $form_items
+    return $form_item_ids
   }
 
   ::xowiki::Weblog instproc init {} {
@@ -131,7 +131,7 @@ namespace eval ::xowiki {
         # we use a form as a filter
         my instvar form_items
         set form_items [::xowiki::Weblog instantiate_forms \
-                            -entries_of $entries_of \
+                            -forms $entries_of \
                             -package_id $package_id]
         append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
         set base_type ::xowiki::FormPage

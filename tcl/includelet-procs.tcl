@@ -2932,6 +2932,7 @@ namespace eval ::xowiki::includelet {
         return_url
         {label_suffix ""}
       }
+
   form-menu-button instproc render {} {
     my instvar package_id base form method return_url label_suffix link
     if {![info exists link]} {
@@ -3040,13 +3041,16 @@ namespace eval ::xowiki::includelet {
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
     if {![info exists form_item_id]} {
-      set form_item_id [::xo::db::CrClass lookup -name $form -parent_id [$package_id folder_id]]
-      if {$form_item_id == 0} {error "Cannot lookup page $form"}
+      set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+    } else {
+      set form_item_ids [list $form_item_id]
     }
 
-    set form_item [::xo::db::CrClass get_instance_from_db -item_id $form_item_id]
-    set form_constraints [$form_item get_form_constraints -trylocal true]
-    #my msg fc=[$form_item get_form_constraints]
+    set form_constraints ""
+    foreach form_item $form_item_ids {
+      append form_constraints [$form_item get_form_constraints -trylocal true] \n
+    }
+    my msg fc=$form_constraints
 
     # load table properties; order_by won't work due to comma, but solve that later (TODO)
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
@@ -3088,12 +3092,14 @@ namespace eval ::xowiki::includelet {
       if {$_ ne ""} {lappend field_names $_}
     }
 
-    set form_fields [::xowiki::FormPage get_table_form_fields \
-                          -base_item $form_item \
-                          -field_names $field_names \
-                          -form_constraints $form_constraints]
-    # $form_item show_fields $form_fields
-    foreach f $form_fields {set __ff([$f name]) $f}
+    foreach form_item $form_item_ids {
+      set form_fields [::xowiki::FormPage get_table_form_fields \
+			   -base_item $form_item \
+			   -field_names $field_names \
+			   -form_constraints $form_constraints]
+      # $form_item show_fields $form_fields
+      foreach f $form_fields {set __ff([$f name]) $f}
+    }
 
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
@@ -3166,7 +3172,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_item_id \
+                   -base_item_ids $form_item_ids \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
@@ -3180,7 +3186,7 @@ namespace eval ::xowiki::includelet {
       } else {
         # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_item_id \
+                   -base_item_ids $form_item_ids \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -always_queried_attributes [list _name _last_modified _creation_user] \
@@ -3258,7 +3264,7 @@ namespace eval ::xowiki::includelet {
     #
     my instvar name
     set includelet_key ""
-    foreach var {name form_item_id form publish_states field_names unless} {
+    foreach var {name form_item_ids form publish_states field_names unless} {
       if {[info exists $var]} {append includelet_key $var : [set $var] ,}
     }
 

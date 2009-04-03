@@ -25,7 +25,7 @@
   # Provide a tailored link for creating new pages in the wiki menu
   #
   set forms [::xowiki::Weblog instantiate_forms \
-                 -entries_of $entries_of \
+                 -forms $entries_of \
                  -package_id $package_id]
   set template_id [lindex $forms 0]
   set form_link [$package_id pretty_link [$template_id name]]

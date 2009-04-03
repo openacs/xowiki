@@ -519,7 +519,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_is_correct {} {
-    #my msg "[my name] ([my info class]): value=[my value], answer=[expr {[my exists answer]?[my set answer]:{NONE}}]"
+    my msg "[my name] ([my info class]): value=[my value], answer=[expr {[my exists answer]?[my set answer]:{NONE}}]"
     if {[my exists correct_when]} {
       set op [lindex [my correct_when] 0]
       if {[my procsearch answer_check=$op] ne ""} {
@@ -1485,7 +1485,7 @@ namespace eval ::xowiki::formfield {
     set package_id [[my object] package_id]
     set form_objs [::xowiki::Weblog instantiate_forms \
                        -default_lang [[my object] lang] \
-                       -entries_of $form_name -package_id $package_id]
+                       -forms $form_name -package_id $package_id]
 
     #set form_obj [[my object] resolve_included_page_name $form_name]
     if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}

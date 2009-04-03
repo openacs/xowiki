@@ -812,7 +812,7 @@ namespace eval ::xowiki {
     Get the values from the form and store it as
     instance attributes.
   } {
-    #my msg "get_form_data [self] [my name]"
+    #my msg "get_form_data [self] [my name] [self args]"
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
@@ -825,6 +825,7 @@ namespace eval ::xowiki {
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
+      #my msg "form-params=[$cc array get form_parameter]"
     }
     #my msg "fields $field_names, "
 
@@ -1224,7 +1225,7 @@ namespace eval ::xowiki {
       # Since we have no form, we create it on the fly
       # from the template variables and the form field specifications.
       #
-      set form "<FORM></FORM>"
+      set form "<form></form>"
       set formgiven 0
     } else {
       set formgiven 1

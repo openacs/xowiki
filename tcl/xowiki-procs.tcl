@@ -1628,8 +1628,11 @@ namespace eval ::xowiki {
     }
     set names [list]
     foreach f $form_fields {lappend names [$f name]}
-    error "No form field with name $name found\
+    my msg "No form field with name $name found\
 	(available fields: [lsort [array names ::_form_field_names]])"
+    set f [my create_form_fields_from_form_constraints [list $name:text]]
+    set $key $f
+    return $f
   }
 
   Page instproc lookup_cached_form_field {
@@ -1955,6 +1958,12 @@ namespace eval ::xowiki {
     return ""
   }
  
+  #FormPage instproc save args {
+  #  my debug_msg [my set instance attributes]
+  #  my log "IA=[my set instance_attributes]"
+  #  next
+  #}
+
   FormPage instproc get_form_constraints {{-trylocal false}} {
     # We define it as a method to ease overloading.
     #my msg "is_form=[my isform]"
