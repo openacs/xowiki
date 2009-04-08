@@ -1398,7 +1398,7 @@ namespace eval ::xowiki::formfield {
     if {![my exists options]} {my options [list]}
   }
   select instproc render_input {} {
-    set atts [my get_attributes id name disabled]
+    set atts [my get_attributes id name disabled {CSSclass class}]
     if {[my multiple]} {lappend atts multiple [my multiple]}
     set options [my options]
     if {![my required]} {
@@ -1463,6 +1463,59 @@ namespace eval ::xowiki::formfield {
           return "<a href='$href'>$label</a>"
         }
       }
+    }
+  }
+
+  abstract_page instproc render_input {} {
+    if {[my multiple]} {
+      # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
+      set ajaxhelper 0
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+      ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
+
+      set js ""
+      foreach o [my options] {
+        foreach {label rep} $o break
+        set js_label [::xowiki::Includelet js_encode $label]
+        set js_rep   [::xowiki::Includelet js_encode $rep]
+        append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
+        append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
+      }
+      
+      ::html::div -class workarea {
+        ::html::h3 { ::html::t "Selection"}
+        set values ""
+        foreach v [my value] {
+          append values $v \n
+          set __values($v) 1
+        }
+        my CSSclass selection
+        my set cols 30
+        set atts [my get_attributes id name disabled {CSSclass class}]
+        # TODO what todo with DISABLED?
+        ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
+          ::html::t $values
+        }
+      }
+      ::html::div -class workarea {
+        ::html::h3 { ::html::t "Candidates"}
+        ::html::ul -id [my id]_candidates -class region {
+          #my msg [my options]
+          foreach o [my options] {
+            foreach {label rep} $o break
+            # Don't show current values under candidates
+            if {[info exists __values($rep)]} continue
+            ::html::li -class candidates {::html::t $rep}
+          }
+        }
+      }
+      ::html::div -class visual-clear {
+        ;# maybe some comment
+      }
+      ::html::script { html::t $js }
+    } else {
+      next
     }
   }
 

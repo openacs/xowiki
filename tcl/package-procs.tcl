@@ -609,8 +609,8 @@ namespace eval ::xowiki {
       #
       set exported [[my set policy] defined_methods Package]
       foreach m $exported {
-	#my msg "--QP my exists_query_parameter $m = [my exists_query_parameter $m]"
-        if {[my exists_query_parameter $m]} {
+	#my log "--QP my exists_query_parameter $m = [my exists_query_parameter $m] || [my exists_form_parameter $m]"
+        if {[my exists_query_parameter $m] || [my exists_form_parameter $m]} {
           set method $m  ;# determining the method, similar file extensions
           return [self]
         }
@@ -971,6 +971,93 @@ namespace eval ::xowiki {
   }
 
   #
+  # change_page_order (normally called via ajax POSTs)
+  #
+  Package ad_instproc change_page_order {} {
+    change_page_order for pages
+  } {
+    my instvar folder_id
+    set to    [string trim [my form_parameter to ""]]
+    set from  [string trim [my form_parameter from ""]]
+    set clean [string trim [my form_parameter clean ""]]  ;# only for inserts
+
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 1.2}; set clean {...}
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
+    #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
+
+    if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
+      my log "unreasonable request from='$from', to='$to'"
+      return
+    }
+    my log "--cpo from=$from, to=$to, clean=$clean"
+    set gap_renames [list]
+    #
+    # We distinguish two cases:
+    # - pure reordering: length(to) == length(from)
+    # - insert from another section: length(to) == length(from)+1
+    #
+    if {[llength $to] == [llength $from]} {
+      my log "--cpo reorder"
+    } elseif {[llength $clean] > 1} {
+      my log "--cpo insert"
+      #
+      # We have to fill the gap. First, find the newly inserted
+      # element in $to.
+      #
+      foreach e $to {
+        if {[lsearch -exact $from $e] == -1} {
+          set inserted $e
+          break
+        }
+      }
+      if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
+      # 
+      # compute the remaining list
+      #
+      set remaining [list]
+      foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
+      #
+      # compute rename rename commands for it
+      #
+      set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                       -start [lindex $clean 0] -from $remaining -to $remaining]
+      foreach {page_id item_id name old_page_order new_page_order} $gap_renames {
+        my log "--cpo gap $page_id (name) rename $old_page_order to $new_page_order"
+      }
+    }
+    #
+    # Compute the rename commands for the drop target
+    #
+    set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                          -start [lindex $from 0] -from $from -to $to]
+    #my log "--cpo drops l=[llength $drop_renames]"
+    foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
+      my log "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
+    }
+
+    #
+    # Perform the actual renames
+    #
+    set temp_obj [::xowiki::Page new -name dummy -volatile]
+    set slot [$temp_obj find_slot page_order]
+    db_transaction {
+      foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
+        #my log "--cpo UPDATE $page_id new_page_order $new_page_order"
+        $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id
+      }
+    }
+    #
+    # Flush the page fragement caches (page fragments based on page_order might be sufficient)
+    my flush_page_fragment_cache -scope agg
+
+    ns_return 200 text/plain ok
+  }
+
+
+
+  #
   # RSS 2.0 support
   #
   Package ad_instproc rss {
@@ -1177,7 +1264,7 @@ namespace eval ::xowiki {
     if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
 
     # flush could be made more precise in the future
-    [my id] flush_page_fragment_cache -scope agg
+    my flush_page_fragment_cache -scope agg
 
     my returnredirect [site_node::get_package_url -package_key categories]cadmin/object-map?ctx_id=$object_id&object_id=$object_id
   }
@@ -1193,7 +1280,7 @@ namespace eval ::xowiki {
     if {![string is integer -strict $tree_id]}   { return [my error_msg "No valid tree_id provided!"] }
 
     # flush could be made more precise in the future
-    [my id] flush_page_fragment_cache -scope agg
+    my flush_page_fragment_cache -scope agg
     my returnredirect [site_node::get_package_url -package_key categories]cadmin/tree-view?tree_id=$tree_id&ctx_id=$object_id&object_id=$object_id
   }
 
@@ -1308,7 +1395,7 @@ namespace eval ::xowiki {
     switch -- $scope {
       agg {set key PF-[my id]-agg-*}
       all {set key PF-[my id]-*}
-      default {error "unknown cope for flushing page fragment cache"}
+      default {error "unknown scope for flushing page fragment cache"}
     }
     foreach entry [ns_cache names xowiki_cache $key] {
       ns_log notice "::xo::clusterwide ns_cache flush xowiki_cache $entry"
@@ -1350,6 +1437,7 @@ namespace eval ::xowiki {
   
     Class Package -array set require_permission {
       reindex             swa
+      change_page_order   {{id admin}}
       import_prototype_page swa
       rss                 none
       google-sitemap      none
@@ -1406,6 +1494,7 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      change_page_order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa
@@ -1459,6 +1548,7 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      change_page_order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa
@@ -1515,6 +1605,7 @@ namespace eval ::xowiki {
       rss                 none
       google-sitemap      none
       google-sitemapindex none
+      change_page_order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa

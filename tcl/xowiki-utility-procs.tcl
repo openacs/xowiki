@@ -308,4 +308,100 @@ namespace eval ::xowiki {
     return $msg
   }
 
+  ::xowiki::utility proc incr_page_order {p} {
+    regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
+    if {[string is integer -strict $suffix]} {
+      incr suffix
+    } elseif {[string is lower -strict $suffix]} {
+      regexp {^(.*)(.)$} $suffix _ before last
+      if {$last eq "z"} {
+	set last "aa"
+      } else {
+	set last [format %c [expr {[scan $last %c] + 1}]]
+      }
+      set suffix $before$last
+    } elseif {[string is upper -strict $suffix]} {
+      regexp {^(.*)(.)$} $suffix _ before last
+      if {$last eq "Z"} {
+	set last "AA"
+      } else {
+	set last [format %c [expr {[scan $last %c] + 1}]]
+      }
+      set suffix $before$last
+    }
+    return $prefix$suffix
+  }
+
+  ::xowiki::utility proc page_order_compute_new_names {start page_orders} {
+    lappend pairs [lindex $page_orders 0] $start
+    foreach p [lrange $page_orders 1 end] {
+      lappend pairs $p [set start [my incr_page_order $start]]
+    }
+    return $pairs
+  }
+
+  ::xowiki::utility proc get_page_order_items {-parent_id page_orders} {
+    set likes [list]
+    foreach page_order $page_orders {
+      if {[::xo::db::has_ltree]} {
+        lappend likes "p.page_order <@ '$page_order'" 
+      } else {
+        lappend likes "p.page_order = '$page_order'" "p.page_order like '$page_order.%'"
+     }
+    }
+    set sql "select p.page_order, p.page_id, cr.item_id, ci.name
+          from xowiki_page p, cr_items ci, cr_revisions cr  \
+          where p.page_id = ci.live_revision \
+            and p.page_id = cr.revision_id  \
+            and ci.publish_status <> 'production' \
+            and ci.parent_id = $parent_id \
+            and ([join $likes { or }])"
+    my log $sql
+    set pages [db_list_of_lists [my qn get_pages_with_page_order] $sql]
+    return $pages
+  }
+
+  ::xowiki::utility proc page_order_renames {-parent_id -start -from -to} {
+    set pages [my get_page_order_items -parent_id $parent_id $to]
+    my log "pages=$pages"
+    array set npo [::xowiki::utility page_order_compute_new_names $start $to]
+    my log npo=[array get npo]=>to='$to'
+    set renames [list]
+    foreach tuple $pages {
+      foreach {old_page_order page_id item_id name} $tuple break
+      if {[info exists npo($old_page_order)]} {
+        #
+        # We have a name in the translation list
+        #
+        if {$npo($old_page_order) eq $old_page_order} {
+          # Nothing to do
+          #my log "--cpo name $old_page_order not changed"
+        } else {
+          #my log "--cpo name $old_page_order changed to '$npo($old_page_order)'"
+          lappend renames $page_id $item_id $name $old_page_order $npo($old_page_order)
+       }
+      } else {
+        # 
+        # We have no translation in the list. This must be an item
+        # from a subtree of changed page_orders.
+        #
+        #my log "--cpo no translation for $old_page_order, check prefix"
+        foreach new_name [array names npo] {
+          if {[string match $new_name.* $old_page_order]} {
+            #
+            # The name matches. Add to the rename list if the prefix name actually changed.
+            #
+            if {$npo($new_name) ne $new_name} {
+              set l [string length $new_name]
+              set new_page_order "$npo($new_name)[string range $old_page_order $l end]"
+              my log "--cpo tree name $old_page_order changed to '$new_page_order'"
+              lappend renames $page_id $item_id $name $old_page_order $new_page_order
+            }
+            break
+          }
+        }
+      }
+    }
+    return $renames
+  }
 }

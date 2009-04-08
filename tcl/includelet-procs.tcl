@@ -97,6 +97,10 @@ namespace eval ::xowiki::includelet {
     return [string map [list : _ # _] $name]
   }
   
+  ::xowiki::Includelet proc js_encode {string} {
+    string map [list \n \\n \" {\"} ' {\'}] $string
+  }
+
   ::xowiki::Includelet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
@@ -127,30 +131,6 @@ namespace eval ::xowiki::includelet {
       set link [::$package_id pretty_link $name]
     }
     return $link
-  }
-
-  ::xowiki::Includelet proc incr_page_order {p} {
-    regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
-    if {[string is integer -strict $suffix]} {
-      incr suffix
-    } elseif {[string is lower -strict $suffix]} {
-      regexp {^(.*)(.)$} $suffix _ before last
-      if {$last eq "z"} {
-	set last "aa"
-      } else {
-	set last [format %c [expr {[scan $last %c] + 1}]]
-      }
-      set suffix $before$last
-    } elseif {[string is upper -strict $suffix]} {
-      regexp {^(.*)(.)$} $suffix _ before last
-      if {$last eq "Z"} {
-	set last "AA"
-      } else {
-	set last [format %c [expr {[scan $last %c] + 1}]]
-      }
-      set suffix $before$last
-    }
-    return $prefix$suffix
   }
 
   ::xowiki::Includelet proc publish_status_clause {{-base_table ci} value} {
@@ -2305,6 +2285,7 @@ namespace eval ::xowiki::includelet {
           {-menu_buttons edit}
           {-locale ""}
 	  {-range ""}
+	  {-allow_reorder ""}
         }}
       }
 
@@ -2314,6 +2295,23 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
     lappend ::xowiki_page_item_id_rendered [$__including_page item_id]
     $__including_page set __is_book_page 1
+
+    if {$allow_reorder ne ""} {
+      set granted [$package_id check_permissions \
+                       -user_id [[$package_id context] user_id] \
+                       -package_id $package_id \
+                       $package_id change_page_order]
+      #my msg "granted=$granted"
+      if {$granted} {
+        set ajaxhelper 0
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+        ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+      } else {
+        # the user has not enough permissions, so disallow
+        set allow_reorder ""
+      }
+    }
 
     set extra_where_clause ""
     set cnames ""
@@ -2350,11 +2348,53 @@ namespace eval ::xowiki::includelet {
       }
     }
 
+    if {$allow_reorder ne ""} {
+      set js "YAHOO.xo_page_order_region.DDApp.report_link = '[$package_id package_url]';\n"
+      set last_level 0
+      set ID [my js_name]
+      if {[string is integer -strict $allow_reorder]} {
+        set min_level $allow_reorder
+      } else {
+        set min_level 1
+      }
+    }
+
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
-      set level [expr {[regsub -all {[.]} $page_order . page_order] + 1}]
-      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
+      set level [expr {[regsub -all {[.]} $page_order _ page_order_js] + 1}]
 
+      if {$allow_reorder ne ""} {
+        #
+        # Build a (nested) list structure mirroring the hierarchy
+        # implied by the page_order. In essence, we provide CSS
+        # classes for the ULs and provide IDs for ULs and LI elements,
+        # and pass the associated page_order to javascript.
+        #
+        if {![regexp {^(.*)[.][^.]+$} $page_order _ prefix]} {set prefix ""}
+
+        # First, insert the appropriate opening and closing of ULs. We
+        # could handle here prefix changes as well as different lists
+        # (e.g. 1.1 1.2 2.1)
+        #
+        if {$last_level != $level} {
+          for {set l $last_level} {$l > $level} {incr l -1} {append output "</ul>\n" }
+          for {set l $last_level} {$l < $level} {incr l} {
+            regsub -all {[.]} $prefix _ prefix_js
+            set id ${ID}__l${level}_${prefix_js}
+            set css_class [expr {$l+1 >= $min_level ? "page_order_region" : "page_order_region_no_target"}]
+            append output "<ul id='$id' class='$css_class'>\n"
+          }
+          set last_level $level
+          set last_prefix $prefix
+        }
+        # Pass the page_order for the element to javascript.
+        append js "YAHOO.xo_page_order_region.DDApp.cd\['${ID}_$page_order_js'\] = '$page_order';\n"
+        # Finally, add the li element for the section
+        append output "<li id='[my js_name]_$page_order_js'>" 
+      }
+
+      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
+    
       $p set unresolved_references 0
       #$p set render_adp 0
       switch [$p info class] {
@@ -2385,6 +2425,12 @@ namespace eval ::xowiki::includelet {
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
     }
+
+    if {$allow_reorder ne ""} {
+      for {set l $last_level} {$l > 0} {incr l -1} {append output "</ul>\n" }
+      append output "<script type='text/javascript'>$js</script>\n"
+    }
+
     return $output
   }
 }
@@ -2528,7 +2574,7 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
-    set page_order [::xowiki::Includelet incr_page_order [$page page_order]]
+    set page_order [::xowiki::utility incr_page_order [$page page_order]]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       return [my render_button \

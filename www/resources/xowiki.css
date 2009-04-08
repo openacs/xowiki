@@ -314,7 +314,65 @@ div.xowiki-content fieldset.compound-field {
     margin: 0px; padding: 0px;
 }
 
-/* child selectors are apparently not supported by IE 5 and 6, 
+/* for yui dnd stuff */
+div.xowiki-content div.workarea { padding-right: 10px; float:left; }
+div.xowiki-content div.workarea h3 { margin-top: 0px; margin-bottom: 0.5ex;}
+
+div.xowiki-content ul.region { 
+    border: 1px solid gray;
+    position: relative;
+    width: 300px; 
+    list-style: none;
+    margin:0;
+    padding:0;
+    /*
+       The bottom padding provides the cushion that makes the empty 
+       list targetable.  Alternatively, we could leave the padding 
+       off by default, adding it when we detect that the list is empty.
+    */
+    padding-bottom:3ex;
+}
+
+div.xowiki-content ul.region li {
+    margin: 1px;
+    cursor: move; 
+}
+
+div.xowiki-content li.candidates {
+    background-color: #D1E6EC;
+    border:1px solid #7EA6B2;
+}
+
+div.xowiki-content li.selection {
+    background-color: #D8D4E2;
+    border:1px solid #6B4C86;
+}
+
+div.xowiki-content div.book ul.page_order_region { 
+    border: 0px solid gray;
+    width: 100%; 
+    list-style: none;
+    margin: 10px;
+    padding:0;
+    /*
+       The bottom padding provides the cushion that makes the empty 
+       list targetable.  Alternatively, we could leave the padding 
+       off by default, adding it when we detect that the list is empty.
+    */
+    padding-bottom:3ex;
+}
+div.xowiki-content div.book ul.page_order_region_no_target { 
+    border: 0px solid gray;
+    width: 100%; 
+    list-style: none;
+    margin: 10px;
+    padding: 0;
+}
+
+/* 
+   Handling hidden field-sets:
+   
+   child selectors are apparently not supported by IE 5 and 6, 
    but the content is usable in IE anyhow; maybe we have to use the
    parent-node hack
    
