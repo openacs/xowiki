@@ -350,15 +350,22 @@ namespace eval ::xowiki {
     #
     set package_id [my id]
     if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
+      set provided_name $page_name
       array set "" [site_node::get_from_url -url $url]
       if {$(package_id) eq ""} {return ""}
-      set package_id $(package_id)
+      if {$(name) ne ""} {set package_id $(package_id)}
       ::xowiki::Package require $package_id
       my get_lang_and_name -default_lang $default_lang -path $page_name lang stripped_name
       set page_name $lang:$stripped_name
+      set url $(url)
+      set search 0
+    } else {
+      set url [my url]/
+      set provided_name $page_name
+      set search 1
     }
-    #my msg [self args]->[list package_id $package_id page_name $page_name]
-    return [list package_id $package_id page_name $page_name]
+    #my msg [self args]->[list package_id $package_id page_name $page_name url $url provided_name $provided_name search $search]
+    return [list package_id $package_id page_name $page_name url $url provided_name $provided_name search $search]
   }
 
   Package instproc resolve_page_name {{-default_lang ""} page_name} {
@@ -389,7 +396,8 @@ namespace eval ::xowiki {
     # that the variable package_id might changed to another instance.
     #
     set package_id [my id]
-    if {[regexp {^/(/.+)$} $page_name _ url]} {
+    array set "" [my get_package_id_from_page_name $page_name]
+    if {$(package_id) != $package_id} {
       #
       # Handle cross package resolve requests
       #
@@ -410,7 +418,7 @@ namespace eval ::xowiki {
       #       ::xo::Package init and calling a per-package instance 
       #       method "initialize"
       #
-      ::xowiki::Package initialize -parameter {{-m view}} -url $url \
+      ::xowiki::Package initialize -parameter {{-m view}} -url $(url)$(provided_name) \
           -actual_query ""
       #my log "url=$url=>[$package_id serialize]"
       
@@ -443,7 +451,7 @@ namespace eval ::xowiki {
       # It is not a cross package request
       set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
       $package_id context [::xo::Context new -volatile]
-      set page [$package_id resolve_page -lang $lang $page_name __m]
+      set page [$package_id resolve_page -use_search_path $(search) $(page_name) __m]
       $package_id context $last_context
     }
     #my log "returning $page"
@@ -588,7 +596,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_page {{-simple false} -lang object method_var} {
+  Package instproc resolve_page {{-use_search_path true} {-simple false} -lang object method_var} {
     my log "resolve_page '$object'"
     upvar $method_var method
     my instvar id
@@ -670,11 +678,13 @@ namespace eval ::xowiki {
       }
     }
 
-    # Check for this page along the package path
-    foreach package [my package_path] {
-      set page [$package resolve_page -simple $simple -lang $lang $object method]
-      if {$page ne ""} {
+    if {$use_search_path} {
+      # Check for this page along the package path
+      foreach package [my package_path] {
+        set page [$package resolve_page -simple $simple -lang $lang $object method]
+        if {$page ne ""} {
         return $page
+        }
       }
     }
 
@@ -855,6 +865,7 @@ namespace eval ::xowiki {
 	  set name $lang:$stripped_name
 	  my set object $weblog_page
 	  ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
+          #my msg "weblog-page=$weblog_page, actual query=$tag_kind=$tag&summary=$summary"
 	}
 
         if {$item_id == 0} {

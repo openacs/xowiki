@@ -496,5 +496,15 @@ namespace eval ::xowiki {
 	$package_id import_prototype_page ical
       }
     }
+
+    set v 0.116
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import_prototype_page weblog
+      }
+    }
   }
 }
