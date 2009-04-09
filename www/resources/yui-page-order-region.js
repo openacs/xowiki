@@ -43,7 +43,8 @@ YAHOO.xo_page_order_region.DDApp = {
        // example from YUI dnd. We have now two HTML lists to be
        // handled as regions for drag and drop.
        //var regions = YAHOO.util.Selector.query('ul.page_order_region');
-       var regions = YAHOO.util.Selector.query('ul.page_order_region, ul.page_order_region_no_target');
+       //var regions = YAHOO.util.Selector.query('ul.page_order_region, ul.page_order_region_no_target');
+       var regions = YAHOO.util.Selector.query('ul.page_order_region');
        for (var i = 0; i < regions.length; i++) {
 
          if (this.with_DDTarget) {
