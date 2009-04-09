@@ -792,8 +792,8 @@ namespace eval ::xowiki {
      } {
     db_dml [my qn delete_tags] \
         "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
-    #[split $tag " ,;"]
-    foreach tag $tags {
+
+    foreach tag [split $tags " ,;"] {
       db_dml [my qn insert_tag] \
           "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
            values ($item_id, $package_id, $user_id, :tag, current_timestamp)"

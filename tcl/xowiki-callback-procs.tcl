@@ -505,6 +505,8 @@ namespace eval ::xowiki {
 	::xowiki::Package initialize -package_id $package_id -init_url false
 	$package_id import_prototype_page weblog
       }
+      db_dml strip_colons_from_tags \
+	    "update xowiki_tags set tag = trim(both ',' from tag)  where tag like '%,%'"
     }
   }
 }
