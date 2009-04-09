@@ -2300,7 +2300,7 @@ namespace eval ::xowiki::includelet {
       set granted [$package_id check_permissions \
                        -user_id [[$package_id context] user_id] \
                        -package_id $package_id \
-                       $package_id change_page_order]
+                       $package_id change-page-order]
       #my msg "granted=$granted"
       if {$granted} {
         set ajaxhelper 0
@@ -2349,7 +2349,7 @@ namespace eval ::xowiki::includelet {
     }
 
     if {$allow_reorder ne ""} {
-      set js "YAHOO.xo_page_order_region.DDApp.report_link = '[$package_id package_url]';\n"
+      set js "YAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';\n"
       set last_level 0
       set ID [my js_name]
       if {[string is integer -strict $allow_reorder]} {

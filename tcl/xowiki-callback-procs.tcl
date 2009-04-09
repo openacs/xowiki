@@ -328,7 +328,7 @@ namespace eval ::xowiki {
       # load for all xowiki package instances the weblog-portlet prototype page
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page weblog-portlet
+	$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -351,8 +351,8 @@ namespace eval ::xowiki {
 	    "update cr_items set name = 'file' || substr(name,6) \
 		where name like 'image:%' and parent_id = [$package_id folder_id]"
 	# reload updated prototype pages
-	$package_id import_prototype_page book
-	$package_id import_prototype_page weblog
+	$package_id import-prototype-page book
+	$package_id import-prototype-page weblog
 	# TODO check: jon.griffin
       }
     }
@@ -364,7 +364,7 @@ namespace eval ::xowiki {
       # for all xowiki package instances 
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page categories-portlet
+	$package_id import-prototype-page categories-portlet
       }
       # perform the upgrate of 0.62 for the s5 package as well
       if {[info command ::s5::Package] ne ""} {
@@ -394,9 +394,9 @@ namespace eval ::xowiki {
       # load for all xowiki package instances the weblog-portlet prototype page
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page announcements
-	$package_id import_prototype_page news
-	$package_id import_prototype_page weblog-portlet
+	$package_id import-prototype-page announcements
+	$package_id import-prototype-page news
+	$package_id import-prototype-page weblog-portlet
       }
       copy_parameter top_portlet top_includelet
     }
@@ -408,8 +408,8 @@ namespace eval ::xowiki {
       # load for all xowiki package instances the weblog-portlet prototype page
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page news
-	$package_id import_prototype_page weblog-portlet
+	$package_id import-prototype-page news
+	$package_id import-prototype-page weblog-portlet
       }
       # To iterate over all kind of xowiki packages, we could do
       # foreach package [concat ::xowiki::Package [::xowiki::Package info subclass]] {
@@ -426,7 +426,7 @@ namespace eval ::xowiki {
       # load for all xowiki package instances the weblog-portlet prototype page
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page news-item
+	$package_id import-prototype-page news-item
       }
       copy_parameter top_portlet top_includelet
     }
@@ -444,8 +444,8 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page weblog
-	$package_id import_prototype_page weblog-portlet
+	$package_id import-prototype-page weblog
+	$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -493,7 +493,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page ical
+	$package_id import-prototype-page ical
       }
     }
 
@@ -503,7 +503,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id -init_url false
-	$package_id import_prototype_page weblog
+	$package_id import-prototype-page weblog
       }
       db_dml strip_colons_from_tags \
 	    "update xowiki_tags set tag = trim(both ',' from tag)  where tag like '%,%'"

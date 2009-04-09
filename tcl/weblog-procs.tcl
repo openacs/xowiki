@@ -45,7 +45,7 @@ namespace eval ::xowiki {
 	# this argument...
 	set XOTclClassMixins [::xotcl::Class info instmixin]
 	::xotcl::Class instmixin {}
-        set page [$package_id import_prototype_page $t]
+        set page [$package_id import-prototype-page $t]
 	::xotcl::Class instmixin $XOTclClassMixins
         if {$page ne ""} {set form_item_id [$page item_id]}
       }

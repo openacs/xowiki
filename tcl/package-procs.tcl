@@ -689,7 +689,7 @@ namespace eval ::xowiki {
     }
 
     #my msg "we have to try to import a prototype page for $stripped_object"
-    set page [my import_prototype_page $stripped_object]
+    set page [my import-prototype-page $stripped_object]
     if {$page ne ""} {
       return $page
     }
@@ -751,10 +751,10 @@ namespace eval ::xowiki {
     return $item_id
   }
 
-  Package instproc import_prototype_page {{prototype_name ""}} {
+  Package instproc import-prototype-page {{prototype_name ""}} {
     set page ""
     if {$prototype_name eq ""} {
-      set prototype_name [my query_parameter import_prototype_page ""]
+      set prototype_name [my query_parameter import-prototype-page ""]
       set via_url 1
     }
     if {$prototype_name eq ""} {
@@ -963,6 +963,18 @@ namespace eval ::xowiki {
   # user callable methods on package level
   #
 
+  Package ad_instproc refresh-login {} {
+    Force a refresh of a login and do a redict. Intended for use from ajax.
+  } {
+    set return_url [my query_parameter return_url]
+    if {[::xo::cc user_id] == 0} {
+      set url [subsite::get_url]register
+      ad_returnredirect [export_vars -base $url return_url]
+    } else {
+      ad_returnredirect $return_url
+    }
+  }
+
   #
   # reindex (for site wide search)
   #
@@ -982,10 +994,10 @@ namespace eval ::xowiki {
   }
 
   #
-  # change_page_order (normally called via ajax POSTs)
+  # change-page-order (normally called via ajax POSTs)
   #
-  Package ad_instproc change_page_order {} {
-    change_page_order for pages
+  Package ad_instproc change-page-order {} {
+    Change Page Order for pages by renumbering and filling gaps.
   } {
     my instvar folder_id
     set to    [string trim [my form_parameter to ""]]
@@ -1062,7 +1074,6 @@ namespace eval ::xowiki {
     #
     # Flush the page fragement caches (page fragments based on page_order might be sufficient)
     my flush_page_fragment_cache -scope agg
-
     ns_return 200 text/plain ok
   }
 
@@ -1448,8 +1459,9 @@ namespace eval ::xowiki {
   
     Class Package -array set require_permission {
       reindex             swa
-      change_page_order   {{id admin}}
-      import_prototype_page swa
+      change-page-order   {{id admin}}
+      import-prototype-page swa
+      refresh-login       none
       rss                 none
       google-sitemap      none
       google-sitemapindex none
@@ -1503,9 +1515,10 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
+      refresh-login       none
       google-sitemap      none
       google-sitemapindex none
-      change_page_order   {{id admin}}
+      change-page-order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa
@@ -1557,9 +1570,10 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
+      refresh-login       none
       google-sitemap      none
       google-sitemapindex none
-      change_page_order   {{id admin}}
+      change-page-order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa
@@ -1614,9 +1628,10 @@ namespace eval ::xowiki {
     Class Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
+      refresh-login       none
       google-sitemap      none
       google-sitemapindex none
-      change_page_order   {{id admin}}
+      change-page-order   {{id admin}}
       manage-categories   {{id admin}}
       edit-category-tree  {{id admin}}
       delete              swa

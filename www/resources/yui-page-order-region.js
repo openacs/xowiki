@@ -31,7 +31,7 @@ YAHOO.xo_page_order_region.DragnDrop = function() {
 YAHOO.xo_page_order_region.DDApp = {
     with_DDTarget: 1,
 
-    report_link: "",
+    package_url: "",
     cd: new Array(),
     source_region: new Array(),
     level: new Array(),
@@ -118,20 +118,34 @@ YAHOO.xo_page_order_region.DDApp = {
 
        //console.log(this.cd[ul.id] + " => " + order + " => " + this.cd[this.source_region[e.id].id]);
 
-       if (this.report_link != '' && order != '') {
+       if (this.package_url != '' && order != '') {
          this.callback = {
-            success: function(o) {
-              //window.location.href=window.location.href;
-              window.location.reload();
-            }
+           success: function(o) {
+             //console.info(o); There seems no way to handle redirects
+             // (301 or 302) in the asyncrequest. Since we know valid
+             // results (just the "OK"), everything else must be a
+             // redirect. We could be brutal and display the returned
+             // page, but not sure, if this would be desireable either.
+             if (o.getResponseHeader["Content-Length"] > 10) {
+               // there must have happened a redirect
+               alert("Refresh your login and redo update");
+               window.location.href = this.package_url 
+                  + "?refresh-login&return_url=" 
+                  + escape(window.location.href);
+             } else {
+               window.location.reload();
+             }
+             
+           },
+           scope: this
          }
-         YAHOO.util.Connect.asyncRequest('POST', this.report_link, this.callback, 
-                                         'change_page_order=1' +
+         YAHOO.util.Connect.asyncRequest('POST', this.package_url, this.callback, 
+                                         'change-page-order=1' +
                                          '&from=' + escape(this.cd[ul.id]) +
                                          '&to='  + escape(order) +
                                          '&clean=' + escape(this.cd[this.source_region[e.id].id]));
        }
- },
+  }
 
 };
 
