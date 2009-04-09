@@ -631,12 +631,12 @@ namespace eval ::xowiki::formfield {
     if {[my value] eq ""} {
       # nothing to do, keep the old value
       set value [[my object] form_parameter __old_value_[my name] ""]
-      my set __refresh_instance_attributes [list [my name] $value]
+      [my object] set_property [my name] $value
       return
     }
     regsub -all {\\+} $value {/} value  ;# fix IE upload path
     set value [::file tail $value]
-    my set __refresh_instance_attributes [list [my name] $value]
+    [my object] set_property [my name] $value
 
     set folder_id [[my object] set parent_id]
     array set entry_info [my entry_name $value]
@@ -831,7 +831,7 @@ namespace eval ::xowiki::formfield {
   numeric instproc convert_to_internal {} {
     if {[my value] ne ""} {
       set value [lc_parse_number [my value] [my locale] [my set is_integer]]
-      my set __refresh_instance_attributes [list [my name] [expr {$value}]]
+      [my object] set_property -new 1 [my name] [expr {$value}]
       return
     }
   }
@@ -1058,7 +1058,7 @@ namespace eval ::xowiki::formfield {
   richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
     if {[my wiki]} {
-      return [[my object] substitute_markup [list $v text/html]]
+      return [[my object] substitute_markup $v]
     } else {
       return [string map [list @ "&#64;"] $v]
     }
