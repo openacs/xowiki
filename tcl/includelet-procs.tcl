@@ -1685,9 +1685,61 @@ namespace eval ::xowiki::includelet {
   #############################################################################
   # includelets based on order
   #
+  Class create PageReorderSupport
+  PageReorderSupport instproc page_reorder_check_allow {allow_reorder} {
+    if {$allow_reorder ne ""} {
+      my instvar package_id
+      set granted [$package_id check_permissions \
+                       -user_id [[$package_id context] user_id] \
+                       -package_id $package_id \
+                       $package_id change-page-order]
+      #my msg "granted=$granted"
+      if {$granted} {
+        set ajaxhelper 0
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+        ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+      } else {
+        # the user has not enough permissions, so disallow
+        set allow_reorder ""
+      }
+    }
+    return $allow_reorder
+  }
+
+  PageReorderSupport instproc  page_reorder_init_vars {-allow_reorder js_ last_level_ ID_ min_level_} {
+    my upvar $js_ js $last_level_ last_level $ID_ ID $min_level_ min_level
+    set js "YAHOO.xo_page_order_region.DDApp.package_url = '[[my package_id] package_url]';\n"
+    set last_level 0
+    set ID [my js_name]
+    if {[string is integer -strict $allow_reorder]} {
+      set min_level $allow_reorder
+    } else {
+      set min_level 1
+    }
+  }
+  PageReorderSupport instproc page_reorder_open_ul {-min_level -ID -prefix_js l} {
+    set l1 [expr {$l + 2}]
+    set id ${ID}__l${l1}_${prefix_js}
+    set css_class [expr {$l1 >= $min_level ? "page_order_region" : "page_order_region_no_target"}]
+    return "<ul id='$id' class='$css_class'>\n"
+  }
+  PageReorderSupport instproc page_reorder_open_li {-ID -prefix_js -page_order js_} {
+    my upvar $js_ js 
+    set key __count($prefix_js)
+    if {[my exists $key]} {set p [my incr $key]} {set p [my set $key 0]}
+    set id ${ID}_${prefix_js}_$p
+    append js "YAHOO.xo_page_order_region.DDApp.cd\['$id'\] = '$page_order';\n"
+    return "<li id='$id'>" 
+  }
+
+  #
+  # toc -- Table of contents
+  #
   ::xowiki::IncludeletClass create toc \
       -superclass ::xowiki::Includelet \
-      -cacheable true -personalized false -aggregating true \
+      -instmixin PageReorderSupport \
+      -cacheable false -personalized false -aggregating true \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -1701,6 +1753,7 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
           {-source ""}
           {-range ""}
+	  {-allow_reorder ""}
         }}
         id
       }
@@ -2069,18 +2122,33 @@ namespace eval ::xowiki::includelet {
     # ajax involved).  If an open_page is specified, produce an as
     # small as possible tree and omit all non-visible nodes.
     #
+    if {$open_page ne ""} {
+      # TODO: can we allow open_page and reorder?
+      set allow_reorder ""
+    } else {
+      set allow_reorder [my page_reorder_check_allow $allow_reorder]
+    }
 
-    set html "<UL>\n"
+    my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
+
+    set css_class [expr {$min_level == 1 ? "page_order_region" : "page_order_region_no_target"}]
+    set html "<UL css_class='$css_class'>\n"
+    my log 1
+    set prefix_js ""
+    set html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js -1]
     set level 0
     foreach o [$pages children] {
       $o instvar page_order title name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
       set page_number [my page_number $page_order $remove_levels]
 
-      set new_level [regsub -all {[.]} [$o set page_order] . _]
+      set new_level [regsub -all {[.]} [$o set page_order] _ page_order_js]
       if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
         if {$new_level > $level} {
-          for {set l $level} {$l < $new_level} {incr l} {append html "<ul>\n"}
+          for {set l $level} {$l < $new_level} {incr l} {
+            regexp {^(.*)_[^_]+$} $page_order_js _ prefix_js
+            append html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js $l]
+          }
           set level $new_level
         } elseif {$new_level < $level} {
           for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
@@ -2088,11 +2156,15 @@ namespace eval ::xowiki::includelet {
         }
         set href [my href $package_id $book_mode $name]
         set highlight [if {$open_page eq $name} {set _ "style = 'font-weight:bold;'"} {}]
-        append html "<li><a $highlight href='$href'>$page_number $title</a>\n"
+        append html \
+            [my page_reorder_open_li -ID $ID -prefix_js $prefix_js -page_order $page_order js] \
+            "<span $highlight>$page_number <a href='$href'>$title</a></span>\n"
       }
     }
     # close all levels
     for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
+    if {$js ne ""} {append html "<script type='text/javascript'>$js</script>\n"}
+
     return $html
   }
 
@@ -2139,6 +2211,7 @@ namespace eval ::xowiki::includelet {
   # TODO: base book (and toc) on selection
   ::xowiki::IncludeletClass create selection \
       -superclass ::xowiki::Includelet \
+      -instmixin PageReorderSupport \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -2278,6 +2351,7 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create book \
       -superclass ::xowiki::Includelet \
+      -instmixin PageReorderSupport \
       -parameter {
         {__decoration plain}
         {parameter_declaration {
@@ -2297,22 +2371,7 @@ namespace eval ::xowiki::includelet {
     lappend ::xowiki_page_item_id_rendered [$__including_page item_id]
     $__including_page set __is_book_page 1
 
-    if {$allow_reorder ne ""} {
-      set granted [$package_id check_permissions \
-                       -user_id [[$package_id context] user_id] \
-                       -package_id $package_id \
-                       $package_id change-page-order]
-      #my msg "granted=$granted"
-      if {$granted} {
-        set ajaxhelper 0
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-        ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
-      } else {
-        # the user has not enough permissions, so disallow
-        set allow_reorder ""
-      }
-    }
+    set allow_reorder [my page_reorder_check_allow $allow_reorder]
 
     set extra_where_clause ""
     set cnames ""
@@ -2349,16 +2408,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    if {$allow_reorder ne ""} {
-      set js "YAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';\n"
-      set last_level 0
-      set ID [my js_name]
-      if {[string is integer -strict $allow_reorder]} {
-        set min_level $allow_reorder
-      } else {
-        set min_level 1
-      }
-    }
+    my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
 
     foreach o [$pages children] {
       $o instvar page_order title page_id name title 
@@ -2381,17 +2431,14 @@ namespace eval ::xowiki::includelet {
           for {set l $last_level} {$l > $level} {incr l -1} {append output "</ul>\n" }
           for {set l $last_level} {$l < $level} {incr l} {
             regsub -all {[.]} $prefix _ prefix_js
-            set id ${ID}__l${level}_${prefix_js}
-            set css_class [expr {$l+1 >= $min_level ? "page_order_region" : "page_order_region_no_target"}]
-            append output "<ul id='$id' class='$css_class'>\n"
+            append output [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js $l]
           }
           set last_level $level
           set last_prefix $prefix
         }
-        # Pass the page_order for the element to javascript.
-        append js "YAHOO.xo_page_order_region.DDApp.cd\['${ID}_$page_order_js'\] = '$page_order';\n"
-        # Finally, add the li element for the section
-        append output "<li id='[my js_name]_$page_order_js'>" 
+        # Pass the page_order for the element to javascript and add
+        # the li element for the section.
+        append output [my page_reorder_open_li -ID $ID -prefix_js $prefix_js -page_order $page_order js]
       }
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]

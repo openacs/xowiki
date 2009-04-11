@@ -369,6 +369,23 @@ div.xowiki-content div.book ul.page_order_region_no_target {
     padding: 0;
 }
 
+div.xowiki-content div.toc ul.page_order_region_no_target { 
+    list-style: none;
+    margin: 0px 1em;
+    padding: 0;
+}
+div.xowiki-content div.toc ul.page_order_region { 
+    list-style: none;
+    margin: 0px 1em;
+    padding:0;
+    /*
+       The bottom padding provides the cushion that makes the empty 
+       list targetable.  Alternatively, we could leave the padding 
+       off by default, adding it when we detect that the list is empty.
+    */
+    padding-bottom:3ex;
+}
+
 /* 
    Handling hidden field-sets:
    
