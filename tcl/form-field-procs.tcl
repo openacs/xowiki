@@ -1442,9 +1442,9 @@ namespace eval ::xowiki::formfield {
         set href [$package_id pretty_link $value]
         set labels($value) "<a href='$href'>$label</a>"
       }
-      set values [list]
+      set hrefs [list]
       foreach i $v {
-        if {[catch {lappend values $labels($i)}]} {
+        if {![info exists labels($i)]} {
           #my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
           set labels($i) $i
         }
