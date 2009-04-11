@@ -1724,13 +1724,13 @@ namespace eval ::xowiki::includelet {
     set css_class [expr {$l1 >= $min_level ? "page_order_region" : "page_order_region_no_target"}]
     return "<ul id='$id' class='$css_class'>\n"
   }
-  PageReorderSupport instproc page_reorder_open_li {-ID -prefix_js -page_order js_} {
+  PageReorderSupport instproc page_reorder_item_id {-ID -prefix_js -page_order js_} {
     my upvar $js_ js 
     set key __count($prefix_js)
     if {[my exists $key]} {set p [my incr $key]} {set p [my set $key 0]}
     set id ${ID}_${prefix_js}_$p
     append js "YAHOO.xo_page_order_region.DDApp.cd\['$id'\] = '$page_order';\n"
-    return "<li id='$id'>" 
+    return $id
   }
 
   #
@@ -2156,8 +2156,9 @@ namespace eval ::xowiki::includelet {
         }
         set href [my href $package_id $book_mode $name]
         set highlight [if {$open_page eq $name} {set _ "style = 'font-weight:bold;'"} {}]
+        set item_id [my page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
         append html \
-            [my page_reorder_open_li -ID $ID -prefix_js $prefix_js -page_order $page_order js] \
+            "<li id='$item_id'>" \
             "<span $highlight>$page_number <a href='$href'>$title</a></span>\n"
       }
     }
@@ -2438,7 +2439,8 @@ namespace eval ::xowiki::includelet {
         }
         # Pass the page_order for the element to javascript and add
         # the li element for the section.
-        append output [my page_reorder_open_li -ID $ID -prefix_js $prefix_js -page_order $page_order js]
+        set item_id [my page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
+        append output "<li id='$item_id'>"
       }
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]

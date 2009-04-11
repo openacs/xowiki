@@ -57,14 +57,13 @@ YAHOO.xo_page_order_region.DDApp = {
 
          for (var j = 0; j < items.length; j++) {
            if (items[j].nodeName != 'LI') {continue;}
-
+           var iid = items[j].id;
            // add the DDList only for list items in UL with class
            // "page_order_region"
            if (YAHOO.util.Dom.hasClass(regions[i],"page_order_region")) {
              new YAHOO.xo_page_order_region.DDList(iid);
            }
 
-           var iid = items[j].id;
            // console.log(iid + " => " +  this.cd[iid] );
            order += this.cd[iid] + " ";
            // Keep as well the source regions
@@ -89,7 +88,8 @@ YAHOO.xo_page_order_region.DDApp = {
 
     finish: function(e) {
 
-    //console.log("finish  " + this.highest_region);
+        //console.log("finish  " + this.highest_region);
+
        // if we have no highest_region, the drop was not on a drop target
        if (this.highest_region == 0) {
          // get the ul via the provided element. This might not be the
@@ -102,7 +102,7 @@ YAHOO.xo_page_order_region.DDApp = {
          var ul =  document.getElementById(this.highest_region);
        }
 
-       //console.log(this.cd[e.id] + " landed in region "+ ul.id + " => " +  this.cd[ul.id]);
+       // console.log(this.cd[e.id] + " landed in region "+ ul.id + " => " +  this.cd[ul.id]);
 
        // Process childNodes of the ul simply to avoid to include
        // nested items
@@ -116,7 +116,7 @@ YAHOO.xo_page_order_region.DDApp = {
          //console.log(iid + " => " + this.cd[iid]);
        }
 
-       //console.log(this.cd[ul.id] + " => " + order + " => " + this.cd[this.source_region[e.id].id]);
+       // console.log(this.cd[ul.id] + " => " + order + " => " + this.cd[this.source_region[e.id].id]);
 
        if (this.package_url != '' && order != '') {
          this.callback = {
@@ -139,6 +139,7 @@ YAHOO.xo_page_order_region.DDApp = {
            },
            scope: this
          }
+         //return;
          YAHOO.util.Connect.asyncRequest('POST', this.package_url, this.callback, 
                                          'change-page-order=1' +
                                          '&from=' + escape(this.cd[ul.id]) +
@@ -171,8 +172,8 @@ YAHOO.extend(YAHOO.xo_page_order_region.DDList, YAHOO.util.DDProxy, {
         // make the proxy look like the source element
         var dragEl = this.getDragEl();
         var clickEl = this.getEl();
-        Dom.setStyle(clickEl, "visibility", "hidden");
 
+        Dom.setStyle(clickEl, "visibility", "hidden");
         dragEl.innerHTML = clickEl.innerHTML;
 
         Dom.setStyle(dragEl, "color", Dom.getStyle(clickEl, "color"));
@@ -260,14 +261,12 @@ YAHOO.extend(YAHOO.xo_page_order_region.DDList, YAHOO.util.DDProxy, {
       var destEl = Dom.get(id);
       var p = destEl.parentNode;
       Dom.setStyle(p, "border", "1px dotted green");
-      Dom.setStyle(p, "margin", "10px");
     },
 
     onDragOut: function(e, id) {
       var destEl = Dom.get(id);
       var p = destEl.parentNode;
       Dom.setStyle(p, "border", "0px");
-      Dom.setStyle(p, "margin", "0px");
     },
 
     onDragOver: function(e, id) {
