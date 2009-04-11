@@ -2286,6 +2286,7 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
 	  {-range ""}
 	  {-allow_reorder ""}
+	  {-with_footer "false"}
         }}
       }
 
@@ -2424,6 +2425,10 @@ namespace eval ::xowiki::includelet {
           "<h$level class='book'>" $menu \
           "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
           $content
+
+      if {$with_footer} {
+        append output [$p htmlFooter -content $content]
+      }
     }
 
     if {$allow_reorder ne ""} {
