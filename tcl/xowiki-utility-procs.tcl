@@ -86,7 +86,7 @@ namespace eval ::xowiki {
   }
 
   ad_proc add_ltree_order_column {} {
-    add page_order of type ltree, when ltree is configured (otherwise string)
+    Add page_order of type ltree, when ltree is configured (otherwise string)
   } {
     # catch sql statement to allow multiple runs
     catch {::xo::db::sql::content_type create_attribute \
@@ -209,6 +209,18 @@ namespace eval ::xowiki {
     fconfigure $F -translation binary
     puts -nonewline $F $content
     close $F
+  }
+
+  proc ::xowiki::page_order_uses_ltree {} {
+    if {[::xo::db::has_ltree]} {
+      ns_cache eval xotcl_object_cache ::xowiki::page_order_uses_ltree {
+        return [db_string check_po_ltree "select count(*) from pg_attribute a, pg_type t, pg_class c \
+		where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid \
+		and relname = 'xowiki_page'"]
+      }
+    } else {
+      return 0
+    }
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {
@@ -343,11 +355,11 @@ namespace eval ::xowiki {
   ::xowiki::utility proc get_page_order_items {-parent_id page_orders} {
     set likes [list]
     foreach page_order $page_orders {
-      if {[::xo::db::has_ltree]} {
+      if {[::xowiki::page_order_uses_ltree]} {
         lappend likes "p.page_order <@ '$page_order'" 
       } else {
         lappend likes "p.page_order = '$page_order'" "p.page_order like '$page_order.%'"
-     }
+      }
     }
     set sql "select p.page_order, p.page_id, cr.item_id, ci.name
           from xowiki_page p, cr_items ci, cr_revisions cr  \
