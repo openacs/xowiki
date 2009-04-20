@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - form fields
 
     @creation-date 2007-06-22

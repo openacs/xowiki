@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - www procs. These procs are the methods called on xowiki pages via 
     the web interface.
 
@@ -7,6 +7,7 @@ ad_library {
     @cvs-id $Id$
 }
 
+::xo::library require xowiki-procs
 
 namespace eval ::xowiki {
   

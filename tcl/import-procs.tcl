@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - importer
 
     @creation-date 2008-04-25

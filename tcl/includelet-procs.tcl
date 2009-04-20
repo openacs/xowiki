@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - define various kind of includelets
 
     @creation-date 2006-10-10

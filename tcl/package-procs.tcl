@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - package specific methods
 
     @creation-date 2006-10-10
@@ -1678,8 +1678,9 @@ namespace eval ::xowiki {
     }
   }
 
-
 }
+
+::xo::library source_dependent 
 
 
 

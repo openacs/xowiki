@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - form classes
 
     @creation-date 2006-04-10

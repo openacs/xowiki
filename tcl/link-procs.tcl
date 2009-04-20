@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - definition of link types and their renderers
 
     @creation-date 2006-04-15

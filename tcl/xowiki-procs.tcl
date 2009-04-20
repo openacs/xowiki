@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - main library classes and objects
 
     @creation-date 2006-01-10
@@ -2598,5 +2598,5 @@ namespace eval ::xowiki {
 
 }
 
-source [file dirname [info script]]/xowiki-www-procs.tcl
+::xo::library source_dependent 
 

@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - adp generator procs: remove redundancy in adp files by generating it
 
     @creation-date 2007-03-13

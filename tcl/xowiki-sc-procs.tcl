@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - Search Service Contracts
 
     @creation-date 2006-01-10

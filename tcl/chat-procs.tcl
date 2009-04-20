@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - chat procs
 
     @creation-date 2006-02-02

@@ -1,4 +1,4 @@
-ad_library {
+::xo::library doc {
     XoWiki - Callback procs
 
     @creation-date 2006-08-08
