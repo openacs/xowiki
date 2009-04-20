@@ -1777,6 +1777,7 @@ namespace eval ::xowiki {
     {-instance_attributes ""}
     {-default_variables ""}
     {-nls_language ""}
+    {-creation_user ""}
     {-publish_status production} 
     {-source_item_id ""}
   } {
@@ -1788,6 +1789,9 @@ namespace eval ::xowiki {
     }
     if {![info exists package_id]} { set package_id [my package_id] }
     if {![info exists parent_id]}  { set parent_id [my parent_id] }
+    if {$creation_user eq ""} {
+      set creation_user [[$package_id context] user_id]
+    }
     
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
@@ -1796,6 +1800,7 @@ namespace eval ::xowiki {
                -parent_id $parent_id \
                -nls_language $nls_language \
                -publish_status $publish_status \
+               -creation_user $creation_user \
                -instance_attributes $ia \
                -page_template [my item_id]]
 
