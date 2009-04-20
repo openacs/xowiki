@@ -2123,7 +2123,9 @@ namespace eval ::xowiki {
       # to identify the context, so don't disable it...
       if {$type eq "hidden"} continue
       $field setAttribute disabled "disabled"
-      lappend disabled [$field getAttribute name]
+      if {[$field hasAttribute name]} {
+        lappend disabled [$field getAttribute name]
+      }
     }
 
     #set fa [$root selectNodes {//input[@name='__form_action']}]
