@@ -2259,7 +2259,7 @@ namespace eval ::xowiki {
        {-publish_status ready}
        {-extra_where_clause ""}
        {-h_where ""}
-       {-always_queried_attributes {_name _last_modified _creation_user}}
+       {-always_queried_attributes ""}
        {-orderby ""}
        {-page_size 20}
        {-page_number ""}
@@ -2267,7 +2267,12 @@ namespace eval ::xowiki {
     #
     # Get query attributes for all tables (to allow e.g. sorting by time)
     #
-    set sql_atts [list bt.instance_attributes ci.parent_id]
+    # The basic essential fields ci.name, ci.publish_status and bt.item_id
+    # are always automatically fetched
+    set sql_atts [list ci.parent_id bt.instance_attributes \
+                      bt.creation_date bt.creation_user bt.last_modified \
+                      "bt.object_package_id as package_id" bt.title \
+                     ]
     foreach att $always_queried_attributes {
       set name [string range $att 1 end]
       if {$name eq "name"} {

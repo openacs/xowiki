@@ -3275,7 +3275,6 @@ namespace eval ::xowiki::includelet {
                    -base_item_ids $form_item_ids \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
-                   -always_queried_attributes [list _name _last_modified _creation_user] \
                    -extra_where_clause $extra_where_clause \
                    -h_where [array get wc] \
                    -package_id $package_id]
@@ -3289,7 +3288,6 @@ namespace eval ::xowiki::includelet {
                    -base_item_ids $form_item_ids \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
-                   -always_queried_attributes [list _name _last_modified _creation_user] \
                    -h_where [array get wc] \
                    -package_id $package_id]
       }

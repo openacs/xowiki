@@ -1556,7 +1556,6 @@ namespace eval ::xowiki::formfield {
                    -base_item_ids $form_object_item_ids \
                    -form_fields [list] \
                    -publish_status ready \
-                   -always_queried_attributes [list _name _title _last_modified _creation_user _object_package_id] \
                    -h_where [array get wc] \
                    -package_id $package_id]
     foreach i [$items children] {
@@ -1565,7 +1564,7 @@ namespace eval ::xowiki::formfield {
       # package_url to the name. TODO: We assume here, that the form_pages
       # have not special parent_id.
       #
-      set object_package_id [$i set object_package_id]
+      set object_package_id [$i package_id]
       if {$package_id != $object_package_id} {
         set package_prefix /[$object_package_id package_url]
       } else {
