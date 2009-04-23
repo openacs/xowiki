@@ -2258,7 +2258,7 @@ namespace eval ::xowiki {
        -form_fields 
        {-publish_status ready}
        {-extra_where_clause ""}
-       {-h_where ""}
+       {-h_where {tcl true h "" vars "" sql ""}}
        {-always_queried_attributes ""}
        {-orderby ""}
        {-page_size 20}
@@ -2313,13 +2313,11 @@ namespace eval ::xowiki {
     # 
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table ci $publish_status]
     set filter_clause ""
-    # provide default for sql part of where-clause
-    array set wc [list sql ""]
     array set wc $h_where
     set use_hstore [expr {[::xo::db::has_hstore] && 
                           [$package_id get_parameter use_hstore 0] 
                         }]
-    if {$h_where ne "" && $use_hstore} {
+    if {$use_hstore} {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
     #my msg "exists sql=[info exists wc(sql)]"
@@ -2345,10 +2343,10 @@ namespace eval ::xowiki {
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
                  ]
-    my log $sql
+    #my log $sql
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class ::xowiki::FormPage]
-    if {$h_where ne "" && !$use_hstore} {
+    if {!$use_hstore && $wc(tcl) ne "true"} {
       set init_vars $wc(vars)
       foreach p [$items children] {
         array set __ia $init_vars
