@@ -2313,6 +2313,8 @@ namespace eval ::xowiki {
     # 
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table ci $publish_status]
     set filter_clause ""
+    # provide default for sql part of where-clause
+    array set wc [list sql ""]
     array set wc $h_where
     set use_hstore [expr {[::xo::db::has_hstore] && 
                           [$package_id get_parameter use_hstore 0] 
