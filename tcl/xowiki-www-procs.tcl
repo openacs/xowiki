@@ -1740,7 +1740,7 @@ namespace eval ::xowiki {
 
   PageTemplate instproc delete {} {
     my instvar package_id item_id name
-    set count [my count_usages -all true]
+    set count [my count_usages -publish_status all]
     #my msg count=$count
     if {$count > 0} {
       append error_msg \
