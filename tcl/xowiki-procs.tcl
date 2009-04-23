@@ -2269,7 +2269,7 @@ namespace eval ::xowiki {
     #
     # The basic essential fields ci.name, ci.publish_status and bt.item_id
     # are always automatically fetched
-    set sql_atts [list ci.parent_id bt.instance_attributes \
+    set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \
                       bt.creation_date bt.creation_user bt.last_modified \
                       "bt.object_package_id as package_id" bt.title \
                      ]

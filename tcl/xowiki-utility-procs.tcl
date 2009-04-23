@@ -239,8 +239,14 @@ namespace eval ::xowiki {
     }
   }
 
-  Object create ::xowiki::utility
-  ::xowiki::utility set age \
+}
+
+#
+# Some Date utilities
+#
+
+::xo::Module ::xowiki::utility -eval {
+  my set age \
       [list \
            [expr {3600*24*365}] year years \
            [expr {3600*24*30}]  month months \
@@ -250,44 +256,45 @@ namespace eval ::xowiki {
            [expr {60}]          minute minutes \
            [expr {1}]           second seconds \
           ]
-  ::xowiki::utility proc pretty_age {
-                           -timestamp:required 
-                           -timestamp_base 
-                           {-locale ""}
-                           {-levels 1}
-                         } {
-    #
+  
+  my proc pretty_age {
+                      -timestamp:required 
+                      -timestamp_base 
+                      {-locale ""}
+                      {-levels 1}
+                    } {
+      #
     # This is an internationalized pretty age functions, which prints
     # the rough date in a user friendly fashion.
     #
     #todo: caching?
     
-#     outlook categories:
-#     Unknown
-#     Older
-#     Last Month
-#     Earlier This Month
-#     Three Weeks Ago
-#     Two Weeks Ago
-#     Last Week
-#     Yesterday
-#     Today
-#     This Week
-#     Tomorrow
-#     Next Week
-#     Two Weeks Away
-#     Three Weeks Away
-#     Later This Month
-#     Next Month
-#     Beyond Next Month
-
-#     Another possibilty: no ago, but "Today 10:00", "Yesterday 10:00", within a
-#     week: "Thursday 10:00", older than about 30 days "13 May 2005" and
-#     if anything else (ie. > 7 and < 30 days) it shows date and time "13-Oct 2005 10:00".
-
+    #     outlook categories:
+    #     Unknown
+    #     Older
+    #     Last Month
+    #     Earlier This Month
+    #     Three Weeks Ago
+    #     Two Weeks Ago
+    #     Last Week
+    #     Yesterday
+    #     Today
+    #     This Week
+    #     Tomorrow
+    #     Next Week
+    #     Two Weeks Away
+    #     Three Weeks Away
+    #     Later This Month
+    #     Next Month
+    #     Beyond Next Month
+    
+    #     Another possibilty: no ago, but "Today 10:00", "Yesterday 10:00", within a
+    #     week: "Thursday 10:00", older than about 30 days "13 May 2005" and
+    #     if anything else (ie. > 7 and < 30 days) it shows date and time "13-Oct 2005 10:00".
+    
     if {![info exists timestamp_base]} {set timestamp_base [clock seconds]}
     set age_seconds [expr {$timestamp_base - $timestamp}]
-
+    
     set pos 0
     set msg ""
     my instvar age
@@ -295,7 +302,7 @@ namespace eval ::xowiki {
       set base [expr {int($age_seconds / $interval)}]
       if {$base > 0} {
         set label [expr {$base == 1 ? $unit : $unit_plural}]
-	set localized_label [::lang::message::lookup $locale xowiki.$label]
+        set localized_label [::lang::message::lookup $locale xowiki.$label]
         set msg "$base $localized_label"
         # $pos < 5: do not report details under a minute
         if {$pos < 5 && $levels > 1} {
@@ -306,12 +313,12 @@ namespace eval ::xowiki {
           set base [expr {int($remaining_age / $interval)}]
           if {$base > 0} {
             set label [expr {$base == 1 ? $unit : $unit_plural}]
-	    set localized_label [::lang::message::lookup $locale xowiki.$label]
+            set localized_label [::lang::message::lookup $locale xowiki.$label]
             append msg " $base $localized_label"
           }
         }
-	set time $msg
-	set msg [::lang::message::lookup $locale xowiki.ago [list [list time $msg]]]
+        set time $msg
+        set msg [::lang::message::lookup $locale xowiki.ago [list [list time $msg]]]
         #append msg " ago"
         break
       }
@@ -319,40 +326,47 @@ namespace eval ::xowiki {
     }
     return $msg
   }
+}
 
-  ::xowiki::utility proc incr_page_order {p} {
+#
+# utility functions for Page orders
+#
+
+::xo::Module create ::xowiki::utility -eval {
+
+  my proc incr_page_order {p} {
     regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
     if {[string is integer -strict $suffix]} {
       incr suffix
     } elseif {[string is lower -strict $suffix]} {
       regexp {^(.*)(.)$} $suffix _ before last
       if {$last eq "z"} {
-	set last "aa"
+        set last "aa"
       } else {
-	set last [format %c [expr {[scan $last %c] + 1}]]
+        set last [format %c [expr {[scan $last %c] + 1}]]
       }
       set suffix $before$last
     } elseif {[string is upper -strict $suffix]} {
       regexp {^(.*)(.)$} $suffix _ before last
       if {$last eq "Z"} {
-	set last "AA"
+        set last "AA"
       } else {
-	set last [format %c [expr {[scan $last %c] + 1}]]
+        set last [format %c [expr {[scan $last %c] + 1}]]
       }
       set suffix $before$last
     }
     return $prefix$suffix
   }
-
-  ::xowiki::utility proc page_order_compute_new_names {start page_orders} {
+  
+  my proc page_order_compute_new_names {start page_orders} {
     lappend pairs [lindex $page_orders 0] $start
     foreach p [lrange $page_orders 1 end] {
       lappend pairs $p [set start [my incr_page_order $start]]
     }
     return $pairs
   }
-
-  ::xowiki::utility proc get_page_order_items {-parent_id page_orders} {
+  
+  my proc get_page_order_items {-parent_id page_orders} {
     set likes [list]
     foreach page_order $page_orders {
       if {[::xowiki::page_order_uses_ltree]} {
@@ -368,16 +382,16 @@ namespace eval ::xowiki {
             and ci.publish_status <> 'production' \
             and ci.parent_id = $parent_id \
             and ([join $likes { or }])"
-    my log $sql
+    #my log $sql
     set pages [db_list_of_lists [my qn get_pages_with_page_order] $sql]
     return $pages
   }
-
+  
   ::xowiki::utility proc page_order_renames {-parent_id -start -from -to} {
     set pages [my get_page_order_items -parent_id $parent_id $to]
-    my log "pages=$pages"
+    #my log "pages=$pages"
     array set npo [::xowiki::utility page_order_compute_new_names $start $to]
-    my log npo=[array get npo]=>to='$to'
+    #my log npo=[array get npo]=>to='$to'
     set renames [list]
     foreach tuple $pages {
       foreach {old_page_order page_id item_id name} $tuple break
@@ -391,7 +405,7 @@ namespace eval ::xowiki {
         } else {
           #my log "--cpo name $old_page_order changed to '$npo($old_page_order)'"
           lappend renames $page_id $item_id $name $old_page_order $npo($old_page_order)
-       }
+        }
       } else {
         # 
         # We have no translation in the list. This must be an item
