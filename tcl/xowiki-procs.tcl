@@ -2267,11 +2267,15 @@ namespace eval ::xowiki {
     #
     # Get query attributes for all tables (to allow e.g. sorting by time)
     #
-    # The basic essential fields ci.name, ci.publish_status and bt.item_id
-    # are always automatically fetched
+    # The basic essential fields item_id, name, object_type and
+    # publish_status are always automatically fetched from the
+    # instance_select_query. Add the query attributes, we want to
+    # obtain as well automatically.
+    #
     set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \
                       bt.creation_date bt.creation_user bt.last_modified \
                       "bt.object_package_id as package_id" bt.title \
+                      bt.page_template
                      ]
     foreach att $always_queried_attributes {
       set name [string range $att 1 end]
