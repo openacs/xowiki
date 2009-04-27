@@ -2277,15 +2277,18 @@ namespace eval ::xowiki {
                       "bt.object_package_id as package_id" bt.title \
                       bt.page_template
                      ]
-    foreach att $always_queried_attributes {
-      set name [string range $att 1 end]
-      if {$name eq "name"} {
-        lappend sql_atts ci.$name
-      } else {
+    if {$always_queried_attributes eq "*"} {
+      lappend sql_atts \
+          bt.object_type \
+          bt.description bt.publish_date bt.mime_type nls_language \
+          bt.creator bt.page_order bt.assignee bt.state bt.xowiki_form_page_id
+    } else {
+      foreach att $always_queried_attributes {
+        set name [string range $att 1 end]
         lappend sql_atts bt.$name
       }
     }
-    
+
     #
     # Compute the list of field_names from the already covered sql
     # attributes
@@ -2304,8 +2307,6 @@ namespace eval ::xowiki {
       set field_name [$f name]
       if {$field_name eq "_text"} {
         lappend sql_atts "bt.data as text"
-      } elseif {$field_name eq "_publish_status"} {
-        lappend sql_atts ci.[$f set __base_field]
       } elseif {[lsearch -exact $covered_attributes $field_name] == -1} {
         lappend sql_atts bt.[$f set __base_field]
       }
@@ -2348,8 +2349,15 @@ namespace eval ::xowiki {
 		    -base_table xowiki_form_pagei \
                  ]
     #my log $sql
+    #
+    # When we query all attributes, we return objects named after the
+    # item_id (like for single fetches)
+    #
+    set named_objects [expr {$always_queried_attributes eq "*"}]
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
+                   -named_objects $named_objects -object_named_after "item_id" \
                    -object_class ::xowiki::FormPage]
+
     if {!$use_hstore && $wc(tcl) ne "true"} {
       set init_vars $wc(vars)
       foreach p [$items children] {
