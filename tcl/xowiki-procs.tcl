@@ -2279,9 +2279,11 @@ namespace eval ::xowiki {
                      ]
     if {$always_queried_attributes eq "*"} {
       lappend sql_atts \
-          bt.object_type \
+          bt.object_type bt.object_id \
           bt.description bt.publish_date bt.mime_type nls_language "bt.data as text" \
-          bt.creator bt.page_order bt.assignee bt.state bt.xowiki_form_page_id
+          bt.creator bt.page_order bt.page_id \
+          bt.page_instance_id \
+          bt.assignee bt.state bt.xowiki_form_page_id
     } else {
       foreach att $always_queried_attributes {
         set name [string range $att 1 end]
