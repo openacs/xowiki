@@ -2280,7 +2280,7 @@ namespace eval ::xowiki {
     if {$always_queried_attributes eq "*"} {
       lappend sql_atts \
           bt.object_type \
-          bt.description bt.publish_date bt.mime_type nls_language \
+          bt.description bt.publish_date bt.mime_type nls_language "bt.data as text" \
           bt.creator bt.page_order bt.assignee bt.state bt.xowiki_form_page_id
     } else {
       foreach att $always_queried_attributes {
@@ -2293,7 +2293,7 @@ namespace eval ::xowiki {
     # Compute the list of field_names from the already covered sql
     # attributes
     #
-    set covered_attributes [list _name _publish_status _item_id]
+    set covered_attributes [list _name _publish_status _item_id _object_type]
     foreach att $sql_atts {
       regexp {[.]([^ ]+)} $att _ name
       lappend covered_attributes _$name
@@ -2305,9 +2305,12 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       if {![$f exists __base_field]} continue
       set field_name [$f name]
+      if {[lsearch -exact $covered_attributes $field_name] > -1} {
+        continue
+      }
       if {$field_name eq "_text"} {
         lappend sql_atts "bt.data as text"
-      } elseif {[lsearch -exact $covered_attributes $field_name] == -1} {
+      } else {
         lappend sql_atts bt.[$f set __base_field]
       }
     }

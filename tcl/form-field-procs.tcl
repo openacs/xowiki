@@ -1429,12 +1429,36 @@ namespace eval ::xowiki::formfield {
   abstract_page set abstract 1
 
   abstract_page instproc initialize {} {
-    my compute_options
+    my set package_id [[my object] package_id]
+    #my compute_options
     next
+  }
+  
+  abstract_page instproc fetch_entry_label {entry_label item_id} {
+    db_1row [my qn [self proc]] "select $entry_label from cr_items ci, cr_revisions cr
+      where cr.revision_id = ci.live_revision and ci.item_id = $item_id"
+    return [set $entry_label]
+  }
+  abstract_page instproc get_entry_label {value} {
+    set item_id [[my set package_id] lookup -name $value]
+    if {$item_id} {
+      return [::xo::cc cache [list my fetch_entry_label [my entry_label] $item_id]]
+    }
+    return ""
+  }
+  abstract_page instproc get_labels {values} {
+    if {[my multiple]} {
+      set labels [list]
+      foreach v $values {lappend labels [list [my get_entry_label $v] $v]}
+      return $labels
+    } else {
+      return [list [list [my get_entry_label $values] $values]]
+    }
   }
   
   abstract_page instproc pretty_value {v} {
     my instvar package_id
+    my set options [my get_labels $v]
 
     if {[my multiple]} {
       foreach o [my set options] {
@@ -1455,6 +1479,7 @@ namespace eval ::xowiki::formfield {
     } else {
       foreach o [my set options] {
         foreach {label value} $o break
+        #my log "comparing '$value' with '$v'"
         if {$value eq $v} {
           if {[my as_box]} {
             return [[my object] include [list $value -decoration rightbox]] 
@@ -1467,6 +1492,7 @@ namespace eval ::xowiki::formfield {
   }
 
   abstract_page instproc render_input {} {
+    my compute_options
     if {[my multiple]} {
       # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
       set ajaxhelper 0
@@ -1527,13 +1553,12 @@ namespace eval ::xowiki::formfield {
   Class form_page -superclass abstract_page -parameter {
     {form}
     {where}
+    {entry_label title}
   }
-  form_page instproc compute_options {} {
-    my instvar form_obj where
-    #my msg "[my name] compute_options [my exists form]"
-    if {![my exists form]} {
-      return
-    }
+  form_page instproc initialize {} {
+    my instvar form_object_item_ids package_id
+    if {![my exists form]} { return }
+    next
     set form_name [my form]
     set package_id [[my object] package_id]
     set form_objs [::xowiki::Weblog instantiate_forms \
@@ -1545,7 +1570,14 @@ namespace eval ::xowiki::formfield {
     
     set form_object_item_ids [list]
     foreach form_obj $form_objs {lappend form_object_item_ids [$form_obj item_id]}
-
+  }
+  form_page instproc compute_options {} {
+    my instvar form_object_item_ids where package_id
+    #my msg "[my name] compute_options [my exists form]"
+    if {![my exists form]} {
+      return
+    }
+    
     array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
       array set wc [::xowiki::FormPage filter_expression $where &&]
@@ -1577,10 +1609,11 @@ namespace eval ::xowiki::formfield {
   }
 
   form_page instproc pretty_value {v} {
-    if {![my exists form_obj]} {
-      error "No form specified for form_field [my name]"
+    my options [my get_labels $v]
+    if {![my exists form_object_item_ids]} {
+      error "No forms specified for form_field '[my name]'"
     }
-    my set package_id [[my set form_obj] package_id]
+    my set package_id [[lindex [my set form_object_item_ids] 0] package_id]
     next
   }
 
@@ -1594,7 +1627,9 @@ namespace eval ::xowiki::formfield {
     {type ::xowiki::Page}
     {with_subtypes false}
     {glob}
+    {entry_label name}
   }
+
   page instproc compute_options {} {
     my instvar type with_subtypes glob
 
@@ -1614,7 +1649,7 @@ namespace eval ::xowiki::formfield {
              -where_clause "p.page_id = bt.revision_id $extra_where_clause" \
              -orderby ci.name \
             ] {
-              lappend options [list $name $name]
+              lappend options [list [set $entry_label] $name]
             }
     my options $options
   }

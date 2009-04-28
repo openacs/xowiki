@@ -346,7 +346,7 @@ namespace eval ::xowiki {
 
   Package instproc get_package_id_from_page_name {{-default_lang ""} page_name} {
     #
-    # Return package id + reminding page name
+    # Return package id + remaining page name
     #
     set package_id [my id]
     if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
