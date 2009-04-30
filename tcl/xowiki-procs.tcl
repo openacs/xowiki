@@ -2440,6 +2440,8 @@ namespace eval ::xowiki {
     array set wc [::xowiki::FormPage filter_expression [my adp_subst $value] &&]
     #my log "wc= [array get wc]"
     set init_vars $wc(vars)
+    array set __ia $init_vars
+    array set __ia [$p instance_attributes]
     #my log "expr $wc(tcl) returns => [expr $wc(tcl)]"
     return [expr $wc(tcl)]
   }
