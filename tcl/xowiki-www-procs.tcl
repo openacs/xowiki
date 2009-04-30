@@ -550,12 +550,13 @@ namespace eval ::xowiki {
   }
 
   FormPage proc filter_expression {
+    {-sql true}
     input_expr
     logical_op
   } {
     array set tcl_op {= eq < < > > >= >= <= <=}
     array set sql_op {= =  < < > > >= >= <= <=}
-    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {[lsearch $lhs_var {$rhs}] > -1}}
+    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {[lsearch -- $lhs_var {$rhs}] > -1}}
     #my msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
@@ -569,19 +570,23 @@ namespace eval ::xowiki {
         if {[string range $lhs 0 0] eq "_"} {
           set lhs_var [string range $lhs 1 end]
 	  set rhs [split $rhs_expr |] 
-	  if {[info exists op_map($op,sql)]} {
-	    lappend sql_clause [subst -nocommands $op_map($op,sql)]
-	    if {[my exists $lhs_var]} {
-	      set lhs_var "\[my set $lhs_var\]"
-	      lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
-	    } else {
-	      my msg "ignoring unknown variable $lhs_var in expression"
-	    }
-	  } elseif {[llength $rhs]>1} {
-	    lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
-	  } else {
+          if {[info exists op_map($op,sql)]} {
+            lappend sql_clause [subst -nocommands $op_map($op,sql)]
+            if {[my exists $lhs_var]} {
+              set lhs_var "\[my set $lhs_var\]"
+              lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+            } else {
+              my msg "ignoring unknown variable $lhs_var in expression"
+            }
+          } elseif {[llength $rhs]>1} {
+            lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
+            # the following statement is only needed, when we rely on tcl-only
+	    lappend tcl_clause "\[lsearch -exact -- {$rhs} \[my property $lhs\]\] > -1"
+          } else {
             lappend sql_clause "$lhs_var $sql_op($op) '$rhs'"
-	  }
+            # the following statement is only needed, when we rely on tcl-only
+	    lappend tcl_clause "\[my property $lhs\] $tcl_op($op) {$rhs}"
+          }
         } else {
           set hleft [my h_double_quote $lhs]
           lappend vars $lhs ""

@@ -1087,7 +1087,7 @@ namespace eval ::xowiki {
     # under xowiki/www (preferable xowiki/www/portlets/*). If the
     # provided path contains a admin/* admin rights are required.
     #
-    if {[string match "admin/*" $adp_fn]} {} {
+    if {[string match "admin/*" $adp_fn]} {
       set allowed [::xo::cc permission \
 		       -object_id [my package_id] -privilege admin \
 		       -party_id [::xo::cc user_id]]
@@ -2435,14 +2435,13 @@ namespace eval ::xowiki {
     #
     foreach {property_name op property_value} $value break
     if {![info exists property_value]} {return 0}
-    
-    if {$property_value eq "@current_user@"} {
-      set property_value [$query_context get_user_id]
-    } elseif {$property_value eq "\\@current_user@"} {
-      set property_value "@current_user@"
-    }
-    ns_log notice "check $property_name $op $property_value => [expr [my property $property_name] $op $property_value]"
-    return [expr [my property $property_name] $op $property_value]
+
+    #my log "$value => [my adp_subst $value]"
+    array set wc [::xowiki::FormPage filter_expression [my adp_subst $value] &&]
+    #my log "wc= [array get wc]"
+    set init_vars $wc(vars)
+    #my log "expr $wc(tcl) returns => [expr $wc(tcl)]"
+    return [expr $wc(tcl)]
   }
 
   #

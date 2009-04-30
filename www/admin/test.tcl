@@ -292,6 +292,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
+#test hint $content
 
 ? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 4 \
     "folder contains: folder object, index and weblog page (+1 includelet)"
@@ -583,19 +584,21 @@ test subsection "Filter expressions"
 
 ? {::xowiki::FormPage filter_expression \
     "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
-    "tcl true h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}" filter_expr_where_1
+    {tcl {[lsearch -exact -- {created accepted approved tested developed deployed} [my property _state]] > -1&&[my property _assignee] eq {123}} h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}} filter_expr_where_1
+
 ? {::xowiki::FormPage filter_expression \
     "_assignee<=123 && y>=123" &&} \
-    {tcl {$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
+    {tcl {[my property _assignee] <= {123}&&$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
     filter_expr_where_2
+
 ? {::xowiki::FormPage filter_expression \
     "betreuer contains en:person1" &&} \
-    {tcl {[lsearch $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
+    {tcl {[lsearch -- $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
     filter_expr_where_3
 
 ? {::xowiki::FormPage filter_expression \
     "_state= closed|accepted || x = 1" ||} \
-    {tcl {$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
+    {tcl {[lsearch -exact -- {closed accepted} [my property _state]] > -1||$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
     filter_expr_unless_1
 
 

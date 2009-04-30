@@ -1612,7 +1612,7 @@ namespace eval ::xowiki {
     }
 #     Class FormPage -array set require_permission {
 #       view              {
-#         {{is_true {_creation_user == @current_user@}} item_id read}
+#         {{is_true {_creation_user = @current_user@}} item_id read}
 #         swa
 #       }
 #     }
