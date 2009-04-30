@@ -2374,6 +2374,10 @@ namespace eval ::xowiki {
     return $items
   }
 
+  #
+  # begin property management
+  #
+
   FormPage instproc property_key {name} {
     if {[regexp {^_([^_].*)$} $name _ varname]} {
       return $varname
@@ -2423,6 +2427,28 @@ namespace eval ::xowiki {
     return [$page property $name $default]
   }
 
+  FormPage instproc condition=is_true {query_context value} {
+    # 
+    # This condition maybe called from the policy rules. 
+    # The passed value is a tuple of the form 
+    #     {property-name operator property-value}
+    #
+    foreach {property_name op property_value} $value break
+    if {![info exists property_value]} {return 0}
+    
+    if {$property_value eq "@current_user@"} {
+      set property_value [$query_context get_user_id]
+    } elseif {$property_value eq "\\@current_user@"} {
+      set property_value "@current_user@"
+    }
+    ns_log notice "check $property_name $op $property_value => [expr [my property $property_name] $op $property_value]"
+    return [expr [my property $property_name] $op $property_value]
+  }
+
+  #
+  # end property management
+  #
+  
   FormPage instproc set_publish_status {value} {
     if {[lsearch -exact [list production ready] $value] == -1} {
       error "invalid value '$value'; use 'production' or 'ready'"

@@ -1610,6 +1610,12 @@ namespace eval ::xowiki {
       create-or-use     {{item_id write}}
       list              {{item_id read}}
     }
+#     Class FormPage -array set require_permission {
+#       view              {
+#         {{is_true {_creation_user == @current_user@}} item_id read}
+#         swa
+#       }
+#     }
   }
 
   #Policy policy4 -contains {
