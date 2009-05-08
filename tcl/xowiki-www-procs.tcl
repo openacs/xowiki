@@ -1715,7 +1715,7 @@ namespace eval ::xowiki {
     while { $i < [llength $lines1] } {
       set l [lindex $lines1 $i]
       incr i
-      puts "$i\t\t$l"
+      #puts "$i\t\t$l"
       append out "<span class='removed'>$l</span>\n"
     }
     while { $j < [llength $lines2] } {

@@ -205,10 +205,10 @@ namespace eval ::xowiki {
     return $content
   }
   proc write_file {fn content} {
-    set F [open $fn w]
-    fconfigure $F -translation binary
-    puts -nonewline $F $content
-    close $F
+    set F [::open $fn w]
+    ::fconfigure $F -translation binary
+    ::puts -nonewline $F $content
+    ::close $F
   }
 
   proc ::xowiki::page_order_uses_ltree {} {

@@ -894,7 +894,7 @@ namespace eval ::xowiki::includelet {
     set admin_p [::xo::cc permission -object_id $package_id -privilege admin \
                      -party_id [::xo::cc set untrusted_user_id]]
     set show_heritage $admin_p
-    
+
     TableWidget t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
@@ -966,7 +966,7 @@ namespace eval ::xowiki::includelet {
           [t1 last_child] set inherited $label
           [t1 last_child] set inherited.href $href
           [t1 last_child] set inherited.title $title
-          #[t1 last_child] set inherited.CSSclass $class
+          [t1 last_child] set inherited.CSSclass $class
         }
       }
     return [t1 asHTML]

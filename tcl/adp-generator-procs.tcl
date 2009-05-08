@@ -52,6 +52,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 {<master>
   <property name="title">@title;noquote@</property>
   <property name="context">@context;noquote@</property>
+  <if @item_id@ not nil><property name="displayed_object_id">@item_id@</property></if> 
   <property name="&body">property_body</property>
   <property name="&doc">property_doc</property>
   <property name="header_stuff">
@@ -124,7 +125,7 @@ function get_popular_tags(popular_tags_link, prefix) {
     if {[catch {set f [open $filename w]} errorMsg]} {
       my log "Warning: cannot overwrite $filename, ignoring possible changes"
     } else {
-      puts -nonewline $f [my generate]
+      ::puts -nonewline $f [my generate]
       close $f
     }
   }

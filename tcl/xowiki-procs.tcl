@@ -2368,7 +2368,7 @@ namespace eval ::xowiki {
       foreach p [$items children] {
         array set __ia $init_vars
         array set __ia [$p instance_attributes]
-        if {![expr $wc(tcl)]} {$items delete $p}
+        if {![$p eval expr $wc(tcl)]} {$items delete $p}
       }
     }
     return $items
