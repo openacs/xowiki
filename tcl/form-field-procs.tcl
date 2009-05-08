@@ -326,7 +326,7 @@ namespace eval ::xowiki::formfield {
     }
 
     if {[lang::util::translator_mode_p]} {
-      my mixin "::xo::TRN-Mode"
+      my mixin add "::xo::TRN-Mode"
     }
 
   }
