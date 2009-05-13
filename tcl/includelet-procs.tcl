@@ -606,6 +606,7 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
           {-open_page ""}
           {-order_items_by "title,asc"}
+          {-style "mktree"}
           {-category_ids ""}
           {-except_category_ids ""}
           {-allow_edit false}
@@ -765,6 +766,10 @@ namespace eval ::xowiki::includelet {
       }
       append sql $locale_clause
       
+      if {!$tree_style} {
+	set style sections
+      } 
+
       if {$count} {
         db_foreach [my qn get_counts] \
             "select count(*) as nr,category_id from $sql group by category_id" {
@@ -773,7 +778,7 @@ namespace eval ::xowiki::includelet {
               $category($category_id) href [ad_conn url]?category_id=$category_id$s
               $category($category_id) open_tree
 	  }
-        append content [$cattree(0) render -tree_style $tree_style]
+        append content [$cattree(0) render -style $style]
       } else {
         foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
         set increasing [expr {$direction ne "desc"}]
@@ -794,7 +799,7 @@ namespace eval ::xowiki::includelet {
                   -increasing $increasing \
                   -open_item [expr {$item_id == $open_item_id}]
             }
-        append content [$cattree(0) render -tree_style $tree_style]
+        append content [$cattree(0) render -style $style]
       }
     }
     return $content
@@ -865,7 +870,7 @@ namespace eval ::xowiki::includelet {
       }
       $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
     }
-    return [$cattree render]
+    return [$cattree render -style sections]
   }
 }
 

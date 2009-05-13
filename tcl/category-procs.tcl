@@ -31,21 +31,17 @@ namespace eval ::xowiki {
   }
   CatTree instproc open_tree {} {;}
 
-  CatTree instproc render {{-tree_style:boolean false}} {
-    set content ""
-    if {$tree_style} {
-      #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
-      ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
-      ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
-      
-      foreach c [my children] {append content [$c render] \n}
-      return "<ul class='mktree' id='[my name]'>$content</ul>"
-    } else {
-      Category instmixin Category::section_style
-      foreach c [my children] {append content [$c render] \n}
-      Category instmixin ""
-      return $content
+  CatTree instproc render {{-style mktree}} {
+    set renderer CategoryStyle=$style
+    if {![my isclass $renderer]} {
+      error "No such renderer $renderer (avalialble [info cmd ::xowiki::CategoryStyle=*]"
     }
+
+    Category instmixin $renderer
+    set content [$renderer render [self]]
+    Category instmixin ""
+
+    return $content
   }
 
   #
@@ -91,15 +87,23 @@ namespace eval ::xowiki {
   #
   # These are the list-specific rendering functions
   #
-
-  Category instproc render_item {{-highlight:boolean false} item} {
+  Class create CategoryStyle=mktree 
+  CategoryStyle=mktree proc render {cattree} {
+    #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
+    ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
+    ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
+      
+    foreach c [$cattree children] {append content [$c render] \n}
+    return "<ul class='mktree' id='[$cattree name]'>$content</ul>"
+  }
+  CategoryStyle=mktree instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
       return "<li class='liItem'><b>$item</b></li>\n"
     } else {
       return "<li class='liItem'>$item</li>\n"
     }
   }
-  Category instproc render_category {{-open:boolean false} cat_content} {
+  CategoryStyle=mktree instproc render_category {{-open:boolean false} cat_content} {
     set open_state [expr {[my set open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
     set c [expr {[my exists count] ? "<a href='[my href]'>([my count])</a>" : ""}]
     return "<li $open_state>[my label] $c\n <ul>$cat_content</ul>\n"
@@ -108,16 +112,21 @@ namespace eval ::xowiki {
   #
   # These are the section-specific rendering functions
   #
-  
-  Class Category::section_style
-  Category::section_style instproc render_item {{-highlight:boolean false} item} {
+
+  Class create CategoryStyle=sections
+  CategoryStyle=sections proc render {cattree} {
+    set content ""
+    foreach c [$cattree children] {append content [$c render] \n}
+    return $content
+  }  
+  CategoryStyle=sections instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
       return "<b>$item</b><br/>\n"
     } else {
       return "$item<br/>\n"
     }
   }
-  Category::section_style instproc render_category {{-open:boolean false} cat_content} {
+  CategoryStyle=sections instproc render_category {{-open:boolean false} cat_content} {
     set section [expr {[my level] + 2}]
     return "<H$section>[my label]</H$section>\n<p>\
         <blockquote style='margin-left: 2em; margin-right:0px;'>$cat_content</blockquote>\n"
