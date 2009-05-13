@@ -32,9 +32,9 @@ namespace eval ::xowiki {
   CatTree instproc open_tree {} {;}
 
   CatTree instproc render {{-style mktree}} {
-    set renderer CategoryStyle=$style
+    set renderer CategoryRenderer=$style
     if {![my isclass $renderer]} {
-      error "No such renderer $renderer (avalialble [info cmd ::xowiki::CategoryStyle=*]"
+      error "No such renderer $renderer (avalialble [info cmd ::xowiki::CategoryRenderer=*]"
     }
 
     Category instmixin $renderer
@@ -87,8 +87,8 @@ namespace eval ::xowiki {
   #
   # These are the list-specific rendering functions
   #
-  Class create CategoryStyle=mktree 
-  CategoryStyle=mktree proc render {cattree} {
+  Class create CategoryRenderer=mktree 
+  CategoryRenderer=mktree proc render {cattree} {
     #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
     ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
     ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
@@ -96,14 +96,14 @@ namespace eval ::xowiki {
     foreach c [$cattree children] {append content [$c render] \n}
     return "<ul class='mktree' id='[$cattree name]'>$content</ul>"
   }
-  CategoryStyle=mktree instproc render_item {{-highlight:boolean false} item} {
+  CategoryRenderer=mktree instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
       return "<li class='liItem'><b>$item</b></li>\n"
     } else {
       return "<li class='liItem'>$item</li>\n"
     }
   }
-  CategoryStyle=mktree instproc render_category {{-open:boolean false} cat_content} {
+  CategoryRenderer=mktree instproc render_category {{-open:boolean false} cat_content} {
     set open_state [expr {[my set open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
     set c [expr {[my exists count] ? "<a href='[my href]'>([my count])</a>" : ""}]
     return "<li $open_state>[my label] $c\n <ul>$cat_content</ul>\n"
@@ -113,20 +113,20 @@ namespace eval ::xowiki {
   # These are the section-specific rendering functions
   #
 
-  Class create CategoryStyle=sections
-  CategoryStyle=sections proc render {cattree} {
+  Class create CategoryRenderer=sections
+  CategoryRenderer=sections proc render {cattree} {
     set content ""
     foreach c [$cattree children] {append content [$c render] \n}
     return $content
   }  
-  CategoryStyle=sections instproc render_item {{-highlight:boolean false} item} {
+  CategoryRenderer=sections instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
       return "<b>$item</b><br/>\n"
     } else {
       return "$item<br/>\n"
     }
   }
-  CategoryStyle=sections instproc render_category {{-open:boolean false} cat_content} {
+  CategoryRenderer=sections instproc render_category {{-open:boolean false} cat_content} {
     set section [expr {[my level] + 2}]
     return "<H$section>[my label]</H$section>\n<p>\
         <blockquote style='margin-left: 2em; margin-right:0px;'>$cat_content</blockquote>\n"
