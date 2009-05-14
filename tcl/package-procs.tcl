@@ -130,12 +130,24 @@ namespace eval ::xowiki {
     }
   }
   
-  Package instproc get_parent_and_name {-path -folder_id vparent vlocal_name} {
+  Package instproc get_parent_and_name {-path:required -folder_id:required vparent vlocal_name} {
     my upvar $vparent parent $vlocal_name local_name 
-
+    #my log "path=$path folder_id=$folder_id"
     if {[regexp {^([^/]+)/(.*)$} $path _ parent local_name]} {
       set p [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
-      if {$p != 0} { return $p }
+      #my log "check '$parent' returned $p"
+      if {$p != 0} { 
+        if {[regexp {^([^/]+)/(.*)$} $local_name _ parent2 local_name2]} {
+          set p2 [my get_parent_and_name -path $local_name -folder_id $p parent local_name]
+          #my log "recursive call for '$local_name' parent_id=$p returned $p2"
+          if {$p2 != 0} {
+           set p $p2
+          }
+        }
+      }
+      if {$p != 0} {
+        return $p 
+      }
     }
     set parent ""
     set local_name $path
@@ -163,8 +175,15 @@ namespace eval ::xowiki {
       if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
         return ""
       } else {
-        ::xo::db::CrClass get_instance_from_db -item_id $parent_id
-        return [$parent_id name]/
+        set path ""
+        while {1} {
+          ::xo::db::CrClass get_instance_from_db -item_id $parent_id
+          my log "my folder=[my folder_id], parent's parent=[$parent_id parent_id]"
+          set path [$parent_id name]/$path
+          if {[my folder_id] == [$parent_id parent_id]} break
+          set parent_id [$parent_id parent_id]
+        }
+        return $path
       }
     } else {
       return ""
@@ -238,7 +257,7 @@ namespace eval ::xowiki {
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
 
-    #my msg "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor"
+    #my log "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor download=$download"
     if {$download} {
       #
       # use the special download (file) syntax
@@ -849,8 +868,9 @@ namespace eval ::xowiki {
           set parent_id [my get_parent_and_name \
                              -path $stripped_name -folder_id $folder_id \
                              parent local_name]
+          #my log "get_parent_and_named returned parent_id=$parent_id, name='$local_name'"
 	  set item_id [::xo::db::CrClass lookup -name file:$local_name -parent_id $parent_id]
-
+          #my log "item_id for file:$local_name = $item_id"
 	  if {$item_id != 0 && $lang eq "download/file"} {
 	    upvar $method_var method
 	    set method download
