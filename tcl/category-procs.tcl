@@ -4,7 +4,24 @@ namespace eval ::xowiki {
   #
 
   Class CatTree -superclass ::xo::OrderedComposite -parameter {{name ""}}
+  # 
+  # Class methods
+  #
+  CatTree proc renderer {style} {
+    set renderer CategoryRenderer=$style
+    if {![my isclass $renderer]} {
+      error "No such renderer $renderer (avalialble [info cmd ::xowiki::CategoryRenderer=*]"
+    }
+    return $renderer
+  }
 
+  CatTree proc include_head_entries {{-style mktree}} {
+    [my renderer $style] include_head_entries
+  }
+
+  #
+  # Instance methods
+  #
   CatTree instproc add_to_category {
     -category
     -orderby
@@ -30,13 +47,8 @@ namespace eval ::xowiki {
     }
   }
   CatTree instproc open_tree {} {;}
-
   CatTree instproc render {{-style mktree}} {
-    set renderer CategoryRenderer=$style
-    if {![my isclass $renderer]} {
-      error "No such renderer $renderer (avalialble [info cmd ::xowiki::CategoryRenderer=*]"
-    }
-
+    set renderer [[self class] renderer $style]
     Category instmixin $renderer
     set content [$renderer render [self]]
     Category instmixin ""
@@ -85,16 +97,29 @@ namespace eval ::xowiki {
   }
 
   #
+  # Define a meta class for the category renderers with the common
+  # behavior.
+  #
+  Class create CategoryRenderer -superclass Class
+  CategoryRenderer instproc include_head_entries {} {
+    # to be overloaded
+  }
+  CategoryRenderer instproc render {cattree} {
+    set content ""
+    foreach c [$cattree children] {append content [$c render] \n}
+    return $content
+  }
+
+  #
   # These are the list-specific rendering functions
   #
-  Class create CategoryRenderer=mktree 
-  CategoryRenderer=mktree proc render {cattree} {
-    #::xo::Page requireCSS "/resources/acs-templating/mktree.css"
+  CategoryRenderer create CategoryRenderer=mktree 
+  CategoryRenderer=mktree proc include_head_entries {} {
     ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
     ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
-      
-    foreach c [$cattree children] {append content [$c render] \n}
-    return "<ul class='mktree' id='[$cattree name]'>$content</ul>"
+  }
+  CategoryRenderer=mktree proc render {cattree} {
+    return "<ul class='mktree' id='[$cattree name]'>[next]</ul>"
   }
   CategoryRenderer=mktree instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
@@ -113,12 +138,7 @@ namespace eval ::xowiki {
   # These are the section-specific rendering functions
   #
 
-  Class create CategoryRenderer=sections
-  CategoryRenderer=sections proc render {cattree} {
-    set content ""
-    foreach c [$cattree children] {append content [$c render] \n}
-    return $content
-  }  
+  CategoryRenderer create CategoryRenderer=sections
   CategoryRenderer=sections instproc render_item {{-highlight:boolean false} item} {
     if {$highlight} {
       return "<b>$item</b><br/>\n"

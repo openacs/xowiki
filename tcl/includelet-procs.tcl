@@ -614,6 +614,18 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
+  categories instproc initialize {} {
+    my get_parameters
+    if {!$tree_style} {
+      set style sections
+    }
+    my set style $style
+  }
+
+  categories instproc include_head_entries {} {
+    ::xowiki::CatTree include_head_entries -style [my set style]
+  }
+
   categories instproc category_tree_edit_button {-object_id:integer -locale {-allow_edit false} -tree_id:integer} {
     set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc set untrusted_user_id]]
     if {$allow_edit && $allow_p} {
@@ -766,10 +778,6 @@ namespace eval ::xowiki::includelet {
       }
       append sql $locale_clause
       
-      if {!$tree_style} {
-	set style sections
-      } 
-
       if {$count} {
         db_foreach [my qn get_counts] \
             "select count(*) as nr,category_id from $sql group by category_id" {
@@ -778,7 +786,7 @@ namespace eval ::xowiki::includelet {
               $category($category_id) href [ad_conn url]?category_id=$category_id$s
               $category($category_id) open_tree
 	  }
-        append content [$cattree(0) render -style $style]
+        append content [$cattree(0) render -style [my set style]]
       } else {
         foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
         set increasing [expr {$direction ne "desc"}]
@@ -799,7 +807,7 @@ namespace eval ::xowiki::includelet {
                   -increasing $increasing \
                   -open_item [expr {$item_id == $open_item_id}]
             }
-        append content [$cattree(0) render -style $style]
+        append content [$cattree(0) render -style [my set style]]
       }
     }
     return $content
@@ -829,6 +837,14 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
+  categories-recent instproc initialize {} {
+    my set style sections
+  }
+
+  categories-recent instproc include_head_entries {} {
+    ::xowiki::CatTree include_head_entries -style [my set style]
+  }
+  
   categories-recent instproc render {} {
     my get_parameters
   
@@ -870,7 +886,7 @@ namespace eval ::xowiki::includelet {
       }
       $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
     }
-    return [$cattree render -style sections]
+    return [$cattree render -style [my set style]]
   }
 }
 
