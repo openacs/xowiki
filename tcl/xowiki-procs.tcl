@@ -880,7 +880,7 @@ namespace eval ::xowiki {
         #  return $stripped_name
         #}
       #}
-      if {$nls_language eq ""} {set nls_language [my nls_language]}
+      if {$nls_language ne ""} {my nls_language $nls_language}
       set name [my lang]:$stripped_name
     }
     return $name
