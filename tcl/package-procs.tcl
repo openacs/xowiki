@@ -1086,6 +1086,7 @@ namespace eval ::xowiki {
     db_transaction {
       foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
         #my log "--cpo UPDATE $page_id new_page_order $new_page_order"
+	$temp_obj item_id $item_id
         $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
         ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
         ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id

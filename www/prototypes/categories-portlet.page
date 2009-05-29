@@ -44,10 +44,10 @@
       }
       set categories [list]
       set pos 0
-      set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
+      set cattree(0) [::xowiki::Tree new -volatile -orderby pos -name $my_tree_name]
       foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
         foreach {cid category_label deprecated_p level} $category_info {break}
-        set c [::xowiki::Category new -orderby pos -category_id $cid -package_id $package_id \
+        set c [::xowiki::TreeNode new -orderby pos -category_id $cid -package_id $package_id \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
         set plevel [expr {$level -1}]

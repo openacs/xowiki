@@ -101,6 +101,11 @@ namespace eval ::xowiki::includelet {
     string map [list \n \\n \" {\"} ' {\'}] $string
   }
 
+  ::xowiki::Includelet proc html_encode {string} {
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $string]
+  }
+
+
   ::xowiki::Includelet proc html_id {name} {
     # Construct a valid HTML id or name. 
     # For details, see http://www.w3.org/TR/html4/types.html
@@ -623,7 +628,7 @@ namespace eval ::xowiki::includelet {
   }
 
   categories instproc include_head_entries {} {
-    ::xowiki::CatTree include_head_entries -style [my set style]
+    ::xowiki::Tree include_head_entries -renderer [my set style]
   }
 
   categories instproc category_tree_edit_button {-object_id:integer -locale {-allow_edit false} -tree_id:integer} {
@@ -697,10 +702,13 @@ namespace eval ::xowiki::includelet {
       return [my category_tree_missing -name $tree_name -edit_html $edit_html]
     }
 
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
+
     foreach tree $trees {
       foreach {tree_id my_tree_name ...} $tree {break}
 
-      set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit -tree_id $tree_id]
+      set edit_html [my category_tree_edit_button -object_id $package_id \
+			 -allow_edit $allow_edit -tree_id $tree_id]
       #append content "<div style='float:right;'>$edit_html</div>\n"
 
       if {!$no_tree_name} {
@@ -710,13 +718,14 @@ namespace eval ::xowiki::includelet {
       }
       set categories [list]
       set pos 0
-      set cattree(0) [::xowiki::CatTree new -volatile -orderby pos -name $my_tree_name]
-      set category_infos [::xowiki::Category get_category_infos -locale $locale -tree_id $tree_id]
+      set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
+			  -id [my id]-$my_tree_name -name $my_tree_name]
 
+      set category_infos [::xowiki::Category get_category_infos \
+			      -locale $locale -tree_id $tree_id]
       foreach category_info $category_infos {
         foreach {cid category_label deprecated_p level} $category_info {break}
-        
-        set c [::xowiki::Category new -orderby pos -category_id $cid -package_id $package_id \
+        set c [::xowiki::TreeNode new -orderby pos  \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
         set plevel [expr {$level -1}]
@@ -773,7 +782,7 @@ namespace eval ::xowiki::includelet {
       if {$category_ids ne ""} {
         foreach cid [split $category_ids ,] {
           append sql " and exists (select * from category_object_map \
-	where object_id = ci.item_id and category_id = $cid)"
+	     where object_id = ci.item_id and category_id = $cid)"
         }
       }
       append sql $locale_clause
@@ -799,8 +808,8 @@ namespace eval ::xowiki::includelet {
               set prefix ""
               set suffix ""
               foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
-              
-              $cattree(0) add_to_category \
+	      $itemobj set href [::$package_id pretty_link $name]              
+              $cattree(0) add_item \
                   -category $category($category_id) \
                   -itemobj $itemobj \
                   -orderby $orderby \
@@ -842,13 +851,14 @@ namespace eval ::xowiki::includelet {
   }
 
   categories-recent instproc include_head_entries {} {
-    ::xowiki::CatTree include_head_entries -style [my set style]
+    ::xowiki::Tree include_head_entries -renderer [my set style]
   }
   
   categories-recent instproc render {} {
     my get_parameters
   
-    set cattree [::xowiki::CatTree new -volatile -name "categories-recent"]
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
+    set cattree [::xowiki::Tree new -volatile -id [my id]]
 
     foreach {locale locale_clause} \
         [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
@@ -877,14 +887,14 @@ namespace eval ::xowiki::includelet {
       set prefix  "$formatted_date "
       set suffix  ""
       foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
+      $itemobj set href [::$package_id pretty_link $name]        
       if {![info exists categories($category_id)]} {
-        set categories($category_id) [::xowiki::Category new \
-                                          -package_id $package_id \
-                                          -label [category::get_name $category_id $locale]\
+        set categories($category_id) [::xowiki::TreeNode new \
+                                          -label [category::get_name $category_id $locale] \
                                           -level 1]
         $cattree add  $categories($category_id)
       }
-      $cattree add_to_category -category $categories($category_id) -itemobj $itemobj
+      $cattree add_item -category $categories($category_id) -itemobj $itemobj
     }
     return [$cattree render -style [my set style]]
   }
@@ -1707,7 +1717,7 @@ namespace eval ::xowiki::includelet {
   # includelets based on order
   #
   Class create PageReorderSupport
-  PageReorderSupport instproc page_reorder_check_allow {allow_reorder} {
+  PageReorderSupport instproc page_reorder_check_allow {{-with_head_entries true} allow_reorder} {
     if {$allow_reorder ne ""} {
       my instvar package_id
       set granted [$package_id check_permissions \
@@ -1716,10 +1726,12 @@ namespace eval ::xowiki::includelet {
                        $package_id change-page-order]
       #my msg "granted=$granted"
       if {$granted} {
-        set ajaxhelper 0
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-        ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+	if {$with_head_entries} {
+	  set ajaxhelper 1
+	  ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+	  ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+	  ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+	}
       } else {
         # the user has not enough permissions, so disallow
         set allow_reorder ""
@@ -1872,229 +1884,6 @@ namespace eval ::xowiki::includelet {
     return $displayed_page_order
   }
 
-  toc instproc yui_tree {pages open_page package_id expand_all remove_levels} {
-    my instvar navigation page_name book_mode
-
-    set js ""
-    set node() root
-    set node_cnt 0
-    #my log "--book read [llength [$pages children]] pages"
-    #append js "$node().expand();\n"
-
-    foreach o [$pages children] {
-      $o instvar page_order title name  
-
-      set label "[my page_number $page_order $remove_levels] $title"
-      set id tmpNode[incr node_cnt]
-      set node($page_order) $id
-      set jsobj  [my js_name].objs\[$node_cnt\]
-      set href   [my href $package_id $book_mode $name]
-      set expand [expr {[my exists open_node($page_order)]}]
-
-      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
-      set parent_node [expr {[info exists node($parent)] ? $node($parent) : "root"}]
-      set refvar [expr {[my set ajax] ? "ref" : "href"}]
-      regsub -all {\"} $label {\"} label
-      #my log "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};"
-      append js \
-	  "$jsobj = {label: \"$label\", id: \"$id\", $refvar: \"$href\",  c: $node_cnt};" \
-	  "var $node($page_order) = new YAHOO.widget.TextNode($jsobj, $parent_node, $expand);\n" \
-          ""
-
-    }
-    return $js
-  }
-
-  toc instproc ajax_tree {js_tree_cmds} {
-    return "<div id='[my id]'>
-      <script type = 'text/javascript'>
-      var [my js_name] = {
-
-         count: [my set navigation(count)],
-
-         getPage: function(href, c) {
-             //  console.log('getPage: ' + href + ' type: ' + typeof href) ;
-
-             if ( typeof c == 'undefined' ) {
-
-                 // no c given, search it from the objects
-                 // console.log('search for href <' + href + '>');
-
-                 for (i in this.objs) {
-                     if (this.objs\[i\].ref == href) {
-                        c = this.objs\[i\].c;
-                        // console.log('found href ' + href + ' c=' + c);
-                        var node = this.tree.getNodeByIndex(c);
-                        if (!node.expanded) {node.expand();}
-                        node = node.parent;
-                        while (node.index > 1) {
-                            if (!node.expanded) {node.expand();}
-                            node = node.parent;
-                        }
-                        break;
-                     }
-                 }
-                 if (typeof c == 'undefined') {
-                     // console.warn('c undefined');
-                     return false;
-                 }
-             }
-             // console.log('have href ' + href + ' c=' + c);
-
-             var transaction = YAHOO.util.Connect.asyncRequest('GET', \
-                 href + '?template_file=view-page&return_url=' + href, 
-                {
-                  success:function(o) {
-                     var bookpage = document.getElementById('book-page');
-     		     var fadeOutAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 0} }, 0.5 );
-
-                     var doFadeIn = function(type, args) {
-                        // console.log('fadein starts');
-                        var bookpage = document.getElementById('book-page');
-                        bookpage.innerHTML = o.responseText;
-                        var fadeInAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 1} }, 0.1 );
-                        fadeInAnim.animate();
-                     }
-
-                     // console.log(' tree: ' + this.tree + ' count: ' + this.count);
-                     // console.info(this);
-
-                     if (this.count > 0) {
-                        var percent = (100 * o.argument / this.count).toFixed(2) + '%';
-                     } else {
-                        var percent = '0.00%';
-                     }
-
-                     if (o.argument > 1) {
-                        var link = this.objs\[o.argument - 1 \].ref;
-                        var src = '/resources/xowiki/previous.png';
-                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
-                     } else {
-                        var link = '#';
-                        var onclick = '';
-                        var src = '/resources/xowiki/previous-end.png';
-                     }
-
-                     // console.log('changing prev href to ' + link);
-                     // console.log('changing prev onclick to ' + onclick);
-
-                     document.getElementById('bookNavPrev.img').src = src;
-                     document.getElementById('bookNavPrev.a').href = link;
-                     document.getElementById('bookNavPrev.a').setAttribute('onclick',onclick);
-
-                     if (o.argument < this.count) {
-                        var link = this.objs\[o.argument + 1 \].ref;
-                        var src = '/resources/xowiki/next.png';
-                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
-                     } else {
-                        var link = '#';
-                        var onclick = '';
-                        var src = '/resources/xowiki/next-end.png';
-                     }
-
-                     // console.log('changing next href to ' + link);
-                     // console.log('changing next onclick to ' + onclick);
-                     document.getElementById('bookNavNext.img').src = src;
-                     document.getElementById('bookNavNext.a').href = link;
-
-                     document.getElementById('bookNavNext.a').setAttribute('onclick',onclick);
-                     document.getElementById('bookNavRelPosText').innerHTML = percent;
-                     document.getElementById('bookNavBar').setAttribute('style', 'width: ' + percent + ';');
-
-                     fadeOutAnim.onComplete.subscribe(doFadeIn);
-  		     fadeOutAnim.animate();
-                  }, 
-                  failure:function(o) {
-                     // console.error(o);
-                     // alert('failure ');
-                     return false;
-                  },
-                  argument: c,
-                  scope: [my js_name]
-                }, null);
-
-                return false;
-            },
-
-
-         treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
-            root = [my js_name].tree.getRoot(); 
-            [my js_name].objs = new Array();
-            $js_tree_cmds
-
-            [my js_name].tree.subscribe('labelClick', function(node) {
-              [my js_name].getPage(node.data.ref, node.data.c); });
-            [my js_name].tree.draw();
-         }
-
-      };
-
-     YAHOO.util.Event.addListener(window, 'load', [my js_name].treeInit);
-      </script>
-    </div>"
-  }
-
-  toc instproc non_ajax_tree {js_tree_cmds} {
-    return "<div id='[my id]'>
-      <script type = 'text/javascript'>
-      var [my js_name] = {
-
-         getPage: function(href, c) { return true; },
-
-         treeInit: function() { 
-            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
-            root = [my js_name].tree.getRoot(); 
-            [my js_name].objs = new Array();
-            $js_tree_cmds
-            [my js_name].tree.draw();
-         }
-      };
-      YAHOO.util.Event.on(window, 'load', [my js_name].treeInit);
-      </script>
-    </div>"
-  }
-
-
-  toc instproc include_head_entries_yui_tree {ajax style} {
-    set ajaxhelper 1
-
-    ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/${style}tree.css"
-    if {$style eq ""} {
-      ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper \
-          treeview/assets/skins/sam/treeview.css
-    }
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo/yahoo-min.js"
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "event/event-min.js"
-
-    if {$ajax} {
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "dom/dom-min.js"    ;# ANIM
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "connection/connection-min.js"
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "animation/animation-min.js"   ;# ANIM
-    }  
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "treeview/treeview.js"
-  }
-
-
-  toc instproc render_yui_tree {pages style} {
-    my get_parameters
-    #
-    # Render the tree with the yui widget (with or without ajax)
-    #
-    my set book_mode $book_mode
-    if {$book_mode} {
-      #my log "--warn: cannot use bookmode with ajax, resetting ajax"
-      set ajax 0
-    }
-    my set ajax $ajax
-    # do the hard work here....
-    set js_tree_cmds [my yui_tree $pages $open_page $package_id $expand_all $remove_levels]
-    if {$ajax} {
-      return [my ajax_tree $js_tree_cmds]
-    }
-    return [my non_ajax_tree $js_tree_cmds]
-  }
-
   toc instproc build_navigation {pages} {
     #
     # compute associative arrays open_node and navigation (position
@@ -2124,7 +1913,7 @@ namespace eval ::xowiki::includelet {
         my set open_node($page_order) true
       } elseif {$on_current_node} {
         my set open_node($page_order) true
-        # make sure to open all nodes to the top
+        # make sure to open all nodes to the root
         for {set p $parent} {$p ne ""} {} {
           my set open_node($p) true
           if {![regexp {^(.*)[.]([^.]+)} $p _ p]} {set p ""}
@@ -2135,7 +1924,7 @@ namespace eval ::xowiki::includelet {
     #my log OPEN=[lsort [my array names open_node]]
   }
 
-  toc instproc render_list {pages} {
+  toc instproc render_list {{-full false} pages} {
     my get_parameters
     my instvar navigation page_name
     #
@@ -2153,8 +1942,8 @@ namespace eval ::xowiki::includelet {
     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
 
     set css_class [expr {$min_level == 1 ? "page_order_region" : "page_order_region_no_target"}]
-    set html "<UL css_class='$css_class'>\n"
-    my log 1
+#my log allow_reorder=$allow_reorder,min_level=$min_level,css=$css_class
+    set html "<UL class='$css_class'>\n"
     set prefix_js ""
     set html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js -1]
     set level 0
@@ -2164,6 +1953,7 @@ namespace eval ::xowiki::includelet {
       set page_number [my page_number $page_order $remove_levels]
 
       set new_level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+#    my log "[$o set page_order] [my exists open_node($parent)] || [my exists open_node($page_order)]"
       if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
         if {$new_level > $level} {
           for {set l $level} {$l < $new_level} {incr l} {
@@ -2190,25 +1980,257 @@ namespace eval ::xowiki::includelet {
     return $html
   }
 
-  toc instproc include_head_entries {} {
-    my get_parameters
-    if {$style ne "list"} {
-      my include_head_entries_yui_tree $ajax $style
+
+
+
+  #
+  # ajax based code for fade-in / fade-out
+  #
+  toc instproc yui_ajax {} {
+    return "var [my js_name] = {
+
+         count: [my set navigation(count)],
+
+         getPage: function(href, c) {
+             //console.log('getPage: ' + href + ' type: ' + typeof href) ;
+
+             if ( typeof c == 'undefined' ) {
+
+                 // no c given, search it from the objects
+                 // console.log('search for href <' + href + '>');
+
+                 for (i in this.objs) {
+                     if (this.objs\[i\].ref == href) {
+                        c = this.objs\[i\].c;
+                        // console.log('found href ' + href + ' c=' + c);
+                        var node = this.tree.getNodeByIndex(c);
+                        if (!node.expanded) {node.expand();}
+                        node = node.parent;
+                        while (node.index > 1) {
+                            if (!node.expanded) {node.expand();}
+                            node = node.parent;
+                        }
+                        break;
+                     }
+                 }
+                 if (typeof c == 'undefined') {
+                     // console.warn('c undefined');
+                     return false;
+                 }
+             }
+             //console.log('have href ' + href + ' c=' + c);
+
+             var transaction = YAHOO.util.Connect.asyncRequest('GET', \
+                 href + '?template_file=view-page&return_url=' + href, 
+                {
+                  success:function(o) {
+                     var bookpage = document.getElementById('book-page');
+     		     var fadeOutAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 0} }, 0.5 );
+
+                     var doFadeIn = function(type, args) {
+                        // console.log('fadein starts');
+                        var bookpage = document.getElementById('book-page');
+                        bookpage.innerHTML = o.responseText;
+                        var fadeInAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 1} }, 0.1 );
+                        fadeInAnim.animate();
+                     }
+
+                     // console.log(' tree: ' + this.tree + ' count: ' + this.count);
+                     // console.info(this);
+
+                     if (this.count > 0) {
+                        var percent = (100 * o.argument.count / this.count).toFixed(2) + '%';
+                     } else {
+                        var percent = '0.00%';
+                     }
+
+                     if (o.argument.count > 1) {
+                        var link = o.argument.href;
+                        var src = '/resources/xowiki/previous.png';
+                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
+                     } else {
+                        var link = '#';
+                        var onclick = '';
+                        var src = '/resources/xowiki/previous-end.png';
+                     }
+
+                     // console.log('changing prev href to ' + link);
+                     // console.log('changing prev onclick to ' + onclick);
+
+                     document.getElementById('bookNavPrev.img').src = src;
+                     document.getElementById('bookNavPrev.a').href = link;
+                     document.getElementById('bookNavPrev.a').setAttribute('onclick',onclick);
+
+                     if (o.argument.count < this.count) {
+                        var link = o.argument.href;
+                        var src = '/resources/xowiki/next.png';
+                        var onclick = 'return [my js_name].getPage(\"' + link + '\");' ;
+                     } else {
+                        var link = '#';
+                        var onclick = '';
+                        var src = '/resources/xowiki/next-end.png';
+                     }
+
+                     // console.log('changing next href to ' + link);
+                     // console.log('changing next onclick to ' + onclick);
+                     document.getElementById('bookNavNext.img').src = src;
+                     document.getElementById('bookNavNext.a').href = link;
+
+                     document.getElementById('bookNavNext.a').setAttribute('onclick',onclick);
+                     document.getElementById('bookNavRelPosText').innerHTML = percent;
+                     document.getElementById('bookNavBar').setAttribute('style', 'width: ' + percent + ';');
+
+                     fadeOutAnim.onComplete.subscribe(doFadeIn);
+  		     fadeOutAnim.animate();
+                  }, 
+                  failure:function(o) {
+                     // console.error(o);
+                     // alert('failure ');
+                     return false;
+                  },
+                  argument: {count: c, href: href},
+                  scope: [my js_name]
+                }, null);
+
+                return false;
+            },
+
+         treeInit: function() { 
+            [my js_name].tree = new YAHOO.widget.TreeView('[my id]'); 
+            [my js_name].tree.subscribe('clickEvent', function(oArgs) {
+              var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
+              [my js_name].getPage( m\[1\], oArgs.node.index); 
+            });
+            [my js_name].tree.draw();
+         }
+
+      };
+
+     YAHOO.util.Event.addListener(window, 'load', [my js_name].treeInit);
+"
+  }
+
+  toc instproc yui_non_ajax {} {
+    return "
+      var [my js_name]; 
+      YAHOO.util.Event.onDOMReady(function() {
+         [my js_name] = new YAHOO.widget.TreeView('[my id]'); 
+         [my js_name].subscribe('clickEvent',function(oArgs) { 
+            //console.info(oArgs);
+            var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
+            //console.info(m\[1\]);
+            //window.location.href = m\[1\];
+            return false;
+	}); 
+        [my js_name].render(); 
+      });
+     "
+  }
+
+  toc instproc build_tree {{-full false} {-remove_levels 0} {-book_mode false} {-open_page ""} pages} {
+    my instvar package_id
+    set tree(-1) [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
+    set pos 0
+    foreach o [$pages children] {
+      $o instvar page_order title name
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+      set page_number [my page_number $page_order $remove_levels]
+
+      set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+      if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
+        set href [my href $package_id $book_mode $name]
+        set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
+		   -object $o -owner [self] \
+		   -label $title -prefix $page_number -href $href \
+		   -highlight [expr {$open_page eq $name}] \
+		   -expanded true -open_requests 1]
+        set tree($level) $c
+        $tree([expr {$level -1}]) add $c
+      }
     }
+    return $tree(-1)
+  }
+
+  toc instproc render_yui_list {{-full false} pages} {
+    my instvar js
+    my get_parameters
+    my instvar navigation page_name
+
+    #
+    # Render the tree with the yui widget (with or without ajax)
+    #
+    my set book_mode $book_mode
+    if {$book_mode} {
+      #my log "--warn: cannot use bookmode with ajax, resetting ajax"
+      set ajax 0
+    }
+    my set ajax $ajax
+    
+    if {$ajax} {
+      set js [my yui_ajax]
+    } else {
+      set js [my yui_non_ajax]
+    }
+
+    set tree [my build_tree -full $full -remove_levels $remove_levels \
+		  -book_mode $book_mode -open_page $open_page $pages]
+
+    set HTML [$tree render -style yuitree -js $js]
+    return $HTML
+  }
+
+  toc instproc render_list {{-full false} pages} {
+    my get_parameters
+
+    #
+    # Build a reduced toc tree based on pure HTML (no javascript or
+    # ajax involved).  If an open_page is specified, produce an as
+    # small as possible tree and omit all non-visible nodes.
+    #
+    if {$open_page ne ""} {
+      # TODO: can we allow open_page and reorder?
+      set allow_reorder ""
+    } else {
+      set allow_reorder [my page_reorder_check_allow -with_head_entries false $allow_reorder]
+    }
+
+    set tree [my build_tree -full $full -remove_levels $remove_levels \
+		  -book_mode $book_mode -open_page $open_page $pages]
+
+    my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
+    set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';"
+    set HTML [$tree render -style listdnd -js $js -context {min_level $min_level}]
+    
+    return $HTML
+  }
+
+
+  toc instproc include_head_entries {} {
+    my instvar style renderer
+    ::xowiki::Tree include_head_entries -renderer $renderer -style $style;# FIXME general
+  }
+
+  toc instproc initialize {} {
+    my get_parameters
+
+    set list_mode 0
+    switch -- $style {
+      "menu" {set s "menu/"; set renderer yuitree}
+      "folders" {set s "folders/"; set renderer yuitree}
+      "list"    {set s ""; set list_mode 1; set renderer list}
+      "default" {set s ""; set renderer yuitree}
+    }
+    my set renderer $renderer
+    my set style $s
+    my set list_mode $list_mode
   }
 
   toc instproc render {} {
     my get_parameters
-    set list_mode 0
+
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     if {[info exists category_id]} {my set category_id $category_id}
 
-    switch -- $style {
-      "menu" {set s "menu/"}
-      "folders" {set s "folders/"}
-      "list"    {set s ""; set list_mode 1}
-      "default" {set s ""}
-    }
     #
     # Collect the pages
     #
@@ -2220,10 +2242,11 @@ namespace eval ::xowiki::includelet {
     #
     # Call a render on the created structure
     #
-    if {$list_mode} {
+    if {[my set list_mode]} {
+my log LIST
       return [my render_list $pages]
     } else {
-      return [my render_yui_tree $pages $s]
+      return [my render_yui_list -full true $pages]
     }
   }
 
@@ -2349,8 +2372,7 @@ namespace eval ::xowiki::includelet {
     set base [$package_id pretty_link [$__including_page name]]
     #set id ID$item_id
     #$root setAttribute id $id
-    set as_att_value [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $inner_html]
-
+    set as_att_value [::xowiki::Includelet html_encode $inner_html]
     set save_form [subst {
       <p>
       <a href='#' onclick='document.getElementById("$id").style.display="inline";return false;'>Create Form from Content</a>
