@@ -6,7 +6,7 @@
     @cvs-id $Id$
 }
 
-namespace eval ::xowiki::includelet {
+namespace eval ::xowiki {
   #
   # Commonly used code for categories
   # 
