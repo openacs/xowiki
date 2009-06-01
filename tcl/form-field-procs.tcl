@@ -1075,7 +1075,7 @@ namespace eval ::xowiki::formfield {
     width
     height
     {skin silver}
-    {plugins "hovertools resizable"}
+    {plugins "hovertools resizable fullscreen"}
   }
   richtext::wym set editor_mixin 1
   richtext::wym instproc initialize {} {
@@ -1091,13 +1091,19 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       set postinit ""
-      if {[lsearch -exact [my plugins] hovertools] > -1} {
-	::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/hovertools/jquery.wymeditor.hovertools.js"
-	append postinit "wym.hovertools();\n"
-      }
-      if {[lsearch -exact [my plugins] resizable] > -1} {
-	::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/resizable/jquery.wymeditor.resizable.js"
-	append postinit "wym.resizable();\n"
+      foreach plugin {hovertools resizable fullscreen embed} {
+	if {[lsearch -exact [my plugins] $plugin] > -1} {
+	  switch -- $plugin {
+	    embed {}
+	    resizable {
+	      ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.ui.js"
+	      ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.ui.resizable.js"
+	      append postinit "wym.${plugin}();\n"
+	    }
+	    default {append postinit "wym.${plugin}();\n"}
+	  }
+	  ::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/$plugin/jquery.wymeditor.$plugin.js"
+	}
       }
       regsub -all {[.:]} [my id] {\\\\&} JID
       
