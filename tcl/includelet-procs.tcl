@@ -2122,7 +2122,6 @@ namespace eval ::xowiki::includelet {
             //window.location.href = m\[1\];
             return false;
 	}); 
-        [my js_name].render(); 
       });
      "
   }

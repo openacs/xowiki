@@ -1655,7 +1655,7 @@ namespace eval ::xowiki::formfield {
              -where_clause "p.page_id = bt.revision_id $extra_where_clause" \
              -orderby ci.name \
             ] {
-              lappend options [list [set $entry_label] $name]
+              lappend options [list [set [my entry_label]] $name]
             }
     my options $options
   }

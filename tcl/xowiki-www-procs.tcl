@@ -226,7 +226,7 @@ namespace eval ::xowiki {
 	
         set header_stuff [::xo::Page header_stuff]
 	if {[info command ::template::head::add_meta] ne ""} {
-          set meta(lang) [my lang]
+          set meta(language) [my lang]
           set meta(description) [my description]
 	  set meta(keywords) ""
 	  if {[my istype ::xowiki::FormPage]} {
