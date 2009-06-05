@@ -102,7 +102,9 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc html_encode {string} {
-    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"] $string]
+    # &apos; is not a known entity to some validators, so we use the
+    # numerical entity here for encoding "'"
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&#39;"] $string]
   }
 
 
@@ -1414,7 +1416,7 @@ namespace eval ::xowiki::includelet {
     foreach cat_id [category::get_mapped_categories [$__including_page set item_id]] {
       foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
       #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
-      set entry "<a href='$href&category_id=$category_id'>$category_name ($tree_name)</a>"
+      set entry "<a href='$href&amp;category_id=$category_id'>$category_name ($tree_name)</a>"
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
@@ -1462,7 +1464,7 @@ namespace eval ::xowiki::includelet {
     }
     set gc_comments [general_comments_get_comments $item_id $gc_return_url]
     if {$gc_comments ne ""} {
-      return "<p>#general-comments.Comments#<ul>$gc_comments</ul></p>$gc_link"
+      return "<p>#general-comments.Comments#</p><ul>$gc_comments</ul>$gc_link"
     } else {
       return "$gc_link"
     }

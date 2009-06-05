@@ -136,7 +136,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 
   ADP_Generator create oacs-view -master 1 -footer 1 \
     -extra_header_stuff {
-      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
+      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     } \
     -proc content_part {} {
@@ -161,8 +161,8 @@ function get_popular_tags(popular_tags_link, prefix) {
   #
   ADP_Generator create oacs-view2 -master 1 -footer 1 \
     -extra_header_stuff {
-      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
-      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
+      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
+      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     } \
     -proc before_render {page} {
@@ -206,7 +206,7 @@ table.mini-calendar {width: 200px ! important;}
 	 &__including_page=page 
 	 portlet="presence -interval {30 minutes} -decoration plain">
 <hr>
-<a href="contributors" text="Show People contributing to this XoWiki Instance">Contributors</a>
+<a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
 </div>
 </div>
 </div> <!-- sidebar -->
@@ -225,8 +225,8 @@ table.mini-calendar {width: 200px ! important;}
          div.tags h3 {font-size: 80%;}
          div.tags blockquote {font-size: 80%; margin-left: 20px; margin-right: 20px;}
       </style>
-      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' />
-      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' />
+      <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
+      <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
       <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
     } \
     -proc before_render {page} {
@@ -255,7 +255,7 @@ table.mini-calendar {width: 200px ! important;}
 	 &__including_page=page 
 	 portlet="presence -interval {30 minutes} -decoration plain">
 <hr>
-<a href="contributors" text="Show People contributing to this XoWiki Instance">Contributors</a>
+<a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
 </div>
 </div> <!-- background -->
 
@@ -292,13 +292,13 @@ table.mini-calendar {width: 200px ! important;}
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 2px; margin-top: 2px; padding: 0px 6px 6px 0px;			    
 ">
-<div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
+  <div style="margin-top: -2px; margin-left: -2px; border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 @toc;noquote@
 </div></div>
 <div style="float:right; width: 70%;">@top_includelets;noquote@
 
 <if @book_prev_link@ not nil or @book_relpos@ not nil or @book_next_link@ not nil>
-<div class="book-navigation" style="background: #f8f8f8; border: 1px solid #a9a9a9;  width: 500px;">
+  <div class="book-navigation" style="background: #f8f8f8; border: 1px solid #a9a9a9; width: 500px;">
 <table width='100%' 
   summary='This table provides a progress bar and buttons for next and previous pages'>
   <colgroup><col width='20'><col width='450'><col width='20'>
