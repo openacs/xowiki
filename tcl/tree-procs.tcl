@@ -93,11 +93,12 @@ namespace eval ::xowiki {
   Class TreeNode -superclass ::xo::OrderedComposite -parameter {
     level label pos {open_requests 0} count {href ""} 
     object owner li_id ul_id ul_class
-    {prefix ""} {expanded true} {highlight false}
+    {prefix ""} {expanded false} {highlight false}
   }
 
   TreeNode instproc open_tree {} {
     my open_requests 1
+    my expanded true
     if {[my exists __parent]} {[my set __parent] open_tree}
   }
 

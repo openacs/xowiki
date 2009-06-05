@@ -2244,7 +2244,6 @@ namespace eval ::xowiki::includelet {
     # Call a render on the created structure
     #
     if {[my set list_mode]} {
-my log LIST
       return [my render_list $pages]
     } else {
       return [my render_yui_list -full true $pages]
