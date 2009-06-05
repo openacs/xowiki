@@ -2149,15 +2149,17 @@ namespace eval ::xowiki::includelet {
       if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
         set href [my href $package_id $book_mode $name]
 	set is_current [expr {$open_page eq $name}]
+        set is_open [expr {$is_current || $expand_all}]
         set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
 		   -object $o -owner [self] \
 		   -label $title -prefix $page_number -href $href \
 		   -highlight $is_current \
-		   -expanded [expr {$is_current || $expand_all}] \
+		   -expanded $is_open \
 		   -open_requests 1]
         set tree($level) $c
 	for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
+	if {$is_open} {$c open_tree}
       }
     }
     return $tree(-1)
