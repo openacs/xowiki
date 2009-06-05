@@ -201,6 +201,7 @@ namespace eval ::xowiki {
     }
   }
   TreeRenderer=list instproc render_node {{-open:boolean false} cat_content} {
+    #my msg "[my label] [my expanded]"
     set cl [lindex [my info precedence] 0]
     set o_atts [lindex [$cl li_expanded_atts] [expr {[my expanded] ? 0 : 1}]]
     set h_atts [lindex [$cl highlight_atts] [expr {[my highlight] ? 0 : 1}]]

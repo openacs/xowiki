@@ -1955,7 +1955,7 @@ namespace eval ::xowiki::includelet {
       set page_number [my page_number $page_order $remove_levels]
 
       set new_level [regsub -all {[.]} [$o set page_order] _ page_order_js]
-#    my log "[$o set page_order] [my exists open_node($parent)] || [my exists open_node($page_order)]"
+      #my msg "[$o set page_order] [my exists open_node($parent)] || [my exists open_node($page_order)]"
       if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
         if {$new_level > $level} {
           for {set l $level} {$l < $new_level} {incr l} {
@@ -2124,11 +2124,19 @@ namespace eval ::xowiki::includelet {
             //window.location.href = m\[1\];
             return false;
 	}); 
+        [my js_name].render();
       });
      "
   }
 
-  toc instproc build_tree {{-full false} {-remove_levels 0} {-book_mode false} {-open_page ""} pages} {
+  toc instproc build_tree {
+    {-full false} 
+    {-remove_levels 0} 
+    {-book_mode false} 
+    {-open_page ""} 
+    {-expand_all false} 
+    pages
+  } {
     my instvar package_id
     set tree(-1) [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
     set pos 0
@@ -2140,13 +2148,16 @@ namespace eval ::xowiki::includelet {
       set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
       if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
         set href [my href $package_id $book_mode $name]
+	set is_current [expr {$open_page eq $name}]
         set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
 		   -object $o -owner [self] \
 		   -label $title -prefix $page_number -href $href \
-		   -highlight [expr {$open_page eq $name}] \
-		   -expanded true -open_requests 1]
+		   -highlight $is_current \
+		   -expanded [expr {$is_current || $expand_all}] \
+		   -open_requests 1]
         set tree($level) $c
-        $tree([expr {$level -1}]) add $c
+	for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
+        $tree($l) add $c
       }
     }
     return $tree(-1)
@@ -2174,7 +2185,8 @@ namespace eval ::xowiki::includelet {
     }
 
     set tree [my build_tree -full $full -remove_levels $remove_levels \
-		  -book_mode $book_mode -open_page $open_page $pages]
+		  -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+		  $pages]
 
     set HTML [$tree render -style yuitree -js $js]
     return $HTML
@@ -2196,7 +2208,8 @@ namespace eval ::xowiki::includelet {
     }
 
     set tree [my build_tree -full $full -remove_levels $remove_levels \
-		  -book_mode $book_mode -open_page $open_page $pages]
+		  -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+		  $pages]
 
     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
     set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';"
