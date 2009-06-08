@@ -1781,7 +1781,7 @@ namespace eval ::xowiki::includelet {
           {-style ""} 
           {-open_page ""}
           {-book_mode false}
-          {-ajax true}
+          {-ajax false}
           {-expand_all false}
           {-remove_levels 0}
           {-category_id}
