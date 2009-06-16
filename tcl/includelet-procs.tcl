@@ -1690,7 +1690,8 @@ namespace eval ::xowiki::includelet {
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...
-        set count [db_string [my qn presence_count_users] "$select_count $where_clause"] 
+        set count [db_string [my qn presence_count_users] \
+                       "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
       }
       foreach value  $values {
         foreach {user_id time} $value break
