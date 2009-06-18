@@ -167,7 +167,7 @@ div.xowiki-content .hr {
 #main div.column {text-align: left; margin-bottom: 1em;}
 #content      {float: left; width: 70%;}
 
-#bookNavBar { top: 0px; height: 2px; background-color: #859db8;}
+#bookNavBar { top: 0px; height: 2px; overflow:hidden; background-color: #859db8;float:left;}
 
 #content .box h2 {border-bottom: 1px solid #a1a5a9; padding: 5px; background: #f2f2f2; margin: 0 -5px 5px -5px; font-size: 12px;}
 #sidebar {float: right; top: 0px; width: 29%; font: 10px 'Lucida Grande', Geneva, Verdana, Arial, sans-serif;}

@@ -2081,7 +2081,8 @@ namespace eval ::xowiki::includelet {
 
                      document.getElementById('bookNavNext.a').setAttribute('onclick',onclick);
                      document.getElementById('bookNavRelPosText').innerHTML = percent;
-                     document.getElementById('bookNavBar').setAttribute('style', 'width: ' + percent + ';');
+                     //document.getElementById('bookNavBar').setAttribute('style', 'width: ' + percent + ';');
+                     document.getElementById('bookNavBar').style.width = percent;
 
                      fadeOutAnim.onComplete.subscribe(doFadeIn);
   		     fadeOutAnim.animate();
