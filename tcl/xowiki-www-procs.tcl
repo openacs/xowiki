@@ -581,7 +581,7 @@ namespace eval ::xowiki {
           } elseif {[llength $rhs]>1} {
             lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
             # the following statement is only needed, when we rely on tcl-only
-	    lappend tcl_clause "\[lsearch -exact -- {$rhs} \[my property $lhs\]\] > -1"
+	    lappend tcl_clause "\[lsearch -exact {$rhs} \[my property $lhs\]\] > -1"
           } else {
             lappend sql_clause "$lhs_var $sql_op($op) '$rhs'"
             # the following statement is only needed, when we rely on tcl-only
