@@ -2364,17 +2364,21 @@ namespace eval ::xowiki {
                    -object_class ::xowiki::FormPage]
 
     if {!$use_hstore && $wc(tcl) ne "true"} {
+      # Make sure, that the expr method is available; 
+      # in xotcl 2.0 this will not be needed
+      ::xotcl::alias ::xowiki::FormPage expr -objscope ::expr
+      
       set init_vars $wc(vars)
       foreach p [$items children] {
         array set __ia $init_vars
         array set __ia [$p instance_attributes]
-        if {![$p eval expr $wc(tcl)]} {$items delete $p}
+        if {![$p expr $wc(tcl)]} {$items delete $p}
       }
     }
     return $items
   }
-
-  #
+  
+   #
   # begin property management
   #
 

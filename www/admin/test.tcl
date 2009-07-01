@@ -584,7 +584,7 @@ test subsection "Filter expressions"
 
 ? {::xowiki::FormPage filter_expression \
     "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
-    {tcl {[lsearch -exact -- {created accepted approved tested developed deployed} [my property _state]] > -1&&[my property _assignee] eq {123}} h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}} filter_expr_where_1
+    {tcl {[lsearch -exact {created accepted approved tested developed deployed} [my property _state]] > -1&&[my property _assignee] eq {123}} h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}} filter_expr_where_1
 
 ? {::xowiki::FormPage filter_expression \
     "_assignee<=123 && y>=123" &&} \
@@ -593,12 +593,17 @@ test subsection "Filter expressions"
 
 ? {::xowiki::FormPage filter_expression \
     "betreuer contains en:person1" &&} \
-    {tcl {[lsearch -- $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
+    {tcl {[lsearch $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
     filter_expr_where_3
 
 ? {::xowiki::FormPage filter_expression \
+    "_state=closed" ||} \
+    {tcl {[my property _state] eq {closed}} h {} vars {} sql {{state = 'closed'}}} \
+    filter_expr_unless_1
+
+? {::xowiki::FormPage filter_expression \
     "_state= closed|accepted || x = 1" ||} \
-    {tcl {[lsearch -exact -- {closed accepted} [my property _state]] > -1||$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
+    {tcl {[lsearch -exact {closed accepted} [my property _state]] > -1||$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
     filter_expr_unless_1
 
 
