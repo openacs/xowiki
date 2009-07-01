@@ -1772,7 +1772,11 @@ namespace eval ::xowiki {
     my instvar name mime_type description parent_id package_id creation_user
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
-    set page_link [$package_id pretty_link -download true -parent_id [my parent_id] [my name]]
+
+    set revision_id [[$package_id context] query_parameter revision_id]
+    set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
+    set page_link [$package_id pretty_link -download true -parent_id [my parent_id] -query $query [my name]]
+
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
                -columns {
@@ -1797,7 +1801,7 @@ namespace eval ::xowiki {
 
     if {[string match image/* $mime_type]} {
       set l [Link new -volatile \
-                 -page [self] \
+                 -page [self] -query $query \
                  -type image -name $name -lang "" \
                  -stripped_name $stripped_name -label $label \
                  -parent_id $parent_id -package_id $package_id]
