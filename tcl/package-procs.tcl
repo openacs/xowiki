@@ -538,7 +538,7 @@ namespace eval ::xowiki {
     # provide links based in untrusted_user_id
     set party_id [::xo::cc set untrusted_user_id]
     if {[info exists privilege]} {
-      #my log "-- checking priv $privilege for [self args]"
+      my log "-- checking priv $privilege for [self args]"
       set granted [expr {$privilege eq "public" ? 1 :
                          [::xo::cc permission -object_id $id -privilege $privilege -party_id $party_id] }]
     } else {
@@ -552,9 +552,9 @@ namespace eval ::xowiki {
 	my log "error in check_permissions: $errorMsg"
 	set granted 0
       }
-      #my msg "--p $id check_permissions $object $method ==> $granted"
+      my log "--p $id check_permissions $object $method ==> $granted"
     }
-    #my log "granted=$granted $computed_link"
+    my log "granted=$granted $computed_link"
     if {$granted} {
       return $computed_link
     }
@@ -1506,6 +1506,7 @@ namespace eval ::xowiki {
         {package_id write}
       }
       save-form-data     {{package_id write}}
+      save-attributes    {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}
@@ -1559,6 +1560,7 @@ namespace eval ::xowiki {
         {{regexp {name {(weblog|index)$}}} package_id admin} 
         {package_id write}
       }
+      save-attributes    {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    swa
       delete             swa
@@ -1612,6 +1614,7 @@ namespace eval ::xowiki {
       diff               {{item_id write}}
       edit               {{item_id write}}
       make-live-revision {{item_id write}}
+      save-attributes    {{package_id write}}
       delete-revision    swa
       delete             swa
       save-tags          login
@@ -1675,6 +1678,7 @@ namespace eval ::xowiki {
       revisions          {{item_id write}}
       diff               {{item_id write}}
       edit               {{item_id write}}
+      save-attributes    {{item_id write}}
       make-live-revision {{item_id write}}
       delete-revision    swa
       delete             swa

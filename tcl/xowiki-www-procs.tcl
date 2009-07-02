@@ -1088,6 +1088,10 @@ namespace eval ::xowiki {
   }
 
   Page instproc save_attributes {} {
+    my log "**** Method save_attributes is deprecated, use save-attributes instead"
+    my save-attributes
+  }
+  Page instproc save-attributes {} {
     my instvar package_id
     set field_names [my field_names]
     set form_fields [list]
