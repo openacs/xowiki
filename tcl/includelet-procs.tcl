@@ -951,7 +951,7 @@ namespace eval ::xowiki::includelet {
                      -orderby "publish_date desc"]
 
     foreach entry [$listing children] {
-        $entry instvar name parent_id title formatted_date page_id 
+        $entry instvar name parent_id formatted_date page_id {title entry_title}
         set entry_package_id [$entry set package_id]
       
         set page_link [[my package_id] pretty_link -parent_id $parent_id $name]
@@ -962,7 +962,7 @@ namespace eval ::xowiki::includelet {
 	}
 
         t1 add \
-            -title $title \
+            -title $entry_title \
             -title.href $page_link \
             -date $age
 
