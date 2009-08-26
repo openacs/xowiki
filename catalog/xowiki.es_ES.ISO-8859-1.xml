@@ -2,13 +2,18 @@
 <message_catalog package_key="xowiki" locale="es_ES" charset="ISO-8859-1">
 
   <msg key="admin">Administrar</msg>
+  <msg key="admin_title">Administrar este paquete</msg>
   <msg key="back">Volver</msg>
   <msg key="categories">Categorías</msg>
   <msg key="content">Contenido</msg>
   <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="delete">Borrar</msg>
+  <msg key="delete_title">Borrar esta página</msg>
+  <msg key="details">Detalles</msg>
   <msg key="edit">Editar</msg>
   <msg key="edit_link">editar tags</msg>
+  <msg key="edit_title">Editar esta página</msg>
+  <msg key="entries_using_form">Entradas para la forma %form%</msg>
   <msg key="Form-form">Forme</msg>
   <msg key="index">Índice</msg>
   <msg key="new_page">Nueva Página</msg>
@@ -38,7 +43,11 @@
   <msg key="references_label">Referencias a esta Página:</msg>
   <msg key="revisions">Revisiones</msg>
   <msg key="search">Buscar</msg>
+  <msg key="search_title">Buscar páginas de este paquete</msg>
+  <msg key="title">Título</msg>
+  <msg key="title_of_event">Título</msg>
   <msg key="view">Vista</msg>
+  <msg key="view_title">Ver esta página</msg>
   <msg key="weblog-more">más...</msg>
   <msg key="your_tags_label">Tus tags</msg>
 </message_catalog>
