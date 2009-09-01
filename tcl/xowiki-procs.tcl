@@ -1627,10 +1627,12 @@ namespace eval ::xowiki {
 	return $f
       }
     }
-    set names [list]
-    foreach f $form_fields {lappend names [$f name]}
-    my msg "No form field with name $name found\
+    if {[lsearch -exact [list fontname fontsize formatblock]  $name] == -1} {
+      set names [list]
+      foreach f $form_fields {lappend names [$f name]}
+      my msg "No form field with name '$name' found\
 	(available fields: [lsort [array names ::_form_field_names]])"
+    }
     set f [my create_form_fields_from_form_constraints [list $name:text]]
     set $key $f
     return $f
