@@ -3220,7 +3220,7 @@ namespace eval ::xowiki::includelet {
       switch $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         publish_status -  category_id - unless -
-        where -   with_categories - csv - voting_form -
+        where -   with_categories - with_form_link - csv - voting_form -
         voting_form_form - voting_form_anon_instances {
           set $attr $value
           #my msg " set $attr $value"
@@ -3263,7 +3263,7 @@ namespace eval ::xowiki::includelet {
 
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
-    # TODO: wiki-substituion is just hacked in here. maybe it makes
+    # TODO: wiki-substitution is just foced in here. Maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
     if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
@@ -3699,5 +3699,39 @@ namespace eval ::xowiki::includelet {
   gravatar instproc render {} {
     my get_parameters
     return "<img src='[gravatar url -email $email -size $size]' alt='$email'>"
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # random-form-page 
+  #
+  ::xowiki::IncludeletClass create random-form-page  \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-form:required}
+          {-publish_status "ready"}
+        }}
+      }
+ 
+  random-form-page instproc render {} {
+    my get_parameters
+    set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+    set form_fields [::xowiki::FormPage get_table_form_fields \
+                         -base_item [lindex $form_item_ids 0] -field_names _name \
+                         -form_constraints ""]
+    set items [::xowiki::FormPage get_form_entries \
+                   -base_item_ids $form_item_ids -form_fields $form_fields \
+                   -publish_status $publish_status \
+                   -package_id $package_id]
+    set random_element [expr { int([llength [$items children]] * rand()) }]
+    set random_item [lindex [$items children] $random_element]
+    if {$random_item eq ""} {
+      return ""
+    } {
+      return [[my set __including_page] include [list [$random_item name] -decoration none]]
+    }
   }
 }
