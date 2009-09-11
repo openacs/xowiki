@@ -517,6 +517,13 @@ namespace eval ::xowiki::formfield {
   FormField instproc answer_check=match {} {
     return [string match [lindex [my correct_when] 1] [my value]]
   }
+  FormField instproc answer_check=answer_words {} {
+    set value [regsub -all { +} [my value] " "]
+    if {[string match "*lower*" [lindex [my correct_when] 1]]} {
+      set value [string tolower $value]
+    }
+    return [expr {$value eq [my answer]}]
+  }
 
   FormField instproc answer_is_correct {} {
     #my msg "[my name] ([my info class]): value=[my value], answer=[expr {[my exists answer]?[my set answer]:{NONE}}]"
