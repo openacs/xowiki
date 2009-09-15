@@ -591,9 +591,10 @@ namespace eval ::xowiki {
     } else {
       # the requested page was not found, provide an error message and 
       # an optional link for creating the page
-      set edit_snippet [my create_new_snippet [my set object]]
+      set path [::xowiki::Includelet html_encode [my set object]]
+      set edit_snippet [my create_new_snippet $path]
       return [my error_msg -template_file $error_template \
-		  "Page <b>'[my set object]'</b> is not available. $edit_snippet"]
+		  "Page <b>'$path'</b> is not available. $edit_snippet"]
     }
   }
 
