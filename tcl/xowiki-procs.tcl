@@ -137,11 +137,11 @@ namespace eval ::xowiki {
         ::xo::db::CrAttribute create state -default ""
       }
 
+  # create various extra tables, indices and views
+  #
   ::xo::db::require index -table xowiki_form_page -col assignee
   ::xo::db::require index -table xowiki_page_instance -col page_template
 
-  # create various extra tables, indices and views
-  #
   ::xo::db::require table xowiki_references \
         "reference integer references cr_items(item_id) on delete cascade,
          link_type [::xo::db::sql map_datatype text],

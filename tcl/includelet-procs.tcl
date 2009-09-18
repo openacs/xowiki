@@ -34,7 +34,7 @@ namespace eval ::xowiki::includelet {
         {id}
       }
 
-  ::xowiki::Includelet proc require_YUI_CSS {{-version 2.7.0} {-ajaxhelper true} path} {
+  ::xowiki::Includelet proc require_YUI_CSS {{-version 2.8.0r4} {-ajaxhelper true} path} {
     if {$ajaxhelper} {
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/$path"
     } else {
@@ -42,7 +42,7 @@ namespace eval ::xowiki::includelet {
     }
   }
 
-  ::xowiki::Includelet proc require_YUI_JS {{-version 2.7.0} {-ajaxhelper true} path} {
+  ::xowiki::Includelet proc require_YUI_JS {{-version 2.8.0r4} {-ajaxhelper true} path} {
     if {$ajaxhelper} {
       ::xo::Page requireJS "/resources/ajaxhelper/yui/$path"
     } else {
