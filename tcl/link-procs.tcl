@@ -67,12 +67,24 @@ namespace eval ::xowiki {
     if {![my exists label]}      {my label $name}
     if {![my exists parent_id]}  {my parent_id [$page parent_id]}
     if {![my exists package_id]} {my package_id [$page package_id]}
-
     #my msg "--L link has class [my info class] // $class"
   }
+  Link instproc link_name {-lang -stripped_name} {
+    return $lang:$stripped_name
+  }
   Link instproc resolve {} {
-    #my msg "--lookup of [my name] -page [my page] -> [[my package_id] lookup -name [my name] -parent_id [my parent_id]]"
-    return [[my package_id] lookup -name [my name] -parent_id [my parent_id]]
+    my instvar package_id lang
+    set parent_id [$package_id get_parent_and_name -lang [my lang] \
+                       -path [my stripped_name] -folder_id [my parent_id] \
+                       parent local_name]
+    if {$parent eq ""} {
+      set parent_id [my parent_id]
+      set name [my name]
+    } else {
+      set name [my link_name -lang [my lang] -stripped_name $local_name]
+    }
+    #my msg "parent=$parent, parent_id=$parent_id, name='$name'"
+    return [$package_id lookup -name $name -parent_id $parent_id]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
@@ -85,6 +97,41 @@ namespace eval ::xowiki {
 	<a [my mk_css_class] href='$href'> \] </a>"
     }
   }
+  Link instproc pretty_link {item_id} {
+    my instvar package_id
+    return [::$package_id pretty_link -lang [my lang] \
+                -anchor [my anchor] -query [my query] [my name]]
+  }
+  Link instproc new_link {} {
+    my instvar package_id
+    set page [my page]
+    if {[$page exists __unresolved_object_type]} {
+      # get the desired object_type for unresoved entries
+      set object_type [$page set __unresolved_object_type]
+    } else {
+      set object_type [[$page info class] set object_type]
+      if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
+        # TODO: this is a temporary solution. we should find a way to
+        # pass similar to file or image entries the type of this
+        # entry. Maybe we can get the type as well from a kind of
+        # blackboard, where the type of the "edit" wiki-menu-entry is
+        # stored as well.
+        set object_type ::xowiki::Page
+      }
+    }
+    set parent_id [$package_id get_parent_and_name -path [my stripped_name] \
+                       -lang [my lang] -folder_id [$package_id folder_id] \
+                       parent local_name]
+    if {$parent eq ""} {
+      set parent_id ""
+      set name [my name]
+    } else {
+      set name [my lang]:$local_name
+    }
+    return [$page new_link -name $name -title [my label] -parent_id $parent_id \
+                -nls_language [$page nls_language] $package_id]
+  }
+
   Link instproc render {} {
     my instvar package_id
     set page [my page]
@@ -93,30 +140,10 @@ namespace eval ::xowiki {
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      set href [::$package_id pretty_link -lang [my lang] \
-		    -anchor [my anchor] -query [my query] [my name]]
-      my render_found $href [my label]
+      my render_found [my pretty_link $item_id] [my label]
     } else {
       $page incr unresolved_references
-      if {[$page exists __unresolved_object_type]} {
-	# get the desired object_type for unresoved entries
-	set object_type [$page set __unresolved_object_type]
-      } else {
-	set object_type [[$page info class] set object_type]
-	if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
-	  # TODO: this is a temporary solution. we should find a way to
-	  # pass similar to file or image entries the type of this
-	  # entry. Maybe we can get the type as well from a kind of
-	  # blackboard, where the type of the "edit" wiki-menu-entry is
-	  # stored as well.
-	  set object_type ::xowiki::Page
-	}
-      }
-      set new_link [$page new_link -name [my name] -title [my label] \
-			-nls_language [$page nls_language] $package_id]
-      #set href [export_vars -base [$package_id package_url] \
-      #              {{edit-new 1} object_type name title}]
-
+      set new_link [my new_link]
       set html [my render_not_found $new_link [my label]]
       $page lappend __unresolved_references $html
       return $html
@@ -139,11 +166,44 @@ namespace eval ::xowiki {
     return 0
   }
 
+  #
+  # folder links
+  #
+  Class create ::xowiki::Link::folder -superclass ::xowiki::Link
+  ::xowiki::Link::folder instproc link_name {-lang -stripped_name} {
+    return $stripped_name
+  }
+  ::xowiki::Link::folder instproc pretty_link {item_id} {
+    my instvar package_id
+    set folder [::xo::db::CrFolder get_instance_from_db -item_id $item_id]
+    return [::$package_id pretty_link \
+                -anchor [my anchor] -parent_id [$folder parent_id] -query [my query] [$folder name] ]
+  }
+  ::xowiki::Link::folder instproc new_link {} {
+    my instvar package_id
+    set page [my page]
+    set parent_id [$package_id get_parent_and_name \
+                       -path [my name] -folder_id [$page parent_id] -lang [my lang] \
+                       parent local_name]
+    if {$parent eq ""} {
+      set parent_id [my parent_id]
+      set name [my name]
+    } else {
+      set name $local_name
+    }
+    return [$package_id make_link -with_entities 0 \
+                $package_id \
+                edit-new \
+                [list object_type ::xo::db::CrFolder] \
+                [list name $local_name] \
+                [list parent_id $parent_id] \
+                [list return_url [::xo::cc url]] \
+                autoname]
+  }
 
   #
   # language links
   #
-
   Class create ::xowiki::Link::language -superclass ::xowiki::Link -parameter {
     return_only
   }

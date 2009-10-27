@@ -1255,6 +1255,7 @@ namespace eval ::xowiki {
 
     set parent_id [$package_id folder_id]
     set name ""
+
     if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
       # language link (it starts with a ':')
       set link_type language
@@ -1263,6 +1264,12 @@ namespace eval ::xowiki {
       # (typed) file links
       set lang ""
       set name file:$stripped_name
+    } elseif {[regexp {^\./(.*)/$} $link _ stripped_name]} {
+      # relative folder link, starting with a "./", ending with a "/"
+      set link_type folder
+      set lang ""
+      set name $stripped_name
+      #my msg "folder link, lang=$lang, stripped_name='$stripped_name', name='$name', label=$label"
     } else {
       # do we have a typed link? prefix has more than two chars...
       if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \

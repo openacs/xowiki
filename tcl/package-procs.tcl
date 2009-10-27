@@ -146,7 +146,7 @@ namespace eval ::xowiki {
   Package instproc get_parent_and_name {-path:required -lang:required -folder_id:required vparent vlocal_name} {
     my upvar $vparent parent $vlocal_name local_name 
     #my log "path=$path folder_id=$folder_id"
-    if {[regexp {^([^/]+)/(.*)$} $path _ parent local_name]} {
+    if {[regexp {^([^/]+)/(.+)$} $path _ parent local_name]} {
       # pages are stored with a lang prefix
       set p [::xo::db::CrClass lookup -name ${lang}:$parent -parent_id $folder_id]
       #my log "check '$parent' returned $p"
@@ -155,7 +155,7 @@ namespace eval ::xowiki {
         set p [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
       }
       if {$p != 0} {
-        if {[regexp {^([^/]+)/(.*)$} $local_name _ parent2 local_name2]} {
+        if {[regexp {^([^/]+)/(.+)$} $local_name _ parent2 local_name2]} {
           set p2 [my get_parent_and_name -path $local_name -lang $lang -folder_id $p parent local_name]
           #my log "recursive call for '$local_name' parent_id=$p returned $p2"
           if {$p2 != 0} {
@@ -168,7 +168,8 @@ namespace eval ::xowiki {
       }
     }
     set parent ""
-    set local_name $path
+    # a trailing slash indicates a directory, remove it from the path
+    set local_name [string trimright $path /]
     return $folder_id
   }
 
@@ -599,7 +600,7 @@ namespace eval ::xowiki {
 
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     set page [my resolve_page [my set object] method]
-    #my log "--r resolve_page returned $page [$page name]"
+    #my log "--r resolve_page => $page"
     if {$page ne ""} {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
@@ -639,7 +640,6 @@ namespace eval ::xowiki {
   }
 
   Package instproc resolve_page {{-use_search_path true} {-simple false} -lang object method_var} {
-    my log "resolve_page '$object'"
     upvar $method_var method
     my instvar id
 
@@ -648,6 +648,7 @@ namespace eval ::xowiki {
       set lang [my default_language]
     }
 
+    #my log "resolve_page '$object', default-lang $lang"
     #
     # First, resolve package level methods, 
     # having the syntax PACKAGE_URL?METHOD&....
@@ -768,7 +769,6 @@ namespace eval ::xowiki {
   }
 
   Package instproc lookup {{-default_lang ""} -name:required -parent_id} {
-    #
     # Lookup of names from a given parent_id or from the list of
     # configured instances (obtained via package_path).
     #
@@ -780,7 +780,7 @@ namespace eval ::xowiki {
     
     if {![info exists parent_id]} {set parent_id [$(package_id) folder_id]}
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
-    #my msg "lookup $name $parent_id in package $(package_id) returns $item_id"
+    #my msg "lookup $(page_name) $parent_id in package $(package_id) returns $item_id"
     if {$item_id == 0} {
       #
       # Is the page inherited along the package path?
@@ -885,14 +885,14 @@ namespace eval ::xowiki {
         
         my get_lang_and_name -default_lang $default_lang -path $nname lang stripped_name
         set name ${lang}:$stripped_name
-        #my log "--setting name to '$name', stripped_name='$stripped_name'"
+        #my log "--setting name to '$name', lang=$lang, stripped_name='$stripped_name'"
 
         if {$lang eq "download/file" || $lang eq "file"} { 
           # handle subitems, currently only for files
           set parent_id [my get_parent_and_name -lang $lang \
                              -path $stripped_name -folder_id $folder_id \
                              parent local_name]
-          #my log "get_parent_and_named returned parent_id=$parent_id, name='$local_name'"
+          #my log "get_parent_and_name returned parent_id=$parent_id, name='$local_name'"
 	  set item_id [::xo::db::CrClass lookup -name file:$local_name -parent_id $parent_id]
           #my log "item_id for file:$local_name = $item_id"
 	  if {$item_id != 0 && $lang eq "download/file"} {
@@ -913,11 +913,18 @@ namespace eval ::xowiki {
 	}
 
         if {$item_id == 0} {
+          # in case we have a folder "foldername" and a page "foldername/xxx", the page has
+          # higher priority.
+          set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
+          #my log "default_lang=$lang, ${lang}:$stripped_name => $item_id\n"
+        }
+
+        if {$item_id == 0} {
           set parent_id [my get_parent_and_name -lang $lang \
                              -path $stripped_name -folder_id $folder_id \
                              parent local_name]
-          #my log "get_parent_and_named returned parent=$parent, parent_id=$parent_id, name='$local_name'"
-          my get_lang_and_name -default_lang $default_lang -path $local_name lang stripped_name
+          #my log "get_parent_and_name returned parent=$parent, parent_id=$parent_id, deflang $lang name='$local_name'"
+          my get_lang_and_name -default_lang $lang -path $local_name lang stripped_name
           set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
           #my log "--try  ${lang}:$stripped_name ($folder_id/$parent_id) -> $item_id"
         }
@@ -1295,8 +1302,10 @@ namespace eval ::xowiki {
     my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
     set autoname [my get_parameter autoname 0]
-    set page [$object_type new -volatile -parent_id $folder_id -package_id $id]
-
+    set parent_id [$id query_parameter parent_id ""]
+    if {$parent_id eq ""} {set parent_id [$id form_parameter folder_id $folder_id]}
+    set page [$object_type new -volatile -parent_id $parent_id -package_id $id]
+    my log "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id"
     if {$object_type eq "::xowiki::PageInstance"} {
       #
       # If we create a PageInstance via the ad_form based

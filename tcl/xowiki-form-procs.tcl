@@ -50,7 +50,6 @@ namespace eval ::xowiki {
     my instvar data autoname
     set __fields ""
     set field_list [my field_list]
-
     set show_page_order [[$data package_id] show_page_order]
     if {!$show_page_order} { my f.page_order "= hidden" } 
     if {$autoname}         { my f.name       "= hidden,optional"}
@@ -128,9 +127,7 @@ namespace eval ::xowiki {
     # setting form fields for later use in validator
     # $data show_fields $form_fields
     my set form_fields $form_fields
-
     my set fields $__fields
-
   }
 
   proc ::xowiki::locales {} {

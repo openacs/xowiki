@@ -183,7 +183,7 @@ namespace eval ::xowiki {
       set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
       set create_in_req_locale_link ""
 
-      $context_package_id instvar folder_id  ;# this is the root folder
+
       if {[$context_package_id get_parameter use_connection_locale 0]} {
         $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
         set default_lang [$page_package_id default_language]
@@ -191,7 +191,7 @@ namespace eval ::xowiki {
           set l [Link create new -destroy_on_cleanup \
                      -page [self] -type language -stripped_name $req_local_name \
                      -name ${default_lang}:$req_local_name -lang $default_lang \
-                     -label $req_local_name -parent_id $folder_id \
+                     -label $req_local_name -parent_id [my parent_id] \
                      -package_id $context_package_id -init \
                      -return_only undefined]
           $l render
@@ -199,6 +199,7 @@ namespace eval ::xowiki {
       }
 
       #my log "--after context delete_link=$delete_link "
+      $context_package_id instvar folder_id  ;# this is the root folder
       set template [$folder_id get_payload template]
       set page [self]
 
@@ -270,33 +271,26 @@ namespace eval ::xowiki {
 
 
 namespace eval ::xowiki {
-  Page instproc new_link {-name -title -nls_language page_package_id} {
+  Page instproc new_link {-name -title -nls_language -parent_id page_package_id} {
+    if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
     return [$page_package_id make_link -with_entities 0 $page_package_id \
 		edit-new object_type name title nls_language return_url autoname]
   }
 
-  Page instproc edit {
-    {-new:boolean false} 
-    {-autoname:boolean false}
-    {-validation_errors ""}
-  } {
-    my instvar package_id item_id revision_id
-    $package_id instvar folder_id  ;# this is the root folder
-
-    #my msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors"
-
+  Page instproc edit_set_default_values {} {
+    my instvar package_id
     # set some default values if they are provided
     foreach key {name title page_order last_page_id nls_language} {
       if {[$package_id exists_query_parameter $key]} {
+        #my log "setting [self] set $key [$package_id query_parameter $key]"
         my set $key [$package_id query_parameter $key]
       }
-    }
-    # the following is handled by new-request of the wiki form
-    #if {$new} {
-      #my set creator [::xo::get_user_name [::xo::cc user_id]]
-      #my set nls_language [ad_conn locale]
-    #}
+    }    
+  }
 
+  Page instproc edit_flush_folder_object {new} {
+    my instvar package_id
+    set folder_id [$package_id folder_id]; # this is the root folder
     set object_type [my info class]
     if {!$new && $object_type eq "::xowiki::Object" && [my set name] eq "::$folder_id"} {
       # if we edit the folder object, we have to do some extra magic here, 
@@ -307,31 +301,45 @@ namespace eval ::xowiki {
       my move ::$folder_id
       set page ::$folder_id
       #ns_log notice "--move page=$page"
-    } 
-
+    }     
+  }
+  Page instproc edit_set_file_selector_folder {} {
     #
     # setting up folder id for file selector (use community folder if available)
     #
-    set fs_folder_id ""
     if {[info commands ::dotlrn_fs::get_community_shared_folder] ne ""} {
       # ... we have dotlrn installed
       set cid [::dotlrn_community::get_community_id]
       if {$cid ne ""} {
         # ... we are inside of a community, use the community folder
-        set fs_folder_id [::dotlrn_fs::get_community_shared_folder -community_id $cid]
+        return [::dotlrn_fs::get_community_shared_folder -community_id $cid]
       }
     }
+    return ""
+  }
 
-    # the following line is like [$package_id url], but works as well with renamed objects
-    # set myurl [$package_id pretty_link [my form_parameter name]]
+  Page instproc edit {
+    {-new:boolean false} 
+    {-autoname:boolean false}
+    {-validation_errors ""}
+  } {
+    my instvar package_id item_id revision_id parent_id
+    #my msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=[my parent_id]"
+    my edit_set_default_values
+    my edit_flush_folder_object $new
+    set fs_folder_id [my edit_set_file_selector_folder]
 
-    if {[my exists_query_parameter "return_url"]} {
+    if {[$package_id exists_query_parameter "return_url"]} {
       set submit_link [my query_parameter "return_url" "."]
       set return_url $submit_link
     } else {
-      set submit_link "."
+      # before we used "." as default submit link (resulting in a "ad_returnredirect ."). 
+      # However, this does not seem to work in case we have folders in use....
+      #set submit_link "."
+      set submit_link [$package_id pretty_link -parent_id [my parent_id] [my name]]
     }
     #my log "--u submit_link=$submit_link qp=[my query_parameter return_url]"
+    set object_type [my info class]
 
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parselevel, so we have to be in
@@ -389,19 +397,18 @@ namespace eval ::xowiki {
     ::xo::Page set_property doc title "[$package_id instance_name] - $edit_form_page_title"
 
     array set property_doc [::xo::Page get_property doc]
-    set html [$package_id return_page -adp /packages/xowiki/www/edit \
+    set tmpl [acs_root_dir]/packages/[[my package_id] package_key]/www/edit
+    set edit_tmpl [expr {[file readable $tmpl] ? $tmpl : "/packages/xowiki/www/edit" }]
+    set html [$package_id return_page -adp $edit_tmpl \
                   -form f1 \
-                  -variables {item_id edit_form_page_title context formTemplate
+                  -variables {item_id parent_id edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link property_doc}]
     template::util::lpop parse_level
     #my log "--edit html length [string length $html]"
     return $html
   }
 
-  Page instproc find_slot {-start_class name} {
-    if {![info exists start_class]} {
-      set start_class [my info class]
-    }
+  Page proc find_slot {-start_class:required name} {
     foreach cl [concat $start_class [$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
       if {[my isobject $slotobj]} {
@@ -410,6 +417,12 @@ namespace eval ::xowiki {
       }
     }
     return ""
+  }
+  Page instproc find_slot {-start_class name} {
+    if {![info exists start_class]} {
+      set start_class [my info class]
+    }
+    return [::xowiki::Page find_slot -start_class $start_class $name]
   }
   
   Page instproc create_raw_form_field {
@@ -1109,7 +1122,7 @@ namespace eval ::xowiki {
         [my get_form_data -field_names $query_field_names $form_fields] break
     if {$validation_errors == 0} {
       #
-      # we have no validation erros, so we can save the content
+      # we have no validation errors, so we can save the content
       #
       set update_without_revision [$package_id query_parameter replace 0]
 
@@ -1308,7 +1321,7 @@ namespace eval ::xowiki {
         my set name [my form_parameter __object_name]
       } else {
         #
-        # we have no validation erros, so we can save the content
+        # we have no validation errors, so we can save the content
         #
         my save_data \
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
@@ -1865,7 +1878,7 @@ namespace eval ::xowiki {
         return [$original_package_id error_msg \
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
-      my parent_id [$package_id folder_id]
+      if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
     }
 
     #
