@@ -3607,7 +3607,7 @@ namespace eval ::xowiki::includelet {
     set ajaxhelper 0
     ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper carousel/assets/skins/sam/carousel.css
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "element/element-beta-min.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "element/element-min.js"
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "carousel/carousel-beta-min.js"
     ::xo::Page set_property body class "yui-skin-sam "
 
