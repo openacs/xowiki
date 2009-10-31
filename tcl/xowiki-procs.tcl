@@ -1256,15 +1256,19 @@ namespace eval ::xowiki {
     set parent_id [$package_id folder_id]
     set name ""
 
-    if {[regexp {^:(..):(.*)$} $link _ lang stripped_name]} {
+    if {[regexp {^:(..):(.+)$} $link _ lang stripped_name]} {
       # language link (it starts with a ':')
       set link_type language
-    } elseif {[regexp {^(file|image|js|css|swf):(.*)$} $link _ \
+    } elseif {[regexp {^(file|image|js|css|swf|folder):(.+)$} $link _ \
 		   link_type stripped_name]} {
       # (typed) file links
       set lang ""
-      set name file:$stripped_name
-    } elseif {[regexp {^\./(.*)/$} $link _ stripped_name]} {
+      if {$link_type ne "folder"} {
+        set name file:$stripped_name
+      } else {
+        set name $stripped_name
+      }
+    } elseif {[regexp {^\./(.+)/$} $link _ stripped_name]} {
       # relative folder link, starting with a "./", ending with a "/"
       set link_type folder
       set lang ""

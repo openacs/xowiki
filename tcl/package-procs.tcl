@@ -192,15 +192,15 @@ namespace eval ::xowiki {
       # will be found by the object resolver. For the time being, we
       # do nothing more about this.
       
-      # TODO: on the longer ranger, this should not be required, but we have
-      # to solve the folder object problem first...
-      if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
-        set queryClass ::xo::db::CrFolder
-      } else {
-        set queryClass ::xo::db::CrClass
-      }
       set path ""
       while {1} {
+        # TODO: on the longer range, this should not be required, but we have
+        # to solve the folder object problem first...
+        if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
+          set queryClass ::xo::db::CrFolder
+        } else {
+          set queryClass ::xo::db::CrClass
+        }
         set fo [$queryClass get_instance_from_db -item_id $parent_id]
         set path [$fo name]/$path
         if {[my folder_id] == [$fo parent_id]} break
@@ -276,7 +276,11 @@ namespace eval ::xowiki {
       set package_prefix [my package_url]
     }
     #my msg "lang=$lang, default_lang=$default_lang, name=$name"
-
+    
+    if {$parent_id eq -100} {
+      return ${host}${package_prefix}$query$anchor
+    }
+    
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
 
