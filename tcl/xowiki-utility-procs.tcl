@@ -37,6 +37,14 @@ namespace eval ::xowiki {
     }
   }
 
+  proc delete_parameter {from} {
+    set parameter_obj [::xo::parameter get_parameter_object \
+                           -parameter_name $from -package_key xowiki]
+    if {$parameter_obj eq ""} {error "no such parameter $from"}
+    apm_parameter_unregister -package_key [$parameter_obj package_key] [string trimleft $parameter_obj :]
+    $parameter_obj destroy
+  }
+
   ad_proc fix_all_package_ids {} {
     earlier versions of openacs did not have the package_id set correctly
     in acs_objects; this proc updates the package_ids of all items

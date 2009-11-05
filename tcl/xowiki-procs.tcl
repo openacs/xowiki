@@ -1184,8 +1184,23 @@ namespace eval ::xowiki {
     return [string map [list "&gt;" > "&lt;" < "&quot;" \" "&amp;" & "&semicolon;" {;} ] $string]
   }
 
+  Page instproc get_anchor_and_query {link} {
+    #
+    # strip anchor and query from link name
+    #
+    set anchor ""
+    set query ""
+    # remove anchor
+    regexp {^([^#]*)(\#|%23)(.*)$} $link _ link . anchor
+    # remove query part
+    regexp {^(.*)[?]([^?]+)$} $link _ link query
+    return [list link $link anchor $anchor query $query]
+  }
 
   Page instproc normalize_internal_link_name {name stripped_name lang} {
+    #
+    # strip anchor and query from link name
+    #
     set anchor ""
     set query ""
     # remove anchor
@@ -1206,6 +1221,167 @@ namespace eval ::xowiki {
     #my msg result=[list name $name lang $lang normalized_name $normalized_name anchor $anchor]
     return [list name $name lang $lang normalized_name $normalized_name anchor $anchor query $query]
   }
+
+  #
+  # Resolving item refs 
+  # (symbolic references to content items and content folders)
+  #
+
+  Page ad_instproc item_ref {
+    -default_lang:required 
+    -parent_id:required 
+    link
+  } {
+
+    An item_ref refers to an item in the content repository relative
+    to some parent_id. The item might be either a folder or some kind
+    of "page" (e.g. a file). An item_ref might be complex,
+    i.e. consist of a path of simple_item_refs, separated by "/".
+    An item_ref stops at the first unknown part in the path and
+    returns item_id == 0 and the appropriate parent_id (and name etc.) 
+    for insertion.
+
+  } {
+    # A trailing slash says that the last element is a folder. We
+    # substitute it to allow easy iteration over the slash separated
+    # segments.
+    if {[string match */ $link]} {
+      set link [string trimright $link /]\0
+    }
+    # Iterate until the first unknown element appears in the path
+    # (we can handle only one unknown at a time).
+    set elements [split $link /]
+    set nr_elements [llength $elements]
+    set n 0
+    foreach element $elements {
+      set (last_parent_id) $parent_id
+      array set "" [my simple_item_ref \
+                        -default_lang $default_lang \
+                        -parent_id $parent_id \
+                        -assume_folder [expr {[incr n]<$nr_elements}] \
+                        $element]
+      if {$(item_id) == 0} {
+        set parent_id $(parent_id)
+        break
+      } else {
+        set parent_id $(item_id)
+      }
+    }
+
+    # the following 2 lines are just for now:
+    #set name [expr {$(prefix) eq "" ? $(stripped_name) : "$(prefix):$(stripped_name)"}]
+    #set url [[my package_id] pretty_link -parent_id $(parent_id) $name]
+    #
+
+    return [list link_type $(link_type) \
+                prefix $(prefix) stripped_name $(stripped_name) \
+                item_id $(item_id) parent_id $(parent_id)]
+  }
+
+  Page instproc item_id_ref {
+    item_id
+  } {
+    db_1row "get_name" "select name,parent_id from cr_items where item_id = '$item_id'"
+    set type [::xo::db::Class get_object_type -id $item_id]
+    #my log "lookup returned name=$name (type $type)"
+    if {$type eq "content_folder"} {
+      return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
+    } else {
+      regexp {^(.+):(.+)$} $name _ prefix stripped_name
+      return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
+    }
+  }
+ 
+  Page instproc simple_item_ref {
+    -default_lang:required 
+    -parent_id:required 
+    {-assume_folder:required false}
+    element
+  } {
+    #my log el=$element-assume_folder=$assume_folder
+    set element [[my package_id] normalize_name $element]
+
+    if {[regexp {^(file|image|js|css|swf|folder):(.+)$} $element _ \
+             (link_type) (stripped_name)]} {
+      # (typed) file links
+      if {$(link_type) ne "folder"} {
+        set (prefix) file
+        set name file:$(stripped_name)
+      } else {
+        set (prefix) ""
+        set name $(stripped_name)
+      }
+    } elseif {[regexp {^(..):(.+)$} $element _ (prefix) (stripped_name)]} {
+      array set "" [list link_type "link"]
+      set name $(prefix):$(stripped_name)
+    } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
+      set name $(stripped_name)
+      array set "" [list link_type "folder" prefix ""]
+    } elseif {$assume_folder} {
+      array set "" [list link_type "folder" prefix "" stripped_name $element]
+      set name $element
+    } else {
+      array set "" [list link_type "link" prefix $default_lang stripped_name $element]
+      set name $default_lang:$element
+    }
+    set name [string trimright $name \0]
+    set (stripped_name) [string trimright $(stripped_name) \0]
+
+    if {$element eq "." || $element eq ".\0"} {
+      array set "" [my item_id_ref $parent_id]
+      set item_id $parent_id
+      set parent_id $(parent_id)
+    } elseif {$element eq ".." || $element eq "..\0"} {
+      db_1row "get_parent" "select parent_id as id from cr_items where item_id = :parent_id"
+      if {$id > 0} {
+        # refuse to traverse past root folder
+        set parent_id $id
+      }
+      array set "" [my item_id_ref $parent_id]
+      set item_id $parent_id
+      set parent_id $(parent_id)
+    } else {
+      # with the following construct we need in most cases just 1 lookup
+      set item_id [[my package_id] lookup -name $name -parent_id $parent_id]
+      if {$item_id == 0} {
+        #my log "element '$element', name=$name, item_id=$item_id $assume_folder && $(link_type)"
+        if {!$assume_folder && $(link_type) eq "link"} {
+          # try again, maybe element is folder, default-assumption was wrong
+          set item_id [[my package_id] lookup -name $(stripped_name) -parent_id $parent_id]
+          if {$item_id > 0} {array set "" [list link_type "folder" prefix ""]}
+        } elseif {$assume_folder && $(link_type) eq "folder"} {
+          # try again, maybe element is page, default-assumption was wrong
+          set item_id [[my package_id] lookup -name $default_lang:$(stripped_name) -parent_id $parent_id]
+          if {$item_id > 0} {array set "" [list link_type "link" prefix $default_lang]}
+        }
+        if {$item_id == 0 && [string match *.* $element]} {
+          # The item is still unknown, try name-based lookup. Does the
+          # entry look like a file with an extension?
+          set mime_type [::xowiki::guesstype $name]
+          set (prefix) file
+          switch -glob $mime_type {
+            "image/*" {
+              set name file:$(stripped_name)
+              set (link_type) image
+            }
+	    application/x-shockwave-flash {
+              set name file:$(stripped_name)
+              set (link_type) swf
+	    }
+            default {
+              set name file:$(stripped_name)
+              set (link_type) file
+            }
+          }
+          set item_id [[my package_id] lookup -name file:$(stripped_name) -parent_id $parent_id]
+        }
+      }
+    }
+
+    return [list link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) \
+                parent_id $parent_id item_id $item_id ]
+  }
+
 
   Page instproc create_link {arg} {
     #my msg [self args]
@@ -1253,73 +1429,37 @@ namespace eval ::xowiki {
       return $l
     }
 
-    set parent_id [$package_id folder_id]
-    set name ""
+    #
+    # TODO missing: typed links
+    #
+    # TODO missing: Person:p1
+    #
+    ## do we have a typed link? prefix has more than two chars...
+    #  if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \
+	# link_type _ lang  stripped_name]} {
+    # set name file:$stripped_name
+    #  } 
 
-    if {[regexp {^:(..):(.+)$} $link _ lang stripped_name]} {
+
+    array set "" [my get_anchor_and_query $link]
+
+    if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # language link (it starts with a ':')
-      set link_type language
-    } elseif {[regexp {^(file|image|js|css|swf|folder):(.+)$} $link _ \
-		   link_type stripped_name]} {
-      # (typed) file links
-      set lang ""
-      if {$link_type ne "folder"} {
-        set name file:$stripped_name
-      } else {
-        set name $stripped_name
-      }
-    } elseif {[regexp {^\./(.+)/$} $link _ stripped_name]} {
-      # relative folder link, starting with a "./", ending with a "/"
-      set link_type folder
-      set lang ""
-      set name $stripped_name
-      #my msg "folder link, lang=$lang, stripped_name='$stripped_name', name='$name', label=$label"
+      array set "" [my item_ref -default_lang [my lang] -parent_id [my parent_id] ${lang}:$stripped_name]
+      set (link_type) language
     } else {
-      # do we have a typed link? prefix has more than two chars...
-      if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \
-		link_type _ lang  stripped_name]} {
-        set name file:$stripped_name
-      } else {
-        # must be an untyped link; defaults, in case the second regexp does not match either
-        set lang ""
-        set stripped_name $link
-
-        regexp {^(..)[:](.+)$} $link _ lang stripped_name
-	switch -glob -- [::xowiki::guesstype $link] {
-	  text/css {
-	    set link_type css
-	    set name file:$stripped_name
-	  }
-	  application/x-javascript {
-	    set link_type js
-	    set name file:$stripped_name
-	  }
-	  application/x-shockwave-flash {
-	    set link_type swf
-	    set name swf:$stripped_name; # not consistent, but backward compatible
-	  }
-	  image/* {
-	    set link_type image
-	    set name image:$stripped_name
-	  }
-	  default {
-	    set link_type link
-	    #set name $stripped_name
-	  }
-	}
-      }
+      array set "" [my item_ref -default_lang [my lang] -parent_id [my parent_id] $(link)]
     }
 
-    array set "" [my normalize_internal_link_name $name $stripped_name $lang]
-
-    if {$label eq $arg} {set label $(normalized_name)}
+    set item_name [string trimleft $(prefix):$(stripped_name) :]
+    if {$label eq $arg} {set label $item_name}
 
     Link create [self]::link \
         -page [self] \
-        -type $link_type [list -name $(name)] -lang $(lang) \
+        -type $(link_type) [list -name $item_name] -lang $(prefix) \
 	[list -anchor $(anchor)] [list -query $(query)] \
-        [list -stripped_name $(normalized_name)] [list -label $label] \
-        -parent_id $parent_id -package_id $package_id
+        [list -stripped_name $(stripped_name)] [list -label $label] \
+        -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id
     
     if {[catch {eval [self]::link configure $options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
@@ -1782,7 +1922,7 @@ namespace eval ::xowiki {
   }
     
   File instproc render_content {} {
-    my instvar name mime_type description parent_id package_id creation_user
+    my instvar name mime_type description parent_id package_id item_id creation_user
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
 
@@ -1817,7 +1957,7 @@ namespace eval ::xowiki {
                  -page [self] -query $query \
                  -type image -name $name -lang "" \
                  -stripped_name $stripped_name -label $label \
-                 -parent_id $parent_id -package_id $package_id]
+                 -parent_id $parent_id -item_id $item_id -package_id $package_id]
       set image "<div >[$l render]</div>"
     } else {
       set image ""

@@ -40,13 +40,7 @@ namespace eval ::xowiki {
   #
   Class create Link -superclass BaseLink -parameter {
     {type link} name lang stripped_name page 
-    parent_id package_id 
-  }
-  Link instproc folder_id args {
-    # This method is deprecated
-    # just for backward compatibility
-    my log "--deprecated [self proc] [self args], called from [self callingobject] [self callingproc]"
-    eval my parent_id $args
+    parent_id package_id item_id
   }
   Link instproc atts {} {
     set atts ""
@@ -57,7 +51,9 @@ namespace eval ::xowiki {
     my instvar page name
     set class [self class]::[my type]
     if {[my isclass $class]} {my class $class}
-    if {![my exists stripped_name]} {
+    if {![my exists name]} {
+      set name [string trimleft [my lang]:[my stripped_name] :]
+    } elseif {![my exists stripped_name]} {
       # set stripped name and lang from provided name or to the default
       my instvar stripped_name lang
       if {![regexp {^(..):(.*)$} $name _ lang stripped_name]} {
@@ -73,18 +69,7 @@ namespace eval ::xowiki {
     return $lang:$stripped_name
   }
   Link instproc resolve {} {
-    my instvar package_id lang
-    set parent_id [$package_id get_parent_and_name -lang [my lang] \
-                       -path [my stripped_name] -folder_id [my parent_id] \
-                       parent local_name]
-    if {$parent eq ""} {
-      set parent_id [my parent_id]
-      set name [my name]
-    } else {
-      set name [my link_name -lang [my lang] -stripped_name $local_name]
-    }
-    #my msg "parent=$parent, parent_id=$parent_id, name='$name'"
-    return [$package_id lookup -name $name -parent_id $parent_id]
+    return [my item_id]
   }
   Link instproc render_found {href label} {
     return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
@@ -99,7 +84,7 @@ namespace eval ::xowiki {
   }
   Link instproc pretty_link {item_id} {
     my instvar package_id
-    return [::$package_id pretty_link -lang [my lang] \
+    return [::$package_id pretty_link -parent_id [my parent_id] -lang [my lang] \
                 -anchor [my anchor] -query [my query] [my name]]
   }
   Link instproc new_link {} {
@@ -136,10 +121,10 @@ namespace eval ::xowiki {
     my instvar package_id
     set page [my page]
     set item_id [my resolve]
-    #my msg "--u resolve [my name] returns $item_id, page=[$page name]"
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
+      set l  [my pretty_link $item_id]
       my render_found [my pretty_link $item_id] [my label]
     } else {
       $page incr unresolved_references
@@ -312,14 +297,7 @@ namespace eval ::xowiki {
     width height align pluginspage pluginurl hidden href target
     autostart loop volume controls controller mastersound starttime endtime
   }
-  ::xowiki::Link::file instproc resolve {} {
-    set item_id [next]
-    # my log "-- file, lookup of [my name] returned $item_id"
-    if {$item_id == 0 && [regsub {^file:} [my name] image: name]} {
-      set item_id [[my package_id] lookup -name $name -parent_id [my parent_id]]
-    }
-    return $item_id
-  }
+
   ::xowiki::Link::file instproc render_found {internal_href label} {
     foreach f {
       width height align pluginspage pluginurl hidden href target
@@ -368,15 +346,7 @@ namespace eval ::xowiki {
     width height bgcolor version
     quality wmode align salign play loop menu scale
   }
-  ::xowiki::Link::swf instproc resolve {} {
-    set item_id [next]
-    my log "--file, lookup of [my name] returned $item_id"
-    if {$item_id == 0 && [regsub {^swf:} [my name] file: name]} {
-      set item_id [[my package_id] lookup -name $name -parent_id [my parent_id]]
-      my log "--file, 2nd lookup of $name returned $item_id"
-    }
-    return $item_id
-  }
+
   ::xowiki::Link::swf instproc render_found {href label} {
     ::xo::Page requireJS /resources/xowiki/swfobject.js
     my instvar package_id name
@@ -524,22 +494,22 @@ namespace eval ::xowiki {
   # link cache
   #
 
-  Class LinkCache
-  LinkCache instproc resolve {} {
-    set key link-[my type]-[my name]-[my parent_id]
-    while {1} {
-      array set r [ns_cache eval xowiki_cache $key {
-        set id [next]
-        if {$id == 0 || $id eq ""} break ;# don't cache
-        return [list item_id $id package_id [my package_id]]
-      }]
-      break
-    }
-    if {![info exists r(item_id)]} {return 0}
-    # we have a valid item. Set the the package_id and return the item_id
-    my package_id $r(package_id)
-    return $r(item_id)
-  }
+#   Class LinkCache
+#   LinkCache instproc resolve {} {
+#     set key link-[my type]-[my name]-[my parent_id]
+#     while {1} {
+#       array set r [ns_cache eval xowiki_cache $key {
+#         set id [next]
+#         if {$id == 0 || $id eq ""} break ;# don't cache
+#         return [list item_id $id package_id [my package_id]]
+#       }]
+#       break
+#     }
+#     if {![info exists r(item_id)]} {return 0}
+#     # we have a valid item. Set the the package_id and return the item_id
+#     my package_id $r(package_id)
+#     return $r(item_id)
+#   }
 
-  Link instmixin add LinkCache
+#   Link instmixin add LinkCache
 }

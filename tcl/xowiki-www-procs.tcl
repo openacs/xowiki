@@ -183,20 +183,21 @@ namespace eval ::xowiki {
       set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
       set create_in_req_locale_link ""
 
-
-      if {[$context_package_id get_parameter use_connection_locale 0]} {
-        $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
-        set default_lang [$page_package_id default_language]
-        if {$req_lang ne $default_lang} {
-          set l [Link create new -destroy_on_cleanup \
-                     -page [self] -type language -stripped_name $req_local_name \
-                     -name ${default_lang}:$req_local_name -lang $default_lang \
-                     -label $req_local_name -parent_id [my parent_id] \
-                     -package_id $context_package_id -init \
-                     -return_only undefined]
-          $l render
-        }
-      }
+      # We could offer a user to translate the current page to his preferred language
+      #
+      # if {[$context_package_id get_parameter use_connection_locale 0]} {
+      #  $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
+      #  set default_lang [$page_package_id default_language]
+      #  if {$req_lang ne $default_lang} {
+      #	  set l [Link create new -destroy_on_cleanup \
+      #		     -page [self] -type language -stripped_name $req_local_name \
+      #		     -name ${default_lang}:$req_local_name -lang $default_lang \
+      #		     -label $req_local_name -parent_id [my parent_id] -item_id 0 \
+      #	             -package_id $context_package_id -init \
+      #		     -return_only undefined]
+      #	  $l render
+      #   }
+      # }
 
       #my log "--after context delete_link=$delete_link "
       $context_package_id instvar folder_id  ;# this is the root folder
@@ -303,6 +304,7 @@ namespace eval ::xowiki {
       #ns_log notice "--move page=$page"
     }     
   }
+
   Page instproc edit_set_file_selector_folder {} {
     #
     # setting up folder id for file selector (use community folder if available)
@@ -495,9 +497,10 @@ namespace eval ::xowiki {
 }
 
 namespace eval ::xowiki {
-  FormPage instproc new_link {-name -title -nls_language page_package_id} {
+  FormPage instproc new_link {-name -title -nls_language -parent_id page_package_id} {
     set template_id [my page_template]
-    set form [$page_package_id pretty_link [$template_id name]]
+    if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
+    set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
     return [$page_package_id make_link -with_entities 0 -link $form $template_id \
 		create-new return_url name title nls_language]
   }

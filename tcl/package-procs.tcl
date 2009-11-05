@@ -946,8 +946,8 @@ namespace eval ::xowiki {
       set [expr {$revision_id ? "item_id" : "revision_id"}] 0
       #my log "--instantiate item_id $item_id revision_id $revision_id"
       set r [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
-      #my log "--instantiate done  CONTENT\n[$r serialize]"
       $r set package_id [namespace tail [self]]
+      #my log "--instantiate done"
       return $r
     } else {
       return ""

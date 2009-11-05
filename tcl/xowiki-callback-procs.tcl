@@ -398,7 +398,6 @@ namespace eval ::xowiki {
 	$package_id import-prototype-page news
 	$package_id import-prototype-page weblog-portlet
       }
-      copy_parameter top_portlet top_includelet
     }
 
     set v 0.78
@@ -417,7 +416,6 @@ namespace eval ::xowiki {
       #       ...
       #    }
       # }
-      copy_parameter top_portlet top_includelet
     }
     set v 0.79
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
@@ -507,6 +505,13 @@ namespace eval ::xowiki {
       }
       db_dml strip_colons_from_tags \
 	    "update xowiki_tags set tag = trim(both ',' from tag)  where tag like '%,%'"
+    }
+
+    set v 0.120
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      delete_parameter top_portlet
     }
   }
 }

@@ -1743,7 +1743,7 @@ namespace eval ::xowiki::includelet {
     return $allow_reorder
   }
 
-  PageReorderSupport instproc  page_reorder_init_vars {-allow_reorder js_ last_level_ ID_ min_level_} {
+  PageReorderSupport instproc page_reorder_init_vars {-allow_reorder js_ last_level_ ID_ min_level_} {
     my upvar $js_ js $last_level_ last_level $ID_ ID $min_level_ min_level
     set js "YAHOO.xo_page_order_region.DDApp.package_url = '[[my package_id] package_url]';\n"
     set last_level 0
@@ -1927,61 +1927,61 @@ namespace eval ::xowiki::includelet {
     #my log OPEN=[lsort [my array names open_node]]
   }
 
-  toc instproc render_list {{-full false} pages} {
-    my get_parameters
-    my instvar navigation page_name
-    #
-    # Build a reduced toc tree based on pure HTML (no javascript or
-    # ajax involved).  If an open_page is specified, produce an as
-    # small as possible tree and omit all non-visible nodes.
-    #
-    if {$open_page ne ""} {
-      # TODO: can we allow open_page and reorder?
-      set allow_reorder ""
-    } else {
-      set allow_reorder [my page_reorder_check_allow $allow_reorder]
-    }
+#   toc instproc render_list {{-full false} pages} {
+#     my get_parameters
+#     my instvar navigation page_name
+#     #
+#     # Build a reduced toc tree based on pure HTML (no javascript or
+#     # ajax involved).  If an open_page is specified, produce an as
+#     # small as possible tree and omit all non-visible nodes.
+#     #
+#     if {$open_page ne ""} {
+#       # TODO: can we allow open_page and reorder?
+#       set allow_reorder ""
+#     } else {
+#       set allow_reorder [my page_reorder_check_allow $allow_reorder]
+#     }
 
-    my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
+#     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
 
-    set css_class [expr {$min_level == 1 ? "page_order_region" : "page_order_region_no_target"}]
-#my log allow_reorder=$allow_reorder,min_level=$min_level,css=$css_class
-    set html "<UL class='$css_class'>\n"
-    set prefix_js ""
-    set html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js -1]
-    set level 0
-    foreach o [$pages children] {
-      $o instvar page_order title name
-      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
-      set page_number [my page_number $page_order $remove_levels]
+#     set css_class [expr {$min_level == 1 ? "page_order_region" : "page_order_region_no_target"}]
+# #my log allow_reorder=$allow_reorder,min_level=$min_level,css=$css_class
+#     set html "<UL class='$css_class'>\n"
+#     set prefix_js ""
+#     set html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js -1]
+#     set level 0
+#     foreach o [$pages children] {
+#       $o instvar page_order title name
+#       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+#       set page_number [my page_number $page_order $remove_levels]
 
-      set new_level [regsub -all {[.]} [$o set page_order] _ page_order_js]
-      #my msg "[$o set page_order] [my exists open_node($parent)] || [my exists open_node($page_order)]"
-      if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
-        if {$new_level > $level} {
-          for {set l $level} {$l < $new_level} {incr l} {
-            regexp {^(.*)_[^_]+$} $page_order_js _ prefix_js
-            append html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js $l]
-          }
-          set level $new_level
-        } elseif {$new_level < $level} {
-          for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
-          set level $new_level
-        }
-        set href [my href $package_id $book_mode $name]
-        set highlight [if {$open_page eq $name} {set _ "style = 'font-weight:bold;'"} {}]
-        set item_id [my page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
-        append html \
-            "<li id='$item_id'>" \
-            "<span $highlight>$page_number <a href='$href'>$title</a></span>\n"
-      }
-    }
-    # close all levels
-    for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
-    if {$js ne ""} {append html "<script type='text/javascript'>$js</script>\n"}
+#       set new_level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+#       #my msg "[$o set page_order] [my exists open_node($parent)] || [my exists open_node($page_order)]"
+#       if {[my exists open_node($parent)] || [my exists open_node($page_order)]} {
+#         if {$new_level > $level} {
+#           for {set l $level} {$l < $new_level} {incr l} {
+#             regexp {^(.*)_[^_]+$} $page_order_js _ prefix_js
+#             append html [my page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js $l]
+#           }
+#           set level $new_level
+#         } elseif {$new_level < $level} {
+#           for {set l $new_level} {$l < $level} {incr l} {append html "</ul>\n"}
+#           set level $new_level
+#         }
+#         set href [my href $package_id $book_mode $name]
+#         set highlight [if {$open_page eq $name} {set _ "style = 'font-weight:bold;'"} {}]
+#         set item_id [my page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
+#         append html \
+#             "<li id='$item_id'>" \
+#             "<span $highlight>$page_number <a href='$href'>$title</a></span>\n"
+#       }
+#     }
+#     # close all levels
+#     for {set l 0} {$l <= $level} {incr l} {append html "</ul>\n"}
+#     if {$js ne ""} {append html "<script type='text/javascript'>$js</script>\n"}
 
-    return $html
-  }
+#     return $html
+#   }
 
 
 
@@ -2210,7 +2210,6 @@ namespace eval ::xowiki::includelet {
     } else {
       set allow_reorder [my page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
-
     set tree [my build_tree -full $full -remove_levels $remove_levels \
 		  -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
 		  $pages]
@@ -2225,7 +2224,8 @@ namespace eval ::xowiki::includelet {
 
   toc instproc include_head_entries {} {
     my instvar style renderer
-    ::xowiki::Tree include_head_entries -renderer $renderer -style $style;# FIXME general
+    set r [expr {$renderer eq "list" ? "listdnd" : "$renderer"}]
+    ::xowiki::Tree include_head_entries -renderer $r -style $style;# FIXME general
   }
 
   toc instproc initialize {} {
