@@ -63,7 +63,7 @@ namespace eval ::xowiki {
     if {![my exists label]}      {my label $name}
     if {![my exists parent_id]}  {my parent_id [$page parent_id]}
     if {![my exists package_id]} {my package_id [$page package_id]}
-    #my msg "--L link has class [my info class] // $class"
+    #my msg "--L link has class [my info class] // $class // [my type] // [my parent_id]"
   }
   Link instproc link_name {-lang -stripped_name} {
     return $lang:$stripped_name
@@ -104,16 +104,7 @@ namespace eval ::xowiki {
         set object_type ::xowiki::Page
       }
     }
-    set parent_id [$package_id get_parent_and_name -path [my stripped_name] \
-                       -lang [my lang] -folder_id [$package_id folder_id] \
-                       parent local_name]
-    if {$parent eq ""} {
-      set parent_id ""
-      set name [my name]
-    } else {
-      set name [my lang]:$local_name
-    }
-    return [$page new_link -name $name -title [my label] -parent_id $parent_id \
+    return [$page new_link -name [my name] -title [my label] -parent_id [my parent_id] \
                 -nls_language [$page nls_language] $package_id]
   }
 
@@ -160,28 +151,17 @@ namespace eval ::xowiki {
   }
   ::xowiki::Link::folder instproc pretty_link {item_id} {
     my instvar package_id
-    set folder [::xo::db::CrFolder get_instance_from_db -item_id $item_id]
     return [::$package_id pretty_link \
-                -anchor [my anchor] -parent_id [$folder parent_id] -query [my query] [$folder name] ]
+                -anchor [my anchor] -parent_id [my parent_id] -query [my query] [my name] ]
   }
   ::xowiki::Link::folder instproc new_link {} {
     my instvar package_id
-    set page [my page]
-    set parent_id [$package_id get_parent_and_name \
-                       -path [my name] -folder_id [$page parent_id] -lang [my lang] \
-                       parent local_name]
-    if {$parent eq ""} {
-      set parent_id [my parent_id]
-      set name [my name]
-    } else {
-      set name $local_name
-    }
     return [$package_id make_link -with_entities 0 \
                 $package_id \
                 edit-new \
                 [list object_type ::xo::db::CrFolder] \
-                [list name $local_name] \
-                [list parent_id $parent_id] \
+                [list name [my name]] \
+                [list parent_id [my parent_id]] \
                 [list return_url [::xo::cc url]] \
                 autoname]
   }

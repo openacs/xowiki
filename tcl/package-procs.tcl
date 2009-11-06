@@ -956,15 +956,10 @@ namespace eval ::xowiki {
 
   Package instproc require_folder_object { } {
     my instvar id folder_id
-    #my msg "--f [my isobject ::$folder_id] folder_id=$folder_id"
-
-    if {$folder_id == 0} {
-      # TODO: we should make a parameter allowed_page_types (see content_types), 
-      # but the package admin should not have necessarily the rights to change it
-      set folder_id [::xowiki::Page require_folder \
-			 -name xowiki -package_id $id \
-			 -content_types ::xowiki::Page* ]
-    }
+    # TODO: we should make a parameter allowed_page_types (see content_types), 
+    # but the package admin should not have necessarily the rights to change it
+    set folder_id [my require_root_folder -name "xowiki: $id" \
+                       -content_types ::xowiki::Page* ]
 
     if {![::xotcl::Object isobject ::$folder_id]} {
       # if we can't get the folder from the cache, create it

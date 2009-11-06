@@ -1030,27 +1030,27 @@ test section "Item refs"
   set l "parentpage"
   set test [label "link" "existing simple page" $l]
   set link [p create_link $l]
-  ? {$link render} "<a   href='/$instance_name/de/parentpage'>de:parentpage</a>" "\n$test\n "
+  ? {$link render} "<a   href='/$instance_name/de/parentpage'>parentpage</a>" "\n$test\n "
 
   set l "parentpage1"
   set test [label "link" "not existing simple page" $l]
   set link [p create_link $l]
-? {$link render} [subst -nocommands {<a  href='/$instance_name/?nls%5flanguage=de%5fDE&edit%2dnew=1&name=de%3aparentpage1&title=de%3aparentpage1'> [ </a>de:parentpage1 <a  href='/$instance_name/?nls%5flanguage=de%5fDE&edit%2dnew=1&name=de%3aparentpage1&title=de%3aparentpage1'> ] </a>}] "\n$test\n "
+? {$link render} [subst -nocommands {<a  href='/$instance_name/?nls_language=de_DE&edit-new=1&name=de%3aparentpage1&parent_id=$folder_id&title=parentpage1'> [ </a>parentpage1 <a  href='/$instance_name/?nls_language=de_DE&edit-new=1&name=de%3aparentpage1&parent_id=$folder_id&title=parentpage1'> ] </a>}] "\n$test\n "
 
   set l "parentpage#a"
   set test [label "link" "existing simple with anchor" $l]
   set link [p create_link $l]
-? {$link render} [subst -nocommands {<a   href='/$instance_name/de/parentpage#a'>de:parentpage</a>}] "\n$test\n "
+? {$link render} [subst -nocommands {<a   href='/$instance_name/de/parentpage#a'>parentpage</a>}] "\n$test\n "
 
   set l "image:image.png"
   set test [label "link" "existing image" $l]
   set link [p create_link $l]
-? {$link render} [subst -nocommands {<img class='image' src='/$instance_name/download/file/image.png' alt='file:image.png' title='file:image.png' >}] "\n$test\n "
+? {$link render} [subst -nocommands {<img class='image' src='/$instance_name/download/file/image.png' alt='image:image.png' title='image:image.png' >}] "\n$test\n "
 
   set l "image.png"
   set test [label "link" "existing image short" $l]
   set link [p create_link $l]
-? {$link render} [subst -nocommands {<img class='image' src='/$instance_name/download/file/image.png' alt='file:image.png' title='file:image.png' >}] "\n$test\n "
+? {$link render} [subst -nocommands {<img class='image' src='/$instance_name/download/file/image.png' alt='image.png' title='image.png' >}] "\n$test\n "
 
   set l ":de:parentpage"
   set test [label "link" "existing language link" $l]

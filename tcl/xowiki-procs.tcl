@@ -1440,8 +1440,8 @@ namespace eval ::xowiki {
     # set name file:$stripped_name
     #  } 
 
-
     array set "" [my get_anchor_and_query $link]
+    if {$label eq $arg} {set label $(link)}
 
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # language link (it starts with a ':')
@@ -1450,9 +1450,8 @@ namespace eval ::xowiki {
     } else {
       array set "" [my item_ref -default_lang [my lang] -parent_id [my parent_id] $(link)]
     }
-
+    #my msg [array get ""]
     set item_name [string trimleft $(prefix):$(stripped_name) :]
-    if {$label eq $arg} {set label $item_name}
 
     Link create [self]::link \
         -page [self] \
