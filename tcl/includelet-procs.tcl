@@ -845,6 +845,7 @@ namespace eval ::xowiki::includelet {
           {-max_entries:integer 10}
           {-tree_name ""}
           {-locale ""}
+          {-pretty_age "off"}
         }}
       }
 
@@ -886,10 +887,18 @@ namespace eval ::xowiki::includelet {
     db_foreach [my qn get_pages] $sql {
       if {$title eq ""} {set title $name}
       set itemobj [Object new]
-      set prefix  "$formatted_date "
-      set suffix  ""
+      set prefix ""
+      set suffix ""
+      switch -- $pretty_age {
+	1 {set suffix " ([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]])"}
+	2 {set suffix "([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2])"}
+	default {set prefix "$formatted_date "}
+      }
+      if {$prefix ne ""} {set prefix "<span class='date'>$prefix</span>";$itemobj set encoded(prefix) 1}
+      if {$suffix ne ""} {set suffix "<span class='date'>$suffix</span>";$itemobj set encoded(suffix) 1}
       foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
       $itemobj set href [::$package_id pretty_link $name]        
+
       if {![info exists categories($category_id)]} {
         set categories($category_id) [::xowiki::TreeNode new \
                                           -label [category::get_name $category_id $locale] \

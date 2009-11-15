@@ -303,6 +303,15 @@ div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
 div.recent div.portlet .list-table td.list {
     padding: 8px 4px;
 }
+
+/* includelet "categories-recent" */
+div.categories-recent .date {
+    font-size: 85%;
+    font-weight: bold;
+    color: #9a9a9b;
+}
+
+/* inherited markup */
 div.xowiki-content a.inherited {
     background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat; 
     padding-right: 14px;

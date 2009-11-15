@@ -188,12 +188,13 @@ namespace eval ::xowiki {
     return "<ul id='[$tree id]'>[next]</ul>"
   }
   TreeRenderer=list instproc render_item {{-highlight:boolean false} item} {
-    $item instvar title prefix suffix href
+    $item instvar title href
+    set prefix [$item set prefix]
+    set suffix [$item set suffix]
+    if {![$item exists encoded(prefix)]} {set prefix [::xowiki::Includelet html_encode $prefix]}
+    if {![$item exists encoded(suffix)]} {set suffix [::xowiki::Includelet html_encode $suffix]}
     append entry \
-	[::xowiki::Includelet html_encode $prefix] \
-	"<a href='$href'>" \
-	[::xowiki::Includelet html_encode $title] \
-	"</a>[::xowiki::Includelet html_encode $suffix]"
+	$prefix "<a href='$href'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
     if {$highlight} {
       return "<li class='liItem'><b>$entry</b></li>\n"
     } else {
@@ -318,12 +319,13 @@ namespace eval ::xowiki {
   TreeRenderer create TreeRenderer=sections \
       -superclass TreeRenderer=list 
   TreeRenderer=sections instproc render_item {{-highlight:boolean false} item} {
-    $item instvar title prefix suffix href
+    $item instvar title href
+    set prefix [$item set prefix]
+    set suffix [$item set suffix]
+    if {![$item exists encoded(prefix)]} {set prefix [::xowiki::Includelet html_encode $prefix]}
+    if {![$item exists encoded(suffix)]} {set suffix [::xowiki::Includelet html_encode $suffix]}
     append entry \
-	[::xowiki::Includelet html_encode $prefix] \
-	"<a href='$href'>" \
-	[::xowiki::Includelet html_encode $title] \
-	"</a>[::xowiki::Includelet html_encode $suffix]"
+	$prefix "<a href='$href'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
     if {$highlight} {
       return "<b>$entry</b><br>\n"
     } else {
