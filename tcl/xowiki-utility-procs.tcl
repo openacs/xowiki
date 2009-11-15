@@ -271,7 +271,8 @@ namespace eval ::xowiki {
                       {-locale ""}
                       {-levels 1}
                     } {
-      #
+
+    #
     # This is an internationalized pretty age functions, which prints
     # the rough date in a user friendly fashion.
     #
@@ -327,10 +328,13 @@ namespace eval ::xowiki {
         }
         set time $msg
         set msg [::lang::message::lookup $locale xowiki.ago [list [list time $msg]]]
-        #append msg " ago"
         break
       }
       incr pos
+    }
+    if {$msg eq ""} {
+      set time "0 [::lang::message::lookup $locale xowiki.seconds]"
+      set msg [::lang::message::lookup $locale xowiki.ago [list [list time $time]]]
     }
     return $msg
   }

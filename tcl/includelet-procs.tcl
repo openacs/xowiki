@@ -851,6 +851,14 @@ namespace eval ::xowiki::includelet {
 
   categories-recent instproc initialize {} {
     my set style sections
+    # When pretty age is activated, this includedlet is not suited for
+    # caching (it could make sense e.g. when the age granularity is 1
+    # minute or more). This measure here (turing off caching
+    # completely) is a little bit too much, but it is safe.
+    my get_parameters
+    if {[[my info class] cacheable] && $pretty_age ne "off"} {
+      [my info class] cacheable false
+    }
   }
 
   categories-recent instproc include_head_entries {} {

@@ -43,7 +43,7 @@
   <msg key="minute">Minute</msg>
   <msg key="minutes">Minuten</msg>
   <msg key="month">Monat</msg>
-  <msg key="months">Monate</msg>
+  <msg key="months">Monaten</msg>
   <msg key="most_frequent_visitors">Häufigsten Besucher</msg>
   <msg key="most_popular_pages">Häufigst besuchten Seiten</msg>
   <msg key="new_page">Neuer Eintrag</msg>
@@ -92,5 +92,7 @@
   <msg key="weblog-more">mehr...</msg>
   <msg key="week">Woche</msg>
   <msg key="weeks">Wochen</msg>
+  <msg key="year">Jahr</msg>
+  <msg key="years">Jahren</msg>
   <msg key="your_tags_label">Persönliche Schlagworte</msg>
 </message_catalog>
