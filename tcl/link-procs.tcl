@@ -11,7 +11,8 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target extra_query_parameter {anchor ""} {query ""}
+    cssclass href label title target extra_query_parameter 
+    {anchor ""} {query ""}
   }
 
   BaseLink instproc mk_css_class {-additional {-default ""}} {
@@ -40,7 +41,7 @@ namespace eval ::xowiki {
   #
   Class create Link -superclass BaseLink -parameter {
     {type link} name lang stripped_name page 
-    parent_id package_id item_id
+    parent_id package_id item_id {form ""}
   }
   Link instproc atts {} {
     set atts ""
@@ -88,8 +89,28 @@ namespace eval ::xowiki {
                 -anchor [my anchor] -query [my query] [my name]]
   }
   Link instproc new_link {} {
-    my instvar package_id
+    my instvar package_id form
     set page [my page]
+    if {$form ne ""} {
+      # for now, we assume, the form is in same dir as the current
+      # page; we have to lookup the form to determine rights on the
+      # form.
+      set parent_id  [$page parent_id]
+      set template_id [::xo::db::CrClass lookup -name $form -parent_id $parent_id]
+      if {$template_id == 0} {
+        # make a second try for the form with the en prefix
+        if {[regexp {^(..):(.+)$} $form _ lang stripped_form]} {
+          set form en:$stripped_form
+          set template_id [::xo::db::CrClass lookup -name $form -parent_id $parent_id]
+        }
+      }
+      if {$template_id != 0} {
+        ::xo::db::CrClass get_instance_from_db -item_id $template_id
+        set form_link [$package_id pretty_link -parent_id $parent_id $form]
+        return [$package_id make_link -with_entities 0 -link $form_link $template_id \
+                    create-new return_url [list name [my name]] title [list nls_language [$page nls_language]]]
+      }
+    }
     if {[$page exists __unresolved_object_type]} {
       # get the desired object_type for unresoved entries
       set object_type [$page set __unresolved_object_type]

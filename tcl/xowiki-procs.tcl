@@ -1227,6 +1227,28 @@ namespace eval ::xowiki {
   # (symbolic references to content items and content folders)
   #
 
+  Page ad_instproc package_item_ref {
+    -default_lang:required 
+    -parent_id:required 
+    link
+  } {
+
+    The provided link might contain cross-package item_refs.  When the
+    referenced package could not be resolved, the returned package_id
+    is 0. Otherwise, this method returns the results of item_ref.
+
+  } {
+    set package_id [my package_id]
+    set referenced_package_id [$package_id resolve_package_path $link link]
+    if {$referenced_package_id == 0} {
+      return [list item_id 0 parent_id 0]
+    }
+    if {$referenced_package_id != $package_id} {
+      set parent_id [$referenced_package_id folder_id]
+    }
+    return [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
+  }
+
   Page ad_instproc item_ref {
     -default_lang:required 
     -parent_id:required 
@@ -1273,7 +1295,7 @@ namespace eval ::xowiki {
     #set url [[my package_id] pretty_link -parent_id $(parent_id) $name]
     #
 
-    return [list link_type $(link_type) \
+    return [list link_type $(link_type) form $(form) \
                 prefix $(prefix) stripped_name $(stripped_name) \
                 item_id $(item_id) parent_id $(parent_id)]
   }
@@ -1298,8 +1320,9 @@ namespace eval ::xowiki {
     {-assume_folder:required false}
     element
   } {
-    #my log el=$element-assume_folder=$assume_folder
     set element [[my package_id] normalize_name $element]
+    #my msg el=$element-assume_folder=$assume_folder
+    set (form) ""
 
     if {[regexp {^(file|image|js|css|swf|folder):(.+)$} $element _ \
              (link_type) (stripped_name)]} {
@@ -1311,6 +1334,18 @@ namespace eval ::xowiki {
         set (prefix) ""
         set name $(stripped_name)
       }
+    } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
+      array set "" [list link_type "link" form "$form_lang:$form"]
+      set name $(prefix):$(stripped_name)
+    } elseif {[regexp {^(..):([^:]{3,}?):(.+)$} $element _ form_lang form (stripped_name)]} {
+      array set "" [list link_type "link" form "$form_lang:$form" prefix $default_lang]
+      set name $default_lang:$(stripped_name)
+    } elseif {[regexp {^([^:]{3,}?):(..):(.+)$} $element _ form (prefix) (stripped_name)]} {
+      array set "" [list link_type "link" form "$default_lang:$form"]
+      set name $(prefix):$(stripped_name)
+    } elseif {[regexp {^([^:]{3,}?):(.+)$} $element _ form (stripped_name)]} {
+      array set "" [list link_type "link" form "$default_lang:$form" prefix $default_lang]
+      set name $default_lang:$(stripped_name)
     } elseif {[regexp {^(..):(.+)$} $element _ (prefix) (stripped_name)]} {
       array set "" [list link_type "link"]
       set name $(prefix):$(stripped_name)
@@ -1379,7 +1414,7 @@ namespace eval ::xowiki {
     }
 
     return [list link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) \
-                parent_id $parent_id item_id $item_id ]
+                form $(form) parent_id $parent_id item_id $item_id ]
   }
 
 
@@ -1432,8 +1467,6 @@ namespace eval ::xowiki {
     #
     # TODO missing: typed links
     #
-    # TODO missing: Person:p1
-    #
     ## do we have a typed link? prefix has more than two chars...
     #  if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \
 	# link_type _ lang  stripped_name]} {
@@ -1454,7 +1487,7 @@ namespace eval ::xowiki {
     set item_name [string trimleft $(prefix):$(stripped_name) :]
 
     Link create [self]::link \
-        -page [self] \
+        -page [self] -form $(form) \
         -type $(link_type) [list -name $item_name] -lang $(prefix) \
 	[list -anchor $(anchor)] [list -query $(query)] \
         [list -stripped_name $(stripped_name)] [list -label $label] \

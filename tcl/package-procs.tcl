@@ -359,7 +359,7 @@ namespace eval ::xowiki {
   Package instproc resolve_package_path {path name_var} {
     #
     # In case, we can resolve the path against an xowiki instance,
-    # require the package, set the provide name of the object and
+    # require the package, set the provided name of the object and
     # return the package_id. If we cannot resolve the name, turn 0.
     #
     my upvar $name_var name
@@ -381,9 +381,7 @@ namespace eval ::xowiki {
           return $package_id
         }
       }
-    } elseif {!([string match "http*//*" $path] 
-                || [string match "ftp://*" $path]
-                )} {
+    } elseif {!([string match "http*://*" $path] || [string match "ftp://*" $path])} {
       return [my id]
     }
 

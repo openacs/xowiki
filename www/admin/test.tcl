@@ -545,7 +545,7 @@ proc xowiki-test-links {p tests} {
     $l destroy
   }
 }
-test subsubsection "Testing links on english page"
+test subsubsection "Testing links on English page"
 xowiki-test-links $p {
     hello 1 0
     en:hello 1 0
@@ -562,7 +562,7 @@ xowiki-test-links $p {
 
 # make page a german page
 $p nls_language de_DE
-test subsubsection "Testing links on german page"
+test subsubsection "Testing links on German page"
 xowiki-test-links $p {
     hello 0 0
     en:hello 1 0

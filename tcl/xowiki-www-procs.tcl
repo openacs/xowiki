@@ -272,6 +272,7 @@ namespace eval ::xowiki {
 
 
 namespace eval ::xowiki {
+
   Page instproc new_link {-name -title -nls_language -parent_id page_package_id} {
     if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
     return [$page_package_id make_link -with_entities 0 $page_package_id \

@@ -1891,6 +1891,32 @@ namespace eval ::xowiki::formfield {
     return [my pretty_image -parent_id [[my object] parent_id] $entry_name]
   }
 
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::include
+  #
+  ###########################################################
+
+  Class include -superclass text -parameter {
+  }
+  include instproc pretty_value {v} {
+    my instvar object
+    array set "" [$object package_item_ref -default_lang [$object lang] -parent_id [$object parent_id] $v]
+    if {$(item_id) == 0} {
+      # Here, we could call "::xowiki::Link render" to offer the user means
+      # to create the entry like with [[..]], if he has sufficent permissions...;
+      # when $(package_id) is 0, the referenced package could not be
+      # resolved
+      return "Cannot resolve symbolic link '$v'"
+    }
+    if {![my isobject $(item_id)]} {
+      set deref [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+    }
+    return [$(item_id) render]
+  }
+
+
   ###########################################################
   #
   # ::xowiki::formfield::CompoundField
