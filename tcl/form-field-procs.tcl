@@ -379,7 +379,11 @@ namespace eval ::xowiki::formfield {
   
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    ::html::div -class [my form_widget_CSSclass] { my render_input }
+    if {[my inline]} {
+      ::html::div -class [my form_widget_CSSclass] -style "display: inline;" { my render_input }
+    } else {
+      ::html::div -class [my form_widget_CSSclass] { my render_input }
+    }
   }
 
   FormField instproc render_input {} {
