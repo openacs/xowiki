@@ -2131,7 +2131,11 @@ namespace eval ::xowiki {
   PageInstance instproc get_form {} {
     # get the (HTML) form of the ::xowiki::PageTemplates/::xowiki::Form
     set form [my get_from_template form]
-    if {[llength $form] == 2 && [lindex $form 1] eq "text/html"} {set form [lindex $form 0]}
+    # Check, whether we got the form through a classic 2-element openacs templating widget or directly.
+    # If the list is not wellformed, it must be contained directly.
+    if {![catch {set l [llength $form]}] 
+	&& $l == 2 
+	&& [lindex $form 1] eq "text/html"} {return [lindex $form 0]}
     return $form
   }
 
