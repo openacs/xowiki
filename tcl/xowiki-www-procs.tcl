@@ -1235,7 +1235,6 @@ namespace eval ::xowiki {
   } {
     my instvar page_template doc root package_id
     ::xowiki::Form requireFormCSS
-    #my msg "edit [self args]"
     #my log "edit [self args]"
 
     set form [my get_form]
@@ -1518,7 +1517,8 @@ namespace eval ::xowiki {
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
                   {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
-
+    # replace unbalanced @ characters
+    set html [string map [list \x003 @] $html]
     #my log "calling VIEW with HTML [string length $html]"
     if {$view} {
       my view $html
