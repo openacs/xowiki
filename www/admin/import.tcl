@@ -52,8 +52,16 @@ ad_form \
         foreach o [::xowiki::Page allinstances] {
           if {![info exists preexists($o)]} {lappend objects $o}
         }
-        set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
-                     -objects $objects]
+        ns_log notice "objects to import: $objects"
+        if {[catch {
+          set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
+                       -objects $objects]
+        } errMsg]} {
+          ns_log notice "Error during import: $errMsg"
+          foreach o $objects {$o destroy}
+          error $errMsg
+        }
+        foreach o $objects {if {[::xotcl::Object isobject $o]} {$o destroy}}
       }
       namespace delete ::xo::import
     }
