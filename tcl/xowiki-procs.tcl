@@ -2378,6 +2378,28 @@ namespace eval ::xowiki {
     my view [my include [list form-usages -form_item_id [my item_id]]]
   }
 
+  Page instproc csv-dump {} {
+    my instvar package_id
+    if {[my info class] ne "::xowiki::FormPage" && [my info class] ne "::xowiki::Form"} {
+      error "not called on a form"
+    }
+    set form_item_id [my item_id]
+    set items [::xowiki::FormPage get_form_entries \
+                   -base_item_ids $form_item_id -form_fields "" \
+                   -publish_status ready -package_id $package_id]
+    # collect all instances attributes of all items
+    foreach i [$items children] {array set vars [$i set instance_attributes]}
+    array set vars [list _name 1 _last_modified 1 _creation_user 1]
+    set attributes [lsort [array names vars]]
+    # make sure, we the includelet honors the cvs generation
+    set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
+    ::xo::cc set queryparm(includelet_key) $includelet_key
+    foreach var {name form_item_ids form publish_states field_names unless} {
+      if {[info exists $var]} {append includelet_key $var : [set $var] ,}
+    }
+    # call the includelet
+    my view [my include [list form-usages -field_names $attributes -form_item_id [my item_id] -generate csv]]
+  }
 
   Page instproc create_form_fields_from_form_constraints {form_constraints} {
     #
