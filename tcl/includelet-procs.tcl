@@ -3194,6 +3194,7 @@ namespace eval ::xowiki::includelet {
           {-orderby "__last_modified,desc"}
           {-publish_status "ready"}
           {-field_names}
+          {-extra_form_constraints ""}
           {-category_id}
           {-unless}
           {-where}
@@ -3223,7 +3224,7 @@ namespace eval ::xowiki::includelet {
       set form_item_ids [list $form_item_id]
     }
 
-    set form_constraints ""
+    set form_constraints $extra_form_constraints\n
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }
@@ -3274,10 +3275,9 @@ namespace eval ::xowiki::includelet {
 			   -base_item $form_item \
 			   -field_names $field_names \
 			   -form_constraints $form_constraints]
-      # $form_item show_fields $form_fields
+      #$form_item show_fields $form_fields
       foreach f $form_fields {set __ff([$f name]) $f}
     }
-
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
     # TODO: wiki-substitution is just foced in here. Maybe it makes
