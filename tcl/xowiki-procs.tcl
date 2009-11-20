@@ -2395,7 +2395,9 @@ namespace eval ::xowiki {
     set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
     ::xo::cc set queryparm(includelet_key) $includelet_key
     # call the includelet
-    my view [my include [list form-usages -field_names $attributes -form_item_id [my item_id] -generate csv]]
+    my view [my include [list form-usages -field_names $attributes \
+			     -extra_form_constraints _creation_user:numeric,format=%d \
+			     -form_item_id [my item_id] -generate csv]]
   }
 
   Page instproc create_form_fields_from_form_constraints {form_constraints} {
