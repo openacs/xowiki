@@ -379,11 +379,11 @@ namespace eval ::xowiki::formfield {
   
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    if {[my inline]} {
-      ::html::div -class [my form_widget_CSSclass] -style "display: inline;" { my render_input }
-    } else {
-      ::html::div -class [my form_widget_CSSclass] { my render_input }
-    }
+    set CSSclass [my form_widget_CSSclass]
+    if {[my error_msg] ne ""} {append CSSclass " form-widget-error"}
+    set atts [list class $CSSclass]
+    if {[my inline]} {lappend atts style "display: inline;"}
+    ::html::div $atts { my render_input }
   }
 
   FormField instproc render_input {} {
@@ -408,7 +408,12 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc render_item {} {
     ::html::div -class [my form_item_wrapper_CSSclass] {
-      ::html::div -class form-label {
+      if {[my error_msg] ne ""} {
+	set CSSclass form-label-error
+      } else {
+	set CSSclass form-label
+      }
+      ::html::div -class $CSSclass {
         ::html::label -for [my id] {
           ::html::t [my label]
         }
@@ -426,7 +431,7 @@ namespace eval ::xowiki::formfield {
   }
   
   FormField instproc render_error_msg {} {
-    if {[my error_msg] ne ""} {
+    if {[my error_msg] ne "" && ![my exists error_reported]} {
       ::html::div -class form-error {
         my instvar label
         ::html::t [::xo::localize [my error_msg]]
