@@ -838,6 +838,7 @@ namespace eval ::xowiki::formfield {
       if { [catch "lc_numeric $value [my format] [my locale]" result] } {
         util_user_message -message "[my label]: $result (locale=[my locale])"
 	#my msg [list lc_numeric $value [my format] [my locale]]
+	set converted_value $value
         if {[catch {scan $value [my format] converted_value}]} {
 	  return $value
 	} else {
