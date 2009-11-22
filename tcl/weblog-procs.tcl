@@ -33,6 +33,12 @@ namespace eval ::xowiki {
       # Entry $t might contain a package prefix
       set form_item_id [$package_id lookup -default_lang $default_lang -name $t]
       if {$form_item_id == 0} {
+        # maybe try alternate lookup for form with language prefix "en"
+        if {[regexp {^(..):(.+)$} $t _ prefix stripped_name ] && $prefix ne "en"} {
+          set form_item_id [$package_id lookup -name en:$stripped_name]
+        }
+      }
+      if {$form_item_id == 0} {
         # The form does not exist in the CR. Maybe we can create it
         # via a prototype page?
         regexp {^.+:(.*)$} $t _ t
