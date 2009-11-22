@@ -92,23 +92,16 @@ namespace eval ::xowiki {
     my instvar package_id form
     set page [my page]
     if {$form ne ""} {
-      # for now, we assume, the form is in same dir as the current
-      # page; we have to lookup the form to determine rights on the
-      # form.
-      set parent_id  [$page parent_id]
-      set template_id [::xo::db::CrClass lookup -name $form -parent_id $parent_id]
-      if {$template_id == 0} {
-        # make a second try for the form with the en prefix
-        if {[regexp {^(..):(.+)$} $form _ lang stripped_form]} {
-          set form en:$stripped_form
-          set template_id [::xo::db::CrClass lookup -name $form -parent_id $parent_id]
-        }
-      }
-      if {$template_id != 0} {
-        ::xo::db::CrClass get_instance_from_db -item_id $template_id
-        set form_link [$package_id pretty_link -parent_id $parent_id $form]
-        return [$package_id make_link -with_entities 0 -link $form_link $template_id \
-                    create-new return_url [list name [my name]] title [list nls_language [$page nls_language]]]
+      # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
+      set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+      if {$form_id != 0} {
+        ::xo::db::CrClass get_instance_from_db -item_id $form_id
+        set form_link [$package_id pretty_link -parent_id [$form_id parent_id] $form]
+        return [$package_id make_link -with_entities 0 -link $form_link $form_id \
+                    create-new return_url title \
+                    [list parent_id [my parent_id]] \
+                    [list name [my name]] \
+                    [list nls_language [$page nls_language]]]
       }
     }
     if {[$page exists __unresolved_object_type]} {
