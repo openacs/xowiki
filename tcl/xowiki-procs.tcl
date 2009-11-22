@@ -1337,15 +1337,19 @@ namespace eval ::xowiki {
     } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
       array set "" [list link_type "link" form "$form_lang:$form"]
       set name $(prefix):$(stripped_name)
+      #my msg "FIRST case name=$name, form=$form_lang:$form"
     } elseif {[regexp {^(..):([^:]{3,}?):(.+)$} $element _ form_lang form (stripped_name)]} {
       array set "" [list link_type "link" form "$form_lang:$form" prefix $default_lang]
       set name $default_lang:$(stripped_name)
+      #my msg "SECOND case name=$name, form=$form_lang:$form"
     } elseif {[regexp {^([^:]{3,}?):(..):(.+)$} $element _ form (prefix) (stripped_name)]} {
       array set "" [list link_type "link" form "$default_lang:$form"]
       set name $(prefix):$(stripped_name)
+      #my msg "THIRD case name=$name, form=$default_lang:$form"
     } elseif {[regexp {^([^:]{3,}?):(.+)$} $element _ form (stripped_name)]} {
       array set "" [list link_type "link" form "$default_lang:$form" prefix $default_lang]
       set name $default_lang:$(stripped_name)
+      #my msg "FOURTH case name=$name, form=$default_lang:$form"
     } elseif {[regexp {^(..):(.+)$} $element _ (prefix) (stripped_name)]} {
       array set "" [list link_type "link"]
       set name $(prefix):$(stripped_name)
@@ -1413,6 +1417,7 @@ namespace eval ::xowiki {
       }
     }
 
+    #my msg "return link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) form $(form) parent_id $parent_id item_id $item_id"
     return [list link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) \
                 form $(form) parent_id $parent_id item_id $item_id ]
   }
@@ -2471,6 +2476,7 @@ namespace eval ::xowiki {
        -package_id 
        -form_fields 
        {-publish_status ready}
+       {-parent_id ""}
        {-extra_where_clause ""}
        {-h_where {tcl true h "" vars "" sql ""}}
        {-always_queried_attributes ""}
@@ -2485,6 +2491,10 @@ namespace eval ::xowiki {
     # publish_status are always automatically fetched from the
     # instance_select_query. Add the query attributes, we want to
     # obtain as well automatically.
+    #
+    # "-parent_id empty" means to get instances, regardless of 
+    # parent_id. Under the assumption, page_template constrains
+    # the query enough to make it fast...
     #
     set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \
                       bt.creation_date bt.creation_user bt.last_modified \
@@ -2552,9 +2562,6 @@ namespace eval ::xowiki {
     }
     #my msg filter_clause=$filter_clause
 
-    # -parent_id empty means to get instances, regardless of 
-    # parent_id. Under the assumption, page_template constrains
-    # the query enough to make it fast...
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
@@ -2562,7 +2569,7 @@ namespace eval ::xowiki {
 			$publish_status_clause $filter_clause $extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \
-		    -parent_id "" \
+		    -parent_id $parent_id \
 		    -page_size $page_size \
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
