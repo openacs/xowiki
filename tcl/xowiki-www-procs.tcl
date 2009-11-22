@@ -1889,7 +1889,7 @@ namespace eval ::xowiki {
     # collect some default values from query parameters
     #
     set default_variables [list]
-    foreach key {name title page_order last_page_id nls_language} {
+    foreach key {name title page_order last_page_id nls_language parent_id} {
       if {[my exists_query_parameter $key]} {
         lappend default_variables $key [my query_parameter $key]
       }
