@@ -91,6 +91,7 @@ namespace eval ::xowiki {
   Link instproc new_link {} {
     my instvar package_id form
     set page [my page]
+    set nls_language [$page get_nls_language_from_lang [my lang]]
     if {$form ne ""} {
       # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
       set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
@@ -101,7 +102,7 @@ namespace eval ::xowiki {
                     create-new return_url title \
                     [list parent_id [my parent_id]] \
                     [list name [my name]] \
-                    [list nls_language [$page nls_language]]]
+                    [list nls_language $nls_language]]
       }
     }
     if {[$page exists __unresolved_object_type]} {
@@ -119,7 +120,7 @@ namespace eval ::xowiki {
       }
     }
     return [$page new_link -name [my name] -title [my label] -parent_id [my parent_id] \
-                -nls_language [$page nls_language] $package_id]
+                -nls_language $nls_language $package_id]
   }
 
   Link instproc render {} {
