@@ -2039,7 +2039,12 @@ namespace eval ::xowiki {
     return $count
   }
 
-  PageTemplate instproc css_class_name {{-margin_form:boolean true}} {
+  Page instproc css_class_name {{-margin_form:boolean true}} {
+    # Determine the CSS class name for an HTML-form.
+    #
+    # We need this acually only for PageTemplate and FormPage, but
+    # aliases will require XOTcl 2.0.... so we define it for the time
+    # being on ::xowiki::Page
     set name [expr {$margin_form ? "margin-form " : ""}]
     set CSSname [my name]
     regexp {^..:(.*)$} $CSSname _ CSSname
