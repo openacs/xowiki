@@ -2039,6 +2039,13 @@ namespace eval ::xowiki {
     return $count
   }
 
+  PageTemplate instproc css_class_name {{-margin_form:boolean true}} {
+    set name [expr {$margin_form ? "margin-form " : ""}]
+    set CSSname [my name]
+    regexp {^..:(.*)$} $CSSname _ CSSname
+    return [append name "Form-$CSSname"]
+  }
+
   #
   # PageInstance methods
   #
@@ -2224,7 +2231,7 @@ namespace eval ::xowiki {
     set html ""; set mime ""
     foreach {html mime} [my get_from_template text] break
     set html [my adp_subst $html]
-    return [my substitute_markup $html]
+    return "<div class='[[my page_template] css_class_name -margin_form false]'>[my substitute_markup $html]</div>"
   }
   PageInstance instproc template_vars {content} {
     set result [list]
@@ -2782,7 +2789,8 @@ namespace eval ::xowiki {
       dom parse -simple -html $form doc
       $doc documentElement root
       set form_node [lindex [$root selectNodes //form] 0]
-      Form add_dom_attribute_value $form_node class "margin-form"
+
+      Form add_dom_attribute_value $form_node class [$page_template css_class_name]
       # The following two commands are for non-generated form contents
       my set_form_data $form_fields
       Form dom_disable_input_fields $root 
@@ -2790,6 +2798,7 @@ namespace eval ::xowiki {
       return [$root asHTML]
     }
   }
+
 
   FormPage instproc get_value {{-field_spec ""} {-cr_field_spec ""} before varname} {
     #

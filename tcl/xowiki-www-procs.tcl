@@ -1494,8 +1494,9 @@ namespace eval ::xowiki {
       set url [export_vars -base [$package_id pretty_link -parent_id [my parent_id] [my name]] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
       if {$has_file} {$form setAttribute enctype multipart/form-data}
-      Form add_dom_attribute_value $form class "margin-form"
+      Form add_dom_attribute_value $form class [$page_template css_class_name]
     }
+
     my set_form_data $form_fields
     if {$disable_input_fields} {
       # (a) disable explicit input fields
