@@ -833,7 +833,8 @@ namespace eval ::xowiki {
 
   Page ad_instproc get_form_data {-field_names form_fields} {
     Get the values from the form and store it as
-    instance attributes.
+    instance attributes. If the field names are not specified, 
+    all form parameters are used.
   } {
     #my msg "get_form_data [self] [my name] [self args]"
     set validation_errors 0
@@ -1104,11 +1105,37 @@ namespace eval ::xowiki {
     return $field_names
   }
 
-  Page instproc save_attributes {} {
-    my log "**** Method save_attributes is deprecated, use save-attributes instead"
-    my save-attributes
+  Page instproc validate-attribute {} {
+    set field_names [my field_names]
+    set validation_errors 0
+
+    # get the first transmitted form field
+    foreach field_name $field_names {
+      if {[::xo::cc exists_form_parameter $field_name]} {
+        set form_fields [my create_form_field $field_name]
+        set query_field_names $field_name
+        break
+      }
+    }
+    foreach {validation_errors category_ids} \
+        [my get_form_data -field_names $query_field_names $form_fields] break
+    set error ""
+    if {$validation_errors == 0} {
+      set status_code 200
+    } else {
+      set status_code 406
+      foreach f $form_fields { 
+        if {[$f error_msg] ne ""} {set error [$f error_msg]}
+      }
+    }
+    ns_return $status_code text/html $error
   }
-  Page instproc save-attributes {} {
+
+  Page ad_instproc save-attributes {} {
+    The method save-attributes is typically called over the 
+    REST interface. It allows to  save attributes of a 
+    page without adding a new revision.
+  } {
     my instvar package_id
     set field_names [my field_names]
     set form_fields [list]

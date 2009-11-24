@@ -48,6 +48,7 @@ namespace eval ::xowiki::formfield {
     {help_text ""}
     {error_msg ""}
     {validator ""}
+    {validate_via_ajax}
     locale
     default
     object
@@ -392,6 +393,17 @@ namespace eval ::xowiki::formfield {
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
     #
+    if {[my exists validate_via_ajax] && [my validator] ne ""} {
+      set ajaxhelper 1
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "yahoo/yahoo-min.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "dom/dom-min.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "event/event-min.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "connection/connection-min.js"
+      ::xo::Page requireJS  "/resources/xowiki/yui-form-field-validate.js"
+      set package_url [[[my object] package_id] package_url]
+      ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[my id]','$package_url');"
+    }
+
     ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class}] {}
     #
     # Disabled fieds are not returned by the browsers. For some
