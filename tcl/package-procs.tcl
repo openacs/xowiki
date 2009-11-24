@@ -586,6 +586,18 @@ namespace eval ::xowiki {
     return ""
   }
 
+  Package instproc make_form_link {-form -parent_id -name -nls_language} {
+    my instvar id
+    # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
+    set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $id]
+    if {$form_id != 0} {
+      ::xo::db::CrClass get_instance_from_db -item_id $form_id
+      set form_link [my pretty_link -parent_id [$form_id parent_id] $form]
+      return [my make_link -with_entities 0 -link $form_link $form_id \
+                  create-new return_url title parent_id name nls_language]
+    }
+  }
+
   Package instproc create_new_snippet {
     {-object_type ::xowiki::Page}
     provided_name

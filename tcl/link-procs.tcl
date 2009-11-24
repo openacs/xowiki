@@ -93,17 +93,10 @@ namespace eval ::xowiki {
     set page [my page]
     set nls_language [$page get_nls_language_from_lang [my lang]]
     if {$form ne ""} {
-      # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
-      set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
-      if {$form_id != 0} {
-        ::xo::db::CrClass get_instance_from_db -item_id $form_id
-        set form_link [$package_id pretty_link -parent_id [$form_id parent_id] $form]
-        return [$package_id make_link -with_entities 0 -link $form_link $form_id \
-                    create-new return_url title \
-                    [list parent_id [my parent_id]] \
-                    [list name [my name]] \
-                    [list nls_language $nls_language]]
-      }
+      return [$package_id make_form_link -form $form \
+                  -parent_id [my parent_id] \
+                  -name [my name] \
+                  -nls_language $nls_language]
     }
     if {[$page exists __unresolved_object_type]} {
       # get the desired object_type for unresoved entries
