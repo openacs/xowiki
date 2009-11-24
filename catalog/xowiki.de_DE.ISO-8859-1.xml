@@ -28,11 +28,16 @@
   <msg key="event-location">Ort</msg>
   <msg key="event-start_of_event">Beginnzeit</msg>
   <msg key="event-start_of_lecture">Vortragsbeginn</msg>
+  <msg key="event-title_of_event">Titel</msg>
   <msg key="event-title_of_lecture">Vortragstitel</msg>
+  <msg key="File-name-help_text">Kann von hochegeladener Datei übernommen werden</msg>
   <msg key="Form-form">Formular</msg>
   <msg key="Form-form_constraints">Einschränkungen</msg>
   <msg key="form-menu-button-answers">Einträge für dieses Formular</msg>
+  <msg key="form-menu-button-form">Formular %form_name%</msg>
   <msg key="form-menu-button-new">Formular ausfüllen</msg>
+  <msg key="form-menu-button-wf-instances">Ausprägungen von %form_name%</msg>
+  <msg key="FormPage-state">Zustand</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
   <msg key="includelet-visitors">Besucher</msg>
@@ -79,7 +84,9 @@
   <msg key="recently_changed_pages">Zuletzt geänderte Seiten</msg>
   <msg key="recently_changed_pages_by_categories">Zuletzt geänderte Seiten (nach Kategorien)</msg>
   <msg key="references_label">Verweise auf diese Seite:</msg>
+  <msg key="references_of_label">Verweise dieser Seite:</msg>
   <msg key="revisions">Verlauf</msg>
+  <msg key="revisions_title">Änderungsgeschichte dieser Seite ...</msg>
   <msg key="rss_client">RSS-Klient</msg>
   <msg key="search">Suche</msg>
   <msg key="search_title">Suche in diesem Wiki...</msg>
