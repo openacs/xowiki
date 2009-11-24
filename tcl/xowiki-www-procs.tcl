@@ -1944,7 +1944,7 @@ namespace eval ::xowiki {
     }
 
     $package_id returnredirect \
-        [export_vars -base [$package_id pretty_link [$f name]] \
+        [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
 	     [list [list m $view_method] return_url template_file title detail_link text]]
 
   }
