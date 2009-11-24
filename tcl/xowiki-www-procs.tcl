@@ -1125,7 +1125,7 @@ namespace eval ::xowiki {
     } else {
       set status_code 406
       foreach f $form_fields { 
-        if {[$f error_msg] ne ""} {set error [$f error_msg]}
+        if {[$f error_msg] ne ""} {set error [::xo::localize [$f error_msg] 1]}
       }
     }
     ns_return $status_code text/html $error

@@ -51,6 +51,7 @@
   <msg key="news-teaser">Kurztext</msg>
   <msg key="notifications">Verständigungen</msg>
   <msg key="notifications_title">Verwalten der Verständigungen ...</msg>
+  <msg key="numeric-validate_numeric">ungültiger numerischer Wert</msg>
   <msg key="Page-creator">Ersteller</msg>
   <msg key="Page-description">Kurzbeschreibung</msg>
   <msg key="Page-last_modified">Änderungsdatum</msg>
