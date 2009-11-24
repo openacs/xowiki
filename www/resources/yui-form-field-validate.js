@@ -81,6 +81,12 @@ YAHOO.xo_form_field_validate = {
                if (errorEl != undefined) {
                  errorEl.parentNode.removeChild(errorEl);  
                }
+               if (YAHOO.util.Dom.hasClass(inputEl.parentNode,"form-widget-error") &&
+                   inputEl.parentNode.class != "form-widget-error") {
+                 YAHOO.util.Dom.replaceClass(inputEl.parentNode,"form-widget-error","form-widget");
+               } else {
+                 YAHOO.util.Dom.removeClass(inputEl.parentNode,"form-widget-error");
+               }
              }
          },
 
