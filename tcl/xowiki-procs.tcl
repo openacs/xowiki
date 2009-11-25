@@ -1324,16 +1324,11 @@ namespace eval ::xowiki {
     #my msg el=$element-assume_folder=$assume_folder
     set (form) ""
 
-    if {[regexp {^(file|image|js|css|swf|folder):(.+)$} $element _ \
+    if {[regexp {^(file|image|js|css|swf):(.+)$} $element _ \
              (link_type) (stripped_name)]} {
       # (typed) file links
-      if {$(link_type) ne "folder"} {
-        set (prefix) file
-        set name file:$(stripped_name)
-      } else {
-        set (prefix) ""
-        set name $(stripped_name)
-      }
+      set (prefix) file
+      set name file:$(stripped_name)
     } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
       array set "" [list link_type "link" form "$form_lang:$form"]
       set name $(prefix):$(stripped_name)
@@ -1354,11 +1349,11 @@ namespace eval ::xowiki {
       array set "" [list link_type "link"]
       set name $(prefix):$(stripped_name)
     } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
-      set name $(stripped_name)
-      array set "" [list link_type "folder" prefix ""]
+      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang]
+      set name $default_lang:$(stripped_name)
     } elseif {$assume_folder} {
-      array set "" [list link_type "folder" prefix "" stripped_name $element]
-      set name $element
+      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang stripped_name $element]
+      set name $default_lang:$element
     } else {
       array set "" [list link_type "link" prefix $default_lang stripped_name $element]
       set name $default_lang:$element
@@ -1384,14 +1379,15 @@ namespace eval ::xowiki {
       set item_id [[my package_id] lookup -name $name -parent_id $parent_id]
       if {$item_id == 0} {
         #my log "element '$element', name=$name, item_id=$item_id $assume_folder && $(link_type)"
-        if {!$assume_folder && $(link_type) eq "link"} {
-          # try again, maybe element is folder, default-assumption was wrong
-          set item_id [[my package_id] lookup -name $(stripped_name) -parent_id $parent_id]
-          if {$item_id > 0} {array set "" [list link_type "folder" prefix ""]}
-        } elseif {$assume_folder && $(link_type) eq "folder"} {
-          # try again, maybe element is page, default-assumption was wrong
-          set item_id [[my package_id] lookup -name $default_lang:$(stripped_name) -parent_id $parent_id]
-          if {$item_id > 0} {array set "" [list link_type "link" prefix $default_lang]}
+        #if {!$assume_folder && $(link_type) eq "link"} {
+        #  # try again, maybe element is folder, default-assumption was wrong
+        #  set item_id [[my package_id] lookup -name $(stripped_name) -parent_id $parent_id]
+        #  if {$item_id > 0} {array set "" [list link_type "folder" prefix ""]}
+        #} else
+        if {$assume_folder && $(link_type) eq "link" && $default_lang ne "en"} {
+          # try again, maybe element is folder in a different language
+          set item_id [[my package_id] lookup -name en:$(stripped_name) -parent_id $parent_id]
+          if {$item_id > 0} {array set "" [list link_type "link" prefix en]}
         }
         if {$item_id == 0 && [string match *.* $element]} {
           # The item is still unknown, try name-based lookup. Does the

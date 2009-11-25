@@ -638,13 +638,13 @@ test section "Item refs"
 
   # "require_folder" and "require_page" are here just for testing
   proc require_folder {name parent_id package_id} {
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-    if {$item_id == 0} {
-      set f [::xo::db::CrFolder new -name $name -label $name -description "" \
-                 -parent_id $parent_id -package_id $package_id]
-      $f save_new
-      set item_id [$f folder_id]
-    }
+    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder -package_id $package_id]
+    set f [$form_id create_form_page_instance \
+               -name en:$name \
+               -nls_language en_US \
+               -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
+    $f save_new
+    set item_id [$f item_id]
     test hint "  $name => $item_id\n"
     return $item_id
   }
@@ -699,8 +699,8 @@ test section "Item refs"
 
   set l "folder:foldername"
   set test [label "item_ref" "existing topfolder" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage"
@@ -711,14 +711,14 @@ test section "Item refs"
 
   set l "foldername/"
   set test [label "item_ref" "existing topfolder short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername";# this works, since "foldername" exists
   set test [label "item_ref" "existing topfolder short + lookup" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "page1";#  last item per default page
@@ -792,14 +792,14 @@ test section "Item refs"
 
   set l "./foldername/"
   set test [label "item_ref" "existing topfolder short, relative" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./foldername";# this works, since "foldername" exists
   set test [label "item_ref" "existing topfolder short + lookup, relative" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./page1";#  last item per default page
@@ -809,9 +809,9 @@ test section "Item refs"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./parentpage/"
-  set test [label "item_ref" "non existing folder (with same name of existing page) in root_folder, relative" $l]
+  set test [label "item_ref" "not existing folder (with same name of existing page) in root_folder, relative" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "parentpage"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "parentpage"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./" ;# stripped name will be the name of the root folder, omit from test
@@ -831,8 +831,8 @@ test section "Item refs"
 
   set l "./foldername/."
   set test [label "item_ref" "existing topfolder short, relative" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./parentpage/."
@@ -846,44 +846,44 @@ test section "Item refs"
 
   set l "folder:foldername/folder:f3"
   set test [label "item_ref" "existing subfolder" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "folder:foldername/f3/"
   set test [label "item_ref" "existing subfolder short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./folder:foldername/folder:f3/"
   set test [label "item_ref" "existing subfolder with prefix and trailing slash" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/"
   set test [label "item_ref" "existing subfolder short short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "folder:foldername1/folder:f3"
   set test [label "item_ref" "not existing folder with subfolder" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername1"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername1"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername1/folder/"
   set test [label "item_ref" "not existing folder with subfolder short short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername1"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername1"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/folder1/"
   set test [label "item_ref" "existing folder with not existing subfolder short short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "folder1"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "folder1"
            && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/page1"
@@ -894,26 +894,26 @@ test section "Item refs"
 
   set l "folder:foldername/folder:f3/folder:subf3"
   set test [label "item_ref" "existing subsubfolder" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "subf3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/subf3"
   set test [label "item_ref" "existing subsubfolder short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "subf3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/subf3/."
   set test [label "item_ref" "existing subsubfolder short" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "subf3"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "folder:foldername/folder:f99"
   set test [label "item_ref" "not existing folder in folder" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f99"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f99"
            && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "folder:foldername/de:testpage"
@@ -945,26 +945,26 @@ test section "Item refs"
 
   set l "de:parentpage/folder:childfolder"
   set test [label "item_ref" "existing folder under page" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "childfolder"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "childfolder"
            && $(parent_id) eq $parentpage_id && $(item_id) == $childfolder_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage/folder:childfolder/"
   set test [label "item_ref" "existing folder under page with prefix and trailing slash" $l]
-  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "childfolder"
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "childfolder"
            && $(parent_id) eq $parentpage_id && $(item_id) == $childfolder_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage/folder:childfolder1"
   set test [label "item_ref" "not existing folder under page" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "childfolder1"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "childfolder1"
            && $(parent_id) eq $parentpage_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage/folder:childfolder1/"
   set test [label "item_ref" "not existing folder under page with prefix and trailing slash" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "childfolder1"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "childfolder1"
            && $(parent_id) eq $parentpage_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage/de:childpage"
@@ -997,25 +997,25 @@ test section "Item refs"
   set l "foldername/f3/subf3/.."
   set test [label "item_ref" "existing subsubfolder dot dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/subf3/../"
   set test [label "item_ref" "existing subsubfolder dot dot slash" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/subf3/../."
   set test [label "item_ref" "existing subsubfolder dot dot slash dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "f3"
            && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "foldername/f3/subf3/../.."
   set test [label "item_ref" "existing subsubfolder dot dot slash dot dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "en" && $(stripped_name) eq "foldername"
            && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "parentpage/childpage/.."
