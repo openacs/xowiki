@@ -1633,14 +1633,8 @@ namespace eval ::xowiki {
 
   Page instproc delete {} {
     my instvar package_id item_id name
-
     # delete always via package
     $package_id delete -item_id $item_id -name $name
-
-    #[my info class] delete -item_id $item_id
-    #::$package_id flush_references -item_id $item_id -name $name
-    #::$package_id returnredirect \
-#	[my query_parameter "return_url" [$package_id package_url]]
   }
 
   Page instproc save-tags {} {
