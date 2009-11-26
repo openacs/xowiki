@@ -466,7 +466,7 @@ namespace eval ::xowiki {
       $data set upload_file  $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
       set mime_type [$data form_parameter upload_file.content-type]
-      if {[db_0or1row check_mimetype {select 1 from cr_mime_types 
+      if {[db_0or1row [my qn check_mimetype] {select 1 from cr_mime_types 
 	where mime_type = :mime_type}] == 0 || $mime_type eq "application/octet-stream"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
         #my msg guess=$guessed_mime_type

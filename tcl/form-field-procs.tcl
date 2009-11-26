@@ -906,7 +906,7 @@ namespace eval ::xowiki::formfield {
       -extend_slot validator party_id_check
   party_id instproc check=party_id_check {value} {
     if {$value eq ""} {return 1}
-    return [db_0or1row dbq..check_party "select 1 from parties where party_id = :value"]
+    return [db_0or1row [my qn check_party] "select 1 from parties where party_id = :value"]
   }
 
   ###########################################################
@@ -1679,7 +1679,7 @@ namespace eval ::xowiki::formfield {
 
     set package_id [[my object] package_id]
     set options [list]
-    db_foreach instance_select \
+    db_foreach [my qn instance_select] \
         [$type instance_select_query \
              -folder_id [$package_id folder_id] \
              -with_subtypes $with_subtypes \

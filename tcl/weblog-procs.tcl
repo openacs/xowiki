@@ -184,7 +184,7 @@ namespace eval ::xowiki {
       lappend sql -page_number $page_number -page_size $page_size 
     }
     
-    set nr_items [db_string count [eval $base_type instance_select_query $sql -count true]]
+    set nr_items [db_string [my qn count] [eval $base_type instance_select_query $sql -count true]]
     #my msg count=$nr_items
     #my msg sql=$sql
     set s [$base_type instantiate_objects -sql [eval $base_type instance_select_query $sql]]

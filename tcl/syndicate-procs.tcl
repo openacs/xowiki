@@ -185,7 +185,7 @@ namespace eval ::xowiki {
 #     }
 
     set content [my head]
-    db_foreach get_pages $sql {
+    db_foreach [my qn get_pages] $sql {
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate"} continue
       append content $rss_xml_frag
@@ -263,7 +263,7 @@ namespace eval ::xowiki {
                  -orderby "p.pub_date asc" \
                  -limit [my limit]]
              
-    db_foreach get_pages $sql {
+    db_foreach [my qn get_pages] $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
       if {$title eq ""} {set title $name}
       set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl $name]
@@ -313,7 +313,7 @@ namespace eval ::xowiki {
       			$where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]
-    db_foreach get_pages $sql {
+    db_foreach [my qn get_pages] $sql {
       set publish_date [::xo::db::tcl_date $publish_date tz]
       set creation_date [::xo::db::tcl_date $creation_date tz]
       set clock [clock scan $publish_date]
