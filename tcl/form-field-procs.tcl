@@ -1817,6 +1817,13 @@ namespace eval ::xowiki::formfield {
   Class YYYY -superclass numeric -parameter {
     {size 4}
     {maxlength 4}
+  } -extend_slot validator YYYY
+
+  YYYY instproc check=YYYY {value} {
+    if {$value ne ""} {
+      return [expr {[catch {clock scan "$value-01-01 00:00:00"}] == 0}]
+    }
+    return 1
   }
 
   ###########################################################
@@ -2266,7 +2273,9 @@ namespace eval ::xowiki::formfield {
       if {[set $v] eq ""} {set $v [my set defaults($v)]}
     }
     #my msg "$year-$month-$day ${hour}:${min}:${sec}"
-    set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]
+    if {[catch {set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]}]} {
+      set ticks 0 ;# we assume that the validator flags these values
+    } 
     # TODO: TZ???
     #my msg "DATE [my name] get_compound_value returns [clock format $ticks -format {%Y-%m-%d %T}]"
     return [clock format $ticks -format "%Y-%m-%d %T"]
