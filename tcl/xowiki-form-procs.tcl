@@ -251,7 +251,6 @@ namespace eval ::xowiki {
     if {[$data form_parameter __new_p 0]
         || $old_name ne $name
       } {
-      #my msg "exists in db [::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]]"
       return [expr {[::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]] == 0}]
     }
     return 1

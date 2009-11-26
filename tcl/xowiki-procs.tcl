@@ -1303,8 +1303,9 @@ namespace eval ::xowiki {
   Page instproc item_id_ref {
     item_id
   } {
-    db_1row "get_name" "select name,parent_id from cr_items where item_id = '$item_id'"
+    set name [::xo::db::Class get_name -id $item_id]
     set type [::xo::db::Class get_object_type -id $item_id]
+    set parent_id [::xo::db::Class get_parent_id -id $item_id]
     #my log "lookup returned name=$name (type $type)"
     if {$type eq "content_folder"} {
       return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
@@ -1366,7 +1367,7 @@ namespace eval ::xowiki {
       set item_id $parent_id
       set parent_id $(parent_id)
     } elseif {$element eq ".." || $element eq "..\0"} {
-      db_1row "get_parent" "select parent_id as id from cr_items where item_id = :parent_id"
+      set id [::xo::db::CrClass get_parent_id -item_id $parent_id]
       if {$id > 0} {
         # refuse to traverse past root folder
         set parent_id $id

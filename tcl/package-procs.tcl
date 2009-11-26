@@ -586,7 +586,7 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc make_form_link {-form -parent_id -name -nls_language} {
+  Package instproc make_form_link {-form -parent_id -name -nls_language -return_url} {
     my instvar id
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
     set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $id]
@@ -1388,9 +1388,14 @@ namespace eval ::xowiki {
     append msg [$importer report]
   }
 
-  Package instproc flush_references {-item_id:integer,required -name:required -parent_id} {
-    my instvar folder_id id
-    if {![info exists parent_id]} {set parent_id $folder_id}
+  Package instproc flush_references {-item_id:integer,required -name -parent_id} {
+    my instvar id folder_id
+    if {![info exists parent_id]} {
+      set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
+    }
+    if {![info exists name]} {
+      set name [::xo::db::CrClass get_name -item_id $item_id]
+    }
     if {$name eq "::$folder_id"} {
       #my log "--D deleting folder object ::$folder_id"
       ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
@@ -1414,7 +1419,7 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
-  Package instproc delete {-item_id -name} {
+  Package instproc delete {-item_id -name -parent_id} {
     #
     # This delete method does not require an instanantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
@@ -1423,7 +1428,7 @@ namespace eval ::xowiki {
     # While the class specific methods are used from the
     # application pages, the package_level method is used from the admin pages.
     #
-    my instvar folder_id id
+    my instvar id
     #
     # if no item_id given, take it from the query parameter
     #
@@ -1437,12 +1442,19 @@ namespace eval ::xowiki {
     if {![info exists name]} {
       set name [my query_parameter name]
     }
+
     if {$item_id eq "" && $name ne ""} {
-      if {[set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]] == 0} {
+      if {![info exists parent_id]} {set parent_id [my folder_id]}
+      if {[set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]] == 0} {
         ns_log notice "lookup of '$name' failed"
         set item_id ""
       }
+    } elseif {$item_id ne ""} {
+      if {![info exists parent_id]} {
+        set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
+      }
     }
+
     if {$item_id ne ""} {
       #my log "--D trying to delete $item_id $name"
       set object_type [::xo::db::CrClass get_object_type -item_id $item_id]
@@ -1468,8 +1480,11 @@ namespace eval ::xowiki {
           ::xo::db::sql::content_item del -item_id $comment_id 
         }
       }
+      foreach child_item_id [::xo::db::CrClass get_child_item_ids -item_id $item_id] {
+        my flush_references -item_id $child_item_id
+      }
       $object_type delete -item_id $item_id
-      my flush_references -item_id $item_id -name $name
+      my flush_references -item_id $item_id -name $name -parent_id $parent_id
       my flush_page_fragment_cache -scope agg
     } else {
       my log "--D nothing to delete!"
