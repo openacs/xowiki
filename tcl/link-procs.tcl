@@ -123,7 +123,6 @@ namespace eval ::xowiki {
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      set l  [my pretty_link $item_id]
       my render_found [my pretty_link $item_id] [my label]
     } else {
       $page incr unresolved_references

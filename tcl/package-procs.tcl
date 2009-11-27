@@ -283,8 +283,13 @@ namespace eval ::xowiki {
     
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
+    if {$folder ne ""} {
+      # if folder has a different language than the content, we have to provide a prefix....
+      regexp {^(..):} $folder _ default_lang
+    }
 
     #my log "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor download=$download"
+    #my msg folder=$folder,lang=$lang,default_lang=$default_lang
     if {$download} {
       #
       # use the special download (file) syntax

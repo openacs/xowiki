@@ -1832,7 +1832,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class youtube_url -superclass text
-  youtube_url set urlre {^http://www.youtube.com/watch[?]v=(.*)$}
+  youtube_url set urlre {^http://www.youtube.com/watch[?]v=([^?]+)([?]?)}
   
   youtube_url instproc initialize {} {
     next

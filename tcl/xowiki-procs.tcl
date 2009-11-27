@@ -2178,6 +2178,7 @@ namespace eval ::xowiki {
     if {$trylocal && [my isform]} {
       return [my property form_constraints]
     } else {
+      #my msg "get_form_constraints returns '[my get_from_template form_constraints]'"
       return [my get_from_template form_constraints]
     }
   }
@@ -2196,12 +2197,15 @@ namespace eval ::xowiki {
     #my msg "parent of self [my name] is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
-    # properties of this page.
+    # properties of this page. Note, that we cannot distinguish here between 
+    # intrinsic (starting with _) and extension variables, since get_from
+    # template does not know about the logic with "_" (just "property" does). 
     #
     if {[$form_obj istype ::xowiki::PageInstance]} {
-      #my msg "returning parent property [$form_obj property $var]"
+      #my msg "returning property $var from parent formpage => '[$form_obj property $var]'"
       return [$form_obj property $var]
     }
+
     #
     # .... otherwise, it should be an instance variable ....
     #
@@ -2723,6 +2727,8 @@ namespace eval ::xowiki {
                      [::xo::db::CrClass set common_query_atts]]
 
     set template [lindex [my get_from_template text] 0]
+    #my msg template=$template
+
     #set field_names [list _name _title _description _creator _nls_language _page_order]
     set field_names [list]
     if {$form eq ""} {set form [my get_form]}
