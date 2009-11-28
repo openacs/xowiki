@@ -145,6 +145,7 @@ namespace eval ::xowiki {
 
   Class create TreeRenderer -superclass Class \
       -parameter {
+	{subtree_wrapper_class}
 	{li_expanded_atts ""}
 	{highlight_atts {"style = 'font-weight:bold;'"}}
       }
@@ -222,7 +223,14 @@ namespace eval ::xowiki {
 	set entry [my label]
       }
     }
-    if {$cat_content ne ""} {set content "\n<ul $u_atts>\n$cat_content</ul>"} else {set content ""}
+    if {$cat_content ne ""} {
+      set content "\n<ul $u_atts>\n$cat_content</ul>"
+      if {[$cl exists subtree_wrapper_class]} {
+        set content "\n<div class='[$cl subtree_wrapper_class]'>$content</div>\n"
+      }
+    } else {
+      set content ""
+    }
     return "<li $o_atts><span $h_atts>[my prefix] $entry</span>$content"
   }
   
@@ -241,6 +249,20 @@ namespace eval ::xowiki {
     return "<ul class='mktree' id='[$tree id]'>[next]</ul>"
   }
 
+  #
+  # List-specific renderer based for some menus
+  #
+  TreeRenderer create TreeRenderer=samplemenu \
+      -superclass TreeRenderer=list \
+      -li_expanded_atts [list "class='menu-open'" "class='menu-closed'"] \
+      -subtree_wrapper_class "submenu"
+
+  TreeRenderer=samplemenu proc include_head_entries {args} {
+    # add your CSS here...
+  }
+  TreeRenderer=samplemenu proc render {tree} {
+    return "<ul class='menu' id='[$tree id]'>[next]</ul>"
+  }
 
   #
   # List-specific renderer based on yuitree
