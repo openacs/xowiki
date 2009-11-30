@@ -564,16 +564,16 @@ xowiki-test-links $p {
 $p nls_language de_DE
 test subsubsection "Testing links on German page"
 xowiki-test-links $p {
-    hello 0 0
+    hello 1 0
     en:hello 1 0
     de:hello 0 0
     xxx 0 0
-    //XOWIKI-TEST/hello 0 0
+    //XOWIKI-TEST/hello 1 0
     //XOWIKI-TEST/en:hello 1 0
     //XOWIKI-TEST/de:hello 0 0
     //XOWIKI-TEST/en/hello 0 0
     //forums 1 1
-    //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 0 0
+    //XOWIKI-TEST/weblog?m=create-new&p.exercise_form=en:l1 1 0
     //XOWIKI-TEST/en:weblog?m=create-new&p.exercise_form=en:l1 1 0
 }
 
@@ -685,6 +685,7 @@ test section "Item refs"
   set subf3_id       [require_folder "subf3"       $f3_id $package_id]
 
   # make sure, we have the test pages
+  set indexpage_id   [require_page   en:index      $folder_id $package_id]
   set parentpage_id  [require_page   de:parentpage $folder_id $package_id]
   set testpage_id    [require_page   de:testpage   $foldername_id $package_id]
 
@@ -814,7 +815,7 @@ test section "Item refs"
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "parentpage"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "./" ;# stripped name will be the name of the root folder, omit from test
+  set l "./" ;# stripped name will be the name of the root folder
   set test [label "item_ref" "dot with slash, relative" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" 

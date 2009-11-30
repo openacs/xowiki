@@ -1222,11 +1222,8 @@ namespace eval ::xowiki {
     return [list name $name lang $lang normalized_name $normalized_name anchor $anchor query $query]
   }
 
-  #
-  # Resolving item refs 
-  # (symbolic references to content items and content folders)
-  #
-
+  Page instforward item_ref -verbose {%my package_id} %proc
+  
   Page ad_instproc package_item_ref {
     -default_lang:required 
     -parent_id:required 
@@ -1246,179 +1243,8 @@ namespace eval ::xowiki {
     if {$referenced_package_id != $package_id} {
       set parent_id [$referenced_package_id folder_id]
     }
-    return [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
+    return [$referenced_package_id item_ref -default_lang $default_lang -parent_id $parent_id $link]
   }
-
-  Page ad_instproc item_ref {
-    -default_lang:required 
-    -parent_id:required 
-    link
-  } {
-
-    An item_ref refers to an item in the content repository relative
-    to some parent_id. The item might be either a folder or some kind
-    of "page" (e.g. a file). An item_ref might be complex,
-    i.e. consist of a path of simple_item_refs, separated by "/".
-    An item_ref stops at the first unknown part in the path and
-    returns item_id == 0 and the appropriate parent_id (and name etc.) 
-    for insertion.
-
-  } {
-    # A trailing slash says that the last element is a folder. We
-    # substitute it to allow easy iteration over the slash separated
-    # segments.
-    if {[string match */ $link]} {
-      set link [string trimright $link /]\0
-    }
-    # Iterate until the first unknown element appears in the path
-    # (we can handle only one unknown at a time).
-    set elements [split $link /]
-    set nr_elements [llength $elements]
-    set n 0
-    foreach element $elements {
-      set (last_parent_id) $parent_id
-      array set "" [my simple_item_ref \
-                        -default_lang $default_lang \
-                        -parent_id $parent_id \
-                        -assume_folder [expr {[incr n]<$nr_elements}] \
-                        $element]
-      if {$(item_id) == 0} {
-        set parent_id $(parent_id)
-        break
-      } else {
-        set parent_id $(item_id)
-      }
-    }
-
-    # the following 2 lines are just for now:
-    #set name [expr {$(prefix) eq "" ? $(stripped_name) : "$(prefix):$(stripped_name)"}]
-    #set url [[my package_id] pretty_link -parent_id $(parent_id) $name]
-    #
-
-    return [list link_type $(link_type) form $(form) \
-                prefix $(prefix) stripped_name $(stripped_name) \
-                item_id $(item_id) parent_id $(parent_id)]
-  }
-
-  Page instproc item_id_ref {
-    item_id
-  } {
-    set name [::xo::db::Class get_name -id $item_id]
-    set type [::xo::db::Class get_object_type -id $item_id]
-    set parent_id [::xo::db::Class get_parent_id -id $item_id]
-    #my log "lookup returned name=$name (type $type)"
-    if {$type eq "content_folder"} {
-      return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
-    } else {
-      regexp {^(.+):(.+)$} $name _ prefix stripped_name
-      return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
-    }
-  }
- 
-  Page instproc simple_item_ref {
-    -default_lang:required 
-    -parent_id:required 
-    {-assume_folder:required false}
-    element
-  } {
-    set element [[my package_id] normalize_name $element]
-    #my msg el=$element-assume_folder=$assume_folder
-    set (form) ""
-
-    if {[regexp {^(file|image|js|css|swf):(.+)$} $element _ \
-             (link_type) (stripped_name)]} {
-      # (typed) file links
-      set (prefix) file
-      set name file:$(stripped_name)
-    } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
-      array set "" [list link_type "link" form "$form_lang:$form"]
-      set name $(prefix):$(stripped_name)
-      #my msg "FIRST case name=$name, form=$form_lang:$form"
-    } elseif {[regexp {^(..):([^:]{3,}?):(.+)$} $element _ form_lang form (stripped_name)]} {
-      array set "" [list link_type "link" form "$form_lang:$form" prefix $default_lang]
-      set name $default_lang:$(stripped_name)
-      #my msg "SECOND case name=$name, form=$form_lang:$form"
-    } elseif {[regexp {^([^:]{3,}?):(..):(.+)$} $element _ form (prefix) (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:$form"]
-      set name $(prefix):$(stripped_name)
-      #my msg "THIRD case name=$name, form=$default_lang:$form"
-    } elseif {[regexp {^([^:]{3,}?):(.+)$} $element _ form (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:$form" prefix $default_lang]
-      set name $default_lang:$(stripped_name)
-      #my msg "FOURTH case name=$name, form=$default_lang:$form"
-    } elseif {[regexp {^(..):(.+)$} $element _ (prefix) (stripped_name)]} {
-      array set "" [list link_type "link"]
-      set name $(prefix):$(stripped_name)
-    } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang]
-      set name $default_lang:$(stripped_name)
-    } elseif {$assume_folder} {
-      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang stripped_name $element]
-      set name $default_lang:$element
-    } else {
-      array set "" [list link_type "link" prefix $default_lang stripped_name $element]
-      set name $default_lang:$element
-    }
-    set name [string trimright $name \0]
-    set (stripped_name) [string trimright $(stripped_name) \0]
-
-    if {$element eq "." || $element eq ".\0"} {
-      array set "" [my item_id_ref $parent_id]
-      set item_id $parent_id
-      set parent_id $(parent_id)
-    } elseif {$element eq ".." || $element eq "..\0"} {
-      set id [::xo::db::CrClass get_parent_id -item_id $parent_id]
-      if {$id > 0} {
-        # refuse to traverse past root folder
-        set parent_id $id
-      }
-      array set "" [my item_id_ref $parent_id]
-      set item_id $parent_id
-      set parent_id $(parent_id)
-    } else {
-      # with the following construct we need in most cases just 1 lookup
-      set item_id [[my package_id] lookup -name $name -parent_id $parent_id]
-      if {$item_id == 0} {
-        #my log "element '$element', name=$name, item_id=$item_id $assume_folder && $(link_type)"
-        #if {!$assume_folder && $(link_type) eq "link"} {
-        #  # try again, maybe element is folder, default-assumption was wrong
-        #  set item_id [[my package_id] lookup -name $(stripped_name) -parent_id $parent_id]
-        #  if {$item_id > 0} {array set "" [list link_type "folder" prefix ""]}
-        #} else
-        if {$assume_folder && $(link_type) eq "link" && $default_lang ne "en"} {
-          # try again, maybe element is folder in a different language
-          set item_id [[my package_id] lookup -name en:$(stripped_name) -parent_id $parent_id]
-          if {$item_id > 0} {array set "" [list link_type "link" prefix en]}
-        }
-        if {$item_id == 0 && [string match *.* $element]} {
-          # The item is still unknown, try name-based lookup. Does the
-          # entry look like a file with an extension?
-          set mime_type [::xowiki::guesstype $name]
-          set (prefix) file
-          switch -glob $mime_type {
-            "image/*" {
-              set name file:$(stripped_name)
-              set (link_type) image
-            }
-	    application/x-shockwave-flash {
-              set name file:$(stripped_name)
-              set (link_type) swf
-	    }
-            default {
-              set name file:$(stripped_name)
-              set (link_type) file
-            }
-          }
-          set item_id [[my package_id] lookup -name file:$(stripped_name) -parent_id $parent_id]
-        }
-      }
-    }
-
-    #my msg "return link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) form $(form) parent_id $parent_id item_id $item_id"
-    return [list link_type $(link_type) prefix $(prefix) stripped_name $(stripped_name) \
-                form $(form) parent_id $parent_id item_id $item_id ]
-  }
-
 
   Page instproc create_link {arg} {
     #my msg [self args]
@@ -1432,7 +1258,6 @@ namespace eval ::xowiki {
     # Get the package_id from the provided path, and - if found -
     # return the shortened link relative to it.
     set package_id [[my package_id] resolve_package_path $link link]
-
     if {$package_id == 0} {
       # we treat all such links like external links
       if {[regsub {^//} $link / link]} {
@@ -1476,18 +1301,24 @@ namespace eval ::xowiki {
     #  } 
 
     array set "" [my get_anchor_and_query $link]
-    if {$label eq $arg} {set label $(link)}
+
+    set parent_id [expr {$package_id == [my package_id] ? 
+                         [my parent_id] : [$package_id folder_id]}]
 
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # language link (it starts with a ':')
-      array set "" [my item_ref -default_lang [my lang] -parent_id [my parent_id] ${lang}:$stripped_name]
+      array set "" [$package_id item_ref -default_lang [my lang] -parent_id $parent_id \
+                        ${lang}:$stripped_name]
       set (link_type) language
     } else {
-      array set "" [my item_ref -default_lang [my lang] -parent_id [my parent_id] $(link)]
+      array set "" [$package_id item_ref -default_lang [my lang] -parent_id $parent_id \
+                        $(link)]
     }
     #my msg [array get ""]
-    set item_name [string trimleft $(prefix):$(stripped_name) :]
 
+    if {$label eq $arg} {set label $(link)}
+    set item_name [string trimleft $(prefix):$(stripped_name) :]
+    
     Link create [self]::link \
         -page [self] -form $(form) \
         -type $(link_type) [list -name $item_name] -lang $(prefix) \
