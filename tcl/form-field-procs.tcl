@@ -1927,6 +1927,8 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
+  # note that the includelet "include" can be used for implementing symbolic links
+  # to other xowiki pages.
   Class include -superclass text -parameter {
   }
   include instproc pretty_value {v} {
@@ -1945,6 +1947,16 @@ namespace eval ::xowiki::formfield {
     return [$(item_id) render]
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::redirect
+  #
+  ###########################################################
+
+  Class redirect -superclass text
+  redirect instproc pretty_value {v} {
+    return [[[my object] package_id] returnredirect $v]
+  }
 
   ###########################################################
   #
