@@ -484,7 +484,7 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc pretty_value {v} {
     #my log "mapping $v"
-    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;" @ "&#64;"] $v]
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&#39;" @ "&#64;"] $v]
   }
 
   FormField instproc has_instance_variable {var value} {
