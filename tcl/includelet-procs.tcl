@@ -971,7 +971,7 @@ namespace eval ::xowiki::includelet {
         $entry instvar name parent_id formatted_date page_id {title entry_title}
         set entry_package_id [$entry set package_id]
       
-        set page_link [[my package_id] pretty_link -parent_id $parent_id $name]
+        set page_link [$entry_package_id pretty_link -parent_id $parent_id $name]
         switch -- $pretty_age {
 	  1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]]}
 	  2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2]}
