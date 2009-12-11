@@ -1955,6 +1955,8 @@ namespace eval ::xowiki::formfield {
 
   Class redirect -superclass text
   redirect instproc pretty_value {v} {
+    #ad_returnredirect -allow_complete_url $v
+    #ad_script_abort
     return [[[my object] package_id] returnredirect $v]
   }
 

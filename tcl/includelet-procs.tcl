@@ -3184,6 +3184,54 @@ namespace eval ::xowiki::includelet {
   }
 
   #############################################################################
+  ::xowiki::IncludeletClass create form-stats \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration plain}
+        {parameter_declaration {
+          {-form}
+          {-var _state}
+          {-orderby "value,desc"}
+        }}
+      }
+
+  form-stats instproc render {} {
+    my get_parameters
+
+    set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+    set items [::xowiki::FormPage get_form_entries \
+                   -base_item_ids $form_item_ids -form_fields "" \
+                   -always_queried_attributes "*" \
+                   -publish_status ready -package_id $package_id]
+
+    foreach i [$items children] {
+      set value ""
+      if {[string match _* $var]} {
+        set varname [string range $var 1 end]
+        if {[$i exists $varname]} {set value [$i set $varname]}
+      } else {
+        array set __ia [$i set instance_attributes]
+        set varname __ia($var)
+        if {[my exists $varname]} {set value [my set $varname]}
+      }
+      if {[info exists count($value)]} {incr count($value)} else {set count($value) 1}
+    }
+
+    TableWidget t1 -volatile \
+        -columns {
+          Field name -orderby name -label name
+          Field value -orderby value -label value
+        }
+
+    foreach {att order} [split $orderby ,] break
+    t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+    foreach {name value} [array get count] {
+      t1 add -name $name -value $value
+    }
+    return [t1 asHTML]
+  }
+
+  #############################################################################
   ::xowiki::IncludeletClass create form-usages \
       -superclass ::xowiki::Includelet \
       -parameter {
@@ -3750,5 +3798,57 @@ namespace eval ::xowiki::includelet {
     } {
       return [[my set __including_page] include [list [$random_item name] -decoration none]]
     }
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # flowplayer 
+  #
+  # Get flowplayer from
+  #    http://flowplayer.org/download/index.html
+  # Get pseudostreaming plugin from 
+  #     http://flowplayer.org/plugins/streaming/pseudostreaming.html#download
+  #
+  # install bowth under packages/xowiki/www/resources/flowplayer
+  #
+  ::xowiki::IncludeletClass create flowplayer \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          -mp4:required
+        }}
+      }
+
+  flowplayer instproc include_head_entries {} {
+    ::xo::Page requireJS  "/resources/xowiki/flowplayer/example/flowplayer-3.1.4.min.js"
+  }
+  
+  flowplayer instproc render {} {
+    my get_parameters
+    return "<a href='$mp4' style='display:block;width:425px;height:300px;' id='player'> </a>
+    <script type='text/javascript'>
+ flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.1.5.swf', {
+		
+	// this will enable pseudostreaming support 
+	plugins: { 
+		pseudo: { url: '/resources/xowiki/flowplayer/flowplayer.pseudostreaming-3.1.3.swf' } 
+	},
+	
+	// clip properties 
+	clip: {
+		// our clip uses pseudostreaming
+		provider: 'pseudo',
+
+                autoPlay: false,
+                autoBuffering: false,						
+		
+		// provide MP4 file for Flash version 9.0.115 and above. otherwise use FLV
+		url: '$mp4'
+	}
+	
+ });
+   </script>"
   }
 }
