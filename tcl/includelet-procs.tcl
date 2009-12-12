@@ -3190,8 +3190,8 @@ namespace eval ::xowiki::includelet {
         {__decoration plain}
         {parameter_declaration {
           {-form}
-          {-var _state}
-          {-orderby "value,desc"}
+          {-property _state}
+          {-orderby "count,desc"}
         }}
       }
 
@@ -3201,33 +3201,34 @@ namespace eval ::xowiki::includelet {
     set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids -form_fields "" \
-                   -always_queried_attributes "*" \
-                   -publish_status ready -package_id $package_id]
+                   -always_queried_attributes "*" -initialize false \
+                   -publish_status all -package_id $package_id]
 
     foreach i [$items children] {
       set value ""
-      if {[string match _* $var]} {
-        set varname [string range $var 1 end]
+      if {[string match _* $property]} {
+        set varname [string range $property 1 end]
         if {[$i exists $varname]} {set value [$i set $varname]}
       } else {
         array set __ia [$i set instance_attributes]
-        set varname __ia($var)
-        if {[my exists $varname]} {set value [my set $varname]}
+        set varname __ia($property)
+        if {[info exists $varname]} {set value [set $varname]}
       }
-      if {[info exists count($value)]} {incr count($value)} else {set count($value) 1}
+      if {[info exists __count($value)]} {incr __count($value)} else {set __count($value) 1}
     }
 
     TableWidget t1 -volatile \
         -columns {
-          Field name -orderby name -label name
           Field value -orderby value -label value
+          Field count -orderby count -label count
         }
-
+    
     foreach {att order} [split $orderby ,] break
     t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    foreach {name value} [array get count] {
-      t1 add -name $name -value $value
+    foreach {value count} [array get __count] {
+      t1 add -value $value -count $count
     }
+    
     return [t1 asHTML]
   }
 
