@@ -275,7 +275,7 @@ namespace eval ::xowiki {
       # with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    #my msg "lang=$lang, default_lang=$default_lang, name=$name"
+    #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id"
     
     if {$parent_id eq -100} {
       return ${host}${package_prefix}$query$anchor
@@ -283,6 +283,7 @@ namespace eval ::xowiki {
     
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
+
     if {$folder ne ""} {
       # if folder has a different language than the content, we have to provide a prefix....
       regexp {^(..):} $folder _ default_lang
@@ -1374,8 +1375,13 @@ namespace eval ::xowiki {
   } {
     set package_id [my id]
     set folder_id [$package_id folder_id]
-    if {![info exists namefilter]} {
-      set name_filter  [my get_parameter name_filter ""]
+    if {![info exists name_filter]} {
+      set name_filter [my get_parameter name_filter ""]
+      if {$name_filter ne ""} {
+	if {[string match *'* $name_filter]} {
+	  error "name filter contains invalid character: $name_filter"
+	}
+      }
     }
     if {![info exists entries_of]} {
       set entries_of [my get_parameter entries_of ""]
