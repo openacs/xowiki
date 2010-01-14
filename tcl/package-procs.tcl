@@ -320,7 +320,7 @@ namespace eval ::xowiki {
     #my proc destroy {} {my log "--P "; next}
   }
 
-  Package ad_instproc get_parameter {{-check_query_parameter true} attribute {default ""}} {
+  Package ad_instproc get_parameter {{-check_query_parameter true} {-type ""} attribute {default ""}} {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
@@ -358,6 +358,13 @@ namespace eval ::xowiki {
     }
     if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
     if {$value eq ""} {set value [next $attribute $default]}
+    if {$type ne ""} {
+      # to be extended and generalized
+      switch $type {
+        word {if {[regexp {\W} $value]} {error "value '$value' contains invalid character"}}
+        default {error "requested type unknown: $type"}
+      }
+    }
     #my log "           $attribute returns '$value'"
     return $value
   }
@@ -1376,12 +1383,7 @@ namespace eval ::xowiki {
     set package_id [my id]
     set folder_id [$package_id folder_id]
     if {![info exists name_filter]} {
-      set name_filter [my get_parameter name_filter ""]
-      if {$name_filter ne ""} {
-	if {[string match *'* $name_filter]} {
-	  error "name filter contains invalid character: $name_filter"
-	}
-      }
+      set name_filter [my get_parameter name_filter -type word ""]
     }
     if {![info exists entries_of]} {
       set entries_of [my get_parameter entries_of ""]
@@ -1729,7 +1731,7 @@ namespace eval ::xowiki {
   #
 
   Class ParameterCache
-  ParameterCache instproc get_parameter {{-check_query_parameter true} attribute {default ""}} {
+  ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
     set key [list [my id] [self proc] $attribute]
     if {[::xo::cc cache_exists $key]} {
       return [::xo::cc cache_get $key]
