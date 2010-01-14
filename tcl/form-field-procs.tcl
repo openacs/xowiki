@@ -616,7 +616,7 @@ namespace eval ::xowiki::formfield {
         break
       }
     }
-    my slots [list Attribute validator -default $value]
+    my slots [list Attribute create validator -default $value]
   }
 
   ###########################################################

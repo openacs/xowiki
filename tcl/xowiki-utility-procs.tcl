@@ -8,7 +8,7 @@
 
 namespace eval ::xowiki {
 
-  Object create tidy
+  ::xotcl::Object create tidy
   tidy proc clean {text} {
     if {[[::xo::cc package_id] get_parameter tidy 0] 
         && [info command ::util::which] ne ""} { 

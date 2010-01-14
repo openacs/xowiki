@@ -22,11 +22,11 @@ namespace eval ::xowiki {
 	# some default values, such as pretty_names, required state, 
 	# help text etc.
 	::xo::Attribute create name \
-	    -required true \
 	    -help_text #xowiki.Page-name-help_text# \
-	    -validator name
+	    -validator name \
+	    -required false ;#true 
 	::xo::Attribute create title \
-	    -required true
+	    -required false ;#true
 	::xo::Attribute create descripion \
 	    -spec "textarea,cols=80,rows=2" 
 	::xo::Attribute create text \
@@ -208,7 +208,7 @@ namespace eval ::xowiki {
         count   integer"
   ::xo::db::require index -table xowiki_autonames -col parent_id,name -unique true
 
-  Object create autoname
+  ::xotcl::Object create autoname
   autoname proc generate {-parent_id -name} {
     db_transaction {
       set already_recorded [db_0or1row [my qn autoname_query] "
