@@ -1534,7 +1534,7 @@ namespace eval ::xowiki {
     set parent_id [$id query_parameter parent_id ""]
     if {$parent_id eq ""} {set parent_id [$id form_parameter folder_id $folder_id]}
     set page [$object_type new -volatile -parent_id $parent_id -package_id $id]
-    my log "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id"
+    #my ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"
     if {$object_type eq "::xowiki::PageInstance"} {
       #
       # If we create a PageInstance via the ad_form based

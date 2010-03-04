@@ -278,9 +278,6 @@ namespace eval ::xowiki::formfield {
             my set __state reset
             my initialize
           }
-          #my msg "[my name] [self] [my info class] before searchDefaults, validator='[my validator]'"
-          #::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
-          #my msg "[my name] [self] [my info class] after searchDefaults, validator='[my validator]'"
         } else {
           if {$s ne ""} {
             error [_ xowiki.error-form_constraint-unknown_spec_entry \
@@ -305,8 +302,8 @@ namespace eval ::xowiki::formfield {
       } else {
         my class ::xowiki::formfield::text
       }
-      # TODO: reset_parameter? needed?
-      ::xotcl::Class::Parameter searchDefaults [self]; # TODO: will be different in xotcl 1.6.*
+      # set missing instance vars with defaults
+      my set_instance_vars_defaults
     }
     regsub -all {,\s+} $spec , spec
     foreach s [split $spec ,] {

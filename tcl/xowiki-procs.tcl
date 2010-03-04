@@ -32,7 +32,8 @@ namespace eval ::xowiki {
 	::xo::Attribute create text \
 	    -spec "richtext" 
 	::xo::Attribute create nls_language \
-	    -spec {select,options=[xowiki::locales]}
+	    -spec {select,options=[xowiki::locales]} \
+            -default [ad_conn locale]
 	::xo::Attribute create publish_date \
 	    -spec date
 	::xo::Attribute create last_modified \
