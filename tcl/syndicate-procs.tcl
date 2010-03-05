@@ -394,7 +394,7 @@ namespace eval ::xowiki {
   RSS-client instproc init {} {
     set XML [my load]
     if {$XML ne ""} {
-      my parse [my load]
+      my parse $XML
     }
   }
   

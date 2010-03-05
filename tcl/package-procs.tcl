@@ -1383,7 +1383,7 @@ namespace eval ::xowiki {
     set package_id [my id]
     set folder_id [$package_id folder_id]
     if {![info exists name_filter]} {
-      set name_filter [my get_parameter name_filter -type word ""]
+      set name_filter [my get_parameter -type word name_filter ""]
     }
     if {![info exists entries_of]} {
       set entries_of [my get_parameter entries_of ""]
