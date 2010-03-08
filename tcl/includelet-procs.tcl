@@ -3671,7 +3671,6 @@ namespace eval ::xowiki::includelet {
     my get_parameters
 
     set ajaxhelper 0
-    set v 2.8.0r4
     ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper carousel/assets/skins/sam/carousel.css
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "element/element-min.js"
