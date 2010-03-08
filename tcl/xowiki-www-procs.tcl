@@ -364,7 +364,7 @@ namespace eval ::xowiki {
       # to find one, where the current user has at least read
       # permissions.  This act is required for sub-packages, which
       # might not have the script dir.
-      set first_instance_id [[$package_id info class] first_instance -party_id [::xo::cc user_id] -privilege read]
+      set first_instance_id [::xowiki::Package first_instance -party_id [::xo::cc user_id] -privilege read]
       if {$first_instance_id ne ""} {
         ::xowiki::Package require $first_instance_id
         set folder_spec [list script_dir [$first_instance_id package_url]]
