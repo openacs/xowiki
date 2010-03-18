@@ -27,7 +27,7 @@ namespace eval ::xowiki {
 	    -required false ;#true 
 	::xo::Attribute create title \
 	    -required false ;#true
-	::xo::Attribute create descripion \
+	::xo::Attribute create description \
 	    -spec "textarea,cols=80,rows=2" 
 	::xo::Attribute create text \
 	    -spec "richtext" 
