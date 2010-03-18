@@ -96,7 +96,7 @@ if {![info exists root_folder_id]} {
   set root_folder_id [fs_get_root_folder -package_id $fs_package_id]
 }
 
-set fs_url [site_node::get_url_from_object_id -object_id $fs_package_id]
+set fs_url [lindex [site_node::get_url_from_object_id -object_id $fs_package_id] 0]
 
 # # Don't allow delete if root folder
 set root_folder_p [expr {$folder_id == $root_folder_id}]

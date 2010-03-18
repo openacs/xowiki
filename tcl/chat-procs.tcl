@@ -39,7 +39,7 @@ namespace eval ::xowiki {
     if {![info exists package_id]} {set package_id [ad_conn package_id] }
     if {![info exists chat_id]}    {set chat_id $package_id }
     set context id=$chat_id&s=[ad_conn session_id].[clock seconds]
-    set path    [site_node::get_url_from_object_id -object_id $package_id]
+    set path    [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     
     if {![info exists mode]} {
       set mode polling

@@ -133,7 +133,7 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
 
     if {$description eq ""} {set description [::$folder_id set description]}
-    my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
+    my set link $siteurl[lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     
     set base_table xowiki_pagex 
     set extra_where_clause [my extra_where_clause]
@@ -250,7 +250,7 @@ namespace eval ::xowiki {
     if {$summary  eq ""} {set summary $description}
     if {$subtitle eq ""} {set subtitle $title}
 
-    my set link $siteurl[site_node::get_url_from_object_id -object_id $package_id]
+    my set link $siteurl[lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     
     set content [my head]
     set sql [::xo::db::sql select \
