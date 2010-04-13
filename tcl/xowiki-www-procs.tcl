@@ -1911,15 +1911,22 @@ namespace eval ::xowiki {
     # collect some default values from query parameters
     #
     set default_variables [list]
-    foreach key {name title page_order last_page_id nls_language parent_id} {
+    foreach key {name title page_order last_page_id nls_language} {
       if {[my exists_query_parameter $key]} {
         lappend default_variables $key [my query_parameter $key]
       }
     }
 
+    # To create form_pages in different places than the form, provide
+    # fp_parent_id and fp_package_id.
+    set fp_parent_id [my query_parameter "fp_parent_id" [my set parent_id]]
+    set fp_package_id [my query_parameter "fp_package_id" [my set package_id]]
+
     set f [my create_form_page_instance \
                -name $name \
                -nls_language $nls_language \
+               -parent_id $fp_parent_id \
+               -package_id $fp_package_id \
                -default_variables $default_variables \
                -source_item_id [my query_parameter source_item_id ""]]
 
