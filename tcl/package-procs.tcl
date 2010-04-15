@@ -1056,7 +1056,7 @@ namespace eval ::xowiki {
     if {!$(item_id) && $use_search_path} {
       foreach package [my package_path] {
         array set "" [$package item_ref -default_lang $default_lang \
-                          -parent_id [$package $parent_id] $link]
+                          -parent_id [$package id] $link]
         if {$(item_id)} break
       }
     }
@@ -1066,7 +1066,7 @@ namespace eval ::xowiki {
         return $page
       }
     }
-    if {!$(item_id) && $use_protype_pages} {
+    if {!$(item_id) && $use_prototype_pages} {
       array set "" [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
       set page [::xowiki::Package import_prototype_page \
                     -package_key [my package_key] \
