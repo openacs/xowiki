@@ -763,7 +763,7 @@ namespace eval ::xowiki {
       }
     }
     
-    set page [::xowiki::Package get_system_wide_page -name en:$object]
+    set page [::xowiki::Package get_site_wide_page -name en:$object]
     if {$page ne ""} {
       return $page
     }
@@ -1035,7 +1035,7 @@ namespace eval ::xowiki {
 
   Package instproc get_page_from_item_ref {
     {-use_search_path true} 
-    {-use_side_wide_pages true} 
+    {-use_site_wide_pages true} 
     {-use_prototype_pages false} 
     {-default_lang ""}
     -parent_id
@@ -1060,8 +1060,8 @@ namespace eval ::xowiki {
         if {$(item_id)} break
       }
     }
-    if {!$(item_id) && $use_side_wide_pages} {
-      set page [::xowiki::Package get_system_wide_page -name $(prefix):$(stripped_name)]
+    if {!$(item_id) && $use_site_wide_pages} {
+      set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {
         return $page
       }
@@ -1155,7 +1155,7 @@ namespace eval ::xowiki {
     return $page
   }
 
-  Package proc require_system_wide_pages {} {
+  Package proc require_site_wide_pages {} {
     set parent_id -100
     set package_id [::xo::cc package_id]
     set package_key "xowiki"
@@ -1173,7 +1173,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Package proc get_system_wide_page {-name:required} {
+  Package proc get_site_wide_page {-name:required} {
     set item_id [::xo::db::CrClass lookup -name $name -parent_id -100]
     #my ds "lookup from base objects $name => $item_id"
     if {$item_id} {
