@@ -428,10 +428,10 @@ namespace eval ::xowiki {
   Package instproc resolve_page_name {{-default_lang ""} page_name} {
     #
     # This is a very simple version for resolving page names in an
-    # package instance.  It can be called either a plain page name
-    # with a language prefix (as stored in the CR) for the current
-    # package, or with a path (starting with a //) pointing to an
-    # xowiki instance followed by the page name.
+    # package instance.  It can be called either with a full page
+    # name with a language prefix (as stored in the CR) for the
+    # current package, or with a path (starting with a //) pointing to
+    # an xowiki instance followed by the page name.
     #
     # Examples
     #    ... resolve_page_name en:index
@@ -667,6 +667,10 @@ namespace eval ::xowiki {
   }
 
   Package instproc resolve_page {{-use_search_path true} {-simple false} -lang object method_var} {
+    #
+    # Try to resolve from object (path) and query parameter the called
+    # object (might be a packge or page) and the method to be called
+    #
     upvar $method_var method
     my instvar id
 
@@ -696,7 +700,7 @@ namespace eval ::xowiki {
     }
 
     if {[string match "//*" $object]} {
-        # we have a reference to another instance, we cant resolve this from this package.
+      # we have a reference to another instance, we cant resolve this from this package.
       # Report back not found
       return ""
     }
@@ -757,6 +761,11 @@ namespace eval ::xowiki {
         return $page
         }
       }
+    }
+    
+    set page [::xowiki::Package get_system_wide_page -name en:$object]
+    if {$page ne ""} {
+      return $page
     }
 
     #my msg "we have to try to import a prototype page for $stripped_object"
@@ -911,7 +920,7 @@ namespace eval ::xowiki {
     element
   } {
     set element [my normalize_name $element]
-    #my msg el=$element-assume_folder=$assume_folder
+    #my msg el=[string map [list \0 MARKER] $element]-assume_folder=$assume_folder
     set (form) ""
     set use_default_lang 0
 
@@ -1024,6 +1033,55 @@ namespace eval ::xowiki {
                 form $(form) parent_id $parent_id item_id $item_id ]
   }
 
+  Package instproc get_page_from_item_ref {
+    {-use_search_path true} 
+    {-use_side_wide_pages true} 
+    {-use_prototype_pages false} 
+    {-default_lang ""}
+    -parent_id
+    link
+  } {
+    #
+    # Get page from an item ref name (either with language prefix or
+    # not).  First it try to resolve the item_ref from the actual
+    # package. If not successful, it checks optionally along the
+    # package_path and on the side-wide pages.
+    #
+    # @returns page object or empty ("").
+    #
+    if {![info exists parent_id]} {
+      set parent_id [my folder_id]
+    }
+    array set "" [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
+    if {!$(item_id) && $use_search_path} {
+      foreach package [my package_path] {
+        array set "" [$package item_ref -default_lang $default_lang \
+                          -parent_id [$package $parent_id] $link]
+        if {$(item_id)} break
+      }
+    }
+    if {!$(item_id) && $use_side_wide_pages} {
+      set page [::xowiki::Package get_system_wide_page -name $(prefix):$(stripped_name)]
+      if {$page ne ""} {
+        return $page
+      }
+    }
+    if {!$(item_id) && $use_protype_pages} {
+      array set "" [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
+      set page [::xowiki::Package import_prototype_page \
+                    -package_key [my package_key] \
+                    -name $(stripped_name) \
+                    -parent_id $(parent_id) \
+                    -package_id [my id] ]
+      return $page
+    }
+    
+    if {!$(item_id)} {
+      return ""
+    }
+    return [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+  }
+
   #
   # import for prototype pages
   # 
@@ -1037,28 +1095,48 @@ namespace eval ::xowiki {
     if {$prototype_name eq ""} {
       error "No name for prototype given"
     }
-    set fn [get_server_root]/packages/[my package_key]/www/prototypes/$prototype_name.page
+
+    set page [::xowiki::Package import_prototype_page \
+                  -package_key [my package_key] \
+                  -name $prototype_name \
+                  -parent_id [my folder_id] \
+                  -package_id [my id] ]
+
+    if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
+      my returnredirect [my query_parameter "return_url" [my package_url]]
+    }
+    return $page
+  }
+
+  Package proc import_prototype_page { 
+            -package_key:required 
+            -name:required 
+            -parent_id:required 
+            -package_id:required
+          } {
+    set page ""
+    set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
     #my log "--W check $fn"
     if {[file readable $fn]} {
-      my instvar folder_id id
+      my instvar id
       # We have the file. We try to create an item or revision from 
       # definition in the file system.
-      if {[regexp {^(..):(.*)$} $prototype_name _ lang local_name]} {
-        set name $prototype_name
+      if {[regexp {^(..):(.*)$} $name _ lang local_name]} {
+        set fullName $name
       } else {
-        set name en:$prototype_name
+        set fullName en:$name
       }
-      #my log "--sourcing page definition $fn, using name '$name'"
+      #my log "--sourcing page definition $fn, using name '$fullName'"
       set page [source $fn]
-      $page configure -name $name \
-          -parent_id $folder_id -package_id $id 
+      $page configure -name $fullName \
+          -parent_id $parent_id -package_id $package_id 
       if {![$page exists title]} {
         $page set title $object
       }
       $page destroy_on_cleanup
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
-      set item_id [::xo::db::CrClass lookup -name $name -parent_id $folder_id]
+      set item_id [::xo::db::CrClass lookup -name $fullName -parent_id $parent_id]
       if {$item_id == 0} {
         $page save_new
       } else {
@@ -1074,10 +1152,36 @@ namespace eval ::xowiki {
         set page $p
       }
     }
-    if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
-      my returnredirect [my query_parameter "return_url" [my package_url]]
-    }
     return $page
+  }
+
+  Package proc require_system_wide_pages {} {
+    set parent_id -100
+    set package_id [::xo::cc package_id]
+    set package_key "xowiki"
+
+    foreach n {folder} {
+      set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
+      my ds "lookup en:$n => $item_id"
+      if {!$item_id} {
+        set page [::xowiki::Package import_prototype_page \
+                      -name $n \
+                      -package_key $package_key \
+                      -parent_id $parent_id \
+                      -package_id $package_id ]
+      }
+    }
+  }
+
+  Package proc get_system_wide_page {-name:required} {
+    set item_id [::xo::db::CrClass lookup -name $name -parent_id -100]
+    #my ds "lookup from base objects $name => $item_id"
+    if {$item_id} {
+      set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+      ::xo::Package require [$page package_id]
+      return $page
+    }
+    return ""
   }
 
   Package instproc call {object method options} {
@@ -1097,7 +1201,6 @@ namespace eval ::xowiki {
   Package instproc resolve_request {{-default_lang ""} {-simple false} -path method_var} {
     my instvar folder_id
     #my log "--u [self args]"
-    [self class] instvar queryparm
     set item_id 0
     set parent_id $folder_id
 

@@ -30,38 +30,11 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
-      # Entry $t might contain a package prefix
-      set form_item_id [$package_id lookup -default_lang $default_lang -name $t]
-      if {$form_item_id == 0} {
-        # maybe try alternate lookup for form with language prefix "en"
-        if {[regexp {^(..):(.+)$} $t _ prefix stripped_name ] && $prefix ne "en"} {
-          set form_item_id [$package_id lookup -name en:$stripped_name]
-        }
+      set page [$package_id get_page_from_item_ref -use_prototype_pages true $t]
+      #my ds "weblog form $t => $page"
+      if {$page ne ""} {
+        lappend form_item_ids [$page item_id]
       }
-      if {$form_item_id == 0} {
-        # The form does not exist in the CR. Maybe we can create it
-        # via a prototype page?
-        regexp {^.+:(.*)$} $t _ t
-	#my msg "Form $t does not exist, try to load via prototype page"
-	# The following approach is not the best and should be
-	# replaced by a better definition of 'contains". The
-	# method "contains" overloads new and stuffs in an additional
-	# argument "-childof...", which causes problems for the 
-	# "new" methods in the database, which do not know about
-	# this argument...
-	set XOTclClassMixins [::xotcl::Class info instmixin]
-	::xotcl::Class instmixin {}
-        set page [$package_id import-prototype-page $t]
-	::xotcl::Class instmixin $XOTclClassMixins
-        if {$page ne ""} {set form_item_id [$page item_id]}
-      }
-      if {$form_item_id == 0} {error "Cannot lookup page $t"}
-        
-      # make sure, the form object exists (when no item is available)
-      if {![my isobject ::$form_item_id]} {
-        ::xo::db::CrClass get_instance_from_db -item_id $form_item_id
-      }
-      lappend form_item_ids $form_item_id
     }
     return $form_item_ids
   }
