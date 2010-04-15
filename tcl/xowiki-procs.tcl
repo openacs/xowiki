@@ -1608,7 +1608,7 @@ namespace eval ::xowiki {
   # Some utility functions, called on different kind of pages
   # 
   Page instproc get_html_from_content {content} {
-    # Check, whether we got the form through a classic 2-element
+    # Check, whether we got the content through a classic 2-element
     # OpenACS templating widget or directly.  If the list is not
     # well-formed, it must be contained directly.
     if {![catch {set l [llength $content]}] 
@@ -2564,7 +2564,7 @@ namespace eval ::xowiki {
     set allvars [concat [[my info class] array names db_slot] \
                      [::xo::db::CrClass set common_query_atts]]
 
-    set template [lindex [my get_from_template text] 0]
+    set template [my get_html_from_content [my get_from_template text]]
     #my msg template=$template
 
     #set field_names [list _name _title _description _creator _nls_language _page_order]
