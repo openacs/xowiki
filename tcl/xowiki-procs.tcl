@@ -1607,6 +1607,18 @@ namespace eval ::xowiki {
   #
   # Some utility functions, called on different kind of pages
   # 
+  Page instproc get_html_from_content {content} {
+    # Check, whether we got the form through a classic 2-element
+    # OpenACS templating widget or directly.  If the list is not
+    # well-formed, it must be contained directly.
+    if {![catch {set l [llength $content]}] 
+	&& $l == 2 
+	&& [string match "text/*" [lindex $content 1]]} {
+      return [lindex $content 0]
+    }
+    return $content
+  }
+
   Page instproc form_field_index {nodes} {
     set marker ::__computed_form_field_names($nodes)
     if {[info exists $marker]} return
@@ -1976,13 +1988,7 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_form {} {
     # get the (HTML) form of the ::xowiki::PageTemplates/::xowiki::Form
-    set form [my get_from_template form]
-    # Check, whether we got the form through a classic 2-element openacs templating widget or directly.
-    # If the list is not wellformed, it must be contained directly.
-    if {![catch {set l [llength $form]}] 
-	&& $l == 2 
-	&& [lindex $form 1] eq "text/html"} {return [lindex $form 0]}
-    return $form
+    return [my get_html_from_content [my get_from_template form]]
   }
 
   PageInstance instproc get_template_object {} {
@@ -2066,8 +2072,7 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc render_content {} {
-    set html ""; set mime ""
-    foreach {html mime} [my get_from_template text] break
+    set html [my get_html_from_content [my get_from_template text]]
     set html [my adp_subst $html]
     return "<div class='[[my page_template] css_class_name -margin_form false]'>[my substitute_markup $html]</div>"
   }
