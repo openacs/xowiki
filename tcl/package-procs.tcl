@@ -342,7 +342,7 @@ namespace eval ::xowiki {
         if {![regexp {/?..:} $pp]} {
           my log "Error: Name of parameter page '$pp' of package [my id] must contain a language prefix"
         } else {
-          set page [::xo::cc cache [list [self] resolve_page_name $pp]]
+          set page [::xo::cc cache [list [self] get_page_from_item_ref $pp]]
           if {$page eq ""} {
             my log "Error: Could not resolve parameter page '$pp' of package [my id]."
           }
@@ -508,7 +508,7 @@ namespace eval ::xowiki {
       # It is not a cross package request
       set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
       $package_id context [::xo::Context new -volatile]
-      set page [$package_id resolve_page -use_search_path $(search) $(page_name) __m]
+      set page [$package_id resolve_page -use_package_path $(search) $(page_name) __m]
       $package_id context $last_context
     }
     #my log "returning $page"
@@ -666,7 +666,7 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc resolve_page {{-use_search_path true} {-simple false} -lang object method_var} {
+  Package instproc resolve_page {{-use_package_path true} {-simple false} -lang object method_var} {
     #
     # Try to resolve from object (path) and query parameter the called
     # object (might be a packge or page) and the method to be called
@@ -753,7 +753,7 @@ namespace eval ::xowiki {
       }
     }
 
-    if {$use_search_path} {
+    if {$use_package_path} {
       # Check for this page along the package path
       foreach package [my package_path] {
         set page [$package resolve_page -simple $simple -lang $lang $object method]
@@ -806,6 +806,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc lookup {
+    {-use_package_path true} 
     {-default_lang ""} 
     -name:required 
     -parent_id
@@ -822,7 +823,7 @@ namespace eval ::xowiki {
     if {![info exists parent_id]} {set parent_id [$(package_id) folder_id]}
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
     #my msg "lookup $(page_name) $parent_id in package $(package_id) returns $item_id"
-    if {$item_id == 0} {
+    if {$item_id == 0 && $use_package_path} {
       #
       # Is the page inherited along the package path?
       #
@@ -843,6 +844,8 @@ namespace eval ::xowiki {
   #
 
   Package ad_instproc item_ref {
+    {-use_package_path false}
+    {-normalize_name true}
     -default_lang:required 
     -parent_id:required 
     link
@@ -880,6 +883,8 @@ namespace eval ::xowiki {
     foreach element $elements {
       set (last_parent_id) $parent_id
       array set "" [my simple_item_ref \
+                        -normalize_name $normalize_name \
+                        -use_package_path $use_package_path \
                         -default_lang $default_lang \
                         -parent_id $parent_id \
                         -assume_folder [expr {[incr n] < $nr_elements}] \
@@ -916,10 +921,14 @@ namespace eval ::xowiki {
   Package instproc simple_item_ref {
     -default_lang:required 
     -parent_id:required 
+    {-use_package_path true}
+    {-normalize_name true}
     {-assume_folder:required false}
     element
   } {
-    set element [my normalize_name $element]
+    if {$normalize_name} {
+      set element [my normalize_name $element]
+    }
     #my msg el=[string map [list \0 MARKER] $element]-assume_folder=$assume_folder
     set (form) ""
     set use_default_lang 0
@@ -982,8 +991,9 @@ namespace eval ::xowiki {
     } else {
       # with the following construct we need in most cases just 1 lookup
 
-      set item_id [my lookup -name $name -parent_id $parent_id]
-      #my msg "[my id] lookup -name $name -parent_id $parent_id => $item_id"
+      set item_id [my lookup -use_package_path $use_package_path \
+                       -name $name -parent_id $parent_id]
+      #my msg "[my id] lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
 
       if {$item_id == 0} {
         #
@@ -995,7 +1005,8 @@ namespace eval ::xowiki {
           # $default_lang), try again with language "en" try again,
           # maybe element is folder in a different language
           #
-          set item_id [my lookup -name en:$(stripped_name) -parent_id $parent_id]
+          set item_id [my lookup -use_package_path $use_package_path \
+                           -name en:$(stripped_name) -parent_id $parent_id]
           #my msg "try again in en en:$(stripped_name) => $item_id"
           if {$item_id > 0} {array set "" [list link_type "link" prefix en]}
         }
@@ -1023,7 +1034,8 @@ namespace eval ::xowiki {
               set (link_type) file
             }
           }
-          set item_id [my lookup -name file:$(stripped_name) -parent_id $parent_id]
+          set item_id [my lookup -use_package_path $use_package_path \
+                           -name file:$(stripped_name) -parent_id $parent_id]
         }
       }
     }
@@ -1034,11 +1046,12 @@ namespace eval ::xowiki {
   }
 
   Package instproc get_page_from_item_ref {
-    {-use_search_path true} 
+    {-allow_cross_package_item_refs true} 
+    {-use_package_path false} 
     {-use_site_wide_pages true} 
     {-use_prototype_pages false} 
     {-default_lang ""}
-    -parent_id
+    {-parent_id ""}
     link
   } {
     #
@@ -1049,14 +1062,34 @@ namespace eval ::xowiki {
     #
     # @returns page object or empty ("").
     #
-    if {![info exists parent_id]} {
+    if {$allow_cross_package_item_refs} {
+      set referenced_package_id [my resolve_package_path $link rest_link]
+      if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
+        #my log "get_page_from_item_ref rekursive $rest_link in $referenced_package_id"
+        return [$referenced_package_id get_page_from_item_ref \
+                    -allow_cross_package_item_refs false \
+                    -use_package_path $use_package_path \
+                    -use_site_wide_pages $use_site_wide_pages \
+                    -use_prototype_pages $use_prototype_pages \
+                    -default_lang $default_lang \
+                    -parent_id $parent_id \
+                    $rest_link]
+      }
+    }
+
+    if {$parent_id eq ""} {
       set parent_id [my folder_id]
     }
-    array set "" [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
-    if {!$(item_id) && $use_search_path} {
+    array set "" [my item_ref -normalize_name false \
+                      -default_lang $default_lang \
+                      -parent_id $parent_id \
+                      $link]
+    if {!$(item_id) && $use_package_path} {
       foreach package [my package_path] {
-        array set "" [$package item_ref -default_lang $default_lang \
-                          -parent_id [$package id] $link]
+        array set "" [$package item_ref -normalize_name false \
+                          -default_lang $default_lang \
+                          -parent_id [$package id] \
+                          $link]
         if {$(item_id)} break
       }
     }
@@ -1067,7 +1100,11 @@ namespace eval ::xowiki {
       }
     }
     if {!$(item_id) && $use_prototype_pages} {
-      array set "" [my item_ref -default_lang $default_lang -parent_id $parent_id $link]
+      array set "" [my item_ref \
+                        -normalize_name false \
+                        -default_lang $default_lang \
+                        -parent_id $parent_id \
+                        $link]
       set page [::xowiki::Package import_prototype_page \
                     -package_key [my package_key] \
                     -name $(stripped_name) \
