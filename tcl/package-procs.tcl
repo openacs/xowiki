@@ -1081,18 +1081,10 @@ namespace eval ::xowiki {
       set parent_id [my folder_id]
     }
     array set "" [my item_ref -normalize_name false \
+                      -use_package_path $use_package_path \
                       -default_lang $default_lang \
                       -parent_id $parent_id \
                       $link]
-    if {!$(item_id) && $use_package_path} {
-      foreach package [my package_path] {
-        array set "" [$package item_ref -normalize_name false \
-                          -default_lang $default_lang \
-                          -parent_id [$package id] \
-                          $link]
-        if {$(item_id)} break
-      }
-    }
     if {!$(item_id) && $use_site_wide_pages} {
       set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {

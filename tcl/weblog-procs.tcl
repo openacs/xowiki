@@ -30,7 +30,10 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
-      set page [$package_id get_page_from_item_ref -use_prototype_pages true $t]
+      set page [$package_id get_page_from_item_ref \
+                    -use_prototype_pages true \
+                    -use_package_path true \
+                    $t]
       #my ds "weblog form $t => $page"
       if {$page ne ""} {
         lappend form_item_ids [$page item_id]
