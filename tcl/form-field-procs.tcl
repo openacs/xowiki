@@ -840,7 +840,7 @@ namespace eval ::xowiki::formfield {
     next
     my set widget_type numeric
     # check, if we we have an integer format
-    my set is_integer [regexp {%[0.9.]*d} [my format]]
+    my set is_integer [regexp {%[0-9.]*d} [my format]]
   }
   numeric instproc convert_to_external value {
     if {$value ne ""} {
