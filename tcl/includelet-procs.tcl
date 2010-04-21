@@ -1799,6 +1799,7 @@ namespace eval ::xowiki::includelet {
           {-style ""} 
           {-open_page ""}
           {-book_mode false}
+          {-folder_mode false}
           {-ajax false}
           {-expand_all false}
           {-remove_levels 0}
@@ -1835,7 +1836,8 @@ namespace eval ::xowiki::includelet {
   }
 
   toc instproc build_toc {package_id locale source range} {
-    my instvar navigation page_name book_mode
+    my get_parameters
+    my instvar navigation __including_page
     array set navigation {parent "" position 0 current ""}
 
     set extra_where_clause ""
@@ -1856,10 +1858,11 @@ namespace eval ::xowiki::includelet {
       set page_order_att "page_order,"
     }
 
+    set parent_id [expr {$folder_mode ? [$__including_page item_id] : [$package_id folder_id]}]
     set sql [::xo::db::sql select \
                  -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
-                 -where "parent_id=[$package_id folder_id] \
+                 -where "parent_id=$parent_id \
 			$page_order_clause \
 			$extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
@@ -2435,6 +2438,7 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-category_id}
           {-menu_buttons edit}
+	  {-folder_mode false}
           {-locale ""}
 	  {-range ""}
 	  {-allow_reorder ""}
@@ -2460,10 +2464,11 @@ namespace eval ::xowiki::includelet {
     foreach {locale locale_clause} \
         [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
 
+    set parent_id [expr {$folder_mode ? [$__including_page item_id] : [$package_id folder_id]}]
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \
 		from xowiki_page_live_revision p \
-		where parent_id = [$package_id folder_id] \
+		where parent_id = $parent_id  \
 		and not page_order is NULL $extra_where_clause \
 		$locale_clause \
 		[::xowiki::Page container_already_rendered item_id]" ]
