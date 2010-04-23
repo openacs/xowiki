@@ -92,8 +92,10 @@ namespace eval ::xowiki {
     # wiki pages (see include), since it contains full framing, etc.
     my instvar item_id 
     ::xowiki::Page set recursion_count 0
-    set page_package_id    [my package_id]
+    set page_package_id    [my logical_package_id]
     set context_package_id [::xo::cc package_id]
+
+    #my msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
 
     set template_file [my query_parameter "template_file" \
                            [::$context_package_id get_parameter template_file view-default]]
@@ -106,7 +108,7 @@ namespace eval ::xowiki {
     # make use of the same templating machinery below.
     if {$content eq ""} {
       set content [my render]
-      #my log "--after render"
+      #my msg "--after render"
     }
 
     set footer [my htmlFooter -content $content]
@@ -1892,8 +1894,7 @@ namespace eval ::xowiki {
     if {[my exists_query_parameter "package_instance"]} {
       set package_instance [my query_parameter "package_instance"]
       #
-      # Initialize the target package and set the local
-      # variable package_id.
+      # Initialize the target package and set the variable package_id.
       #
       if {[catch {
         ::xowiki::Package initialize \
@@ -1905,6 +1906,12 @@ namespace eval ::xowiki {
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
       if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
+    } else {
+      set logical_package_id [my logical_package_id]
+      if {$logical_package_id ne $original_package_id} {
+        ::xowiki::Package require $logical_package_id
+        set package_id $logical_package_id
+      }
     }
 
     #
@@ -1919,8 +1926,8 @@ namespace eval ::xowiki {
 
     # To create form_pages in different places than the form, provide
     # fp_parent_id and fp_package_id.
-    set fp_parent_id [my query_parameter "fp_parent_id" [my set parent_id]]
-    set fp_package_id [my query_parameter "fp_package_id" [my set package_id]]
+    set fp_parent_id [my query_parameter "fp_parent_id" [my logical_parent_id]]
+    set fp_package_id [my query_parameter "fp_package_id" [my logical_package_id]]
 
     set f [my create_form_page_instance \
                -name $name \
@@ -1948,6 +1955,7 @@ namespace eval ::xowiki {
         [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
 	     [list [list m $view_method] return_url template_file title detail_link text]]
 
+    set package_od $original_package_id
   }
 
 

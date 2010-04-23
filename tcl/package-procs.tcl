@@ -275,7 +275,7 @@ namespace eval ::xowiki {
       # with e.g. //../image/*
       set package_prefix [my package_url]
     }
-    #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id"
+    #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
     
     if {$parent_id eq -100} {
       return ${host}${package_prefix}$query$anchor
@@ -283,6 +283,7 @@ namespace eval ::xowiki {
     
     set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
+    #my msg "folder_path = $folder"
 
     if {$folder ne ""} {
       # if folder has a different language than the content, we have to provide a prefix....
@@ -602,8 +603,8 @@ namespace eval ::xowiki {
   Package instproc make_form_link {-form -parent_id -name -nls_language -return_url} {
     my instvar id
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
-    set form_id [::xowiki::Weblog instantiate_forms -forms $form -package_id $id]
-    if {$form_id != 0} {
+    set form_id [lindex [::xowiki::Weblog instantiate_forms -forms $form -package_id $id] 0]
+    if {$form_id ne ""} {
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
       set form_link [my pretty_link -parent_id [$form_id parent_id] $form]
       return [my make_link -with_entities 0 -link $form_link $form_id \
@@ -765,6 +766,7 @@ namespace eval ::xowiki {
     
     set page [::xowiki::Package get_site_wide_page -name en:$object]
     if {$page ne ""} {
+      $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
       return $page
     }
 
@@ -1088,6 +1090,7 @@ namespace eval ::xowiki {
     if {!$(item_id) && $use_site_wide_pages} {
       set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {
+        $page set_resolve_context -package_id [my id] -parent_id $parent_id
         return $page
       }
     }

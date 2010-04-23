@@ -887,6 +887,27 @@ namespace eval ::xowiki {
     return $name
   }
 
+  Page instproc set_resolve_context {-package_id:required -parent_id:required} {
+    my set logical_parent_id $parent_id
+    my set logical_package_id $package_id
+  }
+
+  Page instproc logical_parent_id {} {
+    if {[my exists logical_parent_id]} {
+      return [my set logical_parent_id]
+    } else {
+      return [my parent_id]
+    }
+  }
+
+  Page instproc logical_package_id {} {
+    if {[my exists logical_package_id]} {
+      return [my set logical_package_id]
+    } else {
+      return [my package_id]
+    }
+  }
+
 #   Page instproc init {} {    
 #     my log "--W "
 #     ::xo::show_stack
@@ -972,7 +993,7 @@ namespace eval ::xowiki {
   Page instproc instantiate_includelet {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
-    set package_id [my package_id]
+    set package_id [my logical_package_id]
 
     # do we have a wellformed list?
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {

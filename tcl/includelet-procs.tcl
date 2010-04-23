@@ -3176,9 +3176,10 @@ namespace eval ::xowiki::includelet {
         # "Package require" is just a part of "Package initialize" creating 
         # the package object if needed
         #
-        ::xowiki::Package require [$form package_id]
+        set form_package_id [$form logical_package_id]
+        ::xowiki::Package require $form_package_id
         set obj  [form-menu-button-$button new -volatile -package_id $package_id \
-                      -base [[$form package_id] pretty_link [$form name]] -form $form]
+                      -base [$form_package_id pretty_link [$form name]] -form $form]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
       }
