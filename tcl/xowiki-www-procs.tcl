@@ -208,10 +208,65 @@ namespace eval ::xowiki {
       set template [$folder_id get_payload template]
       set page [self]
 
+      foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
+      # refetch template_file, since it might have been changed via set-parameter
+      set template_file [my query_parameter "template_file" \
+			     [::$context_package_id get_parameter template_file view-default]]
+
+      # if the template_file does not have a path, assume it in xowiki/www
+      if {![regexp {^[./]} $template_file]} {
+	set template_file /packages/xowiki/www/$template_file
+      }
+
+      #
+      # initialize and set the template variables, to be used by
+      # a. adp_compile/ adp_eval
+      # b. return_page/ adp_include
+      #
+	
+      set header_stuff [::xo::Page header_stuff]
+      if {[info command ::template::head::add_meta] ne ""} {
+	set meta(language) [my lang]
+	set meta(description) [my description]
+	set meta(keywords) ""
+	if {[my istype ::xowiki::FormPage]} {
+	  set meta(keywords) [string trim [my property keywords]]
+	}
+	if {$meta(keywords) eq ""} {
+	  set meta(keywords) [$context_package_id get_parameter keywords ""]
+	}
+	foreach i [array names meta] {
+	  # don't set empty meta tags
+	  if {$meta($i) eq ""} continue
+	  template::head::add_meta -name $i -content $meta($i)
+	}
+      }
+      
+      #
+      # pass variables for properties doc and body
+      # example: ::xo::Page set_property body class "yui-skin-sam"
+      #
+      array set property_body [::xo::Page get_property body]
+      array set property_doc  [::xo::Page get_property doc]
+      
+      if {$page_package_id != $context_package_id} {
+	set page_context [$page_package_id instance_name]
+      }
+      
       if {$template ne ""} {
         set __including_page $page
         set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
         set template_code [template::adp_compile -string $template]
+	#
+	# make sure that <master/> and <slave/> tags are processed
+	#
+	append template_code {
+	  if { [info exists __adp_master] } {
+	    set __adp_output [template::adp_parse $__adp_master  \
+				  [concat [list __adp_slave $__adp_output] \
+				       [array get __adp_properties]]]
+	  }
+	}
         if {[catch {set content [template::adp_eval template_code]} errmsg]} {
           ns_return 200 text/html "Error in Page $name: $errmsg<br />$template"
         } else {
@@ -220,52 +275,13 @@ namespace eval ::xowiki {
       } else {
         # use adp file
         #my log "use adp"
-        foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
-        # refetch it, since it might have been changed via set-parameter
-        set template_file [my query_parameter "template_file" \
-                               [::$context_package_id get_parameter template_file view-default]]
-
-	# if the template_file does not have a path, assume it in xowiki/www
-        if {![regexp {^[./]} $template_file]} {
-          set template_file /packages/xowiki/www/$template_file
-        }
-	
-        set header_stuff [::xo::Page header_stuff]
-	if {[info command ::template::head::add_meta] ne ""} {
-          set meta(language) [my lang]
-          set meta(description) [my description]
-	  set meta(keywords) ""
-	  if {[my istype ::xowiki::FormPage]} {
-	    set meta(keywords) [string trim [my property keywords]]
-	  }
-	  if {$meta(keywords) eq ""} {
-	    set meta(keywords) [$context_package_id get_parameter keywords ""]
-	  }
-          foreach i [array names meta] {
-            # don't set empty meta tags
-            if {$meta($i) eq ""} continue
-            template::head::add_meta -name $i -content $meta($i)
-          }
-	}
-
-        #
-        # pass variables for properties doc and body
-        # example: ::xo::Page set_property body class "yui-skin-sam"
-        #
-        array set property_body [::xo::Page get_property body]
-        array set property_doc  [::xo::Page get_property doc]
-        
-        if {$page_package_id != $context_package_id} {
-          set page_context [$page_package_id instance_name]
-        }
-
+	set package_id $context_package_id
         $context_package_id return_page -adp $template_file -variables {
           name title item_id context header_stuff return_url
-          content footer {package_id $context_package_id} page_package_id page_context
+          content footer package_id page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 
-          top_includelets page
-          views_data property_body property_doc
+          top_includelets page views_data property_body property_doc
         }
       }
     } else {
