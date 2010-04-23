@@ -1887,16 +1887,28 @@ namespace eval ::xowiki {
   PageTemplate parameter {
     {render_adp 0}
   }
-  PageTemplate instproc count_usages {{-publish_status ready}} {
-    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -publish_status $publish_status]
+  PageTemplate instproc count_usages {{-package_id 0} {-publish_status ready}} {
+    return [::xowiki::PageTemplate count_usages -package_id $package_id \
+		-item_id [my item_id] -publish_status $publish_status]
   }
 
-  PageTemplate proc count_usages {-item_id:required {-publish_status ready}} {
+  PageTemplate proc count_usages {{-package_id:integer 0} -item_id:required {-publish_status ready}} {
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table i $publish_status]
-    set count [db_string [my qn count_usages] \
-		   "select count(page_instance_id) from xowiki_page_instance, cr_items i \ 
+    if {$package_id} {
+      set bt "xowiki_page_instancei"
+      set package_clause "and object_package_id = $package_id"
+    } else {
+      set bt "xowiki_page_instance"
+      set package_clause ""
+    }
+    my ds "select count(page_instance_id) from $bt, cr_items i \ 
 			where page_template = $item_id \
-                        $publish_status_clause \
+                        $publish_status_clause $package_clause \
+                        and page_instance_id = coalesce(i.live_revision,i.latest_revision)"
+    set count [db_string [my qn count_usages] \
+		   "select count(page_instance_id) from $bt, cr_items i  \ 
+			where page_template = $item_id \
+                        $publish_status_clause $package_clause \
                         and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
     return $count
   }
@@ -2048,8 +2060,9 @@ namespace eval ::xowiki {
 
     @return either the property value or a default value
   } {
-    #my msg "get $var from template"
     set form_obj [my get_template_object]
+    #my msg "get $var from template form_obj=$form_obj [$form_obj info class]"
+
     # The resulting page should be either a Form (PageTemplate) or
     # a FormPage (PageInstance)
     #
@@ -2061,7 +2074,7 @@ namespace eval ::xowiki {
     # template does not know about the logic with "_" (just "property" does). 
     #
     if {[$form_obj istype ::xowiki::PageInstance]} {
-      #my msg "returning property $var from parent formpage => '[$form_obj property $var]'"
+      #my msg "returning property $var from parent formpage $form_obj => '[$form_obj property $var]'"
       return [$form_obj property $var]
     }
 
@@ -2127,8 +2140,9 @@ namespace eval ::xowiki {
     next
   }
 
-  PageInstance instproc count_usages {{-publish_status ready}} {
-    return [::xowiki::PageTemplate count_usages -item_id [my item_id] -publish_status $publish_status]
+  PageInstance instproc count_usages {{-package_id 0} {-publish_status ready}} {
+    return [::xowiki::PageTemplate count_usages -package_id $package_id \
+		-item_id [my item_id] -publish_status $publish_status]
   }
 
   #
@@ -2323,8 +2337,12 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::FormPage
   #
   FormPage instproc initialize_loaded_object {} {
+    #my msg "[my name] [my info class]"
     if {[my exists page_template]} {
-      ::xo::db::CrClass get_instance_from_db -item_id [my page_template]
+      set p [::xo::db::CrClass get_instance_from_db -item_id [my page_template]]
+      # The Form might come from a different package type (e.g. a workflow)
+      # make sure, the source package is available
+      ::xo::Package require [$p package_id]
     }
     my array set __ia [my instance_attributes]
     next
@@ -2433,12 +2451,13 @@ namespace eval ::xowiki {
       }
     }
     #my msg filter_clause=$filter_clause
-
+    set package_clause "and object_package_id = $package_id"
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \
 		    -where_clause " bt.page_template in ([join $base_item_ids ,]) \
-			$publish_status_clause $filter_clause $extra_where_clause" \
+			$publish_status_clause $filter_clause $package_clause \
+			$extra_where_clause" \
 		    -orderby $orderby \
 		    -with_subtypes false \
 		    -parent_id $parent_id \
@@ -2446,7 +2465,8 @@ namespace eval ::xowiki {
 		    -page_number $page_number \
 		    -base_table xowiki_form_pagei \
                  ]
-    #my log $sql
+    #my ds $sql
+
     #
     # When we query all attributes, we return objects named after the
     # item_id (like for single fetches)
@@ -2668,6 +2688,7 @@ namespace eval ::xowiki {
 
 
   FormPage instproc get_value {{-field_spec ""} {-cr_field_spec ""} before varname} {
+    #my msg "varname=$varname [my exists_property $varname]"
     #
     # Read a property (instance attribute) and return
     # its pretty value in variable substitutions.

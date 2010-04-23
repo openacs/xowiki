@@ -3139,7 +3139,7 @@ namespace eval ::xowiki::includelet {
     array set "" [::xowiki::PageInstance get_list_from_form_constraints \
                       -name @table_properties \
                       -form_constraints [[my form] get_form_constraints -trylocal true]]
-    set count [[my form] count_usages -publish_status $(publish_status)]
+    set count [[my form] count_usages -package_id [my package_id] -publish_status $(publish_status)]
     my label_suffix " ($count)"
     next
   }

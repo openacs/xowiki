@@ -281,7 +281,7 @@ namespace eval ::xowiki {
   #
 
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image -parameter {
-    width height align pluginspage pluginurl hidden href target
+    width height align pluginspage pluginurl hidden href
     autostart loop volume controls controller mastersound starttime endtime
   }
 

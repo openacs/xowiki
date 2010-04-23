@@ -24,16 +24,18 @@ namespace eval ::xowiki {
       set package_url "[ns_conn location][$package_id package_url]"
     }
 
+    set tags ""
     if {[$package_id get_parameter "with_tags" 1] && 
         ![my exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
       set tag_content [my include my-tags]
       set tag_includelet [my set __last_includelet]
-      set tags [$tag_includelet set tags]
+      if {[$tag_includelet exists tags]} {
+	set tags [$tag_includelet set tags]
+      }
     } else {
       set tag_content ""
-      set tags ""
     }
 
     if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
@@ -1048,6 +1050,7 @@ namespace eval ::xowiki {
     if {$field_spec eq ""} {set field_spec [my get_short_spec @fields]}
     return [next -cr_field_spec $cr_field_spec -field_spec $field_spec $field_name]
   }
+
   FormPage instproc create_form_fields {field_names} {
     set form_fields   [my create_category_fields]
     foreach att $field_names {

@@ -759,7 +759,8 @@ namespace eval ::xowiki {
       foreach package [my package_path] {
         set page [$package resolve_page -simple $simple -lang $lang $object method]
         if {$page ne ""} {
-        return $page
+	  $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
+	  return $page
         }
       }
     }
@@ -1067,7 +1068,7 @@ namespace eval ::xowiki {
     if {$allow_cross_package_item_refs} {
       set referenced_package_id [my resolve_package_path $link rest_link]
       if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
-        #my log "get_page_from_item_ref rekursive $rest_link in $referenced_package_id"
+        #my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
         return [$referenced_package_id get_page_from_item_ref \
                     -allow_cross_package_item_refs false \
                     -use_package_path $use_package_path \
