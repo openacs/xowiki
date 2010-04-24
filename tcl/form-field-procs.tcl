@@ -81,8 +81,11 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc validate {obj} {
     my instvar name required
+
     # use the 'value' method to deal e.g. with compound fields
     set value [my value]
+    #my msg "[my info class] value=$value req=$required // [my set value]"
+
     if {$required && $value eq "" && ![my istype ::xowiki::formfield::hidden]} {
       my instvar label
       return [_ acs-templating.Element_is_required]
@@ -654,10 +657,21 @@ namespace eval ::xowiki::formfield {
   file instproc entry_name {value} {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
+  file instproc value {args} {
+    if {$args eq ""} {
+      set old_value [[my object] form_parameter __old_value_[my name] ""]
+      #my msg "[my set value] -- $args // old_value = $old_value"
+      if {$old_value ne ""} {
+        return "-"
+      }
+    }
+    next
+  }
   file instproc convert_to_internal {} {
     my instvar value
 
-    if {[my value] eq ""} {
+    set v [my value]
+    if {$v eq "-" || $v eq ""} {
       # nothing to do, keep the old value
       set value [[my object] form_parameter __old_value_[my name] ""]
       [my object] set_property [my name] $value
@@ -706,6 +720,7 @@ namespace eval ::xowiki::formfield {
 
   file instproc pretty_value {v} {
     if {$v ne ""} {
+      my instvar object
       array set "" [my entry_name $v]
       array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $(name)]
       set l [::xowiki::Link create new -destroy_on_cleanup \
