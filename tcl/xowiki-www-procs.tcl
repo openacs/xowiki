@@ -94,7 +94,7 @@ namespace eval ::xowiki {
     # wiki pages (see include), since it contains full framing, etc.
     my instvar item_id 
     ::xowiki::Page set recursion_count 0
-    set page_package_id    [my logical_package_id]
+    set page_package_id    [my package_id]
     set context_package_id [::xo::cc package_id]
 
     #my msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
@@ -1287,7 +1287,7 @@ namespace eval ::xowiki {
 
     set form [my get_form]
     set anon_instances [my get_from_template anon_instances f]
-    #my msg form=$form
+    my msg form=$form
     #my msg anon_instances=$anon_instances
     
     set field_names [my field_names -form $form]
@@ -1926,7 +1926,7 @@ namespace eval ::xowiki {
       }
       if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
     } else {
-      set logical_package_id [my logical_package_id]
+      set logical_package_id [my package_id]
       if {$logical_package_id ne $original_package_id} {
         ::xowiki::Package require $logical_package_id
         set package_id $logical_package_id
@@ -1945,8 +1945,8 @@ namespace eval ::xowiki {
 
     # To create form_pages in different places than the form, provide
     # fp_parent_id and fp_package_id.
-    set fp_parent_id [my query_parameter "fp_parent_id" [my logical_parent_id]]
-    set fp_package_id [my query_parameter "fp_package_id" [my logical_package_id]]
+    set fp_parent_id [my query_parameter "parent_id" [my parent_id]]
+    set fp_package_id [my query_parameter "package_id" [my package_id]]
 
     set f [my create_form_page_instance \
                -name $name \

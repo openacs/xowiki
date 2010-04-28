@@ -888,21 +888,29 @@ namespace eval ::xowiki {
   }
 
   Page instproc set_resolve_context {-package_id:required -parent_id:required} {
-    my set logical_parent_id $parent_id
-    my set logical_package_id $package_id
+    if {[my set parent_id] != $parent_id} {
+      my set physical_parent_id [my set parent_id]
+      my set parent_id $parent_id
+    }
+    if {[my set package_id] != $package_id} {
+      my set physical_package_id [my set package_id]
+      my set package_id $package_id
+      #my msg "doing extra require on [my set physical_package_id]"
+      #::xowiki::Package require [my set physical_package_id]
+    }
   }
 
-  Page instproc logical_parent_id {} {
-    if {[my exists logical_parent_id]} {
-      return [my set logical_parent_id]
+  Page instproc physical_parent_id {} {
+    if {[my exists physical_parent_id]} {
+      return [my set physical_parent_id]
     } else {
       return [my parent_id]
     }
   }
 
-  Page instproc logical_package_id {} {
-    if {[my exists logical_package_id]} {
-      return [my set logical_package_id]
+  Page instproc physical_package_id {} {
+    if {[my exists physical_package_id]} {
+      return [my set physical_package_id]
     } else {
       return [my package_id]
     }
@@ -993,7 +1001,7 @@ namespace eval ::xowiki {
   Page instproc instantiate_includelet {arg} {
     # we want to use package_id as proc-local variable, since the 
     # cross package reference might alter it locally
-    set package_id [my logical_package_id]
+    set package_id [my package_id]
 
     # do we have a wellformed list?
     if {[catch {set page_name [lindex $arg 0]} errMsg]} {
@@ -2361,11 +2369,11 @@ namespace eval ::xowiki {
   }
 
   FormPage proc get_form_entries {
-       -base_item_ids 
-       -package_id 
-       -form_fields 
+       -base_item_ids:required 
+       -package_id:required 
+       -form_fields:required 
        {-publish_status ready}
-       {-parent_id ""}
+       {-parent_id "*"}
        {-extra_where_clause ""}
        {-h_where {tcl true h "" vars "" sql ""}}
        {-always_queried_attributes ""}
@@ -2373,6 +2381,7 @@ namespace eval ::xowiki {
        {-page_size 20}
        {-page_number ""}
        {-initialize true}
+       {-from_package_ids ""}
      } {
     #
     # Get query attributes for all tables (to allow e.g. sorting by time)
@@ -2382,10 +2391,15 @@ namespace eval ::xowiki {
     # instance_select_query. Add the query attributes, we want to
     # obtain as well automatically.
     #
-    # "-parent_id empty" means to get instances, regardless of 
+    # "-parent_id *"  means to get instances, regardless of 
     # parent_id. Under the assumption, page_template constrains
     # the query enough to make it fast...
     #
+    # "-from_package_ids {}" means get pages from the instance
+    # provided via package_id, "*" means from all
+    # packages. Forthermore, a list of package_ids can be given.
+    #
+    
     set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \
                       bt.creation_date bt.creation_user bt.last_modified \
                       "bt.object_package_id as package_id" bt.title \
@@ -2433,9 +2447,13 @@ namespace eval ::xowiki {
     #my msg sql_atts=$sql_atts
 
     #
-    # Build WHERE clause 
+    # Build parts of WHERE clause 
     # 
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table ci $publish_status]
+
+    #
+    # Build filter clause (uses hstore if configured)
+    #
     set filter_clause ""
     array set wc $h_where
     set use_hstore [expr {[::xo::db::has_hstore] && 
@@ -2451,7 +2469,26 @@ namespace eval ::xowiki {
       }
     }
     #my msg filter_clause=$filter_clause
-    set package_clause "and object_package_id = $package_id"
+
+    #
+    # Build package clause
+    #
+    if {$from_package_ids eq ""} {
+      set package_clause "and object_package_id = $package_id"
+    } elseif {$from_package_ids eq "*"} {
+      set package_clause ""
+    } else {
+      set package_clause "and object_package_id in ([$join $from_package_ids ,])"
+    }
+
+    if {$parent_id eq "*"} {
+      # instance_select_query expects "" for all parents, but for the semantics
+      # of this method, "*" looks more appropriate
+      set parent_id ""
+    }
+    #
+    # transform all into an SQL query
+    #
     set sql  [::xowiki::FormPage instance_select_query \
 		    -select_attributes $sql_atts \
 		    -from_clause "" \

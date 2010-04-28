@@ -3118,6 +3118,7 @@ namespace eval ::xowiki::includelet {
   form-menu-button instproc render {} {
     my instvar package_id base form method return_url label_suffix link
     if {![info exists link]} {
+      #my msg "[my info class] check-link-package_id=$package_id"
       set link [$package_id make_link -link $base $form $method return_url]
     }
     if {$link eq ""} {
@@ -3176,7 +3177,7 @@ namespace eval ::xowiki::includelet {
         # "Package require" is just a part of "Package initialize" creating 
         # the package object if needed
         #
-        set form_package_id [$form logical_package_id]
+        set form_package_id [$form package_id]
         ::xowiki::Package require $form_package_id
         set obj  [form-menu-button-$button new -volatile -package_id $package_id \
                       -base [$form_package_id pretty_link [$form name]] -form $form]

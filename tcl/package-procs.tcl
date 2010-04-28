@@ -577,11 +577,12 @@ namespace eval ::xowiki {
     # provide links based in untrusted_user_id
     set party_id [::xo::cc set untrusted_user_id]
     if {[info exists privilege]} {
-      #my log "-- checking priv $privilege for [self args]"
+      #my log "-- checking priv $privilege for [self args] from id $id"
       set granted [expr {$privilege eq "public" ? 1 :
                          [::xo::cc permission -object_id $id -privilege $privilege -party_id $party_id] }]
     } else {
       # determine privilege from policy
+      #my msg "-- check permissions from $id of object $object $method"
       if {[catch {
 	set granted [my check_permissions \
 			 -user_id $party_id \
@@ -730,7 +731,7 @@ namespace eval ::xowiki {
     set standard_page [$id get_parameter ${object}_page]
     if {$standard_page ne ""} {
       set page [my resolve_request -default_lang [::xo::cc lang] -path $standard_page method]
-      #my msg "--o resolving standard_page '$standard_page' returns $page"
+      #my log "--o resolving standard_page '$standard_page' returns $page"
       if {$page ne ""} {
         return $page
       }
@@ -759,6 +760,7 @@ namespace eval ::xowiki {
       foreach package [my package_path] {
         set page [$package resolve_page -simple $simple -lang $lang $object method]
         if {$page ne ""} {
+          #my msg "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
 	  $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
 	  return $page
         }
@@ -767,6 +769,7 @@ namespace eval ::xowiki {
     
     set page [::xowiki::Package get_site_wide_page -name en:$object]
     if {$page ne ""} {
+      #my msg "set_resolve_context site-wide -package_id [my id] -parent_id [my folder_id]"
       $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
       return $page
     }
@@ -1091,6 +1094,7 @@ namespace eval ::xowiki {
     if {!$(item_id) && $use_site_wide_pages} {
       set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {
+        #my msg "set_resolve_context site_wide_pages [my id]"
         $page set_resolve_context -package_id [my id] -parent_id $parent_id
         return $page
       }
@@ -1926,8 +1930,8 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
-      create-new         {{item_id write}}
-      create-or-use      {{item_id write}}
+      create-new         {{parent_id create}}
+      create-or-use      {{parent_id create}}
     } -set default_permission {{package_id write}}
 
     Class Object -array set require_permission {
@@ -1937,8 +1941,8 @@ namespace eval ::xowiki {
       download           none
     }
     Class Form -array set require_permission {
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
+      create-new        {{parent_id create}}
+      create-or-use     {{parent_id create}}
       list              {{package_id read}}
     }
     Class CrFolder -array set require_permission {
@@ -1985,8 +1989,8 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
+      create-new        {{parent_id create}}
+      create-or-use     {{parent_id create}}
     }
 
     Class Object -array set require_permission {
@@ -1996,9 +2000,9 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
-      view              admin
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
+      view              {{package_id read}}
+      create-new        {{parent_id create}}
+      create-or-use     {{parent_id create}}
       list              {{package_id read}}
     }
   }
@@ -2038,8 +2042,8 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
+      create-new        {{parent_id create}}
+      create-or-use     {{parent_id create}}
     }
 
     Class Object -array set require_permission {
@@ -2049,8 +2053,8 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
+      create-new        {{parent_id create}}
+      create-or-use     {{parent_id create}}
       list              {{item_id read}}
     }
 #     Class FormPage -array set require_permission {
