@@ -1925,12 +1925,6 @@ namespace eval ::xowiki {
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
       if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
-    } else {
-      set logical_package_id [my package_id]
-      if {$logical_package_id ne $original_package_id} {
-        ::xowiki::Package require $logical_package_id
-        set package_id $logical_package_id
-      }
     }
 
     #
@@ -1974,7 +1968,7 @@ namespace eval ::xowiki {
         [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
 	     [list [list m $view_method] return_url template_file title detail_link text]]
 
-    set package_od $original_package_id
+    set package_id $original_package_id
   }
 
 
