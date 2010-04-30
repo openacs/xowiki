@@ -1893,7 +1893,7 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $f copy_content_vars -from_object $source
-      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [my name]]"
+      set name "[::xowiki::autoname new -parent_id $source_item_id -name [my name]]"
       $package_id get_lang_and_name -name $name lang name
       $f set name $name
       #my msg nls=[$f nls_language],source-nls=[$source nls_language]
@@ -1930,7 +1930,6 @@ namespace eval ::xowiki {
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
     }
-
 
     #
     # collect some default values from query parameters

@@ -26,13 +26,19 @@ namespace eval ::xowiki {
     {compute_summary false}
   }
 
-  ::xowiki::Weblog proc instantiate_forms {{-default_lang ""} -forms:required -package_id:required} {
+  ::xowiki::Weblog proc instantiate_forms {
+         {-default_lang ""} 
+         {-parent_id ""} 
+         -forms:required 
+         -package_id:required
+       } {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
       set page [$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
                     -use_package_path true \
+                    -parent_id $parent_id \
                     $t]
       #my ds "weblog form $t => $page"
       if {$page ne ""} {

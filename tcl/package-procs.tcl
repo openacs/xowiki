@@ -613,6 +613,14 @@ namespace eval ::xowiki {
     }
   }
 
+  #Package instproc make_new_child_link {-form -parent -name -nls_language -return_url} {
+  #  my instvar id
+  #  if {[info exists form]} {
+  #    return [my make_link -with_entities 0 $parent \
+  #                create-child form return_url title name nls_language]
+  #  }
+  #}
+
   Package instproc create_new_snippet {
     {-object_type ::xowiki::Page}
     provided_name
