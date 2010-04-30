@@ -231,6 +231,12 @@ namespace eval ::xowiki {
     return $name$count
   }
 
+  autoname proc basename {name} {
+    # In case the provided name has an extension, return the name
+    # without it.
+    file rootname $name
+  }
+
   autoname proc new {-parent_id -name} {
     while {1} {
       set generated_name [my generate -parent_id $parent_id -name $name]

@@ -939,26 +939,25 @@ namespace eval ::xowiki {
     set (form) ""
     set use_default_lang 0
 
-    if {[regexp {^(file|image|js|css|swf):(.+)$} $element _ \
-             (link_type) (stripped_name)]} {
+    if {[regexp {^(file|image|js|css|swf):(.+)$} $element _ (link_type) (stripped_name)]} {
       # (typed) file links
       set (prefix) file
       set name file:$(stripped_name)
     } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
-      array set "" [list link_type "link" form "$form_lang:$form"]
+      array set "" [list link_type "link" form "$form_lang:$form.form"]
       set name $(prefix):$(stripped_name)
       #my msg "FIRST case name=$name, form=$form_lang:$form"
     } elseif {[regexp {^(..):([^:]{3,}?):(.+)$} $element _ form_lang form (stripped_name)]} {
-      array set "" [list link_type "link" form "$form_lang:$form" prefix $default_lang]
+      array set "" [list link_type "link" form "$form_lang:$form.form" prefix $default_lang]
       set name $default_lang:$(stripped_name)
       set use_default_lang 1
       #my msg "SECOND case name=$name, form=$form_lang:$form"
     } elseif {[regexp {^([^:]{3,}?):(..):(.+)$} $element _ form (prefix) (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:$form"]
+      array set "" [list link_type "link" form "$default_lang:$form.form"]
       set name $(prefix):$(stripped_name)
       #my msg "THIRD case name=$name, form=$default_lang:$form"
     } elseif {[regexp {^([^:]{3,}?):(.+)$} $element _ form (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:$form" prefix $default_lang]
+      array set "" [list link_type "link" form "$default_lang:$form.form" prefix $default_lang]
       set name $default_lang:$(stripped_name)
       set use_default_lang 1
       #my msg "FOURTH case name=$name, form=$default_lang:$form"
@@ -966,11 +965,11 @@ namespace eval ::xowiki {
       array set "" [list link_type "link"]
       set name $(prefix):$(stripped_name)
     } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang]
+      array set "" [list link_type "link" form "$default_lang:folder.form" prefix $default_lang]
       set name $default_lang:$(stripped_name)
       set use_default_lang 1
     } elseif {$assume_folder} {
-      array set "" [list link_type "link" form "$default_lang:folder" prefix $default_lang stripped_name $element]
+      array set "" [list link_type "link" form "$default_lang:folder.form" prefix $default_lang stripped_name $element]
       set name $default_lang:$element
       set use_default_lang 1
     } else {
@@ -1019,7 +1018,7 @@ namespace eval ::xowiki {
 
         # If the item is still unknown, try filename-based lookup,
         # when the entry looks like a filename with an extension.
-        if {$item_id == 0 && [string match *.* $element]} {
+        if {$item_id == 0 && [string match *.* $element] && ![regexp {[.](form|wf)$} $element]} {
           #
           # Get the mime type to distinguish between images, flash
           # files and ordinary files. 
@@ -1091,6 +1090,7 @@ namespace eval ::xowiki {
                       -default_lang $default_lang \
                       -parent_id $parent_id \
                       $link]
+    #my msg "item-ref for '$link' returns [array get {}]"
     if {!$(item_id) && $use_site_wide_pages} {
       set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {
@@ -1197,7 +1197,7 @@ namespace eval ::xowiki {
     set package_id [::xo::cc package_id]
     set package_key "xowiki"
 
-    foreach n {folder} {
+    foreach n {folder.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
       my ds "lookup en:$n => $item_id"
       if {!$item_id} {
@@ -1690,7 +1690,7 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [$object_type get_instance_from_db -item_id $source_item_id]
       $page copy_content_vars -from_object $source
-      set name "[::xowiki::autoname generate -parent_id $source_item_id -name [$source name]]"
+      set name "[::xowiki::autoname new -parent_id $source_item_id -name [$source name]]"
       #my get_lang_and_name -name $name lang name
       $page set name $name
       #my msg nls=[$page nls_language],source-nls=[$source nls_language],page=$page,name=$name

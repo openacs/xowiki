@@ -638,7 +638,7 @@ test section "Item refs"
 
   # "require_folder" and "require_page" are here just for testing
   proc require_folder {name parent_id package_id} {
-    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder -package_id $package_id]
+    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
     set f [$form_id create_form_page_instance \
                -name en:$name \
                -nls_language en_US \

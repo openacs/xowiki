@@ -1433,7 +1433,8 @@ namespace eval ::xowiki {
       if {[my is_new_entry [my name]]} {
         #my msg "anon_instances=$anon_instances"
         if {$anon_instances} {
-          set name [autoname new -name [$page_template name] -parent_id $page_template]
+          set basename [::xowiki::autoname basename [$page_template name]]
+          set name [::xowiki::autoname new -name $basename -parent_id $page_template]
           #my msg "generated name=$name, page_template-name=[$page_template name]"
           $ff(_name) value $name
         } else {
