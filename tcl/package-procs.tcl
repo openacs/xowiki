@@ -1930,6 +1930,7 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
+      create-child       {{item_id create}}
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
     } -set default_permission {{package_id write}}
@@ -1941,8 +1942,6 @@ namespace eval ::xowiki {
       download           none
     }
     Class Form -array set require_permission {
-      create-new        {{parent_id create}}
-      create-or-use     {{parent_id create}}
       list              {{package_id read}}
     }
     Class CrFolder -array set require_permission {
@@ -1989,8 +1988,9 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-new        {{parent_id create}}
-      create-or-use     {{parent_id create}}
+      create-child       {{item_id create}}
+      create-new         {{parent_id create}}
+      create-or-use      {{parent_id create}}
     }
 
     Class Object -array set require_permission {
@@ -2001,8 +2001,6 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       view              {{package_id read}}
-      create-new        {{parent_id create}}
-      create-or-use     {{parent_id create}}
       list              {{package_id read}}
     }
   }
@@ -2042,8 +2040,9 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-new        {{parent_id create}}
-      create-or-use     {{parent_id create}}
+      create-child       {{item_id create}}
+      create-new         {{parent_id create}}
+      create-or-use      {{parent_id create}}
     }
 
     Class Object -array set require_permission {
@@ -2053,8 +2052,6 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
-      create-new        {{parent_id create}}
-      create-or-use     {{parent_id create}}
       list              {{item_id read}}
     }
 #     Class FormPage -array set require_permission {
@@ -2107,8 +2104,9 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-new         {{item_id write}}
-      create-or-use      {{item_id write}}
+      create-child       {{item_id create}}
+      create-new         {{parent_id create}}
+      create-or-use      {{parent_id create}}
     }
     
     Class Object -array set require_permission {
@@ -2127,8 +2125,6 @@ namespace eval ::xowiki {
       view              admin
       edit              admin
       list              admin
-      create-new        {{item_id write}}
-      create-or-use     {{item_id write}}
     }
   }
 

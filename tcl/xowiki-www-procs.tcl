@@ -1906,7 +1906,11 @@ namespace eval ::xowiki {
     return $f
   }
 
-  Page instproc create-new {{-view_method edit} {-name ""} {-nls_language ""}} {
+  Page instproc create-child {{-view_method edit} {-name ""} {-nls_language ""}} {
+    my create-new -parent_id [my item_id] -view_method $view_method -name $name -nls_language $nls_language
+  }
+
+  Page instproc create-new {-parent_id {-view_method edit} {-name ""} {-nls_language ""}} {
     my instvar package_id
     set original_package_id $package_id
 
@@ -1924,8 +1928,8 @@ namespace eval ::xowiki {
         return [$original_package_id error_msg \
                     "Page <b>'[my name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
-      if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
     }
+
 
     #
     # collect some default values from query parameters
@@ -1939,7 +1943,21 @@ namespace eval ::xowiki {
 
     # To create form_pages in different places than the form, provide
     # fp_parent_id and fp_package_id.
-    set fp_parent_id [my query_parameter "parent_id" [my parent_id]]
+    #
+    # The following construct is more complex than necessary to
+    # provide more backward compatibility. Child objects should be
+    # always created via the create create-child method. The passed
+    # parent_id has priority over the other measures to obtain it.
+    #
+    if {![info exists parent_id]} {
+      if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
+      set fp_parent_id [my query_parameter "parent_id" [my parent_id]]
+      if {[my parent_id] ne $fp_parent_id} {
+        my log "consider using the create-child method instead of passing a parent_id via query parameter"
+      }
+    } else {
+      set fp_parent_id $parent_id
+    }
     set fp_package_id [my query_parameter "package_id" [my package_id]]
 
     set f [my create_form_page_instance \
