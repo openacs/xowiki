@@ -130,9 +130,8 @@ namespace eval ::xowiki {
 
   RSS instproc render {} {
     my instvar package_id max_entries name_filter title days description siteurl base_table
-    set folder_id [::$package_id folder_id]
+    set folder_ids [::$package_id folder_id]
 
-    if {$description eq ""} {set description [::$folder_id set description]}
     my set link $siteurl[lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     
     set base_table xowiki_pagex 
@@ -151,7 +150,7 @@ namespace eval ::xowiki {
                  -vars "s.body, s.rss_xml_frag, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.publish_date, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
-                 -where "ci.parent_id = $folder_id \
+                 -where "ci.parent_id in ([join $folder_ids ,]) \
 			and ci.live_revision = s.object_id \
                 	and ci.publish_status <> 'production' \
                 	and s.object_id = p.page_id \
@@ -159,37 +158,12 @@ namespace eval ::xowiki {
                  -orderby "p.publish_date desc" \
                  -limit [my limit]]
 
-#     set content [my head]
-#     my log "--TITLE=[my title], DESC=[my description]"
-#     db_foreach get_pages $sql {
-#       if {[string match "::*" $name]} continue
-#       if {$content_type eq "::xowiki::PageTemplate"} continue
-#       set description [string trim $description]
-#       if {$description eq ""} {set description $body}
-#       if {$title eq ""}       {set title $name}
-#       set time [::xo::db::tcl_date $publish_date tz]
-#       set link [::xowiki::Includelet detail_link \
-#                     -package_id $package_id -name $name \
-#                     -absolute true \
-#                     -instance_attributes $instance_attributes]
-#       #append title " ($content_type)"
-#       set time "[clock format [clock scan $time] -format {%a, %d %b %Y %T}] ${tz}00"
-#       append content [my item \
-#                           -creator $creator \
-#                           -title $title \
-#                           -link $link \
-#                           -guid $siteurl/$page_id \
-#                           -description $description \
-#                           -pubdate $time \
-#                          ]
-#     }
-
     set content [my head]
     db_foreach [my qn get_pages] $sql {
       if {[string match "::*" $name]} continue
-      if {$content_type eq "::xowiki::PageTemplate"} continue
+      if {$content_type eq "::xowiki::PageTemplate" || $content_type eq "::xowiki::Form"} continue
       append content $rss_xml_frag
-    }    
+    }
     append content [my tail]
     return $content
   }
@@ -245,8 +219,7 @@ namespace eval ::xowiki {
     my instvar package_id max_entries name_filter title days \
 	summary subtitle description author siteurl
 
-    set folder_id [::$package_id folder_id]
-    if {$description eq ""} {set description [::$folder_id set description]}
+    set folder_ids [::$package_id folder_id]
     if {$summary  eq ""} {set summary $description}
     if {$subtitle eq ""} {set subtitle $title}
 
@@ -256,7 +229,7 @@ namespace eval ::xowiki {
     set sql [::xo::db::sql select \
                  -vars * \
                  -from "xowiki_podcast_itemi p, cr_items ci, cr_mime_types m" \
-                 -where  "ci.parent_id = $folder_id and ci.item_id = p.item_id \
+                 -where  "ci.parent_id in ([join $folder_ids ,]) and ci.item_id = p.item_id \
               and ci.live_revision = p.object_id \
               and p.mime_type = m.mime_type \
               and ci.publish_status <> 'production' [my extra_where_clause]" \
@@ -292,7 +265,7 @@ namespace eval ::xowiki {
 
   Timeline instproc render {} {
     my instvar package_id 
-    set folder_id [::$package_id folder_id]
+    set folder_ids [::$package_id folder_id]
     set where_clause ""
     set limit ""
 
@@ -309,7 +282,7 @@ namespace eval ::xowiki {
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
                  -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id 
       			and o2.object_id = cr.item_id 
-		      	and ci.parent_id = :folder_id and o.creation_user is not null 
+		      	and ci.parent_id in ([join $folder_ids ,]) and o.creation_user is not null 
       			$where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]

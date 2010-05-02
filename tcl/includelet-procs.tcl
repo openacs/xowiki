@@ -1558,7 +1558,7 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
 
     set publisher [ad_urlencode $publisher]
-    set feedname  [ad_urlencode [[$package_id folder_id] title]]
+    set feedname  [ad_urlencode [$package_id get_parameter PackageTitle [$package_id instance_name]]]
     set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 

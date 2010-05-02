@@ -513,5 +513,6 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       delete_parameter top_portlet
     }
+
   }
 }

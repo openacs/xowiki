@@ -1512,11 +1512,12 @@ namespace eval ::xowiki {
   Page instproc get_rich_text_spec {field_name default} {
     my instvar package_id
     set spec ""
-    foreach {s widget_spec} [$package_id get_parameter widget_specs] {
+    #my msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
+    foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
       foreach {page_name var_name} [split $s ,] break
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[my exists name] ? [my set name] : $page_name}]
-      #my msg "--w T.name = '$name' var=$page_name ([string match $page_name $name]), $var_name $field_name ([string match $var_name $field_name])"
+      my msg "--w T.name = '$name' var=$page_name ([string match $page_name $name]), $var_name $field_name ([string match $var_name $field_name])"
       if {[string match $page_name $name] &&
           [string match $var_name $field_name]} {
         set spec $widget_spec
@@ -2006,7 +2007,8 @@ namespace eval ::xowiki {
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    foreach {s widget_spec} [[my set parent_id] get_payload widget_specs] {
+    my msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
+    foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&

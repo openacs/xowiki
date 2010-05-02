@@ -205,7 +205,8 @@ namespace eval ::xowiki {
 
       #my log "--after context delete_link=$delete_link "
       $context_package_id instvar folder_id  ;# this is the root folder
-      set template [$folder_id get_payload template]
+      #set template [$folder_id get_payload template]
+      set template ""
       set page [self]
 
       foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
@@ -1287,7 +1288,7 @@ namespace eval ::xowiki {
 
     set form [my get_form]
     set anon_instances [my get_from_template anon_instances f]
-    my msg form=$form
+    #my msg form=$form
     #my msg anon_instances=$anon_instances
     
     set field_names [my field_names -form $form]

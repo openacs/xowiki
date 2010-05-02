@@ -10,11 +10,11 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.124" url="http://openacs.org/repository/download/apm/xowiki-0.124.apm">
+    <version name="0.125" url="http://openacs.org/repository/download/apm/xowiki-0.125.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2010-03-04</release-date>
+        <release-date>2010-05-01</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -56,12 +56,12 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.124"/>
+        <provides url="xowiki" version="0.125"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.112"/>
+        <requires url="xotcl-core" version="0.113"/>
 
         <callbacks>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
@@ -70,32 +70,53 @@ Some features:
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. " section_name="Form"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="include_in_google_sitemap_index"  default="1" description="include the package in the google sitemap index"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="Name of the publisher, when posting urls to my yahoo (use in connection with with_yahoo_publisher)" section_name="Options"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="parameter_page"  description="::xowiki::FormPage to search for parameters. The page name has to contain a language prefix and can refer to a different xowiki instance.
+            <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="PackageDescription"  description="Description of the Package. This description will appear for example in the Description of the default RSS feed for this package" section_name="Description"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackageTitle"  description="Title of the Package; this title will appear for example in the default RSS feed for this package." section_name="Description"/>
+            <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="WidgetSpecs"  description="Specify pairs of &quot;pagename,fieldname&quot; followed by a Tcl list which is used as a widget spec for ad_form. &quot;pagename&quot; and &quot;fieldname&quot; can contain wild card characters. The following rather complex widget-specs are from openacs.org:
+
+*,text {richtext(richtext),nospell,optional 
+  {label Content} 
+  {html {style {width: 100%}}} 
+  {options {editor xinha plugins {Stylist OacsFs} height 350px javascript { 
+   
+  xinha_config.toolbar = [ 
+    ['popupeditor', 'bold','italic','createlink','insertimage','separator'], 
+    ['killword','removeformat'] 
+  ]; 
+
+  xinha_config.stylistLoadStylesheet('/resources/xowiki/examples/xinha-mc-styles.css', 
+   {'p.angabe' : 'Aufgabenstellung', 
+   'p.loesungshinweis' : 'Lösungshinweis', 
+   'li.correct_choice' : 'Richtige Antwort', 
+   'li.incorrect_choice' : 'Falsche Antwort'}); 
+  }}}}
+" section_name="xinha"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="autoname"  default="0" description="Automatically name items of this instance" section_name="Form"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="display_page_order"  default="1" description="Display page_order attribute (Section) in edit forms if possible. " section_name="Form"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="extra_css"  description="One or more additional css file for this Instance "/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="include_in_google_sitemap_index"  default="1" description="Include the package in the google sitemap index" section_name="Options"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="Name of the publisher, when posting urls to my yahoo (use in connection with with_yahoo_publisher)" section_name="Options"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="parameter_page"  description="::xowiki::FormPage to search for parameters. The page name has to contain a language prefix and can refer to a different xowiki instance.
 Example: //xowiki/en:xowiki-standard-parameter"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;."/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, per-user specific information is used to determine the default language. Users with different language preferences will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used." section_name="URL"/>
-            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;." section_name="Options"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, per-user specific information is used to determine the default language. Users with different language preferences will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used." section_name="URL"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg
 " section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_general_comments"  default="1" description="use general comments package " section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_notifications"  default="1" description="Allow the user to register notifications" section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
-            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="with_yahoo_publisher"  default="0" description="When specified, a button for adding the content to my.yahoo.com is added" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_general_comments"  default="1" description="use general comments package " section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_notifications"  default="1" description="Allow the user to register notifications" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_yahoo_publisher"  default="0" description="When specified, a button for adding the content to my.yahoo.com is added" section_name="Options"/>
         </parameters>
 
     </version>

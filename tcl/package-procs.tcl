@@ -357,7 +357,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
+    #if {$value eq ""} {set value [::[my folder_id] get_payload $attribute]}
     if {$value eq ""} {set value [next $attribute $default]}
     if {$type ne ""} {
       # to be extended and generalized
@@ -1205,7 +1205,7 @@ namespace eval ::xowiki {
     set package_id [::xo::cc package_id]
     set package_key "xowiki"
 
-    foreach n {folder.form} {
+    foreach n {folder.form link.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
       my ds "lookup en:$n => $item_id"
       if {!$item_id} {
@@ -1340,45 +1340,45 @@ namespace eval ::xowiki {
                        -content_types ::xowiki::Page* ]
 
     if {![::xotcl::Object isobject ::$folder_id]} {
-      # if we can't get the folder from the cache, create it
-      if {[catch {eval [nsv_get xotcl_object_cache ::$folder_id]}]} {
-        while {1} {
-          set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
-            set myid [::xo::db::CrClass lookup -name ::$folder_id -parent_id $folder_id]
-            if {$myid == 0} break; # don't cache ID if invalid
-            return $myid
-          }]
-          break
-        }
-        if {[info exists item_id]} {
-          # we have a valid item_id and get the folder object
-          #my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
-          ::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id
-        } else {
-          # we have no folder object yet. so we create one...
-          ::xowiki::Object create ::$folder_id
-          ::$folder_id set text "# this is the payload of the folder object\n\n\
-                #set index_page \"index\"\n"
-          ::$folder_id set parent_id $folder_id
-          ::$folder_id set name ::$folder_id
-          ::$folder_id set title ::$folder_id
-          ::$folder_id set package_id $id
-          ::$folder_id set publish_status "production"
-          ::$folder_id save_new
-          ::$folder_id initialize_loaded_object
+#       # if we can't get the folder from the cache, create it
+#       if {[catch {eval [nsv_get xotcl_object_cache ::$folder_id]}]} {
+#         while {1} {
+#           set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
+#             set myid [::xo::db::CrClass lookup -name ::$folder_id -parent_id $folder_id]
+#             if {$myid == 0} break; # don't cache ID if invalid
+#             return $myid
+#           }]
+#           break
+#         }
+#         if {[info exists item_id]} {
+#           # we have a valid item_id and get the folder object
+#           #my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
+#           ::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id
+#         } else {
+#           # we have no folder object yet. so we create one...
+#           ::xowiki::Object create ::$folder_id
+#           ::$folder_id set text "# this is the payload of the folder object\n\n\
+#                 #set index_page \"index\"\n"
+#           ::$folder_id set parent_id $folder_id
+#           ::$folder_id set name ::$folder_id
+#           ::$folder_id set title ::$folder_id
+#           ::$folder_id set package_id $id
+#           ::$folder_id set publish_status "production"
+#           ::$folder_id save_new
+#           ::$folder_id initialize_loaded_object
 
-          if {[my get_parameter "with_general_comments" 0]} {
-            # Grant automatically permissions to registered user to 
-            # add to general comments to objects under the folder.
-            permission::grant -party_id -2 -object_id $folder_id \
-                -privilege general_comments_create
-          }
-        }
-      }
-      #my msg "--f new folder object = ::$folder_id"
-      #::$folder_id proc destroy {} {my log "--f "; next}
-      ::$folder_id set package_id $id
-      ::$folder_id destroy_on_cleanup
+#           if {[my get_parameter "with_general_comments" 0]} {
+#             # Grant automatically permissions to registered user to 
+#             # add to general comments to objects under the folder.
+#             permission::grant -party_id -2 -object_id $folder_id \
+#                 -privilege general_comments_create
+#           }
+#         }
+#       }
+#       #my msg "--f new folder object = ::$folder_id"
+#       #::$folder_id proc destroy {} {my log "--f "; next}
+#       ::$folder_id set package_id $id
+#       ::$folder_id destroy_on_cleanup
     } else {
       #my log "--f reuse folder object $folder_id [::Serializer deepSerialize ::$folder_id]"
     }
@@ -1537,11 +1537,9 @@ namespace eval ::xowiki {
       set entries_of [my get_parameter entries_of ""]
     }
     if {![info exists title]} {
-      set title [my get_parameter title ""]
-      if {$title eq ""} {
-        set title [::$folder_id set title]
-      }
+      set title [my get_parameter PackageTitle [my instance_name]]
     }
+    set description [my get_parameter PackageDescription ""]
 
     if {![info exists days] && 
         [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
@@ -1555,6 +1553,7 @@ namespace eval ::xowiki {
 	       -name_filter $name_filter \
                -entries_of $entries_of \
 	       -title $title \
+	       -description $description \
 	       -days $days]
     
     #set t text/plain
