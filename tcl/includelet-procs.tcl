@@ -2253,7 +2253,7 @@ namespace eval ::xowiki::includelet {
 
     set list_mode 0
     switch -- $style {
-      "menu" {set s "menu/"; set renderer yuitree}
+      "menu"    {set s "menu/"; set renderer yuitree}
       "folders" {set s "folders/"; set renderer yuitree}
       "list"    {set s ""; set list_mode 1; set renderer list}
       "default" {set s ""; set renderer yuitree}

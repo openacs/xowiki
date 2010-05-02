@@ -204,7 +204,7 @@ namespace eval ::xowiki {
       # }
 
       #my log "--after context delete_link=$delete_link "
-      $context_package_id instvar folder_id  ;# this is the root folder
+      #$context_package_id instvar folder_id  ;# this is the root folder
       #set template [$folder_id get_payload template]
       set template ""
       set page [self]
@@ -311,22 +311,6 @@ namespace eval ::xowiki {
     }    
   }
 
-  Page instproc edit_flush_folder_object {new} {
-    my instvar package_id
-    set folder_id [$package_id folder_id]; # this is the root folder
-    set object_type [my info class]
-    if {!$new && $object_type eq "::xowiki::Object" && [my set name] eq "::$folder_id"} {
-      # if we edit the folder object, we have to do some extra magic here, 
-      # since  the folder object has slightly different naming conventions.
-      # ns_log notice "--editing folder object ::$folder_id, FLUSH $page"
-      ::xo::clusterwide ns_cache flush xotcl_object_cache [self]
-      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
-      my move ::$folder_id
-      set page ::$folder_id
-      #ns_log notice "--move page=$page"
-    }     
-  }
-
   Page instproc edit_set_file_selector_folder {} {
     #
     # setting up folder id for file selector (use community folder if available)
@@ -350,7 +334,6 @@ namespace eval ::xowiki {
     my instvar package_id item_id revision_id parent_id
     #my msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=[my parent_id]"
     my edit_set_default_values
-    my edit_flush_folder_object $new
     set fs_folder_id [my edit_set_file_selector_folder]
 
     if {[$package_id exists_query_parameter "return_url"]} {

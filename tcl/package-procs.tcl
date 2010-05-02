@@ -25,7 +25,7 @@ namespace eval ::xowiki {
     {-parameter ""}
   } {
     Instantiate a page in situations, where the context is not set up
-    (e.g. we have no package object or folder obect). This call is convenient
+    (e.g. we have no package object). This call is convenient
     when testing e.g. from the developer shell
   } {
     #TODO can most probably further simplified
@@ -33,7 +33,7 @@ namespace eval ::xowiki {
 
     #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page, package_id=[$page set package_id]"
 
-    set folder_id [$page set parent_id] 
+    set folder_id [$page parent_id] 
     if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
       set package_id [db_string [my qn get_pid] \
                           "select package_id from cr_folders where folder_id = $folder_id"]
@@ -223,11 +223,6 @@ namespace eval ::xowiki {
     @param parent_id parent_id (for now just for download)
     @param name name of the wiki page
   } {
-    if {[regexp {^::[0-9]+$} $name]} {
-      # Special rule for folder objects. Folder object will be most
-      # probably removed in future releases.
-      return $name
-    } 
     set folder [my folder_path -parent_id $parent_id]
     if {$folder ne ""} {
       # Return the stripped name for sub-items, the parent has already
@@ -326,8 +321,7 @@ namespace eval ::xowiki {
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
     (3) form fields from the parameter_page FormPage
-    (4) per instance parameters from the folder object (computable)
-    (5) standard OpenACS package parameter
+    (4) standard OpenACS package parameter
   } {
     set value [::xo::cc get_parameter $attribute]
     if {$check_query_parameter && $value eq ""} {set value [string trim [my query_parameter $attribute]]}
@@ -1339,50 +1333,6 @@ namespace eval ::xowiki {
     set folder_id [my require_root_folder -name "xowiki: $id" \
                        -content_types ::xowiki::Page* ]
 
-    if {![::xotcl::Object isobject ::$folder_id]} {
-#       # if we can't get the folder from the cache, create it
-#       if {[catch {eval [nsv_get xotcl_object_cache ::$folder_id]}]} {
-#         while {1} {
-#           set item_id [ns_cache eval xotcl_object_type_cache item_id-of-$folder_id {
-#             set myid [::xo::db::CrClass lookup -name ::$folder_id -parent_id $folder_id]
-#             if {$myid == 0} break; # don't cache ID if invalid
-#             return $myid
-#           }]
-#           break
-#         }
-#         if {[info exists item_id]} {
-#           # we have a valid item_id and get the folder object
-#           #my log "--f fetch folder object -object ::$folder_id -item_id $item_id"
-#           ::xowiki::Object fetch_object -object ::$folder_id -item_id $item_id
-#         } else {
-#           # we have no folder object yet. so we create one...
-#           ::xowiki::Object create ::$folder_id
-#           ::$folder_id set text "# this is the payload of the folder object\n\n\
-#                 #set index_page \"index\"\n"
-#           ::$folder_id set parent_id $folder_id
-#           ::$folder_id set name ::$folder_id
-#           ::$folder_id set title ::$folder_id
-#           ::$folder_id set package_id $id
-#           ::$folder_id set publish_status "production"
-#           ::$folder_id save_new
-#           ::$folder_id initialize_loaded_object
-
-#           if {[my get_parameter "with_general_comments" 0]} {
-#             # Grant automatically permissions to registered user to 
-#             # add to general comments to objects under the folder.
-#             permission::grant -party_id -2 -object_id $folder_id \
-#                 -privilege general_comments_create
-#           }
-#         }
-#       }
-#       #my msg "--f new folder object = ::$folder_id"
-#       #::$folder_id proc destroy {} {my log "--f "; next}
-#       ::$folder_id set package_id $id
-#       ::$folder_id destroy_on_cleanup
-    } else {
-      #my log "--f reuse folder object $folder_id [::Serializer deepSerialize ::$folder_id]"
-    }
-    
     my set folder_id $folder_id
   }
 
@@ -1763,13 +1713,6 @@ namespace eval ::xowiki {
     if {![info exists name]} {
       set name [::xo::db::CrClass get_name -item_id $item_id]
     }
-    if {$name eq "::$folder_id"} {
-      #my log "--D deleting folder object ::$folder_id"
-      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$folder_id
-      ::xo::clusterwide ns_cache flush xotcl_object_type_cache item_id-of-$folder_id
-      ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$id
-      ::$folder_id destroy
-    }
     my flush_name_cache -name $name -parent_id $parent_id
   }
 
@@ -1880,10 +1823,16 @@ namespace eval ::xowiki {
   Class ParameterCache
   ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
     set key [list [my id] [self proc] $attribute]
-    if {[::xo::cc cache_exists $key]} {
-      return [::xo::cc cache_get $key]
+    if {[info command "::xo::cc"] ne ""} {
+      if {[::xo::cc cache_exists $key]} {
+        return [::xo::cc cache_get $key]
+      }
+      return [::xo::cc cache_set $key [next]]
+    } else {
+      # in case, we have no ::xo::cc (e.g. during bootstrap).
+      ns_log notice "warning: no ::xo::cc available, returning default for parameter $attribute"
+      return $default
     }
-    return [::xo::cc cache_set $key [next]]
   }
   Package instmixin add ParameterCache
 
