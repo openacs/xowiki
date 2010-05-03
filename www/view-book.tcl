@@ -1,4 +1,4 @@
-set title [[$package_id folder_id] title]
+set title [$package_id get_parameter PackageTitle [my instance_name]]
 set toc   [$page include [list toc -open_page $name -decoration plain -remove_levels 1]]
 set i     [$page set __last_includelet]
 #my log "--last includelet = $i, class=[$i info class] [$page exists __is_book_page]"

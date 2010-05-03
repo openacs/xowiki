@@ -1,4 +1,4 @@
-set title [[$package_id folder_id] title]
+set title [$package_id get_parameter PackageTitle [my instance_name]]
 #set toc   [$page include [list toc -ajax 0 -open_page $name -decoration plain -remove_levels 0]]
 set toc   [$page include [list toc -style list -open_page $name -expand_all 1 -decoration plain]]
 set i     [$page set __last_includelet]
