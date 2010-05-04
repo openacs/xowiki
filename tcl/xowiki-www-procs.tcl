@@ -206,7 +206,7 @@ namespace eval ::xowiki {
       #my log "--after context delete_link=$delete_link "
       #$context_package_id instvar folder_id  ;# this is the root folder
       #set template [$folder_id get_payload template]
-      set template ""
+      set template [$context_package_id get_parameter "template" ""]
       set page [self]
 
       foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
