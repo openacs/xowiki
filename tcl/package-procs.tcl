@@ -725,6 +725,8 @@ namespace eval ::xowiki {
       return $page
     }
 
+    my get_lang_and_name -default_lang $lang -path $object lang stripped_name
+
     # stripped object is the object without a language prefix
     set stripped_object $object
     regexp {^..:(.*)$} $object _ stripped_object
@@ -769,7 +771,8 @@ namespace eval ::xowiki {
       }
     }
     
-    set page [::xowiki::Package get_site_wide_page -name en:$object]
+    set page [::xowiki::Package get_site_wide_page -name en:$stripped_name]
+    #my log "get_site_wide_page for en:'$stripped_name' returned $page (stripped name)"
     if {$page ne ""} {
       #my msg "set_resolve_context site-wide -package_id [my id] -parent_id [my folder_id]"
       $page set_resolve_context -package_id [my id] -parent_id [my folder_id]

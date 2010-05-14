@@ -231,6 +231,28 @@ namespace eval ::xowiki {
     }
   }
 
+
+  proc ::xowiki::transform_root_folder {package_id} {
+    ::xo::Package initialize -package_id $package_id
+    set item_id [$package_id folder_id]
+    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+
+    if {[db_0or1row check \
+          "select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = $item_id"]} {
+      ns_log notice "folder $item_id is already converted"
+      return
+    }
+    set revision_id [::xo::db::sql::content_revision new \
+                         -title [$package_id instance_name] -text "" \
+                         -item_id $item_id -package_id $package_id]
+    db_dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
+    db_dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
+    db_dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
+    
+    db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = $item_id"
+    db_dml chg5 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = $revision_id, latest_revision = $revision_id where item_id = $item_id"
+  }
+
   ad_proc -public -callback subsite::url -impl apm_package {
     {-package_id:required}
     {-object_id:required}
