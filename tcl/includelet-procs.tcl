@@ -3110,16 +3110,17 @@ namespace eval ::xowiki::includelet {
         method
         link
         package_id
+        parent_id
         base
         return_url
         {label_suffix ""}
       }
 
   form-menu-button instproc render {} {
-    my instvar package_id base form method return_url label_suffix link
+    my instvar package_id base form method return_url label_suffix link parent_id
     if {![info exists link]} {
       #my msg "[my info class] check-link-package_id=$package_id"
-      set link [$package_id make_link -link $base $form $method return_url]
+      set link [$package_id make_link -link $base $form $method return_url parent_id]
     }
     if {$link eq ""} {
       return ""
@@ -3140,7 +3141,9 @@ namespace eval ::xowiki::includelet {
     array set "" [::xowiki::PageInstance get_list_from_form_constraints \
                       -name @table_properties \
                       -form_constraints [[my form] get_form_constraints -trylocal true]]
-    set count [[my form] count_usages -package_id [my package_id] -publish_status $(publish_status)]
+    set count [[my form] count_usages \
+                   -package_id [my package_id] -parent_id [my parent_id] \
+                   -publish_status $(publish_status)]
     my label_suffix " ($count)"
     next
   }
@@ -3156,6 +3159,8 @@ namespace eval ::xowiki::includelet {
         {__decoration none}
         {parameter_declaration {
           {-form_item_id:integer}
+          {-parent_id}
+          {-form}
           {-buttons {new answers}}
           {-button_objs}
           {-return_url}
@@ -3165,6 +3170,16 @@ namespace eval ::xowiki::includelet {
   form-menu instproc render {} {
     my get_parameters
     my instvar __including_page
+    if {![info exists form_item_id]} {
+      set form_item_id [::xowiki::Weblog instantiate_forms -forms $form -package_id [$__including_page package_id]]
+    }
+    if {[info exists parent_id]} {
+      if {$parent_id eq "self"} {
+        set parent_id [$__including_page item_id]
+      }
+    } else {
+      set parent_id [$package_id folder_id]
+    }
     if {![info exists button_objs]} {
       foreach b $buttons {
         if {[llength $b]>1} {
@@ -3179,8 +3194,8 @@ namespace eval ::xowiki::includelet {
         #
         set form_package_id [$form package_id]
         ::xowiki::Package require $form_package_id
-        set obj  [form-menu-button-$button new -volatile -package_id $package_id \
-                      -base [$form_package_id pretty_link [$form name]] -form $form]
+        set obj [form-menu-button-$button new -volatile -package_id $package_id \
+                     -base [$form_package_id pretty_link [$form name]] -form $form -parent_id $parent_id]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
       }
@@ -3247,6 +3262,7 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-form_item_id:integer}
           {-form}
+          {-parent_id}
           {-orderby "__last_modified,desc"}
           {-publish_status "ready"}
           {-field_names}
@@ -3254,13 +3270,13 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-unless}
           {-where}
-          {-with_categories}
           {-csv true}
           {-voting_form}
           {-voting_form_form ""}
           {-voting_form_anon_instances "t"}
           {-generate}
           {-with_form_link true}
+          {-with_categories}
           {-wf}
           {-buttons "edit delete"}
         }}
@@ -3278,6 +3294,13 @@ namespace eval ::xowiki::includelet {
       set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
     } else {
       set form_item_ids [list $form_item_id]
+    }
+    if {[info exists parent_id]} {
+      if {$parent_id eq "self"} {
+        set parent_id [$__including_page item_id]
+      }
+    } else {
+      set parent_id [$package_id folder_id]
     }
 
     set form_constraints $extra_form_constraints\n
@@ -3406,6 +3429,7 @@ namespace eval ::xowiki::includelet {
 
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids \
+                   -parent_id $parent_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -extra_where_clause $extra_where_clause \

@@ -1383,7 +1383,7 @@ namespace eval ::xowiki {
           return
 	}
       }
-    }  elseif {[my form_parameter __form_action ""] eq "view-form-data" && ![my exists __feedback_mode]} {
+    } elseif {[my form_parameter __form_action ""] eq "view-form-data" && ![my exists __feedback_mode]} {
       # We have nothing to save (maybe everything is read.only). Check
       # __feedback_mode to prevent recursive loops.
       set redirect_method [my form_parameter __form_redirect_method "view"]
@@ -1891,10 +1891,6 @@ namespace eval ::xowiki {
     return $f
   }
 
-  Page instproc create-child {{-view_method edit} {-name ""} {-nls_language ""}} {
-    my create-new -parent_id [my item_id] -view_method $view_method -name $name -nls_language $nls_language
-  }
-
   Page instproc create-new {-parent_id {-view_method edit} {-name ""} {-nls_language ""}} {
     my instvar package_id
     set original_package_id $package_id
@@ -1925,20 +1921,36 @@ namespace eval ::xowiki {
       }
     }
 
+    # TODO: the following calls are here temporarily for posting
+    # content from manually added forms (e.g. linear forum). The
+    # following should be done:
+    #  - create an includelet to create the form markup automatically
+    #  - validate and transform input as usual
+    # We should probably allow as well controlling autonaming and
+    # setting of publish_status, and probhibit empty postings.
+
+    set text_to_html [my form_parameter "__text_to_html" ""]
+    foreach key {_text} {
+      if {[my exists_form_parameter $key]} {
+        set __value [my form_parameter $key]
+        if {[lsearch $text_to_html $key] > -1} {
+          set __value [ad_text_to_html $__value]
+        }
+        lappend default_variables [string range $key 1 end] $__value
+      }
+    }
+
+    #
     # To create form_pages in different places than the form, provide
     # fp_parent_id and fp_package_id.
     #
     # The following construct is more complex than necessary to
-    # provide more backward compatibility. Child objects should be
-    # always created via the create create-child method. The passed
+    # provide backward compatibility. Note that the passed-in
     # parent_id has priority over the other measures to obtain it.
     #
     if {![info exists parent_id]} {
       if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
       set fp_parent_id [my query_parameter "parent_id" [my parent_id]]
-      if {[my parent_id] ne $fp_parent_id} {
-        my log "consider using the create-child method instead of passing a parent_id via query parameter"
-      }
     } else {
       set fp_parent_id $parent_id
     }
@@ -1953,23 +1965,18 @@ namespace eval ::xowiki {
                -source_item_id [my query_parameter source_item_id ""]]
 
     $f save_new
- 
-    if {[my exists_query_parameter "return_url"]} {
-      set return_url [my query_parameter "return_url"]
-    }
-    if {[my exists_query_parameter "template_file"]} {
-      set template_file [my query_parameter "template_file"]
-    }
+
     foreach var {return_url template_file title detail_link text} {
       if {[my exists_query_parameter $var]} {
         set $var [my query_parameter $var]
       }
     }
-
-    $package_id returnredirect \
-        [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
-	     [list [list m $view_method] return_url template_file title detail_link text]]
-
+    set form_redirect [my form_parameter "__form_redirect" ""]
+    if {$form_redirect eq ""} {
+      set form_redirect [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
+                             [list [list m $view_method] return_url template_file title detail_link text]]
+    }
+    $package_id returnredirect $form_redirect
     set package_id $original_package_id
   }
 

@@ -1902,12 +1902,21 @@ namespace eval ::xowiki {
   PageTemplate parameter {
     {render_adp 0}
   }
-  PageTemplate instproc count_usages {{-package_id 0} {-publish_status ready}} {
-    return [::xowiki::PageTemplate count_usages -package_id $package_id \
+  PageTemplate instproc count_usages {
+    {-package_id 0} 
+    {-parent_id 0} 
+    {-publish_status ready}
+  } {
+    return [::xowiki::PageTemplate count_usages -package_id $package_id -parent_id $parent_id \
 		-item_id [my item_id] -publish_status $publish_status]
   }
 
-  PageTemplate proc count_usages {{-package_id:integer 0} -item_id:required {-publish_status ready}} {
+  PageTemplate proc count_usages {
+    {-package_id:integer 0} 
+    {-parent_id:integer 0} 
+    -item_id:required 
+    {-publish_status ready}
+  } {
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table i $publish_status]
     if {$package_id} {
       set bt "xowiki_page_instancei"
@@ -1916,14 +1925,15 @@ namespace eval ::xowiki {
       set bt "xowiki_page_instance"
       set package_clause ""
     }
-    my ds "select count(page_instance_id) from $bt, cr_items i \ 
-			where page_template = $item_id \
-                        $publish_status_clause $package_clause \
-                        and page_instance_id = coalesce(i.live_revision,i.latest_revision)"
+    if {$parent_id} {
+      set parent_id_clause "and parent_id = $parent_id"
+    } else {
+      set parent_id_clause ""
+    }
     set count [db_string [my qn count_usages] \
 		   "select count(page_instance_id) from $bt, cr_items i  \ 
 			where page_template = $item_id \
-                        $publish_status_clause $package_clause \
+                        $publish_status_clause $package_clause $parent_id_clause \
                         and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
     return $count
   }
@@ -2739,11 +2749,13 @@ namespace eval ::xowiki {
     # its pretty value in variable substitutions.
     #
     if {![my exists_property $varname]} {
-      # We check for current_user here. In case the property does
-      # not exist, we provide a value from the currently connected
-      # user.
+      # We check for special variables here (such as current_user or
+      # current_url). In case the property does not exist, we provide
+      # a value from the current connection context.
       if {$varname eq "current_user"} {
         set value [::xo::cc set untrusted_user_id]
+      } elseif {$varname eq "current_url"} {
+        set value [::xo::cc url]
       } else {
         set value ""
       }

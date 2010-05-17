@@ -1889,7 +1889,6 @@ namespace eval ::xowiki {
       delete             {{package_id admin}}
       save-tags          login
       popular-tags       login
-      create-child       {{item_id create}}
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
     } -set default_permission {{package_id write}}
@@ -1947,7 +1946,6 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-child       {{item_id create}}
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
     }
@@ -1999,7 +1997,6 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-child       {{item_id create}}
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
     }
@@ -2063,7 +2060,6 @@ namespace eval ::xowiki {
       delete             swa
       save-tags          login
       popular-tags       login
-      create-child       {{item_id create}}
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
     }
