@@ -1432,8 +1432,9 @@ namespace eval ::xowiki {
                           __last_includelet __unresolved_references \
                           text item_id content lang_links]
 
-    # set variable current_user to ease personalization
+    # set variables current_* to ease personalization
     set current_user [::xo::cc set untrusted_user_id]
+    set current_url [::xo::cc url]
 
     set __vars [info vars]
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content_noquote
@@ -2746,19 +2747,15 @@ namespace eval ::xowiki {
     #my msg "varname=$varname [my exists_property $varname]"
     #
     # Read a property (instance attribute) and return
-    # its pretty value in variable substitutions.
+    # its pretty value in variable substitution.
     #
-    if {![my exists_property $varname]} {
-      # We check for special variables here (such as current_user or
-      # current_url). In case the property does not exist, we provide
-      # a value from the current connection context.
-      if {$varname eq "current_user"} {
-        set value [::xo::cc set untrusted_user_id]
-      } elseif {$varname eq "current_url"} {
-        set value [::xo::cc url]
-      } else {
-        set value ""
-      }
+    # We check for special variable names here (such as current_user
+    # or current_url). We provide a value from the current connection
+    # context.
+    if {$varname eq "current_user"} {
+      set value [::xo::cc set untrusted_user_id]
+    } elseif {$varname eq "current_url"} {
+      set value [::xo::cc url]
     } else {
       set value [my property $varname]
 

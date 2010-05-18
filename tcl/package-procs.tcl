@@ -682,7 +682,7 @@ namespace eval ::xowiki {
     if {![info exists lang]} {
       set lang [my default_language]
     }
-
+    
     #my log "resolve_page '$object', default-lang $lang"
     #
     # First, resolve package level methods, 
@@ -764,7 +764,7 @@ namespace eval ::xowiki {
       foreach package [my package_path] {
         set page [$package resolve_page -simple $simple -lang $lang $object method]
         if {$page ne ""} {
-          #my msg "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
+          #my log "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
 	  $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
 	  return $page
         }
@@ -1295,7 +1295,7 @@ namespace eval ::xowiki {
           # in case we have a folder "foldername" and a page "foldername/xxx", the page has
           # higher priority.
           set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
-          #my log "default_lang=$lang, ${lang}:$stripped_name => $item_id\n"
+          #my log "default_lang=$lang, ${lang}:$stripped_name / $parent_id => $item_id\n"
         }
 
         if {$item_id == 0} {
@@ -1305,7 +1305,7 @@ namespace eval ::xowiki {
           #my log "get_parent_and_name returned parent=$parent, parent_id=$parent_id, deflang $lang name='$local_name'"
           my get_lang_and_name -default_lang $lang -path $local_name lang stripped_name
           set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
-          #my log "--try  ${lang}:$stripped_name ($folder_id/$parent_id) -> $item_id"
+          #my log "--try ${lang}:$stripped_name ($folder_id/$parent_id) -> $item_id"
         }
 
         if {$item_id == 0} {
@@ -1901,6 +1901,8 @@ namespace eval ::xowiki {
     }
     Class Form -array set require_permission {
       list              {{package_id read}}
+      edit              admin
+      view              admin
     }
     Class CrFolder -array set require_permission {
       view           none
@@ -1957,7 +1959,8 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
-      view              {{package_id read}}
+      view              admin
+      edit              admin
       list              {{package_id read}}
     }
   }
@@ -2008,6 +2011,8 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class Form -array set require_permission {
+      view              admin
+      edit              admin
       list              {{item_id read}}
     }
 #     Class FormPage -array set require_permission {

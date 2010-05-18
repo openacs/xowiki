@@ -1819,11 +1819,6 @@ namespace eval ::xowiki {
     return [list]
   }
 
-  Page instproc create-or-use args {
-    # can be overloaded
-    eval my create-new $args
-  }
-
   Page instproc create_form_page_instance {
     -name:required 
     -package_id 
@@ -1891,7 +1886,24 @@ namespace eval ::xowiki {
     return $f
   }
 
-  Page instproc create-new {-parent_id {-view_method edit} {-name ""} {-nls_language ""}} {
+  Page instproc create-or-use {
+    {-parent_id 0} 
+    {-view_method edit} 
+    {-name ""} 
+    {-nls_language ""}
+  } {
+    # can be overloaded
+    my create-new \
+        -parent_id $parent_id -view_method $view_method \
+        -name $name -nls_language $nls_language
+  }
+
+  Page instproc create-new {
+    {-parent_id 0} 
+    {-view_method edit} 
+    {-name ""} 
+    {-nls_language ""}
+  } {
     my instvar package_id
     set original_package_id $package_id
 
@@ -1930,47 +1942,72 @@ namespace eval ::xowiki {
     # setting of publish_status, and probhibit empty postings.
 
     set text_to_html [my form_parameter "__text_to_html" ""]
-    foreach key {_text} {
+    foreach key {_text _name} {
       if {[my exists_form_parameter $key]} {
         set __value [my form_parameter $key]
         if {[lsearch $text_to_html $key] > -1} {
           set __value [ad_text_to_html $__value]
         }
         lappend default_variables [string range $key 1 end] $__value
+        switch $key {
+          _name {set name $__value}
+        }
       }
+    }
+    set instance_attributes [list]
+    foreach {_att _value} [::xo::cc get_all_form_parameter] {
+      if {[string match _* $_att]} continue
+      lappend instance_attributes $_att $_value
     }
 
     #
-    # To create form_pages in different places than the form, provide
-    # fp_parent_id and fp_package_id.
+    # To create form_pages in different places than the form, one can
+    # provide provide parent_id and package_id.
     #
     # The following construct is more complex than necessary to
     # provide backward compatibility. Note that the passed-in
     # parent_id has priority over the other measures to obtain it.
     #
-    if {![info exists parent_id]} {
+    if {$parent_id == 0} {
       if {![my exists parent_id]} {my parent_id [$package_id folder_id]}
-      set fp_parent_id [my query_parameter "parent_id" [my parent_id]]
+      set fp_parent_id [my form_parameter "parent_id" [my query_parameter "parent_id" [my parent_id]]]
     } else {
       set fp_parent_id $parent_id
     }
-    set fp_package_id [my query_parameter "package_id" [my package_id]]
+    # In case the Form is inherited and package_id was not specified, we
+    # use the actual package_id.
+    set fp_package_id [my form_parameter "package_id" [my query_parameter "package_id" [my package_id]]]
 
+    ::xo::Package require $fp_package_id
     set f [my create_form_page_instance \
                -name $name \
                -nls_language $nls_language \
                -parent_id $fp_parent_id \
                -package_id $fp_package_id \
                -default_variables $default_variables \
+               -instance_attributes $instance_attributes \
                -source_item_id [my query_parameter source_item_id ""]]
 
-    $f save_new
+    if {$name eq ""} {
+      $f save_new
+    } else {
+      set id [$fp_package_id lookup -parent_id $fp_parent_id -name $name]
+      if {$id == 0} {
+        $f save_new
+      } else {
+        ::xowiki::FormPage get_instance_from_db -item_id $id
+        $f copy_content_vars -from_object $id
+        $f item_id $id
+        $f save
+      }
+    }
 
     foreach var {return_url template_file title detail_link text} {
       if {[my exists_query_parameter $var]} {
         set $var [my query_parameter $var]
       }
     }
+
     set form_redirect [my form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
       set form_redirect [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \

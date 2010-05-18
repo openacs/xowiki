@@ -228,7 +228,7 @@ namespace eval ::xowiki::includelet {
     set packages [$base_package_id package_path]
     if {[llength $packages] > 0} {
       set parent_ids [list [$base_package_id folder_id]]
-      foreach p [$packages] {lappend parent_ids [$p folder_id]}
+      foreach p $packages {lappend parent_ids [$p folder_id]}
       return "$base_table.parent_id in ([join $parent_ids ,])"
     } else {
       return "$base_table.parent_id = [$base_package_id folder_id]"
@@ -3263,6 +3263,7 @@ namespace eval ::xowiki::includelet {
           {-form_item_id:integer}
           {-form}
           {-parent_id}
+          {-package_ids ""}
           {-orderby "__last_modified,desc"}
           {-publish_status "ready"}
           {-field_names}
@@ -3316,7 +3317,7 @@ namespace eval ::xowiki::includelet {
     foreach {attr value} $table_properties {
       switch $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
-        publish_status -  category_id - unless -
+        buttons - publish_status - category_id - unless -
         where -   with_categories - with_form_link - csv - voting_form -
         voting_form_form - voting_form_anon_instances {
           set $attr $value
@@ -3368,14 +3369,14 @@ namespace eval ::xowiki::includelet {
 
     set cols ""
     if {[info exists use_button(edit)]} {
-      append cols {AnchorField _edit -CSSclass edit-item-button -label "" -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+      append cols {AnchorField _edit -CSSclass edit-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     if {[info exists use_button(view)]} {
-      append cols {AnchorField _view -CSSclass view-item-button -label "" -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+      append cols {AnchorField _view -CSSclass view-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     foreach fn $field_names {
-      #set richtext [expr {[$__ff($fn) istype ::xowiki::formfield::abstract_page] 
-      #                    || [$__ff($fn) istype ::xowiki::formfield::richtext]}]
       append cols [list AnchorField _$fn \
 		       -label [$__ff($fn) label] \
 		       -richtext 1 \
@@ -3434,6 +3435,7 @@ namespace eval ::xowiki::includelet {
                    -publish_status $publish_status \
                    -extra_where_clause $extra_where_clause \
                    -h_where [array get wc] \
+                   -from_package_ids $package_ids \
                    -package_id $package_id]
 
     if {[info exists with_categories]} {
@@ -3443,9 +3445,11 @@ namespace eval ::xowiki::includelet {
         # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids \
+                   -parent_id $parent_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -h_where [array get wc] \
+                   -from_package_ids $package_ids \
                    -package_id $package_id]
       }
     }
@@ -3478,18 +3482,16 @@ namespace eval ::xowiki::includelet {
 	#set template_file view-default
 	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url template_file] 
       }
-      if {[info exists use_button(view)]} {
-	$__c set _view "&nbsp;"
-	$__c set _view.title #xowiki.view#
-	$__c set _view.href $view_link
-      }
       if {[info exists use_button(delete)]} {
 	$__c set _delete "&nbsp;"
 	$__c set _delete.title #xowiki.delete#
 	$__c set _delete.href [$package_id make_link -link $page_link $p delete return_url] 
       }
-
-      if {![info exists use_button(view)]} {
+      if {[info exists use_button(view)]} {
+	$__c set _view "&nbsp;"
+	$__c set _view.title #xowiki.view#
+	$__c set _view.href $view_link
+      } elseif {![info exists use_button(no-view)]} {
 	#
 	# Set always a view link, if we have no view button ...
 	#
