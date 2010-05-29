@@ -1070,7 +1070,7 @@ namespace eval ::xowiki {
     # package. If not successful, it checks optionally along the
     # package_path and on the side-wide pages.
     #
-    # @returns page object or empty ("").
+    # @return page object or empty ("").
     #
     if {$allow_cross_package_item_refs} {
       set referenced_package_id [my resolve_package_path $link rest_link]

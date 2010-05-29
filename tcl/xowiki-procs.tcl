@@ -161,8 +161,8 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_last_visited -col time
 
   
-
-  # Oracle has a limit of 3118 characters for keys, therefore no text as type for "tag"
+  # Oracle has a limit of 3118 characters for keys, therefore we
+  # cannot use "text" as type for "tag"
   ::xo::db::require table xowiki_tags \
        "item_id integer references cr_items(item_id) on delete cascade,
         package_id integer,
