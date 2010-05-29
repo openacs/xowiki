@@ -2167,9 +2167,13 @@ namespace eval ::xowiki {
     next
   }
 
-  PageInstance instproc count_usages {{-package_id 0} {-publish_status ready}} {
+  PageInstance instproc count_usages {
+    {-package_id 0} 
+    {-parent_id:integer 0} 
+    {-publish_status ready}
+  } {
     return [::xowiki::PageTemplate count_usages -package_id $package_id \
-		-item_id [my item_id] -publish_status $publish_status]
+		-parent_id $parent_id -item_id [my item_id] -publish_status $publish_status]
   }
 
   #
