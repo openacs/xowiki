@@ -235,6 +235,7 @@ namespace eval ::xowiki {
   proc ::xowiki::transform_root_folder {package_id} {
     ::xo::Package initialize -package_id $package_id
     set item_id [$package_id folder_id]
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
     if {[db_0or1row check \
