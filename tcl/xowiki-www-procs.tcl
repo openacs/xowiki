@@ -113,13 +113,72 @@ namespace eval ::xowiki {
       #my msg "--after render"
     }
 
+    #
+    # set up template variables
+    #
+    set autoname    [$page_package_id get_parameter autoname 0]
+    set object_type [$page_package_id get_parameter object_type [my info class]]
+    set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
+    
+    if {[$context_package_id query_parameter m ""] eq "edit"} {
+      set view_link [$page_package_id make_link -with_entities 0 [self] view return_url]
+      set edit_link ""
+    } else {
+      set edit_link [$page_package_id make_link -with_entities 0 [self] edit return_url]
+      set view_link ""
+    }
+    set delete_link [$page_package_id make_link -with_entities 0 [self] delete return_url]
+    if {[my exists __link(new)]} {
+      set new_link [my set __link(new)]
+    } else {
+      set new_link [my new_link $page_package_id]
+    }
+    
+    set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
+    set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
+
+    # the menubar is work in progress
+    set mb ""
+    if {$mb ne ""} {
+      #
+      # Define menubar
+      #
+      
+      set mb [::xowiki::Menubar create ::__xowiki__MenuBar -id menubar]
+      $mb add_menu -name Package -label xowiki
+      $mb add_menu -name File
+      $mb add_menu -name Edit
+      $mb add_menu_item -menu Package -name Startpage -item [list text #xowiki.index# url $index_link]
+      $mb add_menu_item -menu Package -name Admin     -item [list text #xowiki.admin# url $admin_link]
+      $mb add_menu_item -menu File    -name New       -item [list text #xowiki.new# url $new_link]
+      $mb add_menu_item -menu File    -name Delete    -item [list text #xowiki.delete# url $delete_link]
+      $mb add_menu_item -menu Edit    -name EditPage  -item [list text #xowiki.edit# url $edit_link]
+      $mb add_menu_item -menu Edit    -name Revisions -item [list text #xowiki.revisions# url $rev_link]
+      
+      my msg "$mb created"
+    }
+
+    #
+    # setup top includeletes and footers
+    #
+
     set footer [my htmlFooter -content $content]
     set top_includelets ""
     set vp [string trim [$context_package_id get_parameter "top_includelet" ""]]
     if {$vp ne "" && $vp ne "none"} {
       set top_includelets [my include $vp]
     }
+    
+    if {$mb ne ""} {
+      #set content [$mb render-yui]$content
+      append top_includelets \n [$mb render-yui]
 
+      set left_side "<div style='float:left; width: 200px;'>\n
+	[my include {folders -style folders}]\n
+        </div>"
+      set content "$left_side\n<div style='float: left; width: 70%;'>$content</div>"
+    }
+    
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
       my record_last_visited
     }
@@ -167,28 +226,9 @@ namespace eval ::xowiki {
       #my msg "$context_package_id title=[$context_package_id instance_name] - $title"
       #my msg "::xo::cc package_id = [::xo::cc package_id]  ::xo::cc url= [::xo::cc url] "
       ::xo::Page set_property doc title "[$context_package_id instance_name] - $title"
-      set autoname    [$page_package_id get_parameter autoname 0]
-      set object_type [$page_package_id get_parameter object_type [my info class]]
-      set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
-
-      if {[$context_package_id query_parameter m ""] eq "edit"} {
-        set view_link   [$page_package_id make_link -with_entities 0 [self] view return_url]
-      } else {
-        set edit_link   [$page_package_id make_link -with_entities 0 [self] edit return_url]
-      }
-      set delete_link [$page_package_id make_link -with_entities 0 [self] delete return_url]
-      if {[my exists __link(new)]} {
-        set new_link [my set __link(new)]
-      } else {
-	set new_link [my new_link $page_package_id]
-      }
-
-      set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
-      set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
-      set create_in_req_locale_link ""
-
       # We could offer a user to translate the current page to his preferred language
       #
+      # set create_in_req_locale_link ""
       # if {[$context_package_id get_parameter use_connection_locale 0]} {
       #  $context_package_id get_lang_and_name -path [$context_package_id set object] req_lang req_local_name
       #  set default_lang [$page_package_id default_language]
