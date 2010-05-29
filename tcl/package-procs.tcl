@@ -1330,12 +1330,9 @@ namespace eval ::xowiki {
   }
 
   Package instproc require_folder_object { } {
-    my instvar id folder_id
-    # TODO: we should make a parameter allowed_page_types (see content_types), 
-    # but the package admin should not have necessarily the rights to change it
-    set folder_id [my require_root_folder -name "xowiki: $id" \
+    set folder_id [my require_root_folder -name "xowiki: [my id]" \
                        -content_types ::xowiki::Page* ]
-
+    ::xo::db::CrClass get_instance_from_db -item_id $folder_id
     my set folder_id $folder_id
   }
 
