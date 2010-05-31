@@ -131,6 +131,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="second">second</msg>
   <msg key="seconds">seconds</msg>
   <msg key="select_link_target">To create a click, click on a page name </msg>
+  <msg key="subscribe">Subscribe</msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title
 </msg>

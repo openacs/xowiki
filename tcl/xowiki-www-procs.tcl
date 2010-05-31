@@ -148,8 +148,8 @@ namespace eval ::xowiki {
     }
 
     # the menubar is work in progress
-    set mb [$context_package_id get_parameter "menubar" 0]
-    if {$mb ne "" && [info command ::xowiki::MenuBar] ne ""} {
+    set mb [$context_package_id get_parameter "MenuBar" 0]
+    if {$mb ne "0" && [info command ::xowiki::MenuBar] ne ""} {
 
       #
       # Define standard xowiki menubar
