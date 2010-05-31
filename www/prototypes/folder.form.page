@@ -3,20 +3,7 @@
     -set name en:folder.form \
     -title "Folder" \
     -set anon_instances t \
-    -set text {<div id="doc3" class="yui-t2"> 
-    <div id="hd" role="banner" style="margin: 20px 0px;"> {{menubar}} </div> 
-    <div id="bd" role="main"> 
-      <div id="yui-main"> 
-        <div class="yui-b">
-            {{child_resources}}
-         </div> 
-      </div> 
-      <div class="yui-b">
-            {{folders -style folders}}
-      </div> 
-    </div> 
-    <div id="ft"> </div> 
-  </div>} \
+    -set text {{{child_resources}}} \
     -set form {} \
     -set form_constraints {}
 
