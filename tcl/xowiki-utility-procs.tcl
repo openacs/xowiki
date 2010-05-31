@@ -241,6 +241,11 @@ namespace eval ::xowiki {
     if {[db_0or1row check \
           "select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = $item_id"]} {
       ns_log notice "folder $item_id is already converted"
+      set f [FormPage get_instance_from_db -item_id $item_id]
+      if {[$f page_template] != $form_id} {
+        ns_log notice "... must change form_id from [$f page_template] to $form_id"
+        db_dml chg0 "update xowiki_page_instance set page_template = $form_id where revision_id = [$f revision_id]"
+      }
       return
     }
     set revision_id [::xo::db::sql::content_revision new \
