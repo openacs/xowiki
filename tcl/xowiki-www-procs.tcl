@@ -201,7 +201,7 @@ namespace eval ::xowiki {
       set top_includelets [my include $vp]
     }
     
-    if {$mb ne ""} {
+    if {$mb ne "0"} {
       #
       # The following block should not be here, but in the templates
       #
