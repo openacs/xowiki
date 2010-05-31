@@ -105,18 +105,10 @@ namespace eval ::xowiki {
     if {[my isobject ::xowiki::$template_file]} {
       $template_file before_render [self]
     }
-    
-    # the content may be passed by other methods (e.g. edit) to 
-    # make use of the same templating machinery below.
-    if {$content eq ""} {
-      set content [my render]
-      #my msg "--after render"
-    }
 
     #
     # set up template variables
     #
-    set autoname    [$page_package_id get_parameter autoname 0]
     set object_type [$page_package_id get_parameter object_type [my info class]]
     set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
     
@@ -137,26 +129,66 @@ namespace eval ::xowiki {
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
 
-    # the menubar is work in progress
-    set mb ""
-    if {$mb ne ""} {
-      #
-      # Define menubar
-      #
-      
-      set mb [::xowiki::Menubar create ::__xowiki__MenuBar -id menubar]
-      $mb add_menu -name Package -label xowiki
-      $mb add_menu -name File
-      $mb add_menu -name Edit
-      $mb add_menu_item -menu Package -name Startpage -item [list text #xowiki.index# url $index_link]
-      $mb add_menu_item -menu Package -name Admin     -item [list text #xowiki.admin# url $admin_link]
-      $mb add_menu_item -menu File    -name New       -item [list text #xowiki.new# url $new_link]
-      $mb add_menu_item -menu File    -name Delete    -item [list text #xowiki.delete# url $delete_link]
-      $mb add_menu_item -menu Edit    -name EditPage  -item [list text #xowiki.edit# url $edit_link]
-      $mb add_menu_item -menu Edit    -name Revisions -item [list text #xowiki.revisions# url $rev_link]
-      
-      my msg "$mb created"
+    set notification_subscribe_link ""
+    if {[$context_package_id get_parameter "with_notifications" 1]} {
+      if {[::xo::cc user_id] != 0} { ;# notifications require login
+        set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
+        set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+        set notification_text "Subscribe the XoWiki instance"
+        set notification_subscribe_link \
+            [export_vars -base /notifications/request-new \
+                 {{return_url $notifications_return_url}
+                   {pretty_name $notification_text} 
+                   {type_id $notification_type} 
+                   {object_id $context_package_id}}]
+        set notification_image \
+           "<img style='border: 0px;' src='/resources/xowiki/email.png' \
+	    alt='$notification_text' title='$notification_text'>"
+      }
     }
+
+    # the menubar is work in progress
+    set mb [$context_package_id get_parameter "menubar" 0]
+    if {$mb ne "" && [info command ::xowiki::MenuBar] ne ""} {
+
+      #
+      # Define standard xowiki menubar
+      #
+      
+      set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
+      $mb add_menu -name Package -label xowiki
+      $mb add_menu -name New
+      $mb add_menu -name Page
+      $mb add_menu_item -name Package.Startpage \
+          -item [list text #xowiki.index# url $index_link]
+      $mb add_menu_item -name Package.Subscribe \
+          -item [list text #xowiki.subscribe# url $notification_subscribe_link]
+      $mb add_menu_item -name Package.Notifications \
+          -item [list text #xowiki.notifications# url /notifications/manage]
+      $mb add_menu_item -name Package.Admin \
+          -item [list text #xowiki.admin# url $admin_link]
+      $mb add_menu_item -name New.Page \
+          -item [list text #xowiki.new# url $new_link]
+      $mb add_menu_item -name Page.Edit \
+          -item [list text #xowiki.edit# url $edit_link]
+      $mb add_menu_item -name Page.Revisions \
+          -item [list text #xowiki.revisions# url $rev_link]
+      $mb add_menu_item -name Page.Delete \
+          -item [list text #xowiki.delete# url $delete_link]
+
+    }
+    
+    # the content may be passed by other methods (e.g. edit) to 
+    # make use of the same templating machinery below.
+    if {$content eq ""} {
+      set content [my render]
+      #my msg "--after render"
+    }
+
+    #
+    # these variables can be influenced via set-parameter
+    #
+    set autoname [$page_package_id get_parameter autoname 0]
 
     #
     # setup top includeletes and footers
@@ -170,15 +202,23 @@ namespace eval ::xowiki {
     }
     
     if {$mb ne ""} {
-      #set content [$mb render-yui]$content
-      append top_includelets \n [$mb render-yui]
-
-      set left_side "<div style='float:left; width: 200px;'>\n
+      #
+      # The following block should not be here, but in the templates
+      #
+      set left_side "<div class='folders' style='float:left; width: 200px; font-size: 90%;'>\n
 	[my include {folders -style folders}]\n
         </div>"
+       
+      #
+      # At this place, the menu should be complete, we can render it
+      #
+
+      #set content [$mb render-yui]$content
+      append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-yui]
+
       set content "$left_side\n<div style='float: left; width: 70%;'>$content</div>"
     }
-    
+
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
       my record_last_visited
     }
@@ -197,22 +237,6 @@ namespace eval ::xowiki {
       set return_url [my query_parameter return_url]
     }
     
-    if {[$context_package_id get_parameter "with_notifications" 1]} {
-      if {[::xo::cc user_id] != 0} { ;# notifications require login
-        set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
-        set notification_type [notification::type::get_type_id -short_name xowiki_notif]
-        set notification_text "Subscribe the XoWiki instance"
-        set notification_subscribe_link \
-            [export_vars -base /notifications/request-new \
-                 {{return_url $notifications_return_url}
-                   {pretty_name $notification_text} 
-                   {type_id $notification_type} 
-                   {object_id $context_package_id}}]
-        set notification_image \
-           "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-	    alt='$notification_text' title='$notification_text'>"
-      }
-    }
     #my log "--after notifications [info exists notification_image]"
 
     set master [$context_package_id get_parameter "master" 1]
@@ -293,7 +317,7 @@ namespace eval ::xowiki {
       if {$page_package_id != $context_package_id} {
 	set page_context [$page_package_id instance_name]
       }
-      
+
       if {$template ne ""} {
         set __including_page $page
         set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
@@ -334,7 +358,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xowiki {
 
-  Page instproc new_link {-name -title -nls_language -parent_id page_package_id} {
+  Page instproc new_link {-name -title -nls_language -return_url -parent_id page_package_id} {
     if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
     return [$page_package_id make_link -with_entities 0 $page_package_id \
 		edit-new object_type name title nls_language return_url parent_id autoname]
@@ -542,7 +566,7 @@ namespace eval ::xowiki {
 }
 
 namespace eval ::xowiki {
-  FormPage instproc new_link {-name -title -nls_language -parent_id page_package_id} {
+  FormPage instproc new_link {-name -title -nls_language -parent_id -return_url page_package_id} {
     set template_id [my page_template]
     if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
     set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
