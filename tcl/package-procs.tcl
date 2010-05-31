@@ -597,6 +597,7 @@ namespace eval ::xowiki {
 
   Package instproc make_form_link {-form -parent_id -name -nls_language -return_url} {
     my instvar id
+    if {$parent_id eq ""} {unset parent_id}
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
     set form_id [lindex [::xowiki::Weblog instantiate_forms -forms $form -package_id $id] 0]
     if {$form_id ne ""} {
