@@ -11,7 +11,7 @@ namespace eval ::xowiki {
 
   Class Importer -parameter {
     {added 0} {replaced 0} {updated 0} 
-    {package_id} {folder_id} {user_id}
+    {package_id} {parent_id} {user_id}
   }
   Importer instproc init {} {
     my set log ""
@@ -176,7 +176,7 @@ namespace eval ::xowiki {
         if {[info exists item_ids($old_parent_id)]} {
           $o set parent_id $id_map($old_parent_id)
         } else {
-          $o set parent_id [my folder_id]
+          $o set parent_id [my parent_id]
         }
 
         # Everything is mapped, we can now do the import.

@@ -922,6 +922,20 @@ namespace eval ::xowiki {
     }
   }
 
+  Page instproc get_folder {-folder_form_ids:required} {
+    set page [self]
+    while {1} {
+      if {[$page istype ::xowiki::FormPage]} {
+        # folder_form_ids is a list of form_ids
+        if {[lsearch $folder_form_ids [$page page_template]] > -1} {
+          break
+        }
+      }
+      set page [::xo::db::CrClass get_instance_from_db -item_id [$page parent_id]]
+    }
+    return $page
+  }
+
 #   Page instproc init {} {    
 #     my log "--W "
 #     ::xo::show_stack
@@ -1375,6 +1389,7 @@ namespace eval ::xowiki {
     if {[catch {set l [my create_link $arg]} errorMsg]} {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
     }
+    if {$l eq ""} {return ""}
     set html [$l render]
     $l destroy
     return $html

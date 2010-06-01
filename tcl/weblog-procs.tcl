@@ -5,6 +5,7 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::Weblog -parameter {
     package_id
+    {parent_id 0}
     {page_size 20}
     {page_number ""}
     date
@@ -45,6 +46,7 @@ namespace eval ::xowiki {
         lappend form_item_ids [$page item_id]
       }
     }
+    #my msg "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
     return $form_item_ids
   }
 
@@ -112,18 +114,25 @@ namespace eval ::xowiki {
 
     if {$entries_of ne ""} {
       if {[string match "::*" $entries_of]} {
-        # xotcl classes were provided as a filter
+        # class names were provided as a filter
         set class_clause \
             " and ci.content_type in ('[join [split $entries_of { }] ',']')"
       } else {
-        # we use a form as a filter
-        my instvar form_items
-        set form_items [::xowiki::Weblog instantiate_forms \
+        my instvar form_ids
+        if {[regexp {^[0-9 ]+$} $entries_of]} {
+          # form item_ids were provided as a filter
+          set form_ids $entries_of
+        } else {
+          # form names provided as a filter
+          set form_ids [::xowiki::Weblog instantiate_forms \
                             -forms $entries_of \
                             -package_id $package_id]
-        append extra_where_clause " and bt.page_template in ('[join $form_items ',']') and bt.page_instance_id = bt.revision_id "
+        }
+
+        append extra_where_clause " and bt.page_template in ('[join $form_ids ',']') and bt.page_instance_id = bt.revision_id "
         set base_type ::xowiki::FormPage
         set base_table xowiki_form_pagei
+        append attributes ,bt.page_template,bt.state
         set class_clause ""
       }
     }
@@ -146,8 +155,13 @@ namespace eval ::xowiki {
     foreach i [split [my exclude_item_ids] ,] {lappend ::xowiki_page_item_id_rendered $i}
     $items set weblog_obj [self]
 
+    set query_parent_id [my parent_id]
+    if {$query_parent_id == 0} {
+      set query_parent_id $folder_id
+    }
+
     set sql \
-        [list -folder_id $folder_id \
+        [list -parent_id $query_parent_id \
              -select_attributes $attributes \
              -orderby "publish_date desc" \
              -base_table $base_table \
@@ -168,13 +182,13 @@ namespace eval ::xowiki {
     
     set nr_items [db_string [my qn count] [eval $base_type instance_select_query $sql -count true]]
     #my msg count=$nr_items
-    #my msg sql=$sql
+    #my ds [eval $base_type instance_select_query $sql]
     set s [$base_type instantiate_objects -sql [eval $base_type instance_select_query $sql]]
     
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \
           parent_id description body instance_attributes
-
+      
       set time [::xo::db::tcl_date $publish_date tz]
       set pretty_date [util::age_pretty -timestamp_ansi $time \
                            -sysdate_ansi [clock_to_ansi [clock seconds]] \

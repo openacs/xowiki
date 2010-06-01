@@ -1501,6 +1501,7 @@ namespace eval ::xowiki {
     
     set r [RSS new -destroy_on_cleanup \
 	       -package_id [my id] \
+	       -parent_ids [my query_parameter parent_ids ""] \
 	       -name_filter $name_filter \
                -entries_of $entries_of \
 	       -title $title \
@@ -1693,15 +1694,15 @@ namespace eval ::xowiki {
   # Package import
   #
 
-  Package ad_instproc import {-user_id -folder_id {-replace 0} -objects {-create_user_ids 0}} {
+  Package ad_instproc import {-user_id {-parent_id 0} {-replace 0} -objects {-create_user_ids 0}} {
     import the specified pages into the xowiki instance
   } {
-    if {![info exists folder_id]}  {set folder_id  [my folder_id]}
-    if {![info exists user_id]}    {set user_id    [::xo::cc user_id]}
-    if {![info exists objects]}    {set objects    [::xowiki::Page allinstances]}
+    if {$parent_id == 0} {set parent_id  [my folder_id]}
+    if {![info exists user_id]} {set user_id [::xo::cc user_id]}
+    if {![info exists objects]} {set objects [::xowiki::Page allinstances]}
 
     set msg "processing objects: $objects<p>"
-    set importer [Importer new -package_id [my id] -folder_id $folder_id -user_id $user_id]
+    set importer [Importer new -package_id [my id] -parent_id $parent_id -user_id $user_id]
     $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
     append msg [$importer report]
   }
@@ -1773,7 +1774,7 @@ namespace eval ::xowiki {
       # for pages using this template
       set classes [concat $object_type [$object_type info heritage]]
       if {[lsearch $classes "::xowiki::PageTemplate"] > -1} {
-	set count [::xowiki::PageTemplate count_usages -item_id $item_id]
+	set count [::xowiki::PageTemplate count_usages -item_id $item_id -publish_status all]
 	if {$count > 0} {
 	  return [$id error_msg \
 		      [_ xowiki.error-delete_entries_first [list count $count]]]

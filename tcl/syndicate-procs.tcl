@@ -21,6 +21,7 @@ namespace eval ::xowiki {
 
   Class create RSS -superclass XMLSyndication -parameter {
     maxentries 
+    {parent_ids ""}
     {name_filter ""}
     {entries_of ""}
     {days ""}
@@ -109,13 +110,15 @@ namespace eval ::xowiki {
           [::xo::db::sql since_interval_condition p.publish_date "$days days"]
     }
     if {$entries_of ne ""} {
-      set form_items [list]
-      set folder_id [$package_id folder_id]
-      foreach t [split $entries_of |] {
-        set form_item_id [::xo::db::CrClass lookup -name $t -parent_id $folder_id]
-        if {$form_item_id == 0} {error "Cannot lookup page $t"}
-        lappend form_items $form_item_id
+      if {[regexp {^[0-9 ]+$} $entries_of]} {
+        # form item_ids were provided as a filter
+        set form_items $entries_of
+      } else {
+        set form_items [::xowiki::Weblog instantiate_forms \
+                            -forms $entries_of \
+                            -package_id $package_id]
       }
+
       if {[llength $form_items] == 0} {
 	# In case, we have no form_items to select on, let the query fail 
 	# without causing a SQL error.
@@ -130,7 +133,12 @@ namespace eval ::xowiki {
 
   RSS instproc render {} {
     my instvar package_id max_entries name_filter title days description siteurl base_table
-    set folder_ids [::$package_id folder_id]
+
+    if {[my parent_ids] ne ""} {
+      set folder_ids [my parent_ids]
+    } else {
+      set folder_ids [::$package_id folder_id]
+    }
 
     my set link $siteurl[lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     

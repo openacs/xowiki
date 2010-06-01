@@ -13,6 +13,7 @@ set msg ""
 ad_form \
     -name upload_form \
     -mode edit \
+    -export {parent_id return_url} \
     -html { enctype multipart/form-data } \
     -form {
       {upload_file:file(file) {html {size 30}} {label "Import file for upload"} }
@@ -39,7 +40,7 @@ ad_form \
       set f [open $upload_tmpfile]; 
       # if we do not set translation binary,
       # backslashes at the end of the lines might be lost
-      fconfigure $f -translation binary -encoding utf-8; 
+      fconfigure $f -translation binary -encoding utf-8
       set content [read $f]; close $f
 
       foreach o [::xowiki::Page allinstances] { 
@@ -53,9 +54,11 @@ ad_form \
           if {![info exists preexists($o)]} {lappend objects $o}
         }
         ns_log notice "objects to import: $objects"
+        set parent_id [ns_queryget parent_id 0]
+        ::xotcl::Object msg parent_id=$parent_id
         if {[catch {
           set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
-                       -objects $objects]
+                       -parent_id $parent_id -objects $objects]
         } errMsg]} {
           ns_log notice "Error during import: $errMsg"
           foreach o $objects {$o destroy}
@@ -67,6 +70,7 @@ ad_form \
     }
 
 
+set return_url [ns_queryget return_url ../]
 set title "Import XoWiki Pages"
 set context .
 ad_return_template

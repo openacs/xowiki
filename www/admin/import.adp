@@ -7,5 +7,5 @@
 
 </formtemplate>
 @msg;noquote@
-<br/><a href="../">Index</a>
+<br/><a href="@return_url@">back</a>
 

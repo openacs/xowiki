@@ -128,6 +128,7 @@ namespace eval ::xowiki {
     
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
+    set import_link  [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
 
     set notification_subscribe_link ""
     if {[$context_package_id get_parameter "with_notifications" 1]} {
@@ -167,6 +168,8 @@ namespace eval ::xowiki {
           -item [list text #xowiki.notifications# url /notifications/manage]
       $mb add_menu_item -name Package.Admin \
           -item [list text #xowiki.admin# url $admin_link]
+      $mb add_menu_item -name Package.Import \
+          -item [list text Import url $import_link]
       $mb add_menu_item -name New.Page \
           -item [list text #xowiki.new# url $new_link]
       $mb add_menu_item -name Page.Edit \
@@ -1864,7 +1867,7 @@ namespace eval ::xowiki {
       append error_msg \
           [_ xowiki.error-delete_entries_first [list count $count]] \
           <p> \
-          [my include [list form-usages -all true -form_item_id [my item_id]]] \
+          [my include [list form-usages -publish_status all -parent_id * -form_item_id [my item_id]]] \
           </p>
       $package_id error_msg $error_msg
     } else {

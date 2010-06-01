@@ -533,7 +533,8 @@ namespace eval ::xowiki::includelet {
 
   rss-button instproc render {} {
     my get_parameters
-    set href [export_vars -base [$package_id package_url] {{rss $span} name_filter title entries_of}]
+    set parent_ids [[my set __including_page] parent_id]
+    set href [export_vars -base [$package_id package_url] {{rss $span} parent_ids name_filter title entries_of}]
     regsub -all & $href "&amp;" href
     ::xo::Page requireLink -rel alternate -type application/rss+xml -title RSS -href $href
     return "<a href=\"$href \" class='rss'>RSS</a>"
@@ -1858,7 +1859,14 @@ namespace eval ::xowiki::includelet {
       set page_order_att "page_order,"
     }
 
-    set parent_id [expr {$folder_mode ? [$__including_page item_id] : [$package_id folder_id]}]
+    if {$folder_mode} {
+      # TODO just needed for michael aram?
+      set parent_id [$__including_page item_id]
+    } else {
+      #set parent_id [$package_id folder_id]
+      set parent_id [$__including_page parent_id]
+    }
+
     set sql [::xo::db::sql select \
                  -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
@@ -2464,7 +2472,14 @@ namespace eval ::xowiki::includelet {
     foreach {locale locale_clause} \
         [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
 
-    set parent_id [expr {$folder_mode ? [$__including_page item_id] : [$package_id folder_id]}]
+    if {$folder_mode} {
+      # TODO just needed for michael aram?
+      set parent_id [$__including_page item_id]
+    } else {
+      #set parent_id [$package_id folder_id]
+      set parent_id [$__including_page parent_id]
+    }
+
     set pages [::xowiki::Page instantiate_objects -sql \
         "select page_id, page_order, name, title, item_id \
 		from xowiki_page_live_revision p \

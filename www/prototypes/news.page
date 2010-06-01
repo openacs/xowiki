@@ -22,9 +22,15 @@
   [my info parent] set __no_footer 1
 
   #
+  # get current folder
+  #
+  set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+  set current_folder [[my info parent] get_folder -folder_form_ids $folder_form_id]
+  my set current_folder_id [$current_folder item_id]
+ 
   # Provide a tailored link for creating new pages in the wiki menu
   #
-  set forms [::xowiki::Weblog instantiate_forms \
+  set forms [::xowiki::Weblog instantiate_forms -parent_id [my set current_folder_id] \
                  -forms $entries_of \
                  -package_id $package_id]
   set template_id [lindex $forms 0]
@@ -92,8 +98,8 @@
     #
     # If the user has creation rights (on the first form), include the RSS Bookmarklet button
     #
-    if {[my exists form_items]} {
-      set can_create_news_item [$package_id make_link [lindex [my set form_items] 0] create-new return_url]
+    if {[my exists form_ids]} {
+      set can_create_news_item [$package_id make_link [lindex [my set form_ids] 0] create-new return_url]
       if {$can_create_news_item ne ""} {
         append rss "Bookmarklet: " [$page include "bookmarklet-button -label {[$page title]}"]
       }
@@ -126,6 +132,7 @@
     
     set w [::xowiki::Weblog new -destroy_on_cleanup \
                -package_id $package_id \
+               -parent_id [my set current_folder_id] \
                -page_size $page_size \
                -page_number $page_number \
                -summary $summary \
