@@ -11,7 +11,7 @@
     {-date ""}
     {-tag ""}
     {-ptag ""}
-    {-entries_of en:news-item|en:announcement-talk|en:announcement-workshop}
+    {-entries_of en:news-item.form|en:announcement-talk.form|en:announcement-workshop.form}
   }
 
   my get_parameters

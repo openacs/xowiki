@@ -1,7 +1,7 @@
 # -*- tcl-*-
 # $Id$
 ::xowiki::Form new \
-    -set name en:announcement-talk \
+    -set name en:announcement-workshop.form \
     -title "Workshop Announcement" \
     -set creator "Gustaf Neumann" \
     -set anon_instances t \

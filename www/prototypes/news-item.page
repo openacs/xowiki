@@ -1,7 +1,7 @@
 # -*- tcl-*-
 # $Id$
 ::xowiki::Form new \
-    -set name en:news-item \
+    -set name en:news-item.form \
     -title "News Item" \
     -set anon_instances t \
     -set text {@image_url@ @_text@<BR />@detail_link@} \
