@@ -595,12 +595,12 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc make_form_link {-form -parent_id -name -nls_language -return_url} {
+  Package instproc make_form_link {-form {-parent_id ""} -name -nls_language -return_url} {
     my instvar id
-    if {$parent_id eq ""} {unset parent_id}
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
-    set form_id [lindex [::xowiki::Weblog instantiate_forms -forms $form -package_id $id] 0]
+    set form_id [lindex [::xowiki::Weblog instantiate_forms -parent_id $parent_id -forms $form -package_id $id] 0]
     if {$form_id ne ""} {
+      if {$parent_id eq ""} {unset parent_id}
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
       set form_link [my pretty_link -parent_id [$form_id parent_id] $form]
       return [my make_link -with_entities 0 -link $form_link $form_id \
