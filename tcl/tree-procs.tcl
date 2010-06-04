@@ -81,6 +81,44 @@ namespace eval ::xowiki {
     return $content
   }
 
+  Tree instproc add_pages {
+    {-full false} 
+    {-remove_levels 0} 
+    {-book_mode false} 
+    {-open_page ""} 
+    {-expand_all false}
+    -owner
+    pages
+  } {
+    my instvar package_id
+    set tree(-1) [self]
+    my set open_node($tree(-1)) 1
+    set pos 0
+    foreach o [$pages children] {
+      $o instvar page_order title name
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+      set page_number [$owner page_number $page_order $remove_levels]
+
+      set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+      if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
+        set href [$owner href $book_mode $name]
+	set is_current [expr {$open_page eq $name}]
+        set is_open [expr {$is_current || $expand_all}]
+        set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
+		   -object $o -owner [self] \
+		   -label $title -prefix $page_number -href $href \
+		   -highlight $is_current \
+		   -expanded $is_open \
+		   -open_requests 1]
+        set tree($level) $c
+	for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
+        $tree($l) add $c
+	if {$is_open} {$c open_tree}
+      }
+    }
+    return $tree(-1)
+  }
+
   #
   # ::xowiki::TreeNode 
   #
@@ -90,7 +128,7 @@ namespace eval ::xowiki {
   # associated categorized items, which can be added via the method
   # "add_item".
   #
-  Class TreeNode -superclass ::xo::OrderedComposite -parameter {
+  Class TreeNode -superclass Tree -parameter {
     level label pos {open_requests 0} count {href ""} 
     object owner li_id ul_id ul_class
     {prefix ""} {expanded false} {highlight false}

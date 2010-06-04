@@ -1897,7 +1897,8 @@ namespace eval ::xowiki::includelet {
     return $pages
   }
 
-  toc instproc href {package_id book_mode name} {
+  toc instproc href {book_mode name} {
+    my instvar package_id
     if {$book_mode} {
       set href [$package_id url]#[toc anchor $name]
     } else {
@@ -2159,42 +2160,6 @@ namespace eval ::xowiki::includelet {
      "
   }
 
-  toc instproc build_tree {
-    {-full false} 
-    {-remove_levels 0} 
-    {-book_mode false} 
-    {-open_page ""} 
-    {-expand_all false} 
-    pages
-  } {
-    my instvar package_id
-    set tree(-1) [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
-    set pos 0
-    foreach o [$pages children] {
-      $o instvar page_order title name
-      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
-      set page_number [my page_number $page_order $remove_levels]
-
-      set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
-      if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
-        set href [my href $package_id $book_mode $name]
-	set is_current [expr {$open_page eq $name}]
-        set is_open [expr {$is_current || $expand_all}]
-        set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
-		   -object $o -owner [self] \
-		   -label $title -prefix $page_number -href $href \
-		   -highlight $is_current \
-		   -expanded $is_open \
-		   -open_requests 1]
-        set tree($level) $c
-	for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
-        $tree($l) add $c
-	if {$is_open} {$c open_tree}
-      }
-    }
-    return $tree(-1)
-  }
-
   toc instproc render_yui_list {{-full false} pages} {
     my instvar js
     my get_parameters
@@ -2203,7 +2168,6 @@ namespace eval ::xowiki::includelet {
     #
     # Render the tree with the yui widget (with or without ajax)
     #
-    my set book_mode $book_mode
     if {$book_mode} {
       #my log "--warn: cannot use bookmode with ajax, resetting ajax"
       set ajax 0
@@ -2216,9 +2180,10 @@ namespace eval ::xowiki::includelet {
       set js [my yui_non_ajax]
     }
 
-    set tree [my build_tree -full $full -remove_levels $remove_levels \
-		  -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
-		  $pages]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
+    $tree add_pages -full $full -remove_levels $remove_levels \
+        -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+        $pages
 
     set HTML [$tree render -style yuitree -js $js]
     return $HTML
@@ -2238,9 +2203,10 @@ namespace eval ::xowiki::includelet {
     } else {
       set allow_reorder [my page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
-    set tree [my build_tree -full $full -remove_levels $remove_levels \
-		  -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
-		  $pages]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
+    $tree add_pages -full $full -remove_levels $remove_levels \
+        -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+        $pages
 
     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
     set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';"
@@ -2252,8 +2218,11 @@ namespace eval ::xowiki::includelet {
 
   toc instproc include_head_entries {} {
     my instvar style renderer
-    set r [expr {$renderer eq "list" ? "listdnd" : "$renderer"}]
-    ::xowiki::Tree include_head_entries -renderer $r -style $style;# FIXME general
+    switch {$renderer} {
+      list    {::xowiki::Tree include_head_entries -renderer listdnd -style $style}
+      yuitree {::xowiki::Tree include_head_entries -renderer yuitree -style $style}
+      none {}
+    }
   }
 
   toc instproc initialize {} {
@@ -2264,11 +2233,13 @@ namespace eval ::xowiki::includelet {
       "menu"    {set s "menu/"; set renderer yuitree}
       "folders" {set s "folders/"; set renderer yuitree}
       "list"    {set s ""; set list_mode 1; set renderer list}
+      "none"    {set s ""; set renderer none}
       "default" {set s ""; set renderer yuitree}
     }
     my set renderer $renderer
     my set style $s
     my set list_mode $list_mode
+    my set book_mode $book_mode
   }
 
   toc instproc render {} {
@@ -2288,7 +2259,11 @@ namespace eval ::xowiki::includelet {
     #
     # Call a render on the created structure
     #
-    if {[my set list_mode]} {
+    if {[info command ::__xowiki__MenuBar] ne ""} {
+      ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner [self]
+    }
+    if {[my set renderer] eq "none"} {
+    } elseif {[my set list_mode]} {
       return [my render_list $pages]
     } else {
       return [my render_yui_list -full true $pages]
