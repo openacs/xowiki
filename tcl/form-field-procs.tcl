@@ -2308,6 +2308,7 @@ namespace eval ::xowiki::formfield {
   }
 
   date instproc pretty_value {v} {
+    my instvar display_format
     #
     # Internally, we use the ansi date format. For displaying the date, 
     # use the specified display format and present the time localized.
@@ -2315,7 +2316,11 @@ namespace eval ::xowiki::formfield {
     # Drop of the value after the "." we assume to have a date in the local zone
     regexp {^([^.]+)[.]} $v _ v
     #return [clock format [clock scan $v] -format [string map [list _ " "] [my display_format]]]
-    return [lc_time_fmt $v [string map [list _ " "] [my display_format]] [my locale]]
+    if {$display_format eq "pretty-age"} {
+      return [::xowiki::utility pretty_age -timestamp [clock scan $v] -locale [my locale]]
+    } else {
+      return [lc_time_fmt $v [string map [list _ " "] [my display_format]] [my locale]]
+    }
   }
 
   date instproc render_input {} {

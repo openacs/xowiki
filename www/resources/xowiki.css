@@ -441,3 +441,12 @@ div.xowiki-content form.feedback td.selection {
     width: 25px;
     padding: 0px 5px 0px 25px;
 }
+
+/* linear forum stuff */
+div.xowiki-content .forum {
+    text-align: left;
+}
+div.xowiki-content .forum .question {
+}
+div.xowiki-content .forum .responses {
+}

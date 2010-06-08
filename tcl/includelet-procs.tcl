@@ -3270,9 +3270,11 @@ namespace eval ::xowiki::includelet {
           {-with_categories}
           {-wf}
           {-buttons "edit delete"}
+          {-renderer ""}
         }}
       }
   
+#          {-renderer "YUIDataTableRenderer"}
   form-usages instproc render {} {
     my get_parameters
 
@@ -3281,17 +3283,20 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     set return_url [::xo::cc url]?[::xo::cc actual_query]
 
-    if {![info exists form_item_id]} {
-      set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
-    } else {
-      set form_item_ids [list $form_item_id]
-    }
     if {[info exists parent_id]} {
       if {$parent_id eq "self"} {
         set parent_id [$__including_page item_id]
       }
     } else {
-      set parent_id [$package_id folder_id]
+      set parent_id [$o parent_id]
+    }
+    
+    if {![info exists form_item_id]} {
+      # start for search for form in the directory of the including form
+      set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id [$o parent_id] \
+                             -forms $form -package_id $package_id]
+    } else {
+      set form_item_ids [list $form_item_id]
     }
 
     set form_constraints $extra_form_constraints\n
@@ -3378,7 +3383,13 @@ namespace eval ::xowiki::includelet {
       append cols [list AnchorField _delete -CSSclass delete-item-button -label "" -no_csv 1 -richtext 1] \n
     }
 
-    TableWidget t1 -volatile -columns $cols
+    set cmd [list TableWidget t1 -volatile -columns $cols]
+    if {$renderer ne ""} {
+      lappend cmd -renderer $renderer
+    } elseif {[info command ::xo::Table::YUIDataTableRenderer] ne ""} {
+      lappend cmd -renderer YUIDataTableRenderer
+    }
+    eval $cmd
 
     #
     # Sorting is done for the time being in Tcl. This has the advantage
