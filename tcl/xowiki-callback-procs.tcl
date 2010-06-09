@@ -514,5 +514,32 @@ namespace eval ::xowiki {
       delete_parameter top_portlet
     }
 
+    set v 0.127
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      ::xowiki::Package initialize -package_id [::xowiki::Package first_instance]
+      ::xowiki::Package require_site_wide_pages
+      foreach p [::xowiki::Package instances] {::xowiki::transform_root_folder $p}
+      foreach p [::xowf::Package instances] {::xowiki::transform_root_folder $p}
+
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id
+	set item_id [$package_id lookup -name ::[$package_id folder_id]]
+	if {$item_id ne 0} {
+	  ::xowiki::Object get_instance_from_db -item_id $item_id
+	  set p [$item_id get_payload widget_specs]
+	  if {$p ne ""} {
+	    ns_log notice "Transfering widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
+	    parameter::set_value -package_id $package_id -parameter WidgetSpecs -value $p
+	  }
+	} else {
+	  ns_log notice "no folder object found for $package_id - [$package_id package_url]"
+	}
+      }
+    }
+    
+
   }
 }

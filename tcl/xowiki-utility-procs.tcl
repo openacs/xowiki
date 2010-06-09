@@ -244,7 +244,7 @@ namespace eval ::xowiki {
       set f [FormPage get_instance_from_db -item_id $item_id]
       if {[$f page_template] != $form_id} {
         ns_log notice "... must change form_id from [$f page_template] to $form_id"
-        db_dml chg0 "update xowiki_page_instance set page_template = $form_id where revision_id = [$f revision_id]"
+        db_dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
       }
       return
     }
