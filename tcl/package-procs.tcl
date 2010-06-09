@@ -1330,6 +1330,52 @@ namespace eval ::xowiki {
     }
   }
 
+  Package ad_instproc require_root_folder {
+    {-parent_id -100} 
+    {-content_types {}}
+    -name:required
+  } {
+    Make sure, the root folder for the given package exists. If not, 
+    create it and register all allowed content types.
+
+    @return folder_id
+  } {
+    my instvar id
+
+    set folder_id [ns_cache eval xotcl_object_type_cache root_folder-$id {
+      
+      set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+      if {$folder_id == 0} {
+        my log "folder with name '$name' and parent $parent_id does NOT EXIST"
+        ::xowiki::Package require_site_wide_pages
+        set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
+
+        set f [FormPage new -destroy_on_cleanup \
+                   -name $name \
+                   -text "" \
+                   -package_id $id \
+                   -parent_id $parent_id \
+                   -nls_language en_US \
+                   -publish_status ready \
+                   -instance_attributes {} \
+                   -page_template $form_id]
+        $f save_new
+        set folder_id [$f item_id]
+
+        my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
+      }
+
+      # register all specified content types
+      #::xo::db::CrFolder register_content_types \
+      #    -folder_id $folder_id \
+      #    -content_types $content_types
+      #my log "returning from cache folder_id $folder_id"
+      return $folder_id
+    }]
+    #my log "returning from require folder_id $folder_id"
+    return $folder_id
+  }
+
   Package instproc require_folder_object { } {
     set folder_id [my require_root_folder -name "xowiki: [my id]" \
                        -content_types ::xowiki::Page* ]
