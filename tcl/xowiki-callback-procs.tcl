@@ -514,7 +514,7 @@ namespace eval ::xowiki {
       delete_parameter top_portlet
     }
 
-    set v 0.127
+    set v 0.128
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
