@@ -3473,7 +3473,6 @@ namespace eval ::xowiki::includelet {
       } else {
 	set view_link $page_link
       }
-      
       t1 add
       set __c [t1 last_child]
 
@@ -3510,6 +3509,7 @@ namespace eval ::xowiki::includelet {
 
 
       foreach __fn $field_names {
+        $__ff($__fn) object $p
         $__c set _$__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
       $__c set __name [$package_id external_name -parent_id [$p parent_id] [$p name]]

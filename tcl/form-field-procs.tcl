@@ -1607,13 +1607,14 @@ namespace eval ::xowiki::formfield {
     {entry_label title}
   }
   form_page instproc initialize {} {
-    my instvar form_object_item_ids package_id
+    my instvar form_object_item_ids package_id object
     if {![my exists form]} { return }
     next
     set form_name [my form]
-    set package_id [[my object] package_id]
+    set package_id [$object package_id]
     set form_objs [::xowiki::Weblog instantiate_forms \
-                       -default_lang [[my object] lang] \
+                       -parent_id [$object parent_id] \
+                       -default_lang [$object lang] \
                        -forms $form_name -package_id $package_id]
 
     #set form_obj [[my object] resolve_included_page_name $form_name]
@@ -2177,6 +2178,45 @@ namespace eval ::xowiki::formfield {
     # switching field types to labels.
     my set type hidden
     next
+  }
+
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::child_pages
+  #
+  ###########################################################
+  Class child_pages -superclass label -parameter {
+    {form}
+    {publish_status all}
+  }
+  child_pages instproc initialize {} {
+    next
+    #
+    # for now, we allow just FormPages as child_pages
+    #
+    if {![my exists form]} { return }
+    my instvar object
+    my set form_objs [::xowiki::Weblog instantiate_forms \
+                          -parent_id [$object parent_id] \
+                          -default_lang [$object lang] \
+                          -forms [my form] \
+                          -package_id [$object package_id]]
+  }
+  child_pages instproc pretty_value {v} {
+    if {[my exists form_objs]} {
+      my instvar object
+      set count 0
+      foreach form [my set form_objs] {
+        incr count [$form count_usages \
+                        -package_id [$object package_id] \
+                        -parent_id [$object item_id] \
+                        -publish_status [my publish_status]]
+      }
+      return $count
+    } else {
+      return 0-NULL
+    }
   }
 
   ###########################################################
