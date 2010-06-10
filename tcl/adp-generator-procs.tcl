@@ -129,11 +129,30 @@ function get_popular_tags(popular_tags_link, prefix) {
       close $f
     }
   }
-
+####################################################################################
+# Definition of Templates
+####################################################################################
+#
+# view-plain
+#
   ADP_Generator create view-plain -master 0 -wikicmds 0 -footer 0
+
+####################################################################################
+#
+# view-links
+#
   ADP_Generator create view-links -master 0 -footer 0
+
+#####################################################################################
+#
+# view-default
+#
   ADP_Generator create view-default -master 1 -footer 1
 
+####################################################################################
+#
+# oacs-view
+#
   ADP_Generator create oacs-view -master 1 -footer 1 \
     -extra_header_stuff {
       <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
@@ -156,9 +175,12 @@ function get_popular_tags(popular_tags_link, prefix) {
 }]
      }
 
-  #
-  # similar to oacs view (categories left), but having as well a right bar
-  #
+####################################################################################
+#
+# oacs-view2
+#
+# similar to oacs view (categories left), but having as well a right bar
+#
   ADP_Generator create oacs-view2 -master 1 -footer 1 \
     -extra_header_stuff {
       <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
@@ -215,9 +237,12 @@ table.mini-calendar {width: 200px ! important;}
 }]
      }
 
-  #
-  # similar to oacs view2 (categories left), but everything left
-  #
+####################################################################################
+#
+# oacs-view3
+#
+# similar to oacs view2 (categories left), but everything left
+#
   ADP_Generator create oacs-view3 -master 1 -footer 1 \
     -extra_header_stuff {
       <style type='text/css'>
@@ -233,10 +258,8 @@ table.mini-calendar {width: 200px ! important;}
       ::xo::cc set_parameter weblog_page weblog-portlet
     } \
     -proc content_part {} {
-       return [subst -novariables -nobackslashes \
-{<div style="float:left; width: 245px; font-size: 85%;">
-
-
+      return [subst -novariables -nobackslashes {\
+<div style="float:left; width: 245px; font-size: 85%;">
 <div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
@@ -274,11 +297,12 @@ table.mini-calendar {width: 200px ! important;}
 }]
      }
 
-
-
-  #
-  # view-book, wiki cmds in rhs
-  #
+####################################################################################
+#
+# view-book
+#
+# wiki cmds in rhs
+#
   ADP_Generator create view-book -master 1 -footer 1  -wikicmds 0 \
     -extra_header_stuff {
     } \
@@ -352,9 +376,12 @@ table.mini-calendar {width: 200px ! important;}
 </div>
 }]}
 
-  #
-  # view-book-no-ajax, adp identical to view-book.
-  #
+####################################################################################
+#
+# view-book-no-ajax
+#
+# adp identical to view-book.
+#
   ADP_Generator create view-book-no-ajax -master 1 -footer 1 -wikicmds 0 \
     -extra_header_stuff {
     } \
@@ -364,4 +391,5 @@ table.mini-calendar {width: 200px ! important;}
     -proc content_part {} {
       return [view-book content_part]
     }
+
 }
