@@ -1471,10 +1471,78 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::candidate_box_select
+  #
+  ###########################################################
+  Class create candidate_box_select -superclass select -parameter {
+    {as_box false}
+    {dnd true}
+  }
+  candidate_box_select set abstract 1
+  candidate_box_select instproc render_input {} {
+    my msg "mul=[my multiple]"
+    # makes only sense currently for multiple selects
+    if {[my multiple] && [my dnd] && !([my exists disabled] && [my disabled])} {
+
+      # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
+      set ajaxhelper 0
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+      ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
+      
+      set js ""
+      foreach o [my options] {
+        foreach {label rep} $o break
+        set js_label [::xowiki::Includelet js_encode $label]
+        set js_rep   [::xowiki::Includelet js_encode $rep]
+        append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
+        append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
+      }
+      
+      ::html::div -class workarea {
+        ::html::h3 { ::html::t "Selection"}
+        set values ""
+        foreach v [my value] {
+          append values $v \n
+          set __values($v) 1
+        }
+        my CSSclass selection
+        my set cols 30
+        set atts [my get_attributes id name disabled {CSSclass class}]
+        
+        # TODO what todo with DISABLED?
+        ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
+          ::html::t $values
+        }
+      }
+      ::html::div -class workarea {
+        ::html::h3 { ::html::t "Candidates"}
+        ::html::ul -id [my id]_candidates -class region {
+          #my msg [my options]
+          foreach o [my options] {
+            foreach {label rep} $o break
+            # Don't show current values under candidates
+            if {[info exists __values($rep)]} continue
+            ::html::li -class candidates {::html::t $rep}
+          }
+        }
+      }
+      ::html::div -class visual-clear {
+        ;# maybe some comment
+      }
+      ::html::script { html::t $js }
+    } else {
+      next
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::abstract_page
   #
   ###########################################################
-  Class abstract_page -superclass select -parameter {
+
+  Class abstract_page -superclass candidate_box_select -parameter {
     {as_box false}
   }
   abstract_page set abstract 1
@@ -1544,56 +1612,7 @@ namespace eval ::xowiki::formfield {
 
   abstract_page instproc render_input {} {
     my compute_options
-    if {[my multiple]} {
-      # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
-      set ajaxhelper 0
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-      ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
-
-      set js ""
-      foreach o [my options] {
-        foreach {label rep} $o break
-        set js_label [::xowiki::Includelet js_encode $label]
-        set js_rep   [::xowiki::Includelet js_encode $rep]
-        append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
-        append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
-      }
-      
-      ::html::div -class workarea {
-        ::html::h3 { ::html::t "Selection"}
-        set values ""
-        foreach v [my value] {
-          append values $v \n
-          set __values($v) 1
-        }
-        my CSSclass selection
-        my set cols 30
-        set atts [my get_attributes id name disabled {CSSclass class}]
-        # TODO what todo with DISABLED?
-        ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
-          ::html::t $values
-        }
-      }
-      ::html::div -class workarea {
-        ::html::h3 { ::html::t "Candidates"}
-        ::html::ul -id [my id]_candidates -class region {
-          #my msg [my options]
-          foreach o [my options] {
-            foreach {label rep} $o break
-            # Don't show current values under candidates
-            if {[info exists __values($rep)]} continue
-            ::html::li -class candidates {::html::t $rep}
-          }
-        }
-      }
-      ::html::div -class visual-clear {
-        ;# maybe some comment
-      }
-      ::html::script { html::t $js }
-    } else {
-      next
-    }
+    next
   }
 
   ###########################################################
@@ -1646,7 +1665,7 @@ namespace eval ::xowiki::formfield {
       #
       # If the form_page has a different package_id, prepend the
       # package_url to the name. TODO: We assume here, that the form_pages
-      # have not special parent_id.
+      # have no special parent_id.
       #
       set object_package_id [$i package_id]
       if {$package_id != $object_package_id} {

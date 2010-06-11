@@ -341,6 +341,8 @@ namespace eval ::xowiki {
           if {$page eq ""} {
             my log "Error: Could not resolve parameter page '$pp' of package [my id]."
           }
+          #my msg pp=$pp,page=$page-att=$attribute
+
           if {$page ne "" && [$page exists instance_attributes]} {
             array set __ia [$page set instance_attributes]
             if {[info exists __ia($attribute)]} {
@@ -602,7 +604,7 @@ namespace eval ::xowiki {
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
-      set form_link [my pretty_link -parent_id [$form_id parent_id] $form]
+      set form_link [my pretty_link -parent_id [$form_id parent_id] [$form_id name]]
       return [my make_link -with_entities 0 -link $form_link $form_id \
                   create-new return_url title parent_id name nls_language]
     }
@@ -1073,10 +1075,13 @@ namespace eval ::xowiki {
     #
     # @return page object or empty ("").
     #
-    if {$allow_cross_package_item_refs} {
+    if {$allow_cross_package_item_refs && [string match //* $link]} {
       set referenced_package_id [my resolve_package_path $link rest_link]
+      my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
       if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
-        #my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
+        # TODO: we have still to check, whether or not we want
+        # site-wide-pages etc.  in cross package links, and if, under
+        # which parent should pages be created
         return [$referenced_package_id get_page_from_item_ref \
                     -allow_cross_package_item_refs false \
                     -use_package_path $use_package_path \
@@ -1085,16 +1090,22 @@ namespace eval ::xowiki {
                     -default_lang $default_lang \
                     -parent_id $parent_id \
                     $rest_link]
+      } else {
+        # it is a link to the same package, we start search for page at top.
+        set link $rest_link
+        set search_parent_id ""
       }
+    } else {
+      set search_parent_id $parent_id
     }
 
-    if {$parent_id eq ""} {
-      set parent_id [my folder_id]
+    if {$search_parent_id eq ""} {
+      set search_parent_id [my folder_id]
     }
     array set "" [my item_ref -normalize_name false \
                       -use_package_path $use_package_path \
                       -default_lang $default_lang \
-                      -parent_id $parent_id \
+                      -parent_id $search_parent_id \
                       $link]
     #my msg "item-ref for '$link' returns [array get {}]"
     if {!$(item_id) && $use_site_wide_pages} {

@@ -3107,8 +3107,11 @@ namespace eval ::xowiki::includelet {
       }
 
   form-menu-button instproc render {} {
-    my instvar package_id base form method return_url label_suffix link parent_id
+    my instvar package_id base form method return_url label_suffix link
     if {![info exists link]} {
+      if {[my parent_id] != [$package_id folder_id]} {
+        set parent_id [my parent_id]
+      }
       #my msg "[my info class] check-link-package_id=$package_id"
       set link [$package_id make_link -link $base $form $method return_url parent_id]
     }

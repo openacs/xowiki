@@ -427,10 +427,26 @@ div.xowiki-content  div.hidden-field-set > div.form-widget > .compound-field {
 }
 
 
-
 div.xowiki-content .margin-form fieldset .form-item-wrapper {
     padding: 0px 0px 0px 0px;
 }
+
+/* folder menu placement */
+
+div.xowiki-content div.folders {
+    float:left; width: 200px; 
+    font-size: 90%;
+}
+div.xowiki-content .content-with-folders {
+    float: left; width: 70%;
+}
+div.xowiki-content .content-with-folders div.form-label {
+    width: 9em;
+}
+div.xowiki-content .content-with-folders div.form-widget {
+    margin-left: 10em;
+}
+
 
 /* mc stuff */
 div.xowiki-content table.mchoice td.selection {

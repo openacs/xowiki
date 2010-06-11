@@ -208,7 +208,7 @@ namespace eval ::xowiki {
       #
       # The following block should not be here, but in the templates
       #
-      set left_side "<div class='folders' style='float:left; width: 200px; font-size: 90%;'>\n
+      set left_side "<div class='folders' style=''>\n
 	[my include {folders -style folders}]\n
         </div>"
        
@@ -219,7 +219,7 @@ namespace eval ::xowiki {
       #set content [$mb render-yui]$content
       append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-yui]
 
-      set content "$left_side\n<div style='float: left; width: 70%;'>$content</div>"
+      set content "$left_side\n<div class='content-with-folders'>$content</div>"
     }
 
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
