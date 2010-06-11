@@ -1480,7 +1480,7 @@ namespace eval ::xowiki::formfield {
   }
   candidate_box_select set abstract 1
   candidate_box_select instproc render_input {} {
-    my msg "mul=[my multiple]"
+    #my msg "mul=[my multiple]"
     # makes only sense currently for multiple selects
     if {[my multiple] && [my dnd] && !([my exists disabled] && [my disabled])} {
 
