@@ -42,7 +42,7 @@ namespace eval ::xowiki {
                     -use_package_path true \
                     -parent_id $parent_id \
                     $t]
-      my log "weblog form $t => $page"
+      #my log "weblog form $t => $page"
       if {$page ne ""} {
         lappend form_item_ids [$page item_id]
       }

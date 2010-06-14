@@ -1299,6 +1299,16 @@ namespace eval ::xowiki::formfield {
   }
   enumeration abstract instproc render_input {}
 
+  enumeration instproc get_labels {values} {
+    if {[my multiple]} {
+      set labels [list]
+      foreach v $values {lappend labels [list [my get_entry_label $v] $v]}
+      return $labels
+    } else {
+      return [list [list [my get_entry_label $values] $values]]
+    }
+  }
+
   enumeration instproc pretty_value {v} {
     if {[my exists category_label($v)]} {
       return [my set category_label($v)]
@@ -1448,6 +1458,7 @@ namespace eval ::xowiki::formfield {
     next
     if {![my exists options]} {my options [list]}
   }
+
   select instproc render_input {} {
     set atts [my get_attributes id name disabled {CSSclass class}]
     if {[my multiple]} {lappend atts multiple [my multiple]}
@@ -1479,58 +1490,63 @@ namespace eval ::xowiki::formfield {
     {dnd true}
   }
   candidate_box_select set abstract 1
+
   candidate_box_select instproc render_input {} {
     #my msg "mul=[my multiple]"
     # makes only sense currently for multiple selects
-    if {[my multiple] && [my dnd] && !([my exists disabled] && [my disabled])} {
+    if {[my multiple] && [my dnd]} {
+      if {([my exists disabled] && [my disabled])} {
+        html::t -disableOutputEscaping [my pretty_value [my value]]
+      } else {
 
-      # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
-      set ajaxhelper 0
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-      ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
-      
-      set js ""
-      foreach o [my options] {
-        foreach {label rep} $o break
-        set js_label [::xowiki::Includelet js_encode $label]
-        set js_rep   [::xowiki::Includelet js_encode $rep]
-        append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
-        append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
-      }
-      
-      ::html::div -class workarea {
-        ::html::h3 { ::html::t "Selection"}
-        set values ""
-        foreach v [my value] {
-          append values $v \n
-          set __values($v) 1
-        }
-        my CSSclass selection
-        my set cols 30
-        set atts [my get_attributes id name disabled {CSSclass class}]
+        # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
+        set ajaxhelper 0
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+        ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
         
-        # TODO what todo with DISABLED?
-        ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
-          ::html::t $values
+        set js ""
+        foreach o [my options] {
+          foreach {label rep} $o break
+          set js_label [::xowiki::Includelet js_encode $label]
+          set js_rep   [::xowiki::Includelet js_encode $rep]
+          append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
+          append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
         }
-      }
-      ::html::div -class workarea {
-        ::html::h3 { ::html::t "Candidates"}
-        ::html::ul -id [my id]_candidates -class region {
-          #my msg [my options]
-          foreach o [my options] {
-            foreach {label rep} $o break
-            # Don't show current values under candidates
-            if {[info exists __values($rep)]} continue
-            ::html::li -class candidates {::html::t $rep}
+        
+        ::html::div -class workarea {
+          ::html::h3 { ::html::t "Selection"}
+          set values ""
+          foreach v [my value] {
+            append values $v \n
+            set __values($v) 1
+          }
+          my CSSclass selection
+          my set cols 30
+          set atts [my get_attributes id name disabled {CSSclass class}]
+          
+          # TODO what todo with DISABLED?
+          ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
+            ::html::t $values
           }
         }
+        ::html::div -class workarea {
+          ::html::h3 { ::html::t "Candidates"}
+          ::html::ul -id [my id]_candidates -class region {
+            #my msg [my options]
+            foreach o [my options] {
+              foreach {label rep} $o break
+              # Don't show current values under candidates
+              if {[info exists __values($rep)]} continue
+              ::html::li -class candidates {::html::t $rep}
+            }
+          }
+        }
+        ::html::div -class visual-clear {
+          ;# maybe some comment
+        }
+        ::html::script { html::t $js }
       }
-      ::html::div -class visual-clear {
-        ;# maybe some comment
-      }
-      ::html::script { html::t $js }
     } else {
       next
     }
@@ -1544,6 +1560,7 @@ namespace eval ::xowiki::formfield {
 
   Class abstract_page -superclass candidate_box_select -parameter {
     {as_box false}
+    {multiple_style comma}
   }
   abstract_page set abstract 1
 
@@ -1559,26 +1576,16 @@ namespace eval ::xowiki::formfield {
     return [set $entry_label]
   }
   abstract_page instproc get_entry_label {value} {
-    set item_id [[my set package_id] lookup -name $value]
+    set item_id [[my set package_id] lookup -parent_id [[my object] parent_id] -name $value]
     if {$item_id} {
       return [::xo::cc cache [list my fetch_entry_label [my entry_label] $item_id]]
     }
     return ""
   }
-  abstract_page instproc get_labels {values} {
-    if {[my multiple]} {
-      set labels [list]
-      foreach v $values {lappend labels [list [my get_entry_label $v] $v]}
-      return $labels
-    } else {
-      return [list [list [my get_entry_label $values] $values]]
-    }
-  }
   
   abstract_page instproc pretty_value {v} {
     my instvar package_id
     my set options [my get_labels $v]
-
     if {[my multiple]} {
       foreach o [my set options] {
         foreach {label value} $o break
@@ -1594,7 +1601,11 @@ namespace eval ::xowiki::formfield {
         set href [$package_id pretty_link $i]
         lappend hrefs "<a href='$href'>$labels($i)</a>"
       }
-      return [join $hrefs {, }]
+      if {[my multiple_style] eq "list"} {
+        return "<ul><li>[join $hrefs {</li><li>}]</li></ul>\n"
+      } else {
+        return [join $hrefs {, }]
+      }
     } else {
       foreach o [my set options] {
         foreach {label value} $o break
@@ -1625,6 +1636,7 @@ namespace eval ::xowiki::formfield {
     {where}
     {entry_label title}
   }
+
   form_page instproc initialize {} {
     my instvar form_object_item_ids package_id object
     if {![my exists form]} { return }

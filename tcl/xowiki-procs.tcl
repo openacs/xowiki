@@ -134,7 +134,7 @@ namespace eval ::xowiki {
         ::xo::db::CrAttribute create assignee \
             -datatype integer \
 	    -references parties(party_id) \
-            -spec "party_id" 
+            -spec "hidden" 
         ::xo::db::CrAttribute create state -default ""
       }
 
@@ -1574,7 +1574,7 @@ namespace eval ::xowiki {
           "insert into xowiki_references (reference, link_type, page) \
            values ($r,:link_type,$page_id)"
     }
-   }
+  }
 
   Page proc container_already_rendered {field} {
     if {![info exists ::xowiki_page_item_id_rendered]} {
@@ -2441,15 +2441,14 @@ namespace eval ::xowiki {
     set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \
                       bt.creation_date bt.creation_user bt.last_modified \
                       "bt.object_package_id as package_id" bt.title \
-                      bt.page_template
+                      bt.page_template bt.state bt.assignee 
                      ]
     if {$always_queried_attributes eq "*"} {
       lappend sql_atts \
           bt.object_type bt.object_id \
           bt.description bt.publish_date bt.mime_type nls_language "bt.data as text" \
           bt.creator bt.page_order bt.page_id \
-          bt.page_instance_id \
-          bt.assignee bt.state bt.xowiki_form_page_id
+          bt.page_instance_id bt.xowiki_form_page_id
     } else {
       foreach att $always_queried_attributes {
         set name [string range $att 1 end]
@@ -2803,6 +2802,49 @@ namespace eval ::xowiki {
 
     return [string range $content 1 end]
   }
+
+
+  FormPage instproc group_require {} {
+    #
+    # Create a group if necessary associated to the current form
+    # page. Since the group_names are global, the group name contains
+    # the parent_id of the FormPage.
+    #
+    set group_name "fpg-[my parent_id]-[my name]"
+    set group_id [group::get_id -group_name $group_name]
+    if {$group_id eq ""} {
+      # group::new does not flush the chash - sigh!  Therefore we have
+      # to flush the old cache entry here manually.
+      ns_cache flush util_memoize \
+          "group::get_id_not_cached -group_name $group_name -subsite_id {} -application_group_id {}"
+      set group_id [group::new -group_name $group_name]
+    }
+    return $group_id
+  }
+
+  FormPage instproc group_assign {
+    -group_id:integer,required 
+    -members:required 
+    {-rel_type membership_rel}
+    {-member_state ""}
+  } {
+    set old_members [group::get_members -group_id $group_id]
+    foreach m $members {
+      if {[lsearch -exact $old_members $m] == -1} {
+        #my msg "we have to add $m"
+        group::add_member -group_id $group_id -user_id $m \
+            -rel_type $rel_type -member_state $member_state
+      }
+    }
+    foreach m $old_members {
+      if {[lsearch -exact $members $m] == -1} {
+        #my msg "we have to remove $m"
+        group::remove_member -group_id $group_id -user_id $m
+      }
+    }
+  }
+
+
 
   Page instproc is_new_entry {old_name} {
     return [expr {[my publish_status] eq "production" && $old_name eq [my revision_id]}]

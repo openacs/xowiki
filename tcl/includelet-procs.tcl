@@ -1583,11 +1583,18 @@ namespace eval ::xowiki::includelet {
     set refs [list]
     # The same image might be linked both, as img or file on one page, 
     # so we need DISTINCT.
-    db_foreach [my qn get_references] "SELECT DISTINCT page,ci.name,f.package_id \
-        from xowiki_references,cr_items ci,cr_folders f \
-        where reference=$item_id and ci.item_id = page and ci.parent_id = f.folder_id" {
-          ::xowiki::Package require $package_id
-          lappend refs "<a href='[$package_id pretty_link $name]'>$name</a>"
+
+    db_foreach [my qn get_references] "SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid \
+        from xowiki_references,cr_items ci,acs_objects o \
+        where reference=$item_id and ci.item_id = page and ci.item_id = o.object_id" {
+          if {$pid eq ""} {
+            # in version less then oacs 5.2, this returns empty
+            set pid [db_string _ "select package_id from cr_folders where folder_id = :parent_id"]
+          }
+          if {$pid ne ""} {
+            ::xowiki::Package require $pid
+            lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+          }
         }
     set references [join $refs ", "]
 
@@ -1595,6 +1602,7 @@ namespace eval ::xowiki::includelet {
     foreach i [$__including_page array names lang_links] {
       set lang($i) [join [$__including_page set lang_links($i)] ", "]
     }
+
     append references " " $lang(found)
     set result ""
     if {$references ne " "} {
@@ -1620,12 +1628,20 @@ namespace eval ::xowiki::includelet {
 
     set item_id [$__including_page item_id] 
     set refs [list]
-    db_foreach [my qn get_references] "SELECT reference,ci.name,f.package_id,ci.parent_id \
-        from xowiki_references,cr_items ci,cr_folders f \
-        where page=$item_id and ci.item_id = reference and ci.parent_id = f.folder_id" {
-          ::xowiki::Package require $package_id
-          lappend refs "<a href='[$package_id pretty_link -parent_id $parent_id $name]'>$name</a>"
+
+   db_foreach [my qn get_refers] "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
+        from xowiki_references,cr_items ci,acs_objects o \
+        where page=$item_id and ci.item_id = reference and ci.item_id = o.object_id" {
+          if {$pid eq ""} {
+            # in version less then oacs 5.2, this returns empty
+            set pid [db_string _ "select package_id from cr_folders where folder_id = :parent_id"]
+          }
+          if {$pid ne ""} {
+            ::xowiki::Package require $pid
+            lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+          }
         }
+
     set references [join $refs ", "]
 
     array set lang {found "" undefined ""}
@@ -3188,7 +3204,8 @@ namespace eval ::xowiki::includelet {
         set form_package_id [$form package_id]
         ::xowiki::Package require $form_package_id
         set obj [form-menu-button-$button new -volatile -package_id $package_id \
-                     -base [$form_package_id pretty_link [$form name]] -form $form -parent_id $parent_id]
+                     -base [$form_package_id pretty_link -parent_id [$form parent_id] [$form name]] \
+                     -form $form -parent_id $parent_id]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
       }
@@ -3261,6 +3278,7 @@ namespace eval ::xowiki::includelet {
           {-publish_status "ready"}
           {-field_names}
           {-extra_form_constraints ""}
+          {-inherit_from_forms ""}
           {-category_id}
           {-unless}
           {-where}
@@ -3303,6 +3321,18 @@ namespace eval ::xowiki::includelet {
     }
 
     set form_constraints $extra_form_constraints\n
+
+    if {$inherit_from_forms ne ""} {
+      foreach inherit_form $inherit_from_forms {
+        set inherit_form_id [::xowiki::Weblog instantiate_forms -parent_id [$o parent_id] \
+                                 -forms $inherit_form -package_id $package_id]
+        if {$inherit_form_id ne ""} {
+          set p [$inherit_form_id property form_constraints]
+          append form_constraints $p\n
+        }
+      }
+    }
+
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }

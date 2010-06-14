@@ -10,11 +10,11 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.128" url="http://openacs.org/repository/download/apm/xowiki-0.128.apm">
+    <version name="0.129" url="http://openacs.org/repository/download/apm/xowiki-0.129.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2010-05-31</release-date>
+        <release-date>2010-06-14</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -56,7 +56,7 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.128"/>
+        <provides url="xowiki" version="0.129"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -64,10 +64,10 @@ Some features:
         <requires url="xotcl-core" version="0.114"/>
 
         <callbacks>
-            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-install"  proc="::xowiki::after-install"/>
-            <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
+            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
+            <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
         </callbacks>
         <parameters>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>

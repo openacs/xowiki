@@ -55,7 +55,7 @@ ad_form \
         }
         ns_log notice "objects to import: $objects"
         set parent_id [ns_queryget parent_id 0]
-        ::xotcl::Object msg parent_id=$parent_id
+        #::xotcl::Object msg parent_id=$parent_id
         if {[catch {
           set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
                        -parent_id $parent_id -objects $objects]

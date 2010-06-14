@@ -920,7 +920,7 @@ namespace eval ::xowiki {
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
-      #my msg "form-params=[$cc array get form_parameter]"
+      my log "form-params=[$cc array get form_parameter]"
     }
     #my msg "fields $field_names, "
 
@@ -1159,7 +1159,7 @@ namespace eval ::xowiki {
 
     set field_names [list _name]
     if {[$package_id show_page_order]}  { lappend field_names _page_order }
-    lappend field_names _title _creator
+    lappend field_names _title _creator _assignee
     foreach fn $reduced_attributes                     { lappend field_names $fn }
     foreach fn [list _text _description _nls_language] { lappend field_names $fn }
     #my msg field_names=$field_names
@@ -1485,7 +1485,7 @@ namespace eval ::xowiki {
         #my msg "anon_instances=$anon_instances"
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [$page_template name]]
-          set name [::xowiki::autoname new -name $basename -parent_id $page_template]
+          set name [::xowiki::autoname new -name $basename -parent_id [my parent_id]]
           #my msg "generated name=$name, page_template-name=[$page_template name]"
           $ff(_name) value $name
         } else {
@@ -1615,11 +1615,13 @@ namespace eval ::xowiki {
     }
     my post_process_dom_tree $doc $root $form_fields
     set html [$root asHTML]
+    set html [my substitute_markup $html]
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
                   {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     # replace unbalanced @ characters
     set html [string map [list \x003 @] $html]
+
     #my log "calling VIEW with HTML [string length $html]"
     if {$view} {
       my view $html

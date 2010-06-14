@@ -44,7 +44,7 @@ namespace eval ::xowiki {
     ::xowiki::Package initialize \
 	-package_id $package_id -user_id $user_id \
 	-parameter $parameter -init_url false -actual_query ""
-    ::$package_id set_url -url [::$package_id pretty_link [$page name]]
+    ::$package_id set_url -url [::$package_id pretty_link -parent_id [$page parent_id] [$page name]]
     return $page
   }
 
@@ -588,7 +588,7 @@ namespace eval ::xowiki {
 	my log "error in check_permissions: $errorMsg"
 	set granted 0
       }
-      #my log "--p $id check_permissions $object $method ==> $granted"
+      #my msg "--p $id check_permissions $object $method ==> $granted"
     }
     #my log "granted=$granted $computed_link"
     if {$granted} {
@@ -605,6 +605,8 @@ namespace eval ::xowiki {
       if {$parent_id eq ""} {unset parent_id}
       ::xo::db::CrClass get_instance_from_db -item_id $form_id
       set form_link [my pretty_link -parent_id [$form_id parent_id] [$form_id name]]
+      #my msg "$form -> $form_id -> $form_link -> [my make_link -with_entities 0 -link $form_link $form_id \
+      #            create-new return_url title parent_id name nls_language]"
       return [my make_link -with_entities 0 -link $form_link $form_id \
                   create-new return_url title parent_id name nls_language]
     }
@@ -639,7 +641,7 @@ namespace eval ::xowiki {
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
-        #my log "--invoke [my set object] id=$page method=$method" 
+        #my msg "--invoke [my set object] id=$page method=$method ([my id] batch_mode $batch_mode)" 
         if {$batch_mode} {[my id] set __batch_mode 1}
 	set r [my call $page $method ""]
         if {$batch_mode} {[my id] unset __batch_mode}
@@ -767,7 +769,7 @@ namespace eval ::xowiki {
       foreach package [my package_path] {
         set page [$package resolve_page -simple $simple -lang $lang $object method]
         if {$page ne ""} {
-          #my log "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
+          #my msg "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
 	  $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
 	  return $page
         }
@@ -1077,7 +1079,7 @@ namespace eval ::xowiki {
     #
     if {$allow_cross_package_item_refs && [string match //* $link]} {
       set referenced_package_id [my resolve_package_path $link rest_link]
-      my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
+      #my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
       if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
         # TODO: we have still to check, whether or not we want
         # site-wide-pages etc.  in cross package links, and if, under
@@ -1102,6 +1104,9 @@ namespace eval ::xowiki {
     if {$search_parent_id eq ""} {
       set search_parent_id [my folder_id]
     }
+    if {$parent_id eq ""} {
+      set parent_id [my folder_id]
+    }
     array set "" [my item_ref -normalize_name false \
                       -use_package_path $use_package_path \
                       -default_lang $default_lang \
@@ -1111,7 +1116,7 @@ namespace eval ::xowiki {
     if {!$(item_id) && $use_site_wide_pages} {
       set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
       if {$page ne ""} {
-        #my msg "set_resolve_context site_wide_pages [my id]"
+        #my msg "set_resolve_context site_wide_pages [my id] and -parent_id $parent_id"
         $page set_resolve_context -package_id [my id] -parent_id $parent_id
         return $page
       }

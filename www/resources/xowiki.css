@@ -443,8 +443,17 @@ div.xowiki-content .content-with-folders {
 div.xowiki-content .content-with-folders div.form-label {
     width: 9em;
 }
-div.xowiki-content .content-with-folders div.form-widget {
+div.xowiki-content .content-with-folders div.form-widget,  
+div.xowiki-content .content-with-folders .form-help-text,
+div.xowiki-content .content-with-folders .form-button,
+div.xowiki-content .content-with-folders .form-widget-error,
+div.xowiki-content .content-with-folders .form-error {
     margin-left: 10em;
+}
+
+div.xowiki-content #menubar a.disabled {
+    color: #A0A0A0;
+    /* or maybe display none */
 }
 
 
@@ -459,7 +468,7 @@ div.xowiki-content form.feedback td.selection {
 }
 
 /* linear forum stuff */
-div.xowiki-content .forum {
+div.xowiki-content {
     text-align: left;
 }
 div.xowiki-content .forum .question {
