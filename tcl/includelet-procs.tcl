@@ -2234,7 +2234,7 @@ namespace eval ::xowiki::includelet {
 
   toc instproc include_head_entries {} {
     my instvar style renderer
-    switch {$renderer} {
+    switch -- $renderer {
       list    {::xowiki::Tree include_head_entries -renderer listdnd -style $style}
       yuitree {::xowiki::Tree include_head_entries -renderer yuitree -style $style}
       none {}
