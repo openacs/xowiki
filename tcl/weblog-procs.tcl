@@ -293,7 +293,7 @@ namespace eval ::xowiki {
     my instvar package_id name title creator creation_user pretty_date description 
     [my set __parent] instvar weblog_obj
 
-    set link [::$package_id pretty_link $name]
+    set link [my pretty_link]
     regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]

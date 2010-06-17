@@ -185,7 +185,7 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     if {$item_id} {
       set image_css_class "found"
-      set link [$package_id pretty_link -lang $lang [my stripped_name]]
+      set link [$package_id pretty_link -lang $lang -parent_id [my parent_id] [my stripped_name]]
     } else {
       set image_css_class "undefined"
       set last_page_id [$page set item_id]

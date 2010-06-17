@@ -1,12 +1,12 @@
 
 ::xo::Page requireCSS "/resources/calendar/calendar.css"
 set package_id        [::xo::cc package_id]
-set folder_id         [$__including_page set parent_id]
+set parent_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
 if {![exists_and_not_null base_url]} {
   if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
-  set base_url [$package_id pretty_link $page]
+  set base_url [$package_id pretty_link -parent_id $parent_id $page]
 }
 
 set date [ns_queryget date]
@@ -50,7 +50,7 @@ for {set i 0} {$i < 7} {incr i} {
 }
 
 set innersql "from xowiki_pagei p, cr_items ci \
-        where ci.parent_id = $folder_id \
+        where ci.parent_id = $parent_id \
         and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
         and ci.content_type not in ('::xowiki::PageTemplate', '::xowiki::Form') \
         and ci.item_id != $including_item_id \

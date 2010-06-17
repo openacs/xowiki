@@ -681,7 +681,7 @@ namespace eval ::xowiki::formfield {
     set value [::file tail $value]
     [my object] set_property [my name] $value
 
-    set folder_id [[my object] set parent_id]
+    set package_id [[my object] package_id]
     array set entry_info [my entry_name $value]
 
     set content_type [my set content-type]
@@ -689,10 +689,9 @@ namespace eval ::xowiki::formfield {
       set content_type [::xowiki::guesstype $value]
     }
     #my msg "mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
-
-    if {[set id [::xo::db::CrClass lookup -name $entry_info(name) -parent_id $entry_info(parent_id)]]} {
+    set file_object [$package_id get_page_from_name -name $entry_info(name) -parent_id $entry_info(parent_id)]
+    if {$file_object ne ""} {
       # file entry exists already, create a new revision
-      set file_object [::xo::db::CrClass get_instance_from_db -item_id $id]
       $file_object set import_file [my set tmpfile]
       $file_object set mime_type $content_type
       $file_object set title $value
@@ -1585,11 +1584,13 @@ namespace eval ::xowiki::formfield {
   
   abstract_page instproc pretty_value {v} {
     my instvar package_id
+    set object [my object]
+    set parent_id [$object parent_id]
     my set options [my get_labels $v]
     if {[my multiple]} {
       foreach o [my set options] {
         foreach {label value} $o break
-        set href [$package_id pretty_link $value]
+        set href [$package_id pretty_link -parent_id $parent_id $value]
         set labels($value) "<a href='$href'>$label</a>"
       }
       set hrefs [list]
@@ -1598,7 +1599,7 @@ namespace eval ::xowiki::formfield {
           #my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
           set labels($i) $i
         }
-        set href [$package_id pretty_link $i]
+        set href [$package_id pretty_link -parent_id $parent_id $i]
         lappend hrefs "<a href='$href'>$labels($i)</a>"
       }
       if {[my multiple_style] eq "list"} {
@@ -1612,9 +1613,9 @@ namespace eval ::xowiki::formfield {
         #my log "comparing '$value' with '$v'"
         if {$value eq $v} {
           if {[my as_box]} {
-            return [[my object] include [list $value -decoration rightbox]] 
+            return [$object include [list $value -decoration rightbox]] 
           }
-          set href [$package_id pretty_link $value]
+          set href [$package_id pretty_link -parent_id $parent_id $value]
           return "<a href='$href'>$label</a>"
         }
       }

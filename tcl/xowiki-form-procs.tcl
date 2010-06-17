@@ -415,7 +415,7 @@ namespace eval ::xowiki {
       my instvar data
       # we can determine submit link only after nls_langauge 
       # is returned from the user
-      my submit_link [[$data package_id] pretty_link [$data name]]
+      my submit_link [$data pretty_link]
     }
     next
   }
@@ -651,7 +651,7 @@ namespace eval ::xowiki {
     if {[$data exists_query_parameter return_url]} {
       set return_url [$data query_parameter return_url]
     }
-    set link [::[$data set package_id] pretty_link [$data set name]]
+    set link [$data pretty_link]
     my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
     # my log "-- submit_link = [my submit_link]"
   }
@@ -689,7 +689,7 @@ namespace eval ::xowiki {
     foreach __v $__vars {set $__v [$data from_parameter $__v] ""}
     set item_id [next]
 
-    set link [::[$data set package_id] pretty_link [$data set name]]
+    set link [$data pretty_link]
     my submit_link [export_vars -base $link {{m edit} $__vars}]
     # my log "-- submit_link = [my submit_link]"
     return $item_id

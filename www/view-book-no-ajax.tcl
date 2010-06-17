@@ -11,8 +11,8 @@ if {$i ne "" && ![$page exists __is_book_page]} {
 
   if {$count > 0} {
     set book_relpos [format %.2f%% [expr {100.0 * $p / $count}]]
-    if {$p>1}      {set book_prev_link [$package_id pretty_link [$i page_name [expr {$p - 1}]]]}
-    if {$p<$count} {set book_next_link [$package_id pretty_link [$i page_name [expr {$p + 1}]]]}
+    if {$p>1}      {set book_prev_link [$package_id pretty_link -parent_id [$i parent_id] [$i page_name [expr {$p - 1}]]]}
+    if {$p<$count} {set book_next_link [$package_id pretty_link [$i -parent_id [$i parent_id] page_name [expr {$p + 1}]]]}
     set page_title "<h2>[$i current] $title</h2>"
   } else {
     set book_relpos 0.0%

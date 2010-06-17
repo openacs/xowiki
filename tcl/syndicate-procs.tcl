@@ -247,7 +247,8 @@ namespace eval ::xowiki {
     db_foreach [my qn get_pages] $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
       if {$title eq ""} {set title $name}
-      set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl $name]
+      set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl \
+                    -parent_id $parent_id $name]
       append content [my item \
                           -author $creator -title $title -subtitle $subtitle \
                           -description $description \
@@ -285,8 +286,8 @@ namespace eval ::xowiki {
 
     ::xo::OrderedComposite items -destroy_on_cleanup
     set sql [::xo::db::sql select \
-                 -vars "ci.name, o.creation_user, cr.publish_date, o2.creation_date, \
-			cr.item_id, ci.parent_id, cr.title" \
+                 -vars "ci.name, ci.parent_id, o.creation_user, cr.publish_date, o2.creation_date, \
+			cr.item_id, cr.title" \
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
                  -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id 
       			and o2.object_id = cr.item_id 
@@ -307,7 +308,7 @@ namespace eval ::xowiki {
         }
       }
       set o [Object new]
-      foreach att {item_id creation_user item_id clock name publish_date parent_id title} {
+      foreach att {item_id creation_user clock name publish_date parent_id title} {
         $o set $att [set $att]
       }
       $o set operation [expr {$creation_date eq $publish_date ? "created" : "modified"}]
@@ -359,7 +360,9 @@ namespace eval ::xowiki {
       append result [my tag -atts [list \
                                        start $stamp \
                                        title $title \
-                                       link [$package_id pretty_link [$i set name]]] \
+                                       link [$package_id pretty_link \
+                                                 -parent_id [$i set parent_id] \
+                                                 [$i set name]]] \
                          event $event]  \n
     }
     append result </data>\n

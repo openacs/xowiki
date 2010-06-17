@@ -410,7 +410,7 @@ namespace eval ::xowiki {
       # before we used "." as default submit link (resulting in a "ad_returnredirect ."). 
       # However, this does not seem to work in case we have folders in use....
       #set submit_link "."
-      set submit_link [$package_id pretty_link -parent_id [my parent_id] [my name]]
+      set submit_link [my pretty_link]
     }
     #my log "--u submit_link=$submit_link qp=[my query_parameter return_url]"
     set object_type [my info class]
@@ -1262,14 +1262,14 @@ namespace eval ::xowiki {
             [::xo::cc form_parameter __object_name ""] $category_ids
       }
       $package_id returnredirect \
-          [my query_parameter "return_url" [$package_id pretty_link [my name]]]
+          [my query_parameter "return_url" [my pretty_link]]
       return
     } else {
       # todo: handle errors in a user friendly way
       my log "we have $validation_errors validation_errors"
     }
     $package_id returnredirect \
-        [my query_parameter "return_url" [$package_id pretty_link [my name]]]
+        [my query_parameter "return_url" [my pretty_link]]
   }
 
 
@@ -1440,7 +1440,7 @@ namespace eval ::xowiki {
 	  return
 	} else {
           if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
-	  set url [$package_id pretty_link -parent_id [my parent_id] -lang en [my name]]$qp
+	  set url [my pretty_link -lang en]$qp
 	  set return_url [$package_id get_parameter return_url $url]
 	  # We had query_parameter here. however, to be able to
 	  # process the output of ::xo::cc set_parameter ...., we
@@ -1591,7 +1591,7 @@ namespace eval ::xowiki {
       if {[my exists_query_parameter "return_url"]} {
 	set return_url [my query_parameter "return_url"]
       }
-      set url [export_vars -base [$package_id pretty_link -parent_id [my parent_id] [my name]] {{m "edit"} return_url}] 
+      set url [export_vars -base [my pretty_link] {{m "edit"} return_url}] 
       $form setAttribute action $url method POST
       if {$has_file} {$form setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $form class [$page_template css_class_name]
@@ -2079,7 +2079,7 @@ namespace eval ::xowiki {
 
     set form_redirect [my form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
-      set form_redirect [export_vars -base [$package_id pretty_link -parent_id [$f parent_id] [$f name]] \
+      set form_redirect [export_vars -base [$f pretty_link] \
                              [list [list m $view_method] return_url template_file title detail_link text]]
     }
     $package_id returnredirect $form_redirect

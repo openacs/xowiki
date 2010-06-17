@@ -21,7 +21,7 @@ namespace eval ::xowiki {
     return "<table>[my set log]</table>"
   }
   Importer instproc report_line {obj operation} {
-    set href [[$obj package_id] pretty_link [$obj name]]
+    set href [$obj pretty_link]
     my append log "<tr><td>$operation</td><td><a href='$href'>[$obj name]</a></td></tr>\n"
   }
   Importer instproc report {} {

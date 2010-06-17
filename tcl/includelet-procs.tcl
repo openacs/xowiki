@@ -125,21 +125,6 @@ namespace eval ::xowiki::includelet {
     return $name
   }
 
-  ::xowiki::Includelet proc detail_link {
-     {-absolute:boolean false} 
-     -package_id 
-     -name 
-     -instance_attributes
-   } {
-    array set __ia $instance_attributes
-    if {[info exists __ia(detail_link)] && $__ia(detail_link) ne ""} {
-      set link $__ia(detail_link)
-    } else {
-      set link [::$package_id pretty_link $name]
-    }
-    return $link
-  }
-
   ::xowiki::Includelet proc publish_status_clause {{-base_table ci} value} {
     if {$value eq "all"} {
       # legacy
@@ -283,7 +268,7 @@ namespace eval ::xowiki::includelet {
                  -limit $limit -offset $offset]
 
     if {$count} {
-      return [db_string [my qn presence_count_users] $sql]
+      return [db_string [my qn count_listing] $sql]
     } else {
       set s [::xowiki::Page instantiate_objects -sql $sql]
       return $s
@@ -555,7 +540,8 @@ namespace eval ::xowiki::includelet {
 
   bookmarklet-button instproc render {} {
     my get_parameters
-    set url [$package_id pretty_link -absolute 1 -siteurl $siteurl news-item]
+    set parent_id [[my set __including_page] parent_id]
+    set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
     if {$label eq ""} {set label "Add to [$package_id instance_name]"}
     set href [subst -nocommands -nobackslash {
       javascript:d=document;w=window;t='';
@@ -805,13 +791,13 @@ namespace eval ::xowiki::includelet {
 	set order_column ", p.page_order" 
 
         db_foreach [my qn get_pages] \
-            "select ci.item_id, ci.name, r.title, category_id $order_column from $sql" {
+            "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
               set prefix ""
               set suffix ""
               foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
-	      $itemobj set href [::$package_id pretty_link $name]              
+	      $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]              
               $cattree(0) add_item \
                   -category $category($category_id) \
                   -itemobj $itemobj \
@@ -884,7 +870,7 @@ namespace eval ::xowiki::includelet {
       set tree_select_clause ""
     }
     set sql [::xo::db::sql select \
-                 -vars "c.category_id, ci.name, r.title, r.publish_date, \
+                 -vars "c.category_id, ci.name, ci.parent_id, r.title, r.publish_date, \
                         to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
                  -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
                  -where "c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
@@ -906,7 +892,7 @@ namespace eval ::xowiki::includelet {
       if {$prefix ne ""} {set prefix "<span class='date'>$prefix</span>";$itemobj set encoded(prefix) 1}
       if {$suffix ne ""} {set suffix "<span class='date'>$suffix</span>";$itemobj set encoded(suffix) 1}
       foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
-      $itemobj set href [::$package_id pretty_link $name]        
+      $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]        
 
       if {![info exists categories($category_id)]} {
         set categories($category_id) [::xowiki::TreeNode new \
@@ -1341,7 +1327,6 @@ namespace eval ::xowiki::includelet {
     set entries [list]
 
     if {![info exists page]} {set page [$package_id get_parameter weblog_page]}
-    set base_url [$package_id pretty_link $page]
 
     set href [$package_id package_url]tag/
     db_foreach [my qn get_counts] $sql {
@@ -1349,7 +1334,6 @@ namespace eval ::xowiki::includelet {
       if {$summary} {lappend q "summary=$summary"}
       if {$popular} {lappend q "popular=$popular"}
       set link $href$tag?[join $q &]
-      #set href $base_url?$tag_type=[ad_urlencode $tag]$s
       #lappend entries "$tag <a href='$href'>($nr)</a>"
       lappend entries "$tag <a rel='tag' href='$link'>($nr)</a>"
     }
@@ -1373,7 +1357,7 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page tags
     ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
     
-    set p_link [$package_id pretty_link [$__including_page name]]
+    set p_link [$__including_page pretty_link]
     set return_url "[::xo::cc url]?[::xo::cc actual_query]"
     set weblog_page [$package_id get_parameter weblog_page weblog]
     set save_tag_link [$package_id make_link -link $p_link $__including_page \
@@ -1914,11 +1898,11 @@ namespace eval ::xowiki::includelet {
   }
 
   toc instproc href {book_mode name} {
-    my instvar package_id
+    my instvar package_id __including_page
     if {$book_mode} {
       set href [$package_id url]#[toc anchor $name]
     } else {
-      set href [$package_id pretty_link $name]
+      set href [$package_id pretty_link -parent_id [$__including_page parent_id] $name]
     }
     return $href
   }
@@ -2405,7 +2389,7 @@ namespace eval ::xowiki::includelet {
 
     set inner_html [$root asHTML]
     set id ID[$__including_page item_id]
-    set base [$package_id pretty_link [$__including_page name]]
+    set base [$__including_page pretty_link]
     #set id ID$item_id
     #$root setAttribute id $id
     set as_att_value [::xowiki::Includelet html_encode $inner_html]
@@ -2610,7 +2594,7 @@ namespace eval ::xowiki::includelet {
 	set link  [$package_id make_link $package_id edit-new object_type \
 		       return_url page_order source_item_id]
       } else {
-	set p_link [$package_id pretty_link -parent_id [$page parent_id] [$page name]]
+	set p_link [$page pretty_link]
 	set link [$package_id make_link -link $p_link $page $method \
 		      return_url page_order source_item_id]
       }
@@ -3204,7 +3188,7 @@ namespace eval ::xowiki::includelet {
         set form_package_id [$form package_id]
         ::xowiki::Package require $form_package_id
         set obj [form-menu-button-$button new -volatile -package_id $package_id \
-                     -base [$form_package_id pretty_link -parent_id [$form parent_id] [$form name]] \
+                     -base [$form pretty_link] \
                      -form $form -parent_id $parent_id]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
@@ -3489,7 +3473,7 @@ namespace eval ::xowiki::includelet {
     }
     #my log "queries done"
     if {[info exists wf]} {
-      set wf_link [$package_id pretty_link $wf]
+      set wf_link [$package_id pretty_link -parent_id $parent_id $wf]
     }
 
     foreach p [$items children] {
@@ -3499,7 +3483,7 @@ namespace eval ::xowiki::includelet {
       if {[expr $uc(tcl)]} continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 
-      set page_link [$package_id pretty_link -parent_id [$p parent_id] [$p name]]
+      set page_link [$p pretty_link]
 
       if {[info exists wf]} {
 	set view_link $wf_link?m=create-or-use&p.form=[$p name]
@@ -3581,7 +3565,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set links [list]
-    set base [$package_id pretty_link -parent_id [$form_item parent_id] [$form_item name]]
+    set base [$form_item pretty_link]
     set label [$form_item name]
 
     if {$with_form_link} {
@@ -3675,6 +3659,7 @@ namespace eval ::xowiki::includelet {
                    @table:[join $table_field_names ,]"
       }
       $f save_new
+      set form_href [$f pretty_link]
       $f destroy
       set action created
     } else {
@@ -3685,9 +3670,10 @@ namespace eval ::xowiki::includelet {
         $item_id set_property form $form
       }
       $item_id save
+      set form_href [$item_id pretty_link]
       set action updated
     }
-    return "#xowiki.form-$action# <a href='[[my package_id] pretty_link $form_name]'>$form_name</a>"
+    return "#xowiki.form-$action# <a href='$form_href'>$form_name</a>"
   }
 }
  
@@ -3793,7 +3779,7 @@ namespace eval ::xowiki::includelet {
     foreach entry [$listing children] {
       $entry instvar mime_type name
       if {[string match image/* $mime_type]} {
-	set link [$package_id pretty_link -download true $name]
+	set link [$entry pretty_link -download true]
         append content "<li> <img src='$link' height='$height' width='$width'></li>\n"
 	#append content "<li> <img src='$link'></li>\n"
       }

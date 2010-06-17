@@ -539,7 +539,19 @@ namespace eval ::xowiki {
 	}
       }
     }
-    
+
+    set v 0.130
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      # load for all xowiki package instances the weblog-portlet prototype page
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import-prototype-page weblog-portlet
+	$package_id import-prototype-page news
+      }
+    }    
 
   }
 }

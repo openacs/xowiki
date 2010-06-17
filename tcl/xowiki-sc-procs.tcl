@@ -76,10 +76,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #ns_log notice "--sc keywords $revision_id -> [array names word]"
 
   set pubDate [::xo::db::tcl_date [$page set publish_date] tz]
-  set link [::xowiki::Includelet detail_link \
-                    -package_id $package_id -name [$page set name] \
-                    -absolute true \
-                    -instance_attributes [$page get_instance_attributes]]
+  set link [$page detail_link]
 
   return [list object_id $revision_id title [$page title] \
               content $html keywords [array names word] \

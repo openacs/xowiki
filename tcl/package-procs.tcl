@@ -44,7 +44,7 @@ namespace eval ::xowiki {
     ::xowiki::Package initialize \
 	-package_id $package_id -user_id $user_id \
 	-parameter $parameter -init_url false -actual_query ""
-    ::$package_id set_url -url [::$package_id pretty_link -parent_id [$page parent_id] [$page name]]
+    ::$package_id set_url -url [$page pretty_link]
     return $page
   }
 
@@ -173,10 +173,10 @@ namespace eval ::xowiki {
     return $folder_id
   }
 
-  Package instproc get_page_from_name {-name:required} {
+  Package instproc get_page_from_name {{-parent_id ""} -name:required} {
     # Check if an instance with this name exists in the current package.
     my get_lang_and_name -name $name lang stripped_name
-    set item_id [my lookup -name $lang:$stripped_name]
+    set item_id [my lookup -parent_id $parent_id -name $lang:$stripped_name]
     if {$item_id != 0} {
       return [::xo::db::CrClass get_instance_from_db -item_id $item_id]
     }
@@ -603,8 +603,7 @@ namespace eval ::xowiki {
     set form_id [lindex [::xowiki::Weblog instantiate_forms -parent_id $parent_id -forms $form -package_id $id] 0]
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
-      ::xo::db::CrClass get_instance_from_db -item_id $form_id
-      set form_link [my pretty_link -parent_id [$form_id parent_id] [$form_id name]]
+      set form_link [$form_id pretty_link]
       #my msg "$form -> $form_id -> $form_link -> [my make_link -with_entities 0 -link $form_link $form_id \
       #            create-new return_url title parent_id name nls_language]"
       return [my make_link -with_entities 0 -link $form_link $form_id \
@@ -825,7 +824,7 @@ namespace eval ::xowiki {
     {-use_package_path true} 
     {-default_lang ""} 
     -name:required 
-    -parent_id
+    {-parent_id ""}
   } {
     # Lookup of names from a given parent_id or from the list of
     # configured instances (obtained via package_path).
@@ -836,7 +835,7 @@ namespace eval ::xowiki {
       return 0
     }
     
-    if {![info exists parent_id]} {set parent_id [$(package_id) folder_id]}
+    if {$parent_id eq ""} {set parent_id [$(package_id) folder_id]}
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
     #my msg "lookup $(page_name) $parent_id in package $(package_id) returns $item_id"
     if {$item_id == 0 && $use_package_path} {
@@ -1195,14 +1194,15 @@ namespace eval ::xowiki {
       $page destroy_on_cleanup
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
-      set item_id [::xo::db::CrClass lookup -name $fullName -parent_id $parent_id]
-      if {$item_id == 0} {
+      set p [$package_id get_page_from_name -name $fullName -parent_id $parent_id]
+      if {$p eq ""} {
+        # We have to create the page new. The page is completed with
+        # missing vars on save_new.
         $page save_new
       } else {
-        # get the page from the CR with all variables
-        set p [::xo::db::CrClass get_instance_from_db -item_id $item_id]
-        # copy all scalar variables from the prototype page 
-        # into the instantiated page 
+        # An old page exists already, make a revision.  Update the
+        # existing page with all scalar variables from the prototype
+        # page (which is just partial)
         foreach v [$page info vars] {
           if {[$page array exists $v]} continue ;# don't copy arrays
           $p set $v [$page set $v]
@@ -1606,7 +1606,7 @@ namespace eval ::xowiki {
 }
 
     set sql [::xo::db::sql select \
-                 -vars "s.body, p.name, p.creator, p.title, p.page_id,\
+                 -vars "ci.parent_id, s.body, p.name, p.creator, p.title, p.page_id,\
                 p.object_type as content_type, p.last_modified, p.description" \
                  -from "xowiki_pagex p, syndication s, cr_items ci" \
                  -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
@@ -1623,7 +1623,7 @@ namespace eval ::xowiki {
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
 
       append content <url> \n\
-          <loc>[::$package_id pretty_link -absolute true $name]</loc> \n\
+          <loc>[::$package_id pretty_link -absolute true -parent_id $parent_id $name]</loc> \n\
           <lastmod>$time</lastmod> \n\
           <changefreq>$changefreq</changefreq> \n\
           <priority>$priority</priority> \n\

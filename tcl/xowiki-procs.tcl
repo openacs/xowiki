@@ -1296,6 +1296,30 @@ namespace eval ::xowiki {
     return [$referenced_package_id item_ref -default_lang $default_lang -parent_id $parent_id $link]
   }
 
+  Page instproc pretty_link {
+    {-anchor ""} 
+    {-query ""} 
+    {-absolute:boolean false} 
+    {-siteurl ""}
+    {-lang ""} 
+    {-download false} 
+  } {
+    # return the pretty_link for the current page
+    [my package_id] pretty_link -parent_id [my parent_id] \
+        -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
+        -lang $lang -download $download [my name]
+  }
+
+  Page instproc detail_link {} {
+    if {[my exists instance_attributes]} {
+      array set __ia [my set instance_attributes]
+      if {[info exists __ia(detail_link)] && $__ia(detail_link) ne ""} {
+        return $__ia(detail_link)
+      }
+    }
+    return [my pretty_link]
+  }
+
   Page instproc create_link {arg} {
     #my msg [self args]
     set label $arg
@@ -1858,7 +1882,7 @@ namespace eval ::xowiki {
 
     set revision_id [[$package_id context] query_parameter revision_id]
     set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
-    set page_link [$package_id pretty_link -download true -parent_id [my parent_id] -query $query [my name]]
+    set page_link [my pretty_link -download true -query $query]
 
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \
