@@ -26,8 +26,7 @@
 
     # We get the instance_attributes, if these are available. For the
     # time being, we have these only in full mode (no summary)
-    set link [::xowiki::Includelet detail_link -package_id $package_id -name $name \
-                  -instance_attributes [my get_instance_attributes]]
+    set link [my detail_link]
     set show_more [expr {[$weblog_obj summary] && [my exists text] && [my text] ne ""}]
     set more [expr {$show_more ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]

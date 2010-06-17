@@ -36,7 +36,7 @@
 DTSTART:$dtstart
 DTEND:$dtend
 $body
-URL:[[my package_id] pretty_link -absolute true [my name]]
+URL:[my pretty_link -absolute true]
 END:VEVENT
 }]
   }

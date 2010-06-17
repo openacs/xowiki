@@ -34,8 +34,14 @@
                  -forms $entries_of \
                  -package_id $package_id]
   set template_id [lindex $forms 0]
-  set form_link [$package_id pretty_link [$template_id name]]
-  set new_link  [$package_id make_link -link $form_link $template_id create-new return_url]
+  if {$template_id ne ""} {
+    set form_link [$template_id pretty_link]
+    set new_link  [$package_id make_link -link $form_link $template_id create-new return_url]
+  } else {
+    ns_log notice "Warning: could not resolve $entries_of with -parent_id [my set current_folder_id]"
+    set form_link ""
+    set new_link ""
+  }
   
   [my info parent] set __link(new) $new_link
 
@@ -47,9 +53,7 @@
     my instvar package_id name title creator creation_user pretty_date description publish_date
     [my set __parent] instvar weblog_obj
 
-    set link [::xowiki::Includelet detail_link \
-                  -package_id $package_id -name $name \
-                  -instance_attributes [my get_instance_attributes]]
+    set link [my detail_link]
     regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
