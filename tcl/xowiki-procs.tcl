@@ -2309,8 +2309,13 @@ namespace eval ::xowiki {
     return [my form_constraints]
   }
 
+  # todo move me
   Page instproc list {} {
-    # todo move me
+    # The following line is here to provide a short description for
+    # larger form-usages (a few MB) where otherwise
+    # "ad_html_text_convert" in Page.get_description tend to use forever
+    # (at least in Tcl 8.5)
+    my set description "form-usages for [my name] [my title]"
     my view [my include [list form-usages -form_item_id [my item_id]]]
   }
 
