@@ -122,7 +122,6 @@ namespace eval ::xowiki {
             set lang $default_lang
           }
 
-      } elseif {[regexp {^(..):(.*)$} $path _ lang local_name]} {
       } elseif {[regexp {^(file|image|swf|download/file|tag)/(.*)$} $path _ lang local_name]} {
       } else {
         set local_name $path
@@ -143,20 +142,30 @@ namespace eval ::xowiki {
     }
   }
   
-  Package instproc get_parent_and_name {-path:required -lang:required -folder_id:required vparent vlocal_name} {
+  Package instproc get_parent_and_name {-path:required -lang:required -parent_id:required vparent vlocal_name} {
     my upvar $vparent parent $vlocal_name local_name 
-    #my log "path=$path folder_id=$folder_id"
+    #my log "path=$path parent_id=$parent_id"
     if {[regexp {^([^/]+)/(.+)$} $path _ parent local_name]} {
-      # pages are stored with a lang prefix
-      set p [::xo::db::CrClass lookup -name ${lang}:$parent -parent_id $folder_id]
-      #my log "check '$parent' returned $p"
+
+      # try without a prefix
+      set p [::xo::db::CrClass lookup -name $parent -parent_id $parent_id]
+      my log "check '$parent' returned $p"
+
       if {$p == 0} {
-        # folders are stored without a lang prefix
-        set p [::xo::db::CrClass lookup -name $parent -parent_id $folder_id]
+        # pages are stored with a lang prefix
+        set p [::xo::db::CrClass lookup -name ${lang}:$parent -parent_id $parent_id]
+        my log "check '${lang}:$parent' returned $p"
       }
+
+      if {$p == 0 && $lang ne "en"} {
+        # try again with prefix "en"
+        set p [::xo::db::CrClass lookup -name en:$parent -parent_id $parent_id]
+        my log "check 'en:$parent' returned $p"
+      }
+
       if {$p != 0} {
         if {[regexp {^([^/]+)/(.+)$} $local_name _ parent2 local_name2]} {
-          set p2 [my get_parent_and_name -path $local_name -lang $lang -folder_id $p parent local_name]
+          set p2 [my get_parent_and_name -path $local_name -lang $lang -parent_id $p parent local_name]
           #my log "recursive call for '$local_name' parent_id=$p returned $p2"
           if {$p2 != 0} {
            set p $p2
@@ -170,7 +179,7 @@ namespace eval ::xowiki {
     set parent ""
     # a trailing slash indicates a directory, remove it from the path
     set local_name [string trimright $path /]
-    return $folder_id
+    return $parent_id
   }
 
   Package instproc get_page_from_name {{-parent_id ""} -name:required} {
@@ -187,30 +196,25 @@ namespace eval ::xowiki {
     #
     # handle different parent_ids
     #
-    if {$parent_id ne "" && $parent_id != [my folder_id]} {
-      # The item might be in a folder along the folder path.  so it
-      # will be found by the object resolver. For the time being, we
-      # do nothing more about this.
-      
-      set path ""
-      while {1} {
-        # TODO: on the longer range, this should not be required, but we have
-        # to solve the folder object problem first...
-        if {[::xo::db::sql::content_folder is_folder -item_id $parent_id]} {
-          set queryClass ::xo::db::CrFolder
-        } else {
-          set queryClass ::xo::db::CrClass
-        }
-        set fo [$queryClass get_instance_from_db -item_id $parent_id]
-        set path [$fo name]/$path
-        if {[my folder_id] == [$fo parent_id]} break
-        if {[$fo parent_id]<0} break
-        set parent_id [$fo parent_id]
-      }
-      return $path
+    if {$parent_id eq "" || $parent_id == [my folder_id]} {
+      return ""
     }
-
-    return ""
+    #
+    # The item might be in a folder along the folder path.  so it
+    # will be found by the object resolver. For the time being, we
+    # do nothing more about this.
+    #
+    set path ""
+    while {1} {
+      set fo [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
+      #my get_lang_and_name -name [$fo name] lang stripped_name
+      #set path $stripped_name/$path
+      set path [$fo name]/$path
+      if {[my folder_id] == [$fo parent_id]} break
+      if {[$fo parent_id]<0} break
+      set parent_id [$fo parent_id]
+    }
+    return $path
   }
     
 
@@ -227,8 +231,8 @@ namespace eval ::xowiki {
     if {$folder ne ""} {
       # Return the stripped name for sub-items, the parent has already
       # the language prefix
-      my get_lang_and_name -name $name lang stripped_name
-      return $folder$stripped_name
+      #my get_lang_and_name -name $name lang stripped_name
+      return $folder$name
     }
     return $name
 
@@ -1286,7 +1290,7 @@ namespace eval ::xowiki {
         if {$lang eq "download/file" || $lang eq "file"} { 
           # handle subitems, currently only for files
           set parent_id [my get_parent_and_name -lang $lang \
-                             -path $stripped_name -folder_id $folder_id \
+                             -path $stripped_name -parent_id $folder_id \
                              parent local_name]
           #my log "get_parent_and_name returned parent_id=$parent_id, name='$local_name'"
 	  set item_id [::xo::db::CrClass lookup -name file:$local_name -parent_id $parent_id]
@@ -1317,7 +1321,7 @@ namespace eval ::xowiki {
 
         if {$item_id == 0} {
           set parent_id [my get_parent_and_name -lang $lang \
-                             -path $stripped_name -folder_id $folder_id \
+                             -path $stripped_name -parent_id $folder_id \
                              parent local_name]
           #my log "get_parent_and_name returned parent=$parent, parent_id=$parent_id, deflang $lang name='$local_name'"
           my get_lang_and_name -default_lang $lang -path $local_name lang stripped_name

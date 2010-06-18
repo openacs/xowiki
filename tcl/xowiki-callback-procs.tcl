@@ -551,7 +551,29 @@ namespace eval ::xowiki {
 	$package_id import-prototype-page weblog-portlet
 	$package_id import-prototype-page news
       }
-    }    
+    }
+
+    set v 0.131
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      foreach pp [::xo::PackageMgr info instances] {
+        foreach package_id [$pp instances] {
+          ::xo::Package initialize -package_id $package_id
+          if {![$package_id istype ::xowiki::Package]} continue
+          # strip language prefix from folder pages
+          set ff [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+          set e [::xowiki::FormPage get_form_entries -form_fields "" \
+                     -base_item_ids $ff -package_id $package_id \
+                     -always_queried_attributes *]
+          foreach fp [$e children] {
+            set n [$fp name]
+            regexp {^..:(.+)$} $n . n
+            $fp rename -old_name [$fp name] -new_name $n
+          }
+        }
+      }
+    }
 
   }
 }

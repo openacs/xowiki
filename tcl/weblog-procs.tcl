@@ -60,6 +60,7 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set filter_msg  ""
     set query_parm ""
+    set query [ns_conn query]
     
     # set up filters
     set extra_from_clause ""
@@ -70,6 +71,7 @@ namespace eval ::xowiki {
       set date_clause "and [::xo::db::sql date_trunc_expression day bt.publish_date $date]"
       set filter_msg "Filtered by date $date"
       set query_parm "&date=$date"
+      set query [::xo::update_query $query date $date]
     } else {
       set date_clause ""
     }
@@ -85,6 +87,7 @@ namespace eval ::xowiki {
       append extra_from_clause  ""
       set filter_msg "Filtered by category [join $cnames {, }]"
       set query_parm "&category_id=$category_id"
+      set query [::xo::update_query $query category_id $category_id]
     }
 #my msg "tag=$tag"
     if {$tag ne ""} {
@@ -100,6 +103,7 @@ namespace eval ::xowiki {
       append extra_from_clause ",xowiki_tags tags "
       append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :ptag " 
       set query_parm "&ptag=[ad_urlencode $ptag]"
+      set query [::xo::update_query $query ptag $ptag]
     }
 #my msg filter_msg=$filter_msg 
     if {$name_filter ne ""} {
@@ -234,8 +238,12 @@ namespace eval ::xowiki {
     }
     
     array set smsg {1 full 0 summary}
-    set weblog_href [$package_id package_url][$package_id get_parameter weblog_page]
-    set flink "<a href='$weblog_href?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
+    
+    set query [::xo::update_query $query summary [expr {!$summary}]]
+    set weblog_href [::xo::cc url]?$query
+    #set weblog_href [$package_id package_url][$package_id get_parameter weblog_page]
+    #set flink "<a href='$weblog_href?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
+    set flink "<a href='$weblog_href'>$smsg($summary)</a>"
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
@@ -253,12 +261,12 @@ namespace eval ::xowiki {
       set prev_p [expr {$page_number > 1}]
   
       if {$next_p} {
-        set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number+1}]]
-        set next_page_link [export_vars -base [::xo::cc url] $query]
+        set query [::xo::update_query $query page_number [expr {$page_number+1}]]
+        set next_page_link [::xo::cc url]?$query
       }
       if {$prev_p} {
-        set query [::xo::update_query_variable [ns_conn query] page_number [expr {$page_number-1}]]
-        set prev_page_link [export_vars -base [::xo::cc url] $query]
+        set query [::xo::update_query $query page_number [expr {$page_number-1}]]
+        set prev_page_link [::xo::cc url]?$query
       }
     }
     #my proc destroy {} {my log "--W"; next}

@@ -581,12 +581,17 @@ namespace eval ::xowiki {
     # If we import from an old database without page_order, provide a
     # default value
     if {![my exists page_order]} {my set page_order ""}
-    # Check, if nls_language and lang are aligned.
-    if {[regexp {^(..):} [my name] _ lang]} {
-      if {[string range [my nls_language] 0 1] ne $lang} {
-        set old_nls_language [my nls_language]
-        my nls_language [my get_nls_language_from_lang $lang]
-        ns_log notice "nls_language for item [my name] set from $old_nls_language to [my nls_language]"
+    if {[my is_folder_page]} {
+      # reset names if necessary (e.g. import from old releases)
+      my build_name
+    } else {
+      # Check, if nls_language and lang are aligned.
+      if {[regexp {^(..):} [my name] _ lang]} {
+        if {[string range [my nls_language] 0 1] ne $lang} {
+          set old_nls_language [my nls_language]
+          my nls_language [my get_nls_language_from_lang $lang]
+          ns_log notice "nls_language for item [my name] set from $old_nls_language to [my nls_language]"
+        }
       }
     }
     # in the general case, no more actions required
@@ -864,6 +869,12 @@ namespace eval ::xowiki {
     return ""
   }
 
+  Page instproc is_folder_page {} {
+    if {![my istype ::xowiki::FormPage]} {return 0}
+    if {[[my page_template] name] ne "en:folder"} {return 1}
+    return 0
+  }
+
   Page instproc build_name {{-nls_language ""}} {
     #
     # Build the name of the page, based on the provided nls_language
@@ -878,17 +889,15 @@ namespace eval ::xowiki {
 
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
-      #if {[my istype ::xowiki::PageInstance]} {
+      if {[my is_folder_page]} {
         #
-        # Do not add a language prefix to anonymous pages
+        # Do not add a language prefix to folder pages
         #
-        #set anon_instances [my get_from_template anon_instances f]
-        #if {$anon_instances} {
-        #  return $stripped_name
-        #}
-      #}
-      if {$nls_language ne ""} {my nls_language $nls_language}
-      set name [my lang]:$stripped_name
+        set name $stripped_name
+      } else {
+        if {$nls_language ne ""} {my nls_language $nls_language}
+        set name [my lang]:$stripped_name
+      }
     }
     return $name
   }
@@ -1849,8 +1858,6 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   File instproc build_name {name {fn ""}} {
-    my instvar mime_type package_id
-    set type file
     if {$name ne ""} {
       set stripped_name $name
       regexp {^(.*):(.*)$} $name _ _t stripped_name
@@ -1860,7 +1867,7 @@ namespace eval ::xowiki {
       # filename. Just use the last part in such cases as name.
       regexp {[/\\]([^/\\]+)$} $stripped_name _ stripped_name
     }
-    return ${type}:[::$package_id normalize_name $stripped_name]
+    return file:[[my $package_id] normalize_name $stripped_name]
   }
   File instproc full_file_name {} {
     if {![my exists full_file_name]} {
@@ -2465,6 +2472,9 @@ namespace eval ::xowiki {
     # "-from_package_ids {}" means get pages from the instance
     # provided via package_id, "*" means from all
     # packages. Forthermore, a list of package_ids can be given.
+    #
+    # "-always_queried_attributes *" means to obtain enough attributes
+    # to allow a save operatons etc. on the instances.
     #
     
     set sql_atts [list ci.parent_id bt.revision_id bt.instance_attributes \

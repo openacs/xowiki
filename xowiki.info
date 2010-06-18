@@ -10,11 +10,11 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.130" url="http://openacs.org/repository/download/apm/xowiki-0.130.apm">
+    <version name="0.131" url="http://openacs.org/repository/download/apm/xowiki-0.131.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
-        <release-date>2010-06-17</release-date>
+        <release-date>2010-06-18</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -61,7 +61,7 @@ Some features:
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
         <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.114"/>
+        <requires url="xotcl-core" version="0.115"/>
 
         <callbacks>
             <callback type="after-install"  proc="::xowiki::after-install"/>
