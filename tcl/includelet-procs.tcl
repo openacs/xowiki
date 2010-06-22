@@ -2181,12 +2181,18 @@ namespace eval ::xowiki::includelet {
     }
 
     set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
+    $tree array set open_node [my array get open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+	-owner [self] \
         $pages
 
     set HTML [$tree render -style yuitree -js $js]
     return $HTML
+  }
+
+  toc instproc parent_id {} {
+    [my set __including_page] parent_id
   }
 
   toc instproc render_list {{-full false} pages} {
@@ -2204,8 +2210,10 @@ namespace eval ::xowiki::includelet {
       set allow_reorder [my page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
     set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [my id]]
+    $tree array set open_node [my array get open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
+	-owner [self] \
         $pages
 
     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
@@ -2215,6 +2223,11 @@ namespace eval ::xowiki::includelet {
     return $HTML
   }
 
+  # TODO: maybe we could generalize this and similar convenience
+  # methods on the includelet root class.
+  toc instproc parent_id {} {
+    [my set __including_page] parent_id
+  }
 
   toc instproc include_head_entries {} {
     my instvar style renderer
