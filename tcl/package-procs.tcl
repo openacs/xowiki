@@ -604,7 +604,11 @@ namespace eval ::xowiki {
   Package instproc make_form_link {-form {-parent_id ""} -name -nls_language -return_url} {
     my instvar id
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
-    set form_id [lindex [::xowiki::Weblog instantiate_forms -parent_id $parent_id -forms $form -package_id $id] 0]
+    set form_id [lindex [::xowiki::Weblog instantiate_forms \
+			     -parent_id $parent_id \
+			     -forms $form \
+			     -package_id $id] 0]
+    my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
       set form_link [$form_id pretty_link]
@@ -1080,6 +1084,7 @@ namespace eval ::xowiki {
     #
     # @return page object or empty ("").
     #
+    #my msg "get_page_from_item_ref [self args]"
     if {$allow_cross_package_item_refs && [string match //* $link]} {
       set referenced_package_id [my resolve_package_path $link rest_link]
       #my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
@@ -1135,6 +1140,11 @@ namespace eval ::xowiki {
                     -name $(stripped_name) \
                     -parent_id $(parent_id) \
                     -package_id [my id] ]
+      #my msg "import_prototype_page for '$(stripped_name)' => '$page'"
+      if {$page ne ""} {
+	# we want to be able to address the page via ::$item_id
+	set page [::xo::db::CrClass get_instance_from_db -item_id [$page item_id]]
+      }
       return $page
     }
     
@@ -1181,8 +1191,9 @@ namespace eval ::xowiki {
     #my log "--W check $fn"
     if {[file readable $fn]} {
       my instvar id
-      # We have the file. We try to create an item or revision from 
-      # definition in the file system.
+      # We have the file of the prototype page. We try to create
+      # either a new item or a revision from definition in the file
+      # system.
       if {[regexp {^(..):(.*)$} $name _ lang local_name]} {
         set fullName $name
       } else {
@@ -1214,19 +1225,26 @@ namespace eval ::xowiki {
         $p save
         set page $p
       }
+      if {$page ne ""} {
+	# we want to be able to address the page via the canonical name ::$item_id
+	set page [::xo::db::CrClass get_instance_from_db -item_id [$page item_id]]
+      }
     }
     return $page
   }
 
-  Package proc require_site_wide_pages {} {
+  Package proc require_site_wide_pages {
+    {-refetch:boolean false}
+  } {
     set parent_id -100
-    set package_id [::xo::cc package_id]
+    set package_id [::xowiki::Package first_instance]
+    ::xowiki::Package initialize -package_id $package_id
     set package_key "xowiki"
 
     foreach n {folder.form link.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
-      my ds "lookup en:$n => $item_id"
-      if {!$item_id} {
+      #my ds "lookup en:$n => $item_id"
+      if {!$item_id || $refetch} {
         set page [::xowiki::Package import_prototype_page \
                       -name $n \
                       -package_key $package_key \
@@ -1766,7 +1784,6 @@ namespace eval ::xowiki {
     if {$parent_id == 0} {set parent_id  [my folder_id]}
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
     if {![info exists objects]} {set objects [::xowiki::Page allinstances]}
-
     set msg "processing objects: $objects<p>"
     set importer [Importer new -package_id [my id] -parent_id $parent_id -user_id $user_id]
     $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
@@ -1806,6 +1823,8 @@ namespace eval ::xowiki {
     # While the class specific methods are used from the
     # application pages, the package_level method is used from the admin pages.
     #
+    #my log "--D delete [self args]"
+    #
     my instvar id
     #
     # if no item_id given, take it from the query parameter
@@ -1834,7 +1853,7 @@ namespace eval ::xowiki {
     }
 
     if {$item_id ne ""} {
-      #my log "--D trying to delete $item_id $name"
+      my log "--D trying to delete $item_id $name"
       set object_type [::xo::db::CrClass get_object_type -item_id $item_id]
       # In case of PageTemplate and subtypes, we need to check
       # for pages using this template

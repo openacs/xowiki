@@ -955,10 +955,10 @@ namespace eval ::xowiki::includelet {
                      -orderby "publish_date desc"]
 
     foreach entry [$listing children] {
-        $entry instvar name parent_id formatted_date page_id {title entry_title}
+      $entry instvar parent_id formatted_date page_id {title entry_title} {name entry_name}
         set entry_package_id [$entry set package_id]
       
-        set page_link [$entry_package_id pretty_link -parent_id $parent_id $name]
+        set page_link [$entry_package_id pretty_link -parent_id $parent_id $entry_name]
         switch -- $pretty_age {
 	  1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]]}
 	  2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2]}
@@ -994,7 +994,7 @@ namespace eval ::xowiki::includelet {
             set label ""
           } else {
             # provide a link to the original
-            set href [$entry_package_id pretty_link -parent_id $parent_id $name]
+            set href $page_link
             set label [$entry_package_id instance_name]
             set title [_ xowiki.view_in_context [list context $label]]
             set alt $title
@@ -3164,7 +3164,15 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     my instvar __including_page
     if {![info exists form_item_id]} {
-      set form_item_id [::xowiki::Weblog instantiate_forms -forms $form -package_id [$__including_page package_id]]
+      set form_item_id [::xowiki::Weblog instantiate_forms \
+			    -forms $form \
+			    -parent_id [$__including_page parent_id] \
+			    -package_id [$__including_page package_id]]
+      if {$form_item_id eq ""} {
+	# we could throw an error as well...
+	my msg "could not locate form '$form' for parent_id [$__including_page parent_id]"
+	return ""
+      }
     }
     if {[info exists parent_id]} {
       if {$parent_id eq "self"} {

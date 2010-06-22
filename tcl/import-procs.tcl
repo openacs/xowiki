@@ -22,7 +22,8 @@ namespace eval ::xowiki {
   }
   Importer instproc report_line {obj operation} {
     set href [$obj pretty_link]
-    my append log "<tr><td>$operation</td><td><a href='$href'>[$obj name]</a></td></tr>\n"
+    set name [[$obj package_id] external_name -parent_id [$obj parent_id] [$obj name]]
+    my append log "<tr><td>$operation</td><td><a href='$href'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
     my instvar added updated replaced
@@ -42,6 +43,7 @@ namespace eval ::xowiki {
     $object demarshall -parent_id [$object parent_id] -package_id $package_id \
 	-creation_user $user_id -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
+    #my msg "lookup of [$object name] parent [$object parent_id] => $item_id"
     if {$item_id != 0} {
       if {$replace} { ;# we delete the original
 	::xo::db::CrClass delete -item_id $item_id
@@ -49,10 +51,12 @@ namespace eval ::xowiki {
         my report_line $object replaced
 	my incr replaced
       } else {
+	#my msg "$item_id update: [$object name]"
 	::xo::db::CrClass get_instance_from_db -item_id $item_id
 	$item_id copy_content_vars -from_object $object
 	$item_id save -use_given_publish_date [$item_id exists publish_date] \
             -modifying_user [$object set modifying_user]
+	#my log "$item_id saved"
         $object set item_id [$item_id item_id]
 	#my msg "$item_id updated: [$object name]"
         my report_line $item_id updated
@@ -85,6 +89,7 @@ namespace eval ::xowiki {
     # Import a series of objects. This method takes care especially
     # about dependencies of objects, which is reflected by the order
     # of object-imports.
+    #
     #
     # Extact information from objects to be imported, that might be
     # changed later in the objects.
@@ -171,6 +176,10 @@ namespace eval ::xowiki {
           #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
           $o page_template $name_map($template_name_key)
           #my msg "exists template? [my isobject [$o page_template]]"
+	  if {![my isobject [$o page_template]]} {
+	    ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
+	    my msg "[my isobject [$o page_template]] loaded"
+	  }
         }
 
         if {[info exists item_ids($old_parent_id)]} {
@@ -181,6 +190,7 @@ namespace eval ::xowiki {
 
         # Everything is mapped, we can now do the import.
        
+        #my msg "start import for $o, name=[$o name]"
         my import \
             -object $o \
             -replace $replace \

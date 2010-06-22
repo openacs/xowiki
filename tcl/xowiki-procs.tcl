@@ -581,9 +581,11 @@ namespace eval ::xowiki {
     # If we import from an old database without page_order, provide a
     # default value
     if {![my exists page_order]} {my set page_order ""}
-    if {[my is_folder_page]} {
+    set is_folder_page [my is_folder_page]
+    #my msg "is-folder-page [my name] => $is_folder_page"
+    if {$is_folder_page} {
       # reset names if necessary (e.g. import from old releases)
-      my build_name
+      my set name [my build_name]
     } else {
       # Check, if nls_language and lang are aligned.
       if {[regexp {^(..):} [my name] _ lang]} {
@@ -595,6 +597,7 @@ namespace eval ::xowiki {
       }
     }
     # in the general case, no more actions required
+    #my msg "demarshall [my name] DONE"
   }
 
   File instproc demarshall {args} {
@@ -870,8 +873,10 @@ namespace eval ::xowiki {
   }
 
   Page instproc is_folder_page {} {
+    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
     if {![my istype ::xowiki::FormPage]} {return 0}
-    if {[[my page_template] name] ne "en:folder"} {return 1}
+    #my msg "[my name] has template page [my page_template] [[my page_template] name]"
+    if {[[my page_template] name] eq "en:folder.form"} {return 1}
     return 0
   }
 
@@ -887,6 +892,7 @@ namespace eval ::xowiki {
     set stripped_name $name
     regexp {^..:(.*)$} $name _ stripped_name
 
+    #my msg "$name / '$stripped_name'"
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
       if {[my is_folder_page]} {

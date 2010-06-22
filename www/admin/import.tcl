@@ -47,7 +47,8 @@ ad_form \
         set preexists($o) 1
       }
       if {[catch {namespace eval ::xo::import $content} error]} {
-        set msg "Error: $error"
+	#my msg "Error: $::errorInfo"
+        set msg "Error: $error\n$::errorInfo"
       } else {
         set objects [list]
         foreach o [::xowiki::Page allinstances] {
@@ -60,7 +61,8 @@ ad_form \
           set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
                        -parent_id $parent_id -objects $objects]
         } errMsg]} {
-          ns_log notice "Error during import: $errMsg"
+          ns_log notice "Error during import: $errMsg\nErrInfo: $::errorInfo"
+          ::xotcl::Object msg "Error during import: $errMsg\nErrInfo: $::errorInfo"
           foreach o $objects {$o destroy}
           error $errMsg
         }

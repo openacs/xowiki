@@ -36,18 +36,18 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
-      #my log "getting $t"
+      #my msg "trying to get $t"
       set page [$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
                     -use_package_path true \
                     -parent_id $parent_id \
                     $t]
-      #my log "weblog form $t => $page"
+      #my msg "weblog form $t => $page"
       if {$page ne ""} {
         lappend form_item_ids [$page item_id]
       }
     }
-    #my msg "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
+    #my log "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
     return $form_item_ids
   }
 
