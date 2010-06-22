@@ -1057,7 +1057,8 @@ namespace eval ::xowiki {
       #
       # Include a wiki page, tailorable.
       #
-      set page [my resolve_included_page_name $page_name]
+      #set page [my resolve_included_page_name $page_name]
+      set page [$package_id get_page_from_item_ref -parent_id [my parent_id] $page_name]
       
       if {$page ne "" && ![$page exists __decoration]} {
 	# 
