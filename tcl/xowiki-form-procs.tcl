@@ -251,7 +251,22 @@ namespace eval ::xowiki {
     if {[$data form_parameter __new_p 0]
         || $old_name ne $name
       } {
-      return [expr {[::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]] == 0}]
+      if {[::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]] == 0} {
+	# the provided name is really new
+        return 1
+      }
+      if {[$data istype ::xowiki::PageInstance]} {
+	# The entry might be autonamed. In case of imports from other
+	# xowiki instances, we might have name clashes. Therefore, we
+	# compute a fresh name here.
+	set anon_instances [$data get_from_template anon_instances f]
+	if {$anon_instances} {
+	  set basename [::xowiki::autoname basename [[$data page_template] name]]
+	  $data name [::xowiki::autoname new -name $basename -parent_id [$data parent_id]]
+	  return 1
+	}
+      }
+      return 0
     }
     return 1
   }
