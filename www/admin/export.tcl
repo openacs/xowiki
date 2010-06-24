@@ -22,8 +22,12 @@ if {$objects eq ""} {
   db_foreach instance_select $sql { set items($item_id) 1 }
 } else {
   foreach o $objects {
-    ns_log notice "lookup of $o in $folder_id returns [::xo::db::CrClass lookup -name $o -parent_id $folder_id]"
-    if {[set item_id [::xo::db::CrClass lookup -name $o -parent_id $folder_id]] != 0} {
+    $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $o lang stripped_name
+    set parent_id [$package_id get_parent_and_name -lang $lang \
+		       -path $stripped_name -parent_id $folder_id \
+		       parent local_name]
+    ns_log notice "lookup of $o in $folder_id returns [::xo::db::CrClass lookup -name $o -parent_id $parent_id]"
+    if {[set item_id [::xo::db::CrClass lookup -name $local_name -parent_id $parent_id]] != 0} {
       set items($item_id) 1 
     }
   }
@@ -79,7 +83,7 @@ ReturnHeaders
 foreach item_id [array names items] {
   ns_log notice "--exporting $item_id [$item_id name]"
   if {[catch {set obj [$item_id marshall]} errorMsg]} {
-    ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg"
+    ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
   } else {
     ns_write "$obj\n" 
   }
