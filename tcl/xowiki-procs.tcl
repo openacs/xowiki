@@ -295,8 +295,8 @@ namespace eval ::xowiki {
     my unset_temporary_instance_variables
     set old_creation_user  [my creation_user]
     set old_modifying_user [my set modifying_user]
-    my set creation_user   [my map_party $old_creation_user]
-    my set modifying_user  [my map_party $old_modifying_user]
+    my set creation_user   [my map_party -property creation_user $old_creation_user]
+    my set modifying_user  [my map_party -property modifying_user $old_modifying_user]
     if {[regexp {^..:[0-9]+$} $name] ||
         [regexp {^[0-9]+$} $name]} {
       #
@@ -454,7 +454,7 @@ namespace eval ::xowiki {
       #
       # map a party_id
       #
-      return [my map_party $value]
+      return [my map_party -property $map_type $value]
     } else {
       return $value
     }
@@ -509,20 +509,23 @@ namespace eval ::xowiki {
       #my log "+++ setting instance_attributes $ia"
     }
     set old_assignee [my assignee]
-    my set assignee  [my map_party $old_assignee]
+    my set assignee  [my map_party -property assignee $old_assignee]
     set r [next]
     my set assignee  $old_assignee
     return $r
   }
 
-  Page instproc map_party {party_id} {
+  Page instproc map_party {-property party_id} {
     #my log "+++ $party_id"
     # So far, we just handle users, but we should support parties in
     # the future as well.
     if {$party_id eq "" || $party_id == 0} {
       return $party_id
     }
-    acs_user::get -user_id $party_id -array info
+    if {[catch {acs_user::get -user_id $party_id -array info}]} {
+      ns_log warning "Cannot map party_id $party_id, probably not a user; property $property lost during export"
+      return {}
+    }
     set result [list]
     foreach a {username email first_names last_name screen_name url} {
       lappend result $a $info($a)
@@ -629,16 +632,20 @@ namespace eval ::xowiki {
   }
 
 
-  FormPage instproc reverse_map_values {map_type values category_ids_name} {
+  FormPage instproc reverse_map_values {-creation_user -create_user_ids map_type values category_ids_name} {
     # Apply reverse_map_value to a list of values (for multi-valued
     # form fields)
     my upvar $category_ids_name category_ids
     set mapped_values [list]
-    foreach value $values {lappend mapped_values [my reverse_map_value $map_type $value category_ids]}
+    foreach value $values {
+      lappend mapped_values [my reverse_map_value \
+				 -creation_user $creation_user -create_user_ids $create_user_ids \
+				 $map_type $value category_ids]
+    }
     return $mapped_values
   }
 
-  FormPage instproc reverse_map_value {map_type value category_ids_name} {
+  FormPage instproc reverse_map_value {-creation_user -create_user_ids map_type value category_ids_name} {
     # Perform the inverse function of map_value. During export, internal
     # representations are exchanged by string representations, which are
     # mapped here again to internal representations
@@ -692,9 +699,13 @@ namespace eval ::xowiki {
           set multiple [lindex $use($name) $multiple_index($map_type)]
           if {$multiple eq ""} {set multiple 1}
           if {$multiple} {
-            lappend ia $name [my reverse_map_values $map_type $value category_ids]
+            lappend ia $name [my reverse_map_values \
+				  -creation_user $creation_user -create_user_ids $create_user_ids \
+				  $map_type $value category_ids]
           } else {
-            lappend ia $name [my reverse_map_value $map_type $value category_ids]
+            lappend ia $name [my reverse_map_value \
+				  -creation_user $creation_user -create_user_ids $create_user_ids \
+				  $map_type $value category_ids]
           }
         } else {
           # nothing to map
@@ -941,9 +952,14 @@ namespace eval ::xowiki {
     set page [self]
     while {1} {
       if {[$page istype ::xowiki::FormPage]} {
-        # folder_form_ids is a list of form_ids
-        if {[lsearch $folder_form_ids [$page page_template]] > -1} {
+	set page_template [$page page_template]
+        # search the page_template in the list of form_ids
+        if {[lsearch $folder_form_ids $page_template] > -1} {
           break
+	} elseif {[$page_template name] eq "en:folder.form"} {
+	  # safety belt, in case we have in different directories
+	  # diffenent en:folder.form
+	  break
         }
       }
       set page [::xo::db::CrClass get_instance_from_db -item_id [$page parent_id]]
