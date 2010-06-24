@@ -1528,6 +1528,7 @@ namespace eval ::xowiki {
     # by \x003 to avoid conflict withe the input and we replace these
     # magic chars finally with the fields resulting from tdom.
 
+    set form [my substitute_markup $form]
     set form [string map [list @ \x003] $form]
     #my msg form=$form
 
@@ -1615,7 +1616,6 @@ namespace eval ::xowiki {
     }
     my post_process_dom_tree $doc $root $form_fields
     set html [$root asHTML]
-    set html [my substitute_markup $html]
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
                   {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
