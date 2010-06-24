@@ -659,12 +659,12 @@ namespace eval ::xowiki {
       # an optional link for creating the page
       set path [::xowiki::Includelet html_encode [my set object]]
       set edit_snippet [my create_new_snippet $path]
-      return [my error_msg -template_file $error_template \
+      return [my error_msg -status_code 404 -template_file $error_template \
 		  "Page <b>'$path'</b> is not available. $edit_snippet"]
     }
   }
 
-  Package instproc error_msg {{-template_file error-template} error_msg} {
+  Package instproc error_msg {{-template_file error-template} {-status_code 200} error_msg} {
     my instvar id
     if {![regexp {^[./]} $template_file]} {
       set template_file /packages/xowiki/www/$template_file
@@ -676,6 +676,7 @@ namespace eval ::xowiki {
     set link [my query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
     set top_includelets ""; set content $error_msg
+    ::xo::cc set status_code $status_code
     $id return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg 
       top_includelets content
