@@ -1890,7 +1890,7 @@ namespace eval ::xowiki {
       # filename. Just use the last part in such cases as name.
       regexp {[/\\]([^/\\]+)$} $stripped_name _ stripped_name
     }
-    return file:[[my $package_id] normalize_name $stripped_name]
+    return file:[[my package_id] normalize_name $stripped_name]
   }
   File instproc full_file_name {} {
     if {![my exists full_file_name]} {
