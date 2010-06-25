@@ -1242,7 +1242,7 @@ namespace eval ::xowiki {
     ::xowiki::Package initialize -package_id $package_id
     set package_key "xowiki"
 
-    foreach n {folder.form link.form} {
+    foreach n {folder.form link.form page.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
       #my ds "lookup en:$n => $item_id"
       if {!$item_id || $refetch} {
