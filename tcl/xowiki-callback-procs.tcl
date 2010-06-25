@@ -521,8 +521,9 @@ namespace eval ::xowiki {
 
       ::xowiki::Package initialize -package_id [::xowiki::Package first_instance]
       ::xowiki::Package require_site_wide_pages
-      foreach p [::xowiki::Package instances] {::xowiki::transform_root_folder $p}
-      foreach p [::xowf::Package instances] {::xowiki::transform_root_folder $p}
+      foreach p [::xowiki::Package instances -closure true] {
+	::xowiki::transform_root_folder $p
+      }
 
       foreach package_id [::xowiki::Package instances] {
 	::xowiki::Package initialize -package_id $package_id
@@ -557,20 +558,17 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
-      foreach pp [::xo::PackageMgr info instances] {
-        foreach package_id [$pp instances] {
-          ::xo::Package initialize -package_id $package_id
-          if {![$package_id istype ::xowiki::Package]} continue
-          # strip language prefix from folder pages
-          set ff [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
-          set e [::xowiki::FormPage get_form_entries -form_fields "" \
-                     -base_item_ids $ff -package_id $package_id \
-                     -always_queried_attributes *]
-          foreach fp [$e children] {
-            set n [$fp name]
-            regexp {^..:(.+)$} $n . n
-            $fp rename -old_name [$fp name] -new_name $n
-          }
+      foreach package_id [::xowiki::Package instances -closure true] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	# strip language prefix from folder pages
+	set ff [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+	set e [::xowiki::FormPage get_form_entries -form_fields "" \
+		   -base_item_ids $ff -package_id $package_id \
+		   -always_queried_attributes *]
+	foreach fp [$e children] {
+	  set n [$fp name]
+	  regexp {^..:(.+)$} $n . n
+	  $fp rename -old_name [$fp name] -new_name $n
         }
       }
     }
