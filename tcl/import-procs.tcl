@@ -224,5 +224,97 @@ namespace eval ::xowiki {
     [my package_id] flush_page_fragment_cache
   }
 
+  #
+  # A small helper for exporting objects
+  #
+
+  Object create exporter 
+  exporter proc include_needed_objects {item_ids} {
+    #
+    # Load the objects
+    #
+    foreach item_id $item_ids {
+      if {[::xo::db::CrClass get_instance_from_db -item_id $item_id] eq ""} {
+	my log "Warning: cannot fetch item $item_id for exporting"
+      } else {
+	set items($item_id) 1
+      }
+    }
+
+    #
+    # In a second step, include the objects which should be exported implicitly
+    #
+    # TODO: we should flag the reason, why the implicitely included
+    # elements were included. If the target can resolve already such
+    # items (e.g. forms), we might not have to materialize these
+    # finally.
+    #
+    while {1} {
+      set new 0
+      ns_log notice "--export works on [array names items]"
+      foreach item_id [array names items] {
+	#
+	# For PageInstances (or its subtypes), include the parent-objects as well
+	#
+	if {[$item_id istype ::xowiki::PageInstance]} {
+	  set template_id [$item_id page_template]
+	  if {![info exists items($template_id)]} {
+	    ns_log notice "--export including parent-object $template_id [$template_id name]"
+	    set items($template_id) 1
+	    ::xo::db::CrClass get_instance_from_db -item_id $template_id
+	    set new 1
+	  }
+	}
+	#
+	# check for child objects of the item
+	#
+	set sql [[$item_id info class] instance_select_query -folder_id $item_id -with_subtypes true]
+	db_foreach instance_select $sql {
+	  if {![info exists items($item_id)]} {
+	    ::xo::db::CrClass get_instance_from_db -item_id $item_id
+	    ns_log notice "--export including child $item_id [$item_id name]"
+	    set items($item_id) 1 
+	    set new 1
+	  }
+	}
+      }
+      if {!$new} break
+    }
+    return [array names items]
+  }
+
+  exporter proc marshall_all {item_ids} {
+    set content ""
+    foreach item_id $item_ids {
+      if {[catch {set obj [$item_id marshall]} errorMsg]} {
+	ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+      } else {
+	append content $obj\n
+      }
+    }
+    return $content
+  }
+
+  exporter proc export {item_ids} {
+    #
+    # include implictely needed objects, instantiate the objects.
+    #
+    set item_ids [my include_needed_objects $item_ids]
+    #
+    # stream the objects via ns_write
+    #
+    ns_set put [ns_conn outputheaders] "Content-Type" "text/plain"
+    ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=export.xotcl"
+    ReturnHeaders 
+    
+    foreach item_id $item_ids {
+      ns_log notice "--exporting $item_id [$item_id name]"
+      if {[catch {set obj [$item_id marshall]} errorMsg]} {
+	ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+      } else {
+	ns_write "$obj\n" 
+      }
+    }
+  }
 
 }

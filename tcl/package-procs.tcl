@@ -149,7 +149,7 @@ namespace eval ::xowiki {
 
       # try without a prefix
       set p [::xo::db::CrClass lookup -name $parent -parent_id $parent_id]
-      my log "check '$parent' returned $p"
+      #my log "check '$parent' returned $p"
 
       if {$p == 0} {
         # pages are stored with a lang prefix
@@ -739,6 +739,10 @@ namespace eval ::xowiki {
     }
 
     my get_lang_and_name -default_lang $lang -path $object lang stripped_name
+    set parent_id [my get_parent_and_name -lang $lang -path $stripped_name -parent_id [my folder_id] \
+		       parent local_name]
+    #my msg "parent_id = $parent_id, local_name = $local_name, stripped_name = $stripped_name"
+    set stripped_name $local_name
 
     # stripped object is the object without a language prefix
     set stripped_object $object
@@ -785,7 +789,7 @@ namespace eval ::xowiki {
     }
     
     set page [::xowiki::Package get_site_wide_page -name en:$stripped_name]
-    #my log "get_site_wide_page for en:'$stripped_name' returned $page (stripped name)"
+    #my log "get_site_wide_page for en:'$stripped_name' returned '$page' (stripped name)"
     if {$page ne ""} {
       #my msg "set_resolve_context site-wide -package_id [my id] -parent_id [my folder_id]"
       $page set_resolve_context -package_id [my id] -parent_id [my folder_id]

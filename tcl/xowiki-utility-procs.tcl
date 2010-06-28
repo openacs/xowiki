@@ -8,6 +8,33 @@
 
 namespace eval ::xowiki {
 
+  #
+  # Simple clipboard functionality
+  #
+  ::xotcl::Object create clipboard
+  clipboard proc add {ids} {
+    set clipboard [ad_get_client_property xowiki clipboard]
+    eval lappend clipboard $ids
+    ad_set_client_property xowiki clipboard [lsort -unique $clipboard]
+  }
+  clipboard proc clear {} {
+    ad_set_client_property xowiki clipboard ""
+  }
+  clipboard proc get {} {
+    return [ad_get_client_property xowiki clipboard]
+  }
+  clipboard proc is_empty {} {
+    expr {[my size] < 1}
+  }
+  clipboard proc size {} {
+    set clipboard [ad_get_client_property xowiki clipboard]
+    return [llength $clipboard]
+  }
+
+  #
+  #
+  # Helper for tidying up HTML
+  #
   ::xotcl::Object create tidy
   tidy proc clean {text} {
     if {[[::xo::cc package_id] get_parameter tidy 0] 

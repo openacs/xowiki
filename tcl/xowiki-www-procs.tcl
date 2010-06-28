@@ -14,6 +14,85 @@ namespace eval ::xowiki {
   # This block contains the externally called methods. We use as
   # naming convention dashes as separators.
   #
+
+  #
+  # externally called method: clipboard-add
+  # 
+  Page instproc clipboard-add {} {
+    my instvar package_id
+    if {![my exists_form_parameter "objects"]} {
+      my msg "nothing to copy"
+    }
+    set ids [list]
+    foreach page_name [my form_parameter objects] {
+      # the page_name is the name exactly as stored in the content repository
+      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id [my item_id]]
+      my msg "want to copy $page_name // $item_id"
+      if {$item_id ne 0} {lappend ids $item_id}
+    }
+    ::xowiki::clipboard add $ids
+    ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
+  }
+
+  #
+  # externally called method: clipboard-clear
+  # 
+  Page instproc clipboard-clear {} {
+    my instvar package_id
+    ::xowiki::clipboard clear
+    ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
+  }
+
+  #
+  # externally called method: clipboard-content
+  # 
+  Page instproc clipboard-content {} {
+    my instvar package_id
+    set clipboard [::xowiki::clipboard get]
+    if {$clipboard eq ""} {
+      util_user_message -message "Clipboard empty"
+    } else {
+      foreach item_id $clipboard {
+	if {[::xo::db::CrClass get_instance_from_db -item_id $item_id] ne ""} {
+	  util_user_message -message [$item_id pretty_link]
+	} else {
+	  util_user_message -message "item $item_id deleted"
+	}
+      }
+    }
+    ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
+  }
+
+  #
+  # externally called method: clipboard-copy
+  # 
+  Page instproc clipboard-copy {} {
+    my instvar package_id
+    set clipboard [::xowiki::clipboard get]
+    set item_ids [::xowiki::exporter include_needed_objects $clipboard]
+    set content [::xowiki::exporter marshall_all $item_ids]
+    if {[catch {namespace eval ::xo::import $content} error]} {
+      my msg "Error: $error\n$::errorInfo"
+      return
+    }
+    set msg [$package_id import -replace 0 -create_user_ids 1 \
+		 -parent_id [my item_id] -objects $item_ids]
+    my msg $msg
+    ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
+  }
+
+  #
+  # externally called method: clipboard-export
+  # 
+  Page instproc clipboard-export {} {
+    my instvar package_id
+    set clipboard [::xowiki::clipboard get]
+    ::xowiki::exporter export $clipboard
+    #::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
+  }
+
+  
+  #
   # externally called method: create-new
   # 
 
@@ -999,6 +1078,8 @@ namespace eval ::xowiki {
     set mb [$context_package_id get_parameter "MenuBar" 0]
     if {$mb ne "0" && [info command ::xowiki::MenuBar] ne ""} {
 
+      set clipboard_size [::xowiki::clipboard size]
+      set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
       #
       # Define standard xowiki menubar
       #
@@ -1006,7 +1087,7 @@ namespace eval ::xowiki {
       set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
       $mb add_menu -name Package -label [$context_package_id instance_name]
       $mb add_menu -name New
-      $mb add_menu -name Clipboard
+      $mb add_menu -name Clipboard -label $clipboard_label
       $mb add_menu -name Page
       $mb add_menu_item -name Package.Startpage \
           -item [list text #xowiki.index# url $index_link]
