@@ -27,7 +27,7 @@ namespace eval ::xowiki {
     foreach page_name [my form_parameter objects] {
       # the page_name is the name exactly as stored in the content repository
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id [my item_id]]
-      my msg "want to copy $page_name // $item_id"
+      #my msg "want to copy $page_name // $item_id"
       if {$item_id ne 0} {lappend ids $item_id}
     }
     ::xowiki::clipboard add $ids
