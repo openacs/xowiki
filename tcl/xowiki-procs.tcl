@@ -1819,6 +1819,74 @@ namespace eval ::xowiki {
   }
 
 
+  Page instproc create_form_page_instance {
+    -name:required 
+    -package_id 
+    -parent_id
+    {-text ""}
+    {-instance_attributes ""}
+    {-default_variables ""}
+    {-nls_language ""}
+    {-creation_user ""}
+    {-publish_status production} 
+    {-source_item_id ""}
+  } {
+    set ia [my default_instance_attributes]
+    foreach {att value} $instance_attributes {lappend ia $att $value}
+
+    if {$nls_language eq ""} {
+      set nls_language [my query_parameter nls_language [my nls_language]]
+    }
+    if {![info exists package_id]} { set package_id [my package_id] }
+    if {![info exists parent_id]}  { set parent_id [my parent_id] }
+    if {$creation_user eq ""} {
+      set creation_user [[$package_id context] user_id]
+    }
+    
+    set f [FormPage new -destroy_on_cleanup \
+               -name $name \
+               -text $text \
+               -package_id $package_id \
+               -parent_id $parent_id \
+               -nls_language $nls_language \
+               -publish_status $publish_status \
+               -creation_user $creation_user \
+               -instance_attributes $ia \
+               -page_template [my item_id]]
+
+    if {[my exists state]} {
+      $f set state [my set state]
+    }
+
+    # Make sure to load the instance attributes
+    $f array set __ia [$f instance_attributes]
+
+    # Call the application specific initialization, when a FormPage is
+    # initially created. This is used to control the life-cycle of
+    # FormPages.
+    $f initialize
+
+    #
+    # if we copy an item, we use source_item_id to provide defaults
+    #
+    if {$source_item_id ne ""} {
+      set source [FormPage get_instance_from_db -item_id $source_item_id]
+      $f copy_content_vars -from_object $source
+      set name "[::xowiki::autoname new -parent_id $source_item_id -name [my name]]"
+      $package_id get_lang_and_name -name $name lang name
+      $f set name $name
+      #my msg nls=[$f nls_language],source-nls=[$source nls_language]
+    }
+    foreach {att value} $default_variables {
+      $f set $att $value
+    }
+
+    # Finally provide base for auto-titles
+    $f set __title_prefix [my title]
+    return $f
+  }
+
+
   #
   # Methods of ::xowiki::PlainPage
   #
@@ -2865,6 +2933,70 @@ namespace eval ::xowiki {
     return [string range $content 1 end]
   }
 
+  FormPage instproc post_process_form_fields {form_fields} {
+    # We offer here the possibility to iterate over the form fields before it
+    # before they are rendered
+  }
+
+  FormPage instproc post_process_dom_tree {dom_doc dom_root form_fields} {
+    # Part of the input fields comes from HTML, part comes via $form_fields
+    # We offer here the possibility to iterate over the dom tree before it
+    # is presented; can be overloaded
+  }
+
+  FormPage instproc load_values_into_form_fields {form_fields} {
+    array set __ia [my set instance_attributes]
+    foreach f $form_fields {
+      set att [$f name]
+      switch -glob $att {
+        __* {}
+        _* {
+          set varname [string range $att 1 end]
+          $f value [$f convert_to_external [my set $varname]]
+        }
+        default {
+          if {[info exists __ia($att)]} {
+            #my msg "setting $f ([$f info class]) value $__ia($att)"
+            $f value [$f convert_to_external $__ia($att)]
+          }
+        }
+      }
+    }
+  }
+
+  FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
+    ::html::div -class form-button {
+      set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
+                 -name __form_button_ok \
+                 -CSSclass $CSSclass]
+      $f render_input
+    }
+  }
+
+  FormPage instproc form_fields_sanity_check {form_fields} {
+    foreach f $form_fields {
+      if {[$f exists disabled]} {
+        # don't mark disabled fields as required
+        if {[$f required]} {
+          $f required false
+        }
+        #don't show the help-text, if you cannot input
+        if {[$f help_text] ne ""} {
+          $f help_text ""
+        }
+      }
+      if {[$f exists transmit_field_always] 
+          && [lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
+        # Never omit these fields, this would cause problems with
+        # autonames and empty languages. Set these fields to hidden
+        # instead.
+        $f remove_omit
+        $f class ::xowiki::formfield::hidden
+        $f initialize
+        #my msg "$f [$f name] [$f info class] [$f info mixin]"
+      }
+    }
+  }
 
   FormPage instproc group_require {} {
     #
