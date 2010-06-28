@@ -1440,6 +1440,21 @@ namespace eval ::xowiki {
     }
   }
 
+  Page instproc new_link {-name -title -nls_language -return_url -parent_id page_package_id} {
+    if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
+    return [$page_package_id make_link -with_entities 0 $page_package_id \
+		edit-new object_type name title nls_language return_url parent_id autoname]
+  }
+
+  FormPage instproc new_link {-name -title -nls_language -parent_id -return_url page_package_id} {
+    set template_id [my page_template]
+    if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
+    set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
+    return [$page_package_id make_link -with_entities 0 -link $form $template_id \
+		create-new return_url name title nls_language]
+  }
+
+
 
   Page instproc anchor {arg} {
     if {[catch {set l [my create_link $arg]} errorMsg]} {
@@ -1639,6 +1654,80 @@ namespace eval ::xowiki {
     #my log "--OMIT and not $field in ([join $::xowiki_page_item_id_rendered ,])"
     return "and not $field in ([join $::xowiki_page_item_id_rendered ,])"
   }
+
+  Page instproc htmlFooter {{-content ""}} {
+    my instvar package_id
+
+    if {[my exists __no_footer]} {return ""}
+
+    set footer ""
+    set description [my get_description $content]
+    
+    if {[ns_conn isconnected]} {
+      set url         "[ns_conn location][::xo::cc url]"
+      set package_url "[ns_conn location][$package_id package_url]"
+    }
+
+    set tags ""
+    if {[$package_id get_parameter "with_tags" 1] && 
+        ![my exists_query_parameter no_tags] &&
+        [::xo::cc user_id] != 0
+      } {
+      set tag_content [my include my-tags]
+      set tag_includelet [my set __last_includelet]
+      if {[$tag_includelet exists tags]} {
+	set tags [$tag_includelet set tags]
+      }
+    } else {
+      set tag_content ""
+    }
+
+    if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
+      append footer "<div style='float: right'>" \
+          [my include [list digg -description $description -url $url]] "</div>\n"
+    }
+
+    if {[$package_id get_parameter "with_delicious" 0] && [info exists url]} {
+      append footer "<div style='float: right; padding-right: 10px;'>" \
+          [my include [list delicious -description $description -url $url -tags $tags]] \
+          "</div>\n"
+    }
+
+    if {[$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
+      set publisher [$package_id get_parameter "my_yahoo_publisher" \
+                         [::xo::get_user_name [::xo::cc user_id]]]
+      append footer "<div style='float: right; padding-right: 10px;'>" \
+          [my include [list my-yahoo-publisher \
+                                   -publisher $publisher \
+                                   -rssurl "$package_url?rss"]] \
+          "</div>\n"
+    }
+
+    append footer [my include my-references] 
+    
+    if {[$package_id get_parameter "show_per_object_categories" 1]} {
+      set html [my include my-categories]
+      if {$html ne ""} {
+	append footer $html <br>
+      }
+      set categories_includelet [my set __last_includelet]
+    }
+
+    append footer $tag_content
+
+    if {[$package_id get_parameter "with_general_comments" 0] &&
+        ![my exists_query_parameter no_gc]} {
+      append footer [my include my-general-comments] 
+    }
+
+    if {$footer ne ""} {
+      # make sure, the 
+      append footer "<div class='visual-clear'><!-- --></div>"
+    }
+
+    return  "<div class='item-footer'>$footer</div>\n"
+  }
+
 
   Page instproc footer {} {
     return ""
@@ -2506,6 +2595,17 @@ namespace eval ::xowiki {
     return 1
   }
 
+  Page instproc default_instance_attributes {} {
+    #
+    # Provide the default list of instance attributes to derived
+    # FormPages.
+    #
+    # We want to be able to create FormPages from all pages.
+    # by defining this method, we allow derived applications
+    # to provide their own set of instance attributes
+    return [list]
+  }
+
   #
   # Methods of ::xowiki::FormPage
   #
@@ -2531,6 +2631,86 @@ namespace eval ::xowiki {
       if {[my state] eq $v} {return 1}
     }
     return 0
+  }
+
+  FormPage proc h_double_quote {value} {
+    if {[regexp {[ ,\"\\=>]} $value]} {
+      set value \"[string map [list \" \\\\\" \\ \\\\ ' \\\\'] $value]\"
+    }
+    return $value
+  }
+
+  FormPage proc filter_expression {
+    {-sql true}
+    input_expr
+    logical_op
+  } {
+    array set tcl_op {= eq < < > > >= >= <= <=}
+    array set sql_op {= =  < < > > >= >= <= <=}
+    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {[lsearch $lhs_var {$rhs}] > -1}}
+    #my msg unless=$unless
+    #example for unless: wf_current_state = closed|accepted || x = 1
+    set tcl_clause [list]
+    set h_clause [list]
+    set vars [list]
+    set sql_clause [list]
+    foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
+      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
+        set lhs [string trim $lhs]
+        set rhs_expr [string trim $rhs_expr]
+        if {[string range $lhs 0 0] eq "_"} {
+          set lhs_var [string range $lhs 1 end]
+	  set rhs [split $rhs_expr |] 
+          if {[info exists op_map($op,sql)]} {
+            lappend sql_clause [subst -nocommands $op_map($op,sql)]
+            if {[my exists $lhs_var]} {
+              set lhs_var "\[my set $lhs_var\]"
+              lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+            } else {
+              my msg "ignoring unknown variable $lhs_var in expression"
+            }
+          } elseif {[llength $rhs]>1} {
+            lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
+            # the following statement is only needed, when we rely on tcl-only
+	    lappend tcl_clause "\[lsearch -exact {$rhs} \[my property $lhs\]\] > -1"
+          } else {
+            lappend sql_clause "$lhs_var $sql_op($op) '$rhs'"
+            # the following statement is only needed, when we rely on tcl-only
+	    lappend tcl_clause "\[my property $lhs\] $tcl_op($op) {$rhs}"
+          }
+        } else {
+          set hleft [my h_double_quote $lhs]
+          lappend vars $lhs ""
+	  if {$op eq "contains"} {
+	    #make approximate query
+	    set lhs_var instance_attributes
+	    set rhs $rhs_expr
+	    lappend sql_clause [subst -nocommands $op_map($op,sql)]
+	  }
+          set lhs_var "\$__ia($lhs)"
+          foreach rhs [split $rhs_expr |] {
+	    if {[info exists op_map($op,tcl)]} {
+	      lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+	    } else {
+	      lappend tcl_clause "$lhs_var $tcl_op($op) {$rhs}"
+	    }
+            if {$op eq "="} {
+              # TODO: think about a solution for other operators with
+              # hstore maybe: extracting it by a query via hstore and
+              # compare in plain SQL
+              lappend h_clause "$hleft=>[my h_double_quote $rhs]"
+            }
+          }
+        }
+      } else {
+        my msg "ignoring $clause"
+      }
+    }
+    if {[llength $tcl_clause] == 0} {set tcl_clause [list true]}
+    #my msg sql=$sql_clause,tcl=$tcl_clause
+    return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] \
+                vars $vars sql $sql_clause]
+    #my msg $expression
   }
 
   FormPage proc get_form_entries {
