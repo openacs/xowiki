@@ -3160,9 +3160,10 @@ namespace eval ::xowiki {
   }
 
   Page instproc unset_temporary_instance_variables {} {
-    # never save/cache __ia or __field_in_form
+    # don't marshall/save/cache the following vars
     my array unset __ia
     my array unset __field_in_form
+    my array unset __field_needed 
   }
 
   Page instproc map_categories {category_ids} {

@@ -835,12 +835,14 @@ namespace eval ::xowiki {
 
   Package instproc lookup {
     {-use_package_path true} 
+    {-use_site_wide_pages false} 
     {-default_lang ""} 
     -name:required 
     {-parent_id ""}
   } {
-    # Lookup of names from a given parent_id or from the list of
-    # configured instances (obtained via package_path).
+    # Lookup of names (with maybe cross-package references) from a
+    # given parent_id or from the list of configured instances
+    # (obtained via package_path).
     #
     array set "" [my get_package_id_from_page_name -default_lang $default_lang $name]
     #my msg "result = [array get {}]"
@@ -851,9 +853,11 @@ namespace eval ::xowiki {
     if {$parent_id eq ""} {set parent_id [$(package_id) folder_id]}
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
     #my msg "lookup $(page_name) $parent_id in package $(package_id) returns $item_id"
+
     if {$item_id == 0 && $use_package_path} {
       #
-      # Is the page inherited along the package path?
+      # Page not found so far. Is the page inherited along the package
+      # path?
       #
       foreach package [my package_path] {
         set item_id [$package lookup -name $name]
@@ -861,10 +865,16 @@ namespace eval ::xowiki {
         if {$item_id != 0} break
       }
     }
+
+    if {$item_id == 0 && $use_site_wide_pages} {
+      #
+      # Page not found so far. Is the page a site_wide page?
+      #
+      set item_id [::xowiki::Package lookup_side_wide_page -name $name]
+    }
+
     return $item_id
   }
-
-
 
   #
   # Resolving item refs 
@@ -873,6 +883,7 @@ namespace eval ::xowiki {
 
   Package ad_instproc item_ref {
     {-use_package_path false}
+    {-use_site_wide_pages false}
     {-normalize_name true}
     -default_lang:required 
     -parent_id:required 
@@ -913,6 +924,7 @@ namespace eval ::xowiki {
       array set "" [my simple_item_ref \
                         -normalize_name $normalize_name \
                         -use_package_path $use_package_path \
+                        -use_site_wide_pages $use_site_wide_pages \
                         -default_lang $default_lang \
                         -parent_id $parent_id \
                         -assume_folder [expr {[incr n] < $nr_elements}] \
@@ -950,6 +962,7 @@ namespace eval ::xowiki {
     -default_lang:required 
     -parent_id:required 
     {-use_package_path true}
+    {-use_site_wide_pages false}
     {-normalize_name true}
     {-assume_folder:required false}
     element
@@ -1018,7 +1031,9 @@ namespace eval ::xowiki {
     } else {
       # with the following construct we need in most cases just 1 lookup
 
-      set item_id [my lookup -use_package_path $use_package_path \
+      set item_id [my lookup \
+		       -use_package_path $use_package_path \
+		       -use_site_wide_pages $use_site_wide_pages \
                        -name $name -parent_id $parent_id]
       #my msg "[my id] lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
 
@@ -1032,7 +1047,9 @@ namespace eval ::xowiki {
           # $default_lang), try again with language "en" try again,
           # maybe element is folder in a different language
           #
-          set item_id [my lookup -use_package_path $use_package_path \
+          set item_id [my lookup \
+			   -use_package_path $use_package_path \
+			   -use_site_wide_pages $use_site_wide_pages \
                            -name en:$(stripped_name) -parent_id $parent_id]
           #my msg "try again in en en:$(stripped_name) => $item_id"
           if {$item_id > 0} {array set "" [list link_type "link" prefix en]}
@@ -1061,7 +1078,9 @@ namespace eval ::xowiki {
               set (link_type) file
             }
           }
-          set item_id [my lookup -use_package_path $use_package_path \
+          set item_id [my lookup \
+			   -use_package_path $use_package_path \
+			   -use_site_wide_pages $use_site_wide_pages \
                            -name file:$(stripped_name) -parent_id $parent_id]
         }
       }
@@ -1122,18 +1141,21 @@ namespace eval ::xowiki {
     }
     array set "" [my item_ref -normalize_name false \
                       -use_package_path $use_package_path \
+                      -use_site_wide_pages $use_site_wide_pages \
                       -default_lang $default_lang \
                       -parent_id $search_parent_id \
                       $link]
+
     #my msg "item-ref for '$link' returns [array get {}]"
-    if {!$(item_id) && $use_site_wide_pages} {
-      set page [::xowiki::Package get_site_wide_page -name $(prefix):$(stripped_name)]
-      if {$page ne ""} {
+    if {$(item_id)} {
+      set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+      if {[$page package_id] ne [my id] || [$page parent_id] != $(parent_id)} {
         #my msg "set_resolve_context site_wide_pages [my id] and -parent_id $parent_id"
         $page set_resolve_context -package_id [my id] -parent_id $parent_id
-        return $page
       }
+      return $page
     }
+
     if {!$(item_id) && $use_prototype_pages} {
       array set "" [my item_ref \
                         -normalize_name false \
@@ -1153,10 +1175,7 @@ namespace eval ::xowiki {
       return $page
     }
     
-    if {!$(item_id)} {
-      return ""
-    }
-    return [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+    return ""
   }
 
   #
@@ -1259,8 +1278,12 @@ namespace eval ::xowiki {
     }
   }
 
+  Package proc lookup_side_wide_page {-name:required} {
+    return [::xo::db::CrClass lookup -name $name -parent_id -100]
+  }
+
   Package proc get_site_wide_page {-name:required} {
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id -100]
+    set item_id [my lookup_side_wide_page -name $name]
     #my ds "lookup from base objects $name => $item_id"
     if {$item_id} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
@@ -1336,7 +1359,7 @@ namespace eval ::xowiki {
 	}
 
         if {$item_id == 0} {
-          # in case we have a folder "foldername" and a page "foldername/xxx", the page has
+          # in case we have a folder "foldername" and a page "foldername/...", the page has
           # higher priority.
           set item_id [::xo::db::CrClass lookup -name ${lang}:$stripped_name -parent_id $parent_id]
           #my log "default_lang=$lang, ${lang}:$stripped_name / $parent_id => $item_id\n"

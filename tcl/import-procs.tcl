@@ -10,7 +10,7 @@
 namespace eval ::xowiki {
 
   Class Importer -parameter {
-    {added 0} {replaced 0} {updated 0} 
+    {added 0} {replaced 0} {updated 0} {inherited 0}
     {package_id} {parent_id} {user_id}
   }
   Importer instproc init {} {
@@ -26,9 +26,9 @@ namespace eval ::xowiki {
     my append log "<tr><td>$operation</td><td><a href='$href'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
-    my instvar added updated replaced
+    my instvar added updated replaced inherited
     return "$added objects newly inserted,\
-	$updated objects updated, $replaced objects replaced<p>\
+	$updated objects updated, $replaced objects replaced, $inherited inherited (update ignored)<p>\
 	[my report_lines]"
   }
 
@@ -84,7 +84,7 @@ namespace eval ::xowiki {
     $package_id flush_references -item_id [$object item_id] -name [$object name]
   }
 
-  Importer instproc import_all {-replace -objects:required {-create_user_ids 0}} {
+  Importer instproc import_all {-replace -objects:required {-create_user_ids 0} {-keep_inherited 1}} {
     #
     # Import a series of objects. This method takes care especially
     # about dependencies of objects, which is reflected by the order
@@ -167,46 +167,77 @@ namespace eval ::xowiki {
           }
         }
 
-        # Now, all requirements are met, parent-object and
-        # child-object conditions are fulfilled. We have to map
-        # page_template for PageInstances and parent_ids for child
-        # objects to new IDs.
-        #
-        if {[$o istype ::xowiki::PageInstance]} {
-          #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
-          $o page_template $name_map($template_name_key)
-          #my msg "exists template? [my isobject [$o page_template]]"
-	  if {![my isobject [$o page_template]]} {
-	    ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-	    my msg "[my isobject [$o page_template]] loaded"
+	set need_to_import 1
+	#
+	# If the page was implicitely added (due to being a
+	# page_template of an exported page), and a page (e.g. a form
+	# or a workflow) with the same name is inherited to the
+	# target, don't materialize the inherited page.
+	#
+	if {$keep_inherited 
+	    && [$o exists __export_reason] 
+	    && [$o set __export_reason] eq "implicit_page_template"} {
+	  #my msg "importing implicit_page_template [$o name]"
+	  $o unset __export_reason
+	  set page [[my package_id] get_page_from_item_ref \
+			-allow_cross_package_item_refs false \
+			-use_package_path true \
+			-use_site_wide_pages true \
+			-use_prototype_pages false \
+			[$o name] \
+		       ]
+	  if {[$page physical_parent_id] ne [$page parent_id]} {
+	    #my msg "page [$o name] is inherited in folder [my parent_id]"
+	    my incr inherited
+	    unset todo($o)
+	    set o $page
+	    set need_to_import 0
 	  }
-        }
+	}
 
-        if {[info exists item_ids($old_parent_id)]} {
-          $o set parent_id $id_map($old_parent_id)
-        } else {
-          $o set parent_id [my parent_id]
-        }
+	if {$need_to_import} {
+	  # Now, all requirements are met, parent-object and
+	  # child-object conditions are fulfilled. We have to map
+	  # page_template for PageInstances and parent_ids for child
+	  # objects to new IDs.
+	  #
+	  if {[$o istype ::xowiki::PageInstance]} {
+	    #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
+	    $o page_template $name_map($template_name_key)
+	    #my msg "exists template? [my isobject [$o page_template]]"
+	    if {![my isobject [$o page_template]]} {
+	      ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
+	      my msg "[my isobject [$o page_template]] loaded"
+	    }
+	  }
+	  
+	  if {[info exists item_ids($old_parent_id)]} {
+	    $o set parent_id $id_map($old_parent_id)
+	  } else {
+	    $o set parent_id [my parent_id]
+	  }
+	  
+	  # Everything is mapped, we can now do the import.
+	  
+	  #my msg "start import for $o, name=[$o name]"
+	  my import \
+	      -object $o \
+	      -replace $replace \
+	      -create_user_ids $create_user_ids
+	  #my msg "import for $o done, name=[$o name]"
 
-        # Everything is mapped, we can now do the import.
-       
-        #my msg "start import for $o, name=[$o name]"
-        my import \
-            -object $o \
-            -replace $replace \
-            -create_user_ids $create_user_ids
-        #my msg "import for $o done, name=[$o name]"
+	  unset todo($o)
+	}
 
-        # Maintain the maps and mark the item as done.
-
+	#
+        # Maintain the maps and iterate
+	#
         if {$old_item_id ne ""} {
           set id_map($old_item_id) [$o item_id]
         }
         set name_map($old_parent_id-$old_name) [$o item_id]
         #my msg "setting name_map($old_parent_id-$old_name)=$name_map($old_parent_id-$old_name), o=$o, old_item_id=$old_item_id"
-        #set ::__xowiki_import_object([$o item_id]) [self]
         
-        unset todo($o)
         set new 1
       }
       if {$new == 0} {
@@ -244,15 +275,14 @@ namespace eval ::xowiki {
     #
     # In a second step, include the objects which should be exported implicitly
     #
-    # TODO: we should flag the reason, why the implicitely included
-    # elements were included. If the target can resolve already such
-    # items (e.g. forms), we might not have to materialize these
-    # finally.
-    #
     while {1} {
       set new 0
       ns_log notice "--export works on [array names items]"
       foreach item_id [array names items] {
+	#
+	# We flag the reason, why the implicitely included elements were
+	# included. If the target can resolve already such items
+	# (e.g. forms), we might not have to materialize these finally.
 	#
 	# For PageInstances (or its subtypes), include the parent-objects as well
 	#
@@ -263,6 +293,7 @@ namespace eval ::xowiki {
 	    set items($template_id) 1
 	    ::xo::db::CrClass get_instance_from_db -item_id $template_id
 	    set new 1
+	    $template_id set __export_reason implicit_page_template
 	  }
 	}
 	#
@@ -275,6 +306,7 @@ namespace eval ::xowiki {
 	    ns_log notice "--export including child $item_id [$item_id name]"
 	    set items($item_id) 1 
 	    set new 1
+	    $template_id set __export_reason implicit_child_page
 	  }
 	}
       }

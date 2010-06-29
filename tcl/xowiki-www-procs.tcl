@@ -77,7 +77,7 @@ namespace eval ::xowiki {
     }
     set msg [$package_id import -replace 0 -create_user_ids 1 \
 		 -parent_id [my item_id] -objects $item_ids]
-    my msg $msg
+    util_user_message -html -message $msg
     ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
   }
 
