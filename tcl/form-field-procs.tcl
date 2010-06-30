@@ -1152,6 +1152,46 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::richtext::ckeditor
+  #
+  ###########################################################
+  Class richtext::ckeditor -superclass richtext -parameter {
+    {editor ckeditor}
+    {mode wysiwyg}
+    {CSSclass ckeditor}
+  }
+  richtext::ckeditor set editor_mixin 1
+  richtext::ckeditor instproc initialize {} {
+    next
+    my set widget_type richtext
+  }
+  richtext::ckeditor instproc render_input {} {
+    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    if {![my istype ::xowiki::formfield::richtext] || $disabled } {
+      my render_richtext_as_div
+    } else {
+      ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
+      #::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
+
+      set name [my name]
+      set mode [my mode]
+
+#      ::xo::Page requireJS {
+#	$( 'textarea.ckeditor' ).ckeditor();
+#      }
+      ::xo::Page requireJS [subst -nocommands -nobackslash {
+        YAHOO.util.Event.onDOMReady(function () {
+	  CKEDITOR.replace( '$name' );
+	  CKEDITOR.instances.$name.setMode( '$mode' );
+	});
+      }]
+
+      next
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::richtext::wym
   #
   ###########################################################
@@ -1223,6 +1263,7 @@ namespace eval ::xowiki::formfield {
       next
     }
   }
+
   ###########################################################
   #
   # ::xowiki::formfield::richtext::xinha
