@@ -349,4 +349,107 @@ namespace eval ::xowiki {
     }
   }
 
+
+  #
+  # Simple archive file manager
+  #
+  # The Archive manages supports importing .zip files and .tar.gz
+  # files as ::xowiki::File into xowiki folders.
+  #
+  ::xotcl::Class create ArchiveFile -parameter {
+    file
+    name
+    parent_id
+  }
+  ArchiveFile instproc init {} {
+    my destroy_on_cleanup
+    ::xo::db::CrClass get_instance_from_db -item_id [my parent_id]
+    my set tmpdir [ns_tmpnam]
+    file mkdir [my set tmpdir]
+  }
+  ArchiveFile instproc delete {} {
+    file delete -force [my set tmpdir]
+    next
+  }
+  ArchiveFile instproc unpack {} {
+    my instvar name file
+    set success 0
+    switch [::xowiki::guesstype $name] {
+      application/x-zip-compressed {
+	set zipcmd [::util::which unzip]
+	#my msg "zip = $zipcmd, tempdir = [my set tmpdir]"
+	exec $zipcmd $file -d [my set tmpdir]
+	my import -dir [my set tmpdir] -parent_id [my parent_id]
+	set success 1
+      }
+      application/x-compressed {
+	if {[string match *tar.gz $name]} {
+	  set cmd [::util::which tar]
+	  exec $cmd -xzf $file -C [my set tmpdir]
+	  my import -dir [my set tmpdir] -parent_id [my parent_id]
+	  set success 1
+	} else {
+	  my msg "unknown compressed file type $name"
+	}
+      }
+      default {my msg "type [::xowiki::guesstype $name] of $name unknown"}
+    }
+    my msg success=$success
+    return $success
+  }
+  ArchiveFile instproc import {-dir -parent_id} {
+    set package_id [$parent_id package_id]
+
+    foreach tmpfile [glob -directory $dir *] {
+      #my msg "work on $tmpfile [::file isdirectory $tmpfile]"
+      set file_name [::file tail $tmpfile]
+      if {[::file isdirectory $tmpfile]} {
+	# ignore mac os x resource fork directories
+	if {[string match *__MACOSX $tmpfile]} continue
+	set folder_object [$package_id get_page_from_name -assume_folder true \
+			       -name $file_name -parent_id $parent_id]
+	if {$folder_object ne ""} {
+	  # if the folder exists already, we have nothing to do
+	} else {
+	  # we create a new folder ...
+	  set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
+				  -package_id $package_id]
+	  set folder_object [FormPage new -destroy_on_cleanup \
+				 -title $file_name \
+				 -name $file_name \
+				 -package_id $package_id \
+				 -parent_id $parent_id \
+				 -nls_language en_US \
+				 -instance_attributes {} \
+				 -page_template $folder_form_id]
+	  $folder_object save_new
+	  # ..... and refetch it under its canonical name
+	  ::xo::db::CrClass get_instance_from_db -item_id [$folder_object item_id]
+	}
+	my import -dir $tmpfile -parent_id [$folder_object item_id]
+      } else {
+	set mime_type [::xowiki::guesstype $file_name]
+	set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
+	if {$file_object ne ""} {
+	  my msg "file $file_name exists already"
+	  # file entry exists already, create a new revision
+	  $file_object set import_file $tmpfile
+	  $file_object set mime_type $mime_type
+	  $file_object set title $file_name
+	  $file_object save
+	} else {
+	  my msg "file $file_name created new"
+	  set file_object [::xowiki::File new -destroy_on_cleanup \
+			       -title $file_name \
+			       -name file:$file_name \
+			       -parent_id $parent_id \
+			       -mime_type $mime_type \
+			       -package_id $package_id \
+			       -creation_user [::xo::cc user_id] ]
+	  $file_object set import_file $tmpfile
+	  $file_object save_new
+	}
+      }
+    }
+  }
 }

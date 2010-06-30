@@ -746,6 +746,48 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::import_archive
+  #
+  ###########################################################
+
+  Class import_archive -superclass file -parameter {
+    {cleanup false}
+  }
+  import_archive instproc initialize {} {
+    next
+    if {[my help_text] eq ""} {my help_text "#xowiki.formfield-import_archive-help_text#"}
+  }
+  import_archive instproc pretty_value {v} {
+    my instvar object
+    set package_id [$object package_id]
+    set parent_id  [$object parent_id]
+    array set "" [my entry_name $v]
+    #
+    # Get the file object of the imported file to obtain is full name and path
+    #
+    set file_id [$package_id lookup -parent_id [$object item_id] -name $(name)]
+    ::xo::db::CrClass get_instance_from_db -item_id $file_id
+    set full_file_name [$file_id full_file_name]
+    #
+    # Call the archiver to unpack and handle the archive
+    #
+    set f [::xowiki::ArchiveFile new -file $full_file_name -name $v -parent_id $parent_id]
+    if {[$f unpack]} {
+      #
+      # So, all the hard work is done. We take a hard measure here to
+      # cleanup the entry in case everything was imported
+      # successful. Note that setting "cleanup" without thought might
+      # lead to maybe unexpected deletions of the form-page
+      #
+      if {[my cleanup]} {
+	set return_url [$package_id query_parameter "return_url" [$parent_id pretty_link]]
+	$package_id returnredirect [export_vars -base [$object pretty_link] [list {m delete} return_url]]
+      }
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::image
   #
   ###########################################################

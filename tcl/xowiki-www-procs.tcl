@@ -1099,8 +1099,8 @@ namespace eval ::xowiki {
           -item [list text #xowiki.notifications# url /notifications/manage]
       $mb add_menu_item -name Package.Admin \
           -item [list text #xowiki.admin# url $admin_link]
-      $mb add_menu_item -name Package.Import \
-          -item [list text Import url $import_link]
+      $mb add_menu_item -name Package.ImportDump \
+          -item [list url $import_link]
       $mb add_menu_item -name New.Page \
           -item [list text #xowiki.new# url $new_link]
       $mb add_menu_item -name Page.Edit \

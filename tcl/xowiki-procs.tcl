@@ -2093,17 +2093,29 @@ namespace eval ::xowiki {
         -mod_user [::xo::get_user_name $creation_user] \
         -size [file size [my full_file_name]]
 
-    if {[string match image/* $mime_type]} {
-      set l [Link new -volatile \
-                 -page [self] -query $query \
-                 -type image -name $name -lang "" \
-                 -stripped_name $stripped_name -label $label \
-                 -parent_id $parent_id -item_id $item_id -package_id $package_id]
-      set image "<div >[$l render]</div>"
-    } else {
-      set image ""
+    if {$mime_type eq "application/octet-stream"} {
+      # We can fix for viewing the content-type for a view types
+      if {[string match *tcl $stripped_name]} {
+	set mime_type text/plain
+      }
     }
-    return "$image[$t asHTML]\n<p>$description</p>"
+
+    switch -glob $mime_type {
+      image/* {
+	set l [Link new -volatile \
+		   -page [self] -query $query \
+		   -type image -name $name -lang "" \
+		   -stripped_name $stripped_name -label $label \
+		   -parent_id $parent_id -item_id $item_id -package_id $package_id]
+	set preview "<div >[$l render]</div>"
+      }
+      text/plain {
+	set text [::xowiki::read_file [my full_file_name]]
+	set preview "<pre>[::xowiki::Includelet html_encode $text]</pre>"
+      }
+      default {set preview ""}
+    }
+    return "$preview[$t asHTML]\n<p>$description</p>"
   }
 
   PodcastItem instproc render_content {} {

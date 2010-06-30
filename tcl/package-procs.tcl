@@ -182,10 +182,15 @@ namespace eval ::xowiki {
     return $parent_id
   }
 
-  Package instproc get_page_from_name {{-parent_id ""} -name:required} {
+  Package instproc get_page_from_name {{-parent_id ""} {-assume_folder false} -name:required} {
     # Check if an instance with this name exists in the current package.
-    my get_lang_and_name -name $name lang stripped_name
-    set item_id [my lookup -parent_id $parent_id -name $lang:$stripped_name]
+    if {$assume_folder} {
+      set lookup_name $name
+    } else {
+      my get_lang_and_name -name $name lang stripped_name
+      set lookup_name $lang:$stripped_name
+    }
+    set item_id [my lookup -parent_id $parent_id -name $lookup_name]
     if {$item_id != 0} {
       return [::xo::db::CrClass get_instance_from_db -item_id $item_id]
     }
@@ -1212,7 +1217,7 @@ namespace eval ::xowiki {
           } {
     set page ""
     set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
-    #my log "--W check $fn"
+    my log "--W check $fn"
     if {[file readable $fn]} {
       my instvar id
       # We have the file of the prototype page. We try to create
@@ -1223,7 +1228,7 @@ namespace eval ::xowiki {
       } else {
         set fullName en:$name
       }
-      #my log "--sourcing page definition $fn, using name '$fullName'"
+      my log "--sourcing page definition $fn, using name '$fullName'"
       set page [source $fn]
       $page configure -name $fullName \
           -parent_id $parent_id -package_id $package_id 
@@ -1265,7 +1270,7 @@ namespace eval ::xowiki {
     ::xowiki::Package initialize -package_id $package_id
     set package_key "xowiki"
 
-    foreach n {folder.form link.form page.form} {
+    foreach n {folder.form link.form page.form import-archive.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
       #my ds "lookup en:$n => $item_id"
       if {!$item_id || $refetch} {
@@ -1274,6 +1279,7 @@ namespace eval ::xowiki {
                       -package_key $package_key \
                       -parent_id $parent_id \
                       -package_id $package_id ]
+	my log "Page en:$n loaded as '$page'"
       }
     }
   }
