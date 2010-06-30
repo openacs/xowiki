@@ -2093,13 +2093,6 @@ namespace eval ::xowiki {
         -mod_user [::xo::get_user_name $creation_user] \
         -size [file size [my full_file_name]]
 
-    if {$mime_type eq "application/octet-stream"} {
-      # We can fix for viewing the content-type for a view types
-      if {[string match *tcl $stripped_name]} {
-	set mime_type text/plain
-      }
-    }
-
     switch -glob $mime_type {
       image/* {
 	set l [Link new -volatile \
@@ -2111,7 +2104,7 @@ namespace eval ::xowiki {
       }
       text/plain {
 	set text [::xowiki::read_file [my full_file_name]]
-	set preview "<pre>[::xowiki::Includelet html_encode $text]</pre>"
+	set preview "<pre class='code'>[::xowiki::Includelet html_encode $text]</pre>"
       }
       default {set preview ""}
     }

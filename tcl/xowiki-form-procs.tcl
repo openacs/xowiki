@@ -175,6 +175,7 @@ namespace eval ::xowiki {
     if {$mime eq "*/*" || $mime eq "application/octet-stream"} {
       # ns_guesstype was failing
       switch [file extension $fn] {
+        .xotcl {set mime text/plain}
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
