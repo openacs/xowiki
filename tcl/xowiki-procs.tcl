@@ -2981,10 +2981,10 @@ namespace eval ::xowiki {
   }
 
 
-  FormPage instproc form_attributes {} {
-    my log "DEPRECATRED, use 'field_names_from_form' instead "
-    return [my field_names_from_form]
-  }
+#   FormPage instproc form_attributes {} {
+#     my log "DEPRECATRED, use 'field_names_from_form' instead "
+#     return [my field_names_from_form]
+#   }
 
   FormPage instproc field_names_from_form {{-form ""}} {
     #
@@ -3032,6 +3032,46 @@ namespace eval ::xowiki {
     return [list $from_HTML_form $field_names]
   }
 
+  Page instproc render_icon {} {
+    return [list text [namespace tail [my info class]] is_richtext false]
+  }
+
+  File instproc render_icon {} {
+    return [list text "<img src='/resources/file-storage/file.gif' width='12'>" is_richtext true]
+  }
+
+  FormPage instproc render_icon {} {
+    set page_template [my page_template]
+    if {[$page_template istype ::xowiki::FormPage]} {
+      return [list text [$page_template property icon_markup] is_richtext true]
+    } 
+    switch [$page_template name] {
+      en:folder.form {
+	return [list text "<img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
+      }
+      default {
+	return [list text [$page_template title] is_richtext false]
+      }
+    }
+  }
+
+  Page instproc pretty_name {} {
+    return [my name]
+  }
+
+  FormPage instproc pretty_name {} {
+    set anon_instances [my get_from_template anon_instances f]
+    if {$anon_instances} {
+      return [my title]
+    }
+    return [my name]
+  }
+
+  File instproc pretty_name {} {
+    set name [my name]
+    regsub {^file:} $name "" name
+    return $name
+  }
 
   FormPage instproc render_content {} {
     my instvar doc root package_id page_template
