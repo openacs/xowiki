@@ -3,7 +3,7 @@
     -set name en:folder.form \
     -title "Folder Form" \
     -set anon_instances t \
-    -set text {{{child_resources}}} \
+    -set text {{{child-resources}}} \
     -set form {<form>@extra_menu_entries@ @index@ @ParameterPages@ </form>} \
     -set form_constraints {extra_menu_entries:menuentries}
 

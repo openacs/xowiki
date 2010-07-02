@@ -866,6 +866,45 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%my set package_id} %proc
   Page instforward exists_form_parameter {%my set package_id} %proc
 
+#   Page instproc init {} {    
+#     my log "--W "
+#     ::xo::show_stack
+#     next
+#   }
+
+#   Page instproc destroy  {} {
+#     my log "--W "
+#     ::xo::show_stack
+#     next
+#   }
+
+  #
+  # check certain properties of a page (is_* methods)
+  #
+  Page instproc is_folder_page {} {
+    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
+    if {![my istype ::xowiki::FormPage]} {return 0}
+    #my msg "[my name] has template page [my page_template] [[my page_template] name]"
+    if {[[my page_template] name] eq "en:folder.form"} {return 1}
+    return 0
+  }
+
+  Page instproc is_form {} {
+    return 0
+  }
+
+  Form instproc is_form {} {
+    return 1
+  }
+
+  FormPage instproc is_form {} {
+    return [my exists_property form_constraints]
+  }
+
+  #
+  # helper for nls and lang
+  #
+
   Page instproc lang {} {
     return [string range [my nls_language] 0 1]
   }
@@ -881,14 +920,6 @@ namespace eval ::xowiki {
       }
     }
     return ""
-  }
-
-  Page instproc is_folder_page {} {
-    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
-    if {![my istype ::xowiki::FormPage]} {return 0}
-    #my msg "[my name] has template page [my page_template] [[my page_template] name]"
-    if {[[my page_template] name] eq "en:folder.form"} {return 1}
-    return 0
   }
 
   Page instproc build_name {{-nls_language ""}} {
@@ -919,6 +950,9 @@ namespace eval ::xowiki {
     return $name
   }
 
+  #
+  # context handling
+  #
   Page instproc set_resolve_context {-package_id:required -parent_id:required} {
     if {[my set parent_id] != $parent_id} {
       my set physical_parent_id [my set parent_id]
@@ -947,6 +981,10 @@ namespace eval ::xowiki {
       return [my package_id]
     }
   }
+  
+  #
+  # folder handling
+  #
 
   Page instproc get_folder {-folder_form_ids:required} {
     set page [self]
@@ -967,17 +1005,9 @@ namespace eval ::xowiki {
     return $page
   }
 
-#   Page instproc init {} {    
-#     my log "--W "
-#     ::xo::show_stack
-#     next
-#   }
-
-#   Page instproc destroy  {} {
-#     my log "--W "
-#     ::xo::show_stack
-#     next
-#   }
+  #
+  # save / restore
+  #
   
   Page instproc save args {
     [my package_id] flush_page_fragment_cache
@@ -995,6 +1025,10 @@ namespace eval ::xowiki {
     next
   }
 
+  #
+  # misc
+  # 
+
   Page instproc get_instance_attributes {} {
     if {[my exists instance_attributes]} {
       return [my set instance_attributes]
@@ -1002,6 +1036,10 @@ namespace eval ::xowiki {
     return ""
   }
 
+  #
+  # render and substitutions
+  #
+  
   Page instproc regsub_eval {{-noquote:boolean false} re string cmd {prefix ""}} {
     if {$noquote} {
       set map { \[ \\[ \] \\] \$ \\$ \\ \\\\}
@@ -2303,8 +2341,8 @@ namespace eval ::xowiki {
 
   FormPage instproc get_form_constraints {{-trylocal false}} {
     # We define it as a method to ease overloading.
-    #my msg "is_form=[my isform]"
-    if {$trylocal && [my isform]} {
+    #my msg "is_form=[my is_form]"
+    if {$trylocal && [my is_form]} {
       return [my property form_constraints]
     } else {
       #my msg "get_form_constraints returns '[my get_from_template form_constraints]'"
@@ -2525,37 +2563,7 @@ namespace eval ::xowiki {
     return [my form_constraints]
   }
 
-  # todo move me
-  Page instproc list {} {
-    # The following line is here to provide a short description for
-    # larger form-usages (a few MB) where otherwise
-    # "ad_html_text_convert" in Page.get_description tend to use forever
-    # (at least in Tcl 8.5)
-    my set description "form-usages for [my name] [my title]"
-    my view [my include [list form-usages -form_item_id [my item_id]]]
-  }
 
-  Page instproc csv-dump {} {
-    my instvar package_id
-    if {[my info class] ne "::xowiki::FormPage" && [my info class] ne "::xowiki::Form"} {
-      error "not called on a form"
-    }
-    set form_item_id [my item_id]
-    set items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_item_id -form_fields "" -initialize false \
-                   -publish_status all -package_id $package_id]
-    # collect all instances attributes of all items
-    foreach i [$items children] {array set vars [$i set instance_attributes]}
-    array set vars [list _name 1 _last_modified 1 _creation_user 1]
-    set attributes [lsort -dictionary [array names vars]]
-    # make sure, we the includelet honors the cvs generation
-    set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
-    ::xo::cc set queryparm(includelet_key) $includelet_key
-    # call the includelet
-    my view [my include [list form-usages -field_names $attributes \
-			     -extra_form_constraints _creation_user:numeric,format=%d \
-			     -form_item_id [my item_id] -generate csv]]
-  }
 
   Page instproc create_form_fields_from_form_constraints {form_constraints} {
     #
@@ -2962,16 +2970,12 @@ namespace eval ::xowiki {
     my set publish_status $value
   }
 
-  FormPage instproc isform {} {
-    return [my exists_property form_constraints]
-  }
-
   FormPage instproc footer {} {
     if {[my exists __no_form_page_footer]} {
       next
     } else {
       set is_form [my property is_form__ 0]
-      if {[my isform]} {
+      if {[my is_form]} {
         return [my include [list form-menu -form_item_id [my item_id] \
                                 -buttons [list new answers [list form [my page_template]]]]]
       } else {

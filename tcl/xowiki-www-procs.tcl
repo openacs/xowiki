@@ -11,12 +11,12 @@
 
 namespace eval ::xowiki {
   #
-  # This block contains the externally called methods. We use as
+  # This block contains the externally callable methods. We use as
   # naming convention dashes as separators.
   #
 
   #
-  # externally called method: clipboard-add
+  # externally callable method: clipboard-add
   # 
   Page instproc clipboard-add {} {
     my instvar package_id
@@ -35,7 +35,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: clipboard-clear
+  # externally callable method: clipboard-clear
   # 
   Page instproc clipboard-clear {} {
     my instvar package_id
@@ -44,7 +44,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: clipboard-content
+  # externally callable method: clipboard-content
   # 
   Page instproc clipboard-content {} {
     my instvar package_id
@@ -64,7 +64,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: clipboard-copy
+  # externally callable method: clipboard-copy
   # 
   Page instproc clipboard-copy {} {
     my instvar package_id
@@ -83,7 +83,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: clipboard-export
+  # externally callable method: clipboard-export
   # 
   Page instproc clipboard-export {} {
     my instvar package_id
@@ -95,7 +95,7 @@ namespace eval ::xowiki {
 
   
   #
-  # externally called method: create-new
+  # externally callable method: create-new
   # 
 
   Page instproc create-new {
@@ -218,7 +218,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: create-or-use
+  # externally callable method: create-or-use
   # 
 
   Page instproc create-or-use {
@@ -234,7 +234,32 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: delete
+  # externally callable method: csv-dump
+  # 
+
+  Page instproc csv-dump {} {
+    if {![my is_form]} {
+      error "not called on a form"
+    }
+    set form_item_id [my item_id]
+    set items [::xowiki::FormPage get_form_entries \
+                   -base_item_ids $form_item_id -form_fields "" -initialize false \
+                   -publish_status all -package_id [my package_id]]
+    # collect all instances attributes of all items
+    foreach i [$items children] {array set vars [$i set instance_attributes]}
+    array set vars [list _name 1 _last_modified 1 _creation_user 1]
+    set attributes [lsort -dictionary [array names vars]]
+    # make sure, we the includelet honors the cvs generation
+    set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
+    ::xo::cc set queryparm(includelet_key) $includelet_key
+    # call the includelet
+    my view [my include [list form-usages -field_names $attributes \
+			     -extra_form_constraints _creation_user:numeric,format=%d \
+			     -form_item_id [my item_id] -generate csv]]
+  }
+
+  #
+  # externally callable method: delete
   # 
 
   Page instproc delete {} {
@@ -260,7 +285,7 @@ namespace eval ::xowiki {
   }
   
   #
-  # externally called method: delete-revision
+  # externally callable method: delete-revision
   # 
 
   Page instproc delete-revision {} {
@@ -290,7 +315,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: diff
+  # externally callable method: diff
   # 
 
   Page instproc diff {} {
@@ -394,7 +419,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: download
+  # externally callable method: download
   #
 
   File instproc download {} {
@@ -413,7 +438,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # helper methods for externally called method: edit
+  # helper methods for externally callable method: edit
   # 
 
   Page instproc edit_set_default_values {} {
@@ -443,7 +468,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: edit
+  # externally callable method: edit
   # 
 
   Page instproc edit {
@@ -839,7 +864,27 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: make-live-revision
+  # externally callable method: list
+  # 
+  Page instproc list {} {
+    if {[my is_form]} {
+      # The following line is here to provide a short description for
+      # larger form-usages (a few MB) where otherwise
+      # "ad_html_text_convert" in Page.get_description tend to use forever
+      # (at least in Tcl 8.5)
+      my set description "form-usages for [my name] [my title]"
+      
+      return [my view [my include [list form-usages -form_item_id [my item_id]]]]
+    }
+    if {[my is_folder_page]} {
+      return [my view [my include [list child-resources]]]
+    }
+    #my msg "method list undefined for this kind of object"
+    [my package_id] returnredirect [::xo::cc url]
+  }
+
+  #
+  # externally callable method: make-live-revision
   # 
 
   Page instproc make-live-revision {} {
@@ -853,7 +898,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: popular-tags
+  # externally callable method: popular-tags
   # 
 
   Page instproc popular-tags {} {
@@ -877,11 +922,11 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: save-attributes
+  # externally callable method: save-attributes
   # 
 
   Page ad_instproc save-attributes {} {
-    The method save-attributes is typically called over the 
+    The method save-attributes is typically callable over the 
     REST interface. It allows to  save attributes of a 
     page without adding a new revision.
   } {
@@ -950,7 +995,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: revisions
+  # externally callable method: revisions
   # 
 
   Page instproc revisions {} {
@@ -966,7 +1011,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: save-tags
+  # externally callable method: save-tags
   # 
 
   Page instproc save-tags {} {
@@ -983,7 +1028,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: validate-attribute
+  # externally callable method: validate-attribute
   # 
 
   Page instproc validate-attribute {} {
@@ -1013,7 +1058,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # externally called method: view
+  # externally callable method: view
   # 
 
   Page instproc view {{content ""}} {
