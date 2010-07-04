@@ -3279,9 +3279,11 @@ namespace eval ::xowiki::includelet {
           {-form}
           {-parent_id}
           {-package_ids ""}
-          {-orderby "__last_modified,desc"}
+          {-orderby "_last_modified,desc"}
+	  {-view_field _name}
           {-publish_status "ready"}
           {-field_names}
+          {-hidden_field_names ""}
           {-extra_form_constraints ""}
           {-inherit_from_forms ""}
           {-category_id}
@@ -3351,8 +3353,8 @@ namespace eval ::xowiki::includelet {
       switch $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         buttons - publish_status - category_id - unless -
-        where -   with_categories - with_form_link - csv - voting_form -
-        voting_form_form - voting_form_anon_instances {
+        where -   with_categories - with_form_link - csv - view_field - 
+	voting_form - voting_form_form - voting_form_anon_instances {
           set $attr $value
           #my msg " set $attr $value"
         }
@@ -3369,6 +3371,11 @@ namespace eval ::xowiki::includelet {
       set raw_field_names [split $field_names ,]
     } else {
       set raw_field_names $field_names
+    }
+
+    foreach fn $hidden_field_names {
+      set __hidden($fn) 1
+      lappend raw_field_names $fn
     }
 
     if {$raw_field_names eq ""} {
@@ -3410,6 +3417,7 @@ namespace eval ::xowiki::includelet {
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     foreach fn $field_names {
+      if {[info exists __hidden($fn)]} continue
       append cols [list AnchorField _$fn \
 		       -label [$__ff($fn) label] \
 		       -richtext 1 \
@@ -3533,9 +3541,9 @@ namespace eval ::xowiki::includelet {
 	#
 	# Set always a view link, if we have no view button ...
 	#
-	if {[info exists __ff(_name)]} {
-	  # .... on _name ....
-	  $__c set __name.href $view_link
+	if {[info exists __ff($view_field)]} {
+	  # .... on $view_field) (per default: _name) ....
+	  $__c set _$view_field.href $view_link
 	} else {
 	  # .... otherwise on the first form_field
 	  $__c set _[lindex $field_names 0].href $view_link

@@ -949,6 +949,61 @@ namespace eval ::xowiki::formfield {
     return [::xo::get_user_name $v]
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::author
+  #
+  ###########################################################
+
+  Class author -superclass user_id -parameter {
+    {photo_size 54}
+    {with_photo true}
+    {with_user_link false}
+    {label #xowiki.formfield-author#}
+  }
+  author instproc pretty_value {v} {
+    if {$v ne ""} {
+      my instvar object
+      acs_user::get -user_id $v -array user
+      if {[my with_photo]} {
+	set portrait_id [acs_user::get_portrait_id -user_id $v]
+	if {$portrait_id == 0} {
+	  package require md5
+	  set md5 [string tolower [md5::Hex [md5::md5 -- $user(email)]]]
+	  set src http://www.gravatar.com/avatar/$md5?size=[my photo_size]&d=mm
+	} else {
+	  set src "/shared/portrait-bits.tcl?user_id=$v"
+	}
+	set photo "<img class='photo' src='$src'>"
+	set photo_class "photo"
+      } else {
+	set photo ""
+	set photo_class ""
+      }
+      set date_field [::xowiki::FormPage get_table_form_fields \
+			  -base_item $object \
+			  -field_names _last_modified \
+			  -form_constraints ""]
+      set date [$date_field pretty_value [$object property _last_modified]]
+
+      if {[my with_user_link]} {
+	set user_link_begin "<a href='/shared/community-member?user_id=$v'>"
+	set user_link_end "</a>"
+      } else {
+	set user_link_begin ""
+	set user_link_end ""
+      }
+
+      return [subst {
+	<div class="cite $photo_class">$photo
+	<p class="author">$user_link_begin$user(first_names) $user(last_name)$user_link_end</p>
+	<p class="date">$date</p>
+	</div>
+      }]
+    }
+    return ""
+  }
+
  ###########################################################
   #
   # ::xowiki::formfield::party_id

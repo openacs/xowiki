@@ -37,6 +37,7 @@
   <msg key="form-menu-button-form">Formular %form_name%</msg>
   <msg key="form-menu-button-new">Formular ausfüllen</msg>
   <msg key="form-menu-button-wf-instances">Ausprägungen von %form_name%</msg>
+  <msg key="formfield-author">Verfasser</msg>
   <msg key="FormPage-state">Zustand</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
@@ -68,6 +69,7 @@
   <msg key="Page-text">Inhalt</msg>
   <msg key="Page-title">Titel der Seite</msg>
   <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
+  <msg key="page_kind">Art</msg>
   <msg key="page_type">Typ der Seite</msg>
   <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
   <msg key="PageInstance-page_template">Seitenvorlage</msg>

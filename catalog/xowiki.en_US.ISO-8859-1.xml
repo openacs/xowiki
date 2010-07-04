@@ -61,6 +61,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-updated">Updated form</msg>
   <msg key="form-validate_form">%errorMsg%</msg>
   <msg key="Form-validate_form_constraints">Invalid Form %errorMsg%</msg>
+  <msg key="formfield-author">Author</msg>
   <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
   <msg key="formfield-import_archive-label">Import Archive</msg>
@@ -109,6 +110,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder                                </msg>
   <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lower case letters, underscore, digits and dots</msg>
+  <msg key="page_kind">Type</msg>
   <msg key="page_type">Page Type</msg>
   <msg key="PageInstance-instance_attributes">Instance Attributes</msg>
   <msg key="PageInstance-page_template">Page Instance</msg>

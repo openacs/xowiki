@@ -475,3 +475,32 @@ div.xowiki-content .forum .question {
 }
 div.xowiki-content .forum .responses {
 }
+
+div.xowiki-content .forum .cite.photo {
+    float: left;
+    width: 190px;
+}
+div.xowiki-content .forum .cite {
+    float: left;
+    width: 100px;
+}
+div.xowiki-content .forum .question-text {
+    margin-left: 200px;
+}
+div.xowiki-content .forum .question-text.nophoto {
+    margin-left: 110px;
+}
+div.xowiki-content .forum .cite .photo {
+    float: right;
+    margin-left: 4px;
+}
+div.xowiki-content .forum  .cite p.author {
+    margin-bottom: 0px;
+    text-align: right;
+}
+div.xowiki-content .forum .cite p.date {
+    text-align: right;
+    font-size: 85%;
+    color: #777777;
+    
+}
