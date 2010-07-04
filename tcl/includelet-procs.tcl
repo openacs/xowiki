@@ -3361,6 +3361,7 @@ namespace eval ::xowiki::includelet {
         default {error "unknown table property '$attr' provided"}
       }
     }
+    set orderby _$orderby
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
