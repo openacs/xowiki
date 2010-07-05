@@ -1182,6 +1182,8 @@ namespace eval ::xowiki {
   } {
     set page [my instantiate_includelet $arg]
     if {$page eq ""} {
+      # The variable 'page_name' is required by the message key
+      set page_name $arg
       return [my error_during_render [_ xowiki.error-includelet-unknown]]
     }
     if {[$page istype ::xowiki::Page]} {
