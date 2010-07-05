@@ -3345,6 +3345,14 @@ namespace eval ::xowiki::includelet {
     }
     #my msg fc=$form_constraints
 
+    # 
+    # The internal variables (instance attributes, etc) are prefixed
+    # with an underscore. Therefore, we prefix here "orderby" as
+    # well. For the provided table properties, prefixing happens in
+    # the loop below.
+    #
+    set orderby _$orderby
+
     # load table properties; order_by won't work due to comma, but solve that later (TODO)
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
                               -name @table_properties \
@@ -3361,7 +3369,6 @@ namespace eval ::xowiki::includelet {
         default {error "unknown table property '$attr' provided"}
       }
     }
-    set orderby _$orderby
 
     if {![info exists field_names]} {
       set fn [::xowiki::PageInstance get_short_spec_from_form_constraints \
