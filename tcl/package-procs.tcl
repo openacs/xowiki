@@ -1267,7 +1267,7 @@ namespace eval ::xowiki {
   } {
     set parent_id -100
     set package_id [::xowiki::Package first_instance]
-    ::xowiki::Package initialize -package_id $package_id
+    ::xowiki::Package initialize -package_id $package_id -init_url false -keep_cc true
     set package_key "xowiki"
 
     foreach n {folder.form link.form page.form import-archive.form} {
