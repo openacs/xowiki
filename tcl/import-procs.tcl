@@ -186,7 +186,7 @@ namespace eval ::xowiki {
 			-use_prototype_pages false \
 			[$o name] \
 		       ]
-	  if {[$page physical_parent_id] ne [$page parent_id]} {
+	  if {$page ne "" && [$page physical_parent_id] ne [$page parent_id]} {
 	    #my msg "page [$o name] is inherited in folder [my parent_id]"
 	    my incr inherited
 	    unset todo($o)
