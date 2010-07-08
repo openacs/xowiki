@@ -1502,7 +1502,6 @@ namespace eval ::xowiki {
 
 
   Page instproc substitute_markup {content} {
-    my log "SUBST [my name] [my do_substitutions]"
 
     if {[my set mime_type] eq "text/enhanced"} {
       set content [ad_enhanced_text_to_html $content]

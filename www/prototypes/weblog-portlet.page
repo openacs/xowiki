@@ -117,7 +117,6 @@
     $w mixin add $renderer
     set html [$w render]
     $page do_substitutions 1; # reset to default
-    my log "DO_SUBST of $page set to 1"
     return $html
   }
   
