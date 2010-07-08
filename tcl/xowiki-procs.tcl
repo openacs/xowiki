@@ -1046,16 +1046,6 @@ namespace eval ::xowiki {
     } else {
       set map { \" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\}
     }
-    if {0 && $prefix eq "1"} {
-      my msg "re=$re, string=$string cmd=$cmd"
-      set c [regsub -all $re [string map $map $string] "\[$cmd\]"]
-      my msg c0=$c
-      regsub -all {\\1([$]?)\\2} $c {\\\\\1} c1
-      my msg c1=$c1
-      set s [subst $c1]
-      my msg s=$s
-      return $s
-    }
     uplevel [list subst [regsub -all $re [string map $map $string] "\[$cmd\]"]]
   }
 
@@ -1112,7 +1102,11 @@ namespace eval ::xowiki {
       # Include a wiki page, tailorable.
       #
       #set page [my resolve_included_page_name $page_name]
-      set page [$package_id get_page_from_item_ref -parent_id [my parent_id] $page_name]
+      set page [$package_id get_page_from_item_ref \
+		    -use_package_path true \
+		    -use_site_wide_pages true \
+		    -use_prototype_pages true \
+		    -parent_id [my parent_id] $page_name]
       
       if {$page ne "" && ![$page exists __decoration]} {
 	# 
@@ -1170,10 +1164,10 @@ namespace eval ::xowiki {
     return $html
   }
 
-  Page instproc include_portlet {arg} {
-    my log "+++ method [self proc] of [self class] is deprecated"
-    return [my include $arg]
-  }
+#   Page instproc include_portlet {arg} {
+#     my log "+++ method [self proc] of [self class] is deprecated"
+#     return [my include $arg]
+#   }
 
   Page ad_instproc include {-configure arg} {
     Include the html of the includelet. The method generates
@@ -1508,17 +1502,25 @@ namespace eval ::xowiki {
 
 
   Page instproc substitute_markup {content} {
-    #
-    # The provided content and the returned result are strings
-    # containing HTML (unless we have other rich-text encodings).
-    #
-    set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
-    $baseclass instvar RE markupmap
-    #my log "-- baseclass for RE = $baseclass"
+    my log "SUBST [my name] [my do_substitutions]"
+
     if {[my set mime_type] eq "text/enhanced"} {
       set content [ad_enhanced_text_to_html $content]
     }
     if {![my do_substitutions]} {return $content}
+    #
+    # The provided content and the returned result are strings
+    # containing HTML (unless we have other rich-text encodings).
+    #
+    # First get the right regular expression definitions
+    #
+    set baseclass [expr {[[my info class] exists RE] ? [my info class] : [self class]}]
+    $baseclass instvar RE markupmap
+    #my log "-- baseclass for RE = $baseclass"
+
+    #
+    # secondly, iterate line-wise over the text
+    #
     set output ""
     set l ""
     foreach l0 [split $content \n] {

@@ -524,6 +524,10 @@ namespace eval ::xowiki {
 
       ::xowiki::Package initialize -package_id [::xowiki::Package first_instance]
       ::xowiki::Package require_site_wide_pages -refetch true
+      foreach package_id [::xowiki::Package instances] {
+	::xowiki::Package initialize -package_id $package_id -init_url false
+	$package_id import-prototype-page weblog
+      }
     }
   }
 }

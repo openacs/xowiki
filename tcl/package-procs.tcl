@@ -947,22 +947,6 @@ namespace eval ::xowiki {
                 item_id $(item_id) parent_id $(parent_id)]
   }
 
-  Package instproc item_id_ref {
-    item_id
-  } {
-    set name [::xo::db::CrClass get_name -item_id $item_id]
-    set type [::xo::db::CrClass get_object_type -item_id $item_id]
-    set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
-    #my log "lookup returned name=$name (type $type, name $name, type $type)"
-
-    if {$type eq "content_folder"} {
-      return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
-    } else {
-      regexp {^(.+):(.+)$} $name _ prefix stripped_name
-      return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
-    }
-  }
- 
   Package instproc simple_item_ref {
     -default_lang:required 
     -parent_id:required 
@@ -975,7 +959,7 @@ namespace eval ::xowiki {
     if {$normalize_name} {
       set element [my normalize_name $element]
     }
-    #my msg el=[string map [list \0 MARKER] $element]-assume_folder=$assume_folder
+    #my log el=[string map [list \0 MARKER] $element]-assume_folder=$assume_folder
     set (form) ""
     set use_default_lang 0
 
@@ -983,6 +967,10 @@ namespace eval ::xowiki {
       # (typed) file links
       set (prefix) file
       set name file:$(stripped_name)
+    } elseif {[regexp {^folder:(.+)$} $element _ (stripped_name)]} {
+      # (typed) file links
+      array set "" [list prefix "" link_type link form "en:folder.form"]
+      set name $(stripped_name)
     } elseif {[regexp {^(..):([^:]{3,}?):(..):(.+)$} $element _ form_lang form (prefix) (stripped_name)]} {
       array set "" [list link_type "link" form "$form_lang:$form.form"]
       set name $(prefix):$(stripped_name)
@@ -1005,13 +993,13 @@ namespace eval ::xowiki {
       array set "" [list link_type "link"]
       set name $(prefix):$(stripped_name)
     } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
-      array set "" [list link_type "link" form "$default_lang:folder.form" prefix $default_lang]
-      set name $default_lang:$(stripped_name)
-      set use_default_lang 1
+      array set "" [list link_type "link" form "en:folder.form" prefix ""]
+      set name $(stripped_name)
+      set use_default_lang 0
     } elseif {$assume_folder} {
-      array set "" [list link_type "link" form "$default_lang:folder.form" prefix $default_lang stripped_name $element]
-      set name $default_lang:$element
-      set use_default_lang 1
+      array set "" [list link_type "link" form "en:folder.form" prefix "" stripped_name $element]
+      set name $element
+      set use_default_lang 0
     } else {
       array set "" [list link_type "link" prefix $default_lang stripped_name $element]
       set name $default_lang:$element
@@ -1021,7 +1009,7 @@ namespace eval ::xowiki {
     set (stripped_name) [string trimright $(stripped_name) \0]
 
     if {$element eq "." || $element eq ".\0"} {
-      array set "" [my item_id_ref $parent_id]
+      array set "" [my item_ref_from_id $parent_id]
       set item_id $parent_id
       set parent_id $(parent_id)
     } elseif {$element eq ".." || $element eq "..\0"} {
@@ -1030,7 +1018,7 @@ namespace eval ::xowiki {
         # refuse to traverse past root folder
         set parent_id $id
       }
-      array set "" [my item_id_ref $parent_id]
+      array set "" [my item_ref_from_id $parent_id]
       set item_id $parent_id
       set parent_id $(parent_id)
     } else {
@@ -1040,13 +1028,34 @@ namespace eval ::xowiki {
 		       -use_package_path $use_package_path \
 		       -use_site_wide_pages $use_site_wide_pages \
                        -name $name -parent_id $parent_id]
-      #my msg "[my id] lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
+      #my log "[my id] lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
 
       if {$item_id == 0} {
         #
         # The first lookup was not successful, so we try again. 
         #
-        if {$(link_type) eq "link" && $use_default_lang && $(prefix) ne "en"} {
+        if {$(link_type) eq "link" && $element eq $(stripped_name)} {
+	  #
+	  # try a direct lookup, in case it is a folder
+	  #
+          set item_id [my lookup \
+			   -use_package_path $use_package_path \
+			   -use_site_wide_pages $use_site_wide_pages \
+                           -name $(stripped_name) -parent_id $parent_id]
+          #my msg "try again in en en:$(stripped_name) => $item_id"
+          if {$item_id > 0} {array set "" [list prefix ""]}
+	}
+
+        if {$item_id == 0 && $(link_type) eq "link" && $assume_folder && $(prefix) eq ""} {
+          set item_id [my lookup \
+			   -use_package_path $use_package_path \
+			   -use_site_wide_pages $use_site_wide_pages \
+                           -name $default_lang:$element -parent_id $parent_id]
+	  if {$item_id > 0} {array set "" [list link_type "link" prefix $default_lang stripped_name $element]
+	  }
+	}
+
+        if {$item_id == 0 && $(link_type) eq "link" && $use_default_lang && $(prefix) ne "en"} {
           #
           # If the name was not specified explicitely (we are using
           # $default_lang), try again with language "en" try again,
@@ -1096,6 +1105,51 @@ namespace eval ::xowiki {
                 form $(form) parent_id $parent_id item_id $item_id ]
   }
 
+  Package instproc item_ref_from_id {
+    item_id
+  } {
+    #
+    # Obtain (partial) item_ref data from id. It does not handle
+    # e.g. special link_types as for e.g file|image|js|css|swf, etc.
+    #
+    ::xo::db::CrClass get_instance_from_db -item_id $item_id
+    set name [$item_id name]
+    set parent_id [$item_id parent_id]
+    if {[$item_id is_folder_page]} {
+      return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
+    } 
+    regexp {^(.+):(.+)$} $name _ prefix stripped_name
+    return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
+  }
+
+  Package instproc item_ref_from_url {url} {
+    #
+    # Obtain item reference data (item_id parent_id name lang
+    # stripped_name) from the specified url. So far, search starts
+    # always at the root.
+    #
+    # This is drastically simplified version of resolve_request, but
+    # it does not instantiate any objects and reutrns the usual item_ref data.
+    #
+    if {[string match /* $url]} {
+      set url [string range $url [string length [my package_url]] end]
+    }
+    my get_lang_and_name -default_lang [my default_language] -path $url (lang) stripped_url
+    set (parent_id) [my get_parent_and_name -lang $(lang) -path $stripped_url -parent_id [my folder_id] \
+		       parent (stripped_name)]
+    if {$(lang) ne "file"} {
+      # try a direct lookup
+      set (item_id) [::xo::db::CrClass lookup -name $(stripped_name) -parent_id $(parent_id)]
+      if {$item_id != 0} {
+	set (name) $(stripped_name)
+	return [array get ""]
+      }
+    }
+    set (name) $(lang):$(stripped_name)
+    set (item_id) [::xo::db::CrClass lookup -name $(name) -parent_id $(parent_id)]
+    return [array get ""]
+  }
+
   Package instproc get_page_from_item_ref {
     {-allow_cross_package_item_refs true} 
     {-use_package_path false} 
@@ -1116,7 +1170,7 @@ namespace eval ::xowiki {
     #my msg "get_page_from_item_ref [self args]"
     if {$allow_cross_package_item_refs && [string match //* $link]} {
       set referenced_package_id [my resolve_package_path $link rest_link]
-      #my log "get_page_from_item_ref recursive $rest_link in $referenced_package_id"
+      #my log "get_page_from_item_ref $link recursive rl?[info exists rest_link] in $referenced_package_id"
       if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
         # TODO: we have still to check, whether or not we want
         # site-wide-pages etc.  in cross package links, and if, under
@@ -1875,16 +1929,20 @@ namespace eval ::xowiki {
     }
 
     if {$item_id eq "" && $name ne ""} {
-      if {![info exists parent_id]} {set parent_id [my folder_id]}
-      if {[set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]] == 0} {
-        ns_log notice "lookup of '$name' failed"
-        set item_id ""
+      array set "" [my item_ref_from_url $name]
+      if {$(item_id) == 0} {
+        ns_log notice "lookup of '$name' with parent_id $parent_id failed"
+      } else {
+	set parent_id $(parent_id)
+	set item_id $(item_id)
+	set name $(name)
       }
     } elseif {$item_id ne ""} {
       if {![info exists parent_id]} {
         set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
       }
     }
+    #my msg item_id=$item_id
 
     if {$item_id ne ""} {
       my log "--D trying to delete $item_id $name"

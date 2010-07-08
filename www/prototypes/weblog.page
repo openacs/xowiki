@@ -1,7 +1,7 @@
 ::xowiki::Page new -title "Weblog Page" -set publish_status production -text {
 
 >>content<<
-{{//./weblog-portlet -decoration plain}}
+{{weblog-portlet -decoration plain}}
 >><<
 >>sidebar<<
 {{adp portlets/weblog-mini-calendar}}
