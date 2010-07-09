@@ -2113,21 +2113,35 @@ namespace eval ::xowiki::formfield {
   # note that the includelet "include" can be used for implementing symbolic links
   # to other xowiki pages.
   Class include -superclass text -parameter {
+  } -extend_slot validator link
+
+  include instproc convert_to_internal {} {
+    my instvar value object
+    set page [[$object package_id] get_page_from_item_ref \
+		  -default_lang [$object lang] \
+		  -parent_id [$object parent_id] \
+		  $value]
+    if {$page ne ""} {
+      # todo: maybe add to classical references...
+      $object references_add [list [list [$page item_id] object_link]]
+    }
   }
+  
   include instproc pretty_value {v} {
     my instvar object
-    array set "" [$object package_item_ref -default_lang [$object lang] -parent_id [$object parent_id] $v]
-    if {$(item_id) == 0} {
+    set page [[$object package_id] get_page_from_item_ref \
+		  -default_lang [$object lang] \
+		  -parent_id [$object parent_id] \
+		  $v]
+    #my msg page=$page
+    if {$page eq ""} {
       # Here, we could call "::xowiki::Link render" to offer the user means
       # to create the entry like with [[..]], if he has sufficent permissions...;
       # when $(package_id) is 0, the referenced package could not be
       # resolved
       return "Cannot resolve symbolic link '$v'"
     }
-    if {![my isobject $(item_id)]} {
-      set deref [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
-    }
-    return [$(item_id) render]
+    return [$page render]
   }
 
   ###########################################################

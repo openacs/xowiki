@@ -613,7 +613,7 @@ namespace eval ::xowiki {
 			     -parent_id $parent_id \
 			     -forms $form \
 			     -package_id $id] 0]
-    my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
+    #my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
       set form_link [$form_id pretty_link]
@@ -995,16 +995,19 @@ namespace eval ::xowiki {
     } elseif {[regexp {^(.+)\0$} $element _ (stripped_name)]} {
       array set "" [list link_type "link" form "en:folder.form" prefix ""]
       set name $(stripped_name)
-      set use_default_lang 0
     } elseif {$assume_folder} {
       array set "" [list link_type "link" form "en:folder.form" prefix "" stripped_name $element]
       set name $element
-      set use_default_lang 0
     } else {
       array set "" [list link_type "link" prefix $default_lang stripped_name $element]
       set name $default_lang:$element
       set use_default_lang 1
     }
+
+    if {$use_default_lang && $default_lang eq ""} {
+      my log "WARNING: Trying to use empty default lang on link '$element' => $name"
+    }
+
     set name [string trimright $name \0]
     set (stripped_name) [string trimright $(stripped_name) \0]
 
@@ -1205,7 +1208,7 @@ namespace eval ::xowiki {
                       -parent_id $search_parent_id \
                       $link]
 
-    #my msg "item-ref for '$link' returns [array get {}]"
+    #my msg "item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
       if {[$page package_id] ne [my id] || [$page parent_id] != $(parent_id)} {

@@ -1340,28 +1340,6 @@ namespace eval ::xowiki {
 
   Page instforward item_ref -verbose {%my package_id} %proc
   
-  Page ad_instproc package_item_ref {
-    -default_lang:required 
-    -parent_id:required 
-    link
-  } {
-
-    The provided link might contain cross-package item_refs.  When the
-    referenced package could not be resolved, the returned package_id
-    is 0. Otherwise, this method returns the results of item_ref.
-
-  } {
-    set package_id [my package_id]
-    set referenced_package_id [$package_id resolve_package_path $link link]
-    if {$referenced_package_id == 0} {
-      return [list item_id 0 parent_id 0]
-    }
-    if {$referenced_package_id != $package_id} {
-      set parent_id [$referenced_package_id folder_id]
-    }
-    return [$referenced_package_id item_ref -default_lang $default_lang -parent_id $parent_id $link]
-  }
-
   Page instproc pretty_link {
     {-anchor ""} 
     {-query ""} 
@@ -1677,14 +1655,34 @@ namespace eval ::xowiki {
     return 1
   }
 
-  Page instproc update_references {page_id references} {
+  Page instproc references_add {references} {
+    # TODO: make these persistent, maybe bypass reference to in link to classical references
+    my instvar item_id
+    foreach ref $references {
+      foreach {r link_type} $ref break
+      set already_recorded [db_0or1row [my qn [self proc]] "
+         select * from xowiki_references
+         where page = :item_id and reference = :r and link_type = :link_type"]
+      my msg "check r=$r, link_type=$link_type => $already_recorded"
+
+      if {!$already_recorded} {
+	my msg "RECORD $r $link_type $item_id"
+	db_dml [my qn insert_reference] \
+	    "insert into xowiki_references (reference, link_type, page) \
+             values (:r,:link_type,:item_id)"
+      }
+    }
+  }
+
+  Page instproc references_update {references} {
+    my instvar item_id
     db_dml [my qn delete_references] \
-        "delete from xowiki_references where page = $page_id"
+        "delete from xowiki_references where page = :item_id"
     foreach ref $references {
       foreach {r link_type} $ref break
       db_dml [my qn insert_reference] \
           "insert into xowiki_references (reference, link_type, page) \
-           values ($r,:link_type,$page_id)"
+           values (:r,:link_type,:item_id)"
     }
   }
 
@@ -1808,7 +1806,7 @@ namespace eval ::xowiki {
     #
     #my msg "we have the content, update=$update_references, unresolved=[my set unresolved_references]"
     if {$update_references || [my set unresolved_references] > 0} {
-      my update_references [my item_id] [lsort -unique [my set references]]
+      my references_update [lsort -unique [my set references]]
     }
     my unset references
     #
