@@ -70,6 +70,20 @@ namespace eval ::xowiki::formfield {
   #  return [string map [list __COLON__ :] $string]
   #}
 
+  FormField proc get_from_name {name} {
+    #
+    # Get a form field via name. The provided names are unique for a
+    # form. If multiple forms should be rendered simultaneously, we
+    # have to extend the addressing mechanism.
+    #
+    # todo: we could speed this up by an index if needed
+    foreach f [::xowiki::formfield::FormField info instances -closure] {
+      if {[$f name] eq $name} {
+	return $f
+      }
+    }
+    return ""
+  }
 
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
@@ -2116,23 +2130,51 @@ namespace eval ::xowiki::formfield {
   } -extend_slot validator link
 
   include instproc convert_to_internal {} {
-    my instvar value object
+    my instvar object value
     set page [[$object package_id] get_page_from_item_ref \
 		  -default_lang [$object lang] \
 		  -parent_id [$object parent_id] \
 		  $value]
+    #my msg "$value => $page, o package_id [$object package_id] t [$page object_id]"
+
     if {$page ne ""} {
-      # todo: maybe add to classical references...
-      $object references_add [list [list [$page item_id] object_link]]
+      set item_id [$page item_id]
+      set link_type [expr {[$page is_folder_page] ? "folder_link" : "link"}]
+      set cross_package [expr {[$object package_id] != [$page package_id]}]
+    } else {
+      set item_id 0
+      set link_type "unresolved"
+      set cross_package 0
     }
+    # rewrite value field
+    set value [list item_ref $value item_id $item_id link_type $link_type cross_package $cross_package]
+    $object set_property -new 1 [my name] $value
+
+  }
+  include instproc convert_to_external {value} {
+    if {$value ne ""} {
+      if {[catch {array set "" $value}]} {return $value}
+      return $(item_ref)
+    }
+    return ""
   }
   
   include instproc pretty_value {v} {
+    if {$v eq ""} { return $v }
+    if {[catch {array set "" $v}]} {
+      my log "warning: strange value for field [my name] '$v'"
+      return $v
+    }
     my instvar object
-    set page [[$object package_id] get_page_from_item_ref \
+    if {$(item_id) && [info command $(item_id)] ne ""} {
+      set page $(item_id)
+    } else {
+      set page [[$object package_id] get_page_from_item_ref \
 		  -default_lang [$object lang] \
 		  -parent_id [$object parent_id] \
-		  $v]
+		  $(item_ref)]
+    }
+
     #my msg page=$page
     if {$page eq ""} {
       # Here, we could call "::xowiki::Link render" to offer the user means
@@ -2141,7 +2183,18 @@ namespace eval ::xowiki::formfield {
       # resolved
       return "Cannot resolve symbolic link '$v'"
     }
-    return [$page render]
+    $object lappend references [list [$page item_id] $(link_type)]
+
+    #my msg "[$object name] ref $(item_ref) change parent from [$page parent_id] to [$object item_id]"
+    #my msg "could switch from [$page item_id] to [$object item_id]"
+    #::xo::cc set queryparm(__object) $object
+
+    # resetting esp. the item-id is dangerous. Therefore we reset it immediately after the rendering
+    $page set_resolve_context -package_id [$object package_id] -parent_id [$object parent_id] -item_id [$object item_id]
+    set html [$page render]
+    $page set item_id [$page set physical_item_id]
+
+    return $html
   }
 
   ###########################################################

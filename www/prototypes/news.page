@@ -102,7 +102,7 @@
     #
     # If the user has creation rights (on the first form), include the RSS Bookmarklet button
     #
-    if {[my exists form_ids]} {
+    if {[my exists form_ids] && [my set form_ids] ne ""} {
       set can_create_news_item [$package_id make_link [lindex [my set form_ids] 0] create-new return_url]
       if {$can_create_news_item ne ""} {
         append rss "Bookmarklet: " [$page include "bookmarklet-button -label {[$page title]}"]

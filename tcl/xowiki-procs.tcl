@@ -881,11 +881,48 @@ namespace eval ::xowiki {
   #
   # check certain properties of a page (is_* methods)
   #
-  Page instproc is_folder_page {} {
+  Page instproc is_folder_page {{-include_folder_links true}} {
+    #
+    # Check, if current page is a folder, or a link to a folder
+    #
     #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
     if {![my istype ::xowiki::FormPage]} {return 0}
-    #my msg "[my name] has template page [my page_template] [[my page_template] name]"
-    if {[[my page_template] name] eq "en:folder.form"} {return 1}
+    set page_template_name [[my page_template] name]
+    if {$page_template_name eq "en:folder.form"} {return 1}
+    if {$include_folder_links && $page_template_name eq "en:link.form"} {
+      set link [my property link]
+      #my msg link=$link
+      # we are called also by the validator, maybe before convert_to_internal....
+      if {$link eq "" || [llength $link] < 2} {return 0}
+      array set "" $link
+      return [expr {[info exists (link_type)] && $(link_type) eq "folder_link"}]
+    }
+    return 0
+  }
+
+  Page instproc get_page_from_link_page {} {
+    if {![my is_link_page]} {return ""}
+    set link [my property link]
+    if {$link eq "" || [llength $link] < 2} {return ""}
+    array set "" $link
+    if {$(item_id) == 0} {return ""}
+    set target [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+    set target_package_id [$target package_id]
+    if {$target_package_id != [my package_id]} {
+      ::xowiki::Package require $target_package_id
+      #::xowiki::Package initialize -package_id $target_package_id -init_url false -keep_cc true
+    }
+    return $target
+  }
+
+  Page instproc is_link_page {} {
+    #
+    # Check, if current page is a link
+    #
+    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
+    if {![my istype ::xowiki::FormPage]} {return 0}
+    set page_template_name [[my page_template] name]
+    if {$page_template_name eq "en:link.form"} {return 1}
     return 0
   }
 
@@ -953,7 +990,7 @@ namespace eval ::xowiki {
   #
   # context handling
   #
-  Page instproc set_resolve_context {-package_id:required -parent_id:required} {
+  Page instproc set_resolve_context {-package_id:required -parent_id:required -item_id} {
     if {[my set parent_id] != $parent_id} {
       my set physical_parent_id [my set parent_id]
       my set parent_id $parent_id
@@ -963,6 +1000,10 @@ namespace eval ::xowiki {
       my set package_id $package_id
       #my msg "doing extra require on [my set physical_package_id]"
       #::xowiki::Package require [my set physical_package_id]
+    }
+    if {[info exists item_id] && [my item_id] != $item_id} {
+      my set physical_item_id [my set item_id]
+      my set item_id $item_id
     }
   }
 
@@ -990,15 +1031,22 @@ namespace eval ::xowiki {
     set page [self]
     while {1} {
       if {[$page istype ::xowiki::FormPage]} {
-	set page_template [$page page_template]
-        # search the page_template in the list of form_ids
-        if {[lsearch $folder_form_ids $page_template] > -1} {
-          break
-	} elseif {[$page_template name] eq "en:folder.form"} {
-	  # safety belt, in case we have in different directories
-	  # diffenent en:folder.form
-	  break
-        }
+	if {[$page is_folder_page]} break
+
+# 	set page_template [$page page_template]
+# 	set page_template_name [$page_template name]
+#         # search the page_template in the list of form_ids
+#         if {[lsearch $folder_form_ids $page_template] > -1} {
+#           break
+# 	} elseif {$page_template_name eq "en:folder.form"} {
+# 	  # safety belt, in case we have in different directories
+# 	  # diffenent en:folder.form
+# 	  break
+# 	} elseif {$page_template_name eq "en:link.form"} {
+# 	  set fp [my is_folder_page]
+# 	  my msg fp=$fp
+# 	  break
+#         }
       }
       set page [::xo::db::CrClass get_instance_from_db -item_id [$page parent_id]]
     }
@@ -1655,26 +1703,8 @@ namespace eval ::xowiki {
     return 1
   }
 
-  Page instproc references_add {references} {
-    # TODO: make these persistent, maybe bypass reference to in link to classical references
-    my instvar item_id
-    foreach ref $references {
-      foreach {r link_type} $ref break
-      set already_recorded [db_0or1row [my qn [self proc]] "
-         select * from xowiki_references
-         where page = :item_id and reference = :r and link_type = :link_type"]
-      my msg "check r=$r, link_type=$link_type => $already_recorded"
-
-      if {!$already_recorded} {
-	my msg "RECORD $r $link_type $item_id"
-	db_dml [my qn insert_reference] \
-	    "insert into xowiki_references (reference, link_type, page) \
-             values (:r,:link_type,:item_id)"
-      }
-    }
-  }
-
   Page instproc references_update {references} {
+    #my msg $references
     my instvar item_id
     db_dml [my qn delete_references] \
         "delete from xowiki_references where page = :item_id"
@@ -2414,6 +2444,7 @@ namespace eval ::xowiki {
     }
     return $result
   }
+
   PageInstance instproc adp_subst {content} {
     # initialize template variables (in case, new variables are added to template)
     array set __ia [my template_vars $content]
@@ -3122,7 +3153,6 @@ namespace eval ::xowiki {
 
 
   FormPage instproc get_value {{-field_spec ""} {-cr_field_spec ""} before varname} {
-    #my msg "varname=$varname [my exists_property $varname]"
     #
     # Read a property (instance attribute) and return
     # its pretty value in variable substitution.
@@ -3135,11 +3165,20 @@ namespace eval ::xowiki {
     } elseif {$varname eq "current_url"} {
       set value [::xo::cc url]
     } else {
-      set value [my property $varname]
-
-      # todo: might be more efficient to check, if the field exists already
-      set f [my create_form_field -cr_field_spec $cr_field_spec -field_spec $field_spec $varname]
-      $f value $value
+      #
+      # First check to find an existing form-field with that name
+      #
+      set f [::xowiki::formfield::FormField get_from_name $varname]
+      if {$f ne ""} {
+	set value [$f value]
+      } else {
+	#
+	# create a form-field from scratch
+	#
+	set value [my property $varname]
+	set f [my create_form_field -cr_field_spec $cr_field_spec -field_spec $field_spec $varname]
+	$f value $value
+      }
 
       if {[$f hide_value]} {
         set value ""

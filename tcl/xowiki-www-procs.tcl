@@ -661,10 +661,11 @@ namespace eval ::xowiki {
         my save_data \
             -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
-
-        # The data might have references. We render do the rendering here
-        # instead on every view (which would be safer, but slower). This is
+	#
+        # The data might have references. Perform the rendering here to compute
+	# the references instead on every view (which would be safer, but slower). This is
         # roughly the counterpart to edit_data and save_data in ad_forms.
+	#
         set content [my render -update_references true]
         #my msg "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
 
@@ -1666,11 +1667,12 @@ namespace eval ::xowiki {
   }
 
   Page ad_instproc get_form_data {-field_names form_fields} {
-    Get the values from the form and store it as
-    instance attributes. If the field names are not specified, 
-    all form parameters are used.
+
+    Get the values from the form and store it in the form fields and
+    finally as instance attributes. If the field names are not
+    specified, all form parameters are used.
+
   } {
-    #my msg "get_form_data [self] [my name] [self args]"
     set validation_errors 0
     set category_ids [list]
     array set containers [list]

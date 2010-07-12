@@ -12,9 +12,9 @@
   {-referer .}
 }
 
-set page_id [$package_id resolve_request -path $page_name method]
+set page [my get_page_from_item_ref $page_name]
 
-if {$page_id eq ""} {
+if {$page eq ""} {
   #
   # If a page with the given name does not exist, return an error.
   #
@@ -26,7 +26,7 @@ if {$page_id eq ""} {
   #
   # The page exists, get the title of the page...
   #
-  set page_title [$page_id title]
+  set page_title [$page title]
 
   # for the time being, we add the portlet on the first page (page 0)
   set portal_page_id [portal::get_page_id -portal_id $portal_id -sort_key 0]

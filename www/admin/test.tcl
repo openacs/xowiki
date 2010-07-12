@@ -646,27 +646,42 @@ test section "Item refs"
 #
 #
 
-#   proc ? {cmd expected {msg ""}} {
-#       ::xo::Timestamp t1
-#       set r [uplevel $cmd]
-#       if {$msg eq ""} {set msg $cmd}
-#       if {$r ne $expected} {
-#         regsub -all \# $r "" r
-#         append ::_ "Error: $msg returned \n'$r' ne \n'$expected'\n"
-#       } else {
-#         append ::_ "$msg - passed ([t1 diff] ms)\n"
-#       }
-#     }
-
   # "require_folder" and "require_page" are here just for testing
   proc require_folder {name parent_id package_id} {
-    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
-    set f [$form_id create_form_page_instance \
-               -name $name \
-               -nls_language en_US \
-               -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
-    $f save_new
-    set item_id [$f item_id]
+    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+    
+    if {$item_id == 0} {
+      set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+      set f [$form_id create_form_page_instance \
+		 -name $name \
+		 -nls_language en_US \
+		 -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
+      $f save_new
+      set item_id [$f item_id]
+    }
+    test hint "  $name => $item_id\n"
+    return $item_id
+  }
+
+  proc require_link {name parent_id package_id target_id} {
+    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+    
+    if {$item_id == 0} {
+      set form_id [::xowiki::Weblog instantiate_forms -forms en:link.form -package_id $package_id]
+      set target [::xo::db::CrClass get_instance_from_db -item_id $target_id]
+
+      set link_type [expr {[$target is_folder_page] ? "folder_link" : "link"}]
+      set cross_package [expr {$package_id != [$target package_id]}]
+      set value [list item_ref [$target name] item_id $target_id link_type $link_type cross_package $cross_package]
+
+      set f [$form_id create_form_page_instance \
+		 -name $name \
+		 -nls_language en_US \
+		 -instance_attributes [list link $value] \
+		 -default_variables [list title "Link $name" parent_id $parent_id package_id $package_id]]
+      $f save_new
+      set item_id [$f item_id]
+    }
     test hint "  $name => $item_id\n"
     return $item_id
   }
@@ -686,6 +701,7 @@ test section "Item refs"
       }
       $f save_new
       set item_id [$f item_id]
+      $f destroy_on_cleanup
     }
     ns_log notice "Page  $name => $item_id"
     test hint "  $name => $item_id\n"
@@ -702,31 +718,43 @@ test section "Item refs"
   set folder_id [$package_id folder_id]
   test hint "folder_id => $folder_id"
 
-  # make sure, we have folder "foldername" with subfolder "f3" with subfolder "subf3"
-  set foldername_id  [require_folder "foldername"  $folder_id $package_id]
-  set f3_id          [require_folder "f3"          $foldername_id $package_id]
+  set folder_id [$package_id folder_id]
+
+  # make sure, we have folder "f1" with subfolder "f3" with subfolder "subf3"
+  set f1_id          [require_folder "f1"          $folder_id $package_id]
+  set f3_id          [require_folder "f3"          $f1_id $package_id]
   set subf3_id       [require_folder "subf3"       $f3_id $package_id]
 
   # make sure, we have the test pages
-  set indexpage_id   [require_page   en:index      $folder_id $package_id]
   set parentpage_id  [require_page   de:parentpage $folder_id $package_id]
-  set testpage_id    [require_page   de:testpage   $foldername_id $package_id]
+  set enpage_id      [require_page   en:page       $folder_id $package_id]
+  set testpage_id    [require_page   de:testpage   $f1_id $package_id]
+  set f3page_id      [require_page   en:page       $f3_id $package_id]
 
   set childfolder_id [require_folder "childfolder" $parentpage_id $package_id]
   set childpage_id   [require_page "de:childpage"  $parentpage_id $package_id]
 
-  set image_id       [require_page file:image.png  $folder_id $package_id \
-                          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAAxJREFUCNdj\n+P//PwAF/gL+3MxZ5wAAAABJRU5ErkJggg=="]
+  set base64 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAAxJREFUCNdj\n+P//PwAF/gL+3MxZ5wAAAABJRU5ErkJggg=="
+  set image_id       [require_page file:image.png  $folder_id $package_id $base64]
+  set subimage_id    [require_page file:image2.png $f1_id $package_id $base64]
+  set childimage_id  [require_page file:image3.png $parentpage_id $package_id $base64]
 
+  set pagelink_id      [require_link de:link1      $folder_id $package_id $parentpage_id]
+  set folderlink_id    [require_link de:link2      $folder_id $package_id $f1_id]
+  set subpagelink_id   [require_link de:link3      $folder_id $package_id $testpage_id]
+  set subfolderlink_id [require_link de:link4      $folder_id $package_id $f3_id]
+  set subimagelink_id  [require_link de:link5      $folder_id $package_id $subimage_id]
   ################################
+
+
   test subsection "Toplevel Tests:"
 
-  set l "folder:foldername"
+  set l "folder:f1"
   set test [label "item_ref" "existing topfolder" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
 	   && $(form) eq "en:folder.form"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "de:parentpage"
   set test [label "item_ref" "existing page in root_folder" $l]
@@ -734,17 +762,17 @@ test section "Item refs"
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "parentpage"
            && $(parent_id) eq $folder_id && $(item_id) == $parentpage_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/"
+  set l "f1/"
   set test [label "item_ref" "existing topfolder short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername";# this works, since "foldername" exists
+  set l "f1";# this works, since "f1" exists
   set test [label "item_ref" "existing topfolder short + lookup" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "page1";#  last item per default page
   set test [label "item_ref" "not existing page short" $l]
@@ -815,17 +843,17 @@ test section "Item refs"
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "parentpage"
            && $(parent_id) eq $folder_id && $(item_id) == $parentpage_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "./foldername/"
+  set l "./f1/"
   set test [label "item_ref" "existing topfolder short, relative" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "./foldername";# this works, since "foldername" exists
+  set l "./f1";# this works, since "f1" exists
   set test [label "item_ref" "existing topfolder short + lookup, relative" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./page1";#  last item per default page
   set test [label "item_ref" "not existing page short, relative" $l]
@@ -854,11 +882,11 @@ test section "Item refs"
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" 
            && $(parent_id) eq -100 && $(item_id) == $folder_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "./foldername/."
+  set l "./f1/."
   set test [label "item_ref" "existing topfolder short, relative" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "./parentpage/."
   set test [label "item_ref" "existing page short (without language prefix), relative" $l]
@@ -869,101 +897,101 @@ test section "Item refs"
   ################################
   test subsection "Under folder:"
 
-  set l "folder:foldername/folder:f3"
+  set l "folder:f1/folder:f3"
   set test [label "item_ref" "existing subfolder" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername/f3/"
+  set l "folder:f1/f3/"
   set test [label "item_ref" "existing subfolder short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "./folder:foldername/folder:f3/"
+  set l "./folder:f1/folder:f3/"
   set test [label "item_ref" "existing subfolder with prefix and trailing slash" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/"
+  set l "f1/f3/"
   set test [label "item_ref" "existing subfolder short short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername1/folder:f3"
+  set l "folder:f11/folder:f3"
   set test [label "item_ref" "not existing folder with subfolder" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername1"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f11"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername1/folder/"
+  set l "f11/folder/"
   set test [label "item_ref" "not existing folder with subfolder short short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "foldername1"
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f11"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/folder1/"
+  set l "f1/folder1/"
   set test [label "item_ref" "existing folder with not existing subfolder short short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "folder1"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/page1"
+  set l "f1/page1"
   set test [label "item_ref" "existing folder with not existing page short short" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "page1"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername/folder:f3/folder:subf3"
+  set l "folder:f1/folder:f3/folder:subf3"
   set test [label "item_ref" "existing subsubfolder" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3"
+  set l "f1/f3/subf3"
   set test [label "item_ref" "existing subsubfolder short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3/."
+  set l "f1/f3/subf3/."
   set test [label "item_ref" "existing subsubfolder short" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "subf3"
            && $(parent_id) eq $f3_id && $(item_id) == $subf3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername/folder:f99"
+  set l "folder:f1/folder:f99"
   set test [label "item_ref" "not existing folder in folder" $l]
   array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f99"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername/de:testpage"
+  set l "folder:f1/de:testpage"
   set test [label "item_ref" "existing page in folder" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "testpage"
-           && $(parent_id) eq $foldername_id && $(item_id) == $testpage_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $testpage_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "folder:foldername/de:entry"
+  set l "folder:f1/de:entry"
   set test [label "item_ref" "not existing page in folder" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "entry"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/image:image.png"
+  set l "f1/image:image.png"
   set test [label "item_ref" "not existing image" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "image" && $(prefix) eq "file" && $(stripped_name) eq "image.png"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/image.png"
+  set l "f1/image.png"
   set test [label "item_ref" "not existing image short" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "image" && $(prefix) eq "file" && $(stripped_name) eq "image.png"
-           && $(parent_id) eq $foldername_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   ################################
   test subsection "Under page:"
@@ -1019,29 +1047,29 @@ test section "Item refs"
   ? {expr {$(link_type) eq "folder" && $(prefix) eq ""
            && $(parent_id) == -100 && $(item_id) == $folder_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3/.."
+  set l "f1/f3/subf3/.."
   set test [label "item_ref" "existing subsubfolder dot dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3/../"
+  set l "f1/f3/subf3/../"
   set test [label "item_ref" "existing subsubfolder dot dot slash" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3/../."
+  set l "f1/f3/subf3/../."
   set test [label "item_ref" "existing subsubfolder dot dot slash dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f3"
-           && $(parent_id) eq $foldername_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
+           && $(parent_id) eq $f1_id && $(item_id) == $f3_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  set l "foldername/f3/subf3/../.."
+  set l "f1/f3/subf3/../.."
   set test [label "item_ref" "existing subsubfolder dot dot slash dot dot" $l]
   array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
-  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "foldername"
-           && $(parent_id) eq $folder_id && $(item_id) == $foldername_id}} 1 "\n$test:\n  [array get {}]\n "
+  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
 
   set l "parentpage/childpage/.."
   set test [label "item_ref" "existing page und page dot dot" $l]
@@ -1084,6 +1112,247 @@ test section "Item refs"
   ? {$link render} {} "\n$test\n "
 ? {p array get lang_links} [subst -nocommands {found {{<a href='/$instance_name/de/parentpage' ><img class='found'  src='/resources/xowiki/flags/de.png' alt='de'></a>}}}] "\n$test links\n "
 
+############################################
+
+  test section "page properties"
+
+  set f1 [::xo::db::CrClass get_instance_from_db -item_id $f1_id]
+  set f2 [::xo::db::CrClass get_instance_from_db -item_id $f3_id]
+  set f3 [::xo::db::CrClass get_instance_from_db -item_id $subf3_id]
+
+  set p1 [::xo::db::CrClass get_instance_from_db -item_id $parentpage_id]
+  set p2 [::xo::db::CrClass get_instance_from_db -item_id $testpage_id]
+  set p3 [::xo::db::CrClass get_instance_from_db -item_id $childpage_id]
+  set p4 [::xo::db::CrClass get_instance_from_db -item_id $enpage_id]
+  set p5 [::xo::db::CrClass get_instance_from_db -item_id $f3page_id]
+
+  set i1 [::xo::db::CrClass get_instance_from_db -item_id $image_id]
+  set i2 [::xo::db::CrClass get_instance_from_db -item_id $subimage_id]
+  set i3 [::xo::db::CrClass get_instance_from_db -item_id $childimage_id]
+
+  set l1 [::xo::db::CrClass get_instance_from_db -item_id $pagelink_id]
+  set l2 [::xo::db::CrClass get_instance_from_db -item_id $folderlink_id]
+  set l3 [::xo::db::CrClass get_instance_from_db -item_id $subpagelink_id]
+  set l4 [::xo::db::CrClass get_instance_from_db -item_id $subfolderlink_id]
+  set l5 [::xo::db::CrClass get_instance_from_db -item_id $subimagelink_id]
+
+
+
+  ? {$f1 is_folder_page} 1
+  ? {$f2 is_folder_page} 1
+  ? {$f3 is_folder_page} 1
+
+  ? {$p1 is_folder_page} 0
+
+  ? {$l1 is_folder_page} 0
+  ? {$l2 is_folder_page} 1
+  ? {$l3 is_folder_page} 0
+  ? {$l4 is_folder_page} 1
+  ? {$l5 is_folder_page} 0
+
+
+
+  test section "pretty links"
+
+  ? {$f1 pretty_link} "/XOWIKI-TEST/f1"
+  ? {$f2 pretty_link} "/XOWIKI-TEST/f1/f3"
+  ? {$f3 pretty_link} "/XOWIKI-TEST/f1/f3/subf3"
+
+  ? {$p1 pretty_link} "/XOWIKI-TEST/de/parentpage"
+  ? {$p2 pretty_link} "/XOWIKI-TEST/de/f1/testpage"
+  ? {$p3 pretty_link} "/XOWIKI-TEST/de/de:parentpage/childpage"
+  ? {$p4 pretty_link} "/XOWIKI-TEST/page"
+  ? {$p5 pretty_link} "/XOWIKI-TEST/f1/f3/page"
+
+  ? {$i1 pretty_link} "/XOWIKI-TEST/file/image.png"
+  ? {$i2 pretty_link} "/XOWIKI-TEST/file/f1/image2.png"
+  ? {$i3 pretty_link} "/XOWIKI-TEST/file/de:parentpage/image3.png"
+
+  ? {$l1 pretty_link} "/XOWIKI-TEST/de/link1"
+  ? {$l2 pretty_link} "/XOWIKI-TEST/de/link2"
+  ? {$l3 pretty_link} "/XOWIKI-TEST/de/link3"
+  ? {$l4 pretty_link} "/XOWIKI-TEST/de/link4"
+  ? {$l5 pretty_link} "/XOWIKI-TEST/de/link5"
+
+  test section "item info from pretty links"  
+
+  set l [$f1 pretty_link]
+  set test [label "url" "topfolder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $f1_id && $(stripped_name) eq "f1"}} 1 "\n$test:\n  [array get {}]\n "  
+
+  set l [$f2 pretty_link]
+  set test [label "url" "folder under topfolder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $f3_id && $(stripped_name) eq "f3"}} 1 "\n$test:\n  [array get {}]\n "  
+
+  set l [$f3 pretty_link]
+  set test [label "url" "subsubfolder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subf3_id && $(stripped_name) eq "subf3"}} 1 "\n$test:\n  [array get {}]\n "  
+
+  set l [$p1 pretty_link]
+  set test [label "url" "toppage" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$p2 pretty_link]
+  set test [label "url" "page in folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$p3 pretty_link]
+  set test [label "url" "page under page" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $childpage_id && $(stripped_name) eq "childpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$p4 pretty_link]
+  set test [label "url" "toplevel en page" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $enpage_id && $(stripped_name) eq "page"
+	   && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$p5 pretty_link]
+  set test [label "url" "en page under subfolder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $f3page_id && $(stripped_name) eq "page"
+	   && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
+
+  # image links
+
+  set l [$i1 pretty_link]
+  set test [label "url" "toplevel image" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
+	   && $(name) eq "file:image.png"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$i2 pretty_link]
+  set test [label "url" "toplevel image" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subimage_id && $(stripped_name) eq "image2.png"
+	   && $(name) eq "file:image2.png"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$i3 pretty_link]
+  set test [label "url" "toplevel image" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $childimage_id && $(stripped_name) eq "image3.png"
+	   && $(name) eq "file:image3.png" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+  
+  # links
+ 
+  set l [$l1 pretty_link]
+  set test [label "url" "toplevel link to page" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $pagelink_id && $(stripped_name) eq "link1"
+	   && $(name) eq "de:link1" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$l2 pretty_link]
+  set test [label "url" "toplevel link to folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $folderlink_id && $(stripped_name) eq "link2"
+	   && $(name) eq "de:link2" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$l3 pretty_link]
+  set test [label "url" "toplevel link to page under folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subpagelink_id && $(stripped_name) eq "link3"
+	   && $(name) eq "de:link3" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$l4 pretty_link]
+  set test [label "url" "toplevel link to folder under folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subfolderlink_id && $(stripped_name) eq "link4"
+	   && $(name) eq "de:link4" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l [$l5 pretty_link]
+  set test [label "url" "toplevel link to image under folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
+	   && $(name) eq "de:link5" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
+
+
+  test section "item info from variations of pretty links"  
+
+  # download
+  set l /XOWIKI-TEST/download/file/image.png
+  set test [label "url" "toplevel image download" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
+	   && $(name) eq "file:image.png"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
+
+  # download via link
+  set l /XOWIKI-TEST/download/de/link5
+  set test [label "url" "toplevel image download" $l]
+  array set "" [$package_id item_info_from_url -default_lang de $l]
+  ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
+	   && $(name) eq "de:link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
+
+  # tag link
+  set l /XOWIKI-TEST/tag/a
+  set test [label "url" "tag query" $l]
+  array set "" [$package_id item_info_from_url -default_lang de $l]
+  ? {expr {$(item_id) != 0 && $(stripped_name) eq "weblog"
+	   && $(name) eq "en:weblog"  && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n"  
+  # missing: tag links to subdirectories
+
+  # url without default lang
+  set l /XOWIKI-TEST/parentpage
+  set test [label "url" "toppage w/o de" $l]
+  array set "" [$package_id item_info_from_url -default_lang de $l]
+  ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  # prefixed name
+  set l /XOWIKI-TEST/de:parentpage
+  set test [label "url" "toppage prefixed eq default_lang" $l]
+  array set "" [$package_id item_info_from_url -default_lang de $l]
+  ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l /XOWIKI-TEST/de:parentpage
+  set test [label "url" "toppage prefixed ne default_lang" $l]
+  array set "" [$package_id item_info_from_url -default_lang en $l]
+  ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+
+  test section "item info via links to folders"  
+  # reference pages over links to folders
+
+  set l /XOWIKI-TEST/de:link2/testpage
+  set test [label "url" "reference page over links to folder default-lang" $l]
+  array set "" [$package_id item_info_from_url -default_lang de $l]
+  ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"
+	 && $(name) eq "de:testpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l /XOWIKI-TEST/de:link2/de:testpage
+  set test [label "url" "reference page over links to folder direct name" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"
+	 && $(name) eq "de:testpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l /XOWIKI-TEST/download/file/de:link2/image2.png
+  set test [label "url" "reference download image over links to folder" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $subimage_id && $(stripped_name) eq "image2.png"
+	   && $(name) eq "file:image2.png"}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l /XOWIKI-TEST/de:link2/f3/page
+  set test [label "url" "path contains link and references finally page" $l]
+  array set "" [$package_id item_info_from_url $l]
+  ? {expr {$(item_id) == $f3page_id && $(stripped_name) eq "page"
+	   && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
+
+
+  #test section "inherited pages"  
+
+  # link to site-wide page
+
+  #set l /XOWIKI-TEST/en/folder.form
+  #set test [label "url" "site-wide-page top" $l]
+  #array set "" [$package_id item_info_from_url -default_lang de $l]
+  #? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
+
+  # link to page in other package
+  # link to dir in other package
 
 ns_write "<p>
 <hr>

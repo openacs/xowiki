@@ -36,13 +36,13 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
-      #my msg "trying to get $t"
+      #my log "trying to get $t // parent_id $parent_id"
       set page [$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
                     -use_package_path true \
                     -parent_id $parent_id \
                     $t]
-      #my msg "weblog form $t => $page"
+      #my log "weblog form $t => $page"
       if {$page ne ""} {
         lappend form_item_ids [$page item_id]
       }
@@ -133,8 +133,11 @@ namespace eval ::xowiki {
                             -forms $entries_of \
                             -package_id $package_id]
         }
-
-        append extra_where_clause " and bt.page_template in ('[join $form_ids ',']') and bt.page_instance_id = bt.revision_id "
+	if {$form_ids ne ""} {
+	  append extra_where_clause " and bt.page_template in ('[join $form_ids ',']') and bt.page_instance_id = bt.revision_id "
+	} else {
+	  my msg "could not lookup forms $entries_of"
+	}
         set base_type ::xowiki::FormPage
         set base_table xowiki_form_pagei
         append attributes ,bt.page_template,bt.state
