@@ -2131,24 +2131,9 @@ namespace eval ::xowiki::formfield {
 
   include instproc convert_to_internal {} {
     my instvar object value
-    set page [[$object package_id] get_page_from_item_ref \
-		  -default_lang [$object lang] \
-		  -parent_id [$object parent_id] \
-		  $value]
-    #my msg "$value => $page, o package_id [$object package_id] t [$page object_id]"
 
-    if {$page ne ""} {
-      set item_id [$page item_id]
-      set link_type [expr {[$page is_folder_page] ? "folder_link" : "link"}]
-      set cross_package [expr {[$object package_id] != [$page package_id]}]
-    } else {
-      set item_id 0
-      set link_type "unresolved"
-      set cross_package 0
-    }
-    # rewrite value field
-    set value [list item_ref $value item_id $item_id link_type $link_type cross_package $cross_package]
-    $object set_property -new 1 [my name] $value
+    set props [$object compute_link_properties $value]
+    $object set_property -new 1 [my name] $props
 
   }
   include instproc convert_to_external {value} {
@@ -2185,14 +2170,16 @@ namespace eval ::xowiki::formfield {
     }
     $object lappend references [list [$page item_id] $(link_type)]
 
-    #my msg "[$object name] ref $(item_ref) change parent from [$page parent_id] to [$object item_id]"
-    #my msg "could switch from [$page item_id] to [$object item_id]"
-    #::xo::cc set queryparm(__object) $object
-
+    #my msg "could switch from [$page item_id] [$page package_id] to [$object item_id] [$object package_id]"
+    #
     # resetting esp. the item-id is dangerous. Therefore we reset it immediately after the rendering
-    $page set_resolve_context -package_id [$object package_id] -parent_id [$object parent_id] -item_id [$object item_id]
+    #
+    $page set_resolve_context \
+	-package_id [$object package_id] -parent_id [$object parent_id] \
+	-item_id [$object item_id]
     set html [$page render]
-    $page set item_id [$page set physical_item_id]
+    #my msg "reset resolve-context"
+    $page reset_resolve_context
 
     return $html
   }

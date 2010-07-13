@@ -1306,7 +1306,7 @@ namespace eval ::xowiki {
                       -parent_id $search_parent_id \
                       $link]
 
-    #my log  "[my instance_name] (root [my folder_id]) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+    #my msg  "[my instance_name] (root [my folder_id]) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
       if {[$page package_id] ne [my id] || [$page parent_id] != $(parent_id)} {
@@ -1939,8 +1939,8 @@ namespace eval ::xowiki {
       set name [my query_parameter name]
     }
 
-    if {$item_id eq "" && $name ne ""} {
-      array set "" [my item_info_from_url $name]
+    if {$item_id eq ""} {
+      array set "" [my item_info_from_url -with_package_prefix false $name]
       if {$(item_id) == 0} {
         ns_log notice "lookup of '$name' with parent_id $parent_id failed"
       } else {
@@ -1948,12 +1948,13 @@ namespace eval ::xowiki {
 	set item_id $(item_id)
 	set name $(name)
       }
-    } elseif {$item_id ne ""} {
+    } else {
+      set name [::xo::db::CrClass get_name -item_id $item_id]
       if {![info exists parent_id]} {
         set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
       }
     }
-    #my msg item_id=$item_id
+    #my msg item_id=$item_id/name=$name
 
     if {$item_id ne ""} {
       my log "--D trying to delete $item_id $name"

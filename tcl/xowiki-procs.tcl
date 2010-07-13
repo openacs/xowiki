@@ -881,32 +881,49 @@ namespace eval ::xowiki {
   #
   # check certain properties of a page (is_* methods)
   #
+  
+  # 
+  # Check, if page is a folder
+  #
   Page instproc is_folder_page {{-include_folder_links true}} {
-    #
-    # Check, if current page is a folder, or a link to a folder
-    #
-    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
-    if {![my istype ::xowiki::FormPage]} {return 0}
+    return 0
+  }
+  FormPage instproc is_folder_page {{-include_folder_links true}} {
     set page_template_name [[my page_template] name]
     if {$page_template_name eq "en:folder.form"} {return 1}
     if {$include_folder_links && $page_template_name eq "en:link.form"} {
-      set link [my property link]
-      #my msg link=$link
-      # we are called also by the validator, maybe before convert_to_internal....
-      if {$link eq "" || [llength $link] < 2} {return 0}
-      array set "" $link
-      return [expr {[info exists (link_type)] && $(link_type) eq "folder_link"}]
+      set link_type [my get_property_from_link_page link_type ""]
+      return [expr {$link_type eq "folder_link"}]
     }
     return 0
   }
 
-  Page instproc get_page_from_link_page {} {
-    if {![my is_link_page]} {return ""}
+  #
+  # Check, if a page is a link
+  #
+  Page instproc is_link_page {} {
+    return 0
+  }
+  FormPage instproc is_link_page {} {
+    return [expr {[[my page_template] name] eq "en:link.form"}]
+  }
+
+  #
+  # link properties
+  #
+  Page instproc get_property_from_link_page {property {default ""}} {
+    if {![my is_link_page]} {return $default}
     set link [my property link]
-    if {$link eq "" || [llength $link] < 2} {return ""}
+    if {$link eq "" || [llength $link] < 2} {return $default}
     array set "" $link
-    if {$(item_id) == 0} {return ""}
-    set target [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
+    if {[info exists ($property)]} {return $($property)}
+    return $default
+  }
+
+  Page instproc get_page_from_link_page {} {
+    set item_id [my get_property_from_link_page item_id 0]
+    if {$item_id == 0} {return ""}
+    set target [::xo::db::CrClass get_instance_from_db -item_id $item_id]
     set target_package_id [$target package_id]
     if {$target_package_id != [my package_id]} {
       ::xowiki::Package require $target_package_id
@@ -915,25 +932,53 @@ namespace eval ::xowiki {
     return $target
   }
 
-  Page instproc is_link_page {} {
-    #
-    # Check, if current page is a link
-    #
-    #my msg "[my name] istype FormPage [my istype ::xowiki::FormPage]"
-    if {![my istype ::xowiki::FormPage]} {return 0}
-    set page_template_name [[my page_template] name]
-    if {$page_template_name eq "en:link.form"} {return 1}
-    return 0
+  FormPage instproc get_verified_link_type_from_link_page {} {
+    set link_type [my get_property_from_link_page link_type "unresolved"]
+    if {1 || $link_type eq "unresolved"} {
+      # to to resolve again
+      set props [my compute_link_properties [my get_property_from_link_page item_ref]]
+      array set "" $props
+      # if link_type is now unresolved, update the link properties 
+      if {$(link_type) ne $link_type} {
+	set link_type $(link_type)
+	my set_property -new 1 link $props
+	my save
+	my msg "rewritten"
+      }
+    }
+    return $link_type
   }
+
+  FormPage instproc compute_link_properties {item_ref} {
+    my instvar package_id
+    set page [$package_id get_page_from_item_ref \
+		  -default_lang [my lang] \
+		  -parent_id [my parent_id] \
+		  $item_ref]
+    #my msg "$item_ref => $page, o package_id [my package_id] t [$page object_id]"
+
+    if {$page ne ""} {
+      set item_id [$page item_id]
+      set link_type [expr {[$page is_folder_page] ? "folder_link" : "link"}]
+      set cross_package [expr {$package_id != [$page package_id]}]
+    } else {
+      set item_id 0
+      set link_type "unresolved"
+      set cross_package 0
+    }
+    return [list item_ref $item_ref item_id $item_id link_type $link_type cross_package $cross_package]
+  }
+
+  #
+  # Check, if a page is a form
+  #
 
   Page instproc is_form {} {
     return 0
   }
-
   Form instproc is_form {} {
     return 1
   }
-
   FormPage instproc is_form {} {
     return [my exists_property form_constraints]
   }
@@ -1004,6 +1049,15 @@ namespace eval ::xowiki {
     if {[info exists item_id] && [my item_id] != $item_id} {
       my set physical_item_id [my set item_id]
       my set item_id $item_id
+    }
+  }
+  Page instproc reset_resolve_context {} {
+    foreach att {item package parent} {
+      set name physical_${att}_id
+      if {[my exists $name]} {
+	my set ${att}_id [my set $name]
+	my unset $name
+      }
     }
   }
 
@@ -3084,6 +3138,19 @@ namespace eval ::xowiki {
     switch [$page_template name] {
       en:folder.form {
 	return [list text "<img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
+      }
+      en:link.form {
+	set link_type [my get_verified_link_type_from_link_page]
+	set link_icon "http://www.ejoe.at/typo3/sysext/rtehtmlarea/res/accessibilityicons/img/internal_link.gif"
+	if {$link_type eq "unresolved"} {
+	  return [list text "<img src='$link_icon' width='12'> \
+		<img src='http://www.deeptrawl.com/images/icons/brokenLinks.png' width='15'>" is_richtext true]
+	} 
+	if {$link_type eq "folder_link"} {
+	  return [list text "<img src='$link_icon' width='12'> \
+		<img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
+	}
+	return [list text "<img src='$link_icon' width='12'>" is_richtext true]
       }
       default {
 	return [list text [$page_template title] is_richtext false]
