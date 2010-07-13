@@ -899,8 +899,8 @@ namespace eval ::xowiki {
       # Page not found so far. Is the parent-page a folder-link?
       #
       ::xo::db::CrClass get_instance_from_db -item_id $parent_id
-      if {[$parent_id is_link_page] && [$parent_id is_folder_page]} {
-	set target [$parent_id get_page_from_link_page]
+      if {$parent_id > 0  && [$parent_id is_link_page] && [$parent_id is_folder_page]} {
+	set target [$parent_id get_target_from_link_page]
 	#my log "LINK LOOKUP from target-package [$target package_id] source package $(package_id)"
 	return [[$target package_id] lookup \
 		    -use_package_path $use_package_path \
@@ -1226,7 +1226,7 @@ namespace eval ::xowiki {
       # check link (todo should happen in package->lookup?)
       ::xo::db::CrClass get_instance_from_db -item_id $(parent_id)
       if {[$(parent_id) is_link_page] && [$(parent_id) is_folder_page]} {
-	set target [$(parent_id) get_page_from_link_page]
+	set target [$(parent_id) get_target_from_link_page]
 	#$target set_resolve_context -package_id [my id] -parent_id $(parent_id)
 	#my msg "LINK prefixed LOOKUP from target-package [$target package_id] source package [my id]"
 	array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \

@@ -2127,59 +2127,32 @@ namespace eval ::xowiki::formfield {
   # note that the includelet "include" can be used for implementing symbolic links
   # to other xowiki pages.
   Class include -superclass text -parameter {
-  } -extend_slot validator link
-
-  include instproc convert_to_internal {} {
-    my instvar object value
-
-    set props [$object compute_link_properties $value]
-    $object set_property -new 1 [my name] $props
-
   }
-  include instproc convert_to_external {value} {
-    if {$value ne ""} {
-      if {[catch {array set "" $value}]} {return $value}
-      return $(item_ref)
-    }
-    return ""
-  }
-  
+
   include instproc pretty_value {v} {
     if {$v eq ""} { return $v }
-    if {[catch {array set "" $v}]} {
-      my log "warning: strange value for field [my name] '$v'"
-      return $v
-    }
-    my instvar object
-    if {$(item_id) && [info command $(item_id)] ne ""} {
-      set page $(item_id)
-    } else {
-      set page [[$object package_id] get_page_from_item_ref \
-		  -default_lang [$object lang] \
-		  -parent_id [$object parent_id] \
-		  $(item_ref)]
-    }
 
-    #my msg page=$page
-    if {$page eq ""} {
+    my instvar object
+    set item_id  [$object get_property_from_link_page item_id]
+    if {$item_id == 0} {
       # Here, we could call "::xowiki::Link render" to offer the user means
       # to create the entry like with [[..]], if he has sufficent permissions...;
       # when $(package_id) is 0, the referenced package could not be
       # resolved
       return "Cannot resolve symbolic link '$v'"
     }
-    $object lappend references [list [$page item_id] $(link_type)]
+    set link_type [$object get_property_from_link_page link_type]
+    $object lappend references [list $item_id $link_type]
 
-    #my msg "could switch from [$page item_id] [$page package_id] to [$object item_id] [$object package_id]"
     #
     # resetting esp. the item-id is dangerous. Therefore we reset it immediately after the rendering
     #
-    $page set_resolve_context \
+    $item_id set_resolve_context \
 	-package_id [$object package_id] -parent_id [$object parent_id] \
 	-item_id [$object item_id]
-    set html [$page render]
+    set html [$item_id render]
     #my msg "reset resolve-context"
-    $page reset_resolve_context
+    $item_id reset_resolve_context
 
     return $html
   }

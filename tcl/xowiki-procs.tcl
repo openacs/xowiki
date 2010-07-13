@@ -913,14 +913,22 @@ namespace eval ::xowiki {
   #
   Page instproc get_property_from_link_page {property {default ""}} {
     if {![my is_link_page]} {return $default}
-    set link [my property link]
-    if {$link eq "" || [llength $link] < 2} {return $default}
-    array set "" $link
-    if {[info exists ($property)]} {return $($property)}
+    set item_ref [my property link]
+
+    # TODO we could save some double-fetch by collecing in
+    # get_form_entries via item-ids, not via new-objects
+    ::xo::db::CrClass get_instance_from_db -item_id [my item_id]
+
+    set props [::xo::cc cache [list [my item_id] compute_link_properties $item_ref]]
+    array set "" $props
+    if {[info exists ($property)]} {
+      #[my item_id] msg "prop $property ==> $($property)"
+      return $($property)
+    }
     return $default
   }
 
-  Page instproc get_page_from_link_page {} {
+  Page instproc get_target_from_link_page {} {
     set item_id [my get_property_from_link_page item_id 0]
     if {$item_id == 0} {return ""}
     set target [::xo::db::CrClass get_instance_from_db -item_id $item_id]
@@ -932,31 +940,12 @@ namespace eval ::xowiki {
     return $target
   }
 
-  FormPage instproc get_verified_link_type_from_link_page {} {
-    set link_type [my get_property_from_link_page link_type "unresolved"]
-    if {1 || $link_type eq "unresolved"} {
-      # to to resolve again
-      set props [my compute_link_properties [my get_property_from_link_page item_ref]]
-      array set "" $props
-      # if link_type is now unresolved, update the link properties 
-      if {$(link_type) ne $link_type} {
-	set link_type $(link_type)
-	my set_property -new 1 link $props
-	my save
-	my msg "rewritten"
-      }
-    }
-    return $link_type
-  }
-
   FormPage instproc compute_link_properties {item_ref} {
     my instvar package_id
     set page [$package_id get_page_from_item_ref \
 		  -default_lang [my lang] \
 		  -parent_id [my parent_id] \
 		  $item_ref]
-    #my msg "$item_ref => $page, o package_id [my package_id] t [$page object_id]"
-
     if {$page ne ""} {
       set item_id [$page item_id]
       set link_type [expr {[$page is_folder_page] ? "folder_link" : "link"}]
@@ -966,6 +955,7 @@ namespace eval ::xowiki {
       set link_type "unresolved"
       set cross_package 0
     }
+    #my msg [list item_ref $item_ref item_id $item_id link_type $link_type cross_package $cross_package]
     return [list item_ref $item_ref item_id $item_id link_type $link_type cross_package $cross_package]
   }
 
@@ -1019,7 +1009,7 @@ namespace eval ::xowiki {
     #my msg "$name / '$stripped_name'"
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
-      if {[my is_folder_page]} {
+      if {[my is_folder_page] || [my is_link_page]} {
         #
         # Do not add a language prefix to folder pages
         #
@@ -3140,7 +3130,7 @@ namespace eval ::xowiki {
 	return [list text "<img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
       }
       en:link.form {
-	set link_type [my get_verified_link_type_from_link_page]
+	set link_type [my get_property_from_link_page link_type "unresolved"]
 	set link_icon "http://www.ejoe.at/typo3/sysext/rtehtmlarea/res/accessibilityicons/img/internal_link.gif"
 	if {$link_type eq "unresolved"} {
 	  return [list text "<img src='$link_icon' width='12'> \
