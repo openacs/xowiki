@@ -892,7 +892,7 @@ namespace eval ::xowiki {
     set page_template_name [[my page_template] name]
     if {$page_template_name eq "en:folder.form"} {return 1}
     if {$include_folder_links && $page_template_name eq "en:link.form"} {
-      set link_type [my get_property_from_link_page link_type ""]
+      set link_type [my get_property_from_link_page link_type]
       return [expr {$link_type eq "folder_link"}]
     }
     return 0
@@ -928,7 +928,17 @@ namespace eval ::xowiki {
     return $default
   }
 
-  Page instproc get_target_from_link_page {} {
+  Page instproc get_target_from_link_page {{-depth 10}} {
+    #
+    # Dereference link and return target object of the
+    # link. Dereferencing happens up to a maximal depth to avoid loop
+    # in circular link structures. If this method is called with e.g.
+    # {-depth 1} and the link (actual object) points to some link2,
+    # the link2 is returned.
+    # 
+    # @param depth maximal dereferencing depth
+    # @return target object or empty
+    #
     set item_id [my get_property_from_link_page item_id 0]
     if {$item_id == 0} {return ""}
     set target [::xo::db::CrClass get_instance_from_db -item_id $item_id]
@@ -936,6 +946,9 @@ namespace eval ::xowiki {
     if {$target_package_id != [my package_id]} {
       ::xowiki::Package require $target_package_id
       #::xowiki::Package initialize -package_id $target_package_id -init_url false -keep_cc true
+    }
+    if {$depth > 1 && [$target is_link_page]} {
+      set target [my get_target_from_link_page -count [expr {$depth - 1}]]
     }
     return $target
   }

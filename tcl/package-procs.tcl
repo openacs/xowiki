@@ -149,7 +149,7 @@ namespace eval ::xowiki {
       # try without a prefix
       #set p [::xo::db::CrClass lookup -name $parent -parent_id $parent_id]
       set p [my lookup -name $parent -parent_id $parent_id]
-      #my log "check plain '$parent' returned $p"
+      #my msg "path '$path' check '$parent' $parent_id returns $p"
 
       if {$p == 0} {
         # pages are stored with a lang prefix
@@ -637,11 +637,19 @@ namespace eval ::xowiki {
       return ""
     }
   }
-
+  Package array set delegate_link_to_target {
+    csv-dump 1 download 1 list 1
+  }
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     set page [my resolve_page [my set object] method]
     #my log "--r resolve_page => $page"
     if {$page ne ""} {
+      if {[$page is_link_page] && [[self class] exists delegate_link_to_target($method)]} {
+	# if the target is a link, we may want to call the method on the target
+	set target [$page get_target_from_link_page]
+	#my msg "delegate $method from $page [$page name] to $target [$target name]"
+	if {$target ne ""} {set page $target}
+      }
       if {[$page procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
@@ -737,7 +745,7 @@ namespace eval ::xowiki {
     #
     # second, resolve object level
     #
-    #my msg "call item_info from url"
+    #my msg "call item_info_from url"
     array set "" [my item_info_from_url -with_package_prefix false -default_lang $lang $object]
 
     if {$(item_id) ne 0} {
@@ -854,8 +862,8 @@ namespace eval ::xowiki {
     # @return item-ref info
     #
     set item_id 0
-    if {$lang eq $default_lang} {
-      # try a direct lookup
+    if {$lang eq $default_lang || $lang eq "file"} {
+      # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
       if {$item_id != 0} {
 	set name $stripped_name
@@ -1197,7 +1205,7 @@ namespace eval ::xowiki {
 			 -lang $(lang) -path $stripped_url \
 			 -parent_id [my folder_id] \
 			 parent (stripped_name)]
-    #my msg "get_parent_and_name '$stripped_url' returns '$(stripped_name)'"
+    #my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
       set (method) ""

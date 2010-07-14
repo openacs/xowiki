@@ -421,7 +421,6 @@ namespace eval ::xowiki {
   #
   # externally callable method: download
   #
-
   File instproc download {} {
     my instvar mime_type package_id
     $package_id set mime_type $mime_type
@@ -436,6 +435,22 @@ namespace eval ::xowiki {
     #my log "--F FILE=[my full_file_name]"
     return [my full_file_name]
   }
+
+  #
+  # We handle delegation to target for most methods in
+  # Package->invoke.  Otherwise, we would have to implement several
+  # forwarder methods like the following:
+  #
+
+#   FormPage instproc download {} {
+#     # If there is a link to a file, it can be downloaded as well
+#     set target [my get_target_from_link_page]
+#     if {$target ne "" && [$target istype ::xowiki::File]} {
+#       $target download
+#     } else {
+#       [my package_id] error_msg "Method 'download' not implemented for this kind of object"
+#     }
+#   }
 
   #
   # helper methods for externally callable method: edit
