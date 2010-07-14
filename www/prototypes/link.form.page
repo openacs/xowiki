@@ -5,7 +5,6 @@
     -set anon_instances t \
     -set text {@link@} \
     -set form {} \
-    -set form_constraints {link:include}
-
+    -set form_constraints {link:include _nls_language:omit}
 
 
