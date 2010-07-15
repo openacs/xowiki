@@ -500,3 +500,5 @@ namespace eval ::xowiki {
 
 #   Link instmixin add LinkCache
 }
+::xo::library source_dependent 
+

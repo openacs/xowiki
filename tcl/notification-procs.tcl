@@ -171,3 +171,5 @@ namespace eval ::xowiki::notification {
     return "f"
   }  
 }
+::xo::library source_dependent 
+

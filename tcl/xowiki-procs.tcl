@@ -3240,7 +3240,12 @@ namespace eval ::xowiki {
       #
       set f [::xowiki::formfield::FormField get_from_name $varname]
       if {$f ne ""} {
-	set value [$f value]
+	#
+	# the form field exists already, we just fill in the actual
+	# value (needed e.g. in weblogs, when the same form field is
+	# used for multiple page instances in a single request)
+	#
+	set value [$f value [my property $varname]]
       } else {
 	#
 	# create a form-field from scratch
@@ -3263,12 +3268,10 @@ namespace eval ::xowiki {
     # Get the default field specs once and pass it to every field creation
     set field_spec [my get_short_spec @fields]
     set cr_field_spec [my get_short_spec @cr_fields]
-
     # Iterate over the variables for substitution
     set content [my regsub_eval -noquote true \
                      [template::adp_variable_regexp] " $content" \
 		     {my get_value -field_spec $field_spec -cr_field_spec $cr_field_spec "\\\1" "\2"}]
-
     return [string range $content 1 end]
   }
 

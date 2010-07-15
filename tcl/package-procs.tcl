@@ -641,21 +641,23 @@ namespace eval ::xowiki {
     csv-dump 1 download 1 list 1
   }
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
-    set page [my resolve_page [my set object] method]
-    #my log "--r resolve_page => $page"
-    if {$page ne ""} {
-      if {[$page is_link_page] && [[self class] exists delegate_link_to_target($method)]} {
+    set page_or_package [my resolve_page [my set object] method]
+    #my log "--r resolve_page => $page_or_package"
+    if {$page_or_package ne ""} {
+      if {[$page_or_package istype ::xowiki::FormPage]
+	  && [$page_or_package is_link_page]
+	  && [[self class] exists delegate_link_to_target($method)]} {
 	# if the target is a link, we may want to call the method on the target
-	set target [$page get_target_from_link_page]
-	#my msg "delegate $method from $page [$page name] to $target [$target name]"
-	if {$target ne ""} {set page $target}
+	set target [$page_or_package get_target_from_link_page]
+	#my msg "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
+	if {$target ne ""} {set page_or_package $target}
       }
-      if {[$page procsearch $method] eq ""} {
+      if {[$page_or_package procsearch $method] eq ""} {
 	return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
-        #my msg "--invoke [my set object] id=$page method=$method ([my id] batch_mode $batch_mode)" 
+        #my msg "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)" 
         if {$batch_mode} {[my id] set __batch_mode 1}
-	set r [my call $page $method ""]
+	set r [my call $page_or_package $method ""]
         if {$batch_mode} {[my id] unset __batch_mode}
         return $r
       }
@@ -700,7 +702,7 @@ namespace eval ::xowiki {
     # Try to resolve from object (path) and query parameter the called
     # object (might be a packge or page) and the method to be called.
     #
-    # @return instaniated object or empty
+    # @return instantiated object (Page or Package) or empty
     #
     upvar $method_var method
     my instvar id

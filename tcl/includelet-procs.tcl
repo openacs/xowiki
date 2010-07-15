@@ -3943,3 +3943,5 @@ namespace eval ::xowiki::includelet {
    </script>"
   }
 }
+::xo::library source_dependent 
+

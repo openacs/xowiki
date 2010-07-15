@@ -225,7 +225,7 @@ namespace eval ::xowiki {
         if {[my no_footer]} {$p set __no_footer 1}
 #        if {[catch {$p set description [$p render]} errorMsg]} {}
         if {[catch {$p set description [$p render -with_footer false]} errorMsg]} {
-          set description "Render Error ($errorMsg) $revision_id $name $title"
+          $p set description "Render Error ($errorMsg) $revision_id $name $title"
         }
         if {[my exists entry_flag]} {$p unset [my entry_flag]}
 	#my log "--W $p render (mixins=[$p info mixin]) => $description"
@@ -239,7 +239,6 @@ namespace eval ::xowiki {
       #my log "--W items=$items, added mixin [my set entry_renderer] to $p, has now <[$p info mixin]>"
       $items add $p
     }
-    
     array set smsg {1 full 0 summary}
     
     set query [::xo::update_query $query summary [expr {!$summary}]]
@@ -346,3 +345,5 @@ namespace eval ::xowiki {
 
 
 }
+::xo::library source_dependent 
+

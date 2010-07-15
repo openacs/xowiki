@@ -498,3 +498,5 @@ namespace eval ::xowiki {
     return $renames
   }
 }
+::xo::library source_dependent 
+

@@ -89,3 +89,5 @@ namespace eval ::xowiki {
     rename __upgrade ""
   }
 }
+::xo::library source_dependent 
+

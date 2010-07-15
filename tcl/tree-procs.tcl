@@ -400,3 +400,5 @@ namespace eval ::xowiki {
   }
 
 }
+::xo::library source_dependent 
+

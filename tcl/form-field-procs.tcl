@@ -988,7 +988,7 @@ namespace eval ::xowiki::formfield {
 	} else {
 	  set src "/shared/portrait-bits.tcl?user_id=$v"
 	}
-	set photo "<img class='photo' src='$src'>"
+	set photo "<img width='[my photo_size]' class='photo' src='$src'>"
 	set photo_class "photo"
       } else {
 	set photo ""
@@ -2788,3 +2788,5 @@ namespace eval ::xowiki::formfield {
         {date with format}
   }
 }
+
+::xo::library source_dependent 

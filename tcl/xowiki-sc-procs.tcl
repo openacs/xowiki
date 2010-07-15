@@ -158,3 +158,5 @@ namespace eval ::xowiki::sc {
   }
 }
 
+::xo::library source_dependent 
+
