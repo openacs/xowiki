@@ -2218,7 +2218,7 @@ namespace eval ::xowiki::includelet {
 
     my page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
     set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';"
-    set HTML [$tree render -style listdnd -js $js -context {min_level $min_level}]
+    set HTML [$tree render -style listdnd -js $js -context [list min_level $min_level]]
     
     return $HTML
   }
