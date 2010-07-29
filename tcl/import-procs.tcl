@@ -400,7 +400,7 @@ namespace eval ::xowiki {
   ArchiveFile instproc import {-dir -parent_id} {
     set package_id [$parent_id package_id]
 
-    foreach tmpfile [glob -directory $dir *] {
+    foreach tmpfile [glob -nocomplain -directory $dir *] {
       #my msg "work on $tmpfile [::file isdirectory $tmpfile]"
       set file_name [::file tail $tmpfile]
       if {[::file isdirectory $tmpfile]} {
