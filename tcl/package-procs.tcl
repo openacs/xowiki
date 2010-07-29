@@ -903,14 +903,15 @@ namespace eval ::xowiki {
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
     #my log "lookup $(page_name) $parent_id in package $(package_id) returns $item_id, parent_id $parent_id"
 
-    # Test for "0" is only needed when we want to create for root folder 
+    # Test for "0" is only needed when we want to create the first root folder 
     if {$item_id == 0 && $parent_id ne "0"} {
       #
-      # Page not found so far. Is the parent-page a folder-link?
+      # Page not found so far. Is the parent-page a regular page and a folder-link?
+      # If so, de-reference the link.
       #
-      ::xo::db::CrClass get_instance_from_db -item_id $parent_id
-      if {$parent_id > 0  && [$parent_id is_link_page] && [$parent_id is_folder_page]} {
-	set target [$parent_id get_target_from_link_page]
+      set p [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
+      if {[$p istype ::xowiki::FormPage] && [$p is_link_page] && [$p is_folder_page]} {
+	set target [$p get_target_from_link_page]
 	#my log "LINK LOOKUP from target-package [$target package_id] source package $(package_id)"
 	return [[$target package_id] lookup \
 		    -use_package_path $use_package_path \
