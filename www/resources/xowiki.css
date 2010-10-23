@@ -1,5 +1,5 @@
 /* for mini-calendar in weblog */
-#at-a-glance td.inactive  {color: #999999;}
+#at-a-glance td.inactive  {color: #999999; background:#FFF;}
 /*#at-a-glance :active  {background: #999999;}*/
 /*#at-a-glance td.active  {color: #003b53;}*/
 /*#at-a-glance td.today  {color: #003b53;}*/
@@ -162,7 +162,7 @@ div.xowiki-content h4 {
     margin: 0;
 }
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
-div.xowiki-content .errorMsg {color: red; font-weight: bold;}
+div.xowiki-content .errorMsg {background: #FFF; color: red; font-weight: bold;}
 div.xowiki-content .hr {
     height: 1px; border: none; 
     background-color: silver;
@@ -213,9 +213,9 @@ img.undefined {border-width: 2px; border-color: #859db8; height: 8px;}
 	text-decoration:none;
 	margin:0;
 	margin-right:10px;}
-a:hover.rss {color:#dddddd;}
-a:visited.rss {color: #FFF;}
-a:link.rss {color: #FFF;}
+a:hover.rss {color:#dddddd;background: #F60;}
+a:visited.rss {color: #FFF;background: #F60;}
+a:link.rss {color: #FFF;background: #F60;}
 
 div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5px;
     border:dotted; border-width:1px;background: #f8f8f8;
