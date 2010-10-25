@@ -1909,8 +1909,40 @@ namespace eval ::xowiki {
     return $content
   }
 
+  #
+  # The method "search_render" is called by the search indexer via
+  # ::xowiki::datasource and returns HTML and the keywords for the
+  # search. By defining this as a method, it is possible to define a
+  # different indexer e.g. via subclassing or for each workflow. The
+  # method returns a list of attribute value pairs containing "html"
+  # and keywords".  Below is an example of a workflow specific search
+  # content.
+  #
+  #   [my object] proc search_render {} {
+  #        return [list html "Hello World" keywords "hello world"]
+  #   }
+  #
+  # 
+  Page instproc search_render {} {
+    my set __no_form_page_footer 1
+    set html [my render]
+    my unset __no_form_page_footer
 
-
+    foreach tag {h1 h2 h3 h4 h5 b strong} {
+      foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
+	foreach w [split $words] {
+	  if {$w eq ""} continue
+	  set word($w) 1
+	}
+      }
+    }
+    foreach tag [::xowiki::Page get_tags -package_id [my package_id] -item_id [my item_id]] {
+      set word($tag) 1
+    }
+    #my log [list html $html keywords [array names work]]
+    return [list html $html keywords [array names work]]
+  }
+  
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
