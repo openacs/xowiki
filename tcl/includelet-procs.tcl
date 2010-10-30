@@ -51,7 +51,7 @@ namespace eval ::xowiki::includelet {
   }    
     
   ::xowiki::Includelet proc describe_includelets {includelet_classes} {
-    my log "--plc=$includelet_classes "
+    #my log "--plc=$includelet_classes "
     foreach cl $includelet_classes {
       set result ""
       append result "{{<b>[namespace tail $cl]</b>"
