@@ -3764,12 +3764,12 @@ namespace eval ::xowiki::includelet {
 		     -extra_where_clause $extra_where_clause \
                      -orderby "name asc"]
 
-
     set content "<div id='$ID'><ol>\n"
 
     foreach entry [$listing children] {
       $entry instvar mime_type name
       if {[string match image/* $mime_type]} {
+	$entry class ::xowiki::Page
 	set link [$entry pretty_link -download true]
         append content "<li> <img src='$link' height='$height' width='$width'></li>\n"
 	#append content "<li> <img src='$link'></li>\n"
