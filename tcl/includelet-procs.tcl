@@ -204,19 +204,24 @@ namespace eval ::xowiki::includelet {
 
   ::xowiki::Includelet proc parent_id_clause {
      {-base_table bt}
+     {-use_package_path true}
+     {-parent_id ""}
      -base_package_id:required
   } {
     #
     # Get the package path and from it, the folder_ids. The parent_id
     # of the returned pages should be a direct child of the folder.
     #
+    if {$parent_id eq ""} {
+      set parent_id [$base_package_id folder_id]
+    }
     set packages [$base_package_id package_path]
-    if {[llength $packages] > 0} {
-      set parent_ids [list [$base_package_id folder_id]]
+    if {$use_package_path && [llength $packages] > 0} {
+      set parent_ids [list $parent_id]
       foreach p $packages {lappend parent_ids [$p folder_id]}
       return "$base_table.parent_id in ([join $parent_ids ,])"
     } else {
-      return "$base_table.parent_id = [$base_package_id folder_id]"
+      return "$base_table.parent_id = $parent_id"
     }
   }
 
@@ -235,10 +240,11 @@ namespace eval ::xowiki::includelet {
                                      -package_id
                                      {-count:boolean false}
                                      {-folder_id}
-                                     {-parent_id}
+                                     {-parent_id ""}
                                      {-page_size 20}
                                      {-page_number ""}
                                      {-orderby ""}
+				     {-use_package_path true}
 				     {-extra_where_clause ""}
                                    } {
     if {$count} {
@@ -246,7 +252,8 @@ namespace eval ::xowiki::includelet {
       set orderby ""      ;# no need to order when we count
       set page_number  ""      ;# no pagination when count is used
     } else {
-      set attribute_selection "i.name, r.title, p.page_id, r.publish_date, r.mime_type, i.parent_id, o.package_id, \
+      set attribute_selection "i.name, r.title, p.page_id, r.publish_date, \
+		r.mime_type, i.parent_id, o.package_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date"
     }
     if {$page_number ne ""} {
@@ -256,10 +263,15 @@ namespace eval ::xowiki::includelet {
       set limit ""
       set offset ""
     }
+    set parent_id_clause [::xowiki::Includelet parent_id_clause \
+			      -base_table i \
+			      -use_package_path $use_package_path \
+			      -parent_id $parent_id \
+			      -base_package_id $package_id]
     set sql [::xo::db::sql select \
                  -vars $attribute_selection \
                  -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
-                 -where "[::xowiki::Includelet parent_id_clause -base_table i -base_package_id $package_id] \
+                 -where "$parent_id_clause \
                      and r.revision_id = i.live_revision \
                      and i.item_id = o.object_id \
                      and p.page_id = r.revision_id \
@@ -3704,10 +3716,14 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-           {-title ""}
-           {-width "600"}
-           {-height "400"}
-           {-glob ""}
+	  {-title ""}
+	  {-item_size 600x400}
+	  {-image_size}
+ 	  {-num_visible 1}
+	  {-play_interval 0}
+	  {-auto_size 0}
+	  {-folder}
+	  {-glob ""}
         }}
       }
 
@@ -3721,13 +3737,30 @@ namespace eval ::xowiki::includelet {
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "carousel/carousel-min.js"
     ::xo::Page set_property body class "yui-skin-sam "
 
+    if {![regexp {^(.*)x(.*)$} $item_size _ item_width item_height]} {
+      error "invalid item size '$item_size'; use e.g. 300x240"
+    }
+
+    if {[info exists image_size]} {
+      if {![regexp {^(.*)x(.*)$} $image_size _ width height]} {
+	error "invalid image size '$image_size'; use e.g. 300x240"
+      }
+      set size_info "width='$width' height='$height'"
+    } elseif {$auto_size} {
+      set size_info "width='$item_width' height='$item_height'"
+    } else {
+      set size_info ""
+    }
+
     set ID container_[::xowiki::Includelet html_id [self]]
+    set play_interval [expr {int($play_interval * 1000)}]
+
     ::xo::Page requireJS [subst {
         YAHOO.util.Event.onDOMReady(function (ev) {
             var carousel    = new YAHOO.widget.Carousel("$ID",{ 
-	      isCircular: true, numVisible: 1
+	      isCircular: true, numVisible: $num_visible, 
+	      autoPlayInterval: $play_interval, animation: {speed: 1.0}
 	    });
-                
             carousel.render(); // get ready for rendering the widget
             carousel.show();   // display the widget
                     
@@ -3736,43 +3769,55 @@ namespace eval ::xowiki::includelet {
 
     ::xo::Page requireStyle [subst {
     
-    #$ID {
+    \#$ID {
         margin: 0 auto;
     }
 
-    .yui-carousel-element li {
-        height: ${height}px;
-        width: ${width}px;
-    }
-    
     .yui-carousel-element .yui-carousel-item-selected {
         opacity: 1;
     }
 
-    .yui-skin-sam .yui-carousel-nav ul li {
-        margin: 0;
+    .yui-carousel-element li {
+	height: ${item_height}px;
+	width: ${item_width}px;
     }
 
+    .yui-skin-sam .yui-carousel-nav ul li {
+        margin: 0;
+    }}]
 
-    }]
     set extra_where_clause { and mime_type like 'image/%'}
     if {$glob ne ""} {
       append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
     }
+
+    set parent_id [[my set __including_page] parent_id]
+    if {[info exists folder]} {
+      set folder_page [$package_id get_page_from_item_ref -parent_id $parent_id $folder]
+      if {$folder_page eq ""} {
+	error "no such folder '$folder'"
+      } else {
+	set parent_id [$folder_page item_id]
+      }
+    }
+
     set listing [::xowiki::Includelet listing \
                      -package_id $package_id \
+		     -parent_id $parent_id \
+		     -use_package_path false \
 		     -extra_where_clause $extra_where_clause \
                      -orderby "name asc"]
 
     set content "<div id='$ID'><ol>\n"
-
+ 
     foreach entry [$listing children] {
       $entry instvar mime_type name
       if {[string match image/* $mime_type]} {
 	$entry class ::xowiki::Page
 	set link [$entry pretty_link -download true]
-        append content "<li> <img src='$link' height='$height' width='$width'></li>\n"
-	#append content "<li> <img src='$link'></li>\n"
+	append content \
+	    "<li class='item'> <img src='$link' $size_info>" \
+	    "<h2>[$entry set title]</h2></li>\n"
       }
     }
     append content "</ol></div>\n<div id='spotlight'></div>\n"
