@@ -689,7 +689,7 @@ namespace eval ::xowiki {
 	  return
 	} else {
           if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
-	  set url [my pretty_link -lang en]$qp
+	  set url [my pretty_link]$qp
 	  set return_url [$package_id get_parameter return_url $url]
 	  # We had query_parameter here. however, to be able to
 	  # process the output of ::xo::cc set_parameter ...., we

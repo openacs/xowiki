@@ -1742,8 +1742,7 @@ namespace eval ::xowiki {
 
   Page instproc validate=name {name} {
     upvar nls_language nls_language
-    my set data [self]  ;# for the time being; change clobbering when validate_name becomes a method
-    set success [::xowiki::validate_name]
+    set success [::xowiki::validate_name [self]]
     if {$success} {
       # set the instance variable with a potentially prefixed name
       # the classical validators do just an upvar

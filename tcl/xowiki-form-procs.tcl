@@ -146,12 +146,14 @@ namespace eval ::xowiki {
   }
 
   proc ::xowiki::page_templates {} {
-    ::xowiki::f1 instvar data folder_id  ;# form has to be named ::xowiki::f1
+    set form ::xowiki::f1 ;# form has to be named this way for the time being
+    #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
+    $form instvar data folder_id
     set q [::xowiki::PageTemplate instance_select_query \
                -folder_id $folder_id \
                -with_subtypes false \
                -select_attributes {name}]
-    db_foreach [my qn get_page_templates] $q {
+    db_foreach [$form qn get_page_templates] $q {
       lappend lpairs [list $name $item_id]
     } if_no_rows {
       lappend lpairs [list "(No Page Template available)" ""]
@@ -162,11 +164,13 @@ namespace eval ::xowiki {
   #
   # todo: this should be OO-ified -gustaf
   proc ::xowiki::validate_file {} {
-    my instvar data
-    my get_uploaded_file
+    set form ::xowiki::f1 ;# form has to be named this way for the time being
+    #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
+    $form instvar data
+    $form get_uploaded_file
     upvar title title
     if {$title eq ""} {set title [$data set upload_file]}
-    # my log "--F validate_file returns [$data exists import_file]"
+    # $form log "--F validate_file returns [$data exists import_file]"
     return [$data exists import_file]
   }
 
@@ -190,7 +194,9 @@ namespace eval ::xowiki {
 
   proc ::xowiki::validate_duration {} {
     upvar duration duration
-    my instvar data 
+    set form ::xowiki::f1 ;# form has to be named this way for the time being
+    #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
+    $form instvar data 
     $data instvar package_id
     if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
@@ -206,19 +212,22 @@ namespace eval ::xowiki {
   }
 
 
-  proc ::xowiki::validate_name {} {
-    upvar name name nls_language nls_language
-    my instvar data
+  proc ::xowiki::validate_name {{data ""}} {
+    upvar name name
+    if {$data eq ""} {
+      unset data
+      set form ::xowiki::f1 ;# form has to be named this way for the time being
+      # $form log "--F validate_name data=[$form exists data]"
+      $form instvar data
+    }
     $data instvar package_id
     set cc [$package_id context]
 
     set old_name [$cc form_parameter __object_name ""]
-    #my msg "validate: old='$old_name', current='$name'"
-
-    # my log "--F validate_name data=[my exists data]"
+    #$data msg "validate: old='$old_name', current='$name'"
 
     if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
-      #my log "--mime validate_name data=[my exists data] MIME [$data set mime_type]"
+      #$data log "--mime validate_name MIME [$data set mime_type]"
       set name [$data build_name $name [$data set upload_file]]
       # 
       # Check, if the user is allowed to create a file with the specified
@@ -229,7 +238,7 @@ namespace eval ::xowiki {
       set computed_link [export_vars -base [$package_id package_url] {{edit-new 1} name 
 			 {object_type ::xowiki::File}}]
       set granted [$package_id check_permissions -link $computed_link $package_id edit-new]
-      #my msg computed_link=$computed_link,granted=$granted
+      #$data msg computed_link=$computed_link,granted=$granted
       if {!$granted} {
 	util_user_message -message "User not authorized to to create a file named $name"
 	return 0
@@ -240,7 +249,7 @@ namespace eval ::xowiki {
     }
     set name [::$package_id normalize_name $name]
 
-    #my msg "validate: old='$old_name', new='$name'"
+    #$data msg "validate: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
       # do not change names, which are already validated;
       # otherwise, autonamed entries might get an unwanted en:prefix
@@ -248,7 +257,7 @@ namespace eval ::xowiki {
     }
 
     # check, if we try to create a new item with an existing name
-    #my msg "validate: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
+    #$data msg "validate: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
     if {[$data form_parameter __new_p 0]
         || $old_name ne $name
       } {
@@ -273,22 +282,24 @@ namespace eval ::xowiki {
   }
 
   proc ::xowiki::validate_form_field {field_name} {
+    set form ::xowiki::f1 ;# form has to be named this way for the time being
+    #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
     #
     # Generic ad_compliant validator using validation methods from
     # form_fields
     #
     upvar $field_name $field_name
-    my instvar data
+    $form instvar data
     #
     # Get the form-field and set its value....
     #
-    set f [$data lookup_form_field -name $field_name [my set form_fields]]
+    set f [$data lookup_form_field -name $field_name [$form set form_fields]]
     $f value [set $field_name]
     set validation_error [$f validate $data]
     #
     # If we get an error, we report it as well via util-user message
     # 
-    #my msg "***** field_name = $field_name, cls=[$f info class] validation_error=$validation_error"
+    #$form msg "***** field_name = $field_name, cls=[$f info class] validation_error=$validation_error"
     if {$validation_error ne ""} {
       util_user_message -message "Error in field [$f label]: $validation_error"
       return 0
