@@ -237,16 +237,17 @@ namespace eval ::xowiki::includelet {
   #
 
   ::xowiki::Includelet proc listing {
-                                     -package_id
-                                     {-count:boolean false}
-                                     {-folder_id}
-                                     {-parent_id ""}
-                                     {-page_size 20}
-                                     {-page_number ""}
-                                     {-orderby ""}
-				     {-use_package_path true}
-				     {-extra_where_clause ""}
-                                   } {
+      -package_id
+      {-count:boolean false}
+      {-folder_id}
+      {-parent_id ""}
+      {-page_size 20}
+      {-page_number ""}
+      {-orderby ""}
+      {-use_package_path true}
+      {-extra_where_clause ""}
+      {-glob ""}
+    } {
     if {$count} {
       set attribute_selection "count(*)"
       set orderby ""      ;# no need to order when we count
@@ -268,6 +269,11 @@ namespace eval ::xowiki::includelet {
 			      -use_package_path $use_package_path \
 			      -parent_id $parent_id \
 			      -base_package_id $package_id]
+
+    if {$glob ne ""} {
+      append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
+    }
+
     set sql [::xo::db::sql select \
                  -vars $attribute_selection \
                  -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
@@ -3724,8 +3730,80 @@ namespace eval ::xowiki::includelet {
 	  {-auto_size 0}
 	  {-folder}
 	  {-glob ""}
+	  {-form ""}
         }}
       }
+
+  yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {
+    set size_info ""
+    if {$width ne ""} {append size_info " width='$width'"}
+    if {$height ne ""} {append size_info " height='$height'"}
+    if {$width ne "" && $height ne ""} {
+      set geometry "?geometry=${width}x${height}"
+    } else {
+      set geometry ""
+    }
+    set listing [::xowiki::Includelet listing \
+                     -package_id $package_id \
+		     -parent_id $parent_id \
+		     -use_package_path false \
+		     -extra_where_clause " and mime_type like 'image/%'" \
+                     -orderby "name asc" \
+		     -glob $glob]
+    #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$listing children]]"
+
+    foreach entry [$listing children] {
+      $entry class ::xowiki::Page
+      $entry set html "<img src='[$entry pretty_link -download true]$geometry' $size_info> <h2>[$entry title]</h2>"
+    }
+    return $listing
+  }
+
+  yui-carousel instproc form_images {
+    -package_id 
+    -parent_id 
+    {-form "en:photo.form"} 
+    {-glob ""} {-width ""} {-height ""}
+  } {
+    set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id -forms $form -package_id $package_id]
+    if {$form_item_ids eq ""} {error "could not find en:photo.form"}
+    set form_item_id [lindex $form_item_ids 0]
+
+    set items [::xowiki::FormPage get_form_entries \
+                   -base_item_ids $form_item_ids -form_fields "" \
+		   -publish_status all \
+		   -always_queried_attributes * \
+		   -parent_id $parent_id \
+                   -package_id $package_id]
+    #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$items children]]"
+
+    foreach entry [$items children] {
+      # order?
+      set image_name [$entry property image]
+      if {$glob ne "" && ![string match $glob $image_name]} {
+	$items delete $entry
+	continue
+      }
+      if {![info exists entry_field_names]} {
+	set entry_field_names [$entry field_names]
+	set entry_form_fields [::xowiki::FormPage get_table_form_fields \
+				   -base_item $form_item_id -field_names $entry_field_names \
+				   -form_constraints [$form_item_id set form_constraints]]
+	foreach fn $entry_field_names f $entry_form_fields {set ff($fn) $f}
+      }
+      $entry load_values_into_form_fields $entry_form_fields
+      foreach f $entry_form_fields {$f object $entry}
+      if {$width ne ""} {$ff(image) width $width}
+      if {$height ne ""} {$ff(image) height $height}
+      if {$width ne "" && $height ne ""} {
+	$ff(image) set geometry "${width}x${height}"
+      }
+      $ff(image) label [$entry property _title]
+      $entry set html [$entry render_content]
+      #my log html=[$entry set html]
+    }
+    return $items
+  }
 
   yui-carousel instproc render {} {
     my get_parameters
@@ -3745,11 +3823,12 @@ namespace eval ::xowiki::includelet {
       if {![regexp {^(.*)x(.*)$} $image_size _ width height]} {
 	error "invalid image size '$image_size'; use e.g. 300x240"
       }
-      set size_info "width='$width' height='$height'"
     } elseif {$auto_size} {
-      set size_info "width='$item_width' height='$item_height'"
+      set width $item_width
+      set height $item_height
     } else {
-      set size_info ""
+      set width ""
+      set height ""
     }
 
     set ID container_[::xowiki::Includelet html_id [self]]
@@ -3786,11 +3865,6 @@ namespace eval ::xowiki::includelet {
         margin: 0;
     }}]
 
-    set extra_where_clause { and mime_type like 'image/%'}
-    if {$glob ne ""} {
-      append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
-    }
-
     set parent_id [[my set __including_page] parent_id]
     if {[info exists folder]} {
       set folder_page [$package_id get_page_from_item_ref -parent_id $parent_id $folder]
@@ -3801,24 +3875,16 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set listing [::xowiki::Includelet listing \
-                     -package_id $package_id \
-		     -parent_id $parent_id \
-		     -use_package_path false \
-		     -extra_where_clause $extra_where_clause \
-                     -orderby "name asc"]
-
     set content "<div id='$ID'><ol>\n"
- 
-    foreach entry [$listing children] {
-      $entry instvar mime_type name
-      if {[string match image/* $mime_type]} {
-	$entry class ::xowiki::Page
-	set link [$entry pretty_link -download true]
-	append content \
-	    "<li class='item'> <img src='$link' $size_info>" \
-	    "<h2>[$entry set title]</h2></li>\n"
-      }
+    if {$form ne ""} {
+      set images [my form_images -package_id $package_id -parent_id $parent_id \
+		      -form $form -glob $glob -width $width -height $height]
+    } else {
+      set images [my images -package_id $package_id -parent_id $parent_id \
+		      -glob $glob -width $width -height $height]
+    }
+    foreach entry [$images children] {
+      append content "<li class='item'> [$entry set html] </li>\n" 
     }
     append content "</ol></div>\n<div id='spotlight'></div>\n"
     #if {$title eq ""} {set title $url}

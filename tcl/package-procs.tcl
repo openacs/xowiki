@@ -870,13 +870,13 @@ namespace eval ::xowiki {
       if {$item_id != 0} {
 	set name $stripped_name
 	regexp {^(..):(.+)$} $name _ lang stripped_name
-	#my msg "direct $stripped_name"
+	#my log "direct $stripped_name"
       }
     }
     if {$item_id == 0} {
       set name ${lang}:$stripped_name
       set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-      #my msg "comp $name"
+      #my log "comp $name"
     }
     return [list item_id $item_id parent_id $parent_id \
 		lang $lang stripped_name $stripped_name name $name ]
@@ -1437,7 +1437,7 @@ namespace eval ::xowiki {
     #::xowiki::Package initialize -package_id $package_id -init_url false -keep_cc true
     set package_key "xowiki"
 
-    foreach n {folder.form link.form page.form import-archive.form} {
+    foreach n {folder.form link.form page.form import-archive.form photo.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
       #my ds "lookup en:$n => $item_id"
       if {!$item_id || $refetch} {

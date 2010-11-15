@@ -432,7 +432,25 @@ namespace eval ::xowiki {
       set filename [my query_parameter filename]
       ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=$filename"
     }
-    #my log "--F FILE=[my full_file_name]"
+    #my log "--F FILE=[my full_file_name] // $mime_type"
+    set geometry [::xo::cc query_parameter geometry ""]
+    if {[string match image/* $mime_type] && $geometry ne ""} {
+      if {![file isdirectory /tmp/$geometry]} {
+	file mkdir -p /tmp/$geometry
+      }
+      set scaled_image /tmp/$geometry/[my revision_id]
+      if {![file readable $scaled_image]} {
+	set cmd [::util::which convert]
+	if {$cmd ne ""} {
+	  if {![catch {exec $cmd -geometry $geometry -interlace None -sharpen 1x2 \
+			   [my full_file_name] $scaled_image}]} {
+	    return $scaled_image
+	  }
+	}
+      } else {
+	  return $scaled_image
+      }
+    }
     return [my full_file_name]
   }
 

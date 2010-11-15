@@ -223,10 +223,9 @@ namespace eval ::xowiki {
     set item_id [my resolve]
     #my log "-- image resolve for $page returned $item_id (name=$name, label=$label) "
     if {$item_id} {
-      set link [[my package_id] pretty_link -download true -query [my query] \
+      set link [$package_id pretty_link -download true -query [my query] \
                     -absolute [$page absolute_links] -parent_id [my parent_id] $name]
       #my log "--l fully quali [$page absolute_links], base=$base"
-      #set link [export_vars -base $base {{m download}} ]
       $page lappend references [list $item_id [my type]]
       my render_found $link $label
     } else {
@@ -255,6 +254,7 @@ namespace eval ::xowiki {
       }
     }
     if {$style ne ""} {set style "style='$style'"}
+    if {[my exists geometry]} {append link "?geometry=[my set geometry]"}
     set label [string map [list ' "&#39;"] $label]
     set cls [my mk_css_class -default image]
     if {[my exists href]} {

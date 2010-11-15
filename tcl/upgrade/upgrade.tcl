@@ -529,5 +529,13 @@ namespace eval ::xowiki {
 	$package_id import-prototype-page weblog
       }
     }
+
+    set v 0.134
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      ::xowiki::Package initialize -package_id [::xowiki::Package first_instance]
+      ::xowiki::Package require_site_wide_pages -refetch true
+    }
   }
 }
