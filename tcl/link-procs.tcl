@@ -11,17 +11,23 @@ namespace eval ::xowiki {
   # generic links
   #
   Class create BaseLink -parameter {
-    cssclass href label title target extra_query_parameter 
+    cssclass cssid href label title target extra_query_parameter 
     {anchor ""} {query ""}
   }
 
-  BaseLink instproc mk_css_class {-additional {-default ""}} {
+  BaseLink instproc mk_css_class {{-additional ""} {-default ""}} {
     set cls [expr {[my exists cssclass] ? [my cssclass] : $default}]
-    if {[info exists additional]} {
+    if {$additional ne ""} {
       if {$cls eq ""} {set cls $additional} else {append cls " " $additional}
     }
     if {$cls ne ""} {set cls "class='$cls'"}
     return $cls 
+  }
+
+  BaseLink instproc mk_css_class_and_id {{-additional ""} {-default ""}} {
+    if {[my exists cssid]} {set id "id='[my cssid]'"} else {set id ""}
+    set cls [my mk_css_class -additional external]
+    return "$cls $id"
   }
 
   #
@@ -33,7 +39,8 @@ namespace eval ::xowiki {
     set title_att ""
     if {[info exists title]}  {append  title_att " title='[string map [list ' {&#39;}] $title]'"}
     if {[info exists target]} {append title_att " target='$target'"}
-    return "<a $title_att [my mk_css_class -additional external] href='$href'>$label<span class='external'>&nbsp;</span></a>"
+    set css_atts [my mk_css_class_and_id -additional external]
+    return "<a $title_att $css_atts href='$href'>$label<span class='external'>&nbsp;</span></a>"
   }
 
   #
@@ -73,13 +80,13 @@ namespace eval ::xowiki {
     return [my item_id]
   }
   Link instproc render_found {href label} {
-    return "<a [my atts] [my mk_css_class] href='$href'>$label</a>"
+    return "<a [my atts] [my mk_css_class_and_id] href='$href'>$label</a>"
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a [my mk_css_class] href='$href'> \[ </a>$label\
+      return "<a [my mk_css_class_and_id] href='$href'> \[ </a>$label\
 	<a [my mk_css_class] href='$href'> \] </a>"
     }
   }
@@ -199,7 +206,7 @@ namespace eval ::xowiki {
     }
     if {$link ne ""} {
       $page lappend lang_links($image_css_class) \
-          "<a href='$link' [my mk_css_class]><img class='$image_css_class' \
+          "<a href='$link' [my mk_css_class_and_id]><img class='$image_css_class' \
                 src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
     }
     return ""
@@ -256,7 +263,7 @@ namespace eval ::xowiki {
     if {$style ne ""} {set style "style='$style'"}
     if {[my exists geometry]} {append link "?geometry=[my set geometry]"}
     set label [string map [list ' "&#39;"] $label]
-    set cls [my mk_css_class -default image]
+    set cls [my mk_css_class_and_id -default image]
     if {[my exists href]} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
@@ -298,7 +305,7 @@ namespace eval ::xowiki {
       set internal_href [export_vars -base $internal_href [my extra_query_parameter]]
     }
     if {![info exists embed_options]} {
-      return "<a href='$internal_href' [my mk_css_class -additional file]>$label<span class='file'>&nbsp;</span></a>"
+      return "<a href='$internal_href' [my mk_css_class_and_id -additional file]>$label<span class='file'>&nbsp;</span></a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
@@ -474,7 +481,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     return "<a href='$href' onclick=\"showInfo('$href?master=0','$label'); return false;\"\
-        [my mk_css_class -additional glossary]>$label</a>"
+        [my mk_css_class_and_id -additional glossary]>$label</a>"
   }
 
   #
