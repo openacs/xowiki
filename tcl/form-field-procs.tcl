@@ -604,6 +604,7 @@ namespace eval ::xowiki::formfield {
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
+        geometry
     } {
       if {[my exists $option]} {$l set $option [my set $option]}
     }
@@ -674,8 +675,13 @@ namespace eval ::xowiki::formfield {
   file instproc value {args} {
     if {$args eq ""} {
       set old_value [[my object] form_parameter __old_value_[my name] ""]
-      #my msg "[my set value] -- $args // old_value = $old_value"
-      if {$old_value ne ""} {
+      #my log "value [my set value] -- $args // old_value = $old_value"
+      #
+      # Figure out, if we got a different file-name (value). If the
+      # file-name is the same as in the last revision, we return a
+      # "-".
+      #
+      if {$old_value ne "" && $old_value eq [my set value]} {
         return "-"
       }
     }
