@@ -1243,6 +1243,7 @@ namespace eval ::xowiki {
       switch -- $att {
         -decoration {$includelet set __decoration $value}
         -title {$includelet set title $value}
+        -id {$includelet set id $value}
       }
     }
     if {[$includelet exists __decoration] && [$includelet set __decoration] ne "none"} {
