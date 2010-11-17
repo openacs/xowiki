@@ -497,6 +497,52 @@ namespace eval ::xowiki {
     }
     return $renames
   }
+
+  #
+  # The standard ns_urlencode of aolserver is oversimplifying the
+  # encoding, leading to names with too many percent-encodings. This
+  # is not nice, but not a problem. A real problem with ns_encode in
+  # aolserver is that it encodes spaces in the url path as "+" which is
+  # not backed by RFC 3986. The aolserver coding does not harm as long
+  # the code is just used with aolserver. However, naviserver
+  # implements an RFC-3986 compliant encoding, which distinguishes
+  # between the various parts of the url (via parameter "-part
+  # ..."). The problem occurs, when the url path is decoded according
+  # to the RFC rules, which happens actually in the C implementation
+  # within [ns_conn url] in naviserver. Naviserver performs the
+  # RFC-compliant handling of "+" in the "path" segment of the url,
+  # namely no interpretation.
+  #
+  # Here an example, consider an url path "a + b".  The aolserver
+  # ns_encode yields "a+%2b+b", the aolserver ns_decode maps it back
+  # to "a + b", everything is fine. However, the naviserver C-level
+  # decode in [ns_conn url] converts "a+%2b+b" to "a+++b", which is
+  # correct according to the RFC.
+  #
+  # The problem can be solved for xowiki by encoding spaces not as
+  # "+", but as "%20", which is always correct. The tiny
+  # implementation below fixes the problem at the Tcl level. A better
+  # solution might be to backport ns_urlencode from naviserver to
+  # aolserver or to provide a naviserver compliant Tcl implementation
+  # for aolserver (but these options might break some existing
+  # programs).
+  #
+  # -gustaf neumann (nov 2010)
+
+  set ue_map [list]
+  for {set i 0} {$i < 256} {incr i} {
+    set c [format %c $i]
+    set x %[format %02x $i]
+    if {![string match {[-a-zA-Z0-9_.]} $c]} {
+      lappend ue_map $c $x
+    }
+  }
+
+  my proc urlencode {string} {
+    my instvar ue_map
+    return [string map $ue_map $string]
+  }
+
 }
 ::xo::library source_dependent 
 

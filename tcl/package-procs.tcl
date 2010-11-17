@@ -67,7 +67,9 @@ namespace eval ::xowiki {
     if {[my get_parameter subst_blank_in_name 1]} {
       regsub -all { +} $string "_" string
     }
-    return [ns_urldecode $string]
+    #my log "normalize name '$string' // [my get_parameter subst_blank_in_name 1]"
+    #return [ns_urldecode $string]
+    return $string
   }
 
   Package instproc default_locale {} {
@@ -284,8 +286,14 @@ namespace eval ::xowiki {
     if {$parent_id eq -100} {
       return ${host}${package_prefix}$query$anchor
     }
-    
-    set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
+
+    if {[ns_info name] eq "NaviServer"} {
+      set encoded_name [ns_urlencode -part path -- $name]
+    } else {
+      set encoded_name [::xowiki::utility urlencode $name]
+    }
+
+    #set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
     set folder [my folder_path -parent_id $parent_id]
     #my msg "folder_path = $folder, default_lang [my default_language]"
 
