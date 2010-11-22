@@ -1518,6 +1518,9 @@ namespace eval ::xowiki {
         $f save_new
         set folder_id [$f item_id]
 
+	::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
+	    -attribute_name_in context_id -value_in $id
+
         my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
       }
 

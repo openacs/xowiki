@@ -36,6 +36,8 @@ namespace eval ::xowiki {
   } {
     ns_log notice "Executing before-uninstantiate"
     ::xowiki::delete_gc_messages -package_id $package_id
+    ::xo::db::sql::content_item delete \
+	-item_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     ns_log notice "          before-uninstantiate DONE"
   }
 

@@ -537,5 +537,26 @@ namespace eval ::xowiki {
       ::xowiki::Package initialize -package_id [::xowiki::Package first_instance]
       ::xowiki::Package require_site_wide_pages -refetch true
     }
+
+    set v 0.135
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      db_dml fix_transformed_folders \
+	  "update acs_objects set object_type = '::xowiki::FormPage' where object_id in (select object_id from acs_objects,cr_revisions cr,cr_items ci where ci.item_id = cr.item_id and revision_id = object_id and object_type = 'content_folder' and content_type = '::xowiki::FormPage')"
+
+      # Reset potentially wrong context-ids 
+      # (the context id of the root folder should be the package id)
+      foreach p [::xowiki::Package instances -closure true] {
+	::xowiki::Package initialize -package_id $p
+	set folder_id [$p folder_id]
+	set c [db_string get_ctx "select context_id from acs_objects where object_id = $folder_id" ]
+	if {$c == -100} {
+	  ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
+	      -attribute_name_in context_id -value_in $p
+	}
+      }
+    }
   }
 }

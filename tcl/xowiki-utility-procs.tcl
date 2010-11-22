@@ -283,7 +283,8 @@ namespace eval ::xowiki {
     db_dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
     
     db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = $item_id"
-    db_dml chg5 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = $revision_id, latest_revision = $revision_id where item_id = $item_id"
+    db_dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = $revision_id"
+    db_dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = $revision_id, latest_revision = $revision_id where item_id = $item_id"
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {
@@ -308,7 +309,7 @@ namespace eval ::xowiki {
 # Some Date utilities
 #
 
-::xo::Module ::xowiki::utility -eval {
+::xo::Module create ::xowiki::utility -eval {
   my set age \
       [list \
            [expr {3600*24*365}] year years \
