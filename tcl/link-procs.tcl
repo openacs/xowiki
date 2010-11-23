@@ -26,8 +26,8 @@ namespace eval ::xowiki {
 
   BaseLink instproc mk_css_class_and_id {{-additional ""} {-default ""}} {
     if {[my exists cssid]} {set id "id='[my cssid]'"} else {set id ""}
-    set cls [my mk_css_class -additional external]
-    return "$cls $id"
+    set cls [my mk_css_class -additional $additional -default $default]
+    return [string trim "$cls $id"]
   }
 
   #
