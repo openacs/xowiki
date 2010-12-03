@@ -49,6 +49,15 @@ namespace eval ::xowiki::formfield {
     {error_msg ""}
     {validator ""}
     {validate_via_ajax}
+
+    {autocomplete}
+    {autofocus}
+    {formnovalidate}
+    {multiple}
+    {pattern}
+    {placeholder}
+    {readonly}
+
     locale
     default
     object
@@ -418,7 +427,9 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[my id]','$package_url');"
     }
 
-    ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class}] {}
+    ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class} \
+		       autocomplete autofocus formnovalidate multiple pattern placeholder readonly required] {}
+
     #
     # Disabled fieds are not returned by the browsers. For some
     # fields, we require to be sent. therefore we include in these
@@ -891,6 +902,142 @@ namespace eval ::xowiki::formfield {
     my set widget_type text
     foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::color
+  #
+  ###########################################################
+
+  Class color -superclass FormField -superclass text 
+  color instproc initialize {} {
+    next
+    my type color
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::datetime
+  #
+  ###########################################################
+
+  Class datetime -superclass FormField -superclass text 
+  datetime instproc initialize {} {
+    next
+    my type datetime
+  }
+  # names for HTML5 types 
+  #    date, month 
+  # already in use, should redefine accordingly when avail
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::datetime-local
+  #
+  ###########################################################
+
+  Class datetime-local -superclass FormField -superclass text 
+  datetime-local instproc initialize {} {
+    next
+    my type datetime-local
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::time
+  #
+  ###########################################################
+
+  Class time -superclass FormField -superclass text 
+  time instproc initialize {} {
+    next
+    my type time
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::week
+  #
+  ###########################################################
+
+  Class week -superclass FormField -superclass text 
+  week instproc initialize {} {
+    next
+    my type datetime
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::email
+  #
+  ###########################################################
+
+  Class email -superclass FormField -superclass text 
+  email instproc initialize {} {
+    next
+    my type email
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::search
+  #
+  ###########################################################
+
+  Class search -superclass FormField -superclass text 
+  search instproc initialize {} {
+    next
+    my type search
+  }
+  ###########################################################
+  #
+  # ::xowiki::formfield::tel
+  #
+  ###########################################################
+
+  Class tel -superclass FormField -superclass text 
+  tel instproc initialize {} {
+    next
+    my type tel
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::number
+  #
+  ###########################################################
+
+  Class number -superclass FormField -parameter {
+    min max step value
+  }
+  number instproc initialize {} {
+    my type number
+    my set widget_type text
+  }
+  number instproc render_input {} {
+    ::html::input [my get_attributes type id name value disabled {CSSclass class} min max step value \
+		       autofocus formnovalidate multiple pattern placeholder readonly required] {}
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::range
+  #
+  ###########################################################
+
+  Class range -superclass FormField -parameter {
+    min max step value
+  }
+  range instproc initialize {} {
+    my type range
+    my set widget_type text
+  }
+  range instproc render_input {} {
+    ::html::input [my get_attributes type id name value disabled {CSSclass class} min max step value \
+		       autofocus formnovalidate multiple pattern placeholder readonly required] {}
+  }
+
+
   ###########################################################
   #
   # ::xowiki::formfield::password
@@ -1045,6 +1192,10 @@ namespace eval ::xowiki::formfield {
 
   Class url -superclass text -parameter {
     {link_label}
+  }
+  url instproc initialize {} {
+    next
+    my type url
   }
   url instproc pretty_value {v} {
     if {$v ne ""} {
