@@ -909,7 +909,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class color -superclass FormField -superclass text 
+  Class color -superclass text 
   color instproc initialize {} {
     next
     my type color
@@ -921,7 +921,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class datetime -superclass FormField -superclass text 
+  Class datetime -superclass text 
   datetime instproc initialize {} {
     next
     my type datetime
@@ -936,7 +936,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class datetime-local -superclass FormField -superclass text 
+  Class datetime-local -superclass text 
   datetime-local instproc initialize {} {
     next
     my type datetime-local
@@ -948,7 +948,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class time -superclass FormField -superclass text 
+  Class time -superclass text 
   time instproc initialize {} {
     next
     my type time
@@ -960,7 +960,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class week -superclass FormField -superclass text 
+  Class week -superclass text 
   week instproc initialize {} {
     next
     my type datetime
@@ -972,7 +972,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class email -superclass FormField -superclass text 
+  Class email -superclass text 
   email instproc initialize {} {
     next
     my type email
@@ -984,7 +984,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class search -superclass FormField -superclass text 
+  Class search -superclass text 
   search instproc initialize {} {
     next
     my type search
@@ -995,7 +995,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class tel -superclass FormField -superclass text 
+  Class tel -superclass text 
   tel instproc initialize {} {
     next
     my type tel
@@ -2060,7 +2060,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class DD -superclass FormField -superclass select
+  Class DD -superclass select
   DD instproc initialize {} {
     my options {
       {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} {10 10}
@@ -2077,7 +2077,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class HH24 -superclass FormField -superclass select
+  Class HH24 -superclass select
   HH24 instproc initialize {} {
     my options {
       {00  0} {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} 
@@ -2093,7 +2093,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class MI -superclass FormField -superclass select
+  Class MI -superclass select
   MI instproc value args {
     if {[llength $args] == 0} {return [my set value]} else {
       set v [lindex $args 0]
@@ -2117,7 +2117,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class MM -superclass FormField -superclass select
+  Class MM -superclass select
   MM instproc initialize {} {
     my options {
       {01  1} {02  2} {03 3} {04 4} {05 5} {06 6} {07 7} {08 8} {09 9} {10 10}
