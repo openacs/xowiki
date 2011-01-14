@@ -1456,7 +1456,8 @@ namespace eval ::xowiki {
     set save_slot $slot
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
-      set slot [::xo::Attribute new -pretty_name $name -datatype text -volatile -noinit]
+      set slot [::xo::Attribute new -pretty_name $name -datatype text -noinit]
+      $slot destroy_on_cleanup
     }
 
     set spec_list [list]
