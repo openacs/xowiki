@@ -32,6 +32,9 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   array set "" [$page search_render]
 
+  if {![info exists (title)]} {
+    set (title) [$page title]
+  }
   set text [ad_html_text_convert -from text/html -to text/plain -- $(html)]
   #set text [ad_text_to_html $(html)]; #this could be used for entity encoded html text in rss entries
   
@@ -61,7 +64,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set pubDate [::xo::db::tcl_date [$page set publish_date] tz]
   set link [$page detail_link]
 
-  return [list object_id $revision_id title [$page title] \
+  return [list object_id $revision_id title $(title) \
               content $(html) keywords $(keywords) \
               storage_type text mime text/html \
               syndication [list link [string map [list & "&amp;"] $link] \
