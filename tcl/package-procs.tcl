@@ -45,6 +45,7 @@ namespace eval ::xowiki {
 	-package_id $package_id -user_id $user_id \
 	-parameter $parameter -init_url false -actual_query ""
     ::$package_id set_url -url [$page pretty_link]
+    $page initialize
     return $page
   }
 
