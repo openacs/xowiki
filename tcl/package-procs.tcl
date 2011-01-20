@@ -18,6 +18,26 @@ namespace eval ::xowiki {
       }
   # {folder_id "[::xo::cc query_parameter folder_id 0]"}
 
+  if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
+    error "We require at least OpenACS Version 5.2; current version is [ad_acs_version]"
+  }
+
+  Package ad_proc get_package_id_from_page_id {
+    {-revision_id 0} 
+    {-item_id 0}
+  } {
+    Obtain the package_id from either the item_id or the revision_id of a page
+  } {
+    if {$revision_id} {
+      set object_id $revision_id
+    } elseif {$item_id} {
+      set object_id $item_id
+    } else {
+	error "Either item_id or revision_id must be provided"
+    }
+    return [db_string [my qn get_pid] "select package_id from acs_objects where object_id = :object_id"]
+  }
+
   Package ad_proc instantiate_page_from_id {
     {-revision_id 0} 
     {-item_id 0}
@@ -28,24 +48,17 @@ namespace eval ::xowiki {
     (e.g. we have no package object). This call is convenient
     when testing e.g. from the developer shell
   } {
-    #TODO can most probably further simplified
+    set package_id [my get_package_id_from_page_id \
+			-item_id $item_id \
+			-revision_id $revision_id]
+    ::xo::Package initialize \
+	-package_id $package_id \
+	-init_url false -actual_query "" \
+	-parameter $parameter \
+	-user_id $user_id
+
     set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
-
-    #my log "--I get_instance_from_db i=$item_id revision_id=$revision_id page=$page, package_id=[$page set package_id]"
-
-    set folder_id [$page parent_id] 
-    if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
-      set package_id [db_string [my qn get_pid] \
-                          "select package_id from cr_folders where folder_id = $folder_id"]
-      $page package_id $package_id
-    } else {
-      set package_id [$page set package_id]
-    }
-    ::xowiki::Package initialize \
-	-package_id $package_id -user_id $user_id \
-	-parameter $parameter -init_url false -actual_query ""
     ::$package_id set_url -url [$page pretty_link]
-    $page initialize
     return $page
   }
 
