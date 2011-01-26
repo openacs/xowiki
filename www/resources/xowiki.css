@@ -224,6 +224,15 @@ div.presence div.title {font-size: 90%; margin-bottom: 0px;
         border-bottom: solid silver 1px; color: #222222; 
 }
 
+div.xowiki-content a.missing {
+    color: red;
+    text-decoration: none;
+}
+div.xowiki-content a.missing:hover {
+    text-decoration: underline;
+    background: none;
+}
+
 div.xowiki-content pre, .code {
     font-family: "Courier", monospace;
 }

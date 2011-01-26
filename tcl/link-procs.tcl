@@ -86,8 +86,7 @@ namespace eval ::xowiki {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a [my mk_css_class_and_id] href='$href'> \[ </a>$label\
-	<a [my mk_css_class] href='$href'> \] </a>"
+      return "<a [my mk_css_class_and_id -additional missing] href='$href'> $label</a>"
     }
   }
   Link instproc pretty_link {item_id} {
