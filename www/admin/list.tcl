@@ -97,8 +97,8 @@ set attributes [list revision_id content_length creation_user title page_order p
 
 set folder_id [::$package_id folder_id]
 foreach i [db_list get_syndicated {
-  select object_id from syndication s, cr_items ci 
-  where object_id = ci.live_revision and parent_id = :folder_id
+  select s.object_id from syndication s, cr_items ci 
+  where s.object_id = ci.live_revision and ci.parent_id = :folder_id
 }] { set syndicated($i) 1 }
 
 db_foreach instance_select \
