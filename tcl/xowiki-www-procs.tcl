@@ -1288,9 +1288,10 @@ namespace eval ::xowiki {
 
       foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
       # refetch template_file, since it might have been changed via set-parameter
+      # the cache flush (next line) is not pretty here and should be supported from xotcl-core
+      catch {::xo::cc unset cache([list $context_package_id get_parameter template_file])}
       set template_file [my query_parameter "template_file" \
 			     [::$context_package_id get_parameter template_file view-default]]
-
       # if the template_file does not have a path, assume it in xowiki/www
       if {![regexp {^[./]} $template_file]} {
 	set template_file /packages/xowiki/www/$template_file
