@@ -436,7 +436,7 @@ namespace eval ::xowiki {
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match image/* $mime_type] && $geometry ne ""} {
       if {![file isdirectory /tmp/$geometry]} {
-	file mkdir -p /tmp/$geometry
+	file mkdir /tmp/$geometry
       }
       set scaled_image /tmp/$geometry/[my revision_id]
       if {![file readable $scaled_image]} {
