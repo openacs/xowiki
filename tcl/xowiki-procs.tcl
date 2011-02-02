@@ -2407,7 +2407,7 @@ namespace eval ::xowiki {
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    my msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
+    my instvar package_id
     foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
       foreach {template_name var_name} [split $s ,] break
       #ns_log notice "--w T.title = '$given_template_name' var=$name"
@@ -2419,6 +2419,7 @@ namespace eval ::xowiki {
     }
     return ""
   }
+
   PageInstance instproc get_field_type {name default_spec} {
     my instvar page_template
     # get widget spec from folder (highest priority)
