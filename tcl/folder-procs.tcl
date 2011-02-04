@@ -829,13 +829,14 @@ namespace eval ::xo::Table {
             </ul>
         " \
         -instproc render-data {line} {
-        if {[$line exists [my name].href] &&
-            [set href [$line set [my name].href]] ne ""} {
+	  set __name [my name]
+	  if {[$line exists $__name.href] &&
+            [set href [$line set $__name.href]] ne ""} {
                 # use the CSS class rather from the Field than not the line
                 my instvar CSSclass
-                $line instvar   [list [my name].title title] \
-                                [list [my name].target target] \
-                                [list [my name].onclick onclick] 
+                $line instvar   [list $__name.title title] \
+                                [list $__name.target target] \
+                                [list $__name.onclick onclick] 
                 html::a [my get_local_attributes href title {CSSclass class} target onclick] {
                     return "[next]"
                 }
