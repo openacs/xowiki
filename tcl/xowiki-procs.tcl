@@ -1787,7 +1787,6 @@ namespace eval ::xowiki {
     if {[my exists __no_footer]} {return ""}
 
     set footer ""
-    set description [my get_description $content]
     
     if {[ns_conn isconnected]} {
       set url         "[ns_conn location][::xo::cc url]"
@@ -1809,11 +1808,13 @@ namespace eval ::xowiki {
     }
 
     if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
+      if {![info exists description]} {set description [my get_description $content]}
       append footer "<div style='float: right'>" \
           [my include [list digg -description $description -url $url]] "</div>\n"
     }
 
     if {[$package_id get_parameter "with_delicious" 0] && [info exists url]} {
+      if {![info exists description]} {set description [my get_description $content]}
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [my include [list delicious -description $description -url $url -tags $tags]] \
           "</div>\n"
