@@ -96,6 +96,12 @@ namespace eval ::xowiki::includelet {
   ::xowiki::Includelet proc js_name {name} {
     return [string map [list : _ # _] $name]
   }
+
+  ::xowiki::Includelet proc html_encode {string} {
+    # &apos; is not a known entity to some validators, so we use the
+    # numerical entity here for encoding "'"
+    return [string map [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&#39;"] $string]
+  }
   
   ::xowiki::Includelet proc html_id {name} {
     # Construct a valid HTML id or name. 
