@@ -316,6 +316,7 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc config_from_spec {spec} {
     #my log "spec=$spec [my info class] [[my info class] exists abstract]"
+
     my instvar type
     if {[[my info class] exists abstract]} {
       # had earlier here: [my info class] eq [self class]
@@ -377,9 +378,10 @@ namespace eval ::xowiki::formfield {
     if {[my exists format]} {
       append spec " {format " [list $format] "} "
     }
+
     if {$help_text ne ""} {
       if {[string match "#*#" $help_text]} {
-        set internationalized [_ [string trim $help_text #]]
+	set internationalized [my localize $help_text]
         append spec " {help_text {$internationalized}}"
       } else {
         append spec " {help_text {$help_text}}"
