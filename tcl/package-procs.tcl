@@ -123,7 +123,7 @@ namespace eval ::xowiki {
       # Determine lang and name from a path with slashes
       #
       if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
-      } elseif {[regexp {^(..)/(.*)$} $path _ lang local_name]} {
+      } elseif {[regexp {^([a-z][a-z])/(.*)$} $path _ lang local_name]} {
 
         # TODO we should be able to get rid of this by using a canonical /folder/ in 
         # case of potential conflicts, like for file....
@@ -404,6 +404,10 @@ namespace eval ::xowiki {
     # return the package_id. If we cannot resolve the name, turn 0.
     #
     my upvar $name_var name
+
+    # Set output variable always to some value
+    set name $path
+
     if {[regexp {^/(/.*)$} $path _ path]} {
       array set "" [site_node::get_from_url -url $path]
       if {$(package_key) eq "acs-subsite"} {
