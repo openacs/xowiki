@@ -1386,7 +1386,9 @@ namespace eval ::xowiki::formfield {
   Class richtext::ckeditor -superclass richtext -parameter {
     {editor ckeditor}
     {mode wysiwyg}
-    {CSSclass ckeditor}
+    {skin kama}
+    {toolbar Full}
+    {CSSclass xowiki-ckeditor}
   }
   richtext::ckeditor set editor_mixin 1
   richtext::ckeditor instproc initialize {} {
@@ -1398,22 +1400,31 @@ namespace eval ::xowiki::formfield {
     if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
+      ::xo::Page requireJS "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
-      #::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
+      ::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
 
-      set name [my name]
-      set mode [my mode]
+      # In contrary to the doc, ckeditor names instances after the id,
+      # not the name. We mangle the id to make it compatible with
+      # jquery; most probably not optimal and just a temporary
+      # solution
+      regsub -all {[.:]} [my id] "" id
+      my id $id
+      set name [my id]
+      set mode [my mode] ;# e.g. wysiwyg, source
+      set skin [my skin] ;# e.g. kama, v2, office2003
+      set toolbar [my toolbar] ;# e.g. Full, Basic
 
-#      ::xo::Page requireJS {
-#	$( 'textarea.ckeditor' ).ckeditor();
-#      }
-      ::xo::Page requireJS [subst -nocommands -nobackslash {
-        YAHOO.util.Event.onDOMReady(function () {
-	  CKEDITOR.replace( '$name' );
-	  CKEDITOR.instances.$name.setMode( '$mode' );
-	});
+      ::xo::Page requireJS [subst -nocommands {
+       \$(document).ready(function() {
+	  \$( '#$name' ).ckeditor(function() { /* callback code */ }, { 
+            skin : '$skin', 
+            startupMode : '$mode',
+            toolbar : '$toolbar'
+          });
+          //console.info(\$( '#$name' ).ckeditorGet());
+       });
       }]
-
       next
     }
   }
