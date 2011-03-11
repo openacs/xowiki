@@ -212,7 +212,7 @@ namespace eval ::xowiki {
   YUIMenuItem ad_instproc render {} {doku} {
     html::li [my get_attributes id {CSSclass class} style] {
       # if we have no href, mark entry as disabled
-      if {[my href] eq ""} {my append linkclass " disabled"}
+      if {![my exists href] || [my href] eq ""} {my append linkclass " disabled"}
       html::a [my get_attributes target href {linkclass class} title] {
         html::t [my text]
         if {[my exists helptext]} {
