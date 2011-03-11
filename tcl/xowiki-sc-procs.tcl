@@ -47,7 +47,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   }
   #::xowiki::notification::do_notifications -page $page -html $(html) -text $text
 
-  ns_log notice "--sc INDEXING $revision_id -> $text keywords $(keywords)"
+  #ns_log notice "--sc INDEXING $revision_id -> $text keywords $(keywords)"
   #$page set unresolved_references 0
   $page instvar item_id
   # cleanup old stuff. This might run into an error, when search is not

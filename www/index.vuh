@@ -1,4 +1,5 @@
 # -*- tcl -*-
+::nsf::__profile_clear
 ::xowiki::Package initialize -ad_doc {
 
   This is the resolver for this package. It turns a request into
@@ -22,4 +23,5 @@
 ::$package_id reply_to_user [::$package_id invoke -method $m]
 
 ::$package_id log "--i ::$package_id DONE"
+source [file dirname [info script]]/../www/profile-show.tcl
 ad_script_abort
