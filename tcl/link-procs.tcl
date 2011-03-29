@@ -316,9 +316,14 @@ namespace eval ::xowiki {
   #
 
   Class create ::xowiki::Link::css -superclass ::xowiki::Link::file -parameter {
+    order
   }
   ::xowiki::Link::css instproc render_found {href label} {
-    ::xo::Page requireCSS $href
+    if {[my exists order]} {
+      ::xo::Page requireCSS -order [my order] $href
+    } else {
+      ::xo::Page requireCSS $href
+    }
     return ""
   }
 
