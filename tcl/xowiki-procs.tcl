@@ -24,6 +24,7 @@ namespace eval ::xowiki {
 	::xo::Attribute create name \
 	    -help_text #xowiki.Page-name-help_text# \
 	    -validator name \
+	    -spec "maxlength=400" \
 	    -required false ;#true 
 	::xo::Attribute create title \
 	    -required false ;#true
