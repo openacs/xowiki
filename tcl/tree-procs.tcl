@@ -316,6 +316,8 @@ namespace eval ::xowiki {
     ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper \
 	"treeview/assets/skins/sam/treeview.css"
     if {$style ne ""} {
+      # yuitree default css style files are in the assets directory
+      if {$style eq "yuitree"} {set style ""}
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/$style/tree.css"
     }
 
