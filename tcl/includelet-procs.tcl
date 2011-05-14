@@ -1109,9 +1109,9 @@ namespace eval ::xowiki::includelet {
           [::xo::db::sql select \
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
-               -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
-            and x.package_id = $package_id and i.publish_status <> 'production' \
-            $since_condition" \
+               -where "x.package_id = $package_id and x.page_id = i.item_id and \
+		  i.publish_status <> 'production' and i.live_revision = r.revision_id \
+            	  and $since_condition" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "nr_different_users desc" \
                -limit $max_entries ] {
@@ -1131,9 +1131,9 @@ namespace eval ::xowiki::includelet {
       db_foreach [my qn get_pages] \
           [::xo::db::sql select \
                -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
-               -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
-               -where "x.page_id = i.item_id and i.live_revision = p.page_id  and r.revision_id = p.page_id \
-            and x.package_id = $package_id and i.publish_status <> 'production'" \
+               -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
+               -where "x.package_id = $package_id and x.page_id = i.item_id and \
+		       i.publish_status <> 'production' and i.live_revision = r.revision_id" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "sum desc" \
                -limit $max_entries] {
@@ -4008,5 +4008,7 @@ namespace eval ::xowiki::includelet {
    </script>"
   }
 }
+
+
 ::xo::library source_dependent 
 
