@@ -2412,17 +2412,18 @@ namespace eval ::xowiki {
     my instvar package_id
     foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
       foreach {template_name var_name} [split $s ,] break
-      #ns_log notice "--w T.title = '$given_template_name' var=$name"
+      #ns_log notice "--w template_name $template_name, given '$given_template_name' varname=$var_name name=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&
           [string match $var_name $name]} {
+        #ns_log notice "--w using $widget_spec for $name"
         return $widget_spec
-        #ns_log notice "--w using $widget for $name"
       }
     }
     return ""
   }
 
   PageInstance instproc get_field_type {name default_spec} {
+    #my log "--w"
     my instvar page_template
     # get widget spec from folder (highest priority)
     set spec [my widget_spec_from_folder_object $name [$page_template set name]]
@@ -2947,7 +2948,7 @@ namespace eval ::xowiki {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
     #my msg "exists sql=[info exists wc(sql)]"
-    if {$wc(sql) ne ""} {
+    if {$wc(sql) ne "" && $wc(h) ne ""} {
       foreach filter $wc(sql) {
         append filter_clause "and $filter"
       }
