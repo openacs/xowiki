@@ -1424,6 +1424,12 @@ namespace eval ::xowiki {
       set page [source $fn]
       $page configure -name $fullName \
           -parent_id $parent_id -package_id $package_id 
+      # xowiki::File has a different interface for build-name to
+      # derive the "name" from a file-name. This is not important for
+      # prototype pages, so we skip it
+      if {![$page istype ::xowiki::File]} {
+	$page name [$page build_name]
+      }
       if {![$page exists title]} {
         $page set title $object
       }
