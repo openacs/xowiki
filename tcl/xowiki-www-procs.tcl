@@ -603,9 +603,9 @@ namespace eval ::xowiki {
     #my log "edit [self args]"
 
     set form [my get_form]
-    set anon_instances [my get_from_template anon_instances f]
-    #my msg form=$form
-    #my msg anon_instances=$anon_instances
+    set anon_instances [my get_anon_instances]
+    #my log form=$form
+    #my log anon_instances=$anon_instances
     
     set field_names [my field_names -form $form]
     #my log field_names=$field_names
@@ -621,6 +621,7 @@ namespace eval ::xowiki {
     } else {
       set formgiven 1
     }
+    #my log formgiven=$formgiven
 
     # check name field: 
     #  - if it is for anon instances, hide it,
@@ -654,7 +655,7 @@ namespace eval ::xowiki {
     }
 
     #my show_fields $form_fields
-    #my msg "__form_action [my form_parameter __form_action {}]"
+    #my log "__form_action [my form_parameter __form_action {}]"
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -718,7 +719,7 @@ namespace eval ::xowiki {
 	}
       }
     } elseif {[my form_parameter __form_action ""] eq "view-form-data" && ![my exists __feedback_mode]} {
-      # We have nothing to save (maybe everything is read.only). Check
+      # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
       set redirect_method [my form_parameter __form_redirect_method "view"]
       #my log "__redirect_method=$redirect_method"
@@ -747,13 +748,12 @@ namespace eval ::xowiki {
       # For named entries, just set the entry fields to empty,
       # without changing the instance variables
 
-      #my msg "my is_new_entry [my name] = [my is_new_entry [my name]]"
+      #my log "my is_new_entry [my name] = [my is_new_entry [my name]]"
       if {[my is_new_entry [my name]]} {
-        #my msg "anon_instances=$anon_instances"
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [$page_template name]]
           set name [::xowiki::autoname new -name $basename -parent_id [my parent_id]]
-          #my msg "generated name=$name, page_template-name=[$page_template name]"
+          #my log "generated name=$name, page_template-name=[$page_template name]"
           $ff(_name) value $name
         } else {
           $ff(_name) value [$ff(_name) default]
@@ -794,7 +794,7 @@ namespace eval ::xowiki {
     # Due to this bug, we program around and replace the at-character 
     # by \x003 to avoid conflict withe the input and we replace these
     # magic chars finally with the fields resulting from tdom.
-
+    
     set form [my substitute_markup $form]
     set form [string map [list @ \x003] $form]
     #my msg form=$form

@@ -1708,7 +1708,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc render_content {} {
-    #my msg "-- '[my set text]'"
+    #my log "-- '[my set text]'"
     set html ""; set mime ""
     foreach {html mime} [my set text] break
     if {[my render_adp]} {
@@ -2463,6 +2463,11 @@ namespace eval ::xowiki {
   #  next
   #}
 
+  FormPage instproc get_anon_instances {} {
+    # maybe overloaded from WorkFlow
+    my get_from_template anon_instances f
+  }
+
   FormPage instproc get_form_constraints {{-trylocal false}} {
     # We define it as a method to ease overloading.
     #my msg "is_form=[my is_form]"
@@ -2513,7 +2518,7 @@ namespace eval ::xowiki {
     # which might not contain it, if e.g. the first form is a plain
     # wiki page.
     #
-    #my msg "resolve property $var=>[my exists_property $var]"
+    #my msg "resolve local property $var=>[my exists_property $var]"
     if {[my istype ::xowiki::FormPage] && [my exists_property $var]} {
       #my msg "returning local property [my property $var]"
       return [my property $var]
@@ -2521,7 +2526,7 @@ namespace eval ::xowiki {
     #
     # if everything fails, return the default.
     #
-    #my msg "returning the default, parent is of type [$form_obj info class]"
+    #my msg "returning the default <$default>, parent is of type [$form_obj info class]"
     return $default
   }
 
