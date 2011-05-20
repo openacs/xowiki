@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # create classes for different kind of pages
   #
   ::xo::db::CrClass create Page -superclass ::xo::db::CrItem \
-      -pretty_name "XoWiki Page" -pretty_plural "XoWiki Pages" \
+      -pretty_name "#xowiki.Page_pretty_name#" -pretty_plural "#xowiki.Page_pretty_plural#" \
       -table_name "xowiki_page" -id_column "page_id" \
       -mime_type text/html \
       -slots {
@@ -55,19 +55,19 @@ namespace eval ::xowiki {
   }
 
   ::xo::db::CrClass create PlainPage -superclass Page \
-      -pretty_name "XoWiki Plain Page" -pretty_plural "XoWiki Plain Pages" \
+      -pretty_name "#xowiki.PlainPage_pretty_name#" -pretty_plural "#xowiki.PlainPage_pretty_plural#" \
       -table_name "xowiki_plain_page" -id_column "ppage_id" \
       -mime_type text/plain \
       -form ::xowiki::PlainWikiForm
 
   ::xo::db::CrClass create File -superclass Page \
-      -pretty_name "XoWiki File" -pretty_plural "XoWiki Files" \
+      -pretty_name "#xowiki.File_pretty_name#" -pretty_plural "#xowiki.File_pretty_plural#" \
       -table_name "xowiki_file" -id_column "file_id" \
       -storage_type file \
       -form ::xowiki::FileForm
 
   ::xo::db::CrClass create PodcastItem -superclass File \
-      -pretty_name "Podcast Item" -pretty_plural "Podcast Items" \
+      -pretty_name "#xowiki.PodcastItem_pretty_name#" -pretty_plural "#xowiki.PodcastItem_pretty_plural#" \
       -table_name "xowiki_podcast_item" -id_column "podcast_item_id" \
       -slots {
 	::xo::db::CrAttribute create pub_date \
@@ -84,7 +84,7 @@ namespace eval ::xowiki {
       -form ::xowiki::PodcastForm
   
   ::xo::db::CrClass create PageTemplate -superclass Page \
-      -pretty_name "XoWiki Page Template" -pretty_plural "XoWiki Page Templates" \
+      -pretty_name "#xowiki.PageTemplate_pretty_name#" -pretty_plural "#xowiki.PageTemplate_pretty_plural#" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
       -slots {
         ::xo::db::CrAttribute create anon_instances \
@@ -94,7 +94,7 @@ namespace eval ::xowiki {
       -form ::xowiki::PageTemplateForm
 
   ::xo::db::CrClass create PageInstance -superclass Page \
-      -pretty_name "XoWiki Page Instance" -pretty_plural "XoWiki Page Instances" \
+      -pretty_name "#xowiki.PageInstance_pretty_name#" -pretty_plural "#xowiki.PageInstance_pretty_plural#" \
       -table_name "xowiki_page_instance"  -id_column "page_instance_id" \
       -slots {
         ::xo::db::CrAttribute create page_template \
@@ -108,13 +108,13 @@ namespace eval ::xowiki {
       -edit_form ::xowiki::PageInstanceEditForm
 
   ::xo::db::CrClass create Object -superclass PlainPage \
-      -pretty_name "XoWiki Object" -pretty_plural "XoWiki Objects" \
+      -pretty_name "#xowiki.Object_pretty_name#" -pretty_plural "#xowiki.Object_pretty_plural#" \
       -table_name "xowiki_object"  -id_column "xowiki_object_id" \
       -mime_type text/plain \
       -form ::xowiki::ObjectForm
 
   ::xo::db::CrClass create Form -superclass PageTemplate \
-      -pretty_name "XoWiki Form" -pretty_plural "XoWiki Forms" \
+      -pretty_name "#xowiki.Form_pretty_name#" -pretty_plural "#xowiki.Form_pretty_name#" \
       -table_name "xowiki_form"  -id_column "xowiki_form_id" \
       -slots {
         ::xo::db::CrAttribute create form \
@@ -129,7 +129,7 @@ namespace eval ::xowiki {
       -form ::xowiki::FormForm
 
   ::xo::db::CrClass create FormPage -superclass PageInstance \
-      -pretty_name "XoWiki FormPage" -pretty_plural "XoWiki FormPages" \
+      -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_name#" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
       -slots {
         ::xo::db::CrAttribute create assignee \

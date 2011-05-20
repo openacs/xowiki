@@ -16,14 +16,14 @@ ad_form \
     -export {parent_id return_url} \
     -html { enctype multipart/form-data } \
     -form {
-      {upload_file:file(file) {html {size 30}} {label "Import file for upload"} }
-      {create_user_ids:integer(radio),optional {options {{yes 1} {no 0}}} {value 0} 
-        {label "Create user_ids"}
-        {help_text "If checked, import will create new user_ids if necessary"}
+      {upload_file:file(file) {html {size 30}} {label "[_ xowiki.import_upload_file]"}}
+      {create_user_ids:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0} 
+        {label "[_ xowiki.import_create_user_ids]"}
+        {help_text "[_ xowiki.import_create_user_ids_helptxt]"}
       }
-      {replace:integer(radio),optional {options {{yes 1} {no 0}}} {value 0} 
-        {label "Replace objects"}
-        {help_text "If checked, import will delete the object if it exists and create it new, otherwise import just adds a revision"}
+      {replace:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0} 
+        {label "[_ xowiki.import_replace]"}
+        {help_text "[_ xowiki.import_replace_helptxt]"}
       }
       {ok_btn:text(submit) {label "[_ acs-templating.HTMLArea_SelectUploadBtn]"}
       }
@@ -73,6 +73,6 @@ ad_form \
 
 
 set return_url [ns_queryget return_url ../]
-set title "Import XoWiki Pages"
+set title [_ xowiki.import_title]
 set context .
 ad_return_template

@@ -20,14 +20,16 @@ if {![info exists object_type]} {
   set per_type 0
   set supertype ::xowiki::Page
   set object_types [$supertype object_types]
-  set page_title "List of all kind of [$supertype set pretty_plural]"
+  set pretty_plural [$supertype set pretty_plural]
+  set page_title [_ xowiki.listing_title_all]
   set with_subtypes true
   set object_type $supertype
   set with_children true
 } else {
   set per_type 1
   set object_types [list $object_type]
-  set page_title "Index of [$object_type set pretty_plural]"
+  set pretty_plural [$object_type set pretty_plural]
+  set page_title [_ xowiki.listing_title]
   set with_subtypes false
   set with_children true
 }
@@ -60,8 +62,8 @@ TableWidget t1 -volatile \
     -actions $actions \
     -columns {
       BulkAction objects -id name -actions {
-        Action new -label export -tooltip export -url export
-        Action new -label delete -tooltip delete -url bulk-delete
+        Action new -label [_ xowiki.export] -tooltip [_ xowiki.export] -url export
+        Action new -label [_ xowiki.delete] -tooltip [_ xowiki.delete] -url bulk-delete
       }
       AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
       if {$::individual_permissions} {
@@ -79,10 +81,10 @@ TableWidget t1 -volatile \
       AnchorField name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
       AnchorField title -label [_ xowiki.Page-title] -orderby title
       Field object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
-      Field size -label "Size" -orderby size -html {align right style "padding: 2px;"}
+      Field size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
       Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
-      Field mod_user -label "By User" -orderby mod_user
-      AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
+      Field mod_user -label [_ xowiki.By_user] -orderby mod_user
+      AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('#xowiki.delete_confirm#'));"}
     }
 
 foreach {att order} [split $orderby ,] break
