@@ -1979,7 +1979,7 @@ namespace eval ::xowiki {
       #my log "--D item_id from query parameter $item_id"
     }
     #
-    # if name given, take it from the query parameter
+    # if no name is given, take it from the query parameter
     #
     if {![info exists name]} {
       set name [my query_parameter name]
