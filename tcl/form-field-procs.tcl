@@ -429,9 +429,22 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[my id]','$package_url');"
     }
 
-    ::html::input [my get_attributes type size maxlength id name value disabled {CSSclass class} \
-		       autocomplete autofocus formnovalidate multiple pattern placeholder readonly required] {}
-
+    set pairs [list [list CSSclass class]]
+    # Special handling of HTML boolean attributes, since they require a
+    # different coding; it would be nice, if tdom would care for this.
+    set booleanAtts [list required readonly disabled multiple formnovalidate autofocus]
+    foreach att $booleanAtts {
+      if {[my exists $att] && [my set $att]} {
+	my set __#$att $att
+	lappend pairs [list __#$att $att]
+      }
+    }
+    ::html::input [eval my get_attributes type size maxlength id name value \
+		       pattern placeholder $pairs] {}
+    foreach att $booleanAtts {
+      if {[my exists __#$att]} {my unset __#$att}
+    }
+    
     #
     # Disabled fieds are not returned by the browsers. For some
     # fields, we require to be sent. therefore we include in these
