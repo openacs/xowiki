@@ -3115,7 +3115,7 @@ namespace eval ::xowiki::includelet {
     {method list}
   }
   form-menu-button-answers instproc render {} {
-    set (publish_status) ready
+    array set "" [list publish_status all]
     array set "" [::xowiki::PageInstance get_list_from_form_constraints \
                       -name @table_properties \
                       -form_constraints [[my form] get_form_constraints -trylocal true]]
@@ -3164,7 +3164,8 @@ namespace eval ::xowiki::includelet {
         set parent_id [$__including_page item_id]
       }
     } else {
-      set parent_id [$package_id folder_id]
+      #set parent_id [$package_id folder_id]
+      set parent_id [$__including_page parent_id]
     }
     if {![info exists button_objs]} {
       foreach b $buttons {
@@ -3201,18 +3202,26 @@ namespace eval ::xowiki::includelet {
           {-form}
           {-property _state}
           {-orderby "count,desc"}
+	  {-renderer "table"}
+
         }}
       }
 
   form-stats instproc render {} {
     my get_parameters
-
-    set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+    set o [my set __including_page]
+    set form_item_ids [::xowiki::Weblog instantiate_forms \
+			   -forms $form -package_id $package_id \
+			   -parent_id [$o parent_id]]
+    if {[llength $form_item_ids] != 1} {
+      return "no such form $form<br>\n"
+    }
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids -form_fields "" \
                    -always_queried_attributes "*" -initialize false \
                    -publish_status all -package_id $package_id]
 
+    set sum 0
     foreach i [$items children] {
       set value ""
       if {[string match _* $property]} {
@@ -3224,22 +3233,104 @@ namespace eval ::xowiki::includelet {
         if {[info exists $varname]} {set value [set $varname]}
       }
       if {[info exists __count($value)]} {incr __count($value)} else {set __count($value) 1}
+      incr sum 1
     }
 
-    TableWidget t1 -volatile \
-        -columns {
-          Field value -orderby value -label value
-          Field count -orderby count -label count
-        }
-    
-    foreach {att order} [split $orderby ,] break
-    t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    foreach {value count} [array get __count] {
-      t1 add -value $value -count $count
+    if {$sum == 0} {
+      return "no data<br>\n"
     }
-    
-    return [t1 asHTML]
+
+    if {$renderer eq "highcharts"} {
+      #
+      # experimental highcharts pie renderer
+      #
+      set percentages [list]
+      foreach {value count} [array get __count] {
+	lappend percentages $value [format %.2f [expr {$count*100.0/$sum}]]
+      }
+      set h [highcharts new -volatile -id [my js_name] \
+		 -title [::xowiki::Includelet js_encode \
+			     "$sum Answers for Survey '[$form_item_ids title]'"]]
+      return [$h pie [list value count] $percentages]
+
+    } else {
+      #
+      # standard table encoder
+      #
+      TableWidget t1 -volatile \
+	  -columns {
+	    Field value -orderby value -label value
+	    Field count -orderby count -label count
+	  }
+      
+      foreach {att order} [split $orderby ,] break
+      t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+      foreach {value count} [array get __count] {
+	t1 add -value $value -count $count
+      }
+      return [t1 asHTML]
+    }
   }
+
+  #
+  # To use highcharts, download it from http://www.highcharts.com/
+  # and install it under the directory xowiki/www/resources/highcharts
+  # (you have to create the directory and unpack the zip file there).
+  #
+  ::xotcl::Class highcharts -parameter {title id}
+  highcharts instproc pie {names data} {
+    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/xowiki/highcharts/js/highcharts.js"
+    ::xo::Page requireJS "/resources/xowiki/highcharts/js/themes/gray.js"
+    set result "<div id='[my id]' style='width: 100%; height: 400px'></div>\n"
+    set title [my title]
+    set id [my id]
+    set values [list]
+    foreach {name value} $data {
+      lappend values "\['$name', $value\]"
+    }
+    set values [join $values ",\n"]
+    append result [subst -nocommands {
+<script type='text/javascript'>
+var chart;
+   chart = new Highcharts.Chart({
+      chart: {
+	 renderTo: '$id',
+         plotBackgroundColor: null,
+         plotBorderWidth: null,
+         plotShadow: true
+      },
+      title: {text: '$title'},
+      tooltip: {
+         formatter: function() {
+            return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+         }
+      },
+      plotOptions: {
+         pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+               enabled: true,
+               color: Highcharts.theme.textColor || '#000000',
+               connectorColor: Highcharts.theme.textColor || '#000000',
+               formatter: function() {
+                  return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+               }
+            }
+         }
+      },
+       series: [{
+         type: 'pie',
+         name: '$names',
+         data: [$values]
+      }]
+   });
+</script>
+}]
+    return $result
+  }
+
 
   #############################################################################
   ::xowiki::IncludeletClass create form-usages \
@@ -3253,7 +3344,7 @@ namespace eval ::xowiki::includelet {
           {-package_ids ""}
           {-orderby "_last_modified,desc"}
 	  {-view_field _name}
-          {-publish_status "ready"}
+          {-publish_status "all"}
           {-field_names}
           {-hidden_field_names ""}
           {-extra_form_constraints ""}
@@ -3793,12 +3884,14 @@ namespace eval ::xowiki::includelet {
       }
       $entry load_values_into_form_fields $entry_form_fields
       foreach f $entry_form_fields {$f object $entry}
-      if {$width ne ""} {$ff(image) width $width}
-      if {$height ne ""} {$ff(image) height $height}
-      if {$width ne "" && $height ne ""} {
-	$ff(image) set geometry "${width}x${height}"
+      if {[info exists ff(image)]} {
+	if {$width ne ""} {$ff(image) width $width}
+	if {$height ne ""} {$ff(image) height $height}
+	if {$width ne "" && $height ne ""} {
+	  $ff(image) set geometry "${width}x${height}"
+	}
+	$ff(image) label [$entry property _title]
       }
-      $ff(image) label [$entry property _title]
       $entry set html [$entry render_content]
       #my log html=[$entry set html]
     }
