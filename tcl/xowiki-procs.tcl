@@ -2132,6 +2132,7 @@ namespace eval ::xowiki {
 
     # Finally provide base for auto-titles
     $f set __title_prefix [my title]
+
     return $f
   }
 
@@ -2331,14 +2332,20 @@ namespace eval ::xowiki {
   }
 
   Page instproc css_class_name {{-margin_form:boolean true}} {
-    # Determine the CSS class name for an HTML-form.
+    # Determine the CSS class name for xowiki forms
     #
     # We need this acually only for PageTemplate and FormPage, but
     # aliases will require XOTcl 2.0.... so we define it for the time
     # being on ::xowiki::Page
     set name [expr {$margin_form ? "margin-form " : ""}]
     set CSSname [my name]
+
+    # Remove language prefix, if used.
     regexp {^..:(.*)$} $CSSname _ CSSname
+
+    # Remove "file extension", since dot's in CSS class names do not
+    # make much sense.
+    regsub {[.].*$} $CSSname "" CSSname
     return [append name "Form-$CSSname"]
   }
 
@@ -2499,8 +2506,8 @@ namespace eval ::xowiki {
     # template does not know about the logic with "_" (just "property" does). 
     #
     if {[$form_obj istype ::xowiki::PageInstance]} {
-      #my msg "returning property $var from parent formpage $form_obj => '[$form_obj property $var]'"
-      return [$form_obj property $var]
+      #my msg "returning property $var from parent formpage $form_obj => '[$form_obj property $var $default]'"
+      return [$form_obj property $var $default]
     }
 
     #
@@ -3056,6 +3063,7 @@ namespace eval ::xowiki {
         you might use flag '-new 1' for set_property to create new properties\n[lsort [my info vars]]"
     }
     my set $key $value
+    #my msg "[self] set $key $value"
     if {$instance_attributes_refresh} {
       my instance_attributes [my array get __ia]
     }

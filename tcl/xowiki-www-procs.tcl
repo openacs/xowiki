@@ -20,6 +20,7 @@ namespace eval ::xowiki {
   # 
   Page instproc clipboard-add {} {
     my instvar package_id
+
     if {![my exists_form_parameter "objects"]} {
       my msg "nothing to copy"
     }
@@ -27,6 +28,11 @@ namespace eval ::xowiki {
     foreach page_name [my form_parameter objects] {
       # the page_name is the name exactly as stored in the content repository
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id [my item_id]]
+      if {$item_id == 0} {
+	# when the pasted item was from a child-resources includelet
+	# included on e.g. a plain page. we look for a sibling.
+	set item_id [::xo::db::CrClass lookup -name $page_name -parent_id [my parent_id]]
+      }
       #my msg "want to copy $page_name // $item_id"
       if {$item_id ne 0} {lappend ids $item_id}
     }
@@ -154,6 +160,8 @@ namespace eval ::xowiki {
         }
       }
     }
+
+    # load the instance attributes from the form parameters
     set instance_attributes [list]
     foreach {_att _value} [::xo::cc get_all_form_parameter] {
       if {[string match _* $_att]} continue
@@ -1135,7 +1143,7 @@ namespace eval ::xowiki {
     
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
-    set import_link  [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
+    set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
 
     set notification_subscribe_link ""
     if {[$context_package_id get_parameter "with_notifications" 1]} {
@@ -1679,7 +1687,7 @@ namespace eval ::xowiki {
     Store the instance attributes or default values in the form.
   } {
     ::require_html_procs
-    #my msg "set_form_value instance attributes = [my instance_attributes]"
+
     array set __ia [my instance_attributes]
     foreach f $form_fields {
       set att [$f name]
@@ -1720,9 +1728,9 @@ namespace eval ::xowiki {
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
-      my log "form-params=[$cc array get form_parameter]"
+      #my log "form-params=[$cc array get form_parameter]"
     }
-    #my msg "fields $field_names, "
+    #my msg "fields $field_names // $form_fields"
 
     # we have a form and get all form variables
     
