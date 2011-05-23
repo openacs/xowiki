@@ -2236,10 +2236,10 @@ namespace eval ::xowiki {
     set t [TableWidget new -volatile \
                -columns {
                  AnchorField name -label [_ xowiki.Page-name]
-                 Field mime_type -label "Content Type"
-                 Field last_modified -label "Last Modified"
-                 Field mod_user -label "By User"
-                 Field size -label "Size"
+                 Field mime_type -label "#xowiki.content_type#"
+                 Field last_modified -label "#xowiki.Page-last_modified#"
+                 Field mod_user -label "#xowiki.By_user#"
+                 Field size -label "#xowiki.Size# (Bytes)"
                }]
 
     regsub {[.][0-9]+([^0-9])} [my set last_modified] {\1} last_modified
