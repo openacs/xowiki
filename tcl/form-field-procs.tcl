@@ -1400,7 +1400,7 @@ namespace eval ::xowiki::formfield {
     if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
-      ::xo::Page requireJS "http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"
+      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
 
@@ -1453,7 +1453,7 @@ namespace eval ::xowiki::formfield {
       my render_richtext_as_div
     } else {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
-      ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.js"
+      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       set postinit ""
       foreach plugin {hovertools resizable fullscreen embed} {
@@ -2259,7 +2259,12 @@ namespace eval ::xowiki::formfield {
       # file exists already
       return 1
     }
-    if {[catch {
+    if {[regexp {^file://(.*)$} $value _ path]} {
+      set f [open $path r]
+      fconfigure $f translation binary
+      set img [read $f] 
+      close $f
+    } elseif {[catch {
       set r [::xo::HttpRequest new -url $value -volatile]
       set img [$r set data]
     } errorMsg]} {

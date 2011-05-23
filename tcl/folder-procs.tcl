@@ -429,6 +429,13 @@ namespace eval ::xowiki::includelet {
     my get_parameters
 
     set current_folder [my set __including_page]
+    if {![$current_folder istype ::xowiki::FormPage]} {
+      # current folder has to be a FormPage
+      set current_folder [$current_folder parent_id]
+      if {![$current_folder istype ::xowiki::FormPage]} {
+	error "child-resources not included from a FormPage"
+      }
+    }
     set current_folder_id [$current_folder item_id]
 
     if {[::xo::cc query_parameter m] ne "list"} {
@@ -501,7 +508,7 @@ namespace eval ::xowiki::includelet {
 	set name [$c name]
         set page_link [::$package_id pretty_link -parent_id $logical_folder_id $name]
 	array set icon [$c render_icon]
-        
+
         $t add \
             -ID [$c name] \
             -name [$c pretty_name] \
