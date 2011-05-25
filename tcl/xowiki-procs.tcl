@@ -3228,9 +3228,31 @@ namespace eval ::xowiki {
     return $name
   }
 
+  FormPage instproc include_header_info {prefix} {
+    foreach line [my get_from_template ${prefix}_js] {
+      ::xo::Page requireJS $line
+    }
+    foreach line [my get_from_template ${prefix}_css] {
+      set order 1
+      if {[llength $line]>1} {
+	set e1 [lindex $line 0]
+	if {[string is integer -strict $e1]} {
+	  set order $e1
+	  set line [lindex $line 1]
+	}
+      }
+      ::xo::Page requireCSS -order $order $line
+    }
+  }
+
   FormPage instproc render_content {} {
     my instvar doc root package_id page_template
-    set text [lindex [my get_from_template text] 0]
+    my include_header_info form_view
+
+    set text [my get_from_template text]
+    if {$text ne ""} {
+      catch {set text [lindex $text 0]}
+    }
     if {$text ne ""} {
       #my msg "we have a template text='$text'"
       # we have a template

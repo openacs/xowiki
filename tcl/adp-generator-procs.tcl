@@ -291,7 +291,7 @@ table.mini-calendar {width: 200px ! important;}
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>  <!-- background -->
 </div>
-<div style="float:right; width: 70%;">
+<div style="margin-left: 258px;">
 [next]
 </div> <!-- right 70% -->
 }]

@@ -607,8 +607,10 @@ namespace eval ::xowiki {
     {-view true}
   } {
     my instvar page_template doc root package_id
-    ::xowiki::Form requireFormCSS
     #my log "edit [self args]"
+
+    ::xowiki::Form requireFormCSS
+    my include_header_info form_edit
 
     set form [my get_form]
     set anon_instances [my get_anon_instances]
