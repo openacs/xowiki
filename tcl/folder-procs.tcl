@@ -509,9 +509,14 @@ namespace eval ::xowiki::includelet {
         set page_link [::$package_id pretty_link -parent_id $logical_folder_id $name]
 	array set icon [$c render_icon]
 
+	if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
+	  my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+	  set prettyName $name
+	}
+
         $t add \
             -ID [$c name] \
-            -name [$c pretty_name] \
+            -name $prettyName \
 	    -name.href [export_vars -base $page_link {template_file}] \
             -name.title [$c set title] \
             -object_type $icon(text) \
