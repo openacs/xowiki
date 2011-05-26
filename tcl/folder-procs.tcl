@@ -514,6 +514,13 @@ namespace eval ::xowiki::includelet {
 	  set prettyName $name
 	}
 
+	#set delete_link [export_vars -base  [$package_id package_url] \
+	#		      [list {delete 1} \
+	#			   [list item_id [$c item_id]] \
+	#			   [list name [$c pretty_link]] return_url]]
+
+	set delete_link [export_vars -base $page_link {{m delete} return_url}]
+	
         $t add \
             -ID [$c name] \
             -name $prettyName \
@@ -526,10 +533,7 @@ namespace eval ::xowiki::includelet {
             -edit.href [export_vars -base $page_link {{m edit} return_url}] \
             -edit.title #xowiki.edit# \
             -delete "" \
-            -delete.href [export_vars -base  [$package_id package_url] \
-			      [list {delete 1} \
-				   [list item_id [$c item_id]] \
-				   [list name [$c pretty_link]] return_url]] \
+            -delete.href $delete_link \
             -delete.title #xowiki.delete#
       }
     }
