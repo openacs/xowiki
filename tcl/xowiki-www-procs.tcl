@@ -610,7 +610,7 @@ namespace eval ::xowiki {
     #my log "edit [self args]"
 
     ::xowiki::Form requireFormCSS
-    my include_header_info form_edit
+    my include_header_info -prefix form_edit
 
     set form [my get_form]
     set anon_instances [my get_anon_instances]

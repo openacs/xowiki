@@ -3228,11 +3228,11 @@ namespace eval ::xowiki {
     return $name
   }
 
-  FormPage instproc include_header_info {prefix} {
-    foreach line [my get_from_template ${prefix}_js] {
-      ::xo::Page requireJS $line
-    }
-    foreach line [my get_from_template ${prefix}_css] {
+  FormPage instproc include_header_info {{-prefix ""} {-js ""} {-css ""}} {
+    if {$css eq ""} {set css [my get_from_template ${prefix}_css]}
+    if {$js eq ""}  {set js [my get_from_template ${prefix}_js]}
+    foreach line [split $js \n] {::xo::Page requireJS $line}
+    foreach line [split $css \n] {
       set order 1
       if {[llength $line]>1} {
 	set e1 [lindex $line 0]
@@ -3247,7 +3247,8 @@ namespace eval ::xowiki {
 
   FormPage instproc render_content {} {
     my instvar doc root package_id page_template
-    my include_header_info form_view
+    my include_header_info -prefix form_view
+    if {[::xo::cc mobile]} {my include_header_info -prefix mobile}
 
     set text [my get_from_template text]
     if {$text ne ""} {
