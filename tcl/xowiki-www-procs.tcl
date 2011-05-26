@@ -814,10 +814,24 @@ namespace eval ::xowiki {
 
     ::require_html_procs
     $root firstChild fcn
+    #my msg "orig fcn $fcn, root $root [$root nodeType] [$root nodeName]"
+
+    set formNode [lindex [$root selectNodes //form] 0]
+    if {$formNode eq ""} {
+      my msg "no form found in page [$page_template name]"
+      set rootNode $root
+      $rootNode firstChild fcn
+    } else {
+      set rootNode $formNode
+      $rootNode firstChild fcn
+      # Normally, the root node is the formNode, fcn is the first
+      # child (often a TEXT_NODE), but ic can be even empty.
+    }
+
     #
     # prepend some fields above the HTML contents of the form
     #
-    $root insertBeforeFromScript {
+    $rootNode insertBeforeFromScript {
       ::html::input -type hidden -name __object_name -value [my name]
       ::html::input -type hidden -name __form_action -value save-form-data
 
@@ -836,7 +850,7 @@ namespace eval ::xowiki {
     set button_class(wym) ""
     set button_class(xinha) ""
     set has_file 0
-    $root appendFromScript {
+    $rootNode appendFromScript {
       # append category fields
       foreach f $form_fields {
         #my msg "[$f name]: is wym? [$f has_instance_variable editor wym]"
@@ -862,17 +876,14 @@ namespace eval ::xowiki {
       my render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
     }
 
-    set form [lindex [$root selectNodes //form] 0]
-    if {$form eq ""} {
-      my msg "no form found in page [$page_template name]"
-    } else {
+    if {$formNode ne ""} {
       if {[my exists_query_parameter "return_url"]} {
 	set return_url [my query_parameter "return_url"]
       }
       set url [export_vars -base [my pretty_link] {{m "edit"} return_url}] 
-      $form setAttribute action $url method POST
-      if {$has_file} {$form setAttribute enctype multipart/form-data}
-      Form add_dom_attribute_value $form class [$page_template css_class_name]
+      $formNode setAttribute action $url method POST
+      if {$has_file} {$formNode setAttribute enctype multipart/form-data}
+      Form add_dom_attribute_value $formNode class [$page_template css_class_name]
     }
 
     my set_form_data $form_fields
@@ -880,14 +891,14 @@ namespace eval ::xowiki {
       # (a) disable explicit input fields
       foreach f $form_fields {$f disabled disabled}
       # (b) disable input in HTML-specified fields
-      set disabled [Form dom_disable_input_fields $root]
+      set disabled [Form dom_disable_input_fields $rootNode]
       #
       # Collect these variables in a hiddden field to be able to
       # distinguish later between e.g. un unchecked checkmark and an
       # disabled field. Maybe, we have to add the fields from case (a)
       # as well.
       #
-      $root appendFromScript {
+      $rootNode appendFromScript {
         ::html::input -type hidden -name "__disabled_fields" -value $disabled
       }
     }
