@@ -3200,6 +3200,7 @@ namespace eval ::xowiki::includelet {
         {__decoration plain}
         {parameter_declaration {
           {-form}
+          {-parent_id}
           {-property _state}
           {-orderby "count,desc"}
 	  {-renderer "table"}
@@ -3210,9 +3211,10 @@ namespace eval ::xowiki::includelet {
   form-stats instproc render {} {
     my get_parameters
     set o [my set __including_page]
+    if {![info exists parent_id]} {set parent_id [$o parent_id]}
     set form_item_ids [::xowiki::Weblog instantiate_forms \
 			   -forms $form -package_id $package_id \
-			   -parent_id [$o parent_id]]
+			   -parent_id $parent_id]
     if {[llength $form_item_ids] != 1} {
       return "no such form $form<br>\n"
     }
