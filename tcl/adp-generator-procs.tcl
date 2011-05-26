@@ -259,6 +259,13 @@ table.mini-calendar {width: 200px ! important;}
     } \
     -proc content_part {} {
       return [subst -novariables -nobackslashes {\
+
+<div style="width: 100%; float: left"> <!-- contentwrap -->
+<div style="margin-left: 258px;"> <!-- content -->
+[next]
+</div> <!-- content -->
+</div> <!-- contentwrap -->
+
 <div style="float:left; width: 245px; font-size: 85%;">
 <div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 6px; margin-top: 6px; padding: 0px;
@@ -291,9 +298,7 @@ table.mini-calendar {width: 200px ! important;}
 	 portlet="categories -open_page @name@  -decoration plain">
 </div></div>  <!-- background -->
 </div>
-<div style="margin-left: 258px;">
-[next]
-</div> <!-- right 70% -->
+
 }]
      }
 
