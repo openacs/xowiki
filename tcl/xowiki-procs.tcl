@@ -1831,7 +1831,9 @@ namespace eval ::xowiki {
           "</div>\n"
     }
 
-    append footer [my include my-references] 
+    if {[$package_id get_parameter "show_page_references" 1]} {
+      append footer [my include my-references] 
+    }
     
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
       set html [my include my-categories]

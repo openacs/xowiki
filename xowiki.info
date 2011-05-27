@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.139" url="http://openacs.org/repository/download/apm/xowiki-0.139.apm">
+    <version name="0.140" url="http://openacs.org/repository/download/apm/xowiki-0.140.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A more generic xotcl-based wikis example with object types
 and subtypes based on the content repository (with category support)</summary>
@@ -56,7 +56,7 @@ Some features:
         <license>BSD-Style</license>
         <maturity>0</maturity>
 
-        <provides url="xowiki" version="0.139"/>
+        <provides url="xowiki" version="0.140"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -104,6 +104,7 @@ Some features:
 Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;." section_name="Options"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_page_references"  default="1" description="If enabled it shows on a page view the pages that reference it" section_name="Options"/>            
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>

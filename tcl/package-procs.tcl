@@ -1250,7 +1250,7 @@ namespace eval ::xowiki {
 	set popular [::xo::cc query_parameter popular 0]
 	set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	set weblog_page [my get_parameter weblog_page]
-	my get_lang_and_name -default_lang $default_lang -path $weblog_page (lang) (stripped_name)
+	my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
 	#set name $(lang):$(stripped_name)
 	my set object $weblog_page
 	::xo::cc set actual_query $tag_kind=$tag&summary=$summary
