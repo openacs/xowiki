@@ -611,6 +611,7 @@ namespace eval ::xowiki {
 
     ::xowiki::Form requireFormCSS
     my include_header_info -prefix form_edit
+    if {[::xo::cc mobile]} {my include_header_info -prefix mobile}
 
     set form [my get_form]
     set anon_instances [my get_anon_instances]
@@ -723,7 +724,7 @@ namespace eval ::xowiki {
 	  # We had query_parameter here. however, to be able to
 	  # process the output of ::xo::cc set_parameter ...., we
 	  # changed it to "parameter".
-	  #my msg "[my name]: url=$url, return_url=$return_url"
+	  #my log "[my name]: url=$url, return_url=$return_url"
 	  $package_id returnredirect $return_url
           return
 	}
@@ -1278,7 +1279,7 @@ namespace eval ::xowiki {
     #  set return_url [my query_parameter "edit_return_url"]
     #}
     #my log "--after options master=$master"
-
+    
     if {$master} {
       set context [list $title]
       #my msg "$context_package_id title=[$context_package_id instance_name] - $title"
