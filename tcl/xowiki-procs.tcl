@@ -114,7 +114,7 @@ namespace eval ::xowiki {
       -form ::xowiki::ObjectForm
 
   ::xo::db::CrClass create Form -superclass PageTemplate \
-      -pretty_name "#xowiki.Form_pretty_name#" -pretty_plural "#xowiki.Form_pretty_name#" \
+      -pretty_name "#xowiki.Form_pretty_name#" -pretty_plural "#xowiki.Form_pretty_plural#" \
       -table_name "xowiki_form"  -id_column "xowiki_form_id" \
       -slots {
         ::xo::db::CrAttribute create form \
@@ -129,7 +129,7 @@ namespace eval ::xowiki {
       -form ::xowiki::FormForm
 
   ::xo::db::CrClass create FormPage -superclass PageInstance \
-      -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_name#" \
+      -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_plural#" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
       -slots {
         ::xo::db::CrAttribute create assignee \
