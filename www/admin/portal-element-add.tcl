@@ -12,7 +12,8 @@
   {-referer .}
 }
 
-set page [my get_page_from_item_ref $page_name]
+set package_id [::xo::cc set package_id]
+set page [$package_id get_page_from_item_ref $page_name]
 
 if {$page eq ""} {
   #
