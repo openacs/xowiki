@@ -93,7 +93,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="import">Import</msg>
   <msg key="import_create_user_ids">Create user_ids</msg>
   <msg key="import_create_user_ids_helptxt">If checked, import will create new user_ids if necessary</msg>
-  <msg key="import_replace">Raplace objects</msg>
+  <msg key="import_replace">Replace objects</msg>
   <msg key="import_replace_helptxt">If checked, import will delete the object if it exists and create it new, otherwise import just adds a revision</msg>
   <msg key="import_title">Import Wiki Pages</msg>
   <msg key="import_upload_file">Import file for upload</msg>
