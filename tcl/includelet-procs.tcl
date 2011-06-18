@@ -4029,10 +4029,17 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-form:required}
           {-publish_status "ready"}
+          {-expires 600}
         }}
       }
- 
-  random-form-page instproc render {} {
+
+  random-form-page instproc page_names {args} {
+    #
+    # This is a cacheable method returing a list of the names from
+    # which the random page is selected. We use the argument list
+    # "args" to cope with util_memoize inability to provide a key for
+    # caching.
+    #
     my get_parameters
     set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
     set form_fields [::xowiki::FormPage get_table_form_fields \
@@ -4040,14 +4047,29 @@ namespace eval ::xowiki::includelet {
                          -form_constraints ""]
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids -form_fields $form_fields \
+		   -initialize false \
                    -publish_status $publish_status \
                    -package_id $package_id]
-    set random_element [expr { int([llength [$items children]] * rand()) }]
-    set random_item [lindex [$items children] $random_element]
+    set result [list]
+    foreach item [$items children] {
+      lappend result [$item name]
+    }
+    return $result
+  }
+ 
+  random-form-page instproc render {} {
+    my get_parameters
+
+    if {[ns_info name] eq "NaviServer"} {
+      set names [ns_cache_eval -expires $expires xowiki_cache random-$package_id-$form [self] page_names]
+    } else {
+      set names [util_memoize [list [self] page_names $package_id $form]]
+    }
+    set random_item [lindex $names [expr { int([llength $names] * rand()) }]]
     if {$random_item eq ""} {
       return ""
     } {
-      return [[my set __including_page] include [list [$random_item name] -decoration none]]
+      return [[my set __including_page] include [list $random_item -decoration none]]
     }
   }
 }
