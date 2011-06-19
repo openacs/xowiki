@@ -4033,14 +4033,13 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
-  random-form-page instproc page_names {args} {
+  random-form-page proc page_names {package_id form publish_status} {
     #
     # This is a cacheable method returing a list of the names from
-    # which the random page is selected. We use the argument list
-    # "args" to cope with util_memoize inability to provide a key for
+    # which the random page is selected. We use a class method and the
+    # argument list with util_memoize inability to provide a key for
     # caching.
     #
-    my get_parameters
     set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
     set form_fields [::xowiki::FormPage get_table_form_fields \
                          -base_item [lindex $form_item_ids 0] -field_names _name \
@@ -4060,10 +4059,11 @@ namespace eval ::xowiki::includelet {
   random-form-page instproc render {} {
     my get_parameters
 
+    set cmd [list ::xowiki::includelet::random-form-page page_names $package_id $form $publish_status]
     if {[ns_info name] eq "NaviServer"} {
-      set names [ns_cache_eval -expires $expires xowiki_cache random-$package_id-$form [self] page_names]
+      set names [ns_cache_eval -expires $expires xowiki_cache random-$package_id-$form $cmd]
     } else {
-      set names [util_memoize [list [self] page_names $package_id $form]]
+      set names [util_memoize $cmd]
     }
     set random_item [lindex $names [expr { int([llength $names] * rand()) }]]
     if {$random_item eq ""} {
