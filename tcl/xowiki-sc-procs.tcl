@@ -74,7 +74,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
                                guid "$item_id" \
                                pubDate $pubDate] \
 		 ]
-  if {[catch {::xo::at_cleanup} errorMsg] {
+  if {[catch {::xo::at_cleanup} errorMsg]} {
     ns_log notice "cleanup in ::xowiki::datasource returned $errorMsg"
   }
   return $result
