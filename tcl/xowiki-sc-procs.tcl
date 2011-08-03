@@ -64,16 +64,20 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set pubDate [::xo::db::tcl_date [$page set publish_date] tz]
   set link [$page detail_link]
 
-  return [list object_id $revision_id title $(title) \
-              content $(html) keywords $(keywords) \
-              storage_type text mime text/html \
-              syndication [list link [string map [list & "&amp;"] $link] \
+  set result [list object_id $revision_id title $(title) \
+		  content $(html) keywords $(keywords) \
+		  storage_type text mime text/html \
+		  syndication [list link [string map [list & "&amp;"] $link] \
                                description $description \
                                author [$page set creator] \
                                category "" \
                                guid "$item_id" \
                                pubDate $pubDate] \
-             ]
+		 ]
+  if {[catch {::xo::at_cleanup} errorMsg] {
+    ns_log notice "cleanup in ::xowiki::datasource returned $errorMsg"
+  }
+  return $result
 }
 
 ad_proc -private ::xowiki::url { revision_id} {
