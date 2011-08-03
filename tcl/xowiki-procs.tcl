@@ -1212,6 +1212,7 @@ namespace eval ::xowiki {
 		    -use_package_path true \
 		    -use_site_wide_pages true \
 		    -use_prototype_pages true \
+		    -default_lang [my lang] \
 		    -parent_id [my parent_id] $page_name]
       
       if {$page ne "" && ![$page exists __decoration]} {
