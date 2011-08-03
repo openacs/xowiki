@@ -60,7 +60,7 @@ namespace eval ::xowiki {
     set folder_id [::$package_id folder_id]
     set filter_msg  ""
     set query_parm ""
-    set query [ns_conn query]
+    set query [expr {[ns_conn isconnected] ? [ns_conn query] : ""}]
     
     # set up filters
     set extra_from_clause ""
