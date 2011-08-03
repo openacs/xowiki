@@ -143,7 +143,7 @@ namespace eval ::xowiki {
     @param edit_interval delete entries, which never become older than this interval (in seconds, default 300)
     @param older_than delete only entries, which were modified longer than the provided time ago
   } {
-    set extra_cause ""
+    set extra_clause ""
     if {[info exists package_id]} {
       append extra_clause " and o.package_id = $package_id"
     }
