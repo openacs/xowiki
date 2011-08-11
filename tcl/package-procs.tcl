@@ -52,11 +52,11 @@ namespace eval ::xowiki {
 			-item_id $item_id \
 			-revision_id $revision_id]
     ::xo::Package initialize \
+	-export_vars false \
 	-package_id $package_id \
 	-init_url false -actual_query "" \
 	-parameter $parameter \
 	-user_id $user_id
-
     set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
     ::$package_id set_url -url [$page pretty_link]
     return $page
