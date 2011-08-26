@@ -854,7 +854,7 @@ namespace eval ::xowiki {
   Package instproc package_path {} {
     # 
     # Compute a list fo package objects which should be used for
-    # resolving ("inheriance of objects from other instances").
+    # resolving ("inheritance of objects from other instances").
     #
     set packages [list]
     set package_url [string trimright [my package_url] /]
