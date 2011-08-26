@@ -2978,7 +2978,7 @@ namespace eval ::xowiki {
     } elseif {$from_package_ids eq "*"} {
       set package_clause ""
     } else {
-      set package_clause "and object_package_id in ([$join $from_package_ids ,])"
+      set package_clause "and object_package_id in ([join $from_package_ids ,])"
     }
 
     if {$parent_id eq "*"} {
