@@ -2002,13 +2002,23 @@ namespace eval ::xowiki::formfield {
       array set wc [::xowiki::FormPage filter_expression $where &&]
       #my msg "where '$where' => wc=[array get wc]"
     }
-    set options [list]    
+
+    set from_package_ids {}
+    set package_path [::$package_id package_path]
+    if {[llength $package_path] > 0} {
+      foreach p $package_path {
+	lappend from_package_ids [$p id]
+      }
+    }
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_object_item_ids \
                    -form_fields [list] \
                    -publish_status ready \
                    -h_where [array get wc] \
-                   -package_id $package_id]
+                   -package_id $package_id \
+		   -from_package_ids $from_package_ids]
+
+    set options [list]
     foreach i [$items children] {
       #
       # If the form_page has a different package_id, prepend the
