@@ -1878,7 +1878,17 @@ namespace eval ::xowiki {
       #
       foreach f $form_fields {
         $f convert_to_internal
-      }        
+      } else {
+	# Reset the value of the form-field to avoid confusion, since
+	# the file-name was provided, but the file was not
+	# uploaded. Maybe a new method "reset-to-default" would be a
+	# good idea.
+        foreach f $form_fields {
+	  if {[$f type] eq "file"} {
+	    $f set value ""
+	  }
+        }	
+      }
     }
 
     my instance_attributes [array get __ia]
