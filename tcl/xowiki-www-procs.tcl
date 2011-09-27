@@ -1332,6 +1332,9 @@ namespace eval ::xowiki {
 	set meta(keywords) ""
 	if {[my istype ::xowiki::FormPage]} {
 	  set meta(keywords) [string trim [my property keywords]]
+	  if {[my property html_title] ne ""} {
+	    ::xo::Page set_property doc title [my property html_title]
+	  }
 	}
 	if {$meta(keywords) eq ""} {
 	  set meta(keywords) [$context_package_id get_parameter keywords ""]
