@@ -705,7 +705,7 @@ namespace eval ::xowiki::formfield {
       #
       # Figure out, if we got a different file-name (value). If the
       # file-name is the same as in the last revision, we return a
-      # "-".
+      # "-". This has the effect, that file file is not uploaded again.
       #
       if {$old_value ne "" && $old_value eq [my set value]} {
         return "-"
