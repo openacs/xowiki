@@ -1158,6 +1158,7 @@ namespace eval ::xowiki {
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
     set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
+    set page_show_link [$page_package_id make_link -privilege admin [self] show-object return_url]
 
     set notification_subscribe_link ""
     if {[$context_package_id get_parameter "with_notifications" 1]} {
@@ -1210,7 +1211,10 @@ namespace eval ::xowiki {
           -item [list text #xowiki.revisions# url $rev_link]
       $mb add_menu_item -name Page.Delete \
           -item [list text #xowiki.delete# url $delete_link]
-
+      if {[acs_user::site_wide_admin_p]} {
+	$mb add_menu_item -name Page.Show \
+	    -item [list text "Show Object" url $page_show_link]
+      }
     }
     
     # the content may be passed by other methods (e.g. edit) to 
