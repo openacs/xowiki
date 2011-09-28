@@ -890,7 +890,7 @@ namespace eval ::xowiki {
     my set_form_data $form_fields
     if {$disable_input_fields} {
       # (a) disable explicit input fields
-      foreach f $form_fields {$f disabled disabled}
+      foreach f $form_fields {$f disabled 1}
       # (b) disable input in HTML-specified fields
       set disabled [Form dom_disable_input_fields $rootNode]
       #
