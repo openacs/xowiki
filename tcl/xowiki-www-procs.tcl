@@ -1878,23 +1878,26 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
-    my log validation_errors=$validation_errors
     if {$validation_errors == 0} {
       #
       # Postprocess based on form fields based on form-fields methods.
       #
       foreach f $form_fields {
-        $f convert_to_internal
-      } else {
-	# Reset the value of the form-field to avoid confusion, since
-	# the file-name was provided, but the file was not
-	# uploaded. Maybe a new method "reset-to-default" would be a
-	# good idea.
-        foreach f $form_fields {
-	  if {[$f type] eq "file"} {
-	    $f set value ""
-	  }
-        }	
+	$f convert_to_internal
+      }
+    } else {
+      my log validation_errors=$validation_errors
+
+      # There were validation erros.  Reset the value for form-fields
+      # of type "file" to avoid confusions, since a file-name was
+      # provided, but the file was not uploaded due to the validation
+      # error. If we would not reset the value, the provided name
+      # would cause an interpretation of an uploaded empty file. Maybe
+      # a new method "reset-to-default" would be a good idea.
+      foreach f $form_fields {
+	if {[$f type] eq "file"} {
+	  $f set value ""
+        }
       }
     }
 
