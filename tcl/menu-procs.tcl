@@ -74,7 +74,7 @@ namespace eval ::xowiki {
     }
 
     if {![my exists href] || [my href] eq ""} {
-      my append CSSclass [string tolower [namespace tail [my info class]]]-disabled
+      my append CSSclass " " [string tolower [namespace tail [my info class]]]-disabled
     }
     if {![my exists linkclass]} {
       # set the CSS class to e.g. "yuimenuitemlabel"
@@ -295,7 +295,9 @@ namespace eval ::xowiki {
     my append CSSclass " yuimenu"
     html::div [my get_attributes id {CSSclass class}] {
       html::div -class "bd" {
-        foreach li [my children] {$li render}
+	html::ul {
+	  foreach li [my children] {$li render}
+	}
       }
       html::script -type "text/javascript" {
         html::t "var [my js_name] = new YAHOO.widget.ContextMenu('[my id]', { trigger: '[my set trigger]' } );"
