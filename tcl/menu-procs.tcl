@@ -116,6 +116,7 @@ namespace eval ::xowiki {
         header
         footer
         shadow
+	{autorender false}
         {configuration {{}}}
       }
   
@@ -206,6 +207,7 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create YUIMenuItem \
       -superclass MenuItem \
       -parameter {
+	{href "#"}
         helptext
       }
   
@@ -460,7 +462,7 @@ namespace eval ::xowiki {
 
   ::xowiki::MenuBar instproc render-yui {} {
     set M [my content]
-    set mb [::xowiki::YUIMenuBar -id [my get_prop $M id] -autorender false -configuration {
+    set mb [::xowiki::YUIMenuBar -id [my get_prop $M id] -configuration {
       {autosubmenudisplay: false, keepopen: true, lazyload: false}
     } {
       foreach {menu_att menu} $M {
