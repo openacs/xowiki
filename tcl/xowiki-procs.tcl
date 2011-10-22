@@ -2227,15 +2227,47 @@ namespace eval ::xowiki {
     }
     return [my set full_file_name]
   }
+
+  File instproc html_content {} {
+    set parent_id [my parent_id]
+    set fileName [my full_file_name]
+
+    set f [open $fileName r]; set data [read $f]; close $f 
+    dom parse -html $data doc 
+    $doc documentElement root 
+
+    #
+    # substitute relative links to download links in the same folder
+    #
+    set prefix [$parent_id pretty_link -absolute true -download true]
+    foreach n [$root selectNodes //img] {
+      set src [$n getAttribute src]
+      if {[regexp {^[^/]} $src]} {
+	$n setAttribute src $prefix/$src
+	#my msg "setting src to $prefix/$src"
+      }
+    }
+    #
+    # return content of body
+    #
+    set content "" 
+    foreach n [$root selectNodes //body/*] { append content [$n asHTML] \n } 
+
+    return $content
+  }
     
   File instproc render_content {} {
     my instvar name mime_type description parent_id package_id item_id creation_user
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
 
-    set revision_id [[$package_id context] query_parameter revision_id]
+    set ctx [$package_id context]
+    set revision_id [$ctx query_parameter revision_id]
     set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
     set page_link [my pretty_link -download true -query $query]
+    if {[$ctx query_parameter html-content] ne ""} {
+      return [my html_content]
+    }
 
     #my log "--F page_link=$page_link ---- "
     set t [TableWidget new -volatile \

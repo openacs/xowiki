@@ -4150,30 +4150,7 @@ namespace eval ::xowiki::includelet {
     if {$page eq ""} {
       error "could not resolve page from item ref $file"
     }
-    set fileName [$page full_file_name]
-
-    set f [open $fileName r]; set data [read $f]; close $f 
-    dom parse -html $data doc 
-    $doc documentElement root 
-
-    #
-    # substitute relative links to download links in the same folder
-    #
-    set prefix [$parent_id pretty_link -absolute true -download true]
-    foreach n [$root selectNodes //img] {
-      set src [$n getAttribute src]
-      if {[regexp {^[^/]} $src]} {
-	$n setAttribute src $prefix/$src
-	#my msg "setting src to $prefix/$src"
-      }
-    }
-    #
-    # return content of body
-    #
-    set content "" 
-    foreach n [$root selectNodes //body/*] { append content [$n asHTML] \n } 
-
-    return $content
+    return [$page html_content]
   }
 
 }

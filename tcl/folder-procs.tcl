@@ -415,6 +415,9 @@ namespace eval ::xowiki::includelet {
             {-orderby:optional "last_modified,desc"}
             {-publish_status "ready"}
             {-view_target ""}
+            {-html-content}
+            {-parent .}
+            {-hide}
           }
         }
       }
@@ -429,6 +432,10 @@ namespace eval ::xowiki::includelet {
     my get_parameters
 
     set current_folder [my set __including_page]
+    if {$parent eq ".."} {
+      set current_folder [$current_folder parent_id]
+      ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    }
     if {![$current_folder istype ::xowiki::FormPage]} {
       # current folder has to be a FormPage
       set current_folder [$current_folder parent_id]
@@ -462,9 +469,15 @@ namespace eval ::xowiki::includelet {
     set return_url [::xo::cc url] ;#"[$package_id package_url]edit-done"
     set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
+    set columns {objects edit object_type name last_modified delete}
+    foreach column $columns {set ::hidden($column) 0 }
+    if {[info exists hide]} {
+      foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
+    }
+
     set t [::YUI::DataTable new -skin $skin -volatile \
                -columns {
-                 BulkAction objects -id ID -actions {
+                 BulkAction objects -id ID -hide $::hidden(objects) -actions {
                    Action new -label select -tooltip select -url admin/select
                  }
 		 # The "-html" options are currenty ignored in the YUI
@@ -475,21 +488,25 @@ namespace eval ::xowiki::includelet {
 		 #
                  HiddenField ID
                  AnchorField edit -CSSclass edit-item-button -label "" \
+		     -hide $::hidden(edit) \
                      -html {style "padding: 0px;"}
                  Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
+		     -hide $::hidden(object_type) \
                      -html {style "padding: 0px;"}
 		 AnchorField name -label [_ xowiki.Page-name] -orderby name \
+		     -hide $::hidden(name) \
 		     -html {style "padding: 2px;"}
-                 Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
+                 Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
+		     -hide $::hidden(last_modified) 
                  AnchorField delete -CSSclass delete-item-button \
+		     -hide $::hidden(delete) \
                      -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
                }]
 
 
     set where_clause "true"
     # TODO: why filter on title and name?
-    if {[my exists regexp]} {set where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
-
+    if {[info exists regexp]} {set where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
     set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
 
     foreach object_type [my types_to_show] {
@@ -524,11 +541,11 @@ namespace eval ::xowiki::includelet {
 	#			   [list name [$c pretty_link]] return_url]]
 
 	set delete_link [export_vars -base $page_link {{m delete} return_url}]
-	
+
         $t add \
             -ID [$c name] \
             -name $prettyName \
-	    -name.href [export_vars -base $page_link {template_file}] \
+	    -name.href [export_vars -base $page_link {template_file html-content}] \
             -name.title [$c set title] \
             -object_type $icon(text) \
             -object_type.richtext $icon(is_richtext) \
@@ -766,12 +783,14 @@ namespace eval ::xo::Table {
         append js   "   fields: \[ \n"
 	set js_fields [list]
         foreach field [[self]::__columns children] {
+	  if {[$field hide]} continue
           lappend js_fields "       \{ key: \"[$field set name]\" \}"
         }
 	append js [join $js_fields ", "] "   \] \n\};\n"
         append js "var $coldef = \[\n"
 	set js_fields [list]
         foreach field [[self]::__columns children] {
+	  if {[$field hide]} continue
 	  if {[$field istype HiddenField]} continue
 	  if {[$field istype BulkAction]} {
             set label "<input type='checkbox' onclick='acs_ListCheckAll(\\\"objects\\\",this.checked)'></input>"
@@ -791,6 +810,7 @@ namespace eval ::xo::Table {
         html::thead {
             html::tr -class list-header {
                 foreach o [[self]::__columns children] {
+		    if {[$o hide]} continue
                     $o render
                 }
             }
@@ -800,6 +820,7 @@ namespace eval ::xo::Table {
             foreach line [my children] {
                 html::tr -class [expr {[my incr __rowcount]%2 ? [my set css.tr.odd-class] : [my set css.tr.even-class] }] {
                     foreach field [[self]::__columns children] {
+		        if {[$field hide]} continue
                         html::td  [concat [list class list] [$field html]] { 
                             $field render-data $line
                         }
