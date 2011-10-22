@@ -445,7 +445,7 @@ namespace eval ::xowiki::includelet {
     }
     set current_folder_id [$current_folder item_id]
 
-    if {[::xo::cc query_parameter m] ne "list"} {
+    if {[::xo::cc query_parameter m] ne "list" && $parent ne ".."} {
       set index [$current_folder property index]
       if {$index ne ""} {
 	set download [string match "file:*" $index]
