@@ -4127,5 +4127,57 @@ namespace eval ::xowiki::includelet {
 }
 
 
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  #
+  # Show the content of an html file in includelet
+  #
+  ::xowiki::IncludeletClass create html-file \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {parameter_declaration {
+           {-title ""}
+           {-file:required}
+        }}
+      }
+
+  html-file instproc render {} {
+    my get_parameters
+    
+    if {$title eq ""} {set title $file}
+    set parent_id [[my set __including_page] parent_id]
+    set page [$package_id get_page_from_item_ref -parent_id $parent_id $file]
+    if {$page eq ""} {
+      error "could not resolve page from item ref $file"
+    }
+    set fileName [$page full_file_name]
+
+    set f [open $fileName r]; set data [read $f]; close $f 
+    dom parse -html $data doc 
+    $doc documentElement root 
+
+    #
+    # substitute relative links to download links in the same folder
+    #
+    set prefix [$parent_id pretty_link -absolute true -download true]
+    foreach n [$root selectNodes //img] {
+      set src [$n getAttribute src]
+      if {[regexp {^[^/]} $src]} {
+	$n setAttribute src $prefix/$src
+	my msg "setting src to $prefix/$src"
+      }
+    }
+    #
+    # return content of body
+    #
+    set content "" 
+    foreach n [$root selectNodes //body/*] { append content [$n asHTML] \n } 
+
+    return $content
+  }
+
+}
+
+
 ::xo::library source_dependent 
 
