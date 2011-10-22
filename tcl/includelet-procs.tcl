@@ -4164,7 +4164,7 @@ namespace eval ::xowiki::includelet {
       set src [$n getAttribute src]
       if {[regexp {^[^/]} $src]} {
 	$n setAttribute src $prefix/$src
-	my msg "setting src to $prefix/$src"
+	#my msg "setting src to $prefix/$src"
       }
     }
     #

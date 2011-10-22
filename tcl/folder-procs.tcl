@@ -441,7 +441,11 @@ namespace eval ::xowiki::includelet {
     if {[::xo::cc query_parameter m] ne "list"} {
       set index [$current_folder property index]
       if {$index ne ""} {
-	set index_link [$package_id pretty_link -parent_id [$current_folder item_id] $index]
+	set download [string match "file:*" $index]
+	set index_link [$package_id pretty_link \
+			    -parent_id [$current_folder item_id] \
+			    -download $download \
+			    $index]
 	return [$package_id returnredirect $index_link]
       }
     }
