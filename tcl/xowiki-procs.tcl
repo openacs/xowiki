@@ -821,9 +821,11 @@ namespace eval ::xowiki {
         "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
 
     foreach tag [split $tags " ,;"] {
-      db_dml [my qn insert_tag] \
-          "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
-           values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+      if {$tag ne ""} {
+	db_dml [my qn insert_tag] \
+	    "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
+	      values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+      }
     }
     search::queue -object_id $revision_id -event UPDATE
   }
