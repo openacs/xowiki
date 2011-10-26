@@ -2233,6 +2233,16 @@ namespace eval ::xowiki {
     set fileName [my full_file_name]
 
     set f [open $fileName r]; set data [read $f]; close $f 
+
+    # Ugly hack to fight against a problem with tDom: asHTML strips
+    # spaces between a </span> and the following <span>"
+    regsub -all "/span>      <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    regsub -all "/span>     <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    regsub -all "/span>    <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    regsub -all "/span>   <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    regsub -all "/span>  <span" $data "/span>\\&nbsp;\\&nbsp;<span" data
+    regsub -all "/span> <span" $data "/span>\\&nbsp;<span" data
+
     dom parse -html $data doc 
     $doc documentElement root 
 
