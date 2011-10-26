@@ -164,7 +164,7 @@ namespace eval ::xowiki::includelet {
                             -package_id $package_id]
     set link_form_id   [::xowiki::Weblog instantiate_forms -forms en:link.form \
                             -package_id $package_id]
-    #my log folder_form=[my set folder_form_id]
+    #my msg folder_form=$folder_form_id
 
     set current_folder [$page get_folder -folder_form_ids $folder_form_id]
     set current_folder_id [$current_folder item_id]
