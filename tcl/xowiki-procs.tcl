@@ -2228,7 +2228,7 @@ namespace eval ::xowiki {
     return [my set full_file_name]
   }
 
-  File instproc html_content {} {
+  File instproc html_content {{-add_sections_to_folder_tree 0} -owner} {
     set parent_id [my parent_id]
     set fileName [my full_file_name]
 
@@ -2247,6 +2247,43 @@ namespace eval ::xowiki {
 	#my msg "setting src to $prefix/$src"
       }
     }
+
+    #
+    # 
+    #
+    if {$add_sections_to_folder_tree && [info command ::__xowiki__MenuBar] ne ""} {
+      $owner set book_mode 1
+      set pages [::xo::OrderedComposite new -destroy_on_cleanup]
+      if {$add_sections_to_folder_tree == 1} {
+	set selector //h2
+      } else {
+	set selector {//h2 | //h3}
+      }
+
+      set order 0
+      foreach n [$root selectNodes $selector] {
+	if {[$n hasAttribute id]} {
+	  set name [$n getAttribute id]
+	} else {
+	  set name "section $n"
+	}
+	set o [::xotcl::Object new]
+	$o set page_order [incr $order]
+	$o set title [$n asText]
+	
+	set e [$doc createElement a]
+	$e setAttribute name $name
+	[$n parentNode] insertBefore $e $n
+
+	$o set name $name
+	$pages add $o
+      }
+	
+      #$o instvar page_order title name
+
+      ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner $owner
+    }
+
     #
     # return content of body
     #

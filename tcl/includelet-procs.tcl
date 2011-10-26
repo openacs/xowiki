@@ -4136,10 +4136,32 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-           {-title ""}
-           {-file:required}
+	  {-title ""}
+	  {-levels 0}
+	  {-file:required}
         }}
       }
+
+  # the two method "href" and "page_number" are copied from "toc"
+  html-file instproc href {book_mode name} {
+    my instvar package_id __including_page
+    if {$book_mode} {
+      set href [$package_id url]#[toc anchor $name]
+    } else {
+      set href [$package_id pretty_link -parent_id [$__including_page parent_id] $name]
+    }
+    return $href
+  }
+
+  html-file instproc page_number {page_order remove_levels} {
+    #my log "o: $page_order"
+    set displayed_page_order $page_order
+    for {set i 0} {$i < $remove_levels} {incr i} {
+      regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
+    }
+    #return $displayed_page_order
+    return ""
+  }
 
   html-file instproc render {} {
     my get_parameters
@@ -4150,7 +4172,7 @@ namespace eval ::xowiki::includelet {
     if {$page eq ""} {
       error "could not resolve page from item ref $file"
     }
-    return [$page html_content]
+    return [$page html_content -add_sections_to_folder_tree $levels -owner [self]]
   }
 
 }
