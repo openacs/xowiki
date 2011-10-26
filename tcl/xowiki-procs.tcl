@@ -2236,12 +2236,14 @@ namespace eval ::xowiki {
 
     # Ugly hack to fight against a problem with tDom: asHTML strips
     # spaces between a </span> and the following <span>"
-    regsub -all "/span>      <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    regsub -all "/span>     <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    regsub -all "/span>    <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    regsub -all "/span>   <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    regsub -all "/span>  <span" $data "/span>\\&nbsp;\\&nbsp;<span" data
-    regsub -all "/span> <span" $data "/span>\\&nbsp;<span" data
+    #regsub -all "/span>      <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all "/span>     <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all "/span>    <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all "/span>   <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all "/span>  <span" $data "/span>\\&nbsp;\\&nbsp;<span" data
+
+    regsub -all "/span> " $data "/span>\\&nbsp;" data
+    regsub -all " <span " $data "\\&nbsp;<span " data
 
     dom parse -html $data doc 
     $doc documentElement root 
@@ -2259,7 +2261,8 @@ namespace eval ::xowiki {
     }
 
     #
-    # 
+    # In case, the switch is activated, and we have a menubar, add the
+    # top level section
     #
     if {$add_sections_to_folder_tree && [info command ::__xowiki__MenuBar] ne ""} {
       $owner set book_mode 1
