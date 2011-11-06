@@ -1186,7 +1186,7 @@ namespace eval ::xowiki {
 	    }
             default {
               set name file:$(stripped_name)
-              set (link_type) file
+              if {![info exists (link_type)]} {set (link_type) file}
             }
           }
           set item_id [my lookup \
