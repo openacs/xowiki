@@ -237,11 +237,12 @@ namespace eval ::xowiki {
     } else {
       $page incr unresolved_references
       set last_page_id [$page set item_id]
-      set title $label
       set object_type ::xowiki::File
-      set return_url [::xo::cc url]
       set link [$package_id make_link $package_id edit-new object_type \
-		    return_url autoname name title] 
+		    [list parent_id [my parent_id]] \
+		    [list title $label] \
+		    [list return_url [::xo::cc url]] \
+		    autoname name last_page_id] 
       set html [my render_not_found $link $label]
       return $html
     }
