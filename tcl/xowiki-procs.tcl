@@ -1579,7 +1579,7 @@ namespace eval ::xowiki {
 
 
   Page instproc anchor {arg} {
-    if {[catch {set l [my create_link $arg]} errorMsg]} {
+    if {[catch {set l [my create_link [my unescape $arg]]} errorMsg]} {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
     }
     if {$l eq ""} {return ""}
