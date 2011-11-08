@@ -207,7 +207,7 @@ namespace eval ::xowiki {
 	    #my msg "exists template? [my isobject [$o page_template]]"
 	    if {![my isobject [$o page_template]]} {
 	      ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-	      my msg "[my isobject [$o page_template]] loaded"
+	      #my msg "[my isobject [$o page_template]] loaded"
 	    }
 	  }
 	  
@@ -299,7 +299,7 @@ namespace eval ::xowiki {
 	#
 	# check for child objects of the item
 	#
-	set sql [[$item_id info class] instance_select_query -folder_id $item_id -with_subtypes true]
+	set sql [::xowiki::Page instance_select_query -folder_id $item_id -with_subtypes true]
 	db_foreach instance_select $sql {
 	  if {![info exists items($item_id)]} {
 	    ::xo::db::CrClass get_instance_from_db -item_id $item_id
