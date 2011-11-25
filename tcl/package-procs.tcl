@@ -1105,7 +1105,13 @@ namespace eval ::xowiki {
     set name [string trimright $name \0]
     set (stripped_name) [string trimright $(stripped_name) \0]
 
-    if {$element eq "." || $element eq ".\0"} {
+    if {$element eq "" || $element eq "\0"} {
+      set folder_id [my folder_id]
+      array set "" [my item_info_from_id $folder_id]
+      set item_id $folder_id
+      set parent_id $(parent_id)
+      #my msg "SETTING item_id $item_id parent_id $parent_id // [array get {}]"
+    } elseif {$element eq "." || $element eq ".\0"} {
       array set "" [my item_info_from_id $parent_id]
       set item_id $parent_id
       set parent_id $(parent_id)

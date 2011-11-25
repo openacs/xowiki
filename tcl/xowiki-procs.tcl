@@ -1542,7 +1542,7 @@ namespace eval ::xowiki {
       array set "" [$package_id item_ref -default_lang [my lang] -parent_id $parent_id \
                         $(link)]
     }
-    #my msg [array get ""]
+    #my msg "link '$(link)' => [array get {}]"
 
     if {$label eq $arg} {set label $(link)}
     set item_name [string trimleft $(prefix):$(stripped_name) :]

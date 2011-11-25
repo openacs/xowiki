@@ -831,6 +831,28 @@ test section "Item refs"
            && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
   ################################
+  test subsection "Absolute to toplevel:"
+
+  set l "/f1"
+  set test [label "item_ref" "absolute existing topfolder short" $l]
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l "/f1/"
+  set test [label "item_ref" "absolute existing topfolder short slash" $l]
+  array set "" [p item_ref -default_lang en -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "link" && $(prefix) eq "" && $(stripped_name) eq "f1"
+           && $(parent_id) eq $folder_id && $(item_id) == $f1_id}} 1 "\n$test:\n  [array get {}]\n "
+
+  set l "/" ;# stripped name will be the name of the root folder
+  set test [label "item_ref" "just slash" $l]
+  array set "" [p item_ref -default_lang de -parent_id $folder_id $l]
+  ? {expr {$(link_type) eq "folder" && $(prefix) eq "" 
+           && $(parent_id) == -100 && $(item_id) == $folder_id}} 1 "\n$test:\n  [array get {}]\n "
+
+
+  ################################
   test subsection "Relative to current folder:"
 
   set l "./parentpage"
