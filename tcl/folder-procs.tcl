@@ -29,6 +29,7 @@ namespace eval ::xowiki::includelet {
         {__decoration plain}
         {parameter_declaration {
           {-show_full_tree false}
+          {-context_tree_view false}
         }}
         {id "[xowiki::Includelet js_name [self]]"}
       }
@@ -50,7 +51,8 @@ namespace eval ::xowiki::includelet {
          [my js_name].render();
       });
      "
-    return [[my build_tree] render -style yuitree -js $js]
+    set tree [my build_tree]
+    return [$tree render -style yuitree -js $js]
   }
 
   folders instproc collect_folders {
@@ -125,7 +127,8 @@ namespace eval ::xowiki::includelet {
 	    #
 	    $f set_resolve_context -package_id [$l package_id] -parent_id [$l item_id]
 	    #
-	    # TODO we could save the double-fetch by collecing in get_form_entries via item-ids, not via new-objects
+	    # TODO we could save the double-fetch by collecing in
+	    # get_form_entries via item-ids, not via new-objects
 	    #
 	    ::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
 	    [$f item_id] set_resolve_context -package_id [$l package_id] -parent_id [$l item_id]
@@ -315,12 +318,34 @@ namespace eval ::xowiki::includelet {
       }
     }
 
+    set top_folder_of_tree $root_folder
+    #
+    # Check, if the optional context tree view is activated
+    #
+    if {$context_tree_view || [$package_id get_parameter FolderContextTreeView false]} {
+      set parent_id [$current_folder parent_id]
+      if {$parent_id ne -100} {
+	set top_folder_of_tree $parent_id
+	#my msg top_folder_of_tree=$top_folder_of_tree
+      }
+    }
+
+    set parent_folder [$top_folder_of_tree parent_id]
+    if {$top_folder_of_tree eq $root_folder || $parent_folder eq "-100"} {
+      set href [::$package_id package_url]
+      set label  [::$package_id instance_name]
+      #my msg "use instance name"
+    } else {
+      set href [$top_folder_of_tree pretty_link]
+      set label "[$top_folder_of_tree title] ..."
+    }
+
     set t [::xowiki::Tree new -id foldertree_[my id] ]
     set node [::xowiki::TreeNode new \
-                -href [::$package_id package_url] \
-                -label [::$package_id instance_name] \
-                -highlight $root_folder_is_current \
-                -object $root_folder \
+                -href $href \
+                -label $label \
+                -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
+                -object $top_folder_of_tree \
                 -expanded 1 \
                 -open_requests 1]
     $t add $node
