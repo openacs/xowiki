@@ -537,7 +537,7 @@ namespace eval ::xowiki::includelet {
     set items [::xowiki::FormPage get_folder_children \
 		   -folder_id $current_folder_id \
 		   -object_types [my types_to_show] \
-		   -extra_where_clause "bt.page_order != ''"]
+		   -extra_where_clause $extra_where_clause]
 
     foreach c [$items children] {
       set name [$c name]
