@@ -3112,7 +3112,38 @@ namespace eval ::xowiki {
     return $items
   }
   
-   #
+  FormPage proc get_folder_children {
+    -folder_id:required
+    {-publish_status ready}
+    {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
+    {-extra_where_clause true}
+  } {
+    set package_id [my package_id]
+    set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
+    set result [::xo::OrderedComposite new -destroy_on_cleanup]
+
+    foreach object_type $object_types {
+      set attributes [list revision_id creation_user title parent_id page_order \
+                          "to_char(last_modified,'YYYY-MM-DD HH24:MI') as last_modified" ]
+      set base_table [$object_type set table_name]i
+      if {$object_type eq "::xowiki::FormPage"} {
+	set attributes "* $attributes"
+      }
+      set items [$object_type get_instances_from_db \
+		     -folder_id $folder_id \
+		     -with_subtypes false \
+		     -select_attributes $attributes \
+		     -where_clause "$extra_where_clause $publish_status_clause" \
+		     -base_table $base_table]
+
+      foreach i [$items children] {
+	$result add $i
+      }
+    }
+    return $result
+  }
+
+  #
   # begin property management
   #
 

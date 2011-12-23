@@ -529,45 +529,34 @@ namespace eval ::xowiki::includelet {
                }]
 
 
-    set where_clause "true"
+    set extra_where_clause "true"
     # TODO: why filter on title and name?
-    if {[info exists regexp]} {set where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
+    if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
     set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
 
-    foreach object_type [my types_to_show] {
-      set attributes [list revision_id creation_user title parent_id \
-                          "to_char(last_modified,'YYYY-MM-DD HH24:MI') as last_modified" ]
-      if {$object_type eq "::xowiki::FormPage"} {
-        set attributes "* $attributes"
-        set base_table [$object_type set table_name]i
-      } else {
-        set base_table cr_revisions
+    set items [::xowiki::FormPage get_folder_children \
+		   -folder_id $current_folder_id \
+		   -object_types [my types_to_show] \
+		   -extra_where_clause "bt.page_order != ''"]
+
+    foreach c [$items children] {
+      set name [$c name]
+      set page_link [::$package_id pretty_link -parent_id $logical_folder_id $name]
+      array set icon [$c render_icon]
+
+      if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
+	my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+	set prettyName $name
       }
-      set items [$object_type get_instances_from_db \
-                   -folder_id $current_folder_id \
-                   -with_subtypes false \
-                   -select_attributes $attributes \
-                   -where_clause "$where_clause $publish_status_clause" \
-                   -base_table $base_table]
 
-      foreach c [$items children] {
-	set name [$c name]
-        set page_link [::$package_id pretty_link -parent_id $logical_folder_id $name]
-	array set icon [$c render_icon]
+      #set delete_link [export_vars -base  [$package_id package_url] \
+      #		      [list {delete 1} \
+      #			   [list item_id [$c item_id]] \
+      #			   [list name [$c pretty_link]] return_url]]
 
-	if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
-	  my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
-	  set prettyName $name
-	}
+      set delete_link [export_vars -base $page_link {{m delete} return_url}]
 
-	#set delete_link [export_vars -base  [$package_id package_url] \
-	#		      [list {delete 1} \
-	#			   [list item_id [$c item_id]] \
-	#			   [list name [$c pretty_link]] return_url]]
-
-	set delete_link [export_vars -base $page_link {{m delete} return_url}]
-
-        $t add \
+      $t add \
             -ID [$c name] \
             -name $prettyName \
 	    -name.href [export_vars -base $page_link {template_file html-content}] \
@@ -581,7 +570,6 @@ namespace eval ::xowiki::includelet {
             -delete "" \
             -delete.href $delete_link \
             -delete.title #xowiki.delete#
-      }
     }
 
     foreach {att order} [split $orderby ,] break
