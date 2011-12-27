@@ -1902,7 +1902,7 @@ namespace eval ::xowiki {
     if {$update_references || [my set unresolved_references] > 0} {
       my references_update [lsort -unique [my set references]]
     }
-    my unset references
+    my unset -nocomplain references
     #
     # handle footer
     #
