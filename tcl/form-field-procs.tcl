@@ -79,7 +79,7 @@ namespace eval ::xowiki::formfield {
   #  return [string map [list __COLON__ :] $string]
   #}
 
-  FormField proc get_from_name {name} {
+  FormField proc get_from_name {object name} {
     #
     # Get a form field via name. The provided names are unique for a
     # form. If multiple forms should be rendered simultaneously, we
@@ -87,10 +87,12 @@ namespace eval ::xowiki::formfield {
     #
     # todo: we could speed this up by an index if needed
     foreach f [::xowiki::formfield::FormField info instances -closure] {
-      if {[$f name] eq $name} {
+      if {[$f name] eq $name && $object eq [$f object]} {
+	#my msg FOUND-$object-$name->$f
 	return $f
       }
     }
+    #my msg not-found-$object-$name
     return ""
   }
 

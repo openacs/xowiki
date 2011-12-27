@@ -3428,7 +3428,7 @@ namespace eval ::xowiki {
       #
       # First check to find an existing form-field with that name
       #
-      set f [::xowiki::formfield::FormField get_from_name $varname]
+      set f [::xowiki::formfield::FormField get_from_name [self] $varname]
       if {$f ne ""} {
 	#
 	# the form field exists already, we just fill in the actual
