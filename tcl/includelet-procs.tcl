@@ -2521,6 +2521,25 @@ namespace eval ::xowiki::includelet {
     return $output
   }
 
+  book instproc render_images {-addClass pages} {
+    #
+    # Return a list of the rendered images in HTML markup. The page
+    # content is reduced to a bare image.  Note that this function
+    # does not return "pages" not containing images.
+    #
+    set imageList {}
+    foreach o [$pages children] {
+      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id [$o set page_id]]
+      set html [$p render -with_footer false] 
+      if {[regsub -nocase {^(.*)(<img\s*[^>]+>)(.*)$} $html {\2} html] < 1} continue
+      if {[info exists addClass]} {
+	regsub -nocase {class\s*=\s*'([^']+)'} $html "class='\\1 $addClass'" html
+      }
+      lappend imageList $html
+    }
+    return $imageList
+  }
+
   book instproc render {} {
     my get_parameters
 
@@ -2590,22 +2609,11 @@ namespace eval ::xowiki::includelet {
 
 namespace eval ::xowiki::includelet {
   #############################################################################
-  # book style
+  # display a sequence of pages via W3C slidy
   #
   ::xowiki::IncludeletClass create slidy \
-      -superclass ::xowiki::includelet::book \
-      -parameter {
-        {__decoration plain}
-        {parameter_declaration {
-          {-category_id}
-          {-menu_buttons edit}
-	  {-folder_mode false}
-          {-locale ""}
-	  {-range ""}
-	  {-allow_reorder ""}
-	  {-with_footer "false"}
-        }}
-      }
+      -superclass ::xowiki::includelet::book
+  
   slidy instproc render_items {
     -pages:required 
     {-cnames ""} 
@@ -2613,13 +2621,18 @@ namespace eval ::xowiki::includelet {
     -menu_buttons 
     {-with_footer "false"}
   } {
+    my instvar __including_page
     if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
 
-    my instvar __including_page
+    set output ""
+    foreach o [$pages children] {
+      set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id [$o set page_id]]
+      append output "<div class='slide'>\n" [$p render -with_footer false] "\n</div>\n"
+    }
 
-    set output [subst {<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+    ns_return 200 text/html [subst {<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
 <head> 
       <title>[$__including_page title]</title> 
   <link rel="stylesheet" href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" type="text/css" media="screen, projection" />
@@ -2628,22 +2641,246 @@ namespace eval ::xowiki::includelet {
   <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js" type="text/javascript">
   </script>
 </head>
+<body>
+$output
+</body>
     }]
-    append output "<body>\n"
-    foreach o [$pages children] {
-      $o instvar page_order page_id
-       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-
-      set content [$p render -with_footer false]
-
-      append output "<div class='slide'>\n" $content "\n</div>\n"
-    }
-    append output "</body>\n"
-    ns_return 200 text/html $output
     ad_script_abort
-    #return $output
   }
 }
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # display a sequence of pages via jQuery Carousel
+  #
+  ::xowiki::IncludeletClass create jquery-carousel \
+      -superclass ::xowiki::includelet::book
+  
+  jquery-carousel instproc render_items {
+    -pages:required 
+    {-cnames ""} 
+    {-allow_reorder ""}
+    -menu_buttons 
+    {-with_footer "false"}
+  } {
+    my instvar __including_page
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+      error "ignoring cnames, allow_reorder, and with_footer for the time being"
+    }
+
+    set id [my js_name]
+    append output \
+	"<div id='$id'><ul>\n" \
+	<li>[join [my render_images $pages] "</li>\n<li>"]</li> \
+	"</ul></div>\n"
+
+    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/xowiki/jquery.carousel.min.js"
+    ::xo::Page requireJS [subst -novariables {
+      $(function(){
+	$("#[set id]").carousel(  );
+      });
+    }]
+    return $output
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # Display a sequence of images via the jQuery plugin
+  #
+  #    Infinite Carousel
+  #
+  # http://www.catchmyfame.com/2009/08/27/jquery-infinite-carousel-plugin-1-2-released/
+  #
+  # This includelet works only with images
+  #
+  # Install: obtain jQuery plugin 
+  #
+  #    http://www.catchmyfame.com/jquery/jquery.infinitecarousel2.zip
+  #
+  # and install its files under packages/xowiki/resources/infiniteCarousel:
+  #
+  #    infiniteCarousel/images/caption.gif
+  #    infiniteCarousel/images/leftright.gif
+  #    infiniteCarousel/images/playpause.gif
+  #    infiniteCarousel/jquery.infinitecarousel2.js
+  #    infiniteCarousel/jquery.infinitecarousel2.min.js
+  #
+  ::xowiki::IncludeletClass create jquery-infinite-carousel \
+      -superclass ::xowiki::includelet::book
+  
+  jquery-infinite-carousel instproc render_items {
+    -pages:required 
+    {-cnames ""} 
+    {-allow_reorder ""}
+    -menu_buttons 
+    {-with_footer "false"}
+  } {
+    my instvar __including_page
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+      error "ignoring cnames, allow_reorder, and with_footer for the time being"
+    }
+
+    set id [my js_name]
+    append output \
+	"<div id='$id'><ul>\n" \
+	<li>[join [my render_images $pages] "</li>\n<li>"]</li> \
+	"</ul></div>\n"
+
+    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/xowiki/infiniteCarousel/jquery.infinitecarousel2.min.js"
+    ::xo::Page requireJS [subst -novariables {
+      $(function(){
+	$("#[set id]").infiniteCarousel({
+	  displayTime: 6000,
+	  textholderHeight : .25,
+  	  imagePath: '/resources/xowiki/infiniteCarousel/images/',
+	});
+      });}]
+
+    return $output
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # Display a sequence of images via 3D Cloud Carousel
+  #
+  # This includelet works only with images.
+  # 
+  # Install: get the jQuery plugins cloud-carousel and mousewheel from 
+  #
+  #    http://www.professorcloud.com/mainsite/carousel.htm
+  #    https://github.com/brandonaaron/jquery-mousewheel/downloads
+  #
+  # and install these files under 
+  #
+  #    packages/xowiki/resources/cloud-carousel.1.0.5.min.js
+  #    packages/xowiki/resources/jquery.mousewheel.min.js
+  #
+  # The following elements might be used in the page containing the includelet:
+  #
+  #     <!-- Define left and right buttons. -->
+  #     <input id="left-but"  type="button" value="Left" />
+  #     <input id="right-but" type="button" value="Right" />
+  #     <p id="title-text"></p>
+  #
+
+  ::xowiki::IncludeletClass create jquery-cloud-carousel \
+      -superclass ::xowiki::includelet::book
+  
+  jquery-cloud-carousel instproc render_items {
+    -pages:required 
+    {-cnames ""} 
+    {-allow_reorder ""}
+    -menu_buttons 
+    {-with_footer "false"}
+  } {
+    my instvar __including_page
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+      error "ignoring cnames, allow_reorder, and with_footer for the time being"
+    }
+    
+    set id [my js_name]
+    append output \
+	"<div id='$id'>" \
+	[join [my render_images -addClass cloudcarousel $pages] "\n"] \
+	"</div>\n"
+
+    ::xo::Page requireStyle "div.jquery-cloud-carousel div {width:650px; height:400px;background:#000;}"
+    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/xowiki/jquery.mousewheel.min.js"
+    ::xo::Page requireJS "/resources/xowiki/cloud-carousel.1.0.5.min.js"
+
+    ::xo::Page requireJS [subst -novariables {
+      $(function(){
+	$("#[set id]").CloudCarousel(
+	      {
+			xPos: 300,
+			yPos: 32,
+			buttonLeft: $("#left-but"),
+			buttonRight: $("#right-but"),
+			altBox: $("#alt-text"),
+			titleBox: $("#title-text"),
+		        bringToFront: true,
+		        mouseWheel:true
+	      }
+	);
+      });
+    }]
+    return $output
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  # Display a sequence of images via jQuery spacegallery
+  #
+  # This includelet works only with images
+  # 
+  # Install: get the jQuery plugin spacegallery from 
+  #    http://www.eyecon.ro/spacegallery/
+  # and install its files under packages/xowiki/resources/spacegallery:
+  #
+  #    spacegallery/css/custom.css
+  #    spacegallery/css/layout.css
+  #    spacegallery/css/spacegallery.css
+  #    spacegallery/images/ajax_small.gif
+  #    spacegallery/images/blank.gif
+  #    spacegallery/images/bw1.jpg
+  #    spacegallery/images/bw2.jpg
+  #    spacegallery/images/bw3.jpg
+  #    spacegallery/images/lights1.jpg
+  #    spacegallery/images/lights2.jpg
+  #    spacegallery/images/lights3.jpg
+  #    spacegallery/index.html
+  #    spacegallery/js/eye.js
+  #    spacegallery/js/jquery.js
+  #    spacegallery/js/layout.js
+  #    spacegallery/js/spacegallery.js
+  #    spacegallery/js/utils.js
+  #    spacegallery/spacegallery.css
+  #
+  # You might want to adapt spacegallery/spacegallery.css according to
+  # your needs.
+
+  ::xowiki::IncludeletClass create jquery-spacegallery \
+      -superclass ::xowiki::includelet::book
+  
+  jquery-spacegallery instproc render_items {
+    -pages:required 
+    {-cnames ""} 
+    {-allow_reorder ""}
+    -menu_buttons 
+    {-with_footer "false"}
+  } {
+    my instvar __including_page
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+      error "ignoring cnames, allow_reorder, and with_footer for the time being"
+    }
+
+    set id [my js_name]
+    append output \
+	"<div id='$id' class='spacegallery'>\n" \
+	[join [my render_images $pages] "\n"] \
+	"</div>\n"
+
+    ::xo::Page requireStyle "div.spacegallery {width:600px; height:450px;}"
+    ::xo::Page requireCSS "/resources/xowiki/spacegallery/spacegallery.css"
+    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/xowiki/spacegallery/js/eye.js"
+    ::xo::Page requireJS "/resources/xowiki/spacegallery/js/utils.js"
+    ::xo::Page requireJS "/resources/xowiki/spacegallery/js/spacegallery.js"
+    ::xo::Page requireJS [subst -novariables {
+      $(function(){
+	$("#[set id]").spacegallery({loadingClass: 'loading'});
+      });
+    }]
+    return $output
+  }
+}
+
 
 #############################################################################
 # item-button
