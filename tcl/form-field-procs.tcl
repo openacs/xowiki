@@ -621,9 +621,18 @@ namespace eval ::xowiki::formfield {
     my instvar object
 
     array set "" [$object item_ref -default_lang [$object lang] -parent_id $parent_id $entry_name]
+
+    set label [my label] ;# the label is used for alt und title
+    if {$label eq $(stripped_name)} {
+      # The label is apparently the default. For Photo.form instances,
+      # this is always "image". In such cases, use the title of the
+      # parent object as label.
+      set label [[my object] title]
+    }
+    
     set l [::xowiki::Link create new -destroy_on_cleanup \
 	       -page $object -type "image" -lang $(prefix) \
-	       [list -stripped_name $(stripped_name)] [list -label [my label]] \
+	       [list -stripped_name $(stripped_name)] [list -label $label] \
 	       -parent_id $(parent_id) -item_id $(item_id)]
 
     foreach option {
