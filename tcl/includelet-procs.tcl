@@ -3723,7 +3723,7 @@ var chart;
     
     if {![info exists form_item_id]} {
       # start for search for form in the directory of the including form
-      set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id [$o parent_id] \
+      set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id \
                              -forms $form -package_id $package_id]
     } else {
       set form_item_ids [list $form_item_id]
@@ -3733,7 +3733,7 @@ var chart;
 
     if {$inherit_from_forms ne ""} {
       foreach inherit_form $inherit_from_forms {
-        set inherit_form_id [::xowiki::Weblog instantiate_forms -parent_id [$o parent_id] \
+        set inherit_form_id [::xowiki::Weblog instantiate_forms -parent_id $parent_id] \
                                  -forms $inherit_form -package_id $package_id]
         if {$inherit_form_id ne ""} {
           set p [$inherit_form_id property form_constraints]
