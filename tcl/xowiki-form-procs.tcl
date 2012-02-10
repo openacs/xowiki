@@ -176,7 +176,9 @@ namespace eval ::xowiki {
 
   proc ::xowiki::guesstype {fn} {
     set mime [ns_guesstype $fn]
-    if {$mime eq "*/*" || $mime eq "application/octet-stream"} {
+    if {$mime eq "*/*" 
+	|| $mime eq "application/octet-stream" 
+	|| $mime eq "application/force-download"} {
       # ns_guesstype was failing
       switch [file extension $fn] {
         .xotcl {set mime text/plain}
@@ -184,6 +186,7 @@ namespace eval ::xowiki {
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
 	.swf {set mime application/x-shockwave-flash}
+        .pdf {set mime application/pdf}
         .wmv {set mime video/x-ms-wmv}
 	.class - .jar  {set mime application/java}
         default {set mime application/octet-stream}
@@ -494,7 +497,9 @@ namespace eval ::xowiki {
       $data set import_file [$data form_parameter upload_file.tmpfile]
       set mime_type [$data form_parameter upload_file.content-type]
       if {[db_0or1row [my qn check_mimetype] {select 1 from cr_mime_types 
-	where mime_type = :mime_type}] == 0 || $mime_type eq "application/octet-stream"} {
+	where mime_type = :mime_type}] == 0 
+	  || $mime_type eq "application/octet-stream" 
+	  || $mime eq "application/force-download"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
         #my msg guess=$guessed_mime_type
         if {$guessed_mime_type ne "*/*"} {

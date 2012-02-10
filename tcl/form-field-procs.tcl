@@ -742,7 +742,9 @@ namespace eval ::xowiki::formfield {
     array set entry_info [my entry_name $value]
 
     set content_type [my set content-type]
-    if {$content_type eq "application/octetstream"} {
+    if {$content_type eq "application/octetstream" 
+	|| $content_type eq "application/force-download"
+      } {
       set content_type [::xowiki::guesstype $value]
     }
     #my msg "mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
