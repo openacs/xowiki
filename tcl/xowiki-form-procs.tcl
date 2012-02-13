@@ -499,7 +499,7 @@ namespace eval ::xowiki {
       if {[db_0or1row [my qn check_mimetype] {select 1 from cr_mime_types 
 	where mime_type = :mime_type}] == 0 
 	  || $mime_type eq "application/octet-stream" 
-	  || $mime eq "application/force-download"} {
+	  || $mime_type eq "application/force-download"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
         #my msg guess=$guessed_mime_type
         if {$guessed_mime_type ne "*/*"} {
