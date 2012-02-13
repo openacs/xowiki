@@ -21,7 +21,7 @@ namespace eval ::xowiki::formfield {
   # (e.g. for boolean entries). FormFields can be subclassed
   # to ensure tailorability and high reuse.
   # 
-  # todo: at some later time, this should go into xotcl-core
+  # todo: at some later time, this could go into xotcl-core
 
   ###########################################################
   #
@@ -1409,6 +1409,9 @@ namespace eval ::xowiki::formfield {
   #
   # ::xowiki::formfield::richtext::ckeditor
   #
+  #    mode: wysiwyg, source
+  #    skin: kama, v2, office2003
+  #
   ###########################################################
   Class richtext::ckeditor -superclass richtext -parameter {
     {editor ckeditor}
@@ -1416,43 +1419,138 @@ namespace eval ::xowiki::formfield {
     {skin kama}
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
+    {uiColor ""}
+    {inplace false}
+    {CSSclass xowiki-ckeditor}
+    {customConfig "../ck_config.js"}
+    {callback "/* callback code */"}
+    {destroy_callback "/* callback code */"}
+    {extraPlugins ""}
+    {contentsCss /resources/xowiki/ck_contents.css}
+    {imageSelectorDialog /xowiki/ckeditor-images/}
   }
   richtext::ckeditor set editor_mixin 1
   richtext::ckeditor instproc initialize {} {
+    if {[my set inplace]} {
+        my append help_text " #xowiki.ckeip_help#"
+    }
     next
     my set widget_type richtext
+    # Mangle the id to make it compatible with jquery; most probably
+    # not optimal and just a temporary solution
+    regsub -all {[.:]} [my id] "" id
+    my id $id
   }
+
+  richtext::ckeditor instproc js_image_helper {} {
+    ::xo::Page requireJS {
+      function xowiki_image_callback(editor) {
+	$(editor.element.$.form).submit(function(e) {
+	  calc_image_tags_to_wiki_image_links(this);
+	});
+	editor.setData(calc_wiki_image_links_to_image_tags(editor.getData()));
+      }
+      
+      function calc_image_tags_to_wiki_image_links (form) {
+	var calc = function() {
+	  var wiki_link = $(this).attr('alt');
+	  $(this).replaceWith('[['+wiki_link+']]');
+	}
+	$(form).find('iframe').each(function() {
+	  $(this).contents().find('img[type="wikilink"]').each(calc);
+	});
+	
+	$(form).find('textarea.ckeip').each(function() {
+	  var contents = $('<div>'+this.value+'</div>');
+	  contents.find('img[type="wikilink"]').each(calc);
+	  this.value = contents.html();
+	});
+	return true;
+      }
+      
+      function calc_wiki_image_links_to_image_tags (data) {
+	var pathname = window.location.pathname;
+	pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
+	console.log('pathname' + pathname);
+	pathname = pathname.replace(/:/ig,"%3a");
+	var regex_wikilink = new RegExp('(\\[\\[./image:)(.*?)(\\]\\])', 'g');
+	data = data.replace(regex_wikilink,'<img src="'+pathname+'/$2"  alt="./image:$2" type="wikilink"  />');
+	console.log('data' + data);
+	return data
+      }
+    }
+  }
+
   richtext::ckeditor instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
     if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-      ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
+      ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor_source.js"
+      #::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
+      ::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
+      ::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
 
       # In contrary to the doc, ckeditor names instances after the id,
-      # not the name. We mangle the id to make it compatible with
-      # jquery; most probably not optimal and just a temporary
-      # solution
-      regsub -all {[.:]} [my id] "" id
-      my id $id
-      set name [my id]
-      set mode [my mode] ;# e.g. wysiwyg, source
-      set skin [my skin] ;# e.g. kama, v2, office2003
-      set toolbar [my toolbar] ;# e.g. Full, Basic
+      # not the name. 
+      set id [my id]
+      set name [my name] 
+      set package_id [[my object] package_id]
+      #my extraPlugins xowikiimage
+      my extraPlugins timestamp,xowikiimage
 
-      ::xo::Page requireJS [subst -nocommands {
-       \$(document).ready(function() {
-	  \$( '#$name' ).ckeditor(function() { /* callback code */ }, { 
-            skin : '$skin', 
-            startupMode : '$mode',
-            toolbar : '$toolbar'
-          });
-          //console.info(\$( '#$name' ).ckeditorGet());
-       });
+      set options [subst {
+	toolbar : '[my toolbar]',
+	uiColor: '[my uiColor]',
+	language: '[lang::conn::language]',
+	skin: '[my skin]',
+	startupMode: '[my mode]',
+	parent_id: '[[my object] item_id]',
+	package_url: '[$package_id package_url]',
+	extraPlugins: '[my extraPlugins]',
+	contentsCss: '[my contentsCss]',
+	imageSelectorDialog: '[my imageSelectorDialog]',
+	customConfig: '[my customConfig]'
       }]
-      next
+
+      if {[lsearch [split [my extraPlugins] ,] xowikiimage] > -1} {
+	my js_image_helper
+      }
+
+      set callback [my callback]
+      #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
+
+      if {[my set inplace]} {
+        if {[my value] eq ""} {my value "&nbsp;"}
+        my render_richtext_as_div
+	set wrapper_class [expr {[my inline] ? {} : {form-item-wrapper}}]
+	set destroy_callback [my destroy_callback]
+        ::xo::Page requireJS "/resources/xowiki/ckeip.js"
+        ::xo::Page requireJS [subst -nocommands {
+        \$(document).ready(function() {
+	  \$( '\#$id' ).ckeip(function() { $callback }, {
+            name: '$name',
+            ckeditor_config: {
+	      $options,
+              destroy_callback: function() { $destroy_callback }
+            },
+            wrapper_class: '$wrapper_class'
+          });
+        });
+        }]
+      } else {
+	::xo::Page requireJS [subst -nocommands {
+	  \$(document).ready(function() {
+	    \$( '#$id' ).ckeditor(function() { $callback }, {
+	      $options
+	    });
+            CKEDITOR.instances['$id'].on('instanceReady',function(e) {xowiki_image_callback(e.editor);});
+	  });
+	}]
+	next
+      }
     }
   }
 
@@ -2571,7 +2669,6 @@ namespace eval ::xowiki::formfield {
   Class label -superclass FormField -parameter {
     {disableOutputEscaping false}
   }
-  label instproc initialize {} {next}
   label instproc render_item {} {
     # sanity check; required and label do not fit well together
     if {[my required]} {my required false}
@@ -2799,6 +2896,47 @@ namespace eval ::xowiki::formfield {
     my options {{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}}
     #my options {{No f} {#acs-kernel.common_Yes# t}}
     next
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::boolean_image
+  #
+  ###########################################################
+
+  Class create boolean_image -superclass FormField -parameter {
+    {default t} 
+    {t_img_url /resources/xowiki/examples/check_richtig.png}
+    {f_img_url /resources/xowiki/examples/check_falsch.png}
+    {CSSclass img_boolean}
+  }
+  boolean_image instproc initialize {} {
+    my type hidden
+    my set widget_type boolean(hidden)
+  }
+  boolean_image instproc render_input {} {
+    my instvar t_img_url f_img_url CSSclass
+    set title [expr {[my exists __render_help_text_as_title_attr] ? [my set help_text] : ""}]
+    ::html::img \
+	-title $title \
+	-class $CSSclass \
+	-src [expr {[my value] ? $t_img_url : $f_img_url}] \
+	-onclick "toggle_img_boolean(this,'$t_img_url','$f_img_url')"
+    ::html::input -type hidden -name [my name] -value [my value]
+
+    ::xo::Page requireJS {
+      function toggle_img_boolean (element,t_img_url,f_img_url) {
+	var input = $(element).next();
+	var state = input.val()== "t";  
+	if (state) {
+	  input.val('f');
+	  $(element).attr('src',f_img_url);
+	} else {
+	  input.val('t');
+	  $(element).attr('src',t_img_url);
+	}
+      }
+    }
   }
 
   ###########################################################
