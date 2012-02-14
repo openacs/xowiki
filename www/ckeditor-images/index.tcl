@@ -5,7 +5,7 @@ ad_page_contract {
   {bild_url ""}
 } 
 set package_url [ad_conn package_url]
-set image_browser_url [ad_conn url]
+set image_browser_url $package_url/ckeditor-images
 set fs_package_id $parent_id
 set CKEditorFuncNum 0
 set item_id $fs_package_id

@@ -1411,6 +1411,7 @@ namespace eval ::xowiki::formfield {
   #
   #    mode: wysiwyg, source
   #    skin: kama, v2, office2003
+  #    extraPlugins: tcl-list, is converted to comma list for js
   #
   ###########################################################
   Class richtext::ckeditor -superclass richtext -parameter {
@@ -1498,8 +1499,7 @@ namespace eval ::xowiki::formfield {
       set id [my id]
       set name [my name] 
       set package_id [[my object] package_id]
-      #my extraPlugins xowikiimage
-      my extraPlugins timestamp,xowikiimage
+      #my extraPlugins {timestamp xowikiimage}
 
       set options [subst {
 	toolbar : '[my toolbar]',
@@ -1509,24 +1509,31 @@ namespace eval ::xowiki::formfield {
 	startupMode: '[my mode]',
 	parent_id: '[[my object] item_id]',
 	package_url: '[$package_id package_url]',
-	extraPlugins: '[my extraPlugins]',
+	extraPlugins: '[join [my extraPlugins] ,]',
 	contentsCss: '[my contentsCss]',
 	imageSelectorDialog: '[my imageSelectorDialog]',
 	customConfig: '[my customConfig]'
       }]
 
-      if {[lsearch [split [my extraPlugins] ,] xowikiimage] > -1} {
+      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
 	my js_image_helper
       }
 
-      set callback [my callback]
       #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
 
       if {[my set inplace]} {
         if {[my value] eq ""} {my value "&nbsp;"}
         my render_richtext_as_div
-	set wrapper_class [expr {[my inline] ? {} : {form-item-wrapper}}]
+	if {[my inline]} {
+	  set wrapper_class ""
+	} else {
+	  set wrapper_class "form-item-wrapper"
+	  my callback {$(this.element.$).closest('.form-widget').css('clear','both').css('display', 'block');}
+	  my destroy_callback {$(this).closest('.form-widget').css('clear','none');}
+	}
+	set callback [my callback]
 	set destroy_callback [my destroy_callback]
+
         ::xo::Page requireJS "/resources/xowiki/ckeip.js"
         ::xo::Page requireJS [subst -nocommands {
         \$(document).ready(function() {
@@ -1541,6 +1548,7 @@ namespace eval ::xowiki::formfield {
         });
         }]
       } else {
+	set callback [my callback]
 	::xo::Page requireJS [subst -nocommands {
 	  \$(document).ready(function() {
 	    \$( '#$id' ).ckeditor(function() { $callback }, {

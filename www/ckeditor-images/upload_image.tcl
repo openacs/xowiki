@@ -57,6 +57,6 @@ ad_form -name upload_form \
       #ad_returnredirect "."
       ds_comment $revision_id
       set bild_url "[$file_object pretty_link]?m=download"
-      set image_browser_url [ad_conn url]
+      set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=${parent_id}';"
     }

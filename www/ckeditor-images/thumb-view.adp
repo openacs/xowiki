@@ -16,7 +16,7 @@ function changePreview(url,name) {
 
 	<img src="@sub_files.url@?m=download" height="60" width="100" onClick="changePreview('@sub_files.url@?m=download','@sub_files.name@')"></a>
 	
-<small><br>@sub_files.date@ </small><a href="@sub_files.url@?m=delete_xowiki_image&return_url=@return_url;noquote@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="Löschen" title="Löschen" ></a> 
+<small><br>@sub_files.date@ </small><a href="@sub_files.url@?m=delete&return_url=@return_url;noquote@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="Löschen" title="Löschen" ></a> 
 </center>
 </div>
 <br/>
