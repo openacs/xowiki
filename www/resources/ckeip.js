@@ -14,7 +14,7 @@ $.fn.ckeip = function (callback,options) {
     var name = 'ckeip_e_' + u_id;
     var textarea = $('#' + name);
     textarea.ckeditor(callback,settings.ckeditor_config);
-    CKEDITOR.instances[name].on('instanceReady',function(e) {e.editor.setData(calc_wiki_image_links_to_image_tags(e.editor.getData()));});
+    CKEDITOR.instances[name].on('instanceReady',function(e) {settings.ckeditor_config.ready_callback});
     textarea.show();
     textarea.bind('destroy.ckeditor',settings.ckeditor_config.destroy_callback);
     $('#buttons_ckeip_' + u_id + '').show();

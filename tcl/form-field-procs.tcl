@@ -1501,6 +1501,13 @@ namespace eval ::xowiki::formfield {
       set package_id [[my object] package_id]
       #my extraPlugins {timestamp xowikiimage}
 
+      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+	my js_image_helper
+	set ready_callback {xowiki_image_callback(e.editor);}
+      } else {
+	set ready_callback "/*none*/;"
+      }
+      
       set options [subst {
 	toolbar : '[my toolbar]',
 	uiColor: '[my uiColor]',
@@ -1512,12 +1519,9 @@ namespace eval ::xowiki::formfield {
 	extraPlugins: '[join [my extraPlugins] ,]',
 	contentsCss: '[my contentsCss]',
 	imageSelectorDialog: '[my imageSelectorDialog]',
+	ready_callback: '$ready_callback',
 	customConfig: '[my customConfig]'
       }]
-
-      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
-	my js_image_helper
-      }
 
       #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
 
@@ -1554,7 +1558,7 @@ namespace eval ::xowiki::formfield {
 	    \$( '#$id' ).ckeditor(function() { $callback }, {
 	      $options
 	    });
-            CKEDITOR.instances['$id'].on('instanceReady',function(e) {xowiki_image_callback(e.editor);});
+            CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
 	  });
 	}]
 	next
