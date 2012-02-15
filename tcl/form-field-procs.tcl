@@ -1819,7 +1819,7 @@ namespace eval ::xowiki::formfield {
       set category_name [ad_quotehtml [lang::util::localize $category_name]]
       my set category_label($category_id) $category_name
       if { $level>1 } {
-        set category_name "[string repeat {&nbsp;} [expr {2*$level-4}]]..$category_name"
+        set category_name "[string repeat {.} [expr {2*$level-4}]]..$category_name"
       }
       lappend options [list $category_name $category_id]
     }
