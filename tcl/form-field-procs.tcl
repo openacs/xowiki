@@ -104,6 +104,11 @@ namespace eval ::xowiki::formfield {
     my config_from_spec [my spec]
   }
 
+  #
+  # Basic initialze method, doing nothing; should be subclassed by the
+  # application classes
+  FormField instproc initialize {} {next}
+
   FormField instproc validate {obj} {
     my instvar name required
 
