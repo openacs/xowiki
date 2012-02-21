@@ -14,6 +14,7 @@
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configure</msg>
   <msg key="content">Content</msg>
+  <msg key="content_type">Content Type</msg>
   <msg key="copy_entry">Copy Entry</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
