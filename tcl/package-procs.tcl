@@ -128,14 +128,14 @@ namespace eval ::xowiki {
         # TODO we should be able to get rid of this by using a canonical /folder/ in 
         # case of potential conflicts, like for file....
 
-          # check if we have a LANG - FOLDER "conflict"
-          set item_id [::xo::db::CrClass lookup -name $lang -parent_id [my folder_id]]
-          if {$item_id} {
-            my msg "We have a lang-folder 'conflict' (or a two-char folder) with folder: $lang"
-            set local_name $path
-            if {$default_lang eq ""} {set default_lang [my default_language]}
-            set lang $default_lang
-          }
+	# check if we have a LANG - FOLDER "conflict"
+	set item_id [::xo::db::CrClass lookup -name $lang -parent_id [my folder_id]]
+	if {$item_id} {
+	  my msg "We have a lang-folder 'conflict' (or a two-char folder) with folder: $lang"
+	  set local_name $path
+	  if {$default_lang eq ""} {set default_lang [my default_language]}
+	  set lang $default_lang
+	}
 
       } elseif {[regexp {^(file|image|swf|download/file|download/..|tag)/(.*)$} $path _ lang local_name]} {
       } else {
@@ -890,7 +890,7 @@ namespace eval ::xowiki {
     # @return item-ref info
     #
     set item_id 0
-    if {$lang eq $default_lang || $lang eq "file"} {
+    if {$lang eq $default_lang || [string match *:* $stripped_name]} {
       # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
       if {$item_id != 0} {
@@ -1242,6 +1242,7 @@ namespace eval ::xowiki {
 			 -lang $(lang) -path $stripped_url \
 			 -parent_id [my folder_id] \
 			 parent (stripped_name)]
+
     #my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
@@ -1266,6 +1267,7 @@ namespace eval ::xowiki {
     }
     array set "" [my prefixed_lookup -parent_id $(parent_id) \
 		      -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
+    #my msg "prefixed_lookup '$(stripped_name)' returns [array get {}]"
 
     if {$(item_id) == 0} {
       # check link (todo should happen in package->lookup?)
