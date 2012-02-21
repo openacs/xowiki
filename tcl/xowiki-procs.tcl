@@ -2479,7 +2479,7 @@ namespace eval ::xowiki {
     my instvar page_template
     #set form_constraints [my get_from_template form_constraints]
     set form_constraints [my get_form_constraints]
-    #my msg "fc of [my name] = $form_constraints"
+    #my msg "fc of [self] [my name] = $form_constraints"
     if {$form_constraints ne ""} {
       set s [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name $name -form_constraints $form_constraints]
@@ -3349,8 +3349,9 @@ namespace eval ::xowiki {
   FormPage instproc include_header_info {{-prefix ""} {-js ""} {-css ""}} {
     if {$css eq ""} {set css [my get_from_template ${prefix}_css]}
     if {$js eq ""}  {set js [my get_from_template ${prefix}_js]}
-    foreach line [split $js \n] {::xo::Page requireJS $line}
+    foreach line [split $js \n] {::xo::Page requireJS [string trim $line]}
     foreach line [split $css \n] {
+      set line [string trim $line]
       set order 1
       if {[llength $line]>1} {
 	set e1 [lindex $line 0]
@@ -3504,7 +3505,6 @@ namespace eval ::xowiki {
       }
     }
   }
-
 
 
   Page instproc is_new_entry {old_name} {
