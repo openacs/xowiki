@@ -3626,7 +3626,7 @@ namespace eval ::xowiki::includelet {
     set id [my id]
     set values [list]
     foreach {name value} $data {
-      lappend values "\['$name', $value\]"
+      lappend values "\['[::xowiki::Includelet js_encode $name]', $value\]"
     }
     set values [join $values ",\n"]
     append result [subst -nocommands {
