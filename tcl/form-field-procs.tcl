@@ -118,7 +118,7 @@ namespace eval ::xowiki::formfield {
 
     # use the 'value' method to deal e.g. with compound fields
     set value [my value]
-    #my msg "[my info class] value=$value req=$required // [my set value]"
+    #my msg "[my info class] value=$value req=$required // [my set value] //"
 
     if {$required && $value eq "" && ![my istype ::xowiki::formfield::hidden]} {
       my instvar label
@@ -704,7 +704,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class file -superclass FormField -parameter {
+  Class create file -superclass FormField -parameter {
     {size 40}
     link_label
   }
@@ -721,13 +721,18 @@ namespace eval ::xowiki::formfield {
   file instproc value {args} {
     if {$args eq ""} {
       set old_value [[my object] form_parameter __old_value_[my name] ""]
-      #my log "value [my set value] -- $args // old_value = $old_value"
+      set new_value [my set value]
+      #my msg "value $new_value -- $args // old_value = $old_value"
       #
       # Figure out, if we got a different file-name (value). If the
-      # file-name is the same as in the last revision, we return a
-      # "-". This has the effect, that file file is not uploaded again.
+      # file-name is the same as in the last revision, or if the new
+      # value is empty and the old value is not empty, we return a
+      # "-". This has the effect, that file file is not uploaded
+      # again.
       #
-      if {$old_value ne "" && $old_value eq [my set value]} {
+      if {$old_value ne "" 
+	  && ($old_value eq $new_value || $new_value eq "")
+	} {
         return "-"
       }
     }
@@ -806,7 +811,19 @@ namespace eval ::xowiki::formfield {
     if {![my istype image]} {
       set href [export_vars -base $href [list [list filename $value]]]
     }
+    #
+    # The HTML5 handling of "required" would force us to upload in
+    # every form the file again. To implement the sticky option, we
+    # set temporarily the "required" attribute to false
+    #
+    if {[my exists required]} {
+      set reset_required 1
+      my set required false
+    }
     next
+    if {[info exists reset_required]} {
+      my set required true
+    }
     ::html::t " "
     ::html::input -type hidden -name __old_value_[my name] -value $value
     ::html::a -href $href {::html::t [my label_or_value $value] }
