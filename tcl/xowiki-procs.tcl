@@ -1533,13 +1533,22 @@ namespace eval ::xowiki {
     set parent_id [expr {$package_id == [my package_id] ? 
                          [my parent_id] : [$package_id folder_id]}]
 
+    # we might consider make this configurable
+    set use_package_path true
+
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # language link (it starts with a ':')
-      array set "" [$package_id item_ref -default_lang [my lang] -parent_id $parent_id \
+      array set "" [$package_id item_ref \
+			-use_package_path $use_package_path \
+			-default_lang [my lang] \
+			-parent_id $parent_id \
                         ${lang}:$stripped_name]
       set (link_type) language
     } else {
-      array set "" [$package_id item_ref -default_lang [my lang] -parent_id $parent_id \
+      array set "" [$package_id item_ref \
+			-use_package_path $use_package_path \
+			-default_lang [my lang] \
+			-parent_id $parent_id \
                         $(link)]
     }
     #my msg "link '$(link)' => [array get {}]"
