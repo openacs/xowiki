@@ -835,6 +835,7 @@ namespace eval ::xowiki {
     $rootNode insertBeforeFromScript {
       ::html::input -type hidden -name __object_name -value [my name]
       ::html::input -type hidden -name __form_action -value save-form-data
+      ::html::input -type hidden -name __current_revision_id -value [my revision_id]
 
       # insert automatic form fields on top 
       foreach att $field_names {
@@ -1001,6 +1002,7 @@ namespace eval ::xowiki {
     #my show_fields $form_fields
     foreach {validation_errors category_ids} \
         [my get_form_data -field_names $query_field_names $form_fields] break
+
     if {$validation_errors == 0} {
       #
       # we have no validation errors, so we can save the content
@@ -1730,6 +1732,15 @@ namespace eval ::xowiki {
     }
   }
 
+  Page instproc mutual_overwrite_occurred {} {
+     util_user_message -html \
+	-message "User <em>[::xo::get_user_name [my set modifying_user]]</em> has modifyed this page \
+	while you were editing it.\
+	Open <a href='[::xo::cc url]' target='_blank'>modified page</a> in new window or press OK again to save this page."
+    # return 1 to flag validation error, 0 to ignore this fact
+    return 1
+  }
+
   Page ad_instproc get_form_data {-field_names form_fields} {
 
     Get the values from the form and store it in the form fields and
@@ -1882,6 +1893,10 @@ namespace eval ::xowiki {
       }
     }
     #my msg "validation returns $validation_errors errors"
+
+    if {$validation_errors == 0 && [::xo::cc form_parameter __current_revision_id ""] != [my revision_id]} {
+      set validation_errors [my mutual_overwrite_occurred]
+    }
 
     if {$validation_errors == 0} {
       #
