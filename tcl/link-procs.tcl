@@ -48,7 +48,7 @@ namespace eval ::xowiki {
   #
   Class create Link -superclass BaseLink -parameter {
     {type link} name lang stripped_name page 
-    parent_id package_id item_id {form ""}
+    parent_id package_id item_id {form ""} revision_id
   }
   Link instproc atts {} {
     set atts ""
@@ -267,8 +267,10 @@ namespace eval ::xowiki {
     if {[my exists href]} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
+      if {[my exists revision_id]} {append href ?revision_id=[my revision_id]}
       return "$pre<a $cls href='$href'><img $cls src='$link' alt='$label' title='$label' $style></a>$post"
     } else {
+      if {[my exists revision_id]} {append link ?revision_id=[my revision_id]}
       return "$pre<img $cls src='$link' alt='$label' title='$label' $style>$post"
     }
   }
@@ -303,6 +305,9 @@ namespace eval ::xowiki {
     }
     if {[my exists extra_query_parameter]} {
       set internal_href [export_vars -base $internal_href [my extra_query_parameter]]
+      if {[my exists revision_id]} {append href &revision_id=[my revision_id]}
+    } else {
+      if {[my exists revision_id]} {append internal_href ?revision_id=[my revision_id]}
     }
     if {![info exists embed_options]} {
       return "<a href='$internal_href' [my mk_css_class_and_id -additional file]>$label<span class='file'>&nbsp;</span></a>"

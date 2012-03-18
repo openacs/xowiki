@@ -627,8 +627,9 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc pretty_image {-parent_id:required entry_name} {
     if {$entry_name eq ""} return
-    my instvar object
-
+    if {[my set value] eq ""} return
+    my instvar object value
+    
     array set "" [$object item_ref -default_lang [$object lang] -parent_id $parent_id $entry_name]
 
     set label [my label] ;# the label is used for alt und title
@@ -643,6 +644,11 @@ namespace eval ::xowiki::formfield {
 	       -page $object -type "image" -lang $(prefix) \
 	       [list -stripped_name $(stripped_name)] [list -label $label] \
 	       -parent_id $(parent_id) -item_id $(item_id)]
+
+    set revision_id [my get_from_value $value revision_id]
+    if {$revision_id ne ""} {
+      $l revision_id $revision_id
+    }
 
     foreach option {
         href cssclass
@@ -706,6 +712,7 @@ namespace eval ::xowiki::formfield {
 
   Class create file -superclass FormField -parameter {
     {size 40}
+    {sticky false}
     link_label
   }
   file instproc tmpfile {value}      {my set [self proc] $value}
@@ -718,32 +725,51 @@ namespace eval ::xowiki::formfield {
   file instproc entry_name {value} {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
-  file instproc value {args} {
-    if {$args eq ""} {
-      set old_value [[my object] form_parameter __old_value_[my name] ""]
-      set new_value [my set value]
-      #my msg "value $new_value -- $args // old_value = $old_value"
-      #
-      # Figure out, if we got a different file-name (value). If the
-      # file-name is the same as in the last revision, or if the new
-      # value is empty and the old value is not empty, we return a
-      # "-". This has the effect, that file file is not uploaded
-      # again.
-      #
-      if {$old_value ne "" 
-	  && ($old_value eq $new_value || $new_value eq "")
-	} {
-        return "-"
+
+  file instproc get_value_from_form {} {
+    set old_value [[my object] form_parameter __old_value_[my name] ""]
+    set v [my set value]
+    #my msg "value '$v' // old_value '$old_value'"
+    #
+    # Figure out, if we got a different file-name (value). If the
+    # file-name is the same as in the last revision, we return a
+    # "-". This has the effect, that file file is not uploaded again.
+    #
+    #if {$old_value ne "" && $old_value eq [my set value]} {}
+    
+    if {$old_value ne "" && $v eq ""} {
+      return "-"
+    }
+    return $v
+  }
+
+  file instproc get_from_value {value attribute {default ""}} {
+    #
+    # The value of of a form entry might be:
+    # - an atomic list element
+    # - a list with attribute value pairs
+    #
+    # This function tries to obtain the queried attribute from the
+    # attribute value pair notation. If this fails, it returns a
+    # default value.
+    #
+    set valueLength [llength $value]
+    if {$valueLength > 1 && $valueLength %2 == 0} {
+      array set "" $value
+      if {[info exists ($attribute)]} {
+	return $($attribute)
       }
     }
-    next
+    return $default
   }
+
   file instproc convert_to_internal {} {
     my instvar value
 
-    set v [my value]
+    set v [my get_value_from_form]
     if {$v eq "-" || $v eq ""} {
       # nothing to do, keep the old value
+      #my msg "nothing to do with '$v'"
       set value [[my object] form_parameter __old_value_[my name] ""]
       [my object] set_property [my name] $value
       return
@@ -761,16 +787,23 @@ namespace eval ::xowiki::formfield {
       } {
       set content_type [::xowiki::guesstype $value]
     }
-    #my msg "mime_type of $entry_name = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
+    #my msg "mime_type of $entry_info(name) = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
     set file_object [$package_id get_page_from_name -name $entry_info(name) -parent_id $entry_info(parent_id)]
     if {$file_object ne ""} {
       # file entry exists already, create a new revision
+      #my msg "new revision"
       $file_object set import_file [my set tmpfile]
       $file_object set mime_type $content_type
       $file_object set title $value
       $file_object save
+      #
+      # Update the value with the attribute value pair list containing
+      # the revision_id. TODO: clear revision_id on export.
+      #
+      [my object] set_property -new 1 [my name] [list name $value revision_id [$file_object revision_id]]
     } else {
       # create a new file 
+      #my msg "new file"
       set file_object [::xowiki::File new -destroy_on_cleanup \
                            -title $value \
                            -name $entry_info(name) \
@@ -780,6 +813,8 @@ namespace eval ::xowiki::formfield {
                            -creation_user [::xo::cc user_id] ]
       $file_object set import_file [my set tmpfile]
       $file_object save_new
+      # Make sure the value is just one list item
+      [my object] set_property -new 1 [my name] [list $value]
     }
   }
 
@@ -795,6 +830,7 @@ namespace eval ::xowiki::formfield {
       my instvar object
       array set "" [my entry_name $v]
       array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $(name)]
+      #my msg "pretty value name '$(stripped_name)'"
       set l [::xowiki::Link create new -destroy_on_cleanup \
 		 -page $object -type "file" -lang $(prefix) \
 		 [list -stripped_name $(stripped_name)] [list -label [my label]] \
@@ -825,8 +861,21 @@ namespace eval ::xowiki::formfield {
       my set required true
     }
     ::html::t " "
-    ::html::input -type hidden -name __old_value_[my name] -value $value
-    ::html::a -href $href {::html::t [my label_or_value $value] }
+    set id __old_value_[my name]
+    ::html::input -type hidden -name $id -id $id -value $value
+    #my msg "old_value '$value'"
+    ::html::span -class file-control -id __a$id {
+      ::html::a -href $href {::html::t [my label_or_value [my get_from_value $value name $value]] }
+      # Show the clear button just when
+      # - there is something to clear, and
+      # - the formfield is not disabled, and
+      # - the form-field is not sticky (default)
+      set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+      if {$value ne "" && !$disabled && ![my sticky] } {
+	::html::input -type button -value clear \
+	    -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
+      }
+    }
   }
 
   ###########################################################
@@ -886,6 +935,7 @@ namespace eval ::xowiki::formfield {
   }
   image instproc pretty_value {v} {
     array set "" [my entry_name $v]
+
     return [my pretty_image -parent_id $(parent_id) $(name)]
   }
 
