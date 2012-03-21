@@ -1893,8 +1893,8 @@ namespace eval ::xowiki {
       }
     }
     #my msg "validation returns $validation_errors errors"
-
-    if {$validation_errors == 0 && [::xo::cc form_parameter __current_revision_id ""] != [my revision_id]} {
+    set current_revision_id [::xo::cc form_parameter __current_revision_id ""]
+    if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != [my revision_id]} {
       set validation_errors [my mutual_overwrite_occurred]
     }
 
