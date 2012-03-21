@@ -834,6 +834,7 @@ namespace eval ::xowiki::formfield {
       set l [::xowiki::Link create new -destroy_on_cleanup \
 		 -page $object -type "file" -lang $(prefix) \
 		 [list -stripped_name $(stripped_name)] [list -label [my label]] \
+		 [list -extra_query_parameter [list [list filename [my get_from_value $v name $v]]]] \
 		 -parent_id $(parent_id) -item_id $(item_id)]
       return [$l render]
     }
@@ -843,9 +844,10 @@ namespace eval ::xowiki::formfield {
     my instvar value
     set package_id [[my object] package_id]
     array set entry_info [my entry_name $value]
+    set fn [my get_from_value $value name $value]
     set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
     if {![my istype image]} {
-      set href [export_vars -base $href [list [list filename $value]]]
+      set href [export_vars -base $href [list [list filename $fn]]]
     }
     #
     # The HTML5 handling of "required" would force us to upload in
@@ -865,7 +867,7 @@ namespace eval ::xowiki::formfield {
     ::html::input -type hidden -name $id -id $id -value $value
     #my msg "old_value '$value'"
     ::html::span -class file-control -id __a$id {
-      ::html::a -href $href {::html::t [my label_or_value [my get_from_value $value name $value]] }
+      ::html::a -href $href {::html::t [my label_or_value $fn] }
       # Show the clear button just when
       # - there is something to clear, and
       # - the formfield is not disabled, and
