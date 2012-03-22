@@ -791,7 +791,7 @@ namespace eval ::xowiki::formfield {
     set file_object [$package_id get_page_from_name -name $entry_info(name) -parent_id $entry_info(parent_id)]
     if {$file_object ne ""} {
       # file entry exists already, create a new revision
-      #my msg "new revision"
+      #my msg "new revision (value $value)"
       $file_object set import_file [my set tmpfile]
       $file_object set mime_type $content_type
       $file_object set title $value

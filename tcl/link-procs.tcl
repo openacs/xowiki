@@ -305,6 +305,7 @@ namespace eval ::xowiki {
     }
     if {[my exists extra_query_parameter]} {
       set internal_href [export_vars -base $internal_href [my extra_query_parameter]]
+      set internal_href [string map [list ' "&apos;"] $internal_href]
       if {[my exists revision_id]} {append href &revision_id=[my revision_id]}
     } else {
       if {[my exists revision_id]} {append internal_href ?revision_id=[my revision_id]}

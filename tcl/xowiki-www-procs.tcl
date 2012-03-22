@@ -437,7 +437,8 @@ namespace eval ::xowiki {
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
     if {[my exists_query_parameter filename]} {
-      ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"[my query_parameter filename]\""
+      set fn [::xo::backslash_escape \" [my query_parameter filename]]
+      ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"$fn\""
     }
     #my log "--F FILE=[my full_file_name] // $mime_type"
     set geometry [::xo::cc query_parameter geometry ""]
