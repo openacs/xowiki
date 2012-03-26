@@ -847,7 +847,7 @@ namespace eval ::xowiki::formfield {
     set fn [my get_from_value $value name $value]
     set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
     if {![my istype image]} {
-      set href [export_vars -base $href [list [list filename $fn]]]
+      append href ?filename=[ns_urlencode $fn]
     }
     #
     # The HTML5 handling of "required" would force us to upload in

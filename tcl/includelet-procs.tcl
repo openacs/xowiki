@@ -1504,7 +1504,7 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     my instvar __including_page
     set digg_link [export_vars -base "http://digg.com/submit" {
-      {phase 2} 
+      {phase 2}
       {url       $url}
       {title     "[string range [$__including_page title] 0 74]"}
       {body_text "[string range $description 0 349]"}
