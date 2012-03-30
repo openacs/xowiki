@@ -303,7 +303,7 @@ namespace eval ::xowiki::includelet {
   }  
 
   ::xowiki::Includelet instproc get_page_order {-source -ordered_pages -pages} {
-    my instvar page_order pages ordered_pages
+    my instvar page_order ordered_pages
     # 
     # first check, if we can load the page_order from the page
     # denoted by source
@@ -3722,9 +3722,13 @@ var chart;
     }
     
     if {![info exists form_item_id]} {
-      # start for search for form in the directory of the including form
+      # Start for search for form in the directory of the including
+      # form.  The provided package_id and parent_id refers to the
+      # form instances, not to the forms.
       set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id \
-                             -forms $form -package_id $package_id]
+			     -parent_id [$o parent_id] \
+			     -default_lang [$o lang] \
+                             -forms $form -package_id [$o package_id]]
     } else {
       set form_item_ids [list $form_item_id]
     }
@@ -3733,8 +3737,10 @@ var chart;
 
     if {$inherit_from_forms ne ""} {
       foreach inherit_form $inherit_from_forms {
-        set inherit_form_id [::xowiki::Weblog instantiate_forms -parent_id $parent_id] \
-                                 -forms $inherit_form -package_id $package_id]
+        set inherit_form_id [::xowiki::Weblog instantiate_forms \
+				 -parent_id [$o parent_id] \
+				 -default_lang [$o lang] \
+				 -forms $inherit_form -package_id [$o package_id]]
         if {$inherit_form_id ne ""} {
           set p [$inherit_form_id property form_constraints]
           append form_constraints $p\n
