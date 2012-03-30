@@ -645,9 +645,11 @@ namespace eval ::xowiki::formfield {
 	       [list -stripped_name $(stripped_name)] [list -label $label] \
 	       -parent_id $(parent_id) -item_id $(item_id)]
 
-    set revision_id [my get_from_value $value revision_id]
-    if {$revision_id ne ""} {
-      $l revision_id $revision_id
+    if {[my istype file]} {
+      set revision_id [my get_from_value $value revision_id]
+      if {$revision_id ne ""} {
+	$l revision_id $revision_id
+      }
     }
 
     foreach option {
