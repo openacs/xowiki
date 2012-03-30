@@ -3127,7 +3127,6 @@ namespace eval ::xowiki {
     {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
     {-extra_where_clause true}
   } {
-    set package_id [my package_id]
     set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
     set result [::xo::OrderedComposite new -destroy_on_cleanup]
 
