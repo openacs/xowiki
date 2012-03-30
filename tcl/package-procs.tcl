@@ -1601,15 +1601,19 @@ namespace eval ::xowiki {
   Package ad_instproc reindex {} {
     reindex all items of this package
   } {
-    my instvar folder_id
-    set pages [db_list [my qn get_pages] "select page_id from xowiki_page, cr_revisions r, cr_items ci \
-      where page_id = r.revision_id and ci.item_id = r.item_id and ci.parent_id = $folder_id \
-      and ci.live_revision = page_id"]
+    my instvar folder_id id
+    set pages [db_list [my qn get_pages] {
+      select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
+      where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
+      and publish_status = 'ready'
+      and page_id = o.object_id and o.package_id = :id
+    }]
     #my log "--reindex returns <$pages>"
     foreach page_id $pages {
       #search::queue -object_id $page_id -event DELETE
       search::queue -object_id $page_id -event INSERT
     }
+    ad_returnredirect .
   }
 
   #
