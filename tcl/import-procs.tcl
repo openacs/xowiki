@@ -366,6 +366,7 @@ namespace eval ::xowiki {
     file
     name
     parent_id
+    {use_photo_form false}
   }
   ArchiveFile instproc init {} {
     my destroy_on_cleanup
@@ -435,25 +436,62 @@ namespace eval ::xowiki {
 	my import -dir $tmpfile -parent_id [$folder_object item_id]
       } else {
 	set mime_type [::xowiki::guesstype $file_name]
-	set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
-	if {$file_object ne ""} {
-	  my msg "file $file_name exists already"
-	  # file entry exists already, create a new revision
-	  $file_object set import_file $tmpfile
-	  $file_object set mime_type $mime_type
-	  $file_object set title $file_name
-	  $file_object save
+	if {[string match image/* $mime_type] && [my use_photo_form]} {
+	  set photo_object [$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
+	  if {$photo_object ne ""} {
+	    # photo entry exists already, create a new revision
+	    my log "Photo $file_name exists already"
+	    $photo_object set title $file_name
+	    set f [::xowiki::formfield::file new -object $photo_object -name "image" -destroy_on_cleanup]
+	    $f set value $file_name
+	    $f content-type $mime_type
+	    $f set tmpfile $tmpfile
+	    $f convert_to_internal
+	    $photo_object save
+	  } else {
+	    # create a new photo entry
+	    my log "new Photo $file_name"
+	    set photoFormObj [::xowiki::Weblog instantiate_forms \
+				  -parent_id $parent_id -forms en:photo.form -package_id $package_id]
+	    $photoFormObj create-new -parent_id $parent_id -name $file_name -nls_language en
+	    set photo_object [$photoFormObj create_form_page_instance \
+				  -name en:$file_name \
+				  -nls_language en_US \
+				  -creation_user [::xo::cc user_id] \
+				  -parent_id $parent_id \
+				  -package_id $package_id \
+				  -instance_attributes [list image $file_name]]
+	    $photo_object title $file_name
+	    $photo_object publish_status "ready"
+	    $photo_object save_new ;# to obtain item_id needed by the form-field
+	    set f [::xowiki::formfield::file new -object $photo_object -name "image" -destroy_on_cleanup]
+	    $f set value $file_name
+	    $f content-type $mime_type
+	    $f set tmpfile $tmpfile
+	    $f convert_to_internal
+	    #my log "after convert to internal $file_name"
+	  }
 	} else {
-	  my msg "file $file_name created new"
-	  set file_object [::xowiki::File new -destroy_on_cleanup \
-			       -title $file_name \
-			       -name file:$file_name \
-			       -parent_id $parent_id \
-			       -mime_type $mime_type \
-			       -package_id $package_id \
-			       -creation_user [::xo::cc user_id] ]
-	  $file_object set import_file $tmpfile
-	  $file_object save_new
+	  set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
+	  if {$file_object ne ""} {
+	    my msg "file $file_name exists already"
+	    # file entry exists already, create a new revision
+	    $file_object set import_file $tmpfile
+	    $file_object set mime_type $mime_type
+	    $file_object set title $file_name
+	    $file_object save
+	  } else {
+	    my msg "file $file_name created new"
+	    set file_object [::xowiki::File new -destroy_on_cleanup \
+				 -title $file_name \
+				 -name file:$file_name \
+				 -parent_id $parent_id \
+				 -mime_type $mime_type \
+				 -package_id $package_id \
+				 -creation_user [::xo::cc user_id] ]
+	    $file_object set import_file $tmpfile
+	    $file_object save_new
+	  }
 	}
       }
     }
