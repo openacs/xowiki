@@ -745,7 +745,7 @@ namespace eval ::xowiki::formfield {
     return $v
   }
 
-  file instproc get_from_value {value attribute {default ""}} {
+  file instproc get_from_value {value attribute {raw ""}} {
     #
     # The value of of a form entry might be:
     # - an atomic list element
@@ -762,7 +762,7 @@ namespace eval ::xowiki::formfield {
 	return $($attribute)
       }
     }
-    return $default
+    return [lindex $raw 0]
   }
 
   file instproc convert_to_internal {} {
