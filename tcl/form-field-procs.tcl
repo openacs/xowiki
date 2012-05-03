@@ -724,7 +724,7 @@ namespace eval ::xowiki::formfield {
     my set widget_type file(file)
     next
   }
-  file instproc entry_name {value} {
+  file instproc entry_info {value} {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
 
@@ -781,7 +781,7 @@ namespace eval ::xowiki::formfield {
     [my object] set_property [my name] $value
 
     set package_id [[my object] package_id]
-    array set entry_info [my entry_name $value]
+    array set entry_info [my entry_info $value]
 
     set content_type [my set content-type]
     if {$content_type eq "application/octetstream" 
@@ -830,7 +830,7 @@ namespace eval ::xowiki::formfield {
   file instproc pretty_value {v} {
     if {$v ne ""} {
       my instvar object
-      array set "" [my entry_name $v]
+      array set "" [my entry_info $v]
       array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $(name)]
       #my msg "pretty value name '$(stripped_name)'"
       set l [::xowiki::Link create new -destroy_on_cleanup \
@@ -845,7 +845,7 @@ namespace eval ::xowiki::formfield {
   file instproc render_input {} {
     my instvar value
     set package_id [[my object] package_id]
-    array set entry_info [my entry_name $value]
+    array set entry_info [my entry_info $value]
     set fn [my get_from_value $value name $value]
     set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
     if {![my istype image]} {
@@ -899,7 +899,9 @@ namespace eval ::xowiki::formfield {
     my instvar object
     set package_id [$object package_id]
     set parent_id  [$object parent_id]
-    array set "" [my entry_name $v]
+    if {$v eq ""} {return ""}
+    array set "" [my entry_info $v]
+    set fn [my get_from_value $v name $v]
     #
     # Get the file object of the imported file to obtain is full name and path
     #
@@ -909,7 +911,7 @@ namespace eval ::xowiki::formfield {
     #
     # Call the archiver to unpack and handle the archive
     #
-    set f [::xowiki::ArchiveFile new -file $full_file_name -name $v -parent_id $parent_id]
+    set f [::xowiki::ArchiveFile new -file $full_file_name -name $fn -parent_id $parent_id]
     if {[$f unpack]} {
       #
       # So, all the hard work is done. We take a hard measure here to
@@ -938,7 +940,7 @@ namespace eval ::xowiki::formfield {
     border border-width position top botton left right
   }
   image instproc pretty_value {v} {
-    array set "" [my entry_name $v]
+    array set "" [my entry_info $v]
 
     return [my pretty_image -parent_id $(parent_id) $(name)]
   }

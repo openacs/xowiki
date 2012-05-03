@@ -381,7 +381,10 @@ namespace eval ::xowiki {
   ArchiveFile instproc unpack {} {
     my instvar name file
     set success 0
+    #my log "::xowiki::guesstype '$name' => [::xowiki::guesstype $name]"
     switch [::xowiki::guesstype $name] {
+      application/zip -
+      application/x-zip -
       application/x-zip-compressed {
 	set zipcmd [::util::which unzip]
 	#my msg "zip = $zipcmd, tempdir = [my set tmpdir]"
@@ -401,7 +404,7 @@ namespace eval ::xowiki {
       }
       default {my msg "type [::xowiki::guesstype $name] of $name unknown"}
     }
-    my msg success=$success
+    #my msg success=$success
     return $success
   }
   ArchiveFile instproc import {-dir -parent_id} {
@@ -453,7 +456,6 @@ namespace eval ::xowiki {
 	    my log "new Photo $file_name"
 	    set photoFormObj [::xowiki::Weblog instantiate_forms \
 				  -parent_id $parent_id -forms en:photo.form -package_id $package_id]
-	    $photoFormObj create-new -parent_id $parent_id -name $file_name -nls_language en
 	    set photo_object [$photoFormObj create_form_page_instance \
 				  -name en:$file_name \
 				  -nls_language en_US \
