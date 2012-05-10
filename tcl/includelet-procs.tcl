@@ -4246,9 +4246,11 @@ namespace eval ::xowiki::includelet {
   yui-carousel instproc render {} {
     my get_parameters
 
-    set ajaxhelper 0
+    set ajaxhelper 1
     ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper carousel/assets/skins/sam/carousel.css
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "connection/connection-min.js"
+    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "animation/animation-min.js"
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "element/element-min.js"
     ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "carousel/carousel-min.js"
     ::xo::Page set_property body class "yui-skin-sam "
