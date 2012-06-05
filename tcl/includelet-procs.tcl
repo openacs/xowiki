@@ -4482,6 +4482,7 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {parameter_declaration {
 	  {-title ""}
+	  {-extra_css ""}
 	  {-levels 0}
 	  {-file:required}
         }}
@@ -4517,6 +4518,7 @@ namespace eval ::xowiki::includelet {
     if {$page eq ""} {
       error "could not resolve page from item ref $file"
     }
+    if {$extra_css ne ""} {foreach css $extra_css {::xo::Page requireCSS $css}}
     return [$page html_content -add_sections_to_folder_tree $levels -owner [self]]
   }
 
