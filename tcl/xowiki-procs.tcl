@@ -2253,6 +2253,8 @@ namespace eval ::xowiki {
 
     regsub -all "/span> " $data "/span>\\&nbsp;" data
     regsub -all " <span " $data "\\&nbsp;<span " data
+    regsub -all "/span>\n<span " $data "/span><br><span " data
+    regsub -all "/span>\n\n<span " $data "/span><br><br><span " data
 
     dom parse -html $data doc 
     $doc documentElement root 
