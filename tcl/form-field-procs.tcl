@@ -1463,10 +1463,10 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext instproc check=safe_html {value} {
-    # don't check if the user has admin permissions on the package
+    # don't check if the user has sufficient permissions on the package
     if {[::xo::cc permission \
                 -object_id [::xo::cc package_id] \
-                -privilege admin \
+                -privilege swa \
                 -party_id [::xo::cc user_id]]} {
       set msg ""
     } else {
