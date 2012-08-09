@@ -890,7 +890,7 @@ namespace eval ::xowiki {
     # @return item-ref info
     #
     set item_id 0
-    if {$lang eq $default_lang || [string match *:* $stripped_name]} {
+    if {$lang eq $default_lang || $lang eq "file" || [string match *:* $stripped_name]} {
       # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
       if {$item_id != 0} {
