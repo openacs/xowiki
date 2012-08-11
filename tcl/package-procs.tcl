@@ -1257,6 +1257,7 @@ namespace eval ::xowiki {
 	set tag $stripped_url
 	set summary [::xo::cc query_parameter summary 0]
 	set popular [::xo::cc query_parameter popular 0]
+	if {[string is boolean -strict $popular]} { set popular 0 } 
 	set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	set weblog_page [my get_parameter weblog_page]
 	my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
