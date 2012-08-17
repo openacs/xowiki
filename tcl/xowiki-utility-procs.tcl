@@ -564,5 +564,100 @@ namespace eval ::xowiki {
   }
 
 }
-::xo::library source_dependent 
 
+
+proc util_jsquotevalue {value} {
+  return '[::xowiki::Includelet js_encode $value]'
+}
+
+
+proc util_map2json {pairs} {
+  set json_pairs [list]
+  foreach {key value} $pairs {
+    lappend json_pairs "'${key}':[util_jsquotevalue ${value}]"
+  }
+  return [join $json_pairs {,}]
+}
+
+proc util_coalesce {args} {
+  foreach value $args {
+    if { $value ne {} } {
+      return $value
+    }
+  }
+}
+
+
+#
+# intersect3 - perform the intersecting of two lists, returning a list
+# containing three lists.  The first list is everything in the first
+# list that wasn't in the second, the second list contains the intersection
+# of the two lists, the third list contains everything in the second list
+# that wasn't in the first.
+#
+
+proc util_intersect3 {list1 list2} {
+  set la1(0) {} ; unset la1(0)
+  set lai(0) {} ; unset lai(0)
+  set la2(0) {} ; unset la2(0)
+  foreach v $list1 {
+    set la1($v) {}
+  }
+  foreach v $list2 {
+    set la2($v) {}
+  }
+  foreach elem [concat $list1 $list2] {
+    if {[info exists la1($elem)] && [info exists la2($elem)]} {
+      unset la1($elem)
+      unset la2($elem)
+      set lai($elem) {}
+    }
+  }
+  list [lsort [array names la1]] [lsort [array names lai]] \
+      [lsort [array names la2]]
+}
+
+
+proc util_createDom {list_of_specs} {
+  foreach spec $list_of_specs {
+    set cmdName [lindex $spec 0]
+    if { $cmdName eq "\#text" } {
+      lassign $spec cmdName text
+      html::t $text
+    } else {
+      lassign $spec cmdName atts inside_spec
+      html::${cmdName} $atts [list util_createDom $inside_spec]
+    }
+  }
+}
+
+
+proc util_spec2json {list_of_specs} {
+
+  set result [list]
+  foreach spec $list_of_specs {
+    set cmdName [lindex $spec 0]
+
+    lassign $spec cmdName atts inner_spec
+    set json "\{'tag':[util_jsquotevalue $cmdName]"
+    if { $atts ne {} } {
+      append json ",[util_map2json $atts]"
+    }
+    if { $inner_spec ne {} } {
+      lassign [lindex $inner_spec 0] nodeType text
+      if { ${nodeType} eq "\#text" } {
+	# text node
+	lassign [lindex $inner_spec 0] _nodeType_ text
+	append json ",'html':[util_jsquotevalue $text]"
+      } else {
+	# list of children nodes
+	append json ",'children':\[[util_spec2json $inner_spec]\]"
+      }
+    }
+    append json "\}"
+    lappend result $json
+  }
+  return [join $result {,}]
+}
+
+::xo::library source_dependent

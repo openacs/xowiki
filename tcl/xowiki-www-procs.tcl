@@ -736,6 +736,7 @@ namespace eval ::xowiki {
       #my log "__redirect_method=$redirect_method"
       return [my view]
     } else {
+
       # 
       # display the current values
       #
@@ -792,6 +793,7 @@ namespace eval ::xowiki {
       $ff(_name) set transmit_field_always 1
       $ff(_nls_language) set transmit_field_always 1
     }
+
 
     # some final sanity checks
     my form_fields_sanity_check $form_fields
@@ -1700,7 +1702,11 @@ namespace eval ::xowiki {
         }
         hidden -
         password -
-        text {  $field setAttribute value $value}
+        text {
+	  if { ![$field getAttribute rep "0"] } {
+	    $field setAttribute value $value
+	  }
+	}
         default {my log "can't handle $type so far $att=$value"}
       }
     }
