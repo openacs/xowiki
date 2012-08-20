@@ -3153,6 +3153,115 @@ namespace eval ::xowiki {
     return $result
   }
 
+
+  FormPage proc get_super_folders {package folder_id {acc ""}} {
+
+    set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
+    set package_id [$folder package_id]
+    
+    set inherit_folders [util_coalesce [$folder property inherit_folders] [$folder get_parameter inherit_folders]]
+
+    # new_folders contains everything 
+    # in the second list, i.e. inherit_folders,
+    # that wasn't in the first, i.e. acc
+    lassign [util_intersect3 $acc $inherit_folders] _dummy1_ _dummy2_ new_folders
+    set acc [concat $acc $new_folders]
+    while { $new_folders ne {} } {
+      set item_ref [lindex $new_folders 0]
+      set new_folders [lrange $new_folders 1 end]
+      set page [$package get_page_from_item_ref $item_ref]
+      set folder_id [$page item_id]
+      set inherit_folders [FormPage get_super_folders $package $folder_id $acc]
+      lassign [util_intersect3 $acc $inherit_folders] _dummy1_ _dummy2_ new_new_folders
+      set acc [concat $acc $new_new_folders]
+      set new_folders [concat $new_folders $new_new_folders]
+    }
+    return $acc
+  }
+
+  FormPage proc get_all_children {
+				  -folder_id:required
+				  {-publish_status ready}
+				  {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
+				  {-extra_where_clause true}
+				} {
+
+    set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
+    set package_id [$folder package_id]
+
+    set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
+    set result [::xo::OrderedComposite new -destroy_on_cleanup]
+
+    set list_of_folders [list $folder_id]
+    set inherit_folders [FormPage get_super_folders $package_id $folder_id]
+    my log inherit_folders=$inherit_folders
+
+    foreach item_ref $inherit_folders {
+      set folder [::xo::cc cache [list $package_id get_page_from_item_ref $item_ref]]
+      if {$folder eq ""} {
+	my log "Error: Could not resolve parameter folder page '$item_ref' of FormPage [self]."
+      } else {
+	lappend list_of_folders [$folder item_id]
+      }
+    }
+
+    foreach folder_id $list_of_folders {
+      foreach object_type $object_types {
+	set attributes [list revision_id creation_user title parent_id page_order \
+			    "to_char(last_modified,'YYYY-MM-DD HH24:MI') as last_modified" ]
+	set base_table [$object_type set table_name]i
+	if {$object_type eq "::xowiki::FormPage"} {
+	  set attributes "* $attributes"
+	}
+	set items [$object_type get_instances_from_db \
+		       -folder_id $folder_id \
+		       -with_subtypes false \
+		       -select_attributes $attributes \
+		       -where_clause "$extra_where_clause $publish_status_clause" \
+		       -base_table $base_table]
+	
+	foreach i [$items children] {
+	  $result add $i
+	}
+      }
+    }
+    return $result
+  }
+
+  # part of the code copied from Package->get_parameter
+  # see xowiki/www/prototypes/folder.form.page
+  FormPage instproc get_parameter {attribute {default ""}} {
+      # TODO: check whether the following comment applies here
+      # Try to get the parameter from the parameter_page.  We have to
+      # be very cautious here to avoid recursive calls (e.g. when
+      # resolve_page_name needs as well parameters such as
+      # use_connection_locale or subst_blank_in_name, etc.).
+      #
+      set value ""
+      set pp [my property ParameterPages]
+      if {$pp ne {}} {
+	  if {![regexp {/?..:} $pp]} {
+	      my log "Error: Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
+	  } else {
+	      set page [::xo::cc cache [list [my package_id] get_page_from_item_ref $pp]]
+	      if {$page eq ""} {
+		  my log "Error: Could not resolve parameter page '$pp' of FormPage [self]."
+	      }
+	      
+	      if {$page ne "" && [$page exists instance_attributes]} {
+		  array set __ia [$page set instance_attributes]
+		  if {[info exists __ia($attribute)]} {
+		      set value $__ia($attribute)
+		  }
+	      }
+	  }
+      }
+
+      
+      if {$value eq {}} {set value [next $attribute $default]}
+      return $value
+  }
+
   #
   # begin property management
   #

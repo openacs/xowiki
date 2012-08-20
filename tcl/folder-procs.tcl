@@ -426,157 +426,175 @@ namespace eval ::xowiki::includelet {
   ###########################################################
   #
   # ::xowiki::includelet::child-resources
-  #
-  ###########################################################
-  ::xowiki::IncludeletClass create child-resources \
-      -superclass ::xowiki::Includelet \
-      -parameter {
-        {
-          parameter_declaration {
-            {-skin:optional "yui-skin-sam"}
-            {-show_types "::xowiki::Page,::xowiki::File,::xowiki::Form,::xowiki::FormPage"}
-            {-regexp:optional}
-            {-with_subtypes:optional false}
-            {-orderby:optional "last_modified,desc"}
-            {-publish_status "ready"}
-            {-view_target ""}
-            {-html-content}
-            {-parent .}
-            {-hide}
-          }
-        }
-      }
-  
-  child-resources instproc types_to_show {} {
-    my get_parameters
-    foreach type [split $show_types ,] {set ($type) 1}
-    return [lsort [array names ""]]
-  }
-
-  child-resources instproc render {} {
-    my get_parameters
-
-    set current_folder [my set __including_page]
-    if {$parent eq ".."} {
-      set current_folder [$current_folder parent_id]
-      ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    #
+    ###########################################################
+    ::xowiki::IncludeletClass create child-resources \
+	-superclass ::xowiki::Includelet \
+	-parameter {
+	    {
+		parameter_declaration {
+		    {-skin:optional "yui-skin-sam"}
+		    {-show_types "::xowiki::Page,::xowiki::File,::xowiki::Form,::xowiki::FormPage"}
+		    {-regexp:optional}
+		    {-with_subtypes:optional false}
+		    {-orderby:optional "last_modified,desc"}
+		    {-publish_status "ready"}
+		    {-view_target ""}
+		    {-html-content}
+		    {-parent .}
+		    {-hide}
+		}
+	    }
+	}
+    
+    child-resources instproc types_to_show {} {
+      my get_parameters
+      foreach type [split $show_types ,] {set ($type) 1}
+      return [lsort [array names ""]]
     }
-    if {![$current_folder istype ::xowiki::FormPage]} {
-      # current folder has to be a FormPage
-      set current_folder [$current_folder parent_id]
+
+    child-resources instproc render {} {
+      my get_parameters
+
+      set current_folder [my set __including_page]
+
+      if {$parent eq ".."} {
+	set current_folder [$current_folder parent_id]
+	::xo::db::CrClass get_instance_from_db -item_id $current_folder
+      }
       if {![$current_folder istype ::xowiki::FormPage]} {
-	error "child-resources not included from a FormPage"
+	# current folder has to be a FormPage
+	set current_folder [$current_folder parent_id]
+	if {![$current_folder istype ::xowiki::FormPage]} {
+	  error "child-resources not included from a FormPage"
+	}
       }
-    }
-    set current_folder_id [$current_folder item_id]
+      set current_folder_id [$current_folder item_id]
 
-    if {[::xo::cc query_parameter m] ne "list" && $parent ne ".."} {
-      set index [$current_folder property index]
-      if {$index ne ""} {
-	set download [string match "file:*" $index]
-	set index_link [$package_id pretty_link \
-			    -parent_id [$current_folder item_id] \
-			    -download $download \
-			    $index]
-	return [$package_id returnredirect $index_link]
-      }
-    }
-
-    set logical_folder_id $current_folder_id
-    if {[$current_folder exists physical_item_id]} {
-      #my msg "!!! $current_folder_id to [$current_folder set physical_item_id]"
-      set current_folder_id [$current_folder set physical_item_id]
-    }
-    #my msg "current_folder_id $current_folder_id logical_folder_id $logical_folder_id"
-
-    $package_id instvar package_key
-
-    set return_url [::xo::cc url] ;#"[$package_id package_url]edit-done"
-    set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
-
-    set columns {objects edit object_type name last_modified delete}
-    foreach column $columns {set ::hidden($column) 0 }
-    if {[info exists hide]} {
-      foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
-    }
-
-    set t [::YUI::DataTable new -skin $skin -volatile \
-               -columns {
-                 BulkAction objects -id ID -hide $::hidden(objects) -actions {
-                   Action new -label select -tooltip select -url admin/select
-                 }
-		 # The "-html" options are currenty ignored in the YUI
-		 # DataTable. Not sure, it can be integrated in the traditional way. 
-		 #
-		 # A full example for skinning the datatable is here:
-		 # http://developer.yahoo.com/yui/examples/datatable/dt_skinning.html
-		 #
-                 HiddenField ID
-                 AnchorField edit -CSSclass edit-item-button -label "" \
-		     -hide $::hidden(edit) \
-                     -html {style "padding: 0px;"}
-                 Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
-		     -hide $::hidden(object_type) \
-                     -html {style "padding: 0px;"}
-		 AnchorField name -label [_ xowiki.Page-name] -orderby name \
-		     -hide $::hidden(name) \
-		     -html {style "padding: 2px;"}
-                 Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
-		     -hide $::hidden(last_modified) 
-                 AnchorField delete -CSSclass delete-item-button \
-		     -hide $::hidden(delete) \
-                     -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
-               }]
-
-
-    set extra_where_clause "true"
-    # TODO: why filter on title and name?
-    if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
-    set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
-
-    set items [::xowiki::FormPage get_folder_children \
-		   -folder_id $current_folder_id \
-		   -object_types [my types_to_show] \
-		   -extra_where_clause $extra_where_clause]
-
-    foreach c [$items children] {
-      set name [$c name]
-      set page_link [::$package_id pretty_link -parent_id $logical_folder_id $name]
-      array set icon [$c render_icon]
-
-      if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
-	my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
-	set prettyName $name
+      if {[::xo::cc query_parameter m] ne "list" && $parent ne ".."} {
+	set index [$current_folder property index]
+	if {$index ne ""} {
+	  set download [string match "file:*" $index]
+	  set index_link [$package_id pretty_link \
+			      -parent_id [$current_folder item_id] \
+			      -download $download \
+			      $index]
+	  return [$package_id returnredirect $index_link]
+	}
       }
 
-      #set delete_link [export_vars -base  [$package_id package_url] \
-      #		      [list {delete 1} \
-      #			   [list item_id [$c item_id]] \
-      #			   [list name [$c pretty_link]] return_url]]
+      set logical_folder_id $current_folder_id
+      if {[$current_folder exists physical_item_id]} {
+	set current_folder_id [$current_folder set physical_item_id]
+      }
 
-      set delete_link [export_vars -base $page_link {{m delete} return_url}]
+      $package_id instvar package_key
 
-      $t add \
-            -ID [$c name] \
-            -name $prettyName \
+      set return_url [::xo::cc url] ;#"[$package_id package_url]edit-done"
+      set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+
+      set columns {objects edit object_type name last_modified delete}
+      foreach column $columns {set ::hidden($column) 0 }
+      if {[info exists hide]} {
+	foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
+      }
+
+      set t [::YUI::DataTable new -skin $skin -volatile \
+		 -columns {
+		   BulkAction objects -id ID -hide $::hidden(objects) -actions {
+		     Action new -label select -tooltip select -url admin/select
+		   }
+		   # The "-html" options are currenty ignored in the YUI
+		   # DataTable. Not sure, it can be integrated in the traditional way. 
+		   #
+		   # A full example for skinning the datatable is here:
+		   # http://developer.yahoo.com/yui/examples/datatable/dt_skinning.html
+		   #
+		   HiddenField ID
+		   AnchorField edit -CSSclass edit-item-button -label "" \
+		       -hide $::hidden(edit) \
+		       -html {style "padding: 0px;"}
+		   Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
+		       -hide $::hidden(object_type) \
+		       -html {style "padding: 0px;"}
+		   AnchorField name -label [_ xowiki.Page-name] -orderby name \
+		       -hide $::hidden(name) \
+		       -html {style "padding: 2px;"}
+		   Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
+		       -hide $::hidden(last_modified) 
+		   AnchorField delete -CSSclass delete-item-button \
+		       -hide $::hidden(delete) \
+		       -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
+		 }]
+
+
+      set extra_where_clause "true"
+      # TODO: why filter on title and name?
+      if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
+      set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
+
+      set items [::xowiki::FormPage get_all_children \
+		     -folder_id $current_folder_id \
+		     -object_types [my types_to_show] \
+		     -extra_where_clause $extra_where_clause]
+
+
+      set package_id [::xo::cc package_id]
+      set pkg ::$package_id
+      set url [::xo::cc url]
+      $pkg get_lang_and_name -default_lang "" -name [$current_folder name] lang name
+      set folder [$pkg folder_path -parent_id [$current_folder parent_id]]
+
+      foreach c [$items children] {
+	set name [$c name]
+	set page_link [::$package_id pretty_link \
+			   -parent_id $logical_folder_id \
+			   -context_url $url $name]
+
+	array set icon [$c render_icon]
+	
+	if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
+	  my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+	  set prettyName $name
+	}
+
+	#set delete_link [export_vars -base  [$package_id package_url] \
+	    #		      [list {delete 1} \
+	    #			   [list item_id [$c item_id]] \
+	    #			   [list name [$c pretty_link]] return_url]]
+	
+	set delete_link [export_vars -base $page_link {{m delete} return_url}]
+	
+	$t add \
+	    -ID [$c name] \
+	    -name $prettyName \
 	    -name.href [export_vars -base $page_link {template_file html-content}] \
-            -name.title [$c set title] \
-            -object_type $icon(text) \
-            -object_type.richtext $icon(is_richtext) \
-            -last_modified [$c set last_modified] \
-            -edit "" \
-            -edit.href [export_vars -base $page_link {{m edit} return_url}] \
-            -edit.title #xowiki.edit# \
-            -delete "" \
-            -delete.href $delete_link \
-            -delete.title #xowiki.delete#
-    }
+	    -name.title [$c set title] \
+	    -object_type $icon(text) \
+	    -object_type.richtext $icon(is_richtext) \
+	    -last_modified [$c set last_modified] \
+	    -edit "" \
+	    -edit.href [export_vars -base $page_link {{m edit} return_url}] \
+	    -edit.title #xowiki.edit# \
+	    -delete "" \
+	    -delete.href $delete_link \
+	    -delete.title #xowiki.delete#
+      }
 
-    foreach {att order} [split $orderby ,] break
-    $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    set resources_list [$t asHTML]
-    return [$t asHTML]
-  }
+      foreach {att order} [split $orderby ,] break
+      $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+      set resources_list "[$t asHTML]"
+      
+      set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
+      set viewer_links ""
+      foreach v $viewers {
+	set wf_link "${v}?p.folder=[${current_folder} name]"
+	append wf_link "&m=create-or-use"
+	append viewer_links [subst -nocommands -nobackslashes {<li><a href="$wf_link">view with $v</a></li>}]
+      }
+      return "<ul>$viewer_links</ul> [$t asHTML]"
+
+    }
 }
 
 namespace eval ::xowiki::formfield {

@@ -157,15 +157,40 @@ namespace eval ::xowiki {
     }
   }
   
+  Package instproc get_page_from_super {-folder_id:required name} {
+    set package [self]
+    set inherit_folders [FormPage get_super_folders $package $folder_id]
+    
+    foreach item_ref $inherit_folders {
+      set folder [::xo::cc cache [list $package get_page_from_item_ref $item_ref]]
+      if {$folder eq ""} {
+	my log "Error: Could not resolve parameter folder page '$item_ref' of FormPage [self]."
+      } else {
+	set item_id [::xo::db::CrClass lookup -name $name -parent_id [$folder item_id]]
+	if { $item_id != 0 } {
+	  return $item_id
+	}
+      }
+    }
+    return 0
+  }
+
+
   Package instproc get_parent_and_name {-path:required -lang:required -parent_id:required vparent vlocal_name} {
     my upvar $vparent parent $vlocal_name local_name 
-    #my log "path=$path parent_id=$parent_id"
     if {[regexp {^([^/]+)/(.+)$} $path _ parent local_name]} {
 
       # try without a prefix
-      #set p [::xo::db::CrClass lookup -name $parent -parent_id $parent_id]
       set p [my lookup -name $parent -parent_id $parent_id]
-      #my msg "path '$path' check '$parent' $parent_id returns $p"
+
+      if {$p == 0} {
+	  # check if page is inherited
+	  set p2 [my get_page_from_super -folder_id $parent_id $parent]
+	  if { $p2 != 0 } {
+	      set p $p2
+	  }
+
+      }
 
       if {$p == 0} {
         # pages are stored with a lang prefix
@@ -188,6 +213,7 @@ namespace eval ::xowiki {
           }
         }
       }
+
       if {$p != 0} {
         return $p 
       }
@@ -213,7 +239,7 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc folder_path {{-parent_id ""}} {
+  Package instproc folder_path {{-parent_id ""} {-context_url ""}} {
     #
     # handle different parent_ids
     #
@@ -225,9 +251,27 @@ namespace eval ::xowiki {
     # will be found by the object resolver. For the time being, we
     # do nothing more about this.
     #
+    #
+    if { $context_url ne {} } {
+     	set parts [lreverse [split $context_url {/}]]
+     	set index 0
+    }
+
     set path ""
     while {1} {
       set fo [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
+      if { $context_url ne {} } {
+       	    set context_name [lindex $parts $index]
+       	    if { [$fo name] != $context_name } {
+
+       		set context_folder [my get_page_from_name -assume_folder true -name $context_name]
+       		#my msg "context_name [$context_folder serialize]"
+       		set context_id [$context_folder item_id]
+       		set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
+       	    }
+       	    incr index
+      }
+
       #my get_lang_and_name -name [$fo name] lang stripped_name
       #set path $stripped_name/$path
       set path [$fo name]/$path
@@ -267,6 +311,7 @@ namespace eval ::xowiki {
     {-lang ""} 
     {-parent_id ""}
     {-download false} 
+    {-context_url ""}
     name 
   } {
     Generate a (minimal) link to a wiki page with the specified name.
@@ -308,7 +353,7 @@ namespace eval ::xowiki {
     }
 
     #set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
-    set folder [my folder_path -parent_id $parent_id]
+    set folder [my folder_path -parent_id $parent_id -context_url $context_url]
     #my msg "folder_path = $folder, default_lang [my default_language]"
 
    # if {$folder ne ""} {
@@ -889,8 +934,9 @@ namespace eval ::xowiki {
     #
     # @return item-ref info
     #
+
     set item_id 0
-    if {$lang eq $default_lang || $lang eq "file" || [string match *:* $stripped_name]} {
+    if {$lang eq $default_lang || [string match *:* $stripped_name]} {
       # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
       if {$item_id != 0} {
@@ -899,6 +945,16 @@ namespace eval ::xowiki {
 	#my log "direct $stripped_name"
       }
     }
+
+    # TODO
+    #my log ">>>>>>>> HERE HERE item_id=$item_id"
+    if { $item_id == 0 } {
+	set item_id [my get_page_from_super -folder_id $parent_id $stripped_name]
+	if { $item_id != 0 } {
+	    set name $stripped_name
+	}
+    }
+
     if {$item_id == 0} {
       set name ${lang}:$stripped_name
       set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
@@ -1257,7 +1313,6 @@ namespace eval ::xowiki {
 	set tag $stripped_url
 	set summary [::xo::cc query_parameter summary 0]
 	set popular [::xo::cc query_parameter popular 0]
-	if {[string is boolean -strict $popular]} { set popular 0 } 
 	set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	set weblog_page [my get_parameter weblog_page]
 	my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
