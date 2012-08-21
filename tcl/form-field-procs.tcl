@@ -869,6 +869,10 @@ namespace eval ::xowiki::formfield {
   }
 
   file instproc render_input {} {
+    util_createDom [list [my get_spec]]
+  }
+
+  file instproc get_spec {} {
     my instvar value
     set package_id [[my object] package_id]
     array set entry_info [my entry_info $value]
@@ -886,26 +890,35 @@ namespace eval ::xowiki::formfield {
       set reset_required 1
       my set required false
     }
-    next
+    
+    lassign [next] tag atts children
+
     if {[info exists reset_required]} {
       my set required true
     }
-    ::html::t " "
-    set id __old_value_[my name]
-    ::html::input -type hidden -name $id -id $id -value $value
-    #my msg "old_value '$value'"
-    ::html::span -class file-control -id __a$id {
-      ::html::a -href $href {::html::t [my label_or_value $fn] }
-      # Show the clear button just when
-      # - there is something to clear, and
-      # - the formfield is not disabled, and
-      # - the form-field is not sticky (default)
-      set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-      if {$value ne "" && !$disabled && ![my sticky] } {
-	::html::input -type button -value clear \
-	    -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
+
+    set additional_spec [util_tdom2list {
+      # FOLLOWING GIVES TROUBLE, SEE util_spec2json FOR DETAILS
+      ::html::t " "
+      set id __old_value_[my name]
+      ::html::input -type hidden -name $id -id $id -value $value
+      #my msg "old_value '$value'"
+      ::html::span -class file-control -id __a$id {
+	::html::a -href $href {::html::t [my label_or_value $fn] }
+	# Show the clear button just when
+	# - there is something to clear, and
+	# - the formfield is not disabled, and
+	# - the form-field is not sticky (default)
+	set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+	if {$value ne "" && !$disabled && ![my sticky] } {
+	  ::html::input -type button -value clear \
+	      -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
+	}
       }
-    }
+    }]
+
+    lappend children $additional_spec
+    return [list $tag $atts $children]
   }
 
   ###########################################################
@@ -3408,6 +3421,9 @@ namespace eval ::xowiki::formfield {
     # sample data: my set value "a b c"
     #my set value "a"
 
+    # Note that we have a spec parameter that refers to 
+    # the form definition, and a get_spec proc that refers
+    # to the specification for generating html and json.
     set flyweight [::xowiki::formfield::$repeat_type new \
 		       -name [my name] \
 		       -locale [my locale] \
@@ -3417,6 +3433,7 @@ namespace eval ::xowiki::formfield {
 			   lappend atts rep 1
 			   return [list $tag $atts $children]
 		       }]
+
 
     set rep 0
     foreach v [my value] {
@@ -3455,6 +3472,7 @@ namespace eval ::xowiki::formfield {
     if { ![my disabled] } {
       $flyweight value ""
       set spec [$flyweight get_dom_spec]
+      #my log ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> [$flyweight info class] spec=$spec [$flyweight serialize] --- [my serialize]"
       html::a -spec $spec -href "#" -onclick "return wu.repeatable.addChoice(this);" { html::t "add another" }
     }
   }
