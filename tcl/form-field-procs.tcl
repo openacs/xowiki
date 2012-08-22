@@ -114,7 +114,7 @@ namespace eval ::xowiki::formfield {
   # application classes
   FormField instproc initialize {} {next}
 
-  FormField instproc get_dom_spec {} {
+  FormField instproc get_json {} {
       return [util_spec2json [list [my get_spec]]]
   }
 
@@ -3471,8 +3471,7 @@ namespace eval ::xowiki::formfield {
 
     if { ![my disabled] } {
       $flyweight value ""
-      set spec [$flyweight get_dom_spec]
-      #my log ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> [$flyweight info class] spec=$spec [$flyweight serialize] --- [my serialize]"
+      set spec [$flyweight get_json]
       html::a -spec $spec -href "#" -onclick "return wu.repeatable.addChoice(this);" { html::t "add another" }
     }
   }
