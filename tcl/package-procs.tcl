@@ -262,9 +262,13 @@ namespace eval ::xowiki {
       set fo [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
       if { $context_url ne {} } {
        	    set context_name [lindex $parts $index]
-       	    if { [$fo name] != $context_name } {
-
+	    #my msg "context_url $context_url, parts $parts, context_name $context_name"
+       	    if { [$fo name] ne $context_name } {
        		set context_folder [my get_page_from_name -assume_folder true -name $context_name]
+	        if {$context_folder eq ""} {
+		  my msg "my get_page_from_name -assume_folder true -name $context_name ==> '$context_folder'"
+		  my msg "Cannot lookup name in package folder"
+		}
        		#my msg "context_name [$context_folder serialize]"
        		set context_id [$context_folder item_id]
        		set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
@@ -276,7 +280,7 @@ namespace eval ::xowiki {
       #set path $stripped_name/$path
       set path [$fo name]/$path
       if {[my folder_id] == [$fo parent_id]} break
-      if {[$fo parent_id]<0} break
+      if {[$fo parent_id] < 0} break
       set parent_id [$fo parent_id]
     }
     return $path
