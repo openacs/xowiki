@@ -3153,32 +3153,31 @@ namespace eval ::xowiki {
     return $result
   }
 
-  FormPage proc get_super_folders {package folder_id {acc ""}} {
-
+  FormPage proc get_super_folders {package_id folder_id {aggregated_folder_refs ""}} {
+    #
+    # Compute the set of folder_refs configured in the referenced
+    # folders.  Get first the folder_refs configured in the actual
+    # folder, which are not yet in aggregated_folder_refs.
+    #
+    set additional_folder_refs ""    
     set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
-    set package_id [$folder package_id]
-    
-    set inherit_folders [$package_id get_parameter inherit_folders]
     if {[$folder istype ::xowiki::FormPage]} {
-      set inherit_folders [$folder property inherit_folders $inherit_folders]
+      foreach ref [$folder property inherit_folders] {
+	if {$ref ni $aggregated_folder_refs} {lappend additional_folder_refs $ref}
+      }
     }
-
-    # new_folders contains everything 
-    # in the second list, i.e. inherit_folders,
-    # that wasn't in the first, i.e. acc
-    lassign [util_intersect3 $acc $inherit_folders] _dummy1_ _dummy2_ new_folders
-    lappend acc {*}$new_folders
-    #set acc [concat $acc $new_folders]
-    while { $new_folders ne {} } {
-      set item_ref [lindex $new_folders 0]
-      set new_folders [lrange $new_folders 1 end]
-      set page [$package get_page_from_item_ref $item_ref]
-      set inherit_folders [FormPage get_super_folders $package [$page item_id] $acc]
-      lassign [util_intersect3 $acc $inherit_folders] _dummy1_ _dummy2_ new_new_folders
-      lappend acc {*}$new_new_folders
-      set new_folders [concat $new_folders $new_new_folders]
+    #
+    # Process the computed additional folder refs recursively to obtain
+    # the transitive set of configured item_refs (pointing to folders).
+    #
+    lappend aggregated_folder_refs {*}$additional_folder_refs
+    foreach item_ref $additional_folder_refs {
+      set page [$package_id get_page_from_item_ref $item_ref]
+      if {$page eq ""} {error "configured inherited folder $item_ref cannot be resolved"}
+      set aggregated_folder_refs \
+	  [FormPage get_super_folders $package_id [$page item_id] $aggregated_folder_refs]
     }
-    return $acc
+    return $aggregated_folder_refs
   }
 
   FormPage proc get_all_children {
