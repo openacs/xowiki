@@ -239,7 +239,7 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc folder_path {{-parent_id ""} {-context_url ""}} {
+  Package instproc folder_path {{-parent_id ""} {-context_url ""} {-folder_ids ""}} {
     #
     # handle different parent_ids
     #
@@ -253,27 +253,44 @@ namespace eval ::xowiki {
     #
     #
     if { $context_url ne {} } {
-     	set parts [lreverse [split $context_url {/}]]
-     	set index 0
+      set parts [split $context_url /]
+      set index [expr {[llength $parts]-1}]
+    }
+
+    if { $context_url ne {} } {
+      set context_id [my get_parent_and_name -path $context_url -lang "" -parent_id $parent_id parent local_name]
+      #my msg "context_url $context_url folder_ids $folder_ids context_id $context_id"
     }
 
     set path ""
     while {1} {
       set fo [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
       if { $context_url ne {} } {
-       	    set context_name [lindex $parts $index]
-	    #my msg "context_url $context_url, parts $parts, context_name $context_name"
-       	    if { [$fo name] ne $context_name } {
-       		set context_folder [my get_page_from_name -assume_folder true -name $context_name]
-	        if {$context_folder eq ""} {
-		  my msg "my get_page_from_name -assume_folder true -name $context_name ==> '$context_folder'"
-		  my msg "Cannot lookup name in package folder"
-		}
-       		#my msg "context_name [$context_folder serialize]"
-       		set context_id [$context_folder item_id]
-       		set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
-       	    }
-       	    incr index
+	set context_name [lindex $parts $index]
+	if {1 && $parent_id in $folder_ids} {
+	  #my msg "---- parent $parent_id in $folder_ids"
+	  set context_id [$context_id item_id]
+	  set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
+	} else {
+	  #my msg "context_url $context_url, parts $parts, context_name $context_name // parts $parts // index $index / folder $fo"
+	  
+	  if { [$fo name] ne $context_name } {
+	    set context_folder [my get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name]
+	    if {$context_folder eq ""} {
+	      my msg "my get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name ==> EMPTY"
+	      my msg "Cannot lookup '$context_name' in package folder $parent_id [$parent_id name]"
+	      
+	      set new_path [join [lrange $parts 0 $index] /]
+	      set p2 [my get_parent_and_name -path [join [lrange $parts 0 $index] /] -lang "" -parent_id $parent_id parent local_name]
+	      my msg "p2=$p2 new_path=$new_path '$local_name' ex=[nsf::object::exists $p2] [$p2 name]"
+	      
+	    }
+	    my msg "context_name [$context_folder serialize]"
+	    set context_id [$context_folder item_id]
+	    set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
+	  }
+	  incr index -1
+	}
       }
 
       #my get_lang_and_name -name [$fo name] lang stripped_name
@@ -316,6 +333,7 @@ namespace eval ::xowiki {
     {-parent_id ""}
     {-download false} 
     {-context_url ""}
+    {-folder_ids ""}
     name 
   } {
     Generate a (minimal) link to a wiki page with the specified name.
@@ -357,7 +375,7 @@ namespace eval ::xowiki {
     }
 
     #set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
-    set folder [my folder_path -parent_id $parent_id -context_url $context_url]
+    set folder [my folder_path -parent_id $parent_id -context_url $context_url -folder_ids $folder_ids]
     #my msg "folder_path = $folder, default_lang [my default_language]"
 
    # if {$folder ne ""} {

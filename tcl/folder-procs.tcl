@@ -537,20 +537,21 @@ namespace eval ::xowiki::includelet {
 		     -folder_id $current_folder_id \
 		     -object_types [my types_to_show] \
 		     -extra_where_clause $extra_where_clause]
-
-
+      
       set package_id [::xo::cc package_id]
       set pkg ::$package_id
       set url [::xo::cc url]
       $pkg get_lang_and_name -default_lang "" -name [$current_folder name] lang name
       set folder [$pkg folder_path -parent_id [$current_folder parent_id]]
+      set folder_ids [$items set folder_ids]
 
       foreach c [$items children] {
 	set name [$c name]
 	set page_link [::$package_id pretty_link \
 			   -parent_id $logical_folder_id \
-			   -context_url $url $name]
-
+			   -context_url $url \
+			   -folder_ids $folder_ids \
+			   $name]
 	array set icon [$c render_icon]
 	
 	if {[catch {set prettyName [$c pretty_name]} errorMsg]} {

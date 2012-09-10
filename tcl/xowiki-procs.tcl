@@ -3192,6 +3192,7 @@ namespace eval ::xowiki {
 
     set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
     set result [::xo::OrderedComposite new -destroy_on_cleanup]
+    $result set folder_ids ""
 
     set list_of_folders [list $folder_id]
     set inherit_folders [FormPage get_super_folders $package_id $folder_id]
@@ -3205,6 +3206,8 @@ namespace eval ::xowiki {
 	lappend list_of_folders [$folder item_id]
       }
     }
+
+    $result set folder_ids $list_of_folders
 
     foreach folder_id $list_of_folders {
       foreach object_type $object_types {
