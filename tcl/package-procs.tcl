@@ -968,13 +968,18 @@ namespace eval ::xowiki {
       }
     }
 
-    # TODO
-    #my log ">>>>>>>> HERE HERE item_id=$item_id"
     if { $item_id == 0 } {
-	set item_id [my get_page_from_super -folder_id $parent_id $stripped_name]
-	if { $item_id != 0 } {
-	    set name $stripped_name
-	}
+        set item_id [my get_page_from_super -folder_id $parent_id $stripped_name]
+        if { $item_id == 0 } {
+            set item_id [my get_page_from_super -folder_id $parent_id ${lang}:$stripped_name]
+            if { $item_id == 0 } {
+                set item_id [my get_page_from_super -folder_id $parent_id file:$stripped_name]
+            }
+        }
+	
+        if { $item_id != 0 } {
+            set name $stripped_name
+        }
     }
 
     if {$item_id == 0} {
