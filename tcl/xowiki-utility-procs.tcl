@@ -680,4 +680,89 @@ proc util_tdom2list {script {rootTag "div"}} {
   return [$root asList]
 }
 
+proc util_compile_template {textVar {depth 0}} {
+
+  upvar $textVar text
+
+  if { $text eq {} } return
+
+  set first [string first {<tpl} $text]
+  if { -1 != $first } {
+    set last [string last {</tpl>} $text]
+
+    if { -1 == $last } { 
+      error "unmatched tpl tag" 
+    }
+
+    set first_gt [string first {>} $text [expr {1+$first}]]
+    set body_start [expr {1 + $first_gt}]
+    set body_end [expr { $last - 1}]
+    if { $body_start > $body_end } { 
+      error "something wrong folks: missing '>' after '<tpl'"
+    }
+
+    set temp [string range $text $first $first_gt]
+    regexp -- {for="([a-zA-Z_][a-zA-Z0-9]+)"} $temp _dummy_ varname
+
+    set adp ""
+    if { 0 == $depth } { append adp "<%" }
+    incr depth
+    set before_text [string range $text 0 [expr {$first - 1}]]
+    set after_text [string range $text [expr {6+$last}] end] ;# length("</tpl>")=>6
+    set text [string range $text $body_start $body_end]
+    append adp [util_compile_template before_text $depth]
+    append adp "\n foreach o${depth} \$$varname \{ "
+    append adp [util_compile_template text $depth]
+    append adp "\}"
+    incr depth -1
+    if { 0 == $depth } { append adp "%>" }
+
+    append adp [util_compile_template after_text $depth]
+
+  } else {
+    set adp ""
+    set re {\{([a-zA-Z_][a-zA-Z_0-9\.]*)\}}
+    set start 0
+    set text [string map {"%7B" "\{" "%7D" "\}"} $text]
+    while {[regexp -start $start -indices -- $re $text match submatch]} {
+      lassign $submatch subStart subEnd
+      lassign $match matchStart matchEnd
+      incr matchStart -1
+      incr matchEnd
+
+      set before_text [string range $text $start $matchStart]
+      set name [string range $text $subStart $subEnd]
+      if { $before_text ne {} } {
+	append adp "\n ns_adp_puts [list -nonewline $before_text]"
+      }
+      append adp "\n ns_adp_puts -nonewline \[\$o${depth} set $name\]"
+
+      set start $matchEnd
+    }
+    set after_text [string range $text $start end]
+    if { $after_text ne {} } { 
+      append adp "\n ns_adp_puts -nonewline [list $after_text]"
+    }
+
+  }
+
+
+  return $adp
+
+}
+
+proc util_gen_doc_preview {infile outfile {dpi 120}} {
+  set GS [util_coalesce [util::which gs] /usr/bin/gs]
+  set cmd "${GS} -q -dQUIET -dSAFER -dPARANOIDSAFE -dBATCH -dNOPAUSE -dNOPROMPT -dAlignToPixels=0 -dGridFitTT=0 \"-sDEVICE=png16m\" -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -r${dpi} -dFirstPage=1 -dLastPage=1 \"-sOutputFile=${outfile}\" \"${infile}\""
+  exec -- /bin/sh -c "${cmd} || exit 0" 2> /dev/null
+}
+
+
+proc util_scale_image {geometry infile outfile} {
+  set im_convert [util_coalesce [util::which convert] /usr/bin/convert]
+  set cmd "${im_convert} -quiet -strip -scale $geometry  ${infile} ${outfile}"
+  ns_log notice "scale_image cmd=$cmd"
+  exec -- /bin/sh -c "$cmd || exit 0" 2> /dev/null
+}
+
 ::xo::library source_dependent

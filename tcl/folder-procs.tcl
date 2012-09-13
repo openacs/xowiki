@@ -456,6 +456,7 @@ namespace eval ::xowiki::includelet {
     child-resources instproc render {} {
       my get_parameters
 
+      set package_id [::xo::cc package_id]
       set current_folder [my set __including_page]
 
       if {$parent eq ".."} {
@@ -511,6 +512,8 @@ namespace eval ::xowiki::includelet {
 		   # http://developer.yahoo.com/yui/examples/datatable/dt_skinning.html
 		   #
 		   HiddenField ID
+		   HiddenField item_id
+		   HiddenField revision_id
 		   AnchorField edit -CSSclass edit-item-button -label "" \
 		       -hide $::hidden(edit) \
 		       -html {style "padding: 0px;"}
@@ -539,6 +542,7 @@ namespace eval ::xowiki::includelet {
 		     -extra_where_clause $extra_where_clause]
       
       set package_id [::xo::cc package_id]
+
       set pkg ::$package_id
       set url [::xo::cc url]
       $pkg get_lang_and_name -default_lang "" -name [$current_folder name] lang name
@@ -568,6 +572,8 @@ namespace eval ::xowiki::includelet {
 	
 	$t add \
 	    -ID [$c name] \
+	    -item_id [$c item_id] \
+	    -revision_id [$c revision_id] \
 	    -name $prettyName \
 	    -name.href [export_vars -base $page_link {template_file html-content}] \
 	    -name.title [$c set title] \
@@ -584,16 +590,34 @@ namespace eval ::xowiki::includelet {
 
       foreach {att order} [split $orderby ,] break
       $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-      set resources_list "[$t asHTML]"
-      
-      set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
+
+
+      set template_ref [util_coalesce \
+			    [$current_folder property template] \
+			    [$current_folder get_parameter template]]
+
+      # set template_ref "//xowiki/icon-view.tpl"
+      # set template_ref "//xowiki/thumbnail-view.tpl"
+
+      if { $template_ref ne {} } {
+	set template [$package_id get_page_from_item_ref $template_ref]
+	set view [::xo::DataView new -store $t -template $template]
+	set html [$view asHTML]
+      } else {
+	set html [$t asHTML]
+      }
+
+      set viewers [util_coalesce \
+		       [$current_folder property viewers] \
+		       [$current_folder get_parameter viewers]]
+
       set viewer_links ""
       foreach v $viewers {
 	set wf_link "${v}?p.folder=[${current_folder} name]"
 	append wf_link "&m=create-or-use"
 	append viewer_links [subst -nocommands -nobackslashes {<li><a href="$wf_link">view with $v</a></li>}]
       }
-      return "<ul>$viewer_links</ul> [$t asHTML]"
+      return "<ul>$viewer_links</ul> $html"
 
     }
 }
@@ -755,6 +779,7 @@ namespace eval ::YUI {
         }
     }
 
+
     Class DataTable \
         -superclass ::xo::Table \
         -parameter {
@@ -784,6 +809,32 @@ namespace eval ::YUI {
          return $slots
        }
 }
+
+namespace eval ::xo {
+
+    Class DataView \
+	-parameter {
+	  {store ""}
+	  {template ""}
+	  {adp ""}
+	}
+
+    DataView instproc init {} {
+      my instvar template adp
+
+      set text [$template set text]
+      set adp {<%ns_adp_bind_args rows%>}
+      append adp [util_compile_template text]
+
+    }
+
+    DataView instproc asHTML {} {
+      my instvar adp store
+      return [ns_adp_parse $adp [$store children]]
+    }
+
+}
+
 
 # TODO Allow renderers from other namespaces in 30-widget-procs
 

@@ -167,6 +167,7 @@ namespace eval ::xowiki {
 	my log "Error: Could not resolve parameter folder page '$item_ref' of FormPage [self]."
       } else {
 	set item_id [::xo::db::CrClass lookup -name $name -parent_id [$folder item_id]]
+	  my msg "name=$name item_ref=$item_ref folder=$folder item_id=$item_id folder_id=[$folder item_id]"
 	if { $item_id != 0 } {
 	  return $item_id
 	}
@@ -968,10 +969,15 @@ namespace eval ::xowiki {
       }
     }
 
-    # TODO
-    #my log ">>>>>>>> HERE HERE item_id=$item_id"
     if { $item_id == 0 } {
 	set item_id [my get_page_from_super -folder_id $parent_id $stripped_name]
+	if { $item_id == 0 } {
+	    set item_id [my get_page_from_super -folder_id $parent_id ${lang}:$stripped_name]
+	    if { $item_id == 0 } {
+		set item_id [my get_page_from_super -folder_id $parent_id file:$stripped_name]
+	    }
+	}
+
 	if { $item_id != 0 } {
 	    set name $stripped_name
 	}
@@ -1321,7 +1327,7 @@ namespace eval ::xowiki {
 			 -parent_id [my folder_id] \
 			 parent (stripped_name)]
 
-    #my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
+    my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
       set (method) ""
@@ -1343,9 +1349,13 @@ namespace eval ::xowiki {
 	::xo::cc set actual_query $tag_kind=$tag&summary=$summary
       }
     }
+
     array set "" [my prefixed_lookup -parent_id $(parent_id) \
-		      -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
-    #my msg "prefixed_lookup '$(stripped_name)' returns [array get {}]"
+		      -default_lang $default_lang \
+		      -lang $(lang) \
+		      -stripped_name $(stripped_name)]
+
+    my msg "prefixed_lookup '$(stripped_name)' returns [array get {}]"
 
     if {$(item_id) == 0} {
       # check link (todo should happen in package->lookup?)
