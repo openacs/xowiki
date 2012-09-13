@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<message_catalog package_key="xowiki" locale="es_ES" charset="ISO-8859-1">
+
+  <msg key="admin">Administrar</msg>
+  <msg key="admin_title">Administrar este paquete</msg>
+  <msg key="back">Volver</msg>
+  <msg key="categories">Categorías</msg>
+  <msg key="content">Contenido</msg>
+  <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
+  <msg key="delete">Borrar</msg>
+  <msg key="delete_title">Borrar esta página</msg>
+  <msg key="details">Detalles</msg>
+  <msg key="edit">Editar</msg>
+  <msg key="edit_link">editar tags</msg>
+  <msg key="edit_title">Editar esta página</msg>
+  <msg key="entries_using_form">Entradas para la forma %form%</msg>
+  <msg key="Form-form">Forme</msg>
+  <msg key="index">Índice</msg>
+  <msg key="new_page">Nueva Página</msg>
+  <msg key="news-source">Origen</msg>
+  <msg key="notifications">Notificaciones</msg>
+  <msg key="Page-creator">Autor</msg>
+  <msg key="Page-description">Descripción</msg>
+  <msg key="Page-name">Nombre</msg>
+  <msg key="Page-nls_language">Idioma</msg>
+  <msg key="Page-page_order">Sección</msg>
+  <msg key="Page-publish_date">Fecha de publicación</msg>
+  <msg key="Page-text">Contenido</msg>
+  <msg key="Page-title">Título de la Página</msg>
+  <msg key="page_type">Tipo de Página</msg>
+  <msg key="PageInstance-instance_attributes">Cualidad</msg>
+  <msg key="PageInstance-page_template">Plantilla de la página</msg>
+  <msg key="PageTemplate-anon_instances">Entradas innomadas</msg>
+  <msg key="PodcastItem-duration">Duración</msg>
+  <msg key="PodcastItem-keywords">Palabras claves</msg>
+  <msg key="PodcastItem-pub_date">Fecha de la publicación</msg>
+  <msg key="PodcastItem-subtitle">Subtítulo</msg>
+  <msg key="popular_tags_label">Tags populares</msg>
+  <msg key="popular_tags_link">tags populares</msg>
+  <msg key="portlet_title_exists_error_long">Por favor, cambie el nombre de los portlets existentes ó el título de la página del xowiki que se quiere añadir al portal.</msg>
+  <msg key="portlet_title_exists_error_short">Un portlet cuyo título es '%page_title%' ya existe en este portal.</msg>
+  <msg key="publish_status">Publicado</msg>
+  <msg key="references_label">Referencias a esta Página:</msg>
+  <msg key="revisions">Revisiones</msg>
+  <msg key="search">Buscar</msg>
+  <msg key="search_title">Buscar páginas de este paquete</msg>
+  <msg key="title">Título</msg>
+  <msg key="title_of_event">Título</msg>
+  <msg key="view">Vista</msg>
+  <msg key="view_title">Ver esta página</msg>
+  <msg key="weblog-more">más...</msg>
+  <msg key="your_tags_label">Tus tags</msg>
+</message_catalog>

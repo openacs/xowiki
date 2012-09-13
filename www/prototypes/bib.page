@@ -1,0 +1,103 @@
+# -*- tcl -*-
+# $Id$
+::xowiki::Object new -title "Bibliography Includelet" -text {
+  #
+  # A bibliography interface based on weblog.
+  # Bibliography entries are typically selected via 
+  # entries_of (PageInstances, FormInstances). 
+  #
+  # Gustaf Neumann fecit, May 2007
+  #
+  my initialize -parameter {
+    {-summary:boolean 0}
+    {-date ""}
+    {-category_id ""}
+    {-tag ""}
+    {-ptag ""}
+    {-entries_of ""}
+  }
+
+  #
+  # The following definition is the default rendering per 
+  # weblog entry. This is executed in the context of every displayed page.
+  #
+  Class create EntryRenderer 
+  EntryRenderer instproc render {} {
+    append content "<LI>[next]</LI>\n"
+  }
+  EntryRenderer instproc by_date {} {
+    if {[my exists instance_attributes]} {
+      array set ia [my set instance_attributes]
+      return "$ia(year)-[format %2d $ia(month)]"
+    }
+  }
+
+  #
+  # The following definition is the renderer for the full weblog.
+  # This is executed in the context of the whole weblog object
+  #
+  Class create WeblogRenderer -instproc render {} {
+    my instvar filter_msg link name prev_page_link next_page_link 
+
+    set prev ""
+    set next ""
+    
+    if {[info exists prev_page_link]} {
+      set prev "<a href='$prev_page_link'>\
+        <img border=0 src='/resources/acs-subsite/left.gif' \
+             alt='Previous Page' style='float: left;  top: 0px;'></a>"
+    }
+    if {[info exists next_page_link]} {
+      set next "<a href='$next_page_link'>\
+        <img border=0 src='/resources/acs-subsite/right.gif' \
+             alt='Next Page' style='float: left;  top: 0px;'></a>"
+    }
+    return "<UL>[next]</UL> $prev $next"
+  }
+  
+  my proc content {} {
+    my get_parameters
+    set page [my info parent]
+
+    if {$entries_of eq ""} {return ""}
+
+    if {[$page exists __including_page]} {
+      set i [$page set __including_page]
+      set exclude_item_ids [$i item_id]
+      $i set render_adp 0  ;# no double substitutions
+      #my log "--W including page $i"
+    } else {
+      #my log "--W NO including page"
+      set exclude_item_ids [$page item_id]
+      $page set __no_footer 1
+    }
+
+    # on the current page, an edit-new should not create an ::xowiki::object
+    ::xo::cc set_parameter object_type ::xowiki::Page
+
+    # use the custom renderers defined above
+    set renderer       [self]::WeblogRenderer
+    set entry_renderer [self]::EntryRenderer 
+    
+    set w [::xowiki::Weblog new -destroy_on_cleanup \
+               -package_id $package_id \
+               -summary $summary \
+               -date $date \
+               -category_id $category_id \
+               -tag $tag \
+               -ptag $ptag \
+               -no_footer true \
+               -sort_composite "method,by_date,desc" \
+               -entries_of $entries_of \
+               -exclude_item_ids $exclude_item_ids \
+               -entry_renderer $entry_renderer \
+              ]
+
+    $w mixin add $renderer
+    return [$w render]
+  }
+  
+}
+
+
+

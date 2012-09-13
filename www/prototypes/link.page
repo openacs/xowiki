@@ -1,0 +1,13 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:link \
+    -title "Symbolic Link" \
+    -set anon_instances t \
+    -set text {@link@} \
+    -set form {} \
+    -set form_constraints {
+       link:include
+     }
+
+
+

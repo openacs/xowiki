@@ -1,0 +1,21 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Form new \
+    -set name en:news-item.form \
+    -title "News Item" \
+    -set anon_instances t \
+    -set text {@image_url@ @_text@<BR />@detail_link@} \
+    -set form {{<form> @_title@ @detail_link@ @_text@ @image_url@ @_description@ @_publish_date@ @_nls_language@ @_publish_status@</form>} text/html} \
+    -set form_constraints {
+     _page_order:hidden
+     _creator:hidden
+     _title:text,label=#acs-kernel.common_Title#
+     {detail_link:detail_link,label=#xowiki.news-source#}
+     _publish_date:date
+     image_url:image_url,float=left,width=100px
+     {_publish_status:radio,options={live ready} {draft production},label=#xowiki.publish_status#}
+     {_description:textarea,rows=3,label=#xowiki.news-teaser#}
+    }
+
+
+
