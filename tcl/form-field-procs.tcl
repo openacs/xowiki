@@ -1345,8 +1345,15 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class url -superclass text -parameter {
-    {link_label}
+  Class url -superclass text \
+      -extend_slot validator safe_url \
+      -parameter {
+	{link_label}
+      }
+  url instproc check=safe_url {value} {
+    set regexp {^(https|http|ftp)://([a-zA-Z0-9_\-\.]+(:[0-9]+)?)/[a-zA-Z0-9_.%/#?=&~-]+$}
+    if {[regexp -nocase $expr $value]} {return 1}
+    return 0
   }
   url instproc initialize {} {
     next
