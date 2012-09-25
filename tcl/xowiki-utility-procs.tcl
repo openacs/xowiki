@@ -54,6 +54,22 @@ namespace eval ::xowiki {
     return $text
   }
 
+  #
+  #
+  # Helper for virus checks
+  #
+  ::xotcl::Object create virus
+  virus proc check {fn} {
+    if {[[::xo::cc package_id] get_parameter clamav 1]
+        && [info command ::util::which] ne ""} { 
+      set clamscanCmd [::util::which clamscan]
+      if {$clamscanCmd ne "" && [file readable $fn]} {
+	if {[catch {exec $clamscanCmd $fn }]} {return 1}
+      }
+    }
+    return 0
+  }
+
   proc copy_parameter {from to} {
     set parameter_obj [::xo::parameter get_parameter_object \
                            -parameter_name $from -package_key xowiki]

@@ -738,10 +738,20 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class create file -superclass FormField -parameter {
-    {size 40}
-    {sticky false}
-    link_label
+  Class create file -superclass FormField \
+      -extend_slot validator virus \
+      -parameter {
+	{size 40}
+	{viruscheck true}
+	{sticky false}
+	link_label
+      }
+  file instproc check=virus {value} {
+    if {[my viruscheck] && [::xowiki::virus check [my set tmpfile]]} {
+      #util_user_message -message "uploaded file contains a virus; upload rejected"
+      return 0
+    }
+    return 1
   }
   file instproc tmpfile {value}      {my set [self proc] $value}
   file instproc content-type {value} {my set [self proc] $value}
@@ -792,6 +802,7 @@ namespace eval ::xowiki::formfield {
   }
 
   file instproc convert_to_internal {} {
+    my msg "convert_to_internal"
     my instvar value
 
     set v [my get_value_from_form]

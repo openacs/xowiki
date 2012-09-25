@@ -168,6 +168,11 @@ namespace eval ::xowiki {
     #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
     $form instvar data
     $form get_uploaded_file
+    set data [$form set data]
+    if {[virus check [$data set import_file]]} {
+      util_user_message -message "uploaded file contains a virus; upload rejected"
+      return 0
+    }
     upvar title title
     if {$title eq ""} {set title [$data set upload_file]}
     # $form log "--F validate_file returns [$data exists import_file]"
@@ -493,7 +498,7 @@ namespace eval ::xowiki {
     set upload_file [$data form_parameter upload_file]
     # my log "--F... upload_file = $upload_file"
     if {$upload_file ne "" && $upload_file ne "{}"} {
-      $data set upload_file  $upload_file
+      $data set upload_file $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
       set mime_type [$data form_parameter upload_file.content-type]
       if {[db_0or1row [my qn check_mimetype] {select 1 from cr_mime_types 
