@@ -734,6 +734,7 @@ namespace eval ::xowiki {
     csv-dump 1 download 1 list 1
   }
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
+    if {![regexp {^[a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
     set page_or_package [my resolve_page [my set object] method]
     #my log "--r resolve_page => $page_or_package"
     if {$page_or_package ne ""} {
@@ -785,6 +786,7 @@ namespace eval ::xowiki {
 
   Package instproc get_page_from_item_or_revision_id {item_id} {
     set revision_id [my query_parameter revision_id 0]
+    if {![string is integer -strict $revision_id]} { return [my error_msg "No valid revision_id provided!"] }
     set [expr {$revision_id ? "item_id" : "revision_id"}] 0
     #my log "--instantiate item_id $item_id revision_id $revision_id"
     return [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
@@ -1340,6 +1342,8 @@ namespace eval ::xowiki {
 	set tag $stripped_url
 	set summary [::xo::cc query_parameter summary 0]
 	set popular [::xo::cc query_parameter popular 0]
+	if {[string is boolean -strict $summary]} {error "summary must be boolean"}
+	if {[string is boolean -strict $popular]} {error "popular must be boolean"}
 	set tag_kind [expr {$popular ? "ptag" :"tag"}]
 	set weblog_page [my get_parameter weblog_page]
 	my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
@@ -1958,6 +1962,7 @@ namespace eval ::xowiki {
     set autoname [my get_parameter autoname 0]
     set parent_id [$id query_parameter parent_id ""]
     if {$parent_id eq ""} {set parent_id [$id form_parameter folder_id $folder_id]}
+    if {![string is integer -strict $parent_id]} {error "parent_id must be integer"}
     set page [$object_type new -volatile -parent_id $parent_id -package_id $id]
     #my ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"
     if {$object_type eq "::xowiki::PageInstance"} {
@@ -1973,6 +1978,7 @@ namespace eval ::xowiki {
 
     set source_item_id [$id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
+      if {![string is integer -strict $source_item_id]} {error "source_item_id must be integer"}
       set source [$object_type get_instance_from_db -item_id $source_item_id]
       $page copy_content_vars -from_object $source
       set name "[::xowiki::autoname new -parent_id $source_item_id -name [$source name]]"
@@ -2073,6 +2079,7 @@ namespace eval ::xowiki {
     #
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
+      if {![string is integer -strict $item_id]} { return [my error_msg "No valid item_id provided!"] }
       #my log "--D item_id from query parameter $item_id"
     }
     #

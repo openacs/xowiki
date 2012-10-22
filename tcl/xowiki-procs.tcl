@@ -1268,6 +1268,7 @@ namespace eval ::xowiki {
     if {[catch {set html [$includelet render]} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       set page_name [$includelet name]
+      set ::errorInfo [::xowiki::Includelet html_encode $::errorInfo]
       set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
     }
     #my log "--include includelet returns $html"
