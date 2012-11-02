@@ -4440,14 +4440,14 @@ namespace eval ::xowiki::includelet {
       }
 
   flowplayer instproc include_head_entries {} {
-    ::xo::Page requireJS  "/resources/xowiki/flowplayer/example/flowplayer-3.1.4.min.js"
+    ::xo::Page requireJS  "/resources/xowiki/flowplayer/example/flowplayer-3.2.6.min.js"
   }
   
   flowplayer instproc render {} {
     my get_parameters
     return "<a href='$mp4' style='display:block;width:425px;height:300px;' id='player'> </a>
     <script type='text/javascript'>
- flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.1.5.swf', {
+ flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.2.7.swf', {
 		
 	// this will enable pseudostreaming support 
 	plugins: { 
