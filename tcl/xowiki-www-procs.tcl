@@ -430,16 +430,25 @@ namespace eval ::xowiki {
   # externally callable method: download
   #
   File instproc download {} {
-    my instvar mime_type package_id
-    $package_id set mime_type $mime_type
+    my instvar mime_type
+    #
+    # determine the delivery method
+    #
     set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] && 
                                [info command ::bgdelivery] ne ""}]
+    #
+    # The package where the object is coming from might be different
+    # from the package on which it is delivered. Use the latter one
+    # with the proper delivery information.
+    set package_id [::xo::cc package_id]
+    $package_id set mime_type $mime_type
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
     if {[my exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [my query_parameter filename]]
       ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"$fn\""
     }
+
     #my log "--F FILE=[my full_file_name] // $mime_type"
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match image/* $mime_type] && $geometry ne ""} {
