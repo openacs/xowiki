@@ -182,18 +182,16 @@ namespace eval ::xowiki {
 
       # try without a prefix
       set p [my lookup -name $parent -parent_id $parent_id]
-
       if {$p == 0} {
 	  # check if page is inherited
 	  set p2 [my get_page_from_super -folder_id $parent_id $parent]
 	  if { $p2 != 0 } {
 	      set p $p2
 	  }
-
       }
 
       if {$p == 0} {
-        # pages are stored with a lang prefix
+        # content pages are stored with a lang prefix
         set p [my lookup -name ${lang}:$parent -parent_id $parent_id]
         #my log "check with prefix '${lang}:$parent' returned $p"
 
@@ -263,7 +261,9 @@ namespace eval ::xowiki {
     }
 
     set path ""
+    set ids {}
     while {1} {
+      lappend ids $parent_id
       set fo [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
       if { $context_url ne {} } {
 	set context_name [lindex $parts $index]
@@ -295,11 +295,36 @@ namespace eval ::xowiki {
 
       #my get_lang_and_name -name [$fo name] lang stripped_name
       #set path $stripped_name/$path
-      set path [$fo name]/$path
-      if {[my folder_id] == [$fo parent_id]} break
+
       if {[$fo parent_id] < 0} break
+      
+      if {[$fo is_link_page]} {
+	set pid [$fo package_id]
+	foreach id $ids {
+	  if {[$id package_id] ne $pid} {
+	    #my msg "SYMLINK ++++ have to fix package_id of $id from [$id package_id] to $pid"
+	    $id set_resolve_context -package_id $pid -parent_id [$id parent_id]
+	  }
+	}
+	set target [$fo get_target_from_link_page]
+	set target_name [$target name]
+	#my msg "----- $path //  target $target [$target name] package_id [$target package_id] path '$path'"
+	regsub "^$target_name/" $path "" path
+	#my msg "----> $path =>  [$fo name]/$path"
+      }
+
+      # prepend always the actual name
+      set path [$fo name]/$path
+      
+      if {[my folder_id] == [$fo parent_id]} {
+	#my msg ".... my folder_id [my folder_id] == $fo parentid"
+	break
+      }
+
       set parent_id [$fo parent_id]
     }
+
+    #my msg ====$path
     return $path
   }
     
@@ -374,14 +399,16 @@ namespace eval ::xowiki {
       set encoded_name [::xowiki::utility urlencode $name]
     }
 
-    #set encoded_name [string map [list %2d - %5f _ %2e .] [ns_urlencode $name]]
-    set folder [my folder_path -parent_id $parent_id -context_url $context_url -folder_ids $folder_ids]
-    #my msg "folder_path = $folder, default_lang [my default_language]"
+    set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
+    #my msg "folder_path = $folder, -parent_id $parent_id -folder_ids $folder_ids // default_lang [my default_language]"
 
-   # if {$folder ne ""} {
-   #   # if folder has a different language than the content, we have to provide a prefix....
-   #   regexp {^(..):} $folder _ default_lang
-   # }
+    set pkg [$parent_id package_id]
+    set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
+
+    # if {$folder ne ""} {
+    #   # if folder has a different language than the content, we have to provide a prefix....
+    #   regexp {^(..):} $folder _ default_lang
+    # }
 
     #my log "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor download=$download"
     #my msg folder=$folder,lang=$lang,default_lang=$default_lang
@@ -839,10 +866,10 @@ namespace eval ::xowiki {
       set object [$id get_parameter index_page "index"]
       #my log "--o object is now '$object'"
     }
+
     #
     # second, resolve object level
     #
-    #my msg "call item_info_from url"
     array set "" [my item_info_from_url -with_package_prefix false -default_lang $lang $object]
 
     if {$(item_id) ne 0} {
@@ -1023,13 +1050,20 @@ namespace eval ::xowiki {
       set p [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
       if {[$p istype ::xowiki::FormPage] && [$p is_link_page] && [$p is_folder_page]} {
 	set target [$p get_target_from_link_page]
-	#my log "LINK LOOKUP from target-package [$target package_id] source package $(package_id)"
-	return [[$target package_id] lookup \
-		    -use_package_path $use_package_path \
-		    -use_site_wide_pages $use_site_wide_pages \
-		    -default_lang $default_lang \
-		    -name $name \
-		    -parent_id [$target item_id]]
+	set target_package_id [$target package_id]
+	#my msg "SYMLINK LOOKUP from target-package $target_package_id source package $(package_id)"
+	set target_item_id [$target_package_id lookup \
+				-use_package_path $use_package_path \
+				-use_site_wide_pages $use_site_wide_pages \
+				-default_lang $default_lang \
+				-name $name \
+				-parent_id [$target item_id]]
+	if {$target_item_id != 0} {
+	  #my msg "SYMLINK FIX $target_item_id set_resolve_context -package_id [my id] -parent_id $parent_id"
+	  ::xo::db::CrClass get_instance_from_db -item_id $target_item_id
+	  $target_item_id set_resolve_context -package_id [my id] -parent_id $parent_id
+	}
+	return $target_item_id
       }
     }
 
@@ -1327,7 +1361,7 @@ namespace eval ::xowiki {
 			 -lang $(lang) -path $stripped_url \
 			 -parent_id [my folder_id] \
 			 parent (stripped_name)]
-
+    
     #my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
@@ -1357,19 +1391,21 @@ namespace eval ::xowiki {
     #my msg "prefixed_lookup '$(stripped_name)' returns [array get {}]"
 
     if {$(item_id) == 0} {
-      # check link (todo should happen in package->lookup?)
+      # check symlink (todo should happen in package->lookup?)
       ::xo::db::CrClass get_instance_from_db -item_id $(parent_id)
       if {[$(parent_id) is_link_page] && [$(parent_id) is_folder_page]} {
 	set target [$(parent_id) get_target_from_link_page]
-	#$target set_resolve_context -package_id [my id] -parent_id $(parent_id)
-	#my msg "LINK prefixed LOOKUP from target-package [$target package_id] source package [my id]"
+	$target set_resolve_context -package_id [my id] -parent_id $(parent_id)
+	#my msg "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $(parent_id)"
 	array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \
 			  -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
-	#my msg "-lang $(lang) -stripped_name $(stripped_name) => got=$(item_id)"
       }
     }
+
     return [array get ""]
   }
+    
+
 
   Package instproc get_page_from_item_ref {
     {-allow_cross_package_item_refs true} 

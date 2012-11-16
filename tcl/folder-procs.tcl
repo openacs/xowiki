@@ -108,10 +108,9 @@ namespace eval ::xowiki::includelet {
 		where tree_sortkey between '$tree_sortkey' and tree_right('$tree_sortkey') \
 		and object_type = 'content_item')"
 
-	set sub_folders [my collect_folders -package_id [$target package_id] \
+	set sub_folders [my collect_folders -package_id [$target physical_package_id] \
 			     -folder_form_id $folder_form_id -link_form_id $link_form_id \
 			     -subtree_query $extra_where -depth [expr {$depth -1}]]
-
 
 	foreach f $sub_folders {
 
