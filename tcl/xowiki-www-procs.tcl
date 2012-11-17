@@ -1257,18 +1257,21 @@ namespace eval ::xowiki {
       #
       # The following block should not be here, but in the templates
       #
-      set left_side "<div class='folders' style=''>\n
+      set showFolders [$context_package_id get_parameter "MenuBarWithFolder" 1]
+      if {$showFolders} {
+	set left_side "<div class='folders' style=''>\n
 	[my include {folders -style folders}]\n
         </div>"
-       
+	set template {$left_side\n<div class='content-with-folders'>$content</div>}
+      } else {	
+	set template {$content}
+      }
+
       #
       # At this place, the menu should be complete, we can render it
       #
-
-      #set content [$mb render-yui]$content
       append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-yui]
-
-      set content "$left_side\n<div class='content-with-folders'>$content</div>"
+      set content [subst $template]
     }
 
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
