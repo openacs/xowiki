@@ -36,5 +36,5 @@ if {$objects eq ""} {
 # The exporter exports the specified objects together with implicitely
 # needed objects.
 #
-::xowiki::::exporter export [array names items]
+::xowiki::exporter export [array names items]
 
