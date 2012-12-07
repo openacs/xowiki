@@ -1259,19 +1259,15 @@ namespace eval ::xowiki {
       #
       set showFolders [$context_package_id get_parameter "MenuBarWithFolder" 1]
       if {$showFolders} {
-	set left_side "<div class='folders' style=''>\n
-	[my include {folders -style folders}]\n
-        </div>"
-	set template {$left_side\n<div class='content-with-folders'>$content</div>}
-      } else {	
-	set template {$content}
+        set folderhtml [my include {folders -style folders}]
+      } else {
+	set folderhtml ""
       }
 
       #
       # At this place, the menu should be complete, we can render it
       #
       append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-yui]
-      set content [subst $template]
     }
 
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
@@ -1406,6 +1402,7 @@ namespace eval ::xowiki {
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 
           top_includelets page views_data property_body property_doc
+	  folderhtml
         }
       }
     } else {

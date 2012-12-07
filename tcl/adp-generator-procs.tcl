@@ -95,7 +95,11 @@ function get_popular_tags(popular_tags_link, prefix) {
     return "@top_includelets;noquote@\n\
      <if @page_context@ not nil><h1>@title@ (@page_context@)</h1></if>\n\
      <else><h1>@title@</h1></else>\n\
-     @content;noquote@"
+     <if @folderhtml@ not nil> \n\
+       <div class='folders' style=''>@folderhtml;noquote@</div> \n\
+       <div class='content-with-folders'>@content;noquote@</div> \n\
+     </if>
+    <else>@content;noquote@</else>"
   }
 
   ADP_Generator instproc generate {} {
@@ -376,7 +380,7 @@ table.mini-calendar {width: 200px ! important;}
       &="per_object_categories_with_links"
       &="digg_link" &="delicious_link" &="my_yahoo_link"
       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image"
-      &="top_includelets" &="page">
+      &="top_includelets" &="folderhtml" &="page">
 </div>
 </div>
 }]}

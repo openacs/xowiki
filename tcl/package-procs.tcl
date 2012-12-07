@@ -803,11 +803,11 @@ namespace eval ::xowiki {
     set index_link [my make_link -privilege public -link "" $id {} {}]
     set link [my query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
-    set top_includelets ""; set content $error_msg
+    set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
     $id return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg 
-      top_includelets content
+      top_includelets content folderhtml
     }
   }
 
