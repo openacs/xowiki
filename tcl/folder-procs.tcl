@@ -152,7 +152,7 @@ namespace eval ::xowiki::includelet {
     my instvar current_folder current_folder_id folder_form_id link_form_id
     my get_parameters
 
-    set with_links 0
+    set with_links 1
 
     set page [my set __including_page]
     set package_id [::xo::cc package_id]
@@ -407,6 +407,7 @@ namespace eval ::xowiki::includelet {
 	if {[info command ::__xowiki__MenuBar] ne "" 
 	    && [::__xowiki__MenuBar exists submenu_pages(folder)]} {
 	  set owner [::__xowiki__MenuBar set submenu_owner(folder)]
+	  my msg "owner $owner [$owner name], book-mode [$owner set book_mode], pages  [::__xowiki__MenuBar set submenu_pages(folder)]"
 	  $subnode add_pages -full true \
 	      -book_mode [$owner set book_mode] \
 	      -owner $owner \

@@ -4492,7 +4492,7 @@ namespace eval ::xowiki::includelet {
   html-file instproc href {book_mode name} {
     my instvar package_id __including_page
     if {$book_mode} {
-      set href [$package_id url]#[toc anchor $name]
+      set href [::xo::cc url]#[toc anchor $name]
     } else {
       set href [$package_id pretty_link -parent_id [$__including_page parent_id] $name]
     }
