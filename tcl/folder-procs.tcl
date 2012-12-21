@@ -407,7 +407,6 @@ namespace eval ::xowiki::includelet {
 	if {[info command ::__xowiki__MenuBar] ne "" 
 	    && [::__xowiki__MenuBar exists submenu_pages(folder)]} {
 	  set owner [::__xowiki__MenuBar set submenu_owner(folder)]
-	  my msg "owner $owner [$owner name], book-mode [$owner set book_mode], pages  [::__xowiki__MenuBar set submenu_pages(folder)]"
 	  $subnode add_pages -full true \
 	      -book_mode [$owner set book_mode] \
 	      -owner $owner \
