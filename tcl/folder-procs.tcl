@@ -152,10 +152,10 @@ namespace eval ::xowiki::includelet {
     my instvar current_folder current_folder_id folder_form_id link_form_id
     my get_parameters
 
-    set with_links 1
-
     set page [my set __including_page]
     set package_id [::xo::cc package_id]
+    set with_links [$package_id get_parameter "MenuBarSymLinks" 0]
+
     #my ds [::xo::cc serialize]
     set lang [::xo::cc lang]
     #set lang en
