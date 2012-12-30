@@ -2287,7 +2287,7 @@ namespace eval ::xowiki::formfield {
   Class form_page -superclass abstract_page -parameter {
     {form}
     {where}
-    {entry_label title}
+    {entry_label _title}
   }
 
   form_page instproc initialize {} {
@@ -2308,7 +2308,7 @@ namespace eval ::xowiki::formfield {
     foreach form_obj $form_objs {lappend form_object_item_ids [$form_obj item_id]}
   }
   form_page instproc compute_options {} {
-    my instvar form_object_item_ids where package_id
+    my instvar form_object_item_ids where package_id entry_label
     #my msg "[my name] compute_options [my exists form]"
     if {![my exists form]} {
       return
@@ -2350,7 +2350,7 @@ namespace eval ::xowiki::formfield {
         set package_prefix ""
       }
 
-      lappend options [list [$i title] $package_prefix[$i name]]
+      lappend options [list [$i property $entry_label] $package_prefix[$i name]]
     }
     my options $options
   }
