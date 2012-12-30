@@ -2327,6 +2327,7 @@ namespace eval ::xowiki::formfield {
 	lappend from_package_ids [$p id]
       }
     }
+    lappend from_package_ids $package_id
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_object_item_ids \
                    -form_fields [list] \
