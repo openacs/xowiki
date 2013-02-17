@@ -2,14 +2,7 @@
 // $Id$
 // -gustaf neumann   April 2006
 
-function receiver1() {
-  if (http.readyState == 4) {
-    // alert('status code =' + http.status);
-    if (http.status != 200) {
-      alert('Something wrong in HTTP request, status code = ' + http.status);
-    }
-  }
-}
+var http = getHttpObject();
 
 function chatReceiver() {
   if (http.readyState == 4) {
