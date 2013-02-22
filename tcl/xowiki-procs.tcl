@@ -2063,23 +2063,24 @@ namespace eval ::xowiki {
   Page instproc translate {-from -to text} {
     set langpair $from|$to
     set ie UTF8
-    #set url [export_vars -base http://translate.google.com/translate_t {langpair text}]
-    #set r [xo::HttpRequest new -url $url]
-    set r [xo::HttpRequest new -url http://translate.google.com/translate_t \
-	       -post_data [export_vars {langpair text ie}] \
-	       -content_type application/x-www-form-urlencoded]
+    #set r [xo::HttpRequest new -url http://translate.google.com/translate_t \
+               -post_data [export_vars {langpair text ie}] \
+               -content_type application/x-www-form-urlencoded]
+    #my msg url=http://translate.google.com/#$from/$to/$text
+    set r [xo::HttpRequest new -url http://translate.google.com/#$from/$to/$text]
     #my msg status=[$r set status]
     if {[$r set status] eq "finished"} {
       set data [$r set data]
+      #my msg data=$data
       dom parse -simple -html $data doc
       $doc documentElement root
-      set n [$root selectNodes {//div[@id="result_box"]}]
-      #my msg "$text $from=>$to [$n asText]"
-      return [$n asText]
-    } else {
-      util_user_message -message "Could not translate text, \
-	status=[$r set status] reason=[$r set cancel_message]"
+      set n [$root selectNodes {//*[@id="result_box"]}]
+      my msg "$text $from=>$to node '$n'"
+      if {$n ne ""} {return [$n asText]}
     }
+    util_user_message -message "Could not translate text, \
+        status=[$r set status]"
+    return "untranslated: $text"
   }
 
 
