@@ -1146,7 +1146,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         -assume_folder [expr {[incr n] < $nr_elements}] \
                         $element]
-      #my log "$element => [array get {}]"
+      #my msg "simple_item_ref $element => [array get {}]"
       if {$(item_id) == 0} {
         set parent_id $(parent_id)
         break
@@ -1340,6 +1340,8 @@ namespace eval ::xowiki {
     if {[$item_id is_folder_page]} {
       return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
     } 
+    set stripped_name $name
+    set prefix ""
     regexp {^(.+):(.+)$} $name _ prefix stripped_name
     return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
   }

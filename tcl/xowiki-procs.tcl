@@ -1546,6 +1546,7 @@ namespace eval ::xowiki {
                         ${lang}:$stripped_name]
       set (link_type) language
     } else {
+      regsub {^[.]SELF[.]/} $(link) [my name]/ (link)
       array set "" [$package_id item_ref \
 			-use_package_path $use_package_path \
 			-default_lang [my lang] \

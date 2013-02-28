@@ -1779,7 +1779,6 @@ namespace eval ::xowiki {
     }
     #my msg "fields $field_names // $form_fields"
     #foreach f $form_fields { my msg "... $f [$f name]" }
-
     #
     # We have a form and get all form input from the fields of the
     # from into form field objects.
@@ -1812,6 +1811,7 @@ namespace eval ::xowiki {
           if {[regexp {^(.+)[.](tmpfile|content-type)} $att _ file field]} {
             set f [my lookup_form_field -name $file $form_fields]
             $f $field [string trim [$cc form_parameter $att]]
+            #my msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
           } else {
             set f     [my lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
@@ -1844,9 +1844,9 @@ namespace eval ::xowiki {
         default {
           set f  [my lookup_form_field -name $c $form_fields]
           set processed($c) 1
-          #my msg "compute value of $c"
+          #my msg "container $c: compute value of $c [$f info class]"
           set __ia($c) [$f value]
-          #my msg "__ia($c) is set to '$__ia($c)'"
+          #my msg "container $c: __ia($c) is set to '$__ia($c)'"
         }
       }
     }

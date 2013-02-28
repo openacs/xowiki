@@ -9,7 +9,6 @@ xowikiimage_dialog.dialog({
 });
 
 CKEDITOR.plugins.add( 'xowikiimage', {
-    icon: this.path + 'image.gif',
     lang : [ 'en', 'de' ],
    
     init : function( editor ) {
@@ -28,7 +27,9 @@ CKEDITOR.plugins.add( 'xowikiimage', {
 		    xowikiimage_dialog.find("#insert_form").submit(function() {
 			var pathname = window.location.pathname;
 			pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
-			insert_the_image(xowikiimage_dialog.find("#f_url").val().replace(/file:/g, "image:"),pathname+'/'+xowikiimage_dialog.find("#f_url").val()+'?m=download',editor);
+			insert_the_image(xowikiimage_dialog.find("#f_url").val().replace(/file:/g, "image:"),
+					 pathname+'/'+xowikiimage_dialog.find("#f_url").val()+'?m=download',
+					 editor);
 			xowikiimage_dialog.dialog("close");
 			return false;
 		    });
@@ -38,14 +39,15 @@ CKEDITOR.plugins.add( 'xowikiimage', {
 	// Register the toolbar button.
 	editor.ui.addButton( 'xowikiImage', {
 	    label : editor.lang.xowikiimage['insertImage'],
-	    command : pluginName
+	    command : pluginName,
+	    icon: this.path + 'images/image.gif'
 	});
     }
 } );
 
 
 var insert_the_image=function (me,src,editor) {
-    editor.insertHtml("<img alt=\""+me+"\" src=\""+src+"\" type=\"wikilink\" />");
+    editor.insertHtml("<img alt=\".SELF./"+me+"\" src=\""+src+"\" type=\"wikilink\" />");
     //editor.insertHtml(me);
 }
 

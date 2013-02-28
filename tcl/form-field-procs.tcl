@@ -764,21 +764,19 @@ namespace eval ::xowiki::formfield {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
 
-  file instproc get_value_from_form {} {
-    set old_value [[my object] form_parameter __old_value_[my name] ""]
+  file instproc no_value_provided {} {
     set v [my set value]
-    #my msg "value '$v' // old_value '$old_value'"
-    #
-    # Figure out, if we got a different file-name (value). If the
-    # file-name is the same as in the last revision, we return a
-    # "-". This has the effect, that file file is not uploaded again.
-    #
-    #if {$old_value ne "" && $old_value eq [my set value]} {}
-    
-    if {$old_value ne "" && $v eq ""} {
-      return "-"
+    expr {$v eq "" || $v eq "-"}
+  }
+  file instproc get_old_value {} {
+    return [[my object] form_parameter __old_value_[my name] ""]
+  }
+
+  file instproc get_value {} {
+    if {[my no_value_provided]} {
+      return [my get_old_value]
     }
-    return $v
+    return [my set value]
   }
 
   file instproc get_from_value {value attribute {raw ""}} {
@@ -801,21 +799,28 @@ namespace eval ::xowiki::formfield {
     return [lindex $raw 0]
   }
 
+  file instproc value {args} {
+    if {[llength $args] == 0} {
+      set r [my get_value]
+    } else {
+      set r [next]
+    }
+    #my msg "[my name]: value -> '$r' [my exists value] '[my set value]'"
+    return $r
+  }
+
   file instproc convert_to_internal {} {
-    my msg "convert_to_internal"
+    #my msg "convert_to_internal"
     my instvar value
 
-    set v [my get_value_from_form]
-    if {$v eq "-" || $v eq ""} {
-      # nothing to do, keep the old value
-      #my msg "nothing to do with '$v'"
-      set value [[my object] form_parameter __old_value_[my name] ""]
-      [my object] set_property [my name] $value
+    if {[my no_value_provided]} {
+      [my object] set_property -new 1 [my name] [my get_old_value]
       return
     }
+    #my msg "[my name]: got value '$value'"
     regsub -all {\\+} $value {/} value  ;# fix IE upload path
     set value [::file tail $value]
-    [my object] set_property [my name] $value
+    [my object] set_property -new 1 [my name] $value
 
     set package_id [[my object] package_id]
     array set entry_info [my entry_info $value]
@@ -839,6 +844,7 @@ namespace eval ::xowiki::formfield {
       # Update the value with the attribute value pair list containing
       # the revision_id. TODO: clear revision_id on export.
       #
+      #my msg "[my name]:  set_property [my name] [list name $value revision_id [$file_object revision_id]]"
       [my object] set_property -new 1 [my name] [list name $value revision_id [$file_object revision_id]]
     } else {
       # create a new file 
@@ -879,19 +885,72 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  file instproc render_input {} {
-    util_createDom [list [my get_spec]]
-  }
+  # file instproc render_input {} {
+  #   util_createDom [list [my get_spec]]
+  # }
 
-  file instproc get_spec {} {
+  # file instproc get_spec {} {
+  #   my instvar value
+  #   set package_id [[my object] package_id]
+  #   array set entry_info [my entry_info $value]
+  #   set fn [my get_from_value $value name $value]
+  #   set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
+  #   if {![my istype image]} {
+  #     append href ?filename=[ns_urlencode $fn]
+  #   }
+  #   #
+  #   # The HTML5 handling of "required" would force us to upload in
+  #   # every form the file again. To implement the sticky option, we
+  #   # set temporarily the "required" attribute to false
+  #   #
+  #   if {[my exists required]} {
+  #     set reset_required 1
+  #     my set required false
+  #   }
+  # 
+  #   lassign [next] tag atts children
+  #
+  #   if {[info exists reset_required]} {
+  #     my set required true
+  #   }
+  #
+  #   set additional_spec [util_tdom2list {
+  #     # FOLLOWING GIVES TROUBLE, SEE util_spec2json FOR DETAILS
+  #     ::html::t " "
+  #     set id __old_value_[my name]
+  #     ::html::input -type hidden -name $id -id $id -value $value
+  #     #my msg "old_value '$value'"
+  #     ::html::span -class file-control -id __a$id {
+  # 	::html::a -href $href {::html::t [my label_or_value $fn] }
+  # 	# Show the clear button just when
+  # 	# - there is something to clear, and
+  # 	# - the formfield is not disabled, and
+  # 	# - the form-field is not sticky (default)
+  # 	set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+  # 	if {$value ne "" && !$disabled && ![my sticky] } {
+  # 	  ::html::input -type button -value clear \
+  # 	      -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
+  # 	}
+  #     }
+  #   }]
+  #
+  #   lappend children $additional_spec
+  #   return [list $tag $atts $children]
+  # }
+
+  file instproc render_input {} {
+
     my instvar value
     set package_id [[my object] package_id]
+    
     array set entry_info [my entry_info $value]
     set fn [my get_from_value $value name $value]
+    #my msg "[my name]: [list my get_from_value $value name $value] => '$fn'"
     set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
     if {![my istype image]} {
       append href ?filename=[ns_urlencode $fn]
     }
+    
     #
     # The HTML5 handling of "required" would force us to upload in
     # every form the file again. To implement the sticky option, we
@@ -901,35 +960,29 @@ namespace eval ::xowiki::formfield {
       set reset_required 1
       my set required false
     }
-    
-    lassign [next] tag atts children
+    next
 
     if {[info exists reset_required]} {
       my set required true
     }
 
-    set additional_spec [util_tdom2list {
-      # FOLLOWING GIVES TROUBLE, SEE util_spec2json FOR DETAILS
-      ::html::t " "
-      set id __old_value_[my name]
-      ::html::input -type hidden -name $id -id $id -value $value
-      #my msg "old_value '$value'"
-      ::html::span -class file-control -id __a$id {
-	::html::a -href $href {::html::t [my label_or_value $fn] }
-	# Show the clear button just when
-	# - there is something to clear, and
-	# - the formfield is not disabled, and
-	# - the form-field is not sticky (default)
-	set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-	if {$value ne "" && !$disabled && ![my sticky] } {
-	  ::html::input -type button -value clear \
-	      -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
-	}
+    ::html::t " "
+    set id __old_value_[my name]
+    ::html::input -type hidden -name $id -id $id -value $value
+    ::html::span -class file-control -id __a$id {
+      ::html::a -href $href {::html::t [my label_or_value $fn] }
+      
+      # Show the clear button just when
+      # - there is something to clear, and
+      # - the formfield is not disabled, and
+      # - the form-field is not sticky (default)
+      
+      set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+      if {$value ne "" && !$disabled && ![my sticky] } {
+	::html::input -type button -value clear \
+	    -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
       }
-    }]
-
-    lappend children $additional_spec
-    return [list $tag $atts $children]
+    }
   }
 
   ###########################################################
@@ -1619,11 +1672,9 @@ namespace eval ::xowiki::formfield {
       function calc_wiki_image_links_to_image_tags (data) {
 	var pathname = window.location.pathname;
 	pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
-	console.log('pathname' + pathname);
 	pathname = pathname.replace(/:/ig,"%3a");
-	var regex_wikilink = new RegExp('(\\[\\[./image:)(.*?)(\\]\\])', 'g');
-	data = data.replace(regex_wikilink,'<img src="'+pathname+'/$2"  alt="./image:$2" type="wikilink"  />');
-	console.log('data' + data);
+	var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
+	data = data.replace(regex_wikilink,'<img src="'+pathname+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
 	return data
       }
     }
@@ -2754,7 +2805,7 @@ namespace eval ::xowiki::formfield {
     # Set the internal representation based on the components values.
     set value [list]
     foreach c [my components] {
-      #my msg "lappending [$c name] [$c value] "
+      #my msg "$c [$c info class] lappending [list [$c name] [$c value]]"
       lappend value [$c name] [$c value]
     }
     #my msg "[my name]: get_compound_value returns value=$value"

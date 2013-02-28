@@ -460,6 +460,10 @@ div.xowiki-content .content-with-folders .form-error {
     margin-left: 10em;
 }
 
+div.xowiki-content .content-with-folders fieldset.compound-field .repeatable {
+    margin-left: 1em;
+}
+
 div.xowiki-content #menubar a.disabled {
     color: #A0A0A0;
     /* or maybe display none */
