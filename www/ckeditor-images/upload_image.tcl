@@ -23,11 +23,8 @@ ad_form -name upload_form \
       set file_name [template::util::file::get_property filename $upload_file]
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
       set mime_type [template::util::file::get_property mime_type $upload_file]
-      set tmp_size [file size $upload_tmpfile]
       #ds_comment $upload_tmpfile
-      if {$size!=""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
-      #ds_comment $mime_type
-      #ds_comment [template::element::get_values upload_form upload_file]
+      if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
 
       if {![regexp {image/+} $mime_type]} {
 	template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
@@ -49,13 +46,10 @@ ad_form -name upload_form \
                            -package_id $package_id \
                            -mime_type [::xowiki::guesstype $title] \
                            -creation_user [ad_conn user_id]]
-      ns_log notice "file_object $file_object"
       $file_object set import_file $upload_tmpfile
       $file_object save_new
       set revision_id [$file_object set revision_id]
 
-      #ad_returnredirect "."
-      #ds_comment $revision_id
       set bild_url "[$file_object pretty_link]?m=download"
       set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=${parent_id}';"
