@@ -26,10 +26,11 @@ ad_form -name upload_form \
       #ds_comment $upload_tmpfile
       if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
 
-      if {![regexp {image/+} $mime_type]} {
-	template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
+      if {![string match image/* $mime_type]} {
+	# File is no image
+	template::form::set_error "upload_image" "upload_file" "[_ acs-templating.HTMLArea_SelectImageUploadNoImage]"
 	break
-      }    
+      }
 
       #set parent_id  [db_string _ "select parent_id from cr_items where item_id=:fs_package_id"]
       set title $file_name
