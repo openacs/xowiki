@@ -132,6 +132,10 @@ namespace eval ::xowiki {
       -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_plural#" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
       -slots {
+	::xo::Attribute create name \
+	    -help_text #xowiki.Page-name-help_text# \
+	    -validator name \
+	    -spec "maxlength=400,label=#xowiki.Page-name#,required"
         ::xo::db::CrAttribute create assignee \
             -datatype integer \
 	    -references parties(party_id) \
