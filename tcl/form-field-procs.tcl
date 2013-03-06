@@ -104,7 +104,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
-    if {[my exists id]}  {my set html(id) [my id]}
+    my set html(id) [my id]
     #if {[my exists default]} {my set value [my default]}
     my config_from_spec [my spec]
   }
@@ -114,31 +114,31 @@ namespace eval ::xowiki::formfield {
   # application classes
   FormField instproc initialize {} {next}
 
-  FormField instproc get_json {} {
-      return [util_spec2json [list [my get_spec]]]
-  }
+  #FormField instproc get_json {} {
+  #    return [util_spec2json [list [my get_spec]]]
+  #}
 
-  FormField instproc get_spec {} {
-      set pairs [list [list CSSclass class]]
-      # Special handling of HTML boolean attributes, since they require a
-      # different coding; it would be nice, if tdom would care for this.
-      set booleanAtts [list required readonly disabled multiple formnovalidate autofocus]
-      foreach att $booleanAtts {
-	  if {[my exists $att] && [my set $att]} {
-	      my set __#$att $att
-	      lappend pairs [list __#$att $att]
-	  }
-      }
-
-      set atts [eval my get_attributes type size maxlength id name value \
-			      pattern placeholder $pairs]
-
-      foreach att $booleanAtts {
-	  if {[my exists __#$att]} {my unset __#$att}
-      }
-
-      return [list "input" $atts {}]
-  }
+  # FormField instproc get_spec {} {
+  #     set pairs [list [list CSSclass class]]
+  #     # Special handling of HTML boolean attributes, since they require a
+  #     # different coding; it would be nice, if tdom would care for this.
+  #     set booleanAtts [list required readonly disabled multiple formnovalidate autofocus]
+  #     foreach att $booleanAtts {
+  # 	  if {[my exists $att] && [my set $att]} {
+  # 	      my set __#$att $att
+  # 	      lappend pairs [list __#$att $att]
+  # 	  }
+  #     }
+  #
+  #     set atts [eval my get_attributes type size maxlength id name value \
+  # 			      pattern placeholder $pairs]
+  #
+  #     foreach att $booleanAtts {
+  # 	  if {[my exists __#$att]} {my unset __#$att}
+  #     }
+  #
+  #     return [list "input" $atts {}]
+  # }
 
   FormField instproc validation_check {validator_method value} {
     return [my $validator_method $value]
@@ -292,10 +292,10 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  FormField instproc repeatable {} {
-      my mixin add ::xowiki::formfield::repeatable
-      my reset_parameter
-  }
+  #  FormField instproc repeatable {} {
+  #    my mixin add ::xowiki::formfield::repeatable
+  #    my reset_parameter
+  #}
 
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
@@ -308,7 +308,6 @@ namespace eval ::xowiki::formfield {
       optional    {my set required false}
       required    {my set required true; my remove_omit}
       omit        {my mixin add ::xowiki::formfield::omit}
-      repeatable  {my repeatable}
       noomit      {my remove_omit}
       disabled    {my set_disabled true}
       enabled     {my set_disabled false}
@@ -478,9 +477,23 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[my id]','$package_url');"
     }
 
-    #::html::input [eval my get_attributes type size maxlength id name value \
-    # pattern placeholder $pairs] {}
-    util_createDom [list [my get_spec]]
+    set pairs [list [list CSSclass class]]
+    # Special handling of HTML boolean attributes, since they require a
+    # different coding; it would be nice, if tdom would care for this.
+    set booleanAtts [list required readonly disabled multiple formnovalidate autofocus]
+    foreach att $booleanAtts {
+      if {[my exists $att] && [my set $att]} {
+	my set __#$att $att
+	lappend pairs [list __#$att $att]
+      }
+    }
+    ::html::input [eval my get_attributes type size maxlength id name value \
+		       pattern placeholder $pairs] {}
+    foreach att $booleanAtts {
+      if {[my exists __#$att]} {my unset __#$att}
+    }
+
+    #util_createDom [list [my get_spec]]
     
     #
     # Disabled fieds are not returned by the browsers. For some
@@ -747,7 +760,7 @@ namespace eval ::xowiki::formfield {
 	link_label
       }
   file instproc check=virus {value} {
-    if {[my viruscheck] && [::xowiki::virus check [my set tmpfile]]} {
+    if {[my viruscheck] && $value ne "" && [::xowiki::virus check [my set tmpfile]]} {
       #util_user_message -message "uploaded file contains a virus; upload rejected"
       return 0
     }
@@ -763,22 +776,6 @@ namespace eval ::xowiki::formfield {
   file instproc entry_info {value} {
     return [list name file:[my name] parent_id [[my object] item_id]]
   }
-
-  file instproc no_value_provided {} {
-    set v [my set value]
-    expr {$v eq "" || $v eq "-"}
-  }
-  file instproc get_old_value {} {
-    return [[my object] form_parameter __old_value_[my name] ""]
-  }
-
-  file instproc get_value {} {
-    if {[my no_value_provided]} {
-      return [my get_old_value]
-    }
-    return [my set value]
-  }
-
   file instproc get_from_value {value attribute {raw ""}} {
     #
     # The value of of a form entry might be:
@@ -799,18 +796,25 @@ namespace eval ::xowiki::formfield {
     return [lindex $raw 0]
   }
 
+  file instproc no_value_provided {} {
+    expr {[my set value] eq ""}
+  }
+
+  file instproc get_old_value {} {
+    return [[my object] form_parameter __old_value_[my name] ""]
+  }
+
   file instproc value {args} {
     if {[llength $args] == 0} {
-      set r [my get_value]
-    } else {
-      set r [next]
-    }
-    #my msg "[my name]: value -> '$r' [my exists value] '[my set value]'"
-    return $r
+      if {[my no_value_provided]} {
+	return [my get_old_value]
+      }
+      return [my set value]
+    } 
+    return [next]
   }
 
   file instproc convert_to_internal {} {
-    #my msg "convert_to_internal"
     my instvar value
 
     if {[my no_value_provided]} {
@@ -840,12 +844,6 @@ namespace eval ::xowiki::formfield {
       $file_object set mime_type $content_type
       $file_object set title $value
       $file_object save
-      #
-      # Update the value with the attribute value pair list containing
-      # the revision_id. TODO: clear revision_id on export.
-      #
-      #my msg "[my name]:  set_property [my name] [list name $value revision_id [$file_object revision_id]]"
-      [my object] set_property -new 1 [my name] [list name $value revision_id [$file_object revision_id]]
     } else {
       # create a new file 
       #my msg "new file"
@@ -858,9 +856,14 @@ namespace eval ::xowiki::formfield {
                            -creation_user [::xo::cc user_id] ]
       $file_object set import_file [my set tmpfile]
       $file_object save_new
-      # Make sure the value is just one list item
-      [my object] set_property -new 1 [my name] [list $value]
     }
+    #
+    # Update the value with the attribute value pair list containing
+    # the revision_id. TODO: clear revision_id on export.
+    #
+    set newValue [list name $value revision_id [$file_object revision_id]]
+    [my object] set_property -new 1 [my name] $newValue
+    my set value $newValue
   }
 
   file instproc label_or_value {v} {
@@ -942,13 +945,18 @@ namespace eval ::xowiki::formfield {
 
     my instvar value
     set package_id [[my object] package_id]
-    
+
     array set entry_info [my entry_info $value]
     set fn [my get_from_value $value name $value]
-    #my msg "[my name]: [list my get_from_value $value name $value] => '$fn'"
+    #my msg "[my name]: [list my get_from_value <$value> name] => '$fn'"
     set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
+
     if {![my istype image]} {
       append href ?filename=[ns_urlencode $fn]
+      set revision_id [my get_from_value $value revision_id ""]
+      if {$revision_id ne ""  && [string is integer $revision_id]} {
+	append href &revision_id=$revision_id
+      }
     }
     
     #
@@ -1115,12 +1123,11 @@ namespace eval ::xowiki::formfield {
     my set widget_type text
     foreach p [list size maxlength] {if {[my exists $p]} {my set html($p) [my $p]}}
   }
-  text instproc get_spec {} {
-      set atts [my get_attributes type size maxlength id name value \
-		    pattern placeholder]
-
-      return [list input $atts {}]
-  }
+  # text instproc get_spec {} {
+  #   set atts [my get_attributes type size maxlength id name value \
+  # 		  pattern placeholder]
+  #   return [list input $atts {}]
+  # }
 
   ###########################################################
   #
@@ -2134,33 +2141,33 @@ namespace eval ::xowiki::formfield {
     if {![my exists options]} {my options [list]}
   }
 
-  select instproc get_spec {} {
-      set select_atts [my get_attributes id name disabled {CSSclass class}]
-      if {[my multiple]} {lappend atts multiple [my multiple]}
-      set options [my options]
-      if {![my required]} {
-	  set options [linsert $options 0 [list "--" ""]]
-      }
-
-      set spec_options [list]
-      foreach o $options {
-	  foreach {label rep} $o break
-	  set atts [my get_attributes disabled]
-	  lappend atts value $rep
-	  if {[lsearch [my value] $rep] > -1} {
-	      lappend atts selected on
-	  }
-	  lappend spec_options [list "option" $atts [list [list "#text" $label]]]
-	  #lappend spec_options [list "#text" "\n"]
-      }
-      return [list select $select_atts $spec_options]
-  }
+  # select instproc get_spec {} {
+  #     set select_atts [my get_attributes id name disabled {CSSclass class}]
+  #     if {[my multiple]} {lappend select_atts multiple [my multiple]}
+  #     set options [my options]
+  #     if {![my required]} {
+  # 	  set options [linsert $options 0 [list "--" ""]]
+  #     }
+  #
+  #     set spec_options [list]
+  #     foreach o $options {
+  # 	  foreach {label rep} $o break
+  # 	  set atts [my get_attributes disabled]
+  # 	  lappend atts value $rep
+  # 	  if {[lsearch [my value] $rep] > -1} {
+  # 	      lappend atts selected on
+  # 	  }
+  # 	  lappend spec_options [list "option" $atts [list [list "#text" $label]]]
+  # 	  #lappend spec_options [list "#text" "\n"]
+  #     }
+  #     return [list select $select_atts $spec_options]
+  # }
+  #
+  #select instproc render_input {} {
+  #    util_createDom [list [my get_spec]]
+  #}
 
   select instproc render_input {} {
-      util_createDom [list [my get_spec]]
-  }
-
-  select instproc render_input_old {} {
     set atts [my get_attributes id name disabled {CSSclass class}]
     if {[my multiple]} {lappend atts multiple [my multiple]}
     set options [my options]
@@ -2797,7 +2804,7 @@ namespace eval ::xowiki::formfield {
       # we do not want to overwrite ...
       if {[info exists ([$c name])]} {
         $c value $([$c name])
-      } 
+      }
     }
   }
   
@@ -2820,7 +2827,7 @@ namespace eval ::xowiki::formfield {
     my set structure $spec_list
     my set components [list]
     foreach entry $spec_list {
-      foreach {name spec} $entry break
+      lassign $entry name spec
       #
       # create for each component a form field
       #
@@ -2915,17 +2922,21 @@ namespace eval ::xowiki::formfield {
     foreach c [my components] { 
       $c convert_to_internal
     }
+    # Finally, update the compound value entry with the compound
+    # internal representation; actually we could drop the instance
+    # atts of the components from the "instance_attributes" ...
+    [my object] set_property -new 1 [my name] [my get_compound_value]
   }
 
-  CompoundField instproc get_spec {} {
-      set component_specs [list]
-      foreach c [my components] {
-	  lappend component_specs [$c get_spec]
-      }
-      my set style "margin: 0px; padding: 0px;"
-      set atts [my get_attributes id style]
-      return [list "fieldset" $atts $component_specs]
-  }
+  #CompoundField instproc get_spec {} {
+  #    set component_specs [list]
+  #    foreach c [my components] {
+  #	  lappend component_specs [$c get_spec]
+  #    }
+  #    my set style "margin: 0px; padding: 0px;"
+  #    set atts [my get_attributes id style]
+  #    return [list "fieldset" $atts $component_specs]
+  #}
 
 
   ###########################################################
@@ -3172,8 +3183,7 @@ namespace eval ::xowiki::formfield {
   }
   boolean instproc initialize {} {
     # should be with cvs head message catalogs:
-    my options {{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}}
-    #my options {{No f} {#acs-kernel.common_Yes# t}}
+    my options "{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}"
     next
   }
 
@@ -3351,201 +3361,201 @@ namespace eval ::xowiki::formfield {
         "</div>" 
     return $result
   }
+}
 
-
+namespace eval ::xowiki::formfield {
   ###########################################################
   #
   # ::xowiki::formfield::repeatable
   #
   ###########################################################
-
-  Class repeatable -superclass enumeration -parameter {
-      {min_elements 2}
-      {max_elements ""}
-      {repeat_type "text"}
-  } -extend_slot validator repeatable_num_of_elements
-
-  repeatable instproc initialize {} {
-    my set type text
-    my set repeat_type "[namespace tail [my info class]]" ;# ::xowiki::formfield::date -> repeat_type=date
-    next
-  }
-
-  repeatable instproc convert_to_internal {} {
-    set value [my value]
-    set new_value [list]
-    set isCompoundField [llength [my procsearch components]]
-    foreach v $value {
-      if { $v eq {} } { continue }
-      if { $isCompoundField} {
-	my value [list $v]
-      } else {
-	my value $v
-      }
-      next
-      #
-      # Whatever the effect of next, we still need
-      # to take it into account.
-      #
-      set new_v [[my object] get_property -name [my name]]
-      if { $new_v ne $value } {
-	lappend new_value $new_v
-      }
-    }
-    if { $new_value ne {} } {
-      [my object] set_property -new 1 [my name] $new_value
-    }
-  }
-
-  repeatable instproc convert_to_external {value} {
-    set new_value [list]
-    foreach v $value {
-      lappend new_value [next $v]
-    }
-    return $new_value
-  }
-
-  repeatable instproc set_compound_value {value} {
-    set c ""
-    array set values [list]
-    foreach v $value {
-      next $v
-      foreach c [my components] {
-	lappend values($c) [$c value]
-      }
-    }
-    if { $c ne {} } {
-      foreach c [my components] {
-	$c value $values($c)
-      }
-    }  }
-  repeatable instproc get_compound_value {} {
-    # Iterate over all values so that inherited
-    # class methods would work, for instance,
-    # date, can only process one value at a time.
-
-    set c ""
-    array set values [list]
-    foreach c [my components] {
-      set values($c) [$c value]
-    }
-
-    set result [list]
-    if { $c ne {} } {
-
-      # treat compound values one at a time
-      set count [llength $values($c)]
-      for {set i 0} {$i < $count} {incr i} {
-	foreach c [my components] {
-	  $c value [lindex $values($c) $i]
-	}
-	lappend result [next]
-      }
-
-      # restore values
-      foreach c [my components] {
-	$c value $values($c)
-      }
-
-    }
-    return $result
-  }
-
-  repeatable instproc validation_check {validator_method value} {
-    if { [string match {check=repeatable_*} $validator_method] } {
-      return [next]
-    } else {
-      foreach v $value {
-	if { ![my $validator_method $v] } {
-	  return 0
-	}
-      }
-      return 1
-    }
-  }
-
-  repeatable instproc check=repeatable_num_of_elements {value} {
-    my instvar min_elements max_elements
-
-    set num_elements [llength [lsearch -not -all $value ""]]
-    ns_log notice "name=[my name] value= $value (ensure num_elements=$num_elements between $min_elements and [util_coalesce $max_elements +inf])"
-    ns_log notice ""
-    if { $num_elements < $min_elements } {
-      return 0
-    } elseif { $max_elements ne {} && $num_elements > $max_elements } {
-      return 0
-    }
-  }
-
-  repeatable instproc render_input {} {
-
-    if { ![my exists disabled] } {
-      my set disabled false
-    }
-
-    if { ![my disabled] } {
-      ::xo::Page requireJS  "/resources/xowiki/wu-repeatable.js"
-    }
-
-    my instvar min_elements repeat_type
-    # sample data: my set value "a b c"
-    #my set value "a"
-
-    # Note that we have a spec parameter that refers to 
-    # the form definition, and a get_spec proc that refers
-    # to the specification for generating html and json.
-    set flyweight [::xowiki::formfield::$repeat_type new \
-		       -name [my name] \
-		       -locale [my locale] \
-		       -object [my object] \
-		       -proc get_spec {} {
-			   lassign [next] tag atts children
-			   lappend atts rep 1
-			   return [list $tag $atts $children]
-		       }]
-
-
-    set rep 0
-    foreach v [my value] {
-      incr rep
-      ::html::div {
-	::html::div -class "wu-repeatable-arrows" {
-	  ::html::a -class wu-repeatable-action -href "#" -onclick "return wu.repeatable.moveUp(this)"
-
-	  $flyweight id [my id]:$rep
-	  $flyweight value $v
-	  $flyweight render_input
-	  if { ![my disabled] } {
-	    ::html::a -href "#" -onclick "return wu.repeatable.delChoice(this)" { html::t "\[x\]" }
-	  }
-	}
-      }
-    }
-    
-    for {set i $rep} {$i < $min_elements} {incr i} {
-      incr rep
-      ::html::div {
-	::html::div -class "wu-repeatable-arrows" {
-	  ::html::a -class wu-repeatable-action -href "#" -onclick "return wu.repeatable.moveUp(this)"
-	  
-	  $flyweight id [my id]:$rep
-	  $flyweight value ""
-	  $flyweight render_input
-
-	  if { ![my disabled] } {
-	    ::html::a -href "#" -onclick "return wu.repeatable.delChoice(this)" { html::t "\[x\]" }
-	  }
-	}
-      }
-    }
-
-    if { ![my disabled] } {
-      $flyweight value ""
-      set spec [$flyweight get_json]
-      html::a -spec $spec -href "#" -onclick "return wu.repeatable.addChoice(this);" { html::t "add another" }
-    }
-  }
-
+  #
+  # Class repeatable -superclass enumeration -parameter {
+  #     {min_elements 2}
+  #     {max_elements ""}
+  #     {repeat_type "text"}
+  # } -extend_slot validator repeatable_num_of_elements
+  #
+  # repeatable instproc initialize {} {
+  #   my set type text
+  #   my set repeat_type "[namespace tail [my info class]]" ;# ::xowiki::formfield::date -> repeat_type=date
+  #   next
+  # }
+  #
+  # repeatable instproc convert_to_internal {} {
+  #   set value [my value]
+  #   set new_value [list]
+  #   set isCompoundField [llength [my procsearch components]]
+  #   foreach v $value {
+  #     if { $v eq {} } { continue }
+  #     if { $isCompoundField} {
+  # 	my value [list $v]
+  #     } else {
+  # 	my value $v
+  #     }
+  #     next
+  #     #
+  #     # Whatever the effect of next, we still need
+  #     # to take it into account.
+  #     #
+  #     set new_v [[my object] get_property -name [my name]]
+  #     if { $new_v ne $value } {
+  # 	lappend new_value $new_v
+  #     }
+  #   }
+  #   if { $new_value ne {} } {
+  #     [my object] set_property -new 1 [my name] $new_value
+  #   }
+  # }
+  #
+  # repeatable instproc convert_to_external {value} {
+  #   set new_value [list]
+  #   foreach v $value {
+  #     lappend new_value [next $v]
+  #   }
+  #   return $new_value
+  # }
+  #
+  # repeatable instproc set_compound_value {value} {
+  #   set c ""
+  #   array set values [list]
+  #   foreach v $value {
+  #     next $v
+  #     foreach c [my components] {
+  # 	lappend values($c) [$c value]
+  #     }
+  #   }
+  #   if { $c ne {} } {
+  #     foreach c [my components] {
+  # 	$c value $values($c)
+  #     }
+  #   }  }
+  # repeatable instproc get_compound_value {} {
+  #   # Iterate over all values so that inherited
+  #   # class methods would work, for instance,
+  #   # date, can only process one value at a time.
+  #
+  #   set c ""
+  #   array set values [list]
+  #   foreach c [my components] {
+  #     set values($c) [$c value]
+  #   }
+  #
+  #   set result [list]
+  #   if { $c ne {} } {
+  #
+  #     # treat compound values one at a time
+  #     set count [llength $values($c)]
+  #     for {set i 0} {$i < $count} {incr i} {
+  # 	foreach c [my components] {
+  # 	  $c value [lindex $values($c) $i]
+  # 	}
+  # 	lappend result [next]
+  #     }
+  #
+  #     # restore values
+  #     foreach c [my components] {
+  # 	$c value $values($c)
+  #     }
+  #
+  #   }
+  #   return $result
+  # }
+  #
+  # repeatable instproc validation_check {validator_method value} {
+  #   if { [string match {check=repeatable_*} $validator_method] } {
+  #     return [next]
+  #   } else {
+  #     foreach v $value {
+  # 	if { ![my $validator_method $v] } {
+  # 	  return 0
+  # 	}
+  #     }
+  #     return 1
+  #   }
+  # }
+  #
+  # repeatable instproc check=repeatable_num_of_elements {value} {
+  #   my instvar min_elements max_elements
+  #
+  #   set num_elements [llength [lsearch -not -all $value ""]]
+  #   ns_log notice "name=[my name] value= $value (ensure num_elements=$num_elements between $min_elements and [util_coalesce $max_elements +inf])"
+  #   ns_log notice ""
+  #   if { $num_elements < $min_elements } {
+  #     return 0
+  #   } elseif { $max_elements ne {} && $num_elements > $max_elements } {
+  #     return 0
+  #   }
+  # }
+  #
+  # repeatable instproc render_input {} {
+  #
+  #   if { ![my exists disabled] } {
+  #     my set disabled false
+  #   }
+  #
+  #   if { ![my disabled] } {
+  #     ::xo::Page requireJS  "/resources/xowiki/wu-repeatable.js"
+  #   }
+  #
+  #   my instvar min_elements repeat_type
+  #   # sample data: my set value "a b c"
+  #   #my set value "a"
+  #
+  #   # Note that we have a spec parameter that refers to 
+  #   # the form definition, and a get_spec proc that refers
+  #   # to the specification for generating html and json.
+  #   set flyweight [::xowiki::formfield::$repeat_type new \
+  # 		       -name [my name] \
+  # 		       -locale [my locale] \
+  # 		       -object [my object] \
+  # 		       -proc get_spec {} {
+  # 			   lassign [next] tag atts children
+  # 			   lappend atts rep 1
+  # 			   return [list $tag $atts $children]
+  # 		       }]
+  #
+  #
+  #   set rep 0
+  #   foreach v [my value] {
+  #     incr rep
+  #     ::html::div {
+  # 	::html::div -class "wu-repeatable-arrows" {
+  # 	  ::html::a -class wu-repeatable-action -href "#" -onclick "return wu.repeatable.moveUp(this)"
+  #
+  # 	  $flyweight id [my id]:$rep
+  # 	  $flyweight value $v
+  # 	  $flyweight render_input
+  # 	  if { ![my disabled] } {
+  # 	    ::html::a -href "#" -onclick "return wu.repeatable.delChoice(this)" { html::t "\[x\]" }
+  # 	  }
+  # 	}
+  #     }
+  #   }
+  #
+  #   for {set i $rep} {$i < $min_elements} {incr i} {
+  #     incr rep
+  #     ::html::div {
+  # 	::html::div -class "wu-repeatable-arrows" {
+  # 	  ::html::a -class wu-repeatable-action -href "#" -onclick "return wu.repeatable.moveUp(this)"
+  #
+  # 	  $flyweight id [my id]:$rep
+  # 	  $flyweight value ""
+  # 	  $flyweight render_input
+  #
+  # 	  if { ![my disabled] } {
+  # 	    ::html::a -href "#" -onclick "return wu.repeatable.delChoice(this)" { html::t "\[x\]" }
+  # 	  }
+  # 	}
+  #     }
+  #   }
+  #
+  #   if { ![my disabled] } {
+  #     $flyweight value ""
+  #     set spec [$flyweight get_json]
+  #     html::a -spec $spec -href "#" -onclick "return wu.repeatable.addChoice(this);" { html::t "add another" }
+  #   }
+  # }
 }
 
 ::xo::library source_dependent 
