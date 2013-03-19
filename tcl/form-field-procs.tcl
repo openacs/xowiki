@@ -33,6 +33,7 @@ namespace eval ::xowiki::formfield {
     {display_field true} 
     {hide_value false} 
     {inline false}
+    {mode edit}
     {disabled}
     {show_raw_value}
     CSSclass
@@ -466,6 +467,10 @@ namespace eval ::xowiki::formfield {
     # If no special renderer is defined, we fall back to this one, 
     # which is in most cases  a simple input fied of type string.
     #
+    if {[my mode] ne "edit"} {
+      html::t -disableOutputEscaping [my pretty_value [my value]]
+      return
+    }
     if {[my exists validate_via_ajax] && [my validator] ne ""} {
       set ajaxhelper 1
       ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "yahoo/yahoo-min.js"
@@ -519,7 +524,7 @@ namespace eval ::xowiki::formfield {
         ::html::label -for [my id] {
           ::html::t [my label]
         }
-        if {[my required]} {
+        if {[my required] && [my mode] eq "edit"} {
           ::html::div -class form-required-mark {
             ::html::t " (#acs-templating.required#)"
           }
@@ -660,7 +665,7 @@ namespace eval ::xowiki::formfield {
     if {[my exists show_raw_value]} {
       return $v
     } else {
-      return [my pretty_value]
+      return [my pretty_value $v]
     }
   }
 
