@@ -141,6 +141,11 @@ namespace eval ::xowiki::formfield {
   #     return [list "input" $atts {}]
   # }
 
+  FormField instproc same_value {v1 v2} {
+    if {$v1 eq $v2} {return 1}
+    return 0
+  }
+
   FormField instproc validation_check {validator_method value} {
     return [my $validator_method $value]
   }
@@ -2784,6 +2789,14 @@ namespace eval ::xowiki::formfield {
     foreach c [my components] {
       $c set_disabled $disable
     }
+  }
+
+  CompoundField instproc same_value {v1 v2} {
+    if {$v1 eq $v2} {return 1}
+    foreach {n1 value1} $v1 {n2 value2} $v2 {
+      if {![my same_value $value1 $value2]} { return 0 }
+    }
+    return 1
   }
 
   CompoundField instproc value {args} {
