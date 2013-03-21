@@ -449,7 +449,8 @@ namespace eval ::xowiki {
       ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"$fn\""
     }
 
-    #my log "--F FILE=[my full_file_name] // $mime_type"
+    set full_file_name [my full_file_name]
+    #my log "--F FILE=$full_file_name // $mime_type"
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match image/* $mime_type] && $geometry ne ""} {
       if {![file isdirectory /tmp/$geometry]} {
@@ -460,15 +461,25 @@ namespace eval ::xowiki {
 	set cmd [::util::which convert]
 	if {$cmd ne ""} {
 	  if {![catch {exec $cmd -geometry $geometry -interlace None -sharpen 1x2 \
-			   [my full_file_name] $scaled_image}]} {
+			   $full_file_name $scaled_image}]} {
 	    return $scaled_image
 	  }
 	}
       } else {
-	  return $scaled_image
+	return $scaled_image
       }
     }
-    return [my full_file_name]
+    set modtime [file mtime $full_file_name]
+    set cmptime [ns_set iget [ns_conn headers] If-Modified-Since]
+    if {$cmptime ne ""} {
+      if {[clock scan $cmptime] >= $modtime} {
+	ns_returnnotice 304 "Not modified" "not modified"
+	return ""
+      }
+    }
+    ns_set put [ns_conn outputheaders] Last-Modified [ns_httptime $modtime]
+
+    return $full_file_name
   }
 
   #
