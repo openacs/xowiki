@@ -2793,9 +2793,10 @@ namespace eval ::xowiki::formfield {
 
   CompoundField instproc same_value {v1 v2} {
     if {$v1 eq $v2} {return 1}
-    foreach {n1 value1} $v1 {n2 value2} $v2 {
-      if {![my same_value $value1 $value2]} { return 0 }
-    }
+    foreach {n1 value1} $v1 {n2 value2} $v2  {
+        set f [my set component_index($n1)]
+        if {![$f same_value $value1 $value2]} { return 0 }
+    }   
     return 1
   }
 
@@ -2808,6 +2809,18 @@ namespace eval ::xowiki::formfield {
       #my msg "[my name]: setting compound value => '[lindex $args 0]'"
       my set_compound_value [lindex $args 0]
     }
+  }
+
+  CompoundField instproc validate {obj} {
+    # Delegate validate to the components. If a validation of a
+    # component fails, report the error message back.
+    foreach c [my components] {
+      set result [$c validate $obj]
+      if {$result ne ""} {
+	return $result
+      }
+    }
+    return ""
   }
 
   CompoundField instproc set_compound_value {value} {
