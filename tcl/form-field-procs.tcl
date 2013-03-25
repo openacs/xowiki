@@ -44,6 +44,7 @@ namespace eval ::xowiki::formfield {
     {label} 
     {name} 
     {id} 
+    {title}
     {value ""} 
     {spec ""} 
     {help_text ""}
@@ -751,7 +752,7 @@ namespace eval ::xowiki::formfield {
   submit_button instproc render_input {} {
     # don't disable submit buttons
     if {[my type] eq "submit"} {my unset -nocomplain disabled}
-    ::html::input [my get_attributes name type {CSSclass class} value disabled] {}
+    ::html::input [my get_attributes name type {CSSclass class} value title disabled] {}
     my render_localizer
   }
 
