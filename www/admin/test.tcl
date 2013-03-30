@@ -1309,8 +1309,9 @@ test section "Item refs"
   set l /XOWIKI-TEST/download/file/link5
   set test [label "url" "toplevel image download" $l]
   array set "" [$package_id item_info_from_url $l]
-  ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
-  	   && $(name) eq "link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
+test hint "found $(item_id) should be $subimagelink_id"
+   ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
+   	   && $(name) eq "file:link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
 
   # tag link
   set l /XOWIKI-TEST/tag/a
