@@ -137,7 +137,9 @@ array set info [site_node::get_from_url -url /$instance_name -exact]
 ? {expr {$info(package_id) ne ""}} 1 "package is mounted, package_id provided"
 
 
+#############################################################
 test subsection "Basic Setup: Package, url= /$instance_name/"
+#############################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -154,7 +156,10 @@ test subsection "Basic Setup: Package, url= /$instance_name/"
 
 test code [$package_id serialize]
 
+############################################
 test subsection "Basic Setup: Folder Object"
+############################################
+
 ? {$package_id exists folder_id} 1 "folder_id is set"
 set folder_id [::$package_id folder_id]
 ? {::xotcl::Object isobject ::$folder_id} 1 "we have a folder object"
@@ -165,7 +170,9 @@ set folder_id [::$package_id folder_id]
 ? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 0 \
     "folder contains no objects"
 
+##############################################
 test subsection "Create and Render Index Page"
+##############################################
 ? {$package_id set object} "" "object name parsed"
 ? {set m} view "method passed from package initialize"
 set object [$package_id set object]
@@ -188,7 +195,9 @@ set content_length [string length $content]
     "folder contains the index page"
 #test code [$page_item_id serialize]
 
+###########################################################
 test subsection "Check Permissions based on default policy"
+###########################################################
 ? {::xo::cc user_id} 0 "user_id is guest"
 ? {::$package_id make_link ::$page_item_id delete return_url} "" \
     "the public cannot delete this page"
@@ -199,7 +208,9 @@ test subsection "Check Permissions based on default policy"
 #
 # run a new query, use en/index explicitely
 #
+##################################################
 test section "New Query: /$instance_name/en/index"
+##################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -224,7 +235,9 @@ set folder_id [::$package_id folder_id]
 #
 # run a new query
 #
+##########################################
 test section "New Query: /$instance_name/"
+##########################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -239,7 +252,9 @@ test section "New Query: /$instance_name/"
 ? {$package_id url} /$instance_name/ "url"
 ? {$package_id id} $package_id "the id of the package object = package_id"
 
+##################################################
 test subsection "Basic Setup: Folder Object (2nd)"
+##################################################
 ? {$package_id exists folder_id} 1 "folder_id is set"
 set folder_id [::$package_id folder_id]
 ? {::xotcl::Object isobject ::$folder_id} 1 "we have a folder object"
@@ -250,7 +265,9 @@ set folder_id [::$package_id folder_id]
 ? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
     "folder contains the index"
 
+#########################################
 test subsection "Render Index Page (2nd)"
+#########################################
 ? {$package_id set object} "" "object name parsed"
 ? {set m} view "method passed from package initialize"
 set object [$package_id set object]
@@ -275,7 +292,9 @@ set content_length [string length $content]
 #
 # run a new query
 #
+################################################
 test section "New Query: /$instance_name/weblog"
+################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -288,7 +307,9 @@ test section "New Query: /$instance_name/weblog"
 ? {$package_id id} $package_id "the id of the package object = package_id"
 set folder_id [::$package_id folder_id]
 
+##########################################
 test subsection "Create and Render Weblog"
+##########################################
 set content [::$package_id invoke -method $m]
 set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
@@ -303,8 +324,10 @@ set content_length [string length $content]
 
 
 ########################################################################
+#
+###################################################
 test section "New Query: /$instance_name/en/weblog"
-
+###################################################
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
     -url /$instance_name/en/weblog \
@@ -324,8 +347,9 @@ set full_weblog_content_length $content_length
 
 ::xo::at_cleanup
 
-########################################################################
+##################################################################
 test section "New Query: /$instance_name/en/weblog with summary=1"
+##################################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -345,8 +369,9 @@ set content_length [string length $content]
 ::xo::at_cleanup
 #return
 
-########################################################################
+#####################################################
 test section "Testing as SWA: query /$instance_name/"
+#####################################################
 
 set swas [db_list get_swa "select grantee_id from acs_permissions \
 	where object_id = -4 and privilege = 'admin'"]
@@ -360,7 +385,9 @@ set swas [db_list get_swa "select grantee_id from acs_permissions \
 set content [::$package_id invoke -method $m]
 ? {string first Error $content} -1 "page contains no error"
 
+###########################################################
 test subsection "Check Permissions based on default policy"
+###########################################################
 ? {expr {[::xo::cc user_id] != 0}} 1 "user_id [lindex $swas 0] is not guest"
 ? {expr {[::$package_id make_link ::$page_item_id delete return_url] ne ""}} 1 \
     "SWA sees the delete link"
@@ -370,8 +397,9 @@ test subsection "Check Permissions based on default policy"
     "folder contains: index and weblog page (+1 includelet)"
 ::xo::at_cleanup
 
-########################################################################
+################################################
 test section "Delete weblog-portlet via weblink"
+################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -387,8 +415,9 @@ set content [::$package_id invoke -method $m]
 ? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 2 \
     "folder contains: index and weblog page (+0 includelet)"
 
+############################################################################
 test subsection "Create a test page named hello with package_id $package_id"
-
+############################################################################
 set page [::xowiki::Page new \
               -title "Hello World" \
               -name en:hello \
@@ -420,8 +449,9 @@ $page save
 
 
 
-########################################################################
+######################################
 test section "Recreate weblog-portlet"
+######################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -439,8 +469,9 @@ set content_length [string length $content]
 
 ::xo::at_cleanup
 
-########################################################################
+#########################################################
 test section "Query revisions for hello page via weblink"
+#########################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -455,8 +486,9 @@ set content [::$package_id invoke -method $m]
 ::xo::at_cleanup
 
 
-########################################################################
+##########################################
 test section "Edit hello page via weblink"
+##########################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -490,8 +522,9 @@ set text [lindex [$returned_item_id text] 0]
 
 ::xo::at_cleanup
 
-########################################################################
+###################################################
 test section "Submit edited hello page via weblink"
+###################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -526,8 +559,9 @@ set content [test without_ns_form {::$package_id invoke -method $m}]
 
 ::xo::at_cleanup
 
-########################################################################
+#########################################################
 test section "Query revisions for hello page via weblink"
+#########################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
     -package_id $info(package_id) \
@@ -538,6 +572,7 @@ test section "Query revisions for hello page via weblink"
 set content [::$package_id invoke -method $m]
 
 set p [::xowiki::Page info instances]
+
 ? {llength $p} 1 "expect only one page instance"
 
 if {[llength $p] == 1} {
@@ -554,10 +589,13 @@ if {[llength $p] == 1} {
 # keep the page for the following test
 #::xo::at_cleanup
 
-########################################################################
+##########################
 test section "Small tests"
+##########################
 
+###############################
 test subsection "Link resolver"
+###############################
 set p [::xowiki::Page info instances]
 ? {llength $p} 1 "expect only one page instance"
 
@@ -571,7 +609,10 @@ proc xowiki-test-links {p tests} {
     $l destroy
   }
 }
+
+##################################################
 test subsubsection "Testing links on English page"
+##################################################
 xowiki-test-links $p {
     hello 1 0
     en:hello 1 0
@@ -588,7 +629,9 @@ xowiki-test-links $p {
 
 # make page a german page
 $p nls_language de_DE
+#################################################
 test subsubsection "Testing links on German page"
+#################################################
 xowiki-test-links $p {
     hello 1 0
     en:hello 1 0
@@ -604,9 +647,9 @@ xowiki-test-links $p {
 }
 
 
-
-########################################################################
+####################################
 test subsection "Filter expressions"
+####################################
 
 ? {::xowiki::FormPage filter_expression \
     "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
@@ -634,8 +677,9 @@ test subsection "Filter expressions"
 
 
 
-########################################################################
+########################
 test section "Item refs"
+########################
 #
 # Testing item refs and wiki links (between [[ .... ]])
 #
@@ -713,7 +757,14 @@ test section "Item refs"
 
   #some test cases
   ::xowiki::Package initialize -url /$instance_name/
-  ::xowiki::Page create p -package_id $package_id -nls_language de_DE -parent_id [$package_id folder_id]
+
+# We use destroy_on_cleanup here although the object is explicitly
+# destroyed later. However, if some test bails out with an error,
+# the destroy might not be reached
+::xowiki::Page create p \
+    -package_id $package_id -nls_language de_DE -parent_id [$package_id folder_id] \
+    -name p -destroy_on_cleanup
+
   p set unresolved_references 0
 
   test subsection "Ingredients:"
@@ -749,7 +800,9 @@ test section "Item refs"
   ################################
 
 
-  test subsection "Toplevel Tests:"
+#################################
+test subsection "Toplevel Tests:"
+#################################
 
   set l "folder:f1"
   set test [label "item_ref" "existing topfolder" $l]
@@ -897,8 +950,9 @@ test section "Item refs"
   ? {expr {$(link_type) eq "folder" && $(prefix) eq "" 
            && $(parent_id) == -100 && $(item_id) == $folder_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  ################################
-  test subsection "Ending with dot:"
+##################################
+test subsection "Ending with dot:"
+##################################
 
   set l "." ;# stripped name will be the name of the root folder, omit from test
   set test [label "item_ref" "dot with slash, relative" $l]
@@ -918,8 +972,9 @@ test section "Item refs"
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "parentpage"
            && $(parent_id) eq $folder_id && $(item_id) == $parentpage_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  ################################
-  test subsection "Under folder:"
+###############################
+test subsection "Under folder:"
+###############################
 
   set l "folder:f1/folder:f3"
   set test [label "item_ref" "existing subfolder" $l]
@@ -1017,8 +1072,9 @@ test section "Item refs"
   ? {expr {$(link_type) eq "image" && $(prefix) eq "file" && $(stripped_name) eq "image.png"
            && $(parent_id) eq $f1_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
-  ################################
-  test subsection "Under page:"
+#############################
+test subsection "Under page:"
+#############################
 
   set l "de:parentpage/folder:childfolder"
   set test [label "item_ref" "existing folder under page" $l]
@@ -1056,8 +1112,9 @@ test section "Item refs"
   ? {expr {$(link_type) eq "link" && $(prefix) eq "de" && $(stripped_name) eq "childpage"
            && $(parent_id) eq $parentpage_id && $(item_id) == $childpage_id}} 1 "\n$test:\n  [array get {}]\n "
 
-  ################################
-  test subsection "Ending with /.."
+#################################
+test subsection "Ending with /.."
+#################################
 
   set l ".."
   set test [label "item_ref" "dot dot (don't traverse beyond root folder)" $l]
@@ -1136,10 +1193,12 @@ test section "Item refs"
   ? {$link render} {} "\n$test\n "
 ? {p array get lang_links} [subst -nocommands {found {{<a href='/$instance_name/de/parentpage' ><img class='found'  src='/resources/xowiki/flags/de.png' alt='de'></a>}}}] "\n$test links\n "
 
-  p destroy
+p destroy
 ############################################
 
-  test section "page properties"
+##############################
+test section "page properties"
+##############################
 
   set f1 [::xo::db::CrClass get_instance_from_db -item_id $f1_id]
   set f2 [::xo::db::CrClass get_instance_from_db -item_id $f3_id]
@@ -1295,8 +1354,9 @@ test section "Item refs"
   ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
 	   && $(name) eq "link5" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
-
-  test section "item info from variations of pretty links"  
+########################################################
+test section "item info from variations of pretty links"
+########################################################  
 
   # download
   set l /XOWIKI-TEST/download/file/image.png
@@ -1339,7 +1399,10 @@ test hint "found $(item_id) should be $subimagelink_id"
   ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
 
-  test section "item info via links to folders"  
+#############################################
+test section "item info via links to folders"  
+#############################################
+
   # reference pages over links to folders
 
   set l /XOWIKI-TEST/link2/testpage
@@ -1379,8 +1442,9 @@ test hint "found $(item_id) should be $subimagelink_id"
   # link to page in other package
   # link to dir in other package
 
-
-test section "Form Fields"  
+##########################
+test section "Form Fields" 
+########################## 
 
 # Create dummy object with a minimal setup to be used like a page
 set o [::xotcl::Object new -destroy_on_cleanup]
@@ -1391,13 +1455,13 @@ $o package_id $info(package_id)
 
 set f0 [$o create_raw_form_field -name test -slot ::xowiki::Page::slot::name]
 ? {$f0 asWidgetSpec} \
-    {text,optional {label {#xowiki.Page-name#}}  {html {maxlength 400 id F.dummy.test size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
+    {text {label {#xowiki.Page-name#}}  {html {maxlength 400 id F.dummy.test size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
     "name with help_text"
 
 set f0 [$o create_raw_form_field -name test \
 	    -slot ::xowiki::Page::slot::name -spec inform]
 ? {$f0 asWidgetSpec} \
-    {text(inform),optional {label {#xowiki.Page-name#}}  {html {id F.dummy.test }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
+    {text(inform) {label {#xowiki.Page-name#}}  {html {id F.dummy.test }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
     "name with help_text + inform"
 
 set f0 [$o create_raw_form_field -name test \
