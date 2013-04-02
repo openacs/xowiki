@@ -37,10 +37,13 @@ namespace eval ::xowiki {
     ns_log notice "Executing before-uninstantiate"
     ::xowiki::delete_gc_messages -package_id $package_id
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
-    if {[db_0or1row is_transformed_folder "select 1 from cr_folders where folder_id = $root_folder_id"]} {
-      ::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
-    } else {
-      ::xo::db::sql::content_item delete -item_id $root_folder_id
+    if {$root_folder_id ne "0"} {
+      # we deal with a correctly installed package
+      if {[db_0or1row is_transformed_folder "select 1 from cr_folders where folder_id = $root_folder_id"]} {
+	::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
+      } else {
+	::xo::db::sql::content_item delete -item_id $root_folder_id
+      }
     }
     ns_log notice "          before-uninstantiate DONE"
   }
