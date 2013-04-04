@@ -2185,6 +2185,10 @@ namespace eval ::xowiki::formfield {
   }
   
   abstract_page instproc fetch_entry_label {entry_label item_id} {
+    # The following is a temporary solution, only working with cr-item attributes
+    # We should support as well user level instance attributes.
+    set entry_label [string trimleft $entry_label _]
+
     db_1row [my qn [self proc]] "select $entry_label from cr_items ci, cr_revisions cr
       where cr.revision_id = ci.live_revision and ci.item_id = $item_id"
     return [set $entry_label]
