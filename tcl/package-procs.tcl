@@ -2117,7 +2117,7 @@ namespace eval ::xowiki {
     #
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
-      if {$item_id ne "" && ![string is integer -strict $item_id]} { return [my error_msg "No valid item_id provided!"] }
+      if {![string is integer $item_id]} { return [my error_msg "No valid item_id provided!"] }
       #my log "--D item_id from query parameter $item_id"
     }
     #
