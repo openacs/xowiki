@@ -565,20 +565,19 @@ namespace eval ::xowiki {
   #
   # -gustaf neumann (nov 2010)
 
+  if {[ns_info name] eq "NaviServer"} {
+      my proc urlencode {string} {ns_urlencode $string}
+  } else {
   set ue_map [list]
-  for {set i 0} {$i < 256} {incr i} {
-    set c [format %c $i]
-    set x %[format %02x $i]
-    if {![string match {[-a-zA-Z0-9_.]} $c]} {
-      lappend ue_map $c $x
-    }
+      for {set i 0} {$i < 256} {incr i} {
+	  set c [format %c $i]
+	  set x %[format %02x $i]
+	  if {![string match {[-a-zA-Z0-9_.]} $c]} {
+	      lappend ue_map $c $x
+	  }
+      }
+      my proc urlencode {string} {string map [my set ue_map] $string}
   }
-
-  my proc urlencode {string} {
-    my instvar ue_map
-    return [string map $ue_map $string]
-  }
-
 }
 
 
