@@ -215,18 +215,18 @@ namespace eval ::xowiki {
     db_transaction {
       set already_recorded [db_0or1row [my qn autoname_query] "
        select count from xowiki_autonames
-       where parent_id = $parent_id and name = :name"]
+       where parent_id = :parent_id and name = :name"]
       
       if {$already_recorded} {
         incr count
         db_dml [my qn update_autoname_counter] \
             "update xowiki_autonames set count = count + 1 \
-              where parent_id = $parent_id and name = :name"
+              where parent_id = :parent_id and name = :name"
       } else {
         set count 1
         db_dml [my qn insert_autoname_counter] \
             "insert into xowiki_autonames (parent_id, name, count) \
-             values ($parent_id, :name, $count)"
+             values (:parent_id, :name, $count)"
       }
     }
     return $name$count
@@ -1968,11 +1968,11 @@ namespace eval ::xowiki {
       # only record information for authenticated users
       db_dml [my qn update_last_visisted] \
           "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
-           where page_id = $item_id and user_id = $user_id"
+           where page_id = :item_id and user_id = :user_id"
       if {[db_resultrows] < 1} {
         db_dml [my qn insert_last_visisted] \
             "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
-             values ($item_id, $package_id, $user_id, 1, current_timestamp)"
+             values (:item_id, :package_id, :user_id, 1, current_timestamp)"
       }
     }
   }
