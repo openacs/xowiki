@@ -1715,7 +1715,7 @@ namespace eval ::xowiki::includelet {
       set count [::xo::db_string presence_count_users \
                      "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
     } else {
-      set values [db_list_of_lists [my qn get_users] \
+      set values [::xo::db_list_of_lists get_users \
                       [::xo::db::sql select \
                            -vars "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time" \
                            -from xowiki_last_visited \

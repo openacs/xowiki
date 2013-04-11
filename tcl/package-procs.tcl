@@ -1727,7 +1727,7 @@ namespace eval ::xowiki {
     reindex all items of this package
   } {
     my instvar folder_id id
-    set pages [db_list [my qn get_pages] {
+    set pages [::xo::db_list qn get_pages {
       select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
       and publish_status = 'ready'
@@ -2163,8 +2163,9 @@ namespace eval ::xowiki {
         # We have general comments. In a first step, we have to delete
         # these, before we are able to delete the item.
         #
-        set comment_ids [db_list [my qn get_comments] \
-                   "select comment_id from general_comments where object_id = $item_id"]
+        set comment_ids [::xo::db_list get_comments {
+	  select comment_id from general_comments where object_id = :item_id
+	}]
         foreach comment_id $comment_ids { 
           my log "-- deleting comment $comment_id"
           ::xo::db::sql::content_item del -item_id $comment_id 

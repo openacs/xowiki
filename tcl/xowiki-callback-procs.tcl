@@ -59,12 +59,12 @@ namespace eval ::xowiki {
     
     @author Gustaf Neumann
   } {
-    set comment_ids [db_list get_comments "
+    set comment_ids [::xo::db_list get_comments {
       select g.comment_id
       from general_comments g, cr_items i,acs_objects o
       where i.item_id = g.object_id
       and o.object_id = i.item_id
-      and o.package_id = $package_id"]
+      and o.package_id = :package_id}]
     foreach comment_id $comment_ids {
       ::xo::db::sql::acs_message delete -message_id $comment_id
     }

@@ -97,7 +97,7 @@ namespace eval ::xowiki {
     set package_ids [list]
     foreach package_id [::xowiki::Package instances] {
       ns_log notice "checking package_id $package_id"
-      set folder_id [db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+      set folder_id [::xo::db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
       if {$folder_id ne ""} {
         db_dml update_package_id {update acs_objects set package_id = :package_id 
@@ -196,7 +196,7 @@ namespace eval ::xowiki {
          and i.publish_status = 'production' and i.name = r.revision_id::varchar
          $extra_clause
       "
-      foreach tuple [db_list_of_lists get_revisions $sql] {
+      foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
 	#::xotcl::Object msg "tuple = $tuple"
 	foreach {name package_id item_id revision_id last_modified} $tuple break 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
@@ -227,7 +227,7 @@ namespace eval ::xowiki {
       set last_user ""
       set last_revision ""
       
-      foreach tuple [db_list_of_lists get_revisions $sql] {
+      foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
 	#::xotcl::Object msg "tuple = $tuple"
 	foreach {name item_id revision_id last_modified user package_id} $tuple break 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
@@ -253,7 +253,7 @@ namespace eval ::xowiki {
   }
 
   proc unmounted_instances {} {
-    return [db_list unmounted_instances {
+    return [::xo::db_list unmounted_instances {
       select package_id from apm_packages p where not exists 
       (select 1 from site_nodes where object_id = p.package_id) 
       and p.package_key = 'xowiki'
@@ -488,7 +488,7 @@ namespace eval ::xowiki {
             and ci.parent_id = $parent_id \
             and ([join $likes { or }])"
     #my log $sql
-    set pages [db_list_of_lists [my qn get_pages_with_page_order] $sql]
+    set pages [::xo::db_list_of_lists get_pages_with_page_order $sql]
     return $pages
   }
   

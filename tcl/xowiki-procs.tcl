@@ -834,26 +834,30 @@ namespace eval ::xowiki {
     if {[info exists item_id]} {
       if {[info exists user_id]} {
         # tags for item and user
-        set tags [db_list [my qn get_tags] \
-               "SELECT distinct tag from xowiki_tags \
-		where user_id=$user_id and item_id=$item_id and package_id=$package_id"]
+        set tags [::xo::db_list get_tags {
+	  SELECT distinct tag from xowiki_tags 
+	  where user_id = :user_id and item_id = :item_id and package_id = :package_id
+	}]
       } else {
         # all tags for this item 
-        set tags [db_list [my qn get_tags] \
-                "SELECT distinct tag from xowiki_tags \
-		where item_id=$item_id and package_id=$package_id"]
+        set tags [::xo::db_list get_tags {
+	  SELECT distinct tag from xowiki_tags 
+	  where item_id = :item_id and package_id = :package_id
+	}]
       }
     } else {
       if {[info exists user_id]} {
         # all tags for this user
-        set tags [db_list [my qn get_tags] \
-                "SELECT distinct tag from xowiki_tags \
-                 where user_id=$user_id and package_id=$package_id"]
+        set tags [::xo::db_list get_tags {
+	  SELECT distinct tag from xowiki_tags 
+	  where user_id = :user_id and package_id :package_id
+	}]
       } else {
         # all tags for the package
-        set tags [db_list [my qn get_tags] \
-                "SELECT distinct tag from xowiki_tags \
-                 where package_id=$package_id"]
+        set tags [::xo::db_list get_tags {
+	  SELECT distinct tag from xowiki_tags 
+	  where package_id = :package_id
+	}]
       }
     }
     join $tags " "
