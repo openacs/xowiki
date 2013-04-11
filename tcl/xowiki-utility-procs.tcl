@@ -287,7 +287,7 @@ namespace eval ::xowiki {
         return [::xo::db_string check_po_ltree {
 	  select count(*) from pg_attribute a, pg_type t, pg_class c 
 	  where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
-	  and relname = 'xowiki_page']
+	  and relname = 'xowiki_page'}]
       }
     } else {
       return 0
