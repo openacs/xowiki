@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     } else {
 	error "Either item_id or revision_id must be provided"
     }
-    return [db_string [my qn get_pid] "select package_id from acs_objects where object_id = :object_id"]
+    return [::xo::db_string get_pid {select package_id from acs_objects where object_id = :object_id}]
   }
 
   Package ad_proc instantiate_page_from_id {
@@ -1965,9 +1965,10 @@ namespace eval ::xowiki {
 	       -parameter include_in_google_sitemap_index -default 1]} {
 	continue
       } 
-      set last_modified [db_string [my qn get_newest_modification_date] \
-                             "select last_modified from acs_objects where package_id = $package_id \
-		order by last_modified desc limit 1"]
+      set last_modified [::xo::db_string get_newest_modification_date \
+                             {select last_modified from acs_objects 
+			       where package_id = :package_id 
+			       order by last_modified desc limit 1}]
 
       set time [::xo::db::tcl_date $last_modified tz]
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"

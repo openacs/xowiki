@@ -1332,7 +1332,7 @@ namespace eval ::xowiki::formfield {
       -extend_slot validator party_id_check
   party_id instproc check=party_id_check {value} {
     if {$value eq ""} {return 1}
-    return [db_0or1row [my qn check_party] "select 1 from parties where party_id = :value"]
+    return [::xo::db_0or1row check_party {select 1 from parties where party_id = :value}]
   }
 
   ###########################################################
@@ -2189,8 +2189,8 @@ namespace eval ::xowiki::formfield {
     # We should support as well user level instance attributes.
     set entry_label [string trimleft $entry_label _]
 
-    db_1row [my qn [self proc]] "select $entry_label from cr_items ci, cr_revisions cr
-      where cr.revision_id = ci.live_revision and ci.item_id = $item_id"
+    ::xo::db_1row [self proc] "select $entry_label from cr_items ci, cr_revisions cr
+      where cr.revision_id = ci.live_revision and ci.item_id = :item_id"
     return [set $entry_label]
   }
   abstract_page instproc get_entry_label {value} {

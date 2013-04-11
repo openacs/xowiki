@@ -298,7 +298,9 @@ namespace eval ::xowiki {
 
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id 
-    db_1row [my qn get_revision] "select latest_revision,live_revision from cr_items where item_id = $item_id"
+    ::xo::db_1row get_revision {
+      select latest_revision,live_revision from cr_items where item_id = :item_id
+    }
     # do real deletion via package
     $package_id delete_revision -revision_id $revision_id -item_id $item_id
     # Take care about UI specific stuff....
@@ -306,7 +308,7 @@ namespace eval ::xowiki {
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
       # latest revision might have changed by delete_revision, so we have to fetch here
-      db_1row [my qn get_revision] "select latest_revision from cr_items where item_id = $item_id"
+      xo::db_1row [my qn get_revision] "select latest_revision from cr_items where item_id = $item_id"
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
         my instvar package_id name

@@ -39,7 +39,9 @@ namespace eval ::xowiki {
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
       # we deal with a correctly installed package
-      if {[db_0or1row is_transformed_folder "select 1 from cr_folders where folder_id = $root_folder_id"]} {
+      if {[::xo::db_0or1row is_transformed_folder {
+	select 1 from cr_folders where folder_id = :root_folder_id}
+	  ]} {
 	::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
       } else {
 	::xo::db::sql::content_item delete -item_id $root_folder_id

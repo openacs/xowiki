@@ -190,10 +190,9 @@ namespace eval ::xowiki {
       lappend sql -page_number $page_number -page_size $page_size 
     }
     
-    set nr_items [db_string [my qn count] [eval $base_type instance_select_query $sql -count true]]
+    set nr_items [::xo::db_string count [$base_type instance_select_query {*}$sql -count true]]
     #my msg count=$nr_items
-    #my ds [eval $base_type instance_select_query $sql]
-    set s [$base_type instantiate_objects -sql [eval $base_type instance_select_query $sql]]
+    set s [$base_type instantiate_objects -sql [$base_type instance_select_query {*}$sql]]
     
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \

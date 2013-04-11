@@ -284,9 +284,10 @@ namespace eval ::xowiki {
   proc ::xowiki::page_order_uses_ltree {} {
     if {[::xo::db::has_ltree]} {
       ns_cache eval xotcl_object_cache ::xowiki::page_order_uses_ltree {
-        return [db_string check_po_ltree "select count(*) from pg_attribute a, pg_type t, pg_class c \
-		where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid \
-		and relname = 'xowiki_page'"]
+        return [::xo::db_string check_po_ltree {
+	  select count(*) from pg_attribute a, pg_type t, pg_class c 
+	  where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
+	  and relname = 'xowiki_page']
       }
     } else {
       return 0
@@ -300,8 +301,9 @@ namespace eval ::xowiki {
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
-    if {[db_0or1row check \
-          "select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = $item_id"]} {
+    if {[::xo::db_0or1row check {
+      select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = :item_id
+    }]} {
       ns_log notice "folder $item_id is already converted"
       set f [FormPage get_instance_from_db -item_id $item_id]
       if {[$f page_template] != $form_id} {
@@ -568,7 +570,7 @@ namespace eval ::xowiki {
   if {[ns_info name] eq "NaviServer"} {
       my proc urlencode {string} {ns_urlencode $string}
   } else {
-  set ue_map [list]
+      set ue_map [list]
       for {set i 0} {$i < 256} {incr i} {
 	  set c [format %c $i]
 	  set x %[format %02x $i]

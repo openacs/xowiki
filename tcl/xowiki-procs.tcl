@@ -213,9 +213,9 @@ namespace eval ::xowiki {
   ::xotcl::Object create autoname
   autoname proc generate {-parent_id -name} {
     db_transaction {
-      set already_recorded [db_0or1row [my qn autoname_query] "
-       select count from xowiki_autonames
-       where parent_id = :parent_id and name = :name"]
+      set already_recorded [::xo::db_0or1row autoname_query {
+	select count from xowiki_autonames
+	where parent_id = :parent_id and name = :name}]
       
       if {$already_recorded} {
         incr count
@@ -1710,9 +1710,9 @@ namespace eval ::xowiki {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set body [db_string [my qn get_description_from_syndication] \
-                           "select body from syndication where object_id = $revision_id" \
-                           -default ""]
+      set body [::xo::db_string get_description_from_syndication \
+		    "select body from syndication where object_id = $revision_id" \
+		    -default ""]
       set description [ad_html_text_convert -from text/html -to text/plain -- $body]
     }
     if {[info exists nr_chars] && [string length $description] > $nr_chars} {
@@ -2231,7 +2231,7 @@ namespace eval ::xowiki {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
         my instvar text mime_type package_id item_id revision_id
-        set storage_area_key [db_string [my qn get_storage_key] \
+        set storage_area_key [::xo::db_string get_storage_key \
                   "select storage_area_key from cr_items where item_id=$item_id"]
         my set full_file_name [cr_fs_path $storage_area_key]/$text
         #my log "--F setting FILE=[my set full_file_name]"
@@ -2424,7 +2424,7 @@ namespace eval ::xowiki {
     } else {
       set parent_id_clause ""
     }
-    set count [db_string [my qn count_usages] \
+    set count [::xo::db_string [my qn count_usages] \
 		   "select count(page_instance_id) from $bt, cr_items i  \ 
 			where page_template = $item_id \
                         $publish_status_clause $package_clause $parent_id_clause \

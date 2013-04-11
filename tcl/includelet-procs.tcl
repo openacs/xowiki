@@ -286,7 +286,7 @@ namespace eval ::xowiki::includelet {
                  -limit $limit -offset $offset]
 
     if {$count} {
-      return [db_string [my qn count_listing] $sql]
+      return [::xo::db_string count_listing $sql]
     } else {
       set s [::xowiki::Page instantiate_objects -sql $sql]
       return $s
@@ -1591,7 +1591,7 @@ namespace eval ::xowiki::includelet {
         where reference=$item_id and ci.item_id = page and ci.item_id = o.object_id" {
           if {$pid eq ""} {
             # in version less then oacs 5.2, this returns empty
-            set pid [db_string _ "select package_id from cr_folders where folder_id = :parent_id"]
+            set pid [::xo::db_string _ {select package_id from cr_folders where folder_id = :parent_id}]
           }
           if {$pid ne ""} {
             ::xowiki::Package require $pid
@@ -1636,7 +1636,7 @@ namespace eval ::xowiki::includelet {
         where page=$item_id and ci.item_id = reference and ci.item_id = o.object_id" {
           if {$pid eq ""} {
             # in version less then oacs 5.2, this returns empty
-            set pid [db_string _ "select package_id from cr_folders where folder_id = :parent_id"]
+            set pid [::xo::db_string _ {select package_id from cr_folders where folder_id = :parent_id}]
           }
           if {$pid ne ""} {
             ::xowiki::Package require $pid
@@ -1712,7 +1712,7 @@ namespace eval ::xowiki::includelet {
     set output ""
 
     if {$summary} {
-      set count [db_string [my qn presence_count_users] \
+      set count [::xo::db_string presence_count_users \
                      "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
     } else {
       set values [db_list_of_lists [my qn get_users] \
@@ -1726,7 +1726,7 @@ namespace eval ::xowiki::includelet {
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...
-        set count [db_string [my qn presence_count_users] \
+        set count [::xo::db_string presence_count_users \
                        "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
       }
       foreach value  $values {
