@@ -3061,7 +3061,7 @@ namespace eval ::xowiki {
     set use_hstore [expr {[::xo::db::has_hstore] && 
                           [$package_id get_parameter use_hstore 0] 
                         }]
-    if {$use_hstore} {
+    if {$use_hstore && $wc(h) ne ""} {
       set filter_clause " and '$wc(h)' <@ bt.hkey"
     }
     #my msg "exists sql=[info exists wc(sql)]"
