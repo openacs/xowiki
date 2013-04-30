@@ -91,17 +91,20 @@ YAHOO.xo_sel_area.DDApp = {
        var selection_list =  document.getElementById(selection_id + "_selection");
        var items = selection_list.getElementsByTagName("li");
        var values = "";
+       var aux_div = document.createElement('div');
        for (var j = 0; j < items.length; j++) {
          var item = items[j];
-         if (this.values[item.innerHTML] == undefined ) {
-           console.log("   undefined : "+ item.innerHTML);
+         aux_div.innerHTML = item.innerHTML;
+         var index = aux_div.firstChild.nodeValue;
+         if (this.values[index] == undefined ) {
+           console.log("   undefined : " + index);
            console.info(this);
            console.info(YAHOO.xo_sel_area.DDApp);
            for (var i = 0; i < this.values.length; i++) {
              console.log("      defined : "+ this.values[i]);
            }
          } else {
-           values += this.values[item.innerHTML] + "\n";
+           values += this.values[index] + "\n";
          }
        }
        textarea.value = values;
