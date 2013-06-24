@@ -35,7 +35,15 @@ $.fn.ckeip = function (callback,options) {
     var using_wrapper = false;
     var timeout;
     var delay = 500;
-    var eip_html = $(this).html();
+
+    // if the xowikiimage plugin is available we have to rewrite the wiki_image_links to image tags before loading
+    if (settings.ckeditor_config.extraPlugins.indexOf("xowikiimage") != -1) {
+        var eip_html = calc_wiki_image_links_to_image_tags($(this).html());
+        $(this).html(eip_html);
+    } else {
+        var eip_html = $(this).html();
+    }
+
     if (eip_html == '&nbsp;') { eip_html = ''}
     var u_id = this.id;
     var div = $(this);
@@ -52,6 +60,9 @@ $.fn.ckeip = function (callback,options) {
     } else {
       wrapper = div;
     }
+    
+    // delete an already registered inplace ckedtior to ensure that the ckipeditors doesn't shown twice
+    $('#ckeip_'+u_id).remove();
     
     $(this).before("<div id='ckeip_" + u_id + "'><textarea class='ckeip' style='display:none;' name='" + settings.name + "' id ='ckeip_e_" + u_id + "' cols='" + settings.e_width + "' rows='" + settings.e_height + "'  >" + eip_html + "</textarea><span style='display:none;' id='buttons_ckeip_" + u_id + "'><a href='#' id='close_ckeip_" + u_id + "'>Close</a></span></div>");
 
@@ -72,7 +83,7 @@ $.fn.ckeip = function (callback,options) {
         timeout = setTimeout(function() {
           div.hide();
           div.data('editing',true);
-          if (div.html().match(/<.+>/)!=null) {
+          if (div.html().length > 0) {
             load_ck(u_id);
           } else {
           textarea.show();;
