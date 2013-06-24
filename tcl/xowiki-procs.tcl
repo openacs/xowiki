@@ -1654,7 +1654,7 @@ namespace eval ::xowiki {
       my instvar $__v
     }
     foreach __v [[my info class] info vars] {
-      if {[lsearch -exact $__ignorelist $__v]>-1} continue
+      if {$__v in $__ignorelist} continue
       if {[info exists $__v]} continue
       [my info class] instvar $__v
     }
@@ -1695,7 +1695,7 @@ namespace eval ::xowiki {
       set __template_variables__ "<ul>\n"
       foreach __v [lsort $__vars] {
         if {[array exists $__v]} continue ;# don't report  arrays
-        if {[lsearch -exact $__ignorelist $__v]>-1} continue
+        if {$__v in $__ignorelist} continue
         lappend __varlist $__v
         append __template_variables__ "<li><b>$__v:</b> '[set $__v]'\n"
       }
@@ -2033,7 +2033,7 @@ namespace eval ::xowiki {
 	return $f
       }
     }
-    if {[lsearch -exact [list fontname fontsize formatblock]  $name] == -1} {
+    if {$name ni {fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
       my msg "No form field with name '$name' found\
@@ -2772,7 +2772,7 @@ namespace eval ::xowiki {
   Form proc add_dom_attribute_value {dom_node attr value} {
     if {[$dom_node hasAttribute $attr]} {
       set old_value [$dom_node getAttribute $attr]
-      if {[lsearch -exact $old_value $value] == -1} {
+      if {$value ni $old_value} {
         append value " " $old_value
       } else {
         set value $old_value
@@ -3037,7 +3037,7 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       if {![$f exists __base_field]} continue
       set field_name [$f name]
-      if {[lsearch -exact $covered_attributes $field_name] > -1} {
+      if {$field_name in $covered_attributes} {
         continue
       }
       if {$field_name eq "_text"} {
@@ -3350,7 +3350,7 @@ namespace eval ::xowiki {
   #
   
   FormPage instproc set_publish_status {value} {
-    if {[lsearch -exact [list production ready] $value] == -1} {
+    if {$value ni {production ready}} {
       error "invalid value '$value'; use 'production' or 'ready'"
     }
     my set publish_status $value
@@ -3393,8 +3393,9 @@ namespace eval ::xowiki {
     if {$form eq ""} {
       foreach {var _} [my template_vars $template] {
         #if {[string match _* $var]} continue
-	if {[lsearch $allvars $var] == -1 
-            && [lsearch $field_names $var] == -1} {lappend field_names $var}
+	if {$var ni $allvars && $var ni $field_names} {
+	  lappend field_names $var
+	}
       }
       set from_HTML_form 0
     } else {
@@ -3413,9 +3414,7 @@ namespace eval ::xowiki {
           } continue
 	set att [$field getAttribute name]
         #if {[string match _* $att]} continue
-	if {[lsearch $field_names $att] == -1} {
-	  lappend field_names $att
-	}
+	if {$att ni $field_names} { lappend field_names $att }
       }
       set from_HTML_form 1
     }
@@ -3622,14 +3621,14 @@ namespace eval ::xowiki {
   } {
     set old_members [group::get_members -group_id $group_id]
     foreach m $members {
-      if {[lsearch -exact $old_members $m] == -1} {
+      if {$m ni $old_members} {
         #my msg "we have to add $m"
         group::add_member -group_id $group_id -user_id $m \
             -rel_type $rel_type -member_state $member_state
       }
     }
     foreach m $old_members {
-      if {[lsearch -exact $members $m] == -1} {
+      if {$m ni $members} {
         #my msg "we have to remove $m"
         group::remove_member -group_id $group_id -user_id $m
       }
