@@ -639,6 +639,15 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  FormField instproc set_is_repeat_template {is_template} {
+    # my msg "[my name] set is_repeat_template $is_template"
+    if {$is_template} {
+      my set is_repeat_template true
+    } else {
+      my unset -nocomplain is_repeat_template
+    }
+  }
+
   FormField instproc field_value {v} {
     if {[my exists show_raw_value]} {
       return $v
@@ -1322,7 +1331,7 @@ namespace eval ::xowiki::formfield {
     return ""
   }
 
- ###########################################################
+  ###########################################################
   #
   # ::xowiki::formfield::party_id
   #
@@ -1449,6 +1458,7 @@ namespace eval ::xowiki::formfield {
         plugins 
         folder_id
         script_dir
+	{displayMode standard}
         width
         height
         {wiki false}
@@ -1485,6 +1495,12 @@ namespace eval ::xowiki::formfield {
 
   richtext instproc initialize {} {
     my display_field false
+    switch -- [my set displayMode] {
+      inplace -
+      inline -
+      standard {}
+      default {error "value '[my set displayMode]' invalid: valid entries for displayMode are inplace, inline or standard (default)"}
+    }
     next
     if {![my exists editor]} {my set editor xinha} ;# set the default editor
     if {![my exists __initialized]} {
@@ -1551,7 +1567,6 @@ namespace eval ::xowiki::formfield {
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
-    {inplace false}
     {CSSclass xowiki-ckeditor}
     {customConfig "../ck_config.js"}
     {callback "/* callback code */"}
@@ -1564,8 +1579,9 @@ namespace eval ::xowiki::formfield {
   }
   richtext::ckeditor set editor_mixin 1
   richtext::ckeditor instproc initialize {} {
-    if {[my set inplace]} {
-        my append help_text " #xowiki.ckeip_help#"
+    switch -- [my set displayMode] {
+      inplace { my append help_text " #xowiki.ckeip_help#" }
+      inline { error "inline is not supported for ckeditor v3"}
     }
     next
     my set widget_type richtext
@@ -1673,7 +1689,7 @@ namespace eval ::xowiki::formfield {
 
       #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
 
-      if {[my set inplace]} {
+      if {[my set displayMode] eq "inplace"} {
         if {[my value] eq ""} {my value "&nbsp;"}
         my render_richtext_as_div
 	if {[my inline]} {
@@ -1714,6 +1730,242 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::richtext::ckeditor4
+  #
+  #    mode: wysiwyg, source
+  #    skin: moono, kama
+  #    extraPlugins: tcl-list, is converted to comma list for js
+  #
+  ###########################################################
+  Class richtext::ckeditor4 -superclass richtext -parameter {
+    {editor ckeditor}
+    {mode wysiwyg}
+    {skin kama}
+    {toolbar Full}
+    {CSSclass xowiki-ckeditor}
+    {uiColor ""}
+    {CSSclass xowiki-ckeditor}
+    {customConfig "config.js"}
+    {callback "/* callback code */"}
+    {destroy_callback "/* callback code */"}
+    {extraPlugins ""}
+    {templatesFiles ""}
+    {templates ""}
+    {contentsCss /resources/xowiki/ck_contents.css}
+    {imageSelectorDialog /xowiki/ckeditor-images/}
+  }
+  richtext::ckeditor4 set editor_mixin 1
+  richtext::ckeditor4 instproc initialize {} {
+    switch -- [my set displayMode] {
+      inplace { my append help_text " #xowiki.ckeip_help#" }
+      inline { if {![my exists default]} {my set default "&nbsp;"} }
+    }
+    next
+    my set widget_type richtext
+    # Mangle the id to make it compatible with jquery; most probably
+    # not optimal and just a temporary solution
+    regsub -all {[.:-]} [my id] "" id
+    my id $id
+  }
+
+  richtext::ckeditor4 instproc js_image_helper {} {
+    ::xo::Page requireJS {
+      function xowiki_image_callback(editor) {
+	if (typeof editor != "undefined") {
+	  $(editor.element.$.form).submit(function(e) {
+	    calc_image_tags_to_wiki_image_links(this);
+	  });
+	  editor.setData(calc_wiki_image_links_to_image_tags(editor.getData()));
+	}
+      }
+      
+      function calc_image_tags_to_wiki_image_links (form) {
+	var calc = function() {
+	  var wiki_link = $(this).attr('alt');
+	  $(this).replaceWith('[['+wiki_link+']]');
+	}
+	$(form).find('iframe').each(function() {
+	  $(this).contents().find('img[type="wikilink"]').each(calc);
+	});
+        
+	$(form).find('textarea.ckeip').each(function() {
+	  var contents = $('<div>'+this.value+'</div>');
+	  contents.find('img[type="wikilink"]').each(calc);
+	  this.value = contents.html();
+	});
+	return true;
+      }
+      
+      function calc_image_tags_to_wiki_image_links_inline (e) {
+	var data = $('<div>'+e.editor.getData()+'</div>');
+	data.find('img[type="wikilink"]').each( function() {
+	  var wiki_link = $(this).attr('alt');
+	  $(this).replaceWith('[['+wiki_link+']]');
+	});
+	document.getElementById(e.editor.config.textarea_id).innerHTML=data.html();
+      }
+      
+      function calc_wiki_image_links_to_image_tags (data) {
+	var pathname = window.location.pathname;
+	pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
+	console.log('pathname' + pathname);
+	pathname = pathname.replace(/:/ig,"%3a");
+	var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
+	data = data.replace(regex_wikilink,'<img src="'+pathname+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
+	return data
+      }
+    }
+  }
+  
+  richtext::ckeditor4 instproc pathNames {fileNames} {
+    set result [list]
+    foreach fn $fileNames {
+      if {[regexp {^[./]} $fn]} {
+	append result $fn
+      } else {
+	append result "/resources/xowiki/$fn"
+      }
+    }
+    return $result
+  }
+  
+  richtext::ckeditor4 instproc render_input {} {
+    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] eq "true"}]
+    # my msg "[my id] - $is_repeat_template"
+    
+    # if value is empty, we need something to be clickable for display mode inline or inplace
+    if {[my value] eq "" && [my set displayMode] in {inline inplace}} {
+      my value "&nbsp;"
+    }
+    
+    if {![my istype ::xowiki::formfield::richtext] || ($disabled && !$is_repeat_template)} {
+      my render_richtext_as_div
+    } else {
+      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+      ::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
+      ::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
+      ::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
+      ::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
+      
+      # In contrary to the doc, ckeditor4 names instances after the id,
+      # not the name. 
+      set id [my id]
+      set name [my name] 
+      set package_id [[my object] package_id]
+      my extraPlugins {timestamp xowikiimage tlflrn}
+      # my extraPlugins {timestamp}
+      if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
+      
+      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+	my js_image_helper
+	set ready_callback {xowiki_image_callback(e.editor);}
+      } else {
+	set ready_callback "/*none*/;"
+	set blur_callback "/*none*/;"
+      }
+      
+      set options [subst {
+	toolbar : '[my toolbar]',
+	uiColor: '[my uiColor]',
+	language: '[lang::conn::language]',
+	skin: '[my skin]',
+	startupMode: '[my mode]',
+	parent_id: '[[my object] item_id]',
+	package_url: '[$package_id package_url]',
+	extraPlugins: '[join [my extraPlugins] ,]',
+	contentsCss: '[my contentsCss]',
+	imageSelectorDialog: '[my imageSelectorDialog]?parent_id=[[my object] item_id]',
+	ready_callback: '$ready_callback',
+	customConfig: '[my customConfig]',
+	allowedContent: true,
+	textarea_id: '[my set id]'
+      }]
+      if {[my templatesFiles] ne ""} {
+	append options "  , templates_files: \['[join [my pathNames [my templatesFiles]] ',' ]' \]\n"
+      }
+      if {[my templates] ne ""} {
+	append options "  , templates: '[my templates]'\n"
+      }
+      
+      #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
+      
+      if {[my set displayMode] eq "inplace"} {
+	if {!$is_repeat_template} {
+	  set callback [my callback]
+	  set destroy_callback [my destroy_callback]
+	  
+	  my lappend CSSclass ckeip
+	  ::xo::Page requireJS "/resources/xowiki/ckeip.js"
+	  
+	  ::xo::Page requireJS [subst -nocommands {
+	    function load_$id () {
+	      \$( '\#$id' ).ckeip(function() { $callback }, {
+		name: '$name',
+		ckeditor_config: {
+		  $options,
+		  destroy_callback: function() { $destroy_callback }
+		}
+	      });
+	    }
+	    \$(document).ready(function() {
+	      load_$id ();
+	    } );
+	  }]
+	}
+	my render_richtext_as_div
+      } elseif {[my set displayMode] eq "inline"} {
+	if {!$is_repeat_template} {
+	  if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+	    set ready_callback "xowiki_image_callback(CKEDITOR.instances\['ckinline_$id'\]);"
+	    set blur_callback "calc_image_tags_to_wiki_image_links_inline(e);"
+	  }
+	  
+	  ::xo::Page requireJS [subst -nocommands {
+	    function load_ckinline_$id () {
+	      CKEDITOR.inline('ckinline_$id', {
+		on: {
+		  blur: function(e) {
+		    $blur_callback
+		  }
+		},
+		$options
+	      });
+	    }
+	    \$(document).ready(function() {
+	      load_ckinline_$id ();
+	      $ready_callback
+	    });            
+	  }]
+	}
+	my set style "display:none;"
+	next
+	::html::div "id ckinline_[my set id] name [my set name] class xowiki-ckeditor contenteditable true" {
+	  ::html::t -disableOutputEscaping [my value]
+	}
+      } else {
+	if {!$is_repeat_template} {
+	  set callback [my callback]
+	  ::xo::Page requireJS [subst -nocommands {
+	    function load_$id () {
+	      \$( '#$id' ).ckeditor(function() { $callback }, {
+		$options
+	      });        
+	    }
+	    \$(document).ready(function() {
+	      load_$id ();
+	      CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
+	    });
+	  }]
+	}
+	next
+      }
+    }
+  }  
+  
   ###########################################################
   #
   # ::xowiki::formfield::richtext::wym
@@ -1799,12 +2051,22 @@ namespace eval ::xowiki::formfield {
     {height}
     {style}
     {wiki_p true}
-    {inplace false}
     {slim false}
     {CSSclass xinha}
   }
   richtext::xinha set editor_mixin 1
   richtext::xinha instproc initialize {} {
+    switch -- [my set displayMode] {
+      inplace { 
+	::xo::Page requireJS  "/resources/xowiki/xinha-inplace.js"
+	if {![info exists ::__xinha_inplace_init_done]} {
+	  template::add_body_handler -event onload -script "xinha.inplace.init();"
+	  set ::__xinha_inplace_init_done 1 
+	}
+      }    
+      inline { error "inline is not supported for ckeditor v3"}
+    }
+
     next
     my set widget_type richtext
     if {![my exists plugins]} {
@@ -1821,14 +2083,6 @@ namespace eval ::xowiki::formfield {
     if {![my exists style]} {my set style "width: 100%;"}
     if {![my exists height]} {my set height 350px}
     if {![my exists wiki_p]} {my set wiki_p 1}
-    if {![my exists inplace]} {my set inplace false} 
-    if {[my set inplace]} {
-      ::xo::Page requireJS  "/resources/xowiki/xinha-inplace.js"
-      if {![info exists ::__xinha_inplace_init_done]} {
-	template::add_body_handler -event onload -script "xinha.inplace.init();"
-	set ::__xinha_inplace_init_done 1 
-      }
-    }
     if {[my set slim]} {
       my lappend options javascript {
 	xinha_config.toolbar  = [['popupeditor', 'formatblock', 'bold','italic','createlink','insertimage'], 
@@ -1865,7 +2119,7 @@ namespace eval ::xowiki::formfield {
       set ::acs_blank_master(xinha.options) $xinha_options
       lappend ::acs_blank_master__htmlareas [my id]
 
-      if {[my set inplace]} {
+      if {[my set displayMode] eq "inplace"} {
 	::html::div [my get_attributes id name {CSSclass class} disabled] {
           set href \#
           set onclick "xinha.inplace.openEditor('[my id]');return false;"
@@ -2690,6 +2944,18 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  CompoundField instproc set_is_repeat_template {is_template} {
+    # my msg "[my name] set is_repeat_template $is_template"
+    if {$is_template} {
+      my set is_repeat_template true
+    } else {
+      my unset -nocomplain is_repeat_template
+    }
+    foreach c [my components] {
+      $c set_is_repeat_template $is_template
+    }
+  }
+
   CompoundField instproc same_value {v1 v2} {
     if {$v1 eq $v2} {return 1}
     foreach {n1 value1} $v1 {n2 value2} $v2  {
@@ -3059,6 +3325,11 @@ namespace eval ::xowiki::formfield {
     # TODO: TZ???
     #my msg "DATE [my name] get_compound_value returns [clock format $ticks -format {%Y-%m-%d %T}]"
     return [clock format $ticks -format "%Y-%m-%d %T"]
+  }
+  
+  date instproc same_value {v1 v2} {
+      if {$v1 eq $v2} {return 1}
+      return 0
   }
 
   date instproc pretty_value {v} {
