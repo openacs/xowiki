@@ -1356,6 +1356,7 @@ namespace eval ::xowiki::formfield {
 	{link_label}
       }
   url instproc check=safe_url {value} {
+    if {$value eq ""} {return 1}
     set regexp {^(https|http|ftp)://([a-zA-Z0-9_\-\.]+(:[0-9]+)?)/[a-zA-Z0-9_.%/#?=&~-]+$}
     if {[regexp -nocase $regexp $value]} {return 1}
     return 0
@@ -1502,7 +1503,11 @@ namespace eval ::xowiki::formfield {
       default {error "value '[my set displayMode]' invalid: valid entries for displayMode are inplace, inline or standard (default)"}
     }
     next
-    if {![my exists editor]} {my set editor xinha} ;# set the default editor
+    if {![my exists editor]} {
+      # set the default editor; TODO: should be a parameter
+      #my set editor ckeditor4
+      my set editor xinha
+    }
     if {![my exists __initialized]} {
       # Mixin the editor based on the attribute 'editor' if necessary
       # and call initialize again in this case...
@@ -1741,7 +1746,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class richtext::ckeditor4 -superclass richtext -parameter {
-    {editor ckeditor}
+    {editor ckeditor4}
     {mode wysiwyg}
     {skin kama}
     {toolbar Full}
@@ -1835,7 +1840,7 @@ namespace eval ::xowiki::formfield {
   richtext::ckeditor4 instproc render_input {} {
     set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
     set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] eq "true"}]
-    # my msg "[my id] - $is_repeat_template"
+    # my msg "[my id] [my name] - $is_repeat_template"
     
     # if value is empty, we need something to be clickable for display mode inline or inplace
     if {[my value] eq "" && [my set displayMode] in {inline inplace}} {
@@ -2064,7 +2069,7 @@ namespace eval ::xowiki::formfield {
 	  set ::__xinha_inplace_init_done 1 
 	}
       }    
-      inline { error "inline is not supported for ckeditor v3"}
+      inline { error "inline is not supported for xinha"}
     }
 
     next
