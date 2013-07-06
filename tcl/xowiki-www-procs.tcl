@@ -837,6 +837,10 @@ namespace eval ::xowiki {
     dom parse -simple -html $form doc
     $doc documentElement root
 
+    if {$root eq ""} {
+      error "form '$form' is not valid"
+    }
+
     ::require_html_procs
     $root firstChild fcn
     #my msg "orig fcn $fcn, root $root [$root nodeType] [$root nodeName]"
