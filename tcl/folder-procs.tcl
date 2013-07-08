@@ -248,6 +248,7 @@ namespace eval ::xowiki::includelet {
       }
       $mb add_menu_item -name New.Form \
 	  -item [list text Form url $new_form_link]
+
       $mb add_menu_item -name Package.ImportDump -item [list url $import_link]
       $mb add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
 
@@ -269,15 +270,19 @@ namespace eval ::xowiki::includelet {
       # clipboad-add)
       $mb add_menu_item -name Clipboard.Add \
           -item [list url javascript:acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]
-      $mb add_menu_item -name Clipboard.Content -item [list url $clipboard_content_link]
-      $mb add_menu_item -name Clipboard.Clear -item [list url $clipboard_clear_link]
-      $mb add_menu_item -name Clipboard.Use.Copy -item [list url $clipboard_copy_link]
-      $mb add_menu_item -name Clipboard.Use.Export -item [list url $clipboard_export_link]
+      $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
+      $mb add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
+      $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
+      $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
 
       # A folder page can contain extra menu entries (sample
       # below). Iterate of the extra_menu property and add according
       # menu entries.
-      foreach me [$current_folder property extra_menu_entries] {
+      #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
+
+      foreach me [concat \
+		      [$package_id get_parameter extraMenuEntries {}] \
+		      [$current_folder property extra_menu_entries]] {
         array unset ""
         set kind [lindex $me 0]
         if {[string range $kind 0 0] eq "#"} continue
