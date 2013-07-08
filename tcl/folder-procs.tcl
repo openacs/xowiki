@@ -281,7 +281,7 @@ namespace eval ::xowiki::includelet {
       #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
 
       foreach me [concat \
-		      [$package_id get_parameter extraMenuEntries {}] \
+		      [$package_id get_parameter ExtraMenuEntries {}] \
 		      [$current_folder property extra_menu_entries]] {
         array unset ""
         set kind [lindex $me 0]
