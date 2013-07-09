@@ -391,6 +391,7 @@ namespace eval ::xowiki::formfield {
     if {[my exists spell]} {append spec ",[expr {[my spell] ? {} : {no}}]spell"}
 
     if {![my required]} {append spec ",optional"}
+    if {[my exists editor]} {append spec " {options {editor [my set editor]}} "}
     append spec " {label " [list $label] "} "
 
     if {[my exists html]} {
@@ -1505,8 +1506,9 @@ namespace eval ::xowiki::formfield {
     next
     if {![my exists editor]} {
       # set the default editor; TODO: should be a parameter
-      #my set editor ckeditor4
       my set editor xinha
+      #my set editor ckeditor4
+      #my msg "setting default of [my name] to [my set editor]"
     }
     if {![my exists __initialized]} {
       # Mixin the editor based on the attribute 'editor' if necessary
@@ -3555,6 +3557,27 @@ namespace eval ::xowiki::formfield {
         $location_txt \
         "</div>" 
     return $result
+  }
+}
+
+namespace eval ::xowiki::formfield {
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::class
+  #
+  ###########################################################
+
+  Class create class -superclass select -parameter {
+    {subclass_of ::xotcl::Object}
+  }
+  class instproc initialize {} {
+    my set options ""
+    set baseclass [my subclass_of]
+    foreach cl [lsort [concat $baseclass [$baseclass info subclass -closure]]] {
+      my lappend options [list $cl $cl]
+    }
+    next
   }
 }
 
