@@ -3434,7 +3434,6 @@ namespace eval ::xowiki::includelet {
       if {[my parent_id] != [$package_id folder_id]} {
         set parent_id [my parent_id]
       }
-      #my msg "[my info class] check-link-package_id=$package_id"
       set link [$package_id make_link -link $base $form $method return_url parent_id]
     }
     if {$link eq ""} {
@@ -3484,6 +3483,7 @@ namespace eval ::xowiki::includelet {
   
   form-menu instproc render {} {
     my get_parameters
+    #my msg form-menu-[info exists form_item_id] buttons=$buttons
     my instvar __including_page
     if {![info exists form_item_id]} {
       set form_item_id [::xowiki::Weblog instantiate_forms \

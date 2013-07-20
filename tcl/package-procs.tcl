@@ -372,7 +372,7 @@ namespace eval ::xowiki {
     @param parent_id parent_id (for now just for download)
     @param name name of the wiki page
   } {
-    #my msg "input name=$name, lang=$lang"
+    #my msg "input name=$name, lang=$lang parent_id=$parent_id"
     set default_lang [my default_language]
     
     my get_lang_and_name -default_lang $lang -name $name lang name
@@ -381,6 +381,7 @@ namespace eval ::xowiki {
     if {$anchor ne ""} {set anchor \#$anchor}
     if {$query ne ""} {set query ?$query}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
+
     set package_prefix [my get_parameter package_prefix [my package_url]]
     if {$package_prefix eq "/" && [string length $lang]>2} {
       # don't compact the the path for images etc. to avoid conflicts
@@ -388,22 +389,24 @@ namespace eval ::xowiki {
       set package_prefix [my package_url]
     }
     #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
-    
-    if {$parent_id eq -100} {
-      return ${host}${package_prefix}$query$anchor
-    }
 
     if {[ns_info name] eq "NaviServer"} {
       set encoded_name [ns_urlencode -part path -- $name]
     } else {
       set encoded_name [::xowiki::utility urlencode $name]
     }
-
-    set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
+    
+    if {$parent_id eq -100} {
+      # In case, we have a cr-toplevel entry, we assume, we can
+      # resolve it at lease against the root folder of the current
+      # package.
+      set folder ""
+    } else {
+      set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
+      set pkg [$parent_id package_id]
+      set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
+    }
     #my msg "folder_path = $folder, -parent_id $parent_id -folder_ids $folder_ids // default_lang [my default_language]"
-
-    set pkg [$parent_id package_id]
-    set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
 
     # if {$folder ne ""} {
     #   # if folder has a different language than the content, we have to provide a prefix....
@@ -675,7 +678,12 @@ namespace eval ::xowiki {
     my instvar id
 
     set computed_link ""
-    #my msg "obj=$object, [$object info class]"
+    #set msg "make_link obj=$object, [$object info class]"
+    #if {[info exists link]} {append msg " link '$link'"}
+    #if {"::xowiki::Page" in [$object info precedence]} {
+    #  append msg " [$object name] [$object package_id] [$object physical_package_id]"
+    #}
+    #my msg $msg
     if {[$object istype ::xowiki::Package]} {
       set base  [my package_url]
       if {[info exists link]} {
