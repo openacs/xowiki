@@ -503,6 +503,10 @@ namespace eval ::xowiki::includelet {
       if {[info exists hide]} {
 	foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
       }
+      #
+      # We have to use the global variable for the time being due to
+      # scoping in "-columns"
+      set ::with_publish_status [expr {$publish_status ne "ready"}]
 
       set t [::YUI::DataTable new -skin $skin -volatile \
 		 -columns {
@@ -519,6 +523,11 @@ namespace eval ::xowiki::includelet {
 		   AnchorField edit -CSSclass edit-item-button -label "" \
 		       -hide $::hidden(edit) \
 		       -html {style "padding: 0px;"}
+		   if {$::with_publish_status} {
+		     ImageAnchorField publish_status -orderby publish_status.src -src "" \
+			 -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
+			 -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
+		   }
 		   Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
 		       -hide $::hidden(object_type) \
 		       -html {style "padding: 0px;"}
@@ -536,10 +545,10 @@ namespace eval ::xowiki::includelet {
       set extra_where_clause "true"
       # TODO: why filter on title and name?
       if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
-      set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
 
       set items [::xowiki::FormPage get_all_children \
 		     -folder_id $current_folder_id \
+		     -publish_status $publish_status \
 		     -object_types [my types_to_show] \
 		     -extra_where_clause $extra_where_clause]
       
@@ -585,6 +594,22 @@ namespace eval ::xowiki::includelet {
 	    -delete "" \
 	    -delete.href $delete_link \
 	    -delete.title #xowiki.delete#
+
+	if {$::with_publish_status} {
+	  # TODO: this should get some architectural support
+	  if {[$c set publish_status] eq "ready"} {
+	    set image active.png
+	    set state "production"
+	  } else {
+	    set image inactive.png
+	    set state "ready"
+	  }
+	  set revision_id [$c set revision_id]
+	  [$t last_child] set publish_status.src /resources/xowiki/$image
+	  [$t last_child] set publish_status.href \
+	      [export_vars -base [$package_id package_url]admin/set-publish-state \
+		   {state revision_id return_url}]
+	}
       }
 
       foreach {att order} [split $orderby ,] break

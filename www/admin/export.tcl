@@ -37,4 +37,4 @@ if {$objects eq ""} {
 # needed objects.
 #
 ::xowiki::exporter export [array names items]
-
+ns_conn close

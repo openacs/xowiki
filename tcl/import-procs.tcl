@@ -294,7 +294,7 @@ namespace eval ::xowiki {
 	if {[$item_id istype ::xowiki::PageInstance]} {
 	  set template_id [$item_id page_template]
 	  if {![info exists items($template_id)]} {
-	    ns_log notice "--export including parent-object $template_id [$template_id name]"
+	    ns_log notice "--export including template-object $template_id [$template_id name]"
 	    set items($template_id) 1
 	    ::xo::db::CrClass get_instance_from_db -item_id $template_id
 	    set new 1
@@ -306,7 +306,7 @@ namespace eval ::xowiki {
 	# check for child objects of the item
 	#
 	set sql [::xowiki::Page instance_select_query -folder_id $item_id -with_subtypes true]
-	db_foreach instance_select $sql {
+	db_foreach [my qn export_child_obj] $sql {
 	  if {![info exists items($item_id)]} {
 	    ::xo::db::CrClass get_instance_from_db -item_id $item_id
 	    ns_log notice "--export including child $item_id [$item_id name]"
@@ -326,6 +326,7 @@ namespace eval ::xowiki {
     foreach item_id $item_ids {
       if {[catch {set obj [$item_id marshall]} errorMsg]} {
 	ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+	error $errorMsg
       } else {
 	append content $obj\n
       }
@@ -347,6 +348,7 @@ namespace eval ::xowiki {
     
     foreach item_id $item_ids {
       ns_log notice "--exporting $item_id [$item_id name]"
+      ns_write "# exporting $item_id [$item_id name] [$item_id pretty_link]\n"
       if {[catch {set obj [$item_id marshall]} errorMsg]} {
 	ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
       } else {

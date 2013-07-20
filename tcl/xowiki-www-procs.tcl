@@ -95,10 +95,10 @@ namespace eval ::xowiki {
     my instvar package_id
     set clipboard [::xowiki::clipboard get]
     ::xowiki::exporter export $clipboard
+    ns_conn close
     ::xowiki::clipboard clear
     #::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
   }
-
   
   #
   # externally callable method: create-new
@@ -265,6 +265,35 @@ namespace eval ::xowiki {
 			     -extra_form_constraints _creation_user:numeric,format=%d \
 			     -form_item_id [my item_id] -generate csv]]
   }
+
+  #
+  # externally callable method: use-template
+  # 
+  PageInstance instproc use-template {} {
+    my instvar package_id
+    set formName [my query_parameter "form" ""]
+    if {$formName eq ""} {
+      error "no form specified"
+    }
+    $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
+    array set "" [$package_id item_ref -default_lang $lang -parent_id [$package_id folder_id] $formName]
+    if {$(item_id) == 0} { error "cannot lookup page $formName" }
+    ::xo::db::CrClass get_instance_from_db -item_id $(item_id)
+    if {[info command ::$(item_id)] eq "" 
+	|| "::xowiki::PageTemplate" ni [$(item_id) info precedence]} {
+      error "OK $formName is not suited to be used as template. Should be a Form!"
+    }
+    if {[my page_template] == $(item_id)} {
+      my msg "old page_template $(item_id) is already the same as the new one"
+    } else {
+      set msg "change template_id [my page_template] to $(item_id)"
+      my page_template $(item_id)
+      my save
+      my msg "ok $msg"
+    }
+    $package_id returnredirect [::xo::cc url]
+  }
+  
 
   #
   # externally callable method: delete
@@ -962,7 +991,7 @@ namespace eval ::xowiki {
       return [my view [my include [list form-usages -form_item_id [my item_id]]]]
     }
     if {[my is_folder_page]} {
-      return [my view [my include [list child-resources]]]
+      return [my view [my include [list child-resources -publish_status all]]]
     }
     #my msg "method list undefined for this kind of object"
     [my package_id] returnredirect [::xo::cc url]

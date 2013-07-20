@@ -523,15 +523,27 @@ namespace eval ::xowiki {
     if {$party_id eq "" || $party_id == 0} {
       return $party_id
     }
-    if {[catch {acs_user::get -user_id $party_id -array info}]} {
-      ns_log warning "Cannot map party_id $party_id, probably not a user; property $property lost during export"
-      return {}
+    if {![catch {acs_user::get -user_id $party_id -array info}]} {
+      set result [list]
+      foreach a {username email first_names last_name screen_name url} {
+	lappend result $a $info($a)
+      }
+      ns_log notice "--    map_party $party_id: $result"
+      return $result
     }
-    set result [list]
-    foreach a {username email first_names last_name screen_name url} {
-      lappend result $a $info($a)
+    if {![catch {group::get -group_id $party_id -array info}]} {
+	ns_log notice "got group info: [array get info]"
+	set result [array get info]
+	set members {}
+	foreach member_id [group::get_members -group_id $party_id] {
+	    lappend members [my map_party -property $property $member_id]
+	}
+	lappend result members $members
+	ns_log notice "--    map_party $party_id: $result"
+	return $result
     }
-    return $result
+    ns_log warning "Cannot map party_id $party_id, probably not a user; property $property lost during export"
+    return {}
   }
 
   Page instproc reverse_map_party {-entry -default_party {-create_user_ids 0}} {
@@ -539,23 +551,37 @@ namespace eval ::xowiki {
     # the future as well.http://localhost:8003/nimawf/admin/export
 
     array set "" $entry
-    if {$(email) ne ""} {
+    if {[info exists (email)] && $(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }
     } 
-    if {$(username) ne ""} {
+    if {[info exists (username)] && $(username) ne ""} {
       set id [acs_user::get_by_username -username $(username)]
       if {$id ne ""} { return $id }
     }
+    if {[info exists (group_name)] && $(group_name) ne ""} {
+      set id [group::get_id -group_name $(group_name)]
+      if {$id ne ""} { return $id }
+    }
+
     if {$create_user_ids} {
-      my log "+++ create a new user username=$(username), email=$(email)"
-      array set status [auth::create_user -username $(username) -email $(email) \
-			    -first_names $(first_names) -last_name $(last_name) \
-			    -screen_name $(screen_name) -url $(url)]
-      if {$status(creation_status) eq "ok"} {
-	return $status(user_id)
+      if {[info exists (group_name)] && $(group_name) ne ""} {
+	my log "+++ create a new group group_name=$(group_name)"
+	set group_id [group::new -group_name $(group_name)]
+	array set info [list join_policy $(join_policy)]
+	group::update -group_id $group_id -array info
+	ns_log notice "+++ reverse_party_map: we could add members $(members) - but we don't"
+	return $group_id
+      } else {
+	my log "+++ create a new user username=$(username), email=$(email)"
+	array set status [auth::create_user -username $(username) -email $(email) \
+			      -first_names $(first_names) -last_name $(last_name) \
+			      -screen_name $(screen_name) -url $(url)]
+	if {$status(creation_status) eq "ok"} {
+	  return $status(user_id)
+	}
+	my log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
       }
-      my log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
     }
     return $default_party
   }

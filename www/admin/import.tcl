@@ -46,9 +46,15 @@ ad_form \
       foreach o [::xowiki::Page allinstances] { 
         set preexists($o) 1
       }
-      if {[catch {namespace eval ::xo::import $content} error]} {
-	#my msg "Error: $::errorInfo"
-        set msg "Error: $error\n$::errorInfo"
+      if {[catch {namespace eval ::xo::import $content} errorMsg]} {
+        set msg "Error: $errorMsg\n$::errorInfo"
+	ns_log notice $msg
+	# cleanup all objects, that did not exist before
+        foreach o [::xowiki::Page allinstances] {
+	  if {![info exists preexists($o)]} {
+	    if {[::xotcl::Object isobject $o]} {$o destroy}
+	  }
+        }
       } else {
         set objects [list]
         foreach o [::xowiki::Page allinstances] {
