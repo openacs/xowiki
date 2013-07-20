@@ -862,15 +862,30 @@ namespace eval ::xowiki {
 
     #my log "--o object is '$object'"
     if {$object eq ""} {
-      # we have no object, but as well no method callable on the package
-      set object [$id get_parameter index_page "index"]
-      #my log "--o object is now '$object'"
+      #
+      # We have no object, but as well no method callable on the
+      # package If the method is "view", allow it to be called on the
+      # root folder object.
+      if {[my query_parameter m] eq "list"} {
+	my instvar folder_id
+	array set "" [list \
+			  name [$folder_id name] \
+			  stripped_name [$folder_id name] \
+			  parent_id [$folder_id parent_id] \
+			  item_id $folder_id \
+			  method [my query_parameter m]]
+      } else {
+	set object [$id get_parameter index_page "index"]
+	#my log "--o object is now '$object'"
+      }
     }
 
     #
-    # second, resolve object level
+    # second, resolve object level, unless we got a value already
     #
-    array set "" [my item_info_from_url -with_package_prefix false -default_lang $lang $object]
+    if {![info exists (item_id)]} {
+      array set "" [my item_info_from_url -with_package_prefix false -default_lang $lang $object]
+    }
 
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
