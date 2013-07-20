@@ -726,7 +726,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class submit_button -superclass FormField 
+  Class create submit_button -superclass FormField 
   submit_button  instproc initialize {} {
     my set type submit
     my set value [::xo::localize [_ xowiki.Form-submit_button]]
@@ -939,7 +939,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class import_archive -superclass file -parameter {
+  Class create import_archive -superclass file -parameter {
     {cleanup false}
   }
   import_archive instproc initialize {} {
@@ -983,7 +983,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class image -superclass file -parameter {
+  Class create image -superclass file -parameter {
     href cssclass
     float width height 
     padding padding-right padding-left padding-top padding-bottom
@@ -1002,7 +1002,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class hidden -superclass FormField
+  Class create hidden -superclass FormField
   hidden instproc initialize {} {
     my type hidden
     my set widget_type text(hidden)
@@ -1022,7 +1022,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class omit -superclass FormField
+  Class create omit -superclass FormField
   omit instproc render_item {} {
     # don't render the labels
     #my render_form_widget
@@ -1036,7 +1036,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   
-  Class inform -superclass FormField
+  Class create inform -superclass FormField
   inform instproc initialize {} {
     my type hidden
     my set widget_type text(inform)
@@ -1054,7 +1054,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class text -superclass FormField -parameter {
+  Class create text -superclass FormField -parameter {
     {size 80}
     maxlength
   }
@@ -1070,7 +1070,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class color -superclass text 
+  Class create color -superclass text 
   color instproc initialize {} {
     next
     my type color
@@ -1082,7 +1082,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class datetime -superclass text 
+  Class create datetime -superclass text 
   datetime instproc initialize {} {
     next
     my type datetime
@@ -1097,7 +1097,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class datetime-local -superclass text 
+  Class create datetime-local -superclass text 
   datetime-local instproc initialize {} {
     next
     my type datetime-local
@@ -1109,7 +1109,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class time -superclass text 
+  Class create time -superclass text 
   time instproc initialize {} {
     next
     my type time
@@ -1121,7 +1121,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class week -superclass text 
+  Class create week -superclass text 
   week instproc initialize {} {
     next
     my type datetime
@@ -1133,7 +1133,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class email -superclass text 
+  Class create email -superclass text 
   email instproc initialize {} {
     next
     my type email
@@ -1145,7 +1145,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class search -superclass text 
+  Class create search -superclass text 
   search instproc initialize {} {
     next
     my type search
@@ -1156,7 +1156,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class tel -superclass text 
+  Class create tel -superclass text 
   tel instproc initialize {} {
     next
     my type tel
@@ -1168,7 +1168,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class number -superclass FormField -parameter {
+  Class create number -superclass FormField -parameter {
     min max step value
   }
   number instproc initialize {} {
@@ -1186,7 +1186,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class range -superclass FormField -parameter {
+  Class create range -superclass FormField -parameter {
     min max step value
   }
   range instproc initialize {} {
@@ -1205,7 +1205,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class password -superclass text 
+  Class create password -superclass text 
   password instproc initialize {} {
     next
     my set widget_type password
@@ -1217,7 +1217,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class numeric -superclass text -parameter {
+  Class create numeric -superclass text -parameter {
     {format %.2f}
   } -extend_slot validator numeric 
   numeric instproc initialize {} {
@@ -1266,7 +1266,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class user_id -superclass numeric -parameter {
+  Class create user_id -superclass numeric -parameter {
     {format %d}
   }
   user_id instproc initialize {} {
@@ -1283,7 +1283,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class author -superclass user_id -parameter {
+  Class create author -superclass user_id -parameter {
     {photo_size 54}
     {with_photo true}
     {with_user_link false}
@@ -1338,7 +1338,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class party_id -superclass user_id \
+  Class create party_id -superclass user_id \
       -extend_slot validator party_id_check
   party_id instproc check=party_id_check {value} {
     if {$value eq ""} {return 1}
@@ -1351,7 +1351,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class url -superclass text \
+  Class create url -superclass text \
       -extend_slot validator safe_url \
       -parameter {
 	{link_label}
@@ -1384,7 +1384,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class detail_link -superclass url -parameter {
+  Class create detail_link -superclass url -parameter {
     {link_label "#xowiki.weblog-more#"}
   }
   detail_link instproc pretty_value {v} {
@@ -1404,7 +1404,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class textarea -superclass FormField -parameter {
+  Class create textarea -superclass FormField -parameter {
     {rows 2}
     {cols 80}
     {spell false}
@@ -1433,7 +1433,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class code_listing -superclass textarea -parameter {
+  Class create code_listing -superclass textarea -parameter {
     {rows 20}
     {cols 80}
   }
@@ -1454,7 +1454,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class richtext -superclass textarea \
+  Class create richtext -superclass textarea \
       -extend_slot validator safe_html \
       -parameter {
         plugins 
@@ -1567,7 +1567,7 @@ namespace eval ::xowiki::formfield {
   #    extraPlugins: tcl-list, is converted to comma list for js
   #
   ###########################################################
-  Class richtext::ckeditor -superclass richtext -parameter {
+  Class create richtext::ckeditor -superclass richtext -parameter {
     {editor ckeditor}
     {mode wysiwyg}
     {skin kama}
@@ -1747,7 +1747,7 @@ namespace eval ::xowiki::formfield {
   #    extraPlugins: tcl-list, is converted to comma list for js
   #
   ###########################################################
-  Class richtext::ckeditor4 -superclass richtext -parameter {
+  Class create richtext::ckeditor4 -superclass richtext -parameter {
     {editor ckeditor4}
     {mode wysiwyg}
     {skin kama}
@@ -1978,7 +1978,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::richtext::wym
   #
   ###########################################################
-  Class richtext::wym -superclass richtext -parameter {
+  Class create richtext::wym -superclass richtext -parameter {
     {editor wym}
     {CSSclass wymeditor}
     width
@@ -2053,7 +2053,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class richtext::xinha -superclass richtext -parameter {
+  Class create richtext::xinha -superclass richtext -parameter {
     javascript
     {height}
     {style}
@@ -2154,7 +2154,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   # abstract superclass for select and radio
-  Class enumeration -superclass FormField -parameter {
+  Class create enumeration -superclass FormField -parameter {
     {options}
     {category_tree}
   }
@@ -2253,7 +2253,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class radio -superclass enumeration -parameter {
+  Class create radio -superclass enumeration -parameter {
     {horizontal false}
     {forced_name}
   }
@@ -2281,7 +2281,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class checkbox -superclass enumeration -parameter {
+  Class create checkbox -superclass enumeration -parameter {
     {horizontal false}
   }
   checkbox instproc initialize {} {
@@ -2323,7 +2323,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class select -superclass enumeration -parameter {
+  Class create select -superclass enumeration -parameter {
     {multiple "false"}
   }
 
@@ -2433,7 +2433,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class abstract_page -superclass candidate_box_select -parameter {
+  Class create abstract_page -superclass candidate_box_select -parameter {
     {as_box false}
     {multiple_style comma}
   }
@@ -2512,7 +2512,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::form_page
   #
   ###########################################################
-  Class form_page -superclass abstract_page -parameter {
+  Class create form_page -superclass abstract_page -parameter {
     {form}
     {where}
     {entry_label _title}
@@ -2598,7 +2598,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::page
   #
   ###########################################################
-  Class page -superclass abstract_page -parameter {
+  Class create page -superclass abstract_page -parameter {
     {type ::xowiki::Page}
     {with_subtypes false}
     {glob}
@@ -2642,7 +2642,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class DD -superclass select
+  Class create DD -superclass select
   DD instproc initialize {} {
     my options {
       {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} {10 10}
@@ -2659,7 +2659,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class HH24 -superclass select
+  Class create HH24 -superclass select
   HH24 instproc initialize {} {
     my options {
       {00  0} {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} 
@@ -2675,7 +2675,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class MI -superclass select
+  Class create MI -superclass select
   MI instproc value args {
     if {[llength $args] == 0} {return [my set value]} else {
       set v [lindex $args 0]
@@ -2699,7 +2699,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class MM -superclass select
+  Class create MM -superclass select
   MM instproc initialize {} {
     my options {
       {01  1} {02  2} {03 3} {04 4} {05 5} {06 6} {07 7} {08 8} {09 9} {10 10}
@@ -2713,7 +2713,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class mon -superclass select
+  Class create mon -superclass select
   mon instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-abmon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
@@ -2731,7 +2731,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class month -superclass select
+  Class create month -superclass select
   month instproc initialize {} {
     set values [lang::message::lookup [my locale] acs-lang.localization-mon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
@@ -2750,7 +2750,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class YYYY -superclass numeric -parameter {
+  Class create YYYY -superclass numeric -parameter {
     {size 4}
     {maxlength 4}
   } -extend_slot validator YYYY
@@ -2767,7 +2767,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::youtube_url
   #
   ###########################################################
-  Class youtube_url -superclass text
+  Class create youtube_url -superclass text
   youtube_url set urlre {^http://www.youtube.com/watch[?]v=([^?]+)([?]?)}
   
   youtube_url instproc initialize {} {
@@ -2794,7 +2794,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class image_url -superclass text \
+  Class create image_url -superclass text \
       -extend_slot validator image_check \
       -parameter {
         href cssclass
@@ -2870,7 +2870,7 @@ namespace eval ::xowiki::formfield {
 
   # note that the includelet "include" can be used for implementing symbolic links
   # to other xowiki pages.
-  Class include -superclass text -parameter {
+  Class create include -superclass text -parameter {
   }
 
   include instproc pretty_value {v} {
@@ -2907,7 +2907,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class redirect -superclass text
+  Class create redirect -superclass text
   redirect instproc pretty_value {v} {
     #ad_returnredirect -allow_complete_url $v
     #ad_script_abort
@@ -2920,7 +2920,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class CompoundField -superclass FormField -parameter {
+  Class create CompoundField -superclass FormField -parameter {
     {components ""}
     {CSSclass compound-field}
   } -extend_slot validator compound
@@ -3137,7 +3137,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class label -superclass FormField -parameter {
+  Class create label -superclass FormField -parameter {
     {disableOutputEscaping false}
   }
   label instproc render_item {} {
@@ -3163,7 +3163,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::child_pages
   #
   ###########################################################
-  Class child_pages -superclass label -parameter {
+  Class create child_pages -superclass label -parameter {
     {form}
     {publish_status all}
   }
@@ -3202,7 +3202,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class date -superclass CompoundField -parameter {
+  Class create date -superclass CompoundField -parameter {
     {format "DD MONTH YYYY"}
     {display_format "%Y-%m-%d %T"}
   }
@@ -3372,7 +3372,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class boolean -superclass radio -parameter {
+  Class create boolean -superclass radio -parameter {
     {default t}
   }
   boolean instproc value_if_nothing_is_returned_from_form {default} {
@@ -3431,7 +3431,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class scale -superclass radio -parameter {{n 5} {horizontal true}}
+  Class create scale -superclass radio -parameter {{n 5} {horizontal true}}
   scale instproc initialize {} {
     my instvar n
     set options [list]
@@ -3449,7 +3449,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class form -superclass richtext -parameter {
+  Class create form -superclass richtext -parameter {
     {height 200}
   } -extend_slot validator form
 
@@ -3469,7 +3469,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class form_constraints -superclass textarea -parameter {
+  Class create form_constraints -superclass textarea -parameter {
     {rows 5}
   } -extend_slot validator form_constraints
   # the form_constraints checker is defined already on the ::xowiki::Page level
@@ -3481,7 +3481,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class event -superclass CompoundField -parameter {
+  Class create event -superclass CompoundField -parameter {
     {multiday false}
   }
 

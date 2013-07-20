@@ -3444,10 +3444,11 @@ namespace eval ::xowiki::includelet {
     return "<a href='$link'>$label</a>"
   }
 
-  Class form-menu-button-new -superclass form-menu-button -parameter {
+  Class create form-menu-button-new -superclass form-menu-button -parameter {
     {method create-new}
   }
-  Class form-menu-button-answers -superclass form-menu-button -parameter {
+
+  Class create form-menu-button-answers -superclass form-menu-button -parameter {
     {method list}
   }
   form-menu-button-answers instproc render {} {
@@ -3462,7 +3463,7 @@ namespace eval ::xowiki::includelet {
     next
   }
 
-  Class form-menu-button-form -superclass form-menu-button -parameter {
+  Class create form-menu-button-form -superclass form-menu-button -parameter {
     {method view}
   }
 
