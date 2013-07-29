@@ -4472,7 +4472,6 @@ namespace eval ::xowiki::includelet {
   }
 }
 
-
 namespace eval ::xowiki::includelet {
   #############################################################################
   #
@@ -4488,6 +4487,7 @@ namespace eval ::xowiki::includelet {
 	  {-file:required}
         }}
       }
+
 
   # the two method "href" and "page_number" are copied from "toc"
   html-file instproc href {book_mode name} {
@@ -4523,6 +4523,34 @@ namespace eval ::xowiki::includelet {
     return [$page html_content -add_sections_to_folder_tree $levels -owner [self]]
   }
 
+}
+
+namespace eval ::xowiki::includelet {
+ #############################################################################
+  #
+  # Define chat as an includelet
+  #
+  ::xowiki::IncludeletClass create chat \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {parameter_declaration {
+	  {-title ""}
+	  {-chat_id ""}
+	  {-mode ""}
+	  {-path ""}
+        }}
+      }
+  chat instproc render {} {
+    my get_parameters
+    ns_log notice chat_id=$chat_id
+    if {$chat_id eq ""} {
+      # make the chat just for including page
+      set char_id [[my set __including_page] item_id]
+    }
+    set r [::xowiki::Chat login -chat_id $chat_id -mode $mode -path $path]
+    #ns_log notice chat=>$r
+    return $r
+  }
 }
 
 
