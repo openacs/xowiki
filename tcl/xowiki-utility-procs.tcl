@@ -580,6 +580,25 @@ namespace eval ::xowiki {
       }
       my proc urlencode {string} {string map [my set ue_map] $string}
   }
+
+
+  my ad_proc user_is_active {{-asHTML:boolean false} uid} {
+  } {
+    if {[info command ::throttle] ne "" && 
+	[::throttle info methods user_is_active] ne ""} {
+      set active [throttle user_is_active $uid]
+      if {$asHTML} {
+	array set color {1 green 0 red}
+	array set state {1 active 0 inactive}
+	return "<span class='$state($active)' style='background: $color($active);'>&nbsp;</span>"
+      } else {
+	return $active
+      }
+    } else {
+      ns_log notice "user_is_active requires xotcl-request monitor in a recent version"
+      return 0
+    }
+  }
 }
 
 
