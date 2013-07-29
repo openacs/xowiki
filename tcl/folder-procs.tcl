@@ -275,52 +275,12 @@ namespace eval ::xowiki::includelet {
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
       $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
 
-      # A folder page can contain extra menu entries (sample
-      # below). Iterate of the extra_menu property and add according
-      # menu entries.
-      #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
-
-      foreach me [concat \
-		      [$package_id get_parameter ExtraMenuEntries {}] \
-		      [$current_folder property extra_menu_entries]] {
-        array unset ""
-        set kind [lindex $me 0]
-        if {[string range $kind 0 0] eq "#"} continue
-        switch $kind {
-          clear_menu {
-            # sample entry: clear_menu -menu New
-            array set "" [lrange $me 1 end]
-            $mb clear_menu -menu $(-menu)
-          }
-
-          form_link -
-          entry {
-            # sample entry: form_entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
-	    if {$kind eq "form_link"} {
-	      my log "$me, name 'form_link' is deprecated, use 'entry' instead"
-	    }
-            array set "" [lrange $me 1 end]
-	    if {[info exists (-form)]} {
-	      set link [$package_id make_form_link -form $(-form) \
-			    -parent_id $opt_parent_id \
-			    -nls_language $nls_language -return_url $return_url]
-	    } elseif {[info exists (-object_type)]} {
-	      set link [$package_id make_link -with_entities 0 \
-			    $package_id edit-new \
-			    [list object_type $(-object_type)] \
-			    parent_id return_url autoname template_file]
-	    } else {
-	      my log "Warning: no link specified"
-	      set link ""
-	    }
-	    set item [list url $link]
-	    if {[info exists (-label)]} {lappend item text $(-label)}
-            $mb add_menu_item -name $(-name) -item $item
-          }
-
-          default { error "unknown kind of menu entry: $kind" }
-        }
-      }
+      $mb update_items -package_id $package_id -parent_id $opt_parent_id \
+	  -return_url $return_url \
+	  -nls_language $nls_language \
+	  [concat \
+	       [$package_id get_parameter ExtraMenuEntries {}] \
+	       [$current_folder property extra_menu_entries]]
     }
 
     set top_folder_of_tree $root_folder
@@ -448,6 +408,7 @@ namespace eval ::xowiki::includelet {
 		    {-html-content}
 		    {-parent .}
 		    {-hide}
+		    {-menubar ""}
 		}
 	    }
 	}
@@ -498,7 +459,7 @@ namespace eval ::xowiki::includelet {
       set return_url [::xo::cc url] ;#"[$package_id package_url]edit-done"
       set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
-      set columns {objects edit object_type name last_modified delete}
+      set columns {objects edit object_type name last_modified mod_user delete}
       foreach column $columns {set ::hidden($column) 0 }
       if {[info exists hide]} {
 	foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
@@ -536,6 +497,7 @@ namespace eval ::xowiki::includelet {
 		       -html {style "padding: 2px;"}
 		   Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
 		       -hide $::hidden(last_modified) 
+		   Field mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
 		   AnchorField delete -CSSclass delete-item-button \
 		       -hide $::hidden(delete) \
 		       -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
@@ -591,6 +553,7 @@ namespace eval ::xowiki::includelet {
 	    -edit "" \
 	    -edit.href [export_vars -base $page_link {{m edit} return_url}] \
 	    -edit.title #xowiki.edit# \
+	    -mod_user [::xo::get_user_name [$c set creation_user]] \
 	    -delete "" \
 	    -delete.href $delete_link \
 	    -delete.title #xowiki.delete#
@@ -616,6 +579,28 @@ namespace eval ::xowiki::includelet {
       $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
       set resources_list "[$t asHTML]"
       
+      if {$menubar ne ""} {
+	set mb [::xowiki::MenuBar new -id submenubar]
+	# for now, just the first group
+	lassign $menubar Menu entries
+	$mb add_menu -name $Menu
+	set menuEntries {}
+	foreach e $entries {
+	  switch $e {
+	    ::xowiki::File {
+	      lappend menuEntries {entry -name New.File -label File -object_type ::xowiki::File}
+	    }
+	    default {ns_log notice "can't handle $e in submenubar so far"}
+	  }
+	}
+	$mb update_items \
+	    -package_id $package_id \
+	    -parent_id $current_folder_id \
+	    -return_url $return_url \
+	    -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]] \
+	    $menuEntries
+	set menubar [$mb render-yui]
+      }
       set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
       set viewer_links ""
       foreach v $viewers {
@@ -623,7 +608,7 @@ namespace eval ::xowiki::includelet {
 	append wf_link "&m=create-or-use"
 	append viewer_links [subst -nocommands -nobackslashes {<li><a href="$wf_link">view with $v</a></li>}]
       }
-      return "<ul>$viewer_links</ul> [$t asHTML]"
+      return "$menubar<ul>$viewer_links</ul> [$t asHTML]"
 
     }
 }

@@ -378,7 +378,7 @@ namespace eval ::xowiki {
   
   ::xowiki::MenuBar instproc add_menu {-name {-label ""}} {
     my instvar Menues
-    if {[lsearch -exact $Menues $name] > -1} {
+    if {$name in $Menues} {
       error "menu $name exists already"
     }
     if {[string match {[a-z]*} $name]} {
@@ -411,7 +411,7 @@ namespace eval ::xowiki {
     if {![regexp {^([^.]+)[.](.+)$} $name _ menu name]} {
       error "menu item name '$name' not of the form Menu.Name"
     }
-    if {[lsearch -exact $Menues $menu] == -1} {
+    if {$menu ni $Menues} {
       error "menu $menu does not exist"
     }
     if {[string match {[a-z]*} $name]} {
@@ -449,6 +449,56 @@ namespace eval ::xowiki {
       my set Menu($menu) $newitems
     } else {
       my lappend Menu($menu) $name $item
+    }
+  }
+
+  ::xowiki::MenuBar instproc update_items {
+    -package_id:required -nls_language:required -parent_id:required
+    -return_url  -autoname -template_file items
+  } {
+    # A folder page can contain extra menu entries (sample
+    # below). Iterate of the extra_menu property and add according
+    # menu entries.
+    #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
+      
+    foreach me $items {
+      array unset ""
+      set kind [lindex $me 0]
+      if {[string range $kind 0 0] eq "#"} continue
+      switch $kind {
+	clear_menu {
+	  # sample entry: clear_menu -menu New
+	  array set "" [lrange $me 1 end]
+	  my clear_menu -menu $(-menu)
+	}
+	
+	form_link -
+	entry {
+	  # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
+	  if {$kind eq "form_link"} {
+	    my log "$me, name 'form_link' is deprecated, use 'entry' instead"
+	  }
+	  array set "" [lrange $me 1 end]
+	  if {[info exists (-form)]} {
+	    set link [$package_id make_form_link -form $(-form) \
+			  -parent_id $parent_id \
+			  -nls_language $nls_language -return_url $return_url]
+	  } elseif {[info exists (-object_type)]} {
+	    set link [$package_id make_link -with_entities 0 \
+			  $package_id edit-new \
+			  [list object_type $(-object_type)] \
+			  parent_id return_url autoname template_file]
+	  } else {
+	    my log "Warning: no link specified"
+	    set link ""
+	  }
+	  set item [list url $link]
+	  if {[info exists (-label)]} {lappend item text $(-label)}
+	  my add_menu_item -name $(-name) -item $item
+	}
+	
+	default { error "unknown kind of menu entry: $kind" }
+      }
     }
   }
 
