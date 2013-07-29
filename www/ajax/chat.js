@@ -17,43 +17,24 @@ function chatReceiver() {
 }
 
 function appendToMessages(content) {
-  var xmlobject = (new DOMParser()).parseFromString(content, 'application/xhtml+xml');
-  var items = xmlobject.getElementsByTagName('TR');
-  //alert('found ' + items.length + ' items');
-  //var counter = document.getElementById('chatCounter');
-  //counter.innerHTML = parseInt(counter.innerHTML) + 1;
-  //document.getElementById('chatResponse').innerHTML = 'items = ' + items.length + ' l=' + content.length + ' ' + escape(content);
+    var xmlobject = (new DOMParser()).parseFromString(content, 'application/xhtml+xml');
+    var items = xmlobject.getElementsByTagName('div')[0].children;
 
-  //if (items.length > 0) {alert('appending ' + content);}
-  var doc = frames['ichat'].document;
-  var tbody = frames['ichat'].document.getElementById('messages').tBodies[0];
-  //var tbody = tbodies[tbodies.length -1];
-  //for (var i = 0 ; i < items.length ; i++) {
-  //  tbody.appendChild(frames['ichat'].document.importNode(items[i],true));
-  //}
-  var tr, td, e, s;
-  for (var i = 0 ; i < items.length ; i++) {
-    tr = doc.createElement('tr');
-    e = items[i].getElementsByTagName('TD');
-    td = doc.createElement('td');
-    td.innerHTML = decodeURIComponent(e[0].firstChild.nodeValue);
-    td.className = 'timestamp';
-    tr.appendChild(td);
+    //console.debug("items: " + items.length);
+    //if (items.length > 0) {console.log(content);}
+    //if (items.length > 0) {console.log(items[0].innerHTML);}
 
-    td = doc.createElement('td');
-    s = e[1].firstChild.nodeValue;
-    td.innerHTML = decodeURIComponent(e[1].firstChild.nodeValue.replace(/\+/g,' '));
-    td.className = 'user';
-    tr.appendChild(td);
-
-    td = doc.createElement('td');
-    td.innerHTML = decodeURIComponent(e[2].firstChild.nodeValue.replace(/\+/g,' '));
-    td.className = 'message';
-    tr.appendChild(td);
-
-    tbody.appendChild(tr);
-  }
-  frames['ichat'].window.scrollTo(0,tbody.offsetHeight);
+    var doc = frames['ichat'].document;
+    var messages = frames['ichat'].document.getElementsByTagName('div')[0];
+    for (var i = 0 ; i < items.length ; i++) {
+	var p   = doc.createElement('p'); // add class 'line'
+	var att = doc.createAttribute("class");
+	att.value = 'line';
+	p.setAttributeNode(att);
+	p.innerHTML = decodeURIComponent(items[i].innerHTML).replace(/\+/g,' ');
+	messages.appendChild(p);
+    }
+    frames['ichat'].window.scrollTo(0,messages.offsetHeight);
 }
 
 

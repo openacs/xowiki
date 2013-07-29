@@ -9,6 +9,7 @@ var http_send = getHttpObject();
 function getData() {
   //alert('access responseText'); // hmm, IE does not allow us to access responstext in state == 3 :(
   var response = http.responseText.substring(http_last);
+  console.log(response);
   // we recognize a complete message by a trailing }\n
   if (response.match(/\}[\n ]+$/)) {
     var messages = document.getElementById('messages');
@@ -56,16 +57,18 @@ function chatSendMsg() {
 }
 
 function chatSubscribe(subscribe_url) {
+    console.log("chatSubscribe " + subscribe_url);
   http.open('GET', subscribe_url, true);
   http.onreadystatechange = function() {
     if (http.readyState == 3) {
-      getData();
+	getData();
     } else if (http.readyState == 4) {
+      //console.log("chatSubscribe readyState = " + http.readyState + " status " + http.status);
       // alert('status code =' + http.status);
       var status = http.status;
       if (status == 200 || status == 0) {
-	document.getElementById('chatMsg').value = 'logout';
-	chatSendMsg();
+	//document.getElementById('chatMsg').value = 'logout';
+	//chatSendMsg();
       } else {
 	alert('Something wrong in HTTP request, status code = ' + status);
       }

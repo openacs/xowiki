@@ -13,7 +13,7 @@ ad_page_contract {
 }
 
 #ns_log notice "--chat m=$m session_id=$s [clock format [lindex [split $s .] 1] -format %H:%M:%S] mode=$mode" 
-::xowiki::Chat c1 -volatile -chat_id $id -session_id $s -mode $mode
+::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $id -session_id $s -mode $mode
 switch -- $m {
   add_msg {
     #ns_log notice "--c call c1 $m '$msg'"
@@ -27,14 +27,25 @@ switch -- $m {
   default {ns_log error "--c unknown method $m called."} 
 }
 
+#ns_log notice "--chat.tcl $m: returns '$_'"
+
+set style {
+  padding:1em 0 1em 1em;
+  background-color: #f9f9f9;
+  font-size:.95em;
+  color:#333;
+  overflow:auto;
+}
+
 ns_return 200 text/html "
 <HTML>
 <style type='text/css'>
 #messages .timestamp {vertical-align: top; font-size: 80%; color: #717171;}
 #messages .user {text-align: right; vertical-align: top; font-size: 80%; font-weight: bold; color: #717171;}
 #messages .message {vertical-align: top;}
+body {$style}
 </style>
 <body>
-<table id='messages'><tbody>$_</tbody></table>
+$_
 </body>
 </HTML>"

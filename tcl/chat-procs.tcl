@@ -6,42 +6,49 @@
     @cvs-id $Id$
 }
 namespace eval ::xowiki {
-  ::xo::ChatClass Chat -superclass ::xo::Chat
+  ::xo::ChatClass create Chat -superclass ::xo::Chat
 
-  Chat instproc render {} {
-    my orderby time
-    set result ""
-    foreach child [my children] { 
-      set msg       [$child msg]
-      set user_id   [$child user_id]
-      set timelong  [clock format [$child time]]
-      set timeshort [clock format [$child time] -format {[%H:%M:%S]}]
-      if {$user_id > 0} {
-        acs_user::get -user_id $user_id -array user
-        set name [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
-        set url "/shared/community-member?user%5fid=$user_id"
-        set creator "<a target='_parent' href='$url'>$name</a>"
-      } else {
-        set creator "Nobody"
-      }
-      append result "<TR><TD class='timestamp'>$timeshort</TD>\
-        <TD class='user'>[my encode $creator]</TD>\
-        <TD class='message'>[my encode $msg]</TD></TR>\n"
-    }
-    return $result
-  }
+  # Chat instproc render {} {
+  #   my orderby time
+  #   set result ""
+  #   foreach child [my children] { 
+  #     set msg       [$child msg]
+  #     set user_id   [$child user_id]
+  #     set timelong  [clock format [$child time]]
+  #     set timeshort [clock format [$child time] -format {[%H:%M:%S]}]
+  #     if {$user_id > 0} {
+  #       acs_user::get -user_id $user_id -array user
+  #       set name [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
+  #       set url "/shared/community-member?user%5fid=$user_id"
+  #       set creator "<a target='_parent' href='$url'>$name</a>"
+  #     } else {
+  #       set creator "Nobody"
+  #     }
+  #     append result "<TR><TD class='timestamp'>$timeshort</TD>\
+  #       <TD class='user'>[my encode $creator]</TD>\
+  #       <TD class='message'>[my encode $msg]</TD></TR>\n"
+  #   }
+  #   return $result
+  # }
 
   Chat proc initialize_nsvs {} {;}      ;# noop
 
-  Chat proc login {-chat_id -package_id -mode} {
+  Chat proc login {-chat_id -package_id {-mode ""} {-path ""}} {
     #my log "--chat"
+    if {![ns_conn isconnected]} return
     auth::require_login
     if {![info exists package_id]} {set package_id [ad_conn package_id] }
     if {![info exists chat_id]}    {set chat_id $package_id }
-    set context id=$chat_id&s=[ad_conn session_id].[clock seconds]
-    set path    [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
+    set session_id [ad_conn session_id].[clock seconds]
+    set context id=$chat_id&s=$session_id
+    #my log "chat_id=$chat_id, path=$path"
+    if {$path eq ""} {
+      set path [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
+    } elseif {[string range $path end end] ne "/"} {
+      append path /
+    }
     
-    if {![info exists mode]} {
+    if {$mode eq ""} {
       #
       # The parameter "mode" was not specified, we try to guess the
       # "best" mode known to work for the currently used browser.
@@ -108,6 +115,9 @@ namespace eval ::xowiki {
         set jspath packages/xowiki/www/ajax/scripted-streaming-chat.js
         set subscribe_url ${path}ajax/chat?m=subscribe&$context
       }
+      default {
+	error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
+      }
     }
     set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
 
@@ -117,6 +127,18 @@ namespace eval ::xowiki {
     set file [open [acs_root_dir]/$jspath]; set js [read $file]; close $file
 
     my log "--CHAT mode=$mode"
+
+    set style {
+      margin:1.5em 0 1.5em 0;
+      padding:1em 0 1em 1em;
+      background-color: #f9f9f9;
+      border:1px solid #dedede;
+      height:150px;
+      font-size:.95em;
+      line-height:.7em;
+      color:#333;
+      overflow:auto;
+    }
 
     switch $mode {
       polling {return "\
@@ -133,44 +155,32 @@ namespace eval ::xowiki {
       }
 
 
-      streaming {return "\
+      streaming {
+	::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
+	set r [ns_urldecode [c1 get_all]]
+	regsub -all {<[/]?div[^>]*>} $r "" r
+	return "\
       <script type='text/javascript' language='javascript'>$js
       var send_url = \"$send_url\";
       chatSubscribe(\"$subscribe_url\");
       </script>
-   <div id='messages' style='margin:1.5em 0 1.5em 0;
-padding:1em 0 1em 1em;
-background-color: #f9f9f9;
-border:1px solid #dedede;
-height: 70px;
-height:150px;
-font-size:.95em;
-line-height:.7em;
-color:#333;
-overflow:auto;
-'></div>
+   <div id='messages' style='$style'>$r</div>
    <form action='#' onsubmit='chatSendMsg(); return false;'>
    <input type='text' size='40' name='msg' id='chatMsg'>
    </form>"
       }
 
 
-      scripted-streaming {return "\
+      scripted-streaming {
+	::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
+	set r [ns_urldecode [c1 get_all]]
+	regsub -all {<[/]?div[^>]*>} $r "" r
+	return "\
       <script type='text/javascript' language='javascript'>
       $js
       var send_url = \"$send_url\";
       </script>
-   <div id='messages' style='margin:1.5em 0 1.5em 0;
-padding:1em 0 1em 1em;
-background-color: #f9f9f9;
-border:1px solid #dedede;
-height: 70px;
-height:150px;
-font-size:.95em;
-line-height:.7em;
-color:#333;
-overflow:auto;
-'></div>
+      <div id='messages' style='$style'></style>
       <iframe name='ichat' id='ichat' frameborder='0' src='$subscribe_url' 
               style='width:0px; height:0px; border: 0px'>
       </iframe>
