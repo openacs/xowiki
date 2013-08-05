@@ -403,7 +403,7 @@ namespace eval ::xowiki {
       set folder ""
     } else {
       if {$parent_id eq ""} {
-	ns_log notice "pretty_link of [my name]: you should consider to pass a parent_id to support folders"
+	ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
 	set parent_id [my folder_id]
       }
       set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
