@@ -44,12 +44,12 @@
     
     if {[info exists prev_page_link]} {
       set prev "<a href='$prev_page_link'>\
-        <img border=0 src='/resources/acs-subsite/left.gif' \
+        <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
              alt='Previous Page' style='float: left;  top: 0px;'></a>"
     }
     if {[info exists next_page_link]} {
       set next "<a href='$next_page_link'>\
-        <img border=0 src='/resources/acs-subsite/right.gif' \
+        <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
     return "<UL>[next]</UL> $prev $next"
