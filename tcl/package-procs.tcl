@@ -58,7 +58,7 @@ namespace eval ::xowiki {
 	-parameter $parameter \
 	-user_id $user_id
     set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
-    ::$package_id set_url -url [$page pretty_link]
+    ::$package_id set_url -url [$page pretty_link -parent_id [my set parent_id]]
     return $page
   }
 
@@ -369,7 +369,7 @@ namespace eval ::xowiki {
     @param absolute make an absolute link (including protocol and host)
     @param lang use the specified 2 character language code (rather than computing the value)
     @param download create download link (without m=download)
-    @param parent_id parent_id (for now just for download)
+    @param parent_id parent_id
     @param name name of the wiki page
   } {
     #my msg "input name=$name, lang=$lang parent_id=$parent_id"
@@ -402,6 +402,10 @@ namespace eval ::xowiki {
       # package.
       set folder ""
     } else {
+      if {$parent_id eq ""} {
+	ns_log notice "pretty_link of [my name]: you should consider to pass a parent_id to support folders"
+	set parent_id [my folder_id]
+      }
       set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
       set pkg [$parent_id package_id]
       set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
@@ -744,7 +748,7 @@ namespace eval ::xowiki {
     #my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
-      set form_link [$form_id pretty_link]
+      set form_link [$form_id pretty_link -parent_id $parent_id]
       #my msg "$form -> $form_id -> $form_link -> [my make_link -with_entities 0 -link $form_link $form_id \
       #            create-new return_url title parent_id name nls_language]"
       return [my make_link -with_entities 0 -link $form_link $form_id \
