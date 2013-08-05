@@ -58,7 +58,7 @@ namespace eval ::xowiki {
 	-parameter $parameter \
 	-user_id $user_id
     set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
-    ::$package_id set_url -url [$page pretty_link -parent_id [my set parent_id]]
+    ::$package_id set_url -url [$page pretty_link]
     return $page
   }
 
@@ -748,7 +748,7 @@ namespace eval ::xowiki {
     #my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
-      set form_link [$form_id pretty_link -parent_id $parent_id]
+      set form_link [$form_id pretty_link]
       #my msg "$form -> $form_id -> $form_link -> [my make_link -with_entities 0 -link $form_link $form_id \
       #            create-new return_url title parent_id name nls_language]"
       return [my make_link -with_entities 0 -link $form_link $form_id \
