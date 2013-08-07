@@ -1609,11 +1609,11 @@ namespace eval ::xowiki {
     set category_spec [my get_short_spec @categories]
     # Per default, no category fields in FormPages, since the can be 
     # handled in more detail via form-fields.
-    if {$category_spec eq ""} {return [list]}
+    if {$category_spec eq ""} {return ""}
 
     # a value of "off" turns the off as well
     foreach f [split $category_spec ,] {
-      if {$f eq "off"} {return [list]}
+      if {$f eq "off"} {return ""}
     }
     
     set category_fields [list]
