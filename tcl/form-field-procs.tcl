@@ -2155,7 +2155,7 @@ namespace eval ::xowiki::formfield {
 
   # abstract superclass for select and radio
   Class create enumeration -superclass FormField -parameter {
-    {options}
+    {options ""}
     {category_tree}
   }
   enumeration set abstract 1
