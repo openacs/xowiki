@@ -408,6 +408,9 @@ namespace eval ::xowiki {
       }
       set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
       set pkg [$parent_id package_id]
+      if {![my isobject ::$pkg]} {
+	::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
+      }
       set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
     }
     #my msg "folder_path = $folder, -parent_id $parent_id -folder_ids $folder_ids // default_lang [my default_language]"
