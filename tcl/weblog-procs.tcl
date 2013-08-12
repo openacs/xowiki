@@ -310,7 +310,7 @@ namespace eval ::xowiki {
                     " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     #append more "<p></p>"
 
-    append content "<DIV class='post' style='clear: both;'>" \
+    append content "<DIV class='post'>" \
         "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modfied by [::xo::get_user_name $creation_user] " \
