@@ -408,7 +408,7 @@ namespace eval ::xowiki::includelet {
       my cache_includelet_data $key-data
     } else {
       #my msg "eval $data"
-      eval $data
+      {*}$data
     }
     return $HTML
   } -instproc cache_includelet_data {key} {
@@ -3852,7 +3852,7 @@ var chart;
     } elseif {[info command ::xo::Table::YUIDataTableRenderer] ne ""} {
       lappend cmd -renderer YUIDataTableRenderer
     }
-    eval $cmd
+    {*}$cmd
 
     #
     # Sorting is done for the time being in Tcl. This has the advantage

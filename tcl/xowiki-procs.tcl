@@ -825,11 +825,11 @@ namespace eval ::xowiki {
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     my log "DEPRECATED"
     if {![info exists package_id]}  {set package_id  [::xo::cc package_id]}
-    set cmd  [list $package_id import -replace $replace]
+    set cmd [list $package_id import -replace $replace]
     
     if {[info exists user_id]}   {lappend cmd -user_id $user_id}
     if {[info exists objects]}   {lappend cmd -objects $objects}
-    eval $cmd
+    {*}$cmd
   }
 
   #
@@ -1332,7 +1332,7 @@ namespace eval ::xowiki {
       }
     }
     if {[info exists configure]} {
-      eval $page configure $configure
+      $page configure {*}$configure
     }
     return [my render_includelet $page]
   }
@@ -1540,13 +1540,13 @@ namespace eval ::xowiki {
                 -name "" \
 		-type localimage [list -label $label] \
 		-href $link
-	    eval [self]::link configure $options
+	    [self]::link configure {*}$options
 	    return [self]::link
 	  }
 	}
       }
       set l [ExternalLink new [list -label $label] -href $link]
-      eval $l configure $options
+      $l configure {*}$options
       return $l
     }
 
@@ -1595,7 +1595,7 @@ namespace eval ::xowiki {
         [list -stripped_name $(stripped_name)] [list -label $label] \
         -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id
     
-    if {[catch {eval [self]::link configure $options} errorMsg]} {
+    if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {

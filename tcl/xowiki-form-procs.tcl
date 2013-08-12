@@ -781,7 +781,7 @@ namespace eval ::xowiki {
     #
     set page_instance_form_atts [list]
     foreach {var _} [$data template_vars [$template set text]] {
-      if {[lsearch $dont_edit $var] == -1} {lappend page_instance_form_atts $var}
+      if {$var ni $dont_edit} {lappend page_instance_form_atts $var}
     }
     my set field_list [concat [my field_list_top] $page_instance_form_atts [my field_list_bottom]]
 

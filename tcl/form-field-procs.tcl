@@ -473,8 +473,8 @@ namespace eval ::xowiki::formfield {
 	lappend pairs [list __#$att $att]
       }
     }
-    ::html::input [eval my get_attributes type size maxlength id name value \
-		       pattern placeholder $pairs] {}
+    ::html::input [my get_attributes type size maxlength id name value \
+		       pattern placeholder {*}$pairs] {}
     foreach att $booleanAtts {
       if {[my exists __#$att]} {my unset __#$att}
     }
@@ -607,7 +607,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc answer_check=in {} {
     my instvar value
     set values [lrange [my correct_when] 1 end]
-    return [expr {[lsearch -exact $values $value] > -1}]
+    return [expr {$value in $values}]
   }
   FormField instproc answer_check=match {} {
     return [string match [lindex [my correct_when] 1] [my value]]
@@ -1666,7 +1666,7 @@ namespace eval ::xowiki::formfield {
       set package_id [[my object] package_id]
       #my extraPlugins {timestamp xowikiimage}
 
-      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+      if {"xowikiimage" in [my extraPlugins]} {
 	my js_image_helper
 	set ready_callback {xowiki_image_callback(e.editor);}
       } else {
@@ -1867,7 +1867,7 @@ namespace eval ::xowiki::formfield {
       # my extraPlugins {timestamp}
       if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
       
-      if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+      if {"xowikiimage" in [my extraPlugins]} {
 	my js_image_helper
 	set ready_callback {xowiki_image_callback(e.editor);}
       } else {
@@ -1926,7 +1926,7 @@ namespace eval ::xowiki::formfield {
 	my render_richtext_as_div
       } elseif {[my set displayMode] eq "inline"} {
 	if {!$is_repeat_template} {
-	  if {[lsearch [my extraPlugins] xowikiimage] > -1} {
+	  if {"xowikiimage" in [my extraPlugins]} {
 	    set ready_callback "xowiki_image_callback(CKEDITOR.instances\['ckinline_$id'\]);"
 	    set blur_callback "calc_image_tags_to_wiki_image_links_inline(e);"
 	  }
@@ -2001,7 +2001,7 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       set postinit ""
       foreach plugin {hovertools resizable fullscreen embed} {
-	if {[lsearch -exact [my plugins] $plugin] > -1} {
+	if {$plugin in [my plugins]} {
 	  switch -- $plugin {
 	    embed {}
 	    resizable {
@@ -2309,7 +2309,7 @@ namespace eval ::xowiki::formfield {
       foreach {label rep} $o break
       set atts [my get_attributes disabled {CSSclass class}]
       lappend atts id [my id]:$rep name [my name] type checkbox value $rep
-      if {[lsearch -exact $value $rep] > -1} {lappend atts checked checked}
+      if {$rep in $value} {lappend atts checked checked}
       ::html::input $atts {}
       html::t "$label  "
       if {![my horizontal]} {html::br}
@@ -2346,7 +2346,7 @@ namespace eval ::xowiki::formfield {
         set atts [my get_attributes disabled]
         lappend atts value $rep
         #my msg "lsearch {[my value]} $rep ==> [lsearch [my value] $rep]"
-        if {[lsearch [my value] $rep] > -1} {
+	if {$rep in [my value]} {
           lappend atts selected on
         }
         ::html::option $atts {::html::t $label}
@@ -3089,8 +3089,8 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc get_named_sub_component_value {{-default ""} args} {
-    if {[eval my exists_named_sub_component $args]} {
-      return [[eval my get_named_sub_component $args] value]
+    if {[my exists_named_sub_component {*}$args]} {
+      return [[my get_named_sub_component {*}$args] value]
     } else {
       return $default
     }
@@ -3240,7 +3240,7 @@ namespace eval ::xowiki::formfield {
                    -locale [my locale] -object [my object] \
                    -value $element]
         $c set_disabled [my exists disabled]
-        if {[lsearch [my components] $c] == -1} {my lappend components $c}
+        if {$c ni [my components]} {my lappend components $c}
         continue
       }
       foreach {class code trim_zeros} [my set format_map($element)] break
@@ -3255,7 +3255,7 @@ namespace eval ::xowiki::formfield {
       $c set_disabled [my exists disabled]
       $c set code $code
       $c set trim_zeros $trim_zeros
-      if {[lsearch [my components] $c] == -1} {my lappend components $c}
+      if {$c ni [my components]} {my lappend components $c}
     }
   }
 

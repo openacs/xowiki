@@ -14,7 +14,7 @@ namespace eval ::xowiki {
   ::xotcl::Object create clipboard
   clipboard proc add {ids} {
     set clipboard [ad_get_client_property xowiki clipboard]
-    eval lappend clipboard $ids
+    lappend clipboard {*}$ids
     ad_set_client_property xowiki clipboard [lsort -unique $clipboard]
   }
   clipboard proc clear {} {

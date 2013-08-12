@@ -151,7 +151,7 @@ namespace eval ::xowiki {
     foreach key {_text _name} {
       if {[my exists_form_parameter $key]} {
         set __value [my form_parameter $key]
-        if {[lsearch $text_to_html $key] > -1} {
+        if {$key in $text_to_html} {
           set __value [ad_text_to_html $__value]
         }
         lappend default_variables [string range $key 1 end] $__value
@@ -755,7 +755,7 @@ namespace eval ::xowiki {
         # we have no validation errors, so we can save the content
         #
         my save_data \
-            -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
+            -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
 	#
         # The data might have references. Perform the rendering here to compute
@@ -1095,7 +1095,7 @@ namespace eval ::xowiki {
         # perform standard update (with revision)
         # 
         my save_data \
-            -use_given_publish_date [expr {[lsearch $field_names _publish_date] > -1}] \
+            -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
       }
       $package_id returnredirect \
@@ -1583,7 +1583,7 @@ namespace eval ::xowiki {
               ]
 
     $f destroy_on_cleanup
-    eval $f configure $configuration
+    $f configure {*}$configuration
     return $f
   }
 
@@ -1631,7 +1631,7 @@ namespace eval ::xowiki {
       foreach category [::xowiki::Category get_category_infos \
                             -subtree_id $subtree_id -tree_id $tree_id] {
         foreach {category_id category_name deprecated_p level} $category break
-        if {[lsearch $category_ids $category_id] > -1} {lappend value $category_id}
+        if {$category_id in $category_ids} {lappend value $category_id}
         set category_name [ad_quotehtml [lang::util::localize $category_name]]
         if { $level>1 } {
           set category_name "[string repeat {&nbsp;} [expr {2*$level-4}]]..$category_name"
@@ -1731,7 +1731,7 @@ namespace eval ::xowiki {
           if {[$field hasAttribute value]} {
             set form_value [$field getAttribute value]
             #my msg "$att: form_value=$form_value, my value=$value"
-            if {[lsearch -exact $value $form_value] > -1} {
+            if {$form_value in $value} {
               $field setAttribute checked true
             } elseif {[$field hasAttribute checked]} {
               $field removeAttribute checked
@@ -2150,7 +2150,7 @@ namespace eval ::xowiki {
         }
       }
       if {[$f exists transmit_field_always] 
-          && [lsearch [$f info mixin] ::xowiki::formfield::omit] > -1} {
+          && "::xowiki::formfield::omit" in [$f info mixin]} {
         # Never omit these fields, this would cause problems with
         # autonames and empty languages. Set these fields to hidden
         # instead.

@@ -520,7 +520,7 @@ namespace eval ::xowiki {
       if {$package_class ne ""} {
         # we found an xo::Package, but is it an xowiki package?
         set classes [concat $package_class [$package_class info heritage]]
-        if {[lsearch $classes ::xowiki::Package] > -1} {
+        if {"::xowiki::Package" in $classes} {
           # yes, it is an xowiki::package, compute the name and return the package_id
           ::xowiki::Package require $package_id
           set name [string range $path [string length $(url)] end]
@@ -1803,7 +1803,7 @@ namespace eval ::xowiki {
       # element in $to.
       #
       foreach e $to {
-        if {[lsearch -exact $from $e] == -1} {
+        if {$e ni $from} {
           set inserted $e
           break
         }
@@ -2178,7 +2178,7 @@ namespace eval ::xowiki {
       # In case of PageTemplate and subtypes, we need to check
       # for pages using this template
       set classes [concat $object_type [$object_type info heritage]]
-      if {[lsearch $classes "::xowiki::PageTemplate"] > -1} {
+      if {"::xowiki::PageTemplate" in $classes} {
 	set count [::xowiki::PageTemplate count_usages -item_id $item_id -publish_status all]
 	if {$count > 0} {
 	  return [$id error_msg \

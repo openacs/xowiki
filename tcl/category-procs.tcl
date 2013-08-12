@@ -66,8 +66,8 @@ namespace eval ::xowiki {
     set have_locale 1
     set all_arg [expr {$all ? "-all" : ""}]
     return [expr {$have_locale ?
-                  [eval category_tree::get_tree $all_arg -subtree_id [list $subtree_id] $tree_id $locale] :
-                  [eval category_tree::get_tree $all_arg -subtree_id [list $subtree_id] $tree_id]}]
+                  [category_tree::get_tree {*}$all_arg -subtree_id $subtree_id $tree_id $locale] :
+                  [category_tree::get_tree {*}$all_arg -subtree_id $subtree_id $tree_id]}]
   }
 }
 
