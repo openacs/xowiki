@@ -63,8 +63,8 @@ namespace eval ::xowiki::formfield {
     set is_required false
     foreach s [split [my spec] ,] {
       # don't propagate "repeat" and "label" properties
-      if { [string match repeat=* $s] || [string match label=* $s] } continue
-      if { [string match required $s]} {set is_required true; continue}
+      if { [string match "repeat=*" $s] || [string match "label=*" $s] } continue
+      if { "required" eq $s} {set is_required true; continue}
       lappend result $s
     }
     return [list $is_required [join $result ,]]

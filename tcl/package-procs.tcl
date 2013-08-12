@@ -1381,7 +1381,7 @@ namespace eval ::xowiki {
     # @parm with_package_prefix flag, if provided url contains package-url
     # @return item ref data (parent_id lang stripped_name method)
     #
-    if {$with_package_prefix && [string match /* $url]} {
+    if {$with_package_prefix && [string match "/*" $url]} {
       set url [string range $url [string length [my package_url]] end]
     }
     if {$default_lang eq ""} {set default_lang [my default_language]}
@@ -1455,7 +1455,7 @@ namespace eval ::xowiki {
     #
     #my log "get_page_from_item_ref [self args]"
 
-    if {$allow_cross_package_item_refs && [string match //* $link]} {
+    if {$allow_cross_package_item_refs && [string match "//*" $link]} {
 
       # todo check: get_package_id_from_page_name uses a different lookup based on site nodes 
 

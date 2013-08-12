@@ -483,7 +483,7 @@ namespace eval ::xowiki {
     set full_file_name [my full_file_name]
     #my log "--F FILE=$full_file_name // $mime_type"
     set geometry [::xo::cc query_parameter geometry ""]
-    if {[string match image/* $mime_type] && $geometry ne ""} {
+    if {[string match "image/*" $mime_type] && $geometry ne ""} {
       if {![file isdirectory /tmp/$geometry]} {
 	file mkdir /tmp/$geometry
       }
