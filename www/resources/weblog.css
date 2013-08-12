@@ -4,7 +4,7 @@
     color: #9a9a9b;
 }
 div.post {
-    clear: both; 
+    /* clear: both; */
     background: #f8f8f8;
 }
 .post p.auth {
