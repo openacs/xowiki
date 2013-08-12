@@ -11,6 +11,7 @@
   <msg key="back">Zurück</msg>
   <msg key="By_user">von User/in</msg>
   <msg key="categories">Kategorien</msg>
+  <msg key="choiceInteraction_simpleChoice">Geben Sie hier die Antworten ein.</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Einstellungen</msg>
   <msg key="content">Inhalt</msg>
@@ -141,6 +142,7 @@
   <msg key="popular_tags_link">häufige Schlagworte</msg>
   <msg key="portlet_title_exists_error_long">Ändern Sie entweder den Namen des existierenden Portlets oder den Titel der Xowiki-Seite, die Sie zum Portal hinzufügen wollen.</msg>
   <msg key="portlet_title_exists_error_short">Es gibt bereits ein Portlet mit dem Titel '%page_title%' in diesem Portal.</msg>
+  <msg key="prompt">Prompt</msg>
   <msg key="publish_status">Freigegeben</msg>
   <msg key="recently_changed_pages">Zuletzt geänderte Seiten</msg>
   <msg key="recently_changed_pages_by_categories">Zuletzt geänderte Seiten (nach Kategorien)</msg>
@@ -149,10 +151,13 @@
   <msg key="revisions">Verlauf</msg>
   <msg key="revisions_title">Änderungsgeschichte dieser Seite ...</msg>
   <msg key="rss_client">RSS-Klient</msg>
+  <msg key="scoring">Bewertungsschema</msg>
   <msg key="search">Suche</msg>
   <msg key="search_title">Suche in diesem Wiki...</msg>
   <msg key="second">Sekunde</msg>
   <msg key="seconds">Sekunden</msg>
+  <msg key="shuffle">Zufällige Reihenfolge</msg>
+  <msg key="shuffle_help_text">Alternativen in zufälliger Reihenfolge darstellen?</msg>
   <msg key="subscribe">Abonnieren</msg>
   <msg key="title">Titel</msg>
   <msg key="title_of_event">Titel</msg>
