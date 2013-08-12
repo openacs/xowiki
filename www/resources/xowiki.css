@@ -286,6 +286,8 @@ div.xowiki-content .item-footer {
 }
 div.xowiki-content .content-chunk-footer {clear: both;}
 div.xowiki-content .image-button img {border: 0px;}
+div.xowiki-content div.weblog .item-footer { clear: none; }
+div.xowiki-content div.weblog .visual-clear { clear: none; }
 
 div.book-navigation img {border: 0px;}
 
