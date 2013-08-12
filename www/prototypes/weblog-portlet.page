@@ -33,7 +33,7 @@
     append more "<p></p>"
     set my_footer [my htmlFooter]
 
-    append content "<DIV class='post' style='clear: both; background: #f8f8f8;'>" \
+    append content "<DIV class='post' style='background: #f8f8f8;'>" \
         "<h2><a href='$link'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modified by [::xo::get_user_name $creation_user] " \
