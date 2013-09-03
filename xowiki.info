@@ -57,6 +57,7 @@ Some features:
         <maturity>0</maturity>
 
         <provides url="xowiki" version="0.146"/>
+	<requires url="acs-kernel" version="5.8.0"/>
         <requires url="acs-datetime" version="4.0"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
