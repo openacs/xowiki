@@ -171,7 +171,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8;">
 <include src="/packages/xowiki/www/portlets/include"
 	 &__including_page=page
-	 portlet="categories -open_page @name@  -decoration plain">
+         portlet="categories -open_page [list @name@]  -decoration plain">
 </div></div>
 <div style="float:right; width: 70%;">
 [next]
@@ -203,7 +203,7 @@ function get_popular_tags(popular_tags_link, prefix) {
 <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/include"
 	 &__including_page=page
-	 portlet="categories -open_page @name@  -decoration plain">
+         portlet="categories -open_page [list @name@] -decoration plain">
 </div></div>
 <div style="float:right; width: 70%;">
 <style type='text/css'>
@@ -295,7 +295,7 @@ table.mini-calendar {width: 200px ! important;}
 <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
 <include src="/packages/xowiki/www/portlets/include"
 	 &__including_page=page
-	 portlet="categories -open_page @name@  -decoration plain">
+         portlet="categories -open_page [list @name@]  -decoration plain">
 </div></div>  <!-- background -->
 </div>
 
