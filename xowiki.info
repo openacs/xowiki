@@ -14,7 +14,7 @@
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki wiki system with different object types
 based on the content OpenACS repository</summary>
-        <release-date>2011-05-16</release-date>
+        <release-date>2013-08-30</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
