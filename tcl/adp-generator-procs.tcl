@@ -50,7 +50,7 @@ function get_popular_tags(popular_tags_link, prefix) {
   ADP_Generator instproc master_part {} {
     return [subst -novariables -nobackslashes \
 {<master>
-  <property name="title">@title;noquote@</property>
+  <property name="doc(title)">@title;noquote@</property>
   <property name="context">@context;noquote@</property>
   <if @item_id@ not nil><property name="displayed_object_id">@item_id@</property></if>
   <property name="&body">property_body</property>
