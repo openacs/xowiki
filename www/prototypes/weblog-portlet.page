@@ -73,7 +73,7 @@
   
   my proc content {} {
     my get_parameters
-    my log "--get_parameters returned package_id=$package_id"
+    #my log "--get_parameters returned package_id=$package_id"
     set page [my info parent]
 
     if {[$page exists __including_page]} {

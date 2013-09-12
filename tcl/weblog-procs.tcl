@@ -56,7 +56,7 @@ namespace eval ::xowiki {
     my instvar date category_id tag ptag page_number page_size summary items locale
     my instvar name_filter entry_label entries_of sort_composite summary_chars
     
-    my log "--W starting"
+    #my log "--W starting"
     set folder_id [::$package_id folder_id]
     set filter_msg  ""
     set query_parm ""
@@ -279,7 +279,7 @@ namespace eval ::xowiki {
       if {$kind eq "method"} {$items mixin add ::xo::OrderedComposite::MethodCompare}
       $items orderby -order [expr {$direction eq "asc" ? "increasing" : "decreasing"}] $att
     }
-    my log "--W done"
+    #my log "--W done"
   }
 
   ::xowiki::Weblog instproc render {} {
