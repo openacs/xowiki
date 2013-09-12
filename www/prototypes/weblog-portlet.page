@@ -21,7 +21,7 @@
   #
   Class create EntryRenderer -instproc render {} {
     my instvar package_id name title creator creation_user pretty_date description 
-    my log "--W entry [self] [my name] package_id $package_id"
+    #my log "--W entry [self] [my name] package_id $package_id"
     [my set __parent] instvar weblog_obj
 
     # We get the instance_attributes, if these are available. For the
