@@ -122,7 +122,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc validation_check {validator_method value} {
-    return [my $validator_method $value]
+      return [my uplevel [list my $validator_method $value]]
   }
 
   FormField instproc validate {obj} {
@@ -169,7 +169,9 @@ namespace eval ::xowiki::formfield {
         # a message key based on the class and the name of the validator.
         #
         set cl [namespace tail [lindex $proc_info 0]]
-        return [_ xowiki.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
+	#my msg "__langPkg?[info exists __langPkg]"
+	if {![info exists __langPkg]} {set __langPkg "xowiki"}
+        return [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
         #return [::lang::message::lookup "" xowiki.$cl-validate_$validator %errorMsg% [list value $value errorMsg $errorMsg] 1]
       }
     }
