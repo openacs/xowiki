@@ -87,7 +87,7 @@ TableWidget t1 -volatile \
       AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('#xowiki.delete_confirm#'));"}
     }
 
-foreach {att order} [split $orderby ,] break
+lassign [split $orderby ,] att order
 t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
 
 # -page_size 10

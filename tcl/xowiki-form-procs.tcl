@@ -80,7 +80,7 @@ namespace eval ::xowiki {
           # append the folder spec to its options
           set __newspec [list $__wspec]
           foreach __e [lrange $__spec 1 end] {
-            foreach {__name __value} $__e break
+            lassign $__e __name __value
             if {$__name eq "options"} {eval lappend __value [my folderspec]}
             lappend __newspec [list $__name $__value]
           }
@@ -331,7 +331,7 @@ namespace eval ::xowiki {
   WikiForm instproc tidy {} {
     upvar #[template::adp_level] text text
     if {[info exists text]} {
-      foreach {text format} [my var text] break
+      lassign [my var text] text format
       if {[info exists format]} {
         my var text [list [list [::xowiki::tidy clean $text] $format]]
       }
@@ -566,7 +566,7 @@ namespace eval ::xowiki {
 
   PodcastForm instproc to_timestamp {widgetinfo} {
     if {$widgetinfo ne ""} {
-      foreach {y m day hour min} $widgetinfo break
+      lassign $widgetinfo y m day hour min
       set t [clock scan "${hour}:$min $m/$day/$y"]
       #
       # be sure to avoid bad side effects from LANG environment variable
@@ -807,7 +807,7 @@ namespace eval ::xowiki {
     if {$text eq ""} { return 1 }
     if {[llength $text] != 2} { return 0 }
     regsub -all "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (firefox bug?)
-    foreach {content mime} $text break
+    lassign $text content mime
     if {$content eq ""} {return 1}
     #ns_log notice "VALUE='$content'"
     set clean_content $content

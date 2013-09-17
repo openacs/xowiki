@@ -2191,7 +2191,7 @@ namespace eval ::xowiki::formfield {
     }
     if {[my exists multiple] && [my set multiple]} {
       foreach o [my set options] {
-        foreach {label value} $o break
+        lassign $o label value
         set labels($value) [my localize $label]
       }
       set values [list]
@@ -2199,7 +2199,7 @@ namespace eval ::xowiki::formfield {
       return [join $values {, }]
     } else {
       foreach o [my set options] {
-        foreach {label value} $o break
+        lassign $o label value
         if {$value eq $v} {return [my localize $label]}
       }
     }
@@ -2233,7 +2233,7 @@ namespace eval ::xowiki::formfield {
 
     foreach category [::xowiki::Category get_category_infos \
                           -subtree_id $subtree_id -tree_id $tree_id] {
-      foreach {category_id category_name deprecated_p level} $category break
+      lassign $category category_id category_name deprecated_p level
       set category_name [ad_quotehtml [lang::util::localize $category_name]]
       my set category_label($category_id) $category_name
       if { $level>1 } {
@@ -2266,7 +2266,7 @@ namespace eval ::xowiki::formfield {
   radio instproc render_input {} {
     set value [my value]
     foreach o [my options] {
-      foreach {label rep} $o break
+      lassign $o label rep
       set atts [my get_attributes disabled {CSSclass class}]
       if {[my exists forced_name]} {set name [my forced_name]} {set name [my name]}
       lappend atts id [my id]:$rep name $name type radio value $rep
@@ -2308,7 +2308,7 @@ namespace eval ::xowiki::formfield {
     # maybe we can push this up to enumeration....
     set value [my value]
     foreach o [my options] {
-      foreach {label rep} $o break
+      lassign $o label rep
       set atts [my get_attributes disabled {CSSclass class}]
       lappend atts id [my id]:$rep name [my name] type checkbox value $rep
       if {$rep in $value} {lappend atts checked checked}
@@ -2344,7 +2344,7 @@ namespace eval ::xowiki::formfield {
     }
     ::html::select $atts {
       foreach o $options {
-        foreach {label rep} $o break
+        lassign $o label rep
         set atts [my get_attributes disabled]
         lappend atts value $rep
         #my msg "lsearch {[my value]} $rep ==> [lsearch [my value] $rep]"
@@ -2384,7 +2384,7 @@ namespace eval ::xowiki::formfield {
         
         set js ""
         foreach o [my options] {
-          foreach {label rep} $o break
+          lassign $o label rep
           set js_label [::xowiki::Includelet js_encode $label]
           set js_rep   [::xowiki::Includelet js_encode $rep]
           append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
@@ -2412,7 +2412,7 @@ namespace eval ::xowiki::formfield {
           ::html::ul -id [my id]_candidates -class region {
             #my msg [my options]
             foreach o [my options] {
-              foreach {label rep} $o break
+              lassign $o label rep
               # Don't show current values under candidates
               if {[info exists __values($rep)]} continue
               ::html::li -class candidates {::html::t $rep}
@@ -2471,7 +2471,7 @@ namespace eval ::xowiki::formfield {
     my set options [my get_labels $v]
     if {[my multiple]} {
       foreach o [my set options] {
-        foreach {label value} $o break
+        lassign $o label value
         set href [$package_id pretty_link -parent_id $parent_id $value]
         set labels($value) "<a href='$href'>$label</a>"
       }
@@ -2491,7 +2491,7 @@ namespace eval ::xowiki::formfield {
       }
     } else {
       foreach o [my set options] {
-        foreach {label value} $o break
+        lassign $o label value
         #my log "comparing '$value' with '$v'"
         if {$value eq $v} {
           if {[my as_box]} {
@@ -3245,7 +3245,7 @@ namespace eval ::xowiki::formfield {
         if {$c ni [my components]} {my lappend components $c}
         continue
       }
-      foreach {class code trim_zeros} [my set format_map($element)] break
+      lassign [my set format_map($element)] class code trim_zeros
       #
       # create for each component a form field
       #

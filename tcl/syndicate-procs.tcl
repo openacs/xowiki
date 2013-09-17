@@ -314,7 +314,7 @@ namespace eval ::xowiki {
       $o set operation [expr {$creation_date eq $publish_date ? "created" : "modified"}]
 
       items add $o
-      foreach {last_user last_item last_clock} [list $creation_user $item_id $clock] break
+      lassign [list $creation_user $item_id $clock] last_user last_item last_clock
     }
 
     # The following loop tries to distinguis between create and modify by age.

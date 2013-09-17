@@ -344,7 +344,7 @@ namespace eval ::xowiki {
     set categories [list]
     if {[my exists __category_map]} {array set cm [my set __category_map]}
     foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
-      foreach {category_id category_name deprecated_p level} $category break
+      lassign $category category_id category_name deprecated_p level
       lappend categories $level $category_name
       set names($level) $category_name
       set node_name $tree_name
@@ -414,7 +414,7 @@ namespace eval ::xowiki {
     #
     # build reverse category_map
     foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
-      foreach {category_id category_name deprecated_p level} $category break
+      lassign $category category_id category_name deprecated_p level
       lappend categories $level $category_name
       set names($level) $category_name
       set node_name $name
@@ -1754,7 +1754,7 @@ namespace eval ::xowiki {
   Page instproc render_content {} {
     #my log "-- '[my set text]'"
     set html ""; set mime ""
-    foreach {html mime} [my set text] break
+    lassign [my set text] html mime
     if {[my render_adp]} {
       set html [my adp_subst $html]
     }
@@ -1771,7 +1771,7 @@ namespace eval ::xowiki {
     set spec ""
     #my msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
     foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
-      foreach {page_name var_name} [split $s ,] break
+      lassign [split $s ,] page_name var_name
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[my exists name] ? [my set name] : $page_name}]
       #my msg "--w T.name = '$name' var=$page_name ([string match $page_name $name]), $var_name $field_name ([string match $var_name $field_name])"
@@ -1811,7 +1811,7 @@ namespace eval ::xowiki {
     db_dml [my qn delete_references] \
         "delete from xowiki_references where page = :item_id"
     foreach ref $references {
-      foreach {r link_type} $ref break
+      lassign $ref r link_type
       db_dml [my qn insert_reference] \
           "insert into xowiki_references (reference, link_type, page) \
            values (:r,:link_type,:item_id)"
@@ -2549,7 +2549,7 @@ namespace eval ::xowiki {
     # for a field with a specified name in a specified page template
     my instvar package_id
     foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
-      foreach {template_name var_name} [split $s ,] break
+      lassign [split $s ,] template_name var_name
       #ns_log notice "--w template_name $template_name, given '$given_template_name' varname=$var_name name=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&
           [string match $var_name $name]} {
@@ -2816,7 +2816,7 @@ namespace eval ::xowiki {
     if {[lindex $text 0] ne ""} {
       my do_substitutions 0
       set html ""; set mime ""
-      foreach {html mime} [my set text] break
+      lassign [my set text] html mime
       set content [my substitute_markup $html]
     } elseif {[lindex $form 0] ne ""} {
       set content [[self class] disable_input_fields [lindex $form 0]]
@@ -3359,7 +3359,7 @@ namespace eval ::xowiki {
     # The passed value is a tuple of the form 
     #     {property-name operator property-value}
     #
-    foreach {property_name op property_value} $value break
+    lassign $value property_name op property_value
     if {![info exists property_value]} {return 0}
 
     #my log "$value => [my adp_subst $value]"
@@ -3539,7 +3539,7 @@ namespace eval ::xowiki {
 
       ::xowiki::Form requireFormCSS
 
-      foreach {form_vars field_names} [my field_names_from_form -form $form] break
+      lassign [my field_names_from_form -form $form] form_vars field_names
       my array unset __field_in_form
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]

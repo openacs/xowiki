@@ -198,7 +198,7 @@ namespace eval ::xowiki {
       "
       foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
 	#::xotcl::Object msg "tuple = $tuple"
-	foreach {name package_id item_id revision_id last_modified} $tuple break 
+	lassign $tuple name package_id item_id revision_id last_modified 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
 	if {$time > $older_than} continue
 	::xotcl::Object log "...will delete $name doit=$doit $last_modified"
@@ -229,7 +229,7 @@ namespace eval ::xowiki {
       
       foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
 	#::xotcl::Object msg "tuple = $tuple"
-	foreach {name item_id revision_id last_modified user package_id} $tuple break 
+	lassign $tuple name item_id revision_id last_modified user package_id 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
 	if {$time > $older_than} continue
 	#::xotcl::Object msg "compare time $time with $older_than => [expr {$time < $older_than}]"
@@ -499,7 +499,7 @@ namespace eval ::xowiki {
     #my log npo=[array get npo]=>to='$to'
     set renames [list]
     foreach tuple $pages {
-      foreach {old_page_order page_id item_id name} $tuple break
+      lassign $tuple old_page_order page_id item_id name
       if {[info exists npo($old_page_order)]} {
         #
         # We have a name in the translation list

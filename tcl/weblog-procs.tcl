@@ -275,7 +275,7 @@ namespace eval ::xowiki {
     #my proc destroy {} {my log "--W"; next}
     
     if {$sort_composite ne ""} {
-      foreach {kind att direction} [split $sort_composite ,] break
+      lassign [split $sort_composite ,] kind att direction
       if {$kind eq "method"} {$items mixin add ::xo::OrderedComposite::MethodCompare}
       $items orderby -order [expr {$direction eq "asc" ? "increasing" : "decreasing"}] $att
     }

@@ -140,7 +140,7 @@ namespace eval ::xowiki::notification {
       array unset cat
       array unset label
       foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
-        foreach {category_id category_label deprecated_p level} $category_info {break}
+        lassign $category_info category_id category_label deprecated_p level
         set cat($level) $category_id
         set label($level) $category_label
         if {$category_id == $cat_id} break

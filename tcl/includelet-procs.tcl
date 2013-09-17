@@ -57,7 +57,7 @@ namespace eval ::xowiki::includelet {
       append result "{{<b>[namespace tail $cl]</b>"
       foreach p [$cl info parameter] {
         if {[llength $p] != 2} continue
-        foreach {name value} $p break
+        lassign $p name value
         if {$name eq "parameter_declaration"} {
           foreach pp $value {
             #append result ""
@@ -684,8 +684,8 @@ namespace eval ::xowiki::includelet {
     set open_item_id [expr {$open_page ne "" ?
                 [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
-    foreach {locale locale_clause} \
-        [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
+    lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
+	locale locale_clause
 
     set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
                    -names $tree_name \
@@ -712,7 +712,7 @@ namespace eval ::xowiki::includelet {
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
 
     foreach tree $trees {
-      foreach {tree_id my_tree_name ...} $tree {break}
+      lassign $tree tree_id my_tree_name ...
 
       set edit_html [my category_tree_edit_button -object_id $package_id \
 			 -allow_edit $allow_edit -tree_id $tree_id]
@@ -731,7 +731,7 @@ namespace eval ::xowiki::includelet {
       set category_infos [::xowiki::Category get_category_infos \
 			      -locale $locale -tree_id $tree_id]
       foreach category_info $category_infos {
-        foreach {cid category_label deprecated_p level} $category_info {break}
+        lassign $category_info cid category_label deprecated_p level
         set c [::xowiki::TreeNode new -orderby pos  \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
@@ -804,7 +804,7 @@ namespace eval ::xowiki::includelet {
 	  }
         append content [$cattree(0) render -style [my set style]]
       } else {
-        foreach {orderby direction} [split $order_items_by ,]  break     ;# e.g. "title,asc"
+        lassign [split $order_items_by ,] orderby direction     ;# e.g. "title,asc"
         set increasing [expr {$direction ne "desc"}]
 	set order_column ", p.page_order" 
 
@@ -876,8 +876,8 @@ namespace eval ::xowiki::includelet {
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     set cattree [::xowiki::Tree new -volatile -id [my id]]
 
-    foreach {locale locale_clause} \
-        [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] break
+    lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
+	locale locale_clause
 
     set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
                       -names $tree_name -output tree_id]
@@ -1434,7 +1434,7 @@ namespace eval ::xowiki::includelet {
       set return_url [$package_id query_parameter return_url]
     }
     foreach cat_id [category::get_mapped_categories [$__including_page set item_id]] {
-      foreach {category_id category_name tree_id tree_name} [category::get_data $cat_id] break
+      lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
       #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
       set entry "<a href='$href&amp;category_id=$category_id'>$category_name ($tree_name)</a>"
       if {$notification_type ne ""} {
@@ -1730,7 +1730,7 @@ namespace eval ::xowiki::includelet {
                        "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
       }
       foreach value  $values {
-        foreach {user_id time} $value break
+        lassign $value user_id time
         set seen($user_id) $time
         
         regexp {^([^.]+)[.]} $time _ time
@@ -1861,10 +1861,10 @@ namespace eval ::xowiki::includelet {
 
     set extra_where_clause ""
     if {[my exists category_id]} {
-      foreach {cnames extra_where_clause} [my category_clause [my set category_id]] break
+      lassign [my category_clause [my set category_id]] cnames extra_where_clause
     }
-    foreach {locale locale_clause} \
-        [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
+    lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
+	locale locale_clause
     #my msg locale_clause=$locale_clause
 
     if {$source ne ""} {
@@ -1895,7 +1895,7 @@ namespace eval ::xowiki::includelet {
 
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     if {$range ne "" && $page_order_att ne ""} {
-      foreach {from to} [split $range -] break
+      lassign [split $range -] from to
       foreach p [$pages children] {
 	if {[$pages __value_compare [$p set page_order] $from 0] == -1
 	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
@@ -2300,7 +2300,7 @@ namespace eval ::xowiki::includelet {
 
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     if {$range ne ""} {
-      foreach {from to} [split $range -] break
+      lassign [split $range -] from to
       foreach p [$pages children] {
 	if {[$pages __value_compare [$p set page_order] $from 0] == -1
 	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
@@ -2552,11 +2552,11 @@ namespace eval ::xowiki::includelet {
     set extra_where_clause ""
     set cnames ""
     if {[info exists category_id]} {
-      foreach {cnames extra_where_clause} [my category_clause $category_id] break
+      lassign [my category_clause $category_id] cnames extra_where_clause
     }
 
-    foreach {locale locale_clause} \
-        [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] break
+    lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
+	locale locale_clause
 
     if {$folder_mode} {
       # TODO just needed for michael aram?
@@ -2580,7 +2580,7 @@ namespace eval ::xowiki::includelet {
     # filter range
     #
     if {$range ne ""} {
-      foreach {from to} [split $range -] break
+      lassign [split $range -] from to
       foreach p [$pages children] {
 	if {[$pages __value_compare [$p set page_order] $from 0] == -1
 	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
@@ -3106,8 +3106,8 @@ namespace eval ::xowiki::includelet {
 
     set edgesHTML ""; set c 0
     foreach p [lsort -index 1 -decreasing -integer $edges] {
-      foreach {edge weight width} $p break
-      foreach {a b} [split $edge ,] break
+      lassign $p edge weight width
+      lassign [split $edge ,] a b
       #my log "--G $a -> $b check $c > $max_edges, $weight < $cutoff"
       if {[incr c]>$max_edges} break
       if {$weight < $cutoff} continue
@@ -3508,9 +3508,9 @@ namespace eval ::xowiki::includelet {
     if {![info exists button_objs]} {
       foreach b $buttons {
         if {[llength $b]>1} {
-          foreach {button id} $b break
+          lassign $b button id
         } else {
-          foreach {button id} [list $b $form_item_id] break
+          lassign [list $b $form_item_id] button id
         }
         set form [::xo::db::CrClass get_instance_from_db -item_id $id]
         #
@@ -3603,7 +3603,7 @@ namespace eval ::xowiki::includelet {
 	    Field count -orderby count -label count
 	  }
       
-      foreach {att order} [split $orderby ,] break
+      lassign [split $orderby ,] att order
       t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
       foreach {value count} [array get __count] {
 	t1 add -value $value -count $count
@@ -3859,7 +3859,7 @@ var chart;
     # that page_order can be sorted with the special mixin and that
     # instance attributes can be used for sorting as well.
     #
-    foreach {att order} [split $orderby ,] break
+    lassign [split $orderby ,] att order
     if {$att eq "__page_order"} {
       t1 mixin add ::xo::OrderedComposite::IndexCompare
     }
@@ -3889,7 +3889,7 @@ var chart;
     #my log "exists category_id [info exists category_id]"
     set extra_where_clause ""
     if {[info exists category_id]} {
-      foreach {cnames extra_where_clause} [my category_clause $category_id bt.item_id] break
+      lassign [my category_clause $category_id bt.item_id] cnames extra_where_clause
     }
 
     set items [::xowiki::FormPage get_form_entries \

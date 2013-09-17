@@ -723,7 +723,7 @@ namespace eval ::xowiki {
       #
       # we have to valiate and save the form data
       #
-      foreach {validation_errors category_ids} [my get_form_data $form_fields] break
+      lassign [my get_form_data $form_fields] validation_errors category_ids
 
       if {$validation_errors != 0} {
         #my msg "$validation_errors errors in $form_fields"
@@ -1623,14 +1623,14 @@ namespace eval ::xowiki {
     #my msg "mapped category ids=$category_ids"
 
     foreach category_tree $category_trees {
-      foreach {tree_id tree_name subtree_id assign_single_p require_category_p} $category_tree break
+      lassign $category_tree tree_id tree_name subtree_id assign_single_p require_category_p
 
       set options [list] 
       #if {!$require_category_p} {lappend options [list "--" ""]}
       set value [list]
       foreach category [::xowiki::Category get_category_infos \
                             -subtree_id $subtree_id -tree_id $tree_id] {
-        foreach {category_id category_name deprecated_p level} $category break
+        lassign $category category_id category_name deprecated_p level
         if {$category_id in $category_ids} {lappend value $category_id}
         set category_name [ad_quotehtml [lang::util::localize $category_name]]
         if { $level>1 } {
@@ -1868,7 +1868,7 @@ namespace eval ::xowiki {
         }
       }
       if {[string match *.* $att]} {
-        foreach {container component} [split $att .] break
+        lassign [split $att .] container component
         lappend containers($container) $component
       }
     }
@@ -2051,7 +2051,7 @@ namespace eval ::xowiki {
 
   FormPage instproc field_names {{-form ""}} {
     my instvar package_id
-    foreach {form_vars needed_attributes} [my field_names_from_form -form $form] break
+    lassign [my field_names_from_form -form $form] form_vars needed_attributes
     #my msg "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
     my array unset __field_in_form
     my array unset __field_needed

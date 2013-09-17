@@ -575,7 +575,7 @@ namespace eval ::xowiki::includelet {
 	}
       }
 
-      foreach {att order} [split $orderby ,] break
+      lassign [split $orderby ,] att order
       $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
       set resources_list "[$t asHTML]"
       
