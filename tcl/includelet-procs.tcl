@@ -1104,7 +1104,7 @@ namespace eval ::xowiki::includelet {
             AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
             Field users -label Visitors -html { align right }
           }
-      set since_condition "and [::xo::db::sql since_interval_condition time $interval]"
+      set since_condition [::xo::db::sql since_interval_condition time $interval]
       db_foreach [my qn get_pages] \
           [::xo::db::sql select \
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
