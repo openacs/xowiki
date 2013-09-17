@@ -20,7 +20,7 @@ namespace eval ::xowiki {
     # Return matched category trees matching the specified names (or all)
 
     # provide compatibility with earlier versions of categories
-    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
+    set have_locale [expr {"locale" in [info args category_tree::get_mapped_trees]}]
     set mapped_trees [expr {$have_locale ?
                             [category_tree::get_mapped_trees $object_id $locale] :
                             [category_tree::get_mapped_trees $object_id]}]
