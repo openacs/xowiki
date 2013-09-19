@@ -83,6 +83,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form-validate_form_constraints">Invalid Form %errorMsg%</msg>
   <msg key="Form_plural_name">Wiki Forms</msg>
   <msg key="Form_pretty_name">Wiki Form</msg>
+  <msg key="Form_pretty_plural">Wiki Forms</msg>
   <msg key="formfield-author">Author</msg>
   <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
@@ -92,7 +93,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage-state">State</msg>
   <msg key="FormPage_parameters_title">Wiki parameters</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
-  <msg key="FormPage_pretty_plural_name">Wiki FormPages</msg>
+  <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
   <msg key="hour">hour</msg>
   <msg key="hours">hours</msg>
   <msg key="import">Import</msg>
