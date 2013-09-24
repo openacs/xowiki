@@ -54,7 +54,7 @@ Some features:
   - various security policies
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
-        <maturity>0</maturity>
+        <maturity>2</maturity>
 
         <provides url="xowiki" version="0.146"/>
 	<requires url="acs-kernel" version="5.8.1d1"/>
