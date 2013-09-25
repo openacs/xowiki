@@ -12,8 +12,7 @@
 
     <version name="0.146" url="http://openacs.org/repository/download/apm/xowiki-0.146.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
-        <summary>A xotcl-based enterprise wiki wiki system with different object types
-based on the content OpenACS repository</summary>
+        <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
         <release-date>2013-09-08</release-date>
         <vendor>Gustaf Neumann, WU Wien</vendor>
         <description format="text/html">&lt;pre&gt;
