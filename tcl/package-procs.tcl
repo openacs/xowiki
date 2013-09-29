@@ -1670,7 +1670,7 @@ namespace eval ::xowiki {
                      $object $method]
     if {$allowed} {
       #my log "--p calling $object ([$object name] [$object info class]) '$method'"
-      eval $object $method $options
+      $object $method {*}$options
     } else {
       my log "not allowed to call $object $method"
     }
