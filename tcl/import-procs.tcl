@@ -344,7 +344,7 @@ namespace eval ::xowiki {
     #
     ns_set put [ns_conn outputheaders] "Content-Type" "text/plain"
     ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=export.xotcl"
-    ReturnHeaders 
+    ad_return_top_of_page "" 
     
     foreach item_id $item_ids {
       ns_log notice "--exporting $item_id [$item_id name]"
