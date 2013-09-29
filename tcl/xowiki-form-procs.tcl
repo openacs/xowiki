@@ -81,7 +81,7 @@ namespace eval ::xowiki {
           set __newspec [list $__wspec]
           foreach __e [lrange $__spec 1 end] {
             lassign $__e __name __value
-            if {$__name eq "options"} {eval lappend __value [my folderspec]}
+            if {$__name eq "options"} {lappend __value {*}[my folderspec]}
             lappend __newspec [list $__name $__value]
           }
           #my msg "--F rewritten spec is '$__newspec'"
