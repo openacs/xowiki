@@ -1441,7 +1441,7 @@ namespace eval ::xowiki::formfield {
   }
   code_listing instproc pretty_value {v} {
     [my object] do_substitutions 0
-    if {[info command api_tclcode_to_html] ne ""} {
+    if {[info commands api_tclcode_to_html] ne ""} {
       set html [api_tclcode_to_html [my value]]
       regsub -all "\n?\r</FONT></EM>" $html </FONT></EM> html
       return "<pre class='code'>$html</pre>"

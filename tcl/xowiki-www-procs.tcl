@@ -466,7 +466,7 @@ namespace eval ::xowiki {
     # determine the delivery method
     #
     set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] && 
-                               [info command ::bgdelivery] ne ""}]
+                               [info commands ::bgdelivery] ne ""}]
     #
     # The package where the object is coming from might be different
     # from the package on which it is delivered. Use the latter one
@@ -1239,7 +1239,7 @@ namespace eval ::xowiki {
 
     # the menubar is work in progress
     set mb [$context_package_id get_parameter "MenuBar" 0]
-    if {$mb ne "0" && [info command ::xowiki::MenuBar] ne ""} {
+    if {$mb ne "0" && [info commands ::xowiki::MenuBar] ne ""} {
 
       set clipboard_size [::xowiki::clipboard size]
       set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
@@ -1388,7 +1388,7 @@ namespace eval ::xowiki {
       #
 	
       set header_stuff [::xo::Page header_stuff]
-      if {[info command ::template::head::add_meta] ne ""} {
+      if {[info commands ::template::head::add_meta] ne ""} {
 	set meta(language) [my lang]
 	set meta(description) [my description]
 	set meta(keywords) ""

@@ -354,7 +354,7 @@ namespace eval ::xowiki {
     id
   }
 
-  if {[info command ::dict] ne ""} {
+  if {[info commands ::dict] ne ""} {
      ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
       if {![dict exists $dict $key]} {
 	return $default

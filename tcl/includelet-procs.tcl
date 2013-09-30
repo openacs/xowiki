@@ -1168,7 +1168,7 @@ namespace eval ::xowiki::includelet {
     my instvar feed
     my get_parameters
     my set feed [::xowiki::RSS-client new -url $url -destroy_on_cleanup]
-    if {[info command [$feed channel]] ne ""} {
+    if {[info commands [$feed channel]] ne ""} {
       my title [ [$feed channel] title]
     }
   }
@@ -1176,7 +1176,7 @@ namespace eval ::xowiki::includelet {
   rss-client instproc render {} {
     my instvar feed
     my get_parameters
-    if {[info command [$feed channel]] eq ""} {
+    if {[info commands [$feed channel]] eq ""} {
       set detail ""
       if {[$feed exists errorMessage]} {set detail \n[$feed set errorMessage]}
       return "No data available from $url<br>$detail"
@@ -2239,7 +2239,7 @@ namespace eval ::xowiki::includelet {
     #
     # Call a render on the created structure
     #
-    if {[info command ::__xowiki__MenuBar] ne ""} {
+    if {[info commands ::__xowiki__MenuBar] ne ""} {
       ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner [self]
     }
     #
@@ -2334,7 +2334,7 @@ namespace eval ::xowiki::includelet {
 
       set menu [list]
       foreach b $menu_buttons {
-	if {[info command ::xowiki::includelet::$b] eq ""} {
+	if {[info commands ::xowiki::includelet::$b] eq ""} {
 	  set b $b-item-button
 	}
 	set html [$p include [list $b -book_mode true]]
@@ -2426,7 +2426,7 @@ namespace eval ::xowiki::includelet {
     $object instvar page_order title name
     set menu [list]
     foreach b $menu_buttons {
-      if {[info command ::xowiki::includelet::$b] eq ""} {
+      if {[info commands ::xowiki::includelet::$b] eq ""} {
 	set b $b-item-button
       }
       set html [$object include [list $b -book_mode true]]
@@ -3849,7 +3849,7 @@ var chart;
     set cmd [list TableWidget t1 -volatile -columns $cols]
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
-    } elseif {[info command ::xo::Table::YUIDataTableRenderer] ne ""} {
+    } elseif {[info commands ::xo::Table::YUIDataTableRenderer] ne ""} {
       lappend cmd -renderer YUIDataTableRenderer
     }
     {*}$cmd

@@ -2308,7 +2308,7 @@ namespace eval ::xowiki {
     # In case, the switch is activated, and we have a menubar, add the
     # top level section
     #
-    if {$add_sections_to_folder_tree && [info command ::__xowiki__MenuBar] ne ""} {
+    if {$add_sections_to_folder_tree && [info commands ::__xowiki__MenuBar] ne ""} {
       $owner set book_mode 1
       set pages [::xo::OrderedComposite new -destroy_on_cleanup]
       if {$add_sections_to_folder_tree == 1} {

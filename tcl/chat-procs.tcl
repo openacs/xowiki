@@ -79,7 +79,7 @@ namespace eval ::xowiki {
       # Check, whether we have the tcllibthread and a sufficiently new
       # aolserver/naviserver supporting bgdelivery transfers.
       #
-      if {[info command ::thread::mutex] ne "" &&
+      if {[info commands ::thread::mutex] ne "" &&
           ![catch {ns_conn contentsentlength}]} {
 	#
         # scripted streaming should work everywhere

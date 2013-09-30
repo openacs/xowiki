@@ -38,7 +38,7 @@ namespace eval ::xowiki {
   ::xotcl::Object create tidy
   tidy proc clean {text} {
     if {[[::xo::cc package_id] get_parameter tidy 0] 
-        && [info command ::util::which] ne ""} { 
+        && [info commands ::util::which] ne ""} { 
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
 	set in_file [ns_tmpnam]
@@ -61,7 +61,7 @@ namespace eval ::xowiki {
   ::xotcl::Object create virus
   virus proc check {fn} {
     if {[[::xo::cc package_id] get_parameter clamav 1]
-        && [info command ::util::which] ne ""} { 
+        && [info commands ::util::which] ne ""} { 
       set clamscanCmd [::util::which clamscan]
       if {$clamscanCmd ne "" && [file readable $fn]} {
 	if {[catch {exec $clamscanCmd $fn }]} {return 1}
@@ -584,7 +584,7 @@ namespace eval ::xowiki {
 
   my ad_proc user_is_active {{-asHTML:boolean false} uid} {
   } {
-    if {[info command ::throttle] ne "" && 
+    if {[info commands ::throttle] ne "" && 
 	[::throttle info methods user_is_active] ne ""} {
       set active [throttle user_is_active $uid]
       if {$asHTML} {

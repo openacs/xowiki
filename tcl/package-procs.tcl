@@ -2234,7 +2234,7 @@ namespace eval ::xowiki {
   Class ParameterCache
   ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
     set key [list [my id] [self proc] $attribute]
-    if {[info command "::xo::cc"] ne ""} {
+    if {[info commands "::xo::cc"] ne ""} {
       if {[::xo::cc cache_exists $key]} {
         return [::xo::cc cache_get $key]
       }
