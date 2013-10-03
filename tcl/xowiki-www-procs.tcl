@@ -1251,7 +1251,7 @@ namespace eval ::xowiki {
       $mb add_menu -name Package -label [$context_package_id instance_name]
       $mb add_menu -name New
       $mb add_menu -name Clipboard -label $clipboard_label
-      $mb add_menu -name Page
+      $mb add_menu -name Page -label [_ xowiki.menu-Page]
       $mb add_menu_item -name Package.Startpage \
           -item [list text #xowiki.index# url $index_link]
       $mb add_menu_item -name Package.Subscribe \
@@ -1954,7 +1954,7 @@ namespace eval ::xowiki {
       }
     }
     #my msg "validation returns $validation_errors errors"
-    set current_revision_id [::xo::cc form_parameter __current_revision_id ""]
+    set current_revision_id [$cc form_parameter __current_revision_id ""]
     if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != [my revision_id]} {
       set validation_errors [my mutual_overwrite_occurred]
     }
