@@ -32,7 +32,7 @@ namespace eval ::xowiki {
   }
 
   Tree proc include_head_entries {{-renderer mktree} args} {
-    eval [my renderer $renderer] include_head_entries $args
+    [my renderer $renderer] include_head_entries {*}$args
   }
 
   #
