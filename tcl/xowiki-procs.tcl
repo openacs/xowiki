@@ -1126,7 +1126,7 @@ namespace eval ::xowiki {
 # 	set page_template [$page page_template]
 # 	set page_template_name [$page_template name]
 #         # search the page_template in the list of form_ids
-#         if {[lsearch $folder_form_ids $page_template] > -1} {
+#         if {$page_template in $folder_form_ids} {
 #           break
 # 	} elseif {$page_template_name eq "en:folder.form"} {
 # 	  # safety belt, in case we have in different directories

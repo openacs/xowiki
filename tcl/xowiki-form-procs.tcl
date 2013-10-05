@@ -137,7 +137,7 @@ namespace eval ::xowiki {
       # Reorder the locales and put the connection locale to the front
       # in case we have a connection
       #
-      set defpos [lsearch $locales [lang::conn::locale]]
+      set defpos [lsearch -exact $locales [lang::conn::locale]]
       set locales [linsert [lreplace $locales $defpos $defpos] 0 \
                        [lang::conn::locale]]
     }

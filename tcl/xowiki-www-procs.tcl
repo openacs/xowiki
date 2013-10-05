@@ -2066,7 +2066,7 @@ namespace eval ::xowiki {
     set reduced_attributes $needed_attributes
     
     foreach f $auto_fields {
-      set p [lsearch $reduced_attributes $f]
+      set p [lsearch -exact $reduced_attributes $f]
       if {$p > -1} {
 	#if {$form_vars} {
 	  #set auto_field_in_form($f) 1
