@@ -789,7 +789,7 @@ namespace eval ::xowiki::includelet {
       if {$category_ids ne ""} {
         foreach cid [split $category_ids ,] {
           set or_ids [split $cid |]
-	  foreach or_id in $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
+	  foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
           append sql " and exists (select * from category_object_map \
 	     where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
         }
