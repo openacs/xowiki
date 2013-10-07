@@ -588,8 +588,8 @@ namespace eval ::xowiki {
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parselevel, so we have to be in
     # our own level in order to access an pass these.
-    variable ::template::parse_level
-    lappend parse_level [info level]    
+    lappend ::template::parse_level [info level]    
+
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
     #my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
 
@@ -647,7 +647,7 @@ namespace eval ::xowiki {
                   -form f1 \
                   -variables {item_id parent_id edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link property_doc}]
-    template::util::lpop parse_level
+    template::util::lpop ::template::parse_level
     #my log "--edit html length [string length $html]"
     return $html
   }
