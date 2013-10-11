@@ -83,7 +83,7 @@
                  set s [expr { $k + 1 }]
                  while { $max >= $min } {
                      set mid [expr { ( $max + $min ) / 2 }]
-                     set bmid [lindex [lindex $K $mid] 1]
+                     set bmid [lindex $K $mid 1]
                      if { $j == $bmid } {
                          break
                      } elseif { $j < $bmid } {
@@ -97,7 +97,7 @@
                  # Go to the next match point if there is no suitable
                  # candidate.
 
-                 if { $j == [lindex [lindex $K $mid] 1] || $s > $k} {
+                 if { $j == [lindex $K $mid 1] || $s > $k} {
                      continue
                  }
 

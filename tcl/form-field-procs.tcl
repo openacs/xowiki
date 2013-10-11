@@ -2170,7 +2170,7 @@ namespace eval ::xowiki::formfield {
     # first entry of the options. This is as well the value, which is
     # returned from the browser in such cases.
     if {[my required] && [my set value] eq ""} {
-      my set value [lindex [lindex [my set options] 0] 1]
+      my set value [lindex [my set options] 0 1]
     }
   }
   enumeration abstract instproc render_input {}
