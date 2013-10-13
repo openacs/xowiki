@@ -1017,7 +1017,7 @@ namespace eval ::xowiki {
     #
 
     set item_id 0
-    if {$lang eq $default_lang || [string match *:* $stripped_name]} {
+    if {$lang eq $default_lang || [string match "*:*" $stripped_name]} {
       # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
       if {$item_id != 0} {
@@ -1147,7 +1147,7 @@ namespace eval ::xowiki {
     # A trailing slash says that the last element is a folder. We
     # substitute it to allow easy iteration over the slash separated
     # segments.
-    if {[string match */ $link]} {
+    if {[string match "*/" $link]} {
       set llink [string trimright $link /]\0
     } else {
       set llink $link
@@ -1323,7 +1323,7 @@ namespace eval ::xowiki {
 
         # If the item is still unknown, try filename-based lookup,
         # when the entry looks like a filename with an extension.
-        if {$item_id == 0 && [string match *.* $element] && ![regexp {[.](form|wf)$} $element]} {
+        if {$item_id == 0 && [string match "*.*" $element] && ![regexp {[.](form|wf)$} $element]} {
           #
           # Get the mime type to distinguish between images, flash
           # files and ordinary files. 

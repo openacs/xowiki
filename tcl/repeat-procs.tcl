@@ -152,7 +152,7 @@ namespace eval ::xowiki::formfield {
       set containerDisabled [expr {[my exists disabled] && [my disabled] ne "false"}]
       foreach c [my components] {
 	set atts [list class $CSSclass]
-	if {$i > $nrItems || [string match *.0 [$c name]]} {
+	if {$i > $nrItems || [string match "*.0" [$c name]]} {
 	  lappend atts style "display: none;"
 	}
 	::html::div $atts {

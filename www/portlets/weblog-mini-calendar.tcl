@@ -4,13 +4,13 @@ set package_id        [::xo::cc package_id]
 set parent_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
-if {![exists_and_not_null base_url]} {
+if {(![info exists base_url] || $base_url eq "")} {
   if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
   set base_url [$package_id pretty_link -parent_id $parent_id $page]
 }
 
 set date [ns_queryget date]
-if {![exists_and_not_null date]} {
+if {(![info exists date] || $date eq "")} {
   set date [dt_sysdate]
 } 
 
@@ -106,7 +106,7 @@ set day_number [expr {$days_in_last_month - $active_days_before_month + 1}]
 
 for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_julian_date + 7} {incr julian_date} {
 
-  if {$julian_date > $last_julian_date_in_month && $end_of_week_p eq "t" } {
+  if {$julian_date > $last_julian_date_in_month && $end_of_week_p == "t" } {
     break
   }
   set today_p f

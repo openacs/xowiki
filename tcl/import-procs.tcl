@@ -395,7 +395,7 @@ namespace eval ::xowiki {
 	set success 1
       }
       application/x-compressed {
-	if {[string match *tar.gz $name]} {
+	if {[string match "*tar.gz" $name]} {
 	  set cmd [::util::which tar]
 	  exec $cmd -xzf $file -C [my set tmpdir]
 	  my import -dir [my set tmpdir] -parent_id [my parent_id]
@@ -417,7 +417,7 @@ namespace eval ::xowiki {
       set file_name [::file tail $tmpfile]
       if {[::file isdirectory $tmpfile]} {
 	# ignore mac os x resource fork directories
-	if {[string match *__MACOSX $tmpfile]} continue
+	if {[string match "*__MACOSX" $tmpfile]} continue
 	set folder_object [$package_id get_page_from_name -assume_folder true \
 			       -name $file_name -parent_id $parent_id]
 	if {$folder_object ne ""} {
@@ -441,7 +441,7 @@ namespace eval ::xowiki {
 	my import -dir $tmpfile -parent_id [$folder_object item_id]
       } else {
 	set mime_type [::xowiki::guesstype $file_name]
-	if {[string match image/* $mime_type] && [my use_photo_form]} {
+	if {[string match "image/*" $mime_type] && [my use_photo_form]} {
 	  set photo_object [$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
 	  if {$photo_object ne ""} {
 	    # photo entry exists already, create a new revision

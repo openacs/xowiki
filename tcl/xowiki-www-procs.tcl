@@ -1850,7 +1850,7 @@ namespace eval ::xowiki {
            # ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
            if {$varname eq "text"} {regsub -all "­" $value "" value}
            #ns_log notice "FORM_DATA var=$varname, value='$value'"
-           if {![string match *.* $att]} {my set $varname $value}
+           if {![string match "*.*" $att]} {my set $varname $value}
          }
         default {
            # user form content fields
@@ -1862,12 +1862,12 @@ namespace eval ::xowiki {
             set f     [my lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
             #my msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]" 
-            if {![string match *.* $att]} {set __ia($att) $value}
+            if {![string match "*.*" $att]} {set __ia($att) $value}
             if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
           }
         }
       }
-      if {[string match *.* $att]} {
+      if {[string match "*.*" $att]} {
         lassign [split $att .] container component
         lappend containers($container) $component
       }
@@ -1924,7 +1924,7 @@ namespace eval ::xowiki {
             set v [$f value_if_nothing_is_returned_from_form $default]
             set value [$f value $v]
             if {$v ne $default} {
-              if {![string match *.* $att]} {my set $varname $value}
+              if {![string match "*.*" $att]} {my set $varname $value}
             }
 	  }
 	  default {
@@ -1938,7 +1938,7 @@ namespace eval ::xowiki {
             set v [$f value_if_nothing_is_returned_from_form $default]
             #my msg "value_if_nothing_is_returned_from_form '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
-            if {![string match *.* $att]} {set __ia($att) $value}
+            if {![string match "*.*" $att]} {set __ia($att) $value}
 	  }
         }
       }

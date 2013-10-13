@@ -10,9 +10,9 @@ ad_form -name upload_form \
     -html { enctype multipart/form-data } \
     -mode edit \
     -form {
-      {upload_file:file(file),optional {label "Bild zum Hochladen auswählen"}}
+      {upload_file:file(file),optional {label "Bild zum Hochladen auswÃ¤hlen"}}
       {width:text(text),optional {label "Breite in Pixel"}}
-      {height:text(text),optional {label "Höhe in Pixel"}}
+      {height:text(text),optional {label "HÃ¶he in Pixel"}}
     } -on_submit {
       set width [template::element::get_values upload_form width]
       set height [template::element::get_values upload_form height]
@@ -26,7 +26,7 @@ ad_form -name upload_form \
       #ds_comment $upload_tmpfile
       if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
 
-      if {![string match image/* $mime_type]} {
+      if {![string match "image/*" $mime_type]} {
 	# File is no image
 	template::form::set_error "upload_image" "upload_file" "[_ acs-templating.HTMLArea_SelectImageUploadNoImage]"
 	break
