@@ -1408,6 +1408,8 @@ namespace eval ::xowiki {
 	set tag $stripped_url
 	set summary [::xo::cc query_parameter summary 0]
 	set popular [::xo::cc query_parameter popular 0]
+	if {$summary eq ""} {set summary 0}
+	if {$popular eq ""} {set popular 0}
 	if {![string is boolean -strict $summary]} {error "summary must be boolean"}
 	if {![string is boolean -strict $popular]} {error "popular must be boolean"}
 	set tag_kind [expr {$popular ? "ptag" :"tag"}]
