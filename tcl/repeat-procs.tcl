@@ -114,10 +114,30 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  #repeatContainer instproc convert_to_internal {} {
-  #  next
-  #  my msg name=[my name],value=[my get_compound_value]
-  #}
+  repeatContainer instproc convert_to_internal {} {
+    set values [my value]
+    my trim_values
+    set r [next]
+    #my msg name=[my name],value=[my get_compound_value]
+
+    #
+    # remove "unneeded" entries from instance attributes
+    #
+    [my object] instvar instance_attributes
+    foreach {name value} $values {
+      if {[dict exists $instance_attributes $name]} {
+	dict unset instance_attributes $name
+      }
+    }
+    return $r
+  }
+
+  repeatContainer instproc trim_values {} {
+    # Trim trailing values idential to default.
+    # Trimming the components list seems sufficient.
+    set count [my count_values [my value]]
+    my set components [lrange [my components] 0 $count]
+  }
 
   repeatContainer instproc count_values {values} {
     set count 1
