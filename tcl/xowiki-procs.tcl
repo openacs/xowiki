@@ -1497,9 +1497,9 @@ namespace eval ::xowiki {
 
   Page instproc detail_link {} {
     if {[my exists instance_attributes]} {
-      array set __ia [my set instance_attributes]
-      if {[info exists __ia(detail_link)] && $__ia(detail_link) ne ""} {
-        return $__ia(detail_link)
+      set __ia [my set instance_attributes]
+      if {[dict exists $__ia detail_link] && [dict get $__ia detail_link] ne ""} {
+        return [dict get $__ia detail_link]
       }
     }
     return [my pretty_link]
@@ -2155,7 +2155,7 @@ namespace eval ::xowiki {
     }
 
     # Make sure to load the instance attributes
-    $f array set __ia [$f instance_attributes]
+    #$f array set __ia [$f instance_attributes]
 
     # Call the application specific initialization, when a FormPage is
     # initially created. This is used to control the life-cycle of
@@ -2683,19 +2683,18 @@ namespace eval ::xowiki {
 
   PageInstance instproc adp_subst {content} {
     # initialize template variables (in case, new variables are added to template)
-    array set __ia [my template_vars $content]
-    # add extra variables as instance attributes
-    array set __ia [my set instance_attributes]
+    # and add extra variables from instance attributes
+    set __ia [dict merge [my template_vars $content] [my set instance_attributes]]
 
-    foreach var [array names __ia] {
+    foreach var [dict keys $__ia] {
       #my log "-- set $var [list $__ia($var)]"
       # TODO: just for the lookup, whether a field is a richt text field,
       # there should be a more efficient and easier way...
       if {[string match "richtext*" [my get_field_type $var text]]} {
         # ignore the text/html info from htmlarea
-	set value [lindex $__ia($var) 0]
+	set value [lindex [dict get $__ia $var] 0]
       } else {
-	set value $__ia($var)
+	set value [dict get $__ia $var]
       }
       # the value might not be from the form attributes (e.g. title), don't clear it.
       if {$value eq "" && [my exists $var]} continue
@@ -2898,7 +2897,7 @@ namespace eval ::xowiki {
       # make sure, the source package is available
       ::xo::Package require [$p package_id]
     }
-    my array set __ia [my instance_attributes]
+    #my array set __ia [my instance_attributes]
     next
   }
   FormPage instproc initialize {} {
@@ -2968,7 +2967,7 @@ namespace eval ::xowiki {
 	    set rhs $rhs_expr
 	    lappend sql_clause [subst -nocommands $op_map($op,sql)]
 	  }
-          set lhs_var "\$__ia($lhs)"
+          set lhs_var "\[dict get \$__ia $lhs\]"
           foreach rhs [split $rhs_expr |] {
 	    if {[info exists op_map($op,tcl)]} {
 	      lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
@@ -3148,8 +3147,7 @@ namespace eval ::xowiki {
       
       set init_vars $wc(vars)
       foreach p [$items children] {
-        array set __ia $init_vars
-        array set __ia [$p instance_attributes]
+	set __ia [dict merge $init_vars [$p instance_attributes]]
         if {![$p expr $wc(tcl)]} {$items delete $p}
       }
     }
@@ -3268,58 +3266,69 @@ namespace eval ::xowiki {
   # part of the code copied from Package->get_parameter
   # see xowiki/www/prototypes/folder.form.page
   FormPage instproc get_parameter {attribute {default ""}} {
-      # TODO: check whether the following comment applies here
-      # Try to get the parameter from the parameter_page.  We have to
-      # be very cautious here to avoid recursive calls (e.g. when
-      # resolve_page_name needs as well parameters such as
-      # use_connection_locale or subst_blank_in_name, etc.).
-      #
-      set value ""
-      set pp [my property ParameterPages]
-      if {$pp ne {}} {
-	  if {![regexp {/?..:} $pp]} {
-	      my log "Error: Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
-	  } else {
-	      set page [::xo::cc cache [list [my package_id] get_page_from_item_ref $pp]]
-	      if {$page eq ""} {
-		  my log "Error: Could not resolve parameter page '$pp' of FormPage [self]."
-	      }
-	      
-	      if {$page ne "" && [$page exists instance_attributes]} {
-		  array set __ia [$page set instance_attributes]
-		  if {[info exists __ia($attribute)]} {
-		      set value $__ia($attribute)
-		  }
-	      }
+    # TODO: check whether the following comment applies here
+    # Try to get the parameter from the parameter_page.  We have to
+    # be very cautious here to avoid recursive calls (e.g. when
+    # resolve_page_name needs as well parameters such as
+    # use_connection_locale or subst_blank_in_name, etc.).
+    #
+    set value ""
+    set pp [my property ParameterPages]
+    if {$pp ne {}} {
+      if {![regexp {/?..:} $pp]} {
+	my log "Error: Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
+      } else {
+	set page [::xo::cc cache [list [my package_id] get_page_from_item_ref $pp]]
+	if {$page eq ""} {
+	  my log "Error: Could not resolve parameter page '$pp' of FormPage [self]."
+	}
+	
+	if {$page ne "" && [$page exists instance_attributes]} {
+	  set __ia [$page set instance_attributes]
+	  if {[dict exists $__ia $attribute]} {
+	    set value [dict get $__ia $attribute]
 	  }
+	}
       }
-
-      
-      if {$value eq {}} {set value [next $attribute $default]}
-      return $value
+    }
+    
+    
+    if {$value eq {}} {set value [next $attribute $default]}
+    return $value
   }
 
   #
   # begin property management
   #
 
-  FormPage instproc property_key {name} {
-    if {[regexp {^_([^_].*)$} $name _ varname]} {
-      return $varname
-    } {
-      return __ia($name)
-    }
-  }
+  #FormPage instproc property_key {name} {
+  #  if {[regexp {^_([^_].*)$} $name _ varname]} {
+  #    return $varname
+  #  } {
+  #    return __ia($name)
+  #  }
+  #}
 
   FormPage instproc exists_property {name} {
-    return [my exists [my property_key $name]]
+    if {[regexp {^_([^_].*)$} $name _ varname]} {
+      return [my exists $varname]
+    }
+    my instvar instance_attributes
+    return [dict exists $instance_attributes $name]
   }
 
   FormPage instproc property {name {default ""}} {
-    set key  [my property_key $name]
-    #my msg "$key [my exists $key] //[my array names __ia]//"
-    if {[my exists $key]} {
-      return [my set $key]
+
+    if {[regexp {^_([^_].*)$} $name _ varname]} {
+      if {[my exists $varname]} {
+	return [my set $varname]
+      }
+      return $default
+    }
+
+    my instvar instance_attributes
+    if {[dict exists $instance_attributes $name]} {
+      return [dict get $instance_attributes $name]
     }
     return $default
   }
@@ -3327,19 +3336,21 @@ namespace eval ::xowiki {
   FormPage instproc set_property {{-new 0} name value} {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
-      set instance_attributes_refresh 0
-    } {
-      set key  __ia($name)
-      set instance_attributes_refresh 1
-    }
-    if {!$new && ![my exists $key]} {
-      error "property '$name' ($key) does not exist. \
-        you might use flag '-new 1' for set_property to create new properties\n[lsort [my info vars]]"
-    }
-    my set $key $value
-    #my msg "[self] set $key $value"
-    if {$instance_attributes_refresh} {
-      my instance_attributes [my array get __ia]
+
+      if {!$new && ![my exists $key]} {
+	error "property '$name' ($key) does not exist. \
+        you might use flag '-new 1' for set_property to create new properties"
+      }
+      my set $key $value      
+      
+    } else {
+
+      my instvar instance_attributes
+      if {!$new && ![dict exists $instance_attributes $name]} {
+	error "property '$name' does not exist. \
+        you might use flag '-new 1' for set_property to create new properties"
+      }
+      dict set instance_attributes $name $value
     }
     return $value
   }
@@ -3365,8 +3376,7 @@ namespace eval ::xowiki {
     #my log "$value => [my adp_subst $value]"
     array set wc [::xowiki::FormPage filter_expression [my adp_subst $value] &&]
     #my log "wc= [array get wc]"
-    array set __ia $wc(vars)
-    array set __ia [my instance_attributes]
+    set __ia [dict merge $wc(vars) [my instance_attributes]]
     #my log "expr $wc(tcl) returns => [expr $wc(tcl)]"
     return [expr $wc(tcl)]
   }
@@ -3668,7 +3678,7 @@ namespace eval ::xowiki {
 
   Page instproc unset_temporary_instance_variables {} {
     # don't marshall/save/cache the following vars
-    my array unset __ia
+    #my array unset __ia
     my array unset __field_in_form
     my array unset __field_needed 
   }

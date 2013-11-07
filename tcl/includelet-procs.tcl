@@ -491,9 +491,9 @@ namespace eval ::xowiki::includelet {
           return [$page set $variable]
         } 
         if {[info exists form_variable] && [$page exists instance_attributes]} {
-          array set __ia [$page set instance_attributes]
-          if {[info exists __ia($form_variable)]} {
-            return $__ia($form_variable)
+          set __ia [$page set instance_attributes]
+          if {[dict exists $__ia $form_variable]} {
+            return [dict get $__ia $form_variable]
           }
         }
         if {[info exists variable]} {
@@ -3570,9 +3570,10 @@ namespace eval ::xowiki::includelet {
         set varname [string range $property 1 end]
         if {[$i exists $varname]} {set value [$i set $varname]}
       } else {
-        array set __ia [$i set instance_attributes]
-        set varname __ia($property)
-        if {[info exists $varname]} {set value [set $varname]}
+	set instance_attributes [$i set instance_attributes]
+	if {[dict exists $instance_attributes $property]} {
+	  set value [dict get $instance_attributes $property]
+	}
       }
       if {[info exists __count($value)]} {incr __count($value)} else {set __count($value) 1}
       incr sum 1
@@ -3926,8 +3927,8 @@ var chart;
 
     foreach p [$items children] {
       $p set package_id $package_id
-      array set __ia $init_vars
-      array set __ia [$p instance_attributes]
+      set __ia [dict merge $init_vars [$p instance_attributes]]
+
       if {[expr $uc(tcl)]} continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 

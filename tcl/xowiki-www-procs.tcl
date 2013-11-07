@@ -804,7 +804,7 @@ namespace eval ::xowiki {
         #}
       }
 
-      array set __ia [my set instance_attributes]
+      #array set __ia [my set instance_attributes]
       my load_values_into_form_fields $form_fields
       foreach f $form_fields {set ff([$f name]) $f }
 
@@ -1771,16 +1771,17 @@ namespace eval ::xowiki {
     Store the instance attributes or default values in the form.
   } {
     ::require_html_procs
+    my instvar instance_attributes
 
-    array set __ia [my instance_attributes]
+    #array set __ia [my instance_attributes]
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry 
       if {![my exists __field_in_form($att)]} continue
-      #my msg "set form_value to form-field $att __ia($att) [info exists  __ia($att)]"
-      if {[info exists __ia($att)]} {
-        #my msg "my set_form_value from ia $att '$__ia($att)', external='[$f convert_to_external $__ia($att)]' f.value=[$f value]"
-        my set_form_value $att [$f convert_to_external $__ia($att)]
+      #my msg "set form_value to form-field $att [dict exists $instance_attributes $att]"
+      if {[dict exists $instance_attributes $att]} {
+        #my msg "my set_form_value from ia $att '[dict get $instance_attributes $att]', external='[$f convert_to_external [dict get $instance_attributes $att]]' f.value=[$f value]"
+        my set_form_value $att [$f convert_to_external [dict get $instance_attributes $att]]
       } else {
         # do we have a value in the form? If yes, keep it.
         set form_value [my get_form_value $att]
@@ -1812,12 +1813,12 @@ namespace eval ::xowiki {
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
-    my instvar __ia package_id
+    my instvar __ia package_id instance_attributes
     set cc [$package_id context]
-    if {[my exists instance_attributes]} {
-      array unset __ia
-      array set __ia [my set instance_attributes]
-    }
+    #if {[my exists instance_attributes]} {
+    #  array unset __ia
+    #  array set __ia [my set instance_attributes]
+    #}
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
@@ -1862,7 +1863,7 @@ namespace eval ::xowiki {
             set f     [my lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
             #my msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]" 
-            if {![string match "*.*" $att]} {set __ia($att) $value}
+            if {![string match "*.*" $att]} {dict set instance_attributes $att $value}
             if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
           }
         }
@@ -1891,8 +1892,8 @@ namespace eval ::xowiki {
           set f  [my lookup_form_field -name $c $form_fields]
           set processed($c) 1
           #my msg "container $c: compute value of $c [$f info class]"
-          set __ia($c) [$f value]
-          #my msg "container $c: __ia($c) is set to '$__ia($c)'"
+          dict set instance_attributes $c [$f value]
+          #my msg "container $c: is set to '[dict get $instance_attributes $c]'"
         }
       }
     }
@@ -1934,11 +1935,11 @@ namespace eval ::xowiki {
             # the old value is due to "show-solution" in the qti
             # use-case. Maybe one should alter this use-case to
             # simplify the semantics here.
-            if {[info exists __ia($att)]} {set default $__ia($att)}
+            if {[dict exists $instance_attributes $att]} {set default [dict get $instance_attributes $att]}
             set v [$f value_if_nothing_is_returned_from_form $default]
             #my msg "value_if_nothing_is_returned_from_form '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
-            if {![string match "*.*" $att]} {set __ia($att) $value}
+            if {![string match "*.*" $att]} {dict set instance_attributes $att $value}
 	  }
         }
       }
@@ -1982,7 +1983,7 @@ namespace eval ::xowiki {
       }
     }
 
-    my instance_attributes [array get __ia]
+    #my instance_attributes [array get __ia]
     #my msg category_ids=$category_ids
     return [list $validation_errors [lsort -unique $category_ids]]
   }
@@ -2109,7 +2110,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc load_values_into_form_fields {form_fields} {
-    array set __ia [my set instance_attributes]
+    my instvar instance_attributes
     foreach f $form_fields {
       set att [$f name]
       switch -glob $att {
@@ -2119,9 +2120,9 @@ namespace eval ::xowiki {
           $f value [$f convert_to_external [my set $varname]]
         }
         default {
-          if {[info exists __ia($att)]} {
-            #my msg "setting $f ([$f info class]) value $__ia($att)"
-            $f value [$f convert_to_external $__ia($att)]
+          if {[dict exists $instance_attributes $att]} {
+            #my msg "setting $f ([$f info class]) value [dict get $instance_attributes $att]"
+            $f value [$f convert_to_external [dict get $instance_attributes $att]]
           }
         }
       }

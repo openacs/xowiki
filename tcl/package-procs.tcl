@@ -479,11 +479,10 @@ namespace eval ::xowiki {
           #my msg pp=$pp,page=$page-att=$attribute
 
           if {$page ne "" && [$page exists instance_attributes]} {
-            array set __ia [$page set instance_attributes]
-            if {[info exists __ia($attribute)]} {
-              set value $__ia($attribute)
-              #my log "got value='$value'"
-            }
+	    set __ia [$page set instance_attributes]
+	    if {[dict exists $__ia $attribute]} {
+	      set value [dict get $__ia $attribute]
+	    }
           }
         }
       }

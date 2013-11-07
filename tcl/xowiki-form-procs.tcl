@@ -737,9 +737,10 @@ namespace eval ::xowiki {
     my log "-- "
     my instvar page_instance_form_atts data
     next
-    array set __ia [$data set instance_attributes]
+
+    set __ia [$data set instance_attributes]
     foreach var $page_instance_form_atts {
-      if {[info exists __ia($var)]} {my var $var [list $__ia($var)]}
+      if {[dict exists $__ia $var]} {my var $var [list [dict get $__ia $var]]}
     }
   }
 
@@ -747,11 +748,13 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc edit_data {} {
     my log "-- "
     my instvar page_instance_form_atts data
-    array set __ia [$data set instance_attributes]
+
+    set __ia [$data set instance_attributes]
     foreach var $page_instance_form_atts {
-      set __ia($var) [my var $var]
+      dict set __ia $var [my var $var]
     }
-    $data set instance_attributes [array get __ia]
+    $data set instance_attributes $__ia
+
     set item_id [next]
     my log "-- edit_data item_id=$item_id"
     return $item_id
