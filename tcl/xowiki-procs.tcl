@@ -1146,13 +1146,39 @@ namespace eval ::xowiki {
   #
   # save / restore
   #
+
+  Page instproc can_contain {obj} {
+    #
+    # This is a stub which can / should be refined in applications,
+    # which want to disallow pages (e.g. folders) to be parent of some
+    # kind of content. The function should return 0 if some content is
+    # not allowed.
+    #
+    return 1
+  }
+
+  Page instproc can_save {} {
+    #
+    # Determine the parent object of the page to be saved. If the
+    # parent object is an page as well, then call can_contain. The
+    # function is just determining a boolen value shuch it can be used
+    # for testing insertability as well.
+    #
+    set parent [my get_parent_object]
+    if {$parent ne "" && [$parent istype ::xowiki::Page]} {
+      return [$parent can_contain [self]]
+    }
+    return 1
+  }
   
   Page instproc save args {
+    if {![my can_save]} {error "can't save this page under this parent"}
     [my package_id] flush_page_fragment_cache
     next
   }
 
   Page instproc save_new args {
+    if {![my can_save]} {error "can't save this page under this parent"}
     [my package_id] flush_page_fragment_cache
     next
   }
@@ -1166,6 +1192,21 @@ namespace eval ::xowiki {
   #
   # misc
   # 
+
+  Page instproc get_parent_object {} {
+    #
+    # Obtain the parent object for a page. If the parent page is a
+    # dummy entry or not an object, return empty.
+    #
+    set parent_id [my set parent_id]
+    if {$parent_id > 0} {
+      if {! [my isobject ::$parent_id] } {
+	::xo::db::CrClass get_instance_from_db -item_id $parent_id
+      }
+      return ::$parent_id
+    }
+    return ""
+  }
 
   Page instproc get_instance_attributes {} {
     if {[my exists instance_attributes]} {
