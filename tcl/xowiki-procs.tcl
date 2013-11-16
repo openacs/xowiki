@@ -2029,7 +2029,7 @@ namespace eval ::xowiki {
       set word($tag) 1
     }
     #my log [list html $html keywords [array names work]]
-    return [list html $html keywords [array names work]]
+    return [list mime text/html html $html keywords [array names work] text ""]
   }
   
   Page instproc record_last_visited {-user_id} {
@@ -2303,12 +2303,30 @@ namespace eval ::xowiki {
       if {[my exists item_id]} {
         my instvar text mime_type package_id item_id revision_id
         set storage_area_key [::xo::db_string get_storage_key \
-                  "select storage_area_key from cr_items where item_id=$item_id"]
+                  "select storage_area_key from cr_items where item_id=:item_id"]
         my set full_file_name [cr_fs_path $storage_area_key]/$text
         #my log "--F setting FILE=[my set full_file_name]"
       }
     }
     return [my set full_file_name]
+  }
+
+  File instproc search_render {} {
+    #  array set "" {mime text/html text "" html "" keywords ""}
+    set mime [my set mime_type]
+    if {$mime eq "text/plain"} {
+      set result [next]
+    } else {
+      if {[info commands "::search::convert::binary_to_text"] ne ""} {
+	set txt [search::convert::binary_to_text -filename [my full_file_name] -mime_type $mime]
+	set result [list text $txt mime text/plain]
+      } else {
+	set result [list text "" mime text/plain]
+      }
+    }
+  
+    #ns_log notice "search_render returns $result"
+    return $result
   }
 
   File instproc html_content {{-add_sections_to_folder_tree 0} -owner} {
