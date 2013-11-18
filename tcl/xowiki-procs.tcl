@@ -2028,8 +2028,8 @@ namespace eval ::xowiki {
     foreach tag [::xowiki::Page get_tags -package_id [my package_id] -item_id [my item_id]] {
       set word($tag) 1
     }
-    #my log [list html $html keywords [array names work]]
-    return [list mime text/html html $html keywords [array names work] text ""]
+    #my log [list html $html keywords [array names word]]
+    return [list mime text/html html $html keywords [array names word] text ""]
   }
   
   Page instproc record_last_visited {-user_id} {
