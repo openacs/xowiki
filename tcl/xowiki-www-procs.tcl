@@ -939,7 +939,8 @@ namespace eval ::xowiki {
       if {[my exists_query_parameter "return_url"]} {
 	set return_url [my query_parameter "return_url"]
       }
-      set url [export_vars -base [my pretty_link] {{m "edit"} return_url}] 
+      set m [my form_parameter __form_redirect_method "edit"]
+      set url [export_vars -base [my pretty_link] {m return_url}]
       $formNode setAttribute action $url method POST
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $formNode class [$page_template css_class_name]
