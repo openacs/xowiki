@@ -120,6 +120,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Clipboard-Use-Export">Export</msg>
   <msg key="menu-Package-ImportArchive">Import Archive</msg>
   <msg key="menu-Package-ImportDump">Import Dump</msg>
+  <msg key="menu-Page">Page</msg>
   <msg key="minute">minute</msg>
   <msg key="minutes">minutes</msg>
   <msg key="month">month</msg>
