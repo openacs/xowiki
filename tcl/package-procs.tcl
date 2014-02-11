@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     } else {
 	error "Either item_id or revision_id must be provided"
     }
-    return [::xo::db_string get_pid {select package_id from acs_objects where object_id = :object_id}]
+    return [::xo::dc get_value get_pid {select package_id from acs_objects where object_id = :object_id}]
   }
 
   Package ad_proc instantiate_page_from_id {
@@ -1758,7 +1758,7 @@ namespace eval ::xowiki {
     reindex all items of this package
   } {
     my instvar folder_id id
-    set pages [::xo::db_list qn get_pages {
+    set pages [::xo::dc list get_pages {
       select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
       and publish_status = 'ready'
@@ -1942,16 +1942,17 @@ namespace eval ::xowiki {
 	http://www.google.com/schemas/sitemap/0.84/sitemap.xsd">
 }
 
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars "ci.parent_id, s.body, p.name, p.creator, p.title, p.page_id,\
                 p.object_type as content_type, p.last_modified, p.description" \
                  -from "xowiki_pagex p, syndication s, cr_items ci" \
-                 -where "ci.parent_id = $folder_id and ci.live_revision = s.object_id \
+                 -where "ci.parent_id = :folder_id and ci.live_revision = s.object_id \
               and s.object_id = p.page_id $timerange_clause" \
                  -orderby "p.last_modified desc" \
                  -limit $max_entries]
-    #my log $sql
-    db_foreach [my qn get_pages] $sql {
+    # my log $sql
+    
+    ::xo::dc foreach get_pages $sql {
       #my log "--found $name"
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate::"} continue
@@ -1996,7 +1997,7 @@ namespace eval ::xowiki {
 	       -parameter include_in_google_sitemap_index -default 1]} {
 	continue
       } 
-      set last_modified [::xo::db_string get_newest_modification_date \
+      set last_modified [::xo::dc get_value get_newest_modification_date \
                              {select last_modified from acs_objects 
 			       where package_id = :package_id 
 			       order by last_modified desc limit 1}]
@@ -2194,7 +2195,7 @@ namespace eval ::xowiki {
         # We have general comments. In a first step, we have to delete
         # these, before we are able to delete the item.
         #
-        set comment_ids [::xo::db_list get_comments {
+        set comment_ids [::xo::dc list get_comments {
 	  select comment_id from general_comments where object_id = :item_id
 	}]
         foreach comment_id $comment_ids { 
@@ -2501,5 +2502,11 @@ namespace eval ::xowiki {
 
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
 
 

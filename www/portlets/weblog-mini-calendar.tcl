@@ -56,11 +56,11 @@ set innersql "from xowiki_pagei p, cr_items ci \
         and ci.item_id != $including_item_id \
         and ci.publish_status <> 'production' "
 
-db_foreach entries_this_month "select count(ci.item_id) as c, 
-        [::xo::db::sql date_trunc day p.publish_date] as d \
+xo::dc foreach entries_this_month "select count(ci.item_id) as c, 
+        [::xo::dc date_trunc day p.publish_date] as d \
         $innersql
-        and [::xo::db::sql date_trunc_expression month p.publish_date $year-$month-01] \
-        group by [::xo::db::sql date_trunc day p.publish_date]" {
+        and [::xo::dc date_trunc_expression month p.publish_date $year-$month-01] \
+        group by [::xo::dc date_trunc day p.publish_date]" {
           set entries([lindex $d 0]) $c
         }
 
@@ -75,9 +75,9 @@ db_foreach entries_this_month "select count(ci.item_id) as c,
 #
 # Compute the available time range
 #
-set dates [db_list_of_lists get_dates "select min([::xo::db::sql date_trunc day p.publish_date]),max([::xo::db::sql date_trunc day p.publish_date]) $innersql"]
+set dates [db_list_of_lists get_dates "select min([::xo::dc date_trunc day p.publish_date]),max([::xo::dc date_trunc day p.publish_date]) $innersql"]
 set earliest_date [::xo::db::tcl_date [lindex $dates 0 0] _]
-set latest_date   [::xo::db::::tcl_date [lindex $dates 0 end] _]
+set latest_date   [::xo::db::tcl_date [lindex $dates 0 end] _]
 
 if {$prev_mon < [clock scan $earliest_date]} {
   set prev_month_url ""

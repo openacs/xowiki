@@ -107,7 +107,7 @@ namespace eval ::xowiki {
     }    
     if {$days ne ""} {
       append extra_where_clause "and " \
-          [::xo::db::sql since_interval_condition p.publish_date "$days days"]
+          [::xo::dc since_interval_condition p.publish_date "$days days"]
     }
     if {$entries_of ne ""} {
       if {[regexp {^[0-9 ]+$} $entries_of]} {
@@ -154,7 +154,7 @@ namespace eval ::xowiki {
 		xowiki_page_instance on (p.revision_id = page_instance_id)"
     }
 
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars "s.body, s.rss_xml_frag, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.publish_date, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
@@ -167,7 +167,7 @@ namespace eval ::xowiki {
                  -limit [my limit]]
 
     set content [my head]
-    db_foreach [my qn get_pages] $sql {
+    ::xo::dc foreach get_pages $sql {
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate" || $content_type eq "::xowiki::Form"} continue
       append content $rss_xml_frag
@@ -234,7 +234,7 @@ namespace eval ::xowiki {
     my set link $siteurl[lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     
     set content [my head]
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars * \
                  -from "xowiki_podcast_itemi p, cr_items ci, cr_mime_types m" \
                  -where  "ci.parent_id in ([join $folder_ids ,]) and ci.item_id = p.item_id \
@@ -244,7 +244,7 @@ namespace eval ::xowiki {
                  -orderby "p.pub_date asc" \
                  -limit [my limit]]
              
-    db_foreach [my qn get_pages] $sql {
+    ::xo::dc foreach get_pages $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
       if {$title eq ""} {set title $name}
       set link [::$package_id pretty_link -download true -absolute true -siteurl $siteurl \
@@ -285,7 +285,7 @@ namespace eval ::xowiki {
     if {[my exists limit]} { set limit  [my limit] }
 
     ::xo::OrderedComposite items -destroy_on_cleanup
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars "ci.name, ci.parent_id, o.creation_user, cr.publish_date, o2.creation_date, \
 			cr.item_id, cr.title" \
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
@@ -295,7 +295,8 @@ namespace eval ::xowiki {
       			$where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]
-    db_foreach [my qn get_pages] $sql {
+    
+    ::xo::dc foreach timeline-get_pages $sql {
       set publish_date [::xo::db::tcl_date $publish_date tz]
       set creation_date [::xo::db::tcl_date $creation_date tz]
       set clock [clock scan $publish_date]
@@ -567,3 +568,9 @@ namespace eval ::xowiki {
 
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

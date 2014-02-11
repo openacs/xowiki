@@ -80,7 +80,7 @@
       }
       
       if {$count} {
-        db_foreach get_counts \
+        xo::dc foreach get_counts \
             "select count(*) as nr,category_id from $sql group by category_id" {
               $category($category_id) set count $nr
               set s [expr {$summary ? "&summary=$summary" : ""}]
@@ -89,7 +89,7 @@
 	  }
         append content [$cattree(0) render -tree_style $tree_style]
       } else {
-        db_foreach get_pages \
+        xo::dc foreach get_pages \
             "select ci.item_id, ci.name, ci.content_type, r.title, category_id from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]

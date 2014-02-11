@@ -146,7 +146,7 @@ namespace eval ::xowiki {
 
   ::xo::db::require table xowiki_references \
         "reference integer references cr_items(item_id) on delete cascade,
-         link_type [::xo::db::sql map_datatype text],
+         link_type [::xo::dc map_datatype text],
          page      integer references cr_items(item_id) on delete cascade"
   ::xo::db::require index -table xowiki_references -col reference
 
@@ -176,7 +176,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_tags -col package_id
 
   ::xo::db::require index -table xowiki_page -col page_order \
-      -using [expr {[::xo::db::has_ltree] ? "gist" : ""}]
+      -using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
 
   set sortkeys [expr {[db_driverkey ""] eq "oracle" ? "" : ", ci.tree_sortkey, ci.max_child_sortkey"}]
   ::xo::db::require view xowiki_page_live_revision \
@@ -212,8 +212,8 @@ namespace eval ::xowiki {
 
   ::xotcl::Object create autoname
   autoname proc generate {-parent_id -name} {
-    db_transaction {
-      set already_recorded [::xo::db_0or1row autoname_query {
+    ::xo::dc transaction {
+      set already_recorded [::xo::dc 0or1row autoname_query {
 	select count from xowiki_autonames
 	where parent_id = :parent_id and name = :name}]
       
@@ -843,14 +843,14 @@ namespace eval ::xowiki {
        -user_id:required 
        tags
      } {
-    db_dml [my qn delete_tags] \
-        "delete from xowiki_tags where item_id = $item_id and user_id = $user_id"
+    ::xo::dc dml [my qn delete_tags] \
+        "delete from xowiki_tags where item_id = :item_id and user_id = :user_id"
 
     foreach tag [split $tags " ,;"] {
       if {$tag ne ""} {
-	db_dml [my qn insert_tag] \
+	::xo::dc dml [my qn insert_tag] \
 	    "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
-	      values ($item_id, $package_id, $user_id, :tag, current_timestamp)"
+	      values (:item_id, :package_id, :user_id, :tag, now())"
       }
     }
     search::queue -object_id $revision_id -event UPDATE
@@ -860,13 +860,13 @@ namespace eval ::xowiki {
     if {[info exists item_id]} {
       if {[info exists user_id]} {
         # tags for item and user
-        set tags [::xo::db_list get_tags {
+        set tags [::xo::dc list get_tags {
 	  SELECT distinct tag from xowiki_tags 
 	  where user_id = :user_id and item_id = :item_id and package_id = :package_id
 	}]
       } else {
         # all tags for this item 
-        set tags [::xo::db_list get_tags {
+        set tags [::xo::dc list get_tags {
 	  SELECT distinct tag from xowiki_tags 
 	  where item_id = :item_id and package_id = :package_id
 	}]
@@ -874,13 +874,13 @@ namespace eval ::xowiki {
     } else {
       if {[info exists user_id]} {
         # all tags for this user
-        set tags [::xo::db_list get_tags {
+        set tags [::xo::dc list get_tags {
 	  SELECT distinct tag from xowiki_tags 
 	  where user_id = :user_id and package_id :package_id
 	}]
       } else {
         # all tags for the package
-        set tags [::xo::db_list get_tags {
+        set tags [::xo::dc list get_tags {
 	  SELECT distinct tag from xowiki_tags 
 	  where package_id = :package_id
 	}]
@@ -1781,7 +1781,7 @@ namespace eval ::xowiki {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set body [::xo::db_string get_description_from_syndication \
+      set body [::xo::dc get_value get_description_from_syndication \
 		    "select body from syndication where object_id = $revision_id" \
 		    -default ""]
       set description [ad_html_text_convert -from text/html -to text/plain -- $body]
@@ -1849,11 +1849,11 @@ namespace eval ::xowiki {
   Page instproc references_update {references} {
     #my msg $references
     my instvar item_id
-    db_dml [my qn delete_references] \
+    ::xo::dc dml delete_references \
         "delete from xowiki_references where page = :item_id"
     foreach ref $references {
       lassign $ref r link_type
-      db_dml [my qn insert_reference] \
+      ::xo::dc dml insert_reference \
           "insert into xowiki_references (reference, link_type, page) \
            values (:r,:link_type,:item_id)"
     }
@@ -2037,13 +2037,14 @@ namespace eval ::xowiki {
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
-      db_dml [my qn update_last_visisted] \
-          "update xowiki_last_visited set time = current_timestamp, count = count + 1 \
-           where page_id = :item_id and user_id = :user_id"
-      if {[db_resultrows] < 1} {
-        db_dml [my qn insert_last_visisted] \
+      set rows [xo::dc dml update_last_visisted {
+        update xowiki_last_visited set time = now(), count = count + 1 
+        where page_id = :item_id and user_id = :user_id
+      }]
+      if {$rows ne "" && $rows < 1} {
+        ::xo::dc dml insert_last_visisted \
             "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
-             values (:item_id, :package_id, :user_id, 1, current_timestamp)"
+             values (:item_id, :package_id, :user_id, 1, now())"
       }
     }
   }
@@ -2302,7 +2303,7 @@ namespace eval ::xowiki {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
         my instvar text mime_type package_id item_id revision_id
-        set storage_area_key [::xo::db_string get_storage_key \
+        set storage_area_key [::xo::dc get_value get_storage_key \
                   "select storage_area_key from cr_items where item_id=:item_id"]
         my set full_file_name [cr_fs_path $storage_area_key]/$text
         #my log "--F setting FILE=[my set full_file_name]"
@@ -2503,17 +2504,17 @@ namespace eval ::xowiki {
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table i $publish_status]
     if {$package_id} {
       set bt "xowiki_page_instancei"
-      set package_clause "and object_package_id = $package_id"
+      set package_clause "and object_package_id = :package_id"
     } else {
       set bt "xowiki_page_instance"
       set package_clause ""
     }
     if {$parent_id} {
-      set parent_id_clause "and parent_id = $parent_id"
+      set parent_id_clause "and parent_id = :parent_id"
     } else {
       set parent_id_clause ""
     }
-    set count [::xo::db_string [my qn count_usages] \
+    set count [::xo::dc get_value count_usages \
 		   "select count(page_instance_id) from $bt, cr_items i  \ 
 			where page_template = $item_id \
                         $publish_status_clause $package_clause $parent_id_clause \
@@ -3142,7 +3143,7 @@ namespace eval ::xowiki {
     #
     set filter_clause ""
     array set wc $h_where
-    set use_hstore [expr {[::xo::db::has_hstore] && 
+    set use_hstore [expr {[::xo::dc has_hstore] && 
                           [$package_id get_parameter use_hstore 0] 
                         }]
     if {$use_hstore && $wc(h) ne ""} {
@@ -3163,6 +3164,8 @@ namespace eval ::xowiki {
       set package_clause "and object_package_id = $package_id"
     } elseif {$from_package_ids eq "*"} {
       set package_clause ""
+    } elseif {[llength $from_package_ids] == 1} {
+      set package_clause "and object_package_id = $from_package_ids"
     } else {
       set package_clause "and object_package_id in ([join $from_package_ids ,])"
     }
@@ -3754,7 +3757,7 @@ namespace eval ::xowiki {
 
     my instvar package_id name
 
-    db_transaction {
+    ::xo::dc transaction {
       #
       # if the newly created item was in production mode, but ordinary entries
       # are not, change on the first save the status to ready
@@ -3767,9 +3770,7 @@ namespace eval ::xowiki {
       my map_categories $category_ids
 
       my save -use_given_publish_date $use_given_publish_date
-      #my log "-- old_name $old_name, name $name"
       if {$old_name ne $name} {
-        #my msg "do rename from $old_name to $name"
         $package_id flush_name_cache -name $old_name -parent_id [my parent_id]
         my rename -old_name $old_name -new_name $name
       }
@@ -3781,3 +3782,9 @@ namespace eval ::xowiki {
 
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

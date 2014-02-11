@@ -306,7 +306,7 @@ namespace eval ::xowiki {
 	# check for child objects of the item
 	#
 	set sql [::xowiki::Page instance_select_query -folder_id $item_id -with_subtypes true]
-	db_foreach [my qn export_child_obj] $sql {
+	::xo::dc foreach export_child_obj $sql {
 	  if {![info exists items($item_id)]} {
 	    ::xo::db::CrClass get_instance_from_db -item_id $item_id
 	    ns_log notice "--export including child $item_id [$item_id name]"

@@ -103,7 +103,7 @@ namespace eval ::xowiki::includelet {
 	set target [$l get_target_from_link_page]
 
 	# the following clause needs an oracle counter-part
-	set tree_sortkey [::xo::db_string get_tree_sort_key \
+	set tree_sortkey [::xo::dc get_value get_tree_sort_key \
 			      "select tree_sortkey from acs_objects where object_id = [$target item_id]"]
 	set extra_where "and bt.item_id in (select object_id from acs_objects \
 		where tree_sortkey between '$tree_sortkey' and tree_right('$tree_sortkey') \

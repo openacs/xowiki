@@ -274,7 +274,7 @@ namespace eval ::xowiki::includelet {
       append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
     }
 
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars $attribute_selection \
                  -from "cr_items i, cr_revisions r, xowiki_page p, acs_objects o" \
                  -where "$parent_id_clause \
@@ -286,7 +286,7 @@ namespace eval ::xowiki::includelet {
                  -limit $limit -offset $offset]
 
     if {$count} {
-      return [::xo::db_string count_listing $sql]
+      return [::xo::dc get_value count_listing $sql]
     } else {
       set s [::xowiki::Page instantiate_objects -sql $sql]
       return $s
@@ -797,7 +797,7 @@ namespace eval ::xowiki::includelet {
       append sql $locale_clause
       
       if {$count} {
-        db_foreach [my qn get_counts] \
+        ::xo::dc foreach get_counts \
             "select count(*) as nr,category_id from $sql group by category_id" {
               $category($category_id) set count $nr
               set s [expr {$summary ? "&summary=$summary" : ""}]
@@ -810,7 +810,7 @@ namespace eval ::xowiki::includelet {
         set increasing [expr {$direction ne "desc"}]
 	set order_column ", p.page_order" 
 
-        db_foreach [my qn get_pages] \
+        ::xo::dc foreach get_pages \
             "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
@@ -889,7 +889,7 @@ namespace eval ::xowiki::includelet {
     } else {
       set tree_select_clause ""
     }
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars "c.category_id, ci.name, ci.parent_id, r.title, r.publish_date, \
                         to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
                  -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
@@ -899,7 +899,7 @@ namespace eval ::xowiki::includelet {
          and ci.publish_status <> 'production'" \
                  -orderby "publish_date desc" \
                  -limit $max_entries]
-    db_foreach [my qn get_pages] $sql {
+    ::xo::dc foreach get_pages $sql {
       if {$title eq ""} {set title $name}
       set itemobj [Object new]
       set prefix ""
@@ -1053,14 +1053,14 @@ namespace eval ::xowiki::includelet {
         -columns {
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
-
-    db_foreach [my qn get_pages] \
-       [::xo::db::sql select \
+      
+    xo::dc foreach get_pages \
+       [::xo::dc select \
             -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
             -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
             -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
 	    and r.revision_id = p.page_id and x.user_id = [::xo::cc set untrusted_user_id] \
-	    and x.package_id = $package_id  and i.publish_status <> 'production'" \
+	    and x.package_id = :package_id  and i.publish_status <> 'production'" \
             -orderby "visited_date desc" \
             -limit $max_entries] \
         {
@@ -1106,12 +1106,12 @@ namespace eval ::xowiki::includelet {
             AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
             Field users -label Visitors -html { align right }
           }
-      set since_condition [::xo::db::sql since_interval_condition time $interval]
-      db_foreach [my qn get_pages] \
-          [::xo::db::sql select \
+      set since_condition [::xo::dc since_interval_condition time $interval]
+      xo::dc foreach get_pages \
+          [::xo::dc select \
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
-               -where "x.package_id = $package_id and x.page_id = i.item_id and \
+               -where "x.package_id = :package_id and x.page_id = i.item_id and \
 		  i.publish_status <> 'production' and i.live_revision = r.revision_id \
             	  and $since_condition" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
@@ -1130,11 +1130,11 @@ namespace eval ::xowiki::includelet {
             Field count -label [_ xowiki.includelets-visits] -html { align right }
             Field users -label [_ xowiki.includelet-visitors] -html { align right }
           }
-      db_foreach [my qn get_pages] \
-          [::xo::db::sql select \
+      xo::dc foreach get_pages \
+          [::xo::dc select \
                -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
-               -where "x.package_id = $package_id and x.page_id = i.item_id and \
+               -where "x.package_id = :package_id and x.page_id = i.item_id and \
 		       i.publish_status <> 'production' and i.live_revision = r.revision_id" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "sum desc" \
@@ -1221,11 +1221,11 @@ namespace eval ::xowiki::includelet {
           Field user  -label Visitors -html { align right }
           Field count -label Visits -html { align right }
         }
-    db_foreach [my qn get_pages] \
-          [::xo::db::sql select \
+    ::xo::dc foreach most-frequent-visistors \
+          [::xo::dc select \
                -vars "sum(count) as sum, user_id"  \
                -from "xowiki_last_visited"  \
-               -where "package_id = $package_id"  \
+               -where "package_id = :package_id"  \
                -groupby "user_id" \
                -orderby "sum desc" \
                -limit $max_entries] {
@@ -1267,29 +1267,30 @@ namespace eval ::xowiki::includelet {
         -columns {
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
-
+    set user_id [::xo::cc user_id]
     set or_clause "or i.item_id in (
 	select x.page_id 
-	from xowiki_last_visited x, acs_objects o  \
+	from xowiki_last_visited x, acs_objects o 
 	where x.time < o.last_modified 
 	and x.page_id = o.object_id 
-	and x.package_id = $package_id
-        and x.user_id = [::xo::cc user_id]
+	and x.package_id = :package_id
+        and x.user_id = :user_id
      )"
 
     set or_clause ""
+    set folder_id [$package_id folder_id] 
 
-    db_foreach [my qn get_pages] \
-       [::xo::db::sql select \
+    ::xo::dc foreach unread-items \
+       [::xo::dc select \
             -vars "a.title, i.name, i.parent_id" \
             -from "xowiki_page p, cr_items i, acs_objects a "  \
             -where "(i.item_id not in (
 			select x.page_id from xowiki_last_visited x 
-                        where x.user_id = [::xo::cc user_id] and x.package_id = $package_id
+                        where x.user_id = [::xo::cc user_id] and x.package_id = :package_id
 		    ) $or_clause
                     )
                     and i.live_revision = p.page_id 
-                    and i.parent_id = [$package_id folder_id] 
+                    and i.parent_id = :folder_id
                     and i.publish_status <> 'production'
                     and a.object_id = i.item_id" \
             -orderby "a.creation_date desc" \
@@ -1331,7 +1332,7 @@ namespace eval ::xowiki::includelet {
     if {$popular} {
       set label [_ xowiki.popular_tags_label]
       set tag_type ptag
-      set sql [::xo::db::sql select \
+      set sql [::xo::dc select \
                    -vars "count(*) as nr,tag" \
                    -from xowiki_tags \
                    -where "package_id=$package_id" \
@@ -1349,7 +1350,7 @@ namespace eval ::xowiki::includelet {
     if {![info exists page]} {set page [$package_id get_parameter weblog_page]}
 
     set href [$package_id package_url]tag/
-    db_foreach [my qn get_counts] $sql {
+    ::xo::dc foreach get_tag_counts $sql {
       set q [list]
       if {$summary} {lappend q "summary=$summary"}
       if {$popular} {lappend q "popular=$popular"}
@@ -1588,12 +1589,12 @@ namespace eval ::xowiki::includelet {
     # The same image might be linked both, as img or file on one page, 
     # so we need DISTINCT.
 
-    db_foreach [my qn get_references] "SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid \
+    xo::dc foreach get_references "SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
-        where reference=$item_id and ci.item_id = page and ci.item_id = o.object_id" {
+        where reference = :item_id and ci.item_id = page and ci.item_id = o.object_id" {
           if {$pid eq ""} {
             # in version less then oacs 5.2, this returns empty
-            set pid [::xo::db_string _ {select package_id from cr_folders where folder_id = :parent_id}]
+	    set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
           }
           if {$pid ne ""} {
             ::xowiki::Package require $pid
@@ -1633,12 +1634,12 @@ namespace eval ::xowiki::includelet {
     set item_id [$__including_page item_id] 
     set refs [list]
 
-   db_foreach [my qn get_refers] "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
+   ::xo::dc foreach get_refers "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
         where page=$item_id and ci.item_id = reference and ci.item_id = o.object_id" {
           if {$pid eq ""} {
             # in version less then oacs 5.2, this returns empty
-            set pid [::xo::db_string _ {select package_id from cr_folders where folder_id = :parent_id}]
+            set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
           }
           if {$pid ne ""} {
             ::xowiki::Package require $pid
@@ -1707,18 +1708,22 @@ namespace eval ::xowiki::includelet {
     if {!$summary} {
       set select_users "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time from xowiki_last_visited "
     }
-    set since_condition [::xo::db::sql since_interval_condition time $interval]
-    set where_clause "package_id=$package_id and $since_condition $extra_where_clause"
+
+    # allow for caching prepared value. 
+    set since [::xo::dc interval $interval]
+    set since_condition "time > TO_TIMESTAMP(:since,'YYYY-MM-DD HH24:MI:SS')"
+
+    set where_clause "package_id=:package_id and $since_condition $extra_where_clause"
     set when "<br>in last $interval"
 
     set output ""
 
     if {$summary} {
-      set count [::xo::db_string presence_count_users \
+      set count [::xo::dc get_value presence_count_users \
                      "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
     } else {
-      set values [::xo::db_list_of_lists get_users \
-                      [::xo::db::sql select \
+      set values [::xo::dc list_of_lists get_users \
+                      [::xo::dc select \
                            -vars "user_id, to_char(max(time),'YYYY-MM-DD HH24:MI:SS') as max_time" \
                            -from xowiki_last_visited \
                            -where $where_clause \
@@ -1728,7 +1733,7 @@ namespace eval ::xowiki::includelet {
       set count [llength $values]
       if {$count == $max_users} {
         # we have to check, whether there were more users...
-        set count [::xo::db_string presence_count_users \
+        set count [::xo::dc get_value presence_count_users \
                        "select count(distinct user_id) from xowiki_last_visited WHERE $where_clause"]
       }
       foreach value  $values {
@@ -1887,7 +1892,7 @@ namespace eval ::xowiki::includelet {
       set parent_id [$__including_page parent_id]
     }
 
-    set sql [::xo::db::sql select \
+    set sql [::xo::dc select \
                  -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
                  -where "parent_id=$parent_id \
@@ -3170,7 +3175,7 @@ namespace eval ::xowiki::includelet {
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
 
     set folder_id [$package_id folder_id]    
-    db_foreach [my qn get_collaborators] {
+    ::xo::dc foreach get_collaborators {
       select count(revision_id), item_id, creation_user 
       from cr_revisions r, acs_objects o 
       where item_id in 
@@ -3255,7 +3260,7 @@ namespace eval ::xowiki::includelet {
     #my msg "tmp exists [::xo::db::require exists_table $tmp_table_name]"
     set tt [::xo::db::temp_table new \
                 -name $tmp_table_name \
-                -query [::xo::db::sql select \
+                -query [::xo::dc select \
                    -vars "i.item_id, revision_id, creation_user" \
                    -from "cr_revisions cr, cr_items i, acs_objects o" \
                    -where "cr.item_id = i.item_id \
@@ -3266,7 +3271,7 @@ namespace eval ::xowiki::includelet {
                 -vars "item_id, revision_id, creation_user"]
     
     set total 0
-    db_foreach [my qn get_activities] "
+    ::xo::dc foreach get_activities "
       select count(revision_id) as count, item_id, creation_user  
       from $tmp_table_name 
       where creation_user is not null 
@@ -4559,3 +4564,9 @@ namespace eval ::xowiki::includelet {
 
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

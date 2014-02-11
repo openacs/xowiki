@@ -68,7 +68,7 @@ namespace eval ::xowiki {
     
     if {$date ne ""} {
       #set date_clause "and date_trunc('day',bt.publish_date) = '$date'"
-      set date_clause "and [::xo::db::sql date_trunc_expression day bt.publish_date $date]"
+      set date_clause "and [::xo::dc date_trunc_expression day bt.publish_date $date]"
       set filter_msg "Filtered by date $date"
       set query_parm "&date=$date"
       set query [::xo::update_query $query date $date]
@@ -189,8 +189,8 @@ namespace eval ::xowiki {
     if {$page_number ne ""} {
       lappend sql -page_number $page_number -page_size $page_size 
     }
-    
-    set nr_items [::xo::db_string count [$base_type instance_select_query {*}$sql -count true]]
+    set nr_items [::xo::dc get_value count-weblog-entries \
+		      [$base_type instance_select_query {*}$sql -count true]]
     #my msg count=$nr_items
     set s [$base_type instantiate_objects -sql [$base_type instance_select_query {*}$sql]]
     
@@ -348,3 +348,10 @@ namespace eval ::xowiki {
 }
 ::xo::library source_dependent 
 
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

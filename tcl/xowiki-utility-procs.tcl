@@ -97,8 +97,8 @@ namespace eval ::xowiki {
     set package_ids [list]
     foreach package_id [::xowiki::Package instances] {
       ns_log notice "checking package_id $package_id"
-      set folder_id [::xo::db_list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
-                where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
+      set folder_id [::xo::dc list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
+                where c.name = 'xowiki: :package_id' and c.item_id = f.folder_id"]
       if {$folder_id ne ""} {
         db_dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
@@ -145,10 +145,10 @@ namespace eval ::xowiki {
 	       -attribute_name page_order \
 	       -datatype text \
 	       -pretty_name Order \
-	       -column_spec [::xo::db::sql map_datatype ltree]}
+	       -column_spec [::xo::dc map_datatype ltree]}
     
     ::xo::db::require index -table xowiki_page -col page_order \
-	-using [expr {[::xo::db::has_ltree] ? "gist" : ""}]
+	-using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
     ::xowiki::update_views
     return 1
   }
@@ -174,10 +174,10 @@ namespace eval ::xowiki {
   } {
     set extra_clause ""
     if {[info exists package_id]} {
-      append extra_clause " and o.package_id = $package_id"
+      append extra_clause " and o.package_id = :package_id"
     }
     if {[info exists item_id]} {
-      append extra_clause " and i.item_id = $item_id"
+      append extra_clause " and i.item_id = :item_id"
     }
 
     # only delete revisions older than this date
@@ -196,7 +196,7 @@ namespace eval ::xowiki {
          and i.publish_status = 'production' and i.name = r.revision_id::varchar
          $extra_clause
       "
-      foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
+      ::xo::dc foreach get_revisions $sql {
 	#::xotcl::Object msg "tuple = $tuple"
 	lassign $tuple name package_id item_id revision_id last_modified 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
@@ -227,7 +227,7 @@ namespace eval ::xowiki {
       set last_user ""
       set last_revision ""
       
-      foreach tuple [::xo::db_list_of_lists get_revisions $sql] {
+      xo::dc foreach get_revisions $sql {
 	#::xotcl::Object msg "tuple = $tuple"
 	lassign $tuple name item_id revision_id last_modified user package_id 
 	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
@@ -253,7 +253,7 @@ namespace eval ::xowiki {
   }
 
   proc unmounted_instances {} {
-    return [::xo::db_list unmounted_instances {
+    return [::xo::dc list unmounted_instances {
       select package_id from apm_packages p where not exists 
       (select 1 from site_nodes where object_id = p.package_id) 
       and p.package_key = 'xowiki'
@@ -282,9 +282,9 @@ namespace eval ::xowiki {
   }
 
   proc ::xowiki::page_order_uses_ltree {} {
-    if {[::xo::db::has_ltree]} {
+    if {[::xo::dc has_ltree]} {
       ns_cache eval xotcl_object_cache ::xowiki::page_order_uses_ltree {
-        return [::xo::db_string check_po_ltree {
+        return [::xo::dc get_value check_po_ltree {
 	  select count(*) from pg_attribute a, pg_type t, pg_class c 
 	  where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
 	  and relname = 'xowiki_page'}]
@@ -301,7 +301,7 @@ namespace eval ::xowiki {
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
-    if {[::xo::db_0or1row check {
+    if {[::xo::dc 0or1row check {
       select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = :item_id
     }]} {
       ns_log notice "folder $item_id is already converted"
@@ -319,9 +319,9 @@ namespace eval ::xowiki {
     db_dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
     db_dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
     
-    db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = $item_id"
-    db_dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = $revision_id"
-    db_dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = $revision_id, latest_revision = $revision_id where item_id = $item_id"
+    db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
+    db_dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
+    db_dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {
@@ -488,7 +488,7 @@ namespace eval ::xowiki {
             and ci.parent_id = $parent_id \
             and ([join $likes { or }])"
     #my log $sql
-    set pages [::xo::db_list_of_lists get_pages_with_page_order $sql]
+    set pages [::xo::dc list_of_lists get_pages_with_page_order $sql]
     return $pages
   }
   
@@ -717,3 +717,9 @@ proc util_tdom2list {script {rootTag "div"}} {
 }
 
 ::xo::library source_dependent
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

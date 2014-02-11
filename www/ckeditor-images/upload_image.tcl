@@ -32,13 +32,13 @@ ad_form -name upload_form \
 	break
       }
 
-      #set parent_id  [db_string _ "select parent_id from cr_items where item_id=:fs_package_id"]
+      #set parent_id  [xo::dc get_value _ "select parent_id from cr_items where item_id=:fs_package_id"]
       set title $file_name
       
-      set existing_filenames [db_list _ "select name from cr_items  where parent_id = :parent_id" ]
+      set existing_filenames [xo::dc list _ "select name from cr_items  where parent_id = :parent_id" ]
       ns_log notice "util_text_to_url  -text ${title} -existing_urls \"$existing_filenames\" -replacement \"_\""	
       set filename [util_text_to_url  -text "${title}" -existing_urls "$existing_filenames" -replacement "_"]
-      set package_id [db_string _ "select package_id from acs_objects where object_id=:parent_id"]
+      set package_id [xo::dc get_value _ "select package_id from acs_objects where object_id=:parent_id"]
       ::xowiki::Package initialize -package_id $package_id
       set file_object [::xowiki::File new -destroy_on_cleanup \
                            -title $title \

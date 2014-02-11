@@ -206,6 +206,7 @@ namespace eval ::xowiki {
         ::xowiki::FormPage get_instance_from_db -item_id $id
         $f copy_content_vars -from_object $id
         $f item_id $id
+
         $f save
       }
     }
@@ -327,7 +328,7 @@ namespace eval ::xowiki {
 
   Page instproc delete-revision {} {
     my instvar revision_id package_id item_id 
-    ::xo::db_1row get_revision {
+    ::xo::dc 1row get_revision {
       select latest_revision,live_revision from cr_items where item_id = :item_id
     }
     # do real deletion via package
@@ -337,7 +338,7 @@ namespace eval ::xowiki {
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == $revision_id} {
       # latest revision might have changed by delete_revision, so we have to fetch here
-      xo::db_1row [my qn get_revision] "select latest_revision from cr_items where item_id = $item_id"
+      xo::dc 1row get_revision "select latest_revision from cr_items where item_id = :item_id"
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
         my instvar package_id name
@@ -763,7 +764,7 @@ namespace eval ::xowiki {
         # roughly the counterpart to edit_data and save_data in ad_forms.
 	#
         set content [my render -update_references true]
-        #my msg "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
+        #my log "after save refs=[expr {[my exists references]?[my set references] : {NONE}}]"
 
 	set redirect_method [my form_parameter __form_redirect_method "view"]
 	if {$redirect_method eq "__none"} {
@@ -1023,11 +1024,11 @@ namespace eval ::xowiki {
     set href        [$package_id pretty_link $weblog_page]?summary=1
 
     set entries [list]
-    db_foreach [my qn get_popular_tags] \
-        [::xo::db::sql select \
+    xo::dc foreach get_popular_tags \
+        [::xo::dc select \
 	     -vars "count(*) as nr, tag" \
 	     -from "xowiki_tags" \
-	     -where "item_id=$item_id" \
+	     -where "item_id = :item_id" \
 	     -groupby "tag" \
 	     -orderby "nr" \
 	     -limit $limit] {
@@ -1042,7 +1043,7 @@ namespace eval ::xowiki {
 
   Page ad_instproc save-attributes {} {
     The method save-attributes is typically callable over the 
-    REST interface. It allows to  save attributes of a 
+    REST interface. It allows to save attributes of a 
     page without adding a new revision.
   } {
     my instvar package_id
@@ -2182,3 +2183,10 @@ namespace eval ::xowiki {
 }
 ::xo::library source_dependent 
 
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

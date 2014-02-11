@@ -107,14 +107,14 @@ if {[site_node::exists_p -url /$instance_name]} {
     "the test instance does not exist"
 
 #set root_id [site_node::get_root_node_id]
-set root_id [db_string "" {select node_id from site_nodes where parent_id is null}]
+set root_id [xo::dc get_value "" {select node_id from site_nodes where parent_id is null}]
 
-if {[db_0or1row check_broken_site_nodes {
+if {[xo::dc 0or1row check_broken_site_nodes {
      select node_id, name from site_nodes where name = :instance_name and parent_id = :root_id
 }]} {
   test hint "... site nodes seem broken, since we have an entry, but site_node::exists_p returns false"
   test hint "... try to fix anyhow"
-  db_dml fix_broken_entry {
+  xo::dc dml fix_broken_entry {
     delete from site_nodes where name = :instance_name and parent_id = :root_id
   }
 }
@@ -167,7 +167,7 @@ set folder_id [::$package_id folder_id]
 ? {::$folder_id parent_id} -100  "parent_id of folder object is -100"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$folder_id revision_id]>0}} 1 "revision_id given"
-? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 0 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id = $folder_id"} 0 \
     "folder contains no objects"
 
 ##############################################
@@ -191,7 +191,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
     "folder contains the index page"
 #test code [$page_item_id serialize]
 
@@ -262,7 +262,7 @@ set folder_id [::$package_id folder_id]
 ? {::$folder_id parent_id} -100  "parent_id of folder object is -100"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$folder_id revision_id]>0}} 1 "revision_id given"
-? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
     "folder contains the index"
 
 #########################################
@@ -317,7 +317,7 @@ set content_length [string length $content]
 ? {string first Error $content} -1 "page contains no error"
 #test hint $content
 
-? {db_string count "select count(*) from cr_items where parent_id = $folder_id"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id = $folder_id"} 3 \
     "folder contains: index and weblog page (+1 includelet)"
 
 ::xo::at_cleanup
@@ -373,7 +373,7 @@ set content_length [string length $content]
 test section "Testing as SWA: query /$instance_name/"
 #####################################################
 
-set swas [db_list get_swa "select grantee_id from acs_permissions \
+set swas [xo::dc list get_swa "select grantee_id from acs_permissions \
 	where object_id = -4 and privilege = 'admin'"]
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
@@ -393,7 +393,7 @@ test subsection "Check Permissions based on default policy"
     "SWA sees the delete link"
 ? {expr {[::$package_id make_link -privilege admin -link admin/ $package_id {} {}] ne ""}} 1 \
     "SWA sees admin link"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
     "folder contains: index and weblog page (+1 includelet)"
 ::xo::at_cleanup
 
@@ -412,7 +412,7 @@ set content [::$package_id invoke -method $m]
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/" \
     "redirect to main instance"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 2 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 2 \
     "folder contains: index and weblog page (+0 includelet)"
 
 ############################################################################
@@ -431,7 +431,7 @@ $page set_content [string trim [$page text] " \n"]
 $page initialize_loaded_object
 $page save_new
 ? {$page set package_id} $package_id "package_id $package_id not modified"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
     "folder contains: index and weblog, hello page (+0 includelet)"
 ? {expr {[$page revision_id]>0}} 1 "revision_id given"
 ? {expr {[$page item_id]>0}} 1 "item_id given"
@@ -440,7 +440,7 @@ set item_id1 [$page item_id]
 
 $page append title "- V.2"
 $page save
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
     "still 3 pages"
 ? {expr {[$page revision_id]>$revision_id1}} 1 "revision_id > old revision_id"
 ? {expr {[$page item_id] == $item_id1}} 1 "item id the same"
@@ -464,7 +464,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {db_string count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
     "again, 4 pages"
 
 ::xo::at_cleanup

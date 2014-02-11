@@ -153,7 +153,7 @@ namespace eval ::xowiki {
                -folder_id $folder_id \
                -with_subtypes false \
                -select_attributes {name}]
-    db_foreach [$form qn get_page_templates] $q {
+    xo::dc foreach get_page_templates $q {
       lappend lpairs [list $name $item_id]
     } if_no_rows {
       lappend lpairs [list "(No Page Template available)" ""]
@@ -501,7 +501,7 @@ namespace eval ::xowiki {
       $data set upload_file $upload_file
       $data set import_file [$data form_parameter upload_file.tmpfile]
       set mime_type [$data form_parameter upload_file.content-type]
-      if {[::xo::db_0or1row check_mimetype {
+      if {[::xo::dc 0or1row check_mimetype {
 	select 1 from cr_mime_types where mime_type = :mime_type
       }] == 0 
 	  || $mime_type eq "application/octet-stream" 
@@ -877,3 +877,9 @@ namespace eval ::xowiki {
 }
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

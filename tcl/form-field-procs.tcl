@@ -1344,7 +1344,7 @@ namespace eval ::xowiki::formfield {
       -extend_slot validator party_id_check
   party_id instproc check=party_id_check {value} {
     if {$value eq ""} {return 1}
-    return [::xo::db_0or1row check_party {select 1 from parties where party_id = :value}]
+    return [::xo::dc 0or1row check_party {select 1 from parties where party_id = :value}]
   }
 
   ###########################################################
@@ -2452,10 +2452,11 @@ namespace eval ::xowiki::formfield {
     # We should support as well user level instance attributes.
     set entry_label [string trimleft $entry_label _]
 
-    ::xo::db_1row [self proc] "select $entry_label from cr_items ci, cr_revisions cr
+    ::xo::dc 1row [self proc] "select $entry_label from cr_items ci, cr_revisions cr
       where cr.revision_id = ci.live_revision and ci.item_id = :item_id"
     return [set $entry_label]
   }
+
   abstract_page instproc get_entry_label {value} {
     set item_id [[my set package_id] lookup -parent_id [[my object] parent_id] -name $value]
     if {$item_id} {
@@ -2617,7 +2618,7 @@ namespace eval ::xowiki::formfield {
 
     set package_id [[my object] package_id]
     set options [list]
-    db_foreach [my qn instance_select] \
+    ::xo::dc foreach instance_select \
         [$type instance_select_query \
              -folder_id [$package_id folder_id] \
              -with_subtypes $with_subtypes \
@@ -3584,3 +3585,10 @@ namespace eval ::xowiki::formfield {
 }
 
 ::xo::library source_dependent 
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
