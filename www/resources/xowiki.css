@@ -17,7 +17,7 @@ div.wiki-menu {
 }
 
 #wikicmds {position: relative; top: -24px;  right: 0px; height: 0px;
-	  text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
+           text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;}
 /*#portal #wikicmds {top: -90px;}*/
 div.portlet #wikicmds {float: inherit ! important; top: 0px ! important; height: inherit;}
 #page-body #wikicmds {top: -30px;}
@@ -205,24 +205,24 @@ img.undefined {border-width: 2px; border-color: #859db8; height: 8px;}
 #messages .message {vertical-align: top;}
 
 .rss {border:1px solid;
-	border-color:#FC9 #630 #330 #F96;
-	padding: 2px;
-	font: 9px verdana,sans-serif;
-	color: #FFF;
-	background: #F60;
-	text-decoration:none;
-	margin:0;
-	margin-right:10px;}
+      border-color:#FC9 #630 #330 #F96;
+      padding: 2px;
+      font: 9px verdana,sans-serif;
+      color: #FFF;
+      background: #F60;
+      text-decoration:none;
+      margin:0;
+      margin-right:10px;}
 a:hover.rss {color:#dddddd;background: #F60;}
 a:visited.rss {color: #FFF;background: #F60;}
 a:link.rss {color: #FFF;background: #F60;}
 
 div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5px;
-    border:dotted; border-width:1px;background: #f8f8f8;
-}
+              border:dotted; border-width:1px;background: #f8f8f8;
+             }
 div.presence div.title {font-size: 90%; margin-bottom: 0px;
-        border-bottom: solid silver 1px; color: #222222; 
-}
+                        border-bottom: solid silver 1px; color: #222222; 
+                       }
 
 div.xowiki-content a.missing {
     color: red;
@@ -354,7 +354,7 @@ div.xowiki-content ul.region {
        The bottom padding provides the cushion that makes the empty 
        list targetable.  Alternatively, we could leave the padding 
        off by default, adding it when we detect that the list is empty.
-    */
+   */
     padding-bottom:3ex;
 }
 
@@ -383,7 +383,7 @@ div.xowiki-content div.book ul.page_order_region {
        The bottom padding provides the cushion that makes the empty 
        list targetable.  Alternatively, we could leave the padding 
        off by default, adding it when we detect that the list is empty.
-    */
+   */
     padding-bottom:3ex;
 }
 div.xowiki-content div.book ul.page_order_region_no_target { 
@@ -407,7 +407,7 @@ div.xowiki-content div.toc ul.page_order_region {
        The bottom padding provides the cushion that makes the empty 
        list targetable.  Alternatively, we could leave the padding 
        off by default, adding it when we detect that the list is empty.
-    */
+   */
     padding-bottom:3ex;
 }
 
@@ -469,6 +469,8 @@ div.xowiki-content .content-with-folders fieldset.compound-field .repeatable {
 div.xowiki-content #menubar a.disabled {
     color: #A0A0A0;
     /* or maybe display none */
+    pointer-events: none;
+    cursor: default;
 }
 
 
@@ -519,3 +521,12 @@ div.xowiki-content .forum .cite p.date {
     color: #777777;
     
 }
+
+/*
+ * Local Variables:
+ * mode: css
+ * c-basic-offset: 4
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */
