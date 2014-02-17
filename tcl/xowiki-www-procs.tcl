@@ -797,7 +797,7 @@ namespace eval ::xowiki {
 	my set nls_language [ad_conn locale]
 	#my set name [$package_id query_parameter name ""]
 	# TODO: maybe use __object_name to for POST url to make code 
-	# more straightworward
+	# more straightforward
         #set n [$package_id query_parameter name \
 	#	   [::xo::cc form_parameter __object_name ""]]
         #if {$n ne ""} { 
