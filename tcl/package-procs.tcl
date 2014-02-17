@@ -740,7 +740,7 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc make_form_link {-form {-parent_id ""} -name -nls_language -return_url} {
+  Package instproc make_form_link {-form {-parent_id ""} -title -name -nls_language -return_url} {
     my instvar id
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
     set form_id [lindex [::xowiki::Weblog instantiate_forms \
