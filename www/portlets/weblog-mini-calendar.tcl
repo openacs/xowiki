@@ -49,17 +49,18 @@ for {set i 0} {$i < 7} {incr i} {
   multirow append days_of_week [lindex $week_days [expr {($i + $first_day_of_week) % 7}]]
 }
 
+set date_reference $year-$month-01
 set innersql "from xowiki_pagei p, cr_items ci \
-        where ci.parent_id = $parent_id \
+        where ci.parent_id = :parent_id \
         and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
         and ci.content_type not in ('::xowiki::PageTemplate', '::xowiki::Form') \
-        and ci.item_id != $including_item_id \
+        and ci.item_id != :including_item_id \
         and ci.publish_status <> 'production' "
 
 xo::dc foreach entries_this_month "select count(ci.item_id) as c, 
         [::xo::dc date_trunc day p.publish_date] as d \
         $innersql
-        and [::xo::dc date_trunc_expression month p.publish_date $year-$month-01] \
+        and [::xo::dc date_trunc_expression month p.publish_date :date_reference] \
         group by [::xo::dc date_trunc day p.publish_date]" {
           set entries([lindex $d 0]) $c
         }

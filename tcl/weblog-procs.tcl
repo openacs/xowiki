@@ -68,7 +68,7 @@ namespace eval ::xowiki {
     
     if {$date ne ""} {
       #set date_clause "and date_trunc('day',bt.publish_date) = '$date'"
-      set date_clause "and [::xo::dc date_trunc_expression day bt.publish_date $date]"
+      set date_clause "and [::xo::dc date_trunc_expression day bt.publish_date :date]"
       set filter_msg "Filtered by date $date"
       set query_parm "&date=$date"
       set query [::xo::update_query $query date $date]
@@ -170,7 +170,7 @@ namespace eval ::xowiki {
     }
 
     set sql \
-        [list -parent_id $query_parent_id \
+        [list -parent_id :query_parent_id \
              -select_attributes $attributes \
              -orderby "publish_date desc" \
              -base_table $base_table \
