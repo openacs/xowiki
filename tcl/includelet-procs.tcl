@@ -1335,15 +1335,16 @@ namespace eval ::xowiki::includelet {
       set sql [::xo::dc select \
                    -vars "count(*) as nr,tag" \
                    -from xowiki_tags \
-                   -where "package_id=$package_id" \
+                   -where "package_id = :package_id" \
                    -groupby tag \
                    -orderby tag \
                    -limit $limit]
     } else {
       set label [_ xowiki.your_tags_label]
-      set tag_type tag 
+      set tag_type tag
+      set user_id [::xo::cc user_id]
       set sql "select count(*) as nr,tag from xowiki_tags where \
-        user_id=[::xo::cc user_id] and package_id=$package_id group by tag order by tag"
+        user_id = :user_id and package_id = :package_id group by tag order by tag"
     }
     set entries [list]
 
