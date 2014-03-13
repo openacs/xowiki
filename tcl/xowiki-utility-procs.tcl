@@ -440,7 +440,8 @@ namespace eval ::xowiki {
 ::xo::Module create ::xowiki::utility -eval {
 
   my proc incr_page_order {p} {
-    regexp {^(.*[.]?)([^.])$} $p _ prefix suffix
+    lassign [list "" $p] prefix suffix
+    regexp {^(.*[.])([^.]+)$} $p _ prefix suffix
     if {[string is integer -strict $suffix]} {
       incr suffix
     } elseif {[string is lower -strict $suffix]} {
