@@ -13,7 +13,7 @@ namespace eval ::xowiki {
     set attsXML ""
     if {[info exists atts]} {
       foreach {attName attValue} $atts {
-	append attsXML " $attName='[string map [list ' {&apos;} {&nbsp;} { }] $attValue]'"
+        append attsXML " $attName='[string map [list ' {&apos;} {&nbsp;} { }] $attValue]'"
       }
     }
     return <$name$attsXML>[string map $xmlMap $value]</$name>
@@ -32,15 +32,15 @@ namespace eval ::xowiki {
     {title ""}
   } \
       -ad_doc {
-    Report content of xowiki folder in rss 2.0 format. The
-    reporting order is descending by date. The title of the feed
-    is taken from the title, the description
-    is taken from the description field of the folder object.
-    
-    @param maxentries maximum number of entries retrieved
-    @param days report entries changed in speficied last days
-    @param name_filter include only pages matching the provided regular expression (postgres)
-  }
+        Report content of xowiki folder in rss 2.0 format. The
+        reporting order is descending by date. The title of the feed
+        is taken from the title, the description
+        is taken from the description field of the folder object.
+        
+        @param maxentries maximum number of entries retrieved
+        @param days report entries changed in speficied last days
+        @param name_filter include only pages matching the provided regular expression (postgres)
+      }
 
   RSS instproc css_link {} {
     my instvar css
@@ -120,9 +120,9 @@ namespace eval ::xowiki {
       }
 
       if {[llength $form_items] == 0} {
-	# In case, we have no form_items to select on, let the query fail 
-	# without causing a SQL error.
-	set form_items [list -1]
+        # In case, we have no form_items to select on, let the query fail 
+        # without causing a SQL error.
+        set form_items [list -1]
       }
       append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = p.revision_id "
 
@@ -151,7 +151,7 @@ namespace eval ::xowiki {
     } else {
       # return always instance_attributes
       set extra_from "left join \
-		xowiki_page_instance on (p.revision_id = page_instance_id)"
+        xowiki_page_instance on (p.revision_id = page_instance_id)"
     }
 
     set sql [::xo::dc select \
@@ -159,10 +159,10 @@ namespace eval ::xowiki {
                 p.object_type as content_type, p.publish_date, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
                  -where "ci.parent_id in ([join $folder_ids ,]) \
-			and ci.live_revision = s.object_id \
-                	and ci.publish_status <> 'production' \
-                	and s.object_id = p.page_id \
-	        	$extra_where_clause"\
+            and ci.live_revision = s.object_id \
+                    and ci.publish_status <> 'production' \
+                    and s.object_id = p.page_id \
+                $extra_where_clause"\
                  -orderby "p.publish_date desc" \
                  -limit [my limit]]
 
@@ -207,25 +207,25 @@ namespace eval ::xowiki {
     -author -title -subtitle -description 
     -link -guid -pubdate 
     -mime_type -duration -keywords} {
-    append result \n <item> \
-	[my tag title $title] \n\
-	[my tag link $link ] \n\
-        [my tag -atts {isPermaLink true} guid $guid] \n\
-	[my tag pubDate $pubdate] \n\
-	[my tag itunes:duration $duration] \n\
-	[my tag author $author ] \n\
-	[my tag description $description ] \n\
-	[my tag itunes:subtitle $subtitle ] \n\
-	[my tag itunes:author $author ] \n\
-	[my tag itunes:keywords $keywords ] \n\
-	"<enclosure url=\"$link\" length=\"$duration\" type=\"$mime_type\"/> " \
-        \n </item> \n
-  }
+      append result \n <item> \
+          [my tag title $title] \n\
+          [my tag link $link ] \n\
+          [my tag -atts {isPermaLink true} guid $guid] \n\
+          [my tag pubDate $pubdate] \n\
+          [my tag itunes:duration $duration] \n\
+          [my tag author $author ] \n\
+          [my tag description $description ] \n\
+          [my tag itunes:subtitle $subtitle ] \n\
+          [my tag itunes:author $author ] \n\
+          [my tag itunes:keywords $keywords ] \n\
+          "<enclosure url=\"$link\" length=\"$duration\" type=\"$mime_type\"/> " \
+          \n </item> \n
+    }
 
 
   Podcast instproc render {} {
     my instvar package_id max_entries name_filter title days \
-	summary subtitle description author siteurl
+        summary subtitle description author siteurl
 
     set folder_ids [::$package_id folder_id]
     if {$summary  eq ""} {set summary $description}
@@ -243,7 +243,7 @@ namespace eval ::xowiki {
               and ci.publish_status <> 'production' [my extra_where_clause]" \
                  -orderby "p.pub_date asc" \
                  -limit [my limit]]
-             
+    
     ::xo::dc foreach get_pages $sql {
       if {$content_type ne "::xowiki::PodcastItem"} continue
       if {$title eq ""} {set title $name}
@@ -262,11 +262,11 @@ namespace eval ::xowiki {
   }
   
   Class Timeline -superclass XMLSyndication \
-	-parameter {user_id {limit 1000}}
+      -parameter {user_id {limit 1000}}
 
   Timeline instproc reverse list {
     set result [list]
-    for {set i [expr {[llength $list] - 1}]} {$i >= 0} {incr i -1}  	{
+    for {set i [expr {[llength $list] - 1}]} {$i >= 0} {incr i -1}      {
       lappend result [lindex $list $i]
     }
     return $result
@@ -287,12 +287,12 @@ namespace eval ::xowiki {
     ::xo::OrderedComposite items -destroy_on_cleanup
     set sql [::xo::dc select \
                  -vars "ci.name, ci.parent_id, o.creation_user, cr.publish_date, o2.creation_date, \
-			cr.item_id, cr.title" \
+            cr.item_id, cr.title" \
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
                  -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id 
-      			and o2.object_id = cr.item_id 
-		      	and ci.parent_id in ([join $folder_ids ,]) and o.creation_user is not null 
-      			$where_clause" \
+                  and o2.object_id = cr.item_id 
+                  and ci.parent_id in ([join $folder_ids ,]) and o.creation_user is not null 
+                  $where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]
     
@@ -321,17 +321,17 @@ namespace eval ::xowiki {
     # The following loop tries to distinguis between create and modify by age.
     # This does not work in cases, where we get just a limited amount 
     # or restricted entries
-#     if {$limit eq ""} {
-#       foreach i [my reverse [items children]] {
-#         set key seen([$i set item_id])
-#         if {[info exists $key]} {
-#           $i set operation modified
-#         } else {
-#           $i set operation created
-#           set $key 1
-#         }
-#       }
-#     }
+    #     if {$limit eq ""} {
+    #       foreach i [my reverse [items children]] {
+    #         set key seen([$i set item_id])
+    #         if {[info exists $key]} {
+    #           $i set operation modified
+    #         } else {
+    #           $i set operation created
+    #           set $key 1
+    #         }
+    #       }
+    #     }
 
     foreach i [items children] {
       set key contrib([clock format [$i set clock] -format "%Y-%m-%d" -gmt true],[$i set creation_user],[$i set item_id])
@@ -342,19 +342,19 @@ namespace eval ::xowiki {
 
     foreach c [lsort -decreasing [array names contrib]] {
       if {[llength $contrib($c)] == 1} {
-         set i $contrib($c)
-         set title [$i set title]
-      set user [::xo::get_user_name [$i set creation_user]]
-         set event "$user [$i set operation] [$i set title] [$i set name]"
+        set i $contrib($c)
+        set title [$i set title]
+        set user [::xo::get_user_name [$i set creation_user]]
+        set event "$user [$i set operation] [$i set title] [$i set name]"
       } else {
-         set i [lindex $contrib($c) 0]
-         set event "Contributions by [::xo::get_user_name [$i set creation_user]] on [clock format [$i set clock] -format {%b %d %Y} -gmt true]\n<ul>"
-         set title "[$i set title] ([llength $contrib($c)])"
-         foreach j $contrib($c) {
-            set stamp [clock format [$j set clock] -format "%X %Z" -gmt true]
-            append  event "<li>$stamp: [$j set operation]</li>" \n
-         }
-         append event "</ul>" \n
+        set i [lindex $contrib($c) 0]
+        set event "Contributions by [::xo::get_user_name [$i set creation_user]] on [clock format [$i set clock] -format {%b %d %Y} -gmt true]\n<ul>"
+        set title "[$i set title] ([llength $contrib($c)])"
+        foreach j $contrib($c) {
+          set stamp [clock format [$j set clock] -format "%X %Z" -gmt true]
+          append  event "<li>$stamp: [$j set operation]</li>" \n
+        }
+        append event "</ul>" \n
       }
       set stamp [clock format [$i set clock] -format "%b %d %Y %X %Z" -gmt true]
       set user [::xo::get_user_name [$i set creation_user]]
@@ -374,7 +374,7 @@ namespace eval ::xowiki {
 namespace eval ::xowiki {
   # This is the class representing an RSS client
   Class create RSS-client -parameter url
-    
+  
   # Constructor for a given URI
   RSS-client instproc init {} {
     set XML [my load]
@@ -405,40 +405,40 @@ namespace eval ::xowiki {
     switch [RSS-client getRSSVersion $doc] {
       0.91 - 0.92 - 0.93 - 2.0 {
         my array set xpath {
-          title		{/rss/channel/title/text()}
-          link		{/rss/channel/link/text()}
-          imgNode	{/rss/channel/image/title}
-          imgTitle	{/rss/channel/image/title/text()}
-          imgLink	{/rss/channel/image/url/text()}
-          imgWidth	{/rss/channel/image/width/text()}
-          imgHeight	{/rss/channel/image/height/text()}
-          stories	{/rss/channel/item}
-          itemTitle	{title/text()}
-          itemLink	{link/text()}
-          itemPubDate	{pubDate/text()}
-          itemDesc	{description/text()}
+          title        {/rss/channel/title/text()}
+          link        {/rss/channel/link/text()}
+          imgNode    {/rss/channel/image/title}
+          imgTitle    {/rss/channel/image/title/text()}
+          imgLink    {/rss/channel/image/url/text()}
+          imgWidth    {/rss/channel/image/width/text()}
+          imgHeight    {/rss/channel/image/height/text()}
+          stories    {/rss/channel/item}
+          itemTitle    {title/text()}
+          itemLink    {link/text()}
+          itemPubDate    {pubDate/text()}
+          itemDesc    {description/text()}
         }
       }
       1.0 {
         my array set xpath {
-          title		{/rdf:RDF/*[local-name()='channel']/*[local-name()='title']/text()}
-          link		{/rdf:RDF/*[local-name()='channel']/*[local-name()='link']/text()}
-          imgNode	{/rdf:RDF/*[local-name()='image']}
-          imgTitle	{/rdf:RDF/*[local-name()='image']/*[local-name()='title']/text()}
-          imgLink	{/rdf:RDF/*[local-name()='image']/*[local-name()='url']/text()}
-          imgWidth	{/rdf:RDF/*[local-name()='image']/*[local-name()='width']/text()}
-          imgHeight	{/rdf:RDF/*[local-name()='image']/*[local-name()='height']/text()}
-          stories	{/rdf:RDF/*[local-name()='item']}
-          itemTitle	{*[local-name()='title']/text()}
-          itemLink	{*[local-name()='link']/text()}
-          itemPubDate	{*[local-name()='pubDate']/text()}
-          itemDesc	{*[local-name()='description']/text()}
+          title        {/rdf:RDF/*[local-name()='channel']/*[local-name()='title']/text()}
+          link        {/rdf:RDF/*[local-name()='channel']/*[local-name()='link']/text()}
+          imgNode    {/rdf:RDF/*[local-name()='image']}
+          imgTitle    {/rdf:RDF/*[local-name()='image']/*[local-name()='title']/text()}
+          imgLink    {/rdf:RDF/*[local-name()='image']/*[local-name()='url']/text()}
+          imgWidth    {/rdf:RDF/*[local-name()='image']/*[local-name()='width']/text()}
+          imgHeight    {/rdf:RDF/*[local-name()='image']/*[local-name()='height']/text()}
+          stories    {/rdf:RDF/*[local-name()='item']}
+          itemTitle    {*[local-name()='title']/text()}
+          itemLink    {*[local-name()='link']/text()}
+          itemPubDate    {*[local-name()='pubDate']/text()}
+          itemDesc    {*[local-name()='description']/text()}
         }
         
       }
       default {
-	my set errorMessage "Unsupported RSS schema [RSS-client getRSSVersion $doc]"
-	return
+        my set errorMessage "Unsupported RSS schema [RSS-client getRSSVersion $doc]"
+        return
         #error "Unsupported schema [RSS-client getRSSVersion $doc]"
       }
     }

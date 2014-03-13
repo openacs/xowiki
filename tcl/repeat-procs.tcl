@@ -1,4 +1,5 @@
 ::xo::library doc {
+
   Form-field "repeat" 
 
   @author Gustaf Neumann
@@ -21,7 +22,7 @@ namespace eval ::xowiki::formfield {
 
     set oldClass [my info class]
     my class ::xowiki::formfield::repeatContainer
-  
+    
     if {$oldClass ne [my info class]} {
       my reset_parameter
       my set __state reset
@@ -30,16 +31,16 @@ namespace eval ::xowiki::formfield {
     if {$range ne ""} {
       my instvar min max
       if {[regexp {^(\d*)[.][.](\d*)$} $range _ low high]} {
-	if {$low ne ""}  {set min $low}
-	if {$high ne ""} {set max $high}
-	if {$min > $max} {
-	  error "invalid range '$range' specified (lower limit $min must not be larger than higher limit $max)"
-	}
-	if {$min < 0 || $max < 1} {
-	  error "invalid range '$range' specified (max $max must be at least 1) "
-	}
+        if {$low ne ""}  {set min $low}
+        if {$high ne ""} {set max $high}
+        if {$min > $max} {
+          error "invalid range '$range' specified (lower limit $min must not be larger than higher limit $max)"
+        }
+        if {$min < 0 || $max < 1} {
+          error "invalid range '$range' specified (max $max must be at least 1) "
+        }
       } else {
-	error "invalid range '$range' specified (must be of form 'min..max')"
+        error "invalid range '$range' specified (must be of form 'min..max')"
       }
     }
     my initialize
@@ -126,7 +127,7 @@ namespace eval ::xowiki::formfield {
     [my object] instvar instance_attributes
     foreach {name value} $values {
       if {[dict exists $instance_attributes $name]} {
-	dict unset instance_attributes $name
+        dict unset instance_attributes $name
       }
     }
     return $r
@@ -164,28 +165,28 @@ namespace eval ::xowiki::formfield {
       set CSSclass   "[my form_widget_CSSclass] repeatable"
       set providedValues [my count_values [my value]]
       if {$min > $providedValues} {
-	set nrItems $min
+        set nrItems $min
       } else {
-	set nrItems $providedValues
+        set nrItems $providedValues
       }
       incr nrItems
       set containerDisabled [expr {[my exists disabled] && [my disabled] ne "false"}]
       foreach c [my components] {
-	set atts [list class $CSSclass]
-	if {$i > $nrItems || [string match "*.0" [$c name]]} {
-	  lappend atts style "display: none;"
-	}
-	::html::div $atts {
-	  $c render_input 
-	  # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
-	  # if {!$containerDisabled} {
-	    ::html::a -href "#" -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" { html::t "\[x\]" }
-	  # }
-	}
-	incr i
+        set atts [list class $CSSclass]
+        if {$i > $nrItems || [string match "*.0" [$c name]]} {
+          lappend atts style "display: none;"
+        }
+        ::html::div $atts {
+          $c render_input 
+          # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
+          # if {!$containerDisabled} {
+          ::html::a -href "#" -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" { html::t "\[x\]" }
+          # }
+        }
+        incr i
       }
       # if {!$containerDisabled} {
-	html::a -href "#" -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" { html::t "add another" }
+      html::a -href "#" -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" { html::t "add another" }
       # }
     }
   }
@@ -194,10 +195,17 @@ namespace eval ::xowiki::formfield {
     foreach c [lrange [my components] 1 [my count_values [my value]]] {
       set result [$c validate $obj]
       if {$result ne ""} {
-          return $result
+        return $result
       }
     }
     return ""
   }
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

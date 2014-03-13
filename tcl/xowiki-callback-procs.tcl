@@ -1,9 +1,9 @@
 ::xo::library doc {
-    XoWiki - Callback procs
+  XoWiki - Callback procs
 
-    @creation-date 2006-08-08
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  @creation-date 2006-08-08
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 
 namespace eval ::xowiki {
@@ -40,11 +40,11 @@ namespace eval ::xowiki {
     if {$root_folder_id ne "0"} {
       # we deal with a correctly installed package
       if {[::xo::dc 0or1row is_transformed_folder {
-	select 1 from cr_folders where folder_id = :root_folder_id}
-	  ]} {
-	::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
+        select 1 from cr_folders where folder_id = :root_folder_id}
+          ]} {
+        ::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
       } else {
-	::xo::db::sql::content_item delete -item_id $root_folder_id
+        ::xo::db::sql::content_item delete -item_id $root_folder_id
       }
     }
     ns_log notice "before-uninstantiate DONE"

@@ -1,15 +1,15 @@
 ::xo::library doc {
-    XoWiki - Search Service Contracts
+  XoWiki - Search Service Contracts
 
-    @creation-date 2006-01-10
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  @creation-date 2006-01-10
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 
 namespace eval ::xowiki {}
 
 ad_proc -private ::xowiki::datasource { revision_id } {
-    @param revision_id
+  @param revision_id
 
   returns a datasource for the search package
 } {
@@ -23,15 +23,15 @@ ad_proc -private ::xowiki::datasource { revision_id } {
     # no data source for for pages under construction
     #ns_log notice "--sc page under construction, no datasource"
     return [list object_id $revision_id title "" \
-		content "" keywords "" \
-		storage_type text mime text/html]
+                content "" keywords "" \
+                storage_type text mime text/html]
   }
 
   #ns_log notice "--sc setting absolute links for page = $page [$page set name]"
 
   set d [dict merge \
-	     {mime text/html text "" html "" keywords ""} \
-	     [$page search_render]]
+             {mime text/html text "" html "" keywords ""} \
+             [$page search_render]]
 
   if {![dict exists $d title]} {
     dict set d title [$page title]
@@ -46,9 +46,9 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       # then we have to use CDATA in the description
       #
       if {[string first {[1]} $text] > -1} {
-	append description {<![CDATA[} \n $content { ]]>}
+        append description {<![CDATA[} \n $content { ]]>}
       } else {
-	set description [ns_quotehtml $text]
+        set description [ns_quotehtml $text]
       }
     }
     text/plain {
@@ -73,8 +73,8 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   catch {
     db_dml delete_old_revisions {
       delete from txt where object_id in \
-      (select revision_id from cr_revisions 
-       where item_id = :item_id and revision_id != :revision_id)
+          (select revision_id from cr_revisions 
+           where item_id = :item_id and revision_id != :revision_id)
     }
   }
 
@@ -82,17 +82,17 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   set link [$page detail_link]
 
   set result [list object_id $revision_id title [dict get $d title] \
-		  content $content \
-		  keywords [dict get $d keywords] \
-		  storage_type text mime [dict get $d mime] \
-		  syndication [list \
-				   link [string map [list & "&amp;"] $link] \
-				   description $description \
-				   author [$page set creator] \
-				   category "" \
-				   guid "$item_id" \
-				   pubDate $pubDate] \
-		 ]
+                  content $content \
+                  keywords [dict get $d keywords] \
+                  storage_type text mime [dict get $d mime] \
+                  syndication [list \
+                                   link [string map [list & "&amp;"] $link] \
+                                   description $description \
+                                   author [$page set creator] \
+                                   category "" \
+                                   guid "$item_id" \
+                                   pubDate $pubDate] \
+                 ]
   if {[catch {::xo::at_cleanup} errorMsg]} {
     ns_log notice "cleanup in ::xowiki::datasource returned $errorMsg"
   }
@@ -100,7 +100,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 }
 
 ad_proc -private ::xowiki::url { revision_id} {
-    returns a url for a message to the search package
+  returns a url for a message to the search package
 } {
   return [::xowiki::Package get_url_from_id -revision_id $revision_id]
 }
@@ -156,7 +156,7 @@ namespace eval ::xowiki::sc {
       contract_name FtsContentProvider
       owner xowiki
     }
-}
+  }
 
   ad_proc -private ::xowiki::sc::unregister_implementations {} {
     acs_sc::impl::delete -contract_name FtsContentProvider -impl_name ::xowiki::Page
@@ -169,3 +169,9 @@ namespace eval ::xowiki::sc {
 
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

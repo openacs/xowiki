@@ -154,7 +154,7 @@ namespace eval ::xowiki::notification {
             -notif_subject "\[$instance_name\] $label($level): [$page set title] ($state)" \
             -notif_text $text \
             -notif_html $html \
-	    -notif_user $notif_user_id
+            -notif_user $notif_user_id
       }
     }
   }

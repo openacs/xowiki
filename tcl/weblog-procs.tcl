@@ -28,11 +28,11 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::Weblog proc instantiate_forms {
-         {-default_lang ""} 
-         {-parent_id ""} 
-         -forms:required 
-         -package_id:required
-       } {
+     {-default_lang ""} 
+     {-parent_id ""} 
+     -forms:required 
+     -package_id:required
+     } {
     set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
@@ -89,7 +89,7 @@ namespace eval ::xowiki {
       set query_parm "&category_id=$category_id"
       set query [::xo::update_query $query category_id $category_id]
     }
-#my msg "tag=$tag"
+    #my msg "tag=$tag"
     if {$tag ne ""} {
       set filter_msg "Filtered by your tag $tag"
       append extra_from_clause ",xowiki_tags tags "
@@ -97,7 +97,7 @@ namespace eval ::xowiki {
         tags.user_id = [::xo::cc user_id]" 
       set query_parm "&tag=[ad_urlencode $tag]"
     }
-#my msg "ptag=$ptag"
+    #my msg "ptag=$ptag"
     if {$ptag ne ""} {
       set filter_msg "Filtered by popular tag $ptag"
       append extra_from_clause ",xowiki_tags tags "
@@ -105,7 +105,7 @@ namespace eval ::xowiki {
       set query_parm "&ptag=[ad_urlencode $ptag]"
       set query [::xo::update_query $query ptag $ptag]
     }
-#my msg filter_msg=$filter_msg 
+    #my msg filter_msg=$filter_msg 
     if {$name_filter ne ""} {
       append extra_where_clause "and ci.name ~ E'$name_filter' "
     }
@@ -113,7 +113,7 @@ namespace eval ::xowiki {
     set base_table xowiki_pagei
     set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
                         ci.parent_id bt.description s.body \
-			pi.instance_attributes pi.page_template fp.state]
+                        pi.instance_attributes pi.page_template fp.state]
     
     set class_clause \
         " and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object')"
@@ -134,11 +134,11 @@ namespace eval ::xowiki {
                             -forms $entries_of \
                             -package_id $package_id]
         }
-	if {$form_ids ne ""} {
-	  append extra_where_clause " and bt.page_template in ('[join $form_ids ',']') and bt.page_instance_id = bt.revision_id "
-	} else {
-	  my msg "could not lookup forms $entries_of"
-	}
+        if {$form_ids ne ""} {
+          append extra_where_clause " and bt.page_template in ('[join $form_ids ',']') and bt.page_instance_id = bt.revision_id "
+        } else {
+          my msg "could not lookup forms $entries_of"
+        }
         set base_type ::xowiki::FormPage
         set base_table xowiki_form_pagei
         append attributes ,bt.page_template,bt.state
@@ -149,7 +149,7 @@ namespace eval ::xowiki {
     if {$locale ne ""} {
       #set locale "default+system"
       foreach {locale locale_clause} \
-	  [::xowiki::Includelet locale_clause -revisions bt -items ci $package_id $locale] break
+          [::xowiki::Includelet locale_clause -revisions bt -items ci $package_id $locale] break
       #my msg "--L locale_clause=$locale_clause"
       append extra_where_clause $locale_clause
     }
@@ -175,13 +175,13 @@ namespace eval ::xowiki {
              -orderby "publish_date desc" \
              -base_table $base_table \
              -from_clause "\
-		left outer join syndication s on s.object_id = bt.revision_id \
-		left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id) \
-		left join xowiki_form_page fp on (bt.revision_id = fp.xowiki_form_page_id) \
-		$extra_from_clause" \
+        left outer join syndication s on s.object_id = bt.revision_id \
+        left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id) \
+        left join xowiki_form_page fp on (bt.revision_id = fp.xowiki_form_page_id) \
+        $extra_from_clause" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
-		[::xowiki::Page container_already_rendered ci.item_id] \
+        [::xowiki::Page container_already_rendered ci.item_id] \
                 $class_clause \
                 and ci.publish_status <> 'production' \
                 $extra_where_clause" ]
@@ -190,7 +190,7 @@ namespace eval ::xowiki {
       lappend sql -page_number $page_number -page_size $page_size 
     }
     set nr_items [::xo::dc get_value count-weblog-entries \
-		      [$base_type instance_select_query {*}$sql -count true]]
+                      [$base_type instance_select_query {*}$sql -count true]]
     #my msg count=$nr_items
     set s [$base_type instantiate_objects -sql [$base_type instance_select_query {*}$sql]]
     
@@ -206,8 +206,8 @@ namespace eval ::xowiki {
       if {$summary} {
         # we need always: package_id item_id parent_id name title creator creation_user pretty_date
         set p [Page new \
-		   -package_id $package_id -parent_id $parent_id \
-		   -item_id $item_id -revision_id $revision_id \
+                   -package_id $package_id -parent_id $parent_id \
+                   -item_id $item_id -revision_id $revision_id \
                    -name $name -title $title -creator $creator]
         $p set creation_user $creation_user
         if {$description eq "" && [my compute_summary] && $body ne ""} {
@@ -220,16 +220,16 @@ namespace eval ::xowiki {
         # do full instantiation and rendering
         # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[my isobject ::$revision_id]"
         set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $revision_id]
-	# in cases, the revision was created already earlier, drop the mixins
-	if {[$p info mixin] ne ""} {$p mixin {}}
+        # in cases, the revision was created already earlier, drop the mixins
+        if {[$p info mixin] ne ""} {$p mixin {}}
         if {[my exists entry_flag]} {$p set [my entry_flag] 1}
         if {[my no_footer]} {$p set __no_footer 1}
-#        if {[catch {$p set description [$p render]} errorMsg]} {}
+        #        if {[catch {$p set description [$p render]} errorMsg]} {}
         if {[catch {$p set description [$p render -with_footer false]} errorMsg]} {
           $p set description "Render Error ($errorMsg) $revision_id $name $title"
         }
         if {[my exists entry_flag]} {$p unset [my entry_flag]}
-	#my log "--W $p render (mixins=[$p info mixin]) => $description"
+        #my log "--W $p render (mixins=[$p info mixin]) => $description"
       }
       $p set pretty_date $pretty_date
       $p set publish_date $publish_date
@@ -262,7 +262,7 @@ namespace eval ::xowiki {
       
       set next_p [expr {$nr_items > $page_number*$page_size}]
       set prev_p [expr {$page_number > 1}]
-  
+      
       if {$next_p} {
         set query [::xo::update_query $query page_number [expr {$page_number+1}]]
         set next_page_link [::xo::cc url]?$query
