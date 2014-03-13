@@ -473,7 +473,7 @@ namespace eval ::xowiki {
     return $pairs
   }
   
-  my proc get_page_order_items {-parent_id page_orders} {
+  my proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
     set likes [list]
     foreach page_order $page_orders {
       if {[::xowiki::page_order_uses_ltree]} {
@@ -486,7 +486,7 @@ namespace eval ::xowiki {
           from xowiki_page p, cr_items ci, cr_revisions cr  \
           where p.page_id = ci.live_revision \
             and p.page_id = cr.revision_id  \
-            and ci.publish_status <> 'production' \
+            [::xowiki::Includelet publish_status_clause $publish_status] \
             and ci.parent_id = $parent_id \
             and ([join $likes { or }])"
     #my log $sql
@@ -494,8 +494,14 @@ namespace eval ::xowiki {
     return $pages
   }
   
-  ::xowiki::utility proc page_order_renames {-parent_id -start -from -to} {
-    set pages [my get_page_order_items -parent_id $parent_id $to]
+  ::xowiki::utility proc page_order_renames {
+     -parent_id 
+     {-publish_status "production"} 
+     -start 
+     -from 
+     -to
+   } {
+    set pages [my get_page_order_items -parent_id $parent_id -publish_status $publish_status $to]
     #my log "pages=$pages"
     array set npo [::xowiki::utility page_order_compute_new_names $start $to]
     #my log npo=[array get npo]=>to='$to'
