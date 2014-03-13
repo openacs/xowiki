@@ -1637,7 +1637,7 @@ namespace eval ::xowiki::includelet {
 
    ::xo::dc foreach get_refers "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
-        where page=$item_id and ci.item_id = reference and ci.item_id = o.object_id" {
+        where page = :item_id and ci.item_id = reference and ci.item_id = o.object_id" {
           if {$pid eq ""} {
             # in version less then oacs 5.2, this returns empty
             set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
@@ -1896,7 +1896,7 @@ namespace eval ::xowiki::includelet {
     set sql [::xo::dc select \
                  -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
-                 -where "parent_id=$parent_id \
+                 -where "parent_id = :parent_id \
 			$page_order_clause \
 			$extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
