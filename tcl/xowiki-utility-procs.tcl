@@ -1,9 +1,10 @@
 ::xo::library doc {
-    XoWiki - Utility procs
 
-    @creation-date 2006-08-08
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  XoWiki - Utility procs
+
+  @creation-date 2006-08-08
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 
 namespace eval ::xowiki {
@@ -41,14 +42,14 @@ namespace eval ::xowiki {
         && [info commands ::util::which] ne ""} { 
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
-	set in_file [ns_tmpnam]
-	::xowiki::write_file $in_file $text
-	catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
-	file delete $in_file
-	#my msg o=$output
-	regexp <body>\n(.*)\n</body> $output _ text
-	#my msg o=$text
-	return $text
+        set in_file [ns_tmpnam]
+        ::xowiki::write_file $in_file $text
+        catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
+        file delete $in_file
+        #my msg o=$output
+        regexp <body>\n(.*)\n</body> $output _ text
+        #my msg o=$text
+        return $text
       }
     }
     return $text
@@ -64,7 +65,7 @@ namespace eval ::xowiki {
         && [info commands ::util::which] ne ""} { 
       set clamscanCmd [::util::which clamscan]
       if {$clamscanCmd ne "" && [file readable $fn]} {
-	if {[catch {exec $clamscanCmd $fn }]} {return 1}
+        if {[catch {exec $clamscanCmd $fn }]} {return 1}
       }
     }
     return 0
@@ -102,12 +103,12 @@ namespace eval ::xowiki {
       if {$folder_id ne ""} {
         db_dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
-          	(select item_id as object_id from cr_items where parent_id = :folder_id)
+          (select item_id as object_id from cr_items where parent_id = :folder_id)
           and package_id is NULL}
         db_dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
-                (select r.revision_id as object_id from cr_revisions r, cr_items i where 
-                 i.item_id = r.item_id and i.parent_id = :folder_id)
+          (select r.revision_id as object_id from cr_revisions r, cr_items i where 
+           i.item_id = r.item_id and i.parent_id = :folder_id)
           and package_id is NULL}
       }
     }
@@ -127,9 +128,9 @@ namespace eval ::xowiki {
       set sortkeys ""
     }
     ::xo::db::require view xowiki_page_live_revision \
-	"select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
-	  ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
-	  ci.storage_area_key $sortkeys \
+        "select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
+      ci.latest_revision, ci.publish_status, ci.content_type, ci.storage_type, \
+      ci.storage_area_key $sortkeys \
           from xowiki_page p, cr_items ci, cr_revisions cr  \
           where p.page_id = ci.live_revision \
             and p.page_id = cr.revision_id  \
@@ -141,26 +142,26 @@ namespace eval ::xowiki {
   } {
     # catch sql statement to allow multiple runs
     catch {::xo::db::sql::content_type create_attribute \
-	       -content_type ::xowiki::Page \
-	       -attribute_name page_order \
-	       -datatype text \
-	       -pretty_name Order \
-	       -column_spec [::xo::dc map_datatype ltree]}
+               -content_type ::xowiki::Page \
+               -attribute_name page_order \
+               -datatype text \
+               -pretty_name Order \
+               -column_spec [::xo::dc map_datatype ltree]}
     
     ::xo::db::require index -table xowiki_page -col page_order \
-	-using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
+        -using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
     ::xowiki::update_views
     return 1
   }
 
   ad_proc cr_thin_out {
-      {-doit false} 
-      {-delete_orphans false} 
-      {-delete_sequences false} 
-      {-edit_interval 300} 
-      {-older_than "1 month ago"} 
-      -package_id
-      -item_id
+    {-doit false} 
+    {-delete_orphans false} 
+    {-delete_sequences false} 
+    {-edit_interval 300} 
+    {-older_than "1 month ago"} 
+    -package_id
+    -item_id
   } {
     Delete supposedly uninportant items and revision from the content repository.
     
@@ -197,15 +198,15 @@ namespace eval ::xowiki {
          $extra_clause
       "
       ::xo::dc foreach get_revisions $sql {
-	#::xotcl::Object msg "tuple = $tuple"
-	lassign $tuple name package_id item_id revision_id last_modified 
-	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
-	if {$time > $older_than} continue
-	::xotcl::Object log "...will delete $name doit=$doit $last_modified"
-	if {$doit} {
-	  ::xowiki::Package require $package_id
-	  $package_id delete -item_id $item_id -name $name
-	}
+        #::xotcl::Object msg "tuple = $tuple"
+        lassign $tuple name package_id item_id revision_id last_modified 
+        set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
+        if {$time > $older_than} continue
+        ::xotcl::Object log "...will delete $name doit=$doit $last_modified"
+        if {$doit} {
+          ::xowiki::Package require $package_id
+          $package_id delete -item_id $item_id -name $name
+        }
       }
     }
 
@@ -228,26 +229,26 @@ namespace eval ::xowiki {
       set last_revision ""
       
       xo::dc foreach get_revisions $sql {
-	#::xotcl::Object msg "tuple = $tuple"
-	lassign $tuple name item_id revision_id last_modified user package_id 
-	set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
-	if {$time > $older_than} continue
-	#::xotcl::Object msg "compare time $time with $older_than => [expr {$time < $older_than}]"
-	if {$last_user eq $user && $last_item == $item_id} {
-	  set timediff [expr {$time-$last_time}]
-	  #::xotcl::Object msg "   timediff=[expr {$time-$last_time}]"
-	  if {$timediff < $edit_interval && $timediff >= 0} {
-	    ::xotcl::Object log "...will delete $name revision=$last_revision, doit=$doit $last_modified"
-	    if {$doit} {
-	      ::xowiki::Package require $package_id
-	      $package_id delete_revision -revision_id $last_revision -item_id $item_id
-	    }
-	  }
-	}
-	set last_user $user
-	set last_time $time
-	set last_item $item_id
-	set last_revision $revision_id
+        #::xotcl::Object msg "tuple = $tuple"
+        lassign $tuple name item_id revision_id last_modified user package_id 
+        set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
+        if {$time > $older_than} continue
+        #::xotcl::Object msg "compare time $time with $older_than => [expr {$time < $older_than}]"
+        if {$last_user eq $user && $last_item == $item_id} {
+          set timediff [expr {$time-$last_time}]
+          #::xotcl::Object msg "   timediff=[expr {$time-$last_time}]"
+          if {$timediff < $edit_interval && $timediff >= 0} {
+            ::xotcl::Object log "...will delete $name revision=$last_revision, doit=$doit $last_modified"
+            if {$doit} {
+              ::xowiki::Package require $package_id
+              $package_id delete_revision -revision_id $last_revision -item_id $item_id
+            }
+          }
+        }
+        set last_user $user
+        set last_time $time
+        set last_item $item_id
+        set last_revision $revision_id
       }
     }
   }
@@ -285,9 +286,9 @@ namespace eval ::xowiki {
     if {[::xo::dc has_ltree]} {
       ns_cache eval xotcl_object_cache ::xowiki::page_order_uses_ltree {
         return [::xo::dc get_value check_po_ltree {
-	  select count(*) from pg_attribute a, pg_type t, pg_class c 
-	  where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
-	  and relname = 'xowiki_page'}]
+          select count(*) from pg_attribute a, pg_type t, pg_class c 
+          where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
+          and relname = 'xowiki_page'}]
       }
     } else {
       return 0
@@ -569,31 +570,31 @@ namespace eval ::xowiki {
   # -gustaf neumann (nov 2010)
 
   if {[ns_info name] eq "NaviServer"} {
-      my proc urlencode {string} {ns_urlencode $string}
+    my proc urlencode {string} {ns_urlencode $string}
   } else {
-      set ue_map [list]
-      for {set i 0} {$i < 256} {incr i} {
-	  set c [format %c $i]
-	  set x %[format %02x $i]
-	  if {![string match {[-a-zA-Z0-9_.]} $c]} {
-	      lappend ue_map $c $x
-	  }
+    set ue_map [list]
+    for {set i 0} {$i < 256} {incr i} {
+      set c [format %c $i]
+      set x %[format %02x $i]
+      if {![string match {[-a-zA-Z0-9_.]} $c]} {
+        lappend ue_map $c $x
       }
-      my proc urlencode {string} {string map [my set ue_map] $string}
+    }
+    my proc urlencode {string} {string map [my set ue_map] $string}
   }
 
 
   my ad_proc user_is_active {{-asHTML:boolean false} uid} {
   } {
     if {[info commands ::throttle] ne "" && 
-	[::throttle info methods user_is_active] ne ""} {
+        [::throttle info methods user_is_active] ne ""} {
       set active [throttle user_is_active $uid]
       if {$asHTML} {
-	array set color {1 green 0 red}
-	array set state {1 active 0 inactive}
-	return "<span class='$state($active)' style='background: $color($active);'>&nbsp;</span>"
+        array set color {1 green 0 red}
+        array set state {1 active 0 inactive}
+        return "<span class='$state($active)' style='background: $color($active);'>&nbsp;</span>"
       } else {
-	return $active
+        return $active
       }
     } else {
       ns_log notice "user_is_active requires xotcl-request monitor in a recent version"
@@ -696,12 +697,12 @@ proc util_spec2json {list_of_specs} {
       # would give us trouble - we choose to ignore text nodes
       # in this case
       if { ${nodeType} eq "\#text" && [llength $inner_spec] == 1 } {
-	# text node
-	lassign [lindex $inner_spec 0] _nodeType_ text
-	append json ",'html':[util_jsquotevalue $text]"
+        # text node
+        lassign [lindex $inner_spec 0] _nodeType_ text
+        append json ",'html':[util_jsquotevalue $text]"
       } else {
-	# list of children nodes
-	append json ",'children':\[[util_spec2json $inner_spec]\]"
+        # list of children nodes
+        append json ",'children':\[[util_spec2json $inner_spec]\]"
       }
     }
     append json "\}"
