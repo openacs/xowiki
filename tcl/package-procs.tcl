@@ -1778,10 +1778,11 @@ namespace eval ::xowiki {
   Package ad_instproc change-page-order {} {
     Change Page Order for pages by renumbering and filling gaps.
   } {
-    my instvar folder_id
     set to    [string trim [my form_parameter to ""]]
     set from  [string trim [my form_parameter from ""]]
     set clean [string trim [my form_parameter clean ""]]  ;# only for inserts
+    set folder_id [string trim [my form_parameter folder_id [my set folder_id]]]
+    set publish_status [string trim [my form_parameter publish_status "ready|live|expired"]]
 
     #set from {1.2 1.3 1.4}; set to {1.3 1.4 1.2}; set clean {...}
     #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
@@ -1822,6 +1823,7 @@ namespace eval ::xowiki {
       # compute rename rename commands for it
       #
       set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                           -publish_status $publish_status \
                            -start [lindex $clean 0] -from $remaining -to $remaining]
       foreach {page_id item_id name old_page_order new_page_order} $gap_renames {
         my log "--cpo gap $page_id (name) rename $old_page_order to $new_page_order"
@@ -1831,6 +1833,7 @@ namespace eval ::xowiki {
     # Compute the rename commands for the drop target
     #
     set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                          -publish_status $publish_status \
                           -start [lindex $from 0] -from $from -to $to]
     #my log "--cpo drops l=[llength $drop_renames]"
     foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
