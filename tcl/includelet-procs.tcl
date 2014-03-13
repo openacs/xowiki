@@ -1,9 +1,9 @@
 ::xo::library doc {
-    XoWiki - define various kind of includelets
+  XoWiki - define various kind of includelets
 
-    @creation-date 2006-10-10
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  @creation-date 2006-10-10
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 namespace eval ::xowiki::includelet {
   #
@@ -33,7 +33,7 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {}}
         {id}
       }
-#2.8.0r4
+  #2.8.0r4
   ::xowiki::Includelet proc require_YUI_CSS {{-version 2.7.0} {-ajaxhelper true} path} {
     if {$ajaxhelper} {
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/$path"
@@ -49,7 +49,7 @@ namespace eval ::xowiki::includelet {
       ::xo::Page requireJS "http://yui.yahooapis.com/$version/build/$path"
     }
   }    
-    
+  
   ::xowiki::Includelet proc describe_includelets {includelet_classes} {
     #my log "--plc=$includelet_classes "
     foreach cl $includelet_classes {
@@ -144,11 +144,11 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc locale_clause {
-    -revisions 
-    -items 
-    package_id 
-    locale
-  } {
+                                           -revisions 
+                                           -items 
+                                           package_id 
+                                           locale
+                                         } {
     set default_locale [$package_id default_locale]
     set system_locale ""
 
@@ -167,9 +167,9 @@ namespace eval ::xowiki::includelet {
         #my msg "system_locale=$system_locale, default_locale=$default_locale"
         if {$system_locale ne $default_locale} {
           set locale_clause " and ($revisions.nls_language = '$locale' 
-		or $revisions.nls_language = '$system_locale' and not exists
-		  (select 1 from cr_items i where i.name = '[string range $locale 0 1]:' || 
-		  substring($items.name,4) and i.parent_id = $items.parent_id))"
+        or $revisions.nls_language = '$system_locale' and not exists
+          (select 1 from cr_items i where i.name = '[string range $locale 0 1]:' || 
+          substring($items.name,4) and i.parent_id = $items.parent_id))"
         }
       } 
     }
@@ -203,11 +203,11 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc parent_id_clause {
-     {-base_table bt}
-     {-use_package_path true}
-     {-parent_id ""}
-     -base_package_id:required
-  } {
+                                              {-base_table bt}
+                                              {-use_package_path true}
+                                              {-parent_id ""}
+                                              -base_package_id:required
+                                            } {
     #
     # Get the package path and from it, the folder_ids. The parent_id
     # of the returned pages should be a direct child of the folder.
@@ -237,24 +237,24 @@ namespace eval ::xowiki::includelet {
   #
 
   ::xowiki::Includelet proc listing {
-      -package_id
-      {-count:boolean false}
-      {-folder_id}
-      {-parent_id ""}
-      {-page_size 20}
-      {-page_number ""}
-      {-orderby ""}
-      {-use_package_path true}
-      {-extra_where_clause ""}
-      {-glob ""}
-    } {
+                                     -package_id
+                                     {-count:boolean false}
+                                     {-folder_id}
+                                     {-parent_id ""}
+                                     {-page_size 20}
+                                     {-page_number ""}
+                                     {-orderby ""}
+                                     {-use_package_path true}
+                                     {-extra_where_clause ""}
+                                     {-glob ""}
+                                   } {
     if {$count} {
       set attribute_selection "count(*)"
       set orderby ""      ;# no need to order when we count
       set page_number  ""      ;# no pagination when count is used
     } else {
       set attribute_selection "i.name, r.title, p.page_id, r.publish_date, \
-		r.mime_type, i.parent_id, o.package_id, \
+        r.mime_type, i.parent_id, o.package_id, \
                 to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date"
     }
     if {$page_number ne ""} {
@@ -265,10 +265,10 @@ namespace eval ::xowiki::includelet {
       set offset ""
     }
     set parent_id_clause [::xowiki::Includelet parent_id_clause \
-			      -base_table i \
-			      -use_package_path $use_package_path \
-			      -parent_id $parent_id \
-			      -base_package_id $package_id]
+                              -base_table i \
+                              -use_package_path $use_package_path \
+                              -parent_id $parent_id \
+                              -base_package_id $package_id]
 
     if {$glob ne ""} {
       append extra_where_clause [::xowiki::Includelet glob_clause -base_table i $glob]
@@ -281,7 +281,7 @@ namespace eval ::xowiki::includelet {
                      and r.revision_id = i.live_revision \
                      and i.item_id = o.object_id \
                      and p.page_id = r.revision_id \
-		     and i.publish_status <> 'production' $extra_where_clause" \
+             and i.publish_status <> 'production' $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
 
@@ -311,12 +311,12 @@ namespace eval ::xowiki::includelet {
     if {[info exists source]} {
       set p [my resolve_page_name $source]
       if {$p ne ""} {
-	array set ia [$p set instance_attributes]
-	if {[info exists ia(pages)]} {
-	  set pages $ia(pages)
-	} elseif {[info exists ia(ordered_pages)]} {
-	  set ordered_pages $ia(ordered_pages)
-	}
+        array set ia [$p set instance_attributes]
+        if {[info exists ia(pages)]} {
+          set pages $ia(pages)
+        } elseif {[info exists ia(ordered_pages)]} {
+          set ordered_pages $ia(ordered_pages)
+        }
       }
     }
     
@@ -433,12 +433,12 @@ namespace eval ::xowiki::includelet {
     ::xo::render_localizer
     return [subst [[self class] set template]]
   } -set template [expr {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1 ? 
-       {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
-	 <div class='portlet-title-no-controls'>$link</div></div>
-	 <div $id class='portlet'>$html</div></div></div>
-       } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
-        <div $id class='portlet'>[next]</div></div>}
-       }]
+                         {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
+                           <div class='portlet-title-no-controls'>$link</div></div>
+                           <div $id class='portlet'>$html</div></div></div>
+                         } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
+                           <div $id class='portlet'>[next]</div></div>}
+                       }]
 
   Class create ::xowiki::includelet::decoration=edit -instproc render {} {
     my instvar package_id name title
@@ -501,7 +501,7 @@ namespace eval ::xowiki::includelet {
         }
         return "no such form_variable $form_variable defined in page [$page set name]"
       }
- 
+  
   ::xowiki::IncludeletClass create creation-date \
       -superclass ::xowiki::Includelet \
       -parameter {
@@ -567,8 +567,8 @@ namespace eval ::xowiki::includelet {
       if(d.getSelection){t=d.getSelection()} else 
       if(w.getSelection){t=w.getSelection()} 
       void(open('$url?m=create-new&title='+escape(d.title)+
-                    '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
-                    'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
+                '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
+                'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
     }]
     regsub -all {[\n ]+} $href " " href
     regsub -all & $href "&amp;" href
@@ -655,181 +655,181 @@ namespace eval ::xowiki::includelet {
         set href "[[my package_id] package_url]?manage-categories&object_id=$object_id"
         return [[my set __including_page] include \
                     [list edit-item-button -link $href -title "Manage Categories" -target _blank]]]
-      }
     }
-    return ""
   }
-  categories instproc category_tree_missing {{-name ""} -edit_html} {
-    # todo i18n
-    if {$name eq ""} {
-      #set msg "No category tree found."
-      # maybe it is better to stay quiet in case, no category name was provided
-      set msg ""
-    } else {
-      set msg "No category tree with name '$name' found."
-    }
-    [my package_id] flush_page_fragment_cache -scope agg
-    set html "<div class='errorMsg'>$msg</div>"
-    if {$edit_html ne ""} {
-      return "$html Manage Categories? $edit_html"
-    }
-    return $html
+  return ""
+}
+categories instproc category_tree_missing {{-name ""} -edit_html} {
+  # todo i18n
+  if {$name eq ""} {
+    #set msg "No category tree found."
+    # maybe it is better to stay quiet in case, no category name was provided
+    set msg ""
+  } else {
+    set msg "No category tree with name '$name' found."
   }
-  
-  categories instproc render {} {
-    my get_parameters
+  [my package_id] flush_page_fragment_cache -scope agg
+  set html "<div class='errorMsg'>$msg</div>"
+  if {$edit_html ne ""} {
+    return "$html Manage Categories? $edit_html"
+  }
+  return $html
+}
 
-    set content ""
-    set folder_id [$package_id folder_id]
-    set open_item_id [expr {$open_page ne "" ?
-                [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
+categories instproc render {} {
+  my get_parameters
 
-    lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
-	locale locale_clause
+  set content ""
+  set folder_id [$package_id folder_id]
+  set open_item_id [expr {$open_page ne "" ?
+                          [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
-    set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
-                   -names $tree_name \
-                   -output {tree_id tree_name}]
+  lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
+      locale locale_clause
 
-    #my msg "[llength $trees] == 0 && $tree_name"
-    if {[llength $trees] == 0 && $tree_name ne ""} {
-      # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
-      # try to get these
-      foreach name $tree_name {
-        #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
-        set tree_id [lindex [category_tree::get_id $tree_name] 0]
-        if {$tree_id ne ""} {
-          lappend trees [list $tree_id $name]
-        }
+  set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+                 -names $tree_name \
+                 -output {tree_id tree_name}]
+
+  #my msg "[llength $trees] == 0 && $tree_name"
+  if {[llength $trees] == 0 && $tree_name ne ""} {
+    # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
+    # try to get these
+    foreach name $tree_name {
+      #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
+      set tree_id [lindex [category_tree::get_id $tree_name] 0]
+      if {$tree_id ne ""} {
+        lappend trees [list $tree_id $name]
       }
     }
+  }
 
-    set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit]
-    if {[llength $trees] == 0} {
-      return [my category_tree_missing -name $tree_name -edit_html $edit_html]
+  set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit]
+  if {[llength $trees] == 0} {
+    return [my category_tree_missing -name $tree_name -edit_html $edit_html]
+  }
+
+  if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
+
+  foreach tree $trees {
+    lassign $tree tree_id my_tree_name ...
+
+    set edit_html [my category_tree_edit_button -object_id $package_id \
+                       -allow_edit $allow_edit -tree_id $tree_id]
+    #append content "<div style='float:right;'>$edit_html</div>\n"
+
+    if {!$no_tree_name} {
+      append content "<h3>$my_tree_name $edit_html</h3>"
+    } elseif {$edit_html ne ""} {
+      append content "$edit_html<br>"
+    }
+    set categories [list]
+    set pos 0
+    set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
+                        -id [my id]-$my_tree_name -name $my_tree_name]
+
+    set category_infos [::xowiki::Category get_category_infos \
+                            -locale $locale -tree_id $tree_id]
+    foreach category_info $category_infos {
+      lassign $category_info cid category_label deprecated_p level
+      set c [::xowiki::TreeNode new -orderby pos  \
+                 -level $level -label $category_label -pos [incr pos]]
+      set cattree($level) $c
+      set plevel [expr {$level -1}]
+      $cattree($plevel) add $c
+      set category($cid) $c
+      lappend categories $cid
     }
 
-    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
+    if {[llength $categories] == 0} {
+      return $content
+    }
 
-    foreach tree $trees {
-      lassign $tree tree_id my_tree_name ...
+    if {[info exists ordered_composite]} {
+      set items [list]
+      foreach c [$ordered_composite children] {lappend items [$c item_id]}
 
-      set edit_html [my category_tree_edit_button -object_id $package_id \
-			 -allow_edit $allow_edit -tree_id $tree_id]
-      #append content "<div style='float:right;'>$edit_html</div>\n"
+      # If we have no item, provide a dummy one to avoid sql error
+      # later
+      if {[llength $items]<1} {set items -4711}
 
-      if {!$no_tree_name} {
-        append content "<h3>$my_tree_name $edit_html</h3>"
-      } elseif {$edit_html ne ""} {
-        append content "$edit_html<br>"
-      }
-      set categories [list]
-      set pos 0
-      set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
-			  -id [my id]-$my_tree_name -name $my_tree_name]
-
-      set category_infos [::xowiki::Category get_category_infos \
-			      -locale $locale -tree_id $tree_id]
-      foreach category_info $category_infos {
-        lassign $category_info cid category_label deprecated_p level
-        set c [::xowiki::TreeNode new -orderby pos  \
-                   -level $level -label $category_label -pos [incr pos]]
-        set cattree($level) $c
-        set plevel [expr {$level -1}]
-        $cattree($plevel) add $c
-        set category($cid) $c
-        lappend categories $cid
-      }
-
-      if {[llength $categories] == 0} {
-        return $content
-      }
-
-      if {[info exists ordered_composite]} {
-        set items [list]
-        foreach c [$ordered_composite children] {lappend items [$c item_id]}
-
-        # If we have no item, provide a dummy one to avoid sql error
-        # later
-        if {[llength $items]<1} {set items -4711}
-
-        if {$count} {
-          set sql "category_object_map c
+      if {$count} {
+        set sql "category_object_map c
              where c.object_id in ([join $items ,]) "
-        } else {
-          # TODO: the non-count-part for the ordered_composite is not
-          # tested yet. Although "ordered compostite" can be used
-          # only programmatically for now, the code below should be
-          # tested. It would be as well possible to obtain titles and
-          # names etc. from the ordered composite, resulting in a
-          # faster SQL like above.
-          set sql "category_object_map c, cr_items ci, cr_revisions r
+      } else {
+        # TODO: the non-count-part for the ordered_composite is not
+        # tested yet. Although "ordered compostite" can be used
+        # only programmatically for now, the code below should be
+        # tested. It would be as well possible to obtain titles and
+        # names etc. from the ordered composite, resulting in a
+        # faster SQL like above.
+        set sql "category_object_map c, cr_items ci, cr_revisions r
             where c.object_id in ([join $items ,])
               and c.object_id = ci.item_id and 
               and r.revision_id = ci.live_revision 
            "
-        }
-      } else {
-        set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
-		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
-		and ci.content_type not in ('::xowiki::PageTemplate') \
-		and c.category_id in ([join $categories ,]) \
-		and r.revision_id = ci.live_revision \
-		and p.page_id = r.revision_id \
+      }
+    } else {
+      set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
+        where c.object_id = ci.item_id and ci.parent_id = $folder_id \
+        and ci.content_type not in ('::xowiki::PageTemplate') \
+        and c.category_id in ([join $categories ,]) \
+        and r.revision_id = ci.live_revision \
+        and p.page_id = r.revision_id \
                 and ci.publish_status <> 'production'"
-      }
+    }
 
-      if {$except_category_ids ne ""} {
-        append sql \
-            " and not exists (select * from category_object_map c2 \
-		where ci.item_id = c2.object_id \
-		and c2.category_id in ($except_category_ids))"
-      }
-      #ns_log notice "--c category_ids=$category_ids"
-      if {$category_ids ne ""} {
-        foreach cid [split $category_ids ,] {
-          set or_ids [split $cid |]
-	  foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
-          append sql " and exists (select * from category_object_map \
-	     where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
-        }
-      }
-      append sql $locale_clause
-      
-      if {$count} {
-        ::xo::dc foreach get_counts \
-            "select count(*) as nr,category_id from $sql group by category_id" {
-              $category($category_id) set count $nr
-              set s [expr {$summary ? "&summary=$summary" : ""}]
-              $category($category_id) href [ad_conn url]?category_id=$category_id$s
-              $category($category_id) open_tree
-	  }
-        append content [$cattree(0) render -style [my set style]]
-      } else {
-        lassign [split $order_items_by ,] orderby direction     ;# e.g. "title,asc"
-        set increasing [expr {$direction ne "desc"}]
-	set order_column ", p.page_order" 
-
-        ::xo::dc foreach get_pages \
-            "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
-              if {$title eq ""} {set title $name}
-              set itemobj [Object new]
-              set prefix ""
-              set suffix ""
-              foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
-	      $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]              
-              $cattree(0) add_item \
-                  -category $category($category_id) \
-                  -itemobj $itemobj \
-                  -orderby $orderby \
-                  -increasing $increasing \
-                  -open_item [expr {$item_id == $open_item_id}]
-            }
-        append content [$cattree(0) render -style [my set style]]
+    if {$except_category_ids ne ""} {
+      append sql \
+          " and not exists (select * from category_object_map c2 \
+        where ci.item_id = c2.object_id \
+        and c2.category_id in ($except_category_ids))"
+    }
+    #ns_log notice "--c category_ids=$category_ids"
+    if {$category_ids ne ""} {
+      foreach cid [split $category_ids ,] {
+        set or_ids [split $cid |]
+        foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
+        append sql " and exists (select * from category_object_map \
+         where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
       }
     }
-    return $content
+    append sql $locale_clause
+    
+    if {$count} {
+      ::xo::dc foreach get_counts \
+          "select count(*) as nr,category_id from $sql group by category_id" {
+            $category($category_id) set count $nr
+            set s [expr {$summary ? "&summary=$summary" : ""}]
+            $category($category_id) href [ad_conn url]?category_id=$category_id$s
+            $category($category_id) open_tree
+          }
+      append content [$cattree(0) render -style [my set style]]
+    } else {
+      lassign [split $order_items_by ,] orderby direction     ;# e.g. "title,asc"
+      set increasing [expr {$direction ne "desc"}]
+      set order_column ", p.page_order" 
+
+      ::xo::dc foreach get_pages \
+          "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
+            if {$title eq ""} {set title $name}
+            set itemobj [Object new]
+            set prefix ""
+            set suffix ""
+            foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
+            $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]              
+            $cattree(0) add_item \
+                -category $category($category_id) \
+                -itemobj $itemobj \
+                -orderby $orderby \
+                -increasing $increasing \
+                -open_item [expr {$item_id == $open_item_id}]
+          }
+      append content [$cattree(0) render -style [my set style]]
+    }
   }
+  return $content
+}
 }
 
 
@@ -874,12 +874,12 @@ namespace eval ::xowiki::includelet {
   
   categories-recent instproc render {} {
     my get_parameters
-  
+    
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     set cattree [::xowiki::Tree new -volatile -id [my id]]
 
     lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
-	locale locale_clause
+        locale locale_clause
 
     set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
                       -names $tree_name -output tree_id]
@@ -894,8 +894,8 @@ namespace eval ::xowiki::includelet {
                         to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
                  -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
                  -where "c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
-	 and r.revision_id = ci.live_revision \
-	 and p.page_id = r.revision_id $tree_select_clause $locale_clause \
+     and r.revision_id = ci.live_revision \
+     and p.page_id = r.revision_id $tree_select_clause $locale_clause \
          and ci.publish_status <> 'production'" \
                  -orderby "publish_date desc" \
                  -limit $max_entries]
@@ -905,9 +905,9 @@ namespace eval ::xowiki::includelet {
       set prefix ""
       set suffix ""
       switch -- $pretty_age {
-	1 {set suffix " ([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]])"}
-	2 {set suffix "([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2])"}
-	default {set prefix "$formatted_date "}
+        1 {set suffix " ([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]])"}
+        2 {set suffix "([::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2])"}
+        default {set prefix "$formatted_date "}
       }
       if {$prefix ne ""} {set prefix "<span class='date'>$prefix</span>";$itemobj set encoded(prefix) 1}
       if {$suffix ne ""} {set suffix "<span class='date'>$suffix</span>";$itemobj set encoded(suffix) 1}
@@ -976,56 +976,56 @@ namespace eval ::xowiki::includelet {
 
     foreach entry [$listing children] {
       $entry instvar parent_id formatted_date page_id {title entry_title} {name entry_name}
-        set entry_package_id [$entry set package_id]
+      set entry_package_id [$entry set package_id]
       
-        set page_link [$entry_package_id pretty_link -parent_id $parent_id $entry_name]
-        switch -- $pretty_age {
-	  1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]]}
-	  2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2]}
-	  default {set age $formatted_date}
-	}
-
-        t1 add \
-            -title $entry_title \
-            -title.href $page_link \
-            -date $age
-
-        if {$allow_edit} {
-          set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-          set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
-          #my log "page_link=$page_link, edit=$edit_link"
-          [t1 last_child] set edit.href $edit_link
-          [t1 last_child] set edit "&nbsp;"
-        }
-        if {$allow_delete} {
-          if {![info exists p]} {
-            set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-          }
-          set delete_link [$entry_package_id make_link -link $page_link $p delete return_url]
-          [t1 last_child] set delete.href $delete_link
-          [t1 last_child] set delete "&nbsp;"
-        }
-        if {$show_heritage} {
-          if {$entry_package_id == [my package_id]} {
-            set href ""
-            set title "" 
-            set alt ""
-            set class ""
-            set label ""
-          } else {
-            # provide a link to the original
-            set href $page_link
-            set label [$entry_package_id instance_name]
-            set title [_ xowiki.view_in_context [list context $label]]
-            set alt $title
-            set class "inherited"
-          }
-          [t1 last_child] set inherited $label
-          [t1 last_child] set inherited.href $href
-          [t1 last_child] set inherited.title $title
-          [t1 last_child] set inherited.CSSclass $class
-        }
+      set page_link [$entry_package_id pretty_link -parent_id $parent_id $entry_name]
+      switch -- $pretty_age {
+        1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale]]}
+        2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [my locale] -levels 2]}
+        default {set age $formatted_date}
       }
+
+      t1 add \
+          -title $entry_title \
+          -title.href $page_link \
+          -date $age
+
+      if {$allow_edit} {
+        set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
+        set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
+        #my log "page_link=$page_link, edit=$edit_link"
+        [t1 last_child] set edit.href $edit_link
+        [t1 last_child] set edit "&nbsp;"
+      }
+      if {$allow_delete} {
+        if {![info exists p]} {
+          set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
+        }
+        set delete_link [$entry_package_id make_link -link $page_link $p delete return_url]
+        [t1 last_child] set delete.href $delete_link
+        [t1 last_child] set delete "&nbsp;"
+      }
+      if {$show_heritage} {
+        if {$entry_package_id == [my package_id]} {
+          set href ""
+          set title "" 
+          set alt ""
+          set class ""
+          set label ""
+        } else {
+          # provide a link to the original
+          set href $page_link
+          set label [$entry_package_id instance_name]
+          set title [_ xowiki.view_in_context [list context $label]]
+          set alt $title
+          set class "inherited"
+        }
+        [t1 last_child] set inherited $label
+        [t1 last_child] set inherited.href $href
+        [t1 last_child] set inherited.title $title
+        [t1 last_child] set inherited.CSSclass $class
+      }
+    }
     return [t1 asHTML]
   }
 }
@@ -1053,16 +1053,16 @@ namespace eval ::xowiki::includelet {
         -columns {
           AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
         }
-      
+    
     xo::dc foreach get_pages \
-       [::xo::dc select \
-            -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
-            -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
-            -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
-	    and r.revision_id = p.page_id and x.user_id = [::xo::cc set untrusted_user_id] \
-	    and x.package_id = :package_id  and i.publish_status <> 'production'" \
-            -orderby "visited_date desc" \
-            -limit $max_entries] \
+        [::xo::dc select \
+             -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
+             -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+             -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
+        and r.revision_id = p.page_id and x.user_id = [::xo::cc set untrusted_user_id] \
+        and x.package_id = :package_id  and i.publish_status <> 'production'" \
+             -orderby "visited_date desc" \
+             -limit $max_entries] \
         {
           t1 add \
               -title $title \
@@ -1092,7 +1092,7 @@ namespace eval ::xowiki::includelet {
   most-popular instproc render {} {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
-   
+    
     if {[info exists interval]} {
       # 
       # If we have and interval, we cannot get report the number of visits 
@@ -1112,8 +1112,8 @@ namespace eval ::xowiki::includelet {
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
-		  i.publish_status <> 'production' and i.live_revision = r.revision_id \
-            	  and $since_condition" \
+          i.publish_status <> 'production' and i.live_revision = r.revision_id \
+                  and $since_condition" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "nr_different_users desc" \
                -limit $max_entries ] {
@@ -1135,7 +1135,7 @@ namespace eval ::xowiki::includelet {
                -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
-		       i.publish_status <> 'production' and i.live_revision = r.revision_id" \
+               i.publish_status <> 'production' and i.live_revision = r.revision_id" \
                -groupby "x.page_id, r.title, i.name, i.parent_id" \
                -orderby "sum desc" \
                -limit $max_entries] {
@@ -1215,24 +1215,24 @@ namespace eval ::xowiki::includelet {
   most-frequent-visitors instproc render {} {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
-   
+    
     TableWidget t1 -volatile \
         -columns {
           Field user  -label Visitors -html { align right }
           Field count -label Visits -html { align right }
         }
     ::xo::dc foreach most-frequent-visistors \
-          [::xo::dc select \
-               -vars "sum(count) as sum, user_id"  \
-               -from "xowiki_last_visited"  \
-               -where "package_id = :package_id"  \
-               -groupby "user_id" \
-               -orderby "sum desc" \
-               -limit $max_entries] {
-                 t1 add \
-                     -user [::xo::get_user_name $user_id] \
-                     -count $sum
-               }
+        [::xo::dc select \
+             -vars "sum(count) as sum, user_id"  \
+             -from "xowiki_last_visited"  \
+             -where "package_id = :package_id"  \
+             -groupby "user_id" \
+             -orderby "sum desc" \
+             -limit $max_entries] {
+               t1 add \
+                   -user [::xo::get_user_name $user_id] \
+                   -count $sum
+             }
     return [t1 asHTML]
   }
 
@@ -1269,11 +1269,11 @@ namespace eval ::xowiki::includelet {
         }
     set user_id [::xo::cc user_id]
     set or_clause "or i.item_id in (
-	select x.page_id 
-	from xowiki_last_visited x, acs_objects o 
-	where x.time < o.last_modified 
-	and x.page_id = o.object_id 
-	and x.package_id = :package_id
+    select x.page_id 
+    from xowiki_last_visited x, acs_objects o 
+    where x.time < o.last_modified 
+    and x.page_id = o.object_id 
+    and x.package_id = :package_id
         and x.user_id = :user_id
      )"
 
@@ -1281,20 +1281,20 @@ namespace eval ::xowiki::includelet {
     set folder_id [$package_id folder_id] 
 
     ::xo::dc foreach unread-items \
-       [::xo::dc select \
-            -vars "a.title, i.name, i.parent_id" \
-            -from "xowiki_page p, cr_items i, acs_objects a "  \
-            -where "(i.item_id not in (
-			select x.page_id from xowiki_last_visited x 
+        [::xo::dc select \
+             -vars "a.title, i.name, i.parent_id" \
+             -from "xowiki_page p, cr_items i, acs_objects a "  \
+             -where "(i.item_id not in (
+            select x.page_id from xowiki_last_visited x 
                         where x.user_id = [::xo::cc user_id] and x.package_id = :package_id
-		    ) $or_clause
+            ) $or_clause
                     )
                     and i.live_revision = p.page_id 
                     and i.parent_id = :folder_id
                     and i.publish_status <> 'production'
                     and a.object_id = i.item_id" \
-            -orderby "a.creation_date desc" \
-            -limit $max_entries] \
+             -orderby "a.creation_date desc" \
+             -limit $max_entries] \
         {
           t1 add \
               -title $title \
@@ -1404,7 +1404,7 @@ namespace eval ::xowiki::includelet {
       (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="block";return false;'>#xowiki.edit_link#</a>,
        <a href='#' onclick='get_popular_tags("$popular_tags_link","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
       <FORM id='[my id]-edit_tags' style='display: none' action="$save_tag_link" method='POST'>
-        <INPUT name='new_tags' type='text' value="$tags">
+      <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
       <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
@@ -1446,7 +1446,7 @@ namespace eval ::xowiki::includelet {
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_image \
             "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-   	     alt='$notification_text' title='$notification_text'>"
+            alt='$notification_text' title='$notification_text'>"
 
         set cat_notif_link [export_vars -base /notifications/request-new \
                                 {{return_url $notifications_return_url} \
@@ -1454,8 +1454,8 @@ namespace eval ::xowiki::includelet {
                                      {type_id $notification_type} \
                                      {object_id $category_id}}]
         append entry "<a href='$cat_notif_link'> " \
-                         "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
-                         "alt='$notification_text' title='$notification_text'>" </a>
+            "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
+            "alt='$notification_text' title='$notification_text'>" </a>
 
       }
       lappend entries $entry
@@ -1593,15 +1593,15 @@ namespace eval ::xowiki::includelet {
     xo::dc foreach get_references "SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
         where reference = :item_id and ci.item_id = page and ci.item_id = o.object_id" {
-          if {$pid eq ""} {
-            # in version less then oacs 5.2, this returns empty
-	    set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
-          }
-          if {$pid ne ""} {
-            ::xowiki::Package require $pid
-            lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
-          }
-        }
+      if {$pid eq ""} {
+        # in version less then oacs 5.2, this returns empty
+        set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
+      }
+      if {$pid ne ""} {
+        ::xowiki::Package require $pid
+        lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+      }
+    }
     set references [join $refs ", "]
 
     array set lang {found "" undefined ""}
@@ -1635,18 +1635,18 @@ namespace eval ::xowiki::includelet {
     set item_id [$__including_page item_id] 
     set refs [list]
 
-   ::xo::dc foreach get_refers "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
+    ::xo::dc foreach get_refers "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
         where page = :item_id and ci.item_id = reference and ci.item_id = o.object_id" {
-          if {$pid eq ""} {
-            # in version less then oacs 5.2, this returns empty
-            set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
-          }
-          if {$pid ne ""} {
-            ::xowiki::Package require $pid
-            lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
-          }
-        }
+      if {$pid eq ""} {
+        # in version less then oacs 5.2, this returns empty
+        set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
+      }
+      if {$pid ne ""} {
+        ::xowiki::Package require $pid
+        lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+      }
+    }
 
     set references [join $refs ", "]
 
@@ -1773,12 +1773,12 @@ namespace eval ::xowiki::includelet {
                        $package_id change-page-order]
       #my msg "granted=$granted"
       if {$granted} {
-	if {$with_head_entries} {
-	  set ajaxhelper 1
-	  ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-	  ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-	  ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
-	}
+        if {$with_head_entries} {
+          set ajaxhelper 1
+          ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+          ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+          ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+        }
       } else {
         # the user has not enough permissions, so disallow
         set allow_reorder ""
@@ -1834,14 +1834,14 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
           {-source ""}
           {-range ""}
-	  {-allow_reorder ""}
+          {-allow_reorder ""}
         }}
         id
       }
 
-#"select page_id,  page_order, name, title, \
-#	(select count(*)-1 from xowiki_page_live_revision where page_order <@ p.page_order) as count \
-#	from xowiki_page_live_revision p where not page_order is NULL order by page_order asc"
+  #"select page_id,  page_order, name, title, \
+      #    (select count(*)-1 from xowiki_page_live_revision where page_order <@ p.page_order) as count \
+      #    from xowiki_page_live_revision p where not page_order is NULL order by page_order asc"
 
   toc instproc count {} {return [my set navigation(count)]}
   toc instproc current {} {return [my set navigation(current)]}
@@ -1849,8 +1849,8 @@ namespace eval ::xowiki::includelet {
   toc instproc page_name {p} {return [my set page_name($p)]}
   toc instproc cache_includelet_data {key} {
     append data \
-	[list my array set navigation [my array get navigation]] \n \
-	[list my array set page_name [my array get page_name]] \n
+        [list my array set navigation [my array get navigation]] \n \
+        [list my array set page_name [my array get page_name]] \n
     return $data
   }
 
@@ -1872,7 +1872,7 @@ namespace eval ::xowiki::includelet {
       lassign [my category_clause [my set category_id]] cnames extra_where_clause
     }
     lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
-	locale locale_clause
+        locale locale_clause
     #my msg locale_clause=$locale_clause
 
     if {$source ne ""} {
@@ -1897,18 +1897,18 @@ namespace eval ::xowiki::includelet {
                  -vars "page_id, $page_order_att name, title" \
                  -from "xowiki_page_live_revision p" \
                  -where "parent_id = :parent_id \
-			$page_order_clause \
-			$extra_where_clause $locale_clause"]
+            $page_order_clause \
+            $extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
 
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     if {$range ne "" && $page_order_att ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
-	if {[$pages __value_compare [$p set page_order] $from 0] == -1
-	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
-	  $pages delete $p
-	}
+        if {[$pages __value_compare [$p set page_order] $from 0] == -1
+            || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+          $pages delete $p
+        }
       }
     }
 
@@ -1916,7 +1916,7 @@ namespace eval ::xowiki::includelet {
     if {$source ne ""} {
       # add the page_order to the objects
       foreach p [$pages children] {
-	$p set page_order [my set page_order([$p set name])]
+        $p set page_order [my set page_order([$p set name])]
       }
     }
 
@@ -2024,7 +2024,7 @@ namespace eval ::xowiki::includelet {
                 {
                   success:function(o) {
                      var bookpage = document.getElementById('book-page');
-     		     var fadeOutAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 0} }, 0.5 );
+                  var fadeOutAnim = new YAHOO.util.Anim(bookpage, { opacity: {to: 0} }, 0.5 );
 
                      var doFadeIn = function(type, args) {
                         // console.log('fadein starts');
@@ -2081,7 +2081,7 @@ namespace eval ::xowiki::includelet {
                      document.getElementById('bookNavBar').style.width = percent;
 
                      fadeOutAnim.onComplete.subscribe(doFadeIn);
-  		     fadeOutAnim.animate();
+               fadeOutAnim.animate();
                   }, 
                   failure:function(o) {
                      // console.error(o);
@@ -2121,7 +2121,7 @@ namespace eval ::xowiki::includelet {
             //console.info(m\[1\]);
             //window.location.href = m\[1\];
             return false;
-	}); 
+    }); 
         [my js_name].render();
       });
      "
@@ -2151,7 +2151,7 @@ namespace eval ::xowiki::includelet {
     $tree array set open_node [my array get open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
-	-owner [self] \
+        -owner [self] \
         $pages
 
     set HTML [$tree render -style yuitree -js $js]
@@ -2180,7 +2180,7 @@ namespace eval ::xowiki::includelet {
     $tree array set open_node [my array get open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
-	-owner [self] \
+        -owner [self] \
         $pages
 
     if {$allow_reorder ne ""} {
@@ -2205,9 +2205,9 @@ namespace eval ::xowiki::includelet {
     switch -- $renderer {
       yuitree {::xowiki::Tree include_head_entries -renderer yuitree -style $style}
       list    {
-	my get_parameters
-	set tree_renderer [expr {$allow_reorder eq "" ? "list" : "listdnd"}]
-	::xowiki::Tree include_head_entries -renderer $tree_renderer -style $style       
+        my get_parameters
+        set tree_renderer [expr {$allow_reorder eq "" ? "list" : "listdnd"}]
+        ::xowiki::Tree include_head_entries -renderer $tree_renderer -style $style       
       }
       none {}
     }
@@ -2278,7 +2278,7 @@ namespace eval ::xowiki::includelet {
           {-ordered_pages ""}
           {-source}
           {-menu_buttons edit}
-	  {-range ""}
+          {-range ""}
         }}
       }
 
@@ -2298,10 +2298,10 @@ namespace eval ::xowiki::includelet {
     set page_names ('[join [array names page_order] ',']')
     set pages [::xowiki::Page instantiate_objects -sql \
                    "select page_id, name, title, item_id \
-		from xowiki_page_live_revision p \
-		where parent_id = [$package_id folder_id] \
-		and name in $page_names \
-		[::xowiki::Page container_already_rendered item_id]" ]
+        from xowiki_page_live_revision p \
+        where parent_id = [$package_id folder_id] \
+        and name in $page_names \
+        [::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
       $p set page_order $page_order([$p set name])
     }
@@ -2310,10 +2310,10 @@ namespace eval ::xowiki::includelet {
     if {$range ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
-	if {[$pages __value_compare [$p set page_order] $from 0] == -1
-	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
-	  $pages delete $p
-	}
+        if {[$pages __value_compare [$p set page_order] $from 0] == -1
+            || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+          $pages delete $p
+        }
       }
     }
     
@@ -2342,11 +2342,11 @@ namespace eval ::xowiki::includelet {
 
       set menu [list]
       foreach b $menu_buttons {
-	if {[info commands ::xowiki::includelet::$b] eq ""} {
-	  set b $b-item-button
-	}
-	set html [$p include [list $b -book_mode true]]
-	if {$html ne ""} {lappend menu $html}
+        if {[info commands ::xowiki::includelet::$b] eq ""} {
+          set b $b-item-button
+        }
+        set html [$p include [list $b -book_mode true]]
+        if {$html ne ""} {lappend menu $html}
       }
       append output "<h$level class='book'>" \
           "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
@@ -2393,9 +2393,9 @@ namespace eval ::xowiki::includelet {
       <span id='$id' style='display: none'>
       Form Name: 
       <FORM action="$base?m=create-new" method='POST' style='display: inline'>
-         <INPUT name='class' type='hidden' value="::xowiki::Form">
-         <INPUT name='content' type='hidden' value="$as_att_value">
-         <INPUT name='name' type='text'>
+      <INPUT name='class' type='hidden' value="::xowiki::Form">
+      <INPUT name='content' type='hidden' value="$as_att_value">
+      <INPUT name='name' type='text'>
       </FORM>
       </span>
     }]
@@ -2416,11 +2416,11 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-category_id}
           {-menu_buttons edit}
-	  {-folder_mode false}
+          {-folder_mode false}
           {-locale ""}
-	  {-range ""}
-	  {-allow_reorder ""}
-	  {-with_footer "false"}
+          {-range ""}
+          {-allow_reorder ""}
+          {-with_footer "false"}
         }}
       }
 
@@ -2435,7 +2435,7 @@ namespace eval ::xowiki::includelet {
     set menu [list]
     foreach b $menu_buttons {
       if {[info commands ::xowiki::includelet::$b] eq ""} {
-	set b $b-item-button
+        set b $b-item-button
       }
       set html [$object include [list $b -book_mode true]]
       if {$html ne ""} {lappend menu $html}
@@ -2446,9 +2446,9 @@ namespace eval ::xowiki::includelet {
       set menu "<span style='float: right;'>$menu</span>"
     }
     append output \
-	"<h$level class='book'>" $menu \
-	"<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
-	$content
+        "<h$level class='book'>" $menu \
+        "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
+        $content
   }
 
   book instproc render_items {
@@ -2499,7 +2499,7 @@ namespace eval ::xowiki::includelet {
       }
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-    
+      
       $p set unresolved_references 0
       #$p set render_adp 0
       switch [$p info class] {
@@ -2513,10 +2513,10 @@ namespace eval ::xowiki::includelet {
       }
       
       append output [my render_item \
-			 -menu_buttons $menu_buttons \
-			 -content $content \
-			 -object $p \
-			 -level $level]
+                         -menu_buttons $menu_buttons \
+                         -content $content \
+                         -object $p \
+                         -level $level]
       if {$with_footer} {
         append output [$p htmlFooter -content $content]
       }
@@ -2541,7 +2541,7 @@ namespace eval ::xowiki::includelet {
       set html [$p render -with_footer false] 
       if {[regsub -nocase {^(.*)(<img\s*[^>]+>)(.*)$} $html {\2} html] < 1} continue
       if {[info exists addClass]} {
-	regsub -nocase {class\s*=\s*'([^']+)'} $html "class='\\1 $addClass'" html
+        regsub -nocase {class\s*=\s*'([^']+)'} $html "class='\\1 $addClass'" html
       }
       lappend imageList $html
     }
@@ -2564,7 +2564,7 @@ namespace eval ::xowiki::includelet {
     }
 
     lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
-	locale locale_clause
+        locale locale_clause
 
     if {$folder_mode} {
       # TODO just needed for michael aram?
@@ -2575,12 +2575,12 @@ namespace eval ::xowiki::includelet {
     }
 
     set pages [::xowiki::Page instantiate_objects -sql \
-        "select page_id, page_order, name, title, item_id \
-		from xowiki_page_live_revision p \
-		where parent_id = $parent_id  \
-		and not page_order is NULL $extra_where_clause \
-		$locale_clause \
-		[::xowiki::Page container_already_rendered item_id]" ]
+                   "select page_id, page_order, name, title, item_id \
+        from xowiki_page_live_revision p \
+        where parent_id = $parent_id  \
+        and not page_order is NULL $extra_where_clause \
+        $locale_clause \
+        [::xowiki::Page container_already_rendered item_id]" ]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby page_order
 
@@ -2590,10 +2590,10 @@ namespace eval ::xowiki::includelet {
     if {$range ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
-	if {[$pages __value_compare [$p set page_order] $from 0] == -1
-	    || [$pages __value_compare [$p set page_order] $to 0] > 0} {
-	  $pages delete $p
-	}
+        if {[$pages __value_compare [$p set page_order] $from 0] == -1
+            || [$pages __value_compare [$p set page_order] $to 0] > 0} {
+          $pages delete $p
+        }
       }
     }
 
@@ -2605,11 +2605,11 @@ namespace eval ::xowiki::includelet {
       set output "<p>No pages with parent object [$p name], page_order not NULL and an appropriate publish status found</p>\n"
     } else {
       set output [my render_items \
-		      -menu_buttons $menu_buttons \
-		      -with_footer $with_footer \
-		      -pages $pages \
-		      -cnames $cnames \
-		      -allow_reorder $allow_reorder]
+                      -menu_buttons $menu_buttons \
+                      -with_footer $with_footer \
+                      -pages $pages \
+                      -cnames $cnames \
+                      -allow_reorder $allow_reorder]
     }
     return $output
   }
@@ -2641,17 +2641,17 @@ namespace eval ::xowiki::includelet {
     }
 
     ns_return 200 text/html [subst {<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
-<head> 
+      <head> 
       <title>[$__including_page title]</title> 
-  <link rel="stylesheet" href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" type="text/css" media="screen, projection" />
-  <link rel="stylesheet" href="print.css" type="text/css"
-  media="print" />
-  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js" type="text/javascript">
-  </script>
-</head>
-<body>
-$output
-</body>
+      <link rel="stylesheet" href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" type="text/css" media="screen, projection" />
+      <link rel="stylesheet" href="print.css" type="text/css"
+      media="print" />
+      <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js" type="text/javascript">
+      </script>
+      </head>
+      <body>
+      $output
+      </body>
     }]
     ad_script_abort
   }
@@ -2678,15 +2678,15 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-	"<div id='$id'><ul>\n" \
-	<li>[join [my render_images $pages] "</li>\n<li>"]</li> \
-	"</ul></div>\n"
+        "<div id='$id'><ul>\n" \
+        <li>[join [my render_images $pages] "</li>\n<li>"]</li> \
+        "</ul></div>\n"
 
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
     ::xo::Page requireJS "/resources/xowiki/jquery.carousel.min.js"
     ::xo::Page requireJS [subst -novariables {
       $(function(){
-	$("#[set id]").carousel(  );
+        $("#[set id]").carousel(  );
       });
     }]
     return $output
@@ -2732,19 +2732,19 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-	"<div id='$id'><ul>\n" \
-	<li>[join [my render_images $pages] "</li>\n<li>"]</li> \
-	"</ul></div>\n"
+        "<div id='$id'><ul>\n" \
+        <li>[join [my render_images $pages] "</li>\n<li>"]</li> \
+        "</ul></div>\n"
 
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
     ::xo::Page requireJS "/resources/xowiki/infiniteCarousel/jquery.infinitecarousel2.min.js"
     ::xo::Page requireJS [subst -novariables {
       $(function(){
-	$("#[set id]").infiniteCarousel({
-	  displayTime: 6000,
-	  textholderHeight : .25,
-  	  imagePath: '/resources/xowiki/infiniteCarousel/images/',
-	});
+        $("#[set id]").infiniteCarousel({
+          displayTime: 6000,
+          textholderHeight : .25,
+          imagePath: '/resources/xowiki/infiniteCarousel/images/',
+        });
       });}]
 
     return $output
@@ -2792,9 +2792,9 @@ namespace eval ::xowiki::includelet {
     
     set id [my js_name]
     append output \
-	"<div id='$id'>" \
-	[join [my render_images -addClass cloudcarousel $pages] "\n"] \
-	"</div>\n"
+        "<div id='$id'>" \
+        [join [my render_images -addClass cloudcarousel $pages] "\n"] \
+        "</div>\n"
 
     ::xo::Page requireStyle "div.jquery-cloud-carousel div {width:650px; height:400px;background:#000;}"
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
@@ -2803,18 +2803,18 @@ namespace eval ::xowiki::includelet {
 
     ::xo::Page requireJS [subst -novariables {
       $(function(){
-	$("#[set id]").CloudCarousel(
-	      {
-			xPos: 300,
-			yPos: 32,
-			buttonLeft: $("#left-but"),
-			buttonRight: $("#right-but"),
-			altBox: $("#alt-text"),
-			titleBox: $("#title-text"),
-		        bringToFront: true,
-		        mouseWheel:true
-	      }
-	);
+        $("#[set id]").CloudCarousel(
+                                     {
+                                       xPos: 300,
+                                       yPos: 32,
+                                       buttonLeft: $("#left-but"),
+                                       buttonRight: $("#right-but"),
+                                       altBox: $("#alt-text"),
+                                       titleBox: $("#title-text"),
+                                       bringToFront: true,
+                                       mouseWheel:true
+                                     }
+                                     );
       });
     }]
     return $output
@@ -2870,9 +2870,9 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-	"<div id='$id' class='spacegallery'>\n" \
-	[join [my render_images $pages] "\n"] \
-	"</div>\n"
+        "<div id='$id' class='spacegallery'>\n" \
+        [join [my render_images $pages] "\n"] \
+        "</div>\n"
 
     ::xo::Page requireStyle "div.spacegallery {width:600px; height:450px;}"
     ::xo::Page requireCSS "/resources/xowiki/spacegallery/spacegallery.css"
@@ -2882,7 +2882,7 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireJS "/resources/xowiki/spacegallery/js/spacegallery.js"
     ::xo::Page requireJS [subst -novariables {
       $(function(){
-	$("#[set id]").spacegallery({loadingClass: 'loading'});
+        $("#[set id]").spacegallery({loadingClass: 'loading'});
       });
     }]
     return $output
@@ -2902,7 +2902,7 @@ namespace eval ::xowiki::includelet {
       }
 
   item-button instproc initialize {} {
-      if {[my return_url] eq "" } { my return_url [[my package_id] url]}
+    if {[my return_url] eq "" } { my return_url [[my package_id] url]}
   }
 
   item-button instproc render_button {
@@ -2923,12 +2923,12 @@ namespace eval ::xowiki::includelet {
     if {![info exists alt]} {set alt $method}
     if {![info exists link] || $link eq ""} {
       if {[$page istype ::xowiki::Package]} {
-	set link  [$package_id make_link $package_id edit-new object_type \
-		       return_url page_order source_item_id]
+        set link  [$package_id make_link $package_id edit-new object_type \
+                       return_url page_order source_item_id]
       } else {
-	set p_link [$page pretty_link]
-	set link [$package_id make_link -link $p_link $page $method \
-		      return_url page_order source_item_id]
+        set p_link [$page pretty_link]
+        set link [$package_id make_link -link $p_link $page $method \
+                      return_url page_order source_item_id]
       }
     }
     if {$link ne ""} {
@@ -2967,8 +2967,8 @@ namespace eval ::xowiki::includelet {
       append return_url #[toc anchor [$page name]]
     }
     return [my render_button \
-		-page $page -method edit -package_id $package_id -link $link \
-		-title $title -alt $alt -return_url $return_url -target $target]
+                -page $page -method edit -package_id $package_id -link $link \
+                -title $title -alt $alt -return_url $return_url -target $target]
   }
 
   ::xowiki::IncludeletClass create delete-item-button \
@@ -2988,12 +2988,12 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     return [my render_button \
-		  -page $page -method delete -package_id $package_id \
-		  -title $title -alt $alt \
-		  -return_url $return_url]
+                -page $page -method delete -package_id $package_id \
+                -title $title -alt $alt \
+                -return_url $return_url]
   }
 
- ::xowiki::IncludeletClass create view-item-button \
+  ::xowiki::IncludeletClass create view-item-button \
       -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
@@ -3011,9 +3011,9 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page return_url
     set page [expr {[info exists page_id] ? $page_id : $__including_page}]
     return [my render_button \
-		-page $page -method view -package_id $package_id \
-		-link $link -title $title -alt $alt \
-		-return_url $return_url]
+                -page $page -method view -package_id $package_id \
+                -link $link -title $title -alt $alt \
+                -return_url $return_url]
   }
 
 
@@ -3036,17 +3036,17 @@ namespace eval ::xowiki::includelet {
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       return [my render_button \
-		  -page $template -method create-new -package_id $package_id \
-		  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
-		  -alt $alt -page_order $page_order \
-		  -return_url $return_url]
+                  -page $template -method create-new -package_id $package_id \
+                  -title [_ xowiki.create_new_entry_of_type [list type [$template title]]] \
+                  -alt $alt -page_order $page_order \
+                  -return_url $return_url]
     } else {
       set object_type [$__including_page info class]
       return [my render_button \
-		  -page $package_id -method edit_new -package_id $package_id \
-		  -title [_ xowiki.create_new_entry_of_type [list type $object_type]] \
-		  -alt $alt -page_order $page_order \
-		  -return_url $return_url \
+                  -page $package_id -method edit_new -package_id $package_id \
+                  -title [_ xowiki.create_new_entry_of_type [list type $object_type]] \
+                  -alt $alt -page_order $page_order \
+                  -return_url $return_url \
                   -object_type $object_type]
     }
   }
@@ -3069,17 +3069,17 @@ namespace eval ::xowiki::includelet {
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       return [my render_button \
-		  -page $template -method create-new -package_id $package_id \
-		  -title [_ xowiki.copy_entry [list type [$template title]]] \
-		  -alt $alt -source_item_id [$page item_id] \
-		  -return_url $return_url]
+                  -page $template -method create-new -package_id $package_id \
+                  -title [_ xowiki.copy_entry [list type [$template title]]] \
+                  -alt $alt -source_item_id [$page item_id] \
+                  -return_url $return_url]
     } else {
       set object_type [$__including_page info class]
       return [my render_button \
-		  -page $package_id -method edit_new -package_id $package_id \
-		  -title [_ xowiki.copy_entry [list type $object_type]] \
-		  -alt $alt -source_item_id [$page item_id] \
-		  -return_url $return_url \
+                  -page $package_id -method edit_new -package_id $package_id \
+                  -title [_ xowiki.copy_entry [list type $object_type]] \
+                  -alt $alt -source_item_id [$page item_id] \
+                  -return_url $return_url \
                   -object_type $object_type]
     }
   }
@@ -3124,34 +3124,34 @@ namespace eval ::xowiki::includelet {
     # [lsort -index 1 -decreasing -integer $edges]<br>[set cutoff] - [set c]<br>
 
     return [subst -novariables {
-<div>
-<canvas id="collab" width="500" height="500" style="border: 0px solid black">
-</canvas>
-[set nodesHTML]
-<script type="text/javascript">
-function draw() {
-  if (typeof(G_vmlCanvasManager) == "object") {
-      G_vmlCanvasManager.init_(window.document);
-  } 
-  
-  var g = new Graph();
-[set edgesHTML]
-  var layouter = new Graph.Layout.Spring(g);
-  layouter.layout();
+      <div>
+      <canvas id="collab" width="500" height="500" style="border: 0px solid black">
+      </canvas>
+      [set nodesHTML]
+      <script type="text/javascript">
+      function draw() {
+        if (typeof(G_vmlCanvasManager) == "object") {
+          G_vmlCanvasManager.init_(window.document);
+        } 
+        
+        var g = new Graph();
+        [set edgesHTML]
+        var layouter = new Graph.Layout.Spring(g);
+        layouter.layout();
 
-  // IE does not pick up the canvas width or height
-  $('collab').width=500;
-  $('collab').height=500;
+        // IE does not pick up the canvas width or height
+        $('collab').width=500;
+        $('collab').height=500;
 
-  var renderer = new Graph.Renderer.Basic($('collab'), g);
-  renderer.radius = 5;
-  renderer.draw();
-}
- YAHOO.util.Event.addListener(window, 'load', draw);
-//   YAHOO.util.Event.onContentReady('collab', draw); 
-</script>
-</div>
-}]
+        var renderer = new Graph.Renderer.Basic($('collab'), g);
+        renderer.radius = 5;
+        renderer.draw();
+      }
+      YAHOO.util.Event.addListener(window, 'load', draw);
+      //   YAHOO.util.Event.onContentReady('collab', draw); 
+      </script>
+      </div>
+    }]
   }
 }
 
@@ -3180,12 +3180,12 @@ namespace eval ::xowiki::includelet {
       select count(revision_id), item_id, creation_user 
       from cr_revisions r, acs_objects o 
       where item_id in 
-        (select distinct i.item_id from 
-          acs_objects o, acs_objects o2, cr_revisions cr, cr_items i 
-          where o.object_id = i.item_id and o2.object_id = cr.revision_id 
-          and o2.creation_user = :user_id and i.item_id = cr.item_id 
-          and i.parent_id = :folder_id order by item_id
-        ) 
+      (select distinct i.item_id from 
+       acs_objects o, acs_objects o2, cr_revisions cr, cr_items i 
+       where o.object_id = i.item_id and o2.object_id = cr.revision_id 
+       and o2.creation_user = :user_id and i.item_id = cr.item_id 
+       and i.parent_id = :folder_id order by item_id
+       ) 
       and o.object_id = revision_id 
       and creation_user is not null 
       group by item_id, creation_user} {
@@ -3221,7 +3221,7 @@ namespace eval ::xowiki::includelet {
       foreach x [array names collab] {
         if {$collab($x) > $max} {set max $collab($x)}
       }
- 
+      
       set edges [list]
       foreach x [array names collab] {
         lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
@@ -3262,13 +3262,13 @@ namespace eval ::xowiki::includelet {
     set tt [::xo::db::temp_table new \
                 -name $tmp_table_name \
                 -query [::xo::dc select \
-                   -vars "i.item_id, revision_id, creation_user" \
-                   -from "cr_revisions cr, cr_items i, acs_objects o" \
-                   -where "cr.item_id = i.item_id \
+                            -vars "i.item_id, revision_id, creation_user" \
+                            -from "cr_revisions cr, cr_items i, acs_objects o" \
+                            -where "cr.item_id = i.item_id \
                             and i.parent_id = [$package_id folder_id] \
                             and o.object_id = revision_id" \
-                   -orderby "revision_id desc" \
-                   -limit $max_activities] \
+                            -orderby "revision_id desc" \
+                            -limit $max_activities] \
                 -vars "item_id, revision_id, creation_user"]
     
     set total 0
@@ -3313,7 +3313,7 @@ namespace eval ::xowiki::includelet {
       foreach x [array names collab] {
         if {$collab($x) > $max} {set max $collab($x)}
       }
- 
+      
       set edges [list]
       foreach x [array names collab] {
         lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
@@ -3346,78 +3346,78 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireJS "/resources/ajaxhelper/yui/event/event.js"
     ::xo::Page requireJS "/resources/xowiki/timeline/api/timeline-api.js"
 
-   set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
-   if {[info exists user_id]} {append data "?user_id=$user_id"}
+    set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
+    if {[info exists user_id]} {append data "?user_id=$user_id"}
 
-   return [subst -nocommands -nobackslashes {
- <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
-<script type="text/javascript">
-var tl;
-function onLoad() {
-  var eventSource = new Timeline.DefaultEventSource();
-  var bandInfos = [
-    Timeline.createBandInfo({
-        eventSource:    eventSource,
-        date:           "$stamp",
-        width:          "70%", 
-        intervalUnit:   Timeline.DateTime.$interval1, 
-        intervalPixels: 100
-    }),
-    Timeline.createBandInfo({
-        eventSource:    eventSource,
-        date:           "$stamp",
-        width:          "30%", 
-        intervalUnit:   Timeline.DateTime.$interval2, 
-        intervalPixels: 200
-    })
-  ];
-  //console.info(bandInfos);
-  bandInfos[1].syncWith = 0;
-  bandInfos[1].highlight = true;
+    return [subst -nocommands -nobackslashes {
+      <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
+      <script type="text/javascript">
+      var tl;
+      function onLoad() {
+        var eventSource = new Timeline.DefaultEventSource();
+        var bandInfos = [
+                         Timeline.createBandInfo({
+                           eventSource:    eventSource,
+                           date:           "$stamp",
+                           width:          "70%", 
+                           intervalUnit:   Timeline.DateTime.$interval1, 
+                           intervalPixels: 100
+                         }),
+                         Timeline.createBandInfo({
+                           eventSource:    eventSource,
+                           date:           "$stamp",
+                           width:          "30%", 
+                           intervalUnit:   Timeline.DateTime.$interval2, 
+                           intervalPixels: 200
+                         })
+                        ];
+        //console.info(bandInfos);
+        bandInfos[1].syncWith = 0;
+        bandInfos[1].highlight = true;
 
-  tl = Timeline.create(document.getElementById("my-timeline"), bandInfos);
-  //console.log('create done');
-  Timeline.loadXML("$data", function(xml, url) {eventSource.loadXML(xml,url); });
-}
+        tl = Timeline.create(document.getElementById("my-timeline"), bandInfos);
+        //console.log('create done');
+        Timeline.loadXML("$data", function(xml, url) {eventSource.loadXML(xml,url); });
+      }
 
-var resizeTimerID = null;
-function onResize() {
-//   console.log('resize');
+      var resizeTimerID = null;
+      function onResize() {
+        //   console.log('resize');
 
-    if (resizeTimerID == null) {
-        resizeTimerID = window.setTimeout(function() {
+        if (resizeTimerID == null) {
+          resizeTimerID = window.setTimeout(function() {
             resizeTimerID = null;
-//   console.log('call layout');
+            //   console.log('call layout');
             tl.layout();
-        }, 500);
-    }
-}
+          }, 500);
+        }
+      }
 
-YAHOO.util.Event.addListener(window, 'load',   onLoad());
-// YAHOO.util.Event.addListener(window, 'resize', onResize());
+      YAHOO.util.Event.addListener(window, 'load',   onLoad());
+      // YAHOO.util.Event.addListener(window, 'resize', onResize());
 
-</script>
+      </script>
 
-  }]
+    }]
   }
 
   ::xowiki::IncludeletClass create user-timeline \
       -superclass timeline \
       -parameter {
         {parameter_declaration {
-           -user_id 
-           {-data timeline-data} 
-           {-interval1 DAY} 
-           {-interval2 MONTH}
+          -user_id 
+          {-data timeline-data} 
+          {-interval1 DAY} 
+          {-interval2 MONTH}
         }}
       }
   
   user-timeline instproc render {} {
     my get_parameters
     if {![info exists user_id]} {set user_id [::xo::cc user_id]]}
-    ::xo::cc set_parameter user_id $user_id
-    next 
- }
+  ::xo::cc set_parameter user_id $user_id
+  next 
+}
 
 }
 
@@ -3496,13 +3496,13 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
     if {![info exists form_item_id]} {
       set form_item_id [::xowiki::Weblog instantiate_forms \
-			    -forms $form \
-			    -parent_id [$__including_page parent_id] \
-			    -package_id [$__including_page package_id]]
+                            -forms $form \
+                            -parent_id [$__including_page parent_id] \
+                            -package_id [$__including_page package_id]]
       if {$form_item_id eq ""} {
-	# we could throw an error as well...
-	my msg "could not locate form '$form' for parent_id [$__including_page parent_id]"
-	return ""
+        # we could throw an error as well...
+        my msg "could not locate form '$form' for parent_id [$__including_page parent_id]"
+        return ""
       }
     }
     if {[info exists parent_id]} {
@@ -3549,7 +3549,7 @@ namespace eval ::xowiki::includelet {
           {-parent_id}
           {-property _state}
           {-orderby "count,desc"}
-	  {-renderer "table"}
+          {-renderer "table"}
 
         }}
       }
@@ -3559,8 +3559,8 @@ namespace eval ::xowiki::includelet {
     set o [my set __including_page]
     if {![info exists parent_id]} {set parent_id [$o parent_id]}
     set form_item_ids [::xowiki::Weblog instantiate_forms \
-			   -forms $form -package_id $package_id \
-			   -parent_id $parent_id]
+                           -forms $form -package_id $package_id \
+                           -parent_id $parent_id]
     if {[llength $form_item_ids] != 1} {
       return "no such form $form<br>\n"
     }
@@ -3576,10 +3576,10 @@ namespace eval ::xowiki::includelet {
         set varname [string range $property 1 end]
         if {[$i exists $varname]} {set value [$i set $varname]}
       } else {
-	set instance_attributes [$i set instance_attributes]
-	if {[dict exists $instance_attributes $property]} {
-	  set value [dict get $instance_attributes $property]
-	}
+        set instance_attributes [$i set instance_attributes]
+        if {[dict exists $instance_attributes $property]} {
+          set value [dict get $instance_attributes $property]
+        }
       }
       if {[info exists __count($value)]} {incr __count($value)} else {set __count($value) 1}
       incr sum 1
@@ -3595,11 +3595,11 @@ namespace eval ::xowiki::includelet {
       #
       set percentages [list]
       foreach {value count} [array get __count] {
-	lappend percentages $value [format %.2f [expr {$count*100.0/$sum}]]
+        lappend percentages $value [format %.2f [expr {$count*100.0/$sum}]]
       }
       set h [highcharts new -volatile -id [my js_name] \
-		 -title [::xowiki::Includelet js_encode \
-			     "$sum Answers for Survey '[$form_item_ids title]'"]]
+                 -title [::xowiki::Includelet js_encode \
+                             "$sum Answers for Survey '[$form_item_ids title]'"]]
       return [$h pie [list value count] $percentages]
 
     } else {
@@ -3607,15 +3607,15 @@ namespace eval ::xowiki::includelet {
       # standard table encoder
       #
       TableWidget t1 -volatile \
-	  -columns {
-	    Field value -orderby value -label value
-	    Field count -orderby count -label count
-	  }
+          -columns {
+            Field value -orderby value -label value
+            Field count -orderby count -label count
+          }
       
       lassign [split $orderby ,] att order
       t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
       foreach {value count} [array get __count] {
-	t1 add -value $value -count $count
+        t1 add -value $value -count $count
       }
       return [t1 asHTML]
     }
@@ -3640,43 +3640,43 @@ namespace eval ::xowiki::includelet {
     }
     set values [join $values ",\n"]
     append result [subst -nocommands {
-<script type='text/javascript'>
-var chart;
-   chart = new Highcharts.Chart({
-      chart: {
-	 renderTo: '$id',
-         plotBackgroundColor: null,
-         plotBorderWidth: null,
-         plotShadow: true
-      },
-      title: {text: '$title'},
-      tooltip: {
-         formatter: function() {
+      <script type='text/javascript'>
+      var chart;
+      chart = new Highcharts.Chart({
+        chart: {
+          renderTo: '$id',
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: true
+        },
+        title: {text: '$title'},
+        tooltip: {
+          formatter: function() {
             return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
-         }
-      },
-      plotOptions: {
-         pie: {
+          }
+        },
+        plotOptions: {
+          pie: {
             allowPointSelect: true,
             cursor: 'pointer',
             dataLabels: {
-               enabled: true,
-               color: Highcharts.theme.textColor || '#000000',
-               connectorColor: Highcharts.theme.textColor || '#000000',
-               formatter: function() {
-                  return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
-               }
+              enabled: true,
+              color: Highcharts.theme.textColor || '#000000',
+              connectorColor: Highcharts.theme.textColor || '#000000',
+              formatter: function() {
+                return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+              }
             }
-         }
-      },
-       series: [{
-         type: 'pie',
-         name: '$names',
-         data: [$values]
-      }]
-   });
-</script>
-}]
+          }
+        },
+        series: [{
+          type: 'pie',
+          name: '$names',
+          data: [$values]
+        }]
+      });
+      </script>
+    }]
     return $result
   }
 
@@ -3692,7 +3692,7 @@ var chart;
           {-parent_id}
           {-package_ids ""}
           {-orderby "_last_modified,desc"}
-	  {-view_field _name}
+          {-view_field _name}
           {-publish_status "all"}
           {-field_names}
           {-hidden_field_names ""}
@@ -3714,7 +3714,7 @@ var chart;
         }}
       }
   
-#          {-renderer "YUIDataTableRenderer"}
+  #          {-renderer "YUIDataTableRenderer"}
   form-usages instproc render {} {
     my get_parameters
 
@@ -3736,8 +3736,8 @@ var chart;
       # form.  The provided package_id and parent_id refers to the
       # form instances, not to the forms.
       set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id \
-			     -parent_id [$o parent_id] \
-			     -default_lang [$o lang] \
+                             -parent_id [$o parent_id] \
+                             -default_lang [$o lang] \
                              -forms $form -package_id [$o package_id]]
     } else {
       set form_item_ids [list $form_item_id]
@@ -3748,9 +3748,9 @@ var chart;
     if {$inherit_from_forms ne ""} {
       foreach inherit_form $inherit_from_forms {
         set inherit_form_id [::xowiki::Weblog instantiate_forms \
-				 -parent_id [$o parent_id] \
-				 -default_lang [$o lang] \
-				 -forms $inherit_form -package_id [$o package_id]]
+                                 -parent_id [$o parent_id] \
+                                 -default_lang [$o lang] \
+                                 -forms $inherit_form -package_id [$o package_id]]
         if {$inherit_form_id ne ""} {
           set p [$inherit_form_id property form_constraints]
           append form_constraints $p\n
@@ -3780,7 +3780,7 @@ var chart;
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         buttons - publish_status - category_id - unless -
         where -   with_categories - with_form_link - csv - view_field - 
-	voting_form - voting_form_form - voting_form_anon_instances {
+        voting_form - voting_form_form - voting_form_anon_instances {
           set $attr $value
           #my msg " set $attr $value"
         }
@@ -3812,15 +3812,15 @@ var chart;
     set field_names [list]
     foreach f $raw_field_names {
       set _ [string trim [::xowiki::formfield::FormField get_single_spec \
-			      -object $o -package_id $package_id $f]]
+                              -object $o -package_id $package_id $f]]
       if {$_ ne ""} {lappend field_names $_}
     }
 
     foreach form_item $form_item_ids {
       set form_fields [::xowiki::FormPage get_table_form_fields \
-			   -base_item $form_item \
-			   -field_names $field_names \
-			   -form_constraints $form_constraints]
+                           -base_item $form_item \
+                           -field_names $field_names \
+                           -form_constraints $form_constraints]
       #$form_item show_fields $form_fields
       foreach f $form_fields {set __ff([$f name]) $f}
     }
@@ -3845,10 +3845,10 @@ var chart;
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
       append cols [list AnchorField _$fn \
-		       -label [$__ff($fn) label] \
-		       -richtext 1 \
-		       -orderby _$fn \
-		      ] \n
+                       -label [$__ff($fn) label] \
+                       -richtext 1 \
+                       -orderby _$fn \
+                      ] \n
     }
     if {[info exists use_button(delete)]} {
       #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
@@ -3917,13 +3917,13 @@ var chart;
       } else {
         # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_item_ids \
-                   -parent_id $parent_id \
-                   -form_fields $form_fields \
-                   -publish_status $publish_status \
-                   -h_where [array get wc] \
-                   -from_package_ids $package_ids \
-                   -package_id $package_id]
+                            -base_item_ids $form_item_ids \
+                            -parent_id $parent_id \
+                            -form_fields $form_fields \
+                            -publish_status $publish_status \
+                            -h_where [array get wc] \
+                            -from_package_ids $package_ids \
+                            -package_id $package_id]
       }
     }
     #my log "queries done"
@@ -3941,39 +3941,39 @@ var chart;
       set page_link [$p pretty_link]
 
       if {[info exists wf]} {
-	set view_link $wf_link?m=create-or-use&p.form=[$p name]
+        set view_link $wf_link?m=create-or-use&p.form=[$p name]
       } else {
-	set view_link $page_link
+        set view_link $page_link
       }
       t1 add
       set __c [t1 last_child]
 
       if {[info exists use_button(edit)]} {
-	$__c set _edit "&nbsp;"
-	$__c set _edit.title #xowiki.edit#
-	#set template_file view-default
-	$__c set _edit.href [$package_id make_link -link $page_link $p edit return_url template_file] 
+        $__c set _edit "&nbsp;"
+        $__c set _edit.title #xowiki.edit#
+        #set template_file view-default
+        $__c set _edit.href [$package_id make_link -link $page_link $p edit return_url template_file] 
       }
       if {[info exists use_button(delete)]} {
-	$__c set _delete "&nbsp;"
-	$__c set _delete.title #xowiki.delete#
-	$__c set _delete.href [$package_id make_link -link $page_link $p delete return_url] 
+        $__c set _delete "&nbsp;"
+        $__c set _delete.title #xowiki.delete#
+        $__c set _delete.href [$package_id make_link -link $page_link $p delete return_url] 
       }
       if {[info exists use_button(view)]} {
-	$__c set _view "&nbsp;"
-	$__c set _view.title #xowiki.view#
-	$__c set _view.href $view_link
+        $__c set _view "&nbsp;"
+        $__c set _view.title #xowiki.view#
+        $__c set _view.href $view_link
       } elseif {![info exists use_button(no-view)]} {
-	#
-	# Set always a view link, if we have no view button ...
-	#
-	if {[info exists __ff($view_field)]} {
-	  # .... on $view_field) (per default: _name) ....
-	  $__c set _$view_field.href $view_link
-	} else {
-	  # .... otherwise on the first form_field
-	  $__c set _[lindex $field_names 0].href $view_link
-	}
+        #
+        # Set always a view link, if we have no view button ...
+        #
+        if {[info exists __ff($view_field)]} {
+          # .... on $view_field) (per default: _name) ....
+          $__c set _$view_field.href $view_link
+        } else {
+          # .... otherwise on the first form_field
+          $__c set _[lindex $field_names 0].href $view_link
+        }
       }
 
       # set always last_modified for default sorting
@@ -4057,7 +4057,7 @@ var chart;
           <td style='border-style: none; text-align: left; width: 150px;'>&nbsp;very good<br /></td> 
           <td align='right' style='border-style: none; text-align: right; width: 150px;'>&nbsp;very bad<br /></td> 
         </tr> \n"
- 
+    
     # We use here the table t1 to preserve sorting etc. 
     # The basic assumption is that every line of the table has an instance variable
     # corresponding to the wanted field name. This is guaranteed by the construction
@@ -4131,7 +4131,7 @@ var chart;
     return "#xowiki.form-$action# <a href='$form_href'>$form_name</a>"
   }
 }
- 
+
 namespace eval ::xowiki::includelet {
   #############################################################################
   #
@@ -4141,10 +4141,10 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-           {-title ""}
-           {-url:required}
-           {-width "100%"}
-           {-height "500px"}
+          {-title ""}
+          {-url:required}
+          {-width "100%"}
+          {-height "500px"}
         }}
       }
 
@@ -4168,15 +4168,15 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-	  {-title ""}
-	  {-item_size 600x400}
-	  {-image_size}
- 	  {-num_visible 1}
-	  {-play_interval 0}
-	  {-auto_size 0}
-	  {-folder}
-	  {-glob ""}
-	  {-form ""}
+          {-title ""}
+          {-item_size 600x400}
+          {-image_size}
+          {-num_visible 1}
+          {-play_interval 0}
+          {-auto_size 0}
+          {-folder}
+          {-glob ""}
+          {-form ""}
         }}
       }
 
@@ -4191,11 +4191,11 @@ namespace eval ::xowiki::includelet {
     }
     set listing [::xowiki::Includelet listing \
                      -package_id $package_id \
-		     -parent_id $parent_id \
-		     -use_package_path false \
-		     -extra_where_clause " and mime_type like 'image/%'" \
+                     -parent_id $parent_id \
+                     -use_package_path false \
+                     -extra_where_clause " and mime_type like 'image/%'" \
                      -orderby "name asc" \
-		     -glob $glob]
+                     -glob $glob]
     #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$listing children]]"
 
     foreach entry [$listing children] {
@@ -4217,9 +4217,9 @@ namespace eval ::xowiki::includelet {
 
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids -form_fields "" \
-		   -publish_status all \
-		   -always_queried_attributes * \
-		   -parent_id $parent_id \
+                   -publish_status all \
+                   -always_queried_attributes * \
+                   -parent_id $parent_id \
                    -package_id $package_id]
     #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$items children]]"
 
@@ -4227,25 +4227,25 @@ namespace eval ::xowiki::includelet {
       # order?
       set image_name [$entry property image]
       if {$glob ne "" && ![string match $glob $image_name]} {
-	$items delete $entry
-	continue
+        $items delete $entry
+        continue
       }
       if {![info exists entry_field_names]} {
-	set entry_field_names [$entry field_names]
-	set entry_form_fields [::xowiki::FormPage get_table_form_fields \
-				   -base_item $form_item_id -field_names $entry_field_names \
-				   -form_constraints [$form_item_id set form_constraints]]
-	foreach fn $entry_field_names f $entry_form_fields {set ff($fn) $f}
+        set entry_field_names [$entry field_names]
+        set entry_form_fields [::xowiki::FormPage get_table_form_fields \
+                                   -base_item $form_item_id -field_names $entry_field_names \
+                                   -form_constraints [$form_item_id set form_constraints]]
+        foreach fn $entry_field_names f $entry_form_fields {set ff($fn) $f}
       }
       $entry load_values_into_form_fields $entry_form_fields
       foreach f $entry_form_fields {$f object $entry}
       if {[info exists ff(image)]} {
-	if {$width ne ""} {$ff(image) width $width}
-	if {$height ne ""} {$ff(image) height $height}
-	if {$width ne "" && $height ne ""} {
-	  $ff(image) set geometry "${width}x${height}"
-	}
-	$ff(image) label [$entry property _title]
+        if {$width ne ""} {$ff(image) width $width}
+        if {$height ne ""} {$ff(image) height $height}
+        if {$width ne "" && $height ne ""} {
+          $ff(image) set geometry "${width}x${height}"
+        }
+        $ff(image) label [$entry property _title]
       }
       $entry set html [$entry render_content]
       #my log html=[$entry set html]
@@ -4271,7 +4271,7 @@ namespace eval ::xowiki::includelet {
 
     if {[info exists image_size]} {
       if {![regexp {^(.*)x(.*)$} $image_size _ width height]} {
-	error "invalid image size '$image_size'; use e.g. 300x240"
+        error "invalid image size '$image_size'; use e.g. 300x240"
       }
     } elseif {$auto_size} {
       set width $item_width
@@ -4285,53 +4285,53 @@ namespace eval ::xowiki::includelet {
     set play_interval [expr {int($play_interval * 1000)}]
 
     ::xo::Page requireJS [subst {
-        YAHOO.util.Event.onDOMReady(function (ev) {
-            var carousel    = new YAHOO.widget.Carousel("$ID",{ 
-	      isCircular: true, numVisible: $num_visible, 
-	      autoPlayInterval: $play_interval, animation: {speed: 1.0}
-	    });
-            carousel.render(); // get ready for rendering the widget
-            carousel.show();   // display the widget
-                    
+      YAHOO.util.Event.onDOMReady(function (ev) {
+        var carousel    = new YAHOO.widget.Carousel("$ID",{ 
+          isCircular: true, numVisible: $num_visible, 
+          autoPlayInterval: $play_interval, animation: {speed: 1.0}
         });
+        carousel.render(); // get ready for rendering the widget
+        carousel.show();   // display the widget
+        
+      });
     }]
 
     ::xo::Page requireStyle [subst {
-    
-    \#$ID {
+      
+      \#$ID {
         margin: 0 auto;
-    }
+      }
 
-    .yui-carousel-element .yui-carousel-item-selected {
+      .yui-carousel-element .yui-carousel-item-selected {
         opacity: 1;
-    }
+      }
 
-    .yui-carousel-element li {
-	height: ${item_height}px;
-	width: ${item_width}px;
-    }
+      .yui-carousel-element li {
+        height: ${item_height}px;
+        width: ${item_width}px;
+      }
 
-    .yui-skin-sam .yui-carousel-nav ul li {
+      .yui-skin-sam .yui-carousel-nav ul li {
         margin: 0;
-    }}]
+      }}]
 
     set parent_id [[my set __including_page] parent_id]
     if {[info exists folder]} {
       set folder_page [$package_id get_page_from_item_ref -parent_id $parent_id $folder]
       if {$folder_page eq ""} {
-	error "no such folder '$folder'"
+        error "no such folder '$folder'"
       } else {
-	set parent_id [$folder_page item_id]
+        set parent_id [$folder_page item_id]
       }
     }
 
     set content "<div id='$ID'><ol>\n"
     if {$form ne ""} {
       set images [my form_images -package_id $package_id -parent_id $parent_id \
-		      -form $form -glob $glob -width $width -height $height]
+                      -form $form -glob $glob -width $width -height $height]
     } else {
       set images [my images -package_id $package_id -parent_id $parent_id \
-		      -glob $glob -width $width -height $height]
+                      -glob $glob -width $width -height $height]
     }
     foreach entry [$images children] {
       append content "<li class='item'> [$entry set html] </li>\n" 
@@ -4401,7 +4401,7 @@ namespace eval ::xowiki::includelet {
                          -form_constraints ""]
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids -form_fields $form_fields \
-		   -initialize false \
+                   -initialize false \
                    -publish_status $publish_status \
                    -package_id $package_id]
     set result [list]
@@ -4410,7 +4410,7 @@ namespace eval ::xowiki::includelet {
     }
     return $result
   }
- 
+  
   random-form-page instproc render {} {
     my get_parameters
 
@@ -4458,24 +4458,24 @@ namespace eval ::xowiki::includelet {
     return "<a href='$mp4' style='display:block;width:425px;height:300px;' id='player'> </a>
     <script type='text/javascript'>
  flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.2.7.swf', {
-		
-	// this will enable pseudostreaming support 
-	plugins: { 
-		pseudo: { url: '/resources/xowiki/flowplayer/flowplayer.pseudostreaming-3.1.3.swf' } 
-	},
-	
-	// clip properties 
-	clip: {
-		// our clip uses pseudostreaming
-		provider: 'pseudo',
+        
+    // this will enable pseudostreaming support 
+    plugins: { 
+        pseudo: { url: '/resources/xowiki/flowplayer/flowplayer.pseudostreaming-3.1.3.swf' } 
+    },
+    
+    // clip properties 
+    clip: {
+        // our clip uses pseudostreaming
+        provider: 'pseudo',
 
                 autoPlay: false,
-                autoBuffering: false,						
-		
-		// provide MP4 file for Flash version 9.0.115 and above. otherwise use FLV
-		url: '$mp4'
-	}
-	
+                autoBuffering: false,                        
+        
+        // provide MP4 file for Flash version 9.0.115 and above. otherwise use FLV
+        url: '$mp4'
+    }
+    
  });
    </script>"
   }
@@ -4490,10 +4490,10 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-	  {-title ""}
-	  {-extra_css ""}
-	  {-levels 0}
-	  {-file:required}
+          {-title ""}
+          {-extra_css ""}
+          {-levels 0}
+          {-file:required}
         }}
       }
 
@@ -4535,7 +4535,7 @@ namespace eval ::xowiki::includelet {
 }
 
 namespace eval ::xowiki::includelet {
- #############################################################################
+  #############################################################################
   #
   # Define chat as an includelet
   #
@@ -4543,10 +4543,10 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {parameter_declaration {
-	  {-title ""}
-	  {-chat_id ""}
-	  {-mode ""}
-	  {-path ""}
+          {-title ""}
+          {-chat_id ""}
+          {-mode ""}
+          {-path ""}
         }}
       }
   chat instproc render {} {
