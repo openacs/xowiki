@@ -321,10 +321,10 @@ namespace eval ::xowiki {
     return [array names items]
   }
 
-  exporter proc marshall_all {item_ids} {
+  exporter proc marshall_all {{-mode export} item_ids} {
     set content ""
     foreach item_id $item_ids {
-      if {[catch {set obj [$item_id marshall]} errorMsg]} {
+      if {[catch {set obj [$item_id marshall -mode $mode]} errorMsg]} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
         error $errorMsg
       } else {

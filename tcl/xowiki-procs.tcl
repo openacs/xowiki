@@ -291,7 +291,7 @@ namespace eval ::xowiki {
   #
   # Page marshall/demarshall
   #
-  Page instproc marshall {} {
+  Page instproc marshall {{-mode export}} {
     my instvar name
     my unset_temporary_instance_variables
     set old_creation_user  [my creation_user]
@@ -321,9 +321,13 @@ namespace eval ::xowiki {
     return $content
   }
 
-  File instproc marshall {} {
+  File instproc marshall {{-mode export}} {
     set fn [my full_file_name]
-    my set __file_content [::base64::encode [::xowiki::read_file $fn]]
+    if {$mode eq "export"} {
+      my set __file_content [::base64::encode [::xowiki::read_file $fn]]
+    } else {
+      my set __file_name $fn
+    }
     next
   }
   
@@ -427,7 +431,7 @@ namespace eval ::xowiki {
   }
 
 
-  Form instproc marshall {} {
+  Form instproc marshall {{-mode export}} {
     #set form_fields [my create_form_fields_from_form_constraints \
                                  #                     [my get_form_constraints]]
     #my log "--ff=$form_fields"
@@ -461,7 +465,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormPage instproc marshall {} {
+  FormPage instproc marshall {{-mode export}} {
     #
     # Handle mapping from IDs to symbolic representations in
     # form-field values. We perform the mapping on xowiki::FormPages
@@ -633,11 +637,20 @@ namespace eval ::xowiki {
   File instproc demarshall {args} {
     next
     # we have to care about recoding the file content
-    my instvar import_file __file_content
-    set import_file [ns_tmpnam]
-    ::xowiki::write_file $import_file [::base64::decode $__file_content]
-    catch {my unset full_file_name}
-    unset __file_content
+
+    if {[my exists __file_content]} {
+      my instvar import_file __file_content
+      set import_file [ns_tmpnam]
+      ::xowiki::write_file $import_file [::base64::decode $__file_content]
+      catch {my unset full_file_name}
+      unset __file_content
+    } elseif {[my exists __file_name]} {
+      my instvar import_file __file_name
+      set import_file $__file_name
+      unset __file_name
+    } else {
+      error "either __file_content or __file_name must be set"
+    }
   }
 
   # set default values. 

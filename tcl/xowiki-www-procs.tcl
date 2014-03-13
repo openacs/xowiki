@@ -76,7 +76,7 @@ namespace eval ::xowiki {
     my instvar package_id
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
-    set content [::xowiki::exporter marshall_all $item_ids]
+    set content [::xowiki::exporter marshall_all -mode copy $item_ids]
     if {[catch {namespace eval ::xo::import $content} error]} {
       my msg "Error: $error\n$::errorInfo"
       return
