@@ -466,6 +466,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc marshall {{-mode export}} {
+    if {$mode eq "copy"} {return [next]}
     #
     # Handle mapping from IDs to symbolic representations in
     # form-field values. We perform the mapping on xowiki::FormPages
