@@ -103,6 +103,11 @@ namespace eval ::xowiki::formfield {
   }
 
 
+  #FormField instproc destroy {} {
+  #  my log "=== FormField DESTROY ====="
+  #  next
+  #}
+
   FormField instproc init {} {
     if {![my exists label]} {my label [string totitle [my name]]}
     if {![my exists id]} {my id [my name]}
@@ -333,6 +338,7 @@ namespace eval ::xowiki::formfield {
             #my msg "[my name]: reset class from $old_class to [my info class]"
             my reset_parameter
             my set __state reset
+            #my log "INITIALIZE [my name] due to reclassing old $old_class to new [my info class]"
             my initialize
           }
         } else {
@@ -346,8 +352,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc config_from_spec {spec} {
-    #my log "spec=$spec [my info class] [[my info class] exists abstract]"
-
+    #my log "config_from_spec [my name] spec <$spec> [my info class] [[my info class] exists abstract]"
     my instvar type
     if {[[my info class] exists abstract]} {
       # had earlier here: [my info class] eq [self class]
@@ -370,6 +375,7 @@ namespace eval ::xowiki::formfield {
 
     #my msg "[my name]: after specs"
     my set __state after_specs
+    #my log "INITIALIZE [my name] due to config_from_spec"
     my initialize
 
     #
@@ -3026,6 +3032,14 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc create_components {spec_list} {
+    #
+    # Omit after specs for compund fields to avoid multiple
+    # recreations.
+    #
+    if {[my set __state] eq "after_specs"} {
+      return
+    }
+
     #
     # Build a component structure based on a list of specs
     # of the form {name spec}.
