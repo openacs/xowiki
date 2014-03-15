@@ -388,6 +388,8 @@ namespace eval ::xowiki {
       } elseif {[$f exists is_party_id]} {
         #my msg "page [my name] field [$f name] is a party_id"
         set cm([$f name]) [list party_id $multiple]
+      } elseif {[$f istype "::xowiki::formfield::file"]} {
+        set cm([$f name]) [list file 0]
       }
     }
     if {[array exists cm]} {
@@ -460,13 +462,22 @@ namespace eval ::xowiki {
       # map a party_id
       #
       return [my map_party -property $map_type $value]
+    } elseif {$map_type eq "file" && [llength $value] % 2 == 0} {
+      #
+      # drop revision_id from file value
+      #
+      set result {}
+      foreach {a v} $value {
+        if {$a eq "revision_id"} continue
+        lappend result $a $v
+      }
+      return $result
     } else {
       return $value
     }
   }
 
   FormPage instproc marshall {{-mode export}} {
-    if {$mode eq "copy"} {return [next]}
     #
     # Handle mapping from IDs to symbolic representations in
     # form-field values. We perform the mapping on xowiki::FormPages
@@ -478,6 +489,9 @@ namespace eval ::xowiki {
     # necessary to move e.g. category definitions into the global form
     # constraints.
     #
+    if {$mode eq "copy" && ![string match *revision_id* [my set instance_attributes]]} {
+      return [next]
+    }
     set form_fields [my create_form_fields_from_form_constraints \
                          [my get_form_constraints]]
     my build_instance_attribute_map $form_fields
@@ -492,15 +506,14 @@ namespace eval ::xowiki {
       # my log "+++ we have an instance_attribute_map for [my name]"
       # my log "+++ starting with instance_attributes [my instance_attributes]"
       array set use [my set __instance_attribute_map]
-      array set multiple_index [list category 2 party_id 1]
+      array set multiple_index [list category 2 party_id 1 file 1]
       set ia [list]
       foreach {name value} [my instance_attributes] {
         #my log "marshall check $name $value [info exists use($name)]"
         if {[info exists use($name)]} {
           set map_type [lindex $use($name) 0]
           set multiple [lindex $use($name) $multiple_index($map_type)]
-          #my log "+++ marshall check $name $value m=?$multiple"
-
+          #my log "+++ marshall check $name $value use <$use($name)> m=?$multiple"
           if {$multiple} {
             lappend ia $name [my map_values $map_type $value]
           } else {
@@ -731,7 +744,7 @@ namespace eval ::xowiki {
       #
       set ia [list]
       array set use [my set __instance_attribute_map]
-      array set multiple_index [list category 2 party_id 1]
+      array set multiple_index [list category 2 party_id 1 file 1]
       foreach {name value} [my instance_attributes] {
         #my msg "use($name) --> [info exists use($name)]"
         if {[info exists use($name)]} {
