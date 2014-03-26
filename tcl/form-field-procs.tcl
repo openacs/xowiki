@@ -715,18 +715,21 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   ::Serializer exportMethods {
-    ::xotcl::Class instproc extend_slot 
+    ::xotcl::Class instproc extend_slot_default 
   }
-  Class instproc extend_slot {name value} {
-    # create a mirroring slot and add the specified value to the default
+  Class instproc extend_slot_default {name value} {
+    # Search for the slot. If the slot exists, extend it's default
+    # value with the new value
     foreach c [my info heritage] {
       if {[info command ${c}::slot::$name] ne ""} {
         set value [concat $value [${c}::slot::$name default]]
         break
       }
     }
+    # create a mirroring slot with the maybe extended default
     my slots [list Attribute create $name -default $value]
   }
+
 
   ###########################################################
   #
@@ -753,7 +756,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create file -superclass FormField \
-      -extend_slot validator virus \
+      -extend_slot_default validator virus \
       -parameter {
         {size 40}
         {viruscheck true}
@@ -1227,7 +1230,7 @@ namespace eval ::xowiki::formfield {
 
   Class create numeric -superclass text -parameter {
     {format %.2f}
-  } -extend_slot validator numeric 
+  } -extend_slot_default validator numeric 
   numeric instproc initialize {} {
     next
     my set widget_type numeric
@@ -1347,7 +1350,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create party_id -superclass user_id \
-      -extend_slot validator party_id_check
+      -extend_slot_default validator party_id_check
   party_id instproc check=party_id_check {value} {
     if {$value eq ""} {return 1}
     return [::xo::dc 0or1row check_party {select 1 from parties where party_id = :value}]
@@ -1360,7 +1363,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create url -superclass text \
-      -extend_slot validator safe_url \
+      -extend_slot_default validator safe_url \
       -parameter {
         {link_label}
       }
@@ -1463,7 +1466,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create richtext -superclass textarea \
-      -extend_slot validator safe_html \
+      -extend_slot_default validator safe_html \
       -parameter {
         plugins 
         folder_id
@@ -2762,7 +2765,7 @@ namespace eval ::xowiki::formfield {
   Class create YYYY -superclass numeric -parameter {
     {size 4}
     {maxlength 4}
-  } -extend_slot validator YYYY
+  } -extend_slot_default validator YYYY
 
   YYYY instproc check=YYYY {value} {
     if {$value ne ""} {
@@ -2804,7 +2807,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create image_url -superclass text \
-      -extend_slot validator image_check \
+      -extend_slot_default validator image_check \
       -parameter {
         href cssclass
         {float left} width height 
@@ -2932,7 +2935,7 @@ namespace eval ::xowiki::formfield {
   Class create CompoundField -superclass FormField -parameter {
     {components ""}
     {CSSclass compound-field}
-  } -extend_slot validator compound
+  } -extend_slot_default validator compound
 
   CompoundField instproc check=compound {value} {
     #my msg "check compound in [my components]"
@@ -3472,7 +3475,7 @@ namespace eval ::xowiki::formfield {
 
   Class create form -superclass richtext -parameter {
     {height 200}
-  } -extend_slot validator form
+  } -extend_slot_default validator form
 
   form instproc check=form {value} {
     set form $value
@@ -3492,7 +3495,7 @@ namespace eval ::xowiki::formfield {
 
   Class create form_constraints -superclass textarea -parameter {
     {rows 5}
-  } -extend_slot validator form_constraints
+  } -extend_slot_default validator form_constraints
   # the form_constraints checker is defined already on the ::xowiki::Page level
 
 

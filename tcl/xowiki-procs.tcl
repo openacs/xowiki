@@ -26,22 +26,26 @@ namespace eval ::xowiki {
             -validator name \
             -spec "maxlength=400,required" \
             -required false ;#true 
-        ::xo::Attribute create title \
-            -required false ;#true
-        ::xo::Attribute create description \
-            -spec "textarea,cols=80,rows=2" 
-        ::xo::Attribute create text \
-            -spec "richtext" 
+        #::xo::Attribute create title \
+        #    -required false ;#true
+        #::xo::Attribute create description \
+        #    -spec "textarea,cols=80,rows=2" 
+        #::xo::Attribute create text \
+        #    -spec "richtext" 
         ::xo::Attribute create nls_language \
             -spec {select,options=[xowiki::locales]} \
             -default [ad_conn locale]
-        ::xo::Attribute create publish_date \
-            -spec date
+        #::xo::Attribute create publish_date \
+        #    -spec date
         ::xo::Attribute create last_modified \
             -spec date
         ::xo::Attribute create creation_user \
             -spec user_id
       } \
+      -extend_slot {title -required false} \
+      -extend_slot {description -spec "textarea,cols=80,rows=2"} \
+      -extend_slot {text -spec "richtext"} \
+      -extend_slot {publish_date -spec "date"} \
       -parameter {
         {render_adp 1}
         {do_substitutions 1}
