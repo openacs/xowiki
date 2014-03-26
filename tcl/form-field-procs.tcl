@@ -3031,14 +3031,18 @@ namespace eval ::xowiki::formfield {
     return $value
   }
 
+  CompoundField instproc specs_unmodified {spec_list} {
+    expr {[my set __state] eq "after_specs"
+          && [my exists structure] && [my set structure] eq $spec_list
+        }
+  }
+
   CompoundField instproc create_components {spec_list} {
     #
     # Omit after specs for compund fields to avoid multiple
     # recreations.
     #
-    if {[my set __state] eq "after_specs"} {
-      return
-    }
+    if {[my specs_unmodified $spec_list]} return
 
     #
     # Build a component structure based on a list of specs
