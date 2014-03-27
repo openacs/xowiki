@@ -654,182 +654,183 @@ namespace eval ::xowiki::includelet {
         #
         set href "[[my package_id] package_url]?manage-categories&object_id=$object_id"
         return [[my set __including_page] include \
-                    [list edit-item-button -link $href -title "Manage Categories" -target _blank]]]
-    }
-  }
-  return ""
-}
-categories instproc category_tree_missing {{-name ""} -edit_html} {
-  # todo i18n
-  if {$name eq ""} {
-    #set msg "No category tree found."
-    # maybe it is better to stay quiet in case, no category name was provided
-    set msg ""
-  } else {
-    set msg "No category tree with name '$name' found."
-  }
-  [my package_id] flush_page_fragment_cache -scope agg
-  set html "<div class='errorMsg'>$msg</div>"
-  if {$edit_html ne ""} {
-    return "$html Manage Categories? $edit_html"
-  }
-  return $html
-}
-
-categories instproc render {} {
-  my get_parameters
-
-  set content ""
-  set folder_id [$package_id folder_id]
-  set open_item_id [expr {$open_page ne "" ?
-                          [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
-
-  lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
-      locale locale_clause
-
-  set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
-                 -names $tree_name \
-                 -output {tree_id tree_name}]
-
-  #my msg "[llength $trees] == 0 && $tree_name"
-  if {[llength $trees] == 0 && $tree_name ne ""} {
-    # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
-    # try to get these
-    foreach name $tree_name {
-      #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
-      set tree_id [lindex [category_tree::get_id $tree_name] 0]
-      if {$tree_id ne ""} {
-        lappend trees [list $tree_id $name]
+                    [list edit-item-button -link $href -title "Manage Categories" -target _blank]]
       }
     }
+    return ""
   }
-
-  set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit]
-  if {[llength $trees] == 0} {
-    return [my category_tree_missing -name $tree_name -edit_html $edit_html]
+  
+  categories instproc category_tree_missing {{-name ""} -edit_html} {
+    # todo i18n
+    if {$name eq ""} {
+      #set msg "No category tree found."
+      # maybe it is better to stay quiet in case, no category name was provided
+      set msg ""
+    } else {
+      set msg "No category tree with name '$name' found."
+    }
+    [my package_id] flush_page_fragment_cache -scope agg
+    set html "<div class='errorMsg'>$msg</div>"
+    if {$edit_html ne ""} {
+      return "$html Manage Categories? $edit_html"
+    }
+    return $html
   }
-
-  if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
-
-  foreach tree $trees {
-    lassign $tree tree_id my_tree_name ...
-
-    set edit_html [my category_tree_edit_button -object_id $package_id \
-                       -allow_edit $allow_edit -tree_id $tree_id]
-    #append content "<div style='float:right;'>$edit_html</div>\n"
-
-    if {!$no_tree_name} {
-      append content "<h3>$my_tree_name $edit_html</h3>"
-    } elseif {$edit_html ne ""} {
-      append content "$edit_html<br>"
+  
+  categories instproc render {} {
+    my get_parameters
+    
+    set content ""
+    set folder_id [$package_id folder_id]
+    set open_item_id [expr {$open_page ne "" ?
+                            [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
+    
+    lassign [::xowiki::Includelet locale_clause -revisions r -items ci $package_id $locale] \
+        locale locale_clause
+    
+    set trees [::xowiki::Category get_mapped_trees -object_id $package_id -locale $locale \
+                   -names $tree_name \
+                   -output {tree_id tree_name}]
+    
+    #my msg "[llength $trees] == 0 && $tree_name"
+    if {[llength $trees] == 0 && $tree_name ne ""} {
+      # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
+      # try to get these
+      foreach name $tree_name {
+        #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
+        set tree_id [lindex [category_tree::get_id $tree_name] 0]
+        if {$tree_id ne ""} {
+          lappend trees [list $tree_id $name]
+        }
+      }
     }
-    set categories [list]
-    set pos 0
-    set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
-                        -id [my id]-$my_tree_name -name $my_tree_name]
-
-    set category_infos [::xowiki::Category get_category_infos \
-                            -locale $locale -tree_id $tree_id]
-    foreach category_info $category_infos {
-      lassign $category_info cid category_label deprecated_p level
-      set c [::xowiki::TreeNode new -orderby pos  \
-                 -level $level -label $category_label -pos [incr pos]]
-      set cattree($level) $c
-      set plevel [expr {$level -1}]
-      $cattree($plevel) add $c
-      set category($cid) $c
-      lappend categories $cid
+    
+    set edit_html [my category_tree_edit_button -object_id $package_id -allow_edit $allow_edit]
+    if {[llength $trees] == 0} {
+      return [my category_tree_missing -name $tree_name -edit_html $edit_html]
     }
+    
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
+    
+    foreach tree $trees {
+      lassign $tree tree_id my_tree_name ...
+      
+      set edit_html [my category_tree_edit_button -object_id $package_id \
+                         -allow_edit $allow_edit -tree_id $tree_id]
+      #append content "<div style='float:right;'>$edit_html</div>\n"
 
-    if {[llength $categories] == 0} {
-      return $content
-    }
-
-    if {[info exists ordered_composite]} {
-      set items [list]
-      foreach c [$ordered_composite children] {lappend items [$c item_id]}
-
-      # If we have no item, provide a dummy one to avoid sql error
-      # later
-      if {[llength $items]<1} {set items -4711}
-
-      if {$count} {
-        set sql "category_object_map c
-             where c.object_id in ([join $items ,]) "
-      } else {
-        # TODO: the non-count-part for the ordered_composite is not
-        # tested yet. Although "ordered compostite" can be used
-        # only programmatically for now, the code below should be
-        # tested. It would be as well possible to obtain titles and
-        # names etc. from the ordered composite, resulting in a
-        # faster SQL like above.
-        set sql "category_object_map c, cr_items ci, cr_revisions r
-            where c.object_id in ([join $items ,])
+      if {!$no_tree_name} {
+        append content "<h3>$my_tree_name $edit_html</h3>"
+      } elseif {$edit_html ne ""} {
+        append content "$edit_html<br>"
+      }
+      set categories [list]
+      set pos 0
+      set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
+                          -id [my id]-$my_tree_name -name $my_tree_name]
+      
+      set category_infos [::xowiki::Category get_category_infos \
+                              -locale $locale -tree_id $tree_id]
+      foreach category_info $category_infos {
+        lassign $category_info cid category_label deprecated_p level
+        set c [::xowiki::TreeNode new -orderby pos  \
+                   -level $level -label $category_label -pos [incr pos]]
+        set cattree($level) $c
+        set plevel [expr {$level -1}]
+        $cattree($plevel) add $c
+        set category($cid) $c
+        lappend categories $cid
+      }
+      
+      if {[llength $categories] == 0} {
+        return $content
+      }
+      
+      if {[info exists ordered_composite]} {
+        set items [list]
+        foreach c [$ordered_composite children] {lappend items [$c item_id]}
+        
+        # If we have no item, provide a dummy one to avoid sql error
+        # later
+        if {[llength $items]<1} {set items -4711}
+        
+        if {$count} {
+          set sql "category_object_map c
+              where c.object_id in ([join $items ,]) "
+        } else {
+          # TODO: the non-count-part for the ordered_composite is not
+          # tested yet. Although "ordered compostite" can be used
+          # only programmatically for now, the code below should be
+          # tested. It would be as well possible to obtain titles and
+          # names etc. from the ordered composite, resulting in a
+          # faster SQL like above.
+          set sql "category_object_map c, cr_items ci, cr_revisions r
+              where c.object_id in ([join $items ,])
               and c.object_id = ci.item_id and 
               and r.revision_id = ci.live_revision 
            "
+        }
+      } else {
+        set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
+            where c.object_id = ci.item_id and ci.parent_id = $folder_id \
+            and ci.content_type not in ('::xowiki::PageTemplate') \
+            and c.category_id in ([join $categories ,]) \
+            and r.revision_id = ci.live_revision \
+            and p.page_id = r.revision_id \
+            and ci.publish_status <> 'production'"
       }
-    } else {
-      set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
-        where c.object_id = ci.item_id and ci.parent_id = $folder_id \
-        and ci.content_type not in ('::xowiki::PageTemplate') \
-        and c.category_id in ([join $categories ,]) \
-        and r.revision_id = ci.live_revision \
-        and p.page_id = r.revision_id \
-                and ci.publish_status <> 'production'"
-    }
-
-    if {$except_category_ids ne ""} {
-      append sql \
-          " and not exists (select * from category_object_map c2 \
-        where ci.item_id = c2.object_id \
-        and c2.category_id in ($except_category_ids))"
-    }
-    #ns_log notice "--c category_ids=$category_ids"
-    if {$category_ids ne ""} {
-      foreach cid [split $category_ids ,] {
-        set or_ids [split $cid |]
-        foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
-        append sql " and exists (select * from category_object_map \
+      
+      if {$except_category_ids ne ""} {
+        append sql \
+            " and not exists (select * from category_object_map c2 \
+            where ci.item_id = c2.object_id \
+            and c2.category_id in ($except_category_ids))"
+      }
+      #ns_log notice "--c category_ids=$category_ids"
+      if {$category_ids ne ""} {
+        foreach cid [split $category_ids ,] {
+          set or_ids [split $cid |]
+          foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
+          append sql " and exists (select * from category_object_map \
          where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
+        }
+      }
+      append sql $locale_clause
+      
+      if {$count} {
+        ::xo::dc foreach get_counts \
+            "select count(*) as nr,category_id from $sql group by category_id" {
+              $category($category_id) set count $nr
+              set s [expr {$summary ? "&summary=$summary" : ""}]
+              $category($category_id) href [ad_conn url]?category_id=$category_id$s
+              $category($category_id) open_tree
+            }
+        append content [$cattree(0) render -style [my set style]]
+      } else {
+        lassign [split $order_items_by ,] orderby direction     ;# e.g. "title,asc"
+        set increasing [expr {$direction ne "desc"}]
+        set order_column ", p.page_order" 
+        
+        ::xo::dc foreach get_pages \
+            "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
+              if {$title eq ""} {set title $name}
+              set itemobj [Object new]
+              set prefix ""
+              set suffix ""
+              foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
+              $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]              
+              $cattree(0) add_item \
+                  -category $category($category_id) \
+                  -itemobj $itemobj \
+                  -orderby $orderby \
+                  -increasing $increasing \
+                  -open_item [expr {$item_id == $open_item_id}]
+            }
+        append content [$cattree(0) render -style [my set style]]
       }
     }
-    append sql $locale_clause
-    
-    if {$count} {
-      ::xo::dc foreach get_counts \
-          "select count(*) as nr,category_id from $sql group by category_id" {
-            $category($category_id) set count $nr
-            set s [expr {$summary ? "&summary=$summary" : ""}]
-            $category($category_id) href [ad_conn url]?category_id=$category_id$s
-            $category($category_id) open_tree
-          }
-      append content [$cattree(0) render -style [my set style]]
-    } else {
-      lassign [split $order_items_by ,] orderby direction     ;# e.g. "title,asc"
-      set increasing [expr {$direction ne "desc"}]
-      set order_column ", p.page_order" 
-
-      ::xo::dc foreach get_pages \
-          "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
-            if {$title eq ""} {set title $name}
-            set itemobj [Object new]
-            set prefix ""
-            set suffix ""
-            foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
-            $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]              
-            $cattree(0) add_item \
-                -category $category($category_id) \
-                -itemobj $itemobj \
-                -orderby $orderby \
-                -increasing $increasing \
-                -open_item [expr {$item_id == $open_item_id}]
-          }
-      append content [$cattree(0) render -style [my set style]]
-    }
+    return $content
   }
-  return $content
-}
 }
 
 
