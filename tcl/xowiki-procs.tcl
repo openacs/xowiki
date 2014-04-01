@@ -658,7 +658,7 @@ namespace eval ::xowiki {
 
     if {[my exists __file_content]} {
       my instvar import_file __file_content
-      set import_file [ns_tmpnam]
+      set import_file [ad_tmpnam]
       ::xowiki::write_file $import_file [::base64::decode $__file_content]
       catch {my unset full_file_name}
       unset __file_content

@@ -373,7 +373,7 @@ namespace eval ::xowiki {
   ArchiveFile instproc init {} {
     my destroy_on_cleanup
     ::xo::db::CrClass get_instance_from_db -item_id [my parent_id]
-    my set tmpdir [ns_tmpnam]
+    my set tmpdir [ad_tmpnam]
     file mkdir [my set tmpdir]
   }
   ArchiveFile instproc delete {} {

@@ -741,7 +741,7 @@ test section "Item refs"
         set mime_type [::xowiki::guesstype $name]
         set f [::xowiki::File new -name $name -description "" \
                    -parent_id $parent_id -package_id $package_id -mime_type $mime_type]
-        set import_file [ns_tmpnam]
+        set import_file [ad_tmpnam]
         ::xowiki::write_file $import_file [::base64::decode $file_content]
         $f set import_file $import_file
       }
