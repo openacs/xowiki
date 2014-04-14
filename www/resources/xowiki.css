@@ -522,6 +522,13 @@ div.xowiki-content .forum .cite p.date {
     
 }
 
+nav.navbar a {
+    text-decoration: none;
+}
+nav.navbar ul.dropdown-menu {
+    background-color: #F8F8F8;
+}
+
 /*
  * Local Variables:
  * mode: css

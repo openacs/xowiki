@@ -3859,8 +3859,11 @@ namespace eval ::xowiki::includelet {
     set cmd [list TableWidget t1 -volatile -columns $cols]
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
-    } elseif {[info commands ::xo::Table::YUIDataTableRenderer] ne ""} {
-      lappend cmd -renderer YUIDataTableRenderer
+    } else {
+      switch [$package_id get_parameter "PreferedCSSToolkit" yui] {
+        bootstrap {set tableRenderer ::xo::Table::BootstrapTableRenderer}
+        default   {set tableRenderer ::xo::Table::YUIDataTableRenderer}
+      }
     }
     {*}$cmd
 

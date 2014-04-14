@@ -469,7 +469,11 @@ namespace eval ::xowiki::includelet {
     # scoping in "-columns"
     set ::with_publish_status [expr {$publish_status ne "ready"}]
 
-    set t [::YUI::DataTable new -skin $skin -volatile \
+    switch [$package_id get_parameter "PreferedCSSToolkit" yui] {
+      bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
+      default   {set tableWidgetClass ::xowiki::YUIDataTable}
+    }
+    set t [$tableWidgetClass new -volatile -skin $skin \
                -columns {
                  BulkAction objects -id ID -hide $::hidden(objects) -actions {
                    Action new -label select -tooltip select -url admin/select
@@ -477,32 +481,26 @@ namespace eval ::xowiki::includelet {
                  # The "-html" options are currenty ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way. 
                  #
-                 # A full example for skinning the datatable is here:
-                 # http://developer.yahoo.com/yui/examples/datatable/dt_skinning.html
-                 #
                  HiddenField ID
                  AnchorField edit -CSSclass edit-item-button -label "" \
-                     -hide $::hidden(edit) \
-                     -html {style "padding: 0px;"}
+                     -hide $::hidden(edit)
                  if {$::with_publish_status} {
                    ImageAnchorField publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-                       -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
+                       -alt "publish status" -label [_ xowiki.publish_status]
                  }
                  Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
-                     -hide $::hidden(object_type) \
-                     -html {style "padding: 0px;"}
+                     -hide $::hidden(object_type)
                  AnchorField name -label [_ xowiki.Page-name] -orderby name \
-                     -hide $::hidden(name) \
-                     -html {style "padding: 2px;"}
+                     -hide $::hidden(name) 
                  Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
                      -hide $::hidden(last_modified) 
                  Field mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
                  AnchorField delete -CSSclass delete-item-button \
                      -hide $::hidden(delete) \
                      -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
-               }]
 
+               }]
 
     set extra_where_clause "true"
     # TODO: why filter on title and name?
@@ -599,7 +597,12 @@ namespace eval ::xowiki::includelet {
           -return_url $return_url \
           -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]] \
           $menuEntries
-      set menubar [$mb render-yui]
+
+      switch [$context_package_id get_parameter "PreferedCSSToolkit" yui] {
+        bootstrap {set menuBarRenderer render-bootstrap}
+        default   {set menuBarRenderer render-yui}
+      }
+      set menubar [$mb $menuBarRenderer]
     }
     set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
     set viewer_links ""
@@ -770,13 +773,13 @@ namespace eval ::YUI {
     }
   }
 
-  Class DataTable \
+  Class ::xowiki::YUIDataTable \
       -superclass ::xo::Table \
       -parameter {
         {skin "yui-skin-sam"}
       }
 
-  DataTable instproc init {} {
+  ::xowiki::YUIDataTable instproc init {} {
     set trn_mixin [expr {[lang::util::translator_mode_p] ?"::xo::TRN-Mode" : ""}]
     my render_with YUIDataTableRenderer $trn_mixin
     next

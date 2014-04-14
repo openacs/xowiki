@@ -35,7 +35,7 @@ namespace eval ::xowiki {
         {id "[my html_id]"}
         CSSclass
       }
-  
+
   Menu ad_instproc render {} {doku} {
     html::ul [my get_attributes id {CSSclass class}] {
       foreach menuitem [my children] {$menuitem render}
@@ -58,8 +58,8 @@ namespace eval ::xowiki {
         target
 	{group ""}
       }
-  
-  
+
+
   MenuItem ad_instproc init args {doku} {
     next
     # Use computed default values when not specified
@@ -81,7 +81,7 @@ namespace eval ::xowiki {
       my set linkclass [string tolower [namespace tail [my info class]]]label
     }
   }
-  
+
   MenuItem ad_instproc render {} {doku} {
     html::li [my get_attributes id {CSSclass class}] {
       html::a [my get_attributes title href target] {
@@ -89,14 +89,14 @@ namespace eval ::xowiki {
       }
     }
   }
-  
-  
+
+
   ::xo::tdom::Class YUIMenuItemList \
       -superclass Menu \
       -parameter {
         header
       }
-  
+
   YUIMenuItemList ad_instproc render {} {} {
     if {[my exists header]} {
       html::h6 {
@@ -105,11 +105,11 @@ namespace eval ::xowiki {
     }
     next
   }
-  
+
   ###################################################
   #
   # YUIMenu
-  #  
+  #
   ::xo::tdom::Class create YUIMenu \
       -superclass Menu \
       -parameter {
@@ -119,7 +119,7 @@ namespace eval ::xowiki {
 	{autorender false}
         {configuration {{}}}
       }
-  
+
   YUIMenu instproc init {} {
     ::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "menu/assets/skins/sam/menu.css"
     ::xowiki::Includelet require_YUI_JS  -ajaxhelper 1 "yahoo-dom-event/yahoo-dom-event.js"
@@ -154,11 +154,11 @@ namespace eval ::xowiki {
     http://developer.yahoo.com/yui/menu/
   } {
     my append CSSclass " yuimenu"
-    
+
     # I want the menu to show up when JS is disabled
     # This gets overridden by JS, so its only relevant for the non-JS version
     #my set style "visibility: visible; position: relative;"
-    
+
     html::div [my get_attributes {CSSclass class} id style] {
       # Header
       html::t \n
@@ -203,14 +203,14 @@ namespace eval ::xowiki {
 
   #
   # YUIMenuItem
-  #  
+  #
   ::xo::tdom::Class create YUIMenuItem \
       -superclass MenuItem \
       -parameter {
 	{href "#"}
         helptext
       }
-  
+
   YUIMenuItem ad_instproc render {} {doku} {
     html::li [my get_attributes id {CSSclass class} style] {
       # if we have no href, mark entry as disabled
@@ -227,17 +227,17 @@ namespace eval ::xowiki {
     }
     html::t \n
   }
-  
-  
+
+
   #
   # YUIMenuBar
-  #    
+  #
   ::xo::tdom::Class create YUIMenuBar \
       -superclass YUIMenu \
       -parameter {
         {navbar true}
       }
-  
+
   YUIMenuBar ad_instproc render {} {
     http://developer.yahoo.com/yui/menu/#menubar
     MenuBar looks best without a header and with one MenuItemList only
@@ -260,13 +260,13 @@ namespace eval ::xowiki {
       });"
     }
   }
-  
+
   #
   # YUIMenuBarItem
-  # 
+  #
   ::xo::tdom::Class create YUIMenuBarItem \
       -superclass YUIMenuItem
-  
+
   YUIMenuBarItem ad_instproc init {} {} {
     #goto YUIMenuItem and set all those nice defaults
     next
@@ -277,10 +277,10 @@ namespace eval ::xowiki {
     }
   }
 
-  
+
   #
   # YUIContextMenu
-  # 
+  #
 
   # TODO: Support for Multiple Element IDs/Refs as Trigger
 
@@ -290,7 +290,7 @@ namespace eval ::xowiki {
         {trigger "document"}
         {triggertype "reference"}
       }
-  
+
   YUIContextMenu ad_instproc render {} {
     http://developer.yahoo.com/yui/menu/#contextmenu
   } {
@@ -307,17 +307,17 @@ namespace eval ::xowiki {
       }
     }
   }
-  
+
   #
   # YUIContextMenuItem
-  # 
+  #
   ::xo::tdom::Class YUIContextMenuItem \
       -superclass YUIMenuItem
-  
+
 
   #
   # Simple Generic MenuBar
-  # 
+  #
   # Class for creating and updating Menubars in an incremental
   # fashion. Menu handling works as following:
   #
@@ -330,9 +330,9 @@ namespace eval ::xowiki {
   #      provided name determines the menu to which the entry is
   #      added. The following example adds a menu entry "StartPage" to
   #      the menu "Package":
-  #      
+  #
   #        $mb add_menu_item -name Package.Startpage \
-  #             -item [list text #xowiki.index# url $index_link]
+      #             -item [list text #xowiki.index# url $index_link]
   #
   #   4) After all updates are performed, use "render-yui" to obtain
   #      the HTML rendering of the menu.
@@ -355,18 +355,18 @@ namespace eval ::xowiki {
   }
 
   if {[info commands ::dict] ne ""} {
-     ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
+    ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
       if {![dict exists $dict $key]} {
 	return $default
-      } 
+      }
       return [dict get $dict $key]
     }
   } else {
-     ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
+    ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
       array set "" $dict
       if {![info exists ($key)]} {
 	return $default
-      } 
+      }
       return [set ($key)]
     }
   }
@@ -375,7 +375,7 @@ namespace eval ::xowiki {
     my set Menues [list]
     my destroy_on_cleanup
   }
-  
+
   ::xowiki::MenuBar instproc add_menu {-name {-label ""}} {
     my instvar Menues
     if {$name in $Menues} {
@@ -460,7 +460,7 @@ namespace eval ::xowiki {
     # below). Iterate of the extra_menu property and add according
     # menu entries.
     #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
-      
+
     foreach me $items {
       array unset ""
       set kind [lindex $me 0]
@@ -517,6 +517,10 @@ namespace eval ::xowiki {
     } {
       foreach {menu_att menu} $M {
         if {$menu_att eq "id"} continue
+        if {[llength $menu_att] > 1} {
+          # We expect a dict as second list element.. but ignore here for the time being
+          lassign $menu_att menu_att props
+        }
         ::xowiki::YUIMenuBarItem -text [my get_prop $menu text] {
           ::xowiki::YUIMenu {
             foreach {item_att item} $menu {
@@ -525,7 +529,7 @@ namespace eval ::xowiki {
               set url [my get_prop $item url]
 	      set group [my get_prop $item group]
 	      #my msg "ia=$item_att group '$group' // t=$text item=$item"
-              ::xowiki::YUIMenuItem -text $text -href $url -group $group {} 
+              ::xowiki::YUIMenuItem -text $text -href $url -group $group {}
             }
           }
         }
@@ -534,11 +538,17 @@ namespace eval ::xowiki {
     return [$mb asHTML]
   }
 
-  namespace export Menu 
-  namespace export YUIMenuBar YUIMenuBarItem 
+  namespace export Menu
+  namespace export YUIMenuBar YUIMenuBarItem
   namespace export YUIMenu YUIMenuItem YUIMenuItemList
   namespace export YUIContextMenu YUIContextMenuItem
-# end of namespace
+  # end of namespace
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
