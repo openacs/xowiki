@@ -2,6 +2,7 @@
   yui procs: provide some support for yui library
 
   @creation-date 2014-04-14
+  @author Michael Aram
   @author Gustaf Neumann
   @cvs-id $Id$
 }
