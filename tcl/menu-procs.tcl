@@ -334,7 +334,7 @@ namespace eval ::xowiki {
   #        $mb add_menu_item -name Package.Startpage \
       #             -item [list text #xowiki.index# url $index_link]
   #
-  #   4) After all updates are performed, use "render-yui" to obtain
+  #   4) After all updates are performed, use "render-preferred" to obtain
   #      the HTML rendering of the menu.
   #
   # Follow the following nameing conventions:
@@ -508,6 +508,14 @@ namespace eval ::xowiki {
       lappend result $m [my set Menu($m)]
     }
     return $result
+  }
+
+  ::xowiki::MenuBar instproc render-preferred {} {
+    switch [$context_package_id get_parameter "PreferredCSSToolkit" yui] {
+      bootstrap {set menuBarRenderer render-bootstrap}
+      default   {set menuBarRenderer render-yui}
+    }
+    my $menuBarRenderer
   }
 
   ::xowiki::MenuBar instproc render-yui {} {

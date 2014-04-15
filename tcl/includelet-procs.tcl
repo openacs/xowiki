@@ -3860,7 +3860,7 @@ namespace eval ::xowiki::includelet {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [$package_id get_parameter "PreferedCSSToolkit" yui] {
+      switch [$package_id get_parameter "PreferredCSSToolkit" yui] {
         bootstrap {set tableRenderer ::xo::Table::BootstrapTableRenderer}
         default   {set tableRenderer ::xo::Table::YUIDataTableRenderer}
       }

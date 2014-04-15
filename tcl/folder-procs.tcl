@@ -469,7 +469,7 @@ namespace eval ::xowiki::includelet {
     # scoping in "-columns"
     set ::with_publish_status [expr {$publish_status ne "ready"}]
 
-    switch [$package_id get_parameter "PreferedCSSToolkit" yui] {
+    switch [$package_id get_parameter "PreferredCSSToolkit" yui] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
@@ -598,11 +598,7 @@ namespace eval ::xowiki::includelet {
           -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]] \
           $menuEntries
 
-      switch [$context_package_id get_parameter "PreferedCSSToolkit" yui] {
-        bootstrap {set menuBarRenderer render-bootstrap}
-        default   {set menuBarRenderer render-yui}
-      }
-      set menubar [$mb $menuBarRenderer]
+      set menubar [$mb render-preferred]
     }
     set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
     set viewer_links ""

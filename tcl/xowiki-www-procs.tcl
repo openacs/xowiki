@@ -1315,11 +1315,7 @@ namespace eval ::xowiki {
       #
       # At this place, the menu should be complete, we can render it
       #
-      switch [$context_package_id get_parameter "PreferedCSSToolkit" yui] {
-        bootstrap {set menuBarRenderer render-bootstrap}
-        default   {set menuBarRenderer render-yui}
-      }
-      append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb $menuBarRenderer]
+      append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-preferred]
     }
 
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
