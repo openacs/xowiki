@@ -3171,7 +3171,7 @@ namespace eval ::xowiki::includelet {
   collab-graph instproc render {} {
     my get_parameters
     
-    if {$show_anonymous ne "all" && [::xo::cc user_id] eq 0} {
+    if {$show_anonymous ne "all" && [::xo::cc user_id] eq "0"} {
       return "You must login to see the [namespace tail [self class]]"
     }
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
@@ -3254,7 +3254,7 @@ namespace eval ::xowiki::includelet {
   activity-graph instproc render {} {
     my get_parameters
 
-    if {$show_anonymous ne "all" && [::xo::cc user_id] eq 0} {
+    if {$show_anonymous ne "all" && [::xo::cc user_id] eq "0"} {
       return "You must login to see the [namespace tail [self class]]"
     }
 

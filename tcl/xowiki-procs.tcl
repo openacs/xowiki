@@ -245,7 +245,7 @@ namespace eval ::xowiki {
   autoname proc new {-parent_id -name} {
     while {1} {
       set generated_name [my generate -parent_id $parent_id -name $name]
-      if {[::xo::db::CrClass lookup -name $generated_name -parent_id $parent_id] eq 0} {
+      if {[::xo::db::CrClass lookup -name $generated_name -parent_id $parent_id] eq "0"} {
         return $generated_name
       }
     }
