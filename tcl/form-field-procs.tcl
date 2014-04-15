@@ -936,7 +936,7 @@ namespace eval ::xowiki::formfield {
       # - the formfield is not disabled, and
       # - the form-field is not sticky (default)
       
-      set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+      set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
       if {$value ne "" && !$disabled && ![my sticky] } {
         ::html::input -type button -value clear \
             -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
@@ -1659,7 +1659,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor instproc render_input {} {
-    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
     if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
@@ -1851,8 +1851,8 @@ namespace eval ::xowiki::formfield {
   }
   
   richtext::ckeditor4 instproc render_input {} {
-    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
-    set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] eq "true"}]
+    set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
+    set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] == "true"}]
     # my msg "[my id] [my name] - $is_repeat_template"
     
     # if value is empty, we need something to be clickable for display mode inline or inplace
@@ -2003,7 +2003,7 @@ namespace eval ::xowiki::formfield {
     my set widget_type richtext
   }
   richtext::wym instproc render_input {} {
-    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
     if {![my istype ::xowiki::formfield::richtext] || $disabled } {
       my render_richtext_as_div
     } else {
@@ -2112,7 +2112,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::xinha instproc render_input {} {
-    set disabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+    set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
     if {![my istype ::xowiki::formfield::richtext] || $disabled} {
       my render_richtext_as_div
     } else {

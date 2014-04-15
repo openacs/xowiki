@@ -493,7 +493,7 @@ namespace eval ::xowiki {
     # necessary to move e.g. category definitions into the global form
     # constraints.
     #
-    if {$mode eq "copy" && ![string match *revision_id* [my set instance_attributes]]} {
+    if {$mode eq "copy" && ![string match "*revision_id*" [my set instance_attributes]]} {
       return [next]
     }
     set form_fields [my create_form_fields_from_form_constraints \
@@ -3233,7 +3233,7 @@ FormPage proc get_form_entries {
                  -named_objects $named_objects -object_named_after "item_id" \
                  -object_class ::xowiki::FormPage -initialize $initialize]
 
-  if {!$use_hstore && $wc(tcl) ne "true"} {
+  if {!$use_hstore && $wc(tcl) != "true"} {
     # Make sure, that the expr method is available; 
     # in xotcl 2.0 this will not be needed
     ::xotcl::alias ::xowiki::FormPage expr -objscope ::expr

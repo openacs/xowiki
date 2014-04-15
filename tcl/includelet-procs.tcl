@@ -2631,7 +2631,7 @@ namespace eval ::xowiki::includelet {
     {-with_footer "false"}
   } {
     my instvar __including_page
-    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer != "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
 
@@ -2673,7 +2673,7 @@ namespace eval ::xowiki::includelet {
     {-with_footer "false"}
   } {
     my instvar __including_page
-    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer != "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
 
@@ -2727,7 +2727,7 @@ namespace eval ::xowiki::includelet {
     {-with_footer "false"}
   } {
     my instvar __including_page
-    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer != "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
 
@@ -2787,7 +2787,7 @@ namespace eval ::xowiki::includelet {
     {-with_footer "false"}
   } {
     my instvar __including_page
-    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer != "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
     
@@ -2865,7 +2865,7 @@ namespace eval ::xowiki::includelet {
     {-with_footer "false"}
   } {
     my instvar __including_page
-    if {$cnames ne "" || $allow_reorder ne "" || $with_footer ne "false"} {
+    if {$cnames ne "" || $allow_reorder ne "" || $with_footer != "false"} {
       error "ignoring cnames, allow_reorder, and with_footer for the time being"
     }
 

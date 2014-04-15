@@ -170,7 +170,7 @@ namespace eval ::xowiki::formfield {
         set nrItems $providedValues
       }
       incr nrItems
-      set containerDisabled [expr {[my exists disabled] && [my disabled] ne "false"}]
+      set containerDisabled [expr {[my exists disabled] && [my disabled] != "false"}]
       foreach c [my components] {
         set atts [list class $CSSclass]
         if {$i > $nrItems || [string match "*.0" [$c name]]} {
