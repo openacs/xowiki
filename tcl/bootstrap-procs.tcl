@@ -142,6 +142,9 @@ namespace eval ::xowiki {
   }
 }
 
+###############################################################################
+#   Bootstrap table
+###############################################################################
 
 # TODO Allow renderers from other namespaces in 30-widget-procs
 
@@ -258,8 +261,7 @@ namespace eval ::xo::Table {
   Class create BootstrapTableRenderer::BulkAction -superclass TABLE::BulkAction
 }
 
-
-
+::xo::library source_dependent
 
 #
 # Local variables:
