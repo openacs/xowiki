@@ -30,9 +30,11 @@ namespace eval ::xowiki {
       }
   
   BootstrapNavbar instproc init {} {
-    ::xo::Page requireCSS "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-    ::xo::Page requireJS "//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"
+    set css [parameter::get_global_value -package_key xowiki -parameter BootstrapCSS] 
+    set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS] 
+    foreach url $css {::xo::Page requireCSS $url}
+    foreach url $js  {::xo::Page requireJS  $url}
     next
   }
   

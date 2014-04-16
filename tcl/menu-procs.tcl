@@ -287,7 +287,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [[xo::cc package_id] get_parameter "PreferredCSSToolkit" yui] {
+    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] {
       bootstrap {set menuBarRenderer render-bootstrap}
       default   {set menuBarRenderer render-yui}
     }
