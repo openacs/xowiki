@@ -80,6 +80,10 @@ namespace eval ::xowiki {
       #append extra_where_clause "and c.object_id = ci.item_id and c.category_id = $category_id "
       #append extra_from_clause  ",category_object_map c "
       foreach cid [split $category_id ,] {
+        if {![string is integer -strict $category_id]} {
+          ns_log warning "weblog: ignoring invalid category_id $cid"
+          continue
+        }
         append extra_where_clause "and exists (select * from category_object_map \
            where object_id = ci.item_id and category_id = $cid)"
         lappend cnames [::category::get_name $cid]
