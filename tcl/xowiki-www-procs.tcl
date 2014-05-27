@@ -1390,6 +1390,8 @@ namespace eval ::xowiki {
       #
       
       set header_stuff [::xo::Page header_stuff]
+      if {![my exists description]} {my set description [my get_description $content]}
+
       if {[info commands ::template::head::add_meta] ne ""} {
         set meta(language) [my lang]
         set meta(description) [my description]
