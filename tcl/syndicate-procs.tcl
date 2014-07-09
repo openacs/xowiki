@@ -1,3 +1,7 @@
+::xo::library doc {
+  Syndication
+}
+
 namespace eval ::xowiki {
   #
   # RSS 2.0 support
