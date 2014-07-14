@@ -3736,7 +3736,7 @@ namespace eval ::xowiki::includelet {
       # Start for search for form in the directory of the including
       # form.  The provided package_id and parent_id refers to the
       # form instances, not to the forms.
-      set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id \
+      set form_item_ids [::xowiki::Weblog instantiate_forms \
                              -parent_id [$o parent_id] \
                              -default_lang [$o lang] \
                              -forms $form -package_id [$o package_id]]
