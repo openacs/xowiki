@@ -1807,6 +1807,21 @@ namespace eval ::xowiki {
     return 1
   }
 
+  Page ad_instproc validate=form_input_fields {form_fields} {
+    #
+    # This is the form-level validator, which might be used to perform
+    # validation based on e.g. multiple depending formfields.  The
+    # validator can be used to test inter-dependencies between
+    # form-fields and should set the error fields of the reporting
+    # form field(s) via
+    #
+    #   $f error_msg "some error...."
+    #
+    # This method can be refined by e.g. a workflow.
+    #
+    return 1
+  }
+
   Page ad_instproc get_form_data {-field_names form_fields} {
 
     Get the values from the form and store it in the form fields and
@@ -1962,6 +1977,10 @@ namespace eval ::xowiki {
     set current_revision_id [$cc form_parameter __current_revision_id ""]
     if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != [my revision_id]} {
       set validation_errors [my mutual_overwrite_occurred]
+    }
+
+    if {[my validate=from_input_fields $form_fields]} {
+      incr validation_errors
     }
 
     if {$validation_errors == 0} {
