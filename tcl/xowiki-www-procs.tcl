@@ -1807,7 +1807,7 @@ namespace eval ::xowiki {
     return 1
   }
 
-  Page ad_instproc validate=form_input_fields {form_fields} {
+  Page instproc validate=form_input_fields {form_fields} {
     #
     # This is the form-level validator, which might be used to perform
     # validation based on e.g. multiple depending formfields.  The
