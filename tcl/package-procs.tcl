@@ -2218,6 +2218,72 @@ namespace eval ::xowiki {
     my returnredirect [my query_parameter "return_url" [$id package_url]]
   }
 
+  #
+  # Reparent a page
+  #
+  Package ad_instproc reparent {
+    -item_id:integer,required 
+    -new_parent_id:integer,required 
+    {-allowed_parent_types {::xowiki::FormPage ::xowiki::Page}}
+  } {
+
+    Reparent a wiki page from one parent page to another one. The
+    function changes the parent_id in cr_items, updates the
+    cr-child-rels, and clears the caches. The function does not
+    require the item to be instantiated. 
+
+    Limitations: The method does not perform permission checks
+    (whether the actual user has rights to move the page to another
+    parent folder), which should be implemented by the calling
+    methods. Currently, the method does not perform cycle checks.  It
+    might be recommended to make sure the target parent is in
+    the same package instance.
+
+    @param item_id item_id of the item to be moved
+    @param new_parent_id item_id of the target parent
+
+  } {
+    set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
+    set name      [::xo::db::CrClass get_name      -item_id $item_id]
+    if {$new_parent_id == $parent_id} {
+      # nothing to do
+      return
+    }
+    set object_type [::xo::db::CrClass get_object_type -item_id $item_id]
+    set parent_object_type [::xo::db::CrClass get_object_type -item_id $new_parent_id]
+    if {$parent_object_type ni $allowed_parent_types} {
+      error "parent_object_type $parent_object_type not in allowed types"
+    }
+    set relation_tag $parent_object_type-$object_type
+    ::xo::dc transaction {
+      ::xo::dc dml update_cr_items {
+        update cr_items set parent_id = :new_parent_id where item_id = :item_id
+      }
+      ::xo::dc dml update_cr_child_rels {
+        update cr_child_rels set parent_id = :new_parent_id, relation_tag = :relation_tag 
+        where child_id = :item_id
+      }
+    }
+    #
+    # clear caches
+    #
+    my flush_references -item_id $item_id -name $name -parent_id $parent_id
+    my flush_page_fragment_cache -scope agg
+
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+
+    #
+    # Clear potentially cached revisions. The function could be
+    # optimized in the future by an index of the cached revision_ids
+    # for an item_id
+    #
+    foreach revision_id [::xo::dc list get_revisions {
+      select revision_id from cr_revisions where item_id = :item_id
+    }] {
+      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+    }
+  }
+
   Package instproc flush_page_fragment_cache {{-scope agg}} {
     switch -- $scope {
       agg {set key PF-[my id]-agg-*}
@@ -2511,5 +2577,3 @@ namespace eval ::xowiki {
 #    tcl-indent-level: 2
 #    indent-tabs-mode: nil
 # End:
-
-
