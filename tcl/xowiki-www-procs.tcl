@@ -1979,7 +1979,7 @@ namespace eval ::xowiki {
       set validation_errors [my mutual_overwrite_occurred]
     }
 
-    if {[my validate=from_input_fields $form_fields]} {
+    if {[my validate=form_input_fields $form_fields] == 0} {
       incr validation_errors
     }
 
