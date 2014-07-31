@@ -2249,6 +2249,7 @@ namespace eval ::xowiki {
       # nothing to do
       return
     }
+
     set object_type [::xo::db::CrClass get_object_type -item_id $item_id]
     set parent_object_type [::xo::db::CrClass get_object_type -item_id $new_parent_id]
     if {$parent_object_type ni $allowed_parent_types} {
@@ -2262,6 +2263,13 @@ namespace eval ::xowiki {
       ::xo::dc dml update_cr_child_rels {
         update cr_child_rels set parent_id = :new_parent_id, relation_tag = :relation_tag 
         where child_id = :item_id
+      }
+      ::xo::dc dml update_rels_object {
+        update acs_objects
+        set context_id = :new_parent_id,
+        title = :relation_tag || ': ' || :new_parent_id || ' - '  || :item_id
+        where object_id = (select rel_id from cr_child_rels
+                           where child_id = :item_id)
       }
     }
     #
