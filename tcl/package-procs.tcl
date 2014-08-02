@@ -776,7 +776,9 @@ namespace eval ::xowiki {
   }
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     if {![regexp {^[a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
-    set page_or_package [my resolve_page [my set object] method]
+    if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
+      return [my error_msg -template_file $error_template $errorMsg]
+    }
     #my log "--r resolve_page => $page_or_package"
     if {$page_or_package ne ""} {
       if {[$page_or_package istype ::xowiki::FormPage]
@@ -1409,8 +1411,8 @@ namespace eval ::xowiki {
         set popular [::xo::cc query_parameter popular 0]
         if {$summary eq ""} {set summary 0}
         if {$popular eq ""} {set popular 0}
-        if {![string is boolean -strict $summary]} {error "summary must be boolean"}
-        if {![string is boolean -strict $popular]} {error "popular must be boolean"}
+        if {![string is boolean -strict $summary]} {error "value of summary must be boolean"}
+        if {![string is boolean -strict $popular]} {error "value of popular must be boolean"}
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
         set weblog_page [my get_parameter weblog_page]
         my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
