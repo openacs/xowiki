@@ -189,6 +189,11 @@ namespace eval ::xowiki::includelet {
       set ands [list]
       set and_names [list]
       foreach cid_and [split $cid_or ,] {
+        if {![string is integer -strict $cid_and]} {
+          return -code error "invalid category id '$cid_and'"
+          ns_log warning "ignore invalid category id '$cid_and'"
+          continue
+        }
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
            where object_id = $item_ref and category_id = $cid_and)"
@@ -196,9 +201,13 @@ namespace eval ::xowiki::includelet {
       lappend or_names "[join $and_names { and }]"
       lappend ors "([join $ands { and }])"
     }
-    set cnames "[join $or_names { or }]"
-    set extra_where_clause "and ([join $ors { or }])"
-    #my log "--cnames $category_spec -> $cnames"
+    if {$ors eq "()"} {
+      set cnames ""
+    } else {
+      set cnames "[join $or_names { or }]"
+      set extra_where_clause "and ([join $ors { or }])"
+    }
+    #my log "--cnames $category_spec -> $cnames // <$extra_where_clause>"
     return [list $cnames $extra_where_clause]
   }
 
