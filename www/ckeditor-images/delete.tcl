@@ -1,7 +1,7 @@
 ad_page_contract {
 	
 } {
-	parent_id:notnull,integer 
+	parent_id:notnull,naturalnum 
 	revision:notnull,integer 
 } 
 

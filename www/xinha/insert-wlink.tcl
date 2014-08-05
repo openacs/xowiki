@@ -1,7 +1,7 @@
 ad_page_contract {
 	popup for choosing a target for wiki link
 } {
-	{package_id:integer}
+	{package_id:naturalnum,notnull}
 	{page_number:integer 1}
 	{page_size:integer 20}
 }
