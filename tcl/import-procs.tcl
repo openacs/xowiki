@@ -133,7 +133,7 @@ namespace eval ::xowiki {
     # Make a fix-point iteration during import. Do only import, when
     # all prerequirement pages are already loaded.
     #
-    while {[llength [array names todo]] > 0} {
+    while {[array size todo] > 0} {
       set new 0
       foreach o [array names todo] {
         #my msg "work on $o [$o info class] [$o name]"
