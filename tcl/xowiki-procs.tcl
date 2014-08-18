@@ -3188,11 +3188,11 @@ namespace eval ::xowiki {
     # Build package clause
     #
     if {$from_package_ids eq ""} {
-      set package_clause "and object_package_id = $package_id"
+      set package_clause "and object_package_id = :package_id"
     } elseif {$from_package_ids eq "*"} {
       set package_clause ""
     } elseif {[llength $from_package_ids] == 1} {
-      set package_clause "and object_package_id = $from_package_ids"
+      set package_clause "and object_package_id = :from_package_ids"
     } else {
       set package_clause "and object_package_id in ([join $from_package_ids ,])"
     }
