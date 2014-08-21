@@ -158,15 +158,20 @@ namespace eval ::xowiki {
         xowiki_page_instance on (p.revision_id = page_instance_id)"
     }
 
+    if {[llength $folder_ids] > 1} {
+      set folder_select "ci.parent_id in ([join $folder_ids ,])"
+    } else {
+      set folder_select "ci.parent_id = :folder_ids"
+    }
+
     set sql [::xo::dc select \
                  -vars "s.body, s.rss_xml_frag, p.name, p.creator, p.title, p.page_id, instance_attributes, \
                 p.object_type as content_type, p.publish_date, p.description" \
                  -from "syndication s, cr_items ci, $base_table p $extra_from" \
-                 -where "ci.parent_id in ([join $folder_ids ,]) \
-            and ci.live_revision = s.object_id \
+                 -where "$folder_select and ci.live_revision = s.object_id \
                     and ci.publish_status <> 'production' \
                     and s.object_id = p.page_id \
-                $extra_where_clause"\
+                    $extra_where_clause"\
                  -orderby "p.publish_date desc" \
                  -limit [my limit]]
 
