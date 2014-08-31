@@ -139,7 +139,7 @@ namespace eval ::xowiki {
                     }
                   }
                 }]
-    ns_log notice call-mb-asHTML
+    #ns_log notice call-mb-asHTML
     return [$mb asHTML]
   }
 }
