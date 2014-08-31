@@ -234,8 +234,9 @@ namespace eval ::xowiki {
   } {
     # A folder page can contain extra menu entries (sample
     # below). Iterate of the extra_menu property and add according
-    # menu entries.
-    #{form_link -name New.Page -label #xowiki.new# -form en:page.form}
+    # menu entries. Sample:
+    #
+    # {entry -name New.Page -label #xowiki.new# -form en:page.form}
 
     foreach me $items {
       array unset ""
