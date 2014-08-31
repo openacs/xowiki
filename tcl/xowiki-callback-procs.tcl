@@ -14,6 +14,7 @@ namespace eval ::xowiki {
   }
 
   ad_proc -private ::xowiki::before-uninstall {} {
+    ns_log notice "Executing ::xowiki::before-uninstall"
     ::xowiki::sc::unregister_implementations
     ::xowiki::notifications-uninstall
 
