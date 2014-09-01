@@ -1507,7 +1507,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext instproc initialize {} {
-    my display_field false
+    #my display_field false
     switch -- [my set displayMode] {
       inplace -
       inline -
