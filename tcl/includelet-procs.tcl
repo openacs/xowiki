@@ -3736,9 +3736,15 @@ namespace eval ::xowiki::includelet {
     if {[info exists parent_id]} {
       if {$parent_id eq "self"} {
         set parent_id [$__including_page item_id]
+      } elseif {$parent_id eq "*"} {
+        set query_parent_id $parent_id
+        set parent_id [$o parent_id]
       }
     } else {
       set parent_id [$o parent_id]
+    }
+    if {![info exists query_parent_id]} {
+      set query_parent_id $parent_id
     }
     
     if {![info exists form_item_id]} {
@@ -3755,6 +3761,7 @@ namespace eval ::xowiki::includelet {
 
     set form_constraints $extra_form_constraints\n
 
+    set inherit_form_ids {}
     if {$inherit_from_forms ne ""} {
       foreach inherit_form $inherit_from_forms {
         set inherit_form_id [::xowiki::Weblog instantiate_forms \
@@ -3762,8 +3769,13 @@ namespace eval ::xowiki::includelet {
                                  -default_lang [$o lang] \
                                  -forms $inherit_form -package_id [$o package_id]]
         if {$inherit_form_id ne ""} {
-          set p [$inherit_form_id property form_constraints]
+          if {[$inherit_form_id istype ::xowiki::FormPage]} {
+            set p [$inherit_form_id property form_constraints]
+          } else {
+            set p [$inherit_form_id form_constraints]
+          }
           append form_constraints $p\n
+          lappend inherit_form_ids $inherit_form_id
         }
       }
     }
@@ -3826,13 +3838,20 @@ namespace eval ::xowiki::includelet {
       if {$_ ne ""} {lappend field_names $_}
     }
 
-    foreach form_item $form_item_ids {
+    if {[llength $inherit_form_ids] > 0} { 
+      set item_ids $inherit_form_ids
+    } else {
+      set item_ids $form_item_ids
+    }
+
+    foreach form_item $item_ids {
       set form_fields [::xowiki::FormPage get_table_form_fields \
                            -base_item $form_item \
                            -field_names $field_names \
                            -form_constraints $form_constraints]
       #$form_item show_fields $form_fields
       foreach f $form_fields {set __ff([$f name]) $f}
+      #foreach f $form_fields {ns_log notice "[$f name] [$f label]"}
     }
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
@@ -3869,10 +3888,11 @@ namespace eval ::xowiki::includelet {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [$package_id get_parameter "PreferredCSSToolkit" yui] {
-        bootstrap {set tableRenderer ::xo::Table::BootstrapTableRenderer}
-        default   {set tableRenderer ::xo::Table::YUIDataTableRenderer}
+      switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] {
+        bootstrap {set renderer BootstrapTableRenderer}
+        default   {set renderer YUIDataTableRenderer}
       }
+      lappend cmd -renderer $renderer
     }
     {*}$cmd
 
@@ -3916,7 +3936,7 @@ namespace eval ::xowiki::includelet {
 
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids \
-                   -parent_id $parent_id \
+                   -parent_id $query_parent_id \
                    -form_fields $form_fields \
                    -publish_status $publish_status \
                    -extra_where_clause $extra_where_clause \
@@ -3931,7 +3951,7 @@ namespace eval ::xowiki::includelet {
         # difference to variable items: just the extra_where_clause
         set base_items [::xowiki::FormPage get_form_entries \
                             -base_item_ids $form_item_ids \
-                            -parent_id $parent_id \
+                            -parent_id $query_parent_id \
                             -form_fields $form_fields \
                             -publish_status $publish_status \
                             -h_where [array get wc] \

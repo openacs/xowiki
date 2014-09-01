@@ -795,14 +795,6 @@ namespace eval ::xowiki {
       if {[my is_new_entry [my name]]} {
         my set creator [::xo::get_user_name [::xo::cc user_id]]
         my set nls_language [ad_conn locale]
-        #my set name [$package_id query_parameter name ""]
-        # TODO: maybe use __object_name to for POST url to make code 
-        # more straightforward
-        #set n [$package_id query_parameter name \
-            #       [::xo::cc form_parameter __object_name ""]]
-        #if {$n ne ""} { 
-        #  my name $n 
-        #}
       }
 
       #array set __ia [my set instance_attributes]
@@ -2020,13 +2012,13 @@ namespace eval ::xowiki {
       set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     }
 
-    #my msg "$found $name mode=$mode type=[$f set type] value=[$f value] disa=[$f exists disabled]"
+    #my msg "$found $name mode=$mode type=[$f set type] value=[$f value] disa=[$f exists disabled] display_field=[$f display_field]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
     } else {
       set html @$name@
     }
-    #my msg "$name $html"
+    #my msg "RESULT: $name <$html>"
     return ${before}$html
   }
 
