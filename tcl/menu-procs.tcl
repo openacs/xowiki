@@ -236,17 +236,18 @@ namespace eval ::xowiki {
     # below). Iterate of the extra_menu property and add according
     # menu entries. Sample:
     #
+    # {clear_menu -menu New}
     # {entry -name New.Page -label #xowiki.new# -form en:page.form}
 
     foreach me $items {
       array unset ""
       set kind [lindex $me 0]
       if {[string range $kind 0 0] eq "#"} continue
+      set properties [lrange $me 1 end]
+
       switch $kind {
 	clear_menu {
-	  # sample entry: clear_menu -menu New
-	  array set "" [lrange $me 1 end]
-	  my clear_menu -menu $(-menu)
+	  my clear_menu -menu [dict get $properties -menu]
 	}
 	
 	form_link -
@@ -255,23 +256,23 @@ namespace eval ::xowiki {
 	  if {$kind eq "form_link"} {
 	    my log "$me, name 'form_link' is deprecated, use 'entry' instead"
 	  }
-	  array set "" [lrange $me 1 end]
-	  if {[info exists (-form)]} {
-	    set link [$package_id make_form_link -form $(-form) \
+	  if {[dict exists $properties -form]} {
+	    set link [$package_id make_form_link \
+                          -form [dict get $properties -form] \
 			  -parent_id $parent_id \
 			  -nls_language $nls_language -return_url $return_url]
-	  } elseif {[info exists (-object_type)]} {
+	  } elseif {[dict exists $properties -object_type]} {
 	    set link [$package_id make_link -with_entities 0 \
 			  $package_id edit-new \
-			  [list object_type $(-object_type)] \
+			  [list object_type [dict get $properties -object_type]] \
 			  parent_id return_url autoname template_file]
 	  } else {
 	    my log "Warning: no link specified"
 	    set link ""
 	  }
 	  set item [list url $link]
-	  if {[info exists (-label)]} {lappend item text $(-label)}
-	  my add_menu_item -name $(-name) -item $item
+	  if {[dict exists $properties -label]} {lappend item text [dict get $properties -label]}
+	  my add_menu_item -name [dict get $properties -name] -item $item
 	}
 	
 	default { error "unknown kind of menu entry: $kind" }
