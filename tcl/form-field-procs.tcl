@@ -444,6 +444,32 @@ namespace eval ::xowiki::formfield {
     ::html::div $atts { my render_input }
   }
 
+  FormField instproc booleanAttributes {args} {
+    #
+    # Special handling of HTML boolean attributes, since they require a
+    # different coding; it would be nice, if tdom would care for this.
+    #
+    set pairs ""
+    foreach att $args {
+      if {[my exists $att] && [my set $att]} {
+        my set __#$att $att
+        lappend pairs [list __#$att $att]
+      }
+    }
+    return $pairs
+  }
+
+  FormField instproc resetBooleanAttributes {atts} {
+    #
+    # Unset the temporary boolean attributes which were set by method
+    # "booleanAttributes".
+    #
+    foreach att $atts {
+      lassign $att var value
+      if {[my exists $var]} {my unset $var}
+    }
+  }
+
   FormField instproc render_input {} {
     #
     # This is the most general widget content renderer. 
@@ -465,21 +491,12 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[my id]','$package_url');"
     }
 
-    set pairs [list [list CSSclass class]]
-    # Special handling of HTML boolean attributes, since they require a
-    # different coding; it would be nice, if tdom would care for this.
-    set booleanAtts [list required readonly disabled multiple formnovalidate autofocus]
-    foreach att $booleanAtts {
-      if {[my exists $att] && [my set $att]} {
-        my set __#$att $att
-        lappend pairs [list __#$att $att]
-      }
-    }
-    ::html::input [my get_attributes type size maxlength id name value \
-                       pattern placeholder {*}$pairs] {}
-    foreach att $booleanAtts {
-      if {[my exists __#$att]} {my unset __#$att}
-    }
+    set booleanAtts [my booleanAttributes required readonly disabled multiple \
+                         formnovalidate autofocus]
+    ::html::input [my get_attributes type size maxlength id name value pattern \
+                   placeholder {CSSclass class} {*}$booleanAtts] {}
+    my resetBooleanAttributes $booleanAtts
+
 
     #
     # Disabled fieds are not returned by the browsers. For some
@@ -1430,10 +1447,12 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    ::html::textarea [my get_attributes id name cols rows style {CSSclass class} \
-                          disabled placeholder readonly required wrap] {
+    set booleanAtts [my booleanAttributes required readonly disabled formnovalidate wrap]
+    ::html::textarea [my get_attributes id name cols rows style placeholder {CSSclass class} \
+                          {*}$booleanAtts] {
       ::html::t [my value]
     }
+    my resetBooleanAttributes $booleanAtts
   }
 
   ###########################################################
@@ -1448,8 +1467,8 @@ namespace eval ::xowiki::formfield {
   }
   code_listing instproc pretty_value {v} {
     [my object] do_substitutions 0
-    if {[info commands api_tclcode_to_html] ne ""} {
-      set html [api_tclcode_to_html [my value]]
+    if {[info commands ::apidoc::api_tclcode_to_html] ne ""} {
+      set html [::apidoc::api_tclcode_to_html [my value]]
       regsub -all "\n?\r</FONT></EM>" $html </FONT></EM> html
       return "<pre class='code'>$html</pre>"
     } else {
