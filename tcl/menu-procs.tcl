@@ -56,7 +56,7 @@ namespace eval ::xowiki {
         style
         linkclass
         target
-	{group ""}
+        {group ""}
       }
 
 
@@ -133,7 +133,7 @@ namespace eval ::xowiki {
   if {[info commands ::dict] ne ""} {
     ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
       if {![dict exists $dict $key]} {
-	return $default
+        return $default
       }
       return [dict get $dict $key]
     }
@@ -141,7 +141,7 @@ namespace eval ::xowiki {
     ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
       array set "" $dict
       if {![info exists ($key)]} {
-	return $default
+        return $default
       }
       return [set ($key)]
     }
@@ -246,36 +246,36 @@ namespace eval ::xowiki {
       set properties [lrange $me 1 end]
 
       switch $kind {
-	clear_menu {
-	  my clear_menu -menu [dict get $properties -menu]
-	}
-	
-	form_link -
-	entry {
-	  # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
-	  if {$kind eq "form_link"} {
-	    my log "$me, name 'form_link' is deprecated, use 'entry' instead"
-	  }
-	  if {[dict exists $properties -form]} {
-	    set link [$package_id make_form_link \
+        clear_menu {
+          my clear_menu -menu [dict get $properties -menu]
+        }
+        
+        form_link -
+        entry {
+          # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
+          if {$kind eq "form_link"} {
+            my log "$me, name 'form_link' is deprecated, use 'entry' instead"
+          }
+          if {[dict exists $properties -form]} {
+            set link [$package_id make_form_link \
                           -form [dict get $properties -form] \
-			  -parent_id $parent_id \
-			  -nls_language $nls_language -return_url $return_url]
-	  } elseif {[dict exists $properties -object_type]} {
-	    set link [$package_id make_link -with_entities 0 \
-			  $package_id edit-new \
-			  [list object_type [dict get $properties -object_type]] \
-			  parent_id return_url autoname template_file]
-	  } else {
-	    my log "Warning: no link specified"
-	    set link ""
-	  }
-	  set item [list url $link]
-	  if {[dict exists $properties -label]} {lappend item text [dict get $properties -label]}
-	  my add_menu_item -name [dict get $properties -name] -item $item
-	}
-	
-	default { error "unknown kind of menu entry: $kind" }
+                          -parent_id $parent_id \
+                          -nls_language $nls_language -return_url $return_url]
+          } elseif {[dict exists $properties -object_type]} {
+            set link [$package_id make_link -with_entities 0 \
+                          $package_id edit-new \
+                          [list object_type [dict get $properties -object_type]] \
+                          parent_id return_url autoname template_file]
+          } else {
+            my log "Warning: no link specified"
+            set link ""
+          }
+          set item [list url $link]
+          if {[dict exists $properties -label]} {lappend item text [dict get $properties -label]}
+          my add_menu_item -name [dict get $properties -name] -item $item
+        }
+        
+        default { error "unknown kind of menu entry: $kind" }
       }
     }
   }

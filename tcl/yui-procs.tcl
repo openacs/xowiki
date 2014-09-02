@@ -36,7 +36,7 @@ namespace eval ::xowiki {
         header
         footer
         shadow
-	{autorender false}
+        {autorender false}
         {configuration {{}}}
       }
 
@@ -60,9 +60,9 @@ namespace eval ::xowiki {
     foreach e $list {
       set gn [$e group]
       if {$gn ne $group_name} {
-	lappend result $group_list
-	set group_name $gn
-	set group_list [list]
+        lappend result $group_list
+        set group_name $gn
+        set group_list [list]
       }
       lappend group_list $e
     }
@@ -90,11 +90,11 @@ namespace eval ::xowiki {
       # Body
       html::t \n
       html::div -class "bd" {
-	foreach group [my split_menu_groups [my children]] {
-	  html::ul {
-	    foreach menuitemlist $group {$menuitemlist render}
-	  }
-	}
+        foreach group [my split_menu_groups [my children]] {
+          html::ul {
+            foreach menuitemlist $group {$menuitemlist render}
+          }
+        }
       }
       # Footer
       if {[my exists footer]} {
@@ -127,7 +127,7 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create YUIMenuItem \
       -superclass MenuItem \
       -parameter {
-	{href "#"}
+        {href "#"}
         helptext
       }
 
@@ -217,9 +217,9 @@ namespace eval ::xowiki {
     my append CSSclass " yuimenu"
     html::div [my get_attributes id {CSSclass class}] {
       html::div -class "bd" {
-	html::ul {
-	  foreach li [my children] {$li render}
-	}
+        html::ul {
+          foreach li [my children] {$li render}
+        }
       }
       html::script -type "text/javascript" {
         html::t "var [my js_name] = new YAHOO.widget.ContextMenu('[my id]', { trigger: '[my set trigger]' } );"
@@ -253,8 +253,8 @@ namespace eval ::xowiki {
               if {[string match {[a-z]*} $item_att]} continue
               set text [my get_prop $item text]
               set url [my get_prop $item url]
-	      set group [my get_prop $item group]
-	      #my msg "ia=$item_att group '$group' // t=$text item=$item"
+              set group [my get_prop $item group]
+              #my msg "ia=$item_att group '$group' // t=$text item=$item"
               ::xowiki::YUIMenuItem -text $text -href $url -group $group {}
             }
           }
