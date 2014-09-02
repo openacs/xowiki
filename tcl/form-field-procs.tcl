@@ -36,10 +36,8 @@ namespace eval ::xowiki::formfield {
     {mode edit}
     {disabled}
     {show_raw_value}
-    CSSclass
-    style
-    {form_widget_CSSclass form-widget}
-    {form_item_wrapper_CSSclass form-item-wrapper}
+    {CSSclass}
+    {style}
     {type text} 
     {label} 
     {name} 
@@ -280,11 +278,6 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  #  FormField instproc repeatable {} {
-  #    my mixin add ::xowiki::formfield::repeatable
-  #    my reset_parameter
-  #}
-
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
 
@@ -298,6 +291,7 @@ namespace eval ::xowiki::formfield {
       omit        {my mixin add ::xowiki::formfield::omit}
       noomit      {my remove_omit}
       disabled    {my set_disabled true}
+      readonly    {my readonly true}
       enabled     {my set_disabled false}
       label=*     {my label     [lindex [split $s =] 1]}
       help_text=* {my help_text [lindex [split $s =] 1]}
@@ -523,7 +517,7 @@ namespace eval ::xowiki::formfield {
       html::t \n
     }
   }
-  
+
   FormField instproc render_error_msg {} {
     if {[my error_msg] ne "" && ![my exists error_reported]} {
       ::html::div -class form-error {
@@ -538,7 +532,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc render_help_text {} {
     set text [my help_text]
     if {$text ne ""} {
-      html::div -class form-help-text {
+      html::div -class [my form_help_text_CSSclass] {
         html::img -src "/shared/images/info.gif" -alt {[i]} -title {Help text} \
             -width "12" -height 9 -border 0 -style "margin-right: 5px" {}
         html::t $text
@@ -745,7 +739,10 @@ namespace eval ::xowiki::formfield {
   submit_button instproc render_input {} {
     # don't disable submit buttons
     if {[my type] eq "submit"} {my unset -nocomplain disabled}
-    ::html::input [my get_attributes name type {CSSclass class} value title disabled] {}
+    ::html::button [my get_attributes name type {form_button_CSSclass class} title disabled] {
+      ::html::t [my set value]
+    }
+    #::html::input [my get_attributes name type {form_button_CSSclass class} value title disabled] {}
     my render_localizer
   }
 
@@ -1433,7 +1430,8 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    ::html::textarea [my get_attributes id name cols rows style {CSSclass class} disabled] {
+    ::html::textarea [my get_attributes id name cols rows style {CSSclass class} \
+                          disabled placeholder readonly required wrap] {
       ::html::t [my value]
     }
   }

@@ -10,10 +10,10 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.154" url="http://openacs.org/repository/download/apm/xowiki-0.154.apm">
+    <version name="0.155" url="http://openacs.org/repository/download/apm/xowiki-0.155.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
-        <release-date>2014-02-11</release-date>
+        <release-date>2014-09-01</release-date>
         <vendor url="http://wu.ac.at">WU Vienna</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -55,9 +55,9 @@ Some features:
         <license>BSD-Style</license>
         <maturity>2</maturity>
 
-        <provides url="xowiki" version="0.154"/>
+        <provides url="xowiki" version="0.155"/>
         <requires url="acs-datetime" version="4.0"/>
-        <requires url="acs-kernel" version="5.6.0"/>
+        <requires url="acs-kernel" version="5.7.0"/>
         <requires url="acs-subsite" version="5.2"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="4.7d3"/>
@@ -73,6 +73,7 @@ Some features:
         <parameters>
             <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
             <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
+            <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
             <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="PackageDescription"  description="Description of the Package. This description will appear for example in the Description of the default RSS feed for this package" section_name="Description"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>

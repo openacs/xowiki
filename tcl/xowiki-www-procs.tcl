@@ -652,6 +652,31 @@ namespace eval ::xowiki {
     #my log "--edit html length [string length $html]"
     return $html
   }
+
+  FormPage instproc setCSSDefaults {} {
+    my log setCSSDefaults
+    # check empty
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] eq "bootstrap"} {
+      ::xowiki::formfield::FormField parameter {
+        {CSSclass form-control}
+        {form_item_wrapper_CSSclass form-group}
+        {form_widget_CSSclass ""}
+        {form_button_CSSclass "btn btn-default"}
+        {form_button_wrapper_CSSclass ""}
+        {form_help_text_CSSclass help-block}
+      }
+    } else {
+      ::xowiki::formfield::FormField parameter {
+        {CSSclass}
+        {form_widget_CSSclass form-widget}
+        {form_item_wrapper_CSSclass form-item-wrapper}
+        {form_button_CSSclass ""}
+        {form_button_wrapper_CSSclass form-button}
+        {form_help_text_CSSclass form-help-text}
+      }
+      ::xowiki::Form requireFormCSS
+    }
+  }
   
   FormPage instproc edit {
     {-validation_errors ""}
@@ -661,7 +686,7 @@ namespace eval ::xowiki {
     my instvar page_template doc root package_id
     #my log "edit [self args]"
 
-    ::xowiki::Form requireFormCSS
+    my setCSSDefaults
     my include_header_info -prefix form_edit
     if {[::xo::cc mobile]} {my include_header_info -prefix mobile}
 
@@ -878,6 +903,7 @@ namespace eval ::xowiki {
       # Normally, the root node is the formNode, fcn is the first
       # child (often a TEXT_NODE), but ic can be even empty.
     }
+    
 
     #
     # prepend some fields above the HTML contents of the form
@@ -934,7 +960,7 @@ namespace eval ::xowiki {
       }
       set m [my form_parameter __form_redirect_method "edit"]
       set url [export_vars -base [my pretty_link] {m return_url}]
-      $formNode setAttribute action $url method POST
+      $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $formNode class [$page_template css_class_name]
     }
@@ -956,6 +982,7 @@ namespace eval ::xowiki {
       }
     }
     my post_process_dom_tree $doc $root $form_fields
+
     set html [$root asHTML]
     set html [my regsub_eval  \
                   {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
@@ -2145,10 +2172,11 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
-    ::html::div -class form-button {
-      set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
-                 -name __form_button_ok \
-                 -CSSclass $CSSclass]
+    set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
+               -name __form_button_ok \
+               -CSSclass $CSSclass]
+
+    ::html::div -class [$f form_button_wrapper_CSSclass] {
       $f render_input
     }
   }

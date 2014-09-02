@@ -261,7 +261,12 @@ namespace eval ::xowiki {
   #
   if {[catch {ns_cache flush xowiki_cache NOTHING}]} {
     ns_log notice "xotcl-core: creating xowiki cache"
-    ns_cache create xowiki_cache -size 200000
+
+    ns_cache create xowiki_cache \
+        -size [parameter::get_global_value \
+                   -package_key xowiki \
+                   -parameter CacheSize \
+                   -default 400000]
   }
 
   #############################
@@ -2555,7 +2560,11 @@ namespace eval ::xowiki {
     # We need this acually only for PageTemplate and FormPage, but
     # aliases will require XOTcl 2.0.... so we define it for the time
     # being on ::xowiki::Page
-    set name [expr {$margin_form ? "margin-form " : ""}]
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] ne "bootstrap"} {
+      set name [expr {$margin_form ? "margin-form " : ""}]
+    } else {
+      set name ""
+    }
     set CSSname [my name]
 
     # Remove language prefix, if used.
@@ -2877,7 +2886,9 @@ namespace eval ::xowiki {
     $doc documentElement root
     my dom_disable_input_fields -with_submit $with_submit $root
     set form [lindex [$root selectNodes //form] 0]
-    Form add_dom_attribute_value $form class "margin-form"
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] ne "bootstrap"} {
+      Form add_dom_attribute_value $form class "margin-form"
+    }
     return [$root asHTML]
   }
 
@@ -3628,15 +3639,15 @@ namespace eval ::xowiki {
       catch {set text [lindex $text 0]}
     }
     if {$text ne ""} {
-      #my msg "we have a template text='$text'"
+      #my log "we have a template text='$text'"
       # we have a template
       return [next]
     } else {
-      #my msg "we have a form '[my get_form]'"
+      #my log "we have a form '[my get_form]'"
       set form [my get_form]
       if {$form eq ""} {return ""}
 
-      ::xowiki::Form requireFormCSS
+      my setCSSDefaults
 
       lassign [my field_names_from_form -form $form] form_vars field_names
       my array unset __field_in_form
@@ -3657,6 +3668,8 @@ namespace eval ::xowiki {
       $doc documentElement root
       set form_node [lindex [$root selectNodes //form] 0]
 
+      my log "render-content"
+      Form add_dom_attribute_value $form_node role form
       Form add_dom_attribute_value $form_node class [$page_template css_class_name]
       # The following two commands are for non-generated form contents
       my set_form_data $form_fields
