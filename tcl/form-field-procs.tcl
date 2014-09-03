@@ -2664,6 +2664,20 @@ namespace eval ::xowiki::formfield {
   }
 
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::security_policy
+  #
+  ###########################################################
+
+  Class create security_policy -superclass select
+  security_policy instproc initialize {} {
+    foreach p [lsort [::xowiki::Policy info instances]] {
+      lappend options [list $p $p]
+    }
+    my options $options
+    next
+  }
 
   ###########################################################
   #
