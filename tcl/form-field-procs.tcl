@@ -1447,8 +1447,8 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    set booleanAtts [my booleanAttributes required readonly disabled formnovalidate wrap]
-    ::html::textarea [my get_attributes id name cols rows style placeholder {CSSclass class} \
+    set booleanAtts [my booleanAttributes required readonly disabled formnovalidate]
+    ::html::textarea [my get_attributes id name cols rows style wrap placeholder {CSSclass class} \
                           {*}$booleanAtts] {
       ::html::t [my value]
     }
