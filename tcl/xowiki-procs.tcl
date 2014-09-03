@@ -2991,9 +2991,17 @@ namespace eval ::xowiki {
     #my msg "[my name] [my info class]"
     if {[my exists page_template]} {
       set p [::xo::db::CrClass get_instance_from_db -item_id [my page_template]]
-      # The Form might come from a different package type (e.g. a workflow)
-      # make sure, the source package is available
-      ::xo::Package require [$p package_id]
+      #
+      # The Form might come from a different package type (e.g. a
+      # workflow) make sure, the source package is available. 
+      #
+      # Note, that global pages (site_wide_pages) might not belong to
+      # a package and have therefore an empty package_id.
+      #
+      set package_id [$p package_id]
+      if {$package_id ne ""} {
+        ::xo::Package require $package_id
+      }
     }
     #my array set __ia [my instance_attributes]
     next
