@@ -134,8 +134,12 @@ site_node::instantiate_and_mount \
 array set info [site_node::get_from_url -url /$instance_name -exact]
 #test code [array get info]
 
-? {expr {$info(package_id) ne ""}} 1 "package is mounted, package_id provided"
+? {expr {$info(package_id) ne ""}} 1 "package is mounted, package_id provided: $info(package_id)"
 
+# Make sure to delete the name entry in the cache in case, the instance was deleted
+# via low-level API
+::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-xowiki
+::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name
 
 #############################################################
 test subsection "Basic Setup: Package, url= /$instance_name/"
