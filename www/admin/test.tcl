@@ -138,8 +138,8 @@ array set info [site_node::get_from_url -url /$instance_name -exact]
 
 # Make sure to delete the name entry in the cache in case, the instance was deleted
 # via low-level API
-::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-xowiki
-::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name
+#::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-xowiki
+#::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name
 
 #############################################################
 test subsection "Basic Setup: Package, url= /$instance_name/"

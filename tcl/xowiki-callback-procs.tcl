@@ -48,6 +48,16 @@ namespace eval ::xowiki {
         ::xo::db::sql::content_item delete -item_id $root_folder_id
       }
     }
+
+    set instance_name [db_string get_instance_name {
+      select instance_name from apm_packages where package_id = :package_id
+    }]
+    
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-$instance_name
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name    
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_key-$package_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$package_id
+
     ns_log notice "before-uninstantiate DONE"
   }
 
