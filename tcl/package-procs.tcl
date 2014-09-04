@@ -2561,6 +2561,7 @@ namespace eval ::xowiki {
       popular-tags       login
       create-new         {{parent_id create}}
       create-or-use      {{parent_id create}}
+      show-object        swa
     }
     
     Class Object -array set require_permission {
@@ -2574,6 +2575,7 @@ namespace eval ::xowiki {
       edit               {
         {{in_state initial|suspended|working} creator} admin
       }
+      list               admin
     }
     Class Form -array set require_permission {
       view              admin
