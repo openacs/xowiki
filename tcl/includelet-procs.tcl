@@ -3524,6 +3524,7 @@ namespace eval ::xowiki::includelet {
       set parent_id [$__including_page parent_id]
     }
     if {![info exists button_objs]} {
+      set button_objs {}
       foreach b $buttons {
         if {[llength $b]>1} {
           lassign $b button id
@@ -3532,10 +3533,18 @@ namespace eval ::xowiki::includelet {
         }
         set form [::xo::db::CrClass get_instance_from_db -item_id $id]
         #
-        # "Package require" is just a part of "Package initialize" creating 
-        # the package object if needed
+        # "Package require" is just a part of "Package initialize"
+        # creating the package object if needed.... 
         #
         set form_package_id [$form package_id]
+        if {$form_package_id eq ""} {
+          #
+          # When the package_id is empty, the page might be from a
+          # site-wide page. Resolve the form page to the local context
+          #
+          $form set_resolve_context -package_id $package_id -parent_id $parent_id
+          set form_package_id $package_id
+        }
         ::xowiki::Package require $form_package_id
         set obj [form-menu-button-$button new -volatile -package_id $package_id \
                      -base [$form pretty_link] \

@@ -1660,7 +1660,12 @@ namespace eval ::xowiki {
     #my ds "lookup from base objects $name => $item_id"
     if {$item_id} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
-      ::xo::Package require [$page package_id]
+      set package_id [$page package_id]
+      if {$package_id ne ""} {
+        #$form set_resolve_context -package_id $package_id -parent_id $parent_id
+        ::xo::Package require [$package_id]
+      }
+
       return $page
     }
     return ""
