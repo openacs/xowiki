@@ -5,7 +5,8 @@
 /*#at-a-glance td.today  {color: #003b53;}*/
 
 /* minimize damage of yui-skin-sam */
-#breadcrumbs, #alert-message {clear: both !important; text-align: left !important;}
+/*#breadcrumbs, #alert-message {clear: both !important; text-align: left !important;}*/
+#breadcrumbs, #alert-message {text-align: left !important;}
 
 /* useful helper */
 .visual-clear {clear: both; display: block;}
