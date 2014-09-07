@@ -1407,7 +1407,8 @@ namespace eval ::xowiki {
       # a. adp_compile/ adp_eval
       # b. return_page/ adp_include
       #
-      
+      ::xo::Page requireCSS /resources/xowiki/xowiki.css
+
       set header_stuff [::xo::Page header_stuff]
       if {![my exists description]} {my set description [my get_description $content]}
 
