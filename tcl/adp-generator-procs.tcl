@@ -21,32 +21,6 @@ namespace eval ::xowiki {
     # just a hook, might be removed later
   }
 
-  ADP_Generator instproc ajax_tag_definition {} {
-    # if we have no footer, we have no tag form
-    if {![my footer]} {return ""}
-
-    return {<script type="text/javascript">
-      function get_popular_tags(popular_tags_link, prefix) {
-        var http = getHttpObject();
-        http.open('GET', popular_tags_link, true);
-        http.onreadystatechange = function() {
-          if (http.readyState == 4) {
-            if (http.status != 200) {
-              alert('Something wrong in HTTP request, status code = ' + http.status);
-            } else {
-              var e = document.getElementById(prefix + '-popular_tags');
-              e.innerHTML = http.responseText;
-              e.style.display = 'block';
-            }
-          }
-        };
-        http.send(null);
-      }
-      </script>}
-  }
-
-
-
   ADP_Generator instproc master_part {} {
     return [subst -novariables -nobackslashes \
                 {<master>
@@ -57,11 +31,9 @@ namespace eval ::xowiki {
                   <property name="&doc">property_doc</property>
                   <property name="header_stuff">
                   [my extra_header_stuff]@header_stuff;noquote@
-                  [my ajax_tag_definition]
                   </property>
                   <property name="head">
                   [my extra_header_stuff]@header_stuff;noquote@
-                  [my ajax_tag_definition]
                   </property>}]\n
   }
 

@@ -1408,7 +1408,26 @@ namespace eval ::xowiki {
       # b. return_page/ adp_include
       #
       ::xo::Page requireCSS /resources/xowiki/xowiki.css
-
+      if {$footer ne ""} {
+        ::xo::Page requireJS {
+          function get_popular_tags(popular_tags_link, prefix) {
+            var http = getHttpObject();
+            http.open('GET', popular_tags_link, true);
+            http.onreadystatechange = function() {
+              if (http.readyState == 4) {
+                if (http.status != 200) {
+                  alert('Something wrong in HTTP request, status code = ' + http.status);
+                } else {
+                  var e = document.getElementById(prefix + '-popular_tags');
+                  e.innerHTML = http.responseText;
+                  e.style.display = 'block';
+                }
+              }
+            };
+            http.send(null);
+          }
+        }
+      }
       set header_stuff [::xo::Page header_stuff]
       if {![my exists description]} {my set description [my get_description $content]}
 
