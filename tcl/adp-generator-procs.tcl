@@ -56,12 +56,10 @@ namespace eval ::xowiki {
                   <property name="&body">property_body</property>
                   <property name="&doc">property_doc</property>
                   <property name="header_stuff">
-                  <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
                   [my extra_header_stuff]@header_stuff;noquote@
                   [my ajax_tag_definition]
                   </property>
                   <property name="head">
-                  <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
                   [my extra_header_stuff]@header_stuff;noquote@
                   [my ajax_tag_definition]
                   </property>}]\n
