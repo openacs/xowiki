@@ -93,7 +93,7 @@ namespace eval ::xowiki {
   }
 
   ad_proc fix_all_package_ids {} {
-    earlier versions of openacs did not have the package_id set correctly
+    Earlier versions of OpenACS did not have the package_id set correctly
     in acs_objects; this proc updates the package_ids of all items
     and revisions in acs_objects
   } {

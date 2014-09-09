@@ -293,7 +293,7 @@ div.xowiki-content div.weblog .visual-clear { clear: none; }
 div.book-navigation img {border: 0px;}
 
 /* Make help_text nicer. Would like to make the font-sizer smaller as well,
-   but this does not fit together with the openacs form styles, using
+   but this does not fit together with the OpenACS form styles, using
    magin-left as 17em 
 */
 div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
