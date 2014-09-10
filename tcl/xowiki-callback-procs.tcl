@@ -28,7 +28,7 @@ namespace eval ::xowiki {
     }
   }
 
-  ad_proc -public ::xowiki::before-uninstantiate {
+  ad_proc -private ::xowiki::before-uninstantiate {
     {-package_id:required}
   } {
     Callback to be called whenever a package instance is deleted.
@@ -84,7 +84,7 @@ namespace eval ::xowiki {
   # upgrade logic
   #
 
-  ad_proc ::xowiki::upgrade_callback {
+  ad_proc -private ::xowiki::upgrade_callback {
     {-from_version_name:required}
     {-to_version_name:required}
   } {
