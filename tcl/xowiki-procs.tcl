@@ -148,19 +148,22 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_form_page -col assignee
   ::xo::db::require index -table xowiki_page_instance -col page_template
 
-  ::xo::db::require table xowiki_references \
-      "reference integer references cr_items(item_id) on delete cascade,
-         link_type [::xo::dc map_datatype text],
-         page      integer references cr_items(item_id) on delete cascade"
+  ::xo::db::require table xowiki_references [subst {
+    reference   {integer references cr_items(item_id) on delete cascade}
+    link_type   {[::xo::dc map_datatype text]}
+    page        {integer references cr_items(item_id) on delete cascade}
+  }]
   ::xo::db::require index -table xowiki_references -col reference
 
 
-  ::xo::db::require table xowiki_last_visited \
-      "page_id integer references cr_items(item_id) on delete cascade,
-        package_id integer,
-        user_id integer,
-        count   integer,
-        time    timestamp"
+  ::xo::db::require table xowiki_last_visited {
+    page_id    {integer references cr_items(item_id) on delete cascade}
+    package_id integer
+    user_id    integer
+    count      integer
+    time       timestamp
+  }
+
   ::xo::db::require index -table xowiki_last_visited -col user_id,page_id -unique true
   ::xo::db::require index -table xowiki_last_visited -col user_id,package_id
   ::xo::db::require index -table xowiki_last_visited -col time
@@ -168,12 +171,13 @@ namespace eval ::xowiki {
   
   # Oracle has a limit of 3118 characters for keys, therefore we
   # cannot use "text" as type for "tag"
-  ::xo::db::require table xowiki_tags \
-      "item_id integer references cr_items(item_id) on delete cascade,
-        package_id integer,
-        user_id integer references users(user_id),
-        tag     varchar(3000),
-        time    timestamp"
+  ::xo::db::require table xowiki_tags {
+    item_id    {integer references cr_items(item_id) on delete cascade}
+    package_id integer
+    user_id    {integer references users(user_id)}
+    tag        varchar(3000)
+    time       timestamp
+  }
   ::xo::db::require index -table xowiki_tags -col user_id,item_id
   ::xo::db::require index -table xowiki_tags -col tag,package_id
   ::xo::db::require index -table xowiki_tags -col user_id,package_id
@@ -208,10 +212,11 @@ namespace eval ::xowiki {
   # number of sequences (in PostgresSQL or Oracle), the database 
   # dependencies would be larger than in this simple approach.
   #
-  ::xo::db::require table xowiki_autonames \
-      "parent_id integer references acs_objects(object_id) ON DELETE CASCADE,
-        name    varchar(3000),
-        count   integer"
+  ::xo::db::require table xowiki_autonames {
+    parent_id "integer references acs_objects(object_id) ON DELETE CASCADE"
+    name       varchar(3000)
+    count     integer
+  } 
   ::xo::db::require index -table xowiki_autonames -col parent_id,name -unique true
 
   ::xotcl::Object create autoname
