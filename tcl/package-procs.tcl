@@ -451,6 +451,16 @@ namespace eval ::xowiki {
     #my proc destroy {} {my log "--P "; next}
   }
 
+  Package instproc reply_to_user {text} {
+    #
+    # When invoke_object is set (standard cases), we can implement a
+    # page-type or page specific caching behavior.
+    #
+    ns_set put [ns_conn outputheaders] "Cache-Control" \
+        "max-age=0, no-cache, no-store"
+    next
+  }
+
   Package ad_instproc get_parameter {{-check_query_parameter true} {-type ""} attribute {default ""}} {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
@@ -779,6 +789,7 @@ namespace eval ::xowiki {
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
       return [my error_msg -template_file $error_template $errorMsg]
     }
+    my set invoke_object $page_or_package
     #my log "--r resolve_page => $page_or_package"
     if {$page_or_package ne ""} {
       if {[$page_or_package istype ::xowiki::FormPage]
