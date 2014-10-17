@@ -451,15 +451,12 @@ namespace eval ::xowiki {
     #my proc destroy {} {my log "--P "; next}
   }
 
-  Package instproc reply_to_user {text} {
-    #
-    # When invoke_object is set (standard cases), we can implement a
-    # page-type or page specific caching behavior.
-    #
-    ns_set put [ns_conn outputheaders] "Cache-Control" \
-        "max-age=0, no-cache, no-store"
-    next
-  }
+  #
+  # We could refine here the caching behavior in xowiki
+  #
+  #Package instproc handle_http_caching {} {
+  #  next
+  #}
 
   Package ad_instproc get_parameter {{-check_query_parameter true} {-type ""} attribute {default ""}} {
     resolves configurable parameters according to the following precedence:
