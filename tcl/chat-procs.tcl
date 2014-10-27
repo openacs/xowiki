@@ -1,9 +1,9 @@
 ::xo::library doc {
-    XoWiki - chat procs
+  XoWiki - chat procs
 
-    @creation-date 2006-02-02
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  @creation-date 2006-02-02
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 namespace eval ::xowiki {
   ::xo::ChatClass create Chat -superclass ::xo::Chat
@@ -25,8 +25,8 @@ namespace eval ::xowiki {
   #       set creator "Nobody"
   #     }
   #     append result "<TR><TD class='timestamp'>$timeshort</TD>\
-  #       <TD class='user'>[my encode $creator]</TD>\
-  #       <TD class='message'>[my encode $msg]</TD></TR>\n"
+      #       <TD class='user'>[my encode $creator]</TD>\
+      #       <TD class='message'>[my encode $msg]</TD></TR>\n"
   #   }
   #   return $result
   # }
@@ -79,19 +79,19 @@ namespace eval ::xowiki {
       # Check, whether we have the tcllibthread and a sufficiently new
       # aolserver/naviserver supporting bgdelivery transfers.
       #
-      if {[info command ::thread::mutex] ne "" &&
+      if {[info commands ::thread::mutex] ne "" &&
           ![catch {ns_conn contentsentlength}]} {
-	#
+        #
         # scripted streaming should work everywhere
-	#
+        #
         set mode scripted-streaming
         if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
-	  # Explorer doesn't expose partial response until request state != 4, while Opera fires
-	  # onreadystateevent only once. For this reason, for every broser except them, we could 
-	  # use the nice mode without the spinning load indicator.
-	  #
-	  set mode streaming
-	}
+          # Explorer doesn't expose partial response until request state != 4, while Opera fires
+          # onreadystateevent only once. For this reason, for every broser except them, we could 
+          # use the nice mode without the spinning load indicator.
+          #
+          set mode streaming
+        }
       }
       my log "--chat mode $mode"
     }
@@ -116,7 +116,7 @@ namespace eval ::xowiki {
         set subscribe_url ${path}ajax/chat?m=subscribe&$context
       }
       default {
-	error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
+        error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
       }
     }
     set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
@@ -156,10 +156,10 @@ namespace eval ::xowiki {
 
 
       streaming {
-	::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
-	set r [ns_urldecode [c1 get_all]]
-	regsub -all {<[/]?div[^>]*>} $r "" r
-	return "\
+        ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
+        set r [ns_urldecode [c1 get_all]]
+        regsub -all {<[/]?div[^>]*>} $r "" r
+        return "\
       <script type='text/javascript' language='javascript'>$js
       var send_url = \"$send_url\";
       chatSubscribe(\"$subscribe_url\");
@@ -172,10 +172,10 @@ namespace eval ::xowiki {
 
 
       scripted-streaming {
-	::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
-	set r [ns_urldecode [c1 get_all]]
-	regsub -all {<[/]?div[^>]*>} $r "" r
-	return "\
+        ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
+        set r [ns_urldecode [c1 get_all]]
+        regsub -all {<[/]?div[^>]*>} $r "" r
+        return "\
       <script type='text/javascript' language='javascript'>
       $js
       var send_url = \"$send_url\";
@@ -192,3 +192,9 @@ namespace eval ::xowiki {
   }
 }
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

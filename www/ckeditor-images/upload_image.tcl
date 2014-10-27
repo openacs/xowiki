@@ -1,7 +1,7 @@
 ad_page_contract {
 
 } {
-  parent_id:notnull,integer
+  parent_id:notnull,naturalnum
   {bild_url ""}
 }
 set js_update ""
@@ -10,9 +10,9 @@ ad_form -name upload_form \
     -html { enctype multipart/form-data } \
     -mode edit \
     -form {
-      {upload_file:file(file),optional {label "Bild zum Hochladen auswählen"}}
+      {upload_file:file(file),optional {label "Bild zum Hochladen auswÃ¤hlen"}}
       {width:text(text),optional {label "Breite in Pixel"}}
-      {height:text(text),optional {label "Höhe in Pixel"}}
+      {height:text(text),optional {label "HÃ¶he in Pixel"}}
     } -on_submit {
       set width [template::element::get_values upload_form width]
       set height [template::element::get_values upload_form height]
@@ -26,19 +26,19 @@ ad_form -name upload_form \
       #ds_comment $upload_tmpfile
       if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
 
-      if {![string match image/* $mime_type]} {
+      if {![string match "image/*" $mime_type]} {
 	# File is no image
 	template::form::set_error "upload_image" "upload_file" "[_ acs-templating.HTMLArea_SelectImageUploadNoImage]"
 	break
       }
 
-      #set parent_id  [db_string _ "select parent_id from cr_items where item_id=:fs_package_id"]
+      #set parent_id  [xo::dc get_value _ "select parent_id from cr_items where item_id=:fs_package_id"]
       set title $file_name
       
-      set existing_filenames [db_list _ "select name from cr_items  where parent_id = :parent_id" ]
+      set existing_filenames [xo::dc list _ "select name from cr_items  where parent_id = :parent_id" ]
       ns_log notice "util_text_to_url  -text ${title} -existing_urls \"$existing_filenames\" -replacement \"_\""	
       set filename [util_text_to_url  -text "${title}" -existing_urls "$existing_filenames" -replacement "_"]
-      set package_id [db_string _ "select package_id from acs_objects where object_id=:parent_id"]
+      set package_id [xo::dc get_value _ "select package_id from acs_objects where object_id=:parent_id"]
       ::xowiki::Package initialize -package_id $package_id
       set file_object [::xowiki::File new -destroy_on_cleanup \
                            -title $title \

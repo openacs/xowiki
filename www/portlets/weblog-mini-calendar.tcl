@@ -4,13 +4,13 @@ set package_id        [::xo::cc package_id]
 set parent_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
-if {![exists_and_not_null base_url]} {
+if {(![info exists base_url] || $base_url eq "")} {
   if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
   set base_url [$package_id pretty_link -parent_id $parent_id $page]
 }
 
 set date [ns_queryget date]
-if {![exists_and_not_null date]} {
+if {(![info exists date] || $date eq "")} {
   set date [dt_sysdate]
 } 
 
@@ -49,18 +49,19 @@ for {set i 0} {$i < 7} {incr i} {
   multirow append days_of_week [lindex $week_days [expr {($i + $first_day_of_week) % 7}]]
 }
 
+set date_reference $year-$month-01
 set innersql "from xowiki_pagei p, cr_items ci \
-        where ci.parent_id = $parent_id \
+        where ci.parent_id = :parent_id \
         and ci.item_id = p.item_id and  ci.live_revision = p.page_id \
         and ci.content_type not in ('::xowiki::PageTemplate', '::xowiki::Form') \
-        and ci.item_id != $including_item_id \
+        and ci.item_id != :including_item_id \
         and ci.publish_status <> 'production' "
 
-db_foreach entries_this_month "select count(ci.item_id) as c, 
-        [::xo::db::sql date_trunc day p.publish_date] as d \
+xo::dc foreach entries_this_month "select count(ci.item_id) as c, 
+        [::xo::dc date_trunc day p.publish_date] as d \
         $innersql
-        and [::xo::db::sql date_trunc_expression month p.publish_date $year-$month-01] \
-        group by [::xo::db::sql date_trunc day p.publish_date]" {
+        and [::xo::dc date_trunc_expression month p.publish_date :date_reference] \
+        group by [::xo::dc date_trunc day p.publish_date]" {
           set entries([lindex $d 0]) $c
         }
 
@@ -75,9 +76,9 @@ db_foreach entries_this_month "select count(ci.item_id) as c,
 #
 # Compute the available time range
 #
-set dates [db_list_of_lists get_dates "select min([::xo::db::sql date_trunc day p.publish_date]),max([::xo::db::sql date_trunc day p.publish_date]) $innersql"]
+set dates [db_list_of_lists get_dates "select min([::xo::dc date_trunc day p.publish_date]),max([::xo::dc date_trunc day p.publish_date]) $innersql"]
 set earliest_date [::xo::db::tcl_date [lindex $dates 0 0] _]
-set latest_date   [::xo::db::::tcl_date [lindex $dates 0 end] _]
+set latest_date   [::xo::db::tcl_date [lindex $dates 0 end] _]
 
 if {$prev_mon < [clock scan $earliest_date]} {
   set prev_month_url ""
@@ -106,7 +107,7 @@ set day_number [expr {$days_in_last_month - $active_days_before_month + 1}]
 
 for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_julian_date + 7} {incr julian_date} {
 
-  if {$julian_date > $last_julian_date_in_month && $end_of_week_p eq "t" } {
+  if {$julian_date > $last_julian_date_in_month && $end_of_week_p == "t" } {
     break
   }
   set today_p f

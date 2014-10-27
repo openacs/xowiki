@@ -20,13 +20,13 @@ namespace eval ::xowiki {
     # Return matched category trees matching the specified names (or all)
 
     # provide compatibility with earlier versions of categories
-    set have_locale [expr {[lsearch [info args category_tree::get_mapped_trees] locale] > -1}]
+    set have_locale [expr {"locale" in [info args category_tree::get_mapped_trees]}]
     set mapped_trees [expr {$have_locale ?
                             [category_tree::get_mapped_trees $object_id $locale] :
                             [category_tree::get_mapped_trees $object_id]}]
     set trees [list]
     foreach tree $mapped_trees {
-      foreach {tree_id my_tree_name ...} $tree {break}
+      lassign $tree tree_id my_tree_name ...
 
       # "names" is a list of category names
       if {$names ne ""} {
@@ -49,7 +49,7 @@ namespace eval ::xowiki {
       }
       # Get the values from info in "tree" into separate variables given by output.
       # Note, that the order matters!
-      foreach $output $tree break
+      lassign $tree {*}$output
       set l [list]
       foreach __var $output {lappend l [set $__var]}
       lappend trees $l

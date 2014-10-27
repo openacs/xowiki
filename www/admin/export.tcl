@@ -18,7 +18,7 @@ set folder_id [::$package_id folder_id]
 #
 if {$objects eq ""} {
   set sql [$object_type instance_select_query -folder_id $folder_id -with_subtypes true]
-  db_foreach instance_select $sql { set items($item_id) 1 }
+  xo::dc foreach instance_select $sql { set items($item_id) 1 }
 } else {
   foreach o $objects {
     $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $o lang stripped_name

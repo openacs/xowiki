@@ -1,10 +1,10 @@
 ad_page_contract {
 	
 } {
-  {parent_id ""}
+  {parent_id:naturalnum ""}
 } -validate {
   parent_id_exists -requires {parent_id} {
-    if {[db_0or1row object_exists "select item_id from cr_items where item_id =:parent_id"] == 0} {
+    if {[xo::dc 0or1row object_exists "select item_id from cr_items where item_id =:parent_id"] == 0} {
       #ad_complain "Das angegebene Objekt existiert nicht."
     }
   }	 

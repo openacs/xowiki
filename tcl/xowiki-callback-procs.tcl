@@ -1,9 +1,9 @@
 ::xo::library doc {
-    XoWiki - Callback procs
+  XoWiki - Callback procs
 
-    @creation-date 2006-08-08
-    @author Gustaf Neumann
-    @cvs-id $Id$
+  @creation-date 2006-08-08
+  @author Gustaf Neumann
+  @cvs-id $Id$
 }
 
 namespace eval ::xowiki {
@@ -14,6 +14,7 @@ namespace eval ::xowiki {
   }
 
   ad_proc -private ::xowiki::before-uninstall {} {
+    ns_log notice "Executing ::xowiki::before-uninstall"
     ::xowiki::sc::unregister_implementations
     ::xowiki::notifications-uninstall
 
@@ -27,7 +28,7 @@ namespace eval ::xowiki {
     }
   }
 
-  ad_proc -public ::xowiki::before-uninstantiate {
+  ad_proc -private ::xowiki::before-uninstantiate {
     {-package_id:required}
   } {
     Callback to be called whenever a package instance is deleted.
@@ -39,15 +40,23 @@ namespace eval ::xowiki {
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
       # we deal with a correctly installed package
-      if {[::xo::db_0or1row is_transformed_folder {
-	select 1 from cr_folders where folder_id = :root_folder_id}
-	  ]} {
-	::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
+      if {[::xo::dc 0or1row is_transformed_folder {
+        select 1 from cr_folders where folder_id = :root_folder_id}
+          ]} {
+        ::xo::db::sql::content_folder delete -folder_id $root_folder_id -cascade_p 1
       } else {
-	::xo::db::sql::content_item delete -item_id $root_folder_id
+        ::xo::db::sql::content_item delete -item_id $root_folder_id
       }
     }
-    ns_log notice "          before-uninstantiate DONE"
+   
+    set instance_name [apm_instance_name_from_id $package_id]
+    
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-$instance_name
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name    
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_key-$package_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$package_id
+
+    ns_log notice "before-uninstantiate DONE"
   }
 
 
@@ -59,7 +68,7 @@ namespace eval ::xowiki {
     
     @author Gustaf Neumann
   } {
-    set comment_ids [::xo::db_list get_comments {
+    set comment_ids [::xo::dc list get_comments {
       select g.comment_id
       from general_comments g, cr_items i,acs_objects o
       where i.item_id = g.object_id
@@ -75,7 +84,7 @@ namespace eval ::xowiki {
   # upgrade logic
   #
 
-  ad_proc ::xowiki::upgrade_callback {
+  ad_proc -private ::xowiki::upgrade_callback {
     {-from_version_name:required}
     {-to_version_name:required}
   } {
@@ -102,3 +111,9 @@ namespace eval ::xowiki {
 }
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

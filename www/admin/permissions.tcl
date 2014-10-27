@@ -6,7 +6,7 @@
   @cvs-id $Id$
 
 } -parameter {
-  {-item_id:optional}
+  {-item_id:naturalnum,optional}
 }
 
 if {[info exists item_id]} {

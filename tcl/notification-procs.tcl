@@ -62,11 +62,11 @@ namespace eval ::xowiki {
 namespace eval ::xowiki::notification {
 
   ad_proc -private get_url {id} {
-    if {[::xo::db_0or1row is_package_id {select 1 from apm_packages where package_id = :id}]} {
+    if {[::xo::dc 0or1row is_package_id {select 1 from apm_packages where package_id = :id}]} {
       #
       # the specified id is an package_id
       #
-      set node_id [::xo::db_string get_node_id {select node_id from site_nodes where object_id = :id}]
+      set node_id [::xo::dc get_value get_node_id {select node_id from site_nodes where object_id = :id}]
       set url [site_node::get_url -node_id $node_id]
       return $url
     }
@@ -140,7 +140,7 @@ namespace eval ::xowiki::notification {
       array unset cat
       array unset label
       foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
-        foreach {category_id category_label deprecated_p level} $category_info {break}
+        lassign $category_info category_id category_label deprecated_p level
         set cat($level) $category_id
         set label($level) $category_label
         if {$category_id == $cat_id} break
@@ -154,7 +154,7 @@ namespace eval ::xowiki::notification {
             -notif_subject "\[$instance_name\] $label($level): [$page set title] ($state)" \
             -notif_text $text \
             -notif_html $html \
-	    -notif_user $notif_user_id
+            -notif_user $notif_user_id
       }
     }
   }
@@ -175,3 +175,9 @@ namespace eval ::xowiki::notification {
 }
 ::xo::library source_dependent 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

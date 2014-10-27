@@ -10,12 +10,11 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.146" url="http://openacs.org/repository/download/apm/xowiki-0.146.apm">
+    <version name="0.156" url="http://openacs.org/repository/download/apm/xowiki-0.156.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
-        <summary>A xotcl-based enterprise wiki wiki system with different object types
-based on the content OpenACS repository</summary>
-        <release-date>2011-05-16</release-date>
-        <vendor>Gustaf Neumann, WU Wien</vendor>
+        <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
+        <release-date>2014-09-01</release-date>
+        <vendor url="http://wu.ac.at">WU Vienna</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of Wiki markup commands of systems
@@ -54,28 +53,33 @@ Some features:
   - various security policies
 &lt;/pre&gt;</description>
         <license>BSD-Style</license>
-        <maturity>0</maturity>
+        <maturity>2</maturity>
 
-        <provides url="xowiki" version="0.146"/>
-        <requires url="acs-datetime" version="4.0"/>
+        <provides url="xowiki" version="0.156"/>
+        <requires url="acs-datetime" version="5.8.1"/>
+        <requires url="acs-kernel" version="5.8.1"/>
+        <requires url="acs-subsite" version="5.8.1"/>
         <requires url="categories" version="1.0d3"/>
-        <requires url="file-storage" version="4.7d3"/>
-        <requires url="general-comments" version="4.6.1"/>
-        <requires url="xotcl-core" version="0.126"/>
-        <requires url="acs-subsite" version="5.2"/>
+        <requires url="file-storage" version="5.8.1"/>
+        <requires url="general-comments" version="5.8.1"/>
+        <requires url="xotcl-core" version="0.132"/>
 
         <callbacks>
-            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
             <callback type="after-install"  proc="::xowiki::after-install"/>
-            <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
+            <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
+            <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
         </callbacks>
         <parameters>
+            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
+            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
+            <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
             <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="PackageDescription"  description="Description of the Package. This description will appear for example in the Description of the default RSS feed for this package" section_name="Description"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackageTitle"  description="Title of the Package; this title will appear for example in the default RSS feed for this package." section_name="Description"/>
-            <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="WidgetSpecs"  description="Specify pairs of &quot;pagename,fieldname&quot; followed by a Tcl list which is used as a widget spec for ad_form. &quot;pagename&quot; and &quot;fieldname&quot; can contain wild card characters. The following rather complex widget-specs are from openacs.org:
+            <parameter scope="global" datatype="string"  min_n_values="1"  max_n_values="1"  name="PreferredCSSToolkit"  default="yui" description="Use either &quot;yui&quot; or &quot;bootstrap&quot;"/>
+            <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="WidgetSpecs"  description="Specify pairs of &quot;pagename,fieldname&quot; followed by a Tcl list which is used as a widget spec for ad_form. &quot;pagename&quot; and &quot;fieldname&quot; can contain wild card characters. The following rather complex widget-specs are from OpenACS.org:
 
 *,text {richtext(richtext),nospell,optional 
   {label Content} 
@@ -100,12 +104,12 @@ Some features:
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="include_in_google_sitemap_index"  default="1" description="Include the package in the google sitemap index" section_name="Options"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="index_page"  description="name of the page to be shown when the package instance is browsed (e.g. en:index)" section_name="Pages"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="my_yahoo_publisher"  description="Name of the publisher, when posting urls to my yahoo (use in connection with with_yahoo_publisher)" section_name="Options"/>
-            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of openacs, the package_prefix can be set to /" section_name="URL"/>
+            <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="package_prefix"  description="Part of the URL used before language and page name. This setting is used, when an url is computed. Per default, the package_prefix is determined by the side not. When for example  a default xowiki instance is used as start page of OpenACS, the package_prefix can be set to /" section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="parameter_page"  description="::xowiki::FormPage to search for parameters. The page name has to contain a language prefix and can refer to a different xowiki instance.
 Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="production_mode"  default="0" description="When this parameter is set, new pages are created in a &quot;production&quot; state, where they are not visible to users. These page have to be released via the admin pages. Notifcation and syndication is decativated, while pages are under &quot;production&quot;." section_name="Options"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="security_policy"  default="::xowiki::policy1" description="Define the valid operations for different kind of users. Currently, two policies are predefined: ::xowiki::policy1 and ::xowiki::policy2. Policy1 requires for all destructive operations (deletes, delete_revision) and programmatical operations (involving tcl code, e.g. editing the ::xotcl::Objects) package admin rights, for reindex site wide admin right). Policy 2 requires also for destructive operations site wide admin rights."/>
-            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_page_references"  default="1" description="If enabled it shows on a page view the pages that reference it" section_name="Options"/>            
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_page_references"  default="1" description="If enabled it shows on a page view the pages that reference it" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="show_per_object_categories"  default="1" description="If enabled it shows on a page view the categories assigned to this object" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="subst_blank_in_name"  default="1" description="normalize names of pages in a media wiki style. Most dominantly, spaces are turned into blanks." section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>

@@ -31,7 +31,7 @@ if {$page eq ""} {
   # for the time being, we add the portlet on the first page (page 0)
   set portal_page_id [portal::get_page_id -portal_id $portal_id -sort_key 0]
   
-  if {[db_string check_unique_name_on_page {
+  if {[xo::dc get_value check_unique_name_on_page {
     select 1 from portal_element_map
     where page_id     = :portal_page_id 
     and   pretty_name = :page_title

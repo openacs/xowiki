@@ -13,7 +13,7 @@
   {-return_url "."}
 }
 
-set item_id [db_string get_item_id \
+set item_id [xo::dc get_value get_item_id \
     {select item_id from cr_revisions where revision_id = :revision_id}]
 
 ns_cache flush xotcl_object_cache ::$item_id
