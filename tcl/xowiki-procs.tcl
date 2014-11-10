@@ -2206,8 +2206,7 @@ namespace eval ::xowiki {
     {-publish_status production} 
     {-source_item_id ""}
   } {
-    set ia [my default_instance_attributes]
-    foreach {att value} $instance_attributes {lappend ia $att $value}
+    set ia [dict merge [my default_instance_attributes] $instance_attributes]
 
     if {$nls_language eq ""} {
       set nls_language [my query_parameter nls_language [my nls_language]]
