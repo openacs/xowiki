@@ -80,7 +80,11 @@ namespace eval ::xowiki {
     return [my item_id]
   }
   Link instproc render_found {href label} {
-    return "<a [my atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+    if {$href eq ""} {
+      return $label
+    } else {
+      return "<a [my atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+    }
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
@@ -129,7 +133,10 @@ namespace eval ::xowiki {
     if {$item_id} {
       $page lappend references [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      my render_found [my pretty_link $item_id] [my label]
+      if {![my exists href]} {
+        my set href [my pretty_link $item_id]
+      }
+      my render_found [my set href] [my label]
     } else {
       $page incr unresolved_references
       set new_link [my new_link]

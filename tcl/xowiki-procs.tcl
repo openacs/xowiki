@@ -1198,6 +1198,25 @@ namespace eval ::xowiki {
     return 1
   }
 
+  Page instproc can_link {item_id} {
+    #
+    # This is a stub which can / should be refined in applications,
+    # which want to disallow links to other pages, in the sense, that
+    # the links are not shown at all. A sample implementation might
+    # look like the follwing.
+    #
+    # if {$item_id ne 0} {
+    #   set obj [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+    #   return [$obj can_be_linked]
+    # }
+    #
+    return 1
+  }
+
+  Page instproc can_be_linked {} {
+    return 1
+  }
+
   Page instproc can_save {} {
     #
     # Determine the parent object of the page to be saved. If the
@@ -1669,14 +1688,19 @@ namespace eval ::xowiki {
 
     if {$label eq $arg} {set label $(link)}
     set item_name [string trimleft $(prefix):$(stripped_name) :]
-    
+
     Link create [self]::link \
         -page [self] -form $(form) \
         -type $(link_type) [list -name $item_name] -lang $(prefix) \
         [list -anchor $(anchor)] [list -query $(query)] \
         [list -stripped_name $(stripped_name)] [list -label $label] \
         -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id
-    
+
+    # in case, we can't link, flush the href
+    if {[my can_link $(item_id)] == 0} {
+      [self]::link href ""
+    }
+
     if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
