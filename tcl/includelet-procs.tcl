@@ -2338,7 +2338,7 @@ namespace eval ::xowiki::includelet {
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
       set edit_markup ""
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-      $p set unresolved_references 0
+      $p references clear
       
       switch [$p info class] {
         ::xowiki::Form {
@@ -2510,7 +2510,7 @@ namespace eval ::xowiki::includelet {
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
       
-      $p set unresolved_references 0
+      $p references clear
       #$p set render_adp 0
       switch [$p info class] {
         ::xowiki::Form {

@@ -131,17 +131,16 @@ namespace eval ::xowiki {
     set page [my page]
     set item_id [my resolve]
     if {$item_id} {
-      $page lappend references [list $item_id [my type]]
+      $page references resolved [list $item_id [my type]]
       ::xowiki::Package require $package_id
       if {![my exists href]} {
         my set href [my pretty_link $item_id]
       }
       my render_found [my set href] [my label]
     } else {
-      $page incr unresolved_references
       set new_link [my new_link]
       set html [my render_not_found $new_link [my label]]
-      $page lappend __unresolved_references $html
+      $page references unresolved $html
       return $html
     }
   }
@@ -239,10 +238,9 @@ namespace eval ::xowiki {
       set link [$package_id pretty_link -download true -query [my query] \
                     -absolute [$page absolute_links] -parent_id [my parent_id] $name]
       #my log "--l fully quali [$page absolute_links], base=$base"
-      $page lappend references [list $item_id [my type]]
+      $page references resolved [list $item_id [my type]]
       my render_found $link $label
     } else {
-      $page incr unresolved_references
       set last_page_id [$page set item_id]
       set object_type ::xowiki::File
       set link [$package_id make_link $package_id edit-new object_type \
@@ -251,6 +249,7 @@ namespace eval ::xowiki {
                     [list return_url [::xo::cc url]] \
                     autoname name last_page_id] 
       set html [my render_not_found $link $label]
+      $page references unresolved $html
       return $html
     }
   }

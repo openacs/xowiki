@@ -1550,9 +1550,7 @@ namespace eval ::xowiki::formfield {
     #my msg "[my get_attributes id style {CSSclass class}]"
     ::html::div [my get_attributes id style {CSSclass class}] {
       if {[my wiki]} {
-        [my object] set unresolved_references 0
-        [my object] set __unresolved_references [list]
-        #::html::t -disableOutputEscaping [[my object] substitute_markup [list [my value] text/html]]
+        [my object] references clear
         ::html::t -disableOutputEscaping [[my object] substitute_markup [my value]]
       } else {
         ::html::t -disableOutputEscaping [my value]
@@ -2929,7 +2927,7 @@ namespace eval ::xowiki::formfield {
       return "Cannot resolve symbolic link '$v'"
     }
     set link_type [$object get_property_from_link_page link_type]
-    $object lappend references [list $item_id $link_type]
+    $object references resolved [list $item_id $link_type]
 
     #
     # resetting esp. the item-id is dangerous. Therefore we reset it immediately after the rendering

@@ -1698,6 +1698,7 @@ namespace eval ::xowiki {
 
     # in case, we can't link, flush the href
     if {[my can_link $(item_id)] == 0} {
+      my references refused $(item_id)
       [self]::link href ""
     }
 
@@ -1723,7 +1724,30 @@ namespace eval ::xowiki {
                 create-new return_url name title nls_language]
   }
 
-
+  #
+  # Handling page references. Use like e.g.
+  #
+  #   $page references clear
+  #   $page references resolved [list $item_id [my type]]
+  #   $page references get resolved
+  #   $page references all
+  #
+  Page instproc references {submethod args} {
+    my instvar __references
+    switch $submethod {
+      clear {
+        set __references { unresolved {} resolved {} refused {} }
+      }
+      unresolved -
+      refused -
+      resolved {
+        return [dict lappend __references $submethod [lindex $args 0]]
+      }
+      get { return [dict  $submethod $__references [lindex $args 0]] }
+      all { return $__references }
+      default {error "unknown submethod: $submethod"}
+    }
+  }
 
   Page instproc anchor {arg} {
     if {[catch {set l [my create_link [my unescape $arg]]} errorMsg]} {
@@ -1790,9 +1814,8 @@ namespace eval ::xowiki {
       if {[info exists $__v]} continue
       [my info class] instvar $__v
     }
-    set __ignorelist [list __v __vars __l __ignorelist __varlist \
-                          __last_includelet __unresolved_references \
-                          text item_id content lang_links]
+    set __ignorelist [list __v __vars __l __ignorelist __varlist __references \
+                          __last_includelet text item_id content lang_links]
 
     # set variables current_* to ease personalization
     set current_user [::xo::cc set untrusted_user_id]
@@ -2025,19 +2048,18 @@ namespace eval ::xowiki {
     #
     # prepare references management
     #
-    my set references [list]
+    my references clear
     if {[my exists __extra_references]} {
       #
       # xowiki content-flow uses extra references, e.g. to forms.
       # TODO: provide a better interface for providing these kind of
       # non-link references.
       #
-      my set references [my set __extra_references]
+      foreach ref [my set __extra_references] {
+        my references resolved $ref
+      }
       my unset __extra_references
     }
-    #my msg "[my name] setting unresolved_references 0"
-    my set unresolved_references 0
-    my set __unresolved_references [list]
     #
     # get page content and care about reference management
     #
@@ -2045,11 +2067,11 @@ namespace eval ::xowiki {
     #
     # record references and clear it
     #
-    #my msg "we have the content, update=$update_references, unresolved=[my set unresolved_references]"
-    if {$update_references || [my set unresolved_references] > 0} {
-      my references_update [lsort -unique [my set references]]
+    #my msg "we have the content, update=$update_references, unresolved=[my references get unresolved]"
+    if {$update_references || [llength [my references get unresolved]] > 0} {
+      my references_update [lsort -unique [my references get resolved]]
     }
-    my unset -nocomplain references
+    #my unset -nocomplain __references
     #
     # handle footer
     #
