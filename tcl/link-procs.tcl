@@ -81,7 +81,7 @@ namespace eval ::xowiki {
   }
   Link instproc render_found {href label} {
     if {$href eq ""} {
-      return $label
+      return "<span class='refused-link'>$label</span>"
     } else {
       return "<a [my atts] [my mk_css_class_and_id] href='$href'>$label</a>"
     }
@@ -269,8 +269,9 @@ namespace eval ::xowiki {
     if {$style ne ""} {set style "style='$style'"}
     if {[my exists geometry]} {append link "?geometry=[my set geometry]"}
     set label [string map [list ' "&#39;"] $label]
-    set cls [my mk_css_class_and_id -default image]
-    if {[my exists href]} {
+    if {[my exists href]} {set href [my set href]} {set href ""}
+    set cls [my mk_css_class_and_id -default [expr {$href ne "" ? "image" : "refused-link"}]]
+    if {$href ne ""} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
       if {[my exists revision_id]} {append href ?revision_id=[my revision_id]}
