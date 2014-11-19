@@ -1112,9 +1112,33 @@ namespace eval ::xowiki::formfield {
     next
     my type datetime
   }
-  # names for HTML5 types 
-  #    date, month 
-  # already in use, should redefine accordingly when avail
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::h5date
+  #
+  #  HTML 5 input type "date", to avoid naming conflict with
+  #  pre-existing formfield of type "date"
+  ###########################################################
+  Class create h5date -superclass text 
+  h5date instproc initialize {} {
+    next
+    my type date
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::h5time
+  #
+  #  HTML 5 input type "time", to avoid naming conflict with
+  #  pre-existing formfield of type "time"
+  ###########################################################
+  Class create h5time -superclass text 
+  h5time instproc initialize {} {
+    next
+    my type time
+  }
+
 
   ###########################################################
   #
