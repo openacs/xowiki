@@ -1882,7 +1882,6 @@ namespace eval ::xowiki {
 
   Page instproc render_content {} {
     #my log "-- '[my set text]'"
-    set html ""; set mime ""
     lassign [my set text] html mime
     if {[my render_adp]} {
       set html [my adp_subst $html]
