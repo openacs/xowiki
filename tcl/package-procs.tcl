@@ -801,11 +801,10 @@ namespace eval ::xowiki {
         return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
       } else {
         #my msg "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
-        set errorMsg ""
         if {$batch_mode} {[my id] set __batch_mode 1}
-        catch { set r [my call $page_or_package $method ""]} errorMsg
+        set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
         if {$batch_mode} {[my id] unset __batch_mode}
-        if {$errorMsg ne ""} {
+        if {$err} {
           return [my error_msg -status_code 404 \
                       -template_file $error_template \
                       [ns_quotehtml $errorMsg]]
