@@ -2528,12 +2528,13 @@ namespace eval ::xowiki {
 
     switch -glob $mime_type {
       image/* {
-        set l [Link new -volatile \
+        set l [Link new \
                    -page [self] -query $query \
                    -type image -name $name -lang "" \
                    -stripped_name $stripped_name -label $label \
                    -parent_id $parent_id -item_id $item_id -package_id $package_id]
         set preview "<div >[$l render]</div>"
+        $l destroy
       }
       text/plain {
         set text [::xowiki::read_file [my full_file_name]]
