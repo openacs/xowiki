@@ -270,7 +270,7 @@ namespace eval ::xowiki {
     if {[my exists geometry]} {append link "?geometry=[my set geometry]"}
     set label [string map [list ' "&#39;"] $label]
     if {[my exists href]} {set href [my set href]} {set href ""}
-    set cls [my mk_css_class_and_id -default [expr {$href ne "" ? "image" : "refused-link"}]]
+    set cls [my mk_css_class_and_id -default [expr {$link ne "" ? "image" : "refused-link"}]]
     if {$href ne ""} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}

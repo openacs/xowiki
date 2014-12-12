@@ -43,7 +43,7 @@ namespace eval ::xowiki {
             -spec user_id
       } \
       -extend_slot {title -required false} \
-      -extend_slot {description -spec "textarea,cols=80,rows=2"} \
+      -extend_slot {description -spec "textarea,cols=80,rows=2,label=#xowiki.Page-description#"} \
       -extend_slot {text -spec "richtext"} \
       -extend_slot {publish_date -spec "date"} \
       -parameter {
@@ -1684,7 +1684,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         $(link)]
     }
-    #my msg "link '$(link)' => [array get {}]"
+    #my log "link '$(link)' => [array get {}]"
 
     if {$label eq $arg} {set label $(link)}
     set item_name [string trimleft $(prefix):$(stripped_name) :]
@@ -3082,7 +3082,7 @@ namespace eval ::xowiki {
                                  } {
     array set tcl_op {= eq < < > > >= >= <= <=}
     array set sql_op {= =  < < > > >= >= <= <=}
-    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {[lsearch $lhs_var {$rhs}] > -1}}
+    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {{$rhs} in $lhs_var}}
     #my msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
