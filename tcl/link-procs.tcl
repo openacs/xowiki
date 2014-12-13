@@ -86,52 +86,6 @@ namespace eval ::xowiki {
     return [my item_id]
   }
 
-  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {template}
-  ::xowiki::LinkTemplate instproc render {{-title "TITLE"} {-id "ID"} {-content ""} {-label "LABEL"}} {
-    return [subst [my template]]
-  }
-  
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -template {
-<a href="#$id" role="button" data-toggle="modal">$label</a>
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
-        <h4 class="modal-title">$title</h4>
-      </div>
-      <div class="modal-body">
-        $content
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-  }
-
-    ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -template {
-<a href="#$id" role="button" data-toggle="modal">$label</a>
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
-        <h4 class="modal-title">$title</h4>
-      </div>
-      <div class="modal-body">
-        $content
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-  }
-
-  
   Link instproc render_target {href label} {
     ns_log notice render_target
     set target [my target]
@@ -152,7 +106,6 @@ namespace eval ::xowiki {
     } elseif {[my exists target] && ![my built_in_target]} {
       return [my render_target $href $label]
     } else {
-      ns_log notice render_default
       return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
     }
   }
@@ -230,6 +183,55 @@ namespace eval ::xowiki {
     }
     return 0
   }
+
+  #
+  # Link template
+  #
+  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {template}
+  ::xowiki::LinkTemplate instproc render {{-title "TITLE"} {-id "ID"} {-content ""} {-label "LABEL"}} {
+    return [subst [my template]]
+  }
+  
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -template {
+<a href="#$id" role="button" data-toggle="modal">$label</a>
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+        <h4 class="modal-title">$title</h4>
+      </div>
+      <div class="modal-body">
+        $content
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+  }
+
+    ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -template {
+<a href="#$id" role="button" data-toggle="modal">$label</a>
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+        <h4 class="modal-title">$title</h4>
+      </div>
+      <div class="modal-body">
+        $content
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+  }
+
 
   #
   # folder links
