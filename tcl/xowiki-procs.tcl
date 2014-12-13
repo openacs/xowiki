@@ -1580,7 +1580,7 @@ namespace eval ::xowiki {
     return [list name $name lang $lang normalized_name $normalized_name anchor $anchor query $query]
   }
 
-  Page instforward item_ref -verbose {%my package_id} %proc
+  Page instforward item_ref {%my package_id} %proc
   
   Page instproc pretty_link {
     {-anchor ""} 
