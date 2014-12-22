@@ -93,7 +93,7 @@ namespace eval ::xowiki {
       set page [::xo::db::CrClass get_instance_from_db -item_id [my item_id] -revision_id 0]
       set content [$page render_content]
       set id [xowiki::Includelet html_id $page-$target]
-      return [::xowiki::template::$target render -title [$page title] -id $id -content $content -label $label]
+      return [::xowiki::template::$target render -title [$page title] -id $id -content $content -label $label -href $href]
     } else {
       ns_log notice "xowiki::link: unknown target $target"
       return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
@@ -188,7 +188,13 @@ namespace eval ::xowiki {
   # Link template
   #
   ::xotcl::Class create ::xowiki::LinkTemplate -parameter {template}
-  ::xowiki::LinkTemplate instproc render {{-title "TITLE"} {-id "ID"} {-content ""} {-label "LABEL"}} {
+  ::xowiki::LinkTemplate instproc render {
+    {-title "TITLE"}
+    {-id "ID"}
+    {-content ""}
+    {-label "LABEL"}
+    {-href ""}
+  } {
     return [subst [my template]]
   }
   
