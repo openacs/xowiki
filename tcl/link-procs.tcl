@@ -91,7 +91,9 @@ namespace eval ::xowiki {
     set target [my target]
     if {[info commands ::xowiki::template::$target] ne ""} {
       #
-      # The target exists. This is a situation, where potentially a
+      # The target template exists. use the template
+      #
+      # This is a situation, where potentially a
       # recursive inclusion is happening. The included content is
       # added to the html output only once, with a unique id, which
       # can be referenced multiple times. The link is included for
@@ -99,16 +101,20 @@ namespace eval ::xowiki {
       #
       set item_id [my item_id]
       set targetId [xowiki::Includelet html_id [my item_id]-$target]
-      set key ::__xowiki_link_rendered($targetId)
-      if {![info exists $key]} {
-        set $key 1
-        set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id 0]
-        set content [$page render_content]
-        set withBody true
-      } else {
-        #ns_log notice "modal with is already included: $key"
-        set page ::$item_id
-        set withBody false
+      set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id 0]
+      set content "Loading ..."
+      set withBody true
+      
+      if {[::xowiki::template::$target render_content]} {
+        set key ::__xowiki_link_rendered($targetId)
+        if {![info exists $key]} {
+          set $key 1
+          set content [$page render_content]
+        } else {
+          #ns_log notice "modal with is already included: $key"
+          set page ::$item_id
+          set withBody false
+        }
       }
       set result [::xowiki::template::$target render \
                       -with_body $withBody \
@@ -117,7 +123,7 @@ namespace eval ::xowiki {
                       -content $content \
                       -label $label \
                       -href $href]
-
+      
       return $result
     } else {
       ns_log notice "xowiki::link: unknown target $target"
@@ -212,7 +218,7 @@ namespace eval ::xowiki {
   #
   # Link template
   #
-  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {link_template body_template}
+  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {link_template body_template {render_content true}}
   ::xowiki::LinkTemplate instproc render {
     {-with_link:boolean true}
     {-with_body:boolean true}
@@ -227,7 +233,10 @@ namespace eval ::xowiki {
     if {$with_body} {append result [subst [my body_template]]}
     return $result
   }
-  
+
+  #
+  # Small bootstrap modal
+  #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
 <a href="#$id" role="button" data-toggle="modal">$label</a>
   } -body_template {
@@ -249,6 +258,9 @@ namespace eval ::xowiki {
 </div><!-- /.modal -->
   }
 
+  #
+  # Large bootstrap modal
+  #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
 <a href="#$id" role="button" data-toggle="modal">$label</a>
   } -body_template {
@@ -270,6 +282,56 @@ namespace eval ::xowiki {
 </div><!-- /.modal -->
   }
 
+  #
+  # Small bootstrap modal using ajax
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
+    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+       This will be replaced
+    </div>
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>    
+\$('.modal').on('show.bs.modal', function(event) {
+    var idx = \$('.modal:visible').length;
+    \$(this).css('z-index', 1040 + (10 * idx));
+});
+\$('.modal').on('shown.bs.modal', function(event) {
+    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+    \$('.modal-backdrop').not('.stacked').addClass('stacked');
+});
+</script>     
+}
+  #
+  # Large bootstrap modal using ajax
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg-ajax -render_content false -link_template {
+    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+       This will be replaced
+    </div>
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>    
+\$('.modal').on('show.bs.modal', function(event) {
+    var idx = \$('.modal:visible').length;
+    \$(this).css('z-index', 1040 + (10 * idx));
+});
+\$('.modal').on('shown.bs.modal', function(event) {
+    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+    \$('.modal-backdrop').not('.stacked').addClass('stacked');
+});
+</script>     
+}
 
   #
   # folder links
