@@ -87,13 +87,38 @@ namespace eval ::xowiki {
   }
 
   Link instproc render_target {href label} {
-    ns_log notice render_target
+    #ns_log notice render_target
     set target [my target]
     if {[info commands ::xowiki::template::$target] ne ""} {
-      set page [::xo::db::CrClass get_instance_from_db -item_id [my item_id] -revision_id 0]
-      set content [$page render_content]
-      set id [xowiki::Includelet html_id $page-$target]
-      return [::xowiki::template::$target render -title [$page title] -id $id -content $content -label $label -href $href]
+      #
+      # The target exists. This is a situation, where potentially a
+      # recursive inclusion is happening. The included content is
+      # added to the html output only once, with a unique id, which
+      # can be referenced multiple times. The link is included for
+      # each occurance.
+      #
+      set item_id [my item_id]
+      set targetId [xowiki::Includelet html_id [my item_id]-$target]
+      set key ::__xowiki_link_rendered($targetId)
+      if {![info exists $key]} {
+        set $key 1
+        set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id 0]
+        set content [$page render_content]
+        set withBody true
+      } else {
+        #ns_log notice "modal with is already included: $key"
+        set page ::$item_id
+        set withBody false
+      }
+      set result [::xowiki::template::$target render \
+                      -with_body $withBody \
+                      -title [$page title] \
+                      -id $targetId \
+                      -content $content \
+                      -label $label \
+                      -href $href]
+
+      return $result
     } else {
       ns_log notice "xowiki::link: unknown target $target"
       return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
@@ -187,19 +212,25 @@ namespace eval ::xowiki {
   #
   # Link template
   #
-  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {template}
+  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {link_template body_template}
   ::xowiki::LinkTemplate instproc render {
+    {-with_link:boolean true}
+    {-with_body:boolean true}
     {-title "TITLE"}
     {-id "ID"}
     {-content ""}
     {-label "LABEL"}
     {-href ""}
   } {
-    return [subst [my template]]
+    set result ""
+    if {$with_link} {append result [subst [my link_template]]}
+    if {$with_body} {append result [subst [my body_template]]}
+    return $result
   }
   
-  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -template {
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
 <a href="#$id" role="button" data-toggle="modal">$label</a>
+  } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
@@ -218,8 +249,9 @@ namespace eval ::xowiki {
 </div><!-- /.modal -->
   }
 
-    ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -template {
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
 <a href="#$id" role="button" data-toggle="modal">$label</a>
+  } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">

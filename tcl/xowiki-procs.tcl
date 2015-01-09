@@ -1755,7 +1755,11 @@ namespace eval ::xowiki {
     }
     if {$l eq ""} {return ""}
     set html [$l render]
-    $l destroy
+    if {[info commands $l] ne ""} {
+      $l destroy
+    } else {
+      ns_log notice "link object already destroyed. This might be due to a recurisive inclusion"
+    }
     return $html
   }
 
