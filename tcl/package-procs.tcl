@@ -792,7 +792,8 @@ namespace eval ::xowiki {
       if {[$page_or_package istype ::xowiki::FormPage]
           && [$page_or_package is_link_page]
           && [[self class] exists delegate_link_to_target($method)]} {
-        # if the target is a link, we may want to call the method on the target
+        # If the target is a symbolic link, we may want to call the
+        # method on the target
         set target [$page_or_package get_target_from_link_page]
         #my msg "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
         if {$target ne ""} {set page_or_package $target}
@@ -807,10 +808,10 @@ namespace eval ::xowiki {
         if {$batch_mode} {[my id] unset __batch_mode}
         
         if {$err} {
-          #ns_log notice "errorMsg: $errorMsg, $::errorInfo"
-          return [my error_msg -status_code 404 \
+          ns_log notice "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
+          return [my error_msg -status_code 500 \
                       -template_file $error_template \
-                      [ns_quotehtml $errorMsg]]
+                      [ns_quotehtml "error during $method: $errorMsg"]]
         }
         return $r
       }

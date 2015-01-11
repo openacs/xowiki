@@ -1078,8 +1078,7 @@ namespace eval ::xowiki {
       }
     }
     #my show_fields $form_fields
-    foreach {validation_errors category_ids} \
-        [my get_form_data -field_names $query_field_names $form_fields] break
+    lassign  [my get_form_data -field_names $query_field_names $form_fields] validation_erors category_ids
 
     if {$validation_errors == 0} {
       #
@@ -1179,8 +1178,8 @@ namespace eval ::xowiki {
         break
       }
     }
-    foreach {validation_errors category_ids} \
-        [my get_form_data -field_names $query_field_names $form_fields] break
+    lassign [my get_form_data -field_names $query_field_names $form_fields] \
+        validation_errors category_ids
     set error ""
     if {$validation_errors == 0} {
       set status_code 200
@@ -2007,7 +2006,7 @@ namespace eval ::xowiki {
       #
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
-        #my msg "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
+        #my log "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
         $f error_msg $validation_error
         incr validation_errors
       }
@@ -2047,6 +2046,7 @@ namespace eval ::xowiki {
 
     #my instance_attributes [array get __ia]
     #my msg category_ids=$category_ids
+
     return [list $validation_errors [lsort -unique $category_ids]]
   }
 
