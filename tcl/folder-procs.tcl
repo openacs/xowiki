@@ -469,7 +469,7 @@ namespace eval ::xowiki::includelet {
     # scoping in "-columns"
     set ::with_publish_status [expr {$publish_status ne "ready"}]
 
-    switch [$package_id get_parameter "PreferredCSSToolkit" yui] {
+    switch [$package_id get_parameter PreferredCSSToolkit yui] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }

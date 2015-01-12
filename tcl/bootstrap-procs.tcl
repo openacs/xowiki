@@ -163,9 +163,9 @@ namespace eval ::xo::Table {
     set trn_mixin [expr {[lang::util::translator_mode_p] ?"::xo::TRN-Mode" : ""}]
     ns_log notice "call render_with ::xo::Table::BootstrapTableRenderer $trn_mixin"
     my render_with BootstrapTableRenderer $trn_mixin
-    ns_log notice "init-next"
+    #ns_log notice "init-next"
     next
-    ns_log notice "init-next DONE"
+    #ns_log notice "init-next DONE"
   }
   
   Class create BootstrapTableRenderer \
