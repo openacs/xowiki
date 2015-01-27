@@ -1534,6 +1534,7 @@ namespace eval ::xowiki {
       set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
                           -name $field_name \
                           -form_constraints $form_constraints]
+      #my log "short_spec of $field_name <$short_spec> field_spec <$field_spec> cr_field_spec <$cr_field_spec>"
 
       switch -glob -- $field_name {
         __* {error not_allowed}
@@ -1542,10 +1543,12 @@ namespace eval ::xowiki {
           if {![info exists __att($varname)]} {
             error "unknown attribute $field_name"
           }
+          #my log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
           set f [$base_item create_raw_form_field \
                      -name $field_name \
                      -slot [$base_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec]
+          #my log "---> $f <[$f label]>"
           $f set __base_field $varname
         }
         default {
@@ -1635,14 +1638,28 @@ namespace eval ::xowiki {
     {-spec ""} 
     {-configuration ""}
   } {
-    set short_spec [my get_short_spec $name]
+    # For workflows, we do not want to get the form constraints of the
+    # page itself (i.e. the property of the generic workflow form) but
+    # just the configured properties. Otherwise, we get for a
+    # wrong results for e.g. "{{form-usages -form de:Thread.wf ...}}"
+    # which picks up the label for the _title from the generic Workflow.
+    # So, when we have configured properties, we use it, use the
+    # primitive one just on despair.  Not sure, what the best solution
+    # is,... maybe an additional flag.
+    if {[string trim $spec] eq ""} {
+      set short_spec [my get_short_spec $name]
+      #my log "[self] get_short_spec $name returns <$short_spec>"
+    } else {
+      set short_spec ""
+    }
+
     #my msg "create form-field '$name', short_spec = '$short_spec', slot=$slot"
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
-    #my msg "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
+    #my log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
-    #my msg "created form-field '$name' $f [$f info class] validator=[$f validator]" ;#p=[$f info precedence] 
+    #my log "created form-field '$name' $f [$f info class] validator=[$f validator] p=[$f info precedence]"
     return $f
   }
 
