@@ -3764,6 +3764,9 @@ namespace eval ::xowiki::includelet {
                              -parent_id [$o parent_id] \
                              -default_lang [$o lang] \
                              -forms $form -package_id [$o package_id]]
+      if {$form_item_ids eq ""} {
+        return -code error "could not load form '$form' (default-language [$o lang])"
+      }
     } else {
       set form_item_ids [list $form_item_id]
     }
@@ -3792,7 +3795,7 @@ namespace eval ::xowiki::includelet {
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }
-    #my msg fc=$form_constraints
+    #my log fc=$form_constraints
 
     # 
     # The internal variables (instance attributes, etc) are prefixed
@@ -3860,11 +3863,11 @@ namespace eval ::xowiki::includelet {
                            -form_constraints $form_constraints]
       #$form_item show_fields $form_fields
       foreach f $form_fields {set __ff([$f name]) $f}
-      #foreach f $form_fields {ns_log notice "[$f name] [$f label]"}
+      #foreach f $form_fields {ns_log notice "form <[$form_item name]: field [$f name] label [$f label]"}
     }
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
-    # TODO: wiki-substitution is just foced in here. Maybe it makes
+    # TODO: wiki-substitution is just forced in here. Maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
     if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
@@ -4020,7 +4023,6 @@ namespace eval ::xowiki::includelet {
 
       # set always last_modified for default sorting
       $__c set __last_modified [$p set last_modified]
-
 
       foreach __fn $field_names {
         $__ff($__fn) object $p
