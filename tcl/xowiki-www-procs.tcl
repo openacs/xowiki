@@ -1646,14 +1646,14 @@ namespace eval ::xowiki {
     # So, when we have configured properties, we use it, use the
     # primitive one just on despair.  Not sure, what the best solution
     # is,... maybe an additional flag.
-    if {[string trim $spec] eq ""} {
+    if {[string trim $spec ,] eq ""} {
       set short_spec [my get_short_spec $name]
       #my log "[self] get_short_spec $name returns <$short_spec>"
     } else {
       set short_spec ""
     }
 
-    #my msg "create form-field '$name', short_spec = '$short_spec', slot=$slot"
+    #my log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
