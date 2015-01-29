@@ -2191,7 +2191,7 @@ namespace eval ::xowiki {
         return $f
       }
     }
-    if {$name ni {fontname fontsize formatblock}} {
+    if {$name ni {langmarks fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
       my msg "No form field with name '$name' found\
