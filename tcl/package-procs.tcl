@@ -2334,7 +2334,7 @@ namespace eval ::xowiki {
   # Repeated parameter lookups are quite likely
   #
 
-  Class ParameterCache
+  Class create ParameterCache
   ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
     set key [list [my id] [self proc] $attribute]
     if {[info commands "::xo::cc"] ne ""} {
@@ -2366,7 +2366,7 @@ namespace eval ::xowiki {
 
   Policy policy1 -contains {
     
-    Class Package -array set require_permission {
+    Class create Package -array set require_permission {
       reindex             swa
       change-page-order   {{id admin}}
       import-prototype-page swa
@@ -2385,7 +2385,7 @@ namespace eval ::xowiki {
       }
     }
 
-    Class Page -array set require_permission {
+    Class create Page -array set require_permission {
       view               none
       revisions          {{package_id write}}
       diff               {{package_id write}}
@@ -2404,18 +2404,18 @@ namespace eval ::xowiki {
       create-or-use      {{parent_id create}}
     } -set default_permission {{package_id write}}
 
-    Class Object -array set require_permission {
+    Class create Object -array set require_permission {
       edit               swa
     }
-    Class File -array set require_permission {
+    Class create File -array set require_permission {
       download           none
     }
-    Class Form -array set require_permission {
+    Class create Form -array set require_permission {
       list              {{package_id read}}
       edit              admin
       view              admin
     }
-    Class CrFolder -array set require_permission {
+    Class create CrFolder -array set require_permission {
       view           none
       delete         {{package_id admin}}
       edit-new       {{item_id write}}
@@ -2427,7 +2427,7 @@ namespace eval ::xowiki {
     # we require side wide admin rights for deletions and code
     #
 
-    Class Package -array set require_permission {
+    Class create Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
       refresh-login       none
@@ -2445,7 +2445,7 @@ namespace eval ::xowiki {
       }
     }
     
-    Class Page -array set require_permission {
+    Class create Page -array set require_permission {
       view               {{package_id read}}
       revisions          {{package_id write}}
       diff               {{package_id write}}
@@ -2463,13 +2463,13 @@ namespace eval ::xowiki {
       create-or-use      {{parent_id create}}
     }
 
-    Class Object -array set require_permission {
+    Class create Object -array set require_permission {
       edit               swa
     }
-    Class File -array set require_permission {
+    Class create File -array set require_permission {
       download           {{package_id read}}
     }
-    Class Form -array set require_permission {
+    Class create Form -array set require_permission {
       view              admin
       edit              admin
       list              {{package_id read}}
@@ -2482,7 +2482,7 @@ namespace eval ::xowiki {
     # we perform checking on item_ids for pages. 
     #
 
-    Class Package -array set require_permission {
+    Class create Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
       refresh-login       none
@@ -2500,7 +2500,7 @@ namespace eval ::xowiki {
       }
     }
     
-    Class Page -array set require_permission {
+    Class create Page -array set require_permission {
       view               {{item_id read}}
       revisions          {{item_id write}}
       diff               {{item_id write}}
@@ -2515,18 +2515,18 @@ namespace eval ::xowiki {
       create-or-use      {{parent_id create}}
     }
 
-    Class Object -array set require_permission {
+    Class create Object -array set require_permission {
       edit               swa
     }
-    Class File -array set require_permission {
+    Class create File -array set require_permission {
       download           {{package_id read}}
     }
-    Class Form -array set require_permission {
+    Class create Form -array set require_permission {
       view              admin
       edit              admin
       list              {{item_id read}}
     }
-    #     Class FormPage -array set require_permission {
+    #     Class create FormPage -array set require_permission {
     #       view              {
     #         {{is_true {_creation_user = @current_user@}} item_id read}
     #         swa
@@ -2547,7 +2547,7 @@ namespace eval ::xowiki {
   #
   Policy policy5 -contains {
 
-    Class Package -array set require_permission {
+    Class create Package -array set require_permission {
       reindex             {{id admin}}
       rss                 none
       refresh-login       none
@@ -2565,7 +2565,7 @@ namespace eval ::xowiki {
       }
     }
     
-    Class Page -array set require_permission {
+    Class create Page -array set require_permission {
       view               {{item_id read}}
       revisions          {{item_id write}}
       diff               {{item_id write}}
@@ -2581,20 +2581,20 @@ namespace eval ::xowiki {
       show-object        swa
     }
     
-    Class Object -array set require_permission {
+    Class create Object -array set require_permission {
       edit               swa
     }
-    Class File -array set require_permission {
+    Class create File -array set require_permission {
       download           {{package_id read}}
     }
-    Class FormPage -array set require_permission {
+    Class create FormPage -array set require_permission {
       view               creator 
       edit               {
         {{in_state initial|suspended|working} creator} admin
       }
       list               admin
     }
-    Class Form -array set require_permission {
+    Class create Form -array set require_permission {
       view              admin
       edit              admin
       list              admin

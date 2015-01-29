@@ -620,7 +620,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class menuentries -superclass textarea -parameter {
+  Class create menuentries -superclass textarea -parameter {
     {rows 10}
     {cols 80}
   }

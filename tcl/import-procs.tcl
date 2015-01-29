@@ -9,7 +9,7 @@
 
 namespace eval ::xowiki {
 
-  Class Importer -parameter {
+  Class create Importer -parameter {
     {added 0} {replaced 0} {updated 0} {inherited 0}
     {package_id} {parent_id} {user_id}
   }

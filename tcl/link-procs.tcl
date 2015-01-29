@@ -670,7 +670,7 @@ namespace eval ::xowiki {
   # link cache
   #
 
-  #   Class LinkCache
+  #   Class create LinkCache
   #   LinkCache instproc resolve {} {
   #     set key link-[my type]-[my name]-[my parent_id]
   #     while {1} {

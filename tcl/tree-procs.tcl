@@ -13,7 +13,7 @@ namespace eval ::xowiki {
   # This class manages the creation and rendering of the nodes of the
   # tree. It provides a name and id for rending in HTML.
 
-  Class Tree \
+  Class create Tree \
       -superclass ::xo::OrderedComposite \
       -parameter {
         {name ""} 
@@ -128,7 +128,7 @@ namespace eval ::xowiki {
   # associated categorized items, which can be added via the method
   # "add_item".
   #
-  Class TreeNode -superclass Tree -parameter {
+  Class create TreeNode -superclass Tree -parameter {
     level label pos {open_requests 0} count {href ""} 
     object owner li_id ul_id ul_class
     {prefix ""} {expanded false} {highlight false}

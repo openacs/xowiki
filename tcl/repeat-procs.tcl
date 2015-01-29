@@ -51,7 +51,7 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::repeatContainer
   #
   ###########################################################
-  Class repeatContainer -superclass ::xowiki::formfield::CompoundField -parameter {
+  Class create repeatContainer -superclass ::xowiki::formfield::CompoundField -parameter {
     {min 1}
     {max 5}
   }
