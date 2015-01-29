@@ -152,7 +152,7 @@ namespace eval ::xowiki {
 
 namespace eval ::xo::Table {
 
-  Class ::xowiki::BootstrapTable \
+  Class create ::xowiki::BootstrapTable \
       -superclass ::xo::Table \
       -parameter {
         skin

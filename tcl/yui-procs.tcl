@@ -434,7 +434,7 @@ namespace eval ::YUI {
 
 namespace eval ::xo::Table {
 
-  Class ::xowiki::YUIDataTable \
+  Class create ::xowiki::YUIDataTable \
       -superclass ::xo::Table \
       -parameter {
         {skin "yui-skin-sam"}
