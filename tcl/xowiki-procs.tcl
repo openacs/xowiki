@@ -45,7 +45,7 @@ namespace eval ::xowiki {
       -extend_slot {title -required false} \
       -extend_slot {description -spec "textarea,cols=80,rows=2,label=#xowiki.Page-description#"} \
       -extend_slot {text -spec "richtext"} \
-      -extend_slot {publish_date -spec "date"} \
+      -extend_slot {publish_date -spec "date,label=#xowiki.Page-publish_date#"} \
       -parameter {
         {render_adp 1}
         {do_substitutions 1}
