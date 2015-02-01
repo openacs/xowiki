@@ -18,7 +18,6 @@
   <msg key="copy_entry">Kopiere Eintrag</msg>
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
-  <msg key="creator">Ersteller/in</msg>
   <msg key="day">Tag</msg>
   <msg key="days">Tage</msg>
   <msg key="delete">Löschen</msg>
@@ -28,7 +27,6 @@
   <msg key="delete_all_items">Alle Einträge dieser Art löschen</msg>
   <msg key="delete_confirm">Löschen bestätigen?</msg>
   <msg key="delete_title">Lösche diese Seite ...</msg>
-  <msg key="description">Kurzbeschreibung</msg>
   <msg key="details">Details</msg>
   <msg key="edit">Bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
@@ -100,6 +98,7 @@
   <msg key="menu-Clipboard-Use-Copy">Kopieren</msg>
   <msg key="menu-Clipboard-Use-Export">Export</msg>
   <msg key="menu-Package-ImportArchive">Archiv importieren</msg>
+  <msg key="menu-Page">Wiki-Seite</msg>
   <msg key="minute">Minute</msg>
   <msg key="minutes">Minuten</msg>
   <msg key="month">Monat</msg>

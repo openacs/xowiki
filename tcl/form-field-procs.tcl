@@ -3556,6 +3556,11 @@ namespace eval ::xowiki::formfield {
   #
   # ::xowiki::formfield::event
   #
+  # This formfield is rendered following the conventions of the
+  # h-event of microformats2.
+  #
+  # See: http://microformats.org/wiki/h-event
+  #
   ###########################################################
 
   Class create event -superclass CompoundField -parameter {
@@ -3574,7 +3579,8 @@ namespace eval ::xowiki::formfield {
       set dtend_display_format %X
     }
     my create_components [subst {
-      {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_event#}}
+      {title {text,label=#xowiki.event-title_of_event#}}
+      {summary {richtext,required,height=150px,label=#xowiki.event-summary_of_event#}}
       {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hourprefix#_HH24_MI,
         default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
       {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
@@ -3605,16 +3611,22 @@ namespace eval ::xowiki::formfield {
     set dtstart [my get_component dtstart]
     set dtstart_val [$dtstart value]
     set dtstart_iso [::xo::ical clock_to_iso [clock scan $dtstart_val]]
+    set dtstart_pretty [$dtstart pretty_value $dtstart_val]
 
     set dtend [my get_component dtend]
     set dtend_val [$dtend value]
     set dtend_txt ""
     if {$dtend_val ne ""} {
       set dtend_iso [::xo::ical clock_to_iso [clock scan $dtend_val]]
-      set dtend_txt " - <abbr class='dtend' title='$dtend_iso'>[$dtend pretty_value $dtend_val]</abbr>"
+      set dtend_txt " - <time class='dt-end' title='$dtend_iso'>[$dtend pretty_value $dtend_val]</time>"
     }
 
-    set summary_txt "<span class='summary'>[[my get_component summary] value]</span>"
+    set title_val   [[my get_component title] value]
+    if {$title_val eq ""} {
+      set title_val [[my object] property _title]
+    }
+    set summary_val [[my get_component summary] value]
+
     set location [my get_component location]
     set location_val [$location value]
     set location_txt ""
@@ -3623,16 +3635,18 @@ namespace eval ::xowiki::formfield {
       if {[regexp {^#(.+)#$} $location_label _ msg_key]} {
         set location_label [lang::message::lookup [my locale] $msg_key]
       }
-      set location_txt "$location_label: <span class='location'>$location_val</span>"
+      set location_txt "<tr><td>$location_label:</td><td><span class='p-location'>$location_val</span></td></tr>"
     }
 
-    append result \
-        "<div class='vevent'>" \
-        $summary_txt " " \
-        "<abbr class='dtstart' title='$dtstart_iso'>[$dtstart pretty_value $dtstart_val]</abbr>" \
-        $dtend_txt <br> \
-        $location_txt \
-        "</div>" 
+    append result \n\
+        "<div class='h-event'>" \n\
+        "<h1 class=p-name>$title_val</h1>" \n\
+        "<p class='p-summary'>$summary_val</p>" "<br> " \n\
+        "<table>" \n\
+        "<tr><td>Time:</td><td><time class='dt-start' datetime='$dtstart_iso'>$dtstart_pretty</time> $dtend_txt</td></tr>" \n\
+        $location_txt \n\
+        "</table>" \n\
+        "</div>" \n
     return $result
   }
 }

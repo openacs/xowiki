@@ -30,7 +30,7 @@
   <msg key="delete_all_items">Delete all such items of this instances</msg>
   <msg key="delete_confirm">Confirm delete?</msg>
   <msg key="delete_title">Delete this page ...</msg>
-  <msg key="details">Details</msg>
+  <msg key="details">Detail Link</msg>
   <msg key="edit">Edit</msg>
   <msg key="edit_link">edit tags</msg>
   <msg key="edit_title">Edit this page ...</msg>
@@ -59,7 +59,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="event-location">Location</msg>
   <msg key="event-start_of_event">Start Time</msg>
   <msg key="event-start_of_lecture">Start of Lecture</msg>
-  <msg key="event-title_of_event">Title</msg>
+  <msg key="event-summary_of_event">Summary of the Event</msg>
+  <msg key="event-title_of_event">Title of the Event</msg>
   <msg key="event-title_of_lecture">Title of Lecture</msg>
   <msg key="export">Export</msg>
   <msg key="feedback">Feedback</msg>

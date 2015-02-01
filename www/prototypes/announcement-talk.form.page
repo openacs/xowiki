@@ -5,17 +5,15 @@
     -title "Talk Announcement" \
     -set creator "Gustaf Neumann" \
     -set anon_instances t \
-    -set form {{<form> @_title@ @detail_link@ @event@ @_text@ @_description@ @_publish_date@ @_nls_language@ @_publish_status@</form>} text/html} \
+    -set form {{<form> @_title@ @event@ @detail_link@ @_description@ @_publish_date@ @_nls_language@ @_publish_status@</form>} text/html} \
     -set text {<blockquote>@event@</blockquote> 
-<p>Abstract: @_text@<br />@detail_link@</p>} \
+	<p>@_text@<br />@detail_link@</p>} \
     -set form_constraints {
-      _title:text,label=#xowiki.title_of_event#
-     _text:richtext,editor=wym,label=#xowiki.abstract#
      {event:event,label=#xowiki.event#}
      {detail_link:detail_link,label=#xowiki.details#}
      {_publish_status:radio,options={live ready} {draft production},label=#xowiki.publish_status#}
      {_description:textarea,rows=3,label=#xowiki.news-teaser#}
-     _page_order:hidden _creator:hidden
+     _page_order:hidden _creator:hidden _text:hidden
     }
 
 
