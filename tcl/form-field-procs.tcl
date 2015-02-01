@@ -3316,7 +3316,7 @@ namespace eval ::xowiki::formfield {
                    -name [my name].$name -id [my id].$name \
                    -locale [my locale] -object [my object] \
                    -value $element]
-        $c set_disabled [my exists disabled]
+        $c set_disabled 1; # this is a dummy field, never query for its value
         if {$c ni [my components]} {my lappend components $c}
         continue
       }
@@ -3580,7 +3580,7 @@ namespace eval ::xowiki::formfield {
     }
     my create_components [subst {
       {title {text,label=#xowiki.event-title_of_event#}}
-      {summary {richtext,required,height=150px,label=#xowiki.event-summary_of_event#}}
+      {summary {richtext,height=150px,label=#xowiki.event-summary_of_event#}}
       {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hourprefix#_HH24_MI,
         default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
       {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
