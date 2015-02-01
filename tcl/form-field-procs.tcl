@@ -3575,7 +3575,7 @@ namespace eval ::xowiki::formfield {
     }
     my create_components [subst {
       {summary {richtext,required,editor=wym,height=150px,label=#xowiki.event-title_of_event#}}
-      {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI,
+      {dtstart {date,required,format=DD_MONTH_YYYY_#xowiki.event-hourprefix#_HH24_MI,
         default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
       {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
       {location text,label=#xowiki.event-location#}
