@@ -654,7 +654,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc setCSSDefaults {} {
-    my log setCSSDefaults
+    #my log setCSSDefaults
     # check empty
     if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] eq "bootstrap"} {
       ::xowiki::formfield::FormField parameter {
