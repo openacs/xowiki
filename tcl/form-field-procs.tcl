@@ -3565,10 +3565,12 @@ namespace eval ::xowiki::formfield {
 
   Class create event -superclass CompoundField -parameter {
     {multiday false}
+    {calendar}
+    {time_label #xowiki.event-time#}
   }
 
   event instproc initialize {} {
-    #my msg "event initialize [my exists __initialized], multi=[my multiday] state=[my set __state]"
+    #my log "event initialize [my exists __initialized], multi=[my multiday] state=[my set __state]"
     if {[my set __state] ne "after_specs"} return
     my set widget_type event
     if {[my multiday]} {
@@ -3585,6 +3587,7 @@ namespace eval ::xowiki::formfield {
         default=now,label=#xowiki.event-start_of_event#,display_format=%Q_%X}}
       {dtend   date,format=$dtend_format,default=now,label=#xowiki.event-end_of_event#,display_format=$dtend_display_format}
       {location text,label=#xowiki.event-location#}
+      {cal_item_id hidden}
     }]
     my set __initialized 1
   }
@@ -3607,7 +3610,7 @@ namespace eval ::xowiki::formfield {
   }
 
   event instproc pretty_value {v} {
-    array set {} [my value]
+    #array set {} [my value]
     set dtstart [my get_component dtstart]
     set dtstart_val [$dtstart value]
     set dtstart_iso [::xo::ical clock_to_iso [clock scan $dtstart_val]]
@@ -3621,6 +3624,11 @@ namespace eval ::xowiki::formfield {
       set dtend_txt " - <time class='dt-end' title='$dtend_iso'>[$dtend pretty_value $dtend_val]</time>"
     }
 
+    set time_label [my time_label]
+    if {[regexp {^#(.+)#$} $time_label _ msg_key]} {
+      set time_label [lang::message::lookup [my locale] $msg_key]
+    }
+   
     set title_val   [[my get_component title] value]
     if {$title_val eq ""} {
       set title_val [[my object] property _title]
@@ -3643,12 +3651,97 @@ namespace eval ::xowiki::formfield {
         "<h1 class=p-name>$title_val</h1>" \n\
         "<p class='p-summary'>$summary_val</p>" "<br> " \n\
         "<table>" \n\
-        "<tr><td>Time:</td><td><time class='dt-start' datetime='$dtstart_iso'>$dtstart_pretty</time> $dtend_txt</td></tr>" \n\
+        "<tr><td>$time_label:</td><td><time class='dt-start' datetime='$dtstart_iso'>$dtstart_pretty</time> $dtend_txt</td></tr>" \n\
         $location_txt \n\
         "</table>" \n\
         "</div>" \n
     return $result
   }
+
+  event instproc convert_to_internal {} {
+    if {[my exists calendar]} {
+      #
+      # Check, if the calendar package is available
+      #
+      if {[info commands ::calendar::item::new] eq ""} {
+        error "the calendar package is not available"
+      }
+
+      #
+      # Check, if the calendar_id can be determined
+      #
+      set calendar_id ""
+      if {[string is integer -strict [my calendar]]} {
+        set calendar_id [my calendar]
+        if {[calendar::name $calendar_id] eq ""} {
+          set calendar_id ""
+        }
+      }
+      if {$calendar_id eq ""} {
+        error "calendar '[my calendar] has no valid calendar_id"
+      }
+
+      #
+      # Get the values for the calendar item
+      #
+      set dtstart_val [[my get_component dtstart] value]
+      set dtend_val   [[my get_component dtend]   value]
+      set title_val   [[my get_component title]   value]
+      set title_val   [[my get_component title]   value]
+      set summary_val [[my get_component summary] value]
+      set cal_item_id [[my get_component cal_item_id] value]
+
+      #
+      # Check, if the cal_item_id is valid. If not, ignore it
+      #
+      if {$cal_item_id ne ""} {
+        # if the object does not exist, it was probably deleted manually
+        if {![acs_object::object_p -id $cal_item_id]} {
+          set cal_item_id ""
+        } else {
+          acs_object::get -object_id $cal_item_id -array row
+          if {$row(object_type) ne "cal_item"} {
+            ns_log warning "event: the associated entry $cal_item_id is not a calendar item, ignore the old association"
+            set cal_item_id ""
+          }
+        }
+      }
+
+      #
+      # update values via transaction queue
+      #
+      set queue ::__xowiki__transaction_queue([[my object] item_id])
+      lappend $queue [list [self] update_calendar -cal_item_id $cal_item_id -calendar_id $calendar_id \
+                          -start $dtstart_val -end $dtend_val -name $title_val -description $summary_val]
+    }
+    
+    next
+  }
+
+  event instproc update_calendar {-cal_item_id -calendar_id -start -end -name -description} {
+    #
+    # If we have already a valid cal_item_id (checked previously)
+    # update the entry. Otherwise create a new calender item and
+    # update the instance variables.
+    #
+    if {$cal_item_id ne ""} {
+      #my log "===== [list calendar::item::edit -start_date $start -end_date $end -cal_item_id $cal_item_id ...]"
+      calendar::item::edit -cal_item_id $cal_item_id -start_date $start \
+          -end_date $end -name $name -description $description
+    } else {
+      #my log "===== [list calendar::item::new -start_date $start -end_date $end -calendar_id $calendar_id ...]"
+      set cal_item_id [calendar::item::new -start_date $start -end_date $end \
+                             -name $name -description $description -calendar_id $calendar_id]
+      [my get_component cal_item_id] value $cal_item_id
+      #
+      # The following line is required when used in transaction to
+      # update the instance attributes
+      #
+      [my object] set_property event [my get_compound_value]
+    }
+  }
+
+
 }
 
 namespace eval ::xowiki::formfield {

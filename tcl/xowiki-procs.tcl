@@ -1704,7 +1704,8 @@ namespace eval ::xowiki {
 
     if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
-      return "<div class='errorMsg'>Error during processing of options [list $options] of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
+      return "<div class='errorMsg'>Error during processing of options [list $options]\
+	of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
       return [self]::link
     }
@@ -3870,6 +3871,16 @@ namespace eval ::xowiki {
         }
       }
       my map_categories $category_ids
+
+      # Problably, categories should also be moved into the
+      # transaction queue.
+      set queue ::__xowiki__transaction_queue([my item_id])
+      if {[info exists $queue]} {
+        foreach cmd [set $queue] {
+          #ns_log notice ".... executing transaction command: $cmd"
+          {*}$cmd
+        }
+      }
 
       my save -use_given_publish_date $use_given_publish_date
       if {$old_name ne $name} {
