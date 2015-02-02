@@ -811,7 +811,7 @@ namespace eval ::xowiki {
           ns_log notice "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
           return [my error_msg -status_code 500 \
                       -template_file $error_template \
-                      [ns_quotehtml "error during $method: $errorMsg"]]
+                      "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
         }
         return $r
       }
