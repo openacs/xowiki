@@ -1557,9 +1557,8 @@ namespace eval ::xowiki::formfield {
     }
     next
     if {![my exists editor]} {
-      # set the default editor; TODO: should be a parameter
-      my set editor xinha
-      #my set editor ckeditor4
+      my set editor [parameter::get_global_value -package_key xowiki \
+                         -parameter PreferredRichtextEditor -default xinha]
       #my msg "setting default of [my name] to [my set editor]"
     }
     if {![my exists __initialized]} {
@@ -1800,7 +1799,7 @@ namespace eval ::xowiki::formfield {
   Class create richtext::ckeditor4 -superclass richtext -parameter {
     {editor ckeditor4}
     {mode wysiwyg}
-    {skin kama}
+    {skin moono}
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
@@ -1913,8 +1912,8 @@ namespace eval ::xowiki::formfield {
       set id [my id]
       set name [my name] 
       set package_id [[my object] package_id]
-      my extraPlugins {timestamp xowikiimage tlflrn}
-      # my extraPlugins {timestamp}
+      #my extraPlugins {xowikiimage tlflrn}
+      my extraPlugins {}
       if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
       
       if {"xowikiimage" in [my extraPlugins]} {
