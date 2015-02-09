@@ -1913,9 +1913,8 @@ namespace eval ::xowiki::formfield {
       set name [my name] 
       set package_id [[my object] package_id]
       #my extraPlugins {xowikiimage tlflrn}
-      my extraPlugins {}
+      #my extraPlugins {}
       if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
-      
       if {"xowikiimage" in [my extraPlugins]} {
         my js_image_helper
         set ready_callback {xowiki_image_callback(e.editor);}
