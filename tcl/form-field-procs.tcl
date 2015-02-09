@@ -3187,6 +3187,25 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  CompoundField instproc pretty_value {v} {
+    #
+    # Typically, subtypes of CompoundFields should define their own
+    # "pretty_value". This is a simple renderer that provides a
+    # default behavior.
+    #
+    set ff [dict create {*}$v]
+    set html "<ul class='CompoundField'>\n"
+    foreach c [my components] {
+      set componentName [$c set name]
+      if {[dict exists $ff $componentName]} {
+        append html "<li><span class='name'>$componentName:</span> " \
+            "[$c pretty_value [dict get $ff $componentName]]</li>\n"
+      }
+    }
+    append html "</ul>\n"
+    return $html
+  }
+  
   CompoundField instproc has_instance_variable {var value} {
     set r [next]
     if {$r} {return 1}

@@ -201,6 +201,21 @@ namespace eval ::xowiki::formfield {
     return ""
   }
 
+  repeatContainer instproc pretty_value {v} {
+    #
+    # Simple renderer for repeated values
+    #
+    set ff [dict create {*}$v]
+    set html "<ol class='repeatContainer'>\n"
+    foreach c [lrange [my components] 1 [my count_values [my value]]] {
+      if {[dict exists $ff [$c set name]]} {
+        append html "<li>[$c pretty_value [dict get $ff [$c set name]]]</li>\n"
+      }
+    }
+    append html "</ol>\n"
+    return $html
+  }
+
 }
 
 #
