@@ -40,7 +40,8 @@
 </td>
 </tr>
 <tr>
-<td><input id='subm_upld' disabled='disabled' type='submit' name='save' value="#xowiki.upload_file#" /></td>
+<td><input id='subm_upld' disabled='disabled' type='submit' name='save' value="#xowiki.upload_file#" />
+</td>
 </tr>
 <tr>
 <td colspan=3>
@@ -48,8 +49,6 @@
 </td>
 </tr>
 </table>
-
-
 </formtemplate>
 </div>
 

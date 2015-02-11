@@ -4,21 +4,24 @@ ad_page_contract {
   parent_id:notnull,naturalnum
   {bild_url ""}
 }
+
+#      {width:text(text),optional {label #xowiki.width_in_pixel}}
+#      {height:text(text),optional {label #xowiki.height_in_pixel}}
+
 set js_update ""
 ad_form -name upload_form \
     -export { parent_id CKEditorFuncNum } \
     -html { enctype multipart/form-data } \
+    -has_submit 1 \
     -mode edit \
     -form {
-      {upload_file:file(file),optional {label #xowiki.choose_file#}}
-      {width:text(text),optional {label #xowiki.width_in_pixel}}
-      {height:text(text),optional {label #xowiki.height_in_pixel}}
+	{upload_file:file(file),optional {label #xowiki.choose_file#}}
     } -on_submit {
-      set width [template::element::get_values upload_form width]
-      set height [template::element::get_values upload_form height]
+      #set width [template::element::get_values upload_form width]
+      #set height [template::element::get_values upload_form height]
       set size ""
-      if {$width ne ""} {append size $width}
-      if {$height ne ""} {append size x$height}
+      #if {$width ne ""} {append size $width}
+      #if {$height ne ""} {append size x$height}
 
       set file_name [template::util::file::get_property filename $upload_file]
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
