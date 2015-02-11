@@ -797,12 +797,14 @@ namespace eval ::xowiki {
         } else {
           if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
           set url [my pretty_link]$qp
-          set return_url [$package_id get_parameter return_url $url]
-          # We had query_parameter here. however, to be able to
-          # process the output of ::xo::cc set_parameter ...., we
-          # changed it to "parameter".
+          #
+          # The method query_parameter uses now "::xo::cc set_parameter ...."
+          # with highest precedence
+          #
+          set return_url [$package_id query_parameter return_url $url]
           #my log "[my name]: url=$url, return_url=$return_url"
           $package_id returnredirect $return_url
+
           return
         }
       }
