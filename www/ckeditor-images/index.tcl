@@ -3,7 +3,7 @@ ad_page_contract {
 } {
   parent_id:notnull,naturalnum
   {bild_url ""}
-} 
+}
 set package_url [ad_conn package_url]
 set image_browser_url $package_url/ckeditor-images
 set fs_package_id $parent_id

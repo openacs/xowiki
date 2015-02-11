@@ -1799,7 +1799,7 @@ namespace eval ::xowiki::formfield {
   Class create richtext::ckeditor4 -superclass richtext -parameter {
     {editor ckeditor4}
     {mode wysiwyg}
-    {skin moono}
+    {skin bootstrapck}
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
@@ -1807,11 +1807,13 @@ namespace eval ::xowiki::formfield {
     {customConfig "config.js"}
     {callback "/* callback code */"}
     {destroy_callback "/* callback code */"}
-    {extraPlugins ""}
+    {submit_callback ""}
+    {extraPlugins "xowikiimage"}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
     {imageSelectorDialog /xowiki/ckeditor-images/}
+    {additionalConfigOptions ""}
   }
   richtext::ckeditor4 set editor_mixin 1
   richtext::ckeditor4 instproc initialize {} {
@@ -1856,12 +1858,13 @@ namespace eval ::xowiki::formfield {
       }
       
       function calc_image_tags_to_wiki_image_links_inline (e) {
-        var data = $('<div>'+e.editor.getData()+'</div>');
+        var data = $('<div>'+CKEDITOR.instances[e].getData()+'</div>');
         data.find('img[type="wikilink"]').each( function() {
           var wiki_link = $(this).attr('alt');
           $(this).replaceWith('[['+wiki_link+']]');
         });
-        document.getElementById(e.editor.config.textarea_id).innerHTML=data.html();
+        CKEDITOR.instances[e].setData(data.html());
+        CKEDITOR.instances[e].updateElement();
       }
       
       function calc_wiki_image_links_to_image_tags (data) {
@@ -1904,26 +1907,26 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
-      ::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
-      ::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
-      
+      #::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
+      #::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
+
       # In contrary to the doc, ckeditor4 names instances after the id,
       # not the name. 
       set id [my id]
       set name [my name] 
       set package_id [[my object] package_id]
-      #my extraPlugins {xowikiimage tlflrn}
-      #my extraPlugins {}
       if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
+      
       if {"xowikiimage" in [my extraPlugins]} {
         my js_image_helper
         set ready_callback {xowiki_image_callback(e.editor);}
       } else {
         set ready_callback "/*none*/;"
-        set blur_callback "/*none*/;"
+        set submit_callback "/*none*/;"
       }
       
       set options [subst {
+        [my set additionalConfigOptions]
         toolbar : '[my toolbar]',
         uiColor: '[my uiColor]',
         language: '[lang::conn::language]',
@@ -1975,32 +1978,32 @@ namespace eval ::xowiki::formfield {
       } elseif {[my set displayMode] eq "inline"} {
         if {!$is_repeat_template} {
           if {"xowikiimage" in [my extraPlugins]} {
-            set ready_callback "xowiki_image_callback(CKEDITOR.instances\['ckinline_$id'\]);"
-            set blur_callback "calc_image_tags_to_wiki_image_links_inline(e);"
+            set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
+            set submit_callback "calc_image_tags_to_wiki_image_links_inline('$id');"
           }
-          
-          ::xo::Page requireJS [subst -nocommands {
-            function load_ckinline_$id () {
-              CKEDITOR.inline('ckinline_$id', {
+
+          set submit_callback "$submit_callback [my submit_callback]"
+          ::xo::Page requireJS [subst {
+            function load_$id () {
+              CKEDITOR.inline('$id', {
                 on: {
-                  blur: function(e) {
-                    $blur_callback
+                  instanceReady: function(e) {
+                    \$(e.editor.element.\$).attr('title', '[my set label]');
+                    \$(e.editor.element.\$.form).submit(function(e) {
+                      $submit_callback
+                    });
                   }
                 },
                 $options
               });
             }
             \$(document).ready(function() {
-              load_ckinline_$id ();
+              load_$id ();
               $ready_callback
-            });            
+            });
           }]
         }
-        my set style "display:none;"
         next
-        ::html::div "id ckinline_[my set id] name [my set name] class xowiki-ckeditor contenteditable true" {
-          ::html::t -disableOutputEscaping [my value]
-        }
       } else {
         if {!$is_repeat_template} {
           set callback [my callback]
@@ -2008,7 +2011,7 @@ namespace eval ::xowiki::formfield {
             function load_$id () {
               \$( '#$id' ).ckeditor(function() { $callback }, {
                 $options
-              });        
+              });
             }
             \$(document).ready(function() {
               load_$id ();
@@ -2019,7 +2022,7 @@ namespace eval ::xowiki::formfield {
         next
       }
     }
-  }  
+  }
   
   ###########################################################
   #
