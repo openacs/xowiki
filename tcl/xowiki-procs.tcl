@@ -281,7 +281,7 @@ namespace eval ::xowiki {
 
   Page set recursion_count 0
   Page array set RE {
-    include {{{([^<]+?)}}([&<\s]|$)}
+    include {{{([^<]+?)}}([^\}])}
     anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
     div     {&gt;&gt;([^&<]*?)&lt;&lt;([ \n]*)?}
     clean   {[\\](\{\{|&gt;&gt;|\[\[)}
@@ -2320,7 +2320,7 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PlainPage array set RE {
-    include {{{(.+?)}}([ \n\r])}
+    include {{{(.+?)}}([^\}])}
     anchor  {\\\[\\\[([^\]]+?)\\\]\\\]}
     div     {>>([^<]*?)<<}
     clean   {[\\](\{\{|>>|\[\[)}
