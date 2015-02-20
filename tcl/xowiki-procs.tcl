@@ -3872,8 +3872,14 @@ namespace eval ::xowiki {
       }
       my map_categories $category_ids
 
+      #
+      # Handle now further database operations that should be saved in
+      # a transaction. Examples are calender-items defined in a
+      # FormPage, that should show up in the calender.
+      #
       # Problably, categories should also be moved into the
       # transaction queue.
+      #
       set queue ::__xowiki__transaction_queue([my item_id])
       if {[info exists $queue]} {
         foreach cmd [set $queue] {
