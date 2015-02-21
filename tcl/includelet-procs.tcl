@@ -1120,7 +1120,7 @@ namespace eval ::xowiki::includelet {
       xo::dc foreach get_pages \
           [::xo::dc select \
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
-               -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+               -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
           i.publish_status <> 'production' and i.live_revision = r.revision_id \
                   and $since_condition" \
