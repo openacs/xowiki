@@ -154,8 +154,9 @@ namespace eval ::xowiki {
     page        {integer references cr_items(item_id) on delete cascade}
   }]
   ::xo::db::require index -table xowiki_references -col reference
+  ::xo::db::require index -table xowiki_references -col page
 
-
+  
   ::xo::db::require table xowiki_last_visited {
     page_id    {integer references cr_items(item_id) on delete cascade}
     package_id integer
@@ -167,6 +168,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_last_visited -col user_id,page_id -unique true
   ::xo::db::require index -table xowiki_last_visited -col user_id,package_id
   ::xo::db::require index -table xowiki_last_visited -col time
+  ::xo::db::require index -table xowiki_last_visited -col page_id
 
   
   # Oracle has a limit of 3118 characters for keys, therefore we
@@ -182,7 +184,9 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_tags -col tag,package_id
   ::xo::db::require index -table xowiki_tags -col user_id,package_id
   ::xo::db::require index -table xowiki_tags -col package_id
-
+  ::xo::db::require index -table xowiki_tags -col user_id
+  ::xo::db::require index -table xowiki_tags -col item_id
+  
   ::xo::db::require index -table xowiki_page -col page_order \
       -using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
 
@@ -218,6 +222,7 @@ namespace eval ::xowiki {
     count     integer
   } 
   ::xo::db::require index -table xowiki_autonames -col parent_id,name -unique true
+  ::xo::db::require index -table xowiki_autonames -col parent_id
 
   ::xotcl::Object create autoname
   autoname proc generate {-parent_id -name} {
