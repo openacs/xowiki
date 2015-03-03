@@ -656,14 +656,14 @@ namespace eval ::xowiki::includelet {
         #
         set href "[[my package_id] package_url]?edit-category-tree&object_id=$object_id&tree_id=$tree_id"
         return [[my set __including_page] include \
-                    [list edit-item-button -link $href -title "Edit Category Tree" -target _blank]]
+                    [list edit-item-button -link $href -title [_ xowiki.Edit_category] -target _blank]]
       } else {
         #
         # ... otherwise, manage categories (allow defining new category trees, map/unmap, etc.)
         #
         set href "[[my package_id] package_url]?manage-categories&object_id=$object_id"
         return [[my set __including_page] include \
-                    [list edit-item-button -link $href -title "Manage Categories" -target _blank]]
+                    [list edit-item-button -link $href -title [_ xowiki.Manage_categories] -target _blank]]
       }
     }
     return ""
@@ -1114,7 +1114,7 @@ namespace eval ::xowiki::includelet {
       TableWidget t1 -volatile \
           -columns {
             AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
-            Field users -label Visitors -html { align right }
+            Field users -label [_ xowiki.includelet-visitors] -html { align right }
           }
       set since_condition [::xo::dc since_interval_condition time $interval]
       xo::dc foreach get_pages \
@@ -1228,8 +1228,8 @@ namespace eval ::xowiki::includelet {
     
     TableWidget t1 -volatile \
         -columns {
-          Field user  -label Visitors -html { align right }
-          Field count -label Visits -html { align right }
+          Field user  -label [_ xowiki.includelet-visitors] -html { align right }
+          Field count -label [_ xowiki.includelets-visits] -html { align right }
         }
     ::xo::dc foreach most-frequent-visistors \
         [::xo::dc select \
@@ -3605,7 +3605,7 @@ namespace eval ::xowiki::includelet {
     }
 
     if {$sum == 0} {
-      return "no data<br>\n"
+      return "[_ xowiki.no_data]<br>\n"
     }
 
     if {$renderer eq "highcharts"} {
@@ -3618,7 +3618,7 @@ namespace eval ::xowiki::includelet {
       }
       set h [highcharts new -volatile -id [my js_name] \
                  -title [::xowiki::Includelet js_encode \
-                             "$sum Answers for Survey '[$form_item_ids title]'"]]
+                             "$sum $total_text [_ learning-app.Answers_for_Survey] '[$form_item_ids title]'"]]
       return [$h pie [list value count] $percentages]
 
     } else {
@@ -3671,7 +3671,11 @@ namespace eval ::xowiki::includelet {
         title: {text: '$title'},
         tooltip: {
           formatter: function() {
-            return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+            if (this.point.name.length < 70) {
+              return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+            } else {
+              return this.point.name.substr(0,70) + '... : ' + this.y +' %';
+            }
           }
         },
         plotOptions: {
