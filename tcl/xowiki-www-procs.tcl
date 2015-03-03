@@ -1856,10 +1856,9 @@ namespace eval ::xowiki {
   }
 
   Page instproc mutual_overwrite_occurred {} {
-    util_user_message -html \
-        -message "User <em>[::xo::get_user_name [my set modifying_user]]</em> has modifyed this page \
-    while you were editing it.\
-    Open <a href='[::xo::cc url]' target='_blank'>modified page</a> in new window or press OK again to save this page."
+     util_user_message -html \
+         -message "[_ xowiki.User] <em>[::xo::get_user_name [my set modifying_user]]</em> [_ xowiki.has_modified_this_page]. \
+   [_ xowiki.Please_open] <a href='[::xo::cc url]' target='_blank'>[_ xowiki.modified_page]</a> [_ xowiki.new_window_or_OK]."
     # return 1 to flag validation error, 0 to ignore this fact
     return 1
   }
