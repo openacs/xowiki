@@ -782,7 +782,7 @@ namespace eval ::xowiki {
     csv-dump 1 download 1 list 1
   }
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
-    if {![regexp {^[a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
+    if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
       return [my error_msg -template_file $error_template $errorMsg]
     }
@@ -805,8 +805,7 @@ namespace eval ::xowiki {
 
         if {$batch_mode} {[my id] set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
-        if {$batch_mode} {[my id] unset __batch_mode}
-        
+        if {$batch_mode} {[my id] unset -nocomplain __batch_mode}
         if {$err} {
           ns_log notice "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
           return [my error_msg -status_code 500 \
@@ -1869,7 +1868,7 @@ namespace eval ::xowiki {
     #
     set temp_obj [::xowiki::Page new -name dummy -volatile]
     set slot [$temp_obj find_slot page_order]
-    db_transaction {
+    ::xo::dc transaction {
       foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
         #my log "--cpo UPDATE $page_id new_page_order $new_page_order"
         $temp_obj item_id $item_id
@@ -2130,7 +2129,7 @@ namespace eval ::xowiki {
     if {$parent_id == 0} {set parent_id  [my folder_id]}
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
     if {![info exists objects]} {set objects [::xowiki::Page allinstances]}
-    set msg "processing objects: $objects<p>"
+    set msg "#xowiki.processing_objects#: $objects<p>"
     set importer [Importer new -package_id [my id] -parent_id $parent_id -user_id $user_id]
     $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
     append msg [$importer report]

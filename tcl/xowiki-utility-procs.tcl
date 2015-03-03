@@ -104,11 +104,11 @@ namespace eval ::xowiki {
       set folder_id [::xo::dc list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: :package_id' and c.item_id = f.folder_id"]
       if {$folder_id ne ""} {
-        db_dml update_package_id {update acs_objects set package_id = :package_id 
+        ::xo::dc dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
           (select item_id as object_id from cr_items where parent_id = :folder_id)
           and package_id is NULL}
-        db_dml update_package_id {update acs_objects set package_id = :package_id 
+        ::xo::dc dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
           (select r.revision_id as object_id from cr_revisions r, cr_items i where 
            i.item_id = r.item_id and i.parent_id = :folder_id)
@@ -124,7 +124,7 @@ namespace eval ::xowiki {
       ::xo::db::sql::content_type refresh_view -content_type $object_type
     }
 
-    catch {db_dml drop_live_revision_view "drop view xowiki_page_live_revision"}
+    catch {::xo::dc dml drop_live_revision_view "drop view xowiki_page_live_revision"}
     if {[db_driverkey ""] eq "postgresql"} {
       set sortkeys ", ci.tree_sortkey, ci.max_child_sortkey "
     } else {
@@ -265,7 +265,7 @@ namespace eval ::xowiki {
   }
 
   proc form_upgrade {} {
-    db_dml from_upgrade {
+    ::xo::dc dml from_upgrade {
       update xowiki_form f set form = xowiki_formi.data from xowiki_formi 
       where f.xowiki_form_id = xowiki_formi.revision_id
     }
@@ -312,20 +312,20 @@ namespace eval ::xowiki {
       set f [FormPage get_instance_from_db -item_id $item_id]
       if {[$f page_template] != $form_id} {
         ns_log notice "... must change form_id from [$f page_template] to $form_id"
-        db_dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
+        ::xo::dc dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
       }
       return
     }
     set revision_id [::xo::db::sql::content_revision new \
                          -title [$package_id instance_name] -text "" \
                          -item_id $item_id -package_id $package_id]
-    db_dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
-    db_dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
-    db_dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
+    ::xo::dc dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
+    ::xo::dc dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
+    ::xo::dc dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
     
-    db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
-    db_dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
-    db_dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
+    ::xo::dc dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
+    ::xo::dc dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
+    ::xo::dc dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {

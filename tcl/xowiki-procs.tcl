@@ -34,7 +34,7 @@ namespace eval ::xowiki {
         #    -spec "richtext" 
         ::xo::Attribute create nls_language \
             -spec {select,options=[xowiki::locales]} \
-            -default [ad_conn locale]
+            -default {[ad_conn locale]}
         #::xo::Attribute create publish_date \
         #    -spec date
         ::xo::Attribute create last_modified \
@@ -233,12 +233,12 @@ namespace eval ::xowiki {
       
       if {$already_recorded} {
         incr count
-        db_dml [my qn update_autoname_counter] \
+        ::xo::dc dml update_autoname_counter \
             "update xowiki_autonames set count = count + 1 \
               where parent_id = :parent_id and name = :name"
       } else {
         set count 1
-        db_dml [my qn insert_autoname_counter] \
+        ::xo::dc dml insert_autoname_counter \
             "insert into xowiki_autonames (parent_id, name, count) \
              values (:parent_id, :name, $count)"
       }
@@ -889,12 +889,12 @@ namespace eval ::xowiki {
                        -user_id:required 
                        tags
                      } {
-    ::xo::dc dml [my qn delete_tags] \
+    ::xo::dc dml delete_tags \
         "delete from xowiki_tags where item_id = :item_id and user_id = :user_id"
 
     foreach tag [split $tags " ,;"] {
       if {$tag ne ""} {
-        ::xo::dc dml [my qn insert_tag] \
+        ::xo::dc dml insert_tag \
             "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
           values (:item_id, :package_id, :user_id, :tag, now())"
       }

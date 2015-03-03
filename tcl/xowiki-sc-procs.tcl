@@ -71,7 +71,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   #
   $page instvar item_id
   catch {
-    db_dml delete_old_revisions {
+    ::xo::dc dml delete_old_revisions {
       delete from txt where object_id in \
           (select revision_id from cr_revisions 
            where item_id = :item_id and revision_id != :revision_id)
