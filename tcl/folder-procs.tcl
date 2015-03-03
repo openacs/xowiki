@@ -305,14 +305,15 @@ namespace eval ::xowiki::includelet {
       set label "[$top_folder_of_tree title] ..."
     }
 
-    set t [::xowiki::Tree new -id foldertree_[my id] ]
+    set t [::xowiki::Tree new -id foldertree_[my id] -destroy_on_cleanup]
     set node [::xowiki::TreeNode new \
                   -href $href \
                   -label $label \
                   -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
                   -object $top_folder_of_tree \
                   -expanded 1 \
-                  -open_requests 1]
+                  -open_requests 1 \
+                  -destroy_on_cleanup]
     $t add $node
     set folders [my collect_folders \
                      -package_id $package_id \
@@ -364,7 +365,8 @@ namespace eval ::xowiki::includelet {
                        -object $c \
                        -highlight $is_current \
                        -expanded $is_open \
-                       -open_requests 1]
+                       -open_requests 1 \
+                       -destroy_on_cleanup]
       $node add $subnode
 
       if {$is_current} {
