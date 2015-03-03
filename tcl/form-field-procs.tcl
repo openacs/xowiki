@@ -952,7 +952,7 @@ namespace eval ::xowiki::formfield {
       
       set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
       if {$value ne "" && !$disabled && ![my sticky] } {
-        ::html::input -type button -value clear \
+        ::html::input -type button -value [_ xowiki.clear] \
             -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
       }
     }
@@ -2441,7 +2441,7 @@ namespace eval ::xowiki::formfield {
         }
         
         ::html::div -class workarea {
-          ::html::h3 { ::html::t "Selection"}
+          ::html::h3 { ::html::t "#xowiki.Selection#"}
           set values ""
           foreach v [my value] {
             append values $v \n
@@ -2457,7 +2457,7 @@ namespace eval ::xowiki::formfield {
           }
         }
         ::html::div -class workarea {
-          ::html::h3 { ::html::t "Candidates"}
+          ::html::h3 { ::html::t "#xowiki.Candidates#"}
           ::html::ul -id [my id]_candidates -class region {
             #my msg [my options]
             foreach o [my options] {
