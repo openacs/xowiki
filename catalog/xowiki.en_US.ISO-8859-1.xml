@@ -3,14 +3,17 @@
 
   <msg key="abstract">Abstract</msg>
   <msg key="add">Add</msg>
+  <msg key="added">added</msg>
   <msg key="admin">Admin</msg>
   <msg key="admin_all_title">Administer all kind of %pretty_plural%</msg>
   <msg key="admin_title">Administer this package ...</msg>
   <msg key="ago">%time% ago</msg>
+  <msg key="Answers_for_Surveys">Answers_for_Survey</msg>
   <msg key="All_pages">All items</msg>
   <msg key="back">Back</msg>
   <msg key="By_user">By User</msg>
   <msg key="categories">Categories</msg>
+  <msg key="clear">clear</msg>
   <msg key="choiceInteraction_maxChoices">Einfachauswahl</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Einfachauswahl bedeutet, dass nur eine Antwortmöglichkeit korrekt ist.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
@@ -21,6 +24,7 @@
   <msg key="copy_entry">Copy Entry</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
+  <msg key="Candidates">Candidates</msg>
   <msg key="day">day</msg>
   <msg key="days">days</msg>
   <msg key="delete">Delete</msg>
@@ -63,6 +67,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="event-title_of_event">Title of the Event</msg>
   <msg key="event-title_of_lecture">Title of Lecture</msg>
   <msg key="export">Export</msg>
+  <msg key="Edit_category">Edit Category Tree</msg>
   <msg key="feedback">Feedback</msg>
   <msg key="File-name-help_text">Can be obtained from the name of the uploaded file</msg>
   <msg key="File_pretty_name">Wiki File</msg>
@@ -95,6 +100,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage_parameters_title">Wiki parameters</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="has_modified_this_page">has modified this page while you were editing it</msg>
   <msg key="hour">hour</msg>
   <msg key="hours">hours</msg>
   <msg key="import">Import</msg>
@@ -108,7 +114,10 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="includelets-visits">Visits</msg>
   <msg key="index">Index</msg>
   <msg key="index_title">Go to the start page of this package ...</msg>
+  <msg key="inherited">inherited</msg>
+  <msg key="inherited_update_ignored">inherited (update ignored)</msg>
   <msg key="instances">Instances</msg>
+  <msg key="Import_successful">Import was successful</msg>
   <msg key="Language">Language</msg>
   <msg key="last_visited_pages">Last Visited Pages</msg>
   <msg key="listing_title">Index of %pretty_plural%</msg>
@@ -124,19 +133,26 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Page">Page</msg>
   <msg key="minute">minute</msg>
   <msg key="minutes">minutes</msg>
+  <msg key="modified_page">modified page</msg>
   <msg key="month">month</msg>
   <msg key="months">months</msg>
   <msg key="most_frequent_visitors">Most Frequent Visitors</msg>
   <msg key="most_popular_pages">Most Popular Pages</msg>
+  <msg key="Manage_categories">Manage Categories</msg>
   <msg key="name">Name</msg>
   <msg key="new">New Page</msg>
   <msg key="new_page">New Page</msg>
   <msg key="new_title">Create a new page ...</msg>
+  <msg key="new_window_or_OK">in new window or save this page again</msg>
   <msg key="news-source">Source</msg>
   <msg key="news-teaser">Teaser</msg>
+  <msg key="no_data">no data</msg>
   <msg key="notifications">Notifications</msg>
   <msg key="notifications_title">Manage notifications ...</msg>
   <msg key="numeric-validate_numeric">Invalid numeric value</msg>
+  <msg key="objects_newly_inserted">objects newly inserted</msg>
+  <msg key="objects_updated">objects updated</msg>
+  <msg key="objects_replaced">objects replaced</msg>
   <msg key="Object_pretty_name">Wiki Object</msg>
   <msg key="Object_pretty_plural">Wiki Objects</msg>
   <msg key="order">Section</msg>
@@ -171,6 +187,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="permissions_manage_page">Manage Permissions for Page: %page_name%</msg>
   <msg key="PlainPage_pretty_name">Wiki Plain Page</msg>
   <msg key="PlainPage_pretty_plural">Wiki Plain Pages</msg>
+  <msg key="Please_open">Please open</msg>
   <msg key="PodcastItem-duration">Duration</msg>
   <msg key="PodcastItem-duration-help_text">E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)</msg>
   <msg key="PodcastItem-keywords">Keywords</msg>
@@ -195,6 +212,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="recently_changed_pages_by_categories">Recently Changed Pages (by categories)</msg>
   <msg key="references_label">References to this Page:</msg>
   <msg key="references_of_label">References of this Page:</msg>
+  <msg key="replaced">replaced</msg>
   <msg key="revisions">Revisions</msg>
   <msg key="revisions_title">Show revisions of this page ...</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
@@ -206,6 +224,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="second">second</msg>
   <msg key="seconds">seconds</msg>
   <msg key="select_link_target">To create a click, click on a page name </msg>
+  <msg key="Selection">Selection</msg>
   <msg key="shuffle">Shuffle Answers</msg>
   <msg key="shuffle_help_text">Should the order of choices be presented in randomized order?</msg>
   <msg key="Size">Size</msg>
@@ -213,6 +232,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="title">Title</msg>
   <msg key="title_of_event">Title</msg>
   <msg key="unread_items">Unread Items</msg>
+  <msg key="updated">updated</msg>
+  <msg key="User">User</msg>
   <msg key="view">View</msg>
   <msg key="view_in_context">View page in original context %context%</msg>
   <msg key="view_title">View this page ...</msg>

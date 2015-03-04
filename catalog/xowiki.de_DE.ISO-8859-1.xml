@@ -3,6 +3,7 @@
 
   <msg key="abstract">Zusammenfassung</msg>
   <msg key="add">Hinzufügen</msg>
+  <msg key="added">hinzugefügt</msg>
   <msg key="admin">Verwalten</msg>
   <msg key="admin_all_title">Alle Arten von %pretty_plural% verwalten</msg>
   <msg key="admin_title">Verwaltungsoptionen für dieses Wiki...</msg>
@@ -11,6 +12,7 @@
   <msg key="back">Zurück</msg>
   <msg key="By_user">von User/in</msg>
   <msg key="categories">Kategorien</msg>
+  <msg key="clear">löschen</msg>
   <msg key="choiceInteraction_simpleChoice">Geben Sie hier die Antworten ein.</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Einstellungen</msg>
@@ -18,6 +20,7 @@
   <msg key="copy_entry">Kopiere Eintrag</msg>
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
+  <msg key="Candidates">Auswahlmöglichkeiten</msg>
   <msg key="day">Tag</msg>
   <msg key="days">Tage</msg>
   <msg key="delete">Löschen</msg>
@@ -45,6 +48,7 @@
   <msg key="event-title_of_event">Titel</msg>
   <msg key="event-title_of_lecture">Vortragstitel</msg>
   <msg key="export">Exportieren</msg>
+  <msg key="Edit_category">Kategorienbaum bearbeiten</msg>
   <msg key="File-name-help_text">Kann von hochgeladener Datei übernommen werden</msg>
   <msg key="File_pretty_name">Wiki File</msg>
   <msg key="File_pretty_plural">Wiki Files</msg>
@@ -74,8 +78,11 @@
   <msg key="FormPage_parameters_title">Wiki Einstellungen</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="has_modified_this_page">hat diese Seite verändert während sie von Ihnen bearbeitet wurde</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
+  <msg key="inherited">vererbt</msg>
+  <msg key="inherited_update_ignored">vererbt (Aktualisierung ignoriert)</msg>
   <msg key="import">Importieren</msg>
   <msg key="import_create_user_ids">User-IDs erstellen</msg>
   <msg key="import_create_user_ids_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import gegebenenfalls neue User-IDs erstellt.</msg>
@@ -83,6 +90,7 @@
   <msg key="import_replace_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import bereits bestehende Objekte ersetzt. Bei Nicht-Aktivieren wird beim Import eine neue Version des Objekts hinzugefügt.</msg>
   <msg key="import_title">Wiki Seiten importieren</msg>
   <msg key="import_upload_file">Datei für Upload auswählen</msg>
+  <msg key="Import_successful">Die Objekte wurden erfolgreich importiert</msg>
   <msg key="includelet-visitors">Besucher/innen</msg>
   <msg key="includelets-visits">Besuche</msg>
   <msg key="index">Index</msg>
@@ -101,19 +109,26 @@
   <msg key="menu-Page">Wiki-Seite</msg>
   <msg key="minute">Minute</msg>
   <msg key="minutes">Minuten</msg>
+  <msg key="modified_page">die veränderte Seite</msg>
   <msg key="month">Monat</msg>
   <msg key="months">Monaten</msg>
   <msg key="most_frequent_visitors">Die häufigsten Besucher/innen</msg>
   <msg key="most_popular_pages">Am häufigsten besuchte Seiten</msg>
+  <msg key="Manage_categories">Kategorien verwalten</msg>
   <msg key="name">Name</msg>
   <msg key="new">Neue Seite</msg>
   <msg key="new_page">Neue Seite</msg>
   <msg key="new_title">Neue Seite erstellen ...</msg>
+  <msg key="new_window_or_OK">in einem neuen Fenster oder speichern Sie diese Seite erneut ab</msg>
   <msg key="news-source">Quelle</msg>
   <msg key="news-teaser">Kurztext</msg>
+  <msg key="no_data">keine Daten vorhanden</msg>
   <msg key="notifications">Benachrichtigungen</msg>
   <msg key="notifications_title">Verwalten der Benachrichtigungen...</msg>
   <msg key="numeric-validate_numeric">ungültiger numerischer Wert</msg>
+  <msg key="objects_newly_inserted">Objekte neu eingefügt</msg>
+  <msg key="objects_updated">Objekte aktualisiert</msg>
+  <msg key="objects_replaced">Objekte ersetzt</msg>
   <msg key="Object_pretty_name">Wiki Objekt</msg>
   <msg key="Object_pretty_plural">Wiki Objekte</msg>
   <msg key="order">Abschnitt</msg>
@@ -137,6 +152,7 @@
   <msg key="PodcastItem-keywords">Schlüsselworte</msg>
   <msg key="PodcastItem-pub_date">Publikationsdatum</msg>
   <msg key="PodcastItem-subtitle">Untertitel</msg>
+  <msg key="Please_open">Bitte öffnen Sie</msg>
   <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
   <msg key="popular_tags_link">häufige Schlagworte</msg>
   <msg key="portlet_title_exists_error_long">Ändern Sie entweder den Namen des existierenden Portlets oder den Titel der Xowiki-Seite, die Sie zum Portal hinzufügen wollen.</msg>
@@ -147,6 +163,7 @@
   <msg key="recently_changed_pages_by_categories">Zuletzt geänderte Seiten (nach Kategorien)</msg>
   <msg key="references_label">Verweise auf diese Seite:</msg>
   <msg key="references_of_label">Verweise dieser Seite:</msg>
+  <msg key="replaced">ersetzt</msg>
   <msg key="revisions">Verlauf</msg>
   <msg key="revisions_title">Änderungsgeschichte dieser Seite ...</msg>
   <msg key="rss_client">RSS-Klient</msg>
@@ -158,9 +175,12 @@
   <msg key="shuffle">Zufällige Reihenfolge</msg>
   <msg key="shuffle_help_text">Alternativen in zufälliger Reihenfolge darstellen?</msg>
   <msg key="subscribe">Abonnieren</msg>
+  <msg key="Selection">Aktuelle Auswahl</msg>
   <msg key="title">Titel</msg>
   <msg key="title_of_event">Titel</msg>
   <msg key="unread_items">Ungelesene Seiten</msg>
+  <msg key="updated">aktualisiert</msg>
+  <msg key="User">Benutzer/in</msg>
   <msg key="view">Ansehen</msg>
   <msg key="weblog-more">mehr...</msg>
   <msg key="week">Woche</msg>
