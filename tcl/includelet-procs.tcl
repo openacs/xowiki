@@ -3618,7 +3618,7 @@ namespace eval ::xowiki::includelet {
       }
       set h [highcharts new -volatile -id [my js_name] \
                  -title [::xowiki::Includelet js_encode \
-                             "$sum $total_text [_ learning-app.Answers_for_Survey] '[$form_item_ids title]'"]]
+                             "$sum $total_text [_ xowiki.Answers_for_Survey] '[$form_item_ids title]'"]]
       return [$h pie [list value count] $percentages]
 
     } else {
