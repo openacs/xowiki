@@ -103,11 +103,22 @@ namespace eval ::xowiki::includelet {
         set target [$l get_target_from_link_page]
 
         # the following clause needs an oracle counter-part
-        set tree_sortkey [::xo::dc get_value get_tree_sort_key \
-                              "select tree_sortkey from acs_objects where object_id = [$target item_id]"]
-        set extra_where "and bt.item_id in (select object_id from acs_objects \
-        where tree_sortkey between '$tree_sortkey' and tree_right('$tree_sortkey') \
-        and object_type = 'content_item')"
+        if {[::xo::pg_version] < 9} {
+          set tree_sortkey [::xo::dc get_value get_tree_sort_key \
+                                "select tree_sortkey from acs_objects where object_id = [$target item_id]"]
+          set extra_where "and bt.item_id in (select object_id from acs_objects \
+              where tree_sortkey between '$tree_sortkey' and tree_right('$tree_sortkey') \
+              and object_type = 'content_item')"
+        } else {
+          ns_log notice "$target item_id = [$target item_id]"
+          set root_node [$target item_id]
+          set extra_where "and bt.item_id in (
+             With RECURSIVE child_items AS (
+                  select item_id from cr_items where item_id = $root_node
+                UNION ALL
+                  select ci.item_id from cr_items ci, child_items where ci.parent_id = child_items.item_id 
+             ) select item_id from child_items)"          
+        }
 
         set sub_folders [my collect_folders -package_id [$target physical_package_id] \
                              -folder_form_id $folder_form_id -link_form_id $link_form_id \

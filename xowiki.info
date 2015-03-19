@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.159" url="http://openacs.org/repository/download/apm/xowiki-0.159.apm">
+    <version name="0.160" url="http://openacs.org/repository/download/apm/xowiki-0.160.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
         <release-date>2015-02-11</release-date>
@@ -55,14 +55,14 @@ Some features:
         <license>BSD-Style</license>
         <maturity>2</maturity>
 
-        <provides url="xowiki" version="0.159"/>
+        <provides url="xowiki" version="0.160"/>
         <requires url="acs-datetime" version="5.8.1"/>
         <requires url="acs-kernel" version="5.8.1"/>
         <requires url="acs-subsite" version="5.8.1"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="5.8.1"/>
         <requires url="general-comments" version="5.8.1"/>
-        <requires url="xotcl-core" version="0.135"/>
+        <requires url="xotcl-core" version="0.136"/>
 
         <callbacks>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
@@ -75,6 +75,7 @@ Some features:
             <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
             <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBarSymLinks"  default="0" description="Activate experimental menubar stuff"/>	    
             <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="PackageDescription"  description="Description of the Package. This description will appear for example in the Description of the default RSS feed for this package" section_name="Description"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackageTitle"  description="Title of the Package; this title will appear for example in the default RSS feed for this package." section_name="Description"/>
