@@ -1280,7 +1280,7 @@ namespace eval ::xowiki {
 
     set rows [xo::dc dml update_xowiki_form_instance_item_index {
       update xowiki_form_instance_item_index
-      set item_id = :item_id, name = :name, package_id = :package_id,
+      set name = :name, package_id = :package_id,
           parent_id = :parent_id, publish_status = :publish_status,
           page_template = :page_template, assignee = :assignee,
           state = :state
@@ -1305,6 +1305,45 @@ namespace eval ::xowiki {
     }
   }
 
+  ad_proc update_item_index {
+    -item_id:required
+    -package_id
+    -parent_id
+    -publish_status
+    -page_template
+    -instance_attributes
+    -assignee
+    -state
+    -hstore_attributes
+  } {
+    
+    Helper function to update single or multiple fields of the
+    xowiki_form_instance_item_index. Call this function only when
+    updating fields of the xowiki_form_instance_item_index in cases
+    where the standard API based on save and save_use canot be used.
+    
+  } {
+    foreach var {
+      package_id parent_id
+      publish_status page_template
+      instance_attributes assignee state
+    } {
+      if {[info exists $var]} {
+        xo::dc dml update_xowiki_form_instance_item_index_$var [subst {
+          update xowiki_form_instance_item_index
+          set $var = :$var
+          where item_id = :item_id
+        }]
+      }
+    }
+    if {[info exists hstore_attributes]} {
+      set hkey [::xowiki::hstore::dict_as_hkey $hstore_attributes]
+      xo::dc dml update_hstore "update xowiki_form_instance_item_index \
+                set hkey = '$hkey' \
+                where item_id = :item_id"      
+    }
+  }
+  
   #
   # helper for nls and lang
   #
