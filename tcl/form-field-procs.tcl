@@ -1819,7 +1819,6 @@ namespace eval ::xowiki::formfield {
   richtext::ckeditor4 instproc initialize {} {
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
-      inline { if {![my exists default]} {my set default "&nbsp;"} }
     }
     next
     my set widget_type richtext
@@ -1896,8 +1895,8 @@ namespace eval ::xowiki::formfield {
     set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] == "true"}]
     # my msg "[my id] [my name] - $is_repeat_template"
     
-    # if value is empty, we need something to be clickable for display mode inline or inplace
-    if {[my value] eq "" && [my set displayMode] in {inline inplace}} {
+    # if value is empty, we need something to be clickable for display mode inplace
+    if {[my value] eq "" && [my set displayMode] eq inplace} {
       my value "&nbsp;"
     }
     
