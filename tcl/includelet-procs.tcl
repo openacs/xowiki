@@ -126,6 +126,10 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc publish_status_clause {{-base_table ci} value} {
+    set table_prefix ""
+    if {$base_table ne ""} {
+      set table_prefix "$base_table."
+    }
     if {$value eq "all"} {
       # legacy
       set publish_status_clause ""
@@ -136,7 +140,7 @@ namespace eval ::xowiki::includelet {
         if {![info exists valid_state($state)]} {
           error "no such state: '$state'; valid states are: production, ready, live, expired"
         }
-        lappend clauses "$base_table.publish_status='$state'"
+        lappend clauses "${table_prefix}publish_status='$state'"
       }
       set publish_status_clause " and ([join $clauses { or }])"
     }
@@ -3947,7 +3951,7 @@ namespace eval ::xowiki::includelet {
     #my log "exists category_id [info exists category_id]"
     set extra_where_clause ""
     if {[info exists category_id]} {
-      lassign [my category_clause $category_id bt.item_id] cnames extra_where_clause
+      lassign [my category_clause $category_id item_id] cnames extra_where_clause
     }
 
     set items [::xowiki::FormPage get_form_entries \

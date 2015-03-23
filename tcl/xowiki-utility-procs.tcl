@@ -33,7 +33,6 @@ namespace eval ::xowiki {
   }
 
   #
-  #
   # Helper for tidying up HTML
   #
   ::xotcl::Object create tidy
@@ -59,11 +58,15 @@ namespace eval ::xowiki {
   #
   # Helper for virus checks
   #
+  # Install clamav daemon with
+  #    FC21:   yum install clamav-scanner
+  #  Ununtu:   apt-get install clamav-daemon
+  # 
   ::xotcl::Object create virus
   virus proc check {fn} {
     if {[[::xo::cc package_id] get_parameter clamav 1]
         && [info commands ::util::which] ne ""} { 
-      set clamscanCmd [::util::which clamscan]
+      set clamscanCmd [::util::which clamdscan]
       if {$clamscanCmd ne "" && [file readable $fn]} {
         if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
           ns_log warning "[self] virus found:\n$result"
@@ -73,7 +76,79 @@ namespace eval ::xowiki {
     }
     return 0
   }
+}
 
+namespace eval ::xowiki::hstore {
+  #
+  # Helper functions for hstore
+  #
+  ad_proc double_quote {value} {
+    @return double_quoted value as appropriate for hstore
+  } {
+    if {[regexp {[ ,\"\\=>\n\']} $value]} {
+      set value \"[string map [list \" \\\" \\ \\\\ ' ''] $value]\"
+    }
+    return $value
+  }
+
+  ad_proc dict_as_hkey {dict} {
+    @return dict value in form of a hstore key.
+  } {
+    set keys {}
+    foreach {key value} $dict {
+      set v [double_quote $value]
+      if {$v eq ""} continue
+      lappend keys [double_quote $key]=>$v
+    }
+    return [join $keys ,]
+  }
+
+  ad_proc update_form_instance_item_index {
+    {-package_id}
+    {-object_class ::xowiki::FormPage}
+    {-initialize false}
+  } {
+    update all instance attributes in hstore
+  } {
+    #
+    # This proc can be used from ds/shell as follows
+    #
+    #    ::xowiki::hstore::update_form_instance_item_index -package_id $package_id
+    #
+    # Check the packages which do not have the hkey set:
+    #
+    #    select hkey from xowiki_form_instance_item_index where hkey is null;
+    #
+
+    ::xo::Package initialize -package_id $package_id
+    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {return 0}
+
+    set sql {
+      select * from xowiki_form_instance_item_view
+      where package_id = :package_id
+    }
+    set items [::xowiki::FormPage instantiate_objects -sql $sql \
+                   -object_class $object_class -initialize $initialize]
+    set count 0
+    foreach p [$items children] {
+      set hkey [::xowiki::hstore::dict_as_hkey [$p hstore_attributes]]
+      set item_id [$p item_id]
+      xo::dc dml update_hstore "update xowiki_form_instance_item_index \
+                set hkey = '$hkey' \
+                where item_id = :item_id"
+      incr count 
+    }
+    
+    $items log "updated $count objects from package $package_id"
+    return $count
+  }
+}
+
+  
+namespace eval ::xowiki {
+  #
+  # Functions used by upgrade procs.
+  #
   proc copy_parameter {from to} {
     set parameter_obj [::xo::parameter get_parameter_object \
                            -parameter_name $from -package_key xowiki]
