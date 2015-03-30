@@ -1276,7 +1276,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc update_item_index {} {
   } {
     my instvar item_id package_id parent_id publish_status \
-        page_template instance_attributes assignee state
+        page_template instance_attributes assignee state name
 
     set rows [xo::dc dml update_xowiki_form_instance_item_index {
       update xowiki_form_instance_item_index
