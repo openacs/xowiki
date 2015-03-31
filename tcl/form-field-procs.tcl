@@ -1460,6 +1460,7 @@ namespace eval ::xowiki::formfield {
   }
   textarea instproc initialize {} {
     my set widget_type text(textarea)
+    my set booleanHTMLAttributes {required readonly disabled formnovalidate}
     foreach p [list rows cols style] {if {[my exists $p]} {my set html($p) [my $p]}}
     if {![my istype ::xowiki::formfield::richtext] && [my exists editor]} {
       # downgrading
@@ -1471,7 +1472,7 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    set booleanAtts [my booleanAttributes required readonly disabled formnovalidate]
+    set booleanAtts [my booleanAttributes {*}[my set booleanHTMLAttributes]]
     ::html::textarea [my get_attributes id name cols rows style wrap placeholder {CSSclass class} \
                           {*}$booleanAtts] {
       ::html::t [my value]
@@ -1555,6 +1556,12 @@ namespace eval ::xowiki::formfield {
       standard {}
       default {error "value '[my set displayMode]' invalid: valid entries for displayMode are inplace, inline or standard (default)"}
     }
+    #
+    # Don't set HTML5 attribute required, since this does not match
+    # well with Richtext Editors (at least ckeditor4 has problems,
+    # other probably as well).
+    #
+    my set booleanHTMLAttributes {readonly disabled formnovalidate}
     next
     if {![my exists editor]} {
       my set editor [parameter::get_global_value -package_key xowiki \
