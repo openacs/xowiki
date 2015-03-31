@@ -103,7 +103,7 @@ namespace eval ::xowiki::hstore {
     return [join $keys ,]
   }
 
-  ad_proc update_form_instance_item_index {
+  ad_proc xowiki::hstore::update_form_instance_item_index {
     {-package_id}
     {-object_class ::xowiki::FormPage}
     {-initialize false}
@@ -119,8 +119,15 @@ namespace eval ::xowiki::hstore {
     #
     #    select hkey from xowiki_form_instance_item_index where hkey is null;
     #
+    set t0 [clock clicks -milliseconds]
+    ns_log notice "start to work on -package_id $package_id"
+    
+    ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
 
-    ::xo::Package initialize -package_id $package_id
+    set t1 [clock clicks -milliseconds]
+    ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
+    set t0 $t1
+
     if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {return 0}
 
     set sql {
@@ -129,18 +136,42 @@ namespace eval ::xowiki::hstore {
     }
     set items [::xowiki::FormPage instantiate_objects -sql $sql \
                    -object_class $object_class -initialize $initialize]
+
+    set t1 [clock clicks -milliseconds]
+    ns_log notice "$package_id: obtaining [llength [$items children]] items took [expr {$t1-$t0}]ms"
+    set t0 $t1
+
     set count 0
     foreach p [$items children] {
+
       set hkey [::xowiki::hstore::dict_as_hkey [$p hstore_attributes]]
       set item_id [$p item_id]
+      
+      set t0 [clock clicks -milliseconds]
+      
       xo::dc dml update_hstore "update xowiki_form_instance_item_index \
                 set hkey = '$hkey' \
                 where item_id = :item_id"
+
+      set t1 [clock clicks -milliseconds]
+      ns_log notice "$package_id $count: update took [expr {$t1-$t0}]ms"
+      set t0 $t1
+      
       incr count 
     }
     
     $items log "updated $count objects from package $package_id"
     return $count
+  }
+
+  proc xowiki::hstore::update_update_all_form_instances {} {
+    #::xo::db::select_driver DB
+    foreach package_id [lsort [::xowiki::Package instances -closure true]] {
+      if {[catch {xowiki::hstore::update_form_instance_item_index -package_id $package_id} errorMsg]} {
+        ns_log Warning "initializing package $package_id lead to error: $errorMsg"
+      }
+      db_release_unused_handles
+    }
   }
 }
 
