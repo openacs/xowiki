@@ -3556,6 +3556,11 @@ namespace eval ::xowiki {
       set parent_id ""
     }
 
+    set parent_clause ""
+    if {$parent_id ne ""} {
+      set parent_clause " and parent_id = :parent_id"
+    }
+
     if {[llength $base_item_ids] == 0} {
       error "base_item_ids must not be empty"
     }
@@ -3573,7 +3578,7 @@ namespace eval ::xowiki {
                  -vars [join $sql_atts ", "] \
                  -from xowiki_form_instance_item_view \
                  -where " page_template in ([join $base_item_ids ,]) \
-            $publish_status_clause $filter_clause $package_clause \
+            $publish_status_clause $filter_clause $package_clause $parent_clause \
             $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
