@@ -103,7 +103,7 @@ namespace eval ::xowiki::hstore {
     return [join $keys ,]
   }
 
-  ad_proc xowiki::hstore::update_form_instance_item_index {
+  ad_proc ::xowiki::hstore::update_form_instance_item_index {
     {-package_id}
     {-object_class ::xowiki::FormPage}
     {-initialize false}
@@ -164,7 +164,7 @@ namespace eval ::xowiki::hstore {
     return $count
   }
 
-  proc xowiki::hstore::update_update_all_form_instances {} {
+  proc ::xowiki::hstore::update_update_all_form_instances {} {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
       if {[catch {xowiki::hstore::update_form_instance_item_index -package_id $package_id} errorMsg]} {
