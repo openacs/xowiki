@@ -1343,6 +1343,46 @@ namespace eval ::xowiki {
                 where item_id = :item_id"      
     }
   }
+
+  #
+  # Define a specialized version of CrClass.fetch_object based
+  # on xowiki_form_instance_item_view 
+  #
+  FormPage ad_proc fetch_object {
+    -item_id:required
+    {-revision_id 0}
+    -object:required
+    {-initialize true}
+  } {
+    Load a content item into the specified object. If revision_id is
+    provided, the specified revision is returned, otherwise the live
+    revision of the item_id. If the object does not exist, we create it.
+
+    @return cr item object
+  } {
+    #
+    # We handle here just loading object instances via item_id, since
+    # only live_revisions are kept in xowiki_form_instance_item_index.
+    # The loading via revisions happens as before in CrClass.
+    #
+    if {$item_id == 0} {
+      return [next]
+    }
+    
+    if {![::xotcl::Object isobject $object]} {
+      # if the object does not yet exist, we have to create it
+      my create $object
+    }
+
+    $object set item_id $item_id
+    $object db_1row [my qn fetch_from_view_item_id] {
+      select * from xowiki_form_instance_item_view where item_id = :item_id
+    }
+
+    if {$initialize} {$object initialize_loaded_object}
+    return $object
+  }
+
   
   #
   # helper for nls and lang
