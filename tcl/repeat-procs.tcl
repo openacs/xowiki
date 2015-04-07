@@ -54,6 +54,8 @@ namespace eval ::xowiki::formfield {
   Class create repeatContainer -superclass ::xowiki::formfield::CompoundField -parameter {
     {min 1}
     {max 5}
+    {repeat_add_label "add another"}
+    {repeat_remove_label "\[x\]"}
   }
   repeatContainer instproc item_spec {} {
     #
@@ -180,13 +182,25 @@ namespace eval ::xowiki::formfield {
           $c render_input 
           # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
           # if {!$containerDisabled} {
-          ::html::a -href "#" -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" { html::t "\[x\]" }
+          ::html::a -href "#" \
+              -id "repeat-del-link-[$c set id]" \
+              -class "repeat-del-link [my set CSSclass]" \
+              -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" {
+                html::t [my repeat_remove_label]
+              }
           # }
         }
         incr i
       }
+      set hidden [expr {[my count_values [my value]] == $max ? "display: none;" : ""}]
       # if {!$containerDisabled} {
-      html::a -href "#" -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" { html::t "add another" }
+      html::a -href "#" \
+          -id "repeat-add-link-[my id]" \
+          -style "$hidden" \
+          -class "repeat-add-link [my set CSSclass]" \
+          -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" {
+            html::t [my repeat_add_label]
+          }
       # }
     }
   }
