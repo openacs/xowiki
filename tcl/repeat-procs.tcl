@@ -42,7 +42,6 @@ namespace eval ::xowiki::formfield {
       } else {
         error "invalid range '$range' specified (must be of form 'min..max')"
       }
-      ns_log notice  "min $min max $max"
     }
     my initialize
   }
@@ -74,7 +73,6 @@ namespace eval ::xowiki::formfield {
     return [list $is_required [join $result ,]]
   }
   repeatContainer instproc initialize {} {
-    my msg "initialize"
     ::xo::Page requireJS  "/resources/xowiki/repeat.js"
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
     
