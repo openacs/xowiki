@@ -1903,7 +1903,7 @@ namespace eval ::xowiki::formfield {
     # my msg "[my id] [my name] - $is_repeat_template"
     
     # if value is empty, we need something to be clickable for display mode inplace
-    if {[my value] eq "" && [my set displayMode] eq inplace} {
+    if {[my value] eq "" && [my set displayMode] eq "inplace"} {
       my value "&nbsp;"
     }
     
