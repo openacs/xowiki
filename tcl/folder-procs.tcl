@@ -70,7 +70,7 @@ namespace eval ::xowiki::includelet {
     return [subst {
       select * from xowiki_form_instance_children ch
       left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
-      where page_template = '$form_id' and package_id = '$package_id'
+      where page_template = '$form_id' and ch.package_id = '$package_id'
       and root_item_id = '$parent_id'
       and publish_status = 'ready'
     }]
