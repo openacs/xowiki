@@ -44,11 +44,11 @@ xowiki.repeat.addItem = function(e, json) {
          try {
             window[functionname]();
          } catch(err) {
-            //console.log('function: ' + functionname + ' not found'); 
+            //console.log('function: ' + functionname + ' not found');
          }
       }
     });
-    
+
     // We could add another item here by adding a copy of the template
     // and renaming the field like in delItems. We have to care as
     // well in RepeatContainer.initialize() to check, how many
@@ -110,7 +110,7 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
                         $(this).attr('disabled', false);
                     });
                 }
-                
+
                 //console.log('renameItem: renamed ' + name + ' base ' + from + ' to ' + to);
                 //this.renameItem(top, top,
                   //              '__old_value_' + from,
@@ -212,7 +212,7 @@ xowiki.repeat.delItem = function(e, json) {
                     if (CKEDITOR.instances[l].name.search(searchString) == 0) {
                         // console.log('data to copy: '+CKEDITOR.instances[l].getData());
                         // should update the textarea but it doesn't -> so we have to do that manually
-                        CKEDITOR.instances[l].updateElement(); 
+                        CKEDITOR.instances[l].updateElement();
                         document.getElementById(CKEDITOR.instances[l].name).innerHTML=CKEDITOR.instances[l].getData();
 
                         CKEDITOR.instances[l].destroy(true);
