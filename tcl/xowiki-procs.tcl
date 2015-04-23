@@ -3518,7 +3518,7 @@ namespace eval ::xowiki {
     if {$always_queried_attributes eq "*"} {
       lappend sql_atts \
           object_type object_id \
-          description publish_date mime_type nls_language "data as text" \
+          description publish_date mime_type nls_language text \
           creator page_order page_id \
           page_instance_id xowiki_form_page_id
     } else {
