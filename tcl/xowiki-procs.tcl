@@ -8,7 +8,7 @@
 
 namespace eval ::xowiki {
   #
-  # create classes for different kind of pages
+  # Create classes for different kind of pages
   #
   ::xo::db::CrClass create Page -superclass ::xo::db::CrItem \
       -pretty_name "#xowiki.Page_pretty_name#" -pretty_plural "#xowiki.Page_pretty_plural#" \
@@ -352,7 +352,7 @@ namespace eval ::xowiki {
         select item_id as root_item_id, * from xowiki_form_instance_item_index
       UNION ALL
         select child_items.root_item_id, xi.* from xowiki_form_instance_item_index xi, child_items
-	where xi.parent_id = child_items.item_id 
+        where xi.parent_id = child_items.item_id 
       )
       select * from child_items
   }
@@ -1276,6 +1276,10 @@ namespace eval ::xowiki {
   # cr_procs, whenever a live-revision becomes updated).
   # 
   FormPage ad_instproc update_item_index {} {
+    
+    Tailored version of CrItem.update_item_index to keep
+    insert_xowiki_form_instance_item_index in sync after updates.
+    
   } {
     my instvar name item_id package_id parent_id publish_status \
         page_template instance_attributes assignee state
@@ -1304,6 +1308,35 @@ namespace eval ::xowiki {
       xo::dc dml update_hstore "update xowiki_form_instance_item_index \
                 set hkey = '$hkey' \
                 where item_id = :item_id"
+    }
+  }
+
+  FormPage ad_instproc update_attribute_from_slot {-revision_id slot value} {
+    
+    Tailored version of update_attribute_from_slot to keep
+    insert_xowiki_form_instance_item_index in sync after singe
+    attribtute updates.
+    
+  } {
+    #
+    # perform first the regular operations
+    #
+    next
+    #
+    # Make sure to update update_item_index when the attribute is
+    # contained in the xowiki_form_instance_item_index
+    #
+    set colName [$slot column_name]
+    if {$colName in {
+      package_id
+      parent_id
+      publish_status
+      page_template
+      instance_attributes
+      assignee
+      state
+    }} {
+      ::xowiki update_item_index -item_id [my item_id] -$colName $value
     }
   }
 
@@ -2031,7 +2064,7 @@ namespace eval ::xowiki {
     if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       return "<div class='errorMsg'>Error during processing of options [list $options]\
-	of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
+        of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
       return [self]::link
     }
