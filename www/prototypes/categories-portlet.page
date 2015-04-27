@@ -87,7 +87,7 @@
               $category($category_id) href [ad_conn url]?category_id=$category_id$s
               $category($category_id) open_tree
 	  }
-        append content [$cattree(0) render -tree_style $tree_style]
+        append content [$cattree(0) render -style $tree_style]
       } else {
         xo::dc foreach get_pages \
             "select ci.item_id, ci.name, ci.content_type, r.title, category_id from $sql" {
@@ -102,7 +102,7 @@
                   -orderby title \
                   -open_item [expr {$item_id == $open_item_id}]
             }
-        append content [$cattree(0) render -tree_style $tree_style]
+        append content [$cattree(0) render -style $tree_style]
       }
     }
     return $content

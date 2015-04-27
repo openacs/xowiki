@@ -126,6 +126,10 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc publish_status_clause {{-base_table ci} value} {
+    set table_prefix ""
+    if {$base_table ne ""} {
+      set table_prefix "$base_table."
+    }
     if {$value eq "all"} {
       # legacy
       set publish_status_clause ""
@@ -136,7 +140,7 @@ namespace eval ::xowiki::includelet {
         if {![info exists valid_state($state)]} {
           error "no such state: '$state'; valid states are: production, ready, live, expired"
         }
-        lappend clauses "$base_table.publish_status='$state'"
+        lappend clauses "${table_prefix}publish_status='$state'"
       }
       set publish_status_clause " and ([join $clauses { or }])"
     }
@@ -656,14 +660,14 @@ namespace eval ::xowiki::includelet {
         #
         set href "[[my package_id] package_url]?edit-category-tree&object_id=$object_id&tree_id=$tree_id"
         return [[my set __including_page] include \
-                    [list edit-item-button -link $href -title "Edit Category Tree" -target _blank]]
+                    [list edit-item-button -link $href -title [_ xowiki.Edit_category] -target _blank]]
       } else {
         #
         # ... otherwise, manage categories (allow defining new category trees, map/unmap, etc.)
         #
         set href "[[my package_id] package_url]?manage-categories&object_id=$object_id"
         return [[my set __including_page] include \
-                    [list edit-item-button -link $href -title "Manage Categories" -target _blank]]
+                    [list edit-item-button -link $href -title [_ xowiki.Manage_categories] -target _blank]]
       }
     }
     return ""
@@ -1114,13 +1118,13 @@ namespace eval ::xowiki::includelet {
       TableWidget t1 -volatile \
           -columns {
             AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
-            Field users -label Visitors -html { align right }
+            Field users -label [_ xowiki.includelet-visitors] -html { align right }
           }
       set since_condition [::xo::dc since_interval_condition time $interval]
       xo::dc foreach get_pages \
           [::xo::dc select \
                -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
-               -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
+               -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
           i.publish_status <> 'production' and i.live_revision = r.revision_id \
                   and $since_condition" \
@@ -1228,8 +1232,8 @@ namespace eval ::xowiki::includelet {
     
     TableWidget t1 -volatile \
         -columns {
-          Field user  -label Visitors -html { align right }
-          Field count -label Visits -html { align right }
+          Field user  -label [_ xowiki.includelet-visitors] -html { align right }
+          Field count -label [_ xowiki.includelets-visits] -html { align right }
         }
     ::xo::dc foreach most-frequent-visistors \
         [::xo::dc select \
@@ -2338,7 +2342,7 @@ namespace eval ::xowiki::includelet {
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
       set edit_markup ""
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-      $p set unresolved_references 0
+      $p references clear
       
       switch [$p info class] {
         ::xowiki::Form {
@@ -2510,7 +2514,7 @@ namespace eval ::xowiki::includelet {
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
       
-      $p set unresolved_references 0
+      $p references clear
       #$p set render_adp 0
       switch [$p info class] {
         ::xowiki::Form {
@@ -3605,7 +3609,7 @@ namespace eval ::xowiki::includelet {
     }
 
     if {$sum == 0} {
-      return "no data<br>\n"
+      return "[_ xowiki.no_data]<br>\n"
     }
 
     if {$renderer eq "highcharts"} {
@@ -3618,7 +3622,7 @@ namespace eval ::xowiki::includelet {
       }
       set h [highcharts new -volatile -id [my js_name] \
                  -title [::xowiki::Includelet js_encode \
-                             "$sum Answers for Survey '[$form_item_ids title]'"]]
+                             "$sum $total_text [_ xowiki.Answers_for_Survey] '[$form_item_ids title]'"]]
       return [$h pie [list value count] $percentages]
 
     } else {
@@ -3671,7 +3675,11 @@ namespace eval ::xowiki::includelet {
         title: {text: '$title'},
         tooltip: {
           formatter: function() {
-            return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+            if (this.point.name.length < 70) {
+              return '<b>'+ this.point.name +'</b>: '+ this.y +' %';
+            } else {
+              return this.point.name.substr(0,70) + '... : ' + this.y +' %';
+            }
           }
         },
         plotOptions: {
@@ -3764,6 +3772,9 @@ namespace eval ::xowiki::includelet {
                              -parent_id [$o parent_id] \
                              -default_lang [$o lang] \
                              -forms $form -package_id [$o package_id]]
+      if {$form_item_ids eq ""} {
+        return -code error "could not load form '$form' (default-language [$o lang])"
+      }
     } else {
       set form_item_ids [list $form_item_id]
     }
@@ -3792,7 +3803,7 @@ namespace eval ::xowiki::includelet {
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }
-    #my msg fc=$form_constraints
+    #my log fc=$form_constraints
 
     # 
     # The internal variables (instance attributes, etc) are prefixed
@@ -3860,11 +3871,11 @@ namespace eval ::xowiki::includelet {
                            -form_constraints $form_constraints]
       #$form_item show_fields $form_fields
       foreach f $form_fields {set __ff([$f name]) $f}
-      #foreach f $form_fields {ns_log notice "[$f name] [$f label]"}
+      #foreach f $form_fields {ns_log notice "form <[$form_item name]: field [$f name] label [$f label]"}
     }
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
 
-    # TODO: wiki-substitution is just foced in here. Maybe it makes
+    # TODO: wiki-substitution is just forced in here. Maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
     if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
@@ -3940,7 +3951,7 @@ namespace eval ::xowiki::includelet {
     #my log "exists category_id [info exists category_id]"
     set extra_where_clause ""
     if {[info exists category_id]} {
-      lassign [my category_clause $category_id bt.item_id] cnames extra_where_clause
+      lassign [my category_clause $category_id item_id] cnames extra_where_clause
     }
 
     set items [::xowiki::FormPage get_form_entries \
@@ -4020,7 +4031,6 @@ namespace eval ::xowiki::includelet {
 
       # set always last_modified for default sorting
       $__c set __last_modified [$p set last_modified]
-
 
       foreach __fn $field_names {
         $__ff($__fn) object $p

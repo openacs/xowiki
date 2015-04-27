@@ -77,8 +77,6 @@ namespace eval ::xowiki {
     }
     if {$category_id ne ""} {
       set cnames [list]
-      #append extra_where_clause "and c.object_id = ci.item_id and c.category_id = $category_id "
-      #append extra_from_clause  ",category_object_map c "
       foreach cid [split $category_id ,] {
         if {![string is integer -strict $category_id]} {
           ns_log warning "weblog: ignoring invalid category_id $cid"
@@ -173,30 +171,42 @@ namespace eval ::xowiki {
       set query_parent_id $folder_id
     }
 
-    set sql \
+    set sqlParams \
         [list -parent_id :query_parent_id \
              -select_attributes $attributes \
              -orderby "publish_date desc" \
              -base_table $base_table \
-             -from_clause "\
-        left outer join syndication s on s.object_id = bt.revision_id \
-        left join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id) \
-        left join xowiki_form_page fp on (bt.revision_id = fp.xowiki_form_page_id) \
-        $extra_from_clause" \
              -where_clause "ci.item_id not in ([my exclude_item_ids]) \
                 and ci.name != '::$folder_id' and ci.name not like '%weblog%' $date_clause \
-        [::xowiki::Page container_already_rendered ci.item_id] \
+                [::xowiki::Page container_already_rendered ci.item_id] \
                 $class_clause \
                 and ci.publish_status <> 'production' \
-                $extra_where_clause" ]
-
+                $extra_where_clause"]
+    
     if {$page_number ne ""} {
       lappend sql -page_number $page_number -page_size $page_size 
     }
+    #
+    # Since there is no filtering on the left join tables, there is no
+    # need to incude these in the count query.
+    #
     set nr_items [::xo::dc get_value count-weblog-entries \
-                      [$base_type instance_select_query {*}$sql -count true]]
+                      [$base_type instance_select_query \
+                            -from_clause $extra_from_clause \
+                           {*}$sqlParams -count true]]
     #my msg count=$nr_items
-    set s [$base_type instantiate_objects -sql [$base_type instance_select_query {*}$sql]]
+
+    #
+    # Obtain the set of answers
+    #
+    set s [$base_type instantiate_objects \
+               -sql [$base_type instance_select_query \
+                         -from_clause "\
+        left outer join syndication s on s.object_id = bt.revision_id \
+        left outer join xowiki_page_instance pi on (bt.revision_id = pi.page_instance_id) \
+        left outer join xowiki_form_page fp on (bt.revision_id = fp.xowiki_form_page_id) \
+        $extra_from_clause" \
+                         {*}$sqlParams]]
     
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \

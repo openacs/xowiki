@@ -9,7 +9,7 @@
 
 namespace eval ::xowiki {
 
-  Class ADP_Generator -parameter {
+  Class create ADP_Generator -parameter {
     {master 1}
     {wikicmds 1}
     {footer 1}

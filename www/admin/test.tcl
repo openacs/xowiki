@@ -7,10 +7,10 @@ test proc case msg {ad_return_top_of_page "<title>$msg</title><h2>$msg</h2>"}
 test proc section msg    {my reset; ns_write "<hr><h3>$msg</h3>"} 
 test proc subsection msg {ns_write "<h4>$msg</h4>"} 
 test proc subsubsection msg {ns_write "<h5>$msg</h5>"} 
-test proc errmsg msg     {my code "ERROR: [string map [list < {&lt;} > {&gt;}] $msg]<BR/>";test incr failed}
-test proc okmsg msg      {ns_write "OK: $msg<BR/>"; test incr passed}
+test proc errmsg msg     {my code "ERROR: [string map [list < {&lt;} > {&gt;}] $msg]<br/>";test incr failed}
+test proc okmsg msg      {ns_write "OK: $msg<br/>"; test incr passed}
 test proc code msg       {ns_write "<pre>$msg</pre>"}
-test proc hint msg       {ns_write "$msg<BR/>"}
+test proc hint msg       {ns_write "$msg<br/>"}
 test proc reset {} {
   array unset ::xotcl_cleanup
   global af_parts  af_key_name
@@ -556,6 +556,7 @@ test section "Submit edited hello page via weblink"
       item_id $returned_item_id }]
 
 set content [test without_ns_form {::$package_id invoke -method $m}]
+
 ? {string first Error $content} -1 "page contains no error"
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/hello" \
@@ -656,27 +657,27 @@ test subsection "Filter expressions"
 ####################################
 
 ? {::xowiki::FormPage filter_expression \
-    "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
+       "_state=created|accepted|approved|tested|developed|deployed&&_assignee=123" &&} \
     {tcl {[lsearch -exact {created accepted approved tested developed deployed} [my property _state]] > -1&&[my property _assignee] eq {123}} h {} vars {} sql {{state in ('created','accepted','approved','tested','developed','deployed')} {assignee = '123'}}} filter_expr_where_1
 
 ? {::xowiki::FormPage filter_expression \
-    "_assignee<=123 && y>=123" &&} \
-    {tcl {[my property _assignee] <= {123}&&$__ia(y) >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
+       "_assignee<=123 && y>=123" &&} \
+    {tcl {[my property _assignee] <= {123}&&[dict get $__ia y] >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
     filter_expr_where_2
 
 ? {::xowiki::FormPage filter_expression \
-    "betreuer contains en:person1" &&} \
-    {tcl {[lsearch $__ia(betreuer) {en:person1}] > -1} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
+       "betreuer contains en:person1" &&} \
+    {tcl {{en:person1} in [dict get $__ia betreuer]} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
     filter_expr_where_3
 
 ? {::xowiki::FormPage filter_expression \
-    "_state=closed" ||} \
+       "_state=closed" ||} \
     {tcl {[my property _state] eq {closed}} h {} vars {} sql {{state = 'closed'}}} \
     filter_expr_unless_1
 
 ? {::xowiki::FormPage filter_expression \
     "_state= closed|accepted || x = 1" ||} \
-    {tcl {[lsearch -exact {closed accepted} [my property _state]] > -1||$__ia(x) eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
+    {tcl {[lsearch -exact {closed accepted} [my property _state]] > -1||[dict get $__ia x] eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
     filter_expr_unless_1
 
 

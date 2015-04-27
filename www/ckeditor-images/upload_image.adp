@@ -19,7 +19,7 @@
 	fieldset { padding: 0px 10px 5px 5px; }
 	select, input, button { font: 11px Tahoma,Verdana,sans-serif; }
 	.space { padding: 2px; }
-	
+
 	.title { background: #ddf; color: #000; font-weight: bold; font-size: 120%; padding: 3px 10px; margin-bottom: 10px;
 	border-bottom: 1px solid black; letter-spacing: 2px;
 	}
@@ -36,20 +36,19 @@
 <table>
 <tr>
 <td colspan=3>
-#xowiki.choose_image#: <formwidget id="upload_file" onchange="document.getElementById('subm_upld').removeAttribute('disabled')">
+#xowiki.choose_file#: <formwidget id="upload_file" onchange="document.getElementById('subm_upld').removeAttribute('disabled')">
 </td>
 </tr>
 <tr>
-<td>#xowiki.width#: <formwidget id="width"></td><td>#xowiki.height#: <formwidget id="height"></td><td><input id='subm_upld' disabled='disabled' type='submit' name='save' value='#xowiki.upload_file#' /></td>
+<td><input id='subm_upld' disabled='disabled' type='submit' name='save' value="#xowiki.upload_file#" />
+</td>
 </tr>
 <tr>
 <td colspan=3>
-#xowiki.image_width_hint#
+<!-- #xowiki.image_width_hint# -->
 </td>
 </tr>
 </table>
-
-
 </formtemplate>
 </div>
 

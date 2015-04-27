@@ -33,7 +33,6 @@ namespace eval ::xowiki {
   }
 
   #
-  #
   # Helper for tidying up HTML
   #
   ::xotcl::Object create tidy
@@ -59,11 +58,15 @@ namespace eval ::xowiki {
   #
   # Helper for virus checks
   #
+  # Install clamav daemon with
+  #    FC21:   yum install clamav-scanner
+  #  Ununtu:   apt-get install clamav-daemon
+  # 
   ::xotcl::Object create virus
   virus proc check {fn} {
     if {[[::xo::cc package_id] get_parameter clamav 1]
         && [info commands ::util::which] ne ""} { 
-      set clamscanCmd [::util::which clamscan]
+      set clamscanCmd [::util::which clamdscan]
       if {$clamscanCmd ne "" && [file readable $fn]} {
         if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
           ns_log warning "[self] virus found:\n$result"
@@ -73,7 +76,110 @@ namespace eval ::xowiki {
     }
     return 0
   }
+}
 
+namespace eval ::xowiki::hstore {
+  #
+  # Helper functions for hstore
+  #
+  ad_proc double_quote {value} {
+    @return double_quoted value as appropriate for hstore
+  } {
+    if {[regexp {[ ,\"\\=>\n\']} $value]} {
+      set value \"[string map [list \" \\\" \\ \\\\ ' ''] $value]\"
+    }
+    return $value
+  }
+
+  ad_proc dict_as_hkey {dict} {
+    @return dict value in form of a hstore key.
+  } {
+    set keys {}
+    foreach {key value} $dict {
+      set v [double_quote $value]
+      if {$v eq ""} continue
+      lappend keys [double_quote $key]=>$v
+    }
+    return [join $keys ,]
+  }
+
+  ad_proc ::xowiki::hstore::update_form_instance_item_index {
+    {-package_id}
+    {-object_class ::xowiki::FormPage}
+    {-initialize false}
+  } {
+    update all instance attributes in hstore
+  } {
+    #
+    # This proc can be used from ds/shell as follows
+    #
+    #    ::xowiki::hstore::update_form_instance_item_index -package_id $package_id
+    #
+    # Check the packages which do not have the hkey set:
+    #
+    #    select hkey from xowiki_form_instance_item_index where hkey is null;
+    #
+    set t0 [clock clicks -milliseconds]
+    ns_log notice "start to work on -package_id $package_id"
+    
+    ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+
+    set t1 [clock clicks -milliseconds]
+    ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
+    set t0 $t1
+
+    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {return 0}
+
+    set sql {
+      select * from xowiki_form_instance_item_view
+      where package_id = :package_id
+    }
+    set items [::xowiki::FormPage instantiate_objects -sql $sql \
+                   -object_class $object_class -initialize $initialize]
+
+    set t1 [clock clicks -milliseconds]
+    ns_log notice "$package_id: obtaining [llength [$items children]] items took [expr {$t1-$t0}]ms"
+    set t0 $t1
+
+    set count 0
+    foreach p [$items children] {
+
+      set hkey [::xowiki::hstore::dict_as_hkey [$p hstore_attributes]]
+      set item_id [$p item_id]
+      
+      set t0 [clock clicks -milliseconds]
+      
+      xo::dc dml update_hstore "update xowiki_form_instance_item_index \
+                set hkey = '$hkey' \
+                where item_id = :item_id"
+
+      set t1 [clock clicks -milliseconds]
+      ns_log notice "$package_id $count: update took [expr {$t1-$t0}]ms"
+      set t0 $t1
+      
+      incr count 
+    }
+    
+    $items log "updated $count objects from package $package_id"
+    return $count
+  }
+
+  proc ::xowiki::hstore::update_update_all_form_instances {} {
+    #::xo::db::select_driver DB
+    foreach package_id [lsort [::xowiki::Package instances -closure true]] {
+      if {[catch {xowiki::hstore::update_form_instance_item_index -package_id $package_id} errorMsg]} {
+        ns_log Warning "initializing package $package_id lead to error: $errorMsg"
+      }
+      db_release_unused_handles
+    }
+  }
+}
+
+  
+namespace eval ::xowiki {
+  #
+  # Functions used by upgrade procs.
+  #
   proc copy_parameter {from to} {
     set parameter_obj [::xo::parameter get_parameter_object \
                            -parameter_name $from -package_key xowiki]
@@ -104,11 +210,11 @@ namespace eval ::xowiki {
       set folder_id [::xo::dc list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: :package_id' and c.item_id = f.folder_id"]
       if {$folder_id ne ""} {
-        db_dml update_package_id {update acs_objects set package_id = :package_id 
+        ::xo::dc dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
           (select item_id as object_id from cr_items where parent_id = :folder_id)
           and package_id is NULL}
-        db_dml update_package_id {update acs_objects set package_id = :package_id 
+        ::xo::dc dml update_package_id {update acs_objects set package_id = :package_id 
           where object_id in 
           (select r.revision_id as object_id from cr_revisions r, cr_items i where 
            i.item_id = r.item_id and i.parent_id = :folder_id)
@@ -124,7 +230,7 @@ namespace eval ::xowiki {
       ::xo::db::sql::content_type refresh_view -content_type $object_type
     }
 
-    catch {db_dml drop_live_revision_view "drop view xowiki_page_live_revision"}
+    catch {::xo::dc dml drop_live_revision_view "drop view xowiki_page_live_revision"}
     if {[db_driverkey ""] eq "postgresql"} {
       set sortkeys ", ci.tree_sortkey, ci.max_child_sortkey "
     } else {
@@ -265,7 +371,7 @@ namespace eval ::xowiki {
   }
 
   proc form_upgrade {} {
-    db_dml from_upgrade {
+    ::xo::dc dml from_upgrade {
       update xowiki_form f set form = xowiki_formi.data from xowiki_formi 
       where f.xowiki_form_id = xowiki_formi.revision_id
     }
@@ -312,20 +418,20 @@ namespace eval ::xowiki {
       set f [FormPage get_instance_from_db -item_id $item_id]
       if {[$f page_template] != $form_id} {
         ns_log notice "... must change form_id from [$f page_template] to $form_id"
-        db_dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
+        ::xo::dc dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
       }
       return
     }
     set revision_id [::xo::db::sql::content_revision new \
                          -title [$package_id instance_name] -text "" \
                          -item_id $item_id -package_id $package_id]
-    db_dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
-    db_dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
-    db_dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
+    ::xo::dc dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
+    ::xo::dc dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
+    ::xo::dc dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
     
-    db_dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
-    db_dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
-    db_dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
+    ::xo::dc dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
+    ::xo::dc dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
+    ::xo::dc dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {

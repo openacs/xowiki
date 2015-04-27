@@ -6,7 +6,7 @@ namespace eval ::xowiki {
   #
   # RSS 2.0 support
   #
-  Class XMLSyndication -parameter {package_id}
+  Class create XMLSyndication -parameter {package_id}
 
   XMLSyndication instproc init {} {
     my set xmlMap [list & "&amp;" < "&lt;" > "&gt;" \" "&quot;" ' "&apos;"]
@@ -185,7 +185,7 @@ namespace eval ::xowiki {
     return $content
   }
 
-  Class Podcast -superclass RSS -parameter {
+  Class create Podcast -superclass RSS -parameter {
     {subtitle ""} 
     {description ""}
     {summary ""}
@@ -270,7 +270,7 @@ namespace eval ::xowiki {
     return $content
   }
   
-  Class Timeline -superclass XMLSyndication \
+  Class create Timeline -superclass XMLSyndication \
       -parameter {user_id {limit 1000}}
 
   Timeline instproc reverse list {

@@ -51,9 +51,11 @@ namespace eval ::xowiki::formfield {
   # ::xowiki::formfield::repeatContainer
   #
   ###########################################################
-  Class repeatContainer -superclass ::xowiki::formfield::CompoundField -parameter {
+  Class create repeatContainer -superclass ::xowiki::formfield::CompoundField -parameter {
     {min 1}
     {max 5}
+    {repeat_add_label "#xowiki.form-repeatable-add#"}
+    {repeat_remove_label "#xowiki.form-repeatable-delete#"}
   }
   repeatContainer instproc item_spec {} {
     #
@@ -180,13 +182,25 @@ namespace eval ::xowiki::formfield {
           $c render_input 
           # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
           # if {!$containerDisabled} {
-          ::html::a -href "#" -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" { html::t "\[x\]" }
+          ::html::a -href "#" \
+              -id "repeat-del-link-[$c set id]" \
+              -class "repeat-del-link [my set CSSclass]" \
+              -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" {
+                html::t [my repeat_remove_label]
+              }
           # }
         }
         incr i
       }
+      set hidden [expr {[my count_values [my value]] == $max ? "display: none;" : ""}]
       # if {!$containerDisabled} {
-      html::a -href "#" -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" { html::t "add another" }
+      html::a -href "#" \
+          -id "repeat-add-link-[my id]" \
+          -style "$hidden" \
+          -class "repeat-add-link [my set CSSclass]" \
+          -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" {
+            html::t [my repeat_add_label]
+          }
       # }
     }
   }
@@ -199,6 +213,21 @@ namespace eval ::xowiki::formfield {
       }
     }
     return ""
+  }
+
+  repeatContainer instproc pretty_value {v} {
+    #
+    # Simple renderer for repeated values
+    #
+    set ff [dict create {*}$v]
+    set html "<ol class='repeatContainer'>\n"
+    foreach c [lrange [my components] 1 [my count_values [my value]]] {
+      if {[dict exists $ff [$c set name]]} {
+        append html "<li>[$c pretty_value [dict get $ff [$c set name]]]</li>\n"
+      }
+    }
+    append html "</ol>\n"
+    return $html
   }
 
 }

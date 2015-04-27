@@ -11,7 +11,7 @@
 
 namespace eval ::xowiki {
 
-  ::xo::tdom::Class YUIMenuItemList \
+  ::xo::tdom::Class create YUIMenuItemList \
       -superclass Menu \
       -parameter {
         header
@@ -204,7 +204,7 @@ namespace eval ::xowiki {
 
   # TODO: Support for Multiple Element IDs/Refs as Trigger
 
-  ::xo::tdom::Class YUIContextMenu \
+  ::xo::tdom::Class create YUIContextMenu \
       -superclass YUIMenu \
       -parameter {
         {trigger "document"}
@@ -231,7 +231,7 @@ namespace eval ::xowiki {
   #
   # YUIContextMenuItem
   #
-  ::xo::tdom::Class YUIContextMenuItem \
+  ::xo::tdom::Class create YUIContextMenuItem \
       -superclass YUIMenuItem
 
 
@@ -408,7 +408,7 @@ namespace eval ::YUI {
   }
 
 
-  Class AnchorField \
+  Class create AnchorField \
       -superclass ::xo::Table::AnchorField \
       -ad_doc "
             In addition to the standard TableWidget's AnchorField, we also allow the attributes
@@ -434,7 +434,7 @@ namespace eval ::YUI {
 
 namespace eval ::xo::Table {
 
-  Class ::xowiki::YUIDataTable \
+  Class create ::xowiki::YUIDataTable \
       -superclass ::xo::Table \
       -parameter {
         {skin "yui-skin-sam"}

@@ -8,11 +8,25 @@
 
 namespace eval ::xowiki {
   #
-  # generic links
+  # generic link methods
   #
   Class create BaseLink -parameter {
     cssclass cssid href label title target extra_query_parameter 
     {anchor ""} {query ""}
+  }
+
+  BaseLink instproc built_in_target {} {
+    # currently, we do not support named frames, which are mostly deprecated
+    return [expr {[my target] in {_blank _self _parent _top}}]
+  }
+  
+  BaseLink instproc anchor_atts {} {
+    set atts {}
+    if {[my exists title]}  {lappend atts "title='[string map [list ' {&#39;}] [my title]]'"}
+    if {[my exists target] && [my built_in_target]} {
+      lappend atts "target='[my target]'"
+    }
+    return [join $atts " "]
   }
 
   BaseLink instproc mk_css_class {{-additional ""} {-default ""}} {
@@ -35,12 +49,9 @@ namespace eval ::xowiki {
   #
   Class create ExternalLink -superclass BaseLink 
   ExternalLink instproc render {} {
-    my instvar href label title target
-    set title_att ""
-    if {[info exists title]}  {append  title_att " title='[string map [list ' {&#39;}] $title]'"}
-    if {[info exists target]} {append title_att " target='$target'"}
+    my instvar href label
     set css_atts [my mk_css_class_and_id -additional external]
-    return "<a $title_att $css_atts href='$href'>$label<span class='external'>&nbsp;</span></a>"
+    return "<a [my anchor_atts] href='$href'>$label<span class='external'>&nbsp;</span></a>"
   }
 
   #
@@ -49,11 +60,6 @@ namespace eval ::xowiki {
   Class create Link -superclass BaseLink -parameter {
     {type link} name lang stripped_name page 
     parent_id package_id item_id {form ""} revision_id
-  }
-  Link instproc atts {} {
-    set atts ""
-    if {[my exists title]}  {append atts " title='[string map [list ' {&#39;}] [my title]]'"}
-    if {[my exists target]} {append atts " target='[my target]'"}
   }
   Link instproc init {} {
     my instvar page name
@@ -79,8 +85,60 @@ namespace eval ::xowiki {
   Link instproc resolve {} {
     return [my item_id]
   }
+
+  Link instproc render_target {href label} {
+    #ns_log notice render_target
+    set target [my target]
+    if {[info commands ::xowiki::template::$target] ne ""} {
+      #
+      # The target template exists. use the template
+      #
+      # This is a situation, where potentially a
+      # recursive inclusion is happening. The included content is
+      # added to the html output only once, with a unique id, which
+      # can be referenced multiple times. The link is included for
+      # each occurance.
+      #
+      set item_id [my item_id]
+      set targetId [xowiki::Includelet html_id [my item_id]-$target]
+      set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id 0]
+      set content "Loading ..."
+      set withBody true
+      
+      if {[::xowiki::template::$target render_content]} {
+        set key ::__xowiki_link_rendered($targetId)
+        if {![info exists $key]} {
+          set $key 1
+          set content [$page render_content]
+        } else {
+          #ns_log notice "modal with is already included: $key"
+          set page ::$item_id
+          set withBody false
+        }
+      }
+      set result [::xowiki::template::$target render \
+                      -with_body $withBody \
+                      -title [$page title] \
+                      -id $targetId \
+                      -content $content \
+                      -label $label \
+                      -href $href]
+      
+      return $result
+    } else {
+      ns_log notice "xowiki::link: unknown target $target"
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+    }
+  }
+  
   Link instproc render_found {href label} {
-    return "<a [my atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+    if {$href eq ""} {
+      return "<span class='refused-link'>$label</span>"
+    } elseif {[my exists target] && ![my built_in_target]} {
+      return [my render_target $href $label]
+    } else {
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+    }
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
@@ -127,14 +185,16 @@ namespace eval ::xowiki {
     set page [my page]
     set item_id [my resolve]
     if {$item_id} {
-      $page lappend references [list $item_id [my type]]
+      $page references resolved [list $item_id [my type]]
       ::xowiki::Package require $package_id
-      my render_found [my pretty_link $item_id] [my label]
+      if {![my exists href]} {
+        my set href [my pretty_link $item_id]
+      }
+      my render_found [my set href] [my label]
     } else {
-      $page incr unresolved_references
       set new_link [my new_link]
       set html [my render_not_found $new_link [my label]]
-      $page lappend __unresolved_references $html
+      $page references unresolved $html
       return $html
     }
   }
@@ -156,6 +216,124 @@ namespace eval ::xowiki {
   }
 
   #
+  # Link template
+  #
+  ::xotcl::Class create ::xowiki::LinkTemplate -parameter {link_template body_template {render_content true}}
+  ::xowiki::LinkTemplate instproc render {
+    {-with_link:boolean true}
+    {-with_body:boolean true}
+    {-title "TITLE"}
+    {-id "ID"}
+    {-content ""}
+    {-label "LABEL"}
+    {-href ""}
+  } {
+    set result ""
+    if {$with_link} {append result [subst [my link_template]]}
+    if {$with_body} {append result [subst [my body_template]]}
+    return $result
+  }
+
+  #
+  # Small bootstrap modal
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
+<a href="#$id" role="button" data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+        <h4 class="modal-title">$title</h4>
+      </div>
+      <div class="modal-body">
+        $content
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+  }
+
+  #
+  # Large bootstrap modal
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
+<a href="#$id" role="button" data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">#acs-kernel.common_Close#</span></button>
+        <h4 class="modal-title">$title</h4>
+      </div>
+      <div class="modal-body">
+        $content
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+  }
+
+  #
+  # Small bootstrap modal using ajax
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
+    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+       This will be replaced
+    </div>
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>    
+\$('.modal').on('show.bs.modal', function(event) {
+    var idx = \$('.modal:visible').length;
+    \$(this).css('z-index', 1040 + (10 * idx));
+});
+\$('.modal').on('shown.bs.modal', function(event) {
+    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+    \$('.modal-backdrop').not('.stacked').addClass('stacked');
+});
+</script>     
+}
+  #
+  # Large bootstrap modal using ajax
+  #
+  ::xowiki::LinkTemplate create ::xowiki::template::modal-lg-ajax -render_content false -link_template {
+    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+  } -body_template {
+<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+       This will be replaced
+    </div>
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>    
+\$('.modal').on('show.bs.modal', function(event) {
+    var idx = \$('.modal:visible').length;
+    \$(this).css('z-index', 1040 + (10 * idx));
+});
+\$('.modal').on('shown.bs.modal', function(event) {
+    var idx = (\$('.modal:visible').length) -1; // raise backdrop after animation.
+    \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
+    \$('.modal-backdrop').not('.stacked').addClass('stacked');
+});
+</script>     
+}
+
+  #
   # folder links
   #
   Class create ::xowiki::Link::folder -superclass ::xowiki::Link
@@ -166,17 +344,6 @@ namespace eval ::xowiki {
     my instvar package_id
     return [::$package_id pretty_link \
                 -anchor [my anchor] -parent_id [my parent_id] -query [my query] [my name] ]
-  }
-  ::xowiki::Link::folder instproc new_link {} {
-    my instvar package_id
-    return [$package_id make_link -with_entities 0 \
-                $package_id \
-                edit-new \
-                [list object_type ::xo::db::CrFolder] \
-                [list name [my name]] \
-                [list parent_id [my parent_id]] \
-                [list return_url [::xo::cc url]] \
-                autoname]
   }
 
   #
@@ -232,10 +399,9 @@ namespace eval ::xowiki {
       set link [$package_id pretty_link -download true -query [my query] \
                     -absolute [$page absolute_links] -parent_id [my parent_id] $name]
       #my log "--l fully quali [$page absolute_links], base=$base"
-      $page lappend references [list $item_id [my type]]
+      $page references resolved [list $item_id [my type]]
       my render_found $link $label
     } else {
-      $page incr unresolved_references
       set last_page_id [$page set item_id]
       set object_type ::xowiki::File
       set link [$package_id make_link $package_id edit-new object_type \
@@ -244,6 +410,7 @@ namespace eval ::xowiki {
                     [list return_url [::xo::cc url]] \
                     autoname name last_page_id] 
       set html [my render_not_found $link $label]
+      $page references unresolved $html
       return $html
     }
   }
@@ -263,8 +430,9 @@ namespace eval ::xowiki {
     if {$style ne ""} {set style "style='$style'"}
     if {[my exists geometry]} {append link "?geometry=[my set geometry]"}
     set label [string map [list ' "&#39;"] $label]
-    set cls [my mk_css_class_and_id -default image]
-    if {[my exists href]} {
+    if {[my exists href]} {set href [my set href]} {set href ""}
+    set cls [my mk_css_class_and_id -default [expr {$link ne "" ? "image" : "refused-link"}]]
+    if {$href ne ""} {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
       if {[my exists revision_id]} {append href ?revision_id=[my revision_id]}
@@ -502,7 +670,7 @@ namespace eval ::xowiki {
   # link cache
   #
 
-  #   Class LinkCache
+  #   Class create LinkCache
   #   LinkCache instproc resolve {} {
   #     set key link-[my type]-[my name]-[my parent_id]
   #     while {1} {

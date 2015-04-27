@@ -654,7 +654,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc setCSSDefaults {} {
-    my log setCSSDefaults
+    #my log setCSSDefaults
     # check empty
     if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] eq "bootstrap"} {
       ::xowiki::formfield::FormField parameter {
@@ -797,12 +797,14 @@ namespace eval ::xowiki {
         } else {
           if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
           set url [my pretty_link]$qp
-          set return_url [$package_id get_parameter return_url $url]
-          # We had query_parameter here. however, to be able to
-          # process the output of ::xo::cc set_parameter ...., we
-          # changed it to "parameter".
+          #
+          # The method query_parameter uses now "::xo::cc set_parameter ...."
+          # with highest precedence
+          #
+          set return_url [$package_id query_parameter return_url $url]
           #my log "[my name]: url=$url, return_url=$return_url"
           $package_id returnredirect $return_url
+
           return
         }
       }
@@ -1078,8 +1080,7 @@ namespace eval ::xowiki {
       }
     }
     #my show_fields $form_fields
-    foreach {validation_errors category_ids} \
-        [my get_form_data -field_names $query_field_names $form_fields] break
+    lassign  [my get_form_data -field_names $query_field_names $form_fields] validation_erors category_ids
 
     if {$validation_errors == 0} {
       #
@@ -1179,8 +1180,8 @@ namespace eval ::xowiki {
         break
       }
     }
-    foreach {validation_errors category_ids} \
-        [my get_form_data -field_names $query_field_names $form_fields] break
+    lassign [my get_form_data -field_names $query_field_names $form_fields] \
+        validation_errors category_ids
     set error ""
     if {$validation_errors == 0} {
       set status_code 200
@@ -1535,6 +1536,7 @@ namespace eval ::xowiki {
       set short_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
                           -name $field_name \
                           -form_constraints $form_constraints]
+      #my log "short_spec of $field_name <$short_spec> field_spec <$field_spec> cr_field_spec <$cr_field_spec>"
 
       switch -glob -- $field_name {
         __* {error not_allowed}
@@ -1543,10 +1545,12 @@ namespace eval ::xowiki {
           if {![info exists __att($varname)]} {
             error "unknown attribute $field_name"
           }
+          #my log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
           set f [$base_item create_raw_form_field \
                      -name $field_name \
                      -slot [$base_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec]
+          #my log "---> $f <[$f label]>"
           $f set __base_field $varname
         }
         default {
@@ -1636,14 +1640,28 @@ namespace eval ::xowiki {
     {-spec ""} 
     {-configuration ""}
   } {
-    set short_spec [my get_short_spec $name]
-    #my msg "create form-field '$name', short_spec = '$short_spec', slot=$slot"
+    # For workflows, we do not want to get the form constraints of the
+    # page itself (i.e. the property of the generic workflow form) but
+    # just the configured properties. Otherwise, we get for a
+    # wrong results for e.g. "{{form-usages -form de:Thread.wf ...}}"
+    # which picks up the label for the _title from the generic Workflow.
+    # So, when we have configured properties, we use it, use the
+    # primitive one just on despair.  Not sure, what the best solution
+    # is,... maybe an additional flag.
+    if {[string trim $spec ,] eq ""} {
+      set short_spec [my get_short_spec $name]
+      #my log "[self] get_short_spec $name returns <$short_spec>"
+    } else {
+      set short_spec ""
+    }
+
+    #my log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
     set spec_list [list]
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
-    #my msg "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
+    #my log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
-    #my msg "created form-field '$name' $f [$f info class] validator=[$f validator]" ;#p=[$f info precedence] 
+    #my log "created form-field '$name' $f [$f info class] validator=[$f validator] p=[$f info precedence]"
     return $f
   }
 
@@ -1838,10 +1856,9 @@ namespace eval ::xowiki {
   }
 
   Page instproc mutual_overwrite_occurred {} {
-    util_user_message -html \
-        -message "User <em>[::xo::get_user_name [my set modifying_user]]</em> has modifyed this page \
-    while you were editing it.\
-    Open <a href='[::xo::cc url]' target='_blank'>modified page</a> in new window or press OK again to save this page."
+     util_user_message -html \
+         -message "[_ xowiki.User] <em>[::xo::get_user_name [my set modifying_user]]</em> [_ xowiki.has_modified_this_page]. \
+   [_ xowiki.Please_open] <a href='[::xo::cc url]' target='_blank'>[_ xowiki.modified_page]</a> [_ xowiki.new_window_or_OK]."
     # return 1 to flag validation error, 0 to ignore this fact
     return 1
   }
@@ -2007,7 +2024,7 @@ namespace eval ::xowiki {
       #
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
-        #my msg "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
+        #my log "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
         $f error_msg $validation_error
         incr validation_errors
       }
@@ -2047,6 +2064,7 @@ namespace eval ::xowiki {
 
     #my instance_attributes [array get __ia]
     #my msg category_ids=$category_ids
+
     return [list $validation_errors [lsort -unique $category_ids]]
   }
 

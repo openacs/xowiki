@@ -10,10 +10,10 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="0.156" url="http://openacs.org/repository/download/apm/xowiki-0.156.apm">
+    <version name="0.164" url="http://openacs.org/repository/download/apm/xowiki-0.164.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
-        <release-date>2014-09-01</release-date>
+        <release-date>2015-03-23</release-date>
         <vendor url="http://wu.ac.at">WU Vienna</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
@@ -55,30 +55,32 @@ Some features:
         <license>BSD-Style</license>
         <maturity>2</maturity>
 
-        <provides url="xowiki" version="0.156"/>
+        <provides url="xowiki" version="0.164"/>
         <requires url="acs-datetime" version="5.8.1"/>
         <requires url="acs-kernel" version="5.8.1"/>
         <requires url="acs-subsite" version="5.8.1"/>
         <requires url="categories" version="1.0d3"/>
         <requires url="file-storage" version="5.8.1"/>
         <requires url="general-comments" version="5.8.1"/>
-        <requires url="xotcl-core" version="0.132"/>
+        <requires url="xotcl-core" version="0.137"/>
 
         <callbacks>
-            <callback type="after-install"  proc="::xowiki::after-install"/>
-            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
             <callback type="before-uninstall"  proc="::xowiki::before-uninstall"/>
+            <callback type="after-install"  proc="::xowiki::after-install"/>
             <callback type="before-uninstantiate"  proc="::xowiki::before-uninstantiate"/>
+            <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
             <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
             <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
             <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBarSymLinks"  default="0" description="Activate experimental menubar stuff"/>	    
             <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="PackageDescription"  description="Description of the Package. This description will appear for example in the Description of the default RSS feed for this package" section_name="Description"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackagePath"  description="Space delimited names of local URL paths pointing to xowiki instances from where this instance should inherit pages (example: /xowiki /public/wiki)"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="PackageTitle"  description="Title of the Package; this title will appear for example in the default RSS feed for this package." section_name="Description"/>
             <parameter scope="global" datatype="string"  min_n_values="1"  max_n_values="1"  name="PreferredCSSToolkit"  default="yui" description="Use either &quot;yui&quot; or &quot;bootstrap&quot;"/>
+            <parameter scope="global" datatype="string"  min_n_values="1"  max_n_values="1"  name="PreferredRichtextEditor"  default="xinha" description="Preferred richtext editor, such as: xinha (default), ckeditor, ckeditor4 or wym"/>
             <parameter scope="instance" datatype="text"  min_n_values="1"  max_n_values="1"  name="WidgetSpecs"  description="Specify pairs of &quot;pagename,fieldname&quot; followed by a Tcl list which is used as a widget spec for ad_form. &quot;pagename&quot; and &quot;fieldname&quot; can contain wild card characters. The following rather complex widget-specs are from OpenACS.org:
 
 *,text {richtext(richtext),nospell,optional 
@@ -124,7 +126,8 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_yahoo_publisher"  default="0" description="When specified, a button for adding the content to my.yahoo.com is added" section_name="Options"/>
-        </parameters>
+            <parameter scope="instance" datatype="number" min_n_values="1"  max_n_values="1" name="use_hstore"  default="0" description="Use hstore for accessing instance  attributes. Create index for  existing values via  ::xowiki::hstore::update_form_instance_item_index -package_id $package_id"/>
+	  </parameters>
 
     </version>
 </package>

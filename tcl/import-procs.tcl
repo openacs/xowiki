@@ -9,7 +9,7 @@
 
 namespace eval ::xowiki {
 
-  Class Importer -parameter {
+  Class create Importer -parameter {
     {added 0} {replaced 0} {updated 0} {inherited 0}
     {package_id} {parent_id} {user_id}
   }
@@ -18,17 +18,24 @@ namespace eval ::xowiki {
     my destroy_on_cleanup
   }
   Importer instproc report_lines {} {
-    return "<table>[my set log]</table>"
+    util_user_message -message "[_ xowiki.Import_successful]"
+    return "<table><caption>Details</caption>[my set log]</table>"
   }
   Importer instproc report_line {obj operation} {
     set href [$obj pretty_link]
     set name [[$obj package_id] external_name -parent_id [$obj parent_id] [$obj name]]
+    switch $operation {
+        "added" { set operation "[_ xowiki.added]" }
+        "replaced" { set operation "[_ xowiki.replaced]" }
+        "updated" { set operation "[_ xowiki.updated]" }
+        "inherited" { set operation "[_ xowiki.inherited]" }
+	}
     my append log "<tr><td>$operation</td><td><a href='$href'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
     my instvar added updated replaced inherited
-    return "$added objects newly inserted,\
-    $updated objects updated, $replaced objects replaced, $inherited inherited (update ignored)<p>\
+    return "<b>$added</b> #xowiki.objects_newly_inserted#,\
+    <b>$updated</b> #xowiki.objects_updated#, <b>$replaced</b> #xowiki.objects_replaced#, <b>$inherited</b> #xowiki.inherited_update_ignored#<p>\
     [my report_lines]"
   }
 

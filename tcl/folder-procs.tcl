@@ -55,10 +55,32 @@ namespace eval ::xowiki::includelet {
     return [$tree render -style yuitree -js $js]
   }
 
+  folders instproc folder_query {
+    -form_id:required
+    -package_id:required
+    {-parent_id ""}
+  } {
+    if {$parent_id eq ""} {
+      return [subst {
+        select * from xowiki_form_instance_item_view
+        where page_template = '$form_id' and package_id = '$package_id'
+        and publish_status = 'ready'
+      }]
+    }
+    return [subst {
+      select * from xowiki_form_instance_children ch
+      left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
+      where page_template = '$form_id' and ch.package_id = '$package_id'
+      and root_item_id = '$parent_id'
+      and publish_status = 'ready'
+    }]
+  }
+    
   folders instproc collect_folders {
     -package_id:required
     -folder_form_id:required
     -link_form_id:required
+    {-parent_id ""}
     {-subtree_query ""}
     {-depth 3}
   } {
@@ -70,17 +92,25 @@ namespace eval ::xowiki::includelet {
     #
     # get folders
     #
-    set folder_pages [::xowiki::FormPage get_form_entries \
-                          -base_item_ids $folder_form_id -form_fields "" \
-                          -extra_where_clause $subtree_query \
-                          -publish_status ready -package_id $package_id]
+    set sql [my folder_query -form_id $folder_form_id \
+                 -parent_id $parent_id \
+                 -package_id $package_id]
+    ns_log notice "folder_pages:\n$sql"
+    set folder_pages [::xowiki::FormPage instantiate_objects -sql $sql \
+                          -named_objects true -object_named_after "item_id" \
+                          -object_class ::xowiki::FormPage -initialize true]
+
     #
     # get links
     #
-    set links [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $link_form_id -form_fields "" \
-                   -extra_where_clause $subtree_query \
-                   -publish_status ready -package_id $package_id]
+    set sql [my folder_query -form_id $link_form_id \
+                 -parent_id $parent_id \
+                 -package_id $package_id]
+    ns_log notice "links:\n$sql"
+    set links [::xowiki::FormPage instantiate_objects -sql $sql \
+                    -named_objects true -object_named_after "item_id" \
+                    -object_class ::xowiki::FormPage -initialize true]
+    
     #my msg "[llength [$links children]] links"
 
     set folders [$folder_pages children]
@@ -101,17 +131,10 @@ namespace eval ::xowiki::includelet {
         # we found a cross-package link. These kind of links require further queries
         #
         set target [$l get_target_from_link_page]
-
-        # the following clause needs an oracle counter-part
-        set tree_sortkey [::xo::dc get_value get_tree_sort_key \
-                              "select tree_sortkey from acs_objects where object_id = [$target item_id]"]
-        set extra_where "and bt.item_id in (select object_id from acs_objects \
-        where tree_sortkey between '$tree_sortkey' and tree_right('$tree_sortkey') \
-        and object_type = 'content_item')"
-
         set sub_folders [my collect_folders -package_id [$target physical_package_id] \
                              -folder_form_id $folder_form_id -link_form_id $link_form_id \
-                             -subtree_query $extra_where -depth [expr {$depth -1}]]
+                             -parent_id [$target item_id] \
+                             -depth [expr {$depth -1}]]
 
         foreach f $sub_folders {
 
@@ -130,12 +153,12 @@ namespace eval ::xowiki::includelet {
             # TODO we could save the double-fetch by collecing in
             # get_form_entries via item-ids, not via new-objects
             #
-            ::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
+            #::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
             [$f item_id] set_resolve_context -package_id [$l package_id] -parent_id [$l item_id]
           } else {
             #my msg "2 found child [$f name] and reset parent_id from [$f parent_id] to [$f parent_id], package id [$l package_id]"
             $f set_resolve_context -package_id [$l package_id] -parent_id [$f parent_id]
-            ::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
+            #::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
             [$f item_id] set_resolve_context -package_id [$l package_id] -parent_id [$f parent_id]
           }
 
@@ -305,14 +328,15 @@ namespace eval ::xowiki::includelet {
       set label "[$top_folder_of_tree title] ..."
     }
 
-    set t [::xowiki::Tree new -id foldertree_[my id] ]
+    set t [::xowiki::Tree new -id foldertree_[my id] -destroy_on_cleanup]
     set node [::xowiki::TreeNode new \
                   -href $href \
                   -label $label \
                   -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
                   -object $top_folder_of_tree \
                   -expanded 1 \
-                  -open_requests 1]
+                  -open_requests 1 \
+                  -destroy_on_cleanup]
     $t add $node
     set folders [my collect_folders \
                      -package_id $package_id \
@@ -364,7 +388,8 @@ namespace eval ::xowiki::includelet {
                        -object $c \
                        -highlight $is_current \
                        -expanded $is_open \
-                       -open_requests 1]
+                       -open_requests 1 \
+                       -destroy_on_cleanup]
       $node add $subnode
 
       if {$is_current} {
@@ -469,7 +494,7 @@ namespace eval ::xowiki::includelet {
     # scoping in "-columns"
     set ::with_publish_status [expr {$publish_status ne "ready"}]
 
-    switch [$package_id get_parameter "PreferredCSSToolkit" yui] {
+    switch [$package_id get_parameter PreferredCSSToolkit yui] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
@@ -620,7 +645,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class menuentries -superclass textarea -parameter {
+  Class create menuentries -superclass textarea -parameter {
     {rows 10}
     {cols 80}
   }
