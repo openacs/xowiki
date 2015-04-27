@@ -81,8 +81,9 @@ namespace eval ::xowiki {
       my msg "Error: $error\n$::errorInfo"
       return
     }
+    set folder_id [expr {[my is_folder_page] ? [my item_id] : [my parent_id]}]
     set msg [$package_id import -replace 0 -create_user_ids 1 \
-                 -parent_id [my item_id] -objects $item_ids]
+                 -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
     ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]

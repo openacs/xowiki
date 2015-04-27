@@ -2049,6 +2049,10 @@ namespace eval ::xowiki {
     [self class] [self proc]
   }
 
+  Package instproc clipboard-copy {} {
+    [my folder_id] clipboard-copy
+  }
+  
   #
   # Create new pages
   #
