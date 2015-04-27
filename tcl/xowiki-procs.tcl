@@ -8,7 +8,7 @@
 
 namespace eval ::xowiki {
   #
-  # create classes for different kind of pages
+  # Create classes for different kind of pages
   #
   ::xo::db::CrClass create Page -superclass ::xo::db::CrItem \
       -pretty_name "#xowiki.Page_pretty_name#" -pretty_plural "#xowiki.Page_pretty_plural#" \
@@ -19,19 +19,19 @@ namespace eval ::xowiki {
             -sqltype ltree -validator page_order -default ""
         ::xo::db::CrAttribute create creator
         # The following slots are defined elsewhere, but we override
-        # some default values, such as pretty_names, required state, 
+        # some default values, such as pretty_names, required state,
         # help text etc.
         ::xo::Attribute create name \
             -help_text #xowiki.Page-name-help_text# \
             -validator name \
             -spec "maxlength=400,required" \
-            -required false ;#true 
+            -required false ;#true
         #::xo::Attribute create title \
         #    -required false ;#true
         #::xo::Attribute create description \
-        #    -spec "textarea,cols=80,rows=2" 
+        #    -spec "textarea,cols=80,rows=2"
         #::xo::Attribute create text \
-        #    -spec "richtext" 
+        #    -spec "richtext"
         ::xo::Attribute create nls_language \
             -spec {select,options=[xowiki::locales]} \
             -default {[ad_conn locale]}
@@ -86,14 +86,14 @@ namespace eval ::xowiki {
       } \
       -storage_type file \
       -form ::xowiki::PodcastForm
-  
+
   ::xo::db::CrClass create PageTemplate -superclass Page \
       -pretty_name "#xowiki.PageTemplate_pretty_name#" -pretty_plural "#xowiki.PageTemplate_pretty_plural#" \
       -table_name "xowiki_page_template" -id_column "page_template_id" \
       -slots {
         ::xo::db::CrAttribute create anon_instances \
             -datatype boolean \
-            -sqltype boolean -default "f" 
+            -sqltype boolean -default "f"
       } \
       -form ::xowiki::PageTemplateForm
 
@@ -139,10 +139,10 @@ namespace eval ::xowiki {
         ::xo::db::CrAttribute create assignee \
             -datatype integer \
             -references parties(party_id) \
-            -spec "hidden" 
+            -spec "hidden"
         ::xo::db::CrAttribute create state -default ""
       }
-  
+
   #
   # Create various extra tables, indices and views
   #
@@ -157,7 +157,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_references -col reference
   ::xo::db::require index -table xowiki_references -col page
 
-  
+
   ::xo::db::require table xowiki_last_visited {
     page_id    {integer references cr_items(item_id) on delete cascade}
     package_id integer
@@ -171,7 +171,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_last_visited -col time
   ::xo::db::require index -table xowiki_last_visited -col page_id
 
-  
+
   # Oracle has a limit of 3118 characters for keys, therefore we
   # cannot use "text" as type for "tag"
   ::xo::db::require table xowiki_tags {
@@ -187,14 +187,14 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_tags -col package_id
   ::xo::db::require index -table xowiki_tags -col user_id
   ::xo::db::require index -table xowiki_tags -col item_id
-  
+
   ::xo::db::require index -table xowiki_page -col page_order \
       -using [expr {[::xo::dc has_ltree] ? "gist" : ""}]
 
   #
   # view: xowiki_page_live_revision
   #
-  
+
   set sortkeys [expr {[db_driverkey ""] eq "oracle" ? "" : ", ci.tree_sortkey, ci.max_child_sortkey"}]
   ::xo::db::require view xowiki_page_live_revision \
       "select p.*, cr.*,ci.parent_id, ci.name, ci.locale, ci.live_revision, \
@@ -222,7 +222,7 @@ namespace eval ::xowiki {
   #      select count(*) from xowiki_form_instance_item_index
   #      where package_id = 18255683
   #         and page_template = 20260757
-  #         and publish_status='ready'; 
+  #         and publish_status='ready';
   #
   #   In order to get rid of this helper table (may be to regenerate it
   #   on the next load) use
@@ -247,7 +247,7 @@ namespace eval ::xowiki {
     join xowiki_form_page xfp on (ci.live_revision = xfp.xowiki_form_page_id)
     join acs_objects o on (o.object_id = ci.item_id)
   }
-  
+
   if {[::xo::dc has_hstore]} {
     ::xo::db::require table xowiki_form_instance_item_index {
       item_id             {integer references cr_items(item_id) on delete cascade}
@@ -275,7 +275,7 @@ namespace eval ::xowiki {
     } $popuplate
     set hkey_in_view ""
   }
- 
+
   ::xo::db::require index -table xowiki_form_instance_item_index -col item_id -unique true
   ::xo::db::require index -table xowiki_form_instance_item_index -col parent_id,name -unique true
   ::xo::db::require index -table xowiki_form_instance_item_index -col page_template
@@ -289,7 +289,7 @@ namespace eval ::xowiki {
   # - xowiki_form_instance_item_view
   # - xowiki_form_instance_children
   # - xowiki_form_instance_attributes
-  
+
   #
   # - xowiki_form_instance_item_view:
   #
@@ -304,7 +304,7 @@ namespace eval ::xowiki {
   #      where package_id = 18255683
   #         and page_template = 20260757
   #         and publish_status='ready';
-  #   
+  #
   ::xo::db::require view xowiki_form_instance_item_view [subst {
       SELECT
          xi.package_id, xi.parent_id, xi.name,
@@ -343,16 +343,16 @@ namespace eval ::xowiki {
   #      select count(*) from xowiki_form_instance_children
   #      where root_item_id = 18255779
   #         and page_template = 20260757
-  #         and publish_status='ready'; 
+  #         and publish_status='ready';
   #
   #   Note: this query needs an oracle counter-part
-  
+
   ::xo::db::require view xowiki_form_instance_children {
       With RECURSIVE child_items AS (
         select item_id as root_item_id, * from xowiki_form_instance_item_index
       UNION ALL
         select child_items.root_item_id, xi.* from xowiki_form_instance_item_index xi, child_items
-	where xi.parent_id = child_items.item_id 
+        where xi.parent_id = child_items.item_id
       )
       select * from child_items
   }
@@ -373,7 +373,7 @@ namespace eval ::xowiki {
   #      select * from xowiki_form_instance_children ch
   #      left join xowiki_form_instance_attributes xa on ch.item_id = xa.item_id;
   #
-  #   
+  #
   ::xo::db::require view xowiki_form_instance_attributes {
       SELECT
     ci.item_id,
@@ -390,17 +390,17 @@ namespace eval ::xowiki {
          xowiki_page.page_id,
          xowiki_page.page_order,
          xowiki_page.creator
-      FROM cr_text, cr_items ci 
+      FROM cr_text, cr_items ci
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (o.object_id = xowiki_page.page_id)
          left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
-         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)   
+         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
   }
-  
+
   #ns_logctl severity Debug(sql) off
-  
-  
+
+
   #############################
   #
   # A simple autoname handler
@@ -413,14 +413,14 @@ namespace eval ::xowiki {
   # Instead of using the table below, another option would be to use
   # multiple sequences. However, these sequences would have dynamic
   # names, it is not clear, whether there are certain limits on the
-  # number of sequences (in PostgresSQL or Oracle), the database 
+  # number of sequences (in PostgresSQL or Oracle), the database
   # dependencies would be larger than in this simple approach.
   #
   ::xo::db::require table xowiki_autonames {
     parent_id "integer references acs_objects(object_id) ON DELETE CASCADE"
     name       varchar(3000)
     count     integer
-  } 
+  }
   ::xo::db::require index -table xowiki_autonames -col parent_id,name -unique true
   ::xo::db::require index -table xowiki_autonames -col parent_id
 
@@ -430,7 +430,7 @@ namespace eval ::xowiki {
       set already_recorded [::xo::dc 0or1row autoname_query {
         select count from xowiki_autonames
         where parent_id = :parent_id and name = :name}]
-      
+
       if {$already_recorded} {
         incr count
         ::xo::dc dml update_autoname_counter \
@@ -460,7 +460,7 @@ namespace eval ::xowiki {
       }
     }
   }
-  
+
   #############################
   #
   # Create the xowiki_cache
@@ -549,7 +549,7 @@ namespace eval ::xowiki {
     }
     next
   }
-  
+
   Page instproc category_export {tree_name} {
     #
     # Build a command to rebuild the category tree on imports
@@ -557,7 +557,7 @@ namespace eval ::xowiki {
     # category map, which maps internal IDs into symbolic values
     # (__category_map).
     #
-    # Ignore locale in get_id for now, since it seems broken    
+    # Ignore locale in get_id for now, since it seems broken
     set tree_ids [::xowiki::Category get_mapped_trees -object_id [my package_id] \
                       -names [list $tree_name] -output tree_id]
     # Make sure to have only one tree_id, in case multiple trees are
@@ -659,9 +659,9 @@ namespace eval ::xowiki {
     #my build_instance_attribute_map $form_fields
     next
   }
-  
+
   FormPage instproc map_values {map_type values} {
-    # Map a list of values (for multi-valued form fields) 
+    # Map a list of values (for multi-valued form fields)
     # my log "map_values $map_type, $values"
     set mapped_values [list]
     foreach value $values {lappend mapped_values [my map_value $map_type $value]}
@@ -714,7 +714,7 @@ namespace eval ::xowiki {
     set form_fields [my create_form_fields_from_form_constraints \
                          [my get_form_constraints]]
     my build_instance_attribute_map $form_fields
-    
+
     # In case we have a mapping from IDs to external values, use it
     # and rewrite instance attributes. Note, that the marshalled
     # objects have to be flushed from memory later since the
@@ -791,7 +791,7 @@ namespace eval ::xowiki {
     if {[info exists (email)] && $(email) ne ""} {
       set id [party::get_by_email -email $(email)]
       if {$id ne ""} { return $id }
-    } 
+    }
     if {[info exists (username)] && $(username) ne ""} {
       set id [acs_user::get_by_username -username $(username)]
       if {$id ne ""} { return $id }
@@ -823,7 +823,7 @@ namespace eval ::xowiki {
     return $default_party
   }
 
-  
+
   Page instproc reverse_map_party_attribute {-attribute {-default_party 0} {-create_user_ids 0}} {
     if {![my exists $attribute]} {
       my set $attribute $default_party
@@ -840,7 +840,7 @@ namespace eval ::xowiki {
   Page instproc demarshall {-parent_id -package_id -creation_user {-create_user_ids 0}} {
     # this method is the counterpart of marshall
     my set parent_id $parent_id
-    my set package_id $package_id 
+    my set package_id $package_id
     my reverse_map_party_attribute -attribute creation_user  \
         -default_party $creation_user -create_user_ids $create_user_ids
     my reverse_map_party_attribute -attribute modifying_user \
@@ -886,7 +886,7 @@ namespace eval ::xowiki {
     }
   }
 
-  # set default values. 
+  # set default values.
   # todo: with slots, it should be easier to set default values
   # for non-existing variables
   PageInstance instproc demarshall {args} {
@@ -953,7 +953,7 @@ namespace eval ::xowiki {
 
     #my msg "[my name] check cm=[info exists ::__xowiki_reverse_category_map] && iam=[my exists __instance_attribute_map]"
 
-    if {[info exists ::__xowiki_reverse_category_map] 
+    if {[info exists ::__xowiki_reverse_category_map]
         && [my exists __instance_attribute_map]
       } {
       #my msg "we have a instance_attribute_map"
@@ -1001,11 +1001,11 @@ namespace eval ::xowiki {
   Page instproc condition=match {query_context value} {
     #
     # Conditon for conditional checks in policy rules
-    # The match condition is called with an attribute 
+    # The match condition is called with an attribute
     # name and a pattern like in
     #
     #  edit {
-    #     {{match {name {*weblog}}} package_id admin} 
+    #     {{match {name {*weblog}}} package_id admin}
     #     {package_id write}
     #  }
     #
@@ -1029,11 +1029,11 @@ namespace eval ::xowiki {
   Page instproc condition=regexp {query_context value} {
     #
     # Conditon for conditional checks in policy rules
-    # The match condition is called with an attribute 
+    # The match condition is called with an attribute
     # name and a pattern like in
     #
     #  edit               {
-    #    {{regexp {name {(weblog|index)$}}} package_id admin} 
+    #    {{regexp {name {(weblog|index)$}}} package_id admin}
     #    {package_id write}
     #  }
     #
@@ -1072,7 +1072,7 @@ namespace eval ::xowiki {
     my log "DEPRECATED"
     if {![info exists package_id]}  {set package_id  [::xo::cc package_id]}
     set cmd [list $package_id import -replace $replace]
-    
+
     if {[info exists user_id]}   {lappend cmd -user_id $user_id}
     if {[info exists objects]}   {lappend cmd -objects $objects}
     {*}$cmd
@@ -1083,10 +1083,10 @@ namespace eval ::xowiki {
   #
 
   Page proc save_tags {
-                       -package_id:required 
-                       -item_id:required 
-                       -revision_id:required 
-                       -user_id:required 
+                       -package_id:required
+                       -item_id:required
+                       -revision_id:required
+                       -user_id:required
                        tags
                      } {
     ::xo::dc dml delete_tags \
@@ -1107,13 +1107,13 @@ namespace eval ::xowiki {
       if {[info exists user_id]} {
         # tags for item and user
         set tags [::xo::dc list get_tags {
-          SELECT distinct tag from xowiki_tags 
+          SELECT distinct tag from xowiki_tags
           where user_id = :user_id and item_id = :item_id and package_id = :package_id
         }]
       } else {
-        # all tags for this item 
+        # all tags for this item
         set tags [::xo::dc list get_tags {
-          SELECT distinct tag from xowiki_tags 
+          SELECT distinct tag from xowiki_tags
           where item_id = :item_id and package_id = :package_id
         }]
       }
@@ -1121,13 +1121,13 @@ namespace eval ::xowiki {
       if {[info exists user_id]} {
         # all tags for this user
         set tags [::xo::dc list get_tags {
-          SELECT distinct tag from xowiki_tags 
+          SELECT distinct tag from xowiki_tags
           where user_id = :user_id and package_id :package_id
         }]
       } else {
         # all tags for the package
         set tags [::xo::dc list get_tags {
-          SELECT distinct tag from xowiki_tags 
+          SELECT distinct tag from xowiki_tags
           where package_id = :package_id
         }]
       }
@@ -1145,7 +1145,7 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%my set package_id} %proc
   Page instforward exists_form_parameter {%my set package_id} %proc
 
-  #   Page instproc init {} {    
+  #   Page instproc init {} {
   #     my log "--W "
   #     ::xo::show_stack
   #     next
@@ -1160,8 +1160,8 @@ namespace eval ::xowiki {
   #
   # check certain properties of a page (is_* methods)
   #
-  
-  # 
+
+  #
   # Check, if page is a folder
   #
   Page instproc is_folder_page {{-include_folder_links true}} {
@@ -1214,7 +1214,7 @@ namespace eval ::xowiki {
     # in circular link structures. If this method is called with e.g.
     # {-depth 1} and the link (actual object) points to some link2,
     # the link2 is returned.
-    # 
+    #
     # @param depth maximal dereferencing depth
     # @return target object or empty
     #
@@ -1270,12 +1270,16 @@ namespace eval ::xowiki {
     # subclass/object might have different requirements.
     return [my instance_attributes]
   }
-  
+
   #
   # Update helper for xowiki_form_instance_item_index (called from
   # cr_procs, whenever a live-revision becomes updated).
-  # 
+  #
   FormPage ad_instproc update_item_index {} {
+
+    Tailored version of CrItem.update_item_index to keep
+    insert_xowiki_form_instance_item_index in sync after updates.
+
   } {
     my instvar name item_id package_id parent_id publish_status \
         page_template instance_attributes assignee state
@@ -1307,6 +1311,35 @@ namespace eval ::xowiki {
     }
   }
 
+  FormPage ad_instproc update_attribute_from_slot {-revision_id slot value} {
+
+    Tailored version of update_attribute_from_slot to keep
+    insert_xowiki_form_instance_item_index in sync after singe
+    attribtute updates.
+
+  } {
+    #
+    # perform first the regular operations
+    #
+    next
+    #
+    # Make sure to update update_item_index when the attribute is
+    # contained in the xowiki_form_instance_item_index
+    #
+    set colName [$slot column_name]
+    if {$colName in {
+      package_id
+      parent_id
+      publish_status
+      page_template
+      instance_attributes
+      assignee
+      state
+    }} {
+      ::xowiki update_item_index -item_id [my item_id] -$colName $value
+    }
+  }
+
   ad_proc update_item_index {
     -item_id:required
     -package_id
@@ -1318,12 +1351,12 @@ namespace eval ::xowiki {
     -state
     -hstore_attributes
   } {
-    
+
     Helper function to update single or multiple fields of the
     xowiki_form_instance_item_index. Call this function only when
     updating fields of the xowiki_form_instance_item_index in cases
     where the standard API based on save and save_use canot be used.
-    
+
   } {
     foreach var {
       package_id parent_id
@@ -1342,13 +1375,13 @@ namespace eval ::xowiki {
       set hkey [::xowiki::hstore::dict_as_hkey $hstore_attributes]
       xo::dc dml update_hstore "update xowiki_form_instance_item_index \
                 set hkey = '$hkey' \
-                where item_id = :item_id"      
+                where item_id = :item_id"
     }
   }
 
   #
   # Define a specialized version of CrClass.fetch_object based
-  # on xowiki_form_instance_item_view 
+  # on xowiki_form_instance_item_view
   #
   FormPage ad_proc fetch_object {
     -item_id:required
@@ -1370,7 +1403,7 @@ namespace eval ::xowiki {
     if {$item_id == 0} {
       return [next]
     }
-    
+
     if {![::xotcl::Object isobject $object]} {
       # if the object does not yet exist, we have to create it
       my create $object
@@ -1385,7 +1418,7 @@ namespace eval ::xowiki {
     return $object
   }
 
-  
+
   #
   # helper for nls and lang
   #
@@ -1479,7 +1512,7 @@ namespace eval ::xowiki {
       return [my package_id]
     }
   }
-  
+
   #
   # folder handling
   #
@@ -1556,7 +1589,7 @@ namespace eval ::xowiki {
     }
     return 1
   }
-  
+
   Page instproc save args {
     if {![my can_save]} {error "can't save this page under this parent"}
     [my package_id] flush_page_fragment_cache
@@ -1577,7 +1610,7 @@ namespace eval ::xowiki {
 
   #
   # misc
-  # 
+  #
 
   Page instproc get_parent_object {} {
     #
@@ -1604,7 +1637,7 @@ namespace eval ::xowiki {
   #
   # render and substitutions
   #
-  
+
   Page instproc regsub_eval {{-noquote:boolean false} re string cmd {prefix ""}} {
     if {$noquote} {
       set map { \[ \\[ \] \\] \$ \\$ \\ \\\\}
@@ -1622,11 +1655,11 @@ namespace eval ::xowiki {
     my instvar name
     return [my error_during_render "[_ xowiki.error_in_includelet]<br >\n$msg"]
   }
-  
+
   Page ad_instproc resolve_included_page_name {page_name} {
     Determine the page object for the specified page name.
-    The specified page name might have the form 
-    //some_other_instance/page_name, in which case the 
+    The specified page name might have the form
+    //some_other_instance/page_name, in which case the
     page is resolved from some other package instance.
     If the page_name does not contain a language prefix,
     the language prefix of the including page is used.
@@ -1643,7 +1676,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc instantiate_includelet {arg} {
-    # we want to use package_id as proc-local variable, since the 
+    # we want to use package_id as proc-local variable, since the
     # cross package reference might alter it locally
     set package_id [my package_id]
 
@@ -1673,9 +1706,9 @@ namespace eval ::xowiki {
                     -use_prototype_pages true \
                     -default_lang [my lang] \
                     -parent_id [my parent_id] $page_name]
-      
+
       if {$page ne "" && ![$page exists __decoration]} {
-        # 
+        #
         # we use as default decoration for included pages
         # the "portlet" decoration
         #
@@ -1684,7 +1717,7 @@ namespace eval ::xowiki {
     }
 
     if {$page ne ""} {
-      $page set __caller_parameters [lrange $arg 1 end] 
+      $page set __caller_parameters [lrange $arg 1 end]
       $page destroy_on_cleanup
       my set __last_includelet $page
       $page set __including_page [self]
@@ -1830,7 +1863,7 @@ namespace eval ::xowiki {
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
         ns_log error "$errorMsg\n$::errorInfo"
         # in case of error, reset the adp_level to the previous value
-        set ::template::parse_level $including_page_level 
+        set ::template::parse_level $including_page_level
         incr ::xowiki_inclusion_depth -1
         return [my error_in_includelet $arg \
                     [_ xowiki.error-includelet-error_during_adp_evaluation]]
@@ -1897,7 +1930,7 @@ namespace eval ::xowiki {
     if {$stripped_name eq ""} {
       regexp {:([^:]+)$} $name _ stripped_name
     }
-    
+
     set normalized_name [[my package_id] normalize_name $stripped_name]
     #my msg "input: [self args] - lang=[my lang], [my nls_language]"
     if {$lang  eq ""}   {set lang [my lang]}
@@ -1907,14 +1940,14 @@ namespace eval ::xowiki {
   }
 
   Page instforward item_ref {%my package_id} %proc
-  
+
   Page instproc pretty_link {
-    {-anchor ""} 
-    {-query ""} 
-    {-absolute:boolean false} 
+    {-anchor ""}
+    {-query ""}
+    {-absolute:boolean false}
     {-siteurl ""}
-    {-lang ""} 
-    {-download false} 
+    {-lang ""}
+    {-download false}
   } {
     # return the pretty_link for the current page
     [my package_id] pretty_link -parent_id [my parent_id] \
@@ -1984,11 +2017,11 @@ namespace eval ::xowiki {
     #  if {[regexp {^([^:/?][^:/?][^:/?]+):((..):)?(.+)$} $link _ \
         # link_type _ lang  stripped_name]} {
     # set name file:$stripped_name
-    #  } 
+    #  }
 
     array set "" [my get_anchor_and_query $link]
 
-    set parent_id [expr {$package_id == [my package_id] ? 
+    set parent_id [expr {$package_id == [my package_id] ?
                          [my parent_id] : [$package_id folder_id]}]
 
     # we might consider make this configurable
@@ -2031,7 +2064,7 @@ namespace eval ::xowiki {
     if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
       return "<div class='errorMsg'>Error during processing of options [list $options]\
-	of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
+        of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
       return [self]::link
     }
@@ -2186,7 +2219,7 @@ namespace eval ::xowiki {
         append __template_variables__ "<li><b>$__v:</b> '[set $__v]'\n"
       }
       append __template_variables__ "</ul>\n"
-      set ::template::parse_level $my_parse_level 
+      set ::template::parse_level $my_parse_level
       #my log "--adp after adp_eval '[template::adp_level]' mpl=$my_parse_level"
       return "<div class='errorMsg'>Error in Page $name: $__errMsg</div>$content<p>Possible values are$__template_variables__"
     }
@@ -2291,14 +2324,14 @@ namespace eval ::xowiki {
     if {[my exists __no_footer]} {return ""}
 
     set footer ""
-    
+
     if {[ns_conn isconnected]} {
       set url         "[ns_conn location][::xo::cc url]"
       set package_url "[ns_conn location][$package_id package_url]"
     }
 
     set tags ""
-    if {[$package_id get_parameter "with_tags" 1] && 
+    if {[$package_id get_parameter "with_tags" 1] &&
         ![my exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
@@ -2335,9 +2368,9 @@ namespace eval ::xowiki {
     }
 
     if {[$package_id get_parameter "show_page_references" 1]} {
-      append footer [my include my-references] 
+      append footer [my include my-references]
     }
-    
+
     if {[$package_id get_parameter "show_per_object_categories" 1]} {
       set html [my include my-categories]
       if {$html ne ""} {
@@ -2350,11 +2383,11 @@ namespace eval ::xowiki {
 
     if {[$package_id get_parameter "with_general_comments" 0] &&
         ![my exists_query_parameter no_gc]} {
-      append footer [my include my-general-comments] 
+      append footer [my include my-general-comments]
     }
 
     if {$footer ne ""} {
-      # make sure, the 
+      # make sure, the
       append footer "<div class='visual-clear'><!-- --></div>"
     }
 
@@ -2428,7 +2461,7 @@ namespace eval ::xowiki {
   #        return [list html "Hello World" keywords "hello world"]
   #   }
   #
-  # 
+  #
   Page instproc search_render {} {
     my set __no_form_page_footer 1
     set html [my render]
@@ -2448,14 +2481,14 @@ namespace eval ::xowiki {
     #my log [list html $html keywords [array names word]]
     return [list mime text/html html $html keywords [array names word] text ""]
   }
-  
+
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
       set rows [xo::dc dml update_last_visisted {
-        update xowiki_last_visited set time = now(), count = count + 1 
+        update xowiki_last_visited set time = now(), count = count + 1
         where page_id = :item_id and user_id = :user_id
       }]
       if {$rows ne "" && $rows < 1} {
@@ -2468,13 +2501,13 @@ namespace eval ::xowiki {
 
   #
   # Some utility functions, called on different kind of pages
-  # 
+  #
   Page instproc get_html_from_content {content} {
     # Check, whether we got the content through a classic 2-element
     # OpenACS templating widget or directly.  If the list is not
     # well-formed, it must be contained directly.
-    if {![catch {set l [llength $content]}] 
-        && $l == 2 
+    if {![catch {set l [llength $content]}]
+        && $l == 2
         && [string match "text/*" [lindex $content 1]]} {
       return [lindex $content 0]
     }
@@ -2505,7 +2538,7 @@ namespace eval ::xowiki {
     }
     #
     # We have here a non-existing form-field. Maybe the entry in the
-    # form was dynamically created, so we create it here on the fly...  
+    # form was dynamically created, so we create it here on the fly...
     #
     # For forms with variable numbers of entries, we allow wild-cards
     # in the field-names of the form constraints.
@@ -2571,15 +2604,15 @@ namespace eval ::xowiki {
 
 
   Page instproc create_form_page_instance {
-    -name:required 
-    -package_id 
+    -name:required
+    -package_id
     -parent_id
     {-text ""}
     {-instance_attributes ""}
     {-default_variables ""}
     {-nls_language ""}
     {-creation_user ""}
-    {-publish_status production} 
+    {-publish_status production}
     {-source_item_id ""}
   } {
     set ia [dict merge [my default_instance_attributes] $instance_attributes]
@@ -2592,7 +2625,7 @@ namespace eval ::xowiki {
     if {$creation_user eq ""} {
       set creation_user [[$package_id context] user_id]
     }
-    
+
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
                -text $text \
@@ -2737,7 +2770,7 @@ namespace eval ::xowiki {
         set result [list text "" mime text/plain]
       }
     }
-    
+
     #ns_log notice "search_render returns $result"
     return $result
   }
@@ -2746,7 +2779,7 @@ namespace eval ::xowiki {
     set parent_id [my parent_id]
     set fileName [my full_file_name]
 
-    set f [open $fileName r]; set data [read $f]; close $f 
+    set f [open $fileName r]; set data [read $f]; close $f
 
     # Ugly hack to fight against a problem with tDom: asHTML strips
     # spaces between a </span> and the following <span>"
@@ -2761,8 +2794,8 @@ namespace eval ::xowiki {
     regsub -all "/span>\n<span " $data "/span><br><span " data
     regsub -all "/span>\n\n<span " $data "/span><br><br><span " data
 
-    dom parse -html $data doc 
-    $doc documentElement root 
+    dom parse -html $data doc
+    $doc documentElement root
 
     #
     # substitute relative links to download links in the same folder
@@ -2799,7 +2832,7 @@ namespace eval ::xowiki {
         set o [::xotcl::Object new]
         $o set page_order [incr $order]
         $o set title [$n asText]
-        
+
         set e [$doc createElement a]
         $e setAttribute name $name
         [$n parentNode] insertBefore $e $n
@@ -2807,7 +2840,7 @@ namespace eval ::xowiki {
         $o set name $name
         $pages add $o
       }
-      
+
       #$o instvar page_order title name
 
       ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner $owner
@@ -2816,8 +2849,8 @@ namespace eval ::xowiki {
     #
     # return content of body
     #
-    set content "" 
-    foreach n [$root selectNodes //body/*] { append content [$n asHTML] \n } 
+    set content ""
+    foreach n [$root selectNodes //body/*] { append content [$n asHTML] \n }
 
     return $content
   }
@@ -2880,11 +2913,11 @@ namespace eval ::xowiki {
     set content [next]
     append content <ul>
     foreach {label var} {
-      #xowiki.title# title 
-      #xowiki.PodcastItem-subtitle# subtitle 
-      #xowiki.Page-creator# creator 
-      #xowiki.PodcastItem-pub_date# pub_date 
-      #xowiki.PodcastItem-duration# duration 
+      #xowiki.title# title
+      #xowiki.PodcastItem-subtitle# subtitle
+      #xowiki.Page-creator# creator
+      #xowiki.PodcastItem-pub_date# pub_date
+      #xowiki.PodcastItem-duration# duration
       #xowiki.PodcastItem-keywords# keywords
     } {
       append content "<li><em>$label:</em> [my set $var]\n"
@@ -2900,8 +2933,8 @@ namespace eval ::xowiki {
     {render_adp 0}
   }
   PageTemplate instproc count_usages {
-    {-package_id 0} 
-    {-parent_id 0} 
+    {-package_id 0}
+    {-parent_id 0}
     {-publish_status ready}
   } {
     return [::xowiki::PageTemplate count_usages -package_id $package_id -parent_id $parent_id \
@@ -2909,9 +2942,9 @@ namespace eval ::xowiki {
   }
 
   PageTemplate proc count_usages {
-                                  {-package_id:integer 0} 
-                                  {-parent_id:integer 0} 
-                                  -item_id:required 
+                                  {-package_id:integer 0}
+                                  {-parent_id:integer 0}
+                                  -item_id:required
                                   {-publish_status ready}
                                 } {
     set publish_status_clause [::xowiki::Includelet publish_status_clause -base_table i $publish_status]
@@ -2928,7 +2961,7 @@ namespace eval ::xowiki {
       set parent_id_clause ""
     }
     set count [::xo::dc get_value count_usages \
-                   "select count(page_instance_id) from $bt, cr_items i  \ 
+                   "select count(page_instance_id) from $bt, cr_items i  \
             where page_template = $item_id \
                         $publish_status_clause $package_clause $parent_id_clause \
                         and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
@@ -2978,11 +3011,11 @@ namespace eval ::xowiki {
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
     # For the time being we cache the form_constraints per request as a global
-    # variable, which is reclaimed at the end of the connection. 
+    # variable, which is reclaimed at the end of the connection.
     #
     # We have to take care, that the variable name does not contain namespace-prefixes
     regsub -all :: $form_constraints ":_:_" var_name_suffix
-    
+
     set varname ::xowiki_$var_name_suffix
     if {![info exists $varname]} {
       foreach name_and_spec $form_constraints {
@@ -3045,7 +3078,7 @@ namespace eval ::xowiki {
     if {$spec ne ""} {
       return $spec
     }
-    # get widget spec from attribute definition 
+    # get widget spec from attribute definition
     set f [my create_raw_form_field -name $name -slot [my find_slot $name]]
     if {$f ne ""} {
       return [$f asWidgetSpec]
@@ -3109,9 +3142,9 @@ namespace eval ::xowiki {
     #my msg "parent of self [my name] is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
-    # properties of this page. Note, that we cannot distinguish here between 
+    # properties of this page. Note, that we cannot distinguish here between
     # intrinsic (starting with _) and extension variables, since get_from
-    # template does not know about the logic with "_" (just "property" does). 
+    # template does not know about the logic with "_" (just "property" does).
     #
     if {[$form_obj istype ::xowiki::PageInstance]} {
       #my msg "returning property $var from parent formpage $form_obj => '[$form_obj property $var $default]'"
@@ -3181,8 +3214,8 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc count_usages {
-    {-package_id 0} 
-    {-parent_id:integer 0} 
+    {-package_id 0}
+    {-parent_id:integer 0}
     {-publish_status ready}
   } {
     return [::xowiki::PageTemplate count_usages -package_id $package_id \
@@ -3321,7 +3354,7 @@ namespace eval ::xowiki {
     foreach name_and_spec $form_constraints {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
       if {[string match "@table*" $spec_name] || $spec_name eq "@categories"} continue
-      
+
       #my msg "checking spec '$short_spec' for form field '$spec_name'"
       lappend form_fields [my create_raw_form_field \
                                -name $spec_name \
@@ -3374,7 +3407,7 @@ namespace eval ::xowiki {
       set p [::xo::db::CrClass get_instance_from_db -item_id [my page_template]]
       #
       # The Form might come from a different package type (e.g. a
-      # workflow) make sure, the source package is available. 
+      # workflow) make sure, the source package is available.
       #
       # Note, that global pages (site_wide_pages) might not belong to
       # a package and have therefore an empty package_id.
@@ -3420,7 +3453,7 @@ namespace eval ::xowiki {
         set rhs_expr [string trim $rhs_expr]
         if {[string range $lhs 0 0] eq "_"} {
           set lhs_var [string range $lhs 1 end]
-          set rhs [split $rhs_expr |] 
+          set rhs [split $rhs_expr |]
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
             if {[my exists $lhs_var]} {
@@ -3474,9 +3507,9 @@ namespace eval ::xowiki {
   }
 
   FormPage proc get_form_entries {
-                                  -base_item_ids:required 
-                                  -package_id:required 
-                                  -form_fields:required 
+                                  -base_item_ids:required
+                                  -package_id:required
+                                  -form_fields:required
                                   {-publish_status ready}
                                   {-parent_id "*"}
                                   {-extra_where_clause ""}
@@ -3496,7 +3529,7 @@ namespace eval ::xowiki {
     # instance_select_query. Add the query attributes, we want to
     # obtain as well automatically.
     #
-    # "-parent_id *"  means to get instances, regardless of 
+    # "-parent_id *"  means to get instances, regardless of
     # parent_id. Under the assumption, page_template constrains
     # the query enough to make it fast...
     #
@@ -3511,7 +3544,7 @@ namespace eval ::xowiki {
     set sql_atts {
       item_id name publish_status object_type
       parent_id revision_id instance_attributes
-      creation_date creation_user last_modified 
+      creation_date creation_user last_modified
       package_id title page_template state assignee
     }
 
@@ -3526,7 +3559,7 @@ namespace eval ::xowiki {
         set name [string range $att 1 end]
         lappend sql_atts $name
       }
-    }    
+    }
 
     #
     # Compute the list of field_names from the already covered sql
@@ -3556,8 +3589,8 @@ namespace eval ::xowiki {
     #my msg sql_atts=$sql_atts
 
     #
-    # Build parts of WHERE clause 
-    # 
+    # Build parts of WHERE clause
+    #
     set publish_status_clause [::xowiki::Includelet publish_status_clause \
                                    -base_table "" $publish_status]
     #
@@ -3565,8 +3598,8 @@ namespace eval ::xowiki {
     #
     set filter_clause ""
     array set wc $h_where
-    set use_hstore [expr {[::xo::dc has_hstore] && 
-                          [$package_id get_parameter use_hstore 0] 
+    set use_hstore [expr {[::xo::dc has_hstore] &&
+                          [$package_id get_parameter use_hstore 0]
                         }]
     if {$use_hstore && $wc(h) ne ""} {
       set filter_clause " and '$wc(h)' <@ hkey"
@@ -3636,10 +3669,10 @@ namespace eval ::xowiki {
                    -object_class ::xowiki::FormPage -initialize $initialize]
 
     if {!$use_hstore && $wc(tcl) != "true"} {
-      # Make sure, that the expr method is available; 
+      # Make sure, that the expr method is available;
       # in xotcl 2.0 this will not be needed
       ::xotcl::alias ::xowiki::FormPage expr -objscope ::expr
-      
+
       set init_vars $wc(vars)
       foreach p [$items children] {
         set __ia [dict merge $init_vars [$p instance_attributes]]
@@ -3685,7 +3718,7 @@ namespace eval ::xowiki {
     # folders.  Get first the folder_refs configured in the actual
     # folder, which are not yet in aggregated_folder_refs.
     #
-    set additional_folder_refs ""    
+    set additional_folder_refs ""
     set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
     if {[$folder istype ::xowiki::FormPage]} {
       foreach ref [$folder property inherit_folders] {
@@ -3749,7 +3782,7 @@ namespace eval ::xowiki {
                        -select_attributes $attributes \
                        -where_clause "$extra_where_clause $publish_status_clause" \
                        -base_table $base_table]
-        
+
         foreach i [$items children] {
           $result add $i
         }
@@ -3777,7 +3810,7 @@ namespace eval ::xowiki {
         if {$page eq ""} {
           my log "Error: Could not resolve parameter page '$pp' of FormPage [self]."
         }
-        
+
         if {$page ne "" && [$page exists instance_attributes]} {
           set __ia [$page set instance_attributes]
           if {[dict exists $__ia $attribute]} {
@@ -3786,8 +3819,8 @@ namespace eval ::xowiki {
         }
       }
     }
-    
-    
+
+
     if {$value eq {}} {set value [next $attribute $default]}
     return $value
   }
@@ -3836,8 +3869,8 @@ namespace eval ::xowiki {
         error "property '$name' ($key) does not exist. \
         you might use flag '-new 1' for set_property to create new properties"
       }
-      my set $key $value      
-      
+      my set $key $value
+
     } else {
 
       my instvar instance_attributes
@@ -3860,9 +3893,9 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc condition=is_true {query_context value} {
-    # 
-    # This condition maybe called from the policy rules. 
-    # The passed value is a tuple of the form 
+    #
+    # This condition maybe called from the policy rules.
+    # The passed value is a tuple of the form
     #     {property-name operator property-value}
     #
     lassign $value property_name op property_value
@@ -3939,9 +3972,9 @@ namespace eval ::xowiki {
       set fields [$root selectNodes "//*\[@name != ''\]"]
       foreach field $fields {
         set node_name [$field nodeName]
-        if {$node_name ne "input" 
-            && $node_name ne "textarea" 
-            && $node_name ne "select" 
+        if {$node_name ne "input"
+            && $node_name ne "textarea"
+            && $node_name ne "select"
           } continue
         set att [$field getAttribute name]
         #if {[string match _* $att]} continue
@@ -3964,7 +3997,7 @@ namespace eval ::xowiki {
     set page_template [my page_template]
     if {[$page_template istype ::xowiki::FormPage]} {
       return [list text [$page_template property icon_markup] is_richtext true]
-    } 
+    }
     switch [$page_template name] {
       en:folder.form {
         return [list text "<img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
@@ -3975,7 +4008,7 @@ namespace eval ::xowiki {
         if {$link_type eq "unresolved"} {
           return [list text "<img src='$link_icon' width='12'> \
         <img src='http://www.deeptrawl.com/images/icons/brokenLinks.png' width='15'>" is_richtext true]
-        } 
+        }
         if {$link_type eq "folder_link"} {
           return [list text "<img src='$link_icon' width='12'> \
         <img src='/resources/file-storage/folder.gif' width='12'>" is_richtext true]
@@ -4049,7 +4082,7 @@ namespace eval ::xowiki {
       if {$form_vars} {foreach v $field_names {my set __field_in_form($v) 1}}
       set form_fields [my create_form_fields $field_names]
       my load_values_into_form_fields $form_fields
-      
+
       # deactivate form-fields and do some final sanity checks
       foreach f $form_fields {$f set_disabled 1}
       my form_fields_sanity_check $form_fields
@@ -4057,7 +4090,7 @@ namespace eval ::xowiki {
       set form [my regsub_eval  \
                     [template::adp_variable_regexp] $form \
                     {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
-      
+
       # we parse the form just for the margin-form.... maybe regsub?
       dom parse -simple -html $form doc
       $doc documentElement root
@@ -4068,7 +4101,7 @@ namespace eval ::xowiki {
       Form add_dom_attribute_value $form_node class [$page_template css_class_name]
       # The following two commands are for non-generated form contents
       my set_form_data $form_fields
-      Form dom_disable_input_fields $root 
+      Form dom_disable_input_fields $root
       # Return finally the result
       return [$root asHTML]
     }
@@ -4147,8 +4180,8 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc group_assign {
-    -group_id:integer,required 
-    -members:required 
+    -group_id:integer,required
+    -members:required
     {-rel_type membership_rel}
     {-member_state ""}
   } {
@@ -4177,7 +4210,7 @@ namespace eval ::xowiki {
     # don't marshall/save/cache the following vars
     #my array unset __ia
     my array unset __field_in_form
-    my array unset __field_needed 
+    my array unset __field_needed
   }
 
   Page instproc map_categories {category_ids} {
@@ -4231,7 +4264,7 @@ namespace eval ::xowiki {
 
 }
 
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:
