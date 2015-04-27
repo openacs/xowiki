@@ -778,7 +778,13 @@ namespace eval ::xowiki::formfield {
         link_label
       }
   file instproc check=virus {value} {
-    if {[my viruscheck] && $value ne "" && [::xowiki::virus check [my set tmpfile]]} {
+    set tmpfile [my set tmpfile]
+    # In case of an upgrade script, the (uploaded) tmp file might not exist
+    if {[my viruscheck]
+        && $value ne ""
+        && [file exists $tmpfile]
+        && [::xowiki::virus check $tmpfile]
+      } {
       #util_user_message -message "uploaded file contains a virus; upload rejected"
       return 0
     }
