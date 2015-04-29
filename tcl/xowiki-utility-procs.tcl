@@ -408,6 +408,19 @@ namespace eval ::xowiki {
   proc ::xowiki::transform_root_folder {package_id} {
     ::xo::Package initialize -package_id $package_id
     set item_id [$package_id folder_id]
+    
+    if {$item_id == 0} {
+      #
+      # In case we have to deal with very old installations, these
+      # might have missed same earlier upgrade scripts. In case the
+      # folder_id is 0, there was clearly something wrong and we have
+      # to fetch the item.
+      #
+      set name "xowiki: $package_id"
+      set item_id [xo::dc get_value refetch_item_id {
+        select item_id from cr_items where name = :name and parent_id = -100
+      }]
+    }
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
@@ -432,6 +445,13 @@ namespace eval ::xowiki {
     ::xo::dc dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
     ::xo::dc dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
     ::xo::dc dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
+
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$package_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache root-folder-$package_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
+    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $revision_id
   }
 
   ad_proc -public -callback subsite::url -impl apm_package {

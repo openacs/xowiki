@@ -1607,12 +1607,14 @@ namespace eval ::xowiki {
       my log "--sourcing page definition $fn, using name '$fullName'"
       set page [source $fn]
       $page configure -name $fullName \
-          -parent_id $parent_id -package_id $package_id 
+          -parent_id $parent_id -package_id $package_id
       # xowiki::File has a different interface for build-name to
       # derive the "name" from a file-name. This is not important for
       # prototype pages, so we skip it
       if {![$page istype ::xowiki::File]} {
         $page name [$page build_name]
+        my log "-- altering name of page $page to '[$page name]'"
+        set fullName [$page name]
       }
       if {![$page exists title]} {
         $page set title $object
@@ -1624,6 +1626,7 @@ namespace eval ::xowiki {
       if {$p eq ""} {
         # We have to create the page new. The page is completed with
         # missing vars on save_new.
+        my log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
         # An old page exists already, make a revision.  Update the
@@ -1633,6 +1636,7 @@ namespace eval ::xowiki {
           if {[$page array exists $v]} continue ;# don't copy arrays
           $p set $v [$page set $v]
         }
+        my log "--save of $p class [$p info class]"
         $p save
         set page $p
       }
@@ -1712,29 +1716,42 @@ namespace eval ::xowiki {
     @return folder_id
   } {
     my instvar id
-
+    
     set folder_id [ns_cache eval xotcl_object_type_cache root_folder-$id {
       
       set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       if {$folder_id == 0} {
-        ::xowiki::Package require_site_wide_pages
-        set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
-        set f [FormPage new -destroy_on_cleanup \
-                   -name $name \
-                   -text "" \
-                   -package_id $id \
-                   -parent_id $parent_id \
-                   -nls_language en_US \
-                   -publish_status ready \
-                   -instance_attributes {} \
-                   -page_template $form_id]
-        $f save_new
-        set folder_id [$f item_id]
+        #
+        # When the folder_id is 0, then something is wrong. Maybe an
+        # earlier update script was not running correctly.
+        #
+        set old_folder_id [xo::dc get_value double_check_old_package {
+          select item_id from cr_items where name = :name and parent_id = :parent_id
+        }]
+        if {$old_folder_id ne ""} {
+          ns_log notice "-- try to transform old root folder $old_folder_id of package $id"
+          ::xowiki::transform_root_folder $id
+          set folder_id $old_folder_id
+        } else {
+          ::xowiki::Package require_site_wide_pages
+          set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
+          set f [FormPage new -destroy_on_cleanup \
+                     -name $name \
+                     -text "" \
+                     -package_id $id \
+                     -parent_id $parent_id \
+                     -nls_language en_US \
+                     -publish_status ready \
+                     -instance_attributes {} \
+                     -page_template $form_id]
+          $f save_new
+          set folder_id [$f item_id]
 
-        ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
-            -attribute_name_in context_id -value_in $id
+          ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
+              -attribute_name_in context_id -value_in $id
 
-        my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
+          my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
+        }
       }
 
       # register all specified content types
@@ -2049,6 +2066,10 @@ namespace eval ::xowiki {
     [self class] [self proc]
   }
 
+  Package instproc clipboard-copy {} {
+    [my folder_id] clipboard-copy
+  }
+  
   #
   # Create new pages
   #
