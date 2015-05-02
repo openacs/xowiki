@@ -273,14 +273,6 @@ namespace eval ::xowiki {
   Class create Timeline -superclass XMLSyndication \
       -parameter {user_id {limit 1000}}
 
-  Timeline instproc reverse list {
-    set result [list]
-    for {set i [expr {[llength $list] - 1}]} {$i >= 0} {incr i -1}      {
-      lappend result [lindex $list $i]
-    }
-    return $result
-  }
-
   Timeline instproc render {} {
     my instvar package_id 
     set folder_ids [::$package_id folder_id]
@@ -331,7 +323,7 @@ namespace eval ::xowiki {
     # This does not work in cases, where we get just a limited amount 
     # or restricted entries
     #     if {$limit eq ""} {
-    #       foreach i [my reverse [items children]] {
+    #       foreach i [lreverse [items children]] {
     #         set key seen([$i set item_id])
     #         if {[info exists $key]} {
     #           $i set operation modified

@@ -54,7 +54,7 @@ namespace eval ::xowiki {
       -form ::xowiki::WikiForm
 
   if {$::xotcl::version < 1.5} {
-    ::xowiki::Page log "Error: at least, XOTcl 1.5 is required.\
+    ::xowiki::Page log "Error: XOTcl 1.5 or newer is required.\
     You seem to use XOTcl $::xotcl::version !!!"
   }
 
