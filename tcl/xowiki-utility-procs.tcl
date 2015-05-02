@@ -454,6 +454,17 @@ namespace eval ::xowiki {
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $revision_id
   }
 
+  proc ::xowiki::refresh_id_column_fk_constraints {} {
+    foreach cl [::xowiki::Page object_types] {
+      set tn [$cl table_name]
+      set cn ${tn}_fk
+      set sc [$cl info superclass]
+      ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint $cn"
+      ::xo::dc dml add_constraint  "ALTER TABLE $tn ADD constraint $cn FOREIGN KEY([$cl id_column]) \
+        REFERENCES [$sc table_name]([$sc id_column]) ON DELETE CASCADE;\n"
+    }
+  }
+
   ad_proc -public -callback subsite::url -impl apm_package {
     {-package_id:required}
     {-object_id:required}

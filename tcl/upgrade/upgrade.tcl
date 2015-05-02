@@ -625,6 +625,16 @@ namespace eval ::xowiki {
         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
       }]
     }
+
+    set v 5.9.0d1
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      # Some old instances have no proper foreign keys with cascading delete.
+      # Simply refresh all of these
+      ::xowiki::refresh_id_column_fk_constraints
+    }
   }
   
 }
