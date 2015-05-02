@@ -3580,11 +3580,7 @@ namespace eval ::xowiki {
       if {$field_name in $covered_attributes} {
         continue
       }
-      if {$field_name eq "_text"} {
-        lappend sql_atts "bt.data as text"
-      } else {
-        lappend sql_atts [$f set __base_field]
-      }
+      lappend sql_atts [$f set __base_field]
     }
     #my msg sql_atts=$sql_atts
 
