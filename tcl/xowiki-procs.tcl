@@ -1336,7 +1336,7 @@ namespace eval ::xowiki {
       assignee
       state
     }} {
-      ::xowiki update_item_index -item_id [my item_id] -$colName $value
+      ::xowiki::update_item_index -item_id [my item_id] -$colName $value
     }
   }
 
