@@ -2304,6 +2304,8 @@ namespace eval ::xowiki {
       ::xo::dc dml update_cr_items {
         update cr_items set parent_id = :new_parent_id where item_id = :item_id
       }
+      ::xowiki::update_item_index -item_id $item_id -parent_id $new_parent_id
+      
       ::xo::dc dml update_cr_child_rels {
         update cr_child_rels set parent_id = :new_parent_id, relation_tag = :relation_tag 
         where child_id = :item_id
