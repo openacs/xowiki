@@ -67,12 +67,26 @@ namespace eval ::xowiki::includelet {
         and publish_status = 'ready'
       }]
     }
+    #return [subst {
+    #  select * from xowiki_form_instance_children ch
+    #  left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
+    #  where page_template = '$form_id' and ch.package_id = '$package_id'
+    #  and root_item_id = '$parent_id'
+    #  and publish_status = 'ready'
+    #}]
+
+    #
+    # Oracle query missing
+    #
     return [subst {
-      select * from xowiki_form_instance_children ch
-      left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
-      where page_template = '$form_id' and ch.package_id = '$package_id'
-      and root_item_id = '$parent_id'
-      and publish_status = 'ready'
+      With RECURSIVE child_items AS (
+        select * from xowiki_form_instance_item_index where item_id = '$parent_id'
+      UNION ALL
+        select xi.* from xowiki_form_instance_item_index xi, child_items
+        where xi.parent_id = child_items.item_id
+      )
+      select * from child_items
+      where page_template = '$form_id' and package_id = '$package_id' and publish_status = 'ready'
     }]
   }
     
@@ -106,7 +120,7 @@ namespace eval ::xowiki::includelet {
     set sql [my folder_query -form_id $link_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
-    ns_log notice "links:\n$sql"
+    ns_log notice "links (parent-id ='$parent_id'):\n$sql"
     set links [::xowiki::FormPage instantiate_objects -sql $sql \
                     -named_objects true -object_named_after "item_id" \
                     -object_class ::xowiki::FormPage -initialize true]
