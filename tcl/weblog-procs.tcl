@@ -76,16 +76,19 @@ namespace eval ::xowiki {
       set date_clause ""
     }
     if {$category_id ne ""} {
-      set cnames [list]
+      set cnames {}
+      set category_ids {}
       foreach cid [split $category_id ,] {
-        if {![string is integer -strict $category_id]} {
+        if {![string is integer -strict $cid]} {
           ns_log warning "weblog: ignoring invalid category_id $cid"
           continue
         }
         append extra_where_clause "and exists (select * from category_object_map \
-           where object_id = ci.item_id and category_id = $cid)"
+           where object_id = ci.item_id and category_id = '$cid')"
         lappend cnames [::category::get_name $cid]
+        lappend category_ids $cid
       }
+      set category_id [join $category_ids ,]
       append extra_from_clause  ""
       set filter_msg "Filtered by category [join $cnames {, }]"
       set query_parm "&category_id=$category_id"
