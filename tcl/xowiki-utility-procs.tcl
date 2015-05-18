@@ -306,9 +306,9 @@ namespace eval ::xowiki {
          and i.publish_status = 'production' and i.name = r.revision_id::varchar
          $extra_clause
       "
-      ::xo::dc foreach get_revisions $sql {
+      foreach tuple [::xo::dc list_of_lists get_revisions $sql] {
         #::xotcl::Object msg "tuple = $tuple"
-        lassign $tuple name package_id item_id revision_id last_modified 
+        lassign $tuple name package_id item_id revision_id last_modified
         set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
         if {$time > $older_than} continue
         ::xotcl::Object log "...will delete $name doit=$doit $last_modified"
