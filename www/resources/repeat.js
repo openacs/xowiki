@@ -24,7 +24,7 @@ xowiki.repeat.addItem = function(e, json) {
 
             // IPAD HACK START
             // for ipad we have to set the contenteditiable to true for the ckeditor inline if it is false
-            var ck_editors = $(currentItem.find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr');
+            var ck_editors = $(currentItem.find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr'));
             for (var k = 0; k < ck_editors.length; k++) {
                 if ($(ck_editors[k]).attr('contenteditable') == 'false') {
                     console.log('we have to set the contenteditable to true');
