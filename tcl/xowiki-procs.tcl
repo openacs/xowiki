@@ -2026,23 +2026,37 @@ namespace eval ::xowiki {
 
     # we might consider make this configurable
     set use_package_path true
-
+    
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
-      # language link (it starts with a ':')
+      # we found a language link (it starts with a ':')
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
                         -default_lang [my lang] \
                         -parent_id $parent_id \
                         ${lang}:$stripped_name]
       set (link_type) language
+    } elseif {[regexp {^[.]SELF[.]/(.*)$} $(link) _ (link)]} {
+      #
+      # Remove ".SELF./" from the path and search for the named
+      # resource (e.g. the image name) under the current item.
+      #
+      array set "" [$package_id item_ref \
+                        -use_package_path $use_package_path \
+                        -default_lang [my lang] \
+                        -parent_id [my item_id] \
+                        $(link)]
+      
     } else {
-      regsub {^[.]SELF[.]/} $(link) [my name]/ (link)
+      #
+      # a plain link, search relative to the parent
+      #
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
                         -default_lang [my lang] \
                         -parent_id $parent_id \
                         $(link)]
     }
+      
     #my log "link '$(link)' => [array get {}]"
 
     if {$label eq $arg} {set label $(link)}
