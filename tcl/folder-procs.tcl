@@ -109,7 +109,7 @@ namespace eval ::xowiki::includelet {
     set sql [my folder_query -form_id $folder_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
-    ns_log notice "folder_pages:\n$sql"
+    #ns_log notice "folder_pages:\n$sql"
     set folder_pages [::xowiki::FormPage instantiate_objects -sql $sql \
                           -named_objects true -object_named_after "item_id" \
                           -object_class ::xowiki::FormPage -initialize true]
@@ -120,7 +120,7 @@ namespace eval ::xowiki::includelet {
     set sql [my folder_query -form_id $link_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
-    ns_log notice "links (parent-id ='$parent_id'):\n$sql"
+    #ns_log notice "links (parent-id ='$parent_id'):\n$sql"
     set links [::xowiki::FormPage instantiate_objects -sql $sql \
                     -named_objects true -object_named_after "item_id" \
                     -object_class ::xowiki::FormPage -initialize true]
