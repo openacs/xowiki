@@ -985,12 +985,12 @@ namespace eval ::xowiki {
       return $page
     }
 
-    #my msg "we have to try to import a prototype page for $stripped_object"
-    set page [my import-prototype-page $(stripped_name)]
-    if {$page ne ""} {
-      return $page
+    #my log "try to import a prototype page for '$stripped_object'"
+    set page [my import-prototype-page -add_revision false $(stripped_name)]
+    if {$page eq ""} {
+      my log "no prototype for '$object' found"
     }
-    my log "no prototype for '$object' found"
+
     return $page
   }
 
@@ -1563,7 +1563,7 @@ namespace eval ::xowiki {
   # import for prototype pages
   # 
 
-  Package instproc import-prototype-page {{prototype_name ""}} {
+  Package instproc import-prototype-page {{-add_revision:boolean true} {prototype_name ""}} {
     set page ""
     if {$prototype_name eq ""} {
       set prototype_name [my query_parameter import-prototype-page ""]
@@ -1577,7 +1577,8 @@ namespace eval ::xowiki {
                   -package_key [my package_key] \
                   -name $prototype_name \
                   -parent_id [my folder_id] \
-                  -package_id [my id] ]
+                  -package_id [my id] \
+                  -add_revision $add_revision_p]
 
     if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
       my returnredirect [my query_parameter "return_url" [my package_url]]
@@ -1590,6 +1591,7 @@ namespace eval ::xowiki {
                                       -name:required 
                                       -parent_id:required 
                                       -package_id:required
+                                      {-add_revision:boolean true}
                                     } {
     set page ""
     set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
@@ -1629,16 +1631,18 @@ namespace eval ::xowiki {
         my log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
-        # An old page exists already, make a revision.  Update the
-        # existing page with all scalar variables from the prototype
-        # page (which is just partial)
-        foreach v [$page info vars] {
-          if {[$page array exists $v]} continue ;# don't copy arrays
-          $p set $v [$page set $v]
+        if {$add_revision_p} {
+          # An old page exists already, make a revision.  Update the
+          # existing page with all scalar variables from the prototype
+          # page (which is just partial)
+          foreach v [$page info vars] {
+            if {[$page array exists $v]} continue ;# don't copy arrays
+            $p set $v [$page set $v]
+          }
+          my log "--save of $p class [$p info class]"
+          $p save
+          set page $p
         }
-        my log "--save of $p class [$p info class]"
-        $p save
-        set page $p
       }
       if {$page ne ""} {
         # we want to be able to address the page via the canonical name ::$item_id
