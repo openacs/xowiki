@@ -2963,8 +2963,9 @@ namespace eval ::xowiki::formfield {
   # note that the includelet "include" can be used for implementing symbolic links
   # to other xowiki pages.
   Class create include -superclass text -parameter {
+    {resolve_local false}
   }
-
+  
   include instproc pretty_value {v} {
     if {$v eq ""} { return $v }
 
@@ -2980,16 +2981,26 @@ namespace eval ::xowiki::formfield {
     set link_type [$object get_property_from_link_page link_type]
     $object references resolved [list $item_id $link_type]
 
-    #
-    # resetting esp. the item-id is dangerous. Therefore we reset it immediately after the rendering
-    #
-    $item_id set_resolve_context \
-        -package_id [$object package_id] -parent_id [$object parent_id] \
-        -item_id [$object item_id]
+    set resolve_local [my resolve_local]
+    if {$resolve_local} {
+      #
+      # resetting esp. the item-id is dangerous.
+      # Therefore we reset it immediately after the rendering
+      #
+      
+      my log "set_resolve_context -package_id [$object package_id] -parent_id [$object parent_id] \
+        -item_id [$object item_id]"
+      $item_id set_resolve_context \
+          -package_id [$object package_id] -parent_id [$object parent_id] \
+          -item_id [$object item_id]
+    }
+    
     set html [$item_id render]
-    #my msg "reset resolve-context"
-    $item_id reset_resolve_context
-
+    
+    if {$resolve_local} {
+      my log "reset resolve-context"
+      $item_id reset_resolve_context
+    }
     return $html
   }
 
