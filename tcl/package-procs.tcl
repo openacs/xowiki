@@ -1578,7 +1578,7 @@ namespace eval ::xowiki {
                   -name $prototype_name \
                   -parent_id [my folder_id] \
                   -package_id [my id] \
-                  -add_revision $add_revision_p]
+                  -add_revision $add_revision]
 
     if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
       my returnredirect [my query_parameter "return_url" [my package_url]]
@@ -1631,7 +1631,7 @@ namespace eval ::xowiki {
         my log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
-        if {$add_revision_p} {
+        if {$add_revision} {
           # An old page exists already, make a revision.  Update the
           # existing page with all scalar variables from the prototype
           # page (which is just partial)
