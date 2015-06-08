@@ -778,25 +778,35 @@ namespace eval ::xowiki {
       return ""
     }
   }
+  
   Package array set delegate_link_to_target {
     csv-dump 1 download 1 list 1
   }
+  
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
       return [my error_msg -template_file $error_template $errorMsg]
     }
     my set invoke_object $page_or_package
-    #my log "--r resolve_page => $page_or_package"
+    #my log "--r resolve_page '[my set object]' => $page_or_package"
     if {$page_or_package ne ""} {
       if {[$page_or_package istype ::xowiki::FormPage]
-          && [$page_or_package is_link_page]
-          && [[self class] exists delegate_link_to_target($method)]} {
+          && [$page_or_package is_link_page]} {
         # If the target is a symbolic link, we may want to call the
-        # method on the target
-        set target [$page_or_package get_target_from_link_page]
-        #my msg "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
-        if {$target ne ""} {set page_or_package $target}
+        # method on the target. The default behavior is defined in the
+        # array delegate_link_to_target, but if can be overruled with
+        # the boolean query parameter "deref".
+        set deref [[self class] exists delegate_link_to_target($method)]
+        if {[my exists_query_parameter deref]} {
+          set deref [my query_parameter deref]
+        }
+        #my log "invoke on LINK <$method> default deref $deref"
+        if {$deref} {
+          set target [$page_or_package get_target_from_link_page]
+          #my log "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
+          if {$target ne ""} {set page_or_package $target}
+        }
       }
       if {[$page_or_package procsearch $method] eq ""} {
         return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
