@@ -745,6 +745,7 @@ namespace eval ::xowiki {
 
     #my show_fields $form_fields
     #my log "__form_action [my form_parameter __form_action {}]"
+    
     if {[my form_parameter __form_action ""] eq "save-form-data"} {
       #my msg "we have to validate"
       #
@@ -958,11 +959,15 @@ namespace eval ::xowiki {
     }
 
     if {$formNode ne ""} {
+      
       if {[my exists_query_parameter "return_url"]} {
         set return_url [my query_parameter "return_url"]
+      } else {
+        set return_url [::xo::cc url]
       }
       set m [my form_parameter __form_redirect_method "edit"]
       set url [export_vars -base [my pretty_link] {m return_url}]
+      #my log "setting action <$url> for form-action my-name [my name]"
       $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $formNode class [$page_template css_class_name]
