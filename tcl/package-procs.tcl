@@ -805,7 +805,10 @@ namespace eval ::xowiki {
         if {$deref} {
           set target [$page_or_package get_target_from_link_page]
           #my log "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
-          if {$target ne ""} {set page_or_package $target}
+          if {$target ne ""} {
+            $target set __link_source $page_or_package
+            set page_or_package $target
+          }
         }
       }
       if {[$page_or_package procsearch $method] eq ""} {

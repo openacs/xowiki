@@ -158,7 +158,9 @@ namespace eval ::xowiki::includelet {
             #
             # reset the current_folder if necessary
             # 
-            if {$current_folder_id eq [$f parent_id]} {set current_folder_id [$l item_id]}
+            if {$current_folder_id eq [$f parent_id]} {
+              set current_folder_id [$l item_id]
+            }
             #
             # set the resolve_context
             #
@@ -191,6 +193,9 @@ namespace eval ::xowiki::includelet {
     my get_parameters
 
     set page [my set __including_page]
+    if {[$page exists __link_source]} {
+      set page [$page set __link_source]
+    }
     set package_id [::xo::cc package_id]
     set with_links [$package_id get_parameter "MenuBarSymLinks" 0]
 
@@ -388,7 +393,6 @@ namespace eval ::xowiki::includelet {
     foreach c $sub_folders {
 
       set label [$c title]
-      set object $c
       set folder_href [$c pretty_link]
 
       set is_current [expr {$current_folder_id eq [$c item_id]}]
@@ -467,6 +471,7 @@ namespace eval ::xowiki::includelet {
       set current_folder [$current_folder parent_id]
       ::xo::db::CrClass get_instance_from_db -item_id $current_folder
     }
+
     if {![$current_folder istype ::xowiki::FormPage]} {
       # current folder has to be a FormPage
       set current_folder [$current_folder parent_id]
