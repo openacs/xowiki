@@ -184,7 +184,7 @@ namespace eval ::xowiki::formfield {
           # if {!$containerDisabled} {
           ::html::a -href "#" \
               -id "repeat-del-link-[$c set id]" \
-              -class "repeat-del-link [my set CSSclass]" \
+              -class "repeat-del-link" \
               -onclick "return xowiki.repeat.delItem(this,\"$clientData\")" {
                 html::t [my repeat_remove_label]
               }
@@ -197,7 +197,7 @@ namespace eval ::xowiki::formfield {
       html::a -href "#" \
           -id "repeat-add-link-[my id]" \
           -style "$hidden" \
-          -class "repeat-add-link [my set CSSclass]" \
+          -class "repeat-add-link" \
           -onclick "return xowiki.repeat.addItem(this,\"$clientData\");" {
             html::t [my repeat_add_label]
           }
