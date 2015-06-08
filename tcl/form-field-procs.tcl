@@ -1661,40 +1661,43 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor instproc js_image_helper {} {
-    ::xo::Page requireJS {
-      function xowiki_image_callback(editor) {
-        $(editor.element.$.form).submit(function(e) {
-          calc_image_tags_to_wiki_image_links(this);
-        });
-        editor.setData(calc_wiki_image_links_to_image_tags(editor.getData()));
-      }
+    set path [[my object] pretty_link]
+    append js \
+        [subst -novariables {
+          function xowiki_image_callback(editor) {
+            if (typeof editor != "undefined") {
+              $(editor.element.$.form).submit(function(e) {
+                calc_image_tags_to_wiki_image_links(this);
+              });
+              editor.setData(calc_wiki_image_links_to_image_tags('[set path]',editor.getData()));
+            }
+          }
+        }] {
+          function calc_image_tags_to_wiki_image_links(form) {
+            var calc = function() {
+              var wiki_link = $(this).attr('alt');
+              $(this).replaceWith('[['+wiki_link+']]');
+            }
+            $(form).find('iframe').each(function() {
+              $(this).contents().find('img[type="wikilink"]').each(calc);
+            });
+            
+            $(form).find('textarea.ckeip').each(function() {
+              var contents = $('<div>'+this.value+'</div>');
+              contents.find('img[type="wikilink"]').each(calc);
+              this.value = contents.html();
+            });
+            return true;
+          }
 
-      function calc_image_tags_to_wiki_image_links (form) {
-        var calc = function() {
-          var wiki_link = $(this).attr('alt');
-          $(this).replaceWith('[['+wiki_link+']]');
+          function calc_wiki_image_links_to_image_tags(path, data) {
+            // path = path.replace(/:/ig,"%3a");
+            var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
+            data = data.replace(regex_wikilink,'<img src="'+path+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
+            return data
+          }
         }
-        $(form).find('iframe').each(function() {
-          $(this).contents().find('img[type="wikilink"]').each(calc);
-        });
-
-        $(form).find('textarea.ckeip').each(function() {
-          var contents = $('<div>'+this.value+'</div>');
-          contents.find('img[type="wikilink"]').each(calc);
-          this.value = contents.html();
-        });
-        return true;
-      }
-
-      function calc_wiki_image_links_to_image_tags (data) {
-        var pathname = window.location.pathname;
-        pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
-        pathname = pathname.replace(/:/ig,"%3a");
-        var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
-        data = data.replace(regex_wikilink,'<img src="'+pathname+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
-        return data
-      }
-    }
+    ::xo::Page requireJS $js
   }
 
   richtext::ckeditor instproc pathNames {fileNames} {
@@ -1842,53 +1845,54 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor4 instproc js_image_helper {} {
-    ::xo::Page requireJS {
-      function xowiki_image_callback(editor) {
-        if (typeof editor != "undefined") {
-          $(editor.element.$.form).submit(function(e) {
-            calc_image_tags_to_wiki_image_links(this);
-          });
-          editor.setData(calc_wiki_image_links_to_image_tags(editor.getData()));
+    set path [[my object] pretty_link]
+    append js \
+        [subst -novariables {
+          function xowiki_image_callback(editor) {
+            if (typeof editor != "undefined") {
+              $(editor.element.$.form).submit(function(e) {
+                calc_image_tags_to_wiki_image_links(this);
+              });
+              editor.setData(calc_wiki_image_links_to_image_tags('[set path]',editor.getData()));
+            }
+          }
+        }] {
+          function calc_image_tags_to_wiki_image_links(form) {
+            var calc = function() {
+              var wiki_link = $(this).attr('alt');
+              $(this).replaceWith('[['+wiki_link+']]');
+            }
+            $(form).find('iframe').each(function() {
+              $(this).contents().find('img[type="wikilink"]').each(calc);
+            });
+            
+            $(form).find('textarea.ckeip').each(function() {
+              var contents = $('<div>'+this.value+'</div>');
+              contents.find('img[type="wikilink"]').each(calc);
+              this.value = contents.html();
+            });
+            return true;
+          }
+
+          function calc_image_tags_to_wiki_image_links_inline(e) {
+            var data = $('<div>'+CKEDITOR.instances[e].getData()+'</div>');
+            data.find('img[type="wikilink"]').each( function() {
+              var wiki_link = $(this).attr('alt');
+              $(this).replaceWith('[['+wiki_link+']]');
+            });
+            CKEDITOR.instances[e].setData(data.html());
+            CKEDITOR.instances[e].updateElement();
+          }
+          
+          function calc_wiki_image_links_to_image_tags(path, text) {
+            // console.log('path = <' + path + '>');
+            //path = path.replace(/:/ig,"%3a");
+            var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
+            text = text.replace(regex_wikilink,'<img src="'+path+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
+            return text;
+          }
         }
-      }
-
-      function calc_image_tags_to_wiki_image_links (form) {
-        var calc = function() {
-          var wiki_link = $(this).attr('alt');
-          $(this).replaceWith('[['+wiki_link+']]');
-        }
-        $(form).find('iframe').each(function() {
-          $(this).contents().find('img[type="wikilink"]').each(calc);
-        });
-
-        $(form).find('textarea.ckeip').each(function() {
-          var contents = $('<div>'+this.value+'</div>');
-          contents.find('img[type="wikilink"]').each(calc);
-          this.value = contents.html();
-        });
-        return true;
-      }
-
-      function calc_image_tags_to_wiki_image_links_inline (e) {
-        var data = $('<div>'+CKEDITOR.instances[e].getData()+'</div>');
-        data.find('img[type="wikilink"]').each( function() {
-          var wiki_link = $(this).attr('alt');
-          $(this).replaceWith('[['+wiki_link+']]');
-        });
-        CKEDITOR.instances[e].setData(data.html());
-        CKEDITOR.instances[e].updateElement();
-      }
-
-      function calc_wiki_image_links_to_image_tags (data) {
-        var pathname = window.location.pathname;
-        pathname = pathname.substr(pathname.lastIndexOf("/")+1,pathname.length)
-        console.log('pathname' + pathname);
-        pathname = pathname.replace(/:/ig,"%3a");
-        var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
-        data = data.replace(regex_wikilink,'<img src="'+pathname+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
-        return data
-      }
-    }
+    ::xo::Page requireJS $js
   }
 
   richtext::ckeditor4 instproc pathNames {fileNames} {
