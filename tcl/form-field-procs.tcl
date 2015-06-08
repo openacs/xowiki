@@ -2003,7 +2003,7 @@ namespace eval ::xowiki::formfield {
 
           set submit_callback "$submit_callback [my submit_callback]"
           ::xo::Page requireJS [subst {
-            function load_ckinline_$id () {
+            function load_$id () {
               CKEDITOR.inline('$id', {
                 on: {
                   instanceReady: function(e) {
@@ -2019,11 +2019,11 @@ namespace eval ::xowiki::formfield {
             \$(document).ready(function() {
               if (\$('#$id').parents('.repeatable').length != 0) {
                 if (\$('#$id').is(':visible')) {
-                  load_ckinline_$id ();
+                  load_$id ();
                 }
               } else {
                 //this is not inside a repeatable container, load normally
-                load_ckinline_$id ();
+                load_$id ();
               }
               $ready_callback
             });
