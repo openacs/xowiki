@@ -527,8 +527,8 @@ namespace eval ::xowiki {
     ::xo::Page requireJS /resources/xowiki/swfobject.js
     my instvar package_id name
     #set link [$package_id pretty_link -absolute true  -siteurl http://localhost:8003 $name]/download.swf
-    lassign {320 240 #999999 7} width height bgcolor version
-    foreach a {width height bgcolor version} {if {[my exists $a]} {set $a [my set $a]}}
+    lassign {320 240 7} width height version
+    foreach a {width height version} {if {[my exists $a]} {set $a [my set $a]}}
     set id [::xowiki::Includelet self_id]
     set addParams ""
     foreach a {quality wmode align salign play loop menu scale} {
@@ -537,7 +537,7 @@ namespace eval ::xowiki {
     
     return "<div id='$id'>$label</div>
     <script type='text/javascript'>
-    var so = new SWFObject('$href', '$name', '$width', '$height', '$version', '$bgcolor');
+    var so = new SWFObject('$href', '$name', '$width', '$height', '$version');
     $addParams so.write('$id');
     </script>
     "
