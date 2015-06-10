@@ -94,7 +94,7 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet proc js_name {name} {
-    return [string map [list : _ # _] $name]
+    return ID[string map [list : _ # _] $name]
   }
   
   ::xowiki::Includelet proc js_encode {string} {
