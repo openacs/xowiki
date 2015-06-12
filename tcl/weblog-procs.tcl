@@ -65,7 +65,14 @@ namespace eval ::xowiki {
     # set up filters
     set extra_from_clause ""
     set extra_where_clause ""
-    
+
+    if {$date ne ""} {
+      if {[regexp {['\"<>]} $date]} {
+        ns_log Warning "ignoring invalid date '$date'"
+        set date ""
+        set query [::xo::update_query $query date ""]
+      }
+    }
     if {$date ne ""} {
       #set date_clause "and date_trunc('day',bt.publish_date) = '$date'"
       set date_clause "and [::xo::dc date_trunc_expression day bt.publish_date :date]"
