@@ -1416,7 +1416,7 @@ namespace eval ::xowiki::includelet {
     set content [subst -nobackslashes {
       #xowiki.your_tags_label#: $tags_with_links
       (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="block";return false;'>#xowiki.edit_link#</a>,
-       <a href='#' onclick='get_popular_tags("$popular_tags_link","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
+       <a href='#' onclick='get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
       <FORM id='[my id]-edit_tags' style='display: none' action="$save_tag_link" method='POST'>
       <INPUT name='new_tags' type='text' value="$tags">
       </FORM>
