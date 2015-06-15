@@ -115,7 +115,7 @@ namespace eval ::xowiki::notification {
     #ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id] publish_status=[$page set publish_status] XXX"
     $page instvar package_id
     set link [$page pretty_link -absolute 1]
-    append html "<p>For more details, see <a href='$link'>[$page set title]</a></p>"
+    append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [$page set title]]</a></p>"
     append text "\nFor more details, see $link ...<hr>\n"
 
     set state [expr {[$page set last_modified] eq [$page set creation_date] ? "New" : "Updated"}]

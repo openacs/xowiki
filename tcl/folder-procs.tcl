@@ -649,7 +649,7 @@ namespace eval ::xowiki::includelet {
     foreach v $viewers {
       set wf_link "${v}?p.folder=[${current_folder} name]"
       append wf_link "&m=create-or-use"
-      append viewer_links [subst -nocommands -nobackslashes {<li><a href="$wf_link">view with $v</a></li>}]
+      append viewer_links [subst -nocommands -nobackslashes {<li><a href="[ns_quotehtml $wf_link]">view with $v</a></li>}]
     }
     return "$menubar<ul>$viewer_links</ul> [$t asHTML]"
 

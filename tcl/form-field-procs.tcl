@@ -1370,7 +1370,7 @@ namespace eval ::xowiki::formfield {
       set date [$date_field pretty_value [$object property _last_modified]]
 
       if {[my with_user_link]} {
-        set user_link_begin "<a href='/shared/community-member?user_id=$v'>"
+        set user_link_begin "<a href='[ns_quotehrml /shared/community-member?user_id=$v]'>"
         set user_link_end "</a>"
       } else {
         set user_link_begin ""
@@ -1429,7 +1429,7 @@ namespace eval ::xowiki::formfield {
         set link_label $v
       }
       regsub -all & $v "&amp;" v
-      return "<a href='$v'>$link_label</a>"
+      return "<a href='[ns_quotehtml $v]'>$link_label</a>"
     }
   }
 
@@ -1449,7 +1449,7 @@ namespace eval ::xowiki::formfield {
     if {$v ne ""} {
       set link_label [my localize [my link_label]]
       regsub -all & $v "&amp;" v
-      return " <span class='more'>\[ <a href='$v'>$link_label</a> \]</span>"
+      return " <span class='more'>\[ <a href='[ns_quotehtml $v]'>$link_label</a> \]</span>"
     }
   }
 
@@ -2553,7 +2553,7 @@ namespace eval ::xowiki::formfield {
       foreach o [my set options] {
         lassign $o label value
         set href [$package_id pretty_link -parent_id $parent_id $value]
-        set labels($value) "<a href='$href'>$label</a>"
+        set labels($value) "<a href='[ns_quotehtml $href]'>$label</a>"
       }
       set hrefs [list]
       foreach i $v {
@@ -2562,7 +2562,7 @@ namespace eval ::xowiki::formfield {
           set labels($i) $i
         }
         set href [$package_id pretty_link -parent_id $parent_id $i]
-        lappend hrefs "<a href='$href'>$labels($i)</a>"
+        lappend hrefs "<a href='[ns_quotehtml $href]'>$labels($i)</a>"
       }
       if {[my multiple_style] eq "list"} {
         return "<ul><li>[join $hrefs {</li><li>}]</li></ul>\n"
@@ -2578,7 +2578,7 @@ namespace eval ::xowiki::formfield {
             return [$object include [list $value -decoration rightbox]]
           }
           set href [$package_id pretty_link -parent_id $parent_id $value]
-          return "<a href='$href'>$label</a>"
+          return "<a href='[ns_quotehtml $href]'>$label</a>"
         }
       }
     }

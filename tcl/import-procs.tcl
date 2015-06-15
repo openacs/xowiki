@@ -30,7 +30,7 @@ namespace eval ::xowiki {
         "updated" { set operation "[_ xowiki.updated]" }
         "inherited" { set operation "[_ xowiki.inherited]" }
 	}
-    my append log "<tr><td>$operation</td><td><a href='$href'>$name</a></td></tr>\n"
+    my append log "<tr><td>$operation</td><td><a href='[ns_quotehtml $href]'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
     my instvar added updated replaced inherited

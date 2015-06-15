@@ -91,7 +91,7 @@ namespace eval ::xowiki {
       html::t \n
       html::div -class "bd" {
         foreach group [my split_menu_groups [my children]] {
-          html::ul {
+          html::ul -class yuiml {
             foreach menuitemlist $group {$menuitemlist render}
           }
         }
@@ -217,7 +217,7 @@ namespace eval ::xowiki {
     my append CSSclass " yuimenu"
     html::div [my get_attributes id {CSSclass class}] {
       html::div -class "bd" {
-        html::ul {
+        html::ul -class yuicm {
           foreach li [my children] {$li render}
         }
       }
@@ -482,7 +482,7 @@ namespace eval ::xo::Table {
       if {[$field hide]} continue
       if {[$field istype HiddenField]} continue
       if {[$field istype BulkAction]} {
-        set label "<input type='checkbox' onclick='acs_ListCheckAll(\\\"objects\\\",this.checked)'></input>"
+        set label "<input type='checkbox' onclick='[ns_quotehtml acs_ListCheckAll(\"objects\",this.checked)]'></input>"
         set sortable false
       } else {
         set label [$field label]

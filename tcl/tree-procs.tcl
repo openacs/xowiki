@@ -233,7 +233,7 @@ namespace eval ::xowiki {
     if {![$item exists encoded(prefix)]} {set prefix [::xowiki::Includelet html_encode $prefix]}
     if {![$item exists encoded(suffix)]} {set suffix [::xowiki::Includelet html_encode $suffix]}
     append entry \
-        $prefix "<a href='$href'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
+        $prefix "<a href='[ns_quotehtml $href]'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
     if {$highlight} {
       return "<li class='liItem'><b>$entry</b></li>\n"
     } else {
@@ -253,10 +253,10 @@ namespace eval ::xowiki {
 
     set label [::xowiki::Includelet html_encode [my label]]
     if {[my exists count]} {
-      set entry "$label <a href='[my href]'>([my count])</a>"
+      set entry "$label <a href='[ns_quotehtml [my href]]'>([my count])</a>"
     } else {
       if {[my href] ne ""} {
-        set entry "<a href='[my href]'>$label</a>"
+        set entry "<a href='[ns_quotehtml [my href]]'>[ns_quotehtml $label]</a>"
       } else {
         set entry [my label]
       }
@@ -387,7 +387,7 @@ namespace eval ::xowiki {
     if {![$item exists encoded(prefix)]} {set prefix [::xowiki::Includelet html_encode $prefix]}
     if {![$item exists encoded(suffix)]} {set suffix [::xowiki::Includelet html_encode $suffix]}
     append entry \
-        $prefix "<a href='$href'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
+        $prefix "<a href='[ns_quotehtml $href]'>" [::xowiki::Includelet html_encode $title] "</a>" $suffix
     if {$highlight} {
       return "<b>$entry</b><br>\n"
     } else {

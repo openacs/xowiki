@@ -773,7 +773,7 @@ namespace eval ::xowiki {
     set name ${lang}:$local_name
     set new_link [my make_link [my id] edit-new object_type return_url name] 
     if {$new_link ne ""} {
-      return "<p>Do you want to create page <a href='$new_link'>$name</a> new?"
+      return "<p>Do you want to create page <a href='[ns_quotehtml $new_link]'>$name</a> new?"
     } else {
       return ""
     }

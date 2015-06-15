@@ -269,8 +269,8 @@ namespace eval ::xowiki {
     set query [::xo::update_query $query summary [expr {!$summary}]]
     set weblog_href [::xo::cc url]?$query
     #set weblog_href [$package_id package_url][$package_id get_parameter weblog_page]
-    #set flink "<a href='$weblog_href?summary=[expr {!$summary}]$query_parm'>$smsg($summary)</a>"
-    set flink "<a href='$weblog_href'>$smsg($summary)</a>"
+    #set flink "<a href='[ns_quotehtml $weblog_href?summary=[expr {!$summary}]$query_parm]'>[ns_quotehtml $smsg($summary)]</a>"
+    set flink "<a href='[ns_quotehtml $weblog_href]'>[ns_quotehtml $smsg($summary)]</a>"
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
@@ -279,9 +279,9 @@ namespace eval ::xowiki {
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
       
       if {$filter_msg ne ""} {
-        append filter_msg ", $range of $nr_items $entry_label (<a href='$weblog_href'>all</a>, $flink)"
+        append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $weblog_href]'>all</a>, [ns_quotehtml $flink])"
       } else {
-        append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
+        append filter_msg "Showing $range of $nr_items $entry_label ([ns_quotehtml $flink])"
       }
       
       set next_p [expr {$nr_items > $page_number*$page_size}]
@@ -331,11 +331,11 @@ namespace eval ::xowiki {
     set link [my pretty_link]
     regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
-                    " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
+                    " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     #append more "<p></p>"
 
     append content "<DIV class='post'>" \
-        "<h2><a href='$link'>$title</a></h2>" \
+        "<h2><a href='[ns_quotehtml $link]'>[ns_quotehtml $title]</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modfied by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
@@ -356,12 +356,12 @@ namespace eval ::xowiki {
       set filter  "<div class='filter'>$filter_msg</div>"
     } 
     if {[info exists prev_page_link]} {
-      set prev "<a href='$prev_page_link'>\
+      set prev "<a href='[ns_quotehtml $prev_page_link]'>\
         <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
              alt='Previous Page' style='float: left;  top: 0px;'></a>"
     }
     if {[info exists next_page_link]} {
-      set next "<a href='$next_page_link'>\
+      set next "<a href='[ns_quotehtml $next_page_link]'>\
         <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13'\
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }

@@ -66,7 +66,7 @@ namespace eval ::xowiki::includelet {
               2 {
                 set v [lindex $pp 1]
                 if {$v eq ""} {set v {""}}
-                append result " [lindex $pp 0] <em>$v</em>"
+                append result " [lindex $pp 0] <em>[ns_quotehtml $v]</em>"
               }
             }
             #append result "\n"
@@ -81,11 +81,11 @@ namespace eval ::xowiki::includelet {
   ::xowiki::Includelet proc available_includelets {} {
     if {[my array exists html]} {my array unset html}
     my describe_includelets [::xowiki::Includelet info subclass]
-    set result "<UL>"
+    set result "<ul>"
     foreach d [lsort [my array names html]] {
-      append result "<LI>" [my set html($d)] "</LI>" \n
+      append result "<li>" [my set html($d)] "</li>" \n
     }
-    append result "</UL>"
+    append result "</ul>"
     return $result
   }
 
@@ -441,7 +441,7 @@ namespace eval ::xowiki::includelet {
     set html [next]
     set localized_title [::xo::localize $title]
     set link [expr {[string match "*:*" $name] ? 
-                    "<a href='[$package_id pretty_link $name]'>$localized_title</a>" : 
+                    "<a href='[ns_quotehtml [$package_id pretty_link $name]]'>[ns_quotehtml $localized_title]</a>" : 
                     $localized_title}]
     ::xo::render_localizer
     return [subst [[self class] set template]]
@@ -461,7 +461,7 @@ namespace eval ::xowiki::includelet {
     set localized_title [::xo::localize $title]
     set edit_button [my include [list edit-item-button -book_mode true]]
     set link [expr {[string match "*:*" $name] ? 
-                    "<a href='[$package_id pretty_link $name]'>$localized_title</a>" : 
+                    "<a href='[ns_quotehtml [$package_id pretty_link $name]]'>[ns_quotehtml $localized_title]</a>" : 
                     $localized_title}]
     return [subst [[self class] set template]]
   } -set template {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
@@ -551,9 +551,8 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     set parent_ids [[my set __including_page] parent_id]
     set href [export_vars -base [$package_id package_url] {{rss $span} parent_ids name_filter title entries_of}]
-    regsub -all & $href "&amp;" href
     ::xo::Page requireLink -rel alternate -type application/rss+xml -title RSS -href $href
-    return "<a href=\"$href \" class='rss'>RSS</a>"
+    return "<a href=\"[ns_quotehtml $href]\" class='rss'>RSS</a>"
   }
 
   #############################################################################
@@ -584,8 +583,7 @@ namespace eval ::xowiki::includelet {
                 'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
     }]
     regsub -all {[\n ]+} $href " " href
-    regsub -all & $href "&amp;" href
-    return "<a href=\"$href \" title='$label' class='rss'>$label</a>"
+    return "<a href='[ns_quotehtml $href]' title='[ns_quotehtml $label]' class='rss'>[ns_quotehtml $label]</a>"
   }
 
   #############################################################################
@@ -1198,14 +1196,15 @@ namespace eval ::xowiki::includelet {
       return "No data available from $url<br>$detail"
     } else {
       set channel [$feed channel]
-      #set html "<H1>[$channel title]</H1>"
-      set html "<UL>\n"
+      #set html "<H1>[ns_quotehtml [$channel title]]</H1>"
+      set html "<ul>\n"
       set i 0
       foreach item [ $feed items ] {
-        append html "<LI><B>[$item title]</B><BR> [$item description] <a href='[$item link]'>#xowiki.weblog-more#</a>\n"
+        append html "<li><b>[ns_quotehtml [$item title]]</b><br>\
+           [ns_quotehtml [$item description]] <a href='[ns_quotehtml [$item link]]'>#xowiki.weblog-more#</a>\n"
         if {[incr i] >= $max_entries} break
       }
-      append html "</UL>\n"
+      append html "</ul>\n"
       return $html
     }
   }
@@ -1370,8 +1369,8 @@ namespace eval ::xowiki::includelet {
       if {$summary} {lappend q "summary=$summary"}
       if {$popular} {lappend q "popular=$popular"}
       set link $href$tag?[join $q &]
-      #lappend entries "$tag <a href='$href'>($nr)</a>"
-      lappend entries "$tag <a rel='tag' href='$link'>($nr)</a>"
+      #lappend entries "$tag <a href='$href'>([ns_quotehtml $nr])</a>"
+      lappend entries "[ns_quotehtml $tag] <a rel='tag' href='[ns_quotehtml $link]'>([ns_quotehtml $nr])</a>"
     }
     return [expr {[llength $entries]  > 0 ? 
                   "<h3>$label</h3> <BLOCKQUOTE>[join $entries {, }]</BLOCKQUOTE>\n" :
@@ -1409,7 +1408,7 @@ namespace eval ::xowiki::includelet {
 
     #foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
     set href [$package_id package_url]/tag/
-    foreach tag $tags {lappend entries "<a rel='tag' href='$href[ad_urlencode $tag]?summary=$summary'>$tag</a>"}
+    foreach tag $tags {lappend entries "<a rel='tag' href='[ns_quotehtml $href[ad_urlencode $tag]?summary=$summary]'>[ns_quotehtml $tag]</a>"}
     set tags_with_links [join [lsort $entries] {, }]
 
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
@@ -1417,9 +1416,9 @@ namespace eval ::xowiki::includelet {
       #xowiki.your_tags_label#: $tags_with_links
       (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="block";return false;'>#xowiki.edit_link#</a>,
        <a href='#' onclick='get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
-      <FORM id='[my id]-edit_tags' style='display: none' action="$save_tag_link" method='POST'>
-      <INPUT name='new_tags' type='text' value="$tags">
-      </FORM>
+      <form id='[my id]-edit_tags' style='display: none' action="[ns_quotehtml $save_tag_link]" method='POST'>
+      <div><INPUT name='new_tags' type='text' value="[ns_quotehtml $tags]"></div>
+      </form>
       <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
     return $content
@@ -1454,7 +1453,7 @@ namespace eval ::xowiki::includelet {
     foreach cat_id [category::get_mapped_categories [$__including_page set item_id]] {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
       #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
-      set entry "<a href='$href&amp;category_id=$category_id'>$category_name ($tree_name)</a>"
+      set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>[ns_quotehtml $category_name ($tree_name)]</a>"
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
@@ -1467,7 +1466,7 @@ namespace eval ::xowiki::includelet {
                                      {pretty_name $notification_text} \
                                      {type_id $notification_type} \
                                      {object_id $category_id}}]
-        append entry "<a href='$cat_notif_link'> " \
+        append entry "<a href='[ns_quotehtml $cat_notif_link]'> " \
             "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
             "alt='$notification_text' title='$notification_text'>" </a>
 
@@ -1527,8 +1526,7 @@ namespace eval ::xowiki::includelet {
       {title     "[string range [$__including_page title] 0 74]"}
       {body_text "[string range $description 0 349]"}
     }]
-    regsub -all & $digg_link "&amp;" digg_link
-    return "<a class='image-button' href='$digg_link'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!'></a>"
+    return "<a class='image-button' href='[ns_quotehtml $digg_link]'><img src='http://digg.com/img/badges/100x20-digg-button.png' width='100' height='20' alt='Digg!'></a>"
   }
 
   ::xowiki::IncludeletClass create delicious \
@@ -1559,8 +1557,7 @@ namespace eval ::xowiki::includelet {
       {notes "[string range $description 0 199]"}
       tags
     }]
-    regsub -all & $delicious_link "&amp;" delicious_link
-    return "<a class='image-button' href='$delicious_link'><img src='http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif' width='14' height='14' alt='Add to your del.icio.us' />del.icio.us</a>"
+    return "<a class='image-button' href='[ns_quotehtml $delicious_link]'><img src='http://i.i.com.com/cnwk.1d/i/ne05/fmwk/delicious_14x14.gif' width='14' height='14' alt='Add to your del.icio.us' />del.icio.us</a>"
   }
 
 
@@ -1583,7 +1580,7 @@ namespace eval ::xowiki::includelet {
     set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 
-    return "<a class='image-button' href='$my_yahoo_link'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' align='middle' alt='Add to My Yahoo!'></a>"
+    return "<a class='image-button' href='[ns_quotehtml $my_yahoo_link]'><img src='http://us.i1.yimg.com/us.yimg.com/i/us/my/addtomyyahoo4.gif' width='91' height='17' align='middle' alt='Add to My Yahoo!'></a>"
   }
 
 
@@ -1613,7 +1610,7 @@ namespace eval ::xowiki::includelet {
       }
       if {$pid ne ""} {
         ::xowiki::Package require $pid
-        lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+        lappend refs "<a href='[ns_quotehtml [$pid pretty_link -parent_id $parent_id $name]]'>[ns_quotehtml $name]</a>"
       }
     }
     set references [join $refs ", "]
@@ -1658,7 +1655,7 @@ namespace eval ::xowiki::includelet {
       }
       if {$pid ne ""} {
         ::xowiki::Package require $pid
-        lappend refs "<a href='[$pid pretty_link -parent_id $parent_id $name]'>$name</a>"
+        lappend refs "<a href='[ns_quotehtml [$pid pretty_link -parent_id $parent_id $name]]'>[ns_quotehtml $name]</a>"
       }
     }
 
@@ -2948,10 +2945,10 @@ namespace eval ::xowiki::includelet {
     if {$link ne ""} {
       set button_class [namespace tail [my info class]]
       set props ""
-      if {$alt ne ""} {append props "alt=\"$alt\" "}
-      if {$title ne ""} {append props "title=\"$title\" "}
-      if {$target ne ""} {append props "target=\"$target\" "}
-      set html "<a class='$button_class' href=\"$link\" $props>&nbsp;</a>"
+      if {$alt ne ""} {append props "alt=\"[ns_quotehtml $alt]\" "}
+      if {$title ne ""} {append props "title=\"[ns_quotehtml $title]\" "}
+      if {$target ne ""} {append props "target=\"[ns_quotehtml $target]\" "}
+      set html "<a class='$button_class' href=\"[ns_quotehtml $link]\" $props>&nbsp;</a>"
     }
     return $html
   }
@@ -3122,8 +3119,8 @@ namespace eval ::xowiki::includelet {
     array set n $nodes
 
     foreach {node label} $nodes {
-      set link "<a href='$base?$attrib=$node'>$label</a>"
-      append nodesHTML "<div id='$node' style='position:relative;'>&nbsp;&nbsp;&nbsp;&nbsp;$link</div>\n"
+      set link "<a href='[ns_quotehtml $base?$attrib=$node]'>[ns_quotehtml $label]</a>"
+      append nodesHTML "<div id='[ns_quotehtml $node]' style='position:relative;'>&nbsp;&nbsp;&nbsp;&nbsp;[ns_quotehtml $link]</div>\n"
     }
 
     set edgesHTML ""; set c 0
@@ -3306,7 +3303,7 @@ namespace eval ::xowiki::includelet {
     } elseif {[array size user] == 1} {
       set user_id [lindex [array names user] 0]
       append result "<p>Last $total activities were done by user " \
-          "<a href='collab?$user_id'>[::xo::get_user_name $user_id]</a>."
+          "<a href='[ns_quotehtml collab?$user_id]'>[ns_quotehtml [::xo::get_user_name $user_id]]</a>."
     } else {
       append result "<p>Collaborations in last $total activities by [array size user] Users in this wiki</p>"
 
@@ -3463,7 +3460,7 @@ namespace eval ::xowiki::includelet {
     }
     set msg_key [namespace tail [my info class]]
     set label [_ xowiki.$msg_key [list form_name [$form name]]]$label_suffix
-    return "<a href='$link'>$label</a>"
+    return "<a href='[ns_quotehtml $link]'>[ns_quotehtml $label]</a>"
   }
 
   Class create form-menu-button-new -superclass form-menu-button -parameter {
@@ -4076,17 +4073,17 @@ namespace eval ::xowiki::includelet {
     set label [$form_item name]
 
     if {$with_form_link} {
-      append html [_ xowiki.entries_using_form [list form "<a href='$base'>$label</a>"]]
+      append html [_ xowiki.entries_using_form [list form "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"]]
     }
     append html [t1 asHTML]
 
     if {$csv} {
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=csv"
-      lappend links "<a href='$csv_href'>csv</a>"
+      lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
     }
     if {[info exists voting_form]} {
       set href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=voting_form"
-      lappend links " <a href='$href'>Generate Voting Form $voting_form</a>"
+      lappend links " <a href='[ns_quotehtml $href]'>Generate Voting Form $voting_form</a>"
     }
     append html [join $links ,]
     #my log "render done"
@@ -4180,7 +4177,7 @@ namespace eval ::xowiki::includelet {
       set form_href [$item_id pretty_link]
       set action updated
     }
-    return "#xowiki.form-$action# <a href='$form_href'>$form_name</a>"
+    return "#xowiki.form-$action# <a href='[ns_quotehtml $form_href]'>[ns_quotehtml $form_name]</a>"
   }
 }
 
@@ -4204,8 +4201,8 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     
     if {$title eq ""} {set title $url}
-    set content "<iframe src='$url' width='$width' height='$height'></iframe>"
-    append content "<p><a href='$url' title='$title'>$title</a></p>"
+    set content "<iframe src='[ns_quotehtml $url]' width='[ns_quotehtml $width]' height='[ns_quotehtml $height]'></iframe>"
+    append content "<p><a href='[ns_quotehtml $ur][' title='[ns_quotehtml $title]'>[ns_quotehtml $title]</a></p>"
     return $content
   }
 
@@ -4507,7 +4504,7 @@ namespace eval ::xowiki::includelet {
   
   flowplayer instproc render {} {
     my get_parameters
-    return "<a href='$mp4' style='display:block;width:425px;height:300px;' id='player'> </a>
+    return "<a href='[ns_quotehtml $mp4]' style='display:block;width:425px;height:300px;' id='player'> </a>
     <script type='text/javascript'>
  flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.2.7.swf', {
         

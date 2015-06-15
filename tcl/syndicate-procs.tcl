@@ -59,7 +59,7 @@ namespace eval ::xowiki {
                         "<!-- [string repeat deadbef 100] -->" : ""
                       }]
       set css_link [expr {[string match "/*" $css] ? $css : "/resources/xowiki/$css"}]
-      return "\n<?xml-stylesheet type='text/css' href='$css_link' ?>\n$filler"
+      return "\n<?xml-stylesheet type='text/css' href='[ns_quotehtml $css_link]' ?>\n$filler"
     }
     return ""
   }

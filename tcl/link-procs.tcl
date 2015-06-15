@@ -51,7 +51,7 @@ namespace eval ::xowiki {
   ExternalLink instproc render {} {
     my instvar href label
     set css_atts [my mk_css_class_and_id -additional external]
-    return "<a [my anchor_atts] href='$href'>$label<span class='external'>&nbsp;</span></a>"
+    return "<a [my anchor_atts] href='[ns_quotehtml $href]'>$label<span class='external'>&nbsp;</span></a>"
   }
 
   #
@@ -127,7 +127,7 @@ namespace eval ::xowiki {
       return $result
     } else {
       ns_log notice "xowiki::link: unknown target $target"
-      return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>[ns_quotehtml $label]</a>"
     }
   }
   
@@ -137,14 +137,14 @@ namespace eval ::xowiki {
     } elseif {[my exists target] && ![my built_in_target]} {
       return [my render_target $href $label]
     } else {
-      return "<a [my anchor_atts] [my mk_css_class_and_id] href='$href'>$label</a>"
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>[ns_quotehtml $label]</a>"
     }
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a [my mk_css_class_and_id -additional missing] href='$href'> $label</a>"
+      return "<a [my mk_css_class_and_id -additional missing] href='[ns_quotehtml $href]'> [ns_quotehtml $label]</a>"
     }
   }
   Link instproc pretty_link {item_id} {
@@ -238,7 +238,7 @@ namespace eval ::xowiki {
   # Small bootstrap modal
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
-<a href="#$id" role="button" data-toggle="modal">$label</a>
+    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">[ns_quotehtml $label]</a>
   } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
@@ -262,9 +262,9 @@ namespace eval ::xowiki {
   # Large bootstrap modal
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-lg -link_template {
-<a href="#$id" role="button" data-toggle="modal">$label</a>
+    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
   } -body_template {
-<div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="[ns_quotehtml $id]" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -286,7 +286,7 @@ namespace eval ::xowiki {
   # Small bootstrap modal using ajax
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
-    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+    <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='[ns_quotehtml $id]-button' role="button" data-target='#$id' data-toggle="modal">[ns_quotehtml $label]</a>
   } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm">
@@ -311,7 +311,7 @@ namespace eval ::xowiki {
   # Large bootstrap modal using ajax
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-lg-ajax -render_content false -link_template {
-    <a href="$href?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
+<a href="[ns_quotehtml $href]?template_file=view-modal-content" id='$id-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
   } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -372,7 +372,7 @@ namespace eval ::xowiki {
     }
     if {$link ne ""} {
       $page lappend lang_links($image_css_class) \
-          "<a href='$link' [my mk_css_class_and_id]><img class='$image_css_class' \
+          "<a href='[ns_quotehtml $link]' [my mk_css_class_and_id]><img class='[ns_quotehtml $image_css_class]' \
                 src='/resources/xowiki/flags/$lang.png' alt='$lang'></a>"
     }
     return ""
@@ -436,7 +436,7 @@ namespace eval ::xowiki {
       set href [my set href]
       if {[string match "java*" $href]} {set href .}
       if {[my exists revision_id]} {append href ?revision_id=[my revision_id]}
-      return "$pre<a $cls href='$href'><img $cls src='$link' alt='$label' title='$label' $style></a>$post"
+      return "$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style></a>$post"
     } else {
       if {[my exists revision_id]} {append link ?revision_id=[my revision_id]}
       return "$pre<img $cls src='$link' alt='$label' title='$label' $style>$post"
@@ -482,7 +482,7 @@ namespace eval ::xowiki {
       if {[my exists revision_id]} {append internal_href ?revision_id=[my revision_id]}
     }
     if {![info exists embed_options]} {
-      return "<a href='$internal_href' [my mk_css_class_and_id -additional file]>$label<span class='file'>&nbsp;</span></a>"
+      return "<a href='[ns_quotehtml $internal_href]' [my mk_css_class_and_id -additional file]>[ns_quotehtml $label]<span class='file'>&nbsp;</span></a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
@@ -662,8 +662,8 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
-    return "<a href='$href' onclick=\"showInfo('$href?master=0','$label'); return false;\"\
-        [my mk_css_class_and_id -additional glossary]>$label</a>"
+    return "<a href='[ns_quotehtml $href]' onclick=\"showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]'); return false;\"\
+        [my mk_css_class_and_id -additional glossary]>[ns_quotehtml $label]</a>"
   }
 
   #
