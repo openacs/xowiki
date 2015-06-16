@@ -439,7 +439,7 @@ namespace eval ::xowiki {
       return "$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style></a>$post"
     } else {
       if {[my exists revision_id]} {append link ?revision_id=[my revision_id]}
-      return "$pre<img $cls src='$link' alt='$label' title='$label' $style>$post"
+      return "$pre<img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style>$post"
     }
   }
 
@@ -485,7 +485,7 @@ namespace eval ::xowiki {
       return "<a href='[ns_quotehtml $internal_href]' [my mk_css_class_and_id -additional file]>[ns_quotehtml $label]<span class='file'>&nbsp;</span></a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
-      return "<embed src='$internal_href' name=\"[my name]\" $embed_options></embed>"
+      return "<embed src='[ns_quotehtml $internal_href]' name=\"[my name]\" $embed_options></embed>"
     }
   }
 
@@ -535,106 +535,13 @@ namespace eval ::xowiki {
       if {[my exists $a]} {append addParams "so.addParam('$a', '[my set $a]');\n"}
     }
     
-    return "<div id='$id'>$label</div>
+    return "<div id='[ns_quotehtml $id]'>$label</div>
     <script type='text/javascript'>
-    var so = new SWFObject('$href', '$name', '$width', '$height', '$version');
+    var so = new SWFObject('[ns_quotehtml $href]', '[ns_quotehtml $name]', '[ns_quotehtml $width]', '[ns_quotehtml $height]', '[ns_quotehtml $version]');
     $addParams so.write('$id');
     </script>
     "
   }
-
-  #
-  # plugin link
-  #
-  #   Class create ::xowiki::Link::plugin -superclass ::xowiki::Link::file -parameter {
-  #       classid width height autostart params
-  #   }
-
-  #   ::xowiki::Link::plugin instproc render_found {href label} {
-  #     my instvar package_id name
-
-  #     foreach {width height autostart} {320 240 true} break
-  #     foreach a {classid width height autostart} {if {[my exists $a]} {set $a [my set $a]}}
-  #     set arguments [list width height autostart]
-  
-  #     set object_params ""
-  #     if {[my exists params]} {
-  #       set paramlist [split [my set params] ,]
-  #       foreach p $paramlist {
-  #         set pair [split $p =]
-  #         set param([lindex $pair 0]) [lindex $pair 1]
-  #       }
-  #     }
-
-  #     #my msg [my name]-guess-type=[::xowiki::guesstype [my name]]
-  #     set mime [::xowiki::guesstype [my name]]
-
-  #     switch $mime {
-  #       video/x-ms-wmv {
-  #         # TODO: using classid will stop firefox loading plugin,
-  #         # without classid IE asks user to allow addon
-  #         # also possible: application/x-mplayer2
-  #         if {![my exists classid]} {set classid "CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6"}
-  #         foreach f $arguments {if {[info exists $f]} {append object_params "<PARAM NAME='$f' VALUE='[set $f]'/>"}}
-  #         set objectElement \
-      #         "<OBJECT WIDTH='$width' HEIGHT='$height' TYPE='$mime' DATA='$href'>\n\
-      #         <PARAM NAME='SRC' VALUE='$href'/>\n$object_params\n\
-      #         </OBJECT>"
-  #       }
-  #       video/quicktime  {
-  #         if {![my exists classid]} {set classid "CLSID:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B"}
-  #         foreach f $arguments {if {[info exists $f]} {append object_params "<PARAM NAME='$f' VALUE='[set $f]'/>"}}
-  #         set objectElement \
-      #         "<OBJECT WIDTH='$width' HEIGHT='$height' \n\
-      #         CLASSID='$classid' CODEBASE='http://www.apple.com/qtactivex/qtplugin.cab'> \n\
-      #                 <PARAM NAME='SRC' VALUE='$href'/> \n\
-      #             <OBJECT TYPE='$mime' DATA='$href' WIDTH='$width' HEIGHT='$height'> \n\
-      #                 $object_params \n\
-      #                 </OBJECT>\n</OBJECT>\n"
-  #       }
-  #       application/x-shockwave-flash {
-  #         if {![my exists classid]} {set classid "CLSID:D27CDB6E-AE6D-11cf-96B8-444553540000"}
-  #         set embed_options ""
-  #         set app_params "?"
-  #         foreach f $arguments {if {[info exists $f]} { append embed_options "$f = '[set $f]' " }}
-  #         foreach {att value} [array get param] {append app_params "$att=$value&"} ;# replace with export_vars
-  #         set objectElement \
-      #         "<OBJECT WIDTH='$width' HEIGHT='$height' \n\
-      #             CLASSID='$classid' TYPE='$mime' \n\
-      #                 CODEBASE='http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0'> \n\
-      #                 <PARAM NAME='movie' VALUE='$href$app_params'/>\n\
-      #                 <EMBED SRC='$href$app_params' NAME='[my stripped_name]' TYPE='$mime'\n\
-      #                 PLUGINSPACE='http://www.macromedia.com/go/getflashplayer' $embed_options />\n\
-      #                 </OBJECT>\n"
-  #       }
-  #       application/java {
-  #         if {![my exists classid]} {set classid "clsid:CAFEEFAC-0015-0000-0000-ABCDEFFEDCBA"}
-  #         if {![info exists param(code)]} {set param(code) [my stripped_name]}
-  #         if {![info exists codebase]} {set codebase [$package_id pretty_link -lang [my lang] -download true ""]}
-
-  #         foreach {att value} [array get param] {append object_params "<PARAM NAME='$att' VALUE='$value'/>\n"}
-  #         set objectElement \
-      #         "<OBJECT WIDTH='$width' HEIGHT='$height' \n\
-      #             CLASSID='$classid' CODETYPE='application/x-java-applet;jpi-version=1.6.0_03'>\n\
-      #                 <APPLET WIDTH='$width' HEIGHT='$height' NAME='[my stripped_name]' CODEBASE='$codebase' TYPE='$mime'>\n\
-      #                 $object_params \n\
-      #                 <NOEMBED>No Java Support.</NOEMBED> \n\
-      #                 </APPLET>\n\
-      #                 $object_params \n\
-      #                 </OBJECT>\n"
-  #       }
-  #       default {
-  #         my msg "unknown mime type '$mime' for plugin"
-  #         #set mime "application/x-oleobject"
-  #       }
-  #     }
-
-  #     return "$objectElement
-  #               <DIV ID='[my name]'>$label ([my name])</DIV>  <!-- TODO REMOVE ME -->
-  #              "
-  #   }
-
-
 
   #
   # glossary links

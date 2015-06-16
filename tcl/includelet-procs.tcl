@@ -1459,7 +1459,7 @@ namespace eval ::xowiki::includelet {
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_image \
             "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-            alt='$notification_text' title='$notification_text'>"
+            alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>"
 
         set cat_notif_link [export_vars -base /notifications/request-new \
                                 {{return_url $notifications_return_url} \
@@ -1468,7 +1468,7 @@ namespace eval ::xowiki::includelet {
                                      {object_id $category_id}}]
         append entry "<a href='[ns_quotehtml $cat_notif_link]'> " \
             "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
-            "alt='$notification_text' title='$notification_text'>" </a>
+            "alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>" </a>
 
       }
       lappend entries $entry
@@ -2506,7 +2506,7 @@ namespace eval ::xowiki::includelet {
         # Pass the page_order for the element to javascript and add
         # the li element for the section.
         set item_id [my page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
-        append output "<li id='$item_id'>"
+        append output "<li id='[ns_quotehtml $item_id]'>"
       }
 
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
@@ -2689,7 +2689,7 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-        "<div id='$id'><ul>\n" \
+        "<div id='[ns_quotehtml $id]'><ul>\n" \
         <li>[join [my render_images $pages] "</li>\n<li>"]</li> \
         "</ul></div>\n"
 
@@ -2743,7 +2743,7 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-        "<div id='$id'><ul>\n" \
+        "<div id='[ns_quotehtml $id]'><ul>\n" \
         <li>[join [my render_images $pages] "</li>\n<li>"]</li> \
         "</ul></div>\n"
 
@@ -2803,7 +2803,7 @@ namespace eval ::xowiki::includelet {
     
     set id [my js_name]
     append output \
-        "<div id='$id'>" \
+        "<div id='[ns_quotehtml $id]'>" \
         [join [my render_images -addClass cloudcarousel $pages] "\n"] \
         "</div>\n"
 
@@ -2881,7 +2881,7 @@ namespace eval ::xowiki::includelet {
 
     set id [my js_name]
     append output \
-        "<div id='$id' class='spacegallery'>\n" \
+        "<div id='[ns_quotehtml $id]' class='spacegallery'>\n" \
         [join [my render_images $pages] "\n"] \
         "</div>\n"
 
@@ -4231,8 +4231,8 @@ namespace eval ::xowiki::includelet {
 
   yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {
     set size_info ""
-    if {$width ne ""} {append size_info " width='$width'"}
-    if {$height ne ""} {append size_info " height='$height'"}
+    if {$width ne ""} {append size_info " width='[ns_quotehtml $width]'"}
+    if {$height ne ""} {append size_info " height='[ns_quotehtml $height]'"}
     if {$width ne "" && $height ne ""} {
       set geometry "?geometry=${width}x${height}"
     } else {
@@ -4374,7 +4374,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set content "<div id='$ID'><ol>\n"
+    set content "<div id='[ns_quotehtml $ID]'><ol>\n"
     if {$form ne ""} {
       set images [my form_images -package_id $package_id -parent_id $parent_id \
                       -form $form -glob $glob -width $width -height $height]
@@ -4418,7 +4418,7 @@ namespace eval ::xowiki::includelet {
 
   gravatar instproc render {} {
     my get_parameters
-    return "<img src='[gravatar url -email $email -size $size]' alt='$email'>"
+    return "<img src='[gravatar url -email $email -size $size]' alt='[ns_quotehtml $email]'>"
   }
 }
 

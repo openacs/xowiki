@@ -812,7 +812,7 @@ namespace eval ::xowiki {
         }
       }
       if {[$page_or_package procsearch $method] eq ""} {
-        return [my error_msg "Method <b>'$method'</b> is not defined for this object"]
+        return [my error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
         #my msg "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
 
@@ -833,7 +833,7 @@ namespace eval ::xowiki {
       set path [::xowiki::Includelet html_encode [my set object]]
       set edit_snippet [my create_new_snippet $path]
       return [my error_msg -status_code 404 -template_file $error_template \
-                  "Page <b>'$path'</b> is not available. $edit_snippet"]
+                  "Page <b>'[ns_quotehtml $path]'</b> is not available. $edit_snippet"]
     }
   }
 

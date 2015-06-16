@@ -147,7 +147,7 @@ namespace eval ::xowiki {
       setInterval('$get_update',5000)
       </script>
       <form action='#' onsubmit='chatSendMsg(\"$send_url\",chatReceiver); return false;'>
-      <iframe name='ichat' id='ichat' frameborder='0' src='$login_url'
+      <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $login_url]'
           style='width:90%;' height='150'>
       </iframe>
       <input type='text' size='40' name='msg' id='chatMsg'>
@@ -181,7 +181,7 @@ namespace eval ::xowiki {
       var send_url = \"$send_url\";
       </script>
       <div id='messages' style='$style'></style>
-      <iframe name='ichat' id='ichat' frameborder='0' src='$subscribe_url' 
+      <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $subscribe_url]' 
               style='width:0px; height:0px; border: 0px'>
       </iframe>
       <form action='#' onsubmit='chatSendMsg(); return false;'>

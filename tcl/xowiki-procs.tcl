@@ -1885,7 +1885,7 @@ namespace eval ::xowiki {
     } elseif {[string match "left-col*" $arg] \
                   || [string match "right-col*" $arg] \
                   || $arg eq "sidebar"} {
-      return "<div id='$arg' class='column'>"
+      return "<div id='[ns_quotehtml $arg]' class='column'>"
     } elseif {$arg eq "box"} {
       return "<div class='box'>"
     } elseif {$arg eq ""} {
@@ -4016,14 +4016,14 @@ namespace eval ::xowiki {
         set link_type [my get_property_from_link_page link_type "unresolved"]
         set link_icon "http://www.ejoe.at/typo3/sysext/rtehtmlarea/res/accessibilityicons/img/internal_link.gif"
         if {$link_type eq "unresolved"} {
-          return [list text "<img src='$link_icon' width='12' alt='internal-link'> \
+          return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='internal-link'> \
         <img src='http://www.deeptrawl.com/images/icons/brokenLinks.png' width='15'>" is_richtext true]
         }
         if {$link_type eq "folder_link"} {
-          return [list text "<img src='$link_icon' width='12' alt='folder-link'> \
+          return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='folder-link'> \
           <img src='/resources/file-storage/folder.gif' width='12' alt='folder'>" is_richtext true]
         }
-        return [list text "<img src='$link_icon' width='12' alt='interal-link'>" is_richtext true]
+        return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='interal-link'>" is_richtext true]
       }
       default {
         return [list text [$page_template title] is_richtext false]
