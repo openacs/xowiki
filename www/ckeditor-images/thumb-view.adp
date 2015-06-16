@@ -32,7 +32,7 @@ function changePreview(url,name,mime) {
     <if @sub_files.mime_type@ in "image/jpeg" "image/png" "image/gif">
         <img src="@sub_files.url@?m=download" height="60" width="100" onClick="changePreview('@sub_files.url@?m=download','@sub_files.name@', '@sub_files.mime_type@')"></a>
     </if>
-<small><br>@sub_files.date@ </small><a href="@sub_files.url@?m=delete&return_url=@return_url;noquote@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="Löschen" title="Löschen" ></a>
+<small><br>@sub_files.date@ </small><a href="@sub_files.url@?m=delete&amp;return_url=@return_url;noquote@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="Löschen" title="Löschen" ></a>
 </center>
 </div>
 <br/>

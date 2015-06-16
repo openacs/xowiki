@@ -85,7 +85,7 @@
 <b>#xowiki.attached_media#:</b>
 
 <!-- UPLOAD ELEMENT -->
-<iframe name="upload" src="@image_browser_url@/upload_image?parent_id=@parent_id@" frameborder=0 width="680px" height="110px"></iframe>
+<iframe name="upload" src="@image_browser_url@/upload_image?parent_id=@parent_id@" frameborder="0" width="680px" height="110px"></iframe>
 
 <center>
 <table><tr><td>
@@ -93,7 +93,7 @@
 <div style="float:left; border: none;">
 
 <!-- THUMBNAILS ELEMENT -->
-<iframe name="thumbs" src="@image_browser_url@/thumb-view?parent_id=@item_id@" frameborder=0 width="180px" height="400px"  scrolling="auto">
+<iframe name="thumbs" src="@image_browser_url@/thumb-view?parent_id=@item_id@" frameborder="0" width="180px" height="400px"  scrolling="auto">
 </iframe>
 </div>
 </fieldset>
