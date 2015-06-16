@@ -635,6 +635,22 @@ namespace eval ::xowiki {
       # Simply refresh all of these
       ::xowiki::refresh_id_column_fk_constraints
     }
+
+    set v 5.9.0d3
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      
+      foreach package_id [::xowiki::Package instances -closure true] {
+        ::xowiki::Package initialize -package_id $package_id -init_url false
+        # reload updated prototype pages
+        $package_id import-prototype-page bib
+        $package_id import-prototype-page news
+        $package_id import-prototype-page weblog-portlet
+      }
+    }
+
+    
   }
   
 }

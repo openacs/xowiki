@@ -56,7 +56,7 @@
     set link [my detail_link]
     regsub -all & $link "&amp;" link
     set more [expr {[$weblog_obj summary] ? 
-                    " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
+                    " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     #append more "<p></p>"
     set day [lc_time_fmt [my set publish_date] "%x"]
     set my_footer [my htmlFooter]
@@ -64,7 +64,7 @@
     set edit_button [my include [list edit-item-button -book_mode true]]
     if {$edit_button ne ""} {set edit_button "<div style='float: right'>$edit_button</div>"}
     append content "<DIV class='news-item' style='clear: both;'>" $edit_button \
-        "<div class='item-header'><h2><a href='$link'>[ad_quotehtml $title]</a></h2>" \
+        "<div class='item-header'><h2><a href='[ns_quotehtml $link]'>[ns_quotehtml $title]</a></h2>" \
         "&nbsp;<span class='date'>($day)</span></div>\n" \
         $description $more $my_footer \n\
         "</DIV>"
@@ -85,12 +85,12 @@
       set filter  "<div class='filter'>$filter_msg</div>"
     } 
     if {[info exists prev_page_link]} {
-      set prev "<a href='$prev_page_link'>\
+	set prev "<a href='[ns_quotehtml $prev_page_link]'>\
         <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
              alt='Previous Page' style='float: left;  top: 0px;'></a>"
     }
     if {[info exists next_page_link]} {
-      set next "<a href='$next_page_link'>\
+	set next "<a href='[ns_quotehtml $next_page_link]'>\
         <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }

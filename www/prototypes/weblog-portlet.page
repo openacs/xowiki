@@ -29,12 +29,12 @@
     set link [my detail_link]
     set show_more [expr {[$weblog_obj summary] && [my exists text] && [my text] ne ""}]
     set more [expr {$show_more ? 
-                    " <span class='more'> \[<a href='$link'>#xowiki.weblog-more#</a>\]</span>" : ""}]
+                    " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
     set my_footer [my htmlFooter]
 
     append content "<DIV class='post' style='background: #f8f8f8;'>" \
-        "<h2><a href='$link'>$title</a></h2>" \
+        "<h2><a href='[ns_quotehtml $link]'>$title</a></h2>" \
         "<p class='auth'>Created by $creator, " \
         "last modified by [::xo::get_user_name $creation_user] " \
         "<span class='date'>$pretty_date</span></p>" \
@@ -59,12 +59,12 @@
       set filter  "<div class='filter'>$filter_msg</div>"
     } 
     if {[info exists prev_page_link]} {
-      set prev "<a href='$prev_page_link'>\
+	set prev "<a href='[ns_quotehtml $prev_page_link]'>\
         <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
              alt='Previous Page' style='float: left;  top: 0px;'></a>"
     }
     if {[info exists next_page_link]} {
-      set next "<a href='$next_page_link'>\
+	set next "<a href='[ns_quotehtml $next_page_link]'>\
         <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
