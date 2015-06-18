@@ -73,7 +73,7 @@ TableWidget create t1 -volatile \
       }
       if {$::with_publish_status} {
 	ImageAnchorField publish_status -orderby publish_status.src -src "" \
-	    -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
+	    -width 8 -height 8 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
       }
       Field syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
