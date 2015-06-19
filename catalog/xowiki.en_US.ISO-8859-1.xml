@@ -16,8 +16,8 @@
   <msg key="By_user">By User</msg>
   <msg key="Candidates">Candidates</msg>
   <msg key="categories">Categories</msg>
-  <msg key="choiceInteraction_maxChoices">Einfachauswahl</msg>
-  <msg key="choiceInteraction_maxChoices_help_text">Einfachauswahl bedeutet, dass nur eine Antwortmöglichkeit korrekt ist.</msg>
+  <msg key="choiceInteraction_maxChoices">Single Choice</msg>
+  <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once chice is correct.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
   <msg key="choose_file">Choose file</msg>
   <msg key="clear">clear</msg>
