@@ -194,7 +194,7 @@ namespace eval ::xowiki {
                 $extra_where_clause"]
     
     if {$page_number ne ""} {
-      lappend sql -page_number $page_number -page_size $page_size 
+      lappend sqlParams -page_number $page_number -page_size $page_size
     }
     #
     # Since there is no filtering on the left join tables, there is no
@@ -204,7 +204,7 @@ namespace eval ::xowiki {
                       [$base_type instance_select_query \
                             -from_clause $extra_from_clause \
                            {*}$sqlParams -count true]]
-    #my msg count=$nr_items
+    #my log count=$nr_items
 
     #
     # Obtain the set of answers
@@ -281,7 +281,7 @@ namespace eval ::xowiki {
       if {$filter_msg ne ""} {
         append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $weblog_href]'>all</a>, [ns_quotehtml $flink])"
       } else {
-        append filter_msg "Showing $range of $nr_items $entry_label ([ns_quotehtml $flink])"
+        append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
       }
       
       set next_p [expr {$nr_items > $page_number*$page_size}]
@@ -324,7 +324,7 @@ namespace eval ::xowiki {
   
 
   # default layout for weblog entries
-  Class create ::xowiki::Weblog::EntryRenderer -instproc render {} {
+  Class create ::xowiki::Weblog::EntryRenderer -instproc render {{-with_footer false}} {
     my instvar package_id name title creator creation_user pretty_date description 
     [my set __parent] instvar weblog_obj
 

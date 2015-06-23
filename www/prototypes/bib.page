@@ -26,9 +26,10 @@
     append content "<LI>[next]</LI>\n"
   }
   EntryRenderer instproc by_date {} {
-    if {[my exists instance_attributes]} {
-      array set ia [my set instance_attributes]
-      return "$ia(year)-[format %2d $ia(month)]"
+      if {[my exists instance_attributes]} {
+	  array set ia {year "" month ""}
+	  array set ia [my set instance_attributes]
+	  return "$ia(year)-[format %2d $ia(month)]"
     }
   }
 

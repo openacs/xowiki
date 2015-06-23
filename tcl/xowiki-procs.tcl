@@ -1427,18 +1427,7 @@ namespace eval ::xowiki {
     return [string range [my nls_language] 0 1]
   }
 
-  Page instproc get_nls_language_from_lang {lang} {
-    # Return the first nls_language matching the provided lang
-    # prefix. This method is not precise (when e.g. two nls_languages
-    # are defined with the same lang), but the only thing relvant is
-    # the lang anyhow.  If nothing matches return empty.
-    foreach nls_language [lang::system::get_locales] {
-      if {[string range $nls_language 0 1] eq $lang} {
-        return $nls_language
-      }
-    }
-    return ""
-  }
+  Page instforward get_nls_language_from_lang ::xowiki::Package %proc
 
   Page instproc build_name {{-nls_language ""}} {
     #

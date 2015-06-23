@@ -19,7 +19,7 @@
   # The following definition is the default rendering per 
   # weblog entry. This is executed in the context of every displayed page.
   #
-  Class create EntryRenderer -instproc render {} {
+  Class create EntryRenderer -instproc render {args} {
     my instvar package_id name title creator creation_user pretty_date description 
     #my log "--W entry [self] [my name] package_id $package_id"
     [my set __parent] instvar weblog_obj

@@ -96,6 +96,19 @@ namespace eval ::xowiki {
     }
     return $locale
   }
+
+  Package proc get_nls_language_from_lang {lang} {
+    # Return the first nls_language matching the provided lang
+    # prefix. This method is not precise (when e.g. two nls_languages
+    # are defined with the same lang), but the only thing relvant is
+    # the lang anyhow.  If nothing matches return empty.
+    foreach nls_language [lang::system::get_locales] {
+      if {[string range $nls_language 0 1] eq $lang} {
+        return $nls_language
+      }
+    }
+    return ""
+  }
   
   Package instproc default_language {} {
     return [string range [my default_locale] 0 1]
@@ -864,7 +877,13 @@ namespace eval ::xowiki {
     return [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
   }
 
-  Package instproc resolve_page {{-use_package_path true} {-simple false} -lang object method_var} {
+  Package instproc resolve_page {
+    {-use_package_path true}
+    {-simple false}
+    -lang 
+    object
+    method_var
+  } {
     #
     # Try to resolve from object (path) and query parameter the called
     # object (might be a packge or page) and the method to be called.
@@ -878,7 +897,7 @@ namespace eval ::xowiki {
     if {![info exists lang]} {
       set lang [my default_language]
     }
-    #my msg "resolve_page '$object', default-lang $lang"
+    #my log "resolve_page '$object', default-lang $lang"
 
     #
     # First, resolve package level methods, 
@@ -930,6 +949,7 @@ namespace eval ::xowiki {
     #
     if {![info exists (item_id)]} {
       array set "" [my item_info_from_url -with_package_prefix false -default_lang $lang $object]
+      #my log "item_info_from_url returns [array get {}]"
     }
 
     if {$(item_id) ne 0} {
@@ -937,7 +957,7 @@ namespace eval ::xowiki {
       return [my get_page_from_item_or_revision_id $(item_id)]
     }
     if {$simple} { return ""}
-    #my msg "NOT found object=$object"
+    #my log "NOT found object=$object"
 
     # try standard page
     set standard_page [$id get_parameter $(stripped_name)_page]
@@ -999,7 +1019,7 @@ namespace eval ::xowiki {
     }
 
     #my log "try to import a prototype page for '$stripped_object'"
-    set page [my import-prototype-page -add_revision false $(stripped_name)]
+    set page [my import-prototype-page -lang $lang -add_revision false $(stripped_name)]
     if {$page eq ""} {
       my log "no prototype for '$object' found"
     }
@@ -1488,7 +1508,7 @@ namespace eval ::xowiki {
     #
     # @return page object or empty ("").
     #
-    #my log "get_page_from_item_ref [self args]"
+    #my log "--get_page_from_item_ref [self args]"
 
     if {$allow_cross_package_item_refs && [string match "//*" $link]} {
 
@@ -1576,7 +1596,11 @@ namespace eval ::xowiki {
   # import for prototype pages
   # 
 
-  Package instproc import-prototype-page {{-add_revision:boolean true} {prototype_name ""}} {
+  Package instproc import-prototype-page {
+    {-add_revision:boolean true}
+    {-lang en}
+    {prototype_name ""}
+  } {
     set page ""
     if {$prototype_name eq ""} {
       set prototype_name [my query_parameter import-prototype-page ""]
@@ -1589,6 +1613,7 @@ namespace eval ::xowiki {
     set page [::xowiki::Package import_prototype_page \
                   -package_key [my package_key] \
                   -name $prototype_name \
+                  -lang $lang \
                   -parent_id [my folder_id] \
                   -package_id [my id] \
                   -add_revision $add_revision]
@@ -1604,6 +1629,7 @@ namespace eval ::xowiki {
                                       -name:required 
                                       -parent_id:required 
                                       -package_id:required
+                                      {-lang en}
                                       {-add_revision:boolean true}
                                     } {
     set page ""
@@ -1627,8 +1653,9 @@ namespace eval ::xowiki {
       # derive the "name" from a file-name. This is not important for
       # prototype pages, so we skip it
       if {![$page istype ::xowiki::File]} {
-        $page name [$page build_name]
-        my log "-- altering name of page $page to '[$page name]'"
+        set nls_language [my get_nls_language_from_lang $lang]
+        $page name [$page build_name -nls_language $nls_language]
+        my log "--altering name of page $page to '[$page name]'"
         set fullName [$page name]
       }
       if {![$page exists title]} {
@@ -1637,13 +1664,16 @@ namespace eval ::xowiki {
       $page destroy_on_cleanup
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
+
       set p [$package_id get_page_from_name -name $fullName -parent_id $parent_id]
+      #my log "--get_page_from_name --> '$p'"
       if {$p eq ""} {
         # We have to create the page new. The page is completed with
         # missing vars on save_new.
         my log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
+        #my log "--save revision $add_revision"
         if {$add_revision} {
           # An old page exists already, make a revision.  Update the
           # existing page with all scalar variables from the prototype
@@ -1676,7 +1706,7 @@ namespace eval ::xowiki {
 
     foreach n {folder.form link.form page.form import-archive.form photo.form} {
       set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
-      #my ds "lookup en:$n => $item_id"
+      #my log "lookup en:$n => $item_id"
       if {!$item_id || $refetch} {
         set page [::xowiki::Package import_prototype_page \
                       -name $n \

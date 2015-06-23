@@ -316,7 +316,7 @@ namespace eval ::xowiki::includelet {
   }  
 
   ::xowiki::Includelet instproc get_page_order {-source -ordered_pages -pages} {
-    my instvar page_order ordered_pages
+    my instvar page_order
     # 
     # first check, if we can load the page_order from the page
     # denoted by source
@@ -1453,7 +1453,8 @@ namespace eval ::xowiki::includelet {
     foreach cat_id [category::get_mapped_categories [$__including_page set item_id]] {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
       #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
-      set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>[ns_quotehtml $category_name ($tree_name)]</a>"
+      set label [ns_quotehtml "$category_name ($tree_name)"]
+      set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>$label</a>"
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
@@ -2334,6 +2335,7 @@ namespace eval ::xowiki::includelet {
 
   selection instproc render_children {pages menu_buttons} {
     my instvar package_id edit_links
+    set output ""
     foreach o [$pages children] {
       $o instvar page_order title page_id name title
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}] 
