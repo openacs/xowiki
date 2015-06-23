@@ -187,7 +187,7 @@ namespace eval ::xowiki {
                 $extra_where_clause"]
     
     if {$page_number ne ""} {
-      lappend sql -page_number $page_number -page_size $page_size 
+      lappend sqlParams -page_number $page_number -page_size $page_size 
     }
     #
     # Since there is no filtering on the left join tables, there is no
