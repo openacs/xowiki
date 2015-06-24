@@ -153,10 +153,12 @@ namespace eval ::xowiki {
                -folder_id $folder_id \
                -with_subtypes false \
                -select_attributes {name}]
+    set lpairs ""
     xo::dc foreach get_page_templates $q {
       lappend lpairs [list $name $item_id]
-    } if_no_rows {
-      lappend lpairs [list "(No Page Template available)" ""]
+    }
+    if {$lpairs eq ""} {
+      return [list "(No Page Template available)" ""]
     }
     return $lpairs
   }
