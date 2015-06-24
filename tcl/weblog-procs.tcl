@@ -104,16 +104,16 @@ namespace eval ::xowiki {
     #my msg "tag=$tag"
     if {$tag ne ""} {
       set filter_msg "Filtered by your tag $tag"
-      append extra_from_clause ",xowiki_tags tags "
-      append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :tag and \
+      append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
+      append extra_where_clause "and tags.tag = :tag and \
         tags.user_id = [::xo::cc user_id]" 
       set query_parm "&tag=[ad_urlencode $tag]"
     }
     #my msg "ptag=$ptag"
     if {$ptag ne ""} {
       set filter_msg "Filtered by popular tag $ptag"
-      append extra_from_clause ",xowiki_tags tags "
-      append extra_where_clause "and tags.item_id = ci.item_id and tags.tag = :ptag " 
+      append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
+      append extra_where_clause "and tags.tag = :ptag " 
       set query_parm "&ptag=[ad_urlencode $ptag]"
       set query [::xo::update_query $query ptag $ptag]
     }
