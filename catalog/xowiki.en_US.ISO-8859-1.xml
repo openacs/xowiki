@@ -213,6 +213,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
   <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
   <msg key="pretty_name">Wiki</msg>
+  <msg key="processing_objects">Processing objects:</msg>
   <msg key="prompt">Prompt</msg>
   <msg key="publish_status">Published</msg>
   <msg key="QtiInteraction_weight">Weight</msg>
