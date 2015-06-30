@@ -642,7 +642,14 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       
       foreach package_id [::xowiki::Package instances -closure true] {
-        ::xowiki::Package initialize -package_id $package_id -init_url false
+        ns_log notice "::xowiki::Package initialize -package_id $package_id -init_url false"
+        if {[catch {
+          ::xowiki::Package initialize -package_id $package_id -init_url false
+        } errorMsg]} {
+          ns_log notice "Could not initialize package '$package_id': $errorMsg"
+          continue
+        }
+        ns_log notice "update prototype pages"
         # reload updated prototype pages
         $package_id import-prototype-page bib
         $package_id import-prototype-page news
