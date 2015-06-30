@@ -1410,8 +1410,15 @@ namespace eval ::xowiki {
     }
 
     $object set item_id $item_id
-    $object db_1row [my qn fetch_from_view_item_id] {
+    set success [$object db_0or1row [my qn fetch_from_view_item_id] {
       select * from xowiki_form_instance_item_view where item_id = :item_id
+    }]
+    if {$success == 0} {
+      error [subst {
+        The form page with item_id $item_id was not found in the xowiki_form_instance_item_index.
+        Consider 'DROP TABLE xowiki_form_instance_item_index CASCADE;' and restart server
+        (the table is rebuilt automatically)
+      }]
     }
 
     if {$initialize} {$object initialize_loaded_object}
