@@ -1402,13 +1402,12 @@ namespace eval ::xowiki::includelet {
 
     set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
                          -item_id [$__including_page item_id] -package_id $package_id]]
-    set href [$package_id package_url]$weblog_page?summary=$summary&tag
-
     set entries [list]
 
-    #foreach tag $tags {lappend entries "<a href='$href&tag=[ad_urlencode $tag]'>$tag</a>"}
-    set href [$package_id package_url]/tag/
-    foreach tag $tags {lappend entries "<a rel='tag' href='[ns_quotehtml $href[ad_urlencode $tag]?summary=$summary]'>[ns_quotehtml $tag]</a>"}
+    foreach tag $tags {
+      set href [export_vars -base [$package_id package_url]/tag/$tag {summary}]
+      lappend entries "<a rel='tag' href='[ns_quotehtml $href]'>[ns_quotehtml $tag]</a>"
+    }
     set tags_with_links [join [lsort $entries] {, }]
 
     if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
@@ -1441,7 +1440,7 @@ namespace eval ::xowiki::includelet {
 
     set weblog_page [$package_id get_parameter weblog_page weblog]
     set entries [list]
-    set href [$package_id package_url]$weblog_page?summary=$summary
+    set href [export_vars -base [$package_id package_url]$weblog_page {summary}]
     set notification_type ""
     if {[$package_id get_parameter "with_notifications" 1] &&
         [::xo::cc user_id] != 0} { ;# notifications require login
@@ -3993,7 +3992,7 @@ namespace eval ::xowiki::includelet {
       set page_link [$p pretty_link]
 
       if {[info exists wf]} {
-        set view_link $wf_link?m=create-or-use&p.form=[$p name]
+        set view_link [export_vars -base $wf_link {{m create-or-use} {p.form "[$p name]"}}]
       } else {
         set view_link $page_link
       }
