@@ -2,7 +2,7 @@
 <master>
                   <property name="doc(title)">@title;literal@</property>
                   <property name="context">@context;literal@</property>
-                  <if @item_id@ not nil><property name="displayed_object_id">@item_id@</property></if>
+                  <if @item_id@ not nil><property name="displayed_object_id">@item_id;literal@</property></if>
                   <property name="&body">property_body</property>
                   <property name="&doc">property_doc</property>
                   <property name="header_stuff">
