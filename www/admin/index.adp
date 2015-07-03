@@ -1,7 +1,7 @@
 <master>
-  <property name="doc(title)">@title;noquote@</property>
-  <property name="doc(title)">@title;noquote@</property>
-  <property name="context">@context;noquote@</property>
+  <property name="doc(title)">@title;literal@</property>
+  <property name="doc(title)">@title;literal@</property>
+  <property name="context">@context;literal@</property>
   <property name="header_stuff">
 <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" >
 <style  type="text/css">

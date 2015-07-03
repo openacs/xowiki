@@ -1,7 +1,7 @@
 <master>
-  <property name="doc(title)">@title;noquote@</property>
+  <property name="doc(title)">@title;literal@</property>
   <property name="&doc">property_doc</property>
-  <property name="context">@context;noquote@</property>
+  <property name="context">@context;literal@</property>
  
 <property name="head">
 <style type='text/css'>
