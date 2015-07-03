@@ -24,16 +24,13 @@ namespace eval ::xowiki {
   ADP_Generator instproc master_part {} {
     return [subst -novariables -nobackslashes \
                 {<master>
-                  <property name="doc(title)">@title;noquote@</property>
-                  <property name="context">@context;noquote@</property>
-                  <if @item_id@ not nil><property name="displayed_object_id">@item_id@</property></if>
+                  <property name="doc(title)">@title;literal@</property>
+                  <property name="context">@context;literal@</property>
+                  <if @item_id@ not nil><property name="displayed_object_id">@item_id;literal@</property></if>
                   <property name="&body">property_body</property>
                   <property name="&doc">property_doc</property>
-                  <property name="header_stuff">
-                  [my extra_header_stuff]@header_stuff;noquote@
-                  </property>
                   <property name="head">
-                  [my extra_header_stuff]@header_stuff;noquote@
+                  [my extra_header_stuff]@header_stuff;literal@
                   </property>}]\n
   }
 
