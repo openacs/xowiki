@@ -1,6 +1,6 @@
 <html>
 <head>
-@header_stuff;noquote@
+@header_stuff;literal@
 </head>
 <body>
 <div class='xowiki-content'>
