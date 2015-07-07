@@ -2,9 +2,6 @@
   <property name="doc(title)">@title;literal@</property>
   <property name="doc(title)">@title;literal@</property>
   <property name="context">@context;literal@</property>
-  <property name="header_stuff">@header_stuff;noquote@
-  <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
-  </property>
   <property name="head">@header_stuff;noquote@
   <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki.css" media="all" />
   </property>
