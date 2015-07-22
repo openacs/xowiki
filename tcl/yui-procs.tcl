@@ -485,7 +485,7 @@ namespace eval ::xo::Table {
         set label "<input type='checkbox' onclick='[ns_quotehtml acs_ListCheckAll(\"objects\",this.checked)]'></input>"
         set sortable false
       } else {
-        set label [$field label]
+        set label [lang::util::localize [$field label]]
         set sortable [expr {[$field exists sortable] ? [$field set sortable] : true}]
       }
       lappend js_fields "    \{ key: \"[$field set name]\" , sortable: $sortable, label: \"$label\" \}"
