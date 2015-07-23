@@ -1425,6 +1425,17 @@ namespace eval ::xowiki {
     return $object
   }
 
+  #
+  # Define a specialized version of CrItem.set_live_revision updating the item index.
+  #  
+
+  FormPage ad_instproc set_live_revision {-revision_id:required {-publish_status "ready"}} {
+    @param revision_id
+    @param publish_status one of 'live', 'ready' or 'production'
+  } {
+    next
+    my update_item_index
+  }
 
   #
   # helper for nls and lang

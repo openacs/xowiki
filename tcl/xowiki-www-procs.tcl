@@ -345,7 +345,7 @@ namespace eval ::xowiki {
         my instvar package_id name
         $package_id delete -name $name -item_id $item_id
       } else {
-        ::xo::db::sql::content_item set_live_revision -revision_id $latest_revision
+        my set_live_revision -revision_id $latest_revision
       }
     }
     if {$latest_revision ne ""} {
@@ -1031,11 +1031,15 @@ namespace eval ::xowiki {
   # 
 
   Page instproc make-live-revision {} {
-    my instvar revision_id item_id package_id
-    #my log "--M set_live_revision($revision_id)"
-    ::xo::db::sql::content_item set_live_revision -revision_id $revision_id
-    set page_id [my query_parameter "page_id"]
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+    my instvar package_id
+    set page_id [my query_parameter "revision_id"]
+    if {[string is integer -strict $page_id]} {
+      set revision_id $page_id
+    } else {
+      set revision_id [my set revision_id]
+    }
+    #my log "--M set_live_revision $revision_id"
+    my set_live_revision -revision_id $revision_id
     ::$package_id returnredirect [my query_parameter "return_url" \
                                       [export_vars -base [$package_id url] {{m revisions}}]]
   }
