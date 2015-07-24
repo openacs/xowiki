@@ -345,7 +345,11 @@ namespace eval ::xowiki {
         my instvar package_id name
         $package_id delete -name $name -item_id $item_id
       } else {
-        my set_live_revision -revision_id $latest_revision
+        # Fetch fresh instance from db so that we have actual values
+        # from the latest revision for e.g. the update of the
+        # item_index.
+        set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $latest_revision]
+        $page set_live_revision -revision_id $latest_revision
       }
     }
     if {$latest_revision ne ""} {
