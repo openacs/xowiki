@@ -1434,7 +1434,12 @@ namespace eval ::xowiki {
     @param publish_status one of 'live', 'ready' or 'production'
   } {
     next
-    my update_item_index
+    
+    # Fetch fresh instance from db so that we have actual values
+    # from the live revision for the update of the item_index.
+
+    set page [::xo::db::CrClass get_instance_from_db -revision_id $revision_id]
+    $page update_item_index
   }
 
   #
