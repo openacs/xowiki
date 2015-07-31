@@ -529,7 +529,7 @@ namespace eval ::xowiki {
     #set link [$package_id pretty_link -absolute true  -siteurl http://localhost:8003 $name]/download.swf
     lassign {320 240 7} width height version
     foreach a {width height version} {if {[my exists $a]} {set $a [my set $a]}}
-    set id [::xowiki::Includelet self_id]
+    set id [::xowiki::Includelet html_id [my item_id]]
     set addParams ""
     foreach a {quality wmode align salign play loop menu scale} {
       if {[my exists $a]} {append addParams "so.addParam('$a', '[my set $a]');\n"}
