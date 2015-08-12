@@ -79,14 +79,37 @@ namespace eval ::xowiki::includelet {
     # Oracle query missing
     #
     return [subst {
-      With RECURSIVE child_items AS (
-        select * from xowiki_form_instance_item_index where item_id = '$parent_id'
-      UNION ALL
-        select xi.* from xowiki_form_instance_item_index xi, child_items
-        where xi.parent_id = child_items.item_id
-      )
-      select * from child_items
-      where page_template = '$form_id' and package_id = '$package_id' and publish_status = 'ready'
+    select
+         xi.package_id, xi.parent_id, xi.name,
+         xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
+         o.object_id, o.object_type, o.title AS object_title, o.context_id,
+         o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
+         o.last_modified, o.modifying_user, o.modifying_ip,
+         --o.tree_sortkey, o.max_child_sortkey,
+         cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
+         cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
+         xowiki_form_page.xowiki_form_page_id,
+         xowiki_page_instance.page_instance_id,
+         xowiki_page_instance.instance_attributes,
+         xowiki_page.page_id,
+         xowiki_page.page_order,
+         xowiki_page.creator
+      from (
+         WITH RECURSIVE child_items AS (
+           select * from xowiki_form_instance_item_index
+           where item_id = '$parent_id'
+         UNION ALL
+           select xi.* from xowiki_form_instance_item_index xi, child_items
+           where xi.parent_id = child_items.item_id
+         )
+         select * from child_items
+         where page_template = '$form_id' and package_id = '$package_id' and publish_status = 'ready') xi
+         left join cr_items ci on (ci.item_id = xi.item_id)
+         left join cr_revisions cr on (cr.revision_id = ci.live_revision)
+         left join acs_objects o on (o.object_id = ci.live_revision)
+         left join xowiki_page on (o.object_id = xowiki_page.page_id)
+         left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
+         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)      
     }]
   }
     
