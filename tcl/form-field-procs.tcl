@@ -2991,19 +2991,18 @@ namespace eval ::xowiki::formfield {
       # resetting esp. the item-id is dangerous.
       # Therefore we reset it immediately after the rendering
       #
-      
-      my log "set_resolve_context -package_id [$object package_id] -parent_id [$object parent_id] \
-        -item_id [$object item_id]"
+      #my log "set __RESOLVE_LOCAL"
+      $item_id set __RESOLVE_LOCAL 1
       $item_id set_resolve_context \
           -package_id [$object package_id] -parent_id [$object parent_id] \
           -item_id [$object item_id]
-    }
-    
-    set html [$item_id render]
-    
-    if {$resolve_local} {
-      my log "reset resolve-context"
+      
+      set html [$item_id render]
+      
+      $item_id unset __RESOLVE_LOCAL
       $item_id reset_resolve_context
+    } else {
+      set html [$item_id render]
     }
     return $html
   }
