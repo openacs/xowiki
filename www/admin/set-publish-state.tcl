@@ -9,19 +9,16 @@
   @param query
 } -parameter {
   {-state:required}
-  {-revision_id:required}
+  {-revision_id:integer,required}
   {-return_url "."}
 }
 
-set item_id [xo::dc get_value get_item_id \
-    {select item_id from cr_revisions where revision_id = :revision_id}]
+set page [::xo::db::CrClass get_instance_from_db -revision_id $revision_id]
+$page set_live_revision \
+    -revision_id $revision_id \
+    -publish_status $state
 
-ns_cache flush xotcl_object_cache ::$item_id
 ns_cache flush xotcl_object_cache ::$revision_id
-
-::xo::db::sql::content_item set_live_revision \
-            -revision_id $revision_id \
-            -publish_status $state
 
 if {$state ne "production"} {
   ::xowiki::notification::do_notifications -revision_id $revision_id
