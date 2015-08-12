@@ -1524,6 +1524,13 @@ namespace eval ::xowiki {
       return [my package_id]
     }
   }
+  Page instproc physical_item_id {} {
+    if {[my exists physical_item_id]} {
+      return [my set physical_item_id]
+    } else {
+      return [my item_id]
+    }
+  }
 
   #
   # folder handling
@@ -2050,13 +2057,16 @@ namespace eval ::xowiki {
     } elseif {[regexp {^[.]SELF[.]/(.*)$} $(link) _ (link)]} {
       #
       # Remove ".SELF./" from the path and search for the named
-      # resource (e.g. the image name) under the current item.
+      # resource (e.g. the image name) under the current (physical)
+      # item.
       #
+      set package_id [my physical_package_id]
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
                         -default_lang [my lang] \
-                        -parent_id [my item_id] \
+                        -parent_id [my physical_item_id] \
                         $(link)]
+      #my log "returns [array get {}]"
       
     } else {
       #
@@ -2069,11 +2079,11 @@ namespace eval ::xowiki {
                         $(link)]
     }
       
-    #my log "link '$(link)' => [array get {}]"
+    #my log "link '$(link)' package_id $package_id [my package_id] => [array get {}]"
 
     if {$label eq $arg} {set label $(link)}
-    set item_name [string trimleft $(prefix):$(stripped_name) :]
 
+    set item_name [string trimleft $(prefix):$(stripped_name) :]
     Link create [self]::link \
         -page [self] -form $(form) \
         -type $(link_type) [list -name $item_name] -lang $(prefix) \
@@ -2089,11 +2099,12 @@ namespace eval ::xowiki {
 
     if {[catch {[self]::link configure {*}$options} errorMsg]} {
       ns_log error "$errorMsg\n$::errorInfo"
-      return "<div class='errorMsg'>Error during processing of options [list $options]\
+      set result "<div class='errorMsg'>Error during processing of options [list $options]\
         of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
     } else {
-      return [self]::link
+      set result [[self]::link]
     }
+    return $result
   }
 
   Page instproc new_link {-name -title -nls_language -return_url -parent_id page_package_id} {
@@ -2140,7 +2151,15 @@ namespace eval ::xowiki {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
     }
     if {$l eq ""} {return ""}
+
+    if {[my exists __RESOLVE_LOCAL]} {
+      my set_resolve_context -package_id [my physical_package_id] -parent_id [my physical_parent_id]
+      set html [$l render]
+      my reset_resolve_context
+    } else {
     set html [$l render]
+    }
+
     if {[info commands $l] ne ""} {
       $l destroy
     } else {
