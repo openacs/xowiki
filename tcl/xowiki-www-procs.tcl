@@ -967,11 +967,25 @@ namespace eval ::xowiki {
       if {[my exists_query_parameter "return_url"]} {
         set return_url [my query_parameter "return_url"]
       } else {
-        set return_url [::xo::cc url]
+        #
+        # When no return_url is specified and we edit a page different
+        # from the invoked page, we use the calling page for default
+        # redirection.  We do not want to redirect to some "embedded"
+        # object after the edit. This happens if one edits e.g. a page
+        # through a link.
+        #
+        # TODO for oacs-5-9: the "invoke_object" should be part of
+        # ::xo::cc and no part of the package object.
+        #
+        set called_package_id [::xo::cc package_id]
+        if {[$called_package_id exists invoke_object] && [$called_package_id set invoke_object] ne [self]} {
+          #my log "=== no return_url specified, using [::xo::cc url] or [[$package_id context] url]"
+          set return_url [::xo::cc url]
+        }
       }
       set m [my form_parameter __form_redirect_method "edit"]
       set url [export_vars -base [my pretty_link] {m return_url}]
-      #my log "setting action <$url> for form-action my-name [my name]"
+      #my log "=== setting action <$url> for form-action my-name [my name]"
       $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $formNode class [$page_template css_class_name]
