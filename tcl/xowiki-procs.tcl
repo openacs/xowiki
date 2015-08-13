@@ -1489,17 +1489,23 @@ namespace eval ::xowiki {
   #
   Page instproc set_resolve_context {-package_id:required -parent_id:required -item_id} {
     if {[my set parent_id] != $parent_id} {
-      my set physical_parent_id [my set parent_id]
+      if {![my exists physical_parent_id]} {
+        my set physical_parent_id [my set parent_id]
+      }
       my set parent_id $parent_id
     }
     if {[my set package_id] != $package_id} {
-      my set physical_package_id [my set package_id]
+      if {![my exists physical_package_id]} {
+        my set physical_package_id [my set package_id]
+      }
       my set package_id $package_id
       #my msg "doing extra require on [my set physical_package_id]"
       #::xowiki::Package require [my set physical_package_id]
     }
     if {[info exists item_id] && [my item_id] != $item_id} {
-      my set physical_item_id [my set item_id]
+      if {![my exists physical_item_id]} {
+        my set physical_item_id [my set item_id]
+      }
       my set item_id $item_id
     }
   }
