@@ -12,7 +12,7 @@
 
 set context [list]
 set pretty_plural [$object_type set pretty_plural]
-set title #xowiki.admin_all_title#
+set title [_ xowiki.admin_all_title]
 
 set object_types [$object_type object_types]
 set return_url   [ns_conn url]
