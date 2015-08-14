@@ -167,7 +167,13 @@ namespace eval ::xowiki::hstore {
   proc ::xowiki::hstore::update_update_all_form_instances {} {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
-      if {[catch {xowiki::hstore::update_form_instance_item_index -package_id $package_id} errorMsg]} {
+      ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+      if {[$package_id get_parameter use_hstore 0] == 0} {
+        continue
+      }
+      if {[catch {
+        xowiki::hstore::update_form_instance_item_index -package_id $package_id
+      } errorMsg]} {
         ns_log Warning "initializing package $package_id lead to error: $errorMsg"
       }
       db_release_unused_handles
