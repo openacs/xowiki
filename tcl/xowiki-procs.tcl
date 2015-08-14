@@ -1488,6 +1488,15 @@ namespace eval ::xowiki {
   # context handling
   #
   Page instproc set_resolve_context {-package_id:required -parent_id:required -item_id} {
+    #
+    # Push the last values to the stack
+    #
+    set stack_entry [list -package_id [my package_id] -parent_id [my parent_id] -item_id [my item_id]]
+    my lappend resolve_context_stack $stack_entry
+
+    #
+    # Reset the current values with the specified ones
+    #
     if {[my set parent_id] != $parent_id} {
       if {![my exists physical_parent_id]} {
         my set physical_parent_id [my set parent_id]
@@ -1510,11 +1519,26 @@ namespace eval ::xowiki {
     }
   }
   Page instproc reset_resolve_context {} {
-    foreach att {item package parent} {
-      set name physical_${att}_id
-      if {[my exists $name]} {
-        my set ${att}_id [my set $name]
-        my unset $name
+    #
+    # Pop the last values from the stack
+    #
+    my instvar resolve_context_stack
+    if {![info exists resolve_context_stack] || [llength $resolve_context_stack] < 1} {
+      error "set_resolve_context and reset_resolve_context calls not balanced"
+    }
+    set entry [lindex $resolve_context_stack end]
+    set resolve_context_stack [lrange $resolve_context_stack 0 end-1]
+    my configure {*}$entry
+    #
+    # When the stack is empty, remove the stack and the "physical*" attributes
+    #
+    if {[llength $resolve_context_stack] == 0} {
+      unset resolve_context_stack
+      foreach att {item package parent} {
+        set name physical_${att}_id
+        if {[my exists $name]} {
+          my unset $name
+        }
       }
     }
   }
