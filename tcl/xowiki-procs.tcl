@@ -233,22 +233,32 @@ namespace eval ::xowiki {
   #ns_logctl severity Debug(sql) on
 
   #
-  # $populate is a dml statement to populate the materialized index
-  # xowiki_form_instance_item_index, when it does not exist.
+  # Create and populate xowiki_form_instance_item_index, when it does
+  # not exist.
   #
-  set popuplate {
-    insert into xowiki_form_instance_item_index (
+
+  set populate {
+      insert into xowiki_form_instance_item_index (
            item_id, name, package_id, parent_id, publish_status,
            page_template, assignee, state )
-    select ci.item_id, ci.name, o.package_id, ci.parent_id, ci.publish_status,
+      select ci.item_id, ci.name, o.package_id, ci.parent_id, ci.publish_status,
            xpi.page_template, xfp.assignee, xfp.state
-    from cr_items ci
-    join xowiki_page_instance xpi on (ci.live_revision = xpi.page_instance_id)
-    join xowiki_form_page xfp on (ci.live_revision = xfp.xowiki_form_page_id)
-    join acs_objects o on (o.object_id = ci.item_id)
+      from cr_items ci
+      join xowiki_page_instance xpi on (ci.live_revision = xpi.page_instance_id)
+      join xowiki_form_page xfp on (ci.live_revision = xfp.xowiki_form_page_id)
+      join acs_objects o on (o.object_id = ci.item_id)
   }
 
   if {[::xo::dc has_hstore]} {
+    #
+    # Create table with hstore column
+    #
+    # If the table does not exist, we have first to populate it, and
+    # at the time, when all libraries are loaded, we have to update
+    # the hkeys.
+    nsv_set xowiki must_update_hkeys \
+        [expr {[::xo::db::require exists_table xowiki_form_instance_item_index] == 0}]
+    
     ::xo::db::require table xowiki_form_instance_item_index {
       item_id             {integer references cr_items(item_id) on delete cascade}
       name                {character varying(400)}
@@ -259,10 +269,15 @@ namespace eval ::xowiki {
       hkey                {hstore}
       assignee            {integer references parties(party_id) on delete cascade}
       state               {text}
-    } $popuplate
+    } $populate
+
     ::xo::db::require index -table xowiki_form_instance_item_index -col hkey -using gist
+
     set hkey_in_view "xi.hkey,"
   } else {
+    #
+    # Create table without hstore column
+    #
     ::xo::db::require table xowiki_form_instance_item_index {
       item_id             {integer references cr_items(item_id) on delete cascade}
       name                {character varying(400)}
@@ -272,7 +287,8 @@ namespace eval ::xowiki {
       page_template       {integer references cr_items(item_id) on delete cascade}
       assignee            {integer references parties(party_id) on delete cascade}
       state               {text}
-    } $popuplate
+    } $populate
+
     set hkey_in_view ""
   }
 
