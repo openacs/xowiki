@@ -20,7 +20,7 @@ namespace eval ::xowiki {
         {f.page_order "="}
         {f.title "="}
         {f.creator "="}
-        {f.text "= richtext,editor=xinha"}
+        {f.text "= richtext"}
         {f.description "="}
         {f.nls_language "="}
         {validate {
