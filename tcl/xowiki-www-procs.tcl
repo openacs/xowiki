@@ -975,7 +975,6 @@ namespace eval ::xowiki {
         # object after the edit. This happens if one edits e.g. a page
         # through a link.
         #
-        set called_package_id [::xo::cc package_id]
         if {[::xo::cc exists invoke_object] && [::xo::cc invoke_object] ne [self]} {
           #my log "=== no return_url specified, using [::xo::cc url] or [[$package_id context] url]"
           set return_url [::xo::cc url]
