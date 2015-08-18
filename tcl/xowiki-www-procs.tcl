@@ -975,11 +975,8 @@ namespace eval ::xowiki {
         # object after the edit. This happens if one edits e.g. a page
         # through a link.
         #
-        # TODO for oacs-5-9: the "invoke_object" should be part of
-        # ::xo::cc and no part of the package object.
-        #
         set called_package_id [::xo::cc package_id]
-        if {[$called_package_id exists invoke_object] && [$called_package_id set invoke_object] ne [self]} {
+        if {[::xo::cc exists invoke_object] && [::xo::cc invoke_object] ne [self]} {
           #my log "=== no return_url specified, using [::xo::cc url] or [[$package_id context] url]"
           set return_url [::xo::cc url]
         }
@@ -1216,7 +1213,7 @@ namespace eval ::xowiki {
       set status_code 200
     } else {
       set status_code 406
-      foreach f $form_fields { 
+      foreach f $form_fields {
         if {[$f error_msg] ne ""} {set error [::xo::localize [$f error_msg] 1]}
       }
     }

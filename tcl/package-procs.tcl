@@ -801,7 +801,7 @@ namespace eval ::xowiki {
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
       return [my error_msg -template_file $error_template $errorMsg]
     }
-    my set invoke_object $page_or_package
+    ::xo::cc invoke_object $page_or_package
     #my log "--r resolve_page '[my set object]' => $page_or_package"
     if {$page_or_package ne ""} {
       if {[$page_or_package istype ::xowiki::FormPage]
