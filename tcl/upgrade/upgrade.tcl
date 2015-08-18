@@ -311,7 +311,7 @@ namespace eval ::xowiki {
         $package_id import-prototype-page categories-portlet
       }
       # perform the upgrate of 0.62 for the s5 package as well
-      if {[info command ::s5::Package] ne ""} {
+      if {[info commands ::s5::Package] ne ""} {
         foreach package_id [::s5::Package instances] {
           ::s5::Package initialize -package_id $package_id -init_url false
           # rename swf:name and image:name to file:name

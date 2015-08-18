@@ -281,7 +281,7 @@ namespace eval ::xowiki {
     array set "" [$package_id item_ref -default_lang $lang -parent_id [$package_id folder_id] $formName]
     if {$(item_id) == 0} { error "cannot lookup page $formName" }
     ::xo::db::CrClass get_instance_from_db -item_id $(item_id)
-    if {[info command ::$(item_id)] eq "" 
+    if {[info commands ::$(item_id)] eq "" 
         || "::xowiki::PageTemplate" ni [$(item_id) info precedence]} {
       error "OK $formName is not suited to be used as template. Should be a Form!"
     }

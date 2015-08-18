@@ -734,7 +734,7 @@ namespace eval ::xowiki::formfield {
     # Search for the slot. If the slot exists, extend it's default
     # value with the new value
     foreach c [my info heritage] {
-      if {[info command ${c}::slot::$name] ne ""} {
+      if {[info commands ${c}::slot::$name] ne ""} {
         set value [concat $value [${c}::slot::$name default]]
         break
       }
