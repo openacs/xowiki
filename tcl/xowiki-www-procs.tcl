@@ -917,10 +917,11 @@ namespace eval ::xowiki {
     # prepend some fields above the HTML contents of the form
     #
     $rootNode insertBeforeFromScript {
-      ::html::input -type hidden -name __object_name -value [my name]
-      ::html::input -type hidden -name __form_action -value save-form-data
-      ::html::input -type hidden -name __current_revision_id -value [my revision_id]
-
+      ::html::div {
+        ::html::input -type hidden -name __object_name -value [my name]
+        ::html::input -type hidden -name __form_action -value save-form-data
+        ::html::input -type hidden -name __current_revision_id -value [my revision_id]
+      }
       # insert automatic form fields on top 
       foreach att $field_names {
         #if {$formgiven && ![string match _* $att]} continue
@@ -1461,7 +1462,8 @@ namespace eval ::xowiki {
       if {![my exists description]} {my set description [my get_description $content]}
 
       if {[info commands ::template::head::add_meta] ne ""} {
-        set meta(language) [my lang]
+        #set meta(language) [my lang]
+        ::xo::Page set_property doc title [my lang]
         set meta(description) [my description]
         set meta(keywords) ""
         if {[my istype ::xowiki::FormPage]} {

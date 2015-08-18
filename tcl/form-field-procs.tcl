@@ -506,7 +506,9 @@ namespace eval ::xowiki::formfield {
     # some hypothetical html-checker quiet.
     #
     if {[my exists disabled] && [my exists transmit_field_always]} {
-      ::html::input [list type hidden name [my name] value [my set value]] {}
+      ::html::div {
+        ::html::input [list type hidden name [my name] value [my set value]] {}
+      }
     }
     my set __rendered 1
   }
@@ -551,7 +553,7 @@ namespace eval ::xowiki::formfield {
     if {$text ne ""} {
       html::div -class [my form_help_text_CSSclass] {
         html::img -src "/shared/images/info.gif" -alt {[i]} -title {Help text} \
-            -width "12" -height 9 -border 0 -style "margin-right: 5px" {}
+            -width "12" -height 9 -style "margin-right: 5px" {}
         html::t $text
       }
     }
@@ -947,7 +949,9 @@ namespace eval ::xowiki::formfield {
 
     ::html::t " "
     set id __old_value_[my name]
-    ::html::input -type hidden -name $id -id $id -value $value
+    ::html::div {
+      ::html::input -type hidden -name $id -id $id -value $value
+    }
     ::html::span -class file-control -id __a$id {
       ::html::a -href $href {::html::t [my label_or_value $fn] }
 
@@ -1039,6 +1043,7 @@ namespace eval ::xowiki::formfield {
     my set widget_type text(hidden)
     # remove mixins in case of retyping
     my mixin ""
+    if {[my exists size]} {my unset size}
   }
   hidden instproc render_item {} {
     # don't render the labels
@@ -2428,7 +2433,7 @@ namespace eval ::xowiki::formfield {
         lappend atts value $rep
         #my msg "lsearch {[my value]} $rep ==> [lsearch [my value] $rep]"
         if {$rep in [my value]} {
-          lappend atts selected on
+          lappend atts selected selected
         }
         ::html::option $atts {::html::t $label}
         ::html::t \n
