@@ -682,6 +682,11 @@ namespace eval ::xowiki {
       ::xowiki::Form requireFormCSS
     }
   }
+
+  FormPage instproc action_url {} {
+    # can be overloaded
+    return [my pretty_link]
+  }
   
   FormPage instproc edit {
     {-validation_errors ""}
@@ -981,7 +986,7 @@ namespace eval ::xowiki {
         }
       }
       set m [my form_parameter __form_redirect_method "edit"]
-      set url [export_vars -base [my pretty_link] {m return_url}]
+      set url [export_vars -base [my action_url] {m return_url}]
       #my log "=== setting action <$url> for form-action my-name [my name]"
       $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
