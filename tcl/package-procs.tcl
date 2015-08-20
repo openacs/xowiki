@@ -1634,7 +1634,7 @@ namespace eval ::xowiki {
                                     } {
     set page ""
     set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
-    my log "--W check $fn"
+    #my log "--W check $fn"
     if {[file readable $fn]} {
       my instvar id
       # We have the file of the prototype page. We try to create
@@ -1655,7 +1655,7 @@ namespace eval ::xowiki {
       if {![$page istype ::xowiki::File]} {
         set nls_language [my get_nls_language_from_lang $lang]
         $page name [$page build_name -nls_language $nls_language]
-        my log "--altering name of page $page to '[$page name]'"
+        #my log "--altering name of page $page to '[$page name]'"
         set fullName [$page name]
       }
       if {![$page exists title]} {
@@ -1670,7 +1670,7 @@ namespace eval ::xowiki {
       if {$p eq ""} {
         # We have to create the page new. The page is completed with
         # missing vars on save_new.
-        my log "--save_new of $page class [$page info class]"
+        #my log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
         #my log "--save revision $add_revision"
@@ -1682,7 +1682,7 @@ namespace eval ::xowiki {
             if {[$page array exists $v]} continue ;# don't copy arrays
             $p set $v [$page set $v]
           }
-          my log "--save of $p class [$p info class]"
+          #my log "--save of $p class [$p info class]"
           $p save
           set page $p
         }
