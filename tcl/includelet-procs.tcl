@@ -681,7 +681,7 @@ namespace eval ::xowiki::includelet {
       set msg "No category tree with name '$name' found."
     }
     [my package_id] flush_page_fragment_cache -scope agg
-    set html "<div class='errorMsg'>$msg</div>"
+    set html "<div class='errorMsg'>[ns_quotehtml $msg]</div>"
     if {$edit_html ne ""} {
       return "$html Manage Categories? $edit_html"
     }
@@ -731,7 +731,7 @@ namespace eval ::xowiki::includelet {
       #append content "<div style='float:right;'>$edit_html</div>\n"
 
       if {!$no_tree_name} {
-        append content "<h3>$my_tree_name $edit_html</h3>"
+        append content "<h3>[ns_quotehtml $my_tree_name] $edit_html</h3>"
       } elseif {$edit_html ne ""} {
         append content "$edit_html<br>"
       }
@@ -1193,7 +1193,7 @@ namespace eval ::xowiki::includelet {
     if {[info commands [$feed channel]] eq ""} {
       set detail ""
       if {[$feed exists errorMessage]} {set detail \n[$feed set errorMessage]}
-      return "No data available from $url<br>$detail"
+      return "No data available from $url<br>[ns_quotehtml $detail]"
     } else {
       set channel [$feed channel]
       #set html "<H1>[ns_quotehtml [$channel title]]</H1>"
@@ -1453,7 +1453,7 @@ namespace eval ::xowiki::includelet {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
       #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
       set label [ns_quotehtml "$category_name ($tree_name)"]
-      set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>$label</a>"
+      set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>[ns_quotehtml $label]</a>"
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
@@ -1495,7 +1495,7 @@ namespace eval ::xowiki::includelet {
       set gc_link [general_comments_create_link \
                        -object_name [$__including_page title] \
                        $item_id $gc_return_url]
-      set gc_link <p>$gc_link</p>
+      set gc_link <p>[ns_quotehtml $gc_link]</p>
     } else {
       set gc_link ""
     }
@@ -1758,14 +1758,16 @@ namespace eval ::xowiki::includelet {
                              -mode_3_fmt "%d %b %Y, at %X"]
         set name [::xo::get_user_name $user_id]
 
-        append output "<TR><TD class='user'>$name</TD><TD class='timestamp'>$pretty_time</TD></TR>\n"
+        append output [subst {<tr><td class='user'>[ns_quotehtml $name]</td>
+          <td class='timestamp'>[ns_quotehtml $pretty_time]</td></tr>
+        }]
       }
-      if {$output ne ""} {set output "<TABLE>$output</TABLE>\n"}
+      if {$output ne ""} {set output "<table>$output</table>\n"}
     }
     set users [expr {$count == 0 ? "No registered users" : 
                      $count == 1 ? "1 registered user" : 
                      "$count registered users"}]
-    return "<div class='title'>$users$what$when</div>$output"
+    return "<div class='title'>[ns_quotehtml $users$what$when]</div>$output"
   }
 }
 
@@ -2362,7 +2364,7 @@ namespace eval ::xowiki::includelet {
       }
       append output "<h$level class='book'>" \
           "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
-          "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
+          "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $page_order $title]</h$level>" \
           $content
     }
     return $output
@@ -2459,7 +2461,7 @@ namespace eval ::xowiki::includelet {
     }
     append output \
         "<h$level class='book'>" $menu \
-        "<a name='[toc anchor $name]'></a>$page_order $title</h$level>" \
+        "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $page_order $title]</h$level>" \
         $content
   }
 
@@ -3129,7 +3131,7 @@ namespace eval ::xowiki::includelet {
       lassign $p edge weight width
       lassign [split $edge ,] a b
       #my log "--G $a -> $b check $c > $max_edges, $weight < $cutoff"
-      if {[incr c]>$max_edges} break
+      if {[incr c] > $max_edges} break
       if {$weight < $cutoff} continue
       append edgesHTML "g.addEdge(\$('$a'), \$('$b'), $weight, 0, $width);\n"
     }
