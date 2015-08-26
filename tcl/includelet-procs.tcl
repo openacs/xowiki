@@ -1366,14 +1366,14 @@ namespace eval ::xowiki::includelet {
     set href [$package_id package_url]tag/
     ::xo::dc foreach get_tag_counts $sql {
       set q [list]
-      if {$summary} {lappend q "summary=$summary"}
-      if {$popular} {lappend q "popular=$popular"}
+      if {$summary} {lappend q "summary=[ad_urlencode_query $summary]"}
+      if {$popular} {lappend q "popular=[ad_urlencode_query $popular]"}
       set link $href$tag?[join $q &]
-      #lappend entries "$tag <a href='$href'>([ns_quotehtml $nr])</a>"
       lappend entries "[ns_quotehtml $tag] <a rel='tag' href='[ns_quotehtml $link]'>([ns_quotehtml $nr])</a>"
+      #lappend entries "[ns_quotehtml $tag] <a rel='tag' href='[ns_quotehtml $link]'><span class='badge' style='font-size:75%'>[ns_quotehtml $nr]</span></a>"
     }
     return [expr {[llength $entries]  > 0 ? 
-                  "<h3>$label</h3> <BLOCKQUOTE>[join $entries {, }]</BLOCKQUOTE>\n" :
+                  "<h3>[ns_quotehtml $label]</h3> <blockquote>[join $entries {, }]</blockquote>\n" :
                   ""}]
   }
 
