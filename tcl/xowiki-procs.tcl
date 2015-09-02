@@ -526,6 +526,8 @@ namespace eval ::xowiki {
   #
   # Page marshall/demarshall
   #
+  # -mode might be "export" or "copy" (latter used via clipboard)
+  #
   Page instproc marshall {{-mode export}} {
     my instvar name
     my unset_temporary_instance_variables
@@ -533,8 +535,10 @@ namespace eval ::xowiki {
     set old_modifying_user [my set modifying_user]
     my set creation_user   [my map_party -property creation_user $old_creation_user]
     my set modifying_user  [my map_party -property modifying_user $old_modifying_user]
-    if {[regexp {^..:[0-9]+$} $name] ||
-        [regexp {^[0-9]+$} $name]} {
+    if {$mode eq "export"
+        && ([regexp {^..:[0-9]+$} $name]
+            || [regexp {^[0-9]+$} $name] )
+      } {
       #
       # for anonymous entries, names might clash in the target
       # instance. If we create on the target site for anonymous
