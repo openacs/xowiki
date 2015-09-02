@@ -535,12 +535,9 @@ namespace eval ::xowiki {
     set old_modifying_user [my set modifying_user]
     my set creation_user   [my map_party -property creation_user $old_creation_user]
     my set modifying_user  [my map_party -property modifying_user $old_modifying_user]
-    if {$mode eq "export"
-        && ([regexp {^..:[0-9]+$} $name]
-            || [regexp {^[0-9]+$} $name] )
-      } {
+    if {$mode eq "export" && [my is_new_entry $name]} {
       #
-      # for anonymous entries, names might clash in the target
+      # For anonymous entries, names might clash in the target
       # instance. If we create on the target site for anonymous
       # entries always new instances, we end up with duplicates.
       # Therefore, we rename anonymous entries during export to
@@ -557,6 +554,16 @@ namespace eval ::xowiki {
     }
     my set creation_user  $old_creation_user
     my set modifying_user $old_modifying_user
+    
+    #
+    # The following statement drops the leading colons from the object
+    # names such that the imported objects are inserted into the
+    # current (rather than the global) namespace. rather than the
+    # global namespace. The approach is cruel, but backward compatible
+    # and avoids potential name clashes with pre-existing objects.
+    #
+    regsub { ::([0-9]+) } $content { \1 } content
+    
     return $content
   }
 
