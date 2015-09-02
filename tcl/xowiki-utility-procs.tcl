@@ -690,6 +690,95 @@ namespace eval ::xowiki {
     return $renames
   }
 
+  ::xowiki::utility ad_proc change_page_order {
+    -from:required
+    -to:required
+    {-clean ""}
+    -folder_id:required
+    -package_id:required
+    {-publish_status "ready|live|expired"}
+  } {
+    
+    Change Page Order for pages by renumbering and filling
+    gaps. Parameter clean is just for inserts.
+    
+  } {
+
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 1.2}; set clean {...}
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
+    #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
+
+    if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
+      ns_log warning "unreasonable request from='$from', to='$to'"
+      return
+    }
+    ns_log notice "--cpo from=$from, to=$to, clean=$clean"
+    set gap_renames [list]
+    #
+    # We distinguish two cases:
+    # - pure reordering: length(to) == length(from)
+    # - insert from another section: length(to) == length(from)+1
+    #
+    if {[llength $to] == [llength $from]} {
+      ns_log notice "--cpo reorder"
+    } elseif {[llength $clean] > 1} {
+      ns_log notice "--cpo insert"
+      #
+      # We have to fill the gap. First, find the newly inserted
+      # element in $to.
+      #
+      foreach e $to {
+        if {$e ni $from} {
+          set inserted $e
+          break
+        }
+      }
+      if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
+      # 
+      # compute the remaining list
+      #
+      set remaining [list]
+      foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
+      #
+      # compute rename rename commands for it
+      #
+      set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                           -publish_status $publish_status \
+                           -start [lindex $clean 0] -from $remaining -to $remaining]
+      foreach {page_id item_id name old_page_order new_page_order} $gap_renames {
+        ns_log notice "--cpo gap $page_id (name) rename $old_page_order to $new_page_order"
+      }
+    }
+    #
+    # Compute the rename commands for the drop target
+    #
+    set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                          -publish_status $publish_status \
+                          -start [lindex $from 0] -from $from -to $to]
+    #ns_log notice "--cpo drops l=[llength $drop_renames]"
+    foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
+      ns_log notice "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
+    }
+
+    #
+    # Perform the actual renames
+    #
+    set temp_obj [::xowiki::Page new -name dummy -volatile]
+    set slot [$temp_obj find_slot page_order]
+    ::xo::dc transaction {
+      foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
+        #ns_log notice "--cpo UPDATE $page_id new_page_order $new_page_order"
+        $temp_obj item_id $item_id
+        $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id
+      }
+    }
+    #
+    # Flush the page fragement caches (page fragments based on page_order might be sufficient)
+    $package_id flush_page_fragment_cache -scope agg
+  }
+
   #
   # The standard ns_urlencode of aolserver is oversimplifying the
   # encoding, leading to names with too many percent-encodings. This

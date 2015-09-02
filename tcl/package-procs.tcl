@@ -1863,90 +1863,24 @@ namespace eval ::xowiki {
   # change-page-order (normally called via ajax POSTs)
   #
   Package ad_instproc change-page-order {} {
-    Change Page Order for pages by renumbering and filling gaps.
+    
+    Change Page Order for pages by renumbering and filling gaps. The
+    parameter "clean" is just used for page inserts.
+    
   } {
-    set to    [string trim [my form_parameter to ""]]
-    set from  [string trim [my form_parameter from ""]]
-    set clean [string trim [my form_parameter clean ""]]  ;# only for inserts
+
     set folder_id [string trim [my form_parameter folder_id [my set folder_id]]]
-    set publish_status [string trim [my form_parameter publish_status "ready|live|expired"]]
 
-    #set from {1.2 1.3 1.4}; set to {1.3 1.4 1.2}; set clean {...}
-    #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
-    #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
+    ::xowiki::utility change_page_order \
+        -from [string trim [my form_parameter from ""]] \
+        -to [string trim [my form_parameter to ""]] \
+        -clean [string trim [my form_parameter clean ""]] \
+        -folder_id $folder_id \
+        -package_id [my id] \
+        -publish_status [string trim [my form_parameter publish_status "ready|live|expired"]]
 
-    if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
-      my log "unreasonable request from='$from', to='$to'"
-      return
-    }
-    my log "--cpo from=$from, to=$to, clean=$clean"
-    set gap_renames [list]
-    #
-    # We distinguish two cases:
-    # - pure reordering: length(to) == length(from)
-    # - insert from another section: length(to) == length(from)+1
-    #
-    if {[llength $to] == [llength $from]} {
-      my log "--cpo reorder"
-    } elseif {[llength $clean] > 1} {
-      my log "--cpo insert"
-      #
-      # We have to fill the gap. First, find the newly inserted
-      # element in $to.
-      #
-      foreach e $to {
-        if {$e ni $from} {
-          set inserted $e
-          break
-        }
-      }
-      if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
-      # 
-      # compute the remaining list
-      #
-      set remaining [list]
-      foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
-      #
-      # compute rename rename commands for it
-      #
-      set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
-                           -publish_status $publish_status \
-                           -start [lindex $clean 0] -from $remaining -to $remaining]
-      foreach {page_id item_id name old_page_order new_page_order} $gap_renames {
-        my log "--cpo gap $page_id (name) rename $old_page_order to $new_page_order"
-      }
-    }
-    #
-    # Compute the rename commands for the drop target
-    #
-    set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
-                          -publish_status $publish_status \
-                          -start [lindex $from 0] -from $from -to $to]
-    #my log "--cpo drops l=[llength $drop_renames]"
-    foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
-      my log "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
-    }
-
-    #
-    # Perform the actual renames
-    #
-    set temp_obj [::xowiki::Page new -name dummy -volatile]
-    set slot [$temp_obj find_slot page_order]
-    ::xo::dc transaction {
-      foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
-        #my log "--cpo UPDATE $page_id new_page_order $new_page_order"
-        $temp_obj item_id $item_id
-        $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
-        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
-        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id
-      }
-    }
-    #
-    # Flush the page fragement caches (page fragments based on page_order might be sufficient)
-    my flush_page_fragment_cache -scope agg
     ns_return 200 text/plain ok
   }
-
 
 
   #
