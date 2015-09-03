@@ -274,12 +274,12 @@ namespace eval ::xowiki {
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
-      set from [expr {($page_number-1)*$page_size+1}]
-      set to   [expr {($page_number-1)*$page_size+$nr}]
+      set from [expr {($page_number-1) * $page_size + 1}]
+      set to   [expr {($page_number-1) * $page_size + $nr}]
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
       
       if {$filter_msg ne ""} {
-        append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $weblog_href]'>all</a>, [ns_quotehtml $flink])"
+        append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $weblog_href]'>all</a>, $flink)"
       } else {
         append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
       }
@@ -288,7 +288,7 @@ namespace eval ::xowiki {
       set prev_p [expr {$page_number > 1}]
       
       if {$next_p} {
-        set query [::xo::update_query $query page_number [expr {$page_number+1}]]
+        set query [::xo::update_query $query page_number [expr {$page_number + 1}]]
         set next_page_link [::xo::cc url]?$query
       }
       if {$prev_p} {

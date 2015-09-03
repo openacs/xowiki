@@ -1907,13 +1907,13 @@ namespace eval ::xowiki {
       set ::xowiki_inclusion_depth 1
     }
     if {$::xowiki_inclusion_depth > 10} {
-      return [my error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]
+      return [my error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]$ch2
     }
     if {[regexp {^adp (.*)$} $arg _ adp]} {
       if {[catch {lindex $adp 0} errMsg]} {
         # there is something syntactically wrong
         incr ::xowiki_inclusion_depth -1
-        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
+        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
       }
       set adp [string map {&nbsp; " "} $adp]
       #
@@ -1921,7 +1921,7 @@ namespace eval ::xowiki {
       #
       array set "" [my check_adp_include_path [lindex $adp 0]]
       if {!$(allowed)} {
-        return [my error_in_includelet $arg $(msg)]
+        return [my error_in_includelet $arg $(msg)]$ch2
       }
       set adp_fn $(fn)
       #
@@ -1931,7 +1931,7 @@ namespace eval ::xowiki {
       if {[llength $adp_args] % 2 == 1} {
         incr ::xowiki_inclusion_depth -1
         set adp $adp_args
-        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]
+        return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
       }
 
       lappend adp_args __including_page [self]
@@ -1942,7 +1942,7 @@ namespace eval ::xowiki {
         set ::template::parse_level $including_page_level
         incr ::xowiki_inclusion_depth -1
         return [my error_in_includelet $arg \
-                    [_ xowiki.error-includelet-error_during_adp_evaluation]]
+                    [_ xowiki.error-includelet-error_during_adp_evaluation]]$ch2
       }
 
       return $page$ch2

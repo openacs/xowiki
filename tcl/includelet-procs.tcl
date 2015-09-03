@@ -1726,7 +1726,7 @@ namespace eval ::xowiki::includelet {
     set since_condition "time > TO_TIMESTAMP(:since,'YYYY-MM-DD HH24:MI:SS')"
 
     set where_clause "package_id=:package_id and $since_condition $extra_where_clause"
-    set when "<br>in last $interval"
+    set when "<br>in last [ns_quotehtml $interval]"
 
     set output ""
 
@@ -1767,7 +1767,7 @@ namespace eval ::xowiki::includelet {
     set users [expr {$count == 0 ? "No registered users" : 
                      $count == 1 ? "1 registered user" : 
                      "$count registered users"}]
-    return "<div class='title'>[ns_quotehtml $users$what$when]</div>$output"
+    return "<div class='title'>[ns_quotehtml $users$what]$when</div>$output"
   }
 }
 
