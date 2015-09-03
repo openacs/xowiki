@@ -266,11 +266,9 @@ namespace eval ::xowiki {
     }
     array set smsg {1 full 0 summary}
     
-    set query [::xo::update_query $query summary [expr {!$summary}]]
-    set weblog_href [::xo::cc url]?$query
-    #set weblog_href [$package_id package_url][$package_id get_parameter weblog_page]
-    #set flink "<a href='[ns_quotehtml $weblog_href?summary=[expr {!$summary}]$query_parm]'>[ns_quotehtml $smsg($summary)]</a>"
-    set flink "<a href='[ns_quotehtml $weblog_href]'>[ns_quotehtml $smsg($summary)]</a>"
+    set summary_href [::xo::cc url]?[::xo::update_query $query summary [expr {!$summary}]]
+    #set flink "<a href='[ns_quotehtml $summary_href$query_parm]'>[ns_quotehtml $smsg($summary)]</a>"
+    set flink "<a href='[ns_quotehtml $summary_href]'>[ns_quotehtml $smsg($summary)]</a>"
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
@@ -279,7 +277,8 @@ namespace eval ::xowiki {
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
       
       if {$filter_msg ne ""} {
-        append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $weblog_href]'>all</a>, $flink)"
+        set all_href  [::xo::cc url]?[::xo::update_query $query summary 0]
+        append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $all_href]'>all</a>, $flink)"
       } else {
         append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
       }
