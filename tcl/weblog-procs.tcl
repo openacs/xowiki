@@ -277,7 +277,7 @@ namespace eval ::xowiki {
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
       
       if {$filter_msg ne ""} {
-        set all_href  [$package_id $package_url][$package_id get_parameter weblog_page weblog-portlet]
+        set all_href  [$package_id package_url][$package_id get_parameter weblog_page weblog-portlet]
         append filter_msg ", $range of $nr_items $entry_label (<a href='[ns_quotehtml $all_href]'>all</a>, $flink)"
       } else {
         append filter_msg "Showing $range of $nr_items $entry_label ($flink)"
