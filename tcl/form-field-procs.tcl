@@ -397,7 +397,7 @@ namespace eval ::xowiki::formfield {
     append spec " {label " [list $label] "} "
 
     if {[string match *bootstrap* [subsite::get_theme]]} {
-      my array set html class "form-control"
+      my array set html {class "form-control"}
     }
     
     if {[my exists html]} {
