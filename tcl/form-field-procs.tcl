@@ -396,6 +396,10 @@ namespace eval ::xowiki::formfield {
     if {[my exists editor]} {append spec " {options {editor [my set editor]}} "}
     append spec " {label " [list $label] "} "
 
+    if {[string match *bootstrap* [subsite::get_theme]]} {
+      my array set html class "form-control"
+    }
+    
     if {[my exists html]} {
       append spec " {html {"
       foreach {key value} [array get html] {

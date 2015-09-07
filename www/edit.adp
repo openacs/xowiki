@@ -21,4 +21,4 @@
    <if @index_link@ not nil><a href="@index_link@" accesskey='i'>#xowiki.index#</a></if>
 </div>
   
-<formtemplate id="@formTemplate@"></formtemplate>
+<formtemplate id="@formTemplate;literal@"></formtemplate>

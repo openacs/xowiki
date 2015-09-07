@@ -648,7 +648,7 @@ namespace eval ::xowiki {
 
     array set property_doc [::xo::Page get_property doc]
     set tmpl [acs_root_dir]/packages/[[my package_id] package_key]/www/edit
-    set edit_tmpl [expr {[file readable $tmpl] ? $tmpl : "/packages/xowiki/www/edit" }]
+    set edit_tmpl [::template::themed_template [expr {[file readable $tmpl] ? $tmpl : "/packages/xowiki/www/edit" }]]
     set html [$package_id return_page -adp $edit_tmpl \
                   -form f1 \
                   -variables {item_id parent_id edit_form_page_title context formTemplate
