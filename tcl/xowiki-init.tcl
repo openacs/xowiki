@@ -10,3 +10,9 @@ if {[nsv_exists xowiki must_update_hkeys]} {
     ::xowiki::hstore::update_update_all_form_instances
     nsv_unset xowiki must_update_hkeys
 }
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

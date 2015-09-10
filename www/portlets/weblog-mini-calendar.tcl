@@ -168,3 +168,9 @@ if {$sysdate eq $date} {
   set today_p f
 }
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

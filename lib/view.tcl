@@ -28,3 +28,9 @@ if {![info exists css]} {
     set html $css$html
 }
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

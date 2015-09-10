@@ -65,3 +65,9 @@ if {$page eq ""} {
 }
 ad_script_abort
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

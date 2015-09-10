@@ -156,3 +156,9 @@ xo::dc foreach instance_select \
 set t1 [t1 asHTML]
 # db_foreach clobbers title, so re-establish it
 set title $page_title
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

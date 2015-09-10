@@ -38,3 +38,9 @@ if {$objects eq ""} {
 #
 ::xowiki::exporter export [array names items]
 ns_conn close
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

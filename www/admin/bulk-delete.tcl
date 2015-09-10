@@ -16,3 +16,9 @@ foreach o $objects {
 }
 
 ad_returnredirect "./list"
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

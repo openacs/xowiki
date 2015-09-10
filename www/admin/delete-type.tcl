@@ -22,3 +22,9 @@ xo::dc foreach retrieve_instances $sql {
 # foreach type [$object_type object_types -subtypes_first true] {$type drop_object_type}
 
 ad_returnredirect $return_url
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

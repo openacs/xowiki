@@ -8,3 +8,8 @@ set config(package_id) [db_list get_forum_ids "
   and portal_element_map.name = 'forums_portlet' 
   and key = 'package_id'"]
 set cf [array get config]
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

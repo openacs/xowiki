@@ -11,3 +11,9 @@ set CKEditorFuncNum 0
 set item_id $fs_package_id
 #::xo::db::CrClass get_instance_from_db -item_id $fs_package_id
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

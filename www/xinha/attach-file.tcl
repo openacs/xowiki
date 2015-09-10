@@ -143,3 +143,8 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
 
 set HTML_Preview "Preview"
 set HTML_UploadTitle ""
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

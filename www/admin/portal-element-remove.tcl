@@ -17,3 +17,9 @@ portal::remove_element -element_id $element_id
 ad_returnredirect $referer
 ad_script_abort
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

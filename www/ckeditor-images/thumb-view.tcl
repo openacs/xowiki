@@ -25,3 +25,9 @@ join acs_objects o on o.object_id=cr.item_id
 	}
 
 set server_url ""
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

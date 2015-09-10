@@ -1504,3 +1504,9 @@ ns_write "<p>
  Tests failed: [test set failed]<br>
  Tests Time: [t1 diff -start]ms<br>
 " 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

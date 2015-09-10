@@ -55,3 +55,9 @@ ad_form -name upload_form \
       set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=$parent_id';"
     }
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -68,3 +68,9 @@ foreach object_type $object_types {
 
 set t1 [t1 asHTML]
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

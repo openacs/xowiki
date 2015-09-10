@@ -5,3 +5,9 @@ ad_page_contract {
 } 
 
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

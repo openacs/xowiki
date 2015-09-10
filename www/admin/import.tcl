@@ -82,3 +82,9 @@ set return_url [ns_queryget return_url ../]
 set title [_ xowiki.import_title]
 set context .
 ad_return_template
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

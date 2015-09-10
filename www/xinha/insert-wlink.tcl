@@ -57,3 +57,9 @@ foreach entry [$listing children] {
 }
 
 set t1 [t1 asHTML]
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
