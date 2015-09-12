@@ -22,7 +22,7 @@
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache:</msg>
   <msg key="day">Tag</msg>
-  <msg key="days">Tage</msg>
+  <msg key="days">Tagen</msg>
   <msg key="delete">Löschen</msg>
   <msg key="delete_all">Alle löschen</msg>
   <msg key="delete_all_confirm">Wirklich alles löschen?</msg>
