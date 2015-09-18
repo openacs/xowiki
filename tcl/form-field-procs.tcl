@@ -2322,7 +2322,7 @@ namespace eval ::xowiki::formfield {
     foreach category [::xowiki::Category get_category_infos \
                           -subtree_id $subtree_id -tree_id $tree_id] {
       lassign $category category_id category_name deprecated_p level
-      set category_name [ad_quotehtml [lang::util::localize $category_name]]
+      set category_name [ns_quotehtml [lang::util::localize $category_name]]
       my set category_label($category_id) $category_name
       if { $level>1 } {
         set category_name "[string repeat {.} [expr {2*$level-4}]]..$category_name"
