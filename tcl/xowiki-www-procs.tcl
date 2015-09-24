@@ -566,6 +566,21 @@ namespace eval ::xowiki {
   }
 
   #
+  # The method "changed_redirect_url" is a helper method for old-style
+  # wiki pages, still using ad_form. Form.edit_data calls this method
+  # after a rename operation to optionally redirect the browser after
+  # the edit operation to the new url, unless an explicit return_url
+  # was specified.
+  #
+  Page instproc changed_redirect_url {} {
+    set package_id [my package_id]
+    if {[$package_id exists_query_parameter "return_url"]} {
+      return ""
+    }
+    return [my pretty_link]
+  }
+
+  #
   # externally callable method: edit
   # 
 
@@ -594,7 +609,7 @@ namespace eval ::xowiki {
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parselevel, so we have to be in
     # our own level in order to access an pass these.
-    lappend ::template::parse_level [info level]    
+    lappend ::template::parse_level [info level]
 
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
     #my log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
@@ -619,14 +634,14 @@ namespace eval ::xowiki {
     }
 
     if {$fs_folder_id ne ""} {lappend folder_spec folder_id $fs_folder_id}
-    
+
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
         -data [self] \
         -folderspec $folder_spec \
         -submit_link $submit_link \
         -autoname $autoname
-
+    
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {

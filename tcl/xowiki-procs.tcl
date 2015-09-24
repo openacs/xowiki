@@ -4317,6 +4317,14 @@ namespace eval ::xowiki {
     category::map_object -remove_old -object_id [my item_id] $category_ids
   }
 
+  Page instproc rename {-old_name -new_name} {
+    [my package_id] flush_name_cache -name $old_name -parent_id [my parent_id]
+    next
+    ns_log notice "----- rename"
+    #ns_log notice [my serialize]
+  }
+ 
+  
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my unset_temporary_instance_variables
@@ -4353,7 +4361,6 @@ namespace eval ::xowiki {
 
       my save -use_given_publish_date $use_given_publish_date
       if {$old_name ne $name} {
-        $package_id flush_name_cache -name $old_name -parent_id [my parent_id]
         my rename -old_name $old_name -new_name $name
       }
     }
