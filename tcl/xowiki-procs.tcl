@@ -524,7 +524,50 @@ namespace eval ::xowiki {
   #
 
   #
-  # Page marshall/demarshall
+  # Page marshall/demarshall operations
+  #
+  # serialize_relocatable is a helper method of marshall, that returns
+  # relocatable objects (objects without leading colons). The
+  # serialized objects will be recreated in the current namespace at
+  # the target.
+  #
+  Page instproc serialize_relocatable {} {
+    if {[::package vcompare 2.1 [package require xotcl::serializer]] > -1} {
+      #
+      # nsf 2.1 has support for speciying the target as argument of
+      # the serialize method.
+      #
+      set content [my serialize -target [string trimleft [self] :]]
+    } else {
+      #
+      # Since we serialize nx and xotcl objects, make objects the
+      # old-fashioned way relocatable. This is dangerous, since it
+      # might substitute as well content.
+      #
+      set content [my serialize]
+      #
+      # The following statement drops the leading colons from the object
+      # names such that the imported objects are inserted into the
+      # current (rather than the global) namespace. rather than the
+      # global namespace. The approach is cruel, but backward compatible
+      # and avoids potential name clashes with pre-existing objects.
+      #
+      # Replace the first occurance of the object name (in the alloc/create
+      # statement):
+      #
+      regsub { ::([0-9]+) } $content { \1 } content
+      
+      #
+      # Replace leading occurances of the object name (when e.g. procs
+      # are as well exported as separate statements)
+      #
+      regsub -all {\n::([0-9]+) } $content "\n\\1 " content
+    }
+    return $content
+  }
+
+  #
+  # Page marshall
   #
   # -mode might be "export" or "copy" (latter used via clipboard)
   #
@@ -547,23 +590,14 @@ namespace eval ::xowiki {
       set server [ns_info server]
       set port [ns_config ns/server/${server}/module/nssock port]
       set name [ns_info address]:${port}-[my item_id]
-      set content [my serialize]
+      set content [my serialize_relocatable]
       set name $old_name
     } else {
-      set content [my serialize]
+      set content [my serialize_relocatable]
     }
     my set creation_user  $old_creation_user
     my set modifying_user $old_modifying_user
-    
-    #
-    # The following statement drops the leading colons from the object
-    # names such that the imported objects are inserted into the
-    # current (rather than the global) namespace. rather than the
-    # global namespace. The approach is cruel, but backward compatible
-    # and avoids potential name clashes with pre-existing objects.
-    #
-    regsub { ::([0-9]+) } $content { \1 } content
-    
+
     return $content
   }
 
