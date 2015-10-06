@@ -532,7 +532,7 @@ namespace eval ::xowiki {
   # the target.
   #
   Page instproc serialize_relocatable {} {
-    if {[::package vcompare 2.1 [package require xotcl::serializer]] > -1} {
+    if {[::package vcompare [package require xotcl::serializer] 2.1] > -1} {
       #
       # nsf 2.1 has support for speciying the target as argument of
       # the serialize method.
