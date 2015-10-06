@@ -1379,7 +1379,7 @@ namespace eval ::xowiki::formfield {
       set date [$date_field pretty_value [$object property _last_modified]]
 
       if {[my with_user_link]} {
-        set user_link_begin "<a href='[ns_quotehrml /shared/community-member?user_id=$v]'>"
+        set user_link_begin "<a href='[ns_quotehtml /shared/community-member?user_id=$v]'>"
         set user_link_end "</a>"
       } else {
         set user_link_begin ""
