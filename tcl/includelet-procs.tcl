@@ -2362,9 +2362,10 @@ namespace eval ::xowiki::includelet {
         set html [$p include [list $b -book_mode true]]
         if {$html ne ""} {lappend menu $html}
       }
+      set label "$page_order $title"
       append output "<h$level class='book'>" \
           "<div style='float: right'>" [join $menu "&nbsp;"] "</div>" \
-          "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $page_order $title]</h$level>" \
+          "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $label]</h$level>" \
           $content
     }
     return $output
@@ -2459,9 +2460,10 @@ namespace eval ::xowiki::includelet {
       # <div> not allowed in h*: style='float: right; position: relative; top: -32px
       set menu "<span style='float: right;'>$menu</span>"
     }
+    set label "$page_order $title"
     append output \
         "<h$level class='book'>" $menu \
-        "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $page_order $title]</h$level>" \
+        "<a name='[ns_quotehtml [toc anchor $name]]'></a>[ns_quotehtml $label]</h$level>" \
         $content
   }
 
