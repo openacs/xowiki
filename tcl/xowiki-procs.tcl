@@ -3821,6 +3821,7 @@ namespace eval ::xowiki {
                                      {-publish_status ready}
                                      {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
                                      {-extra_where_clause true}
+                                     {-initialize true}
                                    } {
     set publish_status_clause [::xowiki::Includelet publish_status_clause $publish_status]
     set result [::xo::OrderedComposite new -destroy_on_cleanup]
@@ -3837,7 +3838,8 @@ namespace eval ::xowiki {
                      -with_subtypes false \
                      -select_attributes $attributes \
                      -where_clause "$extra_where_clause $publish_status_clause" \
-                     -base_table $base_table]
+                     -base_table $base_table \
+                     -initialize $initialize]
 
       foreach i [$items children] {
         $result add $i
