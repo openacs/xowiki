@@ -1472,17 +1472,27 @@ namespace eval ::xowiki {
     }
     array set "" [my prefixed_lookup -parent_id $(parent_id) \
                       -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
-    #my msg "prefixed_lookup '$(stripped_name)' returns [array get {}]"
+    my log "prefixed_lookup '$(stripped_name)' returns [array get {}]"
 
     if {$(item_id) == 0} {
-      # check symlink (todo should happen in package->lookup?)
+      #
+      # check symlink (todo: should this happen in package->lookup?)
+      #
       ::xo::db::CrClass get_instance_from_db -item_id $(parent_id)
-      if {[$(parent_id) is_link_page] && [$(parent_id) is_folder_page]} {
+      if {[$(parent_id) is_link_page]} {
+        #
+        # We encompassed a link to a page or folder, treat both the same way.
+        #
         set target [$(parent_id) get_target_from_link_page]
         $target set_resolve_context -package_id [my id] -parent_id $(parent_id)
-        #my msg "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $(parent_id)"
+        
+        #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $(parent_id)"
         array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \
                           -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
+        #
+        # We can't reset the resolve context here, since it is also
+        # required for rendering the target
+        #
       }
     }
 

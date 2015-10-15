@@ -394,11 +394,11 @@ namespace eval ::xowiki {
     my instvar name package_id label
     set page [my page]
     set item_id [my resolve]
-    #my log "-- image resolve for $page returned $item_id (name=$name, label=$label) "
+    #my log "-- image resolve for $page returned $item_id (name=$name, label=$label)"
     if {$item_id} {
       set link [$package_id pretty_link -download true -query [my query] \
                     -absolute [$page absolute_links] -parent_id [my parent_id] $name]
-      #my log "--l fully quali [$page absolute_links], base=$base"
+      #my log "--l fully quali [$page absolute_links], link=$link"
       $page references resolved [list $item_id [my type]]
       my render_found $link $label
     } else {

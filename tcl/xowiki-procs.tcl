@@ -2145,6 +2145,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         ${lang}:$stripped_name]
       set (link_type) language
+      
     } elseif {[regexp {^[.]SELF[.]/(.*)$} $(link) _ (link)]} {
       #
       # Remove ".SELF./" from the path and search for the named
@@ -2157,7 +2158,7 @@ namespace eval ::xowiki {
                         -default_lang [my lang] \
                         -parent_id [my physical_item_id] \
                         $(link)]
-      #my log "returns [array get {}]"
+      #my log "SELF-LINK returns [array get {}]"
       
     } else {
       #
@@ -2245,10 +2246,11 @@ namespace eval ::xowiki {
 
     if {[my exists __RESOLVE_LOCAL]} {
       my set_resolve_context -package_id [my physical_package_id] -parent_id [my physical_parent_id]
+      $l parent_id [my item_id]
       set html [$l render]
       my reset_resolve_context
     } else {
-    set html [$l render]
+      set html [$l render]
     }
 
     if {[info commands $l] ne ""} {
