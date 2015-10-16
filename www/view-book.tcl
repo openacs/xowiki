@@ -18,7 +18,6 @@ if {$i ne "" && ![$page exists __is_book_page]} {
     set page_title "<h2>$title</h2>"    
   }
 }
-set header_stuff [::xo::Page header_stuff]
 
 # Local variables:
 #    mode: tcl
