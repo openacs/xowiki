@@ -3125,7 +3125,7 @@ namespace eval ::xowiki::includelet {
 
     foreach {node label} $nodes {
       set link "<a href='[ns_quotehtml $base?$attrib=$node]'>[ns_quotehtml $label]</a>"
-      append nodesHTML "<div id='[ns_quotehtml $node]' style='position:relative;'>&nbsp;&nbsp;&nbsp;&nbsp;[ns_quotehtml $link]</div>\n"
+      append nodesHTML "<div id='[ns_quotehtml $node]' style='position:relative;'>&nbsp;&nbsp;&nbsp;&nbsp;$link</div>\n"
     }
 
     set edgesHTML ""; set c 0
