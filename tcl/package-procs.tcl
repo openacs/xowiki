@@ -1472,7 +1472,7 @@ namespace eval ::xowiki {
     }
     array set "" [my prefixed_lookup -parent_id $(parent_id) \
                       -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
-    my log "prefixed_lookup '$(stripped_name)' returns [array get {}]"
+    #my log "prefixed_lookup '$(stripped_name)' returns [array get {}]"
 
     if {$(item_id) == 0} {
       #
