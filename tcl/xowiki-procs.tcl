@@ -54,8 +54,7 @@ namespace eval ::xowiki {
       -form ::xowiki::WikiForm
 
   if {$::xotcl::version < 1.5} {
-    ::xowiki::Page log "Error: XOTcl 1.5 or newer is required.\
-    You seem to use XOTcl $::xotcl::version !!!"
+    ad_log error "XOTcl 1.5 or newer is required. You seem to use XOTcl $::xotcl::version!"
   }
 
   ::xo::db::CrClass create PlainPage -superclass Page \
@@ -3387,8 +3386,8 @@ namespace eval ::xowiki {
     ::xo::Context create $payload -requireNamespace \
         -actual_query [::xo::cc actual_query]
     $payload set package_id [my set package_id]
-    if {[catch {$payload contains $cmd} error ]} {
-      ns_log error "content $cmd lead to error: $error\nDetails: $::errorInfo\n"
+    if {[catch {$payload contains $cmd} errorMsg]} {
+      ad_log error "content $cmd lead to error: $errorMsg"
       ::xo::clusterwide ns_cache flush xotcl_object_cache [my item_id]
     }
     #my log "call init mixins=[my info mixin]//[$payload info mixin]"
@@ -3896,7 +3895,7 @@ namespace eval ::xowiki {
     foreach item_ref $inherit_folders {
       set folder [::xo::cc cache [list $package_id get_page_from_item_ref $item_ref]]
       if {$folder eq ""} {
-        my log "Error: Could not resolve parameter folder page '$item_ref' of FormPage [self]."
+        ad_log error "Could not resolve parameter folder page '$item_ref' of FormPage [self]."
       } else {
         lappend list_of_folders [$folder item_id]
       }
@@ -3940,11 +3939,11 @@ namespace eval ::xowiki {
     set pp [my property ParameterPages]
     if {$pp ne {}} {
       if {![regexp {/?..:} $pp]} {
-        my log "Error: Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
+        ad_log error "Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
       } else {
         set page [::xo::cc cache [list [my package_id] get_page_from_item_ref $pp]]
         if {$page eq ""} {
-          my log "Error: Could not resolve parameter page '$pp' of FormPage [self]."
+          ad_log error "Could not resolve parameter page '$pp' of FormPage [self]."
         }
 
         if {$page ne "" && [$page exists instance_attributes]} {

@@ -47,8 +47,7 @@ ad_form \
         set preexists($o) 1
       }
       if {[catch {namespace eval ::xo::import $content} errorMsg]} {
-        set msg "Error: $errorMsg\n$::errorInfo"
-	ns_log notice $msg
+	ad_log error $errorMsg
 	# cleanup all objects, that did not exist before
         foreach o [::xowiki::Page allinstances] {
 	  if {![info exists preexists($o)]} {

@@ -177,7 +177,7 @@ namespace eval ::xowiki {
     foreach item_ref $inherit_folders {
       set folder [::xo::cc cache [list $package get_page_from_item_ref $item_ref]]
       if {$folder eq ""} {
-        my log "Error: Could not resolve parameter folder page '$item_ref' of FormPage [self]."
+        ad_log error "Could not resolve parameter folder page '$item_ref' of FormPage [self]."
       } else {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id [$folder item_id]]
         if { $item_id != 0 } {
@@ -490,11 +490,11 @@ namespace eval ::xowiki {
       set pp [my get_parameter parameter_page ""]
       if {$pp ne ""} {
         if {![regexp {/?..:} $pp]} {
-          my log "Error: Name of parameter page '$pp' of package [my id] must contain a language prefix"
+          ad_log error "Name of parameter page '$pp' of package [my id] must contain a language prefix"
         } else {
           set page [::xo::cc cache [list [self] get_page_from_item_ref $pp]]
           if {$page eq ""} {
-            my log "Error: Could not resolve parameter page '$pp' of package [my id]."
+            ad_log errpr "Could not resolve parameter page '$pp' of package [my id]."
           }
           #my msg pp=$pp,page=$page-att=$attribute
 
