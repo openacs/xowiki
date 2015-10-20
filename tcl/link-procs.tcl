@@ -127,7 +127,7 @@ namespace eval ::xowiki {
       return $result
     } else {
       ns_log notice "xowiki::link: unknown target $target"
-      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>[ns_quotehtml $label]</a>"
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>$label</a>"
     }
   }
   
@@ -137,14 +137,14 @@ namespace eval ::xowiki {
     } elseif {[my exists target] && ![my built_in_target]} {
       return [my render_target $href $label]
     } else {
-      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>[ns_quotehtml $label]</a>"
+      return "<a [my anchor_atts] [my mk_css_class_and_id] href='[ns_quotehtml $href]'>$label</a>"
     }
   }
   Link instproc render_not_found {href label} {
     if {$href eq ""} {
       return \[$label\]
     } else {
-      return "<a [my mk_css_class_and_id -additional missing] href='[ns_quotehtml $href]'> [ns_quotehtml $label]</a>"
+      return "<a [my mk_css_class_and_id -additional missing] href='[ns_quotehtml $href]'> $label</a>"
     }
   }
   Link instproc pretty_link {item_id} {
@@ -238,7 +238,7 @@ namespace eval ::xowiki {
   # Small bootstrap modal
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm -link_template {
-    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">[ns_quotehtml $label]</a>
+    <a href="#[ns_quotehtml $id]" role="button" data-toggle="modal">$label</a>
   } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-sm">
@@ -286,7 +286,7 @@ namespace eval ::xowiki {
   # Small bootstrap modal using ajax
   #
   ::xowiki::LinkTemplate create ::xowiki::template::modal-sm-ajax -render_content false -link_template {
-    <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='[ns_quotehtml $id]-button' role="button" data-target='#$id' data-toggle="modal">[ns_quotehtml $label]</a>
+    <a href="[ns_quotehtml $href]?template_file=view-modal-content" id='[ns_quotehtml $id]-button' role="button" data-target='#$id' data-toggle="modal">$label</a>
   } -body_template {
 <div class="modal fade" id="$id" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm">
@@ -482,7 +482,7 @@ namespace eval ::xowiki {
       if {[my exists revision_id]} {append internal_href ?revision_id=[my revision_id]}
     }
     if {![info exists embed_options]} {
-      return "<a href='[ns_quotehtml $internal_href]' [my mk_css_class_and_id -additional file]>[ns_quotehtml $label]<span class='file'>&nbsp;</span></a>"
+      return "<a href='[ns_quotehtml $internal_href]' [my mk_css_class_and_id -additional file]>$label<span class='file'>&nbsp;</span></a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='[ns_quotehtml $internal_href]' name=\"[my name]\" $embed_options></embed>"
@@ -570,7 +570,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     return "<a href='[ns_quotehtml $href]' onclick=\"showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]'); return false;\"\
-        [my mk_css_class_and_id -additional glossary]>[ns_quotehtml $label]</a>"
+        [my mk_css_class_and_id -additional glossary]>$label</a>"
   }
 
   #
