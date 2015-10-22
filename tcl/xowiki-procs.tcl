@@ -2237,6 +2237,15 @@ namespace eval ::xowiki {
     }
   }
 
+  Page instproc anchor_parent_id {} {
+    #
+    # This method returns the parent_id used for rendering links
+    # between double square brackets [[...]]. It can be overloaded for
+    # more complex embedding situations
+    #
+    return [my item_id]
+  }
+  
   Page instproc anchor {arg} {
     if {[catch {set l [my create_link $arg]} errorMsg]} {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
@@ -2245,7 +2254,7 @@ namespace eval ::xowiki {
 
     if {[my exists __RESOLVE_LOCAL]} {
       my set_resolve_context -package_id [my physical_package_id] -parent_id [my physical_parent_id]
-      $l parent_id [my item_id]
+      $l parent_id [my anchor_parent_id]
       set html [$l render]
       my reset_resolve_context
     } else {
