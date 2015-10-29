@@ -60,6 +60,7 @@ namespace eval ::xowiki {
   Class create Link -superclass BaseLink -parameter {
     {type link} name lang stripped_name page 
     parent_id package_id item_id {form ""} revision_id
+    is_self_link
   }
   Link instproc init {} {
     my instvar page name

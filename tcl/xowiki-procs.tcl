@@ -2135,6 +2135,7 @@ namespace eval ::xowiki {
 
     # we might consider make this configurable
     set use_package_path true
+    set is_self_link false
     
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # we found a language link (it starts with a ':')
@@ -2151,6 +2152,7 @@ namespace eval ::xowiki {
       # resource (e.g. the image name) under the current (physical)
       # item.
       #
+      set is_self_link true
       set package_id [my physical_package_id]
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
@@ -2180,7 +2182,8 @@ namespace eval ::xowiki {
         -type $(link_type) [list -name $item_name] -lang $(prefix) \
         [list -anchor $(anchor)] [list -query $(query)] \
         [list -stripped_name $(stripped_name)] [list -label $label] \
-        -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id
+        -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id \
+        -is_self_link $is_self_link
 
     # in case, we can't link, flush the href
     if {[my can_link $(item_id)] == 0} {
@@ -2252,7 +2255,7 @@ namespace eval ::xowiki {
     }
     if {$l eq ""} {return ""}
 
-    if {[my exists __RESOLVE_LOCAL]} {
+    if {[my exists __RESOLVE_LOCAL] && [$l is_self_link]} {
       my set_resolve_context -package_id [my physical_package_id] -parent_id [my physical_parent_id]
       $l parent_id [my anchor_parent_id]
       set html [$l render]
