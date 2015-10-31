@@ -324,10 +324,10 @@ namespace eval ::xowiki::includelet {
         set clipboard_clear_link ""
       } else {
         # todo: check, whether the use is allowed to insert into the current folder
-        set clipboard_copy_link [$current_folder pretty_link]?m=clipboard-copy
-        set clipboard_export_link [$current_folder pretty_link]?m=clipboard-export
-        set clipboard_content_link [$current_folder pretty_link]?m=clipboard-content
-        set clipboard_clear_link [$current_folder pretty_link]?m=clipboard-clear
+        set clipboard_copy_link    $folder_link?m=clipboard-copy
+        set clipboard_export_link  $folder_link?m=clipboard-export
+        set clipboard_content_link $folder_link?m=clipboard-content
+        set clipboard_clear_link   $folder_link?m=clipboard-clear
       }
       # todo: we should check either, whether to user is allowed to
       # copy-to-clipboard from the current folder, and/or the user is
