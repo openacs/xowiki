@@ -954,7 +954,19 @@ namespace eval ::xowiki {
 
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
-      return [my get_page_from_item_or_revision_id $(item_id)]
+      set page [my get_page_from_item_or_revision_id $(item_id)]
+
+      if {[info exists (logical_package_id)] && [info exists (logical_parent_id)]} {
+        #
+        # If there was a logical_package_id provided from
+        # item_info_from_url, we require that also a logical_parent_id
+        # is required. In this case, change the context of the
+        # resolved package to this page.
+        #
+        $page set_resolve_context -package_id $(logical_package_id) -parent_id $(logical_parent_id)
+      }
+      
+      return $page
     }
     if {$simple} { return ""}
     #my log "NOT found object=$object"
@@ -963,7 +975,7 @@ namespace eval ::xowiki {
     set standard_page [$id get_parameter $(stripped_name)_page]
     if {$standard_page ne ""} {
       #
-      # allow for now mapped standard pages just on the toplevel
+      # Allow for now mapped standard pages just on the toplevel
       #
       set page [my get_page_from_item_ref \
                     -allow_cross_package_item_refs false \
@@ -1483,10 +1495,14 @@ namespace eval ::xowiki {
         #
         # We encompassed a link to a page or folder, treat both the same way.
         #
-        set target [$(parent_id) get_target_from_link_page]
-        $target set_resolve_context -package_id [my id] -parent_id $(parent_id)
+        set link_id $(parent_id)
+        set target [$link_id get_target_from_link_page]
+
+        $target set_resolve_context -package_id [my id] -parent_id $link_id
+        array set "" [list logical_package_id [my id] logical_parent_id $link_id]
         
-        #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $(parent_id)"
+        #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $link_id"
+
         array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \
                           -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
         #
