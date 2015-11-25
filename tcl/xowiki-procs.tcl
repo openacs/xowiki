@@ -3601,8 +3601,12 @@ namespace eval ::xowiki {
         set lhs [string trim $lhs]
         set rhs_expr [string trim $rhs_expr]
         if {[string range $lhs 0 0] eq "_"} {
+          #
+          # comparison with field names starting with "_"
+          #
           set lhs_var [string range $lhs 1 end]
           set rhs [split $rhs_expr |]
+          my msg "check op '$op' in sql [info exists op_map($op,sql)]"
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
             if {[my exists $lhs_var]} {
@@ -3621,6 +3625,9 @@ namespace eval ::xowiki {
             lappend tcl_clause "\[my property $lhs\] $tcl_op($op) {$rhs}"
           }
         } else {
+          #
+          # field names refering to instance attributes
+          #
           set hleft [::xowiki::hstore::double_quote $lhs]
           lappend vars $lhs ""
           if {$op eq "contains"} {
@@ -3820,7 +3827,7 @@ namespace eval ::xowiki {
 
       set init_vars $wc(vars)
       foreach p [$items children] {
-        set __ia [dict merge $init_vars [$p instance_attributes]]
+        $p set __ia [dict merge $init_vars [$p instance_attributes]]
         if {![$p expr $wc(tcl)]} {$items delete $p}
       }
     }
