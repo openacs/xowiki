@@ -2322,12 +2322,13 @@ namespace eval ::xowiki {
       if {[info exists $__v]} continue
       my instvar $__v
     }
-    foreach __v [[my info class] info vars] {
+    set __my_class [my info class]
+    foreach __v [$__my_class info vars] {
       if {$__v in $__ignorelist} continue
       if {[info exists $__v]} continue
-      [my info class] instvar $__v
+      $__my_class instvar $__v
     }
-    set __ignorelist [list __v __vars __l __ignorelist __varlist __references \
+    set __ignorelist [list __v __vars __l __ignorelist __varlist __references __my_class \
                           __last_includelet text item_id content lang_links]
 
     # set variables current_* to ease personalization
