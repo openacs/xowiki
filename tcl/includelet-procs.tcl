@@ -964,21 +964,21 @@ namespace eval ::xowiki::includelet {
                      -party_id [::xo::cc set untrusted_user_id]]
     set show_heritage $admin_p
 
-    TableWidget t1 -volatile \
+    TableWidget create t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
         -set show_heritage $admin_p \
         -columns {
-          Field date -label [_ xowiki.Page-last_modified]
+          Field create date -label [_ xowiki.Page-last_modified]
           if {[[my info parent] set allow_edit]} {
-            AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"} -richtext 1
+            AnchorField create edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"} -richtext 1
           }
           if {[[my info parent] set show_heritage]} {
-            AnchorField inherited -label "" -CSSclass inherited
+            AnchorField create inherited -label "" -CSSclass inherited
           } 
-          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
+          AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
           if {[[my info parent] set allow_delete]} {
-            AnchorField delete -CSSclass delete-item-button -label "" -richtext 1
+            AnchorField create delete -CSSclass delete-item-button -label "" -richtext 1
           }
         }
 
@@ -1061,9 +1061,9 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget t1 -volatile \
+    TableWidget create t1 -volatile \
         -columns {
-          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
+          AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
     
     xo::dc foreach get_pages \
@@ -1113,10 +1113,10 @@ namespace eval ::xowiki::includelet {
       #
       my append title " in last $interval"
 
-      TableWidget t1 -volatile \
+      TableWidget create t1 -volatile \
           -columns {
-            AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
-            Field users -label [_ xowiki.includelet-visitors] -html { align right }
+            AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
+            Field create users -label [_ xowiki.includelet-visitors] -html { align right }
           }
       set since_condition [::xo::dc since_interval_condition time $interval]
       xo::dc foreach get_pages \
@@ -1136,11 +1136,11 @@ namespace eval ::xowiki::includelet {
                }
     } else {
 
-      TableWidget t1 -volatile \
+      TableWidget create t1 -volatile \
           -columns {
-            AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
-            Field count -label [_ xowiki.includelets-visits] -html { align right }
-            Field users -label [_ xowiki.includelet-visitors] -html { align right }
+            AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
+            Field create count -label [_ xowiki.includelets-visits] -html { align right }
+            Field create users -label [_ xowiki.includelet-visitors] -html { align right }
           }
       xo::dc foreach get_pages \
           [::xo::dc select \
@@ -1229,10 +1229,10 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
     
-    TableWidget t1 -volatile \
+    TableWidget create t1 -volatile \
         -columns {
-          Field user  -label [_ xowiki.includelet-visitors] -html { align right }
-          Field count -label [_ xowiki.includelets-visits] -html { align right }
+          Field create user  -label [_ xowiki.includelet-visitors] -html { align right }
+          Field create count -label [_ xowiki.includelets-visits] -html { align right }
         }
     ::xo::dc foreach most-frequent-visistors \
         [::xo::dc select \
@@ -1276,9 +1276,9 @@ namespace eval ::xowiki::includelet {
     my get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget t1 -volatile \
+    TableWidget create t1 -volatile \
         -columns {
-          AnchorField title -label [::xowiki::Page::slot::title set pretty_name]
+          AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
     set user_id [::xo::cc user_id]
     set or_clause "or i.item_id in (
@@ -3631,10 +3631,10 @@ namespace eval ::xowiki::includelet {
       #
       # standard table encoder
       #
-      TableWidget t1 -volatile \
+      TableWidget create t1 -volatile \
           -columns {
-            Field value -orderby value -label value
-            Field count -orderby count -label count
+            Field create value -orderby value -label value
+            Field create count -orderby count -label count
           }
       
       lassign [split $orderby ,] att order
@@ -3886,16 +3886,16 @@ namespace eval ::xowiki::includelet {
 
     set cols ""
     if {[info exists use_button(edit)]} {
-      append cols {AnchorField _edit -CSSclass edit-item-button -label "" \
+      append cols {AnchorField  create _edit -CSSclass edit-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     if {[info exists use_button(view)]} {
-      append cols {AnchorField _view -CSSclass view-item-button -label "" \
+      append cols {AnchorField  create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
-      append cols [list AnchorField _$fn \
+      append cols [list AnchorField  create _$fn \
                        -label [$__ff($fn) label] \
                        -richtext 1 \
                        -orderby _$fn \
@@ -3903,10 +3903,10 @@ namespace eval ::xowiki::includelet {
     }
     if {[info exists use_button(delete)]} {
       #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
-      append cols [list AnchorField _delete -CSSclass delete-item-button -label "" -no_csv 1 -richtext 1] \n
+      append cols [list AnchorField create _delete -CSSclass delete-item-button -label "" -no_csv 1 -richtext 1] \n
     }
 
-    set cmd [list TableWidget t1 -volatile -columns $cols]
+    set cmd [list TableWidget create t1 -volatile -columns $cols]
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {

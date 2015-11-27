@@ -6,7 +6,7 @@
 # are usable. If we would do thisduring loading, we would have
 # problems with not-yet loaded library files from other packages.
 #
-if {[nsv_exists xowiki must_update_hkeys]} {
+if {[nsv_exists xowiki must_update_hkeys] && [nsv_get xowiki must_update_hkeys]} {
     ::xowiki::hstore::update_update_all_form_instances
     nsv_unset xowiki must_update_hkeys
 }
