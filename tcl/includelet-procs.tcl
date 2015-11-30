@@ -4504,7 +4504,7 @@ namespace eval ::xowiki::includelet {
       }
 
   flowplayer instproc include_head_entries {} {
-    ::xo::Page requireJS  "/resources/xowiki/flowplayer/example/flowplayer-3.2.6.min.js"
+    ::xo::Page requireJS  "/resources/xowiki/flowplayer/example/flowplayer-3.2.6.js"
   }
   
   flowplayer instproc render {} {
