@@ -87,6 +87,9 @@ namespace eval ::xowiki {
   }
 
   Package instproc default_locale {} {
+    if {[my exists __default_locale]} {
+      return [my set __default_locale]
+    }
     if {[my get_parameter use_connection_locale 0]} {
       # we return the connection locale (if not connected the system locale)
       set locale [::xo::cc locale]
@@ -94,6 +97,7 @@ namespace eval ::xowiki {
       # return either the package locale or the site-wide locale
       set locale [lang::system::locale -package_id [my id]]
     }
+    my set __default_locale $locale
     return $locale
   }
 
