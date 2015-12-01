@@ -56,12 +56,12 @@ Some features:
         <maturity>2</maturity>
 
         <provides url="xowiki" version="5.9.0b2"/>
-        <requires url="acs-datetime" version="5.9.0b2"/>
-        <requires url="acs-kernel" version="5.9.0b2"/>
-        <requires url="acs-subsite" version="5.9.0b2"/>
+        <requires url="acs-datetime" version="5.9.0"/>
+        <requires url="acs-kernel" version="5.9.0"/>
+        <requires url="acs-subsite" version="5.9.0"/>
         <requires url="categories" version="1.0d3"/>
-        <requires url="file-storage" version="5.9.0b2"/>
-        <requires url="general-comments" version="5.9.0b2"/>
+        <requires url="file-storage" version="5.9.0"/>
+        <requires url="general-comments" version="5.9.0"/>
         <requires url="xotcl-core" version="0.140"/>
 
         <callbacks>
