@@ -323,14 +323,24 @@ namespace eval ::xowiki {
             $id set_resolve_context -package_id $pid -parent_id [$id parent_id]
           }
         }
-        set target [$fo get_target_from_link_page]
-        set target_name [$target name]
-        #my msg "----- $path //  target $target [$target name] package_id [$target package_id] path '$path'"
-        regsub "^$target_name/" $path "" path
-        #my msg "----> $path =>  [$fo name]/$path"
+        if {0} {
+          #
+          # In some older versions, this code was necesary. Keep it
+          # inhere as a reference, in case not all relvant cases were
+          # covered by the tests
+          #
+          set target [$fo get_target_from_link_page]
+          set target_name [$target name]
+          #my msg "----- $path //  target $target [$target name] package_id [$target package_id] path '$path'"
+          set orig_path $path
+          regsub "^$target_name/" $path "" path
+          if {$orig_path ne $path} {
+            my msg "----> orig <$orig_path> new <$path> => full [$fo name]/$path"
+          }
+        }
       }
-
-      # prepend always the actual name
+      
+      # prepend always the actual folder name
       set path [$fo name]/$path
       
       if {[my folder_id] == [$fo parent_id]} {
