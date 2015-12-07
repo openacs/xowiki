@@ -1499,6 +1499,7 @@ namespace eval ::xowiki {
     # from the live revision for the update of the item_index.
 
     set page [::xo::db::CrClass get_instance_from_db -revision_id $revision_id]
+    $page publish_status $publish_status
     $page update_item_index
   }
 
