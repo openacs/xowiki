@@ -70,7 +70,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   # solution, where syndication does not depend on search....
   #
   $page instvar item_id
-  catch {
+  if {[::xo::db::require exists_table txt]} {
     ::xo::dc dml delete_old_revisions {
       delete from txt where object_id in \
           (select revision_id from cr_revisions 
