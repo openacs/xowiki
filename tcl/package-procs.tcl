@@ -762,7 +762,7 @@ namespace eval ::xowiki {
                          -package_id $id \
                          -link $computed_link $object $method]
       } errorMsg ]} {
-        my log "error in check_permissions: $errorMsg"
+        ns_log error "error in check_permissions: $errorMsg"
         set granted 0
       }
       #my msg "--p $id check_permissions $object $method ==> $granted"
@@ -838,19 +838,25 @@ namespace eval ::xowiki {
           }
         }
       }
-      if {[$page_or_package procsearch $method] eq ""} {
+      if {[$page_or_package procsearch www-$method] eq ""} {
         return [my error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
         #my msg "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
 
         if {$batch_mode} {[my id] set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
+        if {$err} {set errorCode $::errorCode}
         if {$batch_mode} {[my id] unset -nocomplain __batch_mode}
         if {$err} {
-          ns_log notice "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
-          return [my error_msg -status_code 500 \
-                      -template_file $error_template \
-                      "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
+          lassign $errorCode flag type value
+          if {$flag eq "AD" && $type eq "EXCEPTION" && $value eq "ad_script_abort"} {
+            return ""
+          } else {
+            ns_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
+            return [my error_msg -status_code 500 \
+                        -template_file $error_template \
+                        "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
+          }
         }
         return $r
       }
@@ -1045,7 +1051,7 @@ namespace eval ::xowiki {
     }
 
     #my log "try to import a prototype page for '$stripped_object'"
-    set page [my import-prototype-page -lang $lang -add_revision false $(stripped_name)]
+    set page [my www-import-prototype-page -lang $lang -add_revision false $(stripped_name)]
     if {$page eq ""} {
       my log "no prototype for '$object' found"
     }
@@ -1636,7 +1642,7 @@ namespace eval ::xowiki {
   # import for prototype pages
   # 
 
-  Package instproc import-prototype-page {
+  Package instproc www-import-prototype-page {
     {-add_revision:boolean true}
     {-lang en}
     {prototype_name ""}
@@ -1785,7 +1791,7 @@ namespace eval ::xowiki {
                      $object $method]
     if {$allowed} {
       #my log "--p calling $object ([$object name] [$object info class]) '$method'"
-      $object $method {*}$options
+      $object www-$method {*}$options
     } else {
       my log "not allowed to call $object $method"
     }
@@ -1865,7 +1871,7 @@ namespace eval ::xowiki {
   # user callable methods on package level
   #
 
-  Package ad_instproc refresh-login {} {
+  Package ad_instproc www-refresh-login {} {
     Force a refresh of a login and do a redict. Intended for use from ajax.
   } {
     set return_url [my query_parameter return_url]
@@ -1881,7 +1887,7 @@ namespace eval ::xowiki {
   # reindex (for site wide search)
   #
 
-  Package ad_instproc reindex {} {
+  Package ad_instproc www-reindex {} {
     reindex all items of this package
   } {
     my instvar folder_id id
@@ -1902,7 +1908,7 @@ namespace eval ::xowiki {
   #
   # change-page-order (normally called via ajax POSTs)
   #
-  Package ad_instproc change-page-order {} {
+  Package ad_instproc www-change-page-order {} {
     
     Change Page Order for pages by renumbering and filling gaps. The
     parameter "clean" is just used for page inserts.
@@ -1926,7 +1932,7 @@ namespace eval ::xowiki {
   #
   # RSS 2.0 support
   #
-  Package ad_instproc rss {
+  Package ad_instproc www-rss {
     -maxentries
     -name_filter
     -entries_of
@@ -1980,7 +1986,7 @@ namespace eval ::xowiki {
   # Google sitemap support
   #
 
-  Package ad_instproc google-sitemap {
+  Package ad_instproc www-google-sitemap {
     {-max_entries ""}
     {-changefreq "daily"}
     {-priority "0.5"}
@@ -2039,7 +2045,7 @@ namespace eval ::xowiki {
     ns_return 200 $t $content
   }
 
-  Package ad_proc google-sitemapindex {
+  Package ad_proc www-google-sitemapindex {
     {-changefreq "daily"}
     {-priority "priority"}
   } {
@@ -2083,8 +2089,8 @@ namespace eval ::xowiki {
     ns_return 200 $t $content
   }
 
-  Package instproc google-sitemapindex {} {
-    [self class] [self proc]
+  Package instproc www-google-sitemapindex {} {
+    [self class] www-google-sitemapindex
   }
 
   Package instproc clipboard-copy {} {
@@ -2095,7 +2101,7 @@ namespace eval ::xowiki {
   # Create new pages
   #
 
-  Package instproc edit-new {} {
+  Package instproc www-edit-new {} {
     my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
     set autoname [my get_parameter autoname 0]
@@ -2128,14 +2134,14 @@ namespace eval ::xowiki {
       $page set name ""
     }
 
-    return [$page edit -new true -autoname $autoname]
+    return [$page www-edit -new true -autoname $autoname]
   }
 
   #
   # manage categories
   #
 
-  Package instproc manage-categories {} {
+  Package instproc www-manage-categories {} {
     set object_id [my query_parameter object_id]
     if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
 
@@ -2149,7 +2155,7 @@ namespace eval ::xowiki {
   # edit a single category tree
   #
 
-  Package instproc edit-category-tree {} {
+  Package instproc www-edit-category-tree {} {
     set object_id [my query_parameter object_id]
     if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
     set tree_id   [my query_parameter tree_id]
@@ -2201,7 +2207,7 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
-  Package instproc delete {-item_id -name -parent_id} {
+  Package instproc www-delete {-item_id -name -parent_id} {
     #
     # This delete method does not require an instanantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
@@ -2436,7 +2442,6 @@ namespace eval ::xowiki {
         {{regexp {name {(weblog|index)$}}} package_id admin} 
         {package_id write}
       }
-      save-form-data     {{package_id write}}
       save-attributes    {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}

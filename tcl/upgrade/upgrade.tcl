@@ -657,7 +657,24 @@ namespace eval ::xowiki {
       }
     }
 
-    
+    set v 5.9.1d1
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      
+      foreach package_id [::xowiki::Package instances -closure true] {
+        ns_log notice "::xowiki::Package initialize -package_id $package_id -init_url false"
+        if {[catch {
+          ::xowiki::Package initialize -package_id $package_id -init_url false
+        } errorMsg]} {
+          ns_log notice "Could not initialize package '$package_id': $errorMsg"
+          continue
+        }
+        ns_log notice "update prototype page"
+        # reload updated prototype pages
+        $package_id import-prototype-page sitemapindex.xml
+      }
+    }
   }
   
 }

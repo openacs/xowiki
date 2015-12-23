@@ -18,7 +18,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: clipboard-add
   # 
-  Page instproc clipboard-add {} {
+  Page instproc www-clipboard-add {} {
     my instvar package_id
 
     if {![my exists_form_parameter "objects"]} {
@@ -43,7 +43,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: clipboard-clear
   # 
-  Page instproc clipboard-clear {} {
+  Page instproc www-clipboard-clear {} {
     my instvar package_id
     ::xowiki::clipboard clear
     ::$package_id returnredirect [my query_parameter "return_url" [::xo::cc url]]
@@ -52,7 +52,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: clipboard-content
   # 
-  Page instproc clipboard-content {} {
+  Page instproc www-clipboard-content {} {
     my instvar package_id
     set clipboard [::xowiki::clipboard get]
     if {$clipboard eq ""} {
@@ -72,7 +72,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: clipboard-copy
   # 
-  Page instproc clipboard-copy {} {
+  Page instproc www-clipboard-copy {} {
     my instvar package_id
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
@@ -92,7 +92,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: clipboard-export
   # 
-  Page instproc clipboard-export {} {
+  Page instproc www-clipboard-export {} {
     my instvar package_id
     set clipboard [::xowiki::clipboard get]
     ::xowiki::exporter export $clipboard
@@ -105,7 +105,7 @@ namespace eval ::xowiki {
   # externally callable method: create-new
   # 
 
-  Page instproc create-new {
+  Page instproc www-create-new {
     {-parent_id 0} 
     {-view_method edit} 
     {-name ""} 
@@ -231,14 +231,14 @@ namespace eval ::xowiki {
   # externally callable method: create-or-use
   # 
 
-  Page instproc create-or-use {
+  Page instproc www-create-or-use {
     {-parent_id 0} 
     {-view_method edit} 
     {-name ""} 
     {-nls_language ""}
   } {
     # can be overloaded
-    my create-new \
+    my www-create-new \
         -parent_id $parent_id -view_method $view_method \
         -name $name -nls_language $nls_language
   }
@@ -247,7 +247,7 @@ namespace eval ::xowiki {
   # externally callable method: csv-dump
   # 
 
-  Page instproc csv-dump {} {
+  Page instproc www-csv-dump {} {
     if {![my is_form]} {
       error "not called on a form"
     }
@@ -263,7 +263,7 @@ namespace eval ::xowiki {
     set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
     ::xo::cc set queryparm(includelet_key) $includelet_key
     # call the includelet
-    my view [my include [list form-usages -field_names $attributes \
+    my www-view [my include [list form-usages -field_names $attributes \
                              -extra_form_constraints _creation_user:numeric,format=%d \
                              -form_item_id [my item_id] -generate csv]]
   }
@@ -271,7 +271,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: use-template
   # 
-  PageInstance instproc use-template {} {
+  PageInstance instproc www-use-template {} {
     my instvar package_id
     set formName [my query_parameter "form" ""]
     if {$formName eq ""} {
@@ -301,13 +301,13 @@ namespace eval ::xowiki {
   # externally callable method: delete
   # 
 
-  Page instproc delete {} {
+  Page instproc www-delete {} {
     my instvar package_id item_id name
     # delete always via package
-    $package_id delete -item_id $item_id -name $name
+    $package_id www-delete -item_id $item_id -name $name
   }
 
-  PageTemplate instproc delete {} {
+  PageTemplate instproc www-delete {} {
     my instvar package_id item_id name
     set count [my count_usages -publish_status all]
     #my msg count=$count
@@ -327,7 +327,7 @@ namespace eval ::xowiki {
   # externally callable method: delete-revision
   # 
 
-  Page instproc delete-revision {} {
+  Page instproc www-delete-revision {} {
     my instvar revision_id package_id item_id 
     ::xo::dc 1row get_revision {
       select latest_revision,live_revision from cr_items where item_id = :item_id
@@ -363,7 +363,7 @@ namespace eval ::xowiki {
   # externally callable method: diff
   # 
 
-  Page instproc diff {} {
+  Page instproc www-diff {} {
     my instvar package_id
 
     set compare_id [my query_parameter "compare_revision_id" 0]
@@ -466,7 +466,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: download
   #
-  File instproc download {} {
+  File instproc www-download {} {
     my instvar mime_type
     #
     # determine the delivery method
@@ -525,7 +525,7 @@ namespace eval ::xowiki {
   # forwarder methods like the following:
   #
 
-  #   FormPage instproc download {} {
+  #   FormPage instproc www-download {} {
   #     # If there is a link to a file, it can be downloaded as well
   #     set target [my get_target_from_link_page]
   #     if {$target ne "" && [$target istype ::xowiki::File]} {
@@ -584,7 +584,7 @@ namespace eval ::xowiki {
   # externally callable method: edit
   # 
 
-  Page instproc edit {
+  Page instproc www-edit {
     {-new:boolean false} 
     {-autoname:boolean false}
     {-validation_errors ""}
@@ -703,7 +703,7 @@ namespace eval ::xowiki {
     return [my pretty_link]
   }
   
-  FormPage instproc edit {
+  FormPage instproc www-edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
     {-view true}
@@ -839,7 +839,7 @@ namespace eval ::xowiki {
       # __feedback_mode to prevent recursive loops.
       set redirect_method [my form_parameter __form_redirect_method "view"]
       #my log "__redirect_method=$redirect_method"
-      return [my view]
+      return [my www-view]
     } else {
 
       # 
@@ -1035,7 +1035,7 @@ namespace eval ::xowiki {
 
     #my log "calling VIEW with HTML [string length $html]"
     if {$view} {
-      my view $html
+      my www-view $html
     } else {
       return $html
     }
@@ -1044,7 +1044,7 @@ namespace eval ::xowiki {
   #
   # externally callable method: list
   # 
-  Page instproc list {} {
+  Page instproc www-list {} {
     if {[my is_form]} {
       # The following line is here to provide a short description for
       # larger form-usages (a few MB) where otherwise
@@ -1052,10 +1052,10 @@ namespace eval ::xowiki {
       # (at least in Tcl 8.5)
       my set description "form-usages for [my name] [my title]"
       
-      return [my view [my include [list form-usages -form_item_id [my item_id]]]]
+      return [my www-view [my include [list form-usages -form_item_id [my item_id]]]]
     }
     if {[my is_folder_page]} {
-      return [my view [my include [list child-resources -publish_status all]]]
+      return [my www-view [my include [list child-resources -publish_status all]]]
     }
     #my msg "method list undefined for this kind of object"
     [my package_id] returnredirect [::xo::cc url]
@@ -1065,7 +1065,7 @@ namespace eval ::xowiki {
   # externally callable method: make-live-revision
   # 
 
-  Page instproc make-live-revision {} {
+  Page instproc www-make-live-revision {} {
     my instvar package_id
     set page_id [my query_parameter "revision_id"]
     if {[string is integer -strict $page_id]} {
@@ -1083,7 +1083,7 @@ namespace eval ::xowiki {
   # externally callable method: popular-tags
   # 
 
-  Page instproc popular-tags {} {
+  Page instproc www-popular-tags {} {
     my instvar package_id item_id parent_id
     set limit       [my query_parameter "limit" 20]
     set weblog_page [$package_id get_parameter weblog_page weblog]
@@ -1107,7 +1107,7 @@ namespace eval ::xowiki {
   # externally callable method: save-attributes
   # 
 
-  Page ad_instproc save-attributes {} {
+  Page ad_instproc www-save-attributes {} {
     The method save-attributes is typically callable over the 
     REST interface. It allows to save attributes of a 
     page without adding a new revision.
@@ -1180,7 +1180,7 @@ namespace eval ::xowiki {
   # externally callable method: revisions
   # 
 
-  Page instproc revisions {} {
+  Page instproc www-revisions {} {
     my instvar package_id name item_id
     set context [list [list [$package_id url] $name ] [_ xotcl-core.revisions]]
     set title "[_ xotcl-core.revision_title] '$name'"
@@ -1196,7 +1196,7 @@ namespace eval ::xowiki {
   # externally callable method: save-tags
   # 
 
-  Page instproc save-tags {} {
+  Page instproc www-save-tags {} {
     my instvar package_id item_id revision_id
     ::xowiki::Page save_tags \
         -user_id [::xo::cc user_id] \
@@ -1213,7 +1213,7 @@ namespace eval ::xowiki {
   # externally callable method: validate-attribute
   # 
 
-  Page instproc validate-attribute {} {
+  Page instproc www-validate-attribute {} {
     set field_names [my field_names]
     set validation_errors 0
 
@@ -1243,7 +1243,7 @@ namespace eval ::xowiki {
   # externally callable method: view
   # 
 
-  Page instproc view {{content ""}} {
+  Page instproc www-view {{content ""}} {
     # The method "view" is used primarily for the toplevel call, when
     # the xowiki page is viewed.  It is not intended for e.g. embedded
     # wiki pages (see include), since it contains full framing, etc.

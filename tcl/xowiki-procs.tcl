@@ -1080,7 +1080,7 @@ namespace eval ::xowiki {
     if {[catch {
       set success [string match [lindex $value 1] [my set [lindex $value 0]]]
     } errorMsg]} {
-      my log "error during match: $errorMsg"
+      ns_log error "error during condition match: $errorMsg"
       set success 0
     }
     return $success
@@ -1108,7 +1108,7 @@ namespace eval ::xowiki {
     if {[catch {
       set success [regexp [lindex $value 1] [my set [lindex $value 0]]]
     } errorMsg]} {
-      my log "error during regexp: $errorMsg"
+      ns_log error "error during condition regexp: $errorMsg"
       set success 0
     }
     return $success
@@ -3530,7 +3530,7 @@ namespace eval ::xowiki {
     if {[catch {
       my create_form_fields_from_form_constraints $form_constraints
     } errorMsg]} {
-      ns_log error "$errorMsg\n$::errorInfo"
+      ns_log error "error during form_constraints validator: $errorMsg\n$::errorInfo"
       my uplevel [list set errorMsg $errorMsg]
       #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
       return 0
