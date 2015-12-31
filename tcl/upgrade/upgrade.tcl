@@ -671,8 +671,11 @@ namespace eval ::xowiki {
           continue
         }
         ns_log notice "update prototype page"
-        # reload updated prototype pages
-        $package_id import-prototype-page sitemapindex.xml
+        # reload updated prototype pages. If new "www"-prefix does not work yet,
+        # try old format
+        if {catch {$package_id www-import-prototype-page sitemapindex.xml} {
+          $package_id import-prototype-page sitemapindex.xml
+        }
       }
     }
   }
