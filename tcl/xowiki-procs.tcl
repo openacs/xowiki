@@ -1866,10 +1866,15 @@ namespace eval ::xowiki {
 
     # "render" might be cached
     if {[catch {set html [$includelet render]} errorMsg]} {
-      ns_log error "$errorMsg\n$::errorInfo"
-      set page_name [$includelet name]
-      set ::errorInfo [::xowiki::Includelet html_encode $::errorInfo]
-      set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
+      if {[string match "*for parameter*" $errorMsg]} {
+        set html ""
+        ad_return_complaint 1 $errorMsg
+      } else {
+        ad_log error $errorMsg
+        set page_name [$includelet name]
+        set ::errorInfo [::xowiki::Includelet html_encode $::errorInfo]
+        set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
+      }
     }
     #my log "--include includelet returns $html"
     return $html
@@ -1971,7 +1976,13 @@ namespace eval ::xowiki {
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
       if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
-        ns_log error "$errorMsg\n$::errorInfo"
+        if {[ad_exception $::errorCode] eq "ad_script_abort"} {
+          #
+          # If the exception was from an ad_script_abort, propagate it up
+          #
+          ad_script_abort
+        }
+        ad_log error "$errorMsg\n$::errorInfo"
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level
         incr ::xowiki_inclusion_depth -1

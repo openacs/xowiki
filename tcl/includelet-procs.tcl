@@ -194,9 +194,8 @@ namespace eval ::xowiki::includelet {
       set and_names [list]
       foreach cid_and [split $cid_or ,] {
         if {![string is integer -strict $cid_and]} {
-          return -code error "invalid category id '$cid_and'"
-          ns_log warning "ignore invalid category id '$cid_and'"
-          continue
+          ad_return_complaint 1 "invalid category id '$cid_and'"
+          ad_script_abort
         }
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
@@ -801,7 +800,12 @@ namespace eval ::xowiki::includelet {
       if {$category_ids ne ""} {
         foreach cid [split $category_ids ,] {
           set or_ids [split $cid |]
-          foreach or_id $or_ids { if {![string is integer $or_id]} {error "invalid category_ids"}}
+          foreach or_id $or_ids {
+            if {![string is integer $or_id]} {
+              ad_return_complaint 1 "invalid category_id"
+              ad_script_abort
+            }
+          }
           append sql " and exists (select * from category_object_map \
          where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
         }

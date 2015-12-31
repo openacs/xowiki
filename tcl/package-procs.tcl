@@ -848,11 +848,19 @@ namespace eval ::xowiki {
         if {$err} {set errorCode $::errorCode}
         if {$batch_mode} {[my id] unset -nocomplain __batch_mode}
         if {$err} {
-          lassign $errorCode flag type value
-          if {$flag eq "AD" && $type eq "EXCEPTION" && $value eq "ad_script_abort"} {
+          #
+          # Check, if we were called from "ad_script_abort" (intentional abortion)
+          #
+          if {[ad_exception $errorCode] eq "ad_script_abort"} {
+            #
+            # Yes, this was an intentional abortion
+            #
             return ""
           } else {
-            ns_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
+            #
+            # No, it was a real error
+            #
+            ad_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
             return [my error_msg -status_code 500 \
                         -template_file $error_template \
                         "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
@@ -891,7 +899,10 @@ namespace eval ::xowiki {
 
   Package instproc get_page_from_item_or_revision_id {item_id} {
     set revision_id [my query_parameter revision_id 0]
-    if {![string is integer -strict $revision_id]} { return [my error_msg "No valid revision_id provided!"] }
+    if {![string is integer -strict $revision_id]} {
+      ad_return_complaint 1 "invalid revision_id"
+      ad_script_abort
+    }
     set [expr {$revision_id ? "item_id" : "revision_id"}] 0
     #my log "--instantiate item_id $item_id revision_id $revision_id"
     return [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
@@ -2107,7 +2118,10 @@ namespace eval ::xowiki {
     set autoname [my get_parameter autoname 0]
     set parent_id [$id query_parameter parent_id ""]
     if {$parent_id eq ""} {set parent_id [$id form_parameter folder_id $folder_id]}
-    if {![string is integer -strict $parent_id]} {error "parent_id must be integer"}
+    if {![string is integer -strict $parent_id]} {
+      ad_return_complaint 1 "invalid parent_id"
+      ad_script_abort
+    }
     set page [$object_type new -volatile -parent_id $parent_id -package_id $id]
     #my ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"
     if {$object_type eq "::xowiki::PageInstance"} {
@@ -2123,7 +2137,10 @@ namespace eval ::xowiki {
 
     set source_item_id [$id query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
-      if {![string is integer -strict $source_item_id]} {error "source_item_id must be integer"}
+      if {![string is integer -strict $source_item_id]} {
+        ad_return_complaint 1 "invalid source_item_id"
+        ad_script_abort
+      }
       set source [$object_type get_instance_from_db -item_id $source_item_id]
       $page copy_content_vars -from_object $source
       set name "[::xowiki::autoname new -parent_id $source_item_id -name [$source name]]"
@@ -2143,12 +2160,18 @@ namespace eval ::xowiki {
 
   Package instproc www-manage-categories {} {
     set object_id [my query_parameter object_id]
-    if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
+    if {![string is integer -strict $object_id]} {
+      ad_return_complaint 1 "invalid object_id"
+      ad_script_abort
+    }
 
     # flush could be made more precise in the future
     my flush_page_fragment_cache -scope agg
 
-    my returnredirect [site_node::get_package_url -package_key categories]cadmin/object-map?ctx_id=$object_id&object_id=$object_id
+    set href [export_vars -base [site_node::get_package_url -package_key categories]cadmin/object-map {
+      {ctx_id $object_id} {object_id}
+    }]
+    my returnredirect $href
   }
 
   #
@@ -2157,9 +2180,15 @@ namespace eval ::xowiki {
 
   Package instproc www-edit-category-tree {} {
     set object_id [my query_parameter object_id]
-    if {![string is integer -strict $object_id]} { return [my error_msg "No valid object_id provided!"] }
+    if {![string is integer -strict $object_id]} {
+      ad_return_complaint 1 "invalid object_id"
+      ad_script_abort
+    }
     set tree_id   [my query_parameter tree_id]
-    if {![string is integer -strict $tree_id]}   { return [my error_msg "No valid tree_id provided!"] }
+    if {![string is integer -strict $tree_id]}   {
+      ad_return_complaint 1 "invalid tree_id"
+      ad_script_abort
+    }
 
     # flush could be made more precise in the future
     my flush_page_fragment_cache -scope agg
@@ -2209,7 +2238,7 @@ namespace eval ::xowiki {
 
   Package instproc www-delete {-item_id -name -parent_id} {
     #
-    # This delete method does not require an instanantiated object,
+    # This delete method does not require an instantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
     # If a (broken) object can't be instantiated, it cannot be deleted.
     # Therefore we need this package level delete method. 
@@ -2224,7 +2253,10 @@ namespace eval ::xowiki {
     #
     if {![info exists item_id]} {
       set item_id [my query_parameter item_id]
-      if {![string is integer $item_id]} { return [my error_msg "No valid item_id provided!"] }
+      if {![string is integer $item_id]} {
+        ad_return_complaint 1 "invalid item_id"
+        ad_script_abort
+      }
       #my log "--D item_id from query parameter $item_id"
     }
     #
