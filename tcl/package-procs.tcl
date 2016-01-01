@@ -856,9 +856,15 @@ namespace eval ::xowiki {
             # Yes, this was an intentional abortion
             #
             return ""
+          } elseif {[string match "*for parameter*" $errorMsg]} {
+            #
+            # The exception might have been due to invalid input parameters
+            #
+            ad_return_complaint 1 $errorMsg
+            ad_script_abort
           } else {
             #
-            # No, it was a real error
+            # The exception was a real error
             #
             ad_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
             return [my error_msg -status_code 500 \
