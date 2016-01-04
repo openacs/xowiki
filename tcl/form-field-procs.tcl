@@ -2196,7 +2196,7 @@ namespace eval ::xowiki::formfield {
       my render_richtext_as_div
     } else {
       # we use for the time being the initialization of xinha based on
-      # the site master
+      # the blank master
       set ::acs_blank_master(xinha) 1
       set quoted [list]
       foreach e [my plugins] {lappend quoted '$e'}

@@ -3,7 +3,7 @@
   <title>#acs-templating.HTMLArea_InsertImageTitle#</title>
 
   <script type="text/javascript" 
-	  src="/resources/acs-templating/xinha-nightly/popups/popup.js">
+	  src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
   </script>
 
 

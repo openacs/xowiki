@@ -3,7 +3,7 @@
   <title>#acs-templating.HTMLArea_InsertWikiLink#</title>
   <link rel="stylesheet" href="/resources/acs-templating/lists.css" type="text/css" media="all">
   <script type="text/javascript" 
-          src="/resources/acs-templating/xinha-nightly/popups/popup.js">
+          src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
   </script>
 
 <style type="text/css">
