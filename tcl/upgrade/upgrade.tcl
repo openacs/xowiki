@@ -601,7 +601,7 @@ namespace eval ::xowiki {
       ::xo::dc dml drop-view "drop view xowiki_form_instance_item_view"
 
       ::xo::db::require view xowiki_form_instance_item_view [subst {
-      SELECT
+        SELECT
         xi.package_id, xi.parent_id, xi.name,
         $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
         o.object_id, o.object_type, o.title AS object_title, o.context_id,
@@ -615,7 +615,7 @@ namespace eval ::xowiki {
         xowiki_page.page_id,
         xowiki_page.page_order,
         xowiki_page.creator
-      FROM
+        FROM
         xowiki_form_instance_item_index xi
         left join cr_items ci on (ci.item_id = xi.item_id)
         left join cr_revisions cr on (cr.revision_id = ci.live_revision)
@@ -673,13 +673,13 @@ namespace eval ::xowiki {
         ns_log notice "update prototype page"
         # reload updated prototype pages. If new "www"-prefix does not work yet,
         # try old format
-        if {catch {$package_id www-import-prototype-page sitemapindex.xml} {
+        if {[catch {$package_id www-import-prototype-page sitemapindex.xml}]} {
           $package_id import-prototype-page sitemapindex.xml
         }
       }
     }
   }
-  
+    
 }
 
 #
