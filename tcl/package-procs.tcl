@@ -74,16 +74,45 @@ namespace eval ::xowiki {
   #
   # URL and naming management
   #
-  Package instproc normalize_name {string} {
-    set string [string trim $string]
-    regsub -all {[\#/\\:]} $string _ string
+  Package instproc split_name {string} {
+    set prefix ""
+    regexp {^([a-z][a-z]|file|image|video|audio|js|css|swf|folder):(.*)$} $string _ prefix suffix
+    return [list prefix $prefix suffix $suffix]
+  }
+  Package instproc join_name {{-prefix ""} -name} {
+    if {$prefix ne ""} {
+      return ${prefix}:$name
+    }
+    return $name
+  }
+
+  Package instproc normalize_name {{-with_prefix:boolean false} string} {
+    #
+    # Normalize the name (in a narrow sense) which refers to a
+    # page. This name is not necessarily the content of the "name"
+    # field of the content repository, but the name without prefix
+    # (sometimes called stripped_name).
+    #
+    if {$with_prefix} {
+      set name_info [my split_name $string]
+      set prefix [dict get $name_info prefix]
+      set suffix [dict get $name_info suffix]
+    } else {
+      set prefix ""
+      set suffix $string
+    }
+    set suffix [string trim $suffix]
+    # temporary measure; TODO: remove the following if-clause
+    if {[string match *:* $suffix]} {
+      ad_log warning "normalize_name receives name '$suffix' containing a colon. A missing -with_prefix?"
+      xo::show_stack
+    }
+    regsub -all {[\#/\\:]} $suffix _ suffix
     # if subst_blank_in_name is turned on, turn spaces into _
     if {[my get_parameter subst_blank_in_name 1]} {
-      regsub -all { +} $string "_" string
+      regsub -all { +} $suffix "_" suffix
     }
-    #my log "normalize name '$string' // [my get_parameter subst_blank_in_name 1]"
-    #return [ns_urldecode $string]
-    return $string
+    return [my join_name -prefix $prefix -name $suffix]
   }
 
   Package instproc default_locale {} {
@@ -1298,9 +1327,6 @@ namespace eval ::xowiki {
     {-assume_folder:required false}
     element
   } {
-    if {$normalize_name} {
-      set element [my normalize_name $element]
-    }
     #my log el=[string map [list \0 MARKER] $element]-assume_folder=$assume_folder,parent_id=$parent_id
     set (form) ""
     set use_default_lang 0
@@ -1352,6 +1378,9 @@ namespace eval ::xowiki {
 
     set name [string trimright $name \0]
     set (stripped_name) [string trimright $(stripped_name) \0]
+    if {$normalize_name} {
+      set (stripped_name) [my normalize_name $(stripped_name)]
+    }
 
     if {$element eq "" || $element eq "\0"} {
       set folder_id [my folder_id]

@@ -257,7 +257,7 @@ namespace eval ::xowiki {
       $data name $name
       set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
     }
-    set name [::$package_id normalize_name $name]
+    set name [::$package_id normalize_name -with_prefix true $name]
 
     #$data msg "validate: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
