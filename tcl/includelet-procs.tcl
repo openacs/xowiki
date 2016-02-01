@@ -38,7 +38,7 @@ namespace eval ::xowiki::includelet {
     if {$ajaxhelper} {
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/$path"
     } else {
-      ::xo::Page requireCSS "http://yui.yahooapis.com/$version/build/$path"
+      ::xo::Page requireCSS "//yui.yahooapis.com/$version/build/$path"
     }
   }
 
@@ -46,7 +46,7 @@ namespace eval ::xowiki::includelet {
     if {$ajaxhelper} {
       ::xo::Page requireJS "/resources/ajaxhelper/yui/$path"
     } else {
-      ::xo::Page requireJS "http://yui.yahooapis.com/$version/build/$path"
+      ::xo::Page requireJS "//yui.yahooapis.com/$version/build/$path"
     }
   }    
   
