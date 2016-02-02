@@ -257,7 +257,8 @@ namespace eval ::xowiki {
       $data name $name
       set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
     }
-    set name [::$package_id normalize_name -with_prefix true $name]
+    set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
+    set name [::$package_id normalize_name -with_prefix $prefixed_page_p $name]
 
     #$data msg "validate: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
