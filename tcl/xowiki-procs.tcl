@@ -2094,6 +2094,7 @@ namespace eval ::xowiki {
     regexp {^([^|]+)[|](.*)$} $arg _ link label
     regexp {^([^|]+)[|](.*)$} $label _ label options
     set options [my unescape $options]
+    set link [string trim $link]
 
     # Get the package_id from the provided path, and - if found -
     # return the shortened link relative to it.
