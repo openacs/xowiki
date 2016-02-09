@@ -2645,6 +2645,37 @@ namespace eval ::xowiki {
     return [list mime text/html html $html keywords [array names word] text ""]
   }
 
+  #
+  # The method "notification_render" is called by the notification
+  # procs.  By re-defining this method (e.g. in a workflow), it is
+  # possible to produce a different notification text.
+  # The method returns an HTML text.
+  #
+  Page instproc notification_render {} {
+    return [my render]
+  }
+
+  FormPage instproc notification_render {} {
+    if {[my is_link_page] || [my is_folder_page]} {
+      return ""
+    } else {
+      return [next]
+    }
+  }
+
+  #
+  # The method "notification_notify" calls typically the notification
+  # updater on the current page. It might be used as well to trigger
+  # notifications on other pages (in other myabe packages), when the
+  # page content is e.g. linked.
+  #
+  Page instproc notification_notify {} {
+    ::xowiki::notification::do_notifications -page [self]
+  }
+
+  #
+  # Update xowiki_last_visited table
+  #
   Page instproc record_last_visited {-user_id} {
     my instvar item_id package_id
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
@@ -4394,7 +4425,13 @@ namespace eval ::xowiki {
     #ns_log notice [my serialize]
   }
  
-  
+  #
+  # The method save_data is called typically via www-callable methods
+  # and has some similarity to "new_data" and "edit_data" in
+  # "ad_forms". it performs some updates in an instance (e.g. caused
+  # by categories), saves the data and calls finally the notification
+  # procs.
+  #
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my unset_temporary_instance_variables
@@ -4433,6 +4470,7 @@ namespace eval ::xowiki {
       if {$old_name ne $name} {
         my rename -old_name $old_name -new_name $name
       }
+      my notification_notify
     }
     return [my item_id]
   }

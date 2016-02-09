@@ -100,19 +100,38 @@ namespace eval ::xowiki::notification {
     if {![info exists page]} {
       set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id]
       $page volatile
+    } else {
+      set revision_id [$page set revision_id]
     }
+
+    #ns_log notice "--n notification proc called for page [$page name] (revision_id $revision_id) in state [$page publish_status]"
     
     if {[$page set publish_status] eq "production"} {
-      # don't do notification for pages under construction
-      #ns_log notice "--n xowiki::notification NO NOTIFCATION due to production state"
+      #
+      # Don't do notification for pages under construction.
+      #
+      ns_log notice "--n xowiki::notification NO notification due to production state"
       return
     }
     
     $page absolute_links 1
-    if {![info exists html]} {set html [$page render]}
-    if {![info exists text]} {set text [ad_html_text_convert -from text/html -to text/plain -- $html]}
+    if {![info exists html]} {
+      set html [$page notification_render]
+    }
+    
+    if {$html eq ""} {
+      #
+      # The notification renderer returned empty. Nothing to do.
+      #
+      #ns_log notice "--n notification renderer returned emtpy for page [$page name] (revision_id $revision_id). Nothing to do"
+      return
+    }
+    
+    if {![info exists text]} {
+      set text [ad_html_text_convert -from text/html -to text/plain -- $html]
+    }
 
-    #ns_log notice "--n xowiki::notification::do_notifications called for item_id [$page set revision_id] publish_status=[$page set publish_status] XXX"
+    #ns_log notice "--n xowiki do_notifications called for revision_id $revision_id publish_status=[$page set publish_status]"
     $page instvar package_id
     set link [$page pretty_link -absolute 1]
     append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [$page set title]]</a></p>"
