@@ -199,6 +199,30 @@ namespace eval ::xo::Table {
     }
   }
 
+  BootstrapTableRenderer instproc render-bulkactions {} {
+    set bulkactions [[self]::__bulkactions children]
+    html::div -class "btn-group" -role group -aria-label "Bulk actions" {
+      html::t "Bulk-Actions:"
+      set bulkaction_container [[lindex $bulkactions 0] set __parent]
+      set name [$bulkaction_container set __identifier]
+
+      foreach ba $bulkactions {
+        html::ul -class compact {
+          html::li {
+            # For some reason, btn-secondary seems not to be available
+            # for the "a" tag, so we set the border-color manually.
+            html::a -class "btn btn-secondary" -rule button \
+                -title [$ba tooltip] -href # \
+                -style "border-color: #ccc;" \
+                -onclick "acs_ListBulkActionClick('$name','[$ba url]'); return false;" {
+                  html::t [$ba label]
+                }
+          }
+        }
+      }
+    }
+  }
+
   BootstrapTableRenderer instproc render {} {
     ::xo::Page requireCSS "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
     if {![my isobject [self]::__actions]} {my actions {}}

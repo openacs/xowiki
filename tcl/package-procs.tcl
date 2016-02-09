@@ -2304,7 +2304,7 @@ namespace eval ::xowiki {
     if {$item_id eq ""} {
       array set "" [my item_info_from_url -with_package_prefix false $name]
       if {$(item_id) == 0} {
-        ns_log notice "lookup of '$name' with parent_id $parent_id failed"
+        ns_log notice "url lookup of '$name' failed"
       } else {
         set parent_id $(parent_id)
         set item_id $(item_id)
@@ -2513,6 +2513,7 @@ namespace eval ::xowiki {
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}
+      bulk-delete        {{package_id admin}}
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2572,6 +2573,7 @@ namespace eval ::xowiki {
       make-live-revision {{package_id write}}
       delete-revision    swa
       delete             swa
+      bulk-delete        swa
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2624,6 +2626,7 @@ namespace eval ::xowiki {
       save-attributes    {{package_id write}}
       delete-revision    swa
       delete             swa
+      bulk-delete        swa      
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2689,6 +2692,7 @@ namespace eval ::xowiki {
       make-live-revision {{item_id write}}
       delete-revision    swa
       delete             swa
+      bulk-delete        swa
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}

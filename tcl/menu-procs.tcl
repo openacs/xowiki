@@ -262,7 +262,7 @@ namespace eval ::xowiki {
                           -parent_id $parent_id \
                           -nls_language $nls_language -return_url $return_url]
           } elseif {[dict exists $properties -object_type]} {
-            set link [$package_id make_link -with_entities 0 \
+            set link [$package_id make_link \
                           $package_id edit-new \
                           [list object_type [dict get $properties -object_type]] \
                           parent_id return_url autoname template_file]

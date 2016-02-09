@@ -14,6 +14,28 @@ namespace eval ::xowiki {
   # This block contains the externally callable methods. We use as
   # naming convention dashes as separators.
   #
+  #
+  # externally callable method: bulk-delete
+  # 
+  Page instproc www-bulk-delete {} {
+    my instvar package_id
+
+    if {![my exists_form_parameter "objects"]} {
+      my msg "nothing to delete"
+    }
+    if {[my parent_id] == [$package_id folder_id]} {
+      # from root index page
+      set parent_id [my parent_id]
+    } else {
+      set parent_id [my item_id]
+    }
+    foreach page_name [my form_parameter objects] {
+      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id $parent_id]
+      ns_log notice "bulk-delete: DELETE $page_name in folder [my name]-> $item_id"
+      $package_id www-delete -item_id $item_id
+    }
+    $package_id returnredirect .
+  }
 
   #
   # externally callable method: clipboard-add

@@ -534,36 +534,41 @@ namespace eval ::xowiki::includelet {
     #
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
-    set ::with_publish_status [expr {$publish_status ne "ready"}]
-
+    set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
+    set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete]
+    
     switch [$package_id get_parameter PreferredCSSToolkit yui] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
+
     set t [$tableWidgetClass new -volatile -skin $skin \
                -columns {
-                 BulkAction objects -id ID -hide $::hidden(objects) -actions {
-                   Action new -label select -tooltip select -url admin/select
+                 BulkAction create objects -id ID -hide $::hidden(objects) -actions {
+                   if {$::__xowiki_folder_link ne ""} {
+                     Action bulk-delete -label Delete -tooltip "Delete selected" \
+                         -url $::__xowiki_folder_link
+                   }
                  }
                  # The "-html" options are currenty ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way. 
                  #
-                 HiddenField ID
-                 AnchorField edit -CSSclass edit-item-button -label "" \
+                 HiddenField create ID
+                 AnchorField create edit -CSSclass edit-item-button -label "" \
                      -hide $::hidden(edit)
-                 if {$::with_publish_status} {
-                   ImageAnchorField publish_status -orderby publish_status.src -src "" \
+                 if {$::__xowiki_with_publish_status} {
+                   ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
                        -alt "publish status" -label [_ xowiki.publish_status]
                  }
-                 Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
+                 Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
-                 AnchorField name -label [_ xowiki.Page-name] -orderby name \
+                 AnchorField create name -label [_ xowiki.Page-name] -orderby name \
                      -hide $::hidden(name) 
-                 Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
+                 Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
                      -hide $::hidden(last_modified) 
-                 Field mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
-                 AnchorField delete -CSSclass delete-item-button \
+                 Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
+                 AnchorField create delete -CSSclass delete-item-button \
                      -hide $::hidden(delete) \
                      -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
 
@@ -623,7 +628,7 @@ namespace eval ::xowiki::includelet {
           -delete.href $delete_link \
           -delete.title #xowiki.delete#
 
-      if {$::with_publish_status} {
+      if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
         if {[$c set publish_status] eq "ready"} {
           set image active.png
