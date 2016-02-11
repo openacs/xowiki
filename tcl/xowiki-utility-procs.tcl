@@ -465,6 +465,8 @@ namespace eval ::xowiki {
       set tn [$cl table_name]
       set cn ${tn}_fk
       set sc [$cl info superclass]
+      set old_cn ${tn}_[$cl id_column]_fkey
+      ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint IF EXISTS $old_cn"
       ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint IF EXISTS $cn"
       ::xo::dc dml add_constraint  "ALTER TABLE $tn ADD constraint $cn FOREIGN KEY([$cl id_column]) \
         REFERENCES [$sc table_name]([$sc id_column]) ON DELETE CASCADE"

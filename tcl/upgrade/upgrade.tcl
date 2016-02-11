@@ -678,6 +678,17 @@ namespace eval ::xowiki {
         }
       }
     }
+
+    set v 5.9.1d4
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      # There are still instances having old constraint names. The updated
+      # version of the refresh-function cares about these relicts.
+      ::xowiki::refresh_id_column_fk_constraints
+    }
+
   }
     
 }
