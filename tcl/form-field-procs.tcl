@@ -781,6 +781,7 @@ namespace eval ::xowiki::formfield {
         {size 40}
         {viruscheck true}
         {sticky false}
+        {searchable false}
         link_label
       }
   file instproc check=virus {value} {
@@ -865,6 +866,14 @@ namespace eval ::xowiki::formfield {
       } {
       set content_type [::xowiki::guesstype $value]
     }
+
+    if {[my searchable]} {
+      set publish_date_cmd {;}
+      set save_flag ""
+    } else {
+      set publish_date_cmd {$file_object set publish_date "9999-12-31 23:59:59.0+01"}
+      set save_flag "-use_given_publish_date true"
+    }
     #my msg "mime_type of $entry_info(name) = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
     set file_object [$package_id get_page_from_name -name $entry_info(name) -parent_id $entry_info(parent_id)]
     if {$file_object ne ""} {
@@ -873,7 +882,8 @@ namespace eval ::xowiki::formfield {
       $file_object set import_file [my set tmpfile]
       $file_object set mime_type $content_type
       $file_object set title $value
-      $file_object save
+      eval $publish_date_cmd
+      $file_object save {*}$save_flag
     } else {
       # create a new file
       #my msg "new file"
@@ -885,7 +895,8 @@ namespace eval ::xowiki::formfield {
                            -package_id [[my object] package_id] \
                            -creation_user [::xo::cc user_id] ]
       $file_object set import_file [my set tmpfile]
-      $file_object save_new
+      eval $publish_date_cmd
+      $file_object save_new {*}$save_flag
     }
     #
     # Update the value with the attribute value pair list containing
