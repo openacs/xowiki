@@ -1052,7 +1052,10 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class create hidden -superclass FormField
+  Class create hidden -superclass FormField -parameter {
+    {sign:boolean false}
+    {max_age:integer}
+  } -extend_slot_default validator signature
   hidden instproc initialize {} {
     my type hidden
     my set widget_type text(hidden)
@@ -1062,8 +1065,35 @@ namespace eval ::xowiki::formfield {
   }
   hidden instproc render_item {} {
     # don't render the labels
-    my render_form_widget
+    if {[my sign]} {
+      set token_id [sec_get_random_cached_token_id]
+      set secret [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
+      if {[my exists max_age]} {
+        set max_age [my max_age]
+      } else {
+        set max_age ""
+      }
+      set value [my value]
+      set sig [ad_sign -max_age $max_age -secret $secret -token_id $token_id $value]
+      ::html::div {
+        ::html::input -name [my name] -value $value -type hidden
+        ::html::input -name __[my name]:sig -value $sig -type hidden
+      }
+    } else {
+      my render_form_widget
+    }
   }
+  hidden instproc check=signature {value} {
+    set v 1
+    if {[my sign]} {
+      set sig [::xo::cc form_parameter __[my name]:sig]
+      set secret  [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
+      set v [ad_verify_signature -secret $secret $value $sig]
+      ns_log notice "==== we have sig <$sig> val $v"
+    }
+    return $v
+  }
+
   hidden instproc render_help_text {} {
   }
 
