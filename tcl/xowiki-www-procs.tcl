@@ -132,6 +132,7 @@ namespace eval ::xowiki {
     {-view_method edit} 
     {-name ""} 
     {-nls_language ""}
+    {-publish_status ""}
   } {
     my instvar package_id
     set original_package_id $package_id
@@ -168,7 +169,7 @@ namespace eval ::xowiki {
     #  - create an includelet to create the form markup automatically
     #  - validate and transform input as usual
     # We should probably allow as well controlling autonaming and
-    # setting of publish_status, and probhibit empty postings.
+    # and prohibit empty postings.
 
     set text_to_html [my form_parameter "__text_to_html" ""]
     foreach key {_text _name} {
@@ -209,6 +210,10 @@ namespace eval ::xowiki {
     # use the actual package_id.
     set fp_package_id [my form_parameter "package_id" [my query_parameter "package_id" [my package_id]]]
 
+    if {$publish_status eq ""} {
+      set publish_status [my query_parameter "publish_status" ""]
+    }
+
     ::xo::Package require $fp_package_id
     set f [my create_form_page_instance \
                -name $name \
@@ -219,6 +224,10 @@ namespace eval ::xowiki {
                -instance_attributes $instance_attributes \
                -source_item_id [my query_parameter source_item_id ""]]
 
+    if {$publish_status ne "" && $publish_status in {"production" "ready" "live" "expired"}} {
+      $f publish_status $publish_status
+    }
+    
     if {$name eq ""} {
       $f save_new
     } else {
@@ -233,6 +242,7 @@ namespace eval ::xowiki {
         $f save
       }
     }
+    $f notification_notify
 
     foreach var {return_url template_file title detail_link text} {
       if {[my exists_query_parameter $var]} {

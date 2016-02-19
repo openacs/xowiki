@@ -132,11 +132,11 @@ namespace eval ::xowiki::notification {
     }
 
     #ns_log notice "--n xowiki do_notifications called for revision_id $revision_id publish_status=[$page set publish_status]"
-    $page instvar package_id
-    set link [$page pretty_link -absolute 1]
-    append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [$page set title]]</a></p>"
-    append text "\nFor more details, see $link ...<hr>\n"
+    set details [$page notification_detail_link]
+    append html [dict get $details html]
+    append text [dict get $details text]
 
+    $page instvar package_id
     set state [expr {[$page set last_modified] eq [$page set creation_date] ? "New" : "Updated"}]
     set instance_name [::$package_id instance_name]
 
@@ -147,7 +147,7 @@ namespace eval ::xowiki::notification {
         -type_id [notification::type::get_type_id -short_name xowiki_notif] \
         -object_id [$page set package_id] \
         -response_id [$page set revision_id] \
-        -notif_subject "\[$instance_name\] [$page set title] ($state)" \
+        -notif_subject [$page notification_subject -instance_name $instance_name -state $state] \
         -notif_text $text \
         -notif_html $html \
         -notif_user $notif_user_id
@@ -170,7 +170,7 @@ namespace eval ::xowiki::notification {
             -type_id [notification::type::get_type_id -short_name xowiki_notif] \
             -object_id $cat($level) \
             -response_id [$page set revision_id] \
-            -notif_subject "\[$instance_name\] $label($level): [$page set title] ($state)" \
+            -notif_subject [$page notification_subject -instance_name $instance_name -category_label $label($level) -state $state] \
             -notif_text $text \
             -notif_html $html \
             -notif_user $notif_user_id

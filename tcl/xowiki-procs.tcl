@@ -2674,6 +2674,32 @@ namespace eval ::xowiki {
   }
 
   #
+  # The method "notification_detail_link" is called from
+  # do_notifications to provide a link back to the context, where the
+  # new/modified item can be viewed in detail. It has to return an
+  # html and a text component.
+  #
+  Page instproc notification_detail_link {} {
+    set link [my pretty_link -absolute 1]
+    append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [my title]]</a></p>"
+    append text "\nFor more details, see $link ...\n" 
+    return [list html $html text $text]
+  }
+
+  #
+  # The method "notification_subject" is called from
+  # do_notifications to provide a the subject line for notifications.
+  # The "-category_label" might be empty.
+  #
+  Page instproc notification_subject {-instance_name {-category_label ""} -state} {
+    if {$category_label eq ""} {
+      return "\[$instance_name\]: [my title] ($state)" 
+    } else {
+      return "\[$instance_name\] $category_label: [my title] ($state)" 
+    }
+  }
+
+  #
   # Update xowiki_last_visited table
   #
   Page instproc record_last_visited {-user_id} {
