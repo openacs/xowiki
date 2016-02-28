@@ -1323,7 +1323,7 @@ namespace eval ::xowiki {
       if {[::xo::cc user_id] != 0} { ;# notifications require login
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
-        set notification_text "Subscribe the XoWiki instance"
+        set notification_text "Subscribe to [$context_package_id instance_name]"
         set notification_subscribe_link \
                                          [export_vars -base /notifications/request-new \
                                               {{return_url $notifications_return_url}
