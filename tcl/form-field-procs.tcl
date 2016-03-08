@@ -1973,9 +1973,8 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
-      #::xo::Page requireJS "//code.jquery.com/jquery-1.12.1.min.js"
-      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.4/standard-all/ckeditor.js"
-      ::xo::Page requireJS "//cdnjs.cloudflare.com/ajax/libs/ckeditor/4.5.4/adapters/jquery.js"
+      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.7/standard-all/ckeditor.js"
+      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.7/standard-all/adapters/jquery.js"
 
       # In contrary to the doc, ckeditor4 names instances after the id,
       # not the name.
