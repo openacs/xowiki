@@ -1065,7 +1065,7 @@ namespace eval ::xowiki::formfield {
   }
   hidden instproc render_item {} {
     # don't render the labels
-    if {[my sign]} {
+    if {[my exists sign] && [my sign]} {
       set token_id [sec_get_random_cached_token_id]
       set secret [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
       if {[my exists max_age]} {
@@ -1085,7 +1085,7 @@ namespace eval ::xowiki::formfield {
   }
   hidden instproc check=signature {value} {
     set v 1
-    if {[my sign]} {
+    if {[my exists sign] && [my sign]} {
       set sig [::xo::cc form_parameter __[my name]:sig]
       set secret  [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
       set v [ad_verify_signature -secret $secret $value $sig]
@@ -1865,7 +1865,7 @@ namespace eval ::xowiki::formfield {
   Class create richtext::ckeditor4 -superclass richtext -parameter {
     {editor ckeditor4}
     {mode wysiwyg}
-    {skin bootstrapck}
+    {skin "bootstrapck,/resources/xowiki/ckeditor4/skins/bootstrapck/"}
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
@@ -1971,10 +1971,11 @@ namespace eval ::xowiki::formfield {
       my render_richtext_as_div
     } else {
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-      ::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
-      ::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
-      #::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
-      #::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
+      #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
+      #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
+      #::xo::Page requireJS "//code.jquery.com/jquery-1.12.1.min.js"
+      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.4/standard-all/ckeditor.js"
+      ::xo::Page requireJS "//cdnjs.cloudflare.com/ajax/libs/ckeditor/4.5.4/adapters/jquery.js"
 
       # In contrary to the doc, ckeditor4 names instances after the id,
       # not the name.
@@ -1990,7 +1991,6 @@ namespace eval ::xowiki::formfield {
         set ready_callback "/*none*/;"
         set submit_callback "/*none*/;"
       }
-
       set options [subst {
         [my set additionalConfigOptions]
         toolbar : '[my toolbar]',
@@ -2036,6 +2036,7 @@ namespace eval ::xowiki::formfield {
               });
             }
             \$(document).ready(function() {
+                CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
                 if (\$('#$id').parents('.repeatable').length != 0) {
                     if (\$('#$id').is(':visible')) {
                         load_$id ();
@@ -2071,6 +2072,7 @@ namespace eval ::xowiki::formfield {
               });
             }
             \$(document).ready(function() {
+              CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               if (\$('#$id').parents('.repeatable').length != 0) {
                 if (\$('#$id').is(':visible')) {
                   load_$id ();
@@ -2094,6 +2096,7 @@ namespace eval ::xowiki::formfield {
               });
             }
             \$(document).ready(function() {
+              CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               load_$id ();
               CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
             });

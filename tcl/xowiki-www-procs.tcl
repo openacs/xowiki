@@ -979,7 +979,7 @@ namespace eval ::xowiki {
         #if {$formgiven && ![string match _* $att]} continue
         if {[my exists __field_in_form($att)]} continue
         set f [my lookup_form_field -name $att $form_fields]
-        #my msg "insert auto_field $att"
+        #my log "insert auto_field $att $f"
         $f render_item
       }
     } $fcn
