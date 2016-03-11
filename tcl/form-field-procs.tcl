@@ -1869,7 +1869,7 @@ namespace eval ::xowiki::formfield {
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
-    {allowedContent "true"}
+    {allowedContent ""}
     {CSSclass xowiki-ckeditor}
     {customConfig "config.js"}
     {callback "/* callback code */"}
@@ -1992,6 +1992,7 @@ namespace eval ::xowiki::formfield {
         set ready_callback "/*none*/;"
         set submit_callback "/*none*/;"
       }
+      
       set options [subst {
         [my set additionalConfigOptions]
         toolbar : '[my toolbar]',
@@ -2006,9 +2007,11 @@ namespace eval ::xowiki::formfield {
         imageSelectorDialog: '[my imageSelectorDialog]?parent_id=[[my object] item_id]',
         ready_callback: '$ready_callback2',
         customConfig: '[my customConfig]',
-        allowedContent: '[my allowedContent]',
         textarea_id: '[my set id]'
       }]
+      if {[my allowedContent] ne ""} {
+        append options "  , allowedContent: '[my allowedContent]'\n"
+      }
       if {[my templatesFiles] ne ""} {
         append options "  , templates_files: \['[join [my pathNames [my templatesFiles]] ',' ]' \]\n"
       }
