@@ -33,7 +33,6 @@ namespace eval ::xowiki {
      -forms:required 
      -package_id:required
      } {
-    set folder_id [::$package_id folder_id]
     set form_item_ids [list]
     foreach t [split $forms |] {
       #my log "trying to get $t // parent_id $parent_id"
