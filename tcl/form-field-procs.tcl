@@ -1869,6 +1869,7 @@ namespace eval ::xowiki::formfield {
     {toolbar Full}
     {CSSclass xowiki-ckeditor}
     {uiColor ""}
+    {allowedContent "true"}
     {CSSclass xowiki-ckeditor}
     {customConfig "config.js"}
     {callback "/* callback code */"}
@@ -1985,7 +1986,8 @@ namespace eval ::xowiki::formfield {
 
       if {"xowikiimage" in [my extraPlugins]} {
         my js_image_helper
-        set ready_callback {xowiki_image_callback(e.editor);}
+        set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
+        set ready_callback2 {xowiki_image_callback(e.editor);}
       } else {
         set ready_callback "/*none*/;"
         set submit_callback "/*none*/;"
@@ -2002,9 +2004,9 @@ namespace eval ::xowiki::formfield {
         extraPlugins: '[join [my extraPlugins] ,]',
         contentsCss: '[my contentsCss]',
         imageSelectorDialog: '[my imageSelectorDialog]?parent_id=[[my object] item_id]',
-        ready_callback: '$ready_callback',
+        ready_callback: '$ready_callback2',
         customConfig: '[my customConfig]',
-        allowedContent: true,
+        allowedContent: '[my allowedContent]',
         textarea_id: '[my set id]'
       }]
       if {[my templatesFiles] ne ""} {
@@ -2097,7 +2099,8 @@ namespace eval ::xowiki::formfield {
             \$(document).ready(function() {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               load_$id ();
-              CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
+              $ready_callback
+              //CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
             });
           }]
         }
