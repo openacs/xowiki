@@ -1990,6 +1990,7 @@ namespace eval ::xowiki::formfield {
         set ready_callback2 {xowiki_image_callback(e.editor);}
       } else {
         set ready_callback "/*none*/;"
+        set ready_callback2 $ready_callback
         set submit_callback "/*none*/;"
       }
       
