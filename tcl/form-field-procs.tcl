@@ -480,8 +480,9 @@ namespace eval ::xowiki::formfield {
     # If no special renderer is defined, we fall back to this one,
     # which is in most cases  a simple input fied of type string.
     #
+    set value [my value]
     if {[my mode] ne "edit"} {
-      html::t -disableOutputEscaping [my pretty_value [my value]]
+      html::t -disableOutputEscaping [my pretty_value $value]
       return
     }
     if {[my exists validate_via_ajax] && [my validator] ne ""} {
@@ -497,10 +498,21 @@ namespace eval ::xowiki::formfield {
 
     set booleanAtts [my booleanAttributes required readonly disabled multiple \
                          formnovalidate autofocus]
-    ::html::input [my get_attributes type size maxlength id name value pattern \
-                   placeholder {CSSclass class} {*}$booleanAtts] {}
+    #
+    # We do not want i18n substitutions in the input fields. So, save
+    # away the orginal value and pass the escaped value to the tdom
+    # renderer.
+    #
+    set old_value [my set value]
+    my set value [xo::escape_message_keys $old_value]
+    
+    ::html::input [my get_attributes type size maxlength id name value \
+                       pattern placeholder {CSSclass class} {*}$booleanAtts] {}
+    #
+    # Reset values to original content
+    #
     my resetBooleanAttributes $booleanAtts
-
+    my set value $old_value
 
     #
     # Disabled fieds are not returned by the browsers. For some
@@ -511,7 +523,7 @@ namespace eval ::xowiki::formfield {
     #
     if {[my exists disabled] && [my exists transmit_field_always]} {
       ::html::div {
-        ::html::input [list type hidden name [my name] value [my set value]] {}
+        ::html::input [list type hidden name [my name] value $value] {}
       }
     }
     my set __rendered 1
