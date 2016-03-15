@@ -22,9 +22,9 @@ namespace eval ::xowiki {
     {exclude_item_ids 0}
     {entry_renderer ::xowiki::Weblog::Entry}
     {entry_flag}
-    {summary false}
+    {summary:boolean false}
     {summary_chars 150}
-    {compute_summary false}
+    {compute_summary:boolean false}
   }
 
   ::xowiki::Weblog proc instantiate_forms {
@@ -267,7 +267,7 @@ namespace eval ::xowiki {
     
     set summary_href [::xo::cc url]?[::xo::update_query $query summary [expr {!$summary}]]
     #set flink "<a href='[ns_quotehtml $summary_href$query_parm]'>[ns_quotehtml $smsg($summary)]</a>"
-    set flink "<a href='[ns_quotehtml $summary_href]'>[ns_quotehtml $smsg($summary)]</a>"
+    set flink "<a href='[ns_quotehtml $summary_href]'>[ns_quotehtml $smsg([string is true $summary])]</a>"
     
     if {$page_number ne ""} {
       set nr [llength [$items children]] 
