@@ -694,28 +694,27 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  FormField instproc pretty_image {-parent_id:required entry_name} {
-    if {$entry_name eq ""} return
-    if {[my set value] eq ""} return
-    my instvar object value
+  FormField instproc pretty_image {-parent_id:required {-revision_id ""} entry_name} {
+    if {$entry_name eq "" || ${:value} eq ""} return
 
-    array set "" [$object item_ref -default_lang [$object lang] -parent_id $parent_id $entry_name]
+    array set "" [${:object} item_ref -default_lang [${:object} lang] -parent_id $parent_id $entry_name]
 
-    set label [my label] ;# the label is used for alt und title
+    set label [my label] ;# the label is used for alt and title
     if {$label eq $(stripped_name)} {
+      #
       # The label is apparently the default. For Photo.form instances,
       # this is always "image". In such cases, use the title of the
       # parent object as label.
-      set label [[my object] title]
+      #
+      set label [${:object} title]
     }
 
     set l [::xowiki::Link create new -destroy_on_cleanup \
-               -page $object -type "image" -lang $(prefix) \
+               -page ${:object} -type "image" -lang $(prefix) \
                [list -stripped_name $(stripped_name)] [list -label $label] \
                -parent_id $(parent_id) -item_id $(item_id)]
 
     if {[my istype file]} {
-      set revision_id [my get_from_value $value revision_id]
       if {$revision_id ne ""} {
         $l revision_id $revision_id
       }
@@ -791,9 +790,10 @@ namespace eval ::xowiki::formfield {
       -extend_slot_default validator virus \
       -parameter {
         {size 40}
-        {viruscheck true}
-        {sticky false}
-        {searchable false}
+        {viruscheck:boolean true}
+        {sticky:boolean false}
+        {searchable:boolean false}
+        {multiple:boolean true}
         link_label
       }
   file instproc check=virus {value} {
@@ -813,12 +813,28 @@ namespace eval ::xowiki::formfield {
   file instproc content-type {value} {my set [self proc] $value}
   file instproc initialize {} {
     my type file
+    my set booleanHTMLAttributes {multiple}
     my set widget_type file(file)
     next
   }
-  file instproc entry_info {value} {
-    return [list name file:[my name] parent_id [[my object] item_id]]
+  file instproc entry_info {} {
+    if {[my multiple]} {
+      if {[info exists :tmpfile]} {
+        set list ${:tmpfile}
+      } else {
+        set list [my get_from_value ${:value} name]
+      }
+      set objName {}
+      for {set i 0} {$i < [llength $list]} {incr i} {
+        lappend objName file:${:name}___$i
+      }
+    } else {
+      set objName file:${:name}
+    }
+    #my log ENTRY_INFO=[list name $objName parent_id [${:object} item_id]]
+    return [list name $objName parent_id [[my object] item_id]]    
   }
+  
   file instproc get_from_value {value attribute {raw ""}} {
     #
     # The value of of a form entry might be:
@@ -857,6 +873,52 @@ namespace eval ::xowiki::formfield {
     return [next]
   }
 
+  file instproc store_file {
+    -file_name
+    -content_type
+    -package_id
+    -parent_id
+    -object_name
+    -tmpfile
+    -publish_date_cmd
+    -save_flag
+  } {
+          
+    if {$content_type in { application/octetstream application/force-download }} {
+      set content_type [::xowiki::guesstype $file_name]
+    }
+
+    set file_object [$package_id get_page_from_name -name $object_name -parent_id $parent_id]
+    if {$file_object ne ""} {
+      #
+      # File entry exists already, create a new revision
+      #
+      #my msg "new revision (value $file_name)"
+      $file_object set import_file $tmpfile
+      $file_object set mime_type $content_type
+      $file_object set title $file_name
+      eval $publish_date_cmd
+      $file_object save {*}$save_flag
+    } else {
+      #
+      # Create a new file
+      #
+      #my msg "new file"
+      set file_object [::xowiki::File new -destroy_on_cleanup \
+                           -title $file_name \
+                           -name $object_name \
+                           -parent_id $parent_id \
+                           -mime_type $content_type \
+                           -package_id [[my object] package_id] \
+                           -creation_user [::xo::cc user_id] ]
+      $file_object set import_file $tmpfile
+      eval $publish_date_cmd
+      $file_object save_new {*}$save_flag
+    }
+    return $file_object
+  }
+
+
   file instproc convert_to_internal {} {
     my instvar value
 
@@ -864,20 +926,11 @@ namespace eval ::xowiki::formfield {
       [my object] set_property -new 1 [my name] [my get_old_value]
       return
     }
-    #my msg "[my name]: got value '$value'"
-    regsub -all {\\+} $value {/} value  ;# fix IE upload path
-    set value [::file tail $value]
-    [my object] set_property -new 1 [my name] $value
+    #my log "[my name]: got value '$value'"
+    #[my object] set_property -new 1 [my name] $value
 
     set package_id [[my object] package_id]
-    array set entry_info [my entry_info $value]
-
-    set content_type [my set content-type]
-    if {$content_type eq "application/octetstream"
-        || $content_type eq "application/force-download"
-      } {
-      set content_type [::xowiki::guesstype $value]
-    }
+    array set entry_info [my entry_info]
 
     if {[my searchable]} {
       set publish_date_cmd {;}
@@ -886,35 +939,45 @@ namespace eval ::xowiki::formfield {
       set publish_date_cmd {$file_object set publish_date "9999-12-31 23:59:59.0+01"}
       set save_flag "-use_given_publish_date true"
     }
-    #my msg "mime_type of $entry_info(name) = [::xowiki::guesstype $value] // [my set content-type] ==> $content_type"
-    set file_object [$package_id get_page_from_name -name $entry_info(name) -parent_id $entry_info(parent_id)]
-    if {$file_object ne ""} {
-      # file entry exists already, create a new revision
-      #my msg "new revision (value $value)"
-      $file_object set import_file [my set tmpfile]
-      $file_object set mime_type $content_type
-      $file_object set title $value
-      eval $publish_date_cmd
-      $file_object save {*}$save_flag
-    } else {
-      # create a new file
-      #my msg "new file"
-      set file_object [::xowiki::File new -destroy_on_cleanup \
-                           -title $value \
-                           -name $entry_info(name) \
-                           -parent_id $entry_info(parent_id) \
-                           -mime_type $content_type \
-                           -package_id [[my object] package_id] \
-                           -creation_user [::xo::cc user_id] ]
-      $file_object set import_file [my set tmpfile]
-      eval $publish_date_cmd
-      $file_object save_new {*}$save_flag
+    
+    #
+    # Make sure that we do not mis-interprete spaces in paths or file
+    # names.
+    #
+    if {[llength ${:content-type}] == 1} {
+      set :tmpfile [list ${:tmpfile}]
+      set value [list $value]
     }
+    
+    set revision_ids {}
+    set newValue ""
+    foreach content_type ${:content-type} \
+        object_name $entry_info(name) \
+        tmpfile [my set tmpfile] \
+        fn $value {
+
+          regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
+          set v [::file tail $fn]
+          
+          set file_object [my store_file \
+                               -file_name $fn \
+                               -content_type $content_type \
+                               -package_id $package_id \
+                               -parent_id $entry_info(parent_id) \
+                               -object_name $object_name \
+                               -tmpfile $tmpfile \
+                               -publish_date_cmd $publish_date_cmd \
+                               -save_flag $save_flag]
+          
+          lappend revision_ids [$file_object revision_id]
+          lappend newValue $fn
+        }
+    
     #
     # Update the value with the attribute value pair list containing
     # the revision_id. TODO: clear revision_id on export.
     #
-    set newValue [list name $value revision_id [$file_object revision_id]]
+    set newValue [list name $newValue revision_id $revision_ids]
     [my object] set_property -new 1 [my name] $newValue
     my set value $newValue
   }
@@ -929,15 +992,23 @@ namespace eval ::xowiki::formfield {
   file instproc pretty_value {v} {
     if {$v ne ""} {
       my instvar object
-      array set "" [my entry_info $v]
-      array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $(name)]
-      #my msg "pretty value name '$(stripped_name)'"
-      set l [::xowiki::Link create new -destroy_on_cleanup \
-                 -page $object -type "file" -lang $(prefix) \
-                 [list -stripped_name $(stripped_name)] [list -label [my label]] \
-                 [list -extra_query_parameter [list [list filename [my get_from_value $v name $v]]]] \
-                 -parent_id $(parent_id) -item_id $(item_id)]
-      return [$l render]
+      array set "" [my entry_info]
+
+      set result ""
+      foreach object_name $(name) fn [my get_from_value $v name] {
+        
+        array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $object_name]
+
+        #my log "name <$object_name> pretty value name '$(stripped_name)'"
+        
+        set l [::xowiki::Link create new -destroy_on_cleanup \
+                   -page $object -type "file" -lang $(prefix) \
+                   [list -stripped_name $(stripped_name)] [list -label $fn] \
+                   [list -extra_query_parameter [list [list filename $fn]]] \
+                   -parent_id $(parent_id) -item_id $(item_id)]
+        append result [$l render]
+      }
+      return $result
     }
   }
 
@@ -946,18 +1017,8 @@ namespace eval ::xowiki::formfield {
     my instvar value
     set package_id [[my object] package_id]
 
-    array set entry_info [my entry_info $value]
-    set fn [my get_from_value $value name $value]
-    #my msg "[my name]: [list my get_from_value <$value> name] => '$fn'"
-    set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $entry_info(name)]
-
-    if {![my istype image]} {
-      append href ?filename=[ns_urlencode $fn]
-      set revision_id [my get_from_value $value revision_id ""]
-      if {$revision_id ne ""  && [string is integer $revision_id]} {
-        append href &revision_id=$revision_id
-      }
-    }
+    array set entry_info [my entry_info]
+    set fns [my get_from_value $value name $value]
 
     #
     # The HTML5 handling of "required" would force us to upload in
@@ -970,29 +1031,46 @@ namespace eval ::xowiki::formfield {
     }
     next
 
-    if {[info exists reset_required]} {
-      my set required true
-    }
-
     ::html::t " "
     set id __old_value_[my name]
     ::html::div {
       ::html::input -type hidden -name $id -id $id -value $value
     }
-    ::html::span -class file-control -id __a$id {
-      ::html::a -href $href {::html::t [my label_or_value $fn] }
+    ::html::div -class file-control -id __a$id {
+      foreach \
+          object_name $entry_info(name) \
+          revision_id [my get_from_value $value revision_id ""] \
+          fn $fns {
+            #my msg "[my name]: [list my get_from_value <$value> name] => '$fn'"
+            set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
+      
+            if {![my istype image]} {
+              append href ?filename=[ns_urlencode $fn]
+              if {$revision_id ne ""  && [string is integer $revision_id]} {
+                append href &revision_id=$revision_id
+              }
+            }
 
+            if {[info exists reset_required]} {
+              my set required true
+            }
+            ::html::div {
+              ::html::a -href $href {::html::t [my label_or_value $fn] }
+            }
+          }
+      #
       # Show the clear button just when
       # - there is something to clear, and
       # - the formfield is not disabled, and
       # - the form-field is not sticky (default)
-
+      #
       set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
       if {$value ne "" && !$disabled && ![my sticky] } {
         ::html::input -type button -value [_ xowiki.clear] \
             -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
       }
     }
+    
   }
 
   ###########################################################
@@ -1013,7 +1091,7 @@ namespace eval ::xowiki::formfield {
     set package_id [$object package_id]
     set parent_id  [$object parent_id]
     if {$v eq ""} {return ""}
-    array set "" [my entry_info $v]
+    array set "" [my entry_info]
     set fn [my get_from_value $v name $v]
     #
     # Get the file object of the imported file to obtain is full name and path
@@ -1053,9 +1131,15 @@ namespace eval ::xowiki::formfield {
     border border-width position top botton left right
   }
   image instproc pretty_value {v} {
-    array set "" [my entry_info $v]
-
-    return [my pretty_image -parent_id $(parent_id) $(name)]
+    set html ""
+    array set "" [my entry_info]
+    foreach object_name $(name) revision_id [my get_from_value $v revision_id $v] {
+      append html [my pretty_image \
+                       -parent_id $(parent_id) \
+                       -revision_id $revision_id \
+                       $object_name]
+    }
+    return $html
   }
 
   ###########################################################

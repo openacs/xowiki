@@ -451,12 +451,13 @@ namespace eval ::xowiki {
     } else {
       set encoded_name [::xowiki::utility urlencode $name]
     }
-    
+
     if {$parent_id eq -100} {
       # In case, we have a cr-toplevel entry, we assume, we can
       # resolve it at lease against the root folder of the current
       # package.
       set folder ""
+      set encoded_name ""
     } else {
       if {$parent_id eq ""} {
         ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
@@ -996,7 +997,8 @@ namespace eval ::xowiki {
       # We have no object, but as well no method callable on the
       # package If the method is "view", allow it to be called on the
       # root folder object.
-      if {[my query_parameter m] eq "list"} {
+      set m [my query_parameter m]
+      if {$m in {list show-object file-upload}} {
         my instvar folder_id
         array set "" [list \
                           name [$folder_id name] \

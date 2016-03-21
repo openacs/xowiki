@@ -275,7 +275,7 @@ namespace eval ::xowiki::includelet {
                               -parent_id $opt_parent_id \
                               -nls_language $nls_language -return_url $return_url]
       }
-      #       set new_page_link [$package_id make_link -with_entities 0 \
+      #       set new_page_link [$package_id make_link \
           #                              $package_id edit-new \
           #                              {object_type ::xowiki::Page} \
           #                              parent_id return_url autoname template_file]
@@ -283,11 +283,11 @@ namespace eval ::xowiki::includelet {
       set new_page_link [$package_id make_form_link -form en:page.form \
                              -parent_id $opt_parent_id \
                              -return_url $return_url]
-      set new_file_link [$package_id make_link -with_entities 0 \
+      set new_file_link [$package_id make_link  \
                              $package_id edit-new \
                              {object_type ::xowiki::File} \
                              parent_id return_url autoname template_file]
-      set new_form_link [$package_id make_link -with_entities 0 \
+      set new_form_link [$package_id make_link \
                              $package_id edit-new \
                              {object_type ::xowiki::Form} \
                              parent_id return_url autoname template_file]

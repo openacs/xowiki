@@ -25,6 +25,7 @@ namespace eval ::xowiki {
       -superclass Menu \
       -parameter {
         {autorender false}
+        {menubar}
         {containerClass "container"}
         {navbarClass "navbar navbar-default navbar-static-top"}
       }
@@ -35,18 +36,143 @@ namespace eval ::xowiki {
     set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS] 
     foreach url $css {::xo::Page requireCSS $url}
     foreach url $js  {::xo::Page requireJS  $url}
+    #::xo::Page requireJS  "/resources/xowiki/dropzone.js"
     next
+  }
+
+  BootstrapNavbar instproc dropzoneJS {-uploadlink:required} {
+    
+    ::html::script -type "text/javascript" {
+      html::t [subst -nocommands {
+        + function($) {
+          'use strict';
+
+          var dropZone = document.getElementById('drop-zone');
+          var uploadForm = document.getElementById('js-upload-form');
+          var progressBar = document.getElementById('dropzone-progress-bar');
+          var uploadFileRunning = 0;
+          
+          var startUpload = function(files) {
+            if (typeof files !== "undefined") {
+               for (var i=0, l=files.length; i<l; i++) {
+                 uploadFile(files[i]);
+               }
+            } else {
+              alert("No support for the File API in this web browser");
+            }
+          }
+
+          var uploadFile = function(file) {
+            var xhr;
+            var formData = new FormData();
+            var url = "$uploadlink" + "&name=" + file.name;
+            xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function (evt) {
+              if (evt.lengthComputable) {
+                // For multiple drop files, we should probably we should sum up the sizes.
+                // However, this since the uploads are in parallel, this is already useful.
+                progressBar.style.width = (evt.loaded / evt.total) * 100 + "%";
+              } else {
+                // No data to calculate on
+              }
+            }, false);
+            xhr.addEventListener("load", function () {
+              uploadFileRunning--;
+              if (uploadFileRunning < 1) {
+                window.location = window.location;
+              }
+            }, false);
+            xhr.open("post", url, true);
+            formData.append("upload", file);
+            uploadFileRunning++;
+
+            xhr.send(formData);
+          }
+
+          uploadForm.addEventListener('submit', function(e) {
+            var uploadFiles = document.getElementById('js-upload-files').files;
+            e.preventDefault();
+            startUpload(uploadFiles)
+          })
+
+          dropZone.ondrop = function(e) {
+            e.preventDefault();
+            this.className = 'upload-drop-zone';
+            
+            startUpload(e.dataTransfer.files)
+          }
+
+          dropZone.ondragover = function() {
+            this.className = 'upload-drop-zone drop';
+            return false;
+          }
+
+          dropZone.ondragleave = function() {
+            this.className = 'upload-drop-zone';
+            return false;
+          }
+        } (jQuery);
+      }]
+    }
+  }
+
+  BootstrapNavbar instproc dropzone {-uploadlink:required} {
+    html::ul -class "nav navbar-nav navbar-right" {
+      html::li {
+        ::html::form -method "post" -enctype "multipart/form-data" \
+            -style "display: none;" \
+            -id "js-upload-form" {
+              ::html::div -class "form-inline" {
+                ::html::div -class "form-group" {
+                  ::html::input -type "file" -name {files[]} -id "js-upload-files" -multiple multiple
+                }
+                ::html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
+                  html::t "Upload files"
+                }
+              }
+            }
+      }
+      html::li {
+        html::div -class "upload-drop-zone" -id "drop-zone" {
+          html::t "DropZone"
+          html::div -class "progress" {
+            html::div -style "width: 0%;" -class "progress-bar" -id dropzone-progress-bar {
+              html::span -class "sr-only" {html::t ""}
+            }
+          }
+        }
+      }
+      my dropzoneJS -uploadlink $uploadlink
+    }
   }
   
   BootstrapNavbar ad_instproc render {} {
     http://getbootstrap.com/components/#navbar
   } {
     html::nav -class [my navbarClass] -role "navigation" {
+      #
+      # Render the pull down menues
+      # 
       html::div -class [my containerClass] {
         foreach dropdownmenu [my children] {
           $dropdownmenu render
         }
-      }            
+        if {[[my menubar] dropzone]} {
+          #
+          # Dropzone is configured. Check, if we the user has rights to use it...
+          #
+          set current_folder_id [[my menubar] current_folder]
+          set url [[$current_folder_id package_id] make_link $current_folder_id file-upload]
+          #my log "BootstrapNavbar current_folder_id = $current_folder_id -> URL = $url"
+          
+          if {$url ne ""} {
+            #
+            # Do actually render the dropzone widget.
+            #
+            my dropzone -uploadlink $url
+          }
+        }
+      }
     }
   }              
   
@@ -112,7 +238,9 @@ namespace eval ::xowiki {
   ::xowiki::MenuBar instproc render-bootstrap {} {
     set M [my content]
     set mb [::xowiki::BootstrapNavbar \
-                -id [my get_prop $M id] {
+                -id [my get_prop $M id] \
+                -menubar [self] \
+                {
                   foreach {menu_att menu} $M {
                     if {$menu_att eq "id"} continue
                     #

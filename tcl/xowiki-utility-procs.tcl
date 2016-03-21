@@ -63,14 +63,16 @@ namespace eval ::xowiki {
   #  Ununtu:   apt-get install clamav-daemon
   # 
   ::xotcl::Object create virus
-  virus proc check {fn} {
+  virus proc check {fns} {
     if {[[::xo::cc package_id] get_parameter clamav 1]
         && [info commands ::util::which] ne ""} { 
       set clamscanCmd [::util::which clamdscan]
-      if {$clamscanCmd ne "" && [file readable $fn]} {
-        if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
-          ns_log warning "[self] virus found:\n$result"
-          return 1
+      foreach fn $fns {
+        if {$clamscanCmd ne "" && [file readable $fn]} {
+          if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
+            ns_log warning "[self] virus found:\n$result"
+            return 1
+          }
         }
       }
     }

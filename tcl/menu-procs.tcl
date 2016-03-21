@@ -128,6 +128,8 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::MenuBar -parameter {
     id
+    {dropzone:boolean true}
+    {parent_id ""}
   }
 
   if {[info commands ::dict] ne ""} {
@@ -174,6 +176,23 @@ namespace eval ::xowiki {
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
     array set "" [my set Menu($menu)]
     my set Menu($menu) [list text $(text)]
+  }
+
+  ::xowiki::MenuBar instproc current_folder {} {
+    if {${:parent_id} ne ""} {
+      return ${:parent_id}
+    } else {
+      #
+      # If the current object is the package, use the root folder as
+      # current_folder; else use the parent of the current object.
+      #
+      set object [::xo::cc invoke_object]
+      if {[$object istype ::xowiki::Package]} {
+        return [$object folder_id]
+      } else {
+        return [$object parent_id]
+      }
+    }
   }
 
   ::xowiki::MenuBar instproc add_menu_item {-name:required -item:required} {
@@ -238,6 +257,7 @@ namespace eval ::xowiki {
     #
     # {clear_menu -menu New}
     # {entry -name New.Page -label #xowiki.new# -form en:page.form}
+    my set parent_id $parent_id
 
     foreach me $items {
       array unset ""

@@ -740,8 +740,8 @@ namespace eval ::xowiki {
     {-disable_input_fields 0}
     {-view true}
   } {
-    my instvar page_template doc root package_id
     #my log "edit [self args]"
+    my instvar page_template doc root package_id
 
     my setCSSDefaults
     my include_header_info -prefix form_edit
@@ -1073,6 +1073,40 @@ namespace eval ::xowiki {
     }
   }
 
+  
+  #
+  # externally callable method: file-upload
+  # 
+
+  FormPage instproc www-file-upload {} {
+    #
+    # This method is typically called via drop-zone in a POST request,
+    # where the FormPage is a folder (which is treated as parent object).
+    #
+    if {[ns_conn method] ne "POST"} {
+      error "method should be called via POST"
+    }
+    #
+    # The following code saves the file as xowiki::File.
+    # TODO: we should support File.form instances as well (optionally).
+    #
+    set form [ns_getform]
+    set f [::xowiki::formfield::file new -name upload -object [self]]
+    set file_object [$f store_file \
+                         -file_name [ns_set get $form upload] \
+                         -content_type [ns_set get $form upload.content-type] \
+                         -package_id [my package_id] \
+                         -parent_id [my item_id] \
+                         -object_name file:[ns_set get $form upload] \
+                         -tmpfile [ns_set get $form upload.tmpfile] \
+                         -publish_date_cmd {;} \
+                         -save_flag ""]
+    $f destroy
+    ns_return 200 text/plain ok
+  }
+
+
+  
   #
   # externally callable method: list
   # 
