@@ -708,7 +708,6 @@ namespace eval ::xowiki::formfield {
       #
       set label [${:object} title]
     }
-
     set l [::xowiki::Link create new -destroy_on_cleanup \
                -page ${:object} -type "image" -lang $(prefix) \
                [list -stripped_name $(stripped_name)] [list -label $label] \
@@ -793,7 +792,7 @@ namespace eval ::xowiki::formfield {
         {viruscheck:boolean true}
         {sticky:boolean false}
         {searchable:boolean false}
-        {multiple:boolean true}
+        {multiple:boolean false}
         link_label
       }
   file instproc check=virus {value} {
@@ -1133,7 +1132,7 @@ namespace eval ::xowiki::formfield {
   image instproc pretty_value {v} {
     set html ""
     array set "" [my entry_info]
-    foreach object_name $(name) revision_id [my get_from_value $v revision_id $v] {
+    foreach object_name $(name) revision_id [my get_from_value $v revision_id] {
       append html [my pretty_image \
                        -parent_id $(parent_id) \
                        -revision_id $revision_id \
