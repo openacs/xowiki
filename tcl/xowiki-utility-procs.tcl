@@ -882,13 +882,6 @@ proc util_jsquotevalue {value} {
 }
 
 
-proc util_map2json {pairs} {
-  set json_pairs [list]
-  foreach {key value} $pairs {
-    lappend json_pairs "'${key}':[util_jsquotevalue ${value}]"
-  }
-  return [join $json_pairs {,}]
-}
 
 proc util_coalesce {args} {
   foreach value $args {
@@ -926,69 +919,6 @@ proc util_intersect3 {list1 list2} {
   }
   list [lsort [array names la1]] [lsort [array names lai]] \
       [lsort [array names la2]]
-}
-
-
-proc util_createDom {list_of_specs} {
-  foreach spec $list_of_specs {
-    set cmdName [lindex $spec 0]
-    if { $cmdName eq "\#text" } {
-      lassign $spec cmdName text
-      html::t $text
-    } else {
-      lassign $spec cmdName atts inside_spec
-      html::${cmdName} $atts [list util_createDom $inside_spec]
-    }
-  }
-}
-
-
-proc util_spec2json {list_of_specs} {
-
-  set result [list]
-  foreach spec $list_of_specs {
-    set cmdName [lindex $spec 0]
-
-    lassign $spec cmdName atts inner_spec
-
-    # We need to handle text nodes in a better way
-    # but our corresponding javascript function,
-    # i.e. wu.repeatable.createDom does not support it
-    # at the moment (August 2012)
-    if { $cmdName eq "\#text" } { continue } 
-
-    set json "\{'tag':[util_jsquotevalue $cmdName]"
-    if { $atts ne {} } {
-      append json ",[util_map2json $atts]"
-    }
-    if { $inner_spec ne {} } {
-      lassign [lindex $inner_spec 0] nodeType text
-      # llength needs to go, please see comment above 
-      # it would give us trouble if we have spec that starts with
-      # a text node but is then followed by element nodes, e.g.
-      # e.g. text node, element node 1, element node 2, and so on
-      # would give us trouble - we choose to ignore text nodes
-      # in this case
-      if { ${nodeType} eq "\#text" && [llength $inner_spec] == 1 } {
-        # text node
-        lassign [lindex $inner_spec 0] _nodeType_ text
-        append json ",'html':[util_jsquotevalue $text]"
-      } else {
-        # list of children nodes
-        append json ",'children':\[[util_spec2json $inner_spec]\]"
-      }
-    }
-    append json "\}"
-    lappend result $json
-  }
-  return [join $result {,}]
-}
-
-proc util_tdom2list {script {rootTag "div"}} {
-  set doc [dom createDocument $rootTag]
-  set root [$doc documentElement]
-  $root appendFromScript {uplevel $script}
-  return [$root asList]
 }
 
 ::xo::library source_dependent
