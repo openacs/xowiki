@@ -892,35 +892,6 @@ proc util_coalesce {args} {
 }
 
 
-#
-# intersect3 - perform the intersecting of two lists, returning a list
-# containing three lists.  The first list is everything in the first
-# list that wasn't in the second, the second list contains the intersection
-# of the two lists, the third list contains everything in the second list
-# that wasn't in the first.
-#
-
-proc util_intersect3 {list1 list2} {
-  set la1(0) {} ; unset la1(0)
-  set lai(0) {} ; unset lai(0)
-  set la2(0) {} ; unset la2(0)
-  foreach v $list1 {
-    set la1($v) {}
-  }
-  foreach v $list2 {
-    set la2($v) {}
-  }
-  foreach elem [concat $list1 $list2] {
-    if {[info exists la1($elem)] && [info exists la2($elem)]} {
-      unset la1($elem)
-      unset la2($elem)
-      set lai($elem) {}
-    }
-  }
-  list [lsort [array names la1]] [lsort [array names lai]] \
-      [lsort [array names la2]]
-}
-
 ::xo::library source_dependent
 #
 # Local variables:
