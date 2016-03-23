@@ -108,7 +108,7 @@ namespace eval ::xowiki {
   #      the menu "Package":
   #
   #        $mb add_menu_item -name Package.Startpage \
-      #             -item [list text #xowiki.index# url $index_link]
+  #             -item [list label t #xowiki.index# url $index_link]
   #
   #   4) After all updates are performed, use "render-preferred" to obtain
   #      the HTML rendering of the menu.
@@ -164,7 +164,7 @@ namespace eval ::xowiki {
     }
     my lappend Menues $name
     if {$label eq ""} {set label $name}
-    my set Menu($name) [list text $label]
+    my set Menu($name) [list label $label]
     #my log "menues: $Menues"
   }
 
@@ -175,7 +175,7 @@ namespace eval ::xowiki {
 
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
     array set "" [my set Menu($menu)]
-    my set Menu($menu) [list text $(text)]
+    my set Menu($menu) [list label $(label)]
   }
 
   ::xowiki::MenuBar instproc current_folder {} {
@@ -187,19 +187,22 @@ namespace eval ::xowiki {
       # current_folder; else use the parent of the current object.
       #
       set object [::xo::cc invoke_object]
-      if {[$object istype ::xowiki::Package]} {
-        return [$object folder_id]
+      if {[$object is_folder_page]} {
+        return $object
       } else {
         return [$object parent_id]
       }
     }
   }
 
-  ::xowiki::MenuBar instproc add_menu_item {-name:required -item:required} {
+  ::xowiki::MenuBar instproc add_menu_item {
+    -name:required
+    -item:required
+  } {
     #
     # The provided items are of the form of attribute-value pairs
-    # containing at least attributes "text" and "url"
-    #   (e.g. "text .... url ....").
+    # containing at least attributes "label" and "url"
+    #   (e.g. "label .... url ....").
     #
     my instvar Menues
     set full_name $name
@@ -222,7 +225,7 @@ namespace eval ::xowiki {
     # provide a default label
     #
     regsub -all {[.]} $full_name - full_name
-    array set "" [list text "#xowiki.menu-$full_name#" group $group_name]
+    array set "" [list label "#xowiki.menu-$full_name#" group $group_name]
     array set "" $item
     set item [array get ""]
 
@@ -247,6 +250,18 @@ namespace eval ::xowiki {
     }
   }
 
+  ::xowiki::MenuBar instproc add_extra_item {
+    -name:required
+    -type:required
+    -item:required
+  } {
+    if {$type ni {"DropZone" "ModeButton"}} {
+      error "unknown extra item type: $type"
+    }
+    my set ${type}($name) $item
+  }
+
+
   ::xowiki::MenuBar instproc update_items {
     -package_id:required -nls_language:required -parent_id:required
     -return_url  -autoname -template_file items
@@ -257,6 +272,11 @@ namespace eval ::xowiki {
     #
     # {clear_menu -menu New}
     # {entry -name New.Page -label #xowiki.new# -form en:page.form}
+    # {entry -name New.File -label File -object_type ::xowiki::File}
+    # {dropzone -name DropZone -label DropZone -uploader File}
+    # {modebutton -name Admin -label admin -button admin}
+
+   
     my set parent_id $parent_id
 
     foreach me $items {
@@ -266,6 +286,7 @@ namespace eval ::xowiki {
       set properties [lrange $me 1 end]
 
       switch $kind {
+        
         clear_menu {
           my clear_menu -menu [dict get $properties -menu]
         }
@@ -291,20 +312,68 @@ namespace eval ::xowiki {
             set link ""
           }
           set item [list url $link]
-          if {[dict exists $properties -label]} {lappend item text [dict get $properties -label]}
+          if {[dict exists $properties -label]} {
+            lappend item label [dict get $properties -label]
+          }
           my add_menu_item -name [dict get $properties -name] -item $item
         }
         
-        default { error "unknown kind of menu entry: $kind" }
+        "dropzone" {
+          foreach {var default} {
+            name dropzone
+            uploader File
+            label DropZone
+          } {
+            set $var $default
+            if {[dict exists $properties -$var]} {
+              set $var [dict get $properties -$var]
+            }
+          }
+
+          set link [$package_id make_link $parent_id file-upload]
+          my add_extra_item -name $name -type DropZone \
+              -item [list url $link uploader $uploader label $label]
+        }
+
+        "modebutton" {
+          foreach {var default} {
+            name modebutton
+            button admin
+            label ""
+          } {
+            set $var $default
+            if {[dict exists $properties -$var]} {
+              set $var [dict get $properties -$var]
+            }
+          }
+          if {$label eq ""} {set label $button}
+          set state [::xowiki::mode::$button get]
+          set link [$package_id make_link $parent_id toggle-modebutton]
+          my add_extra_item -name $name -type ModeButton \
+              -item [list url $link on $state label $label]
+        }
+
+        default {
+          error "unknown kind of menu entry: $kind"
+        }
       }
     }
   }
 
   ::xowiki::MenuBar instproc content {} {
     set result [list id [my id]]
-    foreach m [my set Menues] {
-      lappend result $m [my set Menu($m)]
+    foreach e [my set Menues] {
+      lappend result $e [concat kind MenuButton [my set Menu($e)]]
     }
+    
+    foreach e [my array name ModeButton] {
+      lappend result $e [concat kind ModeButton [my set ModeButton($e)]]
+    }
+
+    foreach e [my array name DropZone] {
+      lappend result $e [concat kind DropZone [my set DropZone($e)]]
+    }
+
     return $result
   }
 
@@ -315,6 +384,41 @@ namespace eval ::xowiki {
     }
     my $menuBarRenderer
   }
+
+
+  
+  # ::xo::tdom::Class create MenuDropZone \
+  #     -superclass MenuComponent \
+  #     -parameter {
+  #       text
+  #       href
+  #       title
+  #       {id "[my html_id]"}
+  #       CSSclass
+  #     }
+
+
+  # MenuDropZone instproc init args {
+  #   next
+  #   # Use computed default values when not specified
+  #   if {![my exists title]} {
+  #     # set the mouseover-title to the "MenuItem-Label"
+  #     # TODO: Do we really want "text" to be required ?
+  #     my title [my text]
+  #   }
+
+  #   if {![my exists href] || [my href] eq ""} {
+  #     my append CSSclass " " [string tolower [namespace tail [my info class]]]-disabled
+  #   }
+  # }
+
+  # MenuDropZone instproc render {} {
+  #   html::li [my get_attributes id {CSSclass class}] {
+  #     html::a [my get_attributes title href target] {
+  #       html::t [my text]
+  #     }
+  #   }
+  # }
 
 
   namespace export Menu

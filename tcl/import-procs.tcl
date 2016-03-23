@@ -471,7 +471,7 @@ namespace eval ::xowiki {
                                   -creation_user [::xo::cc user_id] \
                                   -parent_id $parent_id \
                                   -package_id $package_id \
-                                  -instance_attributes [list image $file_name]]
+                                  -instance_attributes [list image [list name $file_name]]]
             $photo_object title $file_name
             $photo_object publish_status "ready"
             $photo_object save_new ;# to obtain item_id needed by the form-field

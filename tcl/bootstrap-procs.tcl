@@ -33,16 +33,108 @@ namespace eval ::xowiki {
   BootstrapNavbar instproc init {} {
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
     set css [parameter::get_global_value -package_key xowiki -parameter BootstrapCSS] 
-    set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS] 
+    set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS]
     foreach url $css {::xo::Page requireCSS $url}
     foreach url $js  {::xo::Page requireJS  $url}
-    #::xo::Page requireJS  "/resources/xowiki/dropzone.js"
     next
   }
 
-  BootstrapNavbar instproc dropzoneJS {-uploadlink:required} {
+ 
+  BootstrapNavbar ad_instproc render {} {
+    http://getbootstrap.com/components/#navbar
+  } {
+    html::nav -class [my navbarClass] -role "navigation" {
+      #
+      # Render the pull down menues
+      # 
+      html::div -class [my containerClass] {
+        set rightMenuEntries {}
+        foreach entry [my children] {
+          if {[$entry istype ::xowiki::BootstrapNavbarDropdownMenu]} {
+            $entry render
+          } else {
+            lappend rightMenuEntries $entry
+          }
+        }
+        if {[llength $rightMenuEntries] > 0} {
+          html::ul -class "nav navbar-nav navbar-right" {
+            foreach entry $rightMenuEntries {
+              $entry render
+            }
+          }
+        }
+      }
+    }
+  }              
+  
+
+  #
+  # BootstrapNavbarDropdownMenu
+  #  
+  ::xo::tdom::Class create BootstrapNavbarDropdownMenu \
+      -superclass Menu \
+      -parameter {
+        text
+        header
+        {brand false}
+      }    
+
+  BootstrapNavbarDropdownMenu ad_instproc render {} {doku} {
+    # TODO: Add support for group-headers
+    # get group header
+    set group 1
     
-    ::html::script -type "text/javascript" {
+    html::ul -class "nav navbar-nav" {
+      html::li -class "dropdown" {
+        set class "dropdown-toggle"
+        if {[my brand]} {lappend class "navbar-brand"}
+        html::a -href "\#" -class $class -data-toggle "dropdown" {
+          html::t [my text] 
+          html::b -class "caret"
+        }
+        html::ul -class "dropdown-menu" {
+          foreach dropdownmenuitem [my children] {
+            if {[$dropdownmenuitem set group] ne "" && [$dropdownmenuitem set group] ne $group } {
+              html::li -class "divider"
+              set group [$dropdownmenuitem set group]
+            }
+            $dropdownmenuitem render
+          }
+        }
+      }
+    }
+  }   
+  #
+  # BootstrapNavbarDropdownMenuItem
+  #  
+  ::xo::tdom::Class create BootstrapNavbarDropdownMenuItem \
+      -superclass MenuItem \
+      -parameter {
+        {href "#"}
+        helptext
+      }        
+  
+  BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
+    html::li -class [expr {[my set href] eq "" ? "disabled": ""}] {
+      html::a [my get_attributes target href title] {
+        html::t [my text]
+      }
+    }
+  }
+  
+  #
+  # BootstrapNavbarDropzone
+  #  
+  ::xo::tdom::Class create BootstrapNavbarDropzone \
+      -superclass MenuComponent \
+      -parameter {
+        {href "#"}
+        text
+        uploader
+      }
+
+  BootstrapNavbarDropzone instproc js {-uploadlink:required} {
+    html::script -type "text/javascript" {
       html::t [subst -nocommands {
         + function($) {
           'use strict';
@@ -116,18 +208,19 @@ namespace eval ::xowiki {
     }
   }
 
-  BootstrapNavbar instproc dropzone {-uploadlink:required} {
-    html::ul -class "nav navbar-nav navbar-right" {
+ 
+  BootstrapNavbarDropzone ad_instproc render {} {doku} {
+    if {${:href} ni {"" "#"}} {
       html::li {
-        ::html::form -method "post" -enctype "multipart/form-data" \
+        html::form -method "post" -enctype "multipart/form-data" \
             -style "display: none;" \
             -id "js-upload-form" {
-              ::html::div -class "form-inline" {
-                ::html::div -class "form-group" {
-                  ::html::input -type "file" -name {files[]} -id "js-upload-files" -multiple multiple
+              html::div -class "form-inline" {
+                html::div -class "form-group" {
+                  html::input -type "file" -name {files[]} -id "js-upload-files" -multiple multiple
                 }
-                ::html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
-                  html::t "Upload files"
+                html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
+                  html::t ${:text}
                 }
               }
             }
@@ -142,132 +235,102 @@ namespace eval ::xowiki {
           }
         }
       }
-      my dropzoneJS -uploadlink $uploadlink
+      my js -uploadlink ${:href}&uploader=${:uploader}
     }
   }
-  
-  BootstrapNavbar ad_instproc render {} {
-    http://getbootstrap.com/components/#navbar
-  } {
-    html::nav -class [my navbarClass] -role "navigation" {
-      #
-      # Render the pull down menues
-      # 
-      html::div -class [my containerClass] {
-        foreach dropdownmenu [my children] {
-          $dropdownmenu render
-        }
-        if {[[my menubar] dropzone]} {
-          #
-          # Dropzone is configured. Check, if we the user has rights to use it...
-          #
-          set current_folder_id [[my menubar] current_folder]
-          set url [[$current_folder_id package_id] make_link $current_folder_id file-upload]
-          #my log "BootstrapNavbar current_folder_id = $current_folder_id -> URL = $url"
-          
-          if {$url ne ""} {
-            #
-            # Do actually render the dropzone widget.
-            #
-            my dropzone -uploadlink $url
-          }
-        }
-      }
-    }
-  }              
-  
 
   #
-  # BootstrapNavbarDropdownMenu
+  # BootstrapNavbarModeButton
   #  
-  ::xo::tdom::Class create BootstrapNavbarDropdownMenu \
-      -superclass Menu \
-      -parameter {
-        text
-        header
-        {brand false}
-      }    
-
-  BootstrapNavbarDropdownMenu ad_instproc render {} {doku} {
-    # TODO: Add support for group-headers
-    # get group header
-    set group 1
-    
-    html::ul -class "nav navbar-nav" {
-      html::li -class "dropdown" {
-        set class "dropdown-toggle"
-        if {[my brand]} {lappend class "navbar-brand"}
-        html::a -href "\#" -class $class -data-toggle "dropdown" {
-          html::t [my text] 
-          html::b -class "caret"
-        }
-        html::ul -class "dropdown-menu" {
-          foreach dropdownmenuitem [my children] {
-            if {[$dropdownmenuitem set group] ne "" && [$dropdownmenuitem set group] ne $group } {
-              html::li -class "divider"
-              set group [$dropdownmenuitem set group]
-            }
-            $dropdownmenuitem render
-          }
-        }
-      }
-    }
-  }   
-  #
-  # BootstrapNavbarDropdownMenuItem
-  #  
-  ::xo::tdom::Class create BootstrapNavbarDropdownMenuItem \
+  ::xo::tdom::Class create BootstrapNavbarModeButton \
       -superclass MenuItem \
       -parameter {
         {href "#"}
-        helptext
+        {on:boolean false}
+        {button}
       }        
-  
-  BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
-    
-    html::li -class [expr {[my set href] eq "" ? "disabled": ""}] {
-      html::a [my get_attributes target href title] {
-        html::t [my text]
+
+  BootstrapNavbarModeButton instproc js {} {
+    #
+    # In the current implementation, the page refreshes itself after
+    # successful mode change. This could be made configurable.
+    #
+    html::script -type "text/javascript" {
+      html::t {
+        function mode_button_ajax_submit(form) {
+          $.ajax({
+            type: "POST",
+            url: $(form).attr('action'),
+            data: $(form).serialize(),
+            success: function(msg) { window.location = window.location; },
+            error: function(){alert("failure");}
+          });
+        };
       }
     }
-  }    
+  }
+  
+  BootstrapNavbarModeButton ad_instproc render {} {doku} {
+    html::li {
+      html::form -class "form" -method "POST" -action ${:href} {
+        html::div -class "checkbox checkbox-slider--b-flat" {
+          html::label -class "checkbox-inline" {
+            set checked [expr {${:on} ? {-checked true} : ""}]
+            html::input -class "debug form-control" -name "debug" -type "checkbox" {*}$checked \
+                -onclick "mode_button_ajax_submit(this.form);"
+            html::span -style "padding-left: 6px; padding-right: 6px;" {html::t ${:text}}
+            html::input -name "modebutton" -type "hidden" -value "${:button}"
+          }
+        }
+      }
+      my js
+    }
+  }
+
   
   # --------------------------------------------------------------------------
-  # render it
+  # Render MenuBar in bootstap fashion
   # --------------------------------------------------------------------------
   ::xowiki::MenuBar instproc render-bootstrap {} {
-    set M [my content]
+    set dict [my content]
     set mb [::xowiki::BootstrapNavbar \
-                -id [my get_prop $M id] \
-                -menubar [self] \
-                {
-                  foreach {menu_att menu} $M {
-                    if {$menu_att eq "id"} continue
-                    #
-                    # set default properties and 
-                    #
-                    set props {brand false}
-                    if {[llength $menu_att] > 1} {
-                      # we expect a dict as second list element
-                      lassign $menu_att menu_att props1
-                      lappend props {*}$props1
-                    }
-                    # currently we render erverthing as a dropdown
-                    ::xowiki::BootstrapNavbarDropdownMenu \
-                        -brand [dict get $props brand] \
-                        -text [my get_prop $menu text] {
-                      #ns_log notice "... dropdown menu_att $menu_att menu $menu"
-                      foreach {item_att item} $menu {
-                        if {[string match {[a-z]*} $item_att]} continue
-                        set text [my get_prop $item text]
-                        set url [my get_prop $item url]
-                        set group [my get_prop $item group]
-                        ::xowiki::BootstrapNavbarDropdownMenuItem -text $text -href $url -group $group {}
+                -id [my get_prop $dict id] \
+                -menubar [self] {
+                  foreach {att value} $dict {
+                    if {$att eq "id"} continue
+                    switch [my get_prop $value kind] {
+                      "DropZone" {
+                        ::xowiki::BootstrapNavbarDropzone \
+                            -text [my get_prop $value label] \
+                            -href [my get_prop $value url] \
+                            -uploader [my get_prop $value uploader] {}
+                      }
+                      "ModeButton" {
+                        template::head::add_css -href "/resources/xotcl-core/titatoggle/titatoggle-dist.css"
+
+                        ::xowiki::BootstrapNavbarModeButton \
+                            -text [my get_prop $value label] \
+                            -href [my get_prop $value url] \
+                            -button [my get_prop $value button admin] \
+                            -on [my get_prop $value on] {}
+                      }
+                      "MenuButton" {
+                        # render erverthing as a dropdown
+                        ::xowiki::BootstrapNavbarDropdownMenu \
+                            -text [my get_prop $value label] {
+                              #ns_log notice "... dropdown att $att menu $value"
+                              foreach {item_att item} $value {
+                                if {[string match {[a-z]*} $item_att]} continue
+                                ::xowiki::BootstrapNavbarDropdownMenuItem \
+                                    -text [my get_prop $item label] \
+                                    -href [my get_prop $item url] \
+                                    -group [my get_prop $item group] {}
+                              }
+                            }
                       }
                     }
-                  }
-                }]
-    #ns_log notice call-mb-asHTML
+                  }}]
+    #ns_log notice "call menubar asHTML"
     return [$mb asHTML]
   }
 }

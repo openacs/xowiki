@@ -299,20 +299,20 @@ namespace eval ::xowiki::includelet {
       set index_link [$package_id make_link -link $folder_link $current_folder list]
 
       $mb add_menu_item -name Package.Startpage \
-          -item [list text #xowiki.index# url $index_link]
+          -item [list label #xowiki.index# url $index_link]
 
       $mb add_menu_item -name New.Page \
-          -item [list text #xowiki.new# url $new_page_link]
+          -item [list label #xowiki.new# url $new_page_link]
       $mb add_menu_item -name New.File \
-          -item [list text File url $new_file_link]
+          -item [list label File url $new_file_link]
       $mb add_menu_item -name New.Folder \
-          -item [list text Folder url $new_folder_link]
+          -item [list label Folder url $new_folder_link]
       if {$with_links} {
         $mb add_menu_item -name New.SymLink    \
-            -item [list text SymLink url $new_sym_link]
+            -item [list label SymLink url $new_sym_link]
       }
       $mb add_menu_item -name New.Form \
-          -item [list text Form url $new_form_link]
+          -item [list label Form url $new_form_link]
 
       $mb add_menu_item -name Package.ImportDump -item [list url $import_link]
       $mb add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
@@ -340,7 +340,18 @@ namespace eval ::xowiki::includelet {
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
       $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
 
-      $mb update_items -package_id $package_id -parent_id $opt_parent_id \
+      set uploader_link [$package_id make_link $current_folder file-upload]
+      $mb add_extra_item -name dropzone1 -type DropZone \
+          -item [list url $uploader_link label DropZone uploader File]
+
+      #set modestate [::xowiki::mode::admin get]
+      #set modebutton_link [$package_id make_link $current_folder toggle-modebutton]
+      #$mb add_extra_item -name admin -type ModeButton \
+      #    -item [list url $modebutton_link on $modestate label admin]
+      
+      $mb update_items \
+          -package_id $package_id \
+          -parent_id $opt_parent_id \
           -return_url $return_url \
           -nls_language $nls_language \
           [concat \

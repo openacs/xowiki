@@ -234,27 +234,25 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create YUIContextMenuItem \
       -superclass YUIMenuItem
 
-
-
   ::xowiki::MenuBar instproc render-yui {} {
-    set M [my content]
-    set mb [::xowiki::YUIMenuBar -id [my get_prop $M id] -configuration {
+    set dict [my content]
+    set mb [::xowiki::YUIMenuBar -id [my get_prop $dict id] -configuration {
       {autosubmenudisplay: false, keepopen: true, lazyload: false}
     } {
-      foreach {menu_att menu} $M {
+      foreach {menu_att menu} $dict {
         if {$menu_att eq "id"} continue
-        if {[llength $menu_att] > 1} {
-          # We expect a dict as second list element.. but ignore here for the time being
-          lassign $menu_att menu_att props
-        }
-        ::xowiki::YUIMenuBarItem -text [my get_prop $menu text] {
+        set kind [my get_prop $menu kind]
+        #ns_log notice "entry: kind $kind <$menu_att> <$menu>"
+        
+        if {$kind ne "MenuButton"} continue
+        ::xowiki::YUIMenuBarItem -text [my get_prop $menu label] {
           ::xowiki::YUIMenu {
             foreach {item_att item} $menu {
               if {[string match {[a-z]*} $item_att]} continue
-              set text [my get_prop $item text]
+              set text [my get_prop $item label]
               set url [my get_prop $item url]
               set group [my get_prop $item group]
-              #my msg "ia=$item_att group '$group' // t=$text item=$item"
+              #my log "ia=$item_att group '$group' // t=$text item=$item"
               ::xowiki::YUIMenuItem -text $text -href $url -group $group {}
             }
           }

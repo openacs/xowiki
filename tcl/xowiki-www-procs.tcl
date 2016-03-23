@@ -1086,27 +1086,54 @@ namespace eval ::xowiki {
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
     }
-    #
-    # The following code saves the file as xowiki::File.
-    # TODO: we should support File.form instances as well (optionally).
-    #
     set form [ns_getform]
-    set f [::xowiki::formfield::file new -name upload -object [self]]
-    set file_object [$f store_file \
-                         -file_name [ns_set get $form upload] \
-                         -content_type [ns_set get $form upload.content-type] \
-                         -package_id [my package_id] \
-                         -parent_id [my item_id] \
-                         -object_name file:[ns_set get $form upload] \
-                         -tmpfile [ns_set get $form upload.tmpfile] \
-                         -publish_date_cmd {;} \
-                         -save_flag ""]
-    $f destroy
-    ns_return 200 text/plain ok
+
+    #
+    # Get the uploader via query parameter.  We have currently the
+    # following uploader classes defined (see
+    # xowiki-uploader-procs.tcl)
+    #
+    #   - ::xowiki::UploadFile
+    #   - ::xowiki::UploadPhotoForm
+    #
+    set uploader [ns_set get $form uploader File]
+    set uploaderClass ::xowiki::UploadFile
+    if {[info command ::xowiki::Upload$uploader] ne ""} {
+      set uploaderClass ::xowiki::Upload$uploader
+    }
+    set uploaderObject [$uploaderClass new \
+                            -file_name [ns_set get $form upload] \
+                            -content_type [ns_set get $form upload.content-type] \
+                            -tmpfile [ns_set get $form upload.tmpfile] \
+                            -parent_object [self]]
+    set result [$uploaderObject store_file]
+    $uploaderObject destroy
+    ns_return [dict get $result status_code] text/plain [dict get $result message]
   }
 
+  #
+  # externally callable method: toggle-modebutton
+  # 
+  FormPage instproc www-toggle-modebutton {} {
+    #
+    # This method is typically called via modebutton in a POST request via ajax;
+    #
+    if {[ns_conn method] ne "POST"} {
+      error "method should be called via POST"
+    }
 
-  
+    #
+    # Get the toggle name. Modebuttons are named like:
+    #
+    #    ::xowiki::mode::admin
+    #
+    set form [ns_getform]
+    set button [ns_set get $form button admin]
+    ::xowiki::mode::$button toggle
+    #${:package_id} returnredirect [ns_set get $form return_url [::xo::cc url]]
+    ns_return 200 text/plain ok
+  }
+    
   #
   # externally callable method: list
   # 
