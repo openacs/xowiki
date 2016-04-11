@@ -103,7 +103,8 @@ namespace eval ::xowiki {
         }
       }
     }
-  }   
+  }
+  
   #
   # BootstrapNavbarDropdownMenuItem
   #  

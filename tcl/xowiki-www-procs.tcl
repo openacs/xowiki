@@ -238,7 +238,6 @@ namespace eval ::xowiki {
         ::xowiki::FormPage get_instance_from_db -item_id $id
         $f copy_content_vars -from_object $id
         $f item_id $id
-
         $f save
       }
     }
