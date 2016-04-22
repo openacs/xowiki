@@ -2232,6 +2232,7 @@ namespace eval ::xowiki::includelet {
 
   toc instproc initialize {} {
     my get_parameters
+    my array set navigation {count 0 position 0 current ""}
 
     set list_mode 0
     switch -- $style {
