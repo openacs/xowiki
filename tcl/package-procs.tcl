@@ -1465,7 +1465,8 @@ namespace eval ::xowiki {
               set name file:$(stripped_name)
               set (link_type) image
             }
-            application/x-shockwave-flash {
+            application/x-shockwave-flash -
+            application/vnd.adobe.flash-movie {
               set name file:$(stripped_name)
               set (link_type) swf
             }

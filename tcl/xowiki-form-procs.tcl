@@ -186,13 +186,16 @@ namespace eval ::xowiki {
     if {$mime eq "*/*" 
         || $mime eq "application/octet-stream" 
         || $mime eq "application/force-download"} {
-      # ns_guesstype was failing
+      #
+      # ns_guesstype was failing, which should not be the case with
+      # recent versions of naviserver
+      #
       switch [file extension $fn] {
         .xotcl {set mime text/plain}
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
-        .swf {set mime application/x-shockwave-flash}
+        .swf {set mime application/vnd.adobe.flash-movie}
         .pdf {set mime application/pdf}
         .wmv {set mime video/x-ms-wmv}
         .class - .jar  {set mime application/java}

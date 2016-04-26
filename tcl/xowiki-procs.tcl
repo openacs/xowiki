@@ -2112,7 +2112,8 @@ namespace eval ::xowiki {
             ::xo::Page requireCSS $link
             return ""
           }
-          application/x-javascript {
+          application/x-javascript -
+          application/javascript {
             ::xo::Page requireJS $link
             return ""
           }
