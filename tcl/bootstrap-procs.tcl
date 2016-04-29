@@ -82,7 +82,7 @@ namespace eval ::xowiki {
   BootstrapNavbarDropdownMenu ad_instproc render {} {doku} {
     # TODO: Add support for group-headers
     # get group header
-    set group 1
+    set group " "
     
     html::ul -class "nav navbar-nav" {
       html::li -class "dropdown" {
@@ -95,7 +95,9 @@ namespace eval ::xowiki {
         html::ul -class "dropdown-menu" {
           foreach dropdownmenuitem [my children] {
             if {[$dropdownmenuitem set group] ne "" && [$dropdownmenuitem set group] ne $group } {
-              html::li -class "divider"
+              if {$group ne " "} {
+                html::li -class "divider"
+              }
               set group [$dropdownmenuitem set group]
             }
             $dropdownmenuitem render
