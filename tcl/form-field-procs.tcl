@@ -8,14 +8,13 @@
 
 namespace eval ::xowiki::formfield {
 
-  # Second approximation for form fields.
-  # FormFields are objects, which can be outputed as well in ad_forms
+  # FormFields are objects, which can be outputted as well in ad_forms
   # or asHTML included in wiki pages. FormFields support
   #
   #  - validation
   #  - help_text
   #  - error messages
-  #  - internationlized pretty_values
+  #  - internationalized pretty_values
   #
   # and inherit properties of the original datatypes via slots
   # (e.g. for boolean entries). FormFields can be subclassed
