@@ -445,12 +445,7 @@ namespace eval ::xowiki {
       set package_prefix [my package_url]
     }
     #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
-
-    if {[ns_info name] eq "NaviServer"} {
-      set encoded_name [ns_urlencode -part path -- $name]
-    } else {
-      set encoded_name [::xowiki::utility urlencode $name]
-    }
+    set encoded_name [ad_urlencode_path $name]
 
     if {$parent_id eq -100} {
       # In case, we have a cr-toplevel entry, we assume, we can
@@ -463,7 +458,7 @@ namespace eval ::xowiki {
         ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id [my folder_id]
       }
-      set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
+      set folder [ad_urlencode_path [my folder_path -parent_id $parent_id -folder_ids $folder_ids]]
       set pkg [$parent_id package_id]
       if {![my isobject ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
