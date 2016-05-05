@@ -1000,7 +1000,7 @@ namespace eval ::xowiki::formfield {
 
         #my log "name <$object_name> pretty value name '$(stripped_name)'"
         
-        set l [::xowiki::Link create new -destroy_on_cleanup \
+        set l [::xowiki::Link new -destroy_on_cleanup \
                    -page $object -type "file" -lang $(prefix) \
                    [list -stripped_name $(stripped_name)] [list -label $fn] \
                    [list -extra_query_parameter [list [list filename $fn]]] \
