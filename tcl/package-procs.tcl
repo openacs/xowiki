@@ -370,7 +370,7 @@ namespace eval ::xowiki {
       }
       
       # prepend always the actual folder name
-      set path [$fo name]/$path
+      set path [ad_urlencode_path [$fo name]]/$path
       
       if {[my folder_id] == [$fo parent_id]} {
         #my msg ".... my folder_id [my folder_id] == $fo parentid"
@@ -458,7 +458,7 @@ namespace eval ::xowiki {
         ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id [my folder_id]
       }
-      set folder [ad_urlencode_path [my folder_path -parent_id $parent_id -folder_ids $folder_ids]]
+      set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
       set pkg [$parent_id package_id]
       if {![my isobject ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
