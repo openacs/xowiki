@@ -2215,18 +2215,22 @@ namespace eval ::xowiki {
     return $result
   }
 
-  Page instproc new_link {-name -title -nls_language -return_url -parent_id page_package_id} {
+  Page instproc new_link {-object_type -name -title -nls_language -return_url -parent_id page_package_id} {
     if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
     return [$page_package_id make_link -with_entities 0 $page_package_id \
                 edit-new object_type name title nls_language return_url parent_id autoname]
   }
 
-  FormPage instproc new_link {-name -title -nls_language -parent_id -return_url page_package_id} {
-    set template_id [my page_template]
-    if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
-    set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
-    return [$page_package_id make_link -with_entities 0 -link $form $template_id \
-                create-new return_url name title nls_language]
+  FormPage instproc new_link {-object_type -name -title -nls_language -parent_id -return_url page_package_id} {
+    if {[info exists object_type]} {
+      next
+    } else {
+      set template_id [my page_template]
+      if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
+      set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
+      return [$page_package_id make_link -with_entities 0 -link $form $template_id \
+                  create-new return_url name title nls_language]
+    }
   }
 
   #

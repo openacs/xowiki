@@ -163,6 +163,7 @@ namespace eval ::xowiki {
                   -name [my name] \
                   -nls_language $nls_language]
     }
+
     if {[$page exists __unresolved_object_type]} {
       # get the desired object_type for unresoved entries
       set object_type [$page set __unresolved_object_type]
@@ -177,7 +178,9 @@ namespace eval ::xowiki {
         set object_type ::xowiki::Page
       }
     }
-    return [$page new_link -name [my name] -title [my label] -parent_id [my parent_id] \
+    return [$page new_link \
+                {*}[expr {[info exists object_type] ? [list -object_type $object_type] : {}}] \
+                -name [my name] -title [my label] -parent_id [my parent_id] \
                 -nls_language $nls_language $package_id]
   }
 
