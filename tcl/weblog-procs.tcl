@@ -66,7 +66,7 @@ namespace eval ::xowiki {
     set extra_where_clause ""
 
     if {$date ne ""} {
-      if {[regexp {['\"<>\(\)%]} $date]} {
+      if {[regexp -nocase -- {(['\"<>\(\)%*]|null|select)} $date]} {
         ns_log Warning "ignoring invalid date '$date'"
         set date ""
         set query [::xo::update_query $query date ""]
