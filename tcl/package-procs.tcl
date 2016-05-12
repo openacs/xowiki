@@ -1870,24 +1870,35 @@ namespace eval ::xowiki {
           ::xowiki::transform_root_folder $id
           set folder_id $old_folder_id
         } else {
-          ::xowiki::Package require_site_wide_pages
-          set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
-          set f [FormPage new -destroy_on_cleanup \
-                     -name $name \
-                     -text "" \
-                     -package_id $id \
-                     -parent_id $parent_id \
-                     -nls_language en_US \
-                     -publish_status ready \
-                     -instance_attributes {} \
-                     -page_template $form_id]
-          $f save_new
-          set folder_id [$f item_id]
+          #
+          # Check, if the package_key belongs to xowiki (it might be a
+          # subclass). If this is not the case, the call is proably an
+          # error and we do not want to create a root folder.
+          #
+          set package_class [::xo::PackageMgr get_package_class_from_package_key ${:package_key}]
+          if {$package_class eq ""} {
+            ad_log error "trying to create an xowiki root folder for non-xowiki package $id"
+            error "trying to create an xowiki root folder for non-xowiki package $id"
+          } else {
+            ::xowiki::Package require_site_wide_pages
+            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
+            set f [FormPage new -destroy_on_cleanup \
+                       -name $name \
+                       -text "" \
+                       -package_id $id \
+                       -parent_id $parent_id \
+                       -nls_language en_US \
+                       -publish_status ready \
+                       -instance_attributes {} \
+                       -page_template $form_id]
+            $f save_new
+            set folder_id [$f item_id]
 
-          ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
-              -attribute_name_in context_id -value_in $id
+            ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
+                -attribute_name_in context_id -value_in $id
 
-          my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
+            my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
+          }
         }
       }
 
