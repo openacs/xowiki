@@ -251,6 +251,8 @@ namespace eval ::xowiki {
         {href "#"}
         {on:boolean false}
         {button}
+        {CSSclass "checkbox-slider--b-flat"}
+        {spanStyle "padding-left: 6px; padding-right: 6px;"}
       }        
 
   BootstrapNavbarModeButton instproc js {} {
@@ -276,12 +278,12 @@ namespace eval ::xowiki {
   BootstrapNavbarModeButton ad_instproc render {} {doku} {
     html::li {
       html::form -class "form" -method "POST" -action ${:href} {
-        html::div -class "checkbox checkbox-slider--b-flat" {
+        html::div -class "checkbox ${:CSSclass}" {
           html::label -class "checkbox-inline" {
             set checked [expr {${:on} ? {-checked true} : ""}]
             html::input -class "debug form-control" -name "debug" -type "checkbox" {*}$checked \
                 -onclick "mode_button_ajax_submit(this.form);"
-            html::span -style "padding-left: 6px; padding-right: 6px;" {html::t ${:text}}
+            html::span -style ${:spanStyle} {html::t ${:text}}
             html::input -name "modebutton" -type "hidden" -value "${:button}"
           }
         }
@@ -290,6 +292,34 @@ namespace eval ::xowiki {
     }
   }
 
+  # =======================================================
+  # ::xo::library doc {
+  #   ... styling for bootstrap menubar ...
+  # }
+  #
+  # ::xo::db::require package xowiki
+  # ::xo::library require -package xowiki bootstrap-procs
+  #
+  # namespace eval ::mystyle {
+  #   #
+  #   # Define mixins for the classes. One can overload e.g. parameters
+  #   # via the constructor, or one can e.g. overload the full render
+  #   # method.
+  #   #
+  #   ::xo::tdom::Class create ::mystyle::BootstrapNavbarModeButton \
+  #       -superclass ::xowiki::BootstrapNavbarModeButton
+  #
+  #   ::xowiki::BootstrapNavbarModeButton instproc init args {
+  #     set :CSSclass checkbox-slider--a
+  #     set :spanStyle "padding-left: 4ex; padding-right: 2ex;"
+  #     next
+  #   }
+  #   ::xowiki::BootstrapNavbarModeButton instmixin ::mystyle::BootstrapNavbarModeButton
+  # }
+  #
+  # ::xo::library source_dependent
+  # =======================================================
+  
   
   # --------------------------------------------------------------------------
   # Render MenuBar in bootstap fashion
