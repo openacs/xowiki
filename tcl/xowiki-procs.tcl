@@ -1854,8 +1854,8 @@ namespace eval ::xowiki {
       $includelet mixin add ::xowiki::includelet::decoration=[$includelet set __decoration]
     }
 
-    set c [$includelet info class]
-    if {[$c exists cacheable] && [$c cacheable]} {
+    set includeletClass [$includelet info class]
+    if {[$includeletClass exists cacheable] && [$includeletClass cacheable]} {
       $includelet mixin add ::xowiki::includelet::page_fragment_cache
     }
 
@@ -1866,11 +1866,14 @@ namespace eval ::xowiki {
 
     # "render" might be cached
     if {[catch {set html [$includelet render]} errorMsg]} {
-      if {[string match "*for parameter*" $errorMsg]} {
+      set errorCode $::errorCode
+      if {[ad_exception $errorCode] eq "ad_script_abort"} {
+        set html ""
+      } elseif {[string match "*for parameter*" $errorMsg]} {
         set html ""
         ad_return_complaint 1 $errorMsg
       } else {
-        ad_log error $errorMsg
+        ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)"
         set page_name [$includelet name]
         set ::errorInfo [::xowiki::Includelet html_encode $::errorInfo]
         set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
