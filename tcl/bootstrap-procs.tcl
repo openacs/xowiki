@@ -147,17 +147,17 @@ namespace eval ::xowiki {
           var progressBar = document.getElementById('dropzone-progress-bar');
           var uploadFileRunning = 0;
           
-          var startUpload = function(files) {
+          var startUpload = function(files, csrf) {
             if (typeof files !== "undefined") {
                for (var i=0, l=files.length; i<l; i++) {
-                 uploadFile(files[i]);
+                 uploadFile(files[i], csrf);
                }
             } else {
               alert("No support for the File API in this web browser");
             }
           }
 
-          var uploadFile = function(file) {
+          var uploadFile = function(file, csrf) {
             var xhr;
             var formData = new FormData();
             var url = "$uploadlink" + "&name=" + file.name;
@@ -179,22 +179,25 @@ namespace eval ::xowiki {
             }, false);
             xhr.open("post", url, true);
             formData.append("upload", file);
+            formData.append("__csrf_token", csrf);
             uploadFileRunning++;
-
             xhr.send(formData);
           }
 
           uploadForm.addEventListener('submit', function(e) {
-            var uploadFiles = document.getElementById('js-upload-files').files;
+            var input = document.getElementById('js-upload-files');
+            var uploadFiles = input.files;
+            var csrf = input.form.elements["__csrf_token"].value;
             e.preventDefault();
-            startUpload(uploadFiles)
+            startUpload(input.files, csrf)
           })
 
           dropZone.ondrop = function(e) {
             e.preventDefault();
             this.className = 'upload-drop-zone';
-            
-            startUpload(e.dataTransfer.files)
+            var form = document.getElementById('js-upload-files').form;
+            var csrf = form.elements["__csrf_token"].value;
+            startUpload(e.dataTransfer.files, csrf)
           }
 
           dropZone.ondragover = function() {
@@ -225,6 +228,7 @@ namespace eval ::xowiki {
                 html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
                   html::t ${:text}
                 }
+                :CSRFToken
               }
             }
       }
@@ -307,7 +311,7 @@ namespace eval ::xowiki {
   #   # method.
   #   #
   #   ::xo::tdom::Class create ::mystyle::BootstrapNavbarModeButton \
-  #       -superclass ::xowiki::BootstrapNavbarModeButton
+  #       -superclass ::xowiki::MenuItem
   #
   #   ::xowiki::BootstrapNavbarModeButton instproc init args {
   #     set :CSSclass checkbox-slider--a
