@@ -19,6 +19,7 @@ namespace eval ::xowiki {
   # 
   Page instproc www-bulk-delete {} {
     my instvar package_id
+    ::security::csrf::validate
 
     if {![my exists_form_parameter "objects"]} {
       my msg "nothing to delete"
@@ -806,6 +807,7 @@ namespace eval ::xowiki {
       #
       # we have to valiate and save the form data
       #
+      security::csrf::validate
       lassign [my get_form_data $form_fields] validation_errors category_ids
 
       if {$validation_errors != 0} {
@@ -972,6 +974,7 @@ namespace eval ::xowiki {
         ::html::input -type hidden -name __object_name -value [my name]
         ::html::input -type hidden -name __form_action -value save-form-data
         ::html::input -type hidden -name __current_revision_id -value [my revision_id]
+        ::html::CSRFToken
       }
       # insert automatic form fields on top 
       foreach att $field_names {
@@ -1497,11 +1500,11 @@ namespace eval ::xowiki {
     #my log "--after notifications [info exists notification_image]"
 
     set master [$context_package_id get_parameter "master" 1]
-    #if {[my exists_query_parameter "edit_return_url"]} {
-    #  set return_url [my query_parameter "edit_return_url"]
-    #}
-    #my log "--after options master=$master"
-    
+    if {![string is boolean -strict $master]} {
+      ad_page_contract_handle_datasource_error "value of master is not boolean"
+      ad_script_abort
+    }
+
     if {$master} {
       set context [list $title]
       #my msg "$context_package_id title=[$context_package_id instance_name] - $title"

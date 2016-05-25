@@ -228,7 +228,7 @@ namespace eval ::xowiki {
                 html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
                   html::t ${:text}
                 }
-                :CSRFToken
+                ::html::CSRFToken
               }
             }
       }

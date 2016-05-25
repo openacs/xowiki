@@ -18,7 +18,7 @@ namespace eval ::xowiki {
   #
   ::xo::tdom::Class create MenuComponent \
       -superclass ::xo::tdom::Object
-
+  
   MenuComponent instproc js_name {} {
     return [::xowiki::Includelet js_name [self]]
   }

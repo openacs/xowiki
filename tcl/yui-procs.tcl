@@ -481,6 +481,9 @@ namespace eval ::xo::Table {
       if {[$field istype HiddenField]} continue
       if {[$field istype BulkAction]} {
         set label "<input type='checkbox' onclick='[ns_quotehtml acs_ListCheckAll(\"objects\",this.checked)]'></input>"
+        if {[info exists ::__csrf_token]} {
+          append label \n "<input type='hidden' name='__csrf_token' value='$::__csrf_token'>"
+        }
         set sortable false
       } else {
         set label [lang::util::localize [$field label]]

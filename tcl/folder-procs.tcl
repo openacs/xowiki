@@ -546,7 +546,7 @@ namespace eval ::xowiki::includelet {
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
     set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
-    set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete]
+    set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete {__csrf_token [::security::csrf::token]}]
     
     switch [$package_id get_parameter PreferredCSSToolkit yui] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
