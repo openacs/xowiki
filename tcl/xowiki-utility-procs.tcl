@@ -650,7 +650,7 @@ namespace eval ::xowiki {
     }
     return $pairs
   }
-  
+
   my proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
     set likes [list]
     foreach page_order $page_orders {

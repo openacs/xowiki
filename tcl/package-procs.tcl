@@ -912,7 +912,7 @@ namespace eval ::xowiki {
   Package instproc error_msg {{-template_file error-template} {-status_code 200} error_msg} {
     my instvar id
     if {![regexp {^[./]} $template_file]} {
-      set template_file /packages/xowiki/www/$template_file
+      set template_file [my get_adp_template $template_file]
     }
     set context [list [$id instance_name]]
     set title Error
@@ -1129,6 +1129,44 @@ namespace eval ::xowiki {
     #my msg "[my id] packages=$packages, p=$p"
     return $packages
   }
+
+  Package instproc get_adp_template {name} {
+    #
+    # Obtain the template from a name. In earlier versions, the
+    # templates that xowiki used were in the www directory. This had
+    # the disadvantage, that for e.g. the template "edit.adp" a call
+    # of "/xowiki/edit" returned an error, since the index.vuh file
+    # was bypassed and xowiki/www/edit.adp was called. Therefore the
+    # recommended place was changed to
+    # xowiki/resources/templates/. However, this method hides the
+    # location change and maintains backward compatibility. In some
+    # later versions, the www location will be deprecated.
+    #
+    foreach package_key [list [my package_key] xowiki] {
+
+      #
+      # backward compatibility check
+      #
+      foreach location {resources/templates www} {
+        
+        set tmpl /packages/$package_key/$location/$name
+        set fn [acs_root_dir]/$tmpl
+        
+        if {[file readable $fn.adp]} {
+          set result [::template::themed_template $tmpl]
+          #ns_log notice "template is <$result>"
+          if {$result ne ""} {
+            if {$location eq "www"} {
+              ns_log warning "you should move the template $tmpl to /packages/$package_key/resources/templates/"
+            }
+            return $result
+          }
+        }
+      }
+    }
+    return ""
+  }
+
 
   Package instproc prefixed_lookup {{-default_lang ""} -lang:required -stripped_name:required -parent_id:required} {
     # todo unify with package->lookup
@@ -1532,6 +1570,11 @@ namespace eval ::xowiki {
       if {$(lang) eq "tag"} {
         # todo: missing: tag links to subdirectories, also on url generation
         set tag $stripped_url
+        if {![regexp {^[\w.,: -]+$} $tag]} {
+          ad_return_complaint 1 "invalid tag"
+          ad_script_abort
+        }
+
         set summary [::xo::cc query_parameter summary 0]
         set popular [::xo::cc query_parameter popular 0]
         if {$summary eq ""} {set summary 0}
@@ -1834,7 +1877,7 @@ namespace eval ::xowiki {
                      -package_id $id -user_id [::xo::cc user_id] \
                      $object $method]
     if {$allowed} {
-      #my log "--p calling $object ([$object name] [$object info class]) '$method'"
+      my log "--p calling $object ([$object name] [$object info class]) '$method'"
       $object www-$method {*}$options
     } else {
       my log "not allowed to call $object $method"

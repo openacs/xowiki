@@ -694,8 +694,7 @@ namespace eval ::xowiki {
     ::xo::Page set_property doc title "[$package_id instance_name] - $edit_form_page_title"
 
     array set property_doc [::xo::Page get_property doc]
-    set tmpl [acs_root_dir]/packages/[[my package_id] package_key]/www/edit
-    set edit_tmpl [::template::themed_template [expr {[file readable $tmpl] ? $tmpl : "/packages/xowiki/www/edit" }]]
+    set edit_tmpl [$package_id get_adp_template "edit"]
     set html [$package_id return_page -adp $edit_tmpl \
                   -form f1 \
                   -variables {item_id parent_id edit_form_page_title context formTemplate
@@ -1283,7 +1282,7 @@ namespace eval ::xowiki {
     ::xo::Page set_property doc title $title
     set content [next]
     array set property_doc [::xo::Page get_property doc]
-    $package_id return_page -adp /packages/xowiki/www/revisions -variables {
+    $package_id return_page -adp [$package_id get_adp_template revisions] -variables {
       content context {page_id $item_id} title property_doc
     }
   }
@@ -1501,7 +1500,7 @@ namespace eval ::xowiki {
 
     set master [$context_package_id get_parameter "master" 1]
     if {![string is boolean -strict $master]} {
-      ad_page_contract_handle_datasource_error "value of master is not boolean"
+      ad_return_complaint 1 "value of master is not boolean"
       ad_script_abort
     }
 
@@ -1539,9 +1538,13 @@ namespace eval ::xowiki {
       catch {::xo::cc unset cache([list $context_package_id get_parameter template_file])}
       set template_file [my query_parameter "template_file" \
                              [::$context_package_id get_parameter template_file view-default]]
-      # if the template_file does not have a path, assume it in xowiki/www
+      #
+      # if the template_file does not have a path, assume it in the
+      # standard location
+      #
       if {![regexp {^[./]} $template_file]} {
-        set template_file /packages/xowiki/www/$template_file
+        #set template_file /packages/xowiki/www/$template_file
+        set template_file [[my package_id] get_adp_template $template_file]
       }
 
       #
@@ -1607,7 +1610,9 @@ namespace eval ::xowiki {
 
       if {$template ne ""} {
         set __including_page $page
-        set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
+        #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
+        set __adp_stub [$context_package_id get_adp_template view-default]
+
         set template_code [template::adp_compile -string $template]
         #
         # make sure that <master/> and <slave/> tags are processed

@@ -91,7 +91,7 @@ namespace eval ::xowiki {
 
   ADP_Generator instproc init {} {
     set name [namespace tail [self]]
-    set filename [file dirname [info script]]/../www/$name.adp
+    set filename [file dirname [info script]]/../resources/templates/$name.adp
     # generate the adp file, if it does not exist
     if {[catch {set f [open $filename w]} errorMsg]} {
       my log "Warning: cannot overwrite ADP $filename, ignoring possible changes"
