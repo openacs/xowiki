@@ -1877,7 +1877,7 @@ namespace eval ::xowiki {
                      -package_id $id -user_id [::xo::cc user_id] \
                      $object $method]
     if {$allowed} {
-      my log "--p calling $object ([$object name] [$object info class]) '$method'"
+      #my log "--p calling $object ([$object info class]) '$method'"
       $object www-$method {*}$options
     } else {
       my log "not allowed to call $object $method"
