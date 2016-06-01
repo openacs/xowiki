@@ -1499,7 +1499,7 @@ namespace eval ::xowiki::includelet {
       set gc_link [general_comments_create_link \
                        -object_name [$__including_page title] \
                        $item_id $gc_return_url]
-      set gc_link <p>[ns_quotehtml $gc_link]</p>
+      set gc_link <p>$gc_link</p>
     } else {
       set gc_link ""
     }
