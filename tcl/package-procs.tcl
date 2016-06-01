@@ -147,6 +147,13 @@ namespace eval ::xowiki {
     return [string range [my default_locale] 0 1]
   }
 
+  Package instproc validate_tag {tag} {
+    if {![regexp {^[\w-]+$} $tag]} {
+      ad_return_complaint 1 "invalid tag"
+      ad_script_abort
+    }
+  }
+  
   Package array set www-file {
     admin 1
     diff 1
@@ -1570,11 +1577,7 @@ namespace eval ::xowiki {
       if {$(lang) eq "tag"} {
         # todo: missing: tag links to subdirectories, also on url generation
         set tag $stripped_url
-        if {![regexp {^[\w.,: -]+$} $tag]} {
-          ad_return_complaint 1 "invalid tag"
-          ad_script_abort
-        }
-
+        :validate_tag $tag
         set summary [::xo::cc query_parameter summary 0]
         set popular [::xo::cc query_parameter popular 0]
         if {$summary eq ""} {set summary 0}

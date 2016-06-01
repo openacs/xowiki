@@ -66,10 +66,10 @@ namespace eval ::xowiki {
     set extra_where_clause ""
 
     if {$date ne ""} {
-      if {[regexp -nocase -- {(['\"<>\(\)%*]|null|select)} $date]} {
-        ns_log Warning "ignoring invalid date '$date'"
-        set date ""
-        set query [::xo::update_query $query date ""]
+      if {![regexp {^\d\d\d\d[-]\d\d[-]\d\d$} $date]} {
+        ns_log Warning "invalid date '$date'"
+        ad_return_complaint 1 "invalid date"
+        ad_script_abort
       }
     }
     if {$date ne ""} {
@@ -86,8 +86,8 @@ namespace eval ::xowiki {
       set category_ids {}
       foreach cid [split $category_id ,] {
         if {![string is integer -strict $cid]} {
-          ns_log warning "weblog: ignoring invalid category_id $cid"
-          continue
+          ad_return_complaint 1 "invalid category_id"
+          ad_script_abort
         }
         append extra_where_clause "and exists (select * from category_object_map \
            where object_id = ci.item_id and category_id = '$cid')"
@@ -102,6 +102,7 @@ namespace eval ::xowiki {
     }
     #my msg "tag=$tag"
     if {$tag ne ""} {
+      $package_id validate_tag $tag
       set filter_msg "Filtered by your tag $tag"
       append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
       append extra_where_clause "and tags.tag = :tag and \
@@ -110,6 +111,7 @@ namespace eval ::xowiki {
     }
     #my msg "ptag=$ptag"
     if {$ptag ne ""} {
+      $package_id validate_tag $ptag
       set filter_msg "Filtered by popular tag $ptag"
       append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
       append extra_where_clause "and tags.tag = :ptag " 
