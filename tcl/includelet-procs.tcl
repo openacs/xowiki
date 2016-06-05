@@ -194,20 +194,20 @@ namespace eval ::xowiki::includelet {
       set and_names [list]
       foreach cid_and [split $cid_or ,] {
         if {![string is integer -strict $cid_and]} {
-          ad_return_complaint 1 "invalid category id '$cid_and'"
+          ad_return_complaint 1 "invalid category id '[ns_quotehtml $cid_and]'"
           ad_script_abort
         }
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
            where object_id = $item_ref and category_id = $cid_and)"
       }
-      lappend or_names "[join $and_names { and }]"
+      lappend or_names [join $and_names { and }]
       lappend ors "([join $ands { and }])"
     }
     if {$ors eq "()"} {
       set cnames ""
     } else {
-      set cnames "[join $or_names { or }]"
+      set cnames [join $or_names { or }]
       set extra_where_clause "and ([join $ors { or }])"
     }
     #my log "--cnames $category_spec -> $cnames // <$extra_where_clause>"

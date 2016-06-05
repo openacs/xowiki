@@ -892,7 +892,7 @@ namespace eval ::xowiki {
             #
             # The exception might have been due to invalid input parameters
             #
-            ad_return_complaint 1 $errorMsg
+            ad_return_complaint 1 [ns_quotehtml $errorMsg]
             ad_script_abort
           } else {
             #
@@ -1010,7 +1010,7 @@ namespace eval ::xowiki {
                           method [my query_parameter m]]
       } else {
         set object [$id get_parameter index_page "index"]
-        #my log "--o object is now '$object'"
+        my log "--o object after getting index_page is '$object'"
       }
     }
 

@@ -1871,7 +1871,7 @@ namespace eval ::xowiki {
         set html ""
       } elseif {[string match "*for parameter*" $errorMsg]} {
         set html ""
-        ad_return_complaint 1 $errorMsg
+        ad_return_complaint 1 [ns_quotehtml $errorMsg]
       } else {
         ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)"
         set page_name [$includelet name]
