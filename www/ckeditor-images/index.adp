@@ -82,7 +82,7 @@
 <!-- BODY -->
 <body onload="Init();" style="background-color: white; overflow: hidden;" class="xowiki_image_body">
 
-<b>#xowiki.attached_media#:</b>
+<strong>#xowiki.attached_media#:</strong>
 
 <!-- UPLOAD ELEMENT -->
 <iframe name="upload" src="@image_browser_url@/upload_image?parent_id=@parent_id@" frameborder="0" width="680px" height="110px"></iframe>
