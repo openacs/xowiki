@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>CKeditor: Upload Image</title>
 <style type="text/css">
 	html, body {
 	  font: 11px Tahoma,Verdana,sans-serif;

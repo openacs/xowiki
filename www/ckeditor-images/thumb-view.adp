@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>CKeditor</title>
 <script type="text/javascript" src="/resources/xowiki/jquery/jquery.min.js"></script>
 <script type="text/javascript">
 

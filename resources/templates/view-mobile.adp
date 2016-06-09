@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>XoWiki mobile view</title>
 @header_stuff;literal@
 </head>
 <body>
