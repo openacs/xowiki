@@ -24,14 +24,11 @@ namespace eval ::xowiki {
   ADP_Generator instproc master_part {} {
     return [subst -novariables -nobackslashes \
                 {<master>
-                  <property name="doc(title)">@title;literal@</property>
                   <property name="context">@context;literal@</property>
                   <if @item_id@ not nil><property name="displayed_object_id">@item_id;literal@</property></if>
-                  <property name="&body">property_body</property>
-                  <property name="&doc">property_doc</property>
-                  <property name="head">
-                  [my extra_header_stuff]@header_stuff;literal@
-                  </property>}]\n
+                  <property name="&body">body</property>
+                  <property name="&doc">doc</property>
+                  <property name="head">[my extra_header_stuff]@header_stuff;literal@</property>}]\n
   }
 
   ADP_Generator instproc wikicmds_part {} {
@@ -48,7 +45,7 @@ namespace eval ::xowiki {
       <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'  title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
       <if @index_link@ not nil><a href="@index_link@" accesskey='i' title='#xowiki.index_title#'>#xowiki.index#</a></if>
       <div id='do_search' style='display: none'>
-      <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@" ></div></form>
+      <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@"><if @::__csrf_token@ defined><input type="hidden" name="__csrf_token" value="@::__csrf_token;literal@"></if></div></form>
       </div>
       </div>}
   }
@@ -59,9 +56,11 @@ namespace eval ::xowiki {
   }
 
   ADP_Generator instproc content_part {} {
-    return "@top_includelets;noquote@\n\
-     <if @page_context@ not nil><h1>@title@ (@page_context@)</h1></if>\n\
-     <else><h1>@title@</h1></else>\n\
+    return "\
+     @top_includelets;noquote@\n\
+     <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>\n\
+     <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>\n\
+     <else><h1>@body.title@</h1></else>\n\
      <if @folderhtml@ not nil> \n\
        <div class='folders' style=''>@folderhtml;noquote@</div> \n\
        <div class='content-with-folders'>@content;noquote@</div> \n\
@@ -341,7 +340,7 @@ namespace eval ::xowiki {
                       &="per_object_categories_with_links"
                       &="digg_link" &="delicious_link" &="my_yahoo_link"
                       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image"
-                      &="top_includelets" &="folderhtml" &="page">
+                      &="top_includelets" &="folderhtml" &="page" &="doc" &="body">
                       </div>
                       </div>
                     }]}

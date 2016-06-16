@@ -1281,9 +1281,10 @@ namespace eval ::xowiki {
     set title "[_ xotcl-core.revision_title] '$name'"
     ::xo::Page set_property doc title $title
     set content [next]
-    array set property_doc [::xo::Page get_property doc]
+    array set doc [::xo::Page get_property doc]
+    array set body [::xo::Page get_property body]
     $package_id return_page -adp [$package_id get_adp_template revisions] -variables {
-      content context {page_id $item_id} title property_doc
+      content context {page_id $item_id} title doc body
     }
   }
 
@@ -1475,7 +1476,9 @@ namespace eval ::xowiki {
       #
       # At this place, the menu should be complete, we can render it
       #
-      append top_includelets \n "<div class='visual-clear'><!-- --></div>" [$mb render-preferred]
+      set mbHTML [$mb render-preferred]
+      #append top_includelets \n "<div class='visual-clear'><!-- --></div>" $mbHTML
+      ::xo::Page set_property body menubarHTML $mbHTML
     }
 
     if {[$context_package_id get_parameter "with_user_tracking" 1]} {
@@ -1509,6 +1512,8 @@ namespace eval ::xowiki {
       #my msg "$context_package_id title=[$context_package_id instance_name] - $title"
       #my msg "::xo::cc package_id = [::xo::cc package_id]  ::xo::cc url= [::xo::cc url] "
       ::xo::Page set_property doc title "[$context_package_id instance_name] - $title"
+      ::xo::Page set_property body title $title
+
       # We could offer a user to translate the current page to his preferred language
       #
       # set create_in_req_locale_link ""
@@ -1578,7 +1583,7 @@ namespace eval ::xowiki {
 
       if {[info commands ::template::head::add_meta] ne ""} {
         #set meta(language) [my lang]
-        ::xo::Page set_property doc title [my lang]
+        ::xo::Page set_property doc title_lang [my lang]
         set meta(description) [my description]
         set meta(keywords) ""
         if {[my istype ::xowiki::FormPage]} {
@@ -1601,8 +1606,8 @@ namespace eval ::xowiki {
       # pass variables for properties doc and body
       # example: ::xo::Page set_property body class "yui-skin-sam"
       #
-      array set property_body [::xo::Page get_property body]
-      array set property_doc  [::xo::Page get_property doc]
+      array set body [::xo::Page get_property body]
+      array set doc  [::xo::Page get_property doc]
       
       if {$page_package_id != $context_package_id} {
         set page_context [$page_package_id instance_name]
@@ -1638,7 +1643,7 @@ namespace eval ::xowiki {
           content footer package_id page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 
-          top_includelets page views_data property_body property_doc
+          top_includelets page views_data body doc
           folderhtml
         }
       }
