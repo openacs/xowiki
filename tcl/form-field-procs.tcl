@@ -504,9 +504,8 @@ namespace eval ::xowiki::formfield {
     #
     set old_value [my set value]
     my set value [xo::escape_message_keys $old_value]
-    
     ::html::input [my get_attributes type size maxlength id name value \
-                       pattern placeholder {CSSclass class} {*}$booleanAtts] {}
+                       autocomplete pattern placeholder {CSSclass class} {*}$booleanAtts] {}
     #
     # Reset values to original content
     #
@@ -1218,7 +1217,7 @@ namespace eval ::xowiki::formfield {
   }
   inform instproc render_input {} {
     ::html::t [my value]
-    ::html::input [my get_attributes type id name value disabled {CSSclass class}] {}
+    ::html::input [my get_attributes type id name value disabled autocomplete {CSSclass class}] {}
   }
   inform instproc render_help_text {} {
   }
@@ -1376,7 +1375,7 @@ namespace eval ::xowiki::formfield {
   }
   number instproc render_input {} {
     ::html::input [my get_attributes type id name value disabled {CSSclass class} min max step value \
-                       autofocus formnovalidate multiple pattern placeholder readonly required] {}
+                       autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
   }
 
   ###########################################################
@@ -1394,7 +1393,7 @@ namespace eval ::xowiki::formfield {
   }
   range instproc render_input {} {
     ::html::input [my get_attributes type id name value disabled {CSSclass class} min max step value \
-                       autofocus formnovalidate multiple pattern placeholder readonly required] {}
+                       autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
   }
 
 
