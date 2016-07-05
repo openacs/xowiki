@@ -106,6 +106,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage_parameters_title">Wiki parameters</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="future_interval">in %time%</msg>
   <msg key="has_modified_this_page">has modified this page while you were editing it</msg>
   <msg key="height">Height</msg>
   <msg key="hour">hour</msg>

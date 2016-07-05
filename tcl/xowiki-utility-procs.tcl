@@ -576,11 +576,19 @@ namespace eval ::xowiki {
     if {![info exists timestamp_base]} {set timestamp_base [clock seconds]}
     set age_seconds [expr {$timestamp_base - $timestamp}]
     
+    if {$age_seconds < 0} {
+      set msg_key xowiki.future_interval
+      set age_seconds [expr {0 - $age_seconds}]
+    } else {
+      set msg_key xowiki.ago
+    }
+
     set pos 0
     set msg ""
     my instvar age
     foreach {interval unit unit_plural} $age {
       set base [expr {int($age_seconds / $interval)}]
+
       if {$base > 0} {
         set label [expr {$base == 1 ? $unit : $unit_plural}]
         set localized_label [::lang::message::lookup $locale xowiki.$label]
@@ -599,7 +607,7 @@ namespace eval ::xowiki {
           }
         }
         set time $msg
-        set msg [::lang::message::lookup $locale xowiki.ago [list [list time $msg]]]
+        set msg [::lang::message::lookup $locale $msg_key [list [list time $msg]]]
         break
       }
       incr pos

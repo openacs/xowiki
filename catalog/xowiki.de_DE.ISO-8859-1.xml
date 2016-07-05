@@ -79,6 +79,7 @@
   <msg key="FormPage_parameters_title">Wiki Einstellungen</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="future_interval">in %time%</msg>
   <msg key="has_modified_this_page">hat diese Seite verändert während sie von Ihnen bearbeitet wurde</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
