@@ -173,7 +173,7 @@ namespace eval ::xowiki::formfield {
         set cl [namespace tail [lindex $proc_info 0]]
         #my msg "__langPkg?[info exists __langPkg]"
         if {![info exists __langPkg]} {set __langPkg "xowiki"}
-        ns_log notice "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
+        #ns_log notice "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
         return [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
         #return [::lang::message::lookup "" xowiki.$cl-validate_$validator %errorMsg% [list value $value errorMsg $errorMsg] 1]
       }
