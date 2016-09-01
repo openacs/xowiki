@@ -1023,7 +1023,7 @@ namespace eval ::xowiki::formfield {
     # every form the file again. To implement the sticky option, we
     # set temporarily the "required" attribute to false
     #
-    if {[my exists required]} {
+    if {[my required]} {
       set reset_required 1
       my set required false
     }
