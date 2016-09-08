@@ -1707,20 +1707,24 @@ namespace eval ::xowiki::formfield {
       default {error "value '[my set displayMode]' invalid: valid entries for displayMode are inplace, inline or standard (default)"}
     }
     #
-    # Don't set HTML5 attribute required, since this does not match
+    # Don't set HTML5 attribute "required", since this does not match
     # well with Richtext Editors (at least ckeditor4 has problems,
     # other probably as well).
     #
     my set booleanHTMLAttributes {readonly disabled formnovalidate}
     next
+    #ns_log notice "==== [my name] EDITOR specified? [my exists editor]"
     if {![my exists editor]} {
       my set editor [parameter::get_global_value -package_key xowiki \
                          -parameter PreferredRichtextEditor -default xinha]
       #my msg "setting default of [my name] to [my set editor]"
     }
     if {![my exists __initialized]} {
+      #
       # Mixin the editor based on the attribute 'editor' if necessary
       # and call initialize again in this case...
+      #
+      #ns_log notice "==== initializing EDITOR: [my set editor]"
       my editor [my set editor]
       my initialize
     }
@@ -1978,6 +1982,14 @@ namespace eval ::xowiki::formfield {
   }
   richtext::ckeditor4 set editor_mixin 1
   richtext::ckeditor4 instproc initialize {} {
+    
+    security::csp::require script-src 'unsafe-eval'
+    security::csp::require script-src 'unsafe-inline'
+    
+    security::csp::require script-src cdn.ckeditor.com
+    security::csp::require style-src cdn.ckeditor.com
+    security::csp::require img-src cdn.ckeditor.com
+    
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
     }
@@ -2068,8 +2080,8 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
-      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.7/standard-all/ckeditor.js"
-      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.7/standard-all/adapters/jquery.js"
+      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.11/standard-all/ckeditor.js"
+      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.11/standard-all/adapters/jquery.js"
 
       # In contrary to the doc, ckeditor4 names instances after the id,
       # not the name.
@@ -2339,6 +2351,12 @@ namespace eval ::xowiki::formfield {
     if {![my istype ::xowiki::formfield::richtext] || $disabled} {
       my render_richtext_as_div
     } else {
+      #
+      # required CSP directives for Xinha
+      #
+      security::csp::require script-src 'unsafe-eval'
+      security::csp::require script-src 'unsafe-inline'
+      
       # we use for the time being the initialization of xinha based on
       # the blank master
       set ::acs_blank_master(xinha) 1

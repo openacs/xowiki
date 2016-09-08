@@ -453,6 +453,9 @@ namespace eval ::xo::Table {
 
   BootstrapTableRenderer instproc render {} {
     ::xo::Page requireCSS "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+    security::csp::require style-src netdna.bootstrapcdn.com
+    security::csp::require font-src netdna.bootstrapcdn.com
+    
     if {![my isobject [self]::__actions]} {my actions {}}
     if {![my isobject [self]::__bulkactions]} {my __bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
