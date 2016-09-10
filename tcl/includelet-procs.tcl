@@ -2428,16 +2428,24 @@ namespace eval ::xowiki::includelet {
     set as_att_value [::xowiki::Includelet html_encode $inner_html]
     set save_form [subst {
       <p>
-      <a href='#' onclick='document.getElementById("$id").style.display="inline";return false;'>Create Form from Content</a>
+      <a id='$id-control' href='#'>Create Form from Content</a>
       </p>
       <span id='$id' style='display: none'>
       Form Name: 
-      <FORM action="$base?m=create-new" method='POST' style='display: inline'>
-      <INPUT name='class' type='hidden' value="::xowiki::Form">
-      <INPUT name='content' type='hidden' value="$as_att_value">
-      <INPUT name='name' type='text'>
-      </FORM>
+      <form action="$base?m=create-new" method='POST' style='display: inline'>
+      <input name='class' type='hidden' value="::xowiki::Form">
+      <input name='content' type='hidden' value="$as_att_value">
+      <input name='name' type='text'>
+      </form>
       </span>
+    }]
+
+    template::add_body_script -script [subst {
+      document.getElementById("$id-control").addEventListener('click', function (event) {
+        event.preventDefault();
+        document.getElementById("$id").style.display="inline";
+        return false;
+      });
     }]
 
     return $inner_html$save_form
