@@ -5,6 +5,16 @@
                   <property name="&body">body</property>
                   <property name="&doc">doc</property>
                   <property name="head">
+        <style type='text/css'>
+            blockquote {font-size:inherit;}
+            div.xowiki-content {font-size:14px;}
+            div.xowiki-content h1,h2,h3 {margin-bottom:10px;margin-top:20px;}
+            div.xowiki-content h1 {border-bottom: none;color:font-weight:500;color:#cf8a00 !important;}
+            div.xowiki-content h2 {border-bottom: none;color:font-weight:500;}
+            div.xowiki-content h3 {font-weight:500;}
+            div.xowiki-content pre, div.code {font-size:100%;}
+            div.xowiki-content .item-footer {border-top:none;}
+        </style>
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
         <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
@@ -38,51 +48,57 @@
       <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@"><if @::__csrf_token@ defined><input type="hidden" name="__csrf_token" value="@::__csrf_token;literal@"></if></div></form>
       </div>
       </div>
-<div style="float:left; width: 25%; font-size: 85%;
-     background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 6px; margin-top: 6px; padding: 0px;
-">
-                      <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
-                      portlet="categories -open_page [list @name@] -decoration plain">
-                      </div></div>
-                      <div style="float:right; width: 70%;">
-                      <style type='text/css'>
-                      table.mini-calendar {width: 200px ! important;}
-                      #sidebar {min-width: 220px ! important; top: 0px; overflow: visible;}
-                      </style>
-                      <div style='float: left; width: 62%'>
-                       @top_includelets;noquote@
- <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
- <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
- <else><h1>@body.title@</h1></else>
- <if @folderhtml@ not nil> 
- <div class='folders' style=''>@folderhtml;noquote@</div> 
- <div class='content-with-folders'>@content;noquote@</div> 
- </if>
-    <else>@content;noquote@</else>
-                      </div>  <!-- float left -->
-                      <div id='sidebar' class='column'>
-                      <div style="background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 6px; margin-top: 6px; padding: 0px;
-">
-                      <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page
-                      summary="0" noparens="0">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
-                      portlet="tags -decoration plain">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
-                      portlet="tags -popular 1 -limit 30 -decoration plain">
-                      <hr>
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
-                      portlet="presence -interval {30 minutes} -decoration plain">
-                      <hr>
-                      <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
-                      </div>
-                      </div>
-                      </div> <!-- sidebar -->
+ 
+    <div class="row"> 
 
-                      </div> <!-- right 70% -->
-                    
-@footer;noquote@
+        <div class="col-md-9 col-sm-8 col-xs-12 col-md-push-3 col-sm-push-4"> <!-- content -->
+            @top_includelets;noquote@
+            <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
+            <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
+            <else><h1>@body.title@</h1></else>
+            <if @folderhtml@ not nil> 
+                <div class='folders' style=''>@folderhtml;noquote@</div> 
+                <div class='content-with-folders'>@content;noquote@</div> 
+            </if>
+            <else>@content;noquote@</else>
+        </div> <!-- content -->
+
+        <div class="col-md-3 col-sm-4 col-xs-12 home-left col-md-pull-9 col-sm-pull-8" style="font-size:small;"> <!-- left panel in full view -->
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -decoration plain">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
+                    <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
+                </div>
+            </div> <!-- background -->
+
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="categories -open_page [list @name@] -decoration plain">
+                </div>
+            </div>  <!-- background -->
+        </div>
+    </div>
+   <div class="row">
+        <div class="col-xs-12">
+            <hr>        
+            @footer;noquote@
+        </div>
+    </div>
+        
+
 </div> <!-- class='xowiki-content' -->

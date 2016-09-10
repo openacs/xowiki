@@ -1421,8 +1421,8 @@ namespace eval ::xowiki::includelet {
     }
     set content [subst {
       #xowiki.your_tags_label#: $tags_with_links
-      (<a id='[my id]-edit-tags-control' href='#'>#xowiki.edit_link#</a>,
-       <a id='[my id]-popular-tags-control' href='#'>#xowiki.popular_tags_link#</a>)
+      (<a id='[my id]-edit-tags-control' href='.'>#xowiki.edit_link#</a>,
+       <a id='[my id]-popular-tags-control' href='.'>#xowiki.popular_tags_link#</a>)
       <form id='[my id]-edit_tags' style='display: none' action="[ns_quotehtml $save_tag_link]" method='POST'>
       <div><input name='new_tags' type='text' value="[ns_quotehtml $tags]"></div>
       </form>
@@ -1430,11 +1430,13 @@ namespace eval ::xowiki::includelet {
     }]
 
     template::add_body_script -script [subst {
-      document.getElementById('[my id]-edit-tags-control').addEventListener('click', function () {
+      document.getElementById('[my id]-edit-tags-control').addEventListener('click', function (event) {
+        event.preventDefault();
         document.getElementById("[my id]-edit_tags").style.display="block";
         return false;
       });
-      document.getElementById('[my id]-popular-tags-control').addEventListener('click', function () {
+      document.getElementById('[my id]-popular-tags-control').addEventListener('click', function (event) {
+        event.preventDefault();
         get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");
         return false;
       });
