@@ -1193,7 +1193,8 @@ namespace eval ::xowiki {
              -groupby "tag" \
              -orderby "nr" \
              -limit $limit] {
-               lappend entries "<a href='[ns_quotehtml $href&ptag=[ad_urlencode $tag]]'>[ns_quotehtml $tag ($nr)]</a>"
+               set label [ns_quotehtml "$tag ($nr)"]
+               lappend entries "<a href='[ns_quotehtml $href&ptag=[ad_urlencode $tag]]'>$label</a>"
              }
     ns_return 200 text/html "[_ xowiki.popular_tags_label]: [join $entries {, }]"
   }
@@ -1220,7 +1221,7 @@ namespace eval ::xowiki {
       }
     }
     #my show_fields $form_fields
-    lassign  [my get_form_data -field_names $query_field_names $form_fields] validation_erors category_ids
+    lassign [my get_form_data -field_names $query_field_names $form_fields] validation_erors category_ids
 
     if {$validation_errors == 0} {
       #
@@ -1559,7 +1560,7 @@ namespace eval ::xowiki {
       #
       ::xo::Page requireCSS /resources/xowiki/xowiki.css
       if {$footer ne ""} {
-        ::xo::Page requireJS {
+        template::add_body_script -script {
           function get_popular_tags(popular_tags_link, prefix) {
             var http = getHttpObject();
             http.open('GET', popular_tags_link, true);
@@ -1579,6 +1580,7 @@ namespace eval ::xowiki {
         }
       }
       set header_stuff [::xo::Page header_stuff]
+      #ns_log notice "=== HEADER STUFF <$header_stuff>"
       if {![my exists description]} {my set description [my get_description $content]}
 
       if {[info commands ::template::head::add_meta] ne ""} {

@@ -39,6 +39,7 @@ namespace eval ::xowiki::includelet {
       ::xo::Page requireCSS "/resources/ajaxhelper/yui/$path"
     } else {
       ::xo::Page requireCSS "//yui.yahooapis.com/$version/build/$path"
+      security::csp::require style-src yui.yahooapis.com
     }
   }
 
@@ -47,6 +48,7 @@ namespace eval ::xowiki::includelet {
       ::xo::Page requireJS "/resources/ajaxhelper/yui/$path"
     } else {
       ::xo::Page requireJS "//yui.yahooapis.com/$version/build/$path"
+      security::csp::require script-src yui.yahooapis.com
     }
   }    
   
@@ -1402,8 +1404,8 @@ namespace eval ::xowiki::includelet {
     set save_tag_link [$package_id make_link -link $p_link $__including_page \
                            save-tags return_url]
     set popular_tags_link [$package_id make_link -link $p_link $__including_page \
-                               popular-tags return_url weblog_page]
-
+                               popular-tags]
+    
     set tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
                          -item_id [$__including_page item_id] -package_id $package_id]]
     set entries [list]
@@ -1414,16 +1416,30 @@ namespace eval ::xowiki::includelet {
     }
     set tags_with_links [join [lsort $entries] {, }]
 
-    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
-    set content [subst -nobackslashes {
+    if {![my exists id]} {
+      my set id [::xowiki::Includelet html_id [self]]
+    }
+    set content [subst {
       #xowiki.your_tags_label#: $tags_with_links
-      (<a href='#' onclick='document.getElementById("[my id]-edit_tags").style.display="block";return false;'>#xowiki.edit_link#</a>,
-       <a href='#' onclick='get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");return false;'>#xowiki.popular_tags_link#</a>)
+      (<a id='[my id]-edit-tags-control' href='#'>#xowiki.edit_link#</a>,
+       <a id='[my id]-popular-tags-control' href='#'>#xowiki.popular_tags_link#</a>)
       <form id='[my id]-edit_tags' style='display: none' action="[ns_quotehtml $save_tag_link]" method='POST'>
-      <div><INPUT name='new_tags' type='text' value="[ns_quotehtml $tags]"></div>
+      <div><input name='new_tags' type='text' value="[ns_quotehtml $tags]"></div>
       </form>
       <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
+
+    template::add_body_script -script [subst {
+      document.getElementById('[my id]-edit-tags-control').addEventListener('click', function () {
+        document.getElementById("[my id]-edit_tags").style.display="block";
+        return false;
+      });
+      document.getElementById('[my id]-popular-tags-control').addEventListener('click', function () {
+        get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");
+        return false;
+      });
+    }]
+    
     return $content
   }
 
@@ -1492,9 +1508,11 @@ namespace eval ::xowiki::includelet {
     my instvar __including_page
     set item_id [$__including_page item_id] 
     set gc_return_url [$package_id url]
+    #
     # Even, if general_comments is turned on, don't offer the
     # link to add comments, unless the user is logged in.
     # Otherwise, this attracts spammers and search bots
+    #
     if {[::xo::cc user_id] != 0} {
       set gc_link [general_comments_create_link \
                        -object_name [$__including_page title] \

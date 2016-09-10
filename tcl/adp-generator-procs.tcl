@@ -33,7 +33,17 @@ namespace eval ::xowiki {
 
   ADP_Generator instproc wikicmds_part {} {
     if {![my wikicmds]} {return ""}
-    return {<div id='wikicmds'>
+    return {
+      <%
+         template::add_body_script -script {
+           document.getElementById('wiki-menu-do-search-control').addEventListener('click', function () {
+             document.getElementById('do_search').style.display = 'inline';
+             document.getElementById('do_search_q').focus(); 
+             return false;
+           });
+         }
+      %>
+      <div id='wikicmds'>
       <if @view_link@ not nil><a href="@view_link@" accesskey='v' title='#xowiki.view_title#'>#xowiki.view#</a> &middot; </if>
       <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='#xowiki.edit_title#'>#xowiki.edit#</a> &middot; </if>
       <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' title='#xowiki.revisions_title#'>#xotcl-core.revisions#</a> &middot; </if>
@@ -42,7 +52,7 @@ namespace eval ::xowiki {
       <if @admin_link@ not nil><a href="@admin_link@" accesskey='a' title='#xowiki.admin_title#'>#xowiki.admin#</a> &middot; </if>
       <if @notification_subscribe_link@ not nil><a href='/notifications/manage' title='#xowiki.notifications_title#'>#xowiki.notifications#</a>
       <a href="@notification_subscribe_link@" class="notification-image-button">&nbsp;</a> &middot; </if>
-      <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'  title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
+      <a href='#' id='wiki-menu-do-search-control' title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
       <if @index_link@ not nil><a href="@index_link@" accesskey='i' title='#xowiki.index_title#'>#xowiki.index#</a></if>
       <div id='do_search' style='display: none'>
       <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@"><if @::__csrf_token@ defined><input type="hidden" name="__csrf_token" value="@::__csrf_token;literal@"></if></div></form>
