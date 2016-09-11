@@ -164,8 +164,8 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
         window.location.href='$url';
         return false;
       });
-    }
-  }]
+    }]
+  }
   
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
       $url $id $count $class
