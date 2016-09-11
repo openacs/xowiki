@@ -76,7 +76,7 @@ namespace eval ::xowiki {
     set content [$renderer render [self]]
     TreeNode instmixin ""
     if {[$renderer set js] ne ""} {
-      append content "\n<script type='text/javascript'>[$renderer set js]</script>\n"
+      template::add_body_script -script [$renderer set js]
     }
     return $content
   }
