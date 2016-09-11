@@ -159,7 +159,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   append js [subst {
     document.getElementById("$id").addEventListener('click', function (event) {
       event.preventDefault();
-      window.location.href=$url
+      window.location.href="$url";
       return false;
     });
   }]
