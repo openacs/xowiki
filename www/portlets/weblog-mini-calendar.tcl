@@ -155,13 +155,16 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
     set class inactive
   }
   set url [export_vars -base $base_url {{date $ansi_date} summary}]
+  
   set id minicalendar-$ansi_date
-  append js [subst {
-    document.getElementById("$id").addEventListener('click', function (event) {
-      event.preventDefault();
-      window.location.href="$url";
-      return false;
-    });
+  if {$count > 0) {
+    append js [subst {
+      document.getElementById('$id').addEventListener('click', function (event) {
+        event.preventDefault();
+        window.location.href='$url';
+        return false;
+      });
+    }
   }]
   
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
