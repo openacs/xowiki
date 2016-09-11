@@ -94,7 +94,7 @@ if {$next_mon > [clock scan $latest_date]} {
 }
 
 
-multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url count class
+multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url id count class
 
 set day_of_week 1
 
@@ -105,6 +105,7 @@ set active_days_before_month [expr {($active_days_before_month + 7 - $first_day_
 set calendar_starts_with_julian_date [expr {$first_julian_date_of_month - $active_days_before_month}]
 set day_number [expr {$days_in_last_month - $active_days_before_month + 1}]
 
+set js ""
 for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_julian_date + 7} {incr julian_date} {
 
   if {$julian_date > $last_julian_date_in_month && $end_of_week_p == "t" } {
@@ -153,12 +154,26 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   } else {
     set class inactive
   }
-
+  set url [export_vars -base $base_url {{date $ansi_date} summary}]
+  set id minicalendar-$ansi_date
+  append js [subst {
+    document.getElementById("$id").addEventListener('click', function (event) {
+      event.preventDefault();
+      window.location.href=$url
+      return false;
+    });
+  }]
+  
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
-      "[export_vars -base $base_url {{date $ansi_date} summary}]" $count $class
+      $url $id $count $class
   incr day_number
   incr day_of_week
 }
+
+if {$js ne ""} {
+  template::add_body_script -script $js
+}
+
 
 set sysdate [dt_sysdate]
 set today_url [export_vars -base $base_url {{date $sysdate} page_num}]

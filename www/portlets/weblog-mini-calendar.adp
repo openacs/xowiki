@@ -35,7 +35,7 @@
             </if>
         
 	    <if @days.count@ ne "">
-                <td class="@days.class@" onclick="javascript:location.href='@days.url@';">
+                <td class="@days.class@" id="@days.id@">
                 <span style='font-size: 80%;'>@days.count@</span> @days.day_number@</td>
              </if><else>
                 <td class="@days.class@"> @days.day_number@</td>
