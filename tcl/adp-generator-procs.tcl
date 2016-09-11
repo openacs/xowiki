@@ -287,8 +287,8 @@ namespace eval ::xowiki {
             blockquote {font-size:inherit;}
             div.xowiki-content {font-size:14px;}
             div.xowiki-content h1,h2,h3 {margin-bottom:10px;margin-top:20px;}
-            div.xowiki-content h1 {border-bottom: none;color:font-weight:500;color:#cf8a00 !important;}
-            div.xowiki-content h2 {border-bottom: none;color:font-weight:500;}
+            div.xowiki-content h1 {border-bottom: none;font-weight:500;color:#cf8a00 !important;}
+            div.xowiki-content h2 {border-bottom: none;font-weight:500;}
             div.xowiki-content h3 {font-weight:500;}
             div.xowiki-content pre, div.code {font-size:100%;}
             div.xowiki-content .item-footer {border-top:none;}
