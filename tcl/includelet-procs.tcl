@@ -4449,9 +4449,14 @@ namespace eval ::xowiki::includelet {
   
   gravatar proc url {-email {-size 80}} {
     # reusable helper proc to compute an gravatar URL
-    package require md5
-    set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
-    return http://www.gravatar.com/avatar/$md5?size=$size
+    if {[info commands ns_md5] ne ""} {
+      set md5 [string tolower [ns_md5 $email]]
+    } else {
+      package require md5
+      set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
+    }
+    security::csp::require img-src www.gravatar.com
+    return //www.gravatar.com/avatar/$md5?size=$size
   }
 
   gravatar instproc render {} {
