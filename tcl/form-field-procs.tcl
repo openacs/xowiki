@@ -743,7 +743,7 @@ namespace eval ::xowiki::formfield {
   ::Serializer exportMethods {
     ::xotcl::Class instproc extend_slot_default
   }
-  Class instproc extend_slot_default {name value} {
+  Class create instproc extend_slot_default {name value} {
     # Search for the slot. If the slot exists, extend it's default
     # value with the new value
     foreach c [my info heritage] {
