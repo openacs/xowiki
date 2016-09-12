@@ -73,8 +73,8 @@ Some features:
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
-            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
-            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
+            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
+            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
             <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBarSymLinks"  default="0" description="Activate experimental menubar stuff"/>	    
