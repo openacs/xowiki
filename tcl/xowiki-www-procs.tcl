@@ -1100,7 +1100,7 @@ namespace eval ::xowiki {
     ::security::csrf::validate
     set uploader [ns_set get $form uploader File]
     set uploaderClass ::xowiki::UploadFile
-    if {[info command ::xowiki::Upload$uploader] ne ""} {
+    if {[info commands ::xowiki::Upload$uploader] ne ""} {
       set uploaderClass ::xowiki::Upload$uploader
     }
     set uploaderObject [$uploaderClass new \
