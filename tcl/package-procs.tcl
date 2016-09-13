@@ -1410,6 +1410,9 @@ namespace eval ::xowiki {
       set name $element
     } else {
       array set "" [list link_type "link" prefix $default_lang stripped_name $element]
+      if {$normalize_name} {
+        set element [my normalize_name $element]
+      }
       set name $default_lang:$element
       set use_default_lang 1
     }
