@@ -334,7 +334,7 @@ namespace eval ::xowiki::includelet {
       # allowed to do this with certain items.... (the latter in
       # clipboad-add)
       $mb add_menu_item -name Clipboard.Add \
-          -item [list url javascript:acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]
+          -item [list url \# listener [list click acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]]
       $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
       $mb add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]

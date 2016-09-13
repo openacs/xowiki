@@ -34,6 +34,14 @@ namespace eval ::xowiki {
     ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
     set css [parameter::get_global_value -package_key xowiki -parameter BootstrapCSS] 
     set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS]
+    #
+    # TODO: We should dynamically be able to determine the
+    # directives. However, for the time being, the urls below are
+    # trusted.
+    #
+    security::csp::require script-src maxcdn.bootstrapcdn.com
+    security::csp::require style-src maxcdn.bootstrapcdn.com
+    
     foreach url $css {::xo::Page requireCSS $url}
     foreach url $js  {::xo::Page requireJS  $url}
     next
@@ -119,9 +127,15 @@ namespace eval ::xowiki {
   
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
     html::li -class [expr {[my set href] eq "" ? "disabled": ""}] {
-      html::a [my get_attributes target href title] {
+      html::a [my get_attributes target href title id] {
         html::t [my text]
       }
+    }
+    if {[my exists listener] && [my set listener] ne ""} {
+      lassign [my listener] type body
+      template::add_body_script -script [subst {
+        document.getElementById('[my set id]').addEventListener('$type', function (event) {$body}, false);
+      }]
     }
   }
   
@@ -137,7 +151,7 @@ namespace eval ::xowiki {
       }
 
   BootstrapNavbarDropzone instproc js {-uploadlink:required} {
-    html::script -type "text/javascript" {
+    html::script -type "text/javascript" -nonce $::__csp_nonce {
       html::t [subst -nocommands {
         + function($) {
           'use strict';
@@ -361,7 +375,9 @@ namespace eval ::xowiki {
                                 ::xowiki::BootstrapNavbarDropdownMenuItem \
                                     -text [my get_prop $item label] \
                                     -href [my get_prop $item url] \
-                                    -group [my get_prop $item group] {}
+                                    -group [my get_prop $item group] \
+                                    -listener [my get_prop $item listener] \
+                                    {}
                               }
                             }
                       }
@@ -435,6 +451,7 @@ namespace eval ::xo::Table {
       set name [$bulkaction_container set __identifier]
 
       foreach ba $bulkactions {
+        set id [::xowiki::Includelet html_id $ba]
         html::ul -class compact {
           html::li {
             # For some reason, btn-secondary seems not to be available
@@ -442,11 +459,16 @@ namespace eval ::xo::Table {
             html::a -class "btn btn-secondary" -rule button \
                 -title [$ba tooltip] -href # \
                 -style "border-color: #ccc;" \
-                -onclick "acs_ListBulkActionClick('$name','[$ba url]'); return false;" {
+                -id $id {
                   html::t [$ba label]
                 }
           }
         }
+        template::add_body_script -script [subst {
+          document.getElementById('$id').addEventListener('click', function (event) {
+            acs_ListBulkActionClick('$name','[$ba url]');
+          }, false);
+        }]
       }
     }
   }

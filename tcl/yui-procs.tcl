@@ -74,6 +74,7 @@ namespace eval ::xowiki {
     http://developer.yahoo.com/yui/menu/
   } {
     my append CSSclass " yuimenu"
+    my set extrajs ""
 
     # I want the menu to show up when JS is disabled
     # This gets overridden by JS, so its only relevant for the non-JS version
@@ -109,12 +110,19 @@ namespace eval ::xowiki {
       # JavaScript
       # only "root-level" menus need JS
       # TODO: is this parent-check sufficient / future-safe?
-      if {![my exists __parent]} {
+      if {[my exists __parent]} {
+        #
+        # propagate extrajs from rendering
+        #
+        #ns_log notice "### propagate extrajs <[my set extrajs]> from [my info class] to [[my set __parent] info class]"
+        [my set __parent] append extrajs [my set extrajs]
+      } else {
         html::script -type "text/javascript" {
           html::t "var [my js_name] = new YAHOO.widget.Menu(\"[my id]\", [my set configuration]);"
           html::t "
                         [my js_name].render();
                         [my js_name].show();
+                        [my set extrajs]
                     "
         }
       }
@@ -135,6 +143,15 @@ namespace eval ::xowiki {
     html::li [my get_attributes id {CSSclass class} style] {
       # if we have no href, mark entry as disabled
       if {![my exists href] || [my href] eq ""} {my append linkclass " disabled"}
+      if {[my exists listener] && [my set listener] ne ""} {
+        #ns_log notice "menuitem has id [my id] listener [my listener] parent [my set __parent] [[my set __parent] info class]"
+        lassign [my listener] type body
+        [my set __parent] append extrajs [subst {
+          document.getElementById('[my id]').addEventListener('$type', function (event) {
+            $body;
+          }, false);
+        }]
+      }
       html::a [my get_attributes target href {linkclass class} title] {
         html::t [my text]
         if {[my exists helptext]} {
@@ -163,6 +180,7 @@ namespace eval ::xowiki {
     MenuBar looks best without a header and with one MenuItemList only
   } {
     my append CSSclass " yuimenubar"
+    my set extrajs ""
     if {[my navbar]} {my append CSSclass " yuimenubarnav"}
     html::div [my get_attributes id {CSSclass class}] {
       html::div -class "bd" {
@@ -177,6 +195,7 @@ namespace eval ::xowiki {
       ::xo::Page requireJS "YAHOO.util.Event.onDOMReady(function () {
             var [my js_name] = new YAHOO.widget.MenuBar('[my id]', [my set configuration]);
             [my js_name].render();
+            [my set extrajs]
       });"
     }
   }
@@ -197,7 +216,18 @@ namespace eval ::xowiki {
     }
   }
 
-
+  YUIMenuBarItem ad_instproc render {} {} {
+    my set extrajs ""
+    set result [next]
+    if {[my exists __parent]} {
+      #
+      # propagate extrajs from rendering
+      #
+      #ns_log notice "### propagate extrajs <[my set extrajs]> from [my info class] to [[my set __parent] info class]"
+      [my set __parent] append extrajs [my set extrajs]
+    }
+  }
+  
   #
   # YUIContextMenu
   #
@@ -249,11 +279,11 @@ namespace eval ::xowiki {
           ::xowiki::YUIMenu {
             foreach {item_att item} $menu {
               if {[string match {[a-z]*} $item_att]} continue
-              set text [my get_prop $item label]
-              set url [my get_prop $item url]
-              set group [my get_prop $item group]
-              #my log "ia=$item_att group '$group' // t=$text item=$item"
-              ::xowiki::YUIMenuItem -text $text -href $url -group $group {}
+              ::xowiki::YUIMenuItem \
+                  -text [my get_prop $item label] \
+                  -href [my get_prop $item url] \
+                  -group [my get_prop $item group] \
+                  -listener [my get_prop $item listener] {}
             }
           }
         }
@@ -463,7 +493,7 @@ namespace eval ::xo::Table {
     set datasource  ${id}_datasource
     set datatable   ${id}_datatable
     set coldef      ${id}_coldef
-
+    set finaljs     ""
     set js      "var $datasource = new YAHOO.util.DataSource(YAHOO.util.Dom.get('$id')); \n"
     append js   "$datasource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE; \n"
     append js   "$datasource.responseSchema = \{ \n"
@@ -480,11 +510,17 @@ namespace eval ::xo::Table {
       if {[$field hide]} continue
       if {[$field istype HiddenField]} continue
       if {[$field istype BulkAction]} {
-        set label "<input type='checkbox' onclick='[ns_quotehtml acs_ListCheckAll(\"objects\",this.checked)]'></input>"
+        set subid [::xowiki::Includelet html_id $field]
+        set label "<input type='checkbox' id='$subid'></input>"
         if {[info exists ::__csrf_token]} {
-          append label \n "<input type='hidden' name='__csrf_token' value='$::__csrf_token'>"
+          append label "<input type='hidden' name='__csrf_token' value='$::__csrf_token'>"
         }
         set sortable false
+        append finaljs [subst {
+          document.getElementById('$subid').addEventListener('click', function (event) {
+            acs_ListCheckAll('objects', this.checked);
+          }, false);
+        }]
       } else {
         set label [lang::util::localize [$field label]]
         set sortable [expr {[$field exists sortable] ? [$field set sortable] : true}]
@@ -493,6 +529,7 @@ namespace eval ::xo::Table {
     }
     append js  [join $js_fields ", "] "\];\n"
     append js  "var $datatable = new YAHOO.widget.DataTable('$container', $coldef, $datasource);\n"
+    append js $finaljs
     return $js
   }
 

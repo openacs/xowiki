@@ -57,6 +57,7 @@ namespace eval ::xowiki {
         linkclass
         target
         {group ""}
+        {listener}
       }
 
 
