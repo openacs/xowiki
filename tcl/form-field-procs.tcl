@@ -1984,7 +1984,7 @@ namespace eval ::xowiki::formfield {
   richtext::ckeditor4 instproc initialize {} {
     
     security::csp::require script-src 'unsafe-eval'
-    security::csp::require script-src 'unsafe-inline'
+    security::csp::require -force script-src 'unsafe-inline'
     
     security::csp::require script-src cdn.ckeditor.com
     security::csp::require style-src cdn.ckeditor.com
