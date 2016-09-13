@@ -35,8 +35,20 @@ TableWidget t1 -volatile \
       AnchorField instances -label [_ xowiki.instances] -html {align center}
       AnchorField edit -CSSclass add-item-button -label [_ xowiki.add] -html {align center}
       AnchorField delete -CSSclass delete-item-button -label [_ xowiki.delete_all] \
-          -html {align center onClick "return(confirm('#xowiki.delete_all_confirm#'));"}
+          -html {align center class delete-all}
     }
+
+template::add_body_script -script [subst {
+  var confirmIt = function (e) {
+    if (!confirm('[_ xowiki.delete_all_confirm]')) e.preventDefault();
+  };
+  var el = document.getElementsByTagName('td');
+  for (i = 0; i < el.length; i++) {
+    if (el\[i\].className == 'delete-all') {
+      el\[i\].addEventListener('click', confirmIt, false);
+    }
+  };
+}]
 
 set base [::$package_id package_url]
 foreach object_type $object_types {
