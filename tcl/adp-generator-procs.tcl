@@ -40,8 +40,7 @@ namespace eval ::xowiki {
              event.preventDefault();
              document.getElementById('do_search').style.display = 'inline';
              document.getElementById('do_search_q').focus(); 
-             return false;
-           });
+           }, false);
          }
       %>
       <div id='wikicmds'>
@@ -373,7 +372,23 @@ namespace eval ::xowiki {
       } \
       -proc content_part {} {
         return [subst -novariables -nobackslashes \
-                    {<div style="float:left; width: 25%; font-size: .8em;
+                    {
+<%
+if {$book_prev_link ne ""} {
+    template::add_body_script -script {
+      document.getElementById('bookNavPrev.a').addEventListener('click', function () {
+        TocTree.getPage("$book_prev_link")
+      }, false);
+    }
+}
+if {$book_next_link ne ""} {
+    template::add_body_script -script {
+      document.getElementById('bookNavNext.a').addEventListener('click', function () {
+        TocTree.getPage("$book_next_link")
+      }, false);
+    }
+}
+%>                      <div style="float:left; width: 25%; font-size: .8em;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
@@ -390,11 +405,11 @@ namespace eval ::xowiki {
                       <tr>
                       <td>
                       <if @book_prev_link@ not nil>
-                      <a href="@book_prev_link@" accesskey='p' ID="bookNavPrev.a" onclick='return TocTree.getPage("@book_prev_link@");'>
+                      <a href="@book_prev_link@" accesskey='p' ID="bookNavPrev.a">
                       <img alt='Previous' src='/resources/xowiki/previous.png' width='15' ID="bookNavPrev.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='p' ID="bookNavPrev.a" onclick="">
+                      <a href="" accesskey='p' ID="bookNavPrev.a">
                       <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' ID="bookNavPrev.img"></a>
                       </else>
                       </td>
@@ -411,11 +426,11 @@ namespace eval ::xowiki {
 
                       <td ID="bookNavNext">
                       <if @book_next_link@ not nil>
-                      <a href="@book_next_link@" accesskey='n' ID="bookNavNext.a" onclick='return TocTree.getPage("@book_next_link@");'>
+                      <a href="@book_next_link@" accesskey='n' ID="bookNavNext.a">
                       <img alt='Next' src='/resources/xowiki/next.png' width='15' ID="bookNavNext.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='n' ID="bookNavNext.a" onclick="">
+                      <a href="" accesskey='n' ID="bookNavNext.a">
                       <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' ID="bookNavNext.img"></a>
                       </else>
                       </td>
