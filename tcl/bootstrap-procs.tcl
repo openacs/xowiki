@@ -278,7 +278,7 @@ namespace eval ::xowiki {
     # In the current implementation, the page refreshes itself after
     # successful mode change. This could be made configurable.
     #
-    html::script -type "text/javascript" {
+    html::script -type "text/javascript" -nonce $::__csp_nonce {
       html::t {
         function mode_button_ajax_submit(form) {
           $.ajax({
@@ -290,6 +290,11 @@ namespace eval ::xowiki {
           });
         };
       }
+      html t [subst {
+        document.getElementById('[my id]').addEventListener('click', function (event) {
+          mode_button_ajax_submit(this.form);
+        });
+      }]
     }
   }
   
@@ -299,8 +304,7 @@ namespace eval ::xowiki {
         html::div -class "checkbox ${:CSSclass}" {
           html::label -class "checkbox-inline" {
             set checked [expr {${:on} ? {-checked true} : ""}]
-            html::input -class "debug form-control" -name "debug" -type "checkbox" {*}$checked \
-                -onclick "mode_button_ajax_submit(this.form);"
+            html::input -id [my id] -class "debug form-control" -name "debug" -type "checkbox" {*}$checked
             html::span -style ${:spanStyle} {html::t ${:text}}
             html::input -name "modebutton" -type "hidden" -value "${:button}"
           }
