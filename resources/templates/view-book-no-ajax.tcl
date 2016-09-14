@@ -4,6 +4,9 @@ set toc   [$page include [list toc -style list -open_page $name -expand_all 1 -d
 set i     [$page set __last_includelet]
 #$package_id log "--last includelet = $i, class=[$i info class] [$page exists __is_book_page]"
 
+set book_prev_link ""
+set book_next_link ""
+
 # prevent recursive books
 if {$i ne "" && ![$page exists __is_book_page]} {
   set p     [$i position]

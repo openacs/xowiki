@@ -9,7 +9,7 @@
 %>
 
 <div>
-  <div style='top: -00px ! important; margin-bottom: 25px ! important;' id='wikicmds'>
+  <div style='top: -30px ! important; margin-bottom: 25px ! important;' id='wikicmds'>
     <div id='wikicmds'>
       <if @view_link@ not nil><a href="@view_link@" accesskey='v' title='#xowiki.view_title#'>#xowiki.view#</a> &middot; </if>
       <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='#xowiki.edit_title#'>#xowiki.edit#</a> &middot; </if>
@@ -26,7 +26,7 @@
       </div>
     </div>
   </div>
-  @top_includelets;noquote@
+<!--  @top_includelets;noquote@ -->
   <if @page_title@ not nil>
     <h2>@page_title@</h2>
   </if>
