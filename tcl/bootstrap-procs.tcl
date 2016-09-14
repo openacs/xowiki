@@ -35,12 +35,13 @@ namespace eval ::xowiki {
     set css [parameter::get_global_value -package_key xowiki -parameter BootstrapCSS] 
     set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS]
     #
-    # TODO: We should dynamically be able to determine the
-    # directives. However, for the time being, the urls below are
+    # TODO: We should dynamically be able to determine (some of) the
+    # CSP directives. However, for the time being, the urls below are
     # trusted.
     #
     security::csp::require script-src maxcdn.bootstrapcdn.com
     security::csp::require style-src maxcdn.bootstrapcdn.com
+    security::csp::require font-src maxcdn.bootstrapcdn.com
     
     foreach url $css {::xo::Page requireCSS $url}
     foreach url $js  {::xo::Page requireJS  $url}
