@@ -3931,7 +3931,7 @@ namespace eval ::xowiki::includelet {
       append cols [list AnchorField  create _$fn \
                        -label [$__ff($fn) label] \
                        -richtext 1 \
-                       -orderby _$fn \
+                       -orderby $fn \
                       ] \n
     }
     if {[info exists use_button(delete)]} {
