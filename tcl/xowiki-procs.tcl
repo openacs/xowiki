@@ -1392,11 +1392,15 @@ namespace eval ::xowiki {
       parent_id
       publish_status
       page_template
-      instance_attributes
       assignee
       state
     }} {
       ::xowiki::update_item_index -item_id [my item_id] -$colName $value
+    }
+    if {[::xo::dc has_hstore] 
+        && [[my package_id] get_parameter use_hstore 0] 
+        && $colName eq "instance_attributes"} {
+            ::xowiki::update_item_index -item_id [my item_id] -hstore_attributes [my instance_attributes]
     }
   }
 
@@ -1406,7 +1410,6 @@ namespace eval ::xowiki {
     -parent_id
     -publish_status
     -page_template
-    -instance_attributes
     -assignee
     -state
     -hstore_attributes
@@ -1415,13 +1418,13 @@ namespace eval ::xowiki {
     Helper function to update single or multiple fields of the
     xowiki_form_instance_item_index. Call this function only when
     updating fields of the xowiki_form_instance_item_index in cases
-    where the standard API based on save and save_use canot be used.
+    where the standard API based on save and save_use can not be used.
 
   } {
     foreach var {
       package_id parent_id
       publish_status page_template
-      instance_attributes assignee state
+      assignee state
     } {
       if {[info exists $var]} {
         xo::dc dml update_xowiki_form_instance_item_index_$var [subst {
