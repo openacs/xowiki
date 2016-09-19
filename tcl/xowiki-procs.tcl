@@ -1396,11 +1396,12 @@ namespace eval ::xowiki {
       state
     }} {
       ::xowiki::update_item_index -item_id [my item_id] -$colName $value
-    }
-    if {[::xo::dc has_hstore] 
-        && [[my package_id] get_parameter use_hstore 0] 
-        && $colName eq "instance_attributes"} {
-            ::xowiki::update_item_index -item_id [my item_id] -hstore_attributes [my instance_attributes]
+    } elseif {
+              $colName eq "instance_attributes"
+              && [::xo::dc has_hstore]
+              && [[my package_id] get_parameter use_hstore 0]
+            } {
+      ::xowiki::update_item_index -item_id [my item_id] -hstore_attributes $value
     }
   }
 
