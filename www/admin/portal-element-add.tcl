@@ -35,7 +35,7 @@ if {$page eq ""} {
     select 1 from portal_element_map
     where page_id     = :portal_page_id 
     and   pretty_name = :page_title
-  } -default 0]} {
+  } 0]} {
     #
     # The name of the portal element is not unique.
     #
