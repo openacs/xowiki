@@ -345,7 +345,7 @@ namespace eval ::xowiki {
       set last_user ""
       set last_revision ""
       
-      xo::dc foreach get_revisions $sql {
+      foreach tuple [::xo::dc list_of_lists get_revisions $sql] {
         #::xotcl::Object msg "tuple = $tuple"
         lassign $tuple name item_id revision_id last_modified user package_id 
         set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
