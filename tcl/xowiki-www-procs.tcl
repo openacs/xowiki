@@ -1742,6 +1742,7 @@ namespace eval ::xowiki {
     {-slot ""} 
     {-spec ""} 
     {-configuration ""}
+    {-omit_field_name_spec:boolean false}
   } {
     set save_slot $slot
     if {$slot eq ""} {
@@ -1793,6 +1794,7 @@ namespace eval ::xowiki {
     {-slot ""}
     {-spec ""} 
     {-configuration ""}
+    {-omit_field_name_spec:boolean false}
   } {
     # For workflows, we do not want to get the form constraints of the
     # page itself (i.e. the property of the generic workflow form) but
@@ -1802,11 +1804,11 @@ namespace eval ::xowiki {
     # So, when we have configured properties, we use it, use the
     # primitive one just on despair.  Not sure, what the best solution
     # is,... maybe an additional flag.
-    if {[string trim $spec ,] eq ""} {
-      set short_spec [my get_short_spec $name]
-      #my log "[self] get_short_spec $name returns <$short_spec>"
-    } else {
+    if { $omit_field_name_spec} {
       set short_spec ""
+    } else {
+      set short_spec [my get_short_spec $name]
+      # my msg "[self] get_short_spec $name returns <$short_spec>"
     }
 
     #my log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
