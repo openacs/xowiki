@@ -491,9 +491,21 @@ namespace eval ::xo::Table {
     } else {
       set name [::xowiki::Includelet js_name [self]]
     }
-
-    html::div -id [my set id]_wrapper -class "table-responsive" {
-      html::form -name $name -id $name -method POST { 
+    if {[llength $bulkactions]>0} {
+      html::div -id [my set id]_wrapper -class "table-responsive" {
+        html::form -name $name -id $name -method POST { 
+          html::div -id [my set id]_container {
+            html::table -id [my set id] -class [my set css.table-class] {
+              my render-actions
+              my render-body
+            }
+            if {[llength $bulkactions]>0} { my render-bulkactions }
+          }
+        }
+      }
+    } else {
+      #nesting forms inside a xowf page will place the action buttons at the wrong place!
+      html::div -id [my set id]_wrapper -class "table-responsive" {
         html::div -id [my set id]_container {
           html::table -id [my set id] -class [my set css.table-class] {
             my render-actions
@@ -504,7 +516,6 @@ namespace eval ::xo::Table {
       }
     }
   }
-
 
   #Class create BootstrapTableRenderer::AnchorField -superclass TABLE::AnchorField
 
