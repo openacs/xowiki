@@ -881,9 +881,25 @@ namespace eval ::xowiki::formfield {
     -publish_date_cmd
     -save_flag
   } {
-          
-    if {$content_type in { application/octetstream application/force-download }} {
+
+    set content_type_registered [::xo::dc 1row check_content_type {
+      select exists(select 1 from cr_mime_types where mime_time = :content_type)
+    }]
+    #
+    # If the provided mime type is not registered, or unknown, try
+    # to look it up via the file extension.
+    #
+    if {!$content_type_registered
+        || $content_type in { application/octetstream application/force-download }
+      } {
       set content_type [::xowiki::guesstype $file_name]
+      #
+      # Here, the mime type could sill be an unknown/unregistered
+      # one. We could check, whether this mime type is registered. If
+      # not, we could add it on the fly or we could map it to the
+      # registered unknown type (maybe via package parameter of
+      # acs-content-repository + a new api call).
+      #
     }
 
     set file_object [$package_id get_page_from_name -name $object_name -parent_id $parent_id]
