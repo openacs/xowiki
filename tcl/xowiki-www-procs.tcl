@@ -806,7 +806,13 @@ namespace eval ::xowiki {
       #
       # we have to valiate and save the form data
       #
-      security::csrf::validate
+
+      # In case we are triggered internally, we might not have a
+      # a connection and therefore do not valide the csrf token
+      if {![$package_id exists __batch_mode]} {
+          security::csrf::validate
+      }
+
       lassign [my get_form_data $form_fields] validation_errors category_ids
 
       if {$validation_errors != 0} {
