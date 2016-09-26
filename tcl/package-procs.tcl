@@ -540,7 +540,7 @@ namespace eval ::xowiki {
         } else {
           set page [::xo::cc cache [list [self] get_page_from_item_ref $pp]]
           if {$page eq ""} {
-            ad_log errpr "Could not resolve parameter page '$pp' of package [my id]."
+            ad_log error "Could not resolve parameter page '$pp' of package [my id]."
           }
           #my msg pp=$pp,page=$page-att=$attribute
 
