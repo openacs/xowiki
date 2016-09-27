@@ -574,17 +574,20 @@ namespace eval ::xowiki::includelet {
     set parent_id [[my set __including_page] parent_id]
     set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
     if {$label eq ""} {set label "Add to [$package_id instance_name]"}
-    set href [subst -nocommands -nobackslash {
-      javascript:d=document;w=window;t='';
-      if(d.selection){t=d.selection.createRange().text} else 
-      if(d.getSelection){t=d.getSelection()} else 
-      if(w.getSelection){t=w.getSelection()} 
-      void(open('$url?m=create-new&title='+escape(d.title)+
-                '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
-                'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'))
+    template::add_body_script -script [subst {
+      document.getElementById('[my id]').addEventListener('click', function (event) {
+        event.preventDefault();
+        d=document;w=window;t='';
+        if(d.selection){t=d.selection.createRange().text;}
+        else if(d.getSelection){t=d.getSelection();}
+        else if(w.getSelection){t=w.getSelection();}
+        void(open('$url?m=create-new&title='+escape(d.title)+
+                  '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
+                  'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'));
+        return false;
+      });
     }]
-    regsub -all {[\n ]+} $href " " href
-    return "<a href='[ns_quotehtml $href]' title='[ns_quotehtml $label]' class='rss'>[ns_quotehtml $label]</a>"
+    return "<a id='[my id]' href='#' title='[ns_quotehtml $label]' class='rss'>[ns_quotehtml $label]</a>"
   }
 
   #############################################################################
