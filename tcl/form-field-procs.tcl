@@ -883,7 +883,7 @@ namespace eval ::xowiki::formfield {
   } {
 
     set content_type_registered [::xo::dc 1row check_content_type {
-      select exists(select 1 from cr_mime_types where mime_time = :content_type)
+      select exists(select 1 from cr_mime_types where mime_type = :content_type)
     }]
     #
     # If the provided mime type is not registered, or unknown, try
