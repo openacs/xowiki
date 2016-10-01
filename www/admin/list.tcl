@@ -84,7 +84,7 @@ TableWidget create t1 -volatile \
       Field size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
       Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
       Field mod_user -label [_ xowiki.By_user] -orderby mod_user
-      AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('#xowiki.delete_confirm#'));"}
+      AnchorField delete -CSSclass delete-item-button -label ""
     }
 
 lassign [split $orderby ,] att order

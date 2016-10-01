@@ -585,7 +585,7 @@ namespace eval ::xowiki::includelet {
                   '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
                   'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'));
         return false;
-      });
+      }, false);
     }]
     return "<a id='[my id]' href='#' title='[ns_quotehtml $label]' class='rss'>[ns_quotehtml $label]</a>"
   }

@@ -581,8 +581,7 @@ namespace eval ::xowiki::includelet {
                  Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
                  AnchorField create delete -CSSclass delete-item-button \
                      -hide $::hidden(delete) \
-                     -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
-
+                     -label ""
                }]
 
     set extra_where_clause "true"
