@@ -574,19 +574,19 @@ namespace eval ::xowiki::includelet {
     set parent_id [[my set __including_page] parent_id]
     set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
     if {$label eq ""} {set label "Add to [$package_id instance_name]"}
-    template::add_body_script -script [subst {
-      document.getElementById('[my id]').addEventListener('click', function (event) {
-        event.preventDefault();
-        d=document;w=window;t='';
-        if(d.selection){t=d.selection.createRange().text;}
-        else if(d.getSelection){t=d.getSelection();}
-        else if(w.getSelection){t=w.getSelection();}
-        void(open('$url?m=create-new&title='+escape(d.title)+
-                  '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
-                  'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'));
-        return false;
-      }, false);
-    }]
+
+    template::add_event_listener \
+        -id [my id] \
+        -script [subst {
+          d=document;w=window;t='';
+          if(d.selection){t=d.selection.createRange().text;}
+          else if(d.getSelection){t=d.getSelection();}
+          else if(w.getSelection){t=w.getSelection();}
+          void(open('$url?m=create-new&title='+escape(d.title)+
+                    '&detail_link='+escape(d.location.href)+'&text='+escape(t),'_blank',
+                    'scrollbars=yes,width=700,height=575,status=yes,resizable=yes,scrollbars=yes'));
+        }]
+    
     return "<a id='[my id]' href='#' title='[ns_quotehtml $label]' class='rss'>[ns_quotehtml $label]</a>"
   }
 
@@ -1432,19 +1432,14 @@ namespace eval ::xowiki::includelet {
       <span id='[my id]-popular_tags' style='display: none'></span><br >
     }]
 
-    template::add_body_script -script [subst {
-      document.getElementById('[my id]-edit-tags-control').addEventListener('click', function (event) {
-        event.preventDefault();
-        document.getElementById("[my id]-edit_tags").style.display="block";
-        return false;
-      });
-      document.getElementById('[my id]-popular-tags-control').addEventListener('click', function (event) {
-        event.preventDefault();
-        get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");
-        return false;
-      });
-    }]
-    
+    template::add_event_listener \
+        -id [my id]-edit-tags-control \
+        -script [subst {document.getElementById("[my id]-edit_tags").style.display="block";}]
+
+    template::add_event_listener \
+        -id [my id]-popular-tags-control \
+        -script [subst {get_popular_tags("[ns_quotehtml $popular_tags_link]","[my id]");}]
+
     return $content
   }
 
@@ -2443,13 +2438,9 @@ namespace eval ::xowiki::includelet {
       </span>
     }]
 
-    template::add_body_script -script [subst {
-      document.getElementById("$id-control").addEventListener('click', function (event) {
-        event.preventDefault();
-        document.getElementById("$id").style.display="inline";
-        return false;
-      });
-    }]
+    template::add_event_listener \
+        -id $id-control \
+        -script [subst {document.getElementById("$id").style.display="inline";}]
 
     return $inner_html$save_form
   }
