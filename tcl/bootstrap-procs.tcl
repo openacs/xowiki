@@ -534,10 +534,14 @@ namespace eval ::xo::Table {
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line
           my instvar CSSclass
-          $line instvar   [list $__name.title title] \
-              [list $__name.target target] \
-              [list $__name.onclick onclick] 
-          html::a [my get_local_attributes href title {CSSclass class} target onclick] {
+          $line instvar [list $__name.title title] [list $__name.target target]
+          if {[$line exists $__name.onclick]} {
+            set id [::xowiki::Includelet html_id $line]
+            template::add_event_listener \
+                -id $id \
+                -script "[$line set $__name.onclick];"
+          }
+          html::a [my get_local_attributes href title {CSSclass class} target id] {
             return "[next]"
           }
         }
