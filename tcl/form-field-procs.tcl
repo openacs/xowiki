@@ -1080,8 +1080,11 @@ namespace eval ::xowiki::formfield {
       #
       set disabled [expr {[my exists disabled] && [my disabled] != "false"}]
       if {$value ne "" && !$disabled && ![my sticky] } {
-        ::html::input -type button -value [_ xowiki.clear] \
-            -onClick "document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';"
+        ::html::input -type button -value [_ xowiki.clear] -id $id-control
+        template::add_event_listener \
+            -id $id-control \
+            -script [subst {document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';}]
+
       }
     }
     
@@ -2397,10 +2400,13 @@ namespace eval ::xowiki::formfield {
       if {[my set displayMode] eq "inplace"} {
         ::html::div [my get_attributes id name {CSSclass class} disabled] {
           set href \#
-          set onclick "xinha.inplace.openEditor('[my id]');return false;"
-          ::html::a -style "float: right;" -class edit-item-button -href $href -onclick $onclick {
+          ::html::a -style "float: right;" -class edit-item-button -href $href -id [my id]-edit {
             ::html::t  -disableOutputEscaping &nbsp;
           }
+          template::add_event_listener \
+              -id [my id]-edit \
+              -script [subst {xinha.inplace.openEditor('[my id]');}]
+
           ::html::div -id "[my id]__CONTENT__" {
             ::html::t -disableOutputEscaping  [my value]
           }
@@ -3727,11 +3733,16 @@ namespace eval ::xowiki::formfield {
   boolean_image instproc render_input {} {
     my instvar t_img_url f_img_url CSSclass
     set title [expr {[my exists __render_help_text_as_title_attr] ? [my set help_text] : ""}]
+    set id [my id]
     ::html::img \
         -title $title \
         -class $CSSclass \
         -src [expr {[my value] ? $t_img_url : $f_img_url}] \
-        -onclick "toggle_img_boolean(this,'$t_img_url','$f_img_url')"
+        -id $id-image
+    template::add_event_listener \
+        -id $id-image \
+        -script [subst {toggle_img_boolean(this,'$t_img_url','$f_img_url');}]
+    
     ::html::input -type hidden -name [my name] -value [my value]
 
     ::xo::Page requireJS {
