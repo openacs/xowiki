@@ -35,13 +35,12 @@ namespace eval ::xowiki {
     if {![my wikicmds]} {return ""}
     return {
       <%
-         template::add_body_script -script {
-           document.getElementById('wiki-menu-do-search-control').addEventListener('click', function (event) {
-             event.preventDefault();
-             document.getElementById('do_search').style.display = 'inline';
-             document.getElementById('do_search_q').focus(); 
-           }, false);
-         }
+         template::add_event_listener \
+          -id wiki-menu-do-search-control \
+          -script {
+            document.getElementById('do_search').style.display = 'inline';
+            document.getElementById('do_search_q').focus();
+          }
       %>
       <div id='wikicmds'>
       <if @view_link@ not nil><a href="@view_link@" accesskey='v' title='#xowiki.view_title#'>#xowiki.view#</a> &middot; </if>
@@ -51,8 +50,8 @@ namespace eval ::xowiki {
       <if @delete_link@ not nil><a href="@delete_link@" accesskey='d' title='#xowiki.delete_title#'>#xowiki.delete#</a> &middot; </if>
       <if @admin_link@ not nil><a href="@admin_link@" accesskey='a' title='#xowiki.admin_title#'>#xowiki.admin#</a> &middot; </if>
       <if @notification_subscribe_link@ not nil><a href='/notifications/manage' title='#xowiki.notifications_title#'>#xowiki.notifications#</a>
-      <a href="@notification_subscribe_link@" class="notification-image-button">&nbsp;</a> &middot; </if>
-      <a href='#' id='wiki-menu-do-search-control' title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
+      <a href="@notification_subscribe_link@" class="notification-image-button">&nbsp;</a>&middot; </if>
+      <if @::xowiki::search_mounted_p@ true><a href='#' id='wiki-menu-do-search-control' title='#xowiki.search_title#'>#xowiki.search#</a> &middot; </if>
       <if @index_link@ not nil><a href="@index_link@" accesskey='i' title='#xowiki.index_title#'>#xowiki.index#</a></if>
       <div id='do_search' style='display: none'>
       <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@"><if @::__csrf_token@ defined><input type="hidden" name="__csrf_token" value="@::__csrf_token;literal@"></if></div></form>
@@ -371,22 +370,19 @@ namespace eval ::xowiki {
         #::xo::cc set_parameter weblog_page weblog-portlet
       } \
       -proc content_part {} {
-        return [subst -novariables -nobackslashes \
-                    {
+        return {
 <%
 if {$book_prev_link ne ""} {
-    template::add_body_script -script {
-      document.getElementById('bookNavPrev.a').addEventListener('click', function () {
-        TocTree.getPage("$book_prev_link")
-      }, false);
-    }
+  template::add_event_listener \
+      -id bookNavPrev.a \
+      -prevent_preventdefault=false \
+      -script [subst {TocTree.getPage("$book_prev_link");}]
 }
 if {$book_next_link ne ""} {
-    template::add_body_script -script {
-      document.getElementById('bookNavNext.a').addEventListener('click', function () {
-        TocTree.getPage("$book_next_link")
-      }, false);
-    }
+  template::add_event_listener \
+      -id bookNavNext.a \
+      -prevent_preventdefault=false \
+      -script [subst {TocTree.getPage("$book_next_link");}]
 }
 %>                      <div style="float:left; width: 25%; font-size: .8em;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
@@ -451,7 +447,7 @@ if {$book_next_link ne ""} {
                       &="top_includelets" &="folderhtml" &="page" &="doc" &="body">
                       </div>
                       </div>
-                    }]}
+                    }}
 
   ####################################################################################
   #
