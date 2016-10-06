@@ -164,7 +164,11 @@ namespace eval ::xowiki {
           
           var startUpload = function(files, csrf) {
             if (typeof files !== "undefined") {
-               for (var i=0, l=files.length; i<l; i++) {
+              for (var i=0, l=files.length; i<l; i++) {
+                 // Send the file as multiple single requests and 
+                 // not as a single post containing all entries. This
+                 // gives users with older naviservers or aolserver the chance
+                 // drop multiple files.
                  uploadFile(files[i], csrf);
                }
             } else {
