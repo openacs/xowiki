@@ -86,6 +86,9 @@ TableWidget create t1 -volatile \
       Field mod_user -label [_ xowiki.By_user] -orderby mod_user
       AnchorField delete -CSSclass delete-item-button -label ""
     }
+#    -renderer BootstrapTableRenderer
+
+
 
 lassign [split $orderby ,] att order
 t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
@@ -153,6 +156,8 @@ xo::dc foreach instance_select \
 	  [::template::t1 last_child] set page_order $page_order
         }
 
+
+#ns_log notice "t1 renderer [t1 renderer] [t1 procsearch render]"
 set t1 [t1 asHTML]
 # db_foreach clobbers title, so re-establish it
 set title $page_title

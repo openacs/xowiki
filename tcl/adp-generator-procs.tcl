@@ -136,7 +136,7 @@ namespace eval ::xowiki {
   ADP_Generator create oacs-view -master 1 -footer 1 \
       -extra_header_stuff {
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktreeg.js' async type='text/javascript'></script>
       } \
       -proc content_part {} {
         set open_page {-open_page [list @name@]}
@@ -165,7 +165,7 @@ namespace eval ::xowiki {
       -extra_header_stuff {
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc before_render {page} {
         ::xo::cc set_parameter weblog_page weblog-portlet
@@ -228,7 +228,7 @@ namespace eval ::xowiki {
         </style>
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc before_render {page} {
         ::xo::cc set_parameter weblog_page weblog-portlet
@@ -293,7 +293,7 @@ namespace eval ::xowiki {
         </style>
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc before_render {page} {
         ::xo::cc set_parameter weblog_page weblog-portlet
@@ -375,13 +375,13 @@ namespace eval ::xowiki {
 if {$book_prev_link ne ""} {
   template::add_event_listener \
       -id bookNavPrev.a \
-      -prevent_preventdefault=false \
+      -preventdefault=false \
       -script [subst {TocTree.getPage("$book_prev_link");}]
 }
 if {$book_next_link ne ""} {
   template::add_event_listener \
       -id bookNavNext.a \
-      -prevent_preventdefault=false \
+      -preventdefault=false \
       -script [subst {TocTree.getPage("$book_next_link");}]
 }
 %>                      <div style="float:left; width: 25%; font-size: .8em;
