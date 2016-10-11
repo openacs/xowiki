@@ -34,7 +34,7 @@ if { [site_node::get_package_url -package_key search] eq "" } {
   ns_log Warning "xowiki Search driver $search_driver is not installed."
   set ::xowiki::search_mounted_p 0
 } else {
-  ::xowiki::search_mounted_p 1
+  set ::xowiki::search_mounted_p 1
 }
 
 # Local variables:
