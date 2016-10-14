@@ -571,7 +571,6 @@ namespace eval ::xowiki::includelet {
 
   bookmarklet-button instproc render {} {
     my get_parameters
-    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
     set parent_id [[my set __including_page] parent_id]
     set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
     if {$label eq ""} {set label "Add to [$package_id instance_name]"}
