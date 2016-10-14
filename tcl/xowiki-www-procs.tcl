@@ -940,11 +940,11 @@ namespace eval ::xowiki {
         #              [template::adp_variable_regexp] $form \
         #              {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     # Due to this bug, we program around and replace the at-character 
-    # by \x003 to avoid conflict withe the input and we replace these
+    # by \x03 to avoid conflict withe the input and we replace these
     # magic chars finally with the fields resulting from tdom.
     
     set form [my substitute_markup $form]
-    set form [string map [list @ \x003] $form]
+    set form [string map [list @ \x03] $form]
     #my msg form=$form
 
     dom parse -simple -html $form doc
@@ -1067,10 +1067,10 @@ namespace eval ::xowiki {
 
     set html [$root asHTML]
     set html [my regsub_eval  \
-                  {(^|[^\\])\x003([a-zA-Z0-9_:]+)\x003} $html \
+                  {(^|[^\\])\x03([a-zA-Z0-9_:]+)\x03} $html \
                   {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     # replace unbalanced @ characters
-    set html [string map [list \x003 @] $html]
+    set html [string map [list \x03 @] $html]
 
     #my log "calling VIEW with HTML [string length $html]"
     if {$view} {
