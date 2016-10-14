@@ -388,12 +388,21 @@ namespace eval ::xowiki {
   
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
-        href
         center float width height 
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
       }
+  ::xowiki::Link::image instproc resolve_href {href} {
+    set l [[my page] create_link $href]
+    if {[$l istype ::xowiki::ExternalLink]} {
+      set href [$l href]
+    } else {
+      set href_item_id [$l resolve]
+      set href [$l pretty_link $href_item_id]
+    }
+    return $href
+  }
   ::xowiki::Link::image instproc render {} {
     my instvar name package_id label
     set page [my page]
@@ -437,7 +446,7 @@ namespace eval ::xowiki {
     if {[my exists href]} {set href [my set href]} {set href ""}
     set cls [my mk_css_class_and_id -default [expr {$link ne "" ? "image" : "refused-link"}]]
     if {$href ne ""} {
-      set href [my set href]
+      set href [my resolve_href $href]
       if {[string match "java*" $href]} {set href .}
       if {[my exists revision_id]} {append href ?revision_id=[my revision_id]}
       return "$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='[ns_quotehtml $label]' title='[ns_quotehtml $label]' $style></a>$post"
