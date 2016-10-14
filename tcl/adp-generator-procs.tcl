@@ -35,12 +35,14 @@ namespace eval ::xowiki {
     if {![my wikicmds]} {return ""}
     return {
       <%
-         template::add_event_listener \
+      if {$::::xowiki::search_mounted_p} {
+        template::add_event_listener \
           -id wiki-menu-do-search-control \
           -script {
             document.getElementById('do_search').style.display = 'inline';
             document.getElementById('do_search_q').focus();
           }
+      }
       %>
       <div id='wikicmds'>
       <if @view_link@ not nil><a href="@view_link@" accesskey='v' title='#xowiki.view_title#'>#xowiki.view#</a> &middot; </if>
