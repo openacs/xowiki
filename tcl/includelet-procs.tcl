@@ -574,6 +574,7 @@ namespace eval ::xowiki::includelet {
     set parent_id [[my set __including_page] parent_id]
     set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
     if {$label eq ""} {set label "Add to [$package_id instance_name]"}
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}
 
     template::add_event_listener \
         -id [my id] \
@@ -3685,6 +3686,7 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireJS "/resources/xowiki/highcharts/js/themes/gray.js"
     set result "<div id='[my id]' style='width: 100%; height: 400px'></div>\n"
     set title [my title]
+    if {![my exists id]} {my set id [::xowiki::Includelet html_id [self]]}a
     set id [my id]
     set values [list]
     foreach {name value} $data {
