@@ -75,7 +75,7 @@
                       <include src="/packages/xowiki/www/portlets/include" &__including_page=page
                       portlet="presence -interval {30 minutes} -decoration plain">
                       <hr>
-                      <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
+                      <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
                       </div>
                       </div>
                       </div> <!-- sidebar -->
