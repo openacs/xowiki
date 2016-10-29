@@ -1993,6 +1993,7 @@ namespace eval ::xowiki::formfield {
     {destroy_callback "/* callback code */"}
     {submit_callback ""}
     {extraPlugins "xowikiimage"}
+    {extraAllowedContent {*(*)}}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
@@ -2129,6 +2130,7 @@ namespace eval ::xowiki::formfield {
         parent_id: '[[my object] item_id]',
         package_url: '[$package_id package_url]',
         extraPlugins: '[join [my extraPlugins] ,]',
+        extraAllowedContent: '[my extraAllowedContent]',
         contentsCss: '[my contentsCss]',
         imageSelectorDialog: '[my imageSelectorDialog]?parent_id=[[my object] item_id]',
         ready_callback: '$ready_callback2',
