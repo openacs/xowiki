@@ -4639,13 +4639,13 @@ namespace eval ::xowiki::includelet {
       }
   chat instproc render {} {
     my get_parameters
-    ns_log notice chat_id=$chat_id
     if {$chat_id eq ""} {
       # make the chat just for including page
-      set char_id [[my set __including_page] item_id]
+      set chat_id [[my set __including_page] item_id]
     }
     set r [::xowiki::Chat login -chat_id $chat_id -mode $mode -path $path]
     #ns_log notice chat=>$r
+
     return $r
   }
 }

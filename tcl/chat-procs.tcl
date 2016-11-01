@@ -119,7 +119,7 @@ namespace eval ::xowiki {
         error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
       }
     }
-    set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
+    set send_url ${path}ajax/chat?m=add_msg&$context&msg=
 
     if { ![file exists [acs_root_dir]/$jspath] } {
       return -code error "File [acs_root_dir]/$jspath does not exist"
@@ -139,6 +139,8 @@ namespace eval ::xowiki {
       color:#333;
       overflow:auto;
     }
+
+    template::add_body_script -script [subst {document.getElementById('chatMsg').focus();}]
 
     switch $mode {
       polling {return "\
@@ -180,10 +182,11 @@ namespace eval ::xowiki {
       $js
       var send_url = \"$send_url\";
       </script>
-      <div id='messages' style='$style'></style>
+      <div id='messages' style='$style'>
       <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $subscribe_url]' 
               style='width:0px; height:0px; border: 0px'>
       </iframe>
+      </div>
       <form action='#' onsubmit='chatSendMsg(); return false;'>
       <input type='text' size='40' name='msg' id='chatMsg'>
       </form>"

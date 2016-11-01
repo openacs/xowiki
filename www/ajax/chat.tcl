@@ -5,10 +5,10 @@ ad_page_contract {
   @creation-date Jan 31, 2006
   @cvs-id $Id$
 } -query {
-  m
-  id
+  m:word
+  id:integer
   s
-  msg:optional
+  msg:optional,allhtml
   {mode ""}
 }
 
