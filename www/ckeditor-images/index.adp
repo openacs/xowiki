@@ -133,10 +133,6 @@
     <td></td>
 </tr>
 <tr>
-<!--
-<td><input type="submit" name="ok" value="#xowiki.insert_image#"/></td>
-<td><button type="button" name="cancel" onclick="xowiki_image_dialog.dialog('close');" >#acs-kernel.common_cancel#</button></td>
--->
 </form>
 </table>
 </div>
