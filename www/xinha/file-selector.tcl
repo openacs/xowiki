@@ -212,8 +212,7 @@ template::list::create \
         display_template {
           <if @contents.folder_p@ eq 0>
           <input type="radio" name="linktarget" value="@contents.object_id@" 
-             id="oi@contents.object_id@" 
-             onclick="onPreview('@contents.file_url@','@contents.type@');" />
+             id="oi@contents.object_id@" />
           <input type="hidden" name="@contents.object_id@_file_url" 
              id="@contents.object_id@_file_url" value="@contents.file_url@" />
           <input type="hidden" name="@contents.object_id@_file_name" 
@@ -221,9 +220,8 @@ template::list::create \
           <input type="hidden" name="@contents.object_id@_file_title" 
              id="@contents.object_id@_file_title" value="@contents.title@" />
           </if>
-          <img src="@contents.icon@"  border=0 
-          alt="#file-storage.@contents.type@#" /> 
-          <a href="@contents.file_url@" <if @contents.folder_p@ eq 0>onclick="selectImage('@contents.object_id@','@contents.file_url@','@contents.type@');return false;"</if>>@contents.name@</a>
+          <img src="@contents.icon@"  border="0" alt="#file-storage.@contents.type@#" /> 
+          <a href="@contents.file_url@" id="link@contents.object_id@">@contents.name@</a>
         }
         orderby_desc {name desc}
         orderby_asc {name asc}
@@ -281,9 +279,9 @@ db_multirow -extend {
   icon last_modified_pretty content_size_pretty 
   properties_link properties_url folder_p title
 } contents get_fs_contents $fs_sql {
-  set last_modified_ansi [lc_time_system_to_conn $last_modified_ansi]
+  set last_modified_ansi   [lc_time_system_to_conn $last_modified_ansi]
   set last_modified_pretty [lc_time_fmt $last_modified_ansi "%x %X"]
-  set content_size_pretty [lc_numeric $content_size]
+  set content_size_pretty  [lc_numeric $content_size]
 
   if {$type eq "folder"} {
     # append content_size_pretty " [_ file-storage.items]"
@@ -291,11 +289,13 @@ db_multirow -extend {
   } else {
     append content_size_pretty " [_ file-storage.bytes]"
   }
-  if {$title eq ""} {set title $name}
+  if {$title eq ""} {
+    set title $name
+  }
 
   set file_upload_name [fs::remove_special_file_system_characters \
                             -string $file_upload_name]
-  
+
   if { $content_size ne "" } {
     incr content_size_total $content_size
   }
@@ -322,14 +322,23 @@ db_multirow -extend {
     }
   }
   
-  
   # We need to encode the hashes in any i18n message keys (.LRN plays 
   # this trick on some of its folders). If we don't, the hashes will cause
   # the path to be chopped off (by ns_conn url) at the leftmost hash.
   regsub -all {\#} $file_url {%23} file_url
+
+  #
+  # Register listeners
+  #
+  ad_proc template::add_event_listener -id "oi$object_id" -script [subst {
+    onPreview('$file_url','$type');
+  }]
+  if {$folder_p == 0} {
+    ad_proc template::add_event_listener -id "link$object_id" -script [subst {
+      selectImage('$object_id','$file_url','$type');
+    }]
+  }
 }
-
-
 
 
 ad_return_template
