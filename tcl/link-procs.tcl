@@ -310,7 +310,8 @@ namespace eval ::xowiki {
     \$('.modal-backdrop').not('.stacked').addClass('stacked');
 });
 </script>     
-}
+  }
+
   #
   # Large bootstrap modal using ajax
   #
@@ -554,7 +555,7 @@ namespace eval ::xowiki {
     $addParams so.write('$id');
     </script>
     "
-  }
+   }
 
   #
   # glossary links
@@ -566,7 +567,7 @@ namespace eval ::xowiki {
     set id [my lookup_xowiki_package_by_name [my type] \
                 [site_node::get_node_id_from_object_id -object_id [my package_id]]]
     #my log "--LINK glossary lookup returned package_id $id"
-    if {$id} {
+    if {$id > 0} {
       # set correct package id for rendering the link
       my set package_id $id
       #my log "-- INITIALIZE $id"
@@ -582,8 +583,11 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
-    return "<a href='[ns_quotehtml $href]' onclick=\"showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]'); return false;\"\
-        [my mk_css_class_and_id -additional glossary]>$label</a>"
+    if {![my exists cssid]} {my cssid [::xowiki::Includelet html_id [self]]}
+    template::add_event_listener \
+        -id [my cssid] \
+        -script [subst {showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]')}]
+    return "<a href='[ns_quotehtml $href]' [my mk_css_class_and_id -additional glossary]>$label</a>"
   }
 
   #
