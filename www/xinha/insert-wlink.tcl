@@ -32,9 +32,11 @@ TableWidget t1 -volatile \
       if {[[my info parent] set show_heritage]} {
         Field inherited -label ""
       }
-      AnchorField name -label [_ xowiki.Page-name] -html {onclick "onOK(this)"}
+      AnchorField name -label [_ xowiki.Page-name] -CSSclass "ok-handler"
       Field title -label [::xowiki::Page::slot::title set pretty_name]
     }
+
+template::add_event_listener -CSSclass "ok-handler" -script {onOK(this);}
 
 foreach entry [$listing children] {
   $entry instvar name parent_id title formatted_date page_id 
