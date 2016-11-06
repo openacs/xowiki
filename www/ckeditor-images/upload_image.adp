@@ -37,7 +37,9 @@
 <table>
 <tr>
 <td colspan="3">
-#xowiki.choose_file#: <formwidget id="upload_file" onchange="document.getElementById('subm_upld').removeAttribute('disabled')">
+<% template::add_event_listener -event change -id upload_file -script {document.getElementById('subm_upld').removeAttribute('disabled');}
+%>
+#xowiki.choose_file#: <formwidget id="upload_file">
 </td>
 </tr>
 <tr>

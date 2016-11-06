@@ -119,10 +119,16 @@
 <tr style="display:none">
     <td width="100px" style="text-align: right" nowrap>URL: </td>
     <td >
-        <input type="text" value="@bild_url@" onChange="ChangeImageSrc();" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
-        <input type="text" value="" onChange="ChangeImageSrc();" name="mimetype" id="f_mime" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
-        <input type="text" value="100%" onChange="ChangeImageSrc();" name="f_width" id="f_width" style="width:75%" title="#xowiki.width#" />
-        <input type="text" value="100%" onChange="ChangeImageSrc();" name="f_height" id="f_height" style="width:75%" title="#xowiki.height#" />
+<%
+template::add_event_listener -event change -id f_url -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_mime -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_width -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_height -script {ChangeImageSrc();}
+%>
+        <input type="text" value="@bild_url@" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
+        <input type="text" value="" name="mimetype" id="f_mime" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
+        <input type="text" value="100%" name="f_width" id="f_width" style="width:75%" title="#xowiki.width#" />
+        <input type="text" value="100%" name="f_height" id="f_height" style="width:75%" title="#xowiki.height#" />
         <input type="hidden" id="f_id" value=""/>
     </td>
 <tr style="display:none">
