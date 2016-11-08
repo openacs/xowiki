@@ -138,7 +138,7 @@ namespace eval ::xowiki {
   ADP_Generator create oacs-view -master 1 -footer 1 \
       -extra_header_stuff {
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktreeg.js' async type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc content_part {} {
         set open_page {-open_page [list @name@]}
