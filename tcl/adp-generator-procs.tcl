@@ -403,12 +403,12 @@ if {$book_next_link ne ""} {
                       <tr>
                       <td>
                       <if @book_prev_link@ not nil>
-                      <a href="@book_prev_link@" accesskey='p' ID="bookNavPrev.a">
-                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' ID="bookNavPrev.img"></a>
+                      <a href="@book_prev_link@" accesskey='p' id="bookNavPrev.a">
+                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' id="bookNavPrev.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='p' ID="bookNavPrev.a">
-                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' ID="bookNavPrev.img"></a>
+                      <a href="" accesskey='p' id="bookNavPrev.a">
+                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' id="bookNavPrev.img"></a>
                       </else>
                       </td>
 
@@ -416,20 +416,20 @@ if {$book_next_link ne ""} {
                       <if @book_relpos@ not nil>
                       <table width='100%'>
                       <colgroup><col></colgroup>
-                      <tr><td style='font-size: 75%'><div style='width: @book_relpos@;' ID='bookNavBar'></div></td></tr>
-                      <tr><td style='font-size: 75%; text-align:center;'><span ID='bookNavRelPosText'>@book_relpos@</span></td></tr>
+                      <tr><td style='font-size: 75%'><div style='width: @book_relpos@;' id='bookNavBar'></div></td></tr>
+                      <tr><td style='font-size: 75%; text-align:center;'><span id='bookNavRelPosText'>@book_relpos@</span></td></tr>
                       </table>
                       </if>
                       </td>
 
-                      <td ID="bookNavNext">
+                      <td id="bookNavNext">
                       <if @book_next_link@ not nil>
-                      <a href="@book_next_link@" accesskey='n' ID="bookNavNext.a">
-                      <img alt='Next' src='/resources/xowiki/next.png' width='15' ID="bookNavNext.img"></a>
+                      <a href="@book_next_link@" accesskey='n' id="bookNavNext.a">
+                      <img alt='Next' src='/resources/xowiki/next.png' width='15' id="bookNavNext.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='n' ID="bookNavNext.a">
-                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' ID="bookNavNext.img"></a>
+                      <a href="" accesskey='n' id="bookNavNext.a">
+                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' id="bookNavNext.img"></a>
                       </else>
                       </td>
                       </tr>
