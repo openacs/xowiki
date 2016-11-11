@@ -144,7 +144,7 @@ namespace eval ::xowiki {
 
     switch $mode {
       polling {return "\
-      <script type='text/javascript' language='javascript'>
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
       setInterval('$get_update',5000)
       </script>
@@ -162,7 +162,7 @@ namespace eval ::xowiki {
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
         return "\
-      <script type='text/javascript' language='javascript'>$js
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>$js
       var send_url = \"$send_url\";
       chatSubscribe(\"$subscribe_url\");
       </script>
@@ -178,7 +178,7 @@ namespace eval ::xowiki {
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
         return "\
-      <script type='text/javascript' language='javascript'>
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
       var send_url = \"$send_url\";
       </script>

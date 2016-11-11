@@ -299,7 +299,7 @@ namespace eval ::xowiki {
     </div>
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-<script>    
+<script type='text/javascript' nonce='$::__csp_nonce'>
 \$('.modal').on('show.bs.modal', function(event) {
     var idx = \$('.modal:visible').length;
     \$(this).css('z-index', 1040 + (10 * idx));
@@ -325,7 +325,7 @@ namespace eval ::xowiki {
     </div>
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-<script>    
+<script type='text/javascript' nonce='$::__csp_nonce'>
 \$('.modal').on('show.bs.modal', function(event) {
     var idx = \$('.modal:visible').length;
     \$(this).css('z-index', 1040 + (10 * idx));
@@ -550,7 +550,7 @@ namespace eval ::xowiki {
     }
     
     return "<div id='[ns_quotehtml $id]'>$label</div>
-    <script type='text/javascript'>
+    <script type='text/javascript' nonce='$::__csp_nonce'>
     var so = new SWFObject('[ns_quotehtml $href]', '[ns_quotehtml $name]', '[ns_quotehtml $width]', '[ns_quotehtml $height]', '[ns_quotehtml $version]');
     $addParams so.write('$id');
     </script>

@@ -2568,7 +2568,7 @@ namespace eval ::xowiki::includelet {
 
     if {$allow_reorder ne ""} {
       for {set l $last_level} {$l > 0} {incr l -1} {append output "</ul>\n" }
-      append output "<script type='text/javascript'>$js</script>\n"
+      append output "<script type='text/javascript' nonce='$::__csp_nonce'>$js</script>\n"
     }
     return $output
   }
@@ -2690,8 +2690,7 @@ namespace eval ::xowiki::includelet {
       <link rel="stylesheet" href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" type="text/css" media="screen, projection" />
       <link rel="stylesheet" href="print.css" type="text/css"
       media="print" />
-      <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js" type="text/javascript">
-      </script>
+      <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js" type="text/javascript"></script>
       </head>
       <body>
       $output
@@ -3172,7 +3171,7 @@ namespace eval ::xowiki::includelet {
       <canvas id="collab" width="500" height="500" style="border: 0px solid black">
       </canvas>
       [set nodesHTML]
-      <script type="text/javascript">
+      <script type="text/javascript" nonce='[set ::__csp_nonce]'>
       function draw() {
         if (typeof(G_vmlCanvasManager) == "object") {
           G_vmlCanvasManager.init_(window.document);
@@ -3395,7 +3394,7 @@ namespace eval ::xowiki::includelet {
 
     return [subst -nocommands -nobackslashes {
       <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
-      <script type="text/javascript">
+      <script type="text/javascript" nonce='$::__csp_nonce'>
       var tl;
       function onLoad() {
         var eventSource = new Timeline.DefaultEventSource();
@@ -3694,7 +3693,7 @@ namespace eval ::xowiki::includelet {
     }
     set values [join $values ",\n"]
     append result [subst -nocommands {
-      <script type='text/javascript'>
+      <script type='text/javascript' nonce='$::__csp_nonce'>
       var chart;
       chart = new Highcharts.Chart({
         chart: {
@@ -4544,7 +4543,7 @@ namespace eval ::xowiki::includelet {
   flowplayer instproc render {} {
     my get_parameters
     return "<a href='[ns_quotehtml $mp4]' style='display:block;width:425px;height:300px;' id='player'> </a>
-    <script type='text/javascript'>
+    <script type='text/javascript' nonce='$::__csp_nonce'>
  flowplayer('player', '/resources/xowiki/flowplayer/flowplayer-3.2.7.swf', {
         
     // this will enable pseudostreaming support 
