@@ -1,7 +1,7 @@
 <div class="portlet-title">
 <span>@title@</span>
 </div>
-<script type="text/javascript">
+<script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 function get() {
   var http = getHttpObject();
   http.open('GET', '@portlet@', true);

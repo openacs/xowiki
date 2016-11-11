@@ -2,7 +2,7 @@
 <head>
 <title>CKeditor</title>
 <script type="text/javascript" src="/resources/xowiki/jquery/jquery.min.js"></script>
-<script type="text/javascript">
+<script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 
     $(document).ready(function() {
         hideImageHolder();

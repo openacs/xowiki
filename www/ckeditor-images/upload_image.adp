@@ -26,7 +26,7 @@
 	}
 	form { padding: 0px; margin: 0px; }
 </style>
-<script type="text/javascript">
+<script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 @js_update;noquote@
 </script>
 </head>
