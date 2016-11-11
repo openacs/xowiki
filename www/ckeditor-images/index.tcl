@@ -11,6 +11,7 @@ set CKEditorFuncNum 0
 set item_id $fs_package_id
 #::xo::db::CrClass get_instance_from_db -item_id $fs_package_id
 
+template::add_body_handler -event onload -script {Init();}
 
 # Local variables:
 #    mode: tcl

@@ -81,7 +81,7 @@
 </head>
 
 <!-- BODY -->
-<body onload="Init();" style="background-color: white; overflow: hidden;" class="xowiki_image_body">
+<body style="background-color: white; overflow: hidden;" class="xowiki_image_body">
 
 <strong>#xowiki.attached_media#:</strong>
 
