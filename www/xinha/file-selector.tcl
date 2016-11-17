@@ -29,6 +29,16 @@ switch -- $selector_type {
   }
 }
 
+template::add_event_listener -id "body" -event "blur" -script {
+  myFocus();
+}
+template::add_event_listener -id "ok_button" -script {
+  onOK();
+}
+template::add_event_listener -id "cancel_button" -script {
+  onCancel();
+}
+
 if {![info exists fs_package_id]} {
   # we have not filestore package_id. This must be the first call.
   if {[info exists folder_id]} {
@@ -89,7 +99,6 @@ if {![fs_folder_p $folder_id]} {
   ad_complain $error_msg
   return
 }
-
 
 # now we have at least a valid folder_id and a valid fs_package_id
 if {![info exists root_folder_id]} {
@@ -330,11 +339,11 @@ db_multirow -extend {
   #
   # Register listeners
   #
-  ad_proc template::add_event_listener -id "oi$object_id" -script [subst {
+  template::add_event_listener -id "oi$object_id" -script [subst {
     onPreview('$file_url','$type');
   }]
   if {$folder_p == 0} {
-    ad_proc template::add_event_listener -id "link$object_id" -script [subst {
+    template::add_event_listener -id "link$object_id" -script [subst {
       selectImage('$object_id','$file_url','$type');
     }]
   }
