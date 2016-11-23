@@ -2777,10 +2777,28 @@ namespace eval ::xowiki {
     #
     foreach name_and_spec [my get_form_constraints] {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
+
       if {[string match $spec_name $name]} {
         set f [my create_form_fields_from_form_constraints [list $name:$short_spec]]
         set $key $f
         return $f
+      }
+
+      #
+      # Maybe, this was a repeat field, and we have to create the nth
+      # component dynamically.
+      #
+      if {[regexp {^(.*)[.](\d+)$} $name . root number]} {
+        ns_log notice "dynamic repeat field <$root> number $number [info exists ::_form_field_names($root)]"
+        if {[info exists ::_form_field_names($root)]} {
+          set repeatField [set ::_form_field_names($root)]
+          #
+          # Maybe we have to check the order (when e.g. text.5 is passed in before text.3)
+          #
+          set f [$repeatField require_component $number]
+          ns_log notice "dynamic repeat field required $f"
+          return $f
+        }
       }
     }
     if {$name ni {langmarks fontname fontsize formatblock}} {

@@ -3356,6 +3356,22 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  CompoundField instproc add_component {entry} {
+    #
+    # Add a single component dynamically to the list of already
+    # existing components and return the component as result.
+    #
+    my lappend structure $entry
+    lassign $entry name spec
+    set c [::xowiki::formfield::FormField create [self]::$name \
+               -name [my name].$name -id [my id].$name \
+               -locale [my locale] -object [my object] \
+               -spec $spec]
+    my set component_index([my name].$name) $c
+    my lappend components $c
+    return $c
+  }
+  
   CompoundField instproc get_component {component_name} {
     set key component_index([my name].$component_name)
     if {[my exists $key]} {

@@ -78,13 +78,13 @@ namespace eval ::xowiki::formfield {
     
     if {[my exists __initialized_repeat]} {return}
     next
+
     my set __initialized_repeat 1
     #
     # Derive the spec of the contained items from the spec of the
     # container.
     #
-    set itemSpec [lindex [my item_spec] 1]
-    set is_required [lindex [my item_spec] 0]
+    lassign [my item_spec] isRequired itemSpec
 
     #
     # Use item .0 as template for other items in .js (e.g. blank an
@@ -98,12 +98,10 @@ namespace eval ::xowiki::formfield {
     #
     # Add max content items (1 .. max) and build form fields
     #
-    for {set i 1} {$i <= [my max]} {incr i} {
-      if {$i <= [my min] && $is_required} {
-        lappend components [list $i $itemSpec,required,label=$i]
-      } else {
-        lappend components [list $i $itemSpec,label=$i]
-      }
+    set max [my max]
+    #set max 1 ;# dynamic repeat fields: one might set max to 1 to force repeat fields to be created dynamically (missing js support)
+    for {set i 1} {$i <= $max} {incr i} {
+      lappend components [my component_item_spec $i $itemSpec $isRequired]
     }
     my create_components $components
 
@@ -117,6 +115,47 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  repeatContainer instproc component_item_spec {i itemSpec isRequired} {
+    #
+    # Return a single itemspec suited for the nth component, derived
+    # from the repeatable formfield spec.
+    #
+    if {$i <= [my min] && $isRequired} {
+      set componentItemSpec [list $i $itemSpec,required,label=$i]
+    } else {
+      set componentItemSpec [list $i $itemSpec,label=$i]
+    }
+    return $componentItemSpec
+  }
+
+  repeatContainer instproc require_component {i} {
+    #
+    # Require the nth component of a repeat field
+    #
+    lassign [my item_spec] isRequired itemSpec
+    set componentItemSpec [my component_item_spec $i $itemSpec $isRequired]
+    ns_log notice "dynamic repeat field: add component on the fly: $componentItemSpec"
+    my add_component $componentItemSpec
+  }
+  
+  repeatContainer instproc set_compound_value value {
+    #
+    # Before setting compound values, check if we have the repeat
+    # strucure already set.
+    #
+    set neededComponents [expr {[llength $value] / 2}]
+    set availableComponents [llength ${:components}]
+    #ns_log notice "[self] repeatContainer set_compound_value <$value> have $availableComponents needed $neededComponents"
+    if {$neededComponents > $availableComponents} {
+      lassign [my item_spec] isRequired itemSpec
+      for {set i $availableComponents} {$i < $neededComponents} {incr i} {
+        :require_component $i
+      }
+    }
+
+    next
+  }
+  
   repeatContainer instproc convert_to_internal {} {
     set values [my value]
     my trim_values
@@ -154,6 +193,7 @@ namespace eval ::xowiki::formfield {
     }
     return $highestCount
   }
+
 
   repeatContainer instproc render_input {} {
     #
