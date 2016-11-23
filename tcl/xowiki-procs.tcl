@@ -2783,24 +2783,45 @@ namespace eval ::xowiki {
         set $key $f
         return $f
       }
+    }
 
-      #
-      # Maybe, this was a repeat field, and we have to create the nth
-      # component dynamically.
-      #
-      if {[regexp {^(.*)[.](\d+)$} $name . root number]} {
-        ns_log notice "dynamic repeat field <$root> number $number [info exists ::_form_field_names($root)]"
-        if {[info exists ::_form_field_names($root)]} {
-          set repeatField [set ::_form_field_names($root)]
+    #
+    # Maybe, this was a repeat field, and we have to create the nth
+    # component dynamically.
+    #
+    set components [split $name .]
+    set path [lindex $components 0]
+    ns_log notice "dynamic repeat field name $name -> components <$components>"
+    
+    foreach c [lrange $components 1 end] {
+      if {[string is integer -strict $c]} {
+        # this looks like a repeat component
+        ns_log notice "dynamic repeat field root <$path> number $c exists? [info exists ::_form_field_names($path)]"
+        
+        if {[info exists ::_form_field_names($path)]} {
+          #
+          # The root field exists, so add the component
+          #
+          set repeatField [set ::_form_field_names($path)]
           #
           # Maybe we have to check the order (when e.g. text.5 is passed in before text.3)
           #
-          set f [$repeatField require_component $number]
-          ns_log notice "dynamic repeat field required $f"
-          return $f
+          set f [$repeatField require_component $c]
+          ns_log notice "dynamic repeat field created $path.$c -> $f"
+          set ::_form_field_names($path.$c) $f
         }
       }
+      append path . $c
     }
+    #
+    # We might have created in the loop above the required
+    # formfield. If so, return it.
+    #
+    if {[info exists $key]} {
+      ns_log notice "dynamic repeat 2nd lookup for $key succeeds"
+      return [set $key]
+    }
+
     if {$name ni {langmarks fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
