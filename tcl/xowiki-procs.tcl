@@ -2763,6 +2763,7 @@ namespace eval ::xowiki {
     form_fields
   } {
     my form_field_index $form_fields
+    ns_log notice "lookup_form_field <$name>"
 
     set key ::_form_field_names($name)
     if {[info exists $key]} {
@@ -2800,15 +2801,27 @@ namespace eval ::xowiki {
         
         if {[info exists ::_form_field_names($path)]} {
           #
-          # The root field exists, so add the component
+          # The root field exists, so add the component.
           #
           set repeatField [set ::_form_field_names($path)]
           #
-          # Maybe we have to check the order (when e.g. text.5 is passed in before text.3)
+          # Add all components from i to specifed number to the list,
+          # unless restricted by the max value. This frees us from
+          # potential problems, when the browser sends the form fields
+          # in an unexpected order. The resulting components will be
+          # always in the numbered order.
           #
-          set f [$repeatField require_component $c]
-          ns_log notice "dynamic repeat field created $path.$c -> $f"
-          set ::_form_field_names($path.$c) $f
+          set max [$repeatField max]
+          if {$max > $c} {
+            set max $c
+          }
+          for {set i 1} {$i <= $max} {incr i} {
+            if {![info exists ::_form_field_names($path.$i)]} {
+              set f [$repeatField require_component $i]
+              ns_log notice "dynamic repeat field created $path.$i -> $f"
+              set ::_form_field_names($path.$i) $f
+            }
+          }
         }
       }
       append path . $c
