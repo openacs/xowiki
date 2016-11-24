@@ -209,7 +209,6 @@ namespace eval ::xowiki::formfield {
 
 
   repeatContainer instproc render_input {} {
-    #ns_log notice "[my serialize]"
     #
     # Render content of the container within in a fieldset,
     # without labels for the contained items.
@@ -245,7 +244,7 @@ namespace eval ::xowiki::formfield {
             template::add_event_listener \
                 -id $del_id \
                 -script [subst {xowiki.repeat.delItem(this,\"$clientData\");}]
-            }
+          }
         }
         incr i
       }

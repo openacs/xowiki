@@ -2771,6 +2771,14 @@ namespace eval ::xowiki {
     append fields "Repeat container:\n"
     foreach f [::xowiki::formfield::repeatContainer info instances] {
       append fields "$f\t[$f name]\t [$f spec]\n"
+      foreach component [$f components] {
+        append fields "... [$component name]\t[$component info class]\t [$component spec]\n"
+        if {[$component istype ::xowiki::formfield::CompoundField]} {
+          foreach c [$component components] {
+            append fields "..... [$c name]\t[$c info class]\t [$c spec]\n"
+          }
+        }
+      }
     }
     ns_log notice "dynamic repeat field $msg: fields & specs:\n$fields"
   }
@@ -2836,7 +2844,7 @@ namespace eval ::xowiki {
             if {![info exists ::_form_field_names($path.$i)]} {
               set f [$repeatField require_component $i]
               ns_log notice "dynamic repeat field created $path.$i -> $f"
-              set ::_form_field_names($path.$i) $f
+              :form_field_index $f
             }
           }
         } else {
