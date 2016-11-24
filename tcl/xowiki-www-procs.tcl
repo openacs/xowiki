@@ -2288,7 +2288,7 @@ namespace eval ::xowiki {
 
       if {[:form_field_exists $att]} {
         #ns_log notice "... found [set $key] for $key"
-        lappend form_fields [:lookup_form_field $att {}]
+        lappend form_fields [:lookup_form_field -name $att {}]
       } else {
         lappend form_fields [my create_form_field \
                                  -cr_field_spec [my get_short_spec @cr_fields] \

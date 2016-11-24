@@ -93,7 +93,7 @@ namespace eval ::xowiki::formfield {
     # default values for subfields without knowing the detailed
     # structure).
     #
-    set components [list [list 0 $itemSpec]]
+    set componentItemSpecs [list [list 0 $itemSpec]]
 
     #
     # Add max content items (1 .. max) and build form fields
@@ -110,11 +110,13 @@ namespace eval ::xowiki::formfield {
       #set max [my max]
       set max 1 ;# use dynamic repeat fields: if set to 1, repeat fields will be created on demand
     }
-    ns_log notice "MAX=$max FORMACTION <$formAction>"
+    ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
     for {set i 1} {$i <= $max} {incr i} {
-        lappend components [my component_item_spec $i $itemSpec $isRequired]
+      set componentItemSpec [my component_item_spec $i $itemSpec $isRequired]
+      ns_log notice "dynamic repeat componentItemSpec $componentItemSpec"
+      lappend componentItemSpecs $componentItemSpec
     }
-    my create_components $components
+    my create_components $componentItemSpecs
 
     #
     # Deactivate template item

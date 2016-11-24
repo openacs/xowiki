@@ -2761,7 +2761,16 @@ namespace eval ::xowiki {
   Page instproc form_field_exists {name} {
     return [info exists ::_form_field_names($name)]
   }
-  
+
+  Page instproc __debug_known_field_names {msg} {
+    set fields {}
+    foreach name [lsort [array names ::_form_field_names]] {
+      set f $::_form_field_names($name)
+      append fields "  $name\t[$f info class]\t [$f spec]\n"
+    }
+    ns_log notice "dynamic repeat field $msg: fields & specs:\n$fields"
+  }
+
   Page instproc lookup_form_field {
     -name:required
     form_fields
@@ -2826,6 +2835,8 @@ namespace eval ::xowiki {
               set ::_form_field_names($path.$i) $f
             }
           }
+        } else {
+          :__debug_known_field_names "<$path> needed to create <$path.$c>"
         }
       }
       append path . $c
