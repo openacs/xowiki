@@ -209,6 +209,7 @@ namespace eval ::xowiki::formfield {
 
 
   repeatContainer instproc render_input {} {
+    #ns_log notice "[my serialize]"
     #
     # Render content of the container within in a fieldset,
     # without labels for the contained items.
@@ -234,34 +235,33 @@ namespace eval ::xowiki::formfield {
         ::html::div $atts {
           $c render_input 
           # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
-          # if {!$containerDisabled} {
-          set del_id "repeat-del-link-[$c set id]"
-          ::html::a -href "#" \
-              -id $del_id \
-              -class "repeat-del-link" {
-                html::t [my repeat_remove_label]
-              }
-          template::add_event_listener \
-              -id $del_id \
-              -script [subst {xowiki.repeat.delItem(this,\"$clientData\");}]
-          # }
+          if {!$containerDisabled} {
+            set del_id "repeat-del-link-[$c set id]"
+            ::html::a -href "#" \
+                -id $del_id \
+                -class "repeat-del-link" {
+                  html::t [my repeat_remove_label]
+                }
+            template::add_event_listener \
+                -id $del_id \
+                -script [subst {xowiki.repeat.delItem(this,\"$clientData\");}]
+            }
         }
         incr i
       }
       set hidden [expr {[my count_values [my value]] == $max ? "display: none;" : ""}]
-      # if {!$containerDisabled} {
-      set add_id "repeat-add-link-[my id]" 
-      html::a -href "#" \
-          -id $add_id \
-          -style "$hidden" \
-          -class "repeat-add-link" {
-            html::t [my repeat_add_label]
-          }
-      template::add_event_listener \
-          -id $add_id \
-          -script [subst {xowiki.repeat.addItem(this,\"$clientData\");}]
-      
-      # }
+      if {!$containerDisabled} {
+        set add_id "repeat-add-link-[my id]" 
+        html::a -href "#" \
+            -id $add_id \
+            -style "$hidden" \
+            -class "repeat-add-link" {
+              html::t [my repeat_add_label]
+            }
+        template::add_event_listener \
+            -id $add_id \
+            -script [subst {xowiki.repeat.addItem(this,\"$clientData\");}]
+      }
     }
   }
   
