@@ -2003,13 +2003,6 @@ namespace eval ::xowiki::formfield {
   richtext::ckeditor4 set editor_mixin 1
   richtext::ckeditor4 instproc initialize {} {
     
-    security::csp::require script-src 'unsafe-eval'
-    security::csp::require -force script-src 'unsafe-inline'
-    
-    security::csp::require script-src cdn.ckeditor.com
-    security::csp::require style-src cdn.ckeditor.com
-    security::csp::require img-src cdn.ckeditor.com
-    
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
     }
@@ -2097,6 +2090,14 @@ namespace eval ::xowiki::formfield {
     if {![my istype ::xowiki::formfield::richtext] || ($disabled && !$is_repeat_template)} {
       my render_richtext_as_div
     } else {
+
+      security::csp::require script-src 'unsafe-eval'
+      security::csp::require -force script-src 'unsafe-inline'
+      
+      security::csp::require script-src cdn.ckeditor.com
+      security::csp::require style-src cdn.ckeditor.com
+      security::csp::require img-src cdn.ckeditor.com
+      
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
