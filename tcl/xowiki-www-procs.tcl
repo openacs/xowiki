@@ -665,7 +665,9 @@ namespace eval ::xowiki {
       }
     }
 
-    if {$fs_folder_id ne ""} {lappend folder_spec folder_id $fs_folder_id}
+    if {$fs_folder_id ne ""} {
+      lappend folder_spec folder_id $fs_folder_id
+    }
 
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
         -action  [export_vars -base [$package_id url] $action_vars] \
@@ -879,9 +881,8 @@ namespace eval ::xowiki {
       #my log "__redirect_method=$redirect_method"
       return [my www-view]
     } else {
-
       # 
-      # display the current values
+      # Build the input form and display the current values.
       #
       if {[my is_new_entry [my name]]} {
         my set creator [::xo::get_user_name [::xo::cc user_id]]
@@ -928,7 +929,6 @@ namespace eval ::xowiki {
       $ff(_name) set transmit_field_always 1
       $ff(_nls_language) set transmit_field_always 1
     }
-
 
     # some final sanity checks
     my form_fields_sanity_check $form_fields
@@ -2285,9 +2285,15 @@ namespace eval ::xowiki {
     set form_fields   [my create_category_fields]
     foreach att $field_names {
       if {[string match "__*" $att]} continue
-      lappend form_fields [my create_form_field \
-                               -cr_field_spec [my get_short_spec @cr_fields] \
-                               -field_spec [my get_short_spec @fields] $att]
+
+      if {[:form_field_exists $att]} {
+        #ns_log notice "... found [set $key] for $key"
+        lappend form_fields [:lookup_form_field $att {}]
+      } else {
+        lappend form_fields [my create_form_field \
+                                 -cr_field_spec [my get_short_spec @cr_fields] \
+                                 -field_spec [my get_short_spec @fields] $att]
+      }
     }
     return $form_fields
   }

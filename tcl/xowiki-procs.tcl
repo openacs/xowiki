@@ -2758,6 +2758,10 @@ namespace eval ::xowiki {
     set $marker 1
   }
 
+  Page instproc form_field_exists {name} {
+    return [info exists ::_form_field_names($name)]
+  }
+  
   Page instproc lookup_form_field {
     -name:required
     form_fields

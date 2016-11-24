@@ -98,10 +98,21 @@ namespace eval ::xowiki::formfield {
     #
     # Add max content items (1 .. max) and build form fields
     #
-    set max [my max]
-    #set max 1 ;# dynamic repeat fields: one might set max to 1 to force repeat fields to be created dynamically (missing js support)
+    set formAction [${:object} form_parameter __form_action {}]
+    if {$formAction eq ""} {
+      #
+      # The form field is in input mode; as long there is no js
+      # support do incrementally add form fields in js, we have to
+      # generate it here.
+      #
+      set max [my max]
+    } else {
+      #set max [my max]
+      set max 1 ;# use dynamic repeat fields: if set to 1, repeat fields will be created on demand
+    }
+    ns_log notice "MAX=$max FORMACTION <$formAction>"
     for {set i 1} {$i <= $max} {incr i} {
-      lappend components [my component_item_spec $i $itemSpec $isRequired]
+        lappend components [my component_item_spec $i $itemSpec $isRequired]
     }
     my create_components $components
 
