@@ -2768,6 +2768,10 @@ namespace eval ::xowiki {
       set f $::_form_field_names($name)
       append fields "  $name\t[$f info class]\t [$f spec]\n"
     }
+    append fields "Repeat container:\n"
+    foreach f [::xowiki::formfield::repeatContainer info instances] {
+      append fields "$f\t[$f name]\t [$f spec]\n"
+    }
     ns_log notice "dynamic repeat field $msg: fields & specs:\n$fields"
   }
 
