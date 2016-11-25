@@ -113,7 +113,7 @@ namespace eval ::xowiki::notification {
       ns_log notice "--n xowiki::notification NO notification due to production state"
       return
     }
-    
+    set pretty_link [$page pretty_link]    
     $page absolute_links 1
     if {![info exists html]} {
       set html [$page notification_render]
@@ -126,6 +126,14 @@ namespace eval ::xowiki::notification {
       #ns_log notice "--n notification renderer returned emtpy for page [$page name] (revision_id $revision_id). Nothing to do"
       return
     }
+
+    #
+    # Turn relative URLs into absolute URLs such that links in
+    # notification still work. The function supports as well non-wiki
+    # links. Here we are able to provide an accurate pretty_link as
+    # base-url.
+    #
+    set html [ad_html_qualify_links -path [file dirname $pretty_link] $html]
     
     if {![info exists text]} {
       set text [ad_html_text_convert -from text/html -to text/plain -- $html]
