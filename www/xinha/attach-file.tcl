@@ -176,9 +176,6 @@ template::add_event_listener -id "resize_window_url_button" -script {
 template::add_event_listener -id "preview_button" -script {
   onPreview();
 }
-template::add_event_listener -id "f_url" -script {
-  ChangeImageSrc();
-}
 
 ##
 
