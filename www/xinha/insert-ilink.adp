@@ -1,6 +1,5 @@
-<html>
-<head>
-  <title>#acs-templating.HTMLArea_InsertModifyLink#</title>
+<master src="/www/blank-master">
+  <property name="doc(title)">#acs-templating.HTMLArea_InsertModifyLink#</property>
 
   <script type="text/javascript" 
           src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
@@ -165,7 +164,7 @@ form { padding: 0px; margin: 0px; }
 	
 </head>
 
-<body onload="Init()">
+<body id="body">
   <div class="title">#acs-templating.HTMLArea_InsertModifyLink#</div>
     <div style="padding-left:10px;padding-right:10px;">
 <form>
@@ -188,7 +187,7 @@ form { padding: 0px; margin: 0px; }
     </select>
     </td><td align="right">
 <if @fs_found@ eq 1>
-  <button  type="button" onClick="openFileSelector();">#acs-templating.HTMLArea_OpenFileStorage#</button>
+  <button id="file_selector_button" type="button">#acs-templating.HTMLArea_OpenFileStorage#</button>
 </if>
 <else>
     <span style="margin-top:2px; margin-bottom:2px; border:2px outset #FFFFFF;padding-top:1px;padding-bottom:1px;padding-right:6px;padding-left:6px;color:GrayText;cursor:default;" title="#acs-templating.HTMLArea_FileStorageNotFoundToolTip#">#acs-templating.HTMLArea_OpenFileStorage#</span> 
@@ -197,14 +196,9 @@ form { padding: 0px; margin: 0px; }
   </td>
   </tr>
   <tr><td colspan="2">&nbsp; 
-  <button type="submit" name="ok" onclick="return onOK();">OK</button> 
-  <button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
+  <button id="ok_button" type="submit" name="ok">OK</button> 
+  <button id="cancel_button" type="button" name="cancel">#acs-templating.HTMLArea_action_cancel#</button>
 </td>
 </tr>
 </table>
-
-
-
 </form>
-</body>
-</html>
