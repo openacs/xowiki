@@ -37,6 +37,7 @@ TableWidget t1 -volatile \
     }
 
 template::add_event_listener -CSSclass "ok-handler" -script {onOK(this);}
+template::add_event_listener -id "body" -event "load" -script {Init();}
 
 foreach entry [$listing children] {
   $entry instvar name parent_id title formatted_date page_id 
