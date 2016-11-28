@@ -165,7 +165,3 @@ select, input, button { font: 11px Tahoma,Verdana,sans-serif; }
   </td>
 </tr>
 </table>
-
-</body>
-</html>
-
