@@ -102,7 +102,7 @@ select, input, button { font: 11px Tahoma,Verdana,sans-serif; }
     <legend><strong>@HTML_Legend@</strong></legend>
     <if @up_url@ not nil>
       <div style="margin-bottom:3px;"><a href="@up_url@"><img 
-        src="/resources/acs-subsite/up.gif" 
+        src="/resources/richtext-xinha/xinha-nightly/plugins/OacsFs/img/up.gif" 
         border="0"/> @up_name@</a></div>
     </if>		
     <div style="margin-left:10px;margin-bottom:3px;"><img src="/resources/file-storage/folder.gif"/> @folder_name@</div>
