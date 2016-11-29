@@ -128,10 +128,10 @@ namespace eval ::xowiki::notification {
     }
 
     #
-    # Turn relative URLs into absolute URLs such that links in
-    # notification still work. The function supports as well non-wiki
-    # links. Here we are able to provide an accurate pretty_link as
-    # base-url.
+    # Turn relative URLs into absolute URLs in the HTML text such that
+    # links in notification still work. The function supports as well
+    # non-wiki links. Here we are able to provide an accurate
+    # pretty_link as base-url.
     #
     set html [ad_html_qualify_links -path [file dirname $pretty_link] $html]
     
