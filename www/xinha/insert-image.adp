@@ -208,13 +208,6 @@
 			</td>
 		</tr>
 	</table>
-<!--
-<div style="margin-top: 15px; text-align: right;">
-<hr />
-<button type="button" name="ok" onclick="return onOK();">OK</button>
-<button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
-</div>
--->
 
 <table width="100%" style="margin-bottom: 0.2em">
  <tr>
