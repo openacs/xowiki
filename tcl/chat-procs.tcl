@@ -143,12 +143,19 @@ namespace eval ::xowiki {
     template::add_body_script -script [subst {document.getElementById('chatMsg').focus();}]
 
     switch $mode {
-      polling {return "\
+      polling {
+        template::add_event_listener \
+            -id "messages-form" \
+            -event "submit" \
+            -script [subst {
+          chatSendMsg(\"$send_url\",chatReceiver);
+        }]
+        return "\
       <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
       setInterval('$get_update',5000)
       </script>
-      <form action='#' onsubmit='chatSendMsg(\"$send_url\",chatReceiver); return false;'>
+      <form id='messages-form' action='#'>
       <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $login_url]'
           style='width:90%;' height='150'>
       </iframe>
@@ -161,13 +168,16 @@ namespace eval ::xowiki {
         ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
+        template::add_event_listener \
+            -id "messages-form" -event "submit" \
+            -script {chatSendMsg();}
         return "\
       <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>$js
       var send_url = \"$send_url\";
       chatSubscribe(\"$subscribe_url\");
       </script>
    <div id='messages' style='$style'>$r</div>
-   <form action='#' onsubmit='chatSendMsg(); return false;'>
+   <form id='messages-form' action='#'>
    <input type='text' size='40' name='msg' id='chatMsg'>
    </form>"
       }
@@ -177,6 +187,9 @@ namespace eval ::xowiki {
         ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
+        template::add_event_listener \
+            -id "messages-form" -event "submit" \
+            -script {chatSendMsg();}
         return "\
       <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
@@ -187,7 +200,7 @@ namespace eval ::xowiki {
               style='width:0px; height:0px; border: 0px'>
       </iframe>
       </div>
-      <form action='#' onsubmit='chatSendMsg(); return false;'>
+      <form id='messages-form' action='#'>
       <input type='text' size='40' name='msg' id='chatMsg'>
       </form>"
       }
