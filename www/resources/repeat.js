@@ -22,6 +22,7 @@ xowiki.repeat.addItem = function(e, json) {
             // Make an existing but invisible item visible.
             currentItem.style.display = 'block';
 
+            /*
             // IPAD HACK START
             // for ipad we have to set the contenteditiable to true for the ckeditor inline if it is false
             var ck_editors = $(currentItem.find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr'));
@@ -32,7 +33,7 @@ xowiki.repeat.addItem = function(e, json) {
                 }
             }
             // IPAD HACK ENDE
-
+            */
             break;
         }
     }
