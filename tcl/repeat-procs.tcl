@@ -110,10 +110,10 @@ namespace eval ::xowiki::formfield {
       #set max [my max]
       set max 1 ;# use dynamic repeat fields: if set to 1, repeat fields will be created on demand
     }
-    ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
+    #ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
     for {set i 1} {$i <= $max} {incr i} {
       set componentItemSpec [my component_item_spec $i $itemSpec $isRequired]
-      ns_log notice "dynamic repeat componentItemSpec $componentItemSpec"
+      #ns_log notice "dynamic repeat componentItemSpec $componentItemSpec"
       lappend componentItemSpecs $componentItemSpec
     }
     my create_components $componentItemSpecs
@@ -225,16 +225,21 @@ namespace eval ::xowiki::formfield {
         set nrItems $providedValues
       }
       incr nrItems
-      set containerDisabled [expr {[my exists disabled] && [my disabled] != "false"}]
+      set containerIsDisabled [expr {[my exists disabled] && [my disabled] != "false"}]
+      set containerIsPrototype [string match "*.0*" $name]
+      set isPrototypeElement 0
       foreach c [my components] {
         set atts [list class $CSSclass]
-        if {$i > $nrItems || [string match "*.0" [$c name]]} {
+        lappend atts data-repeat $clientData
+        set elementIsPrototype [string match "*.0*" [$c name]]
+        #ns_log notice "[$c name] isDisabled $containerIsDisabled containerIsPrototype $containerIsPrototype elementIsPrototype $elementIsPrototype"
+        if {$i > $nrItems || $containerIsPrototype || $elementIsPrototype} {
           lappend atts style "display: none;"
         }
         ::html::div $atts {
           $c render_input 
           # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
-          if {!$containerDisabled} {
+          if {!$containerIsDisabled || $containerIsPrototype} {
             set del_id "repeat-del-link-[$c set id]"
             ::html::a -href "#" \
                 -id $del_id \
@@ -248,12 +253,14 @@ namespace eval ::xowiki::formfield {
         }
         incr i
       }
-      set hidden [expr {[my count_values [my value]] == $max ? "display: none;" : ""}]
-      if {!$containerDisabled} {
-        set add_id "repeat-add-link-[my id]" 
+      #ns_log notice "repeat container $c [$c name] isDisabled $containerIsDisabled containerIsPrototype $containerIsPrototype"
+      if {!$containerIsDisabled || $containerIsPrototype } {
+        set hidden [expr {[my count_values [my value]] == $max ? "display: none;" : ""}]
+        set add_id "repeat-add-link-[my id]"
+        ns_log notice "... add another for $name"
         html::a -href "#" \
             -id $add_id \
-            -style "$hidden" \
+            -style $hidden \
             -class "repeat-add-link" {
               html::t [my repeat_add_label]
             }
@@ -289,6 +296,13 @@ namespace eval ::xowiki::formfield {
     return $html
   }
 
+  Class create repeattest -superclass CompoundField
+  repeattest instproc initialize {} {
+    my create_components  [subst {
+        {sub {text,repeat=1..4}}
+    }]
+    next
+  }
 }
 
 #
