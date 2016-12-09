@@ -1342,30 +1342,39 @@ namespace eval ::xowiki {
     my instvar name item_id package_id parent_id publish_status \
         page_template instance_attributes assignee state
 
-    set rows [xo::dc dml update_xowiki_form_instance_item_index {
-      update xowiki_form_instance_item_index
-      set name = :name, package_id = :package_id,
-          parent_id = :parent_id, publish_status = :publish_status,
-          page_template = :page_template, assignee = :assignee,
-          state = :state
-      where item_id = :item_id
-    }]
-    if {$rows ne "" && $rows < 1} {
-      ::xo::dc dml insert_xowiki_form_instance_item_index {
-        insert into xowiki_form_instance_item_index (
-            item_id, name, package_id, parent_id, publish_status,
-            page_template, assignee, state
-            ) values (
-            :item_id, :name, :package_id, :parent_id, :publish_status,
-            :page_template, :assignee, :state
-            )
-      }
+    set useHstore [$package_id get_parameter use_hstore 0]
+    set updateVars {name = :name, package_id = :package_id,
+      parent_id = :parent_id, publish_status = :publish_status,
+      page_template = :page_template, assignee = :assignee,
+      state = :state}
+    
+    if {$useHstore} {
+      append updateVars ", hkey = '$hkey'"
     }
-    if {[$package_id get_parameter use_hstore 0]} {
-      set hkey [::xowiki::hstore::dict_as_hkey [my hstore_attributes]]
-      xo::dc dml update_hstore "update xowiki_form_instance_item_index \
-                set hkey = '$hkey' \
-                where item_id = :item_id"
+
+
+    set rows [xo::dc dml update_xowiki_form_instance_item_index [subst {
+      update xowiki_form_instance_item_index
+      set $updateVars
+      where item_id = :item_id
+    }]]
+    
+    if {$rows ne "" && $rows < 1} {
+      set insertVars {item_id, name, package_id, parent_id, publish_status,
+        page_template, assignee, state
+      }
+      set insertValues {:item_id, :name, :package_id, :parent_id, :publish_status,
+        :page_template, :assignee, :state
+      }
+      if {$useHstore} {
+        append insertVars {, hkey}
+        append insertValues ", '$hkey'"
+      }
+    
+      ::xo::dc dml insert_xowiki_form_instance_item_index [subst {
+        insert into xowiki_form_instance_item_index
+        ($insertVars) values ($insertValues)
+      }]
     }
   }
 
@@ -1420,24 +1429,27 @@ namespace eval ::xowiki {
     where the standard API based on save and save_use can not be used.
 
   } {
+    set updates {}
     foreach var {
       package_id parent_id
       publish_status page_template
       assignee state
     } {
       if {[info exists $var]} {
-        xo::dc dml update_xowiki_form_instance_item_index_$var [subst {
-          update xowiki_form_instance_item_index
-          set $var = :$var
-          where item_id = :item_id
-        }]
+        lappend updates "$var = :$var"
       }
     }
     if {[info exists hstore_attributes]} {
       set hkey [::xowiki::hstore::dict_as_hkey $hstore_attributes]
-      xo::dc dml update_hstore "update xowiki_form_instance_item_index \
-                set hkey = '$hkey' \
-                where item_id = :item_id"
+      lappend updates "hkey = '$hkey"
+    }
+    if {[llength $updates] > 0} {
+      set setclause [join $updates ,]
+      xo::dc dml update_xowiki_form_instance_item_index [subst {
+        update xowiki_form_instance_item_index
+        set $setclause
+        where item_id = :item_id
+      }]
     }
   }
 
@@ -1483,7 +1495,9 @@ namespace eval ::xowiki {
       }]
     }
 
-    if {$initialize} {$object initialize_loaded_object}
+    if {$initialize} {
+      $object initialize_loaded_object
+    }
     return $object
   }
 
