@@ -116,6 +116,12 @@ xo::dc foreach instance_select \
          -select_attributes $attributes \
          -orderby ci.name \
         ] {
+          if {[info commands ::$package_id] eq ""} {
+            # Safety belt for cases, where the instance_select_query
+            # brings in instances belonging to other packages.
+            ns_log notice "admin/list: have to initialize package $package_id"
+            ::xo::Package initialize -package_id $package_id -keep_cc true
+          }
           set page_link [::$package_id pretty_link -parent_id $parent_id $name]
           set name [::$package_id external_name -parent_id $parent_id $name]
 
