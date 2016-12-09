@@ -1441,7 +1441,7 @@ namespace eval ::xowiki {
     }
     if {[info exists hstore_attributes]} {
       set hkey [::xowiki::hstore::dict_as_hkey $hstore_attributes]
-      lappend updates "hkey = '$hkey"
+      lappend updates "hkey = '$hkey'"
     }
     if {[llength $updates] > 0} {
       set setclause [join $updates ,]
