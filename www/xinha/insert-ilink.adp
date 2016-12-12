@@ -1,12 +1,9 @@
 <master src="/www/blank-master">
   <property name="doc(title)">#acs-templating.HTMLArea_InsertModifyLink#</property>
 
-  <script type="text/javascript" 
-          src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
-  </script>
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
 
-
-<script type="text/javascript">
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
   window.resizeTo(500, 200);
 
 HTMLArea = window.opener.HTMLArea;

@@ -2,9 +2,7 @@
   <property name="doc(title)">#acs-templating.HTMLArea_InsertWikiLink#</property>
 
   <link rel="stylesheet" href="/resources/acs-templating/lists.css" type="text/css" media="all">
-  <script type="text/javascript" 
-          src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
-  </script>
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
 
 <style type="text/css">
   .list-table td.list {
@@ -27,8 +25,7 @@ table {
 }
 	</style>
 	
-
-<script type="text/javascript">
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
   window.resizeTo(400, 230);
 
 HTMLArea = window.opener.HTMLArea;

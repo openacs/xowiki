@@ -5,7 +5,7 @@
   <link rel="stylesheet" type="text/css" 
 	href="/resources/acs-templating/forms.css" media="all" />
 
-  <script type="text/javascript">
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>  
 function onOK() {
     if (document.forms.fs.linktarget) {
 	var id = getRadioValue(document.forms.fs.linktarget);

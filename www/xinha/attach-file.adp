@@ -1,12 +1,9 @@
 <master src="/www/blank-master">
   <property name="doc(title)">#acs-templating.HTMLArea_InsertImageTitle#</property>
 
-  <script type="text/javascript" 
-	  src="/resources/richtext-xinha/xinha-nightly/popups/popup.js">
-  </script>
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
 
-
-<script type="text/javascript">
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>  
 	var selector_window;
 	window.resizeTo(415, 300);
 
