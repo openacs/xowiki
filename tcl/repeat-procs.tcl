@@ -13,7 +13,6 @@ namespace eval ::xowiki::formfield {
   # TODO:
   # - improve styling (e.g. remove/deactivate controls for 
   #   addition/deletion, when min/max is reached)
-  # - allow max to be open-ended (see also "addItem" in .js)
   # - test for more input types
   # - maybe deactivate container display for "repeat=1..1"
 
@@ -74,7 +73,7 @@ namespace eval ::xowiki::formfield {
   }
   repeatContainer instproc initialize {} {
     ::xo::Page requireJS  "/resources/xowiki/repeat.js"
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS "/resources/ajaxhelper/jquery/jquery-1.11.1.min.js"
     
     if {[my exists __initialized_repeat]} {return}
     next
@@ -99,7 +98,8 @@ namespace eval ::xowiki::formfield {
     # Add max content items (1 .. max) and build form fields
     #
     set formAction [${:object} form_parameter __form_action {}]
-    if {$formAction eq ""} {
+    # TODO: we use for the time being the code for dynamic repeat field
+    if {0 && $formAction eq ""} {
       #
       # The form field is in input mode; as long there is no js
       # support do incrementally add form fields in js, we have to
@@ -147,7 +147,7 @@ namespace eval ::xowiki::formfield {
     #
     lassign [my item_spec] isRequired itemSpec
     set componentItemSpec [my component_item_spec $i $itemSpec $isRequired]
-    ns_log notice "dynamic repeat field: add component on the fly: $componentItemSpec"
+    #ns_log notice "dynamic repeat field: add component on the fly: $componentItemSpec"
     my add_component $componentItemSpec
   }
   
@@ -214,7 +214,7 @@ namespace eval ::xowiki::formfield {
     # without labels for the contained items.
     #
     html::fieldset [my get_attributes id {CSSclass class}] {
-      set i 1
+      set i 0
       my instvar min max name
       set clientData "{'min':$min,'max':$max, 'name':'$name'}"
       set CSSclass   "[my form_widget_CSSclass] repeatable"
@@ -231,9 +231,7 @@ namespace eval ::xowiki::formfield {
       foreach c [my components] {
         set atts [list class $CSSclass]
         lappend atts data-repeat $clientData
-        set elementIsPrototype [string match "*.0*" [$c name]]
-        #ns_log notice "[$c name] isDisabled $containerIsDisabled containerIsPrototype $containerIsPrototype elementIsPrototype $elementIsPrototype"
-        if {$i > $nrItems || $containerIsPrototype || $elementIsPrototype} {
+        if {$i == 0 || $i >= $nrItems} {
           lappend atts style "display: none;"
         }
         ::html::div $atts {
@@ -266,7 +264,7 @@ namespace eval ::xowiki::formfield {
             }
         template::add_event_listener \
             -id $add_id \
-            -script [subst {xowiki.repeat.addItem(this,\"$clientData\");}]
+            -script [subst {xowiki.repeat.newItem(this,\"$clientData\");}]
       }
     }
   }

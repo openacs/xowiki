@@ -25,7 +25,7 @@ xowiki.repeat.addItem = function(e, json) {
             /*
             // IPAD HACK START
             // for ipad we have to set the contenteditiable to true for the ckeditor inline if it is false
-            var ck_editors = $(currentItem.find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr'));
+            var ck_editors = $(currentItem).find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr');
             for (var k = 0; k < ck_editors.length; k++) {
                 if ($(ck_editors[k]).attr('contenteditable') == 'false') {
                     console.log('we have to set the contenteditable to true');
@@ -37,8 +37,8 @@ xowiki.repeat.addItem = function(e, json) {
             break;
         }
     }
-
-    $(".xowiki-ckeditor", currentItem).each(function (i,e) {
+    
+    $(".xowiki-ckeditor, .datetimepicker", currentItem).each(function (i,e) {
       //console.debug('load ckeditor' +e.id);
       if ($(e).is(':visible')) {
         var functionname = 'load_' + e.id;
@@ -54,10 +54,100 @@ xowiki.repeat.addItem = function(e, json) {
     // and renaming the field like in delItems. We have to care as
     // well in RepeatContainer.initialize() to check, how many
     // subcomponents must be generated in advance (not max as now).
-    console.log('could add one more, j ' + j);
-    console.info(data);
+    //console.log('could add one more, j ' + j);
+    //console.info(data);
     return false;
 };
+
+/*
+ * newItem
+ *
+ */
+xowiki.repeat.newItem = function(e, json) {
+
+    var data = eval("(" + json + ')');
+    var item = e;
+
+    var stats =  this.itemStats(item);
+    //console.info(item);
+    console.info(stats);
+    //console.info(data);
+
+    var current = stats['current'];
+    var last    = stats['visible'];
+    var items   = item.parentNode.children;
+    var divs    = stats['divs'];
+
+    //console.info(divs);
+
+    last = last + 1;
+    //console.log('last:' + last);
+
+    if (last >= data.max) {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+    }
+    if (last > data.max) {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+        return;
+    }
+
+    // We add an empty item at the end to force back-reporting of
+    // empty content to the instance variables. Otherwise the old
+    // content would stay. This means, that we should never physically
+    // delete items.
+    var clone = divs[0].cloneNode(true);
+    divs.push(clone);
+    divs[0].parentNode.insertBefore(clone,divs[last-1].nextSibling);
+
+    var templateid = item.parentNode.id + '.0';
+    var newid = item.parentNode.id + '.' + last;
+
+    // due to the fact that the ckeditor are using the ids for reloading we have to recycle them (and for the other cases it doesn't hurt)
+    this.renameIds(divs[last],templateid,newid);
+
+    // ckeditor releoding
+    // we are selecting all ckeditor intances which are at the same level and below of the current item
+    // so we can be sure that in case of a compound field all editors are reloaded correctly
+    // .xowiki-ckeditor --> normaler ckeditor
+    // .xowiki-ckeditor.ckeip --> inplace editor
+    // .xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr --> inline editing
+    var ckclasses = [".xowiki-ckeditor",
+                     ".xowiki-ckeditor.ckeip",
+                     ".xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr"];
+    for (var i = 0; i < ckclasses.length; i++) {
+        var ck_editors = $(item.parentNode).find(ckclasses[i]);
+        for (var j = 0; j < ck_editors.length; j++) {
+            var idofeditor = ck_editors[j].id;
+            console.log('reloading ckeditor for id: ' + idofeditor);
+            var functionname = 'load_' + idofeditor;
+            try {
+                window[functionname]();
+            } catch(err) {
+                console.log('function: ' + functionname + ' not found maybe it is a template: ' + err);
+            }
+        }
+    }
+
+    //console.log("RENAME LAST");
+    this.renameItem(divs[last], divs[last],
+                    data['name'] + '.0', data['name'] + '.' + (last));
+
+    divs[last].style.display = 'block';
+
+    // force refresh of tree
+    item.parentNode.style.display = 'none';
+    item.parentNode.style.display = 'block';
+
+    // make sure add item link is visible
+    //$(item.parentNode).children(".repeat-add-link").show();
+
+    this.registerAddDeleteAction(divs[last]);
+
+
+};
+
 
 /*
  * itemStats
@@ -230,8 +320,21 @@ xowiki.repeat.delItem = function(e, json) {
             //console.log("RENAME INNER");
             this.renameItem(divs[j], divs[j],
                             data['name'] + '.' + (k), data['name'] + '.' + (j));
+
+            this.registerAddDeleteAction(divs[j]);
         }
     };
+
+    // make sure add item link is visible
+    $(item.parentNode).children(".repeat-add-link").show();
+
+    // delet the node until we are reaching the minimum
+    if (stats['visible'] > data['min']) {
+        // delete the last node
+        divs[last].parentNode.removeChild(divs[last]);
+    }
+
+    /*
     // We add an empty item at the end to force back-reporting of
     // empty content to the instance variables. Otherwise the old
     // content would stay. This means, that we should never physically
@@ -280,6 +383,9 @@ xowiki.repeat.delItem = function(e, json) {
     // make sure add item link is visible
     $(item.parentNode).children(".repeat-add-link").show();
 
+    this.registerAddDeleteAction(divs[last]);
+    */
+
     //console.log('final html ' + item.parentNode.innerHTML);
     return false;
 };
@@ -313,6 +419,38 @@ xowiki.repeat.renameIds = function(e, searchString, replaceString) {
         tmpid = tmpid.replace(searchString,replaceString);
         $(this).attr("id", tmpid);
     });
+}
+
+/*
+ * reRegisterAddDeleteAction
+ *
+ * ReRegister events for add and delete urls
+ */
+xowiki.repeat.registerAddDeleteAction = function(element) {
+    var action_links = $(element).find(".repeat-del-link");
+    for (var j = 0; j < action_links.length; j++) {
+        var e = document.getElementById(action_links[j].id);
+        if (e !== null) {
+            var data = e.parentNode.getAttribute('data-repeat');
+            e.addEventListener('click', function (event) {
+                event.preventDefault();
+                xowiki.repeat.delItem(this,data);
+            }, false);
+        }
+    }
+
+    var action_links = $(element).find(".repeat-add-link");
+    for (var j = 0; j < action_links.length; j++) {
+        var e = document.getElementById(action_links[j].id);
+        if (e !== null) {
+            var data = e.previousElementSibling.getAttribute('data-repeat');
+            e.addEventListener('click', function (event) {
+                event.preventDefault();
+                xowiki.repeat.newItem(this,data);
+            }, false);
+        }
+    }
+
 }
 
 /*
