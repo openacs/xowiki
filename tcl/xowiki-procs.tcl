@@ -1349,6 +1349,7 @@ namespace eval ::xowiki {
       state = :state}
     
     if {$useHstore} {
+      set hkey [::xowiki::hstore::dict_as_hkey $instance_attributes]
       append updateVars ", hkey = '$hkey'"
     }
 
