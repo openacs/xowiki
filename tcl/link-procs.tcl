@@ -232,7 +232,10 @@ namespace eval ::xowiki {
     {-label "LABEL"}
     {-href ""}
   } {
-    set result ""
+    set result ""    
+    # this can be used into templates as id to safely attach event
+    # handlers to elements
+    set :timed_id [clock microseconds]    
     if {$with_link} {append result [subst [my link_template]]}
     if {$with_body} {append result [subst [my body_template]]}
     return $result
