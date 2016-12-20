@@ -93,19 +93,32 @@ xowiki.repeat.newItem = function(e, json) {
         return;
     }
 
-    // We add an empty item at the end to force back-reporting of
-    // empty content to the instance variables. Otherwise the old
-    // content would stay. This means, that we should never physically
-    // delete items.
-    var clone = divs[0].cloneNode(true);
-    divs.push(clone);
-    divs[0].parentNode.insertBefore(clone,divs[last-1].nextSibling);
+    // if we have an hidden field we can simple activate it
+    // e.g.: repeat=0..1 --> create 1 template node + 1 data node
+    // --> we can activate the data node
+    if (data.min == 0 && divs.length == 2 && last == 1) {
+        //it is not necessary to clone the node
+    } else {
+        // We add an empty item at the end to force back-reporting of
+        // empty content to the instance variables. Otherwise the old
+        // content would stay. This means, that we should never physically
+        // delete items.
+        var clone = divs[0].cloneNode(true);
+        divs.push(clone);
+        divs[0].parentNode.insertBefore(clone,divs[last-1].nextSibling);
 
-    var templateid = item.parentNode.id + '.0';
-    var newid = item.parentNode.id + '.' + last;
+        var templateid = item.parentNode.id + '.0';
+        var newid = item.parentNode.id + '.' + last;
 
-    // due to the fact that the ckeditor are using the ids for reloading we have to recycle them (and for the other cases it doesn't hurt)
-    this.renameIds(divs[last],templateid,newid);
+        // due to the fact that the ckeditor are using the ids for reloading we have to recycle them (and for the other cases it doesn't hurt)
+        this.renameIds(divs[last],templateid,newid);
+    }
+    // show the last element
+    divs[last].style.display = 'block';
+
+    // force refresh of tree
+    item.parentNode.style.display = 'none';
+    item.parentNode.style.display = 'block';
 
     // ckeditor releoding
     // we are selecting all ckeditor intances which are at the same level and below of the current item
@@ -117,15 +130,23 @@ xowiki.repeat.newItem = function(e, json) {
                      ".xowiki-ckeditor.ckeip",
                      ".xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr"];
     for (var i = 0; i < ckclasses.length; i++) {
-        var ck_editors = $(item.parentNode).find(ckclasses[i]);
+        var ck_editors = $(item.parentNode).find(ckclasses[i] + ':visible');
         for (var j = 0; j < ck_editors.length; j++) {
             var idofeditor = ck_editors[j].id;
             console.log('reloading ckeditor for id: ' + idofeditor);
             var functionname = 'load_' + idofeditor;
+            console.log('reloading ckeditor functionname: ' + functionname);
             try {
-                window[functionname]();
+                window[functionname](idofeditor);
             } catch(err) {
-                console.log('function: ' + functionname + ' not found maybe it is a template: ' + err);
+                console.log('function: ' + functionname + ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionname = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionname);
+                try {
+                    window[functionname](idofeditor);
+                } catch(err) {
+                    console.log('function: ' + functionname + ' not found (repeat-template) ,  error:' + err);
+                }
             }
         }
     }
@@ -134,14 +155,14 @@ xowiki.repeat.newItem = function(e, json) {
     this.renameItem(divs[last], divs[last],
                     data['name'] + '.0', data['name'] + '.' + (last));
 
-    divs[last].style.display = 'block';
 
-    // force refresh of tree
-    item.parentNode.style.display = 'none';
-    item.parentNode.style.display = 'block';
-
-    // make sure add item link is visible
-    //$(item.parentNode).children(".repeat-add-link").show();
+    if (last < data.max) {
+        // make sure add item link is visible
+        e.style.display = 'block';
+    } else {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+    }
 
     this.registerAddDeleteAction(divs[last]);
 
@@ -209,6 +230,23 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
             }
         }
     } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET') {
+        //
+        // Check, if there is a data-repeat attribute.
+        //
+        var data_repeat_attribute = e.getAttribute('data-repeat');
+        if (data_repeat_attribute !== null) {
+            //
+            // Replace the ID in the name compontent inside the json
+            // structure.
+            //
+            var data = eval("(" + data_repeat_attribute + ')');
+            var compareLength = from.length;
+            if (data.name.substring(0,compareLength) == from) {
+                var new_name = to + data.name.substring(compareLength,data.name.length);
+                data.name = new_name;
+                e.setAttribute('data-repeat',JSON.stringify(data));
+            }
+        }
         for (var j = 0; j < items.length; j++) {
             this.renameItem(top, items[j], from, to);
         }
@@ -386,6 +424,36 @@ xowiki.repeat.delItem = function(e, json) {
     this.registerAddDeleteAction(divs[last]);
     */
 
+    // ckeditor releoding
+    // we are selecting all ckeditor intances which are at the same level and below of the current item
+    // so we can be sure that in case of a compound field all editors are reloaded correctly
+    // .xowiki-ckeditor --> normaler ckeditor
+    // .xowiki-ckeditor.ckeip --> inplace editor
+    // .xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr --> inline editing
+    var ckclasses = [".xowiki-ckeditor",
+                     ".xowiki-ckeditor.ckeip",
+                     ".xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr"];
+    for (var i = 0; i < ckclasses.length; i++) {
+        var ck_editors = $(item.parentNode).find(ckclasses[i]+':visible');
+        for (var j = 0; j < ck_editors.length; j++) {
+            var idofeditor = ck_editors[j].id;
+            console.log('reloading ckeditor for id: ' + idofeditor);
+            var functionname = 'load_' + idofeditor;
+            console.log('reloading ckeditor functionname: ' + functionname);
+            try {
+                window[functionname](idofeditor);
+            } catch(err) {
+                console.log('function: ' + functionname + ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionname = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionname);
+                try {
+                    window[functionname](idofeditor);
+                } catch(err) {
+                    console.log('function: ' + functionname + ' not found (repeat-template) ,  error:' + err);
+                }
+            }
+        }
+    }
     //console.log('final html ' + item.parentNode.innerHTML);
     return false;
 };

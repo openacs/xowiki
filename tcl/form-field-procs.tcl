@@ -399,7 +399,7 @@ namespace eval ::xowiki::formfield {
     if {[string match *bootstrap* [subsite::get_theme]]} {
       my array set html {class "form-control"}
     }
-    
+
     if {[my exists html]} {
       append spec " {html {"
       foreach {key value} [array get html] {
@@ -830,9 +830,9 @@ namespace eval ::xowiki::formfield {
       set objName file:${:name}
     }
     #my log ENTRY_INFO=[list name $objName parent_id [${:object} item_id]]
-    return [list name $objName parent_id [[my object] item_id]]    
+    return [list name $objName parent_id [[my object] item_id]]
   }
-  
+
   file instproc get_from_value {value attribute {raw ""}} {
     #
     # The value of of a form entry might be:
@@ -953,7 +953,7 @@ namespace eval ::xowiki::formfield {
       set publish_date_cmd {$file_object set publish_date "9999-12-31 23:59:59.0+01"}
       set save_flag "-use_given_publish_date true"
     }
-    
+
     #
     # Make sure that we do not mis-interprete spaces in paths or file
     # names.
@@ -962,7 +962,7 @@ namespace eval ::xowiki::formfield {
       set :tmpfile [list ${:tmpfile}]
       set value [list $value]
     }
-    
+
     set revision_ids {}
     set newValue ""
     foreach content_type ${:content-type} \
@@ -972,7 +972,7 @@ namespace eval ::xowiki::formfield {
 
           regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
           set v [::file tail $fn]
-          
+
           set file_object [my store_file \
                                -file_name $fn \
                                -content_type $content_type \
@@ -982,11 +982,11 @@ namespace eval ::xowiki::formfield {
                                -tmpfile $tmpfile \
                                -publish_date_cmd $publish_date_cmd \
                                -save_flag $save_flag]
-          
+
           lappend revision_ids [$file_object revision_id]
           lappend newValue $fn
         }
-    
+
     #
     # Update the value with the attribute value pair list containing
     # the revision_id. TODO: clear revision_id on export.
@@ -1010,11 +1010,11 @@ namespace eval ::xowiki::formfield {
 
       set result ""
       foreach object_name $(name) fn [my get_from_value $v name] {
-        
+
         array set "" [$object item_ref -default_lang [[my object] lang] -parent_id $(parent_id) $object_name]
 
         #my log "name <$object_name> pretty value name '$(stripped_name)'"
-        
+
         set l [::xowiki::Link new -destroy_on_cleanup \
                    -page $object -type "file" -lang $(prefix) \
                    [list -stripped_name $(stripped_name)] [list -label $fn] \
@@ -1057,7 +1057,7 @@ namespace eval ::xowiki::formfield {
           fn $fns {
             #my msg "[my name]: [list my get_from_value <$value> name] => '$fn'"
             set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
-      
+
             if {![my istype image]} {
               append href ?filename=[ns_urlencode $fn]
               if {$revision_id ne ""  && [string is integer $revision_id]} {
@@ -1087,7 +1087,7 @@ namespace eval ::xowiki::formfield {
 
       }
     }
-    
+
   }
 
   ###########################################################
@@ -1642,10 +1642,10 @@ namespace eval ::xowiki::formfield {
 
   textarea instproc render_input {} {
     set booleanAtts [my booleanAttributes {*}[my set booleanHTMLAttributes]]
-    ::html::textarea [my get_attributes id name cols rows style wrap placeholder {CSSclass class} \
+    ::html::textarea [my get_attributes id name cols rows style wrap placeholder data-repeat-template-id {CSSclass class} \
                           {*}$booleanAtts] {
-      ::html::t [my value]
-    }
+                            ::html::t [my value]
+                          }
     my resetBooleanAttributes $booleanAtts
   }
 
@@ -1848,7 +1848,7 @@ namespace eval ::xowiki::formfield {
             $(form).find('iframe').each(function() {
               $(this).contents().find('img[type="wikilink"]').each(calc);
             });
-            
+
             $(form).find('textarea.ckeip').each(function() {
               var contents = $('<div>'+this.value+'</div>');
               contents.find('img[type="wikilink"]').each(calc);
@@ -1929,7 +1929,9 @@ namespace eval ::xowiki::formfield {
       #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
 
       if {[my set displayMode] eq "inplace"} {
-        if {[my value] eq ""} {my value "&nbsp;"}
+        if {[my value] eq ""} {
+          my value "&nbsp;"
+        }
         my render_richtext_as_div
         if {[my inline]} {
           set wrapper_class ""
@@ -2002,7 +2004,7 @@ namespace eval ::xowiki::formfield {
   }
   richtext::ckeditor4 set editor_mixin 1
   richtext::ckeditor4 instproc initialize {} {
-    
+
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
     }
@@ -2035,7 +2037,7 @@ namespace eval ::xowiki::formfield {
             $(form).find('iframe').each(function() {
               $(this).contents().find('img[type="wikilink"]').each(calc);
             });
-            
+
             $(form).find('textarea.ckeip').each(function() {
               var contents = $('<div>'+this.value+'</div>');
               contents.find('img[type="wikilink"]').each(calc);
@@ -2053,7 +2055,7 @@ namespace eval ::xowiki::formfield {
             CKEDITOR.instances[e].setData(data.html());
             CKEDITOR.instances[e].updateElement();
           }
-          
+
           function calc_wiki_image_links_to_image_tags(path, text) {
             // console.log('path = <' + path + '>');
             //path = path.replace(/:/ig,"%3a");
@@ -2082,8 +2084,12 @@ namespace eval ::xowiki::formfield {
     set is_repeat_template [expr {[my exists is_repeat_template] && [my set is_repeat_template] == "true"}]
     # my msg "[my id] [my name] - $is_repeat_template"
 
+    if {$is_repeat_template} {
+      my set data-repeat-template-id [my id]
+    }
+
     # if value is empty, we need something to be clickable for display mode inplace
-    if {[my value] eq "" && [my set displayMode] eq "inplace"} {
+    if {[my value] eq "" && ${:displayMode} eq "inplace"} {
       my value "&nbsp;"
     }
 
@@ -2093,11 +2099,11 @@ namespace eval ::xowiki::formfield {
 
       security::csp::require script-src 'unsafe-eval'
       security::csp::require -force script-src 'unsafe-inline'
-      
+
       security::csp::require script-src cdn.ckeditor.com
       security::csp::require style-src cdn.ckeditor.com
       security::csp::require img-src cdn.ckeditor.com
-      
+
       ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
@@ -2109,7 +2115,9 @@ namespace eval ::xowiki::formfield {
       set id [my id]
       set name [my name]
       set package_id [[my object] package_id]
-      if {[my set displayMode] eq "inline"} {my lappend extraPlugins sourcedialog}
+      if {${:displayMode} eq "inline"} {
+        my lappend extraPlugins sourcedialog
+      }
 
       if {"xowikiimage" in [my extraPlugins]} {
         my js_image_helper
@@ -2120,7 +2128,7 @@ namespace eval ::xowiki::formfield {
         set ready_callback2 $ready_callback
         set submit_callback "/*none*/;"
       }
-      
+
       set options [subst {
         [my set additionalConfigOptions]
         toolbar : '[my toolbar]',
@@ -2150,69 +2158,73 @@ namespace eval ::xowiki::formfield {
 
       #set parent [[[my object] package_id] get_page_from_item_or_revision_id [[my object] parent_id]];# ???
 
-      if {[my set displayMode] eq "inplace"} {
-        if {!$is_repeat_template} {
-          set callback [my callback]
-          set destroy_callback [my destroy_callback]
+      if {${:displayMode} eq "inplace"} {
+        set callback [my callback]
+        set destroy_callback [my destroy_callback]
 
-          my lappend CSSclass ckeip
-          ::xo::Page requireJS "/resources/xowiki/ckeip.js"
+        my lappend CSSclass ckeip
+        ::xo::Page requireJS "/resources/xowiki/ckeip.js"
 
-          ::xo::Page requireJS [subst -nocommands {
-            function load_$id () {
-              \$( '\#$id' ).ckeip(function() { $callback }, {
-                name: '$name',
-                ckeditor_config: {
-                  $options,
-                  destroy_callback: function() { $destroy_callback }
-                }
-              });
-            }
-            \$(document).ready(function() {
-                CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
-                if (\$('#$id').parents('.repeatable').length != 0) {
-                    if (\$('#$id').is(':visible')) {
-                        load_$id ();
-                    }
-                } else {
-                    //this is not inside a repeatable container, load normally
-                    load_$id ();
-                }
-            } );
-          }]
-        }
-        my render_richtext_as_div
-      } elseif {[my set displayMode] eq "inline"} {
-        if {!$is_repeat_template} {
-          if {"xowikiimage" in [my extraPlugins]} {
-            set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
-            set submit_callback "calc_image_tags_to_wiki_image_links_inline('$id');"
+        ::xo::Page requireJS [subst -nocommands {
+          function load_$id (id) {
+            \$(id).ckeip(function() { $callback }, {
+              name: '$name',
+              ckeditor_config: {
+                $options,
+                destroy_callback: function() { $destroy_callback }
+              }
+            });
           }
-
-          set submit_callback "$submit_callback [my submit_callback]"
-          ::xo::Page requireJS [subst {
-            function load_$id () {
-              CKEDITOR.inline('$id', {
-                on: {
-                  instanceReady: function(e) {
-                    \$(e.editor.element.\$).attr('title', '[my set label]');
-                    \$(e.editor.element.\$.form).submit(function(e) {
-                      $submit_callback
-                    });
-                  }
-                },
-                $options
-              });
-            }
+        }]
+        if {!$is_repeat_template} {
+          ::xo::Page requireJS [subst -nocommands {
             \$(document).ready(function() {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               if (\$('#$id').parents('.repeatable').length != 0) {
                 if (\$('#$id').is(':visible')) {
-                  load_$id ();
+                  load_$id ($id);
                 }
               } else {
                 //this is not inside a repeatable container, load normally
-                load_$id ();
+                load_$id ($id);
+              }
+            } );
+          }]
+        }
+        my render_richtext_as_div
+      } elseif {${:displayMode} eq "inline"} {
+        if {"xowikiimage" in [my extraPlugins]} {
+          set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
+          set submit_callback "calc_image_tags_to_wiki_image_links_inline('$id');"
+        }
+
+        set submit_callback "$submit_callback [my submit_callback]"
+        ::xo::Page requireJS [subst {
+          function load_$id (id) {
+            CKEDITOR.inline(id, {
+              on: {
+                instanceReady: function(e) {
+                  \$(e.editor.element.\$).attr('title', '[my set label]');
+                  \$(e.editor.element.\$.form).submit(function(e) {
+                    $submit_callback
+                  });
+                }
+              },
+              $options
+            });
+          }
+        }]
+        if {!$is_repeat_template} {
+          ::xo::Page requireJS [subst {
+            \$(document).ready(function() {
+              CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
+              if (\$('#$id').parents('.repeatable').length != 0) {
+                if (\$('#$id').is(':visible')) {
+                  load_$id ($id);
+                }
+              } else {
+                //this is not inside a repeatable container, load normally
+                load_$id ($id);
               }
               $ready_callback
             });
@@ -2220,17 +2232,19 @@ namespace eval ::xowiki::formfield {
         }
         next
       } else {
+        set callback [my callback]
+        ::xo::Page requireJS [subst -nocommands {
+          function load_$id (id) {
+            \$(id).ckeditor(function() { $callback }, {
+              $options
+            });
+          }
+        }]
         if {!$is_repeat_template} {
-          set callback [my callback]
           ::xo::Page requireJS [subst -nocommands {
-            function load_$id () {
-              \$( '#$id' ).ckeditor(function() { $callback }, {
-                $options
-              });
-            }
             \$(document).ready(function() {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
-              load_$id ();
+              load_$id ($id);
               $ready_callback
               //CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
             });
@@ -2378,7 +2392,7 @@ namespace eval ::xowiki::formfield {
       #
       security::csp::require script-src 'unsafe-eval'
       security::csp::require script-src 'unsafe-inline'
-      
+
       # we use for the time being the initialization of xinha based on
       # the blank master
       set ::acs_blank_master(xinha) 1
@@ -2400,7 +2414,7 @@ namespace eval ::xowiki::formfield {
       set ::acs_blank_master(xinha.options) $xinha_options
       lappend ::acs_blank_master__htmlareas [my id]
 
-      if {[my set displayMode] eq "inplace"} {
+      if {${:displayMode} eq "inplace"} {
         ::html::div [my get_attributes id name {CSSclass class} disabled] {
           set href \#
           ::html::a -style "float: right;" -class edit-item-button -href $href -id [my id]-edit {
@@ -3165,7 +3179,7 @@ namespace eval ::xowiki::formfield {
   Class create include -superclass text -parameter {
     {resolve_local false}
   }
-  
+
   include instproc pretty_value {v} {
     if {$v eq ""} { return $v }
 
@@ -3192,9 +3206,9 @@ namespace eval ::xowiki::formfield {
       $item_id set_resolve_context \
           -package_id [$object package_id] -parent_id [$object parent_id] \
           -item_id [$object item_id]
-    
+
       set html [$item_id render]
-    
+
       $item_id unset __RESOLVE_LOCAL
       $item_id reset_resolve_context
     } else {
@@ -3372,7 +3386,7 @@ namespace eval ::xowiki::formfield {
     my lappend components $c
     return $c
   }
-  
+
   CompoundField instproc get_component {component_name} {
     set key component_index([my name].$component_name)
     if {[my exists $key]} {
@@ -3761,7 +3775,7 @@ namespace eval ::xowiki::formfield {
     template::add_event_listener \
         -id $id-image \
         -script [subst {toggle_img_boolean(this,'$t_img_url','$f_img_url');}]
-    
+
     ::html::input -type hidden -name [my name] -value [my value]
 
     ::xo::Page requireJS {
@@ -4008,7 +4022,7 @@ namespace eval ::xowiki::formfield {
     } else {
       #my log "===== [list calendar::item::new -start_date $start -end_date $end -calendar_id $calendar_id ...]"
       set cal_item_id [calendar::item::new -start_date $start -end_date $end \
-                             -name $name -description $description -calendar_id $calendar_id]
+                           -name $name -description $description -calendar_id $calendar_id]
       [my get_component cal_item_id] value $cal_item_id
       #
       # The following line is required when used in transaction to
