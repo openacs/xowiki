@@ -134,9 +134,8 @@ namespace eval ::xowiki {
     }
     if {[my exists listener] && [my set listener] ne ""} {
       lassign [my listener] type body
-      template::add_body_script -script [subst {
-        document.getElementById('[my set id]').addEventListener('$type', function (event) {$body}, false);
-      }]
+      template::add_event_listener -event $type -id [my set id] \
+          -preventdefault=false -script $body
     }
   }
   
