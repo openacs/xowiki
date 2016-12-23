@@ -2557,12 +2557,23 @@ namespace eval ::xowiki::formfield {
     foreach o [my options] {
       lassign $o label rep
       set atts [my get_attributes disabled {CSSclass class}]
-      if {[my exists forced_name]} {set name [my forced_name]} {set name [my name]}
-      lappend atts id [my id]:$rep name $name type radio value $rep
-      if {$value eq $rep} {lappend atts checked checked}
+      if {[my exists forced_name]} {
+        set name [my forced_name]
+      } {
+        set name [my name]
+      }
+      set id [my id]:$rep
+      lappend atts id $id name $name type radio value $rep
+      if {$value eq $rep} {
+        lappend atts checked checked
+      }
       ::html::input $atts {}
-      html::t "$label  "
-      if {![my horizontal]} {html::br}
+      ::html::label -for $id {
+        html::t "$label  "
+      }
+      if {![my horizontal]} {
+        html::br
+      }
     }
   }
 
@@ -2593,16 +2604,17 @@ namespace eval ::xowiki::formfield {
     if {[my exists disabled]} {return $default} else {return ""}
   }
   checkbox instproc render_input {} {
-    # identical to radio, except "checkbox" type and lsearch;
+    # identical to radio, except "checkbox" type and "in" expression for value;
     # maybe we can push this up to enumeration....
     set value [my value]
     foreach o [my options] {
       lassign $o label rep
+      set id [my id]:$rep
       set atts [my get_attributes disabled {CSSclass class}]
-      lappend atts id [my id]:$rep name [my name] type checkbox value $rep
+      lappend atts id $id name [my name] type checkbox value $rep
       if {$rep in $value} {lappend atts checked checked}
       ::html::input $atts {}
-      html::t "$label  "
+      ::html::label -for $id {html::t "$label  "}
       if {![my horizontal]} {html::br}
     }
   }
