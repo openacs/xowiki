@@ -1,5 +1,6 @@
 var xowiki = xowiki || {};
 xowiki.repeat = {};
+var data_repeat = new Array();
 /*
  * addItem
  *
@@ -164,7 +165,12 @@ xowiki.repeat.newItem = function(e, json) {
         e.style.display = 'none';
     }
 
-    this.registerAddDeleteAction(divs[last]);
+    // for repeat=0..1 it is not necessary to register the events again
+    if (data.min == 0 && divs.length == 2 && last == 1) {
+        // do not register a second time for repeat=0..1
+    } else {
+        this.registerAddDeleteAction(divs[last]);
+    }
 
 
 };
@@ -211,10 +217,11 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
             var compareLength = from.length;
             if (name.substring(0,compareLength) == from) {
                 //console.log('renameItem: RENAME ' + name + ' from ' + from);
+                var new_name = to;
                 if (compareLength != name.length) {
-                    to += name.substring(compareLength, name.length);
+                    new_name = to + name.substring(compareLength, name.length);
                 }
-                e.name = to;
+                e.name = new_name;
                 e.disabled = false;
                 // we have also to remove the disabled attribute for options of a select field
                 if (e.nodeName == 'SELECT') {
@@ -227,6 +234,16 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
                 //this.renameItem(top, top,
                   //              '__old_value_' + from,
                     //            '__old_value_' + to);
+            }
+            if (e.type == 'radio' && e.value.substring(0,compareLength) == from) {
+                //console.log('item: name: ' + e.name + ' value: ' + e.value + ' - from: ' + from + ' to: ' + to);
+                var new_value = to;
+                if (compareLength != e.value.length) {
+                    new_value = to + e.value.substring(compareLength, e.value.length);
+                }
+                e.value = new_value;
+                e.disabled = false;
+
             }
         }
     } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET') {
@@ -305,7 +322,9 @@ xowiki.repeat.delItem = function(e, json) {
             // THIS DOES NOT SEEM TO WORK
             $(divs[k]).find(':input[type=radio]').each(function() {
                 //console.info($(this));
-                $(this).prop('checked', $(this).checked);
+                if($(this).prop('checked')) {
+                    $(this).attr('checked', 'checked');
+                }
             });
 
             // checkbox input fields
@@ -511,10 +530,10 @@ xowiki.repeat.registerAddDeleteAction = function(element) {
     for (var j = 0; j < action_links.length; j++) {
         var e = document.getElementById(action_links[j].id);
         if (e !== null) {
-            var data = e.previousElementSibling.getAttribute('data-repeat');
+            data_repeat[e.id] = e.previousElementSibling.getAttribute('data-repeat');
             e.addEventListener('click', function (event) {
                 event.preventDefault();
-                xowiki.repeat.newItem(this,data);
+                xowiki.repeat.newItem(this,data_repeat[this.id]);
             }, false);
         }
     }
