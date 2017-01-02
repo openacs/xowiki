@@ -117,7 +117,7 @@ namespace eval ::xowiki {
         #ns_log notice "### propagate extrajs <[my set extrajs]> from [my info class] to [[my set __parent] info class]"
         [my set __parent] append extrajs [my set extrajs]
       } else {
-        html::script -type "text/javascript" {
+        html::script -nonce [security::csp::nonce] -type "text/javascript" {
           html::t "var [my js_name] = new YAHOO.widget.Menu(\"[my id]\", [my set configuration]);"
           html::t "
                         [my js_name].render();
@@ -251,7 +251,7 @@ namespace eval ::xowiki {
           foreach li [my children] {$li render}
         }
       }
-      html::script -type "text/javascript" {
+      html::script -nonce [security::csp::nonce] -type "text/javascript" {
         html::t "var [my js_name] = new YAHOO.widget.ContextMenu('[my id]', { trigger: '[my set trigger]' } );"
         html::t "[my js_name].render(document.body);"
       }

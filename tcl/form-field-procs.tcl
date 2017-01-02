@@ -2723,7 +2723,7 @@ namespace eval ::xowiki::formfield {
         ::html::div -class visual-clear {
           ;# maybe some comment
         }
-        ::html::script { html::t $js }
+        ::html::script -nonce [security::csp::nonce] { html::t $js }
       }
     } else {
       next
