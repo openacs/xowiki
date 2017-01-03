@@ -148,7 +148,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc validate_tag {tag} {
-    if {![regexp {^[\w-]+$} $tag]} {
+    if {![regexp {^[\w.-]+$} $tag]} {
       ad_return_complaint 1 "invalid tag"
       ad_script_abort
     }
