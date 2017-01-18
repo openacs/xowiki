@@ -30,7 +30,7 @@
           </tr>
       
           <multiple name="days">
-            <if @days.beginning_of_week_p@ true>
+            <if @days.beginning_of_week_p;literal@ true>
               <tr>
             </if>
         
@@ -41,7 +41,7 @@
                 <td class="@days.class@"> @days.day_number@</td>
              </else>
         
-            <if @days.end_of_week_p@ true>
+            <if @days.end_of_week_p;literal@ true>
               </tr>
             </if>
           </multiple>
