@@ -2771,6 +2771,13 @@ namespace eval ::xowiki {
     set $marker 1
   }
 
+  Page instproc form_field_flush_cache {} {
+    #
+    # flus all cached form_field_names
+    #
+    array unset ::_form_field_names
+  }
+  
   Page instproc form_field_exists {name} {
     return [info exists ::_form_field_names($name)]
   }
