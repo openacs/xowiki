@@ -4088,6 +4088,7 @@ namespace eval ::xowiki {
                                   {-publish_status ready}
                                   {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
                                   {-extra_where_clause true}
+                                  {-initialize true}
                                 } {
 
     set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id -revision_id 0]
@@ -4123,6 +4124,7 @@ namespace eval ::xowiki {
         set items [$object_type get_instances_from_db \
                        -folder_id $folder_id \
                        -with_subtypes false \
+                       -initialize $initialize \
                        -select_attributes $attributes \
                        -where_clause "$extra_where_clause $publish_status_clause" \
                        -base_table $base_table]
