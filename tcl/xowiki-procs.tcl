@@ -1470,6 +1470,7 @@ namespace eval ::xowiki {
 
     @return cr item object
   } {
+
     #
     # We handle here just loading object instances via item_id, since
     # only live_revisions are kept in xowiki_form_instance_item_index.
@@ -1485,9 +1486,10 @@ namespace eval ::xowiki {
     }
 
     $object set item_id $item_id
-    set success [$object db_0or1row [my qn fetch_from_view_item_id] {
+    set sql [::xo::dc prepare -name xowiki_form_instance_item_view -argtypes integer {
       select * from xowiki_form_instance_item_view where item_id = :item_id
     }]
+    set success [$object db_0or1row [my qn fetch_from_view_item_id] $sql]
     if {$success == 0} {
       error [subst {
         The form page with item_id $item_id was not found in the xowiki_form_instance_item_index.
