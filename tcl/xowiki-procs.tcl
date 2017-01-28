@@ -1486,7 +1486,7 @@ namespace eval ::xowiki {
     }
 
     $object set item_id $item_id
-    set sql [::xo::dc prepare -name xowiki_form_instance_item_view -argtypes integer {
+    set sql [::xo::dc prepare -argtypes integer {
       select * from xowiki_form_instance_item_view where item_id = :item_id
     }]
     set success [$object db_0or1row [my qn fetch_from_view_item_id] $sql]
