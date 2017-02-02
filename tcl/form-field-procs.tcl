@@ -2182,11 +2182,11 @@ namespace eval ::xowiki::formfield {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               if (\$('#$id').parents('.repeatable').length != 0) {
                 if (\$('#$id').is(':visible')) {
-                  load_$id ($id);
+                  load_$id ('$id');
                 }
               } else {
                 //this is not inside a repeatable container, load normally
-                load_$id ($id);
+                load_$id ('$id');
               }
             } );
           }]
@@ -2220,11 +2220,11 @@ namespace eval ::xowiki::formfield {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
               if (\$('#$id').parents('.repeatable').length != 0) {
                 if (\$('#$id').is(':visible')) {
-                  load_$id ($id);
+                  load_$id ('$id');
                 }
               } else {
                 //this is not inside a repeatable container, load normally
-                load_$id ($id);
+                load_$id ('$id');
               }
               $ready_callback
             });
@@ -2244,7 +2244,7 @@ namespace eval ::xowiki::formfield {
           ::xo::Page requireJS [subst -nocommands {
             \$(document).ready(function() {
               CKEDITOR.plugins.addExternal( 'xowikiimage', '/resources/xowiki/ckeditor4/plugins/xowikiimage/', 'plugin.js' );
-              load_$id ($id);
+              load_$id ('$id');
               $ready_callback
               //CKEDITOR.instances['$id'].on('instanceReady',function(e) {$ready_callback});
             });
