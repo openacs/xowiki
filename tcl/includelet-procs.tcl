@@ -1624,9 +1624,11 @@ namespace eval ::xowiki::includelet {
     # The same image might be linked both, as img or file on one page, 
     # so we need DISTINCT.
 
-    xo::dc foreach get_references "SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid \
-        from xowiki_references,cr_items ci,acs_objects o \
-        where reference = :item_id and ci.item_id = page and ci.item_id = o.object_id" {
+    xo::dc foreach -prepare integer get_references {
+      SELECT DISTINCT page,ci.name,ci.parent_id,o.package_id as pid
+      from xowiki_references,cr_items ci,acs_objects o 
+      where reference = :item_id and ci.item_id = page and ci.item_id = o.object_id
+    } {
       if {$pid eq ""} {
         # in version less then oacs 5.2, this returns empty
         set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
