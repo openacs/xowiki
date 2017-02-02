@@ -2424,7 +2424,7 @@ namespace eval ::xowiki {
     }
     if {$description eq "" && $revision_id > 0} {
       set body [::xo::dc get_value get_description_from_syndication \
-                    "select body from syndication where object_id = $revision_id" \
+                    "select body from syndication where object_id = :revision_id" \
                     -default ""]
       set description [ad_html_text_convert -from text/html -to text/plain -- $body]
     }
@@ -2734,7 +2734,7 @@ namespace eval ::xowiki {
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
-      set rows [xo::dc dml update_last_visisted {
+      set rows [xo::dc dml -prepare integer,integer update_last_visisted {
         update xowiki_last_visited set time = now(), count = count + 1
         where page_id = :item_id and user_id = :user_id
       }]
@@ -3295,7 +3295,7 @@ namespace eval ::xowiki {
     }
     set count [::xo::dc get_value count_usages \
                    "select count(page_instance_id) from $bt, cr_items i  \
-            where page_template = $item_id \
+            where page_template = :item_id \
                         $publish_status_clause $package_clause $parent_id_clause \
                         and page_instance_id = coalesce(i.live_revision,i.latest_revision)"]
     return $count
