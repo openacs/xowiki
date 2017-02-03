@@ -1470,33 +1470,37 @@ namespace eval ::xowiki {
 
     @return cr item object
   } {
-
+    ns_log notice "=== fetch_object $item_id"
     #
     # We handle here just loading object instances via item_id, since
     # only live_revisions are kept in xowiki_form_instance_item_index.
-    # The loading via revisions happens as before in CrClass.
+    # The loading via revision_id happens as before in CrClass.
     #
     if {$item_id == 0} {
       return [next]
     }
-
+    
     if {![::xotcl::Object isobject $object]} {
       # if the object does not yet exist, we have to create it
       my create $object
     }
 
-    $object set item_id $item_id
-    set sql [::xo::dc prepare -argtypes integer {
-      select * from xowiki_form_instance_item_view where item_id = :item_id
-    }]
-    set success [$object db_0or1row [my qn fetch_from_view_item_id] $sql]
-    if {$success == 0} {
+    db_with_handle db {
+      set sql [::xo::dc prepare -handle $db -argtypes integer {
+        select * from xowiki_form_instance_item_view where item_id = :item_id
+      }]
+      set selection [db_exec 0or1row $db dbqd..Formpage-fetch_object $sql]
+    }
+
+    if {$selection eq ""} {
       error [subst {
         The form page with item_id $item_id was not found in the xowiki_form_instance_item_index.
         Consider 'DROP TABLE xowiki_form_instance_item_index CASCADE;' and restart server
         (the table is rebuilt automatically)
       }]
     }
+
+    $object mset [ns_set array $selection]
 
     if {$initialize} {
       $object initialize_loaded_object
