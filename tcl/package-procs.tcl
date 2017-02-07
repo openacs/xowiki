@@ -1010,7 +1010,7 @@ namespace eval ::xowiki {
                           method [my query_parameter m]]
       } else {
         set object [$id get_parameter index_page "index"]
-        my log "--o object after getting index_page is '$object'"
+        #my log "--o object after getting index_page is '$object'"
       }
     }
 
