@@ -134,6 +134,7 @@ namespace eval ::xowiki {
   ::xo::db::CrClass create FormPage -superclass PageInstance \
       -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_plural#" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
+      -non_cached_instance_var_patterns {__* hkey} \
       -slots {
         ::xo::db::CrAttribute create assignee \
             -datatype integer \
@@ -141,7 +142,7 @@ namespace eval ::xowiki {
             -spec "hidden"
         ::xo::db::CrAttribute create state -default ""
       }
-
+  
   #
   # Create various extra tables, indices and views
   #
@@ -1890,15 +1891,16 @@ namespace eval ::xowiki {
     # "render" might be cached
     if {[catch {set html [$includelet render]} errorMsg]} {
       set errorCode $::errorCode
+      set errorInfo $::errorInfo
       if {[ad_exception $errorCode] eq "ad_script_abort"} {
         set html ""
       } elseif {[string match "*for parameter*" $errorMsg]} {
         set html ""
         ad_return_complaint 1 [ns_quotehtml $errorMsg]
       } else {
-        ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)"
+        ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)\n$errorInfo"
         set page_name [$includelet name]
-        set ::errorInfo [::xowiki::Includelet html_encode $::errorInfo]
+        set ::errorInfo [::xowiki::Includelet html_encode $errorInfo]
         set html [my error_during_render [_ xowiki.error-includelet-error_during_render]]
       }
     }
