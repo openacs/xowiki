@@ -1188,7 +1188,7 @@ namespace eval ::xowiki {
     my instvar package_id item_id parent_id
     set limit       [my query_parameter "limit" 20]
     set weblog_page [$package_id get_parameter weblog_page weblog]
-    set href        [$package_id pretty_link $weblog_page]?summary=1
+    set href        [$package_id pretty_link -parent_id [$package_id folder_id] $weblog_page]?summary=1
 
     set entries [list]
     xo::dc foreach get_popular_tags \

@@ -462,7 +462,7 @@ namespace eval ::xowiki::includelet {
     set localized_title [::xo::localize $title]
     set edit_button [my include [list edit-item-button -book_mode true]]
     set link [expr {[string match "*:*" $name] ? 
-                    "<a href='[ns_quotehtml [$package_id pretty_link $name]]'>[ns_quotehtml $localized_title]</a>" : 
+                    "<a href='[ns_quotehtml [$package_id pretty_link -parent_id [$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" : 
                     $localized_title}]
     return [subst [[self class] set template]]
   } -set template {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
