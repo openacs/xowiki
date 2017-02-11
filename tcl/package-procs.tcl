@@ -607,15 +607,23 @@ namespace eval ::xowiki {
     # Return package id + remaining page name
     #
     set package_id [my id]
-    if {[regexp {^/(/[^/]+/)(.*)$} $page_name _ url page_name]} {
-      set provided_name $page_name
-      array set "" [site_node::get_from_url -url $url]
+    if {[regexp {^/(/.*)$} $page_name _ fullurl]} {
+      #
+      # When we have an absolute url, we are working on a different
+      # package.
+      #
+      array set "" [site_node::get_from_url -url $fullurl]
       if {$(package_id) eq ""} {return ""}
       if {$(name) ne ""} {set package_id $(package_id)}
+      #
+      # Use site-node url as package_url and get the full path within
+      # under the xo* sitenode (provided path)
+      #
+      set url $(url)
+      set provided_name [string range $fullurl [string length $url] end]
       ::xowiki::Package require $package_id
       my get_lang_and_name -default_lang $default_lang -path $page_name lang stripped_name
       set page_name $lang:$stripped_name
-      set url $(url)
       set search 0
     } else {
       set url [my url]/
