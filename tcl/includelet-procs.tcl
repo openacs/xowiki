@@ -442,7 +442,7 @@ namespace eval ::xowiki::includelet {
     set html [next]
     set localized_title [::xo::localize $title]
     set link [expr {[string match "*:*" $name] ? 
-                    "<a href='[ns_quotehtml [$package_id pretty_link $name]]'>[ns_quotehtml $localized_title]</a>" : 
+                    "<a href='[ns_quotehtml [$package_id pretty_link -parent_id [$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" : 
                     $localized_title}]
     ::xo::render_localizer
     return [subst [[self class] set template]]
