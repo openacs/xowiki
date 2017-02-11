@@ -3804,7 +3804,7 @@ namespace eval ::xowiki {
           #
           set lhs_var [string range $lhs 1 end]
           set rhs [split $rhs_expr |]
-          my msg "check op '$op' in sql [info exists op_map($op,sql)]"
+          #my msg "check op '$op' in sql [info exists op_map($op,sql)]"
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
             if {[my exists $lhs_var]} {
