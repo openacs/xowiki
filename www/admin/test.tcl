@@ -1174,7 +1174,7 @@ test subsection "Ending with /.."
   set l "parentpage1"
   set test [label "link" "not existing simple page" $l]
   set link [p create_link $l]
-? {$link render} [subst -nocommands {<a class='missing' href='/$instance_name/?nls_language=de_DE&edit-new=1&name=de%3aparentpage1&parent_id=$folder_id&title=parentpage1'> parentpage1</a>}] "\n$test\n "
+? {$link render} [subst -nocommands {<a class='missing' href='/$instance_name/?nls_language=de_DE&amp;object_type=%3a%3axowiki%3a%3aPage&amp;edit-new=1&amp;name=de%3aparentpage1&amp;parent_id=$folder_id&amp;title=parentpage1'> parentpage1</a>}] "\n$test\n "
 
   set l "parentpage#a"
   set test [label "link" "existing simple with anchor" $l]
@@ -1267,7 +1267,7 @@ test section "page properties"
   set l [$f1 pretty_link]
   set test [label "url" "topfolder" $l]
   array set "" [$package_id item_info_from_url $l]
-  ? {expr {$(item_id) == $f1_id && $(stripped_name) eq "f1"}} 1 "\n$test:\n  [array get {}]\n "  
+? {expr {$(item_id) == $f1_id && $(stripped_name) eq "f1"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$f2 pretty_link]
   set test [label "url" "folder under topfolder" $l]
@@ -1371,12 +1371,12 @@ test section "item info from variations of pretty links"
 	   && $(name) eq "file:image.png"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
 
   # download via link
-  set l /XOWIKI-TEST/download/file/link5
-  set test [label "url" "toplevel image download" $l]
-  array set "" [$package_id item_info_from_url $l]
-test hint "found $(item_id) should be $subimagelink_id"
-   ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
-   	   && $(name) eq "file:link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
+  #set l /XOWIKI-TEST/download/file/link5
+  #set test [label "url" "toplevel image download" $l]
+  #array set "" [$package_id item_info_from_url $l]
+  #test hint "<p>found $(item_id) should be $subimagelink_id"
+  # ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
+  # 	   && $(name) eq "file:link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
 
   # tag link
   set l /XOWIKI-TEST/tag/a
