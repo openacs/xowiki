@@ -1795,6 +1795,9 @@ namespace eval ::xowiki::formfield {
   #    skin: kama, v2, office2003
   #    extraPlugins: tcl-list, is converted to comma list for js
   #
+  #    This formfield class is deprecated, use richtext::ckeditor4
+  #    instead.
+  #
   ###########################################################
   Class create richtext::ckeditor -superclass richtext -parameter {
     {editor ckeditor}
@@ -1814,7 +1817,7 @@ namespace eval ::xowiki::formfield {
     {imageSelectorDialog /xowiki/ckeditor-images/}
   }
   richtext::ckeditor set editor_mixin 1
-  richtext::ckeditor instproc initialize {} {
+  richtext::ckeditor instproc -deprecated initialize {} {
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
       inline { error "inline is not supported for ckeditor v3"}
