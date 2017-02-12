@@ -13,7 +13,7 @@
     <version name="5.9.1d19" url="http://openacs.org/repository/download/apm/xowiki-5.9.1d19.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
-        <release-date>2016-09-08</release-date>
+        <release-date>2017-02-13</release-date>
         <vendor url="http://wu.ac.at">WU Vienna</vendor>
         <description format="text/html">&lt;pre&gt;
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
