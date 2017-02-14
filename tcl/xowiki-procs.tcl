@@ -3589,7 +3589,6 @@ namespace eval ::xowiki {
         -actual_query [::xo::cc actual_query]
     $payload set package_id [my set package_id]
     if {[catch {$payload contains $cmd} errorMsg]} {
-
       set errorCode $::errorCode
       if {[ad_exception $errorCode] eq "ad_script_abort"} {
         ad_return_complaint 1 [ns_quotehtml $errorMsg]
