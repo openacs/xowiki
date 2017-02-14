@@ -142,7 +142,7 @@ namespace eval ::xowiki {
             -spec "hidden"
         ::xo::db::CrAttribute create state -default ""
       }
-  
+
   #
   # Create various extra tables, indices and views
   #
@@ -258,7 +258,7 @@ namespace eval ::xowiki {
     # the hkeys.
     nsv_set xowiki must_update_hkeys \
         [expr {[::xo::db::require exists_table xowiki_form_instance_item_index] == 0}]
-    
+
     ::xo::db::require table xowiki_form_instance_item_index {
       item_id             {integer references cr_items(item_id) on delete cascade}
       name                {character varying(400)}
@@ -554,7 +554,7 @@ namespace eval ::xowiki {
       # statement):
       #
       regsub { ::([0-9]+) } $content { \1 } content
-      
+
       #
       # Replace leading occurances of the object name (when e.g. procs
       # are as well exported as separate statements)
@@ -1348,7 +1348,7 @@ namespace eval ::xowiki {
       parent_id = :parent_id, publish_status = :publish_status,
       page_template = :page_template, assignee = :assignee,
       state = :state}
-    
+
     if {$useHstore} {
       set hkey [::xowiki::hstore::dict_as_hkey $instance_attributes]
       append updateVars ", hkey = '$hkey'"
@@ -1360,7 +1360,7 @@ namespace eval ::xowiki {
       set $updateVars
       where item_id = :item_id
     }]]
-    
+
     if {$rows ne "" && $rows < 1} {
       set insertVars {item_id, name, package_id, parent_id, publish_status,
         page_template, assignee, state
@@ -1372,7 +1372,7 @@ namespace eval ::xowiki {
         append insertVars {, hkey}
         append insertValues ", '$hkey'"
       }
-    
+
       ::xo::dc dml insert_xowiki_form_instance_item_index [subst {
         insert into xowiki_form_instance_item_index
         ($insertVars) values ($insertValues)
@@ -1480,7 +1480,7 @@ namespace eval ::xowiki {
     if {$item_id == 0} {
       return [next]
     }
-    
+
     if {![::xotcl::Object isobject $object]} {
       # if the object does not yet exist, we have to create it
       my create $object
@@ -1511,14 +1511,14 @@ namespace eval ::xowiki {
 
   #
   # Define a specialized version of CrItem.set_live_revision updating the item index.
-  #  
+  #
 
   FormPage ad_instproc set_live_revision {-revision_id:required {-publish_status "ready"}} {
     @param revision_id
     @param publish_status one of 'live', 'ready' or 'production'
   } {
     next
-    
+
     # Fetch fresh instance from db so that we have actual values
     # from the live revision for the update of the item_index.
 
@@ -2178,7 +2178,7 @@ namespace eval ::xowiki {
     # we might consider make this configurable
     set use_package_path true
     set is_self_link false
-    
+
     if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
       # we found a language link (it starts with a ':')
       array set "" [$package_id item_ref \
@@ -2187,7 +2187,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         ${lang}:$stripped_name]
       set (link_type) language
-      
+
     } elseif {[regexp {^[.]SELF[.]/(.*)$} $(link) _ (link)]} {
       #
       # Remove ".SELF./" from the path and search for the named
@@ -2202,7 +2202,7 @@ namespace eval ::xowiki {
                         -parent_id [my physical_item_id] \
                         $(link)]
       #my log "SELF-LINK returns [array get {}]"
-      
+
     } else {
       #
       # a plain link, search relative to the parent
@@ -2213,7 +2213,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         $(link)]
     }
-      
+
     #my log "link '$(link)' package_id $package_id [my package_id] => [array get {}]"
 
     if {$label eq $arg} {set label $(link)}
@@ -2294,7 +2294,7 @@ namespace eval ::xowiki {
     #
     return [my item_id]
   }
-  
+
   Page instproc anchor {arg} {
     if {[catch {set l [my create_link $arg]} errorMsg]} {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
@@ -2715,7 +2715,7 @@ namespace eval ::xowiki {
   Page instproc notification_detail_link {} {
     set link [my pretty_link -absolute 1]
     append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [my title]]</a></p>"
-    append text "\nFor more details, see $link ...\n" 
+    append text "\nFor more details, see $link ...\n"
     return [list html $html text $text]
   }
 
@@ -2726,9 +2726,9 @@ namespace eval ::xowiki {
   #
   Page instproc notification_subject {-instance_name {-category_label ""} -state} {
     if {$category_label eq ""} {
-      return "\[$instance_name\]: [my title] ($state)" 
+      return "\[$instance_name\]: [my title] ($state)"
     } else {
-      return "\[$instance_name\] $category_label: [my title] ($state)" 
+      return "\[$instance_name\] $category_label: [my title] ($state)"
     }
   }
 
@@ -2785,7 +2785,7 @@ namespace eval ::xowiki {
     #
     array unset ::_form_field_names
   }
-  
+
   Page instproc form_field_exists {name} {
     return [info exists ::_form_field_names($name)]
   }
@@ -2846,12 +2846,12 @@ namespace eval ::xowiki {
     set components [split $name .]
     set path [lindex $components 0]
     ns_log notice "dynamic repeat field name $name -> components <$components>"
-    
+
     foreach c [lrange $components 1 end] {
       if {[string is integer -strict $c]} {
         # this looks like a repeat component
         ns_log notice "dynamic repeat field root <$path> number $c exists? [info exists ::_form_field_names($path)]"
-        
+
         if {[info exists ::_form_field_names($path)]} {
           #
           # The root field exists, so add the component.
@@ -4578,7 +4578,7 @@ namespace eval ::xowiki {
     ns_log notice "----- rename"
     #ns_log notice [my serialize]
   }
- 
+
   #
   # The method save_data is called typically via www-callable methods
   # and has some similarity to "new_data" and "edit_data" in
