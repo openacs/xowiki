@@ -34,12 +34,12 @@ set prev_mon  [clock scan "1 month ago" -base $now]
 set next_mon  [clock scan "1 month" -base $now]
 
 set date_list [dt_ansi_to_list $date]
-set year      [dt_trim_leading_zeros [lindex $date_list 0]]
-set month     [dt_trim_leading_zeros [lindex $date_list 1]]
-set day       [dt_trim_leading_zeros [lindex $date_list 2]]
+set year      [util::trim_leading_zeros [lindex $date_list 0]]
+set month     [util::trim_leading_zeros [lindex $date_list 1]]
+set day       [util::trim_leading_zeros [lindex $date_list 2]]
 
 set months_list    [dt_month_names]
-set curr_month_idx [expr {[dt_trim_leading_zeros [clock format $now -format "%m"]]-1}]
+set curr_month_idx [expr {[util::trim_leading_zeros [clock format $now -format "%m"]]-1}]
 set curr_month     [lindex $months_list $curr_month_idx ]
 
 set first_day_of_week [lc_get firstdayofweek]
