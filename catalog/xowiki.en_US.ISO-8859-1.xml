@@ -57,7 +57,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
   <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
 &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
-  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is to deep</msg>
+  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is too deep</msg>
   <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
   <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
   <msg key="event">Event</msg>
