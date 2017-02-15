@@ -242,7 +242,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="rss_client">RSS Client</msg>
   <msg key="scoring">Scoring</msg>
-  <msg key="scoring_help_text">Algorithmus für das Bewertungsschema.</msg>
+  <msg key="scoring_help_text">Algorithm for Evaluation Scheme</msg>
   <msg key="search">Search</msg>
   <msg key="search_title">Search pages of this package ...</msg>
   <msg key="second">second</msg>
