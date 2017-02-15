@@ -247,7 +247,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="search_title">Search pages of this package ...</msg>
   <msg key="second">second</msg>
   <msg key="seconds">seconds</msg>
-  <msg key="select_link_target">To create a click, click on a page name </msg>
+  <msg key="select_link_target">To create a link, click on a page name </msg>
   <msg key="Selection">Selection</msg>
   <msg key="shuffle">Shuffle Answers</msg>
   <msg key="shuffle_help_text">Should the order of choices be presented in randomized order?</msg>
