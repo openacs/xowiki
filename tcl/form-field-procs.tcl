@@ -1817,7 +1817,8 @@ namespace eval ::xowiki::formfield {
     {imageSelectorDialog /xowiki/ckeditor-images/}
   }
   richtext::ckeditor set editor_mixin 1
-  richtext::ckeditor instproc -deprecated initialize {} {
+  richtext::ckeditor ad_instproc -deprecated initialize {} {
+  } {
     switch -- [my set displayMode] {
       inplace { my append help_text " #xowiki.ckeip_help#" }
       inline { error "inline is not supported for ckeditor v3"}
