@@ -1471,7 +1471,7 @@ namespace eval ::xowiki {
 
     @return cr item object
   } {
-    ns_log notice "=== fetch_object $item_id"
+    #ns_log notice "=== fetch_object $item_id"
     #
     # We handle here just loading object instances via item_id, since
     # only live_revisions are kept in xowiki_form_instance_item_index.
