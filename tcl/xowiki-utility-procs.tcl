@@ -749,10 +749,11 @@ namespace eval ::xowiki {
     #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
 
     if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
-      ns_log warning "unreasonable request from='$from', to='$to'"
+      ad_log warning "unreasonable request to change page_order from='$from', to='$to'"
       return
     }
-    ns_log notice "--cpo from=$from, to=$to, clean=$clean"
+    
+    #ns_log notice "--cpo from=$from, to=$to, clean=$clean"
     set gap_renames [list]
     #
     # We distinguish two cases:
@@ -760,9 +761,9 @@ namespace eval ::xowiki {
     # - insert from another section: length(to) == length(from)+1
     #
     if {[llength $to] == [llength $from]} {
-      ns_log notice "--cpo reorder"
+      #ns_log notice "--cpo reorder"
     } elseif {[llength $clean] > 1} {
-      ns_log notice "--cpo insert"
+      #ns_log notice "--cpo insert"
       #
       # We have to fill the gap. First, find the newly inserted
       # element in $to.
@@ -797,7 +798,7 @@ namespace eval ::xowiki {
                           -start [lindex $from 0] -from $from -to $to]
     #ns_log notice "--cpo drops l=[llength $drop_renames]"
     foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
-      ns_log notice "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
+      #ns_log notice "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
     }
 
     #
