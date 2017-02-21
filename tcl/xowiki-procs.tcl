@@ -3592,6 +3592,8 @@ namespace eval ::xowiki {
       set errorCode $::errorCode
       if {[ad_exception $errorCode] eq "ad_script_abort"} {
         ad_return_complaint 1 [ns_quotehtml $errorMsg]
+        ns_log notice "xowiki::Object->set_payload aborted"
+        ad_script_abort
       } else {
         ad_log error "xowiki::Object set_payload: $errorMsg ($errorCode) in\n$cmd"
       }
