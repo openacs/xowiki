@@ -1735,7 +1735,7 @@ namespace eval ::xowiki::formfield {
     #ns_log notice "==== [my name] EDITOR specified? [my exists editor]"
     if {![my exists editor]} {
       my set editor [parameter::get_global_value -package_key xowiki \
-                         -parameter PreferredRichtextEditor -default xinha]
+                         -parameter PreferredRichtextEditor -default ckeditor4]
       #my msg "setting default of [my name] to [my set editor]"
     }
     if {![my exists __initialized]} {

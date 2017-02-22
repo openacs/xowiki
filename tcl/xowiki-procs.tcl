@@ -3313,7 +3313,7 @@ namespace eval ::xowiki {
     # We need this acually only for PageTemplate and FormPage, but
     # aliases will require XOTcl 2.0.... so we define it for the time
     # being on ::xowiki::Page
-    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] ne "bootstrap"} {
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] ne "bootstrap"} {
       set name [expr {$margin_form ? "margin-form " : ""}]
     } else {
       set name ""
@@ -3648,7 +3648,7 @@ namespace eval ::xowiki {
     $doc documentElement root
     my dom_disable_input_fields -with_submit $with_submit $root
     set form [lindex [$root selectNodes //form] 0]
-    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] ne "bootstrap"} {
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] ne "bootstrap"} {
       Form add_dom_attribute_value $form class "margin-form"
     }
     return [$root asHTML]

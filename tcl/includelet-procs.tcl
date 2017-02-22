@@ -3940,7 +3940,7 @@ namespace eval ::xowiki::includelet {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] {
+      switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] {
         bootstrap {set renderer BootstrapTableRenderer}
         default   {set renderer YUIDataTableRenderer}
       }

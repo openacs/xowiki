@@ -709,7 +709,7 @@ namespace eval ::xowiki {
   FormPage instproc setCSSDefaults {} {
     #my log setCSSDefaults
     # check empty
-    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] eq "bootstrap"} {
+    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] eq "bootstrap"} {
       ::xowiki::formfield::FormField parameter {
         {CSSclass form-control}
         {form_item_wrapper_CSSclass form-group}

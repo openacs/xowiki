@@ -379,7 +379,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] {
+    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] {
       bootstrap {set menuBarRenderer render-bootstrap}
       default   {set menuBarRenderer render-yui}
     }

@@ -548,7 +548,7 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
     set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete {__csrf_token [::security::csrf::token]}]
     
-    switch [$package_id get_parameter PreferredCSSToolkit yui] {
+    switch [$package_id get_parameter PreferredCSSToolkit bootstrap] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
