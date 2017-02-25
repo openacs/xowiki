@@ -296,7 +296,7 @@ namespace eval ::xowiki {
         entry {
           # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
           if {$kind eq "form_link"} {
-            my log "$me, name 'form_link' is deprecated, use 'entry' instead"
+            ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
           }
           if {[dict exists $properties -form]} {
             set link [$package_id make_form_link \
