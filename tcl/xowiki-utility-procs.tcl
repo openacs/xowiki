@@ -130,7 +130,9 @@ namespace eval ::xowiki::hstore {
     ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {return 0}
+    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {
+      return 0
+    }
 
     set sql {
       select * from xowiki_form_instance_item_view

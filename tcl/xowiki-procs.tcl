@@ -1327,7 +1327,7 @@ namespace eval ::xowiki {
   FormPage instproc hstore_attributes {} {
     # Per default, we save all instance attributes in hstore, but a
     # subclass/object might have different requirements.
-    return [my instance_attributes]
+    return ${:instance_attributes}
   }
 
   #
@@ -1350,10 +1350,9 @@ namespace eval ::xowiki {
       state = :state}
 
     if {$useHstore} {
-      set hkey [::xowiki::hstore::dict_as_hkey $instance_attributes]
+      set hkey [::xowiki::hstore::dict_as_hkey [my hstore_attributes]]
       append updateVars ", hkey = '$hkey'"
     }
-
 
     set rows [xo::dc dml update_xowiki_form_instance_item_index [subst {
       update xowiki_form_instance_item_index
