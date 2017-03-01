@@ -2815,7 +2815,7 @@ namespace eval ::xowiki {
     form_fields
   } {
     my form_field_index $form_fields
-    ns_log notice "lookup_form_field <$name>"
+    #ns_log notice "lookup_form_field <$name>"
 
     set key ::_form_field_names($name)
     if {[info exists $key]} {
