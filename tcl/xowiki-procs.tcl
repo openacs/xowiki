@@ -4108,7 +4108,7 @@ namespace eval ::xowiki {
 
     set list_of_folders [list $folder_id]
     set inherit_folders [FormPage get_super_folders $package_id $folder_id]
-    my log inherit_folders=$inherit_folders
+    #my log inherit_folders=$inherit_folders
 
     foreach item_ref $inherit_folders {
       set folder [::xo::cc cache [list $package_id get_page_from_item_ref $item_ref]]
