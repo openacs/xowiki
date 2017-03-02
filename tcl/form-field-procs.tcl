@@ -918,15 +918,23 @@ namespace eval ::xowiki::formfield {
       # Create a new file
       #
       #my msg "new file"
+      set package_id [[my object] package_id]
       set file_object [::xowiki::File new -destroy_on_cleanup \
                            -title $file_name \
                            -name $object_name \
                            -parent_id $parent_id \
                            -mime_type $content_type \
-                           -package_id [[my object] package_id] \
+                           -package_id $package_id \
                            -creation_user [::xo::cc user_id] ]
       $file_object set import_file $tmpfile
       eval $publish_date_cmd
+      #
+      # When produduction_mode is set, make sure, the new file object
+      # is not in a published state.
+      #
+      if {[$package_id get_parameter production_mode 0]} {
+          $file_object publish_status "production"
+      }      
       $file_object save_new {*}$save_flag
     }
     return $file_object
