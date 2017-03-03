@@ -26,7 +26,7 @@ namespace eval ::xowiki {
       -parameter {
         {autorender false}
         {menubar}
-        {containerClass "container"}
+        {containerClass "container-fluid"}
         {navbarClass "navbar navbar-default navbar-static-top"}
       }
   
