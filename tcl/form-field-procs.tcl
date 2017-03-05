@@ -2568,7 +2568,7 @@ namespace eval ::xowiki::formfield {
     set value [my value]
     foreach o [my options] {
       lassign $o label rep
-      set atts [my get_attributes disabled {CSSclass class}]
+      set atts [my get_attributes disabled]
       if {[my exists forced_name]} {
         set name [my forced_name]
       } {
@@ -2579,9 +2579,11 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      ::html::input $atts {}
-      ::html::label -for $id {
-        html::t "$label  "
+      set label_class ""
+      if {[my horizontal]} {set label_class "radio-inline"}
+      ::html::label -for $id -class $label_class {
+        ::html::input $atts {}
+        ::html::t " $label "
       }
       if {![my horizontal]} {
         html::br

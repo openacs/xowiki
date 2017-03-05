@@ -207,14 +207,17 @@ xowiki.repeat.itemStats = function(item) {
  */
 xowiki.repeat.renameItem = function(top, e, from, to) {
     if (e == undefined) {return;}
-    //console.log('renameItem: work on ' + e.nodeName + ' ' + from + ' ' + to);
     //console.info(e);
     var items = e.children;
+    //console.log('renameItem: work on ' + e.nodeName + ' ' + from + ' ' + to + ' items.length: ' + items.length);
+
     if (items.length == 0 || e.nodeName == 'SELECT') {
         var name = e.name;
+
         if (typeof name != "undefined" && name != "") {
-            //console.log('renameItem: compare ' + name + ' from ' + from);
+            //console.log('renameItem: subitem compare ' + name + ' from ' + from);
             var compareLength = from.length;
+            
             if (name.substring(0,compareLength) == from) {
                 //console.log('renameItem: RENAME ' + name + ' from ' + from);
                 var new_name = to;
@@ -223,6 +226,8 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
                 }
                 e.name = new_name;
                 e.disabled = false;
+                //console.log('remove disable attribute from ' + e.nodeName);
+
                 // we have also to remove the disabled attribute for options of a select field
                 if (e.nodeName == 'SELECT') {
                     $(e).find('option:disabled').each(function() {
@@ -246,7 +251,7 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
 
             }
         }
-    } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET') {
+    } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET' || e.nodeName == 'LABEL') {
         //
         // Check, if there is a data-repeat attribute.
         //
