@@ -878,10 +878,13 @@ namespace eval ::xowiki {
           }
         }
       }
+
+      #ns_log notice "call procsearch www-$method on: [$page_or_package info precedence]"
       if {[$page_or_package procsearch www-$method] eq ""} {
         return [my error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
-        #my msg "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
+
+        #my log "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
 
         if {$batch_mode} {[my id] set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
