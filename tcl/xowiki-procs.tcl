@@ -872,7 +872,7 @@ namespace eval ::xowiki {
         my log "+++ create a new user username=$(username), email=$(email)"
         array set status [auth::create_user -username $(username) -email $(email) \
                               -first_names $(first_names) -last_name $(last_name) \
-                              -screen_name $(screen_name) -url $(url)]
+                              -screen_name $(screen_name) -url $(url) -nologin]
         if {$status(creation_status) eq "ok"} {
           return $status(user_id)
         }
