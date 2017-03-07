@@ -504,6 +504,14 @@ namespace eval ::xowiki::includelet {
     if {$parent eq ".."} {
       set current_folder [$current_folder parent_id]
       ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    } else {
+      set page [$package_id get_page_from_item_ref \
+                    -use_package_path true \
+                    -use_site_wide_pages true \
+                    -use_prototype_pages true \
+                    -parent_id [$current_folder item_id] \
+                    $parent]
+      set current_folder $page
     }
 
     if {![$current_folder istype ::xowiki::FormPage]} {
