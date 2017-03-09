@@ -2244,7 +2244,7 @@ namespace eval ::xowiki {
 
   Page instproc new_link {-object_type -name -title -nls_language -return_url -parent_id page_package_id} {
     if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
-    return [$page_package_id make_link -with_entities 0 $page_package_id \
+    return [$page_package_id make_link $page_package_id \
                 edit-new object_type name title nls_language return_url parent_id autoname]
   }
 
@@ -2255,7 +2255,7 @@ namespace eval ::xowiki {
       set template_id [my page_template]
       if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
       set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
-      return [$page_package_id make_link -with_entities 0 -link $form $template_id \
+      return [$page_package_id make_link -link $form $template_id \
                   create-new return_url name title nls_language]
     }
   }

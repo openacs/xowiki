@@ -825,9 +825,9 @@ namespace eval ::xowiki {
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
       set form_link [$form_id pretty_link]
-      #my msg "$form -> $form_id -> $form_link -> [my make_link -with_entities 0 -link $form_link $form_id \
+      #my msg "$form -> $form_id -> $form_link -> [my make_link -link $form_link $form_id \
           #            create-new return_url title parent_id name nls_language]"
-      return [my make_link -with_entities 0 -link $form_link $form_id \
+      return [my make_link -link $form_link $form_id \
                   create-new return_url title parent_id name nls_language]
     }
   }
