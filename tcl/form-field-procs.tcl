@@ -2179,7 +2179,7 @@ namespace eval ::xowiki::formfield {
 
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
-            \$(id).ckeip(function() { $callback }, {
+            \$('#id').ckeip(function() { $callback }, {
               name: '$name',
               ckeditor_config: {
                 $options,
@@ -2247,7 +2247,7 @@ namespace eval ::xowiki::formfield {
         set callback [my callback]
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
-            \$(id).ckeditor(function() { $callback }, {
+            \$('#$id').ckeditor(function() { $callback }, {
               $options
             });
           }
