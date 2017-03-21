@@ -3085,10 +3085,8 @@ namespace eval ::xowiki {
   File instproc full_file_name {} {
     if {![my exists full_file_name]} {
       if {[my exists item_id]} {
-        my instvar text mime_type package_id item_id revision_id
-        set storage_area_key [::xo::dc get_value get_storage_key \
-                                  "select storage_area_key from cr_items where item_id=:item_id"]
-        my set full_file_name [cr_fs_path $storage_area_key]/$text
+        my set full_file_name [content::revision::get_cr_file_path \
+                                   -revision_id [my set revision_id]]
         #my log "--F setting FILE=[my set full_file_name]"
       }
     }
