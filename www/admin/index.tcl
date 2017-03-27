@@ -31,10 +31,10 @@ TableWidget t1 -volatile \
       Action new -label [_ acs-subsite.Permissions] -url [export_vars -base permissions {package_id}]
     }] \
     -columns {
-      Field object_type -label [_ xowiki.page_type]
-      AnchorField instances -label [_ xowiki.instances] -html {align center}
-      AnchorField edit -CSSclass add-item-button -label [_ xowiki.add] -html {align center}
-      AnchorField delete -CSSclass delete-item-button -label [_ xowiki.delete_all] \
+      Field create object_type -label [_ xowiki.page_type]
+      AnchorField create instances -label [_ xowiki.instances] -html {align center}
+      AnchorField create edit -CSSclass add-item-button -label [_ xowiki.add] -html {align center}
+      AnchorField create delete -CSSclass delete-item-button -label [_ xowiki.delete_all] \
           -html {align center class delete-all}
     }
 
