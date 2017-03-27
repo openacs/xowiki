@@ -3942,7 +3942,7 @@ namespace eval ::xowiki::formfield {
     }
 
     set time_label [my time_label]
-    if {[regexp {^#(.+)#$} $time_label _ msg_key]} {
+    if {[regexp {^#([a-zA-Z0-9_:-]+\.[a-zA-Z0-9_:-]+)#$} $time_label _ msg_key]} {
       set time_label [lang::message::lookup [my locale] $msg_key]
     }
 
