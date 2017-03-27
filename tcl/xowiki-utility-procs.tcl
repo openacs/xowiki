@@ -44,7 +44,7 @@ namespace eval ::xowiki {
         set in_file [ad_tmpnam]
         ::xowiki::write_file $in_file $text
         catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
-        file delete $in_file
+        file delete -- $in_file
         #my msg o=$output
         regexp <body>\n(.*)\n</body> $output _ text
         #my msg o=$text

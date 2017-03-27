@@ -384,7 +384,7 @@ namespace eval ::xowiki {
     file mkdir [my set tmpdir]
   }
   ArchiveFile instproc delete {} {
-    file delete -force [my set tmpdir]
+    file delete -force -- [my set tmpdir]
     next
   }
   ArchiveFile instproc unpack {} {
