@@ -853,6 +853,7 @@ namespace eval ::xowiki {
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
+      ad_log error $errorMsg
       return [my error_msg -template_file $error_template $errorMsg]
     }
     ::xo::cc invoke_object $page_or_package
@@ -1880,7 +1881,7 @@ namespace eval ::xowiki {
       set package_id [$page package_id]
       if {$package_id ne ""} {
         #$form set_resolve_context -package_id $package_id -parent_id $parent_id
-        ::xo::Package require [$package_id]
+        ::xo::Package require $package_id
       }
 
       return $page
