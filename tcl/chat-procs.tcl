@@ -44,7 +44,7 @@ namespace eval ::xowiki {
     #my log "chat_id=$chat_id, path=$path"
     if {$path eq ""} {
       set path [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
-    } elseif {[string range $path end end] ne "/"} {
+    } elseif {[string index $path end] ne "/"} {
       append path /
     }
     
