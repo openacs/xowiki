@@ -3796,7 +3796,7 @@ namespace eval ::xowiki {
       if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
         set rhs_expr [string trim $rhs_expr]
-        if {[string range $lhs 0 0] eq "_"} {
+        if {[string index $lhs 0] eq "_"} {
           #
           # comparison with field names starting with "_"
           #

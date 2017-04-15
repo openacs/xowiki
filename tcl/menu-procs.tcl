@@ -283,7 +283,7 @@ namespace eval ::xowiki {
     foreach me $items {
       array unset ""
       set kind [lindex $me 0]
-      if {[string range $kind 0 0] eq "#"} continue
+      if {[string index $kind 0] eq "#"} continue
       set properties [lrange $me 1 end]
 
       switch $kind {
