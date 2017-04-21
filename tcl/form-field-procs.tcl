@@ -350,7 +350,7 @@ namespace eval ::xowiki::formfield {
     my instvar type
     if {[[my info class] exists abstract]} {
       # had earlier here: [my info class] eq [self class]
-      # Check, wether the actual class is a concrete class (mapped to
+      # Check, whether the actual class is a concrete class (mapped to
       # concrete field type) or an abstact class.  Since
       # config_from_spec can be called multiple times, we want to do
       # the reclassing only once.
@@ -500,7 +500,7 @@ namespace eval ::xowiki::formfield {
                          formnovalidate autofocus]
     #
     # We do not want i18n substitutions in the input fields. So, save
-    # away the orginal value and pass the escaped value to the tdom
+    # away the original value and pass the escaped value to the tdom
     # renderer.
     #
     set old_value [my set value]
@@ -3213,7 +3213,7 @@ namespace eval ::xowiki::formfield {
     set item_id  [$object get_property_from_link_page item_id]
     if {$item_id == 0} {
       # Here, we could call "::xowiki::Link render" to offer the user means
-      # to create the entry like with [[..]], if he has sufficent permissions...;
+      # to create the entry like with [[..]], if he has sufficient permissions...;
       # when $(package_id) is 0, the referenced package could not be
       # resolved
       return "Cannot resolve symbolic link '$v'"
@@ -3746,7 +3746,7 @@ namespace eval ::xowiki::formfield {
 
   date instproc render_input {} {
     #
-    # render the content inline withing a fieldset, without labels etc.
+    # render the content inline within a fieldset, without labels etc.
     #
     my set style "margin: 0px; padding: 0px;"
     html::fieldset [my get_attributes id style] {

@@ -346,7 +346,7 @@ namespace eval ::YUI {
       menubar {
         #
         # We should not have two different versions of the YUI
-        # library on one page, because YUI2 (afaik) doesnt support
+        # library on one page, because YUI2 (afaik) doesn't support
         # "sandboxing". If we use e.g. the yui-hosted utilities.js file here
         # we may end up with two YAHOO object definitions, because e.g.
         # the tree-procs uses the local yahoo-dom-event.

@@ -98,7 +98,7 @@ namespace eval ::xowiki {
       # recursive inclusion is happening. The included content is
       # added to the html output only once, with a unique id, which
       # can be referenced multiple times. The link is included for
-      # each occurance.
+      # each occurrence.
       #
       set item_id [my item_id]
       set targetId [xowiki::Includelet html_id [my item_id]-$target]

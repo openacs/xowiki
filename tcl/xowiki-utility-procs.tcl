@@ -571,7 +571,7 @@ namespace eval ::xowiki {
     #     Next Month
     #     Beyond Next Month
     
-    #     Another possibilty: no ago, but "Today 10:00", "Yesterday 10:00", within a
+    #     Another possibility: not ago, but "Today 10:00", "Yesterday 10:00", within a
     #     week: "Thursday 10:00", older than about 30 days "13 May 2005" and
     #     if anything else (ie. > 7 and < 30 days) it shows date and time "13-Oct 2005 10:00".
     

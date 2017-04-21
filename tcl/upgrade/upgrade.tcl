@@ -224,9 +224,10 @@ namespace eval ::xowiki {
       if {[db_0or1row in_between_version \
                "select 1 from acs_object_types where \
     object_type = '::xowiki::Form' and supertype = '::xowiki::Page'"]} {
-        # we have a version with a type hierarchy not compatible with the new one.
-        # this comes by updating often from head. 
-        # The likelyhood to have such as version is rather low.
+        #
+        # We have a version with a type hierarchy not compatible with
+        # the new one.  This comes by updating often from head.  The
+        # likelihood to have such as version is rather low.
         ns_log notice "Deleting incompatible version of ::xowiki::Form"
         ::xo::db::sql::content_type drop_type -content_type ::xowiki::FormInstance \
             -drop_children_p t -drop_table_p t -drop_objects_p t
@@ -476,7 +477,7 @@ namespace eval ::xowiki {
           ::xowiki::Object get_instance_from_db -item_id $item_id
           set p [$item_id get_payload widget_specs]
           if {$p ne ""} {
-            ns_log notice "Transfering widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
+            ns_log notice "Transferring widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
             parameter::set_value -package_id $package_id -parameter WidgetSpecs -value $p
           }
         } else {

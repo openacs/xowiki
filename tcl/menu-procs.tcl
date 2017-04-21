@@ -5,7 +5,7 @@
   implmentation generic. The original version was developed by Michael
   Aram in his Master Thesis. Over the time it was simplified,
   downstripped and refactored by Gustaf Neumann. The currently
-  prefered interface is the class
+  preferred interface is the class.
 
   @author Michael Aram
   @author Gustaf Neumann

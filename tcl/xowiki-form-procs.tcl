@@ -371,7 +371,7 @@ namespace eval ::xowiki {
     }
     # Delete the link cache entries for this entry.
     # The logic could be made more intelligent to delete entries is more rare cases, like
-    # in case the file was renamed, but this is more bullet-proove.
+    # in case the file was renamed, but this is more bullet-proof.
     #
     # In case "ns_cache names xowiki_cache *pattern*" is not working on your installation;
     #    upgrade ns_cache from cvs or use

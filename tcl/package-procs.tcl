@@ -361,7 +361,7 @@ namespace eval ::xowiki {
         }
         if {0} {
           #
-          # In some older versions, this code was necesary. Keep it
+          # In some older versions, this code was necessary. Keep it
           # inhere as a reference, in case not all relvant cases were
           # covered by the tests
           #
@@ -735,7 +735,7 @@ namespace eval ::xowiki {
   Package ad_instproc make_link {{-with_entities 0} -privilege -link object method args} {
     Creates conditionally a link for use in xowiki. When the generated link 
     will be activated, the specified method of the object will be invoked.
-    make_link checks in advance, wether the actual user has enough 
+    make_link checks in advance, whether the actual user has enough 
     rights to invoke the method. If not, this method returns empty.
     
     @param Object The object to which the link refers to. If it is a package_id it will base \
@@ -1000,7 +1000,7 @@ namespace eval ::xowiki {
     }
 
     if {[string match "//*" $object]} {
-      # we have a reference to another instance, we cant resolve this from this package.
+      # we have a reference to another instance, we can't resolve this from this package.
       # Report back not found
       return ""
     }

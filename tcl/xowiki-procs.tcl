@@ -550,13 +550,13 @@ namespace eval ::xowiki {
       # global namespace. The approach is cruel, but backward compatible
       # and avoids potential name clashes with pre-existing objects.
       #
-      # Replace the first occurance of the object name (in the alloc/create
+      # Replace the first occurrence of the object name (in the alloc/create
       # statement):
       #
       regsub { ::([0-9]+) } $content { \1 } content
 
       #
-      # Replace leading occurances of the object name (when e.g. procs
+      # Replace leading occurrences of the object name (when e.g. procs
       # are as well exported as separate statements)
       #
       regsub -all {\n::([0-9]+) } $content "\n\\1 " content
@@ -1930,7 +1930,7 @@ namespace eval ::xowiki {
                        -user_id [::xo::cc set untrusted_user_id] \
                        $page view]
       if {!$allowed} {
-        return "<div class='errorMsg'>Unsufficient priviledges to view content of [$page name].</div>"
+        return "<div class='errorMsg'>Unsufficient privileges to view content of [$page name].</div>"
       }
     }
     if {[info exists configure]} {
@@ -3822,7 +3822,7 @@ namespace eval ::xowiki {
           }
         } else {
           #
-          # field names refering to instance attributes
+          # Field names referring to instance attributes.
           #
           set hleft [::xowiki::hstore::double_quote $lhs]
           lappend vars $lhs ""

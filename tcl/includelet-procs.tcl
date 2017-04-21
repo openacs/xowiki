@@ -1569,7 +1569,7 @@ namespace eval ::xowiki::includelet {
 
     # the following opens a window, where a user can edit the posted info.
     # however, it seems not possible to add tags this way automatically.
-    # Alternatively, one could use the api as descibed below; this allows
+    # Alternatively, one could use the api as described below; this allows
     # tags, but no editing...
     # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
 
@@ -1608,7 +1608,7 @@ namespace eval ::xowiki::includelet {
 
 
   #
-  # my-references lists the pages which are refering to the 
+  # my-references lists the pages which are referring to the 
   # including page
   #
   ::xowiki::IncludeletClass create my-references \
@@ -1657,7 +1657,7 @@ namespace eval ::xowiki::includelet {
   }
 
   #
-  # my-refers lists the pages which are refered to by the 
+  # my-refers lists the pages which are referred to by the 
   # including page
   #
   ::xowiki::IncludeletClass create my-refers \

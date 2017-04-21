@@ -20,9 +20,8 @@ ad_proc -public ::template::adp_include {
                   [list &book "bookdata" base $base style feed]]
   </pre>
 
-  The [list &book "bookdata" ...] tells adp_include to pass the book array by reference to the adp in
-clude, where it is
-  refered to via @book.field@.
+  The [list &book "bookdata" ...] tells adp_include to pass the book array by
+  reference to the adp include, where it is referred to via @book.field@.
 
   @param uplevel how far up the stack should the adp_level be set to
                  (default is the calling procedures level)

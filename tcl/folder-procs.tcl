@@ -255,7 +255,7 @@ namespace eval ::xowiki::includelet {
         # We do not want to see unneeded parent_ids in the links. When
         # we insert to the root folder, set opt_parent_id to empty to
         # make argument passing easy. "make_link" just checks for the
-        # existance of the variable, so we unset parent_id in this case.
+        # existence of the variable, so we unset parent_id in this case.
         #
         set opt_parent_id ""
         set folder_link [$package_id package_url]
