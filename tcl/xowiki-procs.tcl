@@ -427,7 +427,7 @@ namespace eval ::xowiki {
   # Instead of using the table below, another option would be to use
   # multiple sequences. However, these sequences would have dynamic
   # names, it is not clear, whether there are certain limits on the
-  # number of sequences (in PostgresSQL or Oracle), the database
+  # number of sequences (in PostgreSQL or Oracle), the database
   # dependencies would be larger than in this simple approach.
   #
   ::xo::db::require table xowiki_autonames {
@@ -2393,7 +2393,7 @@ namespace eval ::xowiki {
       set __bufsize 0
     }
     if {$__bufsize > 0 && $__l > $__bufsize} {
-      # we have aolserver 4.5, we can increase the bufsize
+      # we have AOLserver 4.5, we can increase the bufsize
       ns_adp_ctl bufsize [expr {$__l + 1024}]
     }
     set template_code [template::adp_compile -string $content_noquote]

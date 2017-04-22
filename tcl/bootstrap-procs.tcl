@@ -166,7 +166,7 @@ namespace eval ::xowiki {
               for (var i=0, l=files.length; i<l; i++) {
                  // Send the file as multiple single requests and 
                  // not as a single post containing all entries. This
-                 // gives users with older naviservers or aolserver the chance
+                 // gives users with older NaviServers or AOLserver the chance
                  // drop multiple files.
                  uploadFile(files[i], csrf);
                }

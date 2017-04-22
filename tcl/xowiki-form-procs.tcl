@@ -188,7 +188,7 @@ namespace eval ::xowiki {
         || $mime eq "application/force-download"} {
       #
       # ns_guesstype was failing, which should not be the case with
-      # recent versions of naviserver
+      # recent versions of NaviServer
       #
       switch [file extension $fn] {
         .xotcl {set mime text/plain}

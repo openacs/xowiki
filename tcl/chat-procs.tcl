@@ -77,7 +77,7 @@ namespace eval ::xowiki {
       set mode polling
       #
       # Check, whether we have the tcllibthread and a sufficiently new
-      # aolserver/naviserver supporting bgdelivery transfers.
+      # aolserver/NaviServer supporting bgdelivery transfers.
       #
       if {[info commands ::thread::mutex] ne "" &&
           ![catch {ns_conn contentsentlength}]} {

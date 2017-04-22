@@ -451,7 +451,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc booleanAttributes {args} {
     #
     # Special handling of HTML boolean attributes, since they require a
-    # different coding; it would be nice, if tdom would care for this.
+    # different coding; it would be nice, if tDOM would care for this.
     #
     set pairs ""
     foreach att $args {
@@ -500,7 +500,7 @@ namespace eval ::xowiki::formfield {
                          formnovalidate autofocus]
     #
     # We do not want i18n substitutions in the input fields. So, save
-    # away the original value and pass the escaped value to the tdom
+    # away the original value and pass the escaped value to the tDOM
     # renderer.
     #
     set old_value [my set value]
