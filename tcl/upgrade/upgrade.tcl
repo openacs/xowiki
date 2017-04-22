@@ -9,7 +9,7 @@
 namespace eval ::xowiki {
 
   #
-  # For the time being, we keep the __upgrade proc a single tcl
+  # For the time being, we keep the __upgrade proc a single Tcl
   # function. We could split it into separate files like the sql
   # upgrade scripts, but on one hand side, the upgrade snippets are
   # often similar, so it is convenient to reuse the logic from there,

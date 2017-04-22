@@ -120,7 +120,7 @@ namespace eval ::xowiki {
   #  3) All menu entry names should be named after the menu name
   #
   # Notice: the current implementation uses interally dicts. Since the
-  # code should as well work with tcl 8.4 instances, we provide a
+  # code should as well work with Tcl 8.4 instances, we provide a
   # compatibility layer. Maybe it would be better to base the code on
   # an ordered composite. Ideally, the interface should stay mostly
   # compatible.

@@ -1943,7 +1943,7 @@ namespace eval ::xowiki {
       }
       if {[$field nodeName] ne "input"} continue
       #
-      # We handle now only INPUT types, but we have to differntiate
+      # We handle now only INPUT types, but we have to differentiate
       # between different kinds of inputs.
       #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
