@@ -2156,7 +2156,7 @@ namespace eval ::xowiki::formfield {
         imageSelectorDialog: '[my imageSelectorDialog]?parent_id=[[my object] item_id]',
         ready_callback: '$ready_callback2',
         customConfig: '[my customConfig]',
-        textarea_id: '[my set id]'
+        textarea_id: id
       }]
       if {[my allowedContent] ne ""} {
         append options "  , allowedContent: '[my allowedContent]'\n"
@@ -2179,7 +2179,8 @@ namespace eval ::xowiki::formfield {
 
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
-            \$('#id').ckeip(function() { $callback }, {
+            // must use id provided as argument
+            \$('#' + id).ckeip(function() { $callback }, {
               name: '$name',
               ckeditor_config: {
                 $options,
@@ -2247,9 +2248,8 @@ namespace eval ::xowiki::formfield {
         set callback [my callback]
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
-            \$('#$id').ckeditor(function() { $callback }, {
-              $options
-            });
+            // must use id provided as argument
+            \$('#' + id).ckeditor(function() { $callback }, {$options});
           }
         }]
         if {!$is_repeat_template} {

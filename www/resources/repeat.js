@@ -140,13 +140,17 @@ xowiki.repeat.newItem = function(e, json) {
             try {
                 window[functionname](idofeditor);
             } catch(err) {
-                console.log('function: ' + functionname + ' not found, we are trying to use the function of the repeat-template - error:' + err);
-                var functionname = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
-                console.log('reloading ckeditor functionname: ' + functionname);
+                // The named function does not exist. Try to call the
+                // function of the template element (in repeated items
+                // on position 0) and pass the actual id as argument.
+                console.log('function: ' + functionname +
+                            ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionnameTemplate = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionnameTemplate);
                 try {
-                    window[functionname](idofeditor);
+                    window[functionnameTemplate](idofeditor);
                 } catch(err) {
-                    console.log('function: ' + functionname + ' not found (repeat-template) ,  error:' + err);
+                    console.log('function: ' + functionnameTemplate + ' not found (repeat-template) ,  error:' + err);
                 }
             }
         }
@@ -467,13 +471,14 @@ xowiki.repeat.delItem = function(e, json) {
             try {
                 window[functionname](idofeditor);
             } catch(err) {
-                console.log('function: ' + functionname + ' not found, we are trying to use the function of the repeat-template - error:' + err);
-                var functionname = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
-                console.log('reloading ckeditor functionname: ' + functionname);
+                console.log('function: ' + functionname +
+                            ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionnameTemplate = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionnameTemplate);
                 try {
-                    window[functionname](idofeditor);
+                    window[functionnameTemplate](idofeditor);
                 } catch(err) {
-                    console.log('function: ' + functionname + ' not found (repeat-template) ,  error:' + err);
+                    console.log('function: ' + functionnameTemplate + ' not found (repeat-template) ,  error:' + err);
                 }
             }
         }
