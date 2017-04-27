@@ -2924,10 +2924,13 @@ namespace eval ::xowiki {
   Page instproc translate {-from -to text} {
     set langpair $from|$to
     set ie UTF8
-    set r [xo::HttpRequest new -url http://translate.google.com/#$from/$to/$text]
+    set url http://translate.google.com/#$from/$to/$text
+    set request [util::http::get -url $url]
+    set status [dict get $request status]
+    set data [expr {[dict exists $request page] ? [dict get $request page] : ""}]
+
     #my msg status=[$r set status]
-    if {[$r set status] eq "finished"} {
-      set data [$r set data]
+    if {$status == 200} {
       #my msg data=$data
       dom parse -simple -html $data doc
       $doc documentElement root
@@ -2936,7 +2939,7 @@ namespace eval ::xowiki {
       if {$n ne ""} {return [$n asText]}
     }
     util_user_message -message "Could not translate text, \
-        status=[$r set status]"
+        status=$status"
     return "untranslated: $text"
   }
 

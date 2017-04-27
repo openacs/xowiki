@@ -3166,8 +3166,8 @@ namespace eval ::xowiki::formfield {
       set img [read $f]
       close $f
     } elseif {[catch {
-      set r [::xo::HttpRequest new -url $value -volatile]
-      set img [$r set data]
+      set request [util::http::get -url $value]
+      set img [expr {[dict exists $request page] ? [dict get $request page] : ""}]
     } errorMsg]} {
       # cannot transfer image
       my log "--img cannot tranfer image '$value' ($errorMsg)"
