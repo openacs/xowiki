@@ -1835,8 +1835,8 @@ namespace eval ::xowiki {
           }
           #my log "--save of $p class [$p info class]"
           $p save
-          set page $p
         }
+        set page $p
       }
       if {$page ne ""} {
         # we want to be able to address the page via the canonical name ::$item_id
