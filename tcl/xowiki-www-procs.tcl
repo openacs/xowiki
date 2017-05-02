@@ -252,7 +252,7 @@ namespace eval ::xowiki {
 
     set form_redirect [my form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
-      set form_redirect [export_vars -base [$f pretty_link] \
+      set form_redirect [export_vars -no_base_encode -base [$f pretty_link] \
                              [list [list m $view_method] return_url template_file title detail_link text]]
     }
     $package_id returnredirect $form_redirect
