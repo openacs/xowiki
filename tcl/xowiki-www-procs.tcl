@@ -1040,7 +1040,7 @@ namespace eval ::xowiki {
         }
       }
       set m [my form_parameter __form_redirect_method "edit"]
-      set url [export_vars -base [my action_url] {m return_url}]
+      set url [export_vars -no_base_encode -base [my action_url] {m return_url}]
       #my log "=== setting action <$url> for form-action my-name [my name]"
       $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
