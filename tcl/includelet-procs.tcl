@@ -4026,7 +4026,7 @@ namespace eval ::xowiki::includelet {
       set page_link [$p pretty_link]
 
       if {[info exists wf]} {
-        set view_link [export_vars -base $wf_link {{m create-or-use} {p.form "[$p name]"}}]
+        set view_link [export_vars -no_base_encode -base $wf_link {{m create-or-use} {p.form "[$p name]"}}]
       } else {
         set view_link $page_link
       }

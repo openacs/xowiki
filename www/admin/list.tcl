@@ -134,7 +134,7 @@ xo::dc foreach instance_select \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
               -edit "" \
-              -edit.href [export_vars -base $page_link {{m edit} return_url}] \
+              -edit.href [export_vars -no_base_encode -base $page_link {{m edit} return_url}] \
               -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \

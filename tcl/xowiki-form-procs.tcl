@@ -698,7 +698,7 @@ namespace eval ::xowiki {
       set return_url [$data query_parameter return_url]
     }
     set link [$data pretty_link]
-    my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
+    my submit_link [export_vars -no_base_encode -base $link {{m edit} page_template return_url item_id}]
     # my log "-- submit_link = [my submit_link]"
   }
 
@@ -736,7 +736,7 @@ namespace eval ::xowiki {
     set item_id [next]
 
     set link [$data pretty_link]
-    my submit_link [export_vars -base $link {{m edit} $__vars}]
+    my submit_link [export_vars -no_base_encode -base $link {{m edit} $__vars}]
     # my log "-- submit_link = [my submit_link]"
     return $item_id
   }
