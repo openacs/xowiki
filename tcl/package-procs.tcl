@@ -290,7 +290,19 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc folder_path {{-parent_id ""} {-context_url ""} {-folder_ids ""}} {
+  Package ad_instproc folder_path {
+    {-parent_id ""}
+    {-context_url ""}
+    {-folder_ids ""}
+    {-path_encode:boolean true}
+  } {
+
+    Constuct a folder path from a hierachy of xowiki objects. It is
+    designed to work with linked objects, respecting logical and
+    physical parent IDs. The result is URL encoded, unless path_encode
+    is set to false.
+    
+  } {
     #
     # handle different parent_ids
     #
@@ -375,9 +387,13 @@ namespace eval ::xowiki {
           }
         }
       }
-      
+
+      set name [$fo name]
+      if {$path_encode} {
+        set name [ad_urlencode_path $name]
+      }
       # prepend always the actual folder name
-      set path [ad_urlencode_path [$fo name]]/$path
+      set path $name/$path
       
       if {[my folder_id] == [$fo parent_id]} {
         #my msg ".... my folder_id [my folder_id] == $fo parentid"
@@ -422,11 +438,14 @@ namespace eval ::xowiki {
     {-download false} 
     {-context_url ""}
     {-folder_ids ""}
+    {-path_encode:boolean true}
     name 
   } {
+    
     Generate a (minimal) link to a wiki page with the specified name.
-    Pratically all links in the xowiki systems are generated through this
-    function. 
+    Pratically all links in the xowiki systems are generated through
+    this function. The function returns the URL path urlencoded,
+    unless path_encode is set to false.
 
     @param anchor anchor to be added to the link
     @param absolute make an absolute link (including protocol and host)
@@ -452,7 +471,11 @@ namespace eval ::xowiki {
       set package_prefix [my package_url]
     }
     #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
-    set encoded_name [ad_urlencode_path $name]
+    if {$path_encode} {
+      set encoded_name [ad_urlencode_path $name]
+    } else {
+      set encoded_name $name
+    }
 
     if {$parent_id eq -100} {
       # In case, we have a cr-toplevel entry, we assume, we can
@@ -465,7 +488,7 @@ namespace eval ::xowiki {
         ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id [my folder_id]
       }
-      set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids]
+      set folder [my folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
       set pkg [$parent_id package_id]
       if {![my isobject ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true

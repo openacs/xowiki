@@ -4,13 +4,15 @@ set package_id        [::xo::cc package_id]
 set parent_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
-if {(![info exists base_url] || $base_url eq "")} {
-  if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
-  set base_url [$package_id pretty_link -parent_id $parent_id $page]
+if {![info exists base_url] || $base_url eq ""} {
+  if {![info exists page]} {
+    set page [$package_id get_parameter weblog_page]
+  }
+  set base_url [$package_id pretty_link -parent_id $parent_id -path_encode false $page]
 }
 
 set date [ns_queryget date]
-if {(![info exists date] || $date eq "")} {
+if {$date eq ""} {
   set date [dt_sysdate]
 } 
 
@@ -84,13 +86,13 @@ if {$prev_mon < [clock scan $earliest_date]} {
   set prev_month_url ""
 } else {
   set prev_month     [clock format $prev_mon -format "%Y-%m-%d"]
-  set prev_month_url [export_vars -no_base_encode -base $base_url {{date $prev_month} page_num summary}]
+  set prev_month_url [export_vars -base $base_url {{date $prev_month} page_num summary}]
 }
 if {$next_mon > [clock scan $latest_date]} {
   set next_month_url ""
 } else {
   set next_month     [clock format $next_mon -format "%Y-%m-%d"]
-  set next_month_url [export_vars -no_base_encode -base $base_url {{date $next_month} page_num summary}]
+  set next_month_url [export_vars -base $base_url {{date $next_month} page_num summary}]
 }
 
 
@@ -154,7 +156,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   } else {
     set class inactive
   }
-  set url [export_vars -no_base_encode -base $base_url {{date $ansi_date} summary}]
+  set url [export_vars -base $base_url {{date $ansi_date} summary}]
   
   set id minicalendar-$ansi_date
   if {$count ne ""} {
@@ -179,7 +181,7 @@ if {$js ne ""} {
 
 
 set sysdate [dt_sysdate]
-set today_url [export_vars -no_base_encode -base $base_url {{date $sysdate} page_num}]
+set today_url [export_vars -base $base_url {{date $sysdate} page_num}]
 if {$sysdate eq $date} {
   set today_p t
 } else {

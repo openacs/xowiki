@@ -123,6 +123,9 @@ xo::dc foreach instance_select \
             ::xo::Package initialize -package_id $package_id -keep_cc true
           }
           set page_link [::$package_id pretty_link -parent_id $parent_id $name]
+          set edit_link [::$package_id pretty_link -parent_id $parent_id \
+                             -query [export_vars {{m edit} return_url}] \
+                             $name]
           set name [::$package_id external_name -parent_id $parent_id $name]
 
 	  ::template::t1 add \
@@ -134,11 +137,11 @@ xo::dc foreach instance_select \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
               -edit "" \
-              -edit.href [export_vars -no_base_encode -base $page_link {{m edit} return_url}] \
+              -edit.href $edit_link \
               -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \
-              -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}] \
+              -delete.href [export_vars -base [$package_id package_url] {{delete 1} item_id name return_url}] \
               -delete.title #xowiki.delete# 
 
           if {$::individual_permissions} {

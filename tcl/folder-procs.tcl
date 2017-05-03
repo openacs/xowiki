@@ -615,6 +615,7 @@ namespace eval ::xowiki::includelet {
                          -parent_id $logical_folder_id \
                          -context_url $url \
                          -folder_ids $folder_ids \
+                         -path_encode false \
                          $name]
       array set icon [$c render_icon]
       
@@ -623,27 +624,20 @@ namespace eval ::xowiki::includelet {
         set prettyName $name
       }
 
-      #set delete_link [export_vars -base  [$package_id package_url] \
-          #              [list {delete 1} \
-          #               [list item_id [$c item_id]] \
-          #               [list name [$c pretty_link]] return_url]]
-      
-      set delete_link [export_vars -no_base_encode -base $page_link {{m delete} return_url}]
-      
       $t add \
           -ID [$c name] \
           -name $prettyName \
-          -name.href [export_vars -no_base_encode -base $page_link {template_file html-content}] \
+          -name.href [export_vars -base $page_link {template_file html-content}] \
           -name.title [$c set title] \
           -object_type $icon(text) \
           -object_type.richtext $icon(is_richtext) \
           -last_modified [$c set last_modified] \
           -edit "" \
-          -edit.href [export_vars -no_base_encode -base $page_link {{m edit} return_url}] \
+          -edit.href [export_vars -base $page_link {{m edit} return_url}] \
           -edit.title #xowiki.edit# \
           -mod_user [::xo::get_user_name [$c set creation_user]] \
           -delete "" \
-          -delete.href $delete_link \
+          -delete.href [export_vars $page_link {{m delete} return_url}] \
           -delete.title #xowiki.delete#
 
       if {$::__xowiki_with_publish_status} {

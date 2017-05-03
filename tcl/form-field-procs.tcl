@@ -1137,7 +1137,7 @@ namespace eval ::xowiki::formfield {
       #
       if {[my cleanup]} {
         set return_url [$package_id query_parameter "return_url" [$parent_id pretty_link]]
-        $package_id returnredirect [export_vars -no_base_encode -base [$object pretty_link] [list {m delete} return_url]]
+        $package_id returnredirect [$object pretty_link -query [export_vars {m delete} return_url]]
       }
     }
   }
