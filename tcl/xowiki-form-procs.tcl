@@ -697,7 +697,7 @@ namespace eval ::xowiki {
     if {[$data exists_query_parameter return_url]} {
       set return_url [$data query_parameter return_url]
     }
-    set submit_link [$data pretty_link -query [export_vars {
+    my submit_link [$data pretty_link -query [export_vars {
       {m edit} page_template return_url item_id
     }]]
     # my log "-- submit_link = [my submit_link]"
