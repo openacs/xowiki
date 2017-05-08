@@ -19,7 +19,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 
   #ns_log notice "--sc ::xowiki::datasource $page [$page set publish_status]"
 
-  if {[$page set publish_status] in {production expired} {
+  if {[$page set publish_status] in {production expired}} {
     # no data source for for pages under construction
     #ns_log notice "--sc page under construction, no datasource"
     return [list object_id $revision_id title "" \
