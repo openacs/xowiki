@@ -171,7 +171,8 @@ namespace eval ::xowiki {
     $form instvar data
     $form get_uploaded_file
     set data [$form set data]
-    if {[virus check [$data set import_file]]} {
+    if {[$data exists import_file] &&
+        [virus check [$data set import_file]]} {
       util_user_message -message "uploaded file contains a virus; upload rejected"
       return 0
     }
