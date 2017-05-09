@@ -637,7 +637,7 @@ namespace eval ::xowiki::includelet {
           -edit.title #xowiki.edit# \
           -mod_user [::xo::get_user_name [$c set creation_user]] \
           -delete "" \
-          -delete.href [export_vars $page_link {{m delete} return_url}] \
+          -delete.href [export_vars -base $page_link {{m delete} return_url}] \
           -delete.title #xowiki.delete#
 
       if {$::__xowiki_with_publish_status} {
