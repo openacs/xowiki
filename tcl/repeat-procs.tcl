@@ -109,7 +109,7 @@ namespace eval ::xowiki::formfield {
       set max [my max]
     } else {
       #set max [my max]
-      set max 1 ;# use dynamic repeat fields: if set to 1, repeat fields will be created on demand
+      set max [my min] ;# use dynamic repeat fields: if set to min, repeat fields will be created on demand
     }
     #ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
     for {set i 1} {$i <= $max} {incr i} {

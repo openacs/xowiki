@@ -169,14 +169,7 @@ xowiki.repeat.newItem = function(e, json) {
         e.style.display = 'none';
     }
 
-    // for repeat=0..1 it is not necessary to register the events again
-    if (data.min == 0 && divs.length == 2 && last == 1) {
-        // do not register a second time for repeat=0..1
-    } else {
-        this.registerAddDeleteAction(divs[last]);
-    }
-
-
+    this.registerAddDeleteAction(divs[last]);
 };
 
 
