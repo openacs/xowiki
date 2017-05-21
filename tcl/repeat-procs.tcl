@@ -67,6 +67,7 @@ namespace eval ::xowiki::formfield {
       # don't propagate "repeat" and "label" properties
       if { [string match "repeat=*" $s] || [string match "label=*" $s] } continue
       if { "required" eq $s} {set is_required true; continue}
+      if { "disabled" eq $s} {my set_disabled true}
       lappend result $s
     }
     return [list $is_required [join $result ,]]
@@ -293,6 +294,16 @@ namespace eval ::xowiki::formfield {
     }
     append html "</ol>\n"
     return $html
+  }
+
+  repeatContainer instproc value_if_nothing_is_returned_from_form {default} {
+    # Here we have to distinguish between two cases to:
+    # - edit mode: somebody has removed a mark from a check button;
+    #   this means: clear the field
+    # - view mode: the fields were deactivted (made insensitive);
+    #   this means: keep the old value
+
+    if {[my exists disabled]} {return $default} else {return ""}
   }
 
   Class create repeattest -superclass CompoundField
