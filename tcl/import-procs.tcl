@@ -355,7 +355,8 @@ namespace eval ::xowiki {
     
     foreach item_id $item_ids {
       ns_log notice "--exporting $item_id [$item_id name]"
-      ns_write "# exporting $item_id [$item_id name] [$item_id pretty_link]\n"
+      set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
+      ns_write "# exporting $item_id [$item_id name] $pretty_link\n"
       if {[catch {set obj [$item_id marshall]} errorMsg]} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
       } else {
