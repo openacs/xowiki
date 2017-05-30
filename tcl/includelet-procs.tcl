@@ -3838,23 +3838,18 @@ namespace eval ::xowiki::includelet {
     }
     #my log fc=$form_constraints
 
-    # 
-    # The internal variables (instance attributes, etc) are prefixed
-    # with an underscore. Therefore, we prefix here "orderby" as
-    # well. For the provided table properties, prefixing happens in
-    # the loop below.
-    #
-    set orderby _$orderby
-
     # load table properties; order_by won't work due to comma, but solve that later (TODO)
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
                               -name @table_properties \
                               -form_constraints $form_constraints]
     foreach {attr value} $table_properties {
+      # All labels of the following switch statement are used
+      # as variable names. Take care when adding new labels not to
+      # overwrite existing variables.
       switch $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         buttons - publish_status - category_id - unless -
-        where -   with_categories - with_form_link - csv - view_field - 
+        where -   with_categories - with_form_link - csv - view_field -
         voting_form - voting_form_form - voting_form_anon_instances {
           set $attr $value
           #my msg " set $attr $value"
@@ -3955,11 +3950,24 @@ namespace eval ::xowiki::includelet {
     # instance attributes can be used for sorting as well.
     #
     lassign [split $orderby ,] att order
-    if {$att eq "__page_order"} {
-      t1 mixin add ::xo::OrderedComposite::IndexCompare
+    set sortable 1
+    if {$att ni $field_names} {
+      if {[ns_conn isconnected]} {
+        set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+        if {[string match "*bingbot*" $user_agent] || [string match "*turnitin*" $user_agent]} {
+          # search engines like bingbot might still have old buggy pages in their indices;
+          # don't generate errors on non existing attributes starting with "__*"
+          set sortable 0
+        }
+      }
     }
-    #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-    t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+    if {$sortable} {
+      if {$att eq "_page_order"} {
+        t1 mixin add ::xo::OrderedComposite::IndexCompare
+      }
+      #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] _$att"
+      t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] _$att
+    }
 
     # 
     # Compute filter clauses
