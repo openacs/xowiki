@@ -784,6 +784,7 @@ namespace eval ::xowiki::includelet {
               where c.object_id in ([join $items ,])
               and c.object_id = ci.item_id and 
               and r.revision_id = ci.live_revision 
+              and ci.publish_status <> 'production'
            "
         }
       } else {
