@@ -192,7 +192,7 @@ namespace eval ::xowiki {
             xhr.addEventListener("load", function () {
               uploadFileRunning--;
               if (uploadFileRunning < 1) {
-                window.location = window.location;
+                location.reload(true);
               }
             }, false);
             xhr.open("post", url, true);
@@ -289,7 +289,7 @@ namespace eval ::xowiki {
             type: "POST",
             url: $(form).attr('action'),
             data: $(form).serialize(),
-            success: function(msg) { window.location = window.location; },
+            success: function(msg) { location.reload(true); },
             error: function(){alert("failure");}
           });
         };
