@@ -2723,26 +2723,33 @@ namespace eval ::xowiki {
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
-      create-or-use      {{parent_id create}}
+      create-or-use      login
+      list               admin
+      show-object        swa
     }
 
     Class create Object -array set require_permission {
       edit               swa
     }
     Class create File -array set require_permission {
-      download           {{package_id read}}
+      download           {{item_id read}}
     }
     Class create Form -array set require_permission {
       view              admin
       edit              admin
       list              {{item_id read}}
     }
-    #     Class create FormPage -array set require_permission {
-    #       view              {
-    #         {{is_true {_creation_user = @current_user@}} item_id read}
-    #         swa
-    #       }
-    #     }
+    Class create FormPage -array set require_permission {
+      view               {
+        {{in_state initial|answered} creator}
+        {{in_state initial|answered} admin}
+        login
+      }
+      edit               {
+        {{in_state initial|suspended|working} creator} admin
+      }
+      list               admin
+    }
   }
 
   #Policy policy4 -contains {
