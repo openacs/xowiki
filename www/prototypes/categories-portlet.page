@@ -38,7 +38,7 @@
                       -names $tree_name -output {tree_id tree_name}]
 
     foreach tree $tree_ids {
-      foreach {tree_id my_tree_name ...} $tree {break}
+      lassign $tree tree_id my_tree_name
       if {!$no_tree_name} {
         append content "<h3>$my_tree_name</h3>"
       }
@@ -46,7 +46,7 @@
       set pos 0
       set cattree(0) [::xowiki::Tree new -volatile -orderby pos -name $my_tree_name]
       foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
-        foreach {cid category_label deprecated_p level} $category_info {break}
+        lassign $category_info cid category_label deprecated_p level
         set c [::xowiki::TreeNode new -orderby pos -category_id $cid -package_id $package_id \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
@@ -57,7 +57,10 @@
         #set itemobj [Object new -set name en:index -set title MyTitle -set prefix "" -set suffix ""]
         #$cattree(0) add_to_category -category $c -itemobj $itemobj -orderby title
       }
-      
+
+      # skip trees without categories, as nothing will be mapped to them
+      if {[llength $categories] == 0} continue
+
       set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
 		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
 		and ci.content_type not in ('::xowiki::PageTemplate') \
