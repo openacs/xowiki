@@ -139,7 +139,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Clipboard-Copy">Copy</msg>
   <msg key="menu-Clipboard-Use-Copy">Copy</msg>
   <msg key="menu-Clipboard-Use-Export">Export</msg>
-  <msg key="menu-New">File</msg>
+  <msg key="menu-New">New</msg>
   <msg key="menu-New-File">File</msg>
   <msg key="menu-New-Folder">Folder</msg>
   <msg key="menu-New-Form">New Form</msg>
