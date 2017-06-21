@@ -1420,7 +1420,7 @@ namespace eval ::xowiki {
       
       set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
       $mb add_menu -name Package -label [$context_package_id instance_name]
-      $mb add_menu -name New
+      $mb add_menu -name New -label [_ xowiki.menu-New]
       $mb add_menu -name Clipboard -label $clipboard_label
       $mb add_menu -name Page -label [_ xowiki.menu-Page]
       $mb add_menu_item -name Package.Startpage \

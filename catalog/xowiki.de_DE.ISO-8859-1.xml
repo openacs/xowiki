@@ -136,6 +136,7 @@
   <msg key="menu-Clipboard-Copy">Kopieren</msg>
   <msg key="menu-Clipboard-Use-Copy">Kopieren</msg>
   <msg key="menu-Clipboard-Use-Export">Export</msg>
+  <msg key="menu-New">Neu</msg>
   <msg key="menu-New-File">Datei</msg>
   <msg key="menu-New-Folder">Ordner</msg>
   <msg key="menu-New-Form">Neues Formular</msg>
@@ -147,7 +148,7 @@
   <msg key="menu-Package-Notifications">Notifizierungen</msg>
   <msg key="menu-Package-Startpage">Startseite</msg>
   <msg key="menu-Package-Subscribe">Abonnieren</msg>
-  <msg key="menu-Page">Wiki-Seite</msg>
+  <msg key="menu-Page">Diese Seite</msg>
   <msg key="menu-Page-Delete">Seite löschen</msg>
   <msg key="menu-Page-Edit">Seite bearbeiten</msg>
   <msg key="menu-Page-Revisions">Revisionen</msg>
