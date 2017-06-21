@@ -388,6 +388,7 @@ namespace eval ::xowiki::includelet {
                   -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
                   -object $top_folder_of_tree \
                   -expanded 1 \
+                  -orderby label \
                   -open_requests 1 \
                   -destroy_on_cleanup]
     $t add $node
