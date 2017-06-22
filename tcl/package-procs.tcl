@@ -2599,7 +2599,7 @@ namespace eval ::xowiki {
       revisions          {{package_id write}}
       diff               {{package_id write}}
       edit               {
-        {{regexp {name {(weblog|index)$}}} package_id admin} 
+        {{regexp {name {(:weblog|:index)$}}} package_id admin} 
         {package_id write}
       }
       save-attributes    {{package_id write}}
@@ -2746,7 +2746,7 @@ namespace eval ::xowiki {
         login
       }
       edit               {
-        {{in_state initial|suspended|working} creator} admin
+        {{in_state initial|answered|suspended|working|done} creator} admin
       }
       list               admin
     }
