@@ -298,21 +298,15 @@ namespace eval ::xowiki::includelet {
 
       set index_link [$package_id make_link -link $folder_link $current_folder list]
 
-      $mb add_menu_item -name Package.Startpage \
-          -item [list label #xowiki.index# url $index_link]
+      $mb add_menu_item -name Package.Startpage -item [list url $index_link]
 
-      $mb add_menu_item -name New.Page \
-          -item [list label #xowiki.new# url $new_page_link]
-      $mb add_menu_item -name New.File \
-          -item [list label File url $new_file_link]
-      $mb add_menu_item -name New.Folder \
-          -item [list label Folder url $new_folder_link]
+      $mb add_menu_item -name New.Page   -item [list url $new_page_link]
+      $mb add_menu_item -name New.File   -item [list url $new_file_link]
+      $mb add_menu_item -name New.Folder -item [list url $new_folder_link]
       if {$with_links} {
-        $mb add_menu_item -name New.SymLink    \
-            -item [list label SymLink url $new_sym_link]
+        $mb add_menu_item -name New.SymLink -item [list url $new_sym_link]
       }
-      $mb add_menu_item -name New.Form \
-          -item [list label Form url $new_form_link]
+      $mb add_menu_item -name New.Form -item [list url $new_form_link]
 
       $mb add_menu_item -name Package.ImportDump -item [list url $import_link]
       $mb add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
