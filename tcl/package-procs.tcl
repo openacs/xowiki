@@ -2755,6 +2755,7 @@ namespace eval ::xowiki {
       clipboard-content  admin
       clipboard-copy     admin
       clipboard-export   admin
+      file-upload        admin
     }
   }
 
