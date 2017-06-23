@@ -2743,7 +2743,7 @@ namespace eval ::xowiki {
       view               {
         {{in_state initial|answered} creator}
         {{in_state initial|answered} admin}
-        {{item_id read}}
+        {item_id read}
       }
       edit               {
         {{in_state initial|answered|suspended|working|done} creator}
