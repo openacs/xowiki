@@ -151,6 +151,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Package-Notifications">Notifications</msg>
   <msg key="menu-Package-Startpage">Startpage</msg>
   <msg key="menu-Package-Subscribe">Subscribe</msg>
+  <msg key="menu-Package-Toc">Table of Contents</msg>
   <msg key="menu-Page">This Page</msg>
   <msg key="menu-Page-Delete">Delete Page</msg>
   <msg key="menu-Page-Edit">Edit Page</msg>

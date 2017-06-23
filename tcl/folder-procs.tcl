@@ -296,9 +296,11 @@ namespace eval ::xowiki::includelet {
       set import_archive_link [$package_id make_form_link -form en:import-archive.form \
                                    -parent_id $opt_parent_id]
 
+
       set index_link [$package_id make_link -link $folder_link $current_folder list]
 
-      $mb add_menu_item -name Package.Startpage -item [list url $index_link]
+      $mb add_menu_item -name Package.Startpage -item [list url $folder_link]
+      $mb add_menu_item -name Package.Toc -item [list url $index_link]
 
       $mb add_menu_item -name New.Page   -item [list url $new_page_link]
       $mb add_menu_item -name New.File   -item [list url $new_file_link]
