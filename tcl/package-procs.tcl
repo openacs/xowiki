@@ -2750,6 +2750,11 @@ namespace eval ::xowiki {
         admin
       }
       list               admin
+      clipboard-add      admin
+      clipboard-clear    admin
+      clipboard-content  admin
+      clipboard-copy     admin
+      clipboard-export   admin
     }
   }
 
