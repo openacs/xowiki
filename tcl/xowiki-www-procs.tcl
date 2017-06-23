@@ -1387,6 +1387,7 @@ namespace eval ::xowiki {
     
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
+    set toc_link  [$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
     set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
     set page_show_link [$page_package_id make_link -privilege admin [self] show-object return_url]
 
@@ -1423,8 +1424,9 @@ namespace eval ::xowiki {
       $mb add_menu -name New -label [_ xowiki.menu-New]
       $mb add_menu -name Clipboard -label $clipboard_label
       $mb add_menu -name Page -label [_ xowiki.menu-Page]
-      $mb add_menu_item -name Package.Startpage \
-          -item [list text #xowiki.index# url $index_link]
+      $mb add_menu_item -name Package.Startpage -item [list $index_link]
+      $mb add_menu_item -name Package.Toc -item [list url $toc_link]
+      
       $mb add_menu_item -name Package.Subscribe \
           -item [list text #xowiki.subscribe# url $notification_subscribe_link]
       $mb add_menu_item -name Package.Notifications \
