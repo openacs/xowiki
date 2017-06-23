@@ -4097,6 +4097,7 @@ namespace eval ::xowiki {
                                   {-publish_status ready}
                                   {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
                                   {-extra_where_clause true}
+                                  {-include_child_folders none}
                                   {-initialize true}
                                 } {
 
@@ -4119,7 +4120,23 @@ namespace eval ::xowiki {
         lappend list_of_folders [$folder item_id]
       }
     }
-
+    
+    if {$include_child_folders eq "direct"} {
+      #
+      # Get all children of the current folder on the first level and
+      # append it to the list_of_folders.
+      #
+      set folder_form [$folder page_template]
+      set child_folders [xo::dc list get_child_folders {
+        select item_id from xowiki_form_instance_item_index
+        where parent_id = :folder_id and page_template = :folder_form
+      }]
+      foreach f $child_folders {
+        ::xo::db::CrClass get_instance_from_db -item_id $f
+      }
+      lappend list_of_folders {*}$child_folders
+    }
+    
     $result set folder_ids $list_of_folders
 
     foreach folder_id $list_of_folders {
