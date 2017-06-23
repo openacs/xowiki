@@ -1424,7 +1424,7 @@ namespace eval ::xowiki {
       $mb add_menu -name New -label [_ xowiki.menu-New]
       $mb add_menu -name Clipboard -label $clipboard_label
       $mb add_menu -name Page -label [_ xowiki.menu-Page]
-      $mb add_menu_item -name Package.Startpage -item [list $index_link]
+      $mb add_menu_item -name Package.Startpage -item [list url $index_link]
       $mb add_menu_item -name Package.Toc -item [list url $toc_link]
       
       $mb add_menu_item -name Package.Subscribe \
