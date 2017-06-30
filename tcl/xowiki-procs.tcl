@@ -2385,7 +2385,7 @@ namespace eval ::xowiki {
     #my log "--adp before adp_eval '[template::adp_level]'"
     #
     # The adp buffer has limited size. For large pages, it might happen
-    # that the buffer overflows. In Aolserver 4.5, we can increase the
+    # that the buffer overflows. In AOLserver 4.5, we can increase the
     # buffer size. In 4.0.10, we are out of luck.
     #
     set __l [string length $content]

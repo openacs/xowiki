@@ -833,7 +833,7 @@ namespace eval ::xowiki {
   # between the various parts of the url (via parameter "-part
   # ..."). The problem occurs, when the url path is decoded according
   # to the RFC rules, which happens actually in the C implementation
-  # within [ns_conn url] in NaviServer. Naviserver performs the
+  # within [ns_conn url] in NaviServer. NaviServer performs the
   # RFC-compliant handling of "+" in the "path" segment of the url,
   # namely no interpretation.
   #
