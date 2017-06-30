@@ -297,7 +297,7 @@ namespace eval ::xowiki {
     {-path_encode:boolean true}
   } {
 
-    Constuct a folder path from a hierachy of xowiki objects. It is
+    Constuct a folder path from a hierarchy of xowiki objects. It is
     designed to work with linked objects, respecting logical and
     physical parent IDs. The result is URL encoded, unless path_encode
     is set to false.
