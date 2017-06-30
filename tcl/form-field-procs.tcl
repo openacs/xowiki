@@ -2624,12 +2624,23 @@ namespace eval ::xowiki::formfield {
     foreach o [my options] {
       lassign $o label rep
       set id [my id]:$rep
-      set atts [my get_attributes disabled {CSSclass class}]
+      set atts [my get_attributes disabled]
       lappend atts id $id name [my name] type checkbox value $rep
       if {$rep in $value} {lappend atts checked checked}
-      ::html::input $atts {}
-      ::html::label -for $id {html::t "$label  "}
-      if {![my horizontal]} {html::br}
+
+      set label_class ""
+      if {[my horizontal]} {set label_class "checkbox-inline"}
+      ::html::label -for $id -class $label_class {
+        ::html::input $atts {}
+        ::html::t " $label "
+      }
+      if {![my horizontal]} {
+        html::br
+      }
+      
+      #::html::input $atts {}
+      #::html::label -for $id {html::t "$label  "}
+      #if {![my horizontal]} {html::br}
     }
   }
 
