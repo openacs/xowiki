@@ -3965,8 +3965,8 @@ namespace eval ::xowiki::includelet {
       if {$att eq "_page_order"} {
         t1 mixin add ::xo::OrderedComposite::IndexCompare
       }
-      #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] _$att"
-      t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] _$att
+      #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
+      t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
     }
 
     # 
