@@ -1522,8 +1522,7 @@ namespace eval ::xowiki::formfield {
       if {[my with_photo]} {
         set portrait_id [acs_user::get_portrait_id -user_id $v]
         if {$portrait_id == 0} {
-          package require md5
-          set md5 [string tolower [md5::Hex [md5::md5 -- $user(email)]]]
+          set md5 [ns_md5 $user(email)]
           set src http://www.gravatar.com/avatar/$md5?size=[my photo_size]&d=mm
         } else {
           set src "/shared/portrait-bits.tcl?user_id=$v"
