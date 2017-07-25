@@ -1,4 +1,4 @@
-# -*- tcl -*-
+# -*- Tcl -*-
 # $Id$
 ::xowiki::Object new -title "Bibliography Includelet" -text {
   #

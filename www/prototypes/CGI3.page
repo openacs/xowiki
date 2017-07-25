@@ -19,7 +19,7 @@
   # as long as no absolute class or object names are used (no leading colons)
   #
   
-  Class CGI
+  Class create CGI
   CGI instproc content {} {
     my get_parameters
 

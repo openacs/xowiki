@@ -5,7 +5,7 @@
   # The classes and objects here are all local to the object, 
   # as long as no absolute class or object names are used (no leading colons)
   #
-  Class CGI
+  Class create CGI
   CGI instproc content {} {
     set somevar 100
     return "Hello \[\[Wiki\]\]-World. It is now \
