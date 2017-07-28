@@ -134,6 +134,7 @@
   <msg key="menu-Clipboard-Copy">Copia</msg>
   <msg key="menu-Clipboard-Use-Copy">Copia</msg>
   <msg key="menu-Clipboard-Use-Export">Esporta</msg>
+  <msg key="menu-New">Nuovo</msg>
   <msg key="menu-New-File">File</msg>
   <msg key="menu-New-Folder">Cartella</msg>
   <msg key="menu-New-Form">Nuova Form</msg>
@@ -145,6 +146,7 @@
   <msg key="menu-Package-Notifications">Notifiche</msg>
   <msg key="menu-Package-Startpage">Pagina Iniziale</msg>
   <msg key="menu-Package-Subscribe">Iscriviti</msg>
+  <msg key="menu-Package-Toc">Indice</msg>
   <msg key="menu-Page">Pagina</msg>
   <msg key="menu-Page-Delete">Elimina Pagina</msg>
   <msg key="menu-Page-Edit">Edita Pagina</msg>
