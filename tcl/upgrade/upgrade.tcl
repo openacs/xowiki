@@ -698,8 +698,26 @@ namespace eval ::xowiki {
       foreach package_id [::xowiki::Package instances -closure true] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # reload updated prototype pages
-        $package_id import-prototype-page categories-portlet
+        $package_id www-import-prototype-page categories-portlet        
       }
+
+      # This ON DELETE CASCADE was missed in the old good days and
+      # instances born with xowiki < 0.56 won't have it. Check if we
+      # still have the old name and in case recreate anew with proper
+      # ON DELETE behavior. We don't do it in every case because could
+      # be costly.
+      if {[::xo::dc 0or1row constraint_exists {
+        SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+        WHERE CONSTRAINT_NAME ='xowiki_page_instance_npage_template_fkey'
+        AND TABLE_NAME = 'xowiki_page_instance'}]} {
+        ::xo::dc transaction {
+          ::xo::dc dml drop_constraint \
+              "alter table xowiki_page_instance drop constraint xowiki_page_instance_npage_template_fkey"
+          ::xo::dc dml recreate_constraint \
+              "alter table xowiki_page_instance add constraint xowiki_page_instance_page_template_fkey foreign key (page_template) references cr_items(item_id) on delete cascade"
+        }
+      }
+
     }
 
   }
