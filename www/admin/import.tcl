@@ -47,8 +47,7 @@ ad_form \
         set preexists($o) 1
       }
       if {[catch {namespace eval ::xo::import $content} errorMsg]} {
-        set msg "Error: $errorMsg\n$::errorInfo"
-	ns_log notice $msg
+	ad_log error $errorMsg
 	# cleanup all objects, that did not exist before
         foreach o [::xowiki::Page allinstances] {
 	  if {![info exists preexists($o)]} {
@@ -82,3 +81,9 @@ set return_url [ns_queryget return_url ../]
 set title [_ xowiki.import_title]
 set context .
 ad_return_template
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -1,14 +1,11 @@
-<html style="width: 400px; height: 260px">
-<head>
-  <title>#acs-templating.HTMLArea_InsertImageTitle#</title>
-
-  <script type="text/javascript" 
-	  src="/resources/acs-templating/xinha-nightly/popups/popup.js">
-  </script>
-
-<script type="text/javascript">
+<master src="/www/blank-master">
+  <property name="doc(title)">#acs-templating.HTMLArea_InsertImageTitle#</property>
+  
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
+  
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 	var selector_window;
-	window.resizeTo(440, 150);
+	window.resizeTo(400, 500);
 	
 	function Init() {
 	  __dlg_init();
@@ -132,7 +129,7 @@
 
 </head>
 
-<body onload="Init()">
+<body id="body">
 
 <div class="title">#acs-templating.HTMLArea_InsertImageTitle#</div>
 
@@ -143,8 +140,8 @@
 	  <tbody>
 	  <tr>
 	    <td width="1%" style="text-align: right" nowrap>#acs-templating.HTMLArea_ImageURL#</td>
-	    <td width="99%"><input type="text" onChange="ChangeImageSrc();" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
-	    <button name="preview" onclick="return onPreview();" title="Preview the image in a new window">Preview</button>
+	    <td width="99%"><input type="text" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
+	    <button id="preview_button" name="preview" title="Preview the image in a new window">Preview</button>
 	    </td>
 	  </tr>
 	  <tr>
@@ -154,7 +151,7 @@
 	  <tr> 
 	    <td  colspan="2" style="text-align: right; padding:3px;">
 	    	<if @fs_found@ eq 1>
-	    		<button type="button" onClick="openImageSelector();">#acs-templating.HTMLArea_OpenFileStorage#</button>
+	    		<button id="image_selector_button" type="button">#acs-templating.HTMLArea_OpenFileStorage#</button>
 	    	</if>
 	    	<else>
 	    		<span style="margin-top:2px; margin-bottom:2px; border:2px outset #FFFFFF;padding-top:1px;padding-bottom:1px;padding-right:6px;padding-left:6px;color:GrayText;cursor:default;" title="#acs-templating.HTMLArea_FileStorageNotFoundToolTip#">#acs-templating.HTMLArea_OpenFileStorage#</span> 
@@ -209,13 +206,6 @@
 			</td>
 		</tr>
 	</table>
-<!--
-<div style="margin-top: 15px; text-align: right;">
-<hr />
-<button type="button" name="ok" onclick="return onOK();">OK</button>
-<button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
-</div>
--->
 
 <table width="100%" style="margin-bottom: 0.2em">
  <tr>
@@ -224,12 +214,9 @@
     <iframe name="ipreview" id="ipreview" frameborder="0" style="border : 1px solid gray;" height="200" width="300" src="./blank.html"></iframe>
   </td>
   <td valign="bottom" style="text-align: right">
-    <button type="button" name="ok" onclick="return onOK();">OK</button><br/>
-    <button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
+    <button id="ok_button" type="button" name="ok">OK</button><br/>
+    <button id="cancel_button" type="button" name="cancel">#acs-templating.HTMLArea_action_cancel#</button>
   </td>
  </tr>
 </table>
 </form>
-
-</body>
-</html>

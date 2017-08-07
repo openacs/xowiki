@@ -20,7 +20,7 @@ namespace eval ::xowiki {
         {f.page_order "="}
         {f.title "="}
         {f.creator "="}
-        {f.text "= richtext,editor=xinha"}
+        {f.text "= richtext"}
         {f.description "="}
         {f.nls_language "="}
         {validate {
@@ -171,7 +171,8 @@ namespace eval ::xowiki {
     $form instvar data
     $form get_uploaded_file
     set data [$form set data]
-    if {[virus check [$data set import_file]]} {
+    if {[$data exists import_file] &&
+        [virus check [$data set import_file]]} {
       util_user_message -message "uploaded file contains a virus; upload rejected"
       return 0
     }
@@ -186,13 +187,16 @@ namespace eval ::xowiki {
     if {$mime eq "*/*" 
         || $mime eq "application/octet-stream" 
         || $mime eq "application/force-download"} {
-      # ns_guesstype was failing
+      #
+      # ns_guesstype was failing, which should not be the case with
+      # recent versions of NaviServer
+      #
       switch [file extension $fn] {
         .xotcl {set mime text/plain}
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
         .flv {set mime video/x-flv}
-        .swf {set mime application/x-shockwave-flash}
+        .swf {set mime application/vnd.adobe.flash-movie}
         .pdf {set mime application/pdf}
         .wmv {set mime video/x-ms-wmv}
         .class - .jar  {set mime application/java}
@@ -257,7 +261,10 @@ namespace eval ::xowiki {
       $data name $name
       set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
     }
-    set name [::$package_id normalize_name $name]
+    if {$name ne ""} {
+      set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
+      set name [::$package_id normalize_name -with_prefix $prefixed_page_p $name]
+    }
 
     #$data msg "validate: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
@@ -365,7 +372,7 @@ namespace eval ::xowiki {
     }
     # Delete the link cache entries for this entry.
     # The logic could be made more intelligent to delete entries is more rare cases, like
-    # in case the file was renamed, but this is more bullet-proove.
+    # in case the file was renamed, but this is more bullet-proof.
     #
     # In case "ns_cache names xowiki_cache *pattern*" is not working on your installation;
     #    upgrade ns_cache from cvs or use
@@ -691,8 +698,9 @@ namespace eval ::xowiki {
     if {[$data exists_query_parameter return_url]} {
       set return_url [$data query_parameter return_url]
     }
-    set link [$data pretty_link]
-    my submit_link [export_vars -base $link {{m edit} page_template return_url item_id}]
+    my submit_link [$data pretty_link -query [export_vars {
+      {m edit} page_template return_url item_id
+    }]]
     # my log "-- submit_link = [my submit_link]"
   }
 
@@ -730,7 +738,7 @@ namespace eval ::xowiki {
     set item_id [next]
 
     set link [$data pretty_link]
-    my submit_link [export_vars -base $link {{m edit} $__vars}]
+    my submit_link [export_vars -no_base_encode -base $link {{m edit} $__vars}]
     # my log "-- submit_link = [my submit_link]"
     return $item_id
   }
@@ -837,8 +845,8 @@ namespace eval ::xowiki {
       -parameter {
         {field_list {item_id name page_order title creator text form form_constraints 
           anon_instances description nls_language}}
-        {f.text "= richtext,height=150px,label=#xowiki.Form-template#"}
-        {f.form "= richtext,height=150px"}
+        {f.text "= richtext,height=150px,editor=xinha,label=#xowiki.Form-template#"}
+        {f.form "= richtext,height=150px,editor=xinha"}
         {f.form_constraints "="}
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \

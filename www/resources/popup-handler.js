@@ -7,7 +7,7 @@ var ol_captionfontclass="overlibCapfont";
 var ol_closefontclass="overlibClosefont";
 
 var PopupHandler = {
- popupTitle  	: "Definiton",
+ popupTitle  	: "Definition",
  popupWidth	: 250,
  init		: function (url, title, width) {
     if (title) {this.title = title;} else {this.title = this.popupTitle;};

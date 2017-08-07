@@ -5,10 +5,10 @@ ad_page_contract {
   @creation-date Jan 31, 2006
   @cvs-id $Id$
 } -query {
-  m
-  id
+  m:word
+  id:integer
   s
-  msg:optional
+  msg:optional,allhtml
   {mode ""}
 }
 
@@ -49,3 +49,9 @@ body {$style}
 $_
 </body>
 </HTML>"
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

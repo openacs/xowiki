@@ -66,7 +66,7 @@ YAHOO.xo_form_field_validate = {
              // (301 or 302) in the asyncrequest. Since we know valid
              // results (just the "OK"), everything else must be a
              // redirect. We could be brutal and display the returned
-             // page, but not sure, if this would be desireable either.
+             // page, but not sure, if this would be desirable either.
              if (o.status == 200 && o.getResponseHeader["Content-Length"] > 10) {
                // there must have happened a redirect
                console.info(o);

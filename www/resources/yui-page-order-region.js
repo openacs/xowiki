@@ -69,7 +69,7 @@ YAHOO.xo_page_order_region.DDApp = {
            // Keep as well the source regions
            this.source_region[iid] = regions[i];
          }
-         // finally, remeber the level and store the original order
+         // Finally, remember the level and store the original order.
          this.level[regions[i].id] = this.cd[iid].split(/[.]/g).length;
          this.cd[regions[i].id] = order;
          //console.log("initial region: " + regions[i].id + " => " + order);
@@ -125,7 +125,7 @@ YAHOO.xo_page_order_region.DDApp = {
              // (301 or 302) in the asyncrequest. Since we know valid
              // results (just the "OK"), everything else must be a
              // redirect. We could be brutal and display the returned
-             // page, but not sure, if this would be desireable either.
+             // page, but not sure, if this would be desirable either.
              if (o.getResponseHeader["Content-Length"] > 10) {
                // there must have happened a redirect
                alert("Refresh your login and redo update");

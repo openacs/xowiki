@@ -355,7 +355,8 @@ namespace eval ::xowiki {
     
     foreach item_id $item_ids {
       ns_log notice "--exporting $item_id [$item_id name]"
-      ns_write "# exporting $item_id [$item_id name] [$item_id pretty_link]\n"
+      set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
+      ns_write "# exporting $item_id [$item_id name] $pretty_link\n"
       if {[catch {set obj [$item_id marshall]} errorMsg]} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
       } else {
@@ -384,7 +385,7 @@ namespace eval ::xowiki {
     file mkdir [my set tmpdir]
   }
   ArchiveFile instproc delete {} {
-    file delete -force [my set tmpdir]
+    file delete -force -- [my set tmpdir]
     next
   }
   ArchiveFile instproc unpack {} {
@@ -471,7 +472,7 @@ namespace eval ::xowiki {
                                   -creation_user [::xo::cc user_id] \
                                   -parent_id $parent_id \
                                   -package_id $package_id \
-                                  -instance_attributes [list image $file_name]]
+                                  -instance_attributes [list image [list name $file_name]]]
             $photo_object title $file_name
             $photo_object publish_status "ready"
             $photo_object save_new ;# to obtain item_id needed by the form-field

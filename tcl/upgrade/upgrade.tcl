@@ -9,7 +9,7 @@
 namespace eval ::xowiki {
 
   #
-  # For the time being, we keep the __upgrade proc a single tcl
+  # For the time being, we keep the __upgrade proc a single Tcl
   # function. We could split it into separate files like the sql
   # upgrade scripts, but on one hand side, the upgrade snippets are
   # often similar, so it is convenient to reuse the logic from there,
@@ -224,9 +224,10 @@ namespace eval ::xowiki {
       if {[db_0or1row in_between_version \
                "select 1 from acs_object_types where \
     object_type = '::xowiki::Form' and supertype = '::xowiki::Page'"]} {
-        # we have a version with a type hierarchy not compatible with the new one.
-        # this comes by updating often from head. 
-        # The likelyhood to have such as version is rather low.
+        #
+        # We have a version with a type hierarchy not compatible with
+        # the new one.  This comes by updating often from head.  The
+        # likelihood to have such as version is rather low.
         ns_log notice "Deleting incompatible version of ::xowiki::Form"
         ::xo::db::sql::content_type drop_type -content_type ::xowiki::FormInstance \
             -drop_children_p t -drop_table_p t -drop_objects_p t
@@ -311,7 +312,7 @@ namespace eval ::xowiki {
         $package_id import-prototype-page categories-portlet
       }
       # perform the upgrate of 0.62 for the s5 package as well
-      if {[info command ::s5::Package] ne ""} {
+      if {[info commands ::s5::Package] ne ""} {
         foreach package_id [::s5::Package instances] {
           ::s5::Package initialize -package_id $package_id -init_url false
           # rename swf:name and image:name to file:name
@@ -424,7 +425,7 @@ namespace eval ::xowiki {
       } {
         if {[file exists $dir/$file]} {
           ns_log notice "Deleting obsolete file $dir/$file"
-          file delete $dir/$file
+          file delete -- $dir/$file
         }
       }
     }
@@ -476,7 +477,7 @@ namespace eval ::xowiki {
           ::xowiki::Object get_instance_from_db -item_id $item_id
           set p [$item_id get_payload widget_specs]
           if {$p ne ""} {
-            ns_log notice "Transfering widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
+            ns_log notice "Transferring widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
             parameter::set_value -package_id $package_id -parameter WidgetSpecs -value $p
           }
         } else {
@@ -601,7 +602,7 @@ namespace eval ::xowiki {
       ::xo::dc dml drop-view "drop view xowiki_form_instance_item_view"
 
       ::xo::db::require view xowiki_form_instance_item_view [subst {
-      SELECT
+        SELECT
         xi.package_id, xi.parent_id, xi.name,
         $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
         o.object_id, o.object_type, o.title AS object_title, o.context_id,
@@ -615,7 +616,7 @@ namespace eval ::xowiki {
         xowiki_page.page_id,
         xowiki_page.page_order,
         xowiki_page.creator
-      FROM
+        FROM
         xowiki_form_instance_item_index xi
         left join cr_items ci on (ci.item_id = xi.item_id)
         left join cr_revisions cr on (cr.revision_id = ci.live_revision)
@@ -657,9 +658,70 @@ namespace eval ::xowiki {
       }
     }
 
-    
+    set v 5.9.1d1
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      
+      foreach package_id [::xowiki::Package instances -closure true] {
+        ns_log notice "::xowiki::Package initialize -package_id $package_id -init_url false"
+        if {[catch {
+          ::xowiki::Package initialize -package_id $package_id -init_url false
+        } errorMsg]} {
+          ns_log notice "Could not initialize package '$package_id': $errorMsg"
+          continue
+        }
+        ns_log notice "update prototype page"
+        # reload updated prototype pages. If new "www"-prefix does not work yet,
+        # try old format
+        if {[catch {$package_id www-import-prototype-page sitemapindex.xml}]} {
+          $package_id import-prototype-page sitemapindex.xml
+        }
+      }
+    }
+
+    set v 5.9.1d4
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      # There are still instances having old constraint names. The updated
+      # version of the refresh-function cares about these relicts.
+      ::xowiki::refresh_id_column_fk_constraints
+    }
+
+    set v 5.9.1b10
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      foreach package_id [::xowiki::Package instances -closure true] {
+        ::xowiki::Package initialize -package_id $package_id -init_url false
+        # reload updated prototype pages
+        $package_id www-import-prototype-page categories-portlet        
+      }
+
+      # This ON DELETE CASCADE was missed in the old good days and
+      # instances born with xowiki < 0.56 won't have it. Check if we
+      # still have the old name and in case recreate anew with proper
+      # ON DELETE behavior. We don't do it in every case because could
+      # be costly.
+      if {[::xo::dc 0or1row constraint_exists {
+        SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+        WHERE CONSTRAINT_NAME ='xowiki_page_instance_npage_template_fkey'
+        AND TABLE_NAME = 'xowiki_page_instance'}]} {
+        ::xo::dc transaction {
+          ::xo::dc dml drop_constraint \
+              "alter table xowiki_page_instance drop constraint xowiki_page_instance_npage_template_fkey"
+          ::xo::dc dml recreate_constraint \
+              "alter table xowiki_page_instance add constraint xowiki_page_instance_page_template_fkey foreign key (page_template) references cr_items(item_id) on delete cascade"
+        }
+      }
+
+    }
+
   }
-  
+    
 }
 
 #

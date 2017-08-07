@@ -35,7 +35,7 @@ if {$page eq ""} {
     select 1 from portal_element_map
     where page_id     = :portal_page_id 
     and   pretty_name = :page_title
-  } -default 0]} {
+  } 0]} {
     #
     # The name of the portal element is not unique.
     #
@@ -65,3 +65,9 @@ if {$page eq ""} {
 }
 ad_script_abort
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

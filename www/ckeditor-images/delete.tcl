@@ -11,3 +11,8 @@ set item_id [content::revision::item_id -revision_id $revision]
 
 
 ad_returnredirect thumb-view?parent_id=$parent_id
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

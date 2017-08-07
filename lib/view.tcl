@@ -19,7 +19,7 @@ if {[info exists url]} {
 }
 
 set html [::$package_id invoke -method $m]
-set ::xowiki_head [::xo::Page header_stuff]
+#set ::xowiki_head [::xo::Page header_stuff]
 
 if {![info exists css]} {
     set fn [get_server_root]/packages/xowiki/www/resources/xowiki.css
@@ -28,3 +28,9 @@ if {![info exists css]} {
     set html $css$html
 }
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

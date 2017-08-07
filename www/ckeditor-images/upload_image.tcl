@@ -29,7 +29,7 @@ ad_form -name upload_form \
       set tmp_size [file size $upload_tmpfile]
 
       if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
-      if {![regexp (image/*|audio/mpeg|application/x-shockwave-flash|video/mp4) $mime_type]} {
+      if {![regexp (image/*|audio/mpeg|application/x-shockwave-flash|application/vnd.adobe.flash-movie|video/mp4) $mime_type]} {
         #template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
         break
       }    
@@ -55,3 +55,9 @@ ad_form -name upload_form \
       set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=$parent_id';"
     }
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

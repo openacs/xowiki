@@ -32,9 +32,12 @@ TableWidget t1 -volatile \
       if {[[my info parent] set show_heritage]} {
         Field inherited -label ""
       }
-      AnchorField name -label [_ xowiki.Page-name] -html {onclick "onOK(this)"}
+      AnchorField name -label [_ xowiki.Page-name] -CSSclass "ok-handler"
       Field title -label [::xowiki::Page::slot::title set pretty_name]
     }
+
+template::add_event_listener -CSSclass "ok-handler" -script {onOK(this);}
+template::add_event_listener -id "body" -event "load" -script {Init();}
 
 foreach entry [$listing children] {
   $entry instvar name parent_id title formatted_date page_id 
@@ -57,3 +60,9 @@ foreach entry [$listing children] {
 }
 
 set t1 [t1 asHTML]
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -1,10 +1,8 @@
-<html>
-<head>
-  <title>#acs-templating.HTMLArea_InsertWikiLink#</title>
+<master src="/www/blank-master">
+  <property name="doc(title)">#acs-templating.HTMLArea_InsertWikiLink#</property>
+
   <link rel="stylesheet" href="/resources/acs-templating/lists.css" type="text/css" media="all">
-  <script type="text/javascript" 
-          src="/resources/acs-templating/xinha-nightly/popups/popup.js">
-  </script>
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
 
 <style type="text/css">
   .list-table td.list {
@@ -27,9 +25,8 @@ table {
 }
 	</style>
 	
-
-<script type="text/javascript">
-  window.resizeTo(500, 200);
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
+  window.resizeTo(400, 230);
 
 HTMLArea = window.opener.HTMLArea;
 
@@ -39,8 +36,9 @@ function Init() {
 }
 
 function onOK(caller) {
-    // Note, that this code assumes, that onOK() was clicked on a TD
-    // with an included A, which contains the "name" of the page...
+    // Note, that this code assumes, that onOK() was clicked on a A
+    // included in a TD, which contains the "name" of the page...
+    var caller = caller.parentNode;
     var anchor = caller.firstChild;
     var name = anchor.firstChild.nodeValue;
     var label = document.getElementById('label').value;
@@ -55,16 +53,14 @@ function onOK(caller) {
 }
 </script>
 
-<body onload="Init()">
+<body id="body">
   <div class="title">#acs-templating.HTMLArea_InsertWikiLink#</div>
   <div style="padding-left:10px;padding-right:10px;">
-<p>#xowiki.select_link_target#</p>
+    <p>#xowiki.select_link_target#</p>
     <if @back_link@><a href="@back_link@">previous</a></if>
     @t1;noquote@
     <if @next_link@><a href="@next_link@">next</a></if>
     </br>
     Label: <input id="label" type="text"/>
   </div>
-</body>
-</html>
   

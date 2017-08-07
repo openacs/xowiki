@@ -12,7 +12,7 @@
 
 set context [list]
 set pretty_plural [$object_type set pretty_plural]
-set title #xowiki.admin_all_title#
+set title [_ xowiki.admin_all_title]
 
 set object_types [$object_type object_types]
 set return_url   [ns_conn url]
@@ -31,12 +31,24 @@ TableWidget t1 -volatile \
       Action new -label [_ acs-subsite.Permissions] -url [export_vars -base permissions {package_id}]
     }] \
     -columns {
-      Field object_type -label [_ xowiki.page_type]
-      AnchorField instances -label [_ xowiki.instances] -html {align center}
-      AnchorField edit -CSSclass add-item-button -label [_ xowiki.add] -html {align center}
-      AnchorField delete -CSSclass delete-item-button -label [_ xowiki.delete_all] \
-          -html {align center onClick "return(confirm('#xowiki.delete_all_confirm#'));"}
+      Field create object_type -label [_ xowiki.page_type]
+      AnchorField create instances -label [_ xowiki.instances] -html {align center}
+      AnchorField create edit -CSSclass add-item-button -label [_ xowiki.add] -html {align center}
+      AnchorField create delete -CSSclass delete-item-button -label [_ xowiki.delete_all] \
+          -html {align center class delete-all}
     }
+
+template::add_body_script -script [subst {
+  var confirmIt = function (e) {
+    if (!confirm('[_ xowiki.delete_all_confirm]')) e.preventDefault();
+  };
+  var el = document.getElementsByTagName('td');
+  for (i = 0; i < el.length; i++) {
+    if (el\[i\].className == 'delete-all') {
+      el\[i\].addEventListener('click', confirmIt, false);
+    }
+  };
+}]
 
 set base [::$package_id package_url]
 foreach object_type $object_types {
@@ -68,3 +80,9 @@ foreach object_type $object_types {
 
 set t1 [t1 asHTML]
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

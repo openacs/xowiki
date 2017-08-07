@@ -20,7 +20,7 @@ function getData(data) {
     p.appendChild(span);
       
     span = document.createElement('span');
-    span.innerHTML = decodeURI(unescape(data.messages[i].msg));
+    span.innerHTML = data.messages[i].msg;
     span.className = 'message';
     p.appendChild(span);
     
@@ -32,13 +32,13 @@ function getData(data) {
 function chatSendMsg() {
   var msg = document.getElementById('chatMsg').value;
   if (msg == '') { return; }
-  http_send.open('GET', send_url + encodeURIComponent(escape(msg)), true);
+  http_send.open('GET', send_url + encodeURIComponent(msg), true);
   http_send.onreadystatechange = function() {
-    if (http_send.readyState == 4) {
-      if (http_send.status != 200) {
-	alert('Something wrong in HTTP request, status code = ' + http_send.status);
-      }
+  if (http_send.readyState == 4) {
+    if (http_send.status != 200) {
+      alert('Something wrong in HTTP request, status code = ' + http_send.status);
     }
+  }
   };
   http_send.send(null);
   document.getElementById('chatMsg').value = '';

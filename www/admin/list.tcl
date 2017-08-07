@@ -67,25 +67,28 @@ TableWidget create t1 -volatile \
       }
       AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
       if {$::individual_permissions} {
-        ImageAnchorField permissions -src /resources/xowiki/permissions.png -width 16 \
+        ImageAnchorField create permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
             -alt permsissions -label "" -html {style "padding: 2px;"}
       }
       if {$::with_publish_status} {
-	ImageAnchorField publish_status -orderby publish_status.src -src "" \
+	ImageAnchorField create publish_status -orderby publish_status.src -src "" \
 	    -width 8 -height 8 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
       }
-      Field syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
-      AnchorField page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
-      AnchorField name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
-      AnchorField title -label [_ xowiki.Page-title] -orderby title
-      Field object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
-      Field size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
-      Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
-      Field mod_user -label [_ xowiki.By_user] -orderby mod_user
-      AnchorField delete -CSSclass delete-item-button -label "" ;#-html {onClick "return(confirm('#xowiki.delete_confirm#'));"}
+      Field create syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
+      AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
+      AnchorField create name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
+      AnchorField create title -label [_ xowiki.Page-title] -orderby title
+      Field create object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
+      Field create size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
+      Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
+      Field create mod_user -label [_ xowiki.By_user] -orderby mod_user
+      AnchorField create delete -CSSclass delete-item-button -label ""
     }
+#    -renderer BootstrapTableRenderer
+
+
 
 lassign [split $orderby ,] att order
 t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
@@ -113,7 +116,16 @@ xo::dc foreach instance_select \
          -select_attributes $attributes \
          -orderby ci.name \
         ] {
+          if {[info commands ::$package_id] eq ""} {
+            # Safety belt for cases, where the instance_select_query
+            # brings in instances belonging to other packages.
+            ns_log notice "admin/list: have to initialize package $package_id"
+            ::xo::Package initialize -package_id $package_id -keep_cc true
+          }
           set page_link [::$package_id pretty_link -parent_id $parent_id $name]
+          set edit_link [::$package_id pretty_link -parent_id $parent_id \
+                             -query [export_vars {{m edit} return_url}] \
+                             $name]
           set name [::$package_id external_name -parent_id $parent_id $name]
 
 	  ::template::t1 add \
@@ -125,11 +137,11 @@ xo::dc foreach instance_select \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
               -edit "" \
-              -edit.href [export_vars -base $page_link {{m edit} return_url}] \
+              -edit.href $edit_link \
               -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \
-              -delete.href [export_vars -base  [$package_id package_url] {{delete 1} item_id name return_url}] \
+              -delete.href [export_vars -base [$package_id package_url] {{delete 1} item_id name return_url}] \
               -delete.title #xowiki.delete# 
 
           if {$::individual_permissions} {
@@ -153,6 +165,14 @@ xo::dc foreach instance_select \
 	  [::template::t1 last_child] set page_order $page_order
         }
 
+
+#ns_log notice "t1 renderer [t1 renderer] [t1 procsearch render]"
 set t1 [t1 asHTML]
 # db_foreach clobbers title, so re-establish it
 set title $page_title
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

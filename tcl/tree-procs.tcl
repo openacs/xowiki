@@ -76,7 +76,7 @@ namespace eval ::xowiki {
     set content [$renderer render [self]]
     TreeNode instmixin ""
     if {[$renderer set js] ne ""} {
-      append content "\n<script type='text/javascript'>[$renderer set js]</script>\n"
+      template::add_body_script -script [$renderer set js]
     }
     return $content
   }
@@ -281,7 +281,8 @@ namespace eval ::xowiki {
 
   TreeRenderer=mktree proc include_head_entries {args} {
     ::xo::Page requireCSS  "/resources/xowiki/cattree.css"
-    ::xo::Page requireJS  "/resources/acs-templating/mktree.js"
+    #::xo::Page requireJS  "/resources/acs-templating/mktree.js"
+    template::add_body_script -src "/resources/acs-templating/mktree.js"
   }
   TreeRenderer=mktree proc render {tree} {
     return "<ul class='mktree' id='[$tree id]'>[next]</ul>"

@@ -14,12 +14,12 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   returns a datasource for the search package
 } {
   #ns_log notice "--sc ::xowiki::datasource called with revision_id = $revision_id"
-  
+
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
-  
+
   #ns_log notice "--sc ::xowiki::datasource $page [$page set publish_status]"
 
-  if {[$page set publish_status] eq "production"} {
+  if {[$page set publish_status] in {production expired}} {
     # no data source for for pages under construction
     #ns_log notice "--sc page under construction, no datasource"
     return [list object_id $revision_id title "" \
@@ -70,7 +70,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   # solution, where syndication does not depend on search....
   #
   $page instvar item_id
-  catch {
+  if {[::xo::db::require exists_table txt]} {
     ::xo::dc dml delete_old_revisions {
       delete from txt where object_id in \
           (select revision_id from cr_revisions 

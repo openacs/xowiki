@@ -22,3 +22,9 @@
 
 ::$package_id log "--i ::$package_id DONE"
 ad_script_abort
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 4
+#    indent-tabs-mode: nil
+# End:

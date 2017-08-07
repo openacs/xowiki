@@ -1,5 +1,6 @@
 var xowiki = xowiki || {};
 xowiki.repeat = {};
+var data_repeat = new Array();
 /*
  * addItem
  *
@@ -22,9 +23,10 @@ xowiki.repeat.addItem = function(e, json) {
             // Make an existing but invisible item visible.
             currentItem.style.display = 'block';
 
+            /*
             // IPAD HACK START
             // for ipad we have to set the contenteditiable to true for the ckeditor inline if it is false
-            var ck_editors = $(currentItem.find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr'));
+            var ck_editors = $(currentItem).find('.xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr');
             for (var k = 0; k < ck_editors.length; k++) {
                 if ($(ck_editors[k]).attr('contenteditable') == 'false') {
                     console.log('we have to set the contenteditable to true');
@@ -32,12 +34,12 @@ xowiki.repeat.addItem = function(e, json) {
                 }
             }
             // IPAD HACK ENDE
-
+            */
             break;
         }
     }
-
-    $(".xowiki-ckeditor", currentItem).each(function (i,e) {
+    
+    $(".xowiki-ckeditor, .datetimepicker", currentItem).each(function (i,e) {
       //console.debug('load ckeditor' +e.id);
       if ($(e).is(':visible')) {
         var functionname = 'load_' + e.id;
@@ -53,10 +55,123 @@ xowiki.repeat.addItem = function(e, json) {
     // and renaming the field like in delItems. We have to care as
     // well in RepeatContainer.initialize() to check, how many
     // subcomponents must be generated in advance (not max as now).
-    console.log('could add one more, j ' + j);
-    console.info(data);
+    //console.log('could add one more, j ' + j);
+    //console.info(data);
     return false;
 };
+
+/*
+ * newItem
+ *
+ */
+xowiki.repeat.newItem = function(e, json) {
+
+    var data = eval("(" + json + ')');
+    var item = e;
+
+    var stats =  this.itemStats(item);
+    //console.info(item);
+    console.info(stats);
+    //console.info(data);
+
+    var current = stats['current'];
+    var last    = stats['visible'];
+    var items   = item.parentNode.children;
+    var divs    = stats['divs'];
+
+    //console.info(divs);
+
+    last = last + 1;
+    //console.log('last:' + last);
+
+    if (last >= data.max) {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+    }
+    if (last > data.max) {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+        return;
+    }
+
+    // if we have an hidden field we can simple activate it
+    // e.g.: repeat=0..1 --> create 1 template node + 1 data node
+    // --> we can activate the data node
+    if (data.min == 0 && divs.length == 2 && last == 1) {
+        //it is not necessary to clone the node
+    } else {
+        // We add an empty item at the end to force back-reporting of
+        // empty content to the instance variables. Otherwise the old
+        // content would stay. This means, that we should never physically
+        // delete items.
+        var clone = divs[0].cloneNode(true);
+        divs.push(clone);
+        divs[0].parentNode.insertBefore(clone,divs[last-1].nextSibling);
+
+        var templateid = item.parentNode.id + '.0';
+        var newid = item.parentNode.id + '.' + last;
+
+        // due to the fact that the ckeditor are using the ids for reloading we have to recycle them (and for the other cases it doesn't hurt)
+        this.renameIds(divs[last],templateid,newid);
+    }
+    // show the last element
+    divs[last].style.display = 'block';
+
+    // force refresh of tree
+    item.parentNode.style.display = 'none';
+    item.parentNode.style.display = 'block';
+
+    // ckeditor releoding
+    // we are selecting all ckeditor intances which are at the same level and below of the current item
+    // so we can be sure that in case of a compound field all editors are reloaded correctly
+    // .xowiki-ckeditor --> normaler ckeditor
+    // .xowiki-ckeditor.ckeip --> inplace editor
+    // .xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr --> inline editing
+    var ckclasses = [".xowiki-ckeditor",
+                     ".xowiki-ckeditor.ckeip",
+                     ".xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr"];
+    for (var i = 0; i < ckclasses.length; i++) {
+        var ck_editors = $(item.parentNode).find(ckclasses[i] + ':visible');
+        for (var j = 0; j < ck_editors.length; j++) {
+            var idofeditor = ck_editors[j].id;
+            console.log('reloading ckeditor for id: ' + idofeditor);
+            var functionname = 'load_' + idofeditor;
+            console.log('reloading ckeditor functionname: ' + functionname);
+            try {
+                window[functionname](idofeditor);
+            } catch(err) {
+                // The named function does not exist. Try to call the
+                // function of the template element (in repeated items
+                // on position 0) and pass the actual id as argument.
+                console.log('function: ' + functionname +
+                            ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionnameTemplate = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionnameTemplate);
+                try {
+                    window[functionnameTemplate](idofeditor);
+                } catch(err) {
+                    console.log('function: ' + functionnameTemplate + ' not found (repeat-template) ,  error:' + err);
+                }
+            }
+        }
+    }
+
+    //console.log("RENAME LAST");
+    this.renameItem(divs[last], divs[last],
+                    data['name'] + '.0', data['name'] + '.' + (last));
+
+
+    if (last < data.max) {
+        // make sure add item link is visible
+        e.style.display = 'block';
+    } else {
+        // this is the final item: hide add item button
+        e.style.display = 'none';
+    }
+
+    this.registerAddDeleteAction(divs[last]);
+};
+
 
 /*
  * itemStats
@@ -89,21 +204,27 @@ xowiki.repeat.itemStats = function(item) {
  */
 xowiki.repeat.renameItem = function(top, e, from, to) {
     if (e == undefined) {return;}
-    //console.log('renameItem: work on ' + e.nodeName + ' ' + from + ' ' + to);
     //console.info(e);
     var items = e.children;
+    //console.log('renameItem: work on ' + e.nodeName + ' ' + from + ' ' + to + ' items.length: ' + items.length);
+
     if (items.length == 0 || e.nodeName == 'SELECT') {
         var name = e.name;
+
         if (typeof name != "undefined" && name != "") {
-            //console.log('renameItem: compare ' + name + ' from ' + from);
+            //console.log('renameItem: subitem compare ' + name + ' from ' + from);
             var compareLength = from.length;
+            
             if (name.substring(0,compareLength) == from) {
                 //console.log('renameItem: RENAME ' + name + ' from ' + from);
+                var new_name = to;
                 if (compareLength != name.length) {
-                    to += name.substring(compareLength, name.length);
+                    new_name = to + name.substring(compareLength, name.length);
                 }
-                e.name = to;
+                e.name = new_name;
                 e.disabled = false;
+                //console.log('remove disable attribute from ' + e.nodeName);
+
                 // we have also to remove the disabled attribute for options of a select field
                 if (e.nodeName == 'SELECT') {
                     $(e).find('option:disabled').each(function() {
@@ -116,8 +237,35 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
                   //              '__old_value_' + from,
                     //            '__old_value_' + to);
             }
+            if (e.type == 'radio' && e.value.substring(0,compareLength) == from) {
+                //console.log('item: name: ' + e.name + ' value: ' + e.value + ' - from: ' + from + ' to: ' + to);
+                var new_value = to;
+                if (compareLength != e.value.length) {
+                    new_value = to + e.value.substring(compareLength, e.value.length);
+                }
+                e.value = new_value;
+                e.disabled = false;
+
+            }
         }
-    } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET') {
+    } else if (e.nodeName == 'DIV' || e.nodeName == 'FIELDSET' || e.nodeName == 'LABEL') {
+        //
+        // Check, if there is a data-repeat attribute.
+        //
+        var data_repeat_attribute = e.getAttribute('data-repeat');
+        if (data_repeat_attribute !== null) {
+            //
+            // Replace the ID in the name compontent inside the json
+            // structure.
+            //
+            var data = eval("(" + data_repeat_attribute + ')');
+            var compareLength = from.length;
+            if (data.name.substring(0,compareLength) == from) {
+                var new_name = to + data.name.substring(compareLength,data.name.length);
+                data.name = new_name;
+                e.setAttribute('data-repeat',JSON.stringify(data));
+            }
+        }
         for (var j = 0; j < items.length; j++) {
             this.renameItem(top, items[j], from, to);
         }
@@ -176,7 +324,9 @@ xowiki.repeat.delItem = function(e, json) {
             // THIS DOES NOT SEEM TO WORK
             $(divs[k]).find(':input[type=radio]').each(function() {
                 //console.info($(this));
-                $(this).prop('checked', $(this).checked);
+                if($(this).prop('checked')) {
+                    $(this).attr('checked', 'checked');
+                }
             });
 
             // checkbox input fields
@@ -229,8 +379,21 @@ xowiki.repeat.delItem = function(e, json) {
             //console.log("RENAME INNER");
             this.renameItem(divs[j], divs[j],
                             data['name'] + '.' + (k), data['name'] + '.' + (j));
+
+            this.registerAddDeleteAction(divs[j]);
         }
     };
+
+    // make sure add item link is visible
+    $(item.parentNode).children(".repeat-add-link").show();
+
+    // delet the node until we are reaching the minimum
+    if (stats['visible'] > data['min']) {
+        // delete the last node
+        divs[last].parentNode.removeChild(divs[last]);
+    }
+
+    /*
     // We add an empty item at the end to force back-reporting of
     // empty content to the instance variables. Otherwise the old
     // content would stay. This means, that we should never physically
@@ -279,6 +442,40 @@ xowiki.repeat.delItem = function(e, json) {
     // make sure add item link is visible
     $(item.parentNode).children(".repeat-add-link").show();
 
+    this.registerAddDeleteAction(divs[last]);
+    */
+
+    // ckeditor releoding
+    // we are selecting all ckeditor intances which are at the same level and below of the current item
+    // so we can be sure that in case of a compound field all editors are reloaded correctly
+    // .xowiki-ckeditor --> normaler ckeditor
+    // .xowiki-ckeditor.ckeip --> inplace editor
+    // .xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr --> inline editing
+    var ckclasses = [".xowiki-ckeditor",
+                     ".xowiki-ckeditor.ckeip",
+                     ".xowiki-ckeditor.cke_editable.cke_editable_inline.cke_contents_ltr"];
+    for (var i = 0; i < ckclasses.length; i++) {
+        var ck_editors = $(item.parentNode).find(ckclasses[i]+':visible');
+        for (var j = 0; j < ck_editors.length; j++) {
+            var idofeditor = ck_editors[j].id;
+            console.log('reloading ckeditor for id: ' + idofeditor);
+            var functionname = 'load_' + idofeditor;
+            console.log('reloading ckeditor functionname: ' + functionname);
+            try {
+                window[functionname](idofeditor);
+            } catch(err) {
+                console.log('function: ' + functionname +
+                            ' not found, we are trying to use the function of the repeat-template - error:' + err);
+                var functionnameTemplate = 'load_' + ck_editors[j].getAttribute('data-repeat-template-id');
+                console.log('reloading ckeditor functionname: ' + functionnameTemplate);
+                try {
+                    window[functionnameTemplate](idofeditor);
+                } catch(err) {
+                    console.log('function: ' + functionnameTemplate + ' not found (repeat-template) ,  error:' + err);
+                }
+            }
+        }
+    }
     //console.log('final html ' + item.parentNode.innerHTML);
     return false;
 };
@@ -312,6 +509,38 @@ xowiki.repeat.renameIds = function(e, searchString, replaceString) {
         tmpid = tmpid.replace(searchString,replaceString);
         $(this).attr("id", tmpid);
     });
+}
+
+/*
+ * reRegisterAddDeleteAction
+ *
+ * ReRegister events for add and delete urls
+ */
+xowiki.repeat.registerAddDeleteAction = function(element) {
+    var action_links = $(element).find(".repeat-del-link");
+    for (var j = 0; j < action_links.length; j++) {
+        var e = document.getElementById(action_links[j].id);
+        if (e !== null) {
+            var data = e.parentNode.getAttribute('data-repeat');
+            e.addEventListener('click', function (event) {
+                event.preventDefault();
+                xowiki.repeat.delItem(this,data);
+            }, false);
+        }
+    }
+
+    var action_links = $(element).find(".repeat-add-link");
+    for (var j = 0; j < action_links.length; j++) {
+        var e = document.getElementById(action_links[j].id);
+        if (e !== null) {
+            data_repeat[e.id] = e.previousElementSibling.getAttribute('data-repeat');
+            e.addEventListener('click', function (event) {
+                event.preventDefault();
+                xowiki.repeat.newItem(this,data_repeat[this.id]);
+            }, false);
+        }
+    }
+
 }
 
 /*

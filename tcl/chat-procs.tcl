@@ -44,7 +44,7 @@ namespace eval ::xowiki {
     #my log "chat_id=$chat_id, path=$path"
     if {$path eq ""} {
       set path [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
-    } elseif {[string range $path end end] ne "/"} {
+    } elseif {[string index $path end] ne "/"} {
       append path /
     }
     
@@ -77,7 +77,7 @@ namespace eval ::xowiki {
       set mode polling
       #
       # Check, whether we have the tcllibthread and a sufficiently new
-      # aolserver/naviserver supporting bgdelivery transfers.
+      # aolserver/NaviServer supporting bgdelivery transfers.
       #
       if {[info commands ::thread::mutex] ne "" &&
           ![catch {ns_conn contentsentlength}]} {
@@ -119,7 +119,7 @@ namespace eval ::xowiki {
         error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
       }
     }
-    set send_url  ${path}ajax/chat?m=add_msg&$context&msg=
+    set send_url ${path}ajax/chat?m=add_msg&$context&msg=
 
     if { ![file exists [acs_root_dir]/$jspath] } {
       return -code error "File [acs_root_dir]/$jspath does not exist"
@@ -140,13 +140,22 @@ namespace eval ::xowiki {
       overflow:auto;
     }
 
+    template::add_body_script -script [subst {document.getElementById('chatMsg').focus();}]
+
     switch $mode {
-      polling {return "\
-      <script type='text/javascript' language='javascript'>
+      polling {
+        template::add_event_listener \
+            -id "messages-form" \
+            -event "submit" \
+            -script [subst {
+          chatSendMsg(\"$send_url\",chatReceiver);
+        }]
+        return "\
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
       setInterval('$get_update',5000)
       </script>
-      <form action='#' onsubmit='chatSendMsg(\"$send_url\",chatReceiver); return false;'>
+      <form id='messages-form' action='#'>
       <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $login_url]'
           style='width:90%;' height='150'>
       </iframe>
@@ -159,13 +168,16 @@ namespace eval ::xowiki {
         ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
+        template::add_event_listener \
+            -id "messages-form" -event "submit" \
+            -script {chatSendMsg();}
         return "\
-      <script type='text/javascript' language='javascript'>$js
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>$js
       var send_url = \"$send_url\";
       chatSubscribe(\"$subscribe_url\");
       </script>
    <div id='messages' style='$style'>$r</div>
-   <form action='#' onsubmit='chatSendMsg(); return false;'>
+   <form id='messages-form' action='#'>
    <input type='text' size='40' name='msg' id='chatMsg'>
    </form>"
       }
@@ -175,16 +187,20 @@ namespace eval ::xowiki {
         ::xowiki::Chat create c1 -destroy_on_cleanup -chat_id $chat_id -session_id $session_id -mode $mode
         set r [ns_urldecode [c1 get_all]]
         regsub -all {<[/]?div[^>]*>} $r "" r
+        template::add_event_listener \
+            -id "messages-form" -event "submit" \
+            -script {chatSendMsg();}
         return "\
-      <script type='text/javascript' language='javascript'>
+      <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
       var send_url = \"$send_url\";
       </script>
-      <div id='messages' style='$style'></style>
+      <div id='messages' style='$style'>
       <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $subscribe_url]' 
               style='width:0px; height:0px; border: 0px'>
       </iframe>
-      <form action='#' onsubmit='chatSendMsg(); return false;'>
+      </div>
+      <form id='messages-form' action='#'>
       <input type='text' size='40' name='msg' id='chatMsg'>
       </form>"
       }

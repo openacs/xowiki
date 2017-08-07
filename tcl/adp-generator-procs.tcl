@@ -24,19 +24,27 @@ namespace eval ::xowiki {
   ADP_Generator instproc master_part {} {
     return [subst -novariables -nobackslashes \
                 {<master>
-                  <property name="doc(title)">@title;literal@</property>
                   <property name="context">@context;literal@</property>
                   <if @item_id@ not nil><property name="displayed_object_id">@item_id;literal@</property></if>
-                  <property name="&body">property_body</property>
-                  <property name="&doc">property_doc</property>
-                  <property name="head">
-                  [my extra_header_stuff]@header_stuff;literal@
-                  </property>}]\n
+                  <property name="&body">body</property>
+                  <property name="&doc">doc</property>
+                  <property name="head">[my extra_header_stuff]@header_stuff;literal@</property>}]\n
   }
 
   ADP_Generator instproc wikicmds_part {} {
     if {![my wikicmds]} {return ""}
-    return {<div id='wikicmds'>
+    return {
+      <%
+      if {$::::xowiki::search_mounted_p} {
+        template::add_event_listener \
+          -id wiki-menu-do-search-control \
+          -script {
+            document.getElementById('do_search').style.display = 'inline';
+            document.getElementById('do_search_q').focus();
+          }
+      }
+      %>
+      <div id='wikicmds'>
       <if @view_link@ not nil><a href="@view_link@" accesskey='v' title='#xowiki.view_title#'>#xowiki.view#</a> &middot; </if>
       <if @edit_link@ not nil><a href="@edit_link@" accesskey='e' title='#xowiki.edit_title#'>#xowiki.edit#</a> &middot; </if>
       <if @rev_link@ not nil><a href="@rev_link@" accesskey='r' title='#xowiki.revisions_title#'>#xotcl-core.revisions#</a> &middot; </if>
@@ -44,11 +52,11 @@ namespace eval ::xowiki {
       <if @delete_link@ not nil><a href="@delete_link@" accesskey='d' title='#xowiki.delete_title#'>#xowiki.delete#</a> &middot; </if>
       <if @admin_link@ not nil><a href="@admin_link@" accesskey='a' title='#xowiki.admin_title#'>#xowiki.admin#</a> &middot; </if>
       <if @notification_subscribe_link@ not nil><a href='/notifications/manage' title='#xowiki.notifications_title#'>#xowiki.notifications#</a>
-      <a href="@notification_subscribe_link@" class="notification-image-button">&nbsp;</a> &middot; </if>
-      <a href='#' onclick='document.getElementById("do_search").style.display="inline";document.getElementById("do_search_q").focus(); return false;'  title='#xowiki.search_title#'>#xowiki.search#</a> &middot;
+      <a href="@notification_subscribe_link@" class="notification-image-button">&nbsp;</a>&middot; </if>
+      <if @::xowiki::search_mounted_p@ true><a href='#' id='wiki-menu-do-search-control' title='#xowiki.search_title#'>#xowiki.search#</a> &middot; </if>
       <if @index_link@ not nil><a href="@index_link@" accesskey='i' title='#xowiki.index_title#'>#xowiki.index#</a></if>
       <div id='do_search' style='display: none'>
-      <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@" ></div></form>
+      <form action='/search/search'><div><label for='do_search_q'>#xowiki.search#</label><input id='do_search_q' name='q' type='text'><input type="hidden" name="search_package_id" value="@package_id@"><if @::__csrf_token@ defined><input type="hidden" name="__csrf_token" value="@::__csrf_token;literal@"></if></div></form>
       </div>
       </div>}
   }
@@ -59,9 +67,11 @@ namespace eval ::xowiki {
   }
 
   ADP_Generator instproc content_part {} {
-    return "@top_includelets;noquote@\n\
-     <if @page_context@ not nil><h1>@title@ (@page_context@)</h1></if>\n\
-     <else><h1>@title@</h1></else>\n\
+    return "\
+     @top_includelets;noquote@\n\
+     <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>\n\
+     <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>\n\
+     <else><h1>@body.title@</h1></else>\n\
      <if @folderhtml@ not nil> \n\
        <div class='folders' style=''>@folderhtml;noquote@</div> \n\
        <div class='content-with-folders'>@content;noquote@</div> \n\
@@ -91,7 +101,7 @@ namespace eval ::xowiki {
 
   ADP_Generator instproc init {} {
     set name [namespace tail [self]]
-    set filename [file dirname [info script]]/../www/$name.adp
+    set filename [file dirname [info script]]/../resources/templates/$name.adp
     # generate the adp file, if it does not exist
     if {[catch {set f [open $filename w]} errorMsg]} {
       my log "Warning: cannot overwrite ADP $filename, ignoring possible changes"
@@ -128,7 +138,7 @@ namespace eval ::xowiki {
   ADP_Generator create oacs-view -master 1 -footer 1 \
       -extra_header_stuff {
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc content_part {} {
         set open_page {-open_page [list @name@]}
@@ -157,7 +167,7 @@ namespace eval ::xowiki {
       -extra_header_stuff {
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc before_render {page} {
         ::xo::cc set_parameter weblog_page weblog-portlet
@@ -196,7 +206,7 @@ namespace eval ::xowiki {
                       <include src="/packages/xowiki/www/portlets/include" &__including_page=page
                       portlet="presence -interval {30 minutes} -decoration plain">
                       <hr>
-                      <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
+                      <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
                       </div>
                       </div>
                       </div> <!-- sidebar -->
@@ -220,7 +230,7 @@ namespace eval ::xowiki {
         </style>
         <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
         <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
-        <script language='javascript' src='/resources/acs-templating/mktree.js' type='text/javascript'></script>
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
       } \
       -proc before_render {page} {
         ::xo::cc set_parameter weblog_page weblog-portlet
@@ -266,7 +276,89 @@ namespace eval ::xowiki {
 
         }]
       }
+  
+  # oacs-view3-bootstrap3
+  #
+  # similar to oacs view3, but based on bootstrap
+  #
+  ADP_Generator create oacs-view3-bootstrap3 -master 1 -footer 0 -wikicmds 1 \
+      -extra_header_stuff {
+        <style type='text/css'>
+            blockquote {font-size:inherit;}
+            div.xowiki-content {font-size:14px;}
+            div.xowiki-content h1,h2,h3 {margin-bottom:10px;margin-top:20px;}
+            div.xowiki-content h1 {border-bottom: none;font-weight:500;color:#cf8a00 !important;}
+            div.xowiki-content h2 {border-bottom: none;font-weight:500;}
+            div.xowiki-content h3 {font-weight:500;}
+            div.xowiki-content pre, div.code {font-size:100%;}
+            div.xowiki-content .item-footer {border-top:none;}
+        </style>
+        <link rel='stylesheet' href='/resources/xowiki/cattree.css' media='all' >
+        <link rel='stylesheet' href='/resources/calendar/calendar.css' media='all' >
+        <script language='javascript' src='/resources/acs-templating/mktree.js' async type='text/javascript'></script>
+      } \
+      -proc before_render {page} {
+        ::xo::cc set_parameter weblog_page weblog-portlet
+      } \
+      -proc content_part {} {
+        set open_page {-open_page [list @name@]}
+        return [subst -novariables -nobackslashes {\
 
+    <div class="row"> 
+
+        <div class="col-md-9 col-sm-8 col-xs-12 col-md-push-3 col-sm-push-4"> <!-- content -->
+            @top_includelets;noquote@
+            <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
+            <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
+            <else><h1>@body.title@</h1></else>
+            <if @folderhtml@ not nil> 
+                <div class='folders' style=''>@folderhtml;noquote@</div> 
+                <div class='content-with-folders'>@content;noquote@</div> 
+            </if>
+            <else>@content;noquote@</else>
+        </div> <!-- content -->
+
+        <div class="col-md-3 col-sm-4 col-xs-12 home-left col-md-pull-9 col-sm-pull-8" style="font-size:small;"> <!-- left panel in full view -->
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -decoration plain">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
+                </div>
+            </div>
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
+                    <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
+                </div>
+            </div> <!-- background -->
+
+            <div class="thumbnail">
+                <div class="caption">
+                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="categories [set open_page] -decoration plain">
+                </div>
+            </div>  <!-- background -->
+        </div>
+    </div>
+   <div class="row">
+        <div class="col-xs-12">
+            <hr>        
+            @footer;noquote@
+        </div>
+    </div>
+        }]
+      }
+
+
+  
   ####################################################################################
   #
   # view-book
@@ -280,8 +372,21 @@ namespace eval ::xowiki {
         #::xo::cc set_parameter weblog_page weblog-portlet
       } \
       -proc content_part {} {
-        return [subst -novariables -nobackslashes \
-                    {<div style="float:left; width: 25%; font-size: .8em;
+        return {
+<%
+if {$book_prev_link ne ""} {
+  template::add_event_listener \
+      -id bookNavPrev.a \
+      -preventdefault=false \
+      -script [subst {TocTree.getPage("$book_prev_link");}]
+}
+if {$book_next_link ne ""} {
+  template::add_event_listener \
+      -id bookNavNext.a \
+      -preventdefault=false \
+      -script [subst {TocTree.getPage("$book_next_link");}]
+}
+%>                      <div style="float:left; width: 25%; font-size: .8em;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
@@ -298,12 +403,12 @@ namespace eval ::xowiki {
                       <tr>
                       <td>
                       <if @book_prev_link@ not nil>
-                      <a href="@book_prev_link@" accesskey='p' ID="bookNavPrev.a" onclick='return TocTree.getPage("@book_prev_link@");'>
-                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' ID="bookNavPrev.img"></a>
+                      <a href="@book_prev_link@" accesskey='p' id="bookNavPrev.a">
+                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' id="bookNavPrev.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='p' ID="bookNavPrev.a" onclick="">
-                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' ID="bookNavPrev.img"></a>
+                      <a href="" accesskey='p' id="bookNavPrev.a">
+                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' id="bookNavPrev.img"></a>
                       </else>
                       </td>
 
@@ -311,20 +416,20 @@ namespace eval ::xowiki {
                       <if @book_relpos@ not nil>
                       <table width='100%'>
                       <colgroup><col></colgroup>
-                      <tr><td style='font-size: 75%'><div style='width: @book_relpos@;' ID='bookNavBar'></div></td></tr>
-                      <tr><td style='font-size: 75%; text-align:center;'><span ID='bookNavRelPosText'>@book_relpos@</span></td></tr>
+                      <tr><td style='font-size: 75%'><div style='width: @book_relpos@;' id='bookNavBar'></div></td></tr>
+                      <tr><td style='font-size: 75%; text-align:center;'><span id='bookNavRelPosText'>@book_relpos@</span></td></tr>
                       </table>
                       </if>
                       </td>
 
-                      <td ID="bookNavNext">
+                      <td id="bookNavNext">
                       <if @book_next_link@ not nil>
-                      <a href="@book_next_link@" accesskey='n' ID="bookNavNext.a" onclick='return TocTree.getPage("@book_next_link@");'>
-                      <img alt='Next' src='/resources/xowiki/next.png' width='15' ID="bookNavNext.img"></a>
+                      <a href="@book_next_link@" accesskey='n' id="bookNavNext.a">
+                      <img alt='Next' src='/resources/xowiki/next.png' width='15' id="bookNavNext.img"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='n' ID="bookNavNext.a" onclick="">
-                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' ID="bookNavNext.img"></a>
+                      <a href="" accesskey='n' id="bookNavNext.a">
+                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' id="bookNavNext.img"></a>
                       </else>
                       </td>
                       </tr>
@@ -341,10 +446,10 @@ namespace eval ::xowiki {
                       &="per_object_categories_with_links"
                       &="digg_link" &="delicious_link" &="my_yahoo_link"
                       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image"
-                      &="top_includelets" &="folderhtml" &="page">
+                      &="top_includelets" &="folderhtml" &="page" &="doc" &="body">
                       </div>
                       </div>
-                    }]}
+                    }}
 
   ####################################################################################
   #

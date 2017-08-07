@@ -1,13 +1,9 @@
-<html style="width: 400px; height: 260px">
-<head>
-  <title>#acs-templating.HTMLArea_InsertImageTitle#</title>
+<master src="/www/blank-master">
+  <property name="doc(title)">#acs-templating.HTMLArea_InsertImageTitle#</property>
 
-  <script type="text/javascript" 
-	  src="/resources/acs-templating/xinha-nightly/popups/popup.js">
-  </script>
+<script type="text/javascript" src="/resources/richtext-xinha/xinha-nightly/popups/popup.js"></script>
 
-
-<script type="text/javascript">
+<script type="text/javascript" <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>  
 	var selector_window;
 	window.resizeTo(415, 300);
 
@@ -80,39 +76,46 @@
 	  if (document.getElementById('preview_div').style.display == 'none') { 
 		document.getElementById('showpreview').click();
 	  }
-	  window.ipreview.location.replace(url);
+	  document.getElementById('ipreview').src = url;
 	  return false;
 	};
 
 	function resizeWindow(formname) {
-		var w, h;
+ 		var w, h;
+	        var urlTag    = document.getElementById('insert_image_url');
+                var uploadTag = document.getElementById('insert_image_upload');
 		if (formname == "url") {
 			w = 415;
 			h = 330;
+			urlTag.style.display='';
+			uploadTag.style.display='none';
 		}
 		if (formname == "upload") {
 			w = 415;
 			h = 310;
+			urlTag.style.display='none';
+	                uploadTag.style.display='';
 		}
 		if (document.getElementById('showpreview').checked == true) {
 			h = h + 200;
 		}
-		window.resizeTo(w, h);
+	        window.resizeTo(w, h);
 	}
 
 	function togglePreview() {
 		var w = window.clientWidth;
 		var h = window.clientHeight;
-		if (document.getElementById('preview_div').style.display == 'none') { 
-			document.getElementById('preview_div').style.display='';
-		} else { 
-			document.getElementById('preview_div').style.display='none'; 
-		}
 		if (document.getElementById('insert_image_url').style.display == 'none') { 
 			resizeWindow('upload');
 		} else { 
 			resizeWindow('url');
 		}		
+		var displayPreview = document.getElementById('preview_div');
+		if (displayPreview.style.display == 'none') { 
+			displayPreview.style.display='';
+		} else { 
+			displayPreview.style.display='none';
+		}
 	}
 	
 </script>
@@ -147,97 +150,98 @@
 
 </head>
 
-<body onload="Init()">
+<body id="body">
 
-<div class="title">#acs-templating.HTMLArea_InsertImageTitle# URL <span id="insert_image_link"><a href="javascript:void(0);" onclick="resizeWindow('url'); document.getElementById('insert_image_url').style.display=''; document.getElementById('insert_image_upload').style.display='none';"><font size="-3">click here</font></a></span></div>
+<div class="title">#acs-templating.HTMLArea_InsertImageTitle# URL <span id="insert_image_link"><a id="resize_window_url_button" href="#"><font size="-3">click here</font></a></span></div>
 <div id="insert_image_url" style="display:none;">
-	<div style="text-align: center;">
-		<form action="" method="get" name="imageprops">
-			<input type="hidden" name="f_name" id="f_name" />
-			<table border="0" width="100%" style="margin: 0 auto; text-align: left;padding: 0px;">
-				<tbody>
-					<tr>
-						<td width="1%" style="text-align: right" nowrap>#acs-templating.HTMLArea_ImageURL#</td>
-						<td width="99%"><input type="text"
-						onChange="ChangeImageSrc();" name="url" id="f_url"
-						style="width:75%"
-						title="#acs-templating.HTMLArea_ImageURLToolTip#" value="@f_url@" />
-						<button name="preview" onclick="return onPreview();" title="Preview the image in a new window">Preview</button>
-						</td>
-					</tr>
-					<tr>
-						<td width="1%" style="text-align: right" nowrap>#acs-templating.HTMLArea_ImageAlternateText#</td>
-						<td width="99%"><input type="text" name="alt" id="f_alt" style="width:100%" title="#acs-templating.HTMLArea_ImageAlternateTextToolTip#" /></td>
-					</tr>
-				</tbody>
-			</table>
-	</div>
-	<p />
-	<table style="margin-left: auto;margin-right: auto;" >
-		<tr>
-			<td valign="top">
-				<fieldset style="margin-left: 5px;">
-					<legend>Layout</legend>
-					
-					<table>
-						<tr>
-							<td>#acs-templating.HTMLArea_ImageAlignment#</td>
-							<td>
-								<select size="1" name="align" id="f_align">
-								  <option value="left"                         >#acs-templating.HTMLArea_ImageAlignmentLeft#</option>
-								  <option value="right"                        >#acs-templating.HTMLArea_ImageAlignmentRight#</option>
-								  <option value="bottom" selected="1"          >#acs-templating.HTMLArea_ImageAlignmentBottom#</option>
-								  <option value="middle"                       >#acs-templating.HTMLArea_ImageAlignmentMiddle#</option>
-								  <option value="top"                          >#acs-templating.HTMLArea_ImageAlignmentTop#</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<td>#acs-templating.HTMLArea_ImageBorderSize#</td>
-							<td><input type="text" name="border" id="f_border" size="5" title="#acs-templating.HTMLArea_ImageBorderSizeToolTip#" /></td>
-						</tr>
-					</table>
-				</fieldset>
-			</td>
-			<td valign="top">
-				<fieldset style="margin-right: 5px;">
-					<legend>#acs-templating.HTMLArea_ImageSpacing#</legend>
-					
-					<table border="0">
-						<tr>
-							<td>#acs-templating.HTMLArea_ImageSpacingHorizontal#</td>
-							<td><input type="text" name="horiz" id="f_horiz" size="5" title="#acs-templating.HTMLArea_ImageSpacingHorizontalToolTip#" /></td>
-						</tr>
-						<tr>
-							<td>#acs-templating.HTMLArea_ImageSpacingVertical#</td>
-							<td><input type="text" name="vert" id="f_vert" size="5" title="#acs-templating.HTMLArea_ImageSpacingVerticalToolTip#" /></td>
-						</tr>					
-					</table>
-				</fieldset>
-			</td>
-		</tr>
-		</form>
-	</table>
-	<input type="checkbox" name="showpreview" id="showpreview" onclick="togglePreview()"> Show Preview
-	<div id="preview_div" style="display:none">
-		<fieldset style="margin-top:10px;padding-top:10px;">
-		<legend><b>@HTML_Preview@</b></legend>
-		<iframe name="ipreview" id="ipreview" frameborder="0" style="width:95%;" height="150"  src="./blank.html"></iframe>
-		</fieldset>
-	</div>
-	<br /><br />
-    	<button type="button" name="ok" onclick="return onOK();">OK</button>&nbsp;<button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>
-    	<br /><br />
+  <div style="text-align: center;">
+    <form action="" method="get" name="imageprops">
+      <input type="hidden" name="f_name" id="f_name" />
+      <table border="0" width="100%" style="margin: 0 auto; text-align: left;padding: 0px;">
+	<tbody>
+	  <tr>
+	    <td width="1%" style="text-align: right" nowrap>#acs-templating.HTMLArea_ImageURL#</td>
+	    <td width="99%">
+	      <input type="text" name="url" id="f_url" style="width:75%"
+		     title="#acs-templating.HTMLArea_ImageURLToolTip#" value="@f_url@" />
+	      <button id="preview_button" name="preview" title="Preview the image in a new window">Preview</button>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td width="1%" style="text-align: right" nowrap>#acs-templating.HTMLArea_ImageAlternateText#</td>
+	    <td width="99%">
+	      <input type="text" name="alt" id="f_alt" style="width:100%" title="#acs-templating.HTMLArea_ImageAlternateTextToolTip#" />
+	    </td>
+	  </tr>
+	</tbody>
+      </table>
+  </div>
+  <p />
+  <table style="margin-left: auto;margin-right: auto;" >
+    <tr>
+      <td valign="top">
+	<fieldset style="margin-left: 5px;">
+	  <legend>Layout</legend>
+	  
+	  <table>
+	    <tr>
+	      <td>#acs-templating.HTMLArea_ImageAlignment#</td>
+	      <td>
+		<select size="1" name="align" id="f_align">
+		  <option value="left"                         >#acs-templating.HTMLArea_ImageAlignmentLeft#</option>
+		  <option value="right"                        >#acs-templating.HTMLArea_ImageAlignmentRight#</option>
+		  <option value="bottom" selected="1"          >#acs-templating.HTMLArea_ImageAlignmentBottom#</option>
+		  <option value="middle"                       >#acs-templating.HTMLArea_ImageAlignmentMiddle#</option>
+		  <option value="top"                          >#acs-templating.HTMLArea_ImageAlignmentTop#</option>
+		</select>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>#acs-templating.HTMLArea_ImageBorderSize#</td>
+	      <td><input type="text" name="border" id="f_border" size="5" title="#acs-templating.HTMLArea_ImageBorderSizeToolTip#" /></td>
+	    </tr>
+	  </table>
+	</fieldset>
+      </td>
+      <td valign="top">
+	<fieldset style="margin-right: 5px;">
+	  <legend>#acs-templating.HTMLArea_ImageSpacing#</legend>
+	  
+	  <table border="0">
+	    <tr>
+	      <td>#acs-templating.HTMLArea_ImageSpacingHorizontal#</td>
+	      <td><input type="text" name="horiz" id="f_horiz" size="5" title="#acs-templating.HTMLArea_ImageSpacingHorizontalToolTip#" /></td>
+	    </tr>
+	    <tr>
+	      <td>#acs-templating.HTMLArea_ImageSpacingVertical#</td>
+	      <td><input type="text" name="vert" id="f_vert" size="5" title="#acs-templating.HTMLArea_ImageSpacingVerticalToolTip#" /></td>
+	    </tr>					
+	  </table>
+	</fieldset>
+      </td>
+    </tr>
+  </form>
+  </table>
+  <input type="checkbox" name="showpreview" id="showpreview"> Show Preview
+  <div id="preview_div" style="display:none">
+    <fieldset style="margin-top:10px;padding-top:10px;">
+      <legend><strong>@HTML_Preview@</strong></legend>
+      <iframe name="ipreview" id="ipreview" frameborder="0" style="width:95%;" height="150"  src="./blank.html"></iframe>
+    </fieldset>
+  </div>
+  <br /><br />
+  <button id="ok_button" type="button" name="ok">OK</button>&nbsp;<button class="cancel_buttons" type="button" name="cancel">#acs-templating.HTMLArea_action_cancel#</button>
+  <br /><br />
 </div>
 
-<div class="title">#acs-templating.HTMLArea_InsertImageTitle# Upload <span id="uplaod_image_link"><a href="javascript:void(0);" onclick="resizeWindow('upload'); document.getElementById('insert_image_url').style.display='none'; document.getElementById('insert_image_upload').style.display='';"><font size="-3">click here</font></a></span></div>
+<div class="title">#acs-templating.HTMLArea_InsertImageTitle# Upload <span id="uplaod_image_link"><a id="resize_window_upload_button" href="#"><font size="-3">click here</font></a></span></div>
 <div id="insert_image_upload">
 	<table border="0" width="100%" style="margin: 0 auto; text-align: left;padding: 0px;">
 	  <tbody>
       <td valign="top" width="50%" >
-	<if @write_p@ eq 1>
+	<if @write_p;literal@ true>
 	  <fieldset style="margin-top:10px;padding-top:10px;">
-	    <legend><b>@HTML_UploadTitle@</b></legend>
+	    <legend><strong>@HTML_UploadTitle@</strong></legend>
 	    <formtemplate id="upload_form">
 	      <table cellspacing="2" cellpadding="2" border="0" width="55%">
 		<tr class="form-element">
@@ -264,7 +268,7 @@
     </tr>
     <tr class="form-element">
       <td class="form-widget" colspan="2" align="center">
-	<formwidget id="ok_btn">&nbsp;<button type="button" name="cancel" onclick="return onCancel();">#acs-templating.HTMLArea_action_cancel#</button>        
+	<formwidget id="ok_btn">&nbsp;<button class="cancel_buttons" type="button" name="cancel">#acs-templating.HTMLArea_action_cancel#</button>        
       </td>
     </tr>
     </table>
@@ -280,6 +284,3 @@
 	  </tbody>
 	</table>
 </div>
-
-</body>
-</html>

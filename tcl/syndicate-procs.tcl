@@ -385,13 +385,19 @@ namespace eval ::xowiki {
   }
   
   RSS-client instproc load { } {
-    set r [::xo::HttpRequest new -url [my url] -volatile]
+    set request [util::http::get -url [my url]]
+    set status [dict get $request status]
+    set data [expr {[dict exists $request page] ? [dict get $request page] : ""}]
+    
     #my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
     #set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
-    if {[$r exists status] && [$r set status] eq "canceled"} {
-      my set errorMessage [$r set cancel_message]
+    # if {[$r exists status] && [$r set status] eq "canceled"} {
+    #   my set errorMessage [$r set cancel_message]
+    # }
+    if {$status != 200} {
+      my set errorMessage "$status - $data"
     }
-    return [$r set data]
+    return $data
     # the following does not appear to be necessary due to changes in http-client-procs. 
     #set charset utf-8
     #regexp {^<\?xml\s+version\s*=\s*\S+\s+encoding\s*=\s*[\"'](\S+)[\"']} $xml _ charset

@@ -255,7 +255,7 @@ namespace eval ::xowiki::includelet {
         # We do not want to see unneeded parent_ids in the links. When
         # we insert to the root folder, set opt_parent_id to empty to
         # make argument passing easy. "make_link" just checks for the
-        # existance of the variable, so we unset parent_id in this case.
+        # existence of the variable, so we unset parent_id in this case.
         #
         set opt_parent_id ""
         set folder_link [$package_id package_url]
@@ -275,7 +275,7 @@ namespace eval ::xowiki::includelet {
                               -parent_id $opt_parent_id \
                               -nls_language $nls_language -return_url $return_url]
       }
-      #       set new_page_link [$package_id make_link -with_entities 0 \
+      #       set new_page_link [$package_id make_link \
           #                              $package_id edit-new \
           #                              {object_type ::xowiki::Page} \
           #                              parent_id return_url autoname template_file]
@@ -283,11 +283,11 @@ namespace eval ::xowiki::includelet {
       set new_page_link [$package_id make_form_link -form en:page.form \
                              -parent_id $opt_parent_id \
                              -return_url $return_url]
-      set new_file_link [$package_id make_link -with_entities 0 \
+      set new_file_link [$package_id make_link  \
                              $package_id edit-new \
                              {object_type ::xowiki::File} \
                              parent_id return_url autoname template_file]
-      set new_form_link [$package_id make_link -with_entities 0 \
+      set new_form_link [$package_id make_link \
                              $package_id edit-new \
                              {object_type ::xowiki::Form} \
                              parent_id return_url autoname template_file]
@@ -296,23 +296,19 @@ namespace eval ::xowiki::includelet {
       set import_archive_link [$package_id make_form_link -form en:import-archive.form \
                                    -parent_id $opt_parent_id]
 
+
       set index_link [$package_id make_link -link $folder_link $current_folder list]
 
-      $mb add_menu_item -name Package.Startpage \
-          -item [list text #xowiki.index# url $index_link]
+      $mb add_menu_item -name Package.Startpage -item [list url $folder_link]
+      $mb add_menu_item -name Package.Toc -item [list url $index_link]
 
-      $mb add_menu_item -name New.Page \
-          -item [list text #xowiki.new# url $new_page_link]
-      $mb add_menu_item -name New.File \
-          -item [list text File url $new_file_link]
-      $mb add_menu_item -name New.Folder \
-          -item [list text Folder url $new_folder_link]
+      $mb add_menu_item -name New.Page   -item [list url $new_page_link]
+      $mb add_menu_item -name New.File   -item [list url $new_file_link]
+      $mb add_menu_item -name New.Folder -item [list url $new_folder_link]
       if {$with_links} {
-        $mb add_menu_item -name New.SymLink    \
-            -item [list text SymLink url $new_sym_link]
+        $mb add_menu_item -name New.SymLink -item [list url $new_sym_link]
       }
-      $mb add_menu_item -name New.Form \
-          -item [list text Form url $new_form_link]
+      $mb add_menu_item -name New.Form -item [list url $new_form_link]
 
       $mb add_menu_item -name Package.ImportDump -item [list url $import_link]
       $mb add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
@@ -324,23 +320,34 @@ namespace eval ::xowiki::includelet {
         set clipboard_clear_link ""
       } else {
         # todo: check, whether the use is allowed to insert into the current folder
-        set clipboard_copy_link [$current_folder pretty_link]?m=clipboard-copy
-        set clipboard_export_link [$current_folder pretty_link]?m=clipboard-export
-        set clipboard_content_link [$current_folder pretty_link]?m=clipboard-content
-        set clipboard_clear_link [$current_folder pretty_link]?m=clipboard-clear
+        set clipboard_copy_link    $folder_link?m=clipboard-copy
+        set clipboard_export_link  $folder_link?m=clipboard-export
+        set clipboard_content_link $folder_link?m=clipboard-content
+        set clipboard_clear_link   $folder_link?m=clipboard-clear
       }
       # todo: we should check either, whether to user is allowed to
       # copy-to-clipboard from the current folder, and/or the user is
       # allowed to do this with certain items.... (the latter in
       # clipboad-add)
       $mb add_menu_item -name Clipboard.Add \
-          -item [list url javascript:acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]
+          -item [list url \# listener [list click acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]]
       $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
       $mb add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
       $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
 
-      $mb update_items -package_id $package_id -parent_id $opt_parent_id \
+      set uploader_link [$package_id make_link $current_folder file-upload]
+      $mb add_extra_item -name dropzone1 -type DropZone \
+          -item [list url $uploader_link label DropZone uploader File]
+
+      #set modestate [::xowiki::mode::admin get]
+      #set modebutton_link [$package_id make_link $current_folder toggle-modebutton]
+      #$mb add_extra_item -name admin -type ModeButton \
+      #    -item [list url $modebutton_link on $modestate label admin]
+      
+      $mb update_items \
+          -package_id $package_id \
+          -parent_id $opt_parent_id \
           -return_url $return_url \
           -nls_language $nls_language \
           [concat \
@@ -377,6 +384,7 @@ namespace eval ::xowiki::includelet {
                   -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
                   -object $top_folder_of_tree \
                   -expanded 1 \
+                  -orderby label \
                   -open_requests 1 \
                   -destroy_on_cleanup]
     $t add $node
@@ -493,6 +501,14 @@ namespace eval ::xowiki::includelet {
     if {$parent eq ".."} {
       set current_folder [$current_folder parent_id]
       ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    } else {
+      set page [$package_id get_page_from_item_ref \
+                    -use_package_path true \
+                    -use_site_wide_pages true \
+                    -use_prototype_pages true \
+                    -parent_id [$current_folder item_id] \
+                    $parent]
+      set current_folder $page
     }
 
     if {![$current_folder istype ::xowiki::FormPage]} {
@@ -534,39 +550,43 @@ namespace eval ::xowiki::includelet {
     #
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
-    set ::with_publish_status [expr {$publish_status ne "ready"}]
-
-    switch [$package_id get_parameter PreferredCSSToolkit yui] {
+    set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
+    set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete {__csrf_token [::security::csrf::token]}]
+    
+    switch [$package_id get_parameter PreferredCSSToolkit bootstrap] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
+
     set t [$tableWidgetClass new -volatile -skin $skin \
                -columns {
-                 BulkAction objects -id ID -hide $::hidden(objects) -actions {
-                   Action new -label select -tooltip select -url admin/select
+                 BulkAction create objects -id ID -hide $::hidden(objects) -actions {
+                   if {$::__xowiki_folder_link ne ""} {
+                     Action bulk-delete -label Delete -tooltip "Delete selected" \
+                         -url $::__xowiki_folder_link
+                   }
                  }
                  # The "-html" options are currenty ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way. 
                  #
-                 HiddenField ID
-                 AnchorField edit -CSSclass edit-item-button -label "" \
+                 HiddenField create ID
+                 AnchorField create edit -CSSclass edit-item-button -label "" \
                      -hide $::hidden(edit)
-                 if {$::with_publish_status} {
-                   ImageAnchorField publish_status -orderby publish_status.src -src "" \
+                 if {$::__xowiki_with_publish_status} {
+                   ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
                        -alt "publish status" -label [_ xowiki.publish_status]
                  }
-                 Field object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
+                 Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
-                 AnchorField name -label [_ xowiki.Page-name] -orderby name \
+                 AnchorField create name -label [_ xowiki.Page-name] -orderby name \
                      -hide $::hidden(name) 
-                 Field last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
+                 Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
                      -hide $::hidden(last_modified) 
-                 Field mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
-                 AnchorField delete -CSSclass delete-item-button \
+                 Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
+                 AnchorField create delete -CSSclass delete-item-button \
                      -hide $::hidden(delete) \
-                     -label "" ;#-html {onClick "return(confirm('Confirm delete?'));"}
-
+                     -label ""
                }]
 
     set extra_where_clause "true"
@@ -592,6 +612,7 @@ namespace eval ::xowiki::includelet {
                          -parent_id $logical_folder_id \
                          -context_url $url \
                          -folder_ids $folder_ids \
+                         -path_encode false \
                          $name]
       array set icon [$c render_icon]
       
@@ -600,13 +621,6 @@ namespace eval ::xowiki::includelet {
         set prettyName $name
       }
 
-      #set delete_link [export_vars -base  [$package_id package_url] \
-          #              [list {delete 1} \
-          #               [list item_id [$c item_id]] \
-          #               [list name [$c pretty_link]] return_url]]
-      
-      set delete_link [export_vars -base $page_link {{m delete} return_url}]
-      
       $t add \
           -ID [$c name] \
           -name $prettyName \
@@ -620,10 +634,10 @@ namespace eval ::xowiki::includelet {
           -edit.title #xowiki.edit# \
           -mod_user [::xo::get_user_name [$c set creation_user]] \
           -delete "" \
-          -delete.href $delete_link \
+          -delete.href [export_vars -base $page_link {{m delete} return_url}] \
           -delete.title #xowiki.delete#
 
-      if {$::with_publish_status} {
+      if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
         if {[$c set publish_status] eq "ready"} {
           set image active.png

@@ -5,7 +5,7 @@
   implmentation generic. The original version was developed by Michael
   Aram in his Master Thesis. Over the time it was simplified,
   downstripped and refactored by Gustaf Neumann. The currently
-  prefered interface is the class
+  preferred interface is the class.
 
   @author Michael Aram
   @author Gustaf Neumann
@@ -18,7 +18,7 @@ namespace eval ::xowiki {
   #
   ::xo::tdom::Class create MenuComponent \
       -superclass ::xo::tdom::Object
-
+  
   MenuComponent instproc js_name {} {
     return [::xowiki::Includelet js_name [self]]
   }
@@ -57,6 +57,7 @@ namespace eval ::xowiki {
         linkclass
         target
         {group ""}
+        {listener}
       }
 
 
@@ -108,7 +109,7 @@ namespace eval ::xowiki {
   #      the menu "Package":
   #
   #        $mb add_menu_item -name Package.Startpage \
-      #             -item [list text #xowiki.index# url $index_link]
+  #             -item [list label t #xowiki.index# url $index_link]
   #
   #   4) After all updates are performed, use "render-preferred" to obtain
   #      the HTML rendering of the menu.
@@ -119,7 +120,7 @@ namespace eval ::xowiki {
   #  3) All menu entry names should be named after the menu name
   #
   # Notice: the current implementation uses interally dicts. Since the
-  # code should as well work with tcl 8.4 instances, we provide a
+  # code should as well work with Tcl 8.4 instances, we provide a
   # compatibility layer. Maybe it would be better to base the code on
   # an ordered composite. Ideally, the interface should stay mostly
   # compatible.
@@ -128,6 +129,8 @@ namespace eval ::xowiki {
 
   Class create ::xowiki::MenuBar -parameter {
     id
+    {dropzone:boolean true}
+    {parent_id ""}
   }
 
   if {[info commands ::dict] ne ""} {
@@ -162,7 +165,7 @@ namespace eval ::xowiki {
     }
     my lappend Menues $name
     if {$label eq ""} {set label $name}
-    my set Menu($name) [list text $label]
+    my set Menu($name) [list label $label]
     #my log "menues: $Menues"
   }
 
@@ -173,14 +176,34 @@ namespace eval ::xowiki {
 
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
     array set "" [my set Menu($menu)]
-    my set Menu($menu) [list text $(text)]
+    my set Menu($menu) [list label $(label)]
   }
 
-  ::xowiki::MenuBar instproc add_menu_item {-name:required -item:required} {
+  ::xowiki::MenuBar instproc current_folder {} {
+    if {${:parent_id} ne ""} {
+      return ${:parent_id}
+    } else {
+      #
+      # If the current object is the package, use the root folder as
+      # current_folder; else use the parent of the current object.
+      #
+      set object [::xo::cc invoke_object]
+      if {[$object is_folder_page]} {
+        return $object
+      } else {
+        return [$object parent_id]
+      }
+    }
+  }
+
+  ::xowiki::MenuBar instproc add_menu_item {
+    -name:required
+    -item:required
+  } {
     #
     # The provided items are of the form of attribute-value pairs
-    # containing at least attributes "text" and "url"
-    #   (e.g. "text .... url ....").
+    # containing at least attributes "label" and "url"
+    #   (e.g. "label .... url ....").
     #
     my instvar Menues
     set full_name $name
@@ -203,7 +226,7 @@ namespace eval ::xowiki {
     # provide a default label
     #
     regsub -all {[.]} $full_name - full_name
-    array set "" [list text "#xowiki.menu-$full_name#" group $group_name]
+    array set "" [list label "#xowiki.menu-$full_name#" group $group_name]
     array set "" $item
     set item [array get ""]
 
@@ -228,6 +251,18 @@ namespace eval ::xowiki {
     }
   }
 
+  ::xowiki::MenuBar instproc add_extra_item {
+    -name:required
+    -type:required
+    -item:required
+  } {
+    if {$type ni {"DropZone" "ModeButton"}} {
+      error "unknown extra item type: $type"
+    }
+    my set ${type}($name) $item
+  }
+
+
   ::xowiki::MenuBar instproc update_items {
     -package_id:required -nls_language:required -parent_id:required
     -return_url  -autoname -template_file items
@@ -238,14 +273,21 @@ namespace eval ::xowiki {
     #
     # {clear_menu -menu New}
     # {entry -name New.Page -label #xowiki.new# -form en:page.form}
+    # {entry -name New.File -label File -object_type ::xowiki::File}
+    # {dropzone -name DropZone -label DropZone -uploader File}
+    # {modebutton -name Admin -label admin -button admin}
+
+   
+    my set parent_id $parent_id
 
     foreach me $items {
       array unset ""
       set kind [lindex $me 0]
-      if {[string range $kind 0 0] eq "#"} continue
+      if {[string index $kind 0] eq "#"} continue
       set properties [lrange $me 1 end]
 
       switch $kind {
+        
         clear_menu {
           my clear_menu -menu [dict get $properties -menu]
         }
@@ -254,7 +296,7 @@ namespace eval ::xowiki {
         entry {
           # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
           if {$kind eq "form_link"} {
-            my log "$me, name 'form_link' is deprecated, use 'entry' instead"
+            ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
           }
           if {[dict exists $properties -form]} {
             set link [$package_id make_form_link \
@@ -262,7 +304,7 @@ namespace eval ::xowiki {
                           -parent_id $parent_id \
                           -nls_language $nls_language -return_url $return_url]
           } elseif {[dict exists $properties -object_type]} {
-            set link [$package_id make_link -with_entities 0 \
+            set link [$package_id make_link \
                           $package_id edit-new \
                           [list object_type [dict get $properties -object_type]] \
                           parent_id return_url autoname template_file]
@@ -271,30 +313,113 @@ namespace eval ::xowiki {
             set link ""
           }
           set item [list url $link]
-          if {[dict exists $properties -label]} {lappend item text [dict get $properties -label]}
+          if {[dict exists $properties -label]} {
+            lappend item label [dict get $properties -label]
+          }
           my add_menu_item -name [dict get $properties -name] -item $item
         }
         
-        default { error "unknown kind of menu entry: $kind" }
+        "dropzone" {
+          foreach {var default} {
+            name dropzone
+            uploader File
+            label DropZone
+          } {
+            set $var $default
+            if {[dict exists $properties -$var]} {
+              set $var [dict get $properties -$var]
+            }
+          }
+
+          set link [$package_id make_link $parent_id file-upload]
+          my add_extra_item -name $name -type DropZone \
+              -item [list url $link uploader $uploader label $label]
+        }
+
+        "modebutton" {
+          foreach {var default} {
+            name modebutton
+            button admin
+            label ""
+          } {
+            set $var $default
+            if {[dict exists $properties -$var]} {
+              set $var [dict get $properties -$var]
+            }
+          }
+          if {$label eq ""} {set label $button}
+          set state [::xowiki::mode::$button get]
+          set link [$package_id make_link $parent_id toggle-modebutton]
+          my add_extra_item -name $name -type ModeButton \
+              -item [list url $link on $state label $label]
+        }
+
+        default {
+          error "unknown kind of menu entry: $kind"
+        }
       }
     }
   }
 
   ::xowiki::MenuBar instproc content {} {
     set result [list id [my id]]
-    foreach m [my set Menues] {
-      lappend result $m [my set Menu($m)]
+    foreach e [my set Menues] {
+      lappend result $e [concat kind MenuButton [my set Menu($e)]]
     }
+    
+    foreach e [my array name ModeButton] {
+      lappend result $e [concat kind ModeButton [my set ModeButton($e)]]
+    }
+
+    foreach e [my array name DropZone] {
+      lappend result $e [concat kind DropZone [my set DropZone($e)]]
+    }
+
     return $result
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default yui] {
+    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] {
       bootstrap {set menuBarRenderer render-bootstrap}
       default   {set menuBarRenderer render-yui}
     }
     my $menuBarRenderer
   }
+
+
+  
+  # ::xo::tdom::Class create MenuDropZone \
+  #     -superclass MenuComponent \
+  #     -parameter {
+  #       text
+  #       href
+  #       title
+  #       {id "[my html_id]"}
+  #       CSSclass
+  #     }
+
+
+  # MenuDropZone instproc init args {
+  #   next
+  #   # Use computed default values when not specified
+  #   if {![my exists title]} {
+  #     # set the mouseover-title to the "MenuItem-Label"
+  #     # TODO: Do we really want "text" to be required ?
+  #     my title [my text]
+  #   }
+
+  #   if {![my exists href] || [my href] eq ""} {
+  #     my append CSSclass " " [string tolower [namespace tail [my info class]]]-disabled
+  #   }
+  # }
+
+  # MenuDropZone instproc render {} {
+  #   html::li [my get_attributes id {CSSclass class}] {
+  #     html::a [my get_attributes title href target] {
+  #       html::t [my text]
+  #     }
+  #   }
+  # }
 
 
   namespace export Menu

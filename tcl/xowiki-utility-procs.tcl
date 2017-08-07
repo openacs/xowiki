@@ -44,7 +44,7 @@ namespace eval ::xowiki {
         set in_file [ad_tmpnam]
         ::xowiki::write_file $in_file $text
         catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
-        file delete $in_file
+        file delete -- $in_file
         #my msg o=$output
         regexp <body>\n(.*)\n</body> $output _ text
         #my msg o=$text
@@ -63,14 +63,16 @@ namespace eval ::xowiki {
   #  Ununtu:   apt-get install clamav-daemon
   # 
   ::xotcl::Object create virus
-  virus proc check {fn} {
+  virus proc check {fns} {
     if {[[::xo::cc package_id] get_parameter clamav 1]
         && [info commands ::util::which] ne ""} { 
       set clamscanCmd [::util::which clamdscan]
-      if {$clamscanCmd ne "" && [file readable $fn]} {
-        if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
-          ns_log warning "[self] virus found:\n$result"
-          return 1
+      foreach fn $fns {
+        if {$clamscanCmd ne "" && [file readable $fn]} {
+          if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
+            ns_log warning "[self] virus found:\n$result"
+            return 1
+          }
         }
       }
     }
@@ -128,7 +130,9 @@ namespace eval ::xowiki::hstore {
     ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {return 0}
+    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {
+      return 0
+    }
 
     set sql {
       select * from xowiki_form_instance_item_view
@@ -167,7 +171,13 @@ namespace eval ::xowiki::hstore {
   proc ::xowiki::hstore::update_update_all_form_instances {} {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
-      if {[catch {xowiki::hstore::update_form_instance_item_index -package_id $package_id} errorMsg]} {
+      ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+      if {[$package_id get_parameter use_hstore 0] == 0} {
+        continue
+      }
+      if {[catch {
+        xowiki::hstore::update_form_instance_item_index -package_id $package_id
+      } errorMsg]} {
         ns_log Warning "initializing package $package_id lead to error: $errorMsg"
       }
       db_release_unused_handles
@@ -337,7 +347,7 @@ namespace eval ::xowiki {
       set last_user ""
       set last_revision ""
       
-      xo::dc foreach get_revisions $sql {
+      foreach tuple [::xo::dc list_of_lists get_revisions $sql] {
         #::xotcl::Object msg "tuple = $tuple"
         lassign $tuple name item_id revision_id last_modified user package_id 
         set time [clock scan [::xo::db::tcl_date $last_modified tz_var]]
@@ -386,9 +396,37 @@ namespace eval ::xowiki {
   }
   proc write_file {fn content} {
     set F [::open $fn w]
-    ::fconfigure $F -translation binary
+    ::fconfigure $F -translation binary -encoding binary
     ::puts -nonewline $F $content
     ::close $F
+  }
+  
+  nsf::proc ::xowiki::get_raw_request_body {-as_string:switch -as_file:switch} {
+    if {$as_string eq $as_file} {
+      error "either -as_string or -as_file must be specified"
+    }
+    set contentfile [ns_conn contentfile]
+    if {$as_file} {
+      #
+      # If the file was not spooled, obtained it via [ns_conn content]
+      # as write it to a file.
+      #
+      if {$contentfile eq ""} {
+        set contentfile [ad_tmpnam]
+        write_file $contentfile [ns_conn content -binary]
+      }
+      set result $contentfile
+    } else {
+      #
+      # Return the result as a string
+      #
+      if {$contentfile eq ""} {
+        set result [ns_conn content -binary]
+      } else {
+        set result [read_file $contentfile]
+      }
+    }
+    return $result
   }
 
   proc ::xowiki::page_order_uses_ltree {} {
@@ -459,7 +497,9 @@ namespace eval ::xowiki {
       set tn [$cl table_name]
       set cn ${tn}_fk
       set sc [$cl info superclass]
-      ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint $cn"
+      set old_cn ${tn}_[$cl id_column]_fkey
+      ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint IF EXISTS $old_cn"
+      ::xo::dc dml drop_constraint "ALTER TABLE $tn DROP constraint IF EXISTS $cn"
       ::xo::dc dml add_constraint  "ALTER TABLE $tn ADD constraint $cn FOREIGN KEY([$cl id_column]) \
         REFERENCES [$sc table_name]([$sc id_column]) ON DELETE CASCADE"
     }
@@ -531,18 +571,26 @@ namespace eval ::xowiki {
     #     Next Month
     #     Beyond Next Month
     
-    #     Another possibilty: no ago, but "Today 10:00", "Yesterday 10:00", within a
+    #     Another possibility: not ago, but "Today 10:00", "Yesterday 10:00", within a
     #     week: "Thursday 10:00", older than about 30 days "13 May 2005" and
     #     if anything else (ie. > 7 and < 30 days) it shows date and time "13-Oct 2005 10:00".
     
     if {![info exists timestamp_base]} {set timestamp_base [clock seconds]}
     set age_seconds [expr {$timestamp_base - $timestamp}]
     
+    if {$age_seconds < 0} {
+      set msg_key xowiki.future_interval
+      set age_seconds [expr {0 - $age_seconds}]
+    } else {
+      set msg_key xowiki.ago
+    }
+
     set pos 0
     set msg ""
     my instvar age
     foreach {interval unit unit_plural} $age {
       set base [expr {int($age_seconds / $interval)}]
+
       if {$base > 0} {
         set label [expr {$base == 1 ? $unit : $unit_plural}]
         set localized_label [::lang::message::lookup $locale xowiki.$label]
@@ -561,7 +609,7 @@ namespace eval ::xowiki {
           }
         }
         set time $msg
-        set msg [::lang::message::lookup $locale xowiki.ago [list [list time $msg]]]
+        set msg [::lang::message::lookup $locale $msg_key [list [list time $msg]]]
         break
       }
       incr pos
@@ -612,7 +660,7 @@ namespace eval ::xowiki {
     }
     return $pairs
   }
-  
+
   my proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
     set likes [list]
     foreach page_order $page_orders {
@@ -684,33 +732,123 @@ namespace eval ::xowiki {
     return $renames
   }
 
+  ::xowiki::utility ad_proc change_page_order {
+    -from:required
+    -to:required
+    {-clean ""}
+    -folder_id:required
+    -package_id:required
+    {-publish_status "ready|live|expired"}
+  } {
+    
+    Change Page Order for pages by renumbering and filling
+    gaps. Parameter clean is just for inserts.
+    
+  } {
+
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 1.2}; set clean {...}
+    #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
+    #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
+
+    if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
+      ad_log warning "unreasonable request to change page_order from='$from', to='$to'"
+      return
+    }
+    
+    #ns_log notice "--cpo from=$from, to=$to, clean=$clean"
+    set gap_renames [list]
+    #
+    # We distinguish two cases:
+    # - pure reordering: length(to) == length(from)
+    # - insert from another section: length(to) == length(from)+1
+    #
+    if {[llength $to] == [llength $from]} {
+      #ns_log notice "--cpo reorder"
+    } elseif {[llength $clean] > 1} {
+      #ns_log notice "--cpo insert"
+      #
+      # We have to fill the gap. First, find the newly inserted
+      # element in $to.
+      #
+      foreach e $to {
+        if {$e ni $from} {
+          set inserted $e
+          break
+        }
+      }
+      if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
+      # 
+      # compute the remaining list
+      #
+      set remaining [list]
+      foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
+      #
+      # compute rename rename commands for it
+      #
+      set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                           -publish_status $publish_status \
+                           -start [lindex $clean 0] -from $remaining -to $remaining]
+      foreach {page_id item_id name old_page_order new_page_order} $gap_renames {
+        ns_log notice "--cpo gap $page_id (name) rename $old_page_order to $new_page_order"
+      }
+    }
+    #
+    # Compute the rename commands for the drop target
+    #
+    set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
+                          -publish_status $publish_status \
+                          -start [lindex $from 0] -from $from -to $to]
+    #ns_log notice "--cpo drops l=[llength $drop_renames]"
+    foreach {page_id item_id name old_page_order new_page_order} $drop_renames {
+      #ns_log notice "--cpo drop $page_id ($name) rename $old_page_order to $new_page_order"
+    }
+
+    #
+    # Perform the actual renames
+    #
+    set temp_obj [::xowiki::Page new -name dummy -volatile]
+    set slot [$temp_obj find_slot page_order]
+    ::xo::dc transaction {
+      foreach {page_id item_id name old_page_order new_page_order} [concat $drop_renames $gap_renames] {
+        #ns_log notice "--cpo UPDATE $page_id new_page_order $new_page_order"
+        $temp_obj item_id $item_id
+        $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id
+      }
+    }
+    #
+    # Flush the page fragement caches (page fragments based on page_order might be sufficient)
+    $package_id flush_page_fragment_cache -scope agg
+  }
+
   #
-  # The standard ns_urlencode of aolserver is oversimplifying the
+  # The standard ns_urlencode of AOLserver is oversimplifying the
   # encoding, leading to names with too many percent-encodings. This
   # is not nice, but not a problem. A real problem with ns_encode in
-  # aolserver is that it encodes spaces in the url path as "+" which is
-  # not backed by RFC 3986. The aolserver coding does not harm as long
-  # the code is just used with aolserver. However, naviserver
+  # AOLserver is that it encodes spaces in the url path as "+" which is
+  # not backed by RFC 3986. The AOLserver coding does not harm as long
+  # the code is just used with aolserver. However, NaviServer
   # implements an RFC-3986 compliant encoding, which distinguishes
   # between the various parts of the url (via parameter "-part
   # ..."). The problem occurs, when the url path is decoded according
   # to the RFC rules, which happens actually in the C implementation
-  # within [ns_conn url] in naviserver. Naviserver performs the
+  # within [ns_conn url] in NaviServer. NaviServer performs the
   # RFC-compliant handling of "+" in the "path" segment of the url,
   # namely no interpretation.
   #
-  # Here an example, consider an url path "a + b".  The aolserver
-  # ns_encode yields "a+%2b+b", the aolserver ns_decode maps it back
-  # to "a + b", everything is fine. However, the naviserver C-level
+  # Here an example, consider an url path "a + b".  The AOLserver
+  # ns_encode yields "a+%2b+b", the AOLserver ns_decode maps it back
+  # to "a + b", everything is fine. However, the NaviServer C-level
   # decode in [ns_conn url] converts "a+%2b+b" to "a+++b", which is
   # correct according to the RFC.
   #
   # The problem can be solved for xowiki by encoding spaces not as
   # "+", but as "%20", which is always correct. The tiny
   # implementation below fixes the problem at the Tcl level. A better
-  # solution might be to backport ns_urlencode from naviserver to
-  # aolserver or to provide a naviserver compliant Tcl implementation
-  # for aolserver (but these options might break some existing
+  # solution might be to backport ns_urlencode from NaviServer to
+  # AOLserver or to provide a NaviServer compliant Tcl implementation
+  # for AOLserver (but these options might break some existing
   # programs).
   #
   # -gustaf neumann (nov 2010)
@@ -755,13 +893,6 @@ proc util_jsquotevalue {value} {
 }
 
 
-proc util_map2json {pairs} {
-  set json_pairs [list]
-  foreach {key value} $pairs {
-    lappend json_pairs "'${key}':[util_jsquotevalue ${value}]"
-  }
-  return [join $json_pairs {,}]
-}
 
 proc util_coalesce {args} {
   foreach value $args {
@@ -771,98 +902,6 @@ proc util_coalesce {args} {
   }
 }
 
-
-#
-# intersect3 - perform the intersecting of two lists, returning a list
-# containing three lists.  The first list is everything in the first
-# list that wasn't in the second, the second list contains the intersection
-# of the two lists, the third list contains everything in the second list
-# that wasn't in the first.
-#
-
-proc util_intersect3 {list1 list2} {
-  set la1(0) {} ; unset la1(0)
-  set lai(0) {} ; unset lai(0)
-  set la2(0) {} ; unset la2(0)
-  foreach v $list1 {
-    set la1($v) {}
-  }
-  foreach v $list2 {
-    set la2($v) {}
-  }
-  foreach elem [concat $list1 $list2] {
-    if {[info exists la1($elem)] && [info exists la2($elem)]} {
-      unset la1($elem)
-      unset la2($elem)
-      set lai($elem) {}
-    }
-  }
-  list [lsort [array names la1]] [lsort [array names lai]] \
-      [lsort [array names la2]]
-}
-
-
-proc util_createDom {list_of_specs} {
-  foreach spec $list_of_specs {
-    set cmdName [lindex $spec 0]
-    if { $cmdName eq "\#text" } {
-      lassign $spec cmdName text
-      html::t $text
-    } else {
-      lassign $spec cmdName atts inside_spec
-      html::${cmdName} $atts [list util_createDom $inside_spec]
-    }
-  }
-}
-
-
-proc util_spec2json {list_of_specs} {
-
-  set result [list]
-  foreach spec $list_of_specs {
-    set cmdName [lindex $spec 0]
-
-    lassign $spec cmdName atts inner_spec
-
-    # We need to handle text nodes in a better way
-    # but our corresponding javascript function,
-    # i.e. wu.repeatable.createDom does not support it
-    # at the moment (August 2012)
-    if { $cmdName eq "\#text" } { continue } 
-
-    set json "\{'tag':[util_jsquotevalue $cmdName]"
-    if { $atts ne {} } {
-      append json ",[util_map2json $atts]"
-    }
-    if { $inner_spec ne {} } {
-      lassign [lindex $inner_spec 0] nodeType text
-      # llength needs to go, please see comment above 
-      # it would give us trouble if we have spec that starts with
-      # a text node but is then followed by element nodes, e.g.
-      # e.g. text node, element node 1, element node 2, and so on
-      # would give us trouble - we choose to ignore text nodes
-      # in this case
-      if { ${nodeType} eq "\#text" && [llength $inner_spec] == 1 } {
-        # text node
-        lassign [lindex $inner_spec 0] _nodeType_ text
-        append json ",'html':[util_jsquotevalue $text]"
-      } else {
-        # list of children nodes
-        append json ",'children':\[[util_spec2json $inner_spec]\]"
-      }
-    }
-    append json "\}"
-    lappend result $json
-  }
-  return [join $result {,}]
-}
-
-proc util_tdom2list {script {rootTag "div"}} {
-  set doc [dom createDocument $rootTag]
-  set root [$doc documentElement]
-  $root appendFromScript {uplevel $script}
-  return [$root asList]
-}
 
 ::xo::library source_dependent
 #

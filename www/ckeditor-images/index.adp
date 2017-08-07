@@ -1,7 +1,8 @@
 <html>
 <head>
+<title>CKeditor</title>
 <script type="text/javascript" src="/resources/xowiki/jquery/jquery.min.js"></script>
-<script type="text/javascript">
+<script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 
     $(document).ready(function() {
         hideImageHolder();
@@ -80,9 +81,9 @@
 </head>
 
 <!-- BODY -->
-<body onload="Init();" style="background-color: white; overflow: hidden;" class="xowiki_image_body">
+<body style="background-color: white; overflow: hidden;" class="xowiki_image_body">
 
-<b>#xowiki.attached_media#:</b>
+<strong>#xowiki.attached_media#:</strong>
 
 <!-- UPLOAD ELEMENT -->
 <iframe name="upload" src="@image_browser_url@/upload_image?parent_id=@parent_id@" frameborder="0" width="680px" height="110px"></iframe>
@@ -118,10 +119,16 @@
 <tr style="display:none">
     <td width="100px" style="text-align: right" nowrap>URL: </td>
     <td >
-        <input type="text" value="@bild_url@" onChange="ChangeImageSrc();" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
-        <input type="text" value="" onChange="ChangeImageSrc();" name="mimetype" id="f_mime" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
-        <input type="text" value="100%" onChange="ChangeImageSrc();" name="f_width" id="f_width" style="width:75%" title="#xowiki.width#" />
-        <input type="text" value="100%" onChange="ChangeImageSrc();" name="f_height" id="f_height" style="width:75%" title="#xowiki.height#" />
+<%
+template::add_event_listener -event change -id f_url -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_mime -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_width -script {ChangeImageSrc();}
+template::add_event_listener -event change -id f_height -script {ChangeImageSrc();}
+%>
+        <input type="text" value="@bild_url@" name="url" id="f_url" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
+        <input type="text" value="" name="mimetype" id="f_mime" style="width:75%" title="#acs-templating.HTMLArea_ImageURLToolTip#" />
+        <input type="text" value="100%" name="f_width" id="f_width" style="width:75%" title="#xowiki.width#" />
+        <input type="text" value="100%" name="f_height" id="f_height" style="width:75%" title="#xowiki.height#" />
         <input type="hidden" id="f_id" value=""/>
     </td>
 <tr style="display:none">
@@ -132,10 +139,6 @@
     <td></td>
 </tr>
 <tr>
-<!--
-<td><input type="submit" name="ok" value="#xowiki.insert_image#"/></td>
-<td><button type="button" name="cancel" onclick="xowiki_image_dialog.dialog('close');" >#acs-kernel.common_cancel#</button></td>
--->
 </form>
 </table>
 </div>

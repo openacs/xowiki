@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>CKeditor: Upload Image</title>
 <style type="text/css">
 	html, body {
 	  font: 11px Tahoma,Verdana,sans-serif;
@@ -25,7 +26,7 @@
 	}
 	form { padding: 0px; margin: 0px; }
 </style>
-<script type="text/javascript">
+<script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
 @js_update;noquote@
 </script>
 </head>
@@ -36,7 +37,9 @@
 <table>
 <tr>
 <td colspan="3">
-#xowiki.choose_file#: <formwidget id="upload_file" onchange="document.getElementById('subm_upld').removeAttribute('disabled')">
+<% template::add_event_listener -event change -id upload_file -script {document.getElementById('subm_upld').removeAttribute('disabled');}
+%>
+#xowiki.choose_file#: <formwidget id="upload_file">
 </td>
 </tr>
 <tr>

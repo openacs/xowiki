@@ -30,18 +30,18 @@
           </tr>
       
           <multiple name="days">
-            <if @days.beginning_of_week_p@ true>
+            <if @days.beginning_of_week_p;literal@ true>
               <tr>
             </if>
         
 	    <if @days.count@ ne "">
-                <td class="@days.class@" onclick="javascript:location.href='@days.url@';">
+                <td class="@days.class@" id="@days.id@">
                 <span style='font-size: 80%;'>@days.count@</span> @days.day_number@</td>
              </if><else>
                 <td class="@days.class@"> @days.day_number@</td>
              </else>
         
-            <if @days.end_of_week_p@ true>
+            <if @days.end_of_week_p;literal@ true>
               </tr>
             </if>
           </multiple>

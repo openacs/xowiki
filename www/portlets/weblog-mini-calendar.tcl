@@ -4,13 +4,15 @@ set package_id        [::xo::cc package_id]
 set parent_id         [$__including_page set parent_id]
 set including_item_id [$__including_page set item_id]
 
-if {(![info exists base_url] || $base_url eq "")} {
-  if {![info exists page]} {set page  [$package_id get_parameter weblog_page]}
-  set base_url [$package_id pretty_link -parent_id $parent_id $page]
+if {![info exists base_url] || $base_url eq ""} {
+  if {![info exists page]} {
+    set page [$package_id get_parameter weblog_page]
+  }
+  set base_url [$package_id pretty_link -parent_id $parent_id -path_encode false $page]
 }
 
 set date [ns_queryget date]
-if {(![info exists date] || $date eq "")} {
+if {$date eq ""} {
   set date [dt_sysdate]
 } 
 
@@ -34,12 +36,12 @@ set prev_mon  [clock scan "1 month ago" -base $now]
 set next_mon  [clock scan "1 month" -base $now]
 
 set date_list [dt_ansi_to_list $date]
-set year      [dt_trim_leading_zeros [lindex $date_list 0]]
-set month     [dt_trim_leading_zeros [lindex $date_list 1]]
-set day       [dt_trim_leading_zeros [lindex $date_list 2]]
+set year      [util::trim_leading_zeros [lindex $date_list 0]]
+set month     [util::trim_leading_zeros [lindex $date_list 1]]
+set day       [util::trim_leading_zeros [lindex $date_list 2]]
 
 set months_list    [dt_month_names]
-set curr_month_idx [expr {[dt_trim_leading_zeros [clock format $now -format "%m"]]-1}]
+set curr_month_idx [expr {[util::trim_leading_zeros [clock format $now -format "%m"]]-1}]
 set curr_month     [lindex $months_list $curr_month_idx ]
 
 set first_day_of_week [lc_get firstdayofweek]
@@ -94,7 +96,7 @@ if {$next_mon > [clock scan $latest_date]} {
 }
 
 
-multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url count class
+multirow create days day_number beginning_of_week_p end_of_week_p today_p active_p url id count class
 
 set day_of_week 1
 
@@ -105,6 +107,7 @@ set active_days_before_month [expr {($active_days_before_month + 7 - $first_day_
 set calendar_starts_with_julian_date [expr {$first_julian_date_of_month - $active_days_before_month}]
 set day_number [expr {$days_in_last_month - $active_days_before_month + 1}]
 
+set js ""
 for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_julian_date + 7} {incr julian_date} {
 
   if {$julian_date > $last_julian_date_in_month && $end_of_week_p == "t" } {
@@ -153,12 +156,29 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   } else {
     set class inactive
   }
-
+  set url [export_vars -base $base_url {{date $ansi_date} summary}]
+  
+  set id minicalendar-$ansi_date
+  if {$count ne ""} {
+    append js [subst {
+      document.getElementById('$id').addEventListener('click', function (event) {
+        event.preventDefault();
+        window.location.href='$url';
+        return false;
+      });
+    }]
+  }
+  
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
-      "[export_vars -base $base_url {{date $ansi_date} summary}]" $count $class
+      $url $id $count $class
   incr day_number
   incr day_of_week
 }
+
+if {$js ne ""} {
+  template::add_body_script -script $js
+}
+
 
 set sysdate [dt_sysdate]
 set today_url [export_vars -base $base_url {{date $sysdate} page_num}]
@@ -168,3 +188,9 @@ if {$sysdate eq $date} {
   set today_p f
 }
 
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

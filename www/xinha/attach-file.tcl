@@ -21,7 +21,11 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
     set write_p 1
 
     # FIXME DAVEB i18n for share_options
-    set share_options [list [list "[_ acs-templating.Only_myself]" private] [list "[_ acs-templating.This_Group]" group] [list "[_ acs-templating.Anyone_on_this_system]" site] [list "[_ acs-templating.Anyone_on_the_internet]" public]]
+    set share_options [list \
+                           [list "[_ acs-templating.Only_myself]"            private] \
+                           [list "[_ acs-templating.This_Group]"             group] \
+                           [list "[_ acs-templating.Anyone_on_this_system]"  site] \
+                           [list "[_ acs-templating.Anyone_on_the_internet]" public]]
     ad_form \
         -name upload_form \
         -mode edit \
@@ -29,9 +33,16 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
         -html { enctype multipart/form-data } \
         -form {
             item_id:key
-            {upload_file:file(file) {html {size 30}} }
-            {share:text(radio),optional {label "[_ acs-templating.This_image_can_be_reused_by]"} {options $share_options} {help_text "[_ acs-templating.This_image_can_be_reused_help]"}}
-            {ok_btn:text(submit) {label "[_ acs-templating.HTMLArea_SelectUploadBtn]"}
+            {upload_file:file(file)
+              {html {size 30}}
+            }
+            {share:text(radio),optional
+              {label "[_ acs-templating.This_image_can_be_reused_by]"}
+              {options $share_options}
+              {help_text "[_ acs-templating.This_image_can_be_reused_help]"}
+            }
+            {ok_btn:text(submit)
+              {label "[_ acs-templating.HTMLArea_SelectUploadBtn]"}
             }
         } \
         -on_request {
@@ -90,7 +101,7 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
                     -creation_ip [ad_conn peeraddr] \
                     -package_id [ad_conn package_id]
             }
-            file delete $upload_tmpfile
+            file delete -- $upload_tmpfile
             permission::grant \
                 -object_id $item_id \
                 -party_id $user_id \
@@ -136,10 +147,42 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
                 set f_url "/image/$item_id/$file_name"
             }
         }
-
+    
 } else {
     set write_p 0
 }
 
+
+## Add event handlers
+
+template::add_event_listener -id "body" -event "load" -script {
+  Init();
+}
+template::add_event_listener -id "ok_button" -script {
+  onOK();
+}
+template::add_event_listener -id "showpreview" -script {
+  togglePreview()
+}
+template::add_event_listener -CSSclass "cancel_buttons" -script {
+  onCancel();
+}
+template::add_event_listener -id "resize_window_upload_button" -script {
+  resizeWindow('upload');
+}
+template::add_event_listener -id "resize_window_url_button" -script {
+  resizeWindow('url');
+}
+template::add_event_listener -id "preview_button" -script {
+  onPreview();
+}
+
+##
+
 set HTML_Preview "Preview"
 set HTML_UploadTitle ""
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -12,7 +12,13 @@
 
 foreach o $objects {
   ns_log notice "DELETE $o"
-  $package_id delete -name $o 
+  $package_id www-delete -name $o 
 }
 
 ad_returnredirect "./list"
+
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

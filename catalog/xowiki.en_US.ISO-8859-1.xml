@@ -57,7 +57,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
   <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
 &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
-  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is to deep</msg>
+  <msg key="error-includelet-nesting_to_deep">Nesting of includelets is too deep</msg>
   <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
   <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
   <msg key="event">Event</msg>
@@ -106,6 +106,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage_parameters_title">Wiki parameters</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="future_interval">in %time%</msg>
   <msg key="has_modified_this_page">has modified this page while you were editing it</msg>
   <msg key="height">Height</msg>
   <msg key="hour">hour</msg>
@@ -138,9 +139,24 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Clipboard-Copy">Copy</msg>
   <msg key="menu-Clipboard-Use-Copy">Copy</msg>
   <msg key="menu-Clipboard-Use-Export">Export</msg>
+  <msg key="menu-New">New</msg>
+  <msg key="menu-New-File">File</msg>
+  <msg key="menu-New-Folder">Folder</msg>
+  <msg key="menu-New-Form">New Form</msg>
+  <msg key="menu-New-Page">Page</msg>
+  <msg key="menu-New-SymLink">Symbolic Link</msg>
+  <msg key="menu-Package-Admin">Admin</msg>
   <msg key="menu-Package-ImportArchive">Import Archive</msg>
   <msg key="menu-Package-ImportDump">Import Dump</msg>
-  <msg key="menu-Page">Page</msg>
+  <msg key="menu-Package-Notifications">Notifications</msg>
+  <msg key="menu-Package-Startpage">Startpage</msg>
+  <msg key="menu-Package-Subscribe">Subscribe</msg>
+  <msg key="menu-Package-Toc">Table of Contents</msg>
+  <msg key="menu-Page">This Page</msg>
+  <msg key="menu-Page-Delete">Delete Page</msg>
+  <msg key="menu-Page-Edit">Edit Page</msg>
+  <msg key="menu-Page-Revisions">Revisions</msg>
+  <msg key="menu-Page-Show">Show Page</msg>
   <msg key="minute">minute</msg>
   <msg key="minutes">minutes</msg>
   <msg key="modified_page">modified page</msg>
@@ -228,12 +244,12 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="richtext-validate_safe_html">%errorMsg%</msg>
   <msg key="rss_client">RSS Client</msg>
   <msg key="scoring">Scoring</msg>
-  <msg key="scoring_help_text">Algorithmus für das Bewertungsschema.</msg>
+  <msg key="scoring_help_text">Algorithm for Evaluation Schema</msg>
   <msg key="search">Search</msg>
   <msg key="search_title">Search pages of this package ...</msg>
   <msg key="second">second</msg>
   <msg key="seconds">seconds</msg>
-  <msg key="select_link_target">To create a click, click on a page name </msg>
+  <msg key="select_link_target">To create a link, click on a page name </msg>
   <msg key="Selection">Selection</msg>
   <msg key="shuffle">Shuffle Answers</msg>
   <msg key="shuffle_help_text">Should the order of choices be presented in randomized order?</msg>
