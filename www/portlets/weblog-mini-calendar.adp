@@ -5,13 +5,13 @@
         <tr>
             <td class="back">
 	      <if @prev_month_url@ ne "">
-              <a href="@prev_month_url@"><img border="0" src="/resources/acs-subsite/left.gif" width="13" height="13" alt="#calendar.prev_month#"></a>
+              <a href="@prev_month_url@"><img border="0" src="/resources/acs-subsite/left.gif" width="13" height="13" alt="##acs-kernel.common_previous#"></a>
 	    </if>
             </td>
             <td class="current_view" colspan="2">@curr_month@ @year@</td>
             <td class="forward">
 	      <if @next_month_url@ ne "">
-              <a href="@next_month_url@"><img border="0" src="/resources/acs-subsite/right.gif" width="13" height="13" alt="#calendar.next_month#"></a>
+              <a href="@next_month_url@"><img border="0" src="/resources/acs-subsite/right.gif" width="13" height="13" alt="#acs-kernel.common_next#"></a>
 	    </if>
             </td>
         </tr>
