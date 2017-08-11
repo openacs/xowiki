@@ -101,14 +101,20 @@ namespace eval ::xowiki {
 
   ADP_Generator instproc init {} {
     set name [namespace tail [self]]
-    set filename [file dirname [info script]]/../resources/templates/$name.adp
-    # generate the adp file, if it does not exist
-    if {[catch {set f [open $filename w]} errorMsg]} {
-      my log "Warning: cannot overwrite ADP $filename, ignoring possible changes"
-    } else {
-      ::puts -nonewline $f [my generate]
-      close $f
-      my log "Notice: create ADP $filename"
+    set adpFilename [file dirname [info script]]/../resources/templates/$name.adp
+    #
+    # Generate the ADP file, when does not exist, or when the
+    # generator is newer.
+    #
+    if {![file exists $adpFilename]
+        || [file mtime [info script]] > [file mtime $adpFilename]} {
+      if {[catch {set f [open $adpFilename w]} errorMsg]} {
+        :log "Warning: cannot overwrite ADP $adpFilename, ignoring possible changes"
+      } else {
+        ::puts -nonewline $f [my generate]
+        close $f
+        :log "Notice: create ADP $adpFilename"
+      }
     }
   }
   ####################################################################################
