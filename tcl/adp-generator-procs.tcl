@@ -475,6 +475,8 @@ if {$book_next_link ne ""} {
 
 }
 
+::xo::library source_dependent
+
 #
 # Local variables:
 #    mode: tcl
