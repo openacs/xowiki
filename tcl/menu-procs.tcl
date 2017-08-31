@@ -64,29 +64,29 @@ namespace eval ::xowiki {
   MenuItem ad_instproc init args {doku} {
     next
     # Use computed default values when not specified
-    if {![my exists title]} {
+    if {![info exists :title]} {
       # set the mouseover-title to the "MenuItem-Label"
       # TODO: Do we really want "text" to be required ?
-      my title [my text]
+      set :title ${:text}
     }
-    if {![my exists CSSclass]} {
+    if {![info exists :CSSclass]} {
       # set the CSS class to e.g. "yuimenuitem"
-      my CSSclass [string tolower [namespace tail [my info class]]]
+      set :CSSclass [string tolower [namespace tail [:info class]]]
     }
 
-    if {![my exists href] || [my href] eq ""} {
-      my append CSSclass " " [string tolower [namespace tail [my info class]]]-disabled
+    if {![info exists :href] || ${:href} eq ""} {
+      append :CSSclass " " [string tolower [namespace tail [:info class]]]-disabled
     }
-    if {![my exists linkclass]} {
+    if {![info exists :linkclass]} {
       # set the CSS class to e.g. "yuimenuitemlabel"
-      my set linkclass [string tolower [namespace tail [my info class]]]label
+      set :linkclass [string tolower [namespace tail [:info class]]]label
     }
   }
 
   MenuItem ad_instproc render {} {doku} {
-    html::li [my get_attributes id {CSSclass class}] {
-      html::a [my get_attributes title href target] {
-        html::t [my text]
+    html::li [:get_attributes id {CSSclass class}] {
+      html::a [:get_attributes title href target] {
+        html::t ${:text}
       }
     }
   }
@@ -151,22 +151,21 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc init {} {
-    my set Menues [list]
-    my destroy_on_cleanup
+    set :Menues [list]
+    :destroy_on_cleanup
   }
 
   ::xowiki::MenuBar instproc add_menu {-name {-label ""}} {
-    my instvar Menues
-    if {$name in $Menues} {
+    if {$name in ${:Menues}} {
       error "menu $name exists already"
     }
     if {[string match {[a-z]*} $name]} {
       error "names must start with uppercase, provided name '$name'"
     }
-    my lappend Menues $name
+    lappend :Menues $name
     if {$label eq ""} {set label $name}
     my set Menu($name) [list label $label]
-    #my log "menues: $Menues"
+    #my log "menues: ${:Menues}"
   }
 
   ::xowiki::MenuBar instproc additional_sub_menu {-kind:required -pages:required -owner:required} {
@@ -205,12 +204,11 @@ namespace eval ::xowiki {
     # containing at least attributes "label" and "url"
     #   (e.g. "label .... url ....").
     #
-    my instvar Menues
     set full_name $name
     if {![regexp {^([^.]+)[.](.+)$} $name _ menu name]} {
       error "menu item name '$name' not of the form Menu.Name"
     }
-    if {$menu ni $Menues} {
+    if {$menu ni ${:Menues}} {
       error "menu $menu does not exist"
     }
     if {[string match {[a-z]*} $name]} {
@@ -236,7 +234,7 @@ namespace eval ::xowiki {
     #
     set updated 0
     set newitems [list]
-    foreach {n i} [my set Menu($menu)] {
+    foreach {n i} [set :Menu($menu)] {
       if {$n eq $name} {
         lappend newitems $name $item
         set updated 1
@@ -245,9 +243,9 @@ namespace eval ::xowiki {
       }
     }
     if {$updated} {
-      my set Menu($menu) $newitems
+      set :Menu($menu) $newitems
     } else {
-      my lappend Menu($menu) $name $item
+      lappend :Menu($menu) $name $item
     }
   }
 

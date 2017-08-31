@@ -306,7 +306,7 @@ namespace eval ::xowiki {
     #
     # handle different parent_ids
     #
-    if {$parent_id eq "" || $parent_id == [my folder_id]} {
+    if {$parent_id eq "" || $parent_id == ${:folder_id}} {
       return ""
     }
     #
@@ -395,7 +395,7 @@ namespace eval ::xowiki {
       # prepend always the actual folder name
       set path $name/$path
       
-      if {[my folder_id] == [$fo parent_id]} {
+      if {${:folder_id} == [$fo parent_id]} {
         #my msg ".... my folder_id [my folder_id] == $fo parentid"
         break
       }
@@ -464,11 +464,11 @@ namespace eval ::xowiki {
     if {$query ne ""} {set query ?$query}
     #my log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
 
-    set package_prefix [my get_parameter package_prefix [my package_url]]
+    set package_prefix [my get_parameter package_prefix ${:package_url}]
     if {$package_prefix eq "/" && [string length $lang]>2} {
       # don't compact the the path for images etc. to avoid conflicts
       # with e.g. //../image/*
-      set package_prefix [my package_url]
+      set package_prefix ${:package_url}
     }
     #my msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
     if {$path_encode} {
@@ -778,7 +778,6 @@ namespace eval ::xowiki {
     @return The link or empty
     @see export_vars
   } {
-    my instvar id
 
     set computed_link ""
     #set msg "make_link obj=$object, [$object info class]"
@@ -788,7 +787,7 @@ namespace eval ::xowiki {
     #}
     #my msg $msg
     if {[$object istype ::xowiki::Package]} {
-      set base  [my package_url]
+      set base ${:package_url}
       if {[info exists link]} {
         set computed_link [uplevel export_vars -base [list $base$link] [list $args]]
       } else {
@@ -799,8 +798,8 @@ namespace eval ::xowiki {
       if {[info exists link]} {
         set base $link
       } else {
-        set base [my url]
-        #my msg "base = '[my url]'"
+        set base ${:url}
+        #my msg "base = '${:url}'"
       }
       lappend args [list m $method]
       set computed_link [uplevel export_vars -base [list $base] [list $args]]
@@ -813,22 +812,22 @@ namespace eval ::xowiki {
     # provide links based in untrusted_user_id
     set party_id [::xo::cc set untrusted_user_id]
     if {[info exists privilege]} {
-      #my log "-- checking priv $privilege for [self args] from id $id"
+      #my log "-- checking priv $privilege for [self args] from id ${:id}"
       set granted [expr {$privilege eq "public" ? 1 :
-                         [::xo::cc permission -object_id $id -privilege $privilege -party_id $party_id] }]
+                         [::xo::cc permission -object_id ${:id} -privilege $privilege -party_id $party_id] }]
     } else {
       # determine privilege from policy
-      #my msg "-- check permissions from $id of object $object $method"
+      #my msg "-- check permissions from ${:id} of object $object $method"
       if {[catch {
         set granted [my check_permissions \
                          -user_id $party_id \
-                         -package_id $id \
+                         -package_id ${:id} \
                          -link $computed_link $object $method]
       } errorMsg ]} {
         ns_log error "error in check_permissions: $errorMsg"
         set granted 0
       }
-      #my msg "--p $id check_permissions $object $method ==> $granted"
+      #my msg "--p ${:id} check_permissions $object $method ==> $granted"
     }
     #my log "granted=$granted $computed_link"
     if {$granted} {
@@ -838,12 +837,11 @@ namespace eval ::xowiki {
   }
 
   Package instproc make_form_link {-form {-parent_id ""} -title -name -nls_language -return_url} {
-    my instvar id
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
     set form_id [lindex [::xowiki::Weblog instantiate_forms \
                              -parent_id $parent_id \
                              -forms $form \
-                             -package_id $id] 0]
+                             -package_id ${:id}] 0]
     #my log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
@@ -861,7 +859,7 @@ namespace eval ::xowiki {
   } {
     my get_lang_and_name -path $provided_name lang local_name
     set name ${lang}:$local_name
-    set new_link [my make_link [my id] edit-new object_type return_url name] 
+    set new_link [my make_link ${:id} edit-new object_type return_url name] 
     if {$new_link ne ""} {
       return "<p>Do you want to create page <a href='[ns_quotehtml $new_link]'>$name</a> new?"
     } else {
@@ -910,10 +908,10 @@ namespace eval ::xowiki {
 
         #my log "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
 
-        if {$batch_mode} {[my id] set __batch_mode 1}
+        if {$batch_mode} {${:id} set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
         if {$err} {set errorCode $::errorCode}
-        if {$batch_mode} {[my id] unset -nocomplain __batch_mode}
+        if {$batch_mode} {${id} unset -nocomplain __batch_mode}
         if {$err} {
           #
           # Check, if we were called from "ad_script_abort" (intentional abortion)
@@ -952,19 +950,18 @@ namespace eval ::xowiki {
   }
 
   Package instproc error_msg {{-template_file error-template} {-status_code 200} error_msg} {
-    my instvar id
     if {![regexp {^[./]} $template_file]} {
       set template_file [my get_adp_template $template_file]
     }
-    set context [list [$id instance_name]]
+    set context [list [${:id} instance_name]]
     set title Error
     set header_stuff [::xo::Page header_stuff]
-    set index_link [my make_link -privilege public -link "" $id {} {}]
+    set index_link [my make_link -privilege public -link "" ${:id} {} {}]
     set link [my query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
     set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
-    $id return_page -adp $template_file -variables {
+    ${:id} return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg 
       top_includelets content folderhtml
     }
@@ -995,7 +992,6 @@ namespace eval ::xowiki {
     # @return instantiated object (Page or Package) or empty
     #
     upvar $method_var method
-    my instvar id
 
     # get the default language if not specified
     if {![info exists lang]} {
@@ -1036,15 +1032,14 @@ namespace eval ::xowiki {
       # root folder object.
       set m [my query_parameter m]
       if {$m in {list show-object file-upload}} {
-        my instvar folder_id
         array set "" [list \
-                          name [$folder_id name] \
-                          stripped_name [$folder_id name] \
-                          parent_id [$folder_id parent_id] \
-                          item_id $folder_id \
+                          name [${:folder_id} name] \
+                          stripped_name [${:folder_id} name] \
+                          parent_id [${:folder_id} parent_id] \
+                          item_id ${:folder_id} \
                           method [my query_parameter m]]
       } else {
-        set object [$id get_parameter index_page "index"]
+        set object [${:id} get_parameter index_page "index"]
         #my log "--o object after getting index_page is '$object'"
       }
     }
@@ -1077,7 +1072,7 @@ namespace eval ::xowiki {
     #my log "NOT found object=$object"
 
     # try standard page
-    set standard_page [$id get_parameter $(stripped_name)_page]
+    set standard_page [${:id} get_parameter $(stripped_name)_page]
     if {$standard_page ne ""} {
       #
       # Allow for now mapped standard pages just on the toplevel
@@ -1119,8 +1114,8 @@ namespace eval ::xowiki {
       foreach package [my package_path] {
         set page [$package resolve_page -simple true -lang $lang $object method]
         if {$page ne ""} {
-          #my msg "set_resolve_context inherited -package_id [my id] -parent_id [my folder_id]"
-          $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
+          #my msg "set_resolve_context inherited -package_id ${:id} -parent_id [my folder_id]"
+          $page set_resolve_context -package_id ${:id} -parent_id [my folder_id]
           return $page
         }
       }
@@ -1130,8 +1125,8 @@ namespace eval ::xowiki {
     set page [::xowiki::Package get_site_wide_page -name en:$(stripped_name)]
     #my msg "get_site_wide_page for en:'$(stripped_name)' returned '$page' (stripped name)"
     if {$page ne ""} {
-      #my msg "set_resolve_context site-wide -package_id [my id] -parent_id [my folder_id]"
-      $page set_resolve_context -package_id [my id] -parent_id [my folder_id]
+      #my msg "set_resolve_context site-wide -package_id ${:id} -parent_id [my folder_id]"
+      $page set_resolve_context -package_id ${:id} -parent_id [my folder_id]
       return $page
     }
 
@@ -1453,7 +1448,7 @@ namespace eval ::xowiki {
     }
 
     if {$use_default_lang && $default_lang eq ""} {
-      my log "WARNING: Trying to use empty default lang on link '$element' => $name"
+      ad_log warning "Trying to use empty default lang on link '$element' => $name"
     }
 
     set name [string trimright $name \0]
@@ -1810,7 +1805,6 @@ namespace eval ::xowiki {
     set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
     #my log "--W check $fn"
     if {[file readable $fn]} {
-      my instvar id
       # We have the file of the prototype page. We try to create
       # either a new item or a revision from definition in the file
       # system.
@@ -1913,9 +1907,8 @@ namespace eval ::xowiki {
   }
 
   Package instproc call {object method options} {
-    my instvar policy id
-    set allowed [$policy enforce_permissions \
-                     -package_id $id -user_id [::xo::cc user_id] \
+    set allowed [${:policy} enforce_permissions \
+                     -package_id ${:id} -user_id [::xo::cc user_id] \
                      $object $method]
     if {$allowed} {
       #my log "--p calling $object ([$object info class]) '$method'"
@@ -1924,7 +1917,7 @@ namespace eval ::xowiki {
       my log "not allowed to call $object $method"
     }
   }
-  Package instforward check_permissions {%my set policy} %proc
+  Package instforward check_permissions {%set :policy} %proc
 
   Package ad_instproc require_root_folder {
     {-parent_id -100} 
@@ -1935,10 +1928,8 @@ namespace eval ::xowiki {
     create it and register all allowed content types.
 
     @return folder_id
-  } {
-    my instvar id
-    
-    set folder_id [ns_cache eval xotcl_object_type_cache root_folder-$id {
+  } {    
+    set folder_id [ns_cache eval xotcl_object_type_cache root_folder-${:id} {
       
       set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       if {$folder_id == 0} {
@@ -1950,8 +1941,8 @@ namespace eval ::xowiki {
           select item_id from cr_items where name = :name and parent_id = :parent_id
         }]
         if {$old_folder_id ne ""} {
-          ns_log notice "-- try to transform old root folder $old_folder_id of package $id"
-          ::xowiki::transform_root_folder $id
+          ns_log notice "-- try to transform old root folder $old_folder_id of package ${:id}"
+          ::xowiki::transform_root_folder ${:id}
           set folder_id $old_folder_id
         } else {
           #
@@ -1961,15 +1952,15 @@ namespace eval ::xowiki {
           #
           set package_class [::xo::PackageMgr get_package_class_from_package_key ${:package_key}]
           if {$package_class eq ""} {
-            ad_log error "trying to create an xowiki root folder for non-xowiki package $id"
-            error "trying to create an xowiki root folder for non-xowiki package $id"
+            ad_log error "trying to create an xowiki root folder for non-xowiki package ${:id}"
+            error "trying to create an xowiki root folder for non-xowiki package ${:id}"
           } else {
             ::xowiki::Package require_site_wide_pages
-            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $id]
+            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id ${:id}]
             set f [FormPage new -destroy_on_cleanup \
                        -name $name \
                        -text "" \
-                       -package_id $id \
+                       -package_id ${:id} \
                        -parent_id $parent_id \
                        -nls_language en_US \
                        -publish_status ready \
@@ -1979,7 +1970,7 @@ namespace eval ::xowiki {
             set folder_id [$f item_id]
 
             ::xo::db::sql::acs_object set_attribute -object_id_in $folder_id \
-                -attribute_name_in context_id -value_in $id
+                -attribute_name_in context_id -value_in ${:id}
 
             my log "CREATED folder '$name' and parent $parent_id ==> $folder_id"
           }
@@ -2029,7 +2020,7 @@ namespace eval ::xowiki {
   Package ad_instproc www-reindex {} {
     reindex all items of this package
   } {
-    my instvar folder_id id
+    my instvar id
     set pages [::xo::dc list get_pages {
       select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
@@ -2241,16 +2232,15 @@ namespace eval ::xowiki {
   #
 
   Package instproc www-edit-new {} {
-    my instvar folder_id id
     set object_type [my query_parameter object_type "::xowiki::Page"]
     set autoname [my get_parameter autoname 0]
-    set parent_id [$id query_parameter parent_id ""]
-    if {$parent_id eq ""} {set parent_id [$id form_parameter folder_id $folder_id]}
+    set parent_id [${:id} query_parameter parent_id ""]
+    if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
     if {![string is integer -strict $parent_id]} {
       ad_return_complaint 1 "invalid parent_id"
       ad_script_abort
     }
-    set page [$object_type new -volatile -parent_id $parent_id -package_id $id]
+    set page [$object_type new -volatile -parent_id $parent_id -package_id ${:id}]
     #my ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"
     if {$object_type eq "::xowiki::PageInstance"} {
       #
@@ -2263,7 +2253,7 @@ namespace eval ::xowiki {
       $page set page_template [my form_parameter page_template]
     }
 
-    set source_item_id [$id query_parameter source_item_id ""]
+    set source_item_id [${:id} query_parameter source_item_id ""]
     if {$source_item_id ne ""} {
       if {![string is integer -strict $source_item_id]} {
         ad_return_complaint 1 "invalid source_item_id"
@@ -2341,7 +2331,6 @@ namespace eval ::xowiki {
   }
 
   Package instproc flush_references {-item_id:integer,required -name -parent_id} {
-    my instvar id folder_id
     if {![info exists parent_id]} {
       set parent_id [::xo::db::CrClass get_parent_id -item_id $item_id]
     }
@@ -2374,8 +2363,6 @@ namespace eval ::xowiki {
     # application pages, the package_level method is used from the admin pages.
     #
     #my log "--D delete [self args]"
-    #
-    my instvar id
     #
     # if no item_id given, take it from the query parameter
     #
@@ -2420,7 +2407,7 @@ namespace eval ::xowiki {
       if {"::xowiki::PageTemplate" in $classes} {
         set count [::xowiki::PageTemplate count_usages -item_id $item_id -publish_status all]
         if {$count > 0} {
-          return [$id error_msg \
+          return [${:id} error_msg \
                       [_ xowiki.error-delete_entries_first [list count $count]]]
         }
       }
@@ -2446,7 +2433,7 @@ namespace eval ::xowiki {
     } else {
       my log "--D nothing to delete!"
     }
-    my returnredirect [my query_parameter "return_url" [$id package_url]]
+    my returnredirect [my query_parameter "return_url" [${:id} package_url]]
   }
 
   #

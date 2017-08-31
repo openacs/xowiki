@@ -20,7 +20,7 @@ namespace eval ::xowiki {
         {f.page_order "="}
         {f.title "="}
         {f.creator "="}
-        {f.text "= richtext"}
+        {f.text "= richtext,extraPlugins=xowikiimage"}
         {f.description "="}
         {f.nls_language "="}
         {validate {
@@ -72,7 +72,7 @@ namespace eval ::xowiki {
         set s [$data get_rich_text_spec $__field ""]
       }
       if {$s ne ""} {
-        #my msg "we got richtext spec for $__field = '$s'"
+        my msg "we got richtext spec for $__field = '$s'"
         set __spec $s
         set __wspec [lindex $__spec 0]
         # old style folder spec substituion. ugly.
@@ -97,6 +97,7 @@ namespace eval ::xowiki {
                    -slot [$data find_slot $__field] \
                    -spec [lindex $__spec 1] \
                   ]
+        :log SPEC=[lindex $__spec 1]
 
         if {[$f istype ::xowiki::formfield::richtext] &&
             [my folderspec] ne ""} {

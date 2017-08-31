@@ -127,14 +127,14 @@ namespace eval ::xowiki {
       }        
   
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
-    html::li -class [expr {[my set href] eq "" ? "disabled": ""}] {
-      html::a [my get_attributes target href title id] {
-        html::t [my text]
+    html::li -class [expr {${:href} eq "" ? "disabled": ""}] {
+      html::a [:get_attributes target href title id] {
+        html::t ${:text}
       }
     }
-    if {[my exists listener] && [my set listener] ne ""} {
-      lassign [my listener] type body
-      template::add_event_listener -event $type -id [my set id] \
+    if {[info exists :listener] && ${:listener} ne ""} {
+      lassign ${:listener} type body
+      template::add_event_listener -event $type -id ${:id} \
           -preventdefault=false -script $body
     }
   }

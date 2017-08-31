@@ -1298,7 +1298,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc compute_link_properties {item_ref} {
-    my instvar package_id
+    set package_id [:package_id]
     set page [$package_id get_page_from_item_ref \
                   -default_lang [my lang] \
                   -parent_id [my parent_id] \
@@ -1608,18 +1608,17 @@ namespace eval ::xowiki {
     #
     # Pop the last values from the stack
     #
-    my instvar resolve_context_stack
-    if {![info exists resolve_context_stack] || [llength $resolve_context_stack] < 1} {
+    if {![info exists :resolve_context_stack] || [llength ${:resolve_context_stack}] < 1} {
       error "set_resolve_context and reset_resolve_context calls not balanced"
     }
-    set entry [lindex $resolve_context_stack end]
-    set resolve_context_stack [lrange $resolve_context_stack 0 end-1]
+    set entry [lindex ${:resolve_context_stack} end]
+    set :resolve_context_stack [lrange ${:resolve_context_stack} 0 end-1]
     my configure {*}$entry
     #
     # When the stack is empty, remove the stack and the "physical*" attributes
     #
-    if {[llength $resolve_context_stack] == 0} {
-      unset resolve_context_stack
+    if {[llength ${:resolve_context_stack}] == 0} {
+      unset :resolve_context_stack
       foreach att {item package parent} {
         set name physical_${att}_id
         if {[my exists $name]} {
@@ -1742,8 +1741,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc initialize_loaded_object {} {
-    my instvar title
-    if {[info exists title] && $title eq ""} {set title [my set name]}
+    if {[info exists :title] && ${:title} eq ""} {set :title ${:name}}
     next
   }
 
@@ -2275,18 +2273,17 @@ namespace eval ::xowiki {
   #   $page references all
   #
   Page instproc references {submethod args} {
-    my instvar __references
     switch $submethod {
       clear {
-        set __references { unresolved {} resolved {} refused {} }
+        set :__references { unresolved {} resolved {} refused {} }
       }
       unresolved -
       refused -
       resolved {
-        return [dict lappend __references $submethod [lindex $args 0]]
+        return [dict lappend :__references $submethod [lindex $args 0]]
       }
-      get { return [dict  $submethod $__references [lindex $args 0]] }
-      all { return $__references }
+      get { return [dict  $submethod ${:__references} [lindex $args 0]] }
+      all { return ${:__references} }
       default {error "unknown submethod: $submethod"}
     }
   }
@@ -2368,19 +2365,26 @@ namespace eval ::xowiki {
     # containing HTML.
     #
     #my msg "--adp_subst in [my name] vars=[my info vars]"
-    set __ignorelist [list RE __defaults name_method object_type_key db_slot]
-    foreach __v [my info vars] {
+    foreach __v [:info vars] {
       if {[info exists $__v]} continue
+      ns_log notice "import instvar $__v into current scope"
       my instvar $__v
     }
-    set __my_class [my info class]
-    foreach __v [$__my_class info vars] {
-      if {$__v in $__ignorelist} continue
-      if {[info exists $__v]} continue
-      $__my_class instvar $__v
+    #
+    # The following block imports variables from the class to the
+    # instance. Not sure, why we want this. TODO: Comment or remove.
+    #
+    #set __ignorelist {RE __defaults name_method object_type_key db_slot}
+    #set __my_class [:info class]
+    #foreach __v [$__my_class info vars] {
+    #  if {[info exists $__v] || $__v in $__ignorelist} continue
+    #  ns_log notice "import from $__my_class var $__v into [self]"
+    #  $__my_class instvar $__v
+    #}
+    set __ignorelist {
+      __v __vars __l __ignorelist __varlist __references __my_class
+      __last_includelet text item_id content lang_links
     }
-    set __ignorelist [list __v __vars __l __ignorelist __varlist __references __my_class \
-                          __last_includelet text item_id content lang_links]
 
     # set variables current_* to ease personalization
     set current_user [::xo::cc set untrusted_user_id]
@@ -2428,7 +2432,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_description {-nr_chars content} {
-    my instvar revision_id
+    set revision_id ${:revision_id}
     set description [my set description]
     if {$description eq "" && $content ne ""} {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
@@ -2460,7 +2464,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_rich_text_spec {field_name default} {
-    my instvar package_id
+    set package_id [:package_id]
     set spec ""
     #my msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
     foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
@@ -2500,7 +2504,7 @@ namespace eval ::xowiki {
 
   Page instproc references_update {references} {
     #my msg $references
-    my instvar item_id
+    set item_id ${:item_id}
     ::xo::dc dml delete_references \
         "delete from xowiki_references where page = :item_id"
     foreach ref $references {
@@ -2520,10 +2524,8 @@ namespace eval ::xowiki {
   }
 
   Page instproc htmlFooter {{-content ""}} {
-    my instvar package_id
-
-    if {[my exists __no_footer]} {return ""}
-
+    if {[info exists :__no_footer]} {return ""}
+    set package_id [:package_id]
     set footer ""
 
     if {[ns_conn isconnected]} {
@@ -2741,7 +2743,8 @@ namespace eval ::xowiki {
   # Update xowiki_last_visited table
   #
   Page instproc record_last_visited {-user_id} {
-    my instvar item_id package_id
+    set item_id ${:item_id}
+    set package_id [:package_id]
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
@@ -3201,7 +3204,8 @@ namespace eval ::xowiki {
   }
 
   File instproc render_content {} {
-    my instvar name mime_type description parent_id package_id item_id creation_user
+    set parent_id [:parent_id]
+    set package_id [:package_id]
     # don't require permissions here, such that rss can present the link
     #set page_link [$package_id make_link -privilege public [self] download ""]
 
@@ -3224,24 +3228,24 @@ namespace eval ::xowiki {
                }]
 
     regsub {[.][0-9]+([^0-9])} [my set last_modified] {\1} last_modified
-    $package_id get_lang_and_name -name $name lang stripped_name
+    $package_id get_lang_and_name -name ${:name} lang stripped_name
     set label $stripped_name
 
     $t add \
         -name $stripped_name \
-        -mime_type $mime_type \
+        -mime_type ${:mime_type} \
         -name.href $page_link \
         -last_modified $last_modified \
-        -mod_user [::xo::get_user_name $creation_user] \
+        -mod_user [::xo::get_user_name ${:creation_user}] \
         -size [file size [my full_file_name]]
 
-    switch -glob $mime_type {
+    switch -glob ${:mime_type} {
       image/* {
         set l [Link new \
                    -page [self] -query $query \
-                   -type image -name $name -lang "" \
+                   -type image -name ${:name} -lang "" \
                    -stripped_name $stripped_name -label $label \
-                   -parent_id $parent_id -item_id $item_id -package_id $package_id]
+                   -parent_id $parent_id -item_id ${:item_id} -package_id $package_id]
         set preview "<div >[$l render]</div>"
         $l destroy
       }
@@ -3251,7 +3255,7 @@ namespace eval ::xowiki {
       }
       default {set preview ""}
     }
-    return "$preview[$t asHTML]\n<p>$description</p>"
+    return "$preview[$t asHTML]\n<p>${:description}</p>"
   }
 
   PodcastItem instproc render_content {} {
@@ -3283,7 +3287,7 @@ namespace eval ::xowiki {
     {-publish_status ready}
   } {
     return [::xowiki::PageTemplate count_usages -package_id $package_id -parent_id $parent_id \
-                -item_id [my item_id] -publish_status $publish_status]
+                -item_id ${:item_id} -publish_status $publish_status]
   }
 
   PageTemplate proc count_usages {
@@ -3375,7 +3379,6 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_short_spec {name} {
-    my instvar page_template
     #set form_constraints [my get_from_template form_constraints]
     set form_constraints [my get_form_constraints]
     #my msg "fc of [self] [my name] = $form_constraints"
@@ -3417,9 +3420,8 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_field_type {name default_spec} {
     #my log "--w"
-    my instvar page_template
     # get widget spec from folder (highest priority)
-    set spec [my widget_spec_from_folder_object $name [$page_template set name]]
+    set spec [my widget_spec_from_folder_object $name [${:page_template} set name]]
     if {$spec ne ""} {
       return $spec
     }
@@ -3673,18 +3675,17 @@ namespace eval ::xowiki {
   }
 
   Form instproc render_content {} {
-    my instvar text form
     ::xowiki::Form requireFormCSS
 
     # we assume, that the richtext is stored as 2-elem list with mime-type
-    #my log "-- text='$text'"
-    if {[lindex $text 0] ne ""} {
+    #my log "-- text='${:text}'"
+    if {[lindex ${:text} 0] ne ""} {
       my do_substitutions 0
       set html ""; set mime ""
-      lassign [my set text] html mime
+      lassign ${:text} html mime
       set content [my substitute_markup $html]
-    } elseif {[lindex $form 0] ne ""} {
-      set content [[self class] disable_input_fields [lindex $form 0]]
+    } elseif {[lindex ${:form} 0] ne ""} {
+      set content [[self class] disable_input_fields [lindex ${:form} 0]]
     } else {
       set content ""
     }
@@ -4219,8 +4220,7 @@ namespace eval ::xowiki {
     if {[regexp {^_([^_].*)$} $name _ varname]} {
       return [my exists $varname]
     }
-    my instvar instance_attributes
-    return [dict exists $instance_attributes $name]
+    return [dict exists ${:instance_attributes} $name]
   }
 
   FormPage instproc property {name {default ""}} {
@@ -4232,9 +4232,8 @@ namespace eval ::xowiki {
       return $default
     }
 
-    my instvar instance_attributes
-    if {[dict exists $instance_attributes $name]} {
-      return [dict get $instance_attributes $name]
+    if {[dict exists ${:instance_attributes} $name]} {
+      return [dict get ${:instance_attributes} $name]
     }
     return $default
   }
@@ -4251,8 +4250,7 @@ namespace eval ::xowiki {
 
     } else {
 
-      my instvar instance_attributes
-      if {!$new && ![dict exists $instance_attributes $name]} {
+      if {!$new && ![dict exists ${:instance_attributes} $name]} {
         error "property '$name' does not exist. \
         you might use flag '-new 1' for set_property to create new properties"
       }
@@ -4322,7 +4320,6 @@ namespace eval ::xowiki {
     #
     # this method returns the form attributes (including _*)
     #
-    my instvar page_template
     set allvars [concat [[my info class] array names db_slot] \
                      [::xo::db::CrClass set common_query_atts]]
 
@@ -4436,7 +4433,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_content {} {
-    my instvar doc root package_id page_template
+    set package_id [:package_id]
     my include_header_info -prefix form_view
     if {[::xo::cc mobile]} {my include_header_info -prefix mobile}
 
@@ -4470,18 +4467,18 @@ namespace eval ::xowiki {
                     {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
 
       # we parse the form just for the margin-form.... maybe regsub?
-      dom parse -simple -html $form doc
-      $doc documentElement root
-      set form_node [lindex [$root selectNodes //form] 0]
+      dom parse -simple -html $form :doc
+      ${:doc} documentElement :root
+      set form_node [lindex [${:root} selectNodes //form] 0]
 
       my log "render-content"
       Form add_dom_attribute_value $form_node role form
-      Form add_dom_attribute_value $form_node class [$page_template css_class_name]
+      Form add_dom_attribute_value $form_node class [${:page_template} css_class_name]
       # The following two commands are for non-generated form contents
       my set_form_data $form_fields
-      Form dom_disable_input_fields $root
+      Form dom_disable_input_fields ${:root}
       # Return finally the result
-      return [$root asHTML]
+      return [${:root} asHTML]
     }
   }
 
@@ -4614,8 +4611,7 @@ namespace eval ::xowiki {
   Page instproc save_data {{-use_given_publish_date:boolean false} old_name category_ids} {
     #my log "-- [self args]"
     my unset_temporary_instance_variables
-
-    my instvar package_id name
+    set package_id [:package_id]
 
     ::xo::dc transaction {
       #
@@ -4624,7 +4620,7 @@ namespace eval ::xowiki {
       #
       if {[my is_new_entry $old_name]} {
         if {![$package_id get_parameter production_mode 0]} {
-          my set publish_status "ready"
+          set :publish_status "ready"
         }
       }
       my map_categories $category_ids
@@ -4637,7 +4633,7 @@ namespace eval ::xowiki {
       # Problably, categories should also be moved into the
       # transaction queue.
       #
-      set queue ::__xowiki__transaction_queue([my item_id])
+      set queue ::__xowiki__transaction_queue(${:item_id})
       if {[info exists $queue]} {
         foreach cmd [set $queue] {
           #ns_log notice ".... executing transaction command: $cmd"
@@ -4646,12 +4642,12 @@ namespace eval ::xowiki {
       }
 
       my save -use_given_publish_date $use_given_publish_date
-      if {$old_name ne $name} {
-        my rename -old_name $old_name -new_name $name
+      if {$old_name ne ${:name}} {
+        my rename -old_name $old_name -new_name ${:name}
       }
       my notification_notify
     }
-    return [my item_id]
+    return ${:item_id}
   }
 
 }

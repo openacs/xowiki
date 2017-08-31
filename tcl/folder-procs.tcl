@@ -151,7 +151,6 @@ namespace eval ::xowiki::includelet {
     #my msg "[llength [$links children]] links"
 
     set folders [$folder_pages children]
-    my instvar current_folder_id
 
     #
     # filter links to folders.
@@ -175,14 +174,14 @@ namespace eval ::xowiki::includelet {
 
         foreach f $sub_folders {
 
-          #my msg "$f [$f name] is a folder-link pointing to $target [$target name] current $current_folder_id"
+          #my msg "$f [$f name] is a folder-link pointing to $target [$target name] current ${:current_folder_id}"
           if {[$f parent_id] eq [$target item_id]} {
             #my msg "1 found child [$f name] and reset parent_id from [$f parent_id] to [$l item_id], package_id [$l package_id]"
             #
             # reset the current_folder if necessary
             # 
-            if {$current_folder_id eq [$f parent_id]} {
-              set current_folder_id [$l item_id]
+            if {${:current_folder_id} eq [$f parent_id]} {
+              set :current_folder_id [$l item_id]
             }
             #
             # set the resolve_context
@@ -212,7 +211,6 @@ namespace eval ::xowiki::includelet {
   }
 
   folders instproc build_tree {} {
-    my instvar current_folder current_folder_id folder_form_id link_form_id
     my get_parameters
 
     set page [my set __including_page]
@@ -228,21 +226,21 @@ namespace eval ::xowiki::includelet {
     set return_url [::xo::cc url]
     set nls_language [$page get_nls_language_from_lang $lang]
 
-    set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
-                            -package_id $package_id]
-    set link_form_id   [::xowiki::Weblog instantiate_forms -forms en:link.form \
-                            -package_id $package_id]
-    #my msg folder_form=$folder_form_id
+    set :folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
+                             -package_id $package_id]
+    set :link_form_id   [::xowiki::Weblog instantiate_forms -forms en:link.form \
+                             -package_id $package_id]
+    #my msg folder_form=${:folder_form_id}
 
-    set current_folder [$page get_folder -folder_form_ids $folder_form_id]
-    set current_folder_id [$current_folder item_id]
+    set :current_folder [$page get_folder -folder_form_ids ${:folder_form_id}]
+    set :current_folder_id [${:current_folder} item_id]
 
-    #my msg "FOLDERS [$page name] package_id $package_id current_folder $current_folder [$current_folder name]"
+    #my msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
     # Start with the "package's folder" as root folder
     set root_folder_id [::$package_id folder_id]
     set root_folder [::xo::db::CrClass get_instance_from_db -item_id $root_folder_id]
-    set root_folder_is_current [expr {$current_folder_id == [$root_folder item_id]}]
+    set root_folder_is_current [expr {${:current_folder_id} == [$root_folder item_id]}]
 
     set mb [info commands ::__xowiki__MenuBar]
     if {$mb ne ""} {
@@ -261,10 +259,10 @@ namespace eval ::xowiki::includelet {
         set folder_link [$package_id package_url]
         if {[info exists parent_id]} {unset parent_id}
       } else {
-        set parent_id $current_folder_id
+        set parent_id ${:current_folder_id}
         set opt_parent_id $parent_id
         ::xo::db::CrClass get_instance_from_db -item_id $parent_id
-        set folder_link [$current_folder pretty_link]
+        set folder_link [${:current_folder} pretty_link]
       }
       set return_url [::xo::cc url]
       set new_folder_link [$package_id make_form_link -form en:folder.form \
@@ -297,7 +295,7 @@ namespace eval ::xowiki::includelet {
                                    -parent_id $opt_parent_id]
 
 
-      set index_link [$package_id make_link -link $folder_link $current_folder list]
+      set index_link [$package_id make_link -link $folder_link ${:current_folder} list]
 
       $mb add_menu_item -name Package.Startpage -item [list url $folder_link]
       $mb add_menu_item -name Package.Toc -item [list url $index_link]
@@ -336,12 +334,12 @@ namespace eval ::xowiki::includelet {
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
       $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
 
-      set uploader_link [$package_id make_link $current_folder file-upload]
+      set uploader_link [$package_id make_link ${:current_folder} file-upload]
       $mb add_extra_item -name dropzone1 -type DropZone \
           -item [list url $uploader_link label DropZone uploader File]
 
       #set modestate [::xowiki::mode::admin get]
-      #set modebutton_link [$package_id make_link $current_folder toggle-modebutton]
+      #set modebutton_link [$package_id make_link ${:current_folder} toggle-modebutton]
       #$mb add_extra_item -name admin -type ModeButton \
       #    -item [list url $modebutton_link on $modestate label admin]
       
@@ -352,7 +350,7 @@ namespace eval ::xowiki::includelet {
           -nls_language $nls_language \
           [concat \
                [$package_id get_parameter ExtraMenuEntries {}] \
-               [$current_folder property extra_menu_entries]]
+               [${:current_folder} property extra_menu_entries]]
     }
 
     set top_folder_of_tree $root_folder
@@ -360,7 +358,7 @@ namespace eval ::xowiki::includelet {
     # Check, if the optional context tree view is activated
     #
     if {$context_tree_view || [$package_id get_parameter FolderContextTreeView false]} {
-      set parent_id [$current_folder parent_id]
+      set parent_id [${:current_folder} parent_id]
       if {$parent_id ne -100} {
         set top_folder_of_tree $parent_id
         #my msg top_folder_of_tree=$top_folder_of_tree
@@ -381,7 +379,7 @@ namespace eval ::xowiki::includelet {
     set node [::xowiki::TreeNode new \
                   -href $href \
                   -label $label \
-                  -highlight [expr {$current_folder_id == [$top_folder_of_tree item_id]}] \
+                  -highlight [expr {${:current_folder_id} == [$top_folder_of_tree item_id]}] \
                   -object $top_folder_of_tree \
                   -expanded 1 \
                   -orderby label \
@@ -390,10 +388,10 @@ namespace eval ::xowiki::includelet {
     $t add $node
     set folders [my collect_folders \
                      -package_id $package_id \
-                     -folder_form_id $folder_form_id \
-                     -link_form_id $link_form_id]
+                     -folder_form_id ${:folder_form_id} \
+                     -link_form_id ${:link_form_id}]
 
-    #my msg "folder [my set folder_form_id] has [llength $folders] entries"
+    #my msg "folder ${:folder_form_id} has [llength $folders] entries"
     #foreach f $folders {lappend _ [$f item_id]}; my msg $_
 
     my build_sub_tree -node $node -folders $folders
@@ -406,13 +404,12 @@ namespace eval ::xowiki::includelet {
 
   } {
     my get_parameters
-    my instvar current_folder_id
 
     set current_object [$node object]
     set current_item_id [$current_object item_id]
-
     set sub_folders [list]
     set remaining_folders [list]
+    
     foreach f $folders {
       if {[$f parent_id] ne $current_item_id} {
         lappend remaining_folders $f
@@ -426,7 +423,7 @@ namespace eval ::xowiki::includelet {
       set label [$c title]
       set folder_href [$c pretty_link]
 
-      set is_current [expr {$current_folder_id eq [$c item_id]}]
+      set is_current [expr {${:current_folder_id} eq [$c item_id]}]
       set is_open [expr {$is_current || $show_full_tree}]
 
       #regexp {^..:(.+)$} $label _ label
@@ -518,7 +515,7 @@ namespace eval ::xowiki::includelet {
         error "child-resources not included from a FormPage"
       }
     }
-    set current_folder_id [$current_folder item_id]
+    set :current_folder_id [$current_folder item_id]
 
     if {[::xo::cc query_parameter m] ne "list" && $parent ne ".."} {
       set index [$current_folder property index]
@@ -532,9 +529,9 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set logical_folder_id $current_folder_id
+    set logical_folder_id ${:current_folder_id}
     if {[$current_folder exists physical_item_id]} {
-      set current_folder_id [$current_folder set physical_item_id]
+      set :current_folder_id [$current_folder set physical_item_id]
     }
 
     $package_id instvar package_key
@@ -594,7 +591,7 @@ namespace eval ::xowiki::includelet {
     if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
 
     set items [::xowiki::FormPage get_all_children \
-                   -folder_id $current_folder_id \
+                   -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
                    -object_types [my types_to_show] \
                    -extra_where_clause $extra_where_clause]
@@ -674,7 +671,7 @@ namespace eval ::xowiki::includelet {
       }
       $mb update_items \
           -package_id $package_id \
-          -parent_id $current_folder_id \
+          -parent_id ${:current_folder_id} \
           -return_url $return_url \
           -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]] \
           $menuEntries
