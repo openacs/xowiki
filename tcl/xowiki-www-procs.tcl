@@ -1058,7 +1058,7 @@ namespace eval ::xowiki {
     }
     my post_process_dom_tree ${:doc} ${:root} $form_fields
 
-    set html [$root asHTML]
+    set html [${:root} asHTML]
     set html [my regsub_eval  \
                   {(^|[^\\])\x03([a-zA-Z0-9_:]+)\x03} $html \
                   {my form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
