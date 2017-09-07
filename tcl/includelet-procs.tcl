@@ -1435,11 +1435,11 @@ namespace eval ::xowiki::includelet {
     }]
 
     template::add_event_listener \
-        -id ${:id} -edit-tags-control \
+        -id ${:id}-edit-tags-control \
         -script [subst {document.getElementById("${:id}-edit_tags").style.display="block";}]
 
     template::add_event_listener \
-        -id ${:id} -popular-tags-control \
+        -id ${:id}-popular-tags-control \
         -script [subst {get_popular_tags("[ns_quotehtml $popular_tags_link]","${:id}");}]
 
     return $content

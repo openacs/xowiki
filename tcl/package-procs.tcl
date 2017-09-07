@@ -911,7 +911,7 @@ namespace eval ::xowiki {
         if {$batch_mode} {${:id} set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
         if {$err} {set errorCode $::errorCode}
-        if {$batch_mode} {${id} unset -nocomplain __batch_mode}
+        if {$batch_mode} {${:id} unset -nocomplain __batch_mode}
         if {$err} {
           #
           # Check, if we were called from "ad_script_abort" (intentional abortion)
