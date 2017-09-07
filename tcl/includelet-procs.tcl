@@ -3465,7 +3465,7 @@ namespace eval ::xowiki::includelet {
       return ""
     }
     set msg_key [namespace tail [my info class]]
-    set label [_ xowiki.$msg_key [list form_name [$form name]]]${:label_suffix}
+    set label [_ xowiki.$msg_key [list form_name [${:form} name]]]${:label_suffix}
     return "<a href='[ns_quotehtml ${:link}]'>[ns_quotehtml $label]</a>"
   }
 
