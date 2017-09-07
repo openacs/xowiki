@@ -4254,7 +4254,7 @@ namespace eval ::xowiki {
         error "property '$name' does not exist. \
         you might use flag '-new 1' for set_property to create new properties"
       }
-      dict set instance_attributes $name $value
+      dict set :instance_attributes $name $value
     }
     return $value
   }
