@@ -3890,7 +3890,7 @@ namespace eval ::xowiki::includelet {
     }
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
-      append cols [list AnchorField  create _$fn \
+      append cols [list AnchorField  create $fn \
                        -label [$__ff($fn) label] \
                        -richtext 1 \
                        -orderby $fn \
@@ -4032,7 +4032,7 @@ namespace eval ::xowiki::includelet {
         #
         if {[info exists __ff($view_field)]} {
           # .... on $view_field) (per default: _name) ....
-          $__c set _$view_field.href $view_link
+          $__c set $view_field.href $view_link
         } else {
           # .... otherwise on the first form_field
           $__c set _[lindex $field_names 0].href $view_link
@@ -4040,13 +4040,13 @@ namespace eval ::xowiki::includelet {
       }
 
       # set always last_modified for default sorting
-      $__c set __last_modified [$p set last_modified]
+      $__c set _last_modified [$p set last_modified]
 
       foreach __fn $field_names {
         $__ff($__fn) object $p
-        $__c set _$__fn [$__ff($__fn) pretty_value [$p property $__fn]]
+        $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
-      $__c set __name [$package_id external_name -parent_id [$p parent_id] [$p name]]
+      $__c set _name [$package_id external_name -parent_id [$p parent_id] [$p name]]
     }
 
     #
