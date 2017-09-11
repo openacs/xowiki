@@ -72,7 +72,7 @@ namespace eval ::xowiki {
         set s [$data get_rich_text_spec $__field ""]
       }
       if {$s ne ""} {
-        my msg "we got richtext spec for $__field = '$s'"
+        #my msg "we got richtext spec for $__field = '$s'"
         set __spec $s
         set __wspec [lindex $__spec 0]
         # old style folder spec substituion. ugly.
