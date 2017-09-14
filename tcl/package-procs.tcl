@@ -1615,8 +1615,14 @@ namespace eval ::xowiki {
         set popular [::xo::cc query_parameter popular 0]
         if {$summary eq ""} {set summary 0}
         if {$popular eq ""} {set popular 0}
-        if {![string is boolean -strict $summary]} {error "value of summary must be boolean"}
-        if {![string is boolean -strict $popular]} {error "value of popular must be boolean"}
+        if {![string is boolean -strict $summary]} {
+          ad_return_complaint 1 "value of 'summary' must be boolean"
+          ad_script_abort
+        }
+        if {![string is boolean -strict $popular]} {
+          ad_return_complaint 1 "value of 'popular' must be boolean"
+          ad_script_abort
+        }
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
         set weblog_page [my get_parameter weblog_page]
         my get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
