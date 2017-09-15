@@ -219,7 +219,7 @@ template::list::create \
       name {
         label "[_ file-storage.Name]"
         display_template {
-          <if @contents.folder_p@ eq 0>
+          <if @contents.folder_p;literal@ false>
           <input type="radio" name="linktarget" value="@contents.object_id@" 
              id="oi@contents.object_id@" />
           <input type="hidden" name="@contents.object_id@_file_url" 
