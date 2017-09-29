@@ -14,7 +14,7 @@
 
   my initialize -parameter {
     {-tree_name ""}
-    {-tree_style:boolean 1}
+    {-tree_style "mktree"}
     {-no_tree_name:boolean 0}
     {-count:boolean 0}
     {-summary:boolean 0}
@@ -47,7 +47,7 @@
       set cattree(0) [::xowiki::Tree new -volatile -orderby pos -name $my_tree_name]
       foreach category_info [::xowiki::Category get_category_infos -tree_id $tree_id] {
         lassign $category_info cid category_label deprecated_p level
-        set c [::xowiki::TreeNode new -orderby pos -category_id $cid -package_id $package_id \
+        set c [::xowiki::TreeNode new -orderby pos \
                    -level $level -label $category_label -pos [incr pos]]
         set cattree($level) $c
         set plevel [expr {$level -1}]
@@ -99,7 +99,8 @@
               set prefix ""
               set suffix ""
               foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
-              $cattree(0) add_to_category \
+              $itemobj set href [::$package_id pretty_link $name]
+              $cattree(0) add_item \
                   -category $category($category_id) \
                   -itemobj $itemobj \
                   -orderby title \
