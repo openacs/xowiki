@@ -172,7 +172,7 @@ namespace eval ::xowiki {
       if {[my exists_form_parameter $key]} {
         set __value [my form_parameter $key]
         if {$key in $text_to_html} {
-          set __value [ad_text_to_html $__value]
+          set __value [ad_text_to_html -- $__value]
         }
         lappend default_variables [string range $key 1 end] $__value
         switch $key {

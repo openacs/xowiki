@@ -514,7 +514,7 @@ namespace eval ::xowiki {
   #
 
   Page proc quoted_html_content text {
-    list [ad_text_to_html $text] text/html
+    list [ad_text_to_html -- $text] text/html
   }
 
   #

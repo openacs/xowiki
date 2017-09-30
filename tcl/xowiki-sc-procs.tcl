@@ -40,7 +40,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
     text/html {
       set content [dict get $d html]
       set text [ad_html_text_convert -from text/html -to text/plain -- [dict get $d html]]
-      #set text [ad_text_to_html [dict get $d html]]; #this could be used for entity encoded html text in rss entries
+      #set text [ad_text_to_html -- [dict get $d html]]; #this could be used for entity encoded html text in rss entries
       
       # If the html contains links (which are rendered by ad_html_text as [1], [2], ...)
       # then we have to use CDATA in the description

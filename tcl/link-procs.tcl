@@ -423,7 +423,7 @@ namespace eval ::xowiki {
       set object_type ::xowiki::File
       set link [$package_id make_link $package_id edit-new object_type \
                     [list parent_id [my parent_id]] \
-                    [list title [ad_html_to_text -no_format $label]] \
+                    [list title [ad_html_to_text -no_format -- $label]] \
                     [list return_url [::xo::cc url]] \
                     autoname name last_page_id] 
       set html [my render_not_found $link $label]
