@@ -90,7 +90,7 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
                     -creation_ip [ad_conn peeraddr] \
                     -package_id [ad_conn package_id]
             }
-            file delete $upload_tmpfile
+            file delete -- $upload_tmpfile
             permission::grant \
                 -object_id $item_id \
                 -party_id $user_id \

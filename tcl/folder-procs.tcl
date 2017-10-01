@@ -662,7 +662,7 @@ namespace eval ::xowiki::includelet {
       $mb add_menu -name $Menu
       set menuEntries {}
       foreach e $entries {
-        switch $e {
+        switch -- $e {
           ::xowiki::File {
             lappend menuEntries {entry -name New.File -label File -object_type ::xowiki::File}
           }

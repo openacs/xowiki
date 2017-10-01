@@ -24,7 +24,7 @@ namespace eval ::xowiki {
   Importer instproc report_line {obj operation} {
     set href [$obj pretty_link]
     set name [[$obj package_id] external_name -parent_id [$obj parent_id] [$obj name]]
-    switch $operation {
+    switch -- $operation {
         "added" { set operation "[_ xowiki.added]" }
         "replaced" { set operation "[_ xowiki.replaced]" }
         "updated" { set operation "[_ xowiki.updated]" }

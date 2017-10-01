@@ -175,7 +175,7 @@ namespace eval ::xowiki {
           set __value [ad_text_to_html -- $__value]
         }
         lappend default_variables [string range $key 1 end] $__value
-        switch $key {
+        switch -- $key {
           _name {set name $__value}
         }
       }
@@ -1890,7 +1890,7 @@ namespace eval ::xowiki {
       # Handling now just INPUT types (only one needed so far)
       #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
-      switch $type {
+      switch -- $type {
         checkbox {
           #my msg "get_form_value not implemented for $type"
         }
@@ -1940,7 +1940,7 @@ namespace eval ::xowiki {
       #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
       # the switch should be really different objects ad classes...., but thats HTML, anyhow.
-      switch $type {
+      switch -- $type {
         checkbox {
           #my msg "$att: CHECKBOX value='$value', [$field hasAttribute checked], [$field hasAttribute value]"
           if {[$field hasAttribute value]} {

@@ -3815,7 +3815,7 @@ namespace eval ::xowiki::includelet {
       # All labels of the following switch statement are used
       # as variable names. Take care when adding new labels not to
       # overwrite existing variables.
-      switch $attr {
+      switch -- $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         buttons - publish_status - category_id - unless -
         where -   with_categories - with_form_link - csv - view_field -

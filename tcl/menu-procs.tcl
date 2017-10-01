@@ -284,7 +284,7 @@ namespace eval ::xowiki {
       if {[string index $kind 0] eq "#"} continue
       set properties [lrange $me 1 end]
 
-      switch $kind {
+      switch -- $kind {
         
         clear_menu {
           my clear_menu -menu [dict get $properties -menu]

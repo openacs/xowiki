@@ -580,7 +580,7 @@ namespace eval ::xowiki {
     if {$value eq ""} {set value [next $attribute $default]}
     if {$type ne ""} {
       # to be extended and generalized
-      switch $type {
+      switch -- $type {
         word {if {[regexp {\W} $value]} {error "value '$value' contains invalid character"}}
         default {error "requested type unknown: $type"}
       }

@@ -2273,7 +2273,7 @@ namespace eval ::xowiki {
   #   $page references all
   #
   Page instproc references {submethod args} {
-    switch $submethod {
+    switch -- $submethod {
       clear {
         set :__references { unresolved {} resolved {} refused {} }
       }

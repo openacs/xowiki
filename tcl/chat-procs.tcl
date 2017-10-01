@@ -99,7 +99,7 @@ namespace eval ::xowiki {
     # small javascript library to obtain a portable ajax request object
     ::xo::Page requireJS "/resources/xowiki/get-http-object.js"
 
-    switch $mode {
+    switch -- $mode {
       polling {
         set jspath packages/xowiki/www/ajax/chat.js
         set login_url  ${path}ajax/chat?m=login&$context
@@ -142,7 +142,7 @@ namespace eval ::xowiki {
 
     template::add_body_script -script [subst {document.getElementById('chatMsg').focus();}]
 
-    switch $mode {
+    switch -- $mode {
       polling {
         template::add_event_listener \
             -id "messages-form" \
