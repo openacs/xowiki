@@ -2,6 +2,7 @@
   <property name="doc(title)">@edit_form_page_title;literal@</property>
   <property name="&doc">property_doc</property>
   <property name="context">@context;literal@</property>
+  <property name="displayed_object_id">@parent_id;literal@</property>
   <property name="focus">note.title</property>
 
 <style type='text/css'>
