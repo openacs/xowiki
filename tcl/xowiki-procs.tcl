@@ -1991,6 +1991,7 @@ namespace eval ::xowiki {
       #
       array set "" [my check_adp_include_path [lindex $adp 0]]
       if {!$(allowed)} {
+        incr ::xowiki_inclusion_depth -1
         return [my error_in_includelet $arg $(msg)]$ch2
       }
       set adp_fn $(fn)
@@ -2001,6 +2002,7 @@ namespace eval ::xowiki {
       if {[llength $adp_args] % 2 == 1} {
         incr ::xowiki_inclusion_depth -1
         set adp $adp_args
+        incr ::xowiki_inclusion_depth -1
         return [my error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
       }
 
@@ -2011,6 +2013,7 @@ namespace eval ::xowiki {
           #
           # If the exception was from an ad_script_abort, propagate it up
           #
+          incr ::xowiki_inclusion_depth -1
           ad_script_abort
         }
         ad_log error "$errorMsg\n$::errorInfo"
@@ -2020,6 +2023,7 @@ namespace eval ::xowiki {
         return [my error_in_includelet $arg \
                     [_ xowiki.error-includelet-error_during_adp_evaluation]]$ch2
       }
+      incr ::xowiki_inclusion_depth -1
 
       return $page$ch2
     } else {
