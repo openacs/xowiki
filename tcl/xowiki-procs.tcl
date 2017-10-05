@@ -2371,7 +2371,7 @@ namespace eval ::xowiki {
     #my msg "--adp_subst in [my name] vars=[my info vars]"
     foreach __v [:info vars] {
       if {[info exists $__v]} continue
-      ns_log notice "import instvar $__v into current scope"
+      #ns_log notice "import instvar $__v into current scope"
       my instvar $__v
     }
     #
