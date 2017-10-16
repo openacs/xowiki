@@ -23,7 +23,7 @@ namespace eval ::xowiki {
   }
 
   Package ad_proc get_package_id_from_page_id {
-    {-revision_id 0} 
+    {-revision_id 0}
     {-item_id 0}
   } {
     Obtain the package_id from either the item_id or the revision_id of a page
@@ -39,7 +39,7 @@ namespace eval ::xowiki {
   }
 
   Package ad_proc instantiate_page_from_id {
-    {-revision_id 0} 
+    {-revision_id 0}
     {-item_id 0}
     {-user_id -1}
     {-parameter ""}
@@ -68,7 +68,7 @@ namespace eval ::xowiki {
   } {
     set page [::xowiki::Package instantiate_page_from_id \
                   -item_id $item_id -revision_id $revision_id]
-    return [::[$page package_id] url] 
+    return [::[$page package_id] url]
   }
 
   #
@@ -142,7 +142,7 @@ namespace eval ::xowiki {
     }
     return ""
   }
-  
+
   Package instproc default_language {} {
     return [string range [my default_locale] 0 1]
   }
@@ -153,7 +153,7 @@ namespace eval ::xowiki {
       ad_script_abort
     }
   }
-  
+
   Package array set www-file {
     admin 1
     diff 1
@@ -161,24 +161,24 @@ namespace eval ::xowiki {
     edit 1
     error-template 1
     portlet 1     portlet-ajax 1  portlets 1
-    prototypes 1 
+    prototypes 1
     ressources 1
-    revisions 1 
+    revisions 1
     view-default 1 view-links 1 view-plain 1 oacs-view 1 oacs-view2 1 oacs-view3 1
     view-book 1 view-book-no-ajax 1 view-oacs-docs 1
     download 1
   }
-  
+
   Package instproc get_lang_and_name {-path -name {-default_lang ""} vlang vlocal_name} {
-    my upvar $vlang lang $vlocal_name local_name 
+    my upvar $vlang lang $vlocal_name local_name
     if {[info exists path]} {
-      # 
+      #
       # Determine lang and name from a path with slashes
       #
       if {[regexp {^pages/(..)/(.*)$} $path _ lang local_name]} {
       } elseif {[regexp {^([a-z][a-z])/(.*)$} $path _ lang local_name]} {
 
-        # TODO we should be able to get rid of this by using a canonical /folder/ in 
+        # TODO we should be able to get rid of this by using a canonical /folder/ in
         # case of potential conflicts, like for file....
 
         # check if we have a LANG - FOLDER "conflict"
@@ -197,7 +197,7 @@ namespace eval ::xowiki {
         set lang $default_lang
       }
     } elseif {[info exists name]} {
-      # 
+      #
       # Determine lang and name from a names as it stored in the database
       #
       if {![regexp {^(..):(.*)$} $name _ lang local_name]} {
@@ -209,11 +209,11 @@ namespace eval ::xowiki {
       }
     }
   }
-  
+
   Package instproc get_page_from_super {-folder_id:required name} {
     set package [self]
     set inherit_folders [FormPage get_super_folders $package $folder_id]
-    
+
     foreach item_ref $inherit_folders {
       set folder [::xo::cc cache [list $package get_page_from_item_ref $item_ref]]
       if {$folder eq ""} {
@@ -230,7 +230,7 @@ namespace eval ::xowiki {
 
 
   Package instproc get_parent_and_name {-path:required -lang:required -parent_id:required vparent vlocal_name} {
-    my upvar $vparent parent $vlocal_name local_name 
+    my upvar $vparent parent $vlocal_name local_name
     if {[regexp {^([^/]+)/(.+)$} $path _ parent local_name]} {
 
       # try without a prefix
@@ -266,7 +266,7 @@ namespace eval ::xowiki {
       }
 
       if {$p != 0} {
-        return $p 
+        return $p
       }
     }
     set parent ""
@@ -301,7 +301,7 @@ namespace eval ::xowiki {
     designed to work with linked objects, respecting logical and
     physical parent IDs. The result is URL encoded, unless path_encode
     is set to false.
-    
+
   } {
     #
     # handle different parent_ids
@@ -338,17 +338,17 @@ namespace eval ::xowiki {
           set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
         } else {
           #my msg "context_url $context_url, parts $parts, context_name $context_name // parts $parts // index $index / folder $fo"
-          
+
           if { [$fo name] ne $context_name } {
             set context_folder [my get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name]
             if {$context_folder eq ""} {
               my msg "my get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name ==> EMPTY"
               my msg "Cannot lookup '$context_name' in package folder $parent_id [$parent_id name]"
-              
+
               set new_path [join [lrange $parts 0 $index] /]
               set p2 [my get_parent_and_name -path [join [lrange $parts 0 $index] /] -lang "" -parent_id $parent_id parent local_name]
               my msg "p2=$p2 new_path=$new_path '$local_name' ex=[nsf::object::exists $p2] [$p2 name]"
-              
+
             }
             my msg "context_name [$context_folder serialize]"
             set context_id [$context_folder item_id]
@@ -362,7 +362,7 @@ namespace eval ::xowiki {
       #set path $stripped_name/$path
 
       if {[$fo parent_id] < 0} break
-      
+
       if {[$fo is_link_page]} {
         set pid [$fo package_id]
         foreach id $ids {
@@ -394,7 +394,7 @@ namespace eval ::xowiki {
       }
       # prepend always the actual folder name
       set path $name/$path
-      
+
       if {${:folder_id} == [$fo parent_id]} {
         #my msg ".... my folder_id [my folder_id] == $fo parentid"
         break
@@ -406,11 +406,11 @@ namespace eval ::xowiki {
     #my msg ====$path
     return $path
   }
-  
+
 
   Package ad_instproc external_name {
     {-parent_id ""}
-    name 
+    name
   } {
     Generate a name with a potentially inserted parent name
 
@@ -429,19 +429,19 @@ namespace eval ::xowiki {
   }
 
   Package ad_instproc pretty_link {
-    {-anchor ""} 
-    {-query ""} 
-    {-absolute:boolean false} 
+    {-anchor ""}
+    {-query ""}
+    {-absolute:boolean false}
     {-siteurl ""}
-    {-lang ""} 
+    {-lang ""}
     {-parent_id ""}
-    {-download false} 
+    {-download false}
     {-context_url ""}
     {-folder_ids ""}
     {-path_encode:boolean true}
-    name 
+    name
   } {
-    
+
     Generate a (minimal) link to a wiki page with the specified name.
     Pratically all links in the xowiki systems are generated through
     this function. The function returns the URL path urlencoded,
@@ -456,7 +456,7 @@ namespace eval ::xowiki {
   } {
     #my msg "input name=$name, lang=$lang parent_id=$parent_id"
     set default_lang [my default_language]
-    
+
     my get_lang_and_name -default_lang $lang -name $name lang name
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
@@ -692,7 +692,7 @@ namespace eval ::xowiki {
       #
       # Note, that package::initialize might change the package id.
       # Preserving the package-url is just necessary, if for some
-      # reason the same package is initialized here with a different 
+      # reason the same package is initialized here with a different
       # url. This could be done probably with a flag to initialize,
       # but we get below the object name from the package_id...
       #
@@ -704,13 +704,13 @@ namespace eval ::xowiki {
       # TODO: We assume here that the package is an xowiki package.
       #       The package might be as well a subclass of xowiki...
       #       For now, we fixed the problem to perform reclassing in
-      #       ::xo::Package init and calling a per-package instance 
+      #       ::xo::Package init and calling a per-package instance
       #       method "initialize"
       #
       ::xowiki::Package initialize -parameter {{-m view}} -url $(url)$(provided_name) \
           -actual_query ""
       #my log "url=$url=>[$package_id serialize]"
-      
+
       if {$package_id != 0} {
         #
         # For the resolver, we create a fresh context to avoid recursive loops, when
@@ -735,7 +735,7 @@ namespace eval ::xowiki {
         $package_id context $last_context
       }
       $last_package_id set_url -url $last_url
-      
+
     } else {
       # It is not a cross package request
       set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
@@ -756,14 +756,14 @@ namespace eval ::xowiki {
   # conditional links
   #
   Package ad_instproc make_link {{-with_entities 0} -privilege -link object method args} {
-    Creates conditionally a link for use in xowiki. When the generated link 
+    Creates conditionally a link for use in xowiki. When the generated link
     will be activated, the specified method of the object will be invoked.
-    make_link checks in advance, whether the actual user has enough 
+    make_link checks in advance, whether the actual user has enough
     rights to invoke the method. If not, this method returns empty.
-    
+
     @param Object The object to which the link refers to. If it is a package_id it will base \
         to the root_url of the package_id. If it is a page, it will base to the page_url
-    @param method Which method to use. This will be appended as "m=method" to the url. 
+    @param method Which method to use. This will be appended as "m=method" to the url.
 
     Examples for methods:
     <ul>
@@ -772,7 +772,7 @@ namespace eval ::xowiki {
     <li>revisions: To view the revisions of an existing page</li>
     </ul>
 
-    @param args List of attributes to be append to the link. Every element 
+    @param args List of attributes to be append to the link. Every element
     can be an attribute name, or a "name value" pair. Behaves like export_vars.
 
     @return The link or empty
@@ -859,18 +859,18 @@ namespace eval ::xowiki {
   } {
     my get_lang_and_name -path $provided_name lang local_name
     set name ${lang}:$local_name
-    set new_link [my make_link ${:id} edit-new object_type return_url name] 
+    set new_link [my make_link ${:id} edit-new object_type return_url name]
     if {$new_link ne ""} {
       return "<p>Do you want to create page <a href='[ns_quotehtml $new_link]'>$name</a> new?"
     } else {
       return ""
     }
   }
-  
+
   Package array set delegate_link_to_target {
     csv-dump 1 download 1 list 1
   }
-  
+
   Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
     if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {return [my error_msg "No valid method provided!"] }
     if {[catch {set page_or_package [my resolve_page [my set object] method]} errorMsg]} {
@@ -940,7 +940,7 @@ namespace eval ::xowiki {
         return $r
       }
     } else {
-      # the requested page was not found, provide an error message and 
+      # the requested page was not found, provide an error message and
       # an optional link for creating the page
       set path [::xowiki::Includelet html_encode [my set object]]
       set edit_snippet [my create_new_snippet $path]
@@ -962,7 +962,7 @@ namespace eval ::xowiki {
     set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
     ${:id} return_page -adp $template_file -variables {
-      context title index_link back_link header_stuff error_msg 
+      context title index_link back_link header_stuff error_msg
       top_includelets content folderhtml
     }
   }
@@ -981,7 +981,7 @@ namespace eval ::xowiki {
   Package instproc resolve_page {
     {-use_package_path true}
     {-simple false}
-    -lang 
+    -lang
     object
     method_var
   } {
@@ -1000,7 +1000,7 @@ namespace eval ::xowiki {
     #my log "resolve_page '$object', default-lang $lang"
 
     #
-    # First, resolve package level methods, 
+    # First, resolve package level methods,
     # having the syntax PACKAGE_URL?METHOD&....
     #
 
@@ -1065,7 +1065,7 @@ namespace eval ::xowiki {
         #
         $page set_resolve_context -package_id $(logical_package_id) -parent_id $(logical_parent_id)
       }
-      
+
       return $page
     }
     if {$simple} { return ""}
@@ -1140,7 +1140,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc package_path {} {
-    # 
+    #
     # Compute a list fo package objects which should be used for
     # resolving ("inheritance of objects from other instances").
     #
@@ -1185,10 +1185,10 @@ namespace eval ::xowiki {
       # backward compatibility check
       #
       foreach location {resources/templates www} {
-        
+
         set tmpl /packages/$package_key/$location/$name
         set fn [acs_root_dir]/$tmpl
-        
+
         if {[file readable $fn.adp]} {
           set result [::template::themed_template $tmpl]
           #ns_log notice "template is <$result>"
@@ -1235,7 +1235,7 @@ namespace eval ::xowiki {
           set item_id [my get_page_from_super -folder_id $parent_id file:$stripped_name]
         }
       }
-      
+
       if { $item_id != 0 } {
         set name $stripped_name
       }
@@ -1251,10 +1251,10 @@ namespace eval ::xowiki {
   }
 
   Package instproc lookup {
-    {-use_package_path true} 
-    {-use_site_wide_pages false} 
-    {-default_lang ""} 
-    -name:required 
+    {-use_package_path true}
+    {-use_site_wide_pages false}
+    {-default_lang ""}
+    -name:required
     {-parent_id ""}
   } {
     # Lookup name (with maybe cross-package references) from a
@@ -1266,12 +1266,12 @@ namespace eval ::xowiki {
     if {![info exists (package_id)]} {
       return 0
     }
-    
+
     if {$parent_id eq ""} {set parent_id [$(package_id) folder_id]}
     set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
     #my log "lookup $(page_name) $parent_id in package $(package_id) returns $item_id, parent_id $parent_id"
 
-    # Test for "0" is only needed when we want to create the first root folder 
+    # Test for "0" is only needed when we want to create the first root folder
     if {$item_id == 0 && $parent_id ne "0"} {
       #
       # Page not found so far. Is the parent-page a regular page and a folder-link?
@@ -1320,7 +1320,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # Resolving item refs 
+  # Resolving item refs
   # (symbolic references to content items and content folders)
   #
 
@@ -1328,8 +1328,8 @@ namespace eval ::xowiki {
     {-use_package_path false}
     {-use_site_wide_pages false}
     {-normalize_name true}
-    -default_lang:required 
-    -parent_id:required 
+    -default_lang:required
+    -parent_id:required
     link
   } {
 
@@ -1391,8 +1391,8 @@ namespace eval ::xowiki {
   }
 
   Package instproc simple_item_ref {
-    -default_lang:required 
-    -parent_id:required 
+    -default_lang:required
+    -parent_id:required
     {-use_package_path true}
     {-use_site_wide_pages false}
     {-normalize_name true}
@@ -1486,7 +1486,7 @@ namespace eval ::xowiki {
       if {$use_default_lang && $default_lang eq ""} {
         ad_log warning "Trying to use empty default lang on link '$element' => $name"
       }
-      
+
       #
       # with the following construct we need in most cases just 1 lookup
       set item_id [my lookup \
@@ -1497,7 +1497,7 @@ namespace eval ::xowiki {
 
       if {$item_id == 0} {
         #
-        # The first lookup was not successful, so we try again. 
+        # The first lookup was not successful, so we try again.
         #
         if {$(link_type) eq "link" && $element eq $(stripped_name)} {
           #
@@ -1539,7 +1539,7 @@ namespace eval ::xowiki {
         if {$item_id == 0 && [string match "*.*" $element] && ![regexp {[.](form|wf)$} $element]} {
           #
           # Get the mime type to distinguish between images, flash
-          # files and ordinary files. 
+          # files and ordinary files.
           #
           set mime_type [::xowiki::guesstype $name]
           set (prefix) file
@@ -1583,13 +1583,13 @@ namespace eval ::xowiki {
     set parent_id [$item_id parent_id]
     if {[$item_id is_folder_page]} {
       return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
-    } 
+    }
     set stripped_name $name
     set prefix ""
     regexp {^(.+):(.+)$} $name _ prefix stripped_name
     return [list link_type "link" prefix $prefix stripped_name $stripped_name parent_id $parent_id]
   }
-  
+
   Package instproc item_info_from_url {{-with_package_prefix true} {-default_lang ""} url} {
     #
     # Obtain item info (item_id parent_id lang stripped_name) from the
@@ -1607,7 +1607,7 @@ namespace eval ::xowiki {
                          -lang $(lang) -path $stripped_url \
                          -parent_id [my folder_id] \
                          parent (stripped_name)]
-    
+
     #my msg "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
@@ -1659,7 +1659,7 @@ namespace eval ::xowiki {
 
         $target set_resolve_context -package_id ${:id} -parent_id $link_id
         array set "" [list logical_package_id ${:id} logical_parent_id $link_id]
-        
+
         #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id ${:id} -parent_id $link_id"
 
         array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \
@@ -1673,14 +1673,14 @@ namespace eval ::xowiki {
 
     return [array get ""]
   }
-  
+
 
 
   Package instproc get_page_from_item_ref {
-    {-allow_cross_package_item_refs true} 
-    {-use_package_path false} 
-    {-use_site_wide_pages true} 
-    {-use_prototype_pages false} 
+    {-allow_cross_package_item_refs true}
+    {-use_package_path false}
+    {-use_site_wide_pages true}
+    {-use_prototype_pages false}
     {-default_lang ""}
     {-parent_id ""}
     link
@@ -1697,7 +1697,7 @@ namespace eval ::xowiki {
 
     if {$allow_cross_package_item_refs && [string match "//*" $link]} {
 
-      # todo check: get_package_id_from_page_name uses a different lookup based on site nodes 
+      # todo check: get_package_id_from_page_name uses a different lookup based on site nodes
 
       set referenced_package_id [my resolve_package_path $link rest_link]
       #my log "get_page_from_item_ref $link recursive rl?[info exists rest_link] in $referenced_package_id"
@@ -1710,7 +1710,7 @@ namespace eval ::xowiki {
         # the root folder of the referenced package as start
         # parent_page for the search and turn off all page creation
         # facilities.
-        
+
         #my log cross-package
         return [$referenced_package_id get_page_from_item_ref \
                     -allow_cross_package_item_refs false \
@@ -1773,13 +1773,13 @@ namespace eval ::xowiki {
       }
       return $page
     }
-    
+
     return ""
   }
 
   #
   # import for prototype pages
-  # 
+  #
 
   Package instproc www-import-prototype-page {
     {-add_revision:boolean true}
@@ -1809,10 +1809,10 @@ namespace eval ::xowiki {
     return $page
   }
 
-  Package proc import_prototype_page { 
-                                      -package_key:required 
-                                      -name:required 
-                                      -parent_id:required 
+  Package proc import_prototype_page {
+                                      -package_key:required
+                                      -name:required
+                                      -parent_id:required
                                       -package_id:required
                                       {-lang en}
                                       {-add_revision:boolean true}
@@ -1936,17 +1936,17 @@ namespace eval ::xowiki {
   Package instforward check_permissions {%set :policy} %proc
 
   Package ad_instproc require_root_folder {
-    {-parent_id -100} 
+    {-parent_id -100}
     {-content_types {}}
     -name:required
   } {
-    Make sure, the root folder for the given package exists. If not, 
+    Make sure, the root folder for the given package exists. If not,
     create it and register all allowed content types.
 
     @return folder_id
-  } {    
+  } {
     set folder_id [ns_cache eval xotcl_object_type_cache root_folder-${:id} {
-      
+
       set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       if {$folder_id == 0} {
         #
@@ -2038,7 +2038,7 @@ namespace eval ::xowiki {
   } {
     set id ${:id}
     set pages [::xo::dc list get_pages {
-      select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
+      select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
       and publish_status = 'ready'
       and page_id = o.object_id and o.package_id = :id
@@ -2055,10 +2055,10 @@ namespace eval ::xowiki {
   # change-page-order (normally called via ajax POSTs)
   #
   Package ad_instproc www-change-page-order {} {
-    
+
     Change Page Order for pages by renumbering and filling gaps. The
     parameter "clean" is just used for page inserts.
-    
+
   } {
 
     set folder_id [string trim [my form_parameter folder_id [my set folder_id]]]
@@ -2083,16 +2083,16 @@ namespace eval ::xowiki {
     -name_filter
     -entries_of
     -title
-    -days 
+    -days
   } {
     Report content of xowiki folder in rss 2.0 format. The
     reporting order is descending by date. The title of the feed
     is taken from the title, the description
     is taken from the description field of the folder object.
-    
+
     @param maxentries maximum number of entries retrieved
     @param days report entries changed in speficied last days
-    
+
   } {
     set package_id ${:id}
     set folder_id [$package_id folder_id]
@@ -2107,13 +2107,13 @@ namespace eval ::xowiki {
     }
     set description [my get_parameter PackageDescription ""]
 
-    if {![info exists days] && 
+    if {![info exists days] &&
         [regexp {[^0-9]*([0-9]+)d} [my query_parameter rss] _ days]} {
       # setting the variable days
     } else {
       set days 10
     }
-    
+
     set r [RSS new -destroy_on_cleanup \
                -package_id ${:id} \
                -parent_ids [my query_parameter parent_ids ""] \
@@ -2122,7 +2122,7 @@ namespace eval ::xowiki {
                -title $title \
                -description $description \
                -days $days]
-    
+
     #set t text/plain
     set t text/xml
     ns_return 200 $t [$r render]
@@ -2139,18 +2139,18 @@ namespace eval ::xowiki {
   } {
     Report content of xowiki folder in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
-    
+
     @param maxentries maximum number of entries retrieved
     @param package_id to determine the xowiki instance
     @param changefreq changefreq as defined by google
     @param priority priority as defined by google
-    
+
   } {
     set package_id ${:id}
     set folder_id [::$package_id folder_id]
-    
+
     set timerange_clause ""
-    
+
     set content {<?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.google.com/schemas/sitemap/0.84"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -2167,12 +2167,12 @@ namespace eval ::xowiki {
                  -orderby "p.last_modified desc" \
                  -limit $max_entries]
     # my log $sql
-    
+
     ::xo::dc foreach get_pages $sql {
       #my log "--found $name"
       if {[string match "::*" $name]} continue
       if {$content_type eq "::xowiki::PageTemplate::"} continue
-      
+
       set time [::xo::db::tcl_date $last_modified tz]
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
 
@@ -2183,7 +2183,7 @@ namespace eval ::xowiki {
           <priority>$priority</priority> \n\
           </url> \n
     }
-    
+
     append content </urlset> \n
 
     #set t text/plain
@@ -2197,14 +2197,14 @@ namespace eval ::xowiki {
   } {
     Provide a sitemap index of all xowiki instances in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
-    
+
     @param maxentries maximum number of entries retrieved
     @param package_id to determine the xowiki instance
     @param changefreq changefreq as defined by google
     @param priority priority as defined by google
-    
+
   } {
-    
+
     set content {<?xml version="1.0" encoding="UTF-8"?>
       <sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
     }
@@ -2212,10 +2212,10 @@ namespace eval ::xowiki {
       if {![::xo::parameter get -package_id $package_id \
                 -parameter include_in_google_sitemap_index -default 1]} {
         continue
-      } 
+      }
       set last_modified [::xo::dc get_value get_newest_modification_date \
-                             {select last_modified from acs_objects 
-                               where package_id = :package_id 
+                             {select last_modified from acs_objects
+                               where package_id = :package_id
                                order by last_modified desc limit 1}]
 
       set time [::xo::db::tcl_date $last_modified tz]
@@ -2227,7 +2227,7 @@ namespace eval ::xowiki {
       append content <sitemap> \n\
           <loc>[ad_url]$info(url)sitemap.xml</loc> \n\
           <lastmod>$time</lastmod> \n\
-          </sitemap> 
+          </sitemap>
     }
     append content </sitemapindex> \n
     #set t text/plain
@@ -2242,7 +2242,7 @@ namespace eval ::xowiki {
   Package instproc clipboard-copy {} {
     [my folder_id] clipboard-copy
   }
-  
+
   #
   # Create new pages
   #
@@ -2374,7 +2374,7 @@ namespace eval ::xowiki {
     # This delete method does not require an instantiated object,
     # while the class-specific delete methods in xowiki-procs need these.
     # If a (broken) object can't be instantiated, it cannot be deleted.
-    # Therefore we need this package level delete method. 
+    # Therefore we need this package level delete method.
     # While the class specific methods are used from the
     # application pages, the package_level method is used from the admin pages.
     #
@@ -2435,9 +2435,9 @@ namespace eval ::xowiki {
         set comment_ids [::xo::dc list get_comments {
           select comment_id from general_comments where object_id = :item_id
         }]
-        foreach comment_id $comment_ids { 
+        foreach comment_id $comment_ids {
           my log "-- deleting comment $comment_id"
-          ::xo::db::sql::content_item del -item_id $comment_id 
+          ::xo::db::sql::content_item del -item_id $comment_id
         }
       }
       foreach child_item_id [::xo::db::CrClass get_child_item_ids -item_id $item_id] {
@@ -2456,15 +2456,15 @@ namespace eval ::xowiki {
   # Reparent a page
   #
   Package ad_instproc reparent {
-    -item_id:integer,required 
-    -new_parent_id:integer,required 
+    -item_id:integer,required
+    -new_parent_id:integer,required
     {-allowed_parent_types {::xowiki::FormPage ::xowiki::Page}}
   } {
 
     Reparent a wiki page from one parent page to another one. The
     function changes the parent_id in cr_items, updates the
     cr-child-rels, and clears the caches. The function does not
-    require the item to be instantiated. 
+    require the item to be instantiated.
 
     Limitations: The method does not perform permission checks
     (whether the actual user has rights to move the page to another
@@ -2495,9 +2495,9 @@ namespace eval ::xowiki {
         update cr_items set parent_id = :new_parent_id where item_id = :item_id
       }
       ::xowiki::update_item_index -item_id $item_id -parent_id $new_parent_id
-      
+
       ::xo::dc dml update_cr_child_rels {
-        update cr_child_rels set parent_id = :new_parent_id, relation_tag = :relation_tag 
+        update cr_child_rels set parent_id = :new_parent_id, relation_tag = :relation_tag
         where child_id = :item_id
       }
       ::xo::dc dml update_rels_object {
@@ -2577,7 +2577,7 @@ namespace eval ::xowiki {
   Class create Policy -superclass ::xo::Policy
 
   Policy policy1 -contains {
-    
+
     Class create Package -array set require_permission {
       reindex             swa
       change-page-order   {{id admin}}
@@ -2590,8 +2590,8 @@ namespace eval ::xowiki {
       edit-category-tree  {{id admin}}
       delete              {{id admin}}
       edit-new            {
-        {{has_class ::xowiki::Object} swa} 
-        {{has_class ::xowiki::FormPage} nobody} 
+        {{has_class ::xowiki::Object} swa}
+        {{has_class ::xowiki::FormPage} nobody}
         {{has_name {[.](js|css)$}} id admin}
         {id create}
       }
@@ -2602,7 +2602,7 @@ namespace eval ::xowiki {
       revisions          {{package_id write}}
       diff               {{package_id write}}
       edit               {
-        {{regexp {name {(:weblog|:index)$}}} package_id admin} 
+        {{regexp {name {(:weblog|:index)$}}} package_id admin}
         {package_id write}
       }
       save-attributes    {{package_id write}}
@@ -2650,19 +2650,19 @@ namespace eval ::xowiki {
       edit-category-tree  {{id admin}}
       delete              swa
       edit-new            {
-        {{has_class ::xowiki::Object} swa} 
-        {{has_class ::xowiki::FormPage} nobody} 
+        {{has_class ::xowiki::Object} swa}
+        {{has_class ::xowiki::FormPage} nobody}
         {{has_name {[.](js|css)$}} swa}
         {id create}
       }
     }
-    
+
     Class create Page -array set require_permission {
       view               {{package_id read}}
       revisions          {{package_id write}}
       diff               {{package_id write}}
       edit               {
-        {{regexp {name {(weblog|index)$}}} package_id admin} 
+        {{regexp {name {(weblog|index)$}}} package_id admin}
         {package_id write}
       }
       save-attributes    {{package_id write}}
@@ -2692,7 +2692,7 @@ namespace eval ::xowiki {
   Policy policy3 -contains {
     #
     # we require side wide admin rights for deletions
-    # we perform checking on item_ids for pages. 
+    # we perform checking on item_ids for pages.
     #
 
     Class create Package -array set require_permission {
@@ -2706,13 +2706,13 @@ namespace eval ::xowiki {
       edit-category-tree  {{id admin}}
       delete              swa
       edit-new            {
-        {{has_class ::xowiki::Object} swa} 
-        {{has_class ::xowiki::FormPage} nobody} 
+        {{has_class ::xowiki::Object} swa}
+        {{has_class ::xowiki::FormPage} nobody}
         {{has_name {[.](js|css)$}} swa}
         {id create}
       }
     }
-    
+
     Class create Page -array set require_permission {
       view               {{item_id read}}
       revisions          {{item_id write}}
@@ -2722,7 +2722,7 @@ namespace eval ::xowiki {
       save-attributes    {{package_id write}}
       delete-revision    swa
       delete             swa
-      bulk-delete        swa      
+      bulk-delete        swa
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2767,7 +2767,7 @@ namespace eval ::xowiki {
   #    f none
   #  } -set default_permission login
   #}
-  
+
   #my log "--set granted [policy4 check_permissions -user_id 0 -package_id 0 function f]"
 
   #
@@ -2792,7 +2792,7 @@ namespace eval ::xowiki {
         {id create}
       }
     }
-    
+
     Class create Page -array set require_permission {
       view               {{item_id read}}
       revisions          {{item_id write}}
@@ -2809,7 +2809,7 @@ namespace eval ::xowiki {
       create-or-use      {{parent_id create}}
       show-object        swa
     }
-    
+
     Class create Object -array set require_permission {
       edit               swa
     }
@@ -2817,7 +2817,7 @@ namespace eval ::xowiki {
       download           {{package_id read}}
     }
     Class create FormPage -array set require_permission {
-      view               creator 
+      view               creator
       edit               {
         {{in_state initial|suspended|working} creator} admin
       }
@@ -2832,7 +2832,7 @@ namespace eval ::xowiki {
 
 }
 
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:
