@@ -1447,16 +1447,16 @@ namespace eval ::xowiki {
       set use_default_lang 1
     }
 
-    if {$use_default_lang && $default_lang eq ""} {
-      ad_log warning "Trying to use empty default lang on link '$element' => $name"
-    }
-
     set name [string trimright $name \0]
     set (stripped_name) [string trimright $(stripped_name) \0]
     if {$normalize_name} {
       set (stripped_name) [my normalize_name $(stripped_name)]
     }
 
+    #
+    # Resolve first the special elements in possible variants, such as
+    # ".", "..", ...
+    #
     if {$element eq "" || $element eq "\0"} {
       set folder_id [my folder_id]
       array set "" [my item_info_from_id $folder_id]
@@ -1477,8 +1477,18 @@ namespace eval ::xowiki {
       set item_id $parent_id
       set parent_id $(parent_id)
     } else {
+      #
+      # Resolve the cases, that need lookups.
+      #
+      # When $use_default_lang is set, we will need a valid
+      # $default_lang
+      #
+      if {$use_default_lang && $default_lang eq ""} {
+        ad_log warning "Trying to use empty default lang on link '$element' => $name"
+      }
+      
+      #
       # with the following construct we need in most cases just 1 lookup
-
       set item_id [my lookup \
                        -use_package_path $use_package_path \
                        -use_site_wide_pages $use_site_wide_pages \
@@ -2026,7 +2036,7 @@ namespace eval ::xowiki {
   Package ad_instproc www-reindex {} {
     reindex all items of this package
   } {
-    my instvar id
+    set id ${:id}
     set pages [::xo::dc list get_pages {
       select page_id,package_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o 
       where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
