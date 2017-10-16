@@ -124,7 +124,7 @@ namespace eval ::xowiki {
       set locale [::xo::cc locale]
     } else {
       # return either the package locale or the site-wide locale
-      set locale [lang::system::locale -package_id [my id]]
+      set locale [lang::system::locale -package_id ${:id}]
     }
     my set __default_locale $locale
     return $locale
@@ -559,11 +559,11 @@ namespace eval ::xowiki {
       set pp [my get_parameter parameter_page ""]
       if {$pp ne ""} {
         if {![regexp {/?..:} $pp]} {
-          ad_log error "Name of parameter page '$pp' of package [my id] must contain a language prefix"
+          ad_log error "Name of parameter page '$pp' of package ${:id} must contain a language prefix"
         } else {
           set page [::xo::cc cache [list [self] get_page_from_item_ref $pp]]
           if {$page eq ""} {
-            ad_log error "Could not resolve parameter page '$pp' of package [my id]."
+            ad_log error "Could not resolve parameter page '$pp' of package ${:id}."
           }
           #my msg pp=$pp,page=$page-att=$attribute
 
@@ -619,7 +619,7 @@ namespace eval ::xowiki {
         }
       }
     } elseif {!([string match "http*://*" $path] || [string match "ftp://*" $path])} {
-      return [my id]
+      return ${:id}
     }
 
     return 0
@@ -629,7 +629,7 @@ namespace eval ::xowiki {
     #
     # Return package id + remaining page name
     #
-    set package_id [my id]
+    set package_id ${:id}
     if {[regexp {^/(/.*)$} $page_name _ fullurl]} {
       #
       # When we have an absolute url, we are working on a different
@@ -684,7 +684,7 @@ namespace eval ::xowiki {
     # take a local copy of the package_id, since it is possible
     # that the variable package_id might changed to another instance.
     #
-    set package_id [my id]
+    set package_id ${:id}
     array set "" [my get_package_id_from_page_name $page_name]
     if {$(package_id) != $package_id} {
       #
@@ -906,7 +906,7 @@ namespace eval ::xowiki {
         return [my error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
 
-        #my log "--invoke [my set object] id=$page_or_package method=$method ([my id] batch_mode $batch_mode)"
+        #my log "--invoke [my set object] id=$page_or_package method=$method (${:id} batch_mode $batch_mode)"
 
         if {$batch_mode} {${:id} set __batch_mode 1}
         set err [catch { set r [my call $page_or_package $method ""]} errorMsg]
@@ -1160,10 +1160,10 @@ namespace eval ::xowiki {
                               -keep_cc true -init_url false]
     }
     # final sanity check, in case package->initialize is broken
-    set p [lsearch $packages ::[my id]]
+    set p [lsearch $packages ::${:id}]
     if {$p > -1} {set packages [lreplace $packages $p $p]}
 
-    #my msg "[my id] packages=$packages, p=$p"
+    #my msg "${:id} packages=$packages, p=$p"
     return $packages
   }
 
@@ -1289,9 +1289,9 @@ namespace eval ::xowiki {
                                 -name $name \
                                 -parent_id [$target item_id]]
         if {$target_item_id != 0} {
-          #my msg "SYMLINK FIX $target_item_id set_resolve_context -package_id [my id] -parent_id $parent_id"
+          #my msg "SYMLINK FIX $target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id"
           ::xo::db::CrClass get_instance_from_db -item_id $target_item_id
-          $target_item_id set_resolve_context -package_id [my id] -parent_id $parent_id
+          $target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id
         }
         return $target_item_id
       }
@@ -1493,7 +1493,7 @@ namespace eval ::xowiki {
                        -use_package_path $use_package_path \
                        -use_site_wide_pages $use_site_wide_pages \
                        -name $name -parent_id $parent_id]
-      #my log "[my id] lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
+      #my log "${:id} lookup -use_package_path $use_package_path -name $name -parent_id $parent_id => $item_id"
 
       if {$item_id == 0} {
         #
@@ -1657,10 +1657,10 @@ namespace eval ::xowiki {
         set link_id $(parent_id)
         set target [$link_id get_target_from_link_page]
 
-        $target set_resolve_context -package_id [my id] -parent_id $link_id
-        array set "" [list logical_package_id [my id] logical_parent_id $link_id]
+        $target set_resolve_context -package_id ${:id} -parent_id $link_id
+        array set "" [list logical_package_id ${:id} logical_parent_id $link_id]
         
-        #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id [my id] -parent_id $link_id"
+        #my log "SYMLINK PREFIXED $target ([$target name]) set_resolve_context -package_id ${:id} -parent_id $link_id"
 
         array set "" [[$target package_id] prefixed_lookup -parent_id [$target item_id] \
                           -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
@@ -1701,7 +1701,7 @@ namespace eval ::xowiki {
 
       set referenced_package_id [my resolve_package_path $link rest_link]
       #my log "get_page_from_item_ref $link recursive rl?[info exists rest_link] in $referenced_package_id"
-      if {$referenced_package_id != 0 && $referenced_package_id != [my id]} {
+      if {$referenced_package_id != 0 && $referenced_package_id != ${:id}} {
         # TODO: we have still to check, whether or not we want
         # site-wide-pages etc.  in cross package links, and if, under
         # which parent we would like to create newly importage pages.
@@ -1748,9 +1748,9 @@ namespace eval ::xowiki {
     #my msg  "[my instance_name] (root [my folder_id]) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
-      if {[$page package_id] ne [my id] || [$page parent_id] != $(parent_id)} {
-        #my msg "set_resolve_context site_wide_pages [my id] and -parent_id $parent_id"
-        $page set_resolve_context -package_id [my id] -parent_id $parent_id
+      if {[$page package_id] ne ${:id} || [$page parent_id] != $(parent_id)} {
+        #my msg "set_resolve_context site_wide_pages ${:id} and -parent_id $parent_id"
+        $page set_resolve_context -package_id ${:id} -parent_id $parent_id
       }
       return $page
     }
@@ -1765,7 +1765,7 @@ namespace eval ::xowiki {
                     -package_key [my package_key] \
                     -name $(stripped_name) \
                     -parent_id $(parent_id) \
-                    -package_id [my id] ]
+                    -package_id ${:id} ]
       #my msg "import_prototype_page for '$(stripped_name)' => '$page'"
       if {$page ne ""} {
         # we want to be able to address the page via ::$item_id
@@ -1800,7 +1800,7 @@ namespace eval ::xowiki {
                   -name $prototype_name \
                   -lang $lang \
                   -parent_id [my folder_id] \
-                  -package_id [my id] \
+                  -package_id ${:id} \
                   -add_revision $add_revision]
 
     if {[info exists via_url] && [my exists_query_parameter "return_url"]} {
@@ -2005,7 +2005,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc require_folder_object { } {
-    set folder_id [my require_root_folder -name "xowiki: [my id]" \
+    set folder_id [my require_root_folder -name "xowiki: ${:id}" \
                        -content_types ::xowiki::Page* ]
     ::xo::db::CrClass get_instance_from_db -item_id $folder_id
     my set folder_id $folder_id
@@ -2068,7 +2068,7 @@ namespace eval ::xowiki {
         -to [string trim [my form_parameter to ""]] \
         -clean [string trim [my form_parameter clean ""]] \
         -folder_id $folder_id \
-        -package_id [my id] \
+        -package_id ${:id} \
         -publish_status [string trim [my form_parameter publish_status "ready|live|expired"]]
 
     ns_return 200 text/plain ok
@@ -2094,7 +2094,7 @@ namespace eval ::xowiki {
     @param days report entries changed in speficied last days
     
   } {
-    set package_id [my id]
+    set package_id ${:id}
     set folder_id [$package_id folder_id]
     if {![info exists name_filter]} {
       set name_filter [my get_parameter -type word name_filter ""]
@@ -2115,7 +2115,7 @@ namespace eval ::xowiki {
     }
     
     set r [RSS new -destroy_on_cleanup \
-               -package_id [my id] \
+               -package_id ${:id} \
                -parent_ids [my query_parameter parent_ids ""] \
                -name_filter $name_filter \
                -entries_of $entries_of \
@@ -2146,7 +2146,7 @@ namespace eval ::xowiki {
     @param priority priority as defined by google
     
   } {
-    set package_id [my id]
+    set package_id ${:id}
     set folder_id [::$package_id folder_id]
     
     set timerange_clause ""
@@ -2341,7 +2341,7 @@ namespace eval ::xowiki {
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
     if {![info exists objects]} {set objects [::xowiki::Page allinstances]}
     set msg "#xowiki.processing_objects#: $objects<p>"
-    set importer [Importer new -package_id [my id] -parent_id $parent_id -user_id $user_id]
+    set importer [Importer new -package_id ${:id} -parent_id $parent_id -user_id $user_id]
     $importer import_all -replace $replace -objects $objects -create_user_ids $create_user_ids
     append msg [$importer report]
   }
@@ -2530,8 +2530,8 @@ namespace eval ::xowiki {
 
   Package instproc flush_page_fragment_cache {{-scope agg}} {
     switch -- $scope {
-      agg {set key PF-[my id]-agg-*}
-      all {set key PF-[my id]-*}
+      agg {set key PF-${:id}-agg-*}
+      all {set key PF-${:id}-*}
       default {error "unknown scope for flushing page fragment cache"}
     }
     foreach entry [ns_cache names xowiki_cache $key] {
@@ -2548,7 +2548,7 @@ namespace eval ::xowiki {
 
   Class create ParameterCache
   ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
-    set key [list [my id] [self proc] $attribute]
+    set key [list ${:id} [self proc] $attribute]
     if {[info commands "::xo::cc"] ne ""} {
       if {[::xo::cc cache_exists $key]} {
         return [::xo::cc cache_get $key]
