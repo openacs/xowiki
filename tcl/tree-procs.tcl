@@ -25,14 +25,14 @@ namespace eval ::xowiki {
   #
   Tree proc renderer {style} {
     set renderer TreeRenderer=$style
-    if {![my isclass $renderer]} {
+    if {![:isclass $renderer]} {
       error "No such renderer $renderer (avalialble [info commands ::xowiki::TreeRenderer=*]"
     }
     return $renderer
   }
 
   Tree proc include_head_entries {{-renderer mktree} args} {
-    [my renderer $renderer] include_head_entries {*}$args
+    [:renderer $renderer] include_head_entries {*}$args
   }
 
   #
@@ -40,7 +40,7 @@ namespace eval ::xowiki {
   #
   Tree instproc init {} {
     # If there is no id specified, use the name as id.
-    if {![my exists id]} {my id [my name]}
+    if {![info exists :id]} {my id [:name]}
   }
 
   Tree instproc add_item {
@@ -51,7 +51,7 @@ namespace eval ::xowiki {
     {-open_item:boolean false}
   } {
     set items ${category}::items
-    if {![my isobject $items]} { 
+    if {![:isobject $items]} { 
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
         if {$orderby eq "page_order"} {
@@ -90,9 +90,8 @@ namespace eval ::xowiki {
     -owner
     pages
   } {
-    my instvar package_id
     set tree(-1) [self]
-    my set open_node($tree(-1)) 1
+    set :open_node($tree(-1)) 1
     set pos 0
     foreach o [$pages children] {
       $o instvar page_order title name
@@ -100,7 +99,7 @@ namespace eval ::xowiki {
       set page_number [$owner page_number $page_order $remove_levels]
 
       set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
-      if {$full || [my exists open_node($parent)] || [my exists open_node($page_order)]} {
+      if {$full || [info exists :open_node($parent)] || [info exists :open_node($page_order)]} {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
@@ -135,14 +134,14 @@ namespace eval ::xowiki {
   }
 
   TreeNode instproc open_tree {} {
-    my open_requests 1
-    my expanded true
-    if {[my exists __parent]} {[my set __parent] open_tree}
+    :open_requests 1
+    :expanded true
+    if {[info exists :__parent]} {${:__parent} open_tree}
   }
 
   TreeNode instproc some_child_has_items {} {
-    foreach i [my children] {
-      if {[my isobject ${i}::items]} {return 1}
+    foreach i [:children] {
+      if {[:isobject ${i}::items]} {return 1}
       if {[$i some_child_has_items]} {return 1}
     }
     return 0
@@ -150,16 +149,16 @@ namespace eval ::xowiki {
 
   TreeNode instproc render {} {
     set content ""
-    if {[my isobject [self]::items]} {
+    if {[:isobject [self]::items]} {
       foreach i [[self]::items children] {
-        append cat_content [my render_item -highlight [$i exists open_item] $i ]
+        append cat_content [:render_item -highlight [$i exists open_item] $i ]
       }
-      foreach c [my children] {append cat_content [$c render] \n}
-      append content [my render_node -open [expr {[my open_requests]>0}] $cat_content]
-    } elseif {[my open_requests]>0 || [my some_child_has_items]} {
+      foreach c [:children] {append cat_content [$c render] \n}
+      append content [:render_node -open [expr {[:open_requests]>0}] $cat_content]
+    } elseif {[:open_requests]>0 || [:some_child_has_items]} {
       set cat_content ""
-      foreach c [my children] {append cat_content [$c render] \n}
-      append content [my render_node -open true $cat_content]
+      foreach c [:children] {append cat_content [$c render] \n}
+      append content [:render_node -open true $cat_content]
 
     }
     return $content
@@ -241,24 +240,24 @@ namespace eval ::xowiki {
     }
   }
   TreeRenderer=list instproc render_node {{-open:boolean false} cat_content} {
-    #my msg "[my label] [my expanded]"
-    set cl [lindex [my info precedence] 0]
-    set o_atts [lindex [$cl li_expanded_atts] [expr {[my expanded] ? 0 : 1}]]
-    set h_atts [lindex [$cl highlight_atts] [expr {[my highlight] ? 0 : 1}]]
+    #my msg "[:label] [:expanded]"
+    set cl [lindex [:info precedence] 0]
+    set o_atts [lindex [$cl li_expanded_atts] [expr {[:expanded] ? 0 : 1}]]
+    set h_atts [lindex [$cl highlight_atts] [expr {[:highlight] ? 0 : 1}]]
     set u_atts ""
 
-    if {[my exists li_id]} {append o_atts " id='[my set li_id]'"}
-    if {[my exists ul_id]} {append u_atts " id='[my set ul_id]'"}
-    if {[my exists ul_class]} {append u_atts " class='[my set ul_class]'"}
+    if {[info exists :li_id]} {append o_atts " id='${:li_id}'"}
+    if {[info exists :ul_id]} {append u_atts " id='${:ul_id}'"}
+    if {[info exists :ul_class]} {append u_atts " class='${:ul_class}'"}
 
-    set label [::xowiki::Includelet html_encode [my label]]
-    if {[my exists count]} {
-      set entry "$label <a href='[ns_quotehtml [my href]]'>([my count])</a>"
+    set label [::xowiki::Includelet html_encode [:label]]
+    if {[info exists :count]} {
+      set entry "$label <a href='[ns_quotehtml [:href]]'>([:count])</a>"
     } else {
-      if {[my href] ne ""} {
-        set entry "<a href='[ns_quotehtml [my href]]'>[ns_quotehtml $label]</a>"
+      if {[:href] ne ""} {
+        set entry "<a href='[ns_quotehtml [:href]]'>[ns_quotehtml $label]</a>"
       } else {
-        set entry [my label]
+        set entry [:label]
       }
     }
     if {$cat_content ne ""} {
@@ -269,7 +268,7 @@ namespace eval ::xowiki {
     } else {
       set content ""
     }
-    return "<li $o_atts><span $h_atts>[my prefix] $entry</span>$content"
+    return "<li $o_atts><span $h_atts>[:prefix] $entry</span>$content"
   }
   
   #
@@ -350,7 +349,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
   }
   TreeRenderer=listdnd proc render {tree} {
-    array set "" [my set context]
+    array set "" ${:context}
     if {[info exists (min_level)] && $(min_level) == 1} {
       set css_class "page_order_region" 
     } else {
@@ -359,19 +358,19 @@ namespace eval ::xowiki {
     return "<div id='[$tree id]'><ul class='$css_class'>\n[next]</ul></div>"
   }
   TreeRenderer=listdnd instproc render_node {{-open:boolean false} cat_content} {
-    #set open_state [expr {[my open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
-    #set cl [lindex [my info precedence] 0]
-    set obj [my object]
-    set o [my owner]
+    #set open_state [expr {[:open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
+    #set cl [lindex [:info precedence] 0]
+    set obj [:object]
+    set o [:owner]
     $obj instvar page_order
-    my set li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
-    my set ul_id [::xowiki::Includelet js_name [$o set id]__l[my level]_$page_order]
+    set :li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
+    set :ul_id [::xowiki::Includelet js_name [$o set id]__l[:level]_$page_order]
 
     set cl [self class]
-    $cl append js "\nYAHOO.xo_page_order_region.DDApp.cd\['[my set li_id]'\] = '$page_order';"
+    $cl append js "\nYAHOO.xo_page_order_region.DDApp.cd\['${:li_id}'\] = '$page_order';"
 
     array set "" [$cl set context]
-    my set ul_class [expr {[info exists (min_level)] && [my level] >= $(min_level) ?
+    set :ul_class [expr {[info exists (min_level)] && [:level] >= $(min_level) ?
                            "page_order_region" : "page_order_region_no_target"}]
     return [next]
   }
@@ -396,8 +395,8 @@ namespace eval ::xowiki {
     }
   }
   TreeRenderer=sections instproc render_node {{-open:boolean false} cat_content} {
-    set section [expr {[my level] + 2}]
-    set label [::xowiki::Includelet html_encode [my label]]
+    set section [expr {[:level] + 2}]
+    set label [::xowiki::Includelet html_encode [:label]]
     return "<h$section>$label</h$section>\n<p>\
        <div style='margin-left: 2em; margin-right:0px;'>$cat_content</div>\n"
   }
