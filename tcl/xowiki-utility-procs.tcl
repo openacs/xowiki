@@ -25,7 +25,7 @@ namespace eval ::xowiki {
     return [ad_get_client_property xowiki clipboard]
   }
   clipboard proc is_empty {} {
-    expr {[my size] < 1}
+    expr {[:size] < 1}
   }
   clipboard proc size {} {
     set clipboard [ad_get_client_property xowiki clipboard]
@@ -528,7 +528,7 @@ namespace eval ::xowiki {
 #
 
 ::xo::Module create ::xowiki::utility -eval {
-  my set age \
+  set :age \
       [list \
            [expr {3600*24*365}] year years \
            [expr {3600*24*30}]  month months \
@@ -539,7 +539,7 @@ namespace eval ::xowiki {
            [expr {1}]           second seconds \
           ]
   
-  my proc pretty_age {
+  :proc pretty_age {
                       -timestamp:required 
                       -timestamp_base 
                       {-locale ""}
@@ -587,8 +587,7 @@ namespace eval ::xowiki {
 
     set pos 0
     set msg ""
-    my instvar age
-    foreach {interval unit unit_plural} $age {
+    foreach {interval unit unit_plural} ${:age} {
       set base [expr {int($age_seconds / $interval)}]
 
       if {$base > 0} {
@@ -598,9 +597,9 @@ namespace eval ::xowiki {
         # $pos < 5: do not report details under a minute
         if {$pos < 5 && $levels > 1} {
           set remaining_age [expr {$age_seconds-$base*$interval}]
-          set interval    [lindex $age [expr {($pos+1)*3}]]
-          set unit        [lindex $age [expr {($pos+1)*3+1}]]
-          set unit_plural [lindex $age [expr {($pos+1)*3+2}]]
+          set interval    [lindex ${:age} [expr {($pos+1)*3}]]
+          set unit        [lindex ${:age} [expr {($pos+1)*3+1}]]
+          set unit_plural [lindex ${:age} [expr {($pos+1)*3+2}]]
           set base [expr {int($remaining_age / $interval)}]
           if {$base > 0} {
             set label [expr {$base == 1 ? $unit : $unit_plural}]
@@ -628,7 +627,7 @@ namespace eval ::xowiki {
 
 ::xo::Module create ::xowiki::utility -eval {
 
-  my proc incr_page_order {p} {
+  :proc incr_page_order {p} {
     lassign [list "" $p] prefix suffix
     regexp {^(.*[.])([^.]+)$} $p _ prefix suffix
     if {[string is integer -strict $suffix]} {
@@ -653,15 +652,15 @@ namespace eval ::xowiki {
     return $prefix$suffix
   }
   
-  my proc page_order_compute_new_names {start page_orders} {
+  :proc page_order_compute_new_names {start page_orders} {
     lappend pairs [lindex $page_orders 0] $start
     foreach p [lrange $page_orders 1 end] {
-      lappend pairs $p [set start [my incr_page_order $start]]
+      lappend pairs $p [set start [:incr_page_order $start]]
     }
     return $pairs
   }
 
-  my proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
+  :proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
     set likes [list]
     foreach page_order $page_orders {
       if {[::xowiki::page_order_uses_ltree]} {
@@ -689,7 +688,7 @@ namespace eval ::xowiki {
      -from 
      -to
    } {
-    set pages [my get_page_order_items -parent_id $parent_id -publish_status $publish_status $to]
+    set pages [:get_page_order_items -parent_id $parent_id -publish_status $publish_status $to]
     #my log "pages=$pages"
     array set npo [::xowiki::utility page_order_compute_new_names $start $to]
     #my log npo=[array get npo]=>to='$to'
@@ -721,7 +720,7 @@ namespace eval ::xowiki {
             if {$npo($new_name) ne $new_name} {
               set l [string length $new_name]
               set new_page_order "$npo($new_name)[string range $old_page_order $l end]"
-              my log "--cpo tree name $old_page_order changed to '$new_page_order'"
+              :log "--cpo tree name $old_page_order changed to '$new_page_order'"
               lappend renames $page_id $item_id $name $old_page_order $new_page_order
             }
             break
@@ -854,7 +853,7 @@ namespace eval ::xowiki {
   # -gustaf neumann (nov 2010)
 
   if {[ns_info name] eq "NaviServer"} {
-    my proc urlencode {string} {ns_urlencode $string}
+    :proc urlencode {string} {ns_urlencode $string}
   } else {
     set ue_map [list]
     for {set i 0} {$i < 256} {incr i} {
@@ -864,11 +863,11 @@ namespace eval ::xowiki {
         lappend ue_map $c $x
       }
     }
-    my proc urlencode {string} {string map [my set ue_map] $string}
+    :proc urlencode {string} {string map ${:ue_map} $string}
   }
 
 
-  my ad_proc user_is_active {{-asHTML:boolean false} uid} {
+  :ad_proc user_is_active {{-asHTML:boolean false} uid} {
   } {
     if {[info commands ::throttle] ne "" && 
         [::throttle info methods user_is_active] ne ""} {

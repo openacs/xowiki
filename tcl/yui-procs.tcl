@@ -18,9 +18,9 @@ namespace eval ::xowiki {
       }
 
   YUIMenuItemList ad_instproc render {} {} {
-    if {[my exists header]} {
+    if {[info exists :header]} {
       html::h6 {
-        html::t [my header]
+        html::t [:header]
       }
     }
     next
@@ -73,56 +73,56 @@ namespace eval ::xowiki {
   YUIMenu ad_instproc render {} {
     http://developer.yahoo.com/yui/menu/
   } {
-    my append CSSclass " yuimenu"
-    my set extrajs ""
+    append :CSSclass " yuimenu"
+    set :extrajs ""
 
     # I want the menu to show up when JS is disabled
     # This gets overridden by JS, so its only relevant for the non-JS version
-    #my set style "visibility: visible; position: relative;"
+    #set :style "visibility: visible; position: relative;"
 
-    html::div [my get_attributes {CSSclass class} id style] {
+    html::div [:get_attributes {CSSclass class} id style] {
       # Header
       html::t \n
-      if {[my exists header]} {
+      if {[info exists :header]} {
         html::div -class "hd" {
-          html::t [my header]
+          html::t [:header]
         }
       }
       # Body
       html::t \n
       html::div -class "bd" {
-        foreach group [my split_menu_groups [my children]] {
+        foreach group [:split_menu_groups [:children]] {
           html::ul -class yuiml {
             foreach menuitemlist $group {$menuitemlist render}
           }
         }
       }
       # Footer
-      if {[my exists footer]} {
+      if {[info exists :footer]} {
         html::div -class "ft" {
-          html::t [my footer]
+          html::t [:footer]
         }
       }
       # Shadow
-      if {[my exists shadow]} {
+      if {[info exists :shadow]} {
         html::div -class "yui-menu-shadow" {}
       }
       # JavaScript
       # only "root-level" menus need JS
       # TODO: is this parent-check sufficient / future-safe?
-      if {[my exists __parent]} {
+      if {[info exists :__parent]} {
         #
         # propagate extrajs from rendering
         #
-        #ns_log notice "### propagate extrajs <[my set extrajs]> from [my info class] to [[my set __parent] info class]"
-        [my set __parent] append extrajs [my set extrajs]
+        #ns_log notice "### propagate extrajs <${:extrajs}> from [:info class] to [${:__parent} info class]"
+        ${:__parent} append extrajs ${:extrajs}
       } else {
         html::script -nonce [security::csp::nonce] -type "text/javascript" {
-          html::t "var [my js_name] = new YAHOO.widget.Menu(\"[my id]\", [my set configuration]);"
+          html::t "var [:js_name] = new YAHOO.widget.Menu(\"[:id]\", ${:configuration});"
           html::t "
-                        [my js_name].render();
-                        [my js_name].show();
-                        [my set extrajs]
+                        [:js_name].render();
+                        [:js_name].show();
+                        ${:extrajs}
                     "
         }
       }
@@ -140,27 +140,27 @@ namespace eval ::xowiki {
       }
 
   YUIMenuItem ad_instproc render {} {doku} {
-    html::li [my get_attributes id {CSSclass class} style] {
+    html::li [:get_attributes id {CSSclass class} style] {
       # if we have no href, mark entry as disabled
-      if {![my exists href] || [my href] eq ""} {my append linkclass " disabled"}
-      if {[my exists listener] && [my set listener] ne ""} {
-        #ns_log notice "menuitem has id [my id] listener [my listener] parent [my set __parent] [[my set __parent] info class]"
-        lassign [my listener] type body
-        [my set __parent] append extrajs [subst {
-          document.getElementById('[my id]').addEventListener('$type', function (event) {
+      if {![info exists :href] || [:href] eq ""} {append :linkclass " disabled"}
+      if {[info exists :listener] && ${:listener} ne ""} {
+        #ns_log notice "menuitem has id [:id] listener [:listener] parent ${:__parent} [${:__parent} info class]"
+        lassign [:listener] type body
+        ${:__parent} append extrajs [subst {
+          document.getElementById('[:id]').addEventListener('$type', function (event) {
             $body;
           }, false);
         }]
       }
-      html::a [my get_attributes target href {linkclass class} title] {
-        html::t [my text]
-        if {[my exists helptext]} {
+      html::a [:get_attributes target href {linkclass class} title] {
+        html::t [:text]
+        if {[info exists :helptext]} {
           html::em {
-            html::t [my helptext]
+            html::t [:helptext]
           }
         }
       }
-      foreach menu [my children] {$menu render}
+      foreach menu [:children] {$menu render}
     }
     html::t \n
   }
@@ -179,23 +179,23 @@ namespace eval ::xowiki {
     http://developer.yahoo.com/yui/menu/#menubar
     MenuBar looks best without a header and with one MenuItemList only
   } {
-    my append CSSclass " yuimenubar"
-    my set extrajs ""
-    if {[my navbar]} {my append CSSclass " yuimenubarnav"}
-    html::div [my get_attributes id {CSSclass class}] {
+    append :CSSclass " yuimenubar"
+    set :extrajs ""
+    if {[:navbar]} {append :CSSclass " yuimenubarnav"}
+    html::div [:get_attributes id {CSSclass class}] {
       html::div -class "bd" {
         html::t \n
         html::ul -class "first-of-type" {
-          foreach li [my children] {$li render}
+          foreach li [:children] {$li render}
         }
         html::t \n
       }
       html::t \n
       ::xo::Page set_property body class "yui-skin-sam"
       ::xo::Page requireJS "YAHOO.util.Event.onDOMReady(function () {
-            var [my js_name] = new YAHOO.widget.MenuBar('[my id]', [my set configuration]);
-            [my js_name].render();
-            [my set extrajs]
+            var [:js_name] = new YAHOO.widget.MenuBar('[:id]', ${:configuration});
+            [:js_name].render();
+            ${:extrajs}
       });"
     }
   }
@@ -209,22 +209,22 @@ namespace eval ::xowiki {
   YUIMenuBarItem ad_instproc init {} {} {
     #goto YUIMenuItem and set all those nice defaults
     next
-    my append CSSclass " first-of-type"
-    if {![my exists href]} {
+    append :CSSclass " first-of-type"
+    if {![info exists :href]} {
       # If not set to #, the title of the menubaritems wont expand the submenu (only the arrow)
-      my set href "#"
+      set :href "#"
     }
   }
 
   YUIMenuBarItem ad_instproc render {} {} {
-    my set extrajs ""
+    set :extrajs ""
     set result [next]
-    if {[my exists __parent]} {
+    if {[info exists :__parent]} {
       #
       # propagate extrajs from rendering
       #
-      #ns_log notice "### propagate extrajs <[my set extrajs]> from [my info class] to [[my set __parent] info class]"
-      [my set __parent] append extrajs [my set extrajs]
+      #ns_log notice "### propagate extrajs <${:extrajs}> from [:info class] to [${:__parent} info class]"
+      ${:__parent} append extrajs ${:extrajs}
     }
   }
   
@@ -244,16 +244,16 @@ namespace eval ::xowiki {
   YUIContextMenu ad_instproc render {} {
     http://developer.yahoo.com/yui/menu/#contextmenu
   } {
-    my append CSSclass " yuimenu"
-    html::div [my get_attributes id {CSSclass class}] {
+    append :CSSclass " yuimenu"
+    html::div [:get_attributes id {CSSclass class}] {
       html::div -class "bd" {
         html::ul -class yuicm {
-          foreach li [my children] {$li render}
+          foreach li [:children] {$li render}
         }
       }
       html::script -nonce [security::csp::nonce] -type "text/javascript" {
-        html::t "var [my js_name] = new YAHOO.widget.ContextMenu('[my id]', { trigger: '[my set trigger]' } );"
-        html::t "[my js_name].render(document.body);"
+        html::t "var [:js_name] = new YAHOO.widget.ContextMenu('[:id]', { trigger: '${:trigger}' } );"
+        html::t "[:js_name].render(document.body);"
       }
     }
   }
@@ -265,25 +265,25 @@ namespace eval ::xowiki {
       -superclass YUIMenuItem
 
   ::xowiki::MenuBar instproc render-yui {} {
-    set dict [my content]
-    set mb [::xowiki::YUIMenuBar -id [my get_prop $dict id] -configuration {
+    set dict [:content]
+    set mb [::xowiki::YUIMenuBar -id [:get_prop $dict id] -configuration {
       {autosubmenudisplay: false, keepopen: true, lazyload: false}
     } {
       foreach {menu_att menu} $dict {
         if {$menu_att eq "id"} continue
-        set kind [my get_prop $menu kind]
+        set kind [:get_prop $menu kind]
         #ns_log notice "entry: kind $kind <$menu_att> <$menu>"
         
         if {$kind ne "MenuButton"} continue
-        ::xowiki::YUIMenuBarItem -text [my get_prop $menu label] {
+        ::xowiki::YUIMenuBarItem -text [:get_prop $menu label] {
           ::xowiki::YUIMenu {
             foreach {item_att item} $menu {
               if {[string match {[a-z]*} $item_att]} continue
               ::xowiki::YUIMenuItem \
-                  -text [my get_prop $item label] \
-                  -href [my get_prop $item url] \
-                  -group [my get_prop $item group] \
-                  -listener [my get_prop $item listener] {}
+                  -text [:get_prop $item label] \
+                  -href [:get_prop $item url] \
+                  -group [:get_prop $item group] \
+                  -listener [:get_prop $item listener] {}
             }
           }
         }
@@ -331,7 +331,6 @@ namespace eval ::YUI {
     @param module 
     The YUI Module to be loaded
   } {
-    my instvar ajaxhelper
     switch -- [string tolower $module] {
 
       utilities {
@@ -340,8 +339,8 @@ namespace eval ::YUI {
         # Drag & Drop Utility, Animation Utility, YUI Loader and the Get Utility.
         # Use this file to reduce HTTP requests whenever you are including more
         # than three of its constituent components.
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} "yahoo-dom-event/yahoo-dom-event.js"
+        ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} "utilities/utilities.js"
       }
       menubar {
         #
@@ -356,7 +355,7 @@ namespace eval ::YUI {
         # the local versions, because then the requireJS function takes care
         # of duplicates.
         #
-        my require -module "utilities"
+        :require -module "utilities"
         # todo : this is more than necessary
         foreach jsFile {
           "container/container-min.js"
@@ -368,11 +367,11 @@ namespace eval ::YUI {
           "datatable/datatable-min.js"
           "selector/selector-min.js"
         } {
-          ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper $jsFile
+          ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} $jsFile
         }
 
-        my require -module "reset-fonts-grids"
-        my require -module "base"
+        :require -module "reset-fonts-grids"
+        :require -module "base"
 
         foreach cssFile {
           "container/assets/container.css"
@@ -381,13 +380,13 @@ namespace eval ::YUI {
           "assets/skins/sam/skin.css"
           "menu/assets/skins/sam/menu.css"
         } {
-          ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper $cssFile
+          ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} $cssFile
         }
         ::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/folders/tree.css"
       }
       datatable {
         # see comment above
-        my require -module "utilities"
+        :require -module "utilities"
         # todo : this is more than necessary
         foreach jsFile {
           "container/container-min.js"
@@ -399,11 +398,11 @@ namespace eval ::YUI {
           "datatable/datatable-min.js"
           "selector/selector-min.js"
         } {
-          ::xowiki::Includelet require_YUI_JS -version "2.7.0b" -ajaxhelper $ajaxhelper $jsFile
+          ::xowiki::Includelet require_YUI_JS -version "2.7.0b" -ajaxhelper ${:ajaxhelper} $jsFile
         }
 
-        my require -module "reset-fonts-grids"
-        my require -module "base"
+        :require -module "reset-fonts-grids"
+        :require -module "base"
 
         foreach cssFile {
           "container/assets/container.css"
@@ -412,25 +411,25 @@ namespace eval ::YUI {
           "assets/skins/sam/skin.css"
           "menu/assets/skins/sam/menu.css"
         } {
-          ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper $cssFile
+          ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} $cssFile
         }
         #::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/skins/sam/treeview.css"
         #::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/folders/tree.css"
       }
       reset {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "reset/reset.css"
+        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "reset/reset.css"
       }
       fonts {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "fonts/fonts.css"
+        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "fonts/fonts.css"
       }
       grids {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "grids/grids.css"
+        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "grids/grids.css"
       }
       base {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "base/base.css"
+        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "base/base.css"
       }
       "reset-fonts-grids" {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "reset-fonts-grids/reset-fonts-grids.css"
+        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "reset-fonts-grids/reset-fonts-grids.css"
       }
     }
   }
@@ -446,9 +445,9 @@ namespace eval ::YUI {
             </ul>
         " \
       -instproc get-slots {} {
-        set slots [list -[my name]]
+        set slots [list -[:name]]
         foreach subfield {href title CSSclass target onclick} {
-          lappend slots [list -[my name].$subfield ""]
+          lappend slots [list -[:name].$subfield ""]
         }
         return $slots
       }
@@ -470,7 +469,7 @@ namespace eval ::xo::Table {
 
   ::xowiki::YUIDataTable instproc init {} {
     set trn_mixin [expr {[lang::util::translator_mode_p] ?"::xo::TRN-Mode" : ""}]
-    my render_with YUIDataTableRenderer $trn_mixin
+    :render_with YUIDataTableRenderer $trn_mixin
     next
   }
 
@@ -478,23 +477,22 @@ namespace eval ::xo::Table {
       -superclass TABLE3 \
       -instproc init_renderer {} {
         next
-        my set css.table-class list-table
-        my set css.tr.even-class even
-        my set css.tr.odd-class odd
-        my set id [::xowiki::Includelet js_name [::xowiki::Includelet html_id [self]]]
+        set :css.table-class list-table
+        set :css.tr.even-class even
+        set :css.tr.odd-class odd
+        set :id [::xowiki::Includelet js_name [::xowiki::Includelet html_id [self]]]
       }
 
   YUIDataTableRenderer ad_instproc -private render_yui_js {} {
     Generates the JavaScript fragment, that is put below and
     (progressively enhances) the HTML table.
   } {
-    my instvar id
-    set container   ${id}_container
-    set datasource  ${id}_datasource
-    set datatable   ${id}_datatable
-    set coldef      ${id}_coldef
+    set container   ${:id}_container
+    set datasource  ${:id}_datasource
+    set datatable   ${:id}_datatable
+    set coldef      ${:id}_coldef
     set finaljs     ""
-    set js      "var $datasource = new YAHOO.util.DataSource(YAHOO.util.Dom.get('$id')); \n"
+    set js      "var $datasource = new YAHOO.util.DataSource(YAHOO.util.Dom.get('${:id}')); \n"
     append js   "$datasource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE; \n"
     append js   "$datasource.responseSchema = \{ \n"
     append js   "   fields: \[ \n"
@@ -542,10 +540,10 @@ namespace eval ::xo::Table {
         }
       }
     }
-    set children [my children]
+    set children [:children]
     html::tbody {
-      foreach line [my children] {
-        html::tr -class [expr {[my incr __rowcount]%2 ? [my set css.tr.odd-class] : [my set css.tr.even-class] }] {
+      foreach line [:children] {
+        html::tr -class [expr {[incr :__rowcount]%2 ? [:set css.tr.odd-class] : [:set css.tr.even-class] }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             html::td  [concat [list class list] [$field html]] { 
@@ -559,8 +557,8 @@ namespace eval ::xo::Table {
 
   YUIDataTableRenderer instproc render {} {
     ::YUI::loader require -module "datatable"
-    if {![my isobject [self]::__actions]} {my actions {}}
-    if {![my isobject [self]::__bulkactions]} {my __bulkactions {}}
+    if {![:isobject [self]::__actions]} {my actions {}}
+    if {![:isobject [self]::__bulkactions]} {my __bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
@@ -568,11 +566,11 @@ namespace eval ::xo::Table {
       set name [::xowiki::Includelet js_name [self]]
     }
     # TODO: maybe use skin everywhere? hen to use style/CSSclass or skin?
-    set skin [expr {[my exists skin] ? [my set skin] : ""}]
-    html::div -id [my set id]_wrapper -class $skin {
+    set skin [expr {[info exists :skin] ? ${:skin} : ""}]
+    html::div -id ${:id}_wrapper -class $skin {
       html::form -name $name -id $name -method POST { 
-        html::div -id [my set id]_container {
-          html::table -id [my set id] -class [my set css.table-class] {
+        html::div -id ${:id}_container {
+          html::table -id ${:id} -class [:set css.table-class] {
             # TODO do i need that?
             my render-actions
             my render-body
@@ -580,7 +578,7 @@ namespace eval ::xo::Table {
           if {[llength $bulkactions]>0} { my render-bulkactions }
         }
       }
-      ::xo::Page requireJS "YAHOO.util.Event.onDOMReady(function () {\n[my render_yui_js]});"
+      ::xo::Page requireJS "YAHOO.util.Event.onDOMReady(function () {\n[:render_yui_js]});"
     }
   }
 
@@ -597,15 +595,15 @@ namespace eval ::xo::Table {
             </ul>
         " \
       -instproc render-data {line} {
-        set __name [my name]
+        set __name [:name]
         if {[$line exists $__name.href] &&
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line
-          my instvar CSSclass
+          set CSSclass ${:CSSclass}
           $line instvar   [list $__name.title title] \
               [list $__name.target target] \
               [list $__name.onclick onclick] 
-          html::a [my get_local_attributes href title {CSSclass class} target onclick] {
+          html::a [:get_local_attributes href title {CSSclass class} target onclick] {
             return "[next]"
           }
         }
