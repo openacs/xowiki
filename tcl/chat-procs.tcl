@@ -9,9 +9,9 @@ namespace eval ::xowiki {
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
   # Chat instproc render {} {
-  #   my orderby time
+  #   :orderby time
   #   set result ""
-  #   foreach child [my children] { 
+  #   foreach child [:children] { 
   #     set msg       [$child msg]
   #     set user_id   [$child user_id]
   #     set timelong  [clock format [$child time]]
@@ -25,8 +25,8 @@ namespace eval ::xowiki {
   #       set creator "Nobody"
   #     }
   #     append result "<TR><TD class='timestamp'>$timeshort</TD>\
-      #       <TD class='user'>[my encode $creator]</TD>\
-      #       <TD class='message'>[my encode $msg]</TD></TR>\n"
+      #       <TD class='user'>[:encode $creator]</TD>\
+      #       <TD class='message'>[:encode $msg]</TD></TR>\n"
   #   }
   #   return $result
   # }
@@ -93,7 +93,7 @@ namespace eval ::xowiki {
           set mode streaming
         }
       }
-      my log "--chat mode $mode"
+      :log "--chat mode $mode"
     }
 
     # small javascript library to obtain a portable ajax request object
@@ -126,7 +126,7 @@ namespace eval ::xowiki {
     }
     set file [open [acs_root_dir]/$jspath]; set js [read $file]; close $file
 
-    my log "--CHAT mode=$mode"
+    :log "--CHAT mode=$mode"
 
     set style {
       margin:1.5em 0 1.5em 0;

@@ -14,12 +14,12 @@ namespace eval ::xowiki {
     {package_id} {parent_id} {user_id}
   }
   Importer instproc init {} {
-    my set log ""
-    my destroy_on_cleanup
+    set :log ""
+    :destroy_on_cleanup
   }
   Importer instproc report_lines {} {
     util_user_message -message "[_ xowiki.Import_successful]"
-    return "<table><caption>Details</caption>[my set log]</table>"
+    return "<table><caption>Details</caption>${:log}</table>"
   }
   Importer instproc report_line {obj operation} {
     set href [$obj pretty_link]
@@ -30,13 +30,12 @@ namespace eval ::xowiki {
         "updated" { set operation "[_ xowiki.updated]" }
         "inherited" { set operation "[_ xowiki.inherited]" }
 	}
-    my append log "<tr><td>$operation</td><td><a href='[ns_quotehtml $href]'>$name</a></td></tr>\n"
+    append :log "<tr><td>$operation</td><td><a href='[ns_quotehtml $href]'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
-    my instvar added updated replaced inherited
-    return "<b>$added</b> #xowiki.objects_newly_inserted#,\
-    <b>$updated</b> #xowiki.objects_updated#, <b>$replaced</b> #xowiki.objects_replaced#, <b>$inherited</b> #xowiki.inherited_update_ignored#<p>\
-    [my report_lines]"
+    return "<b>${:added}</b> #xowiki.objects_newly_inserted#,\
+    <b>${:updated}</b> #xowiki.objects_updated#, <b>${:replaced}</b> #xowiki.objects_replaced#, <b>${:inherited}</b> #xowiki.inherited_update_ignored#<p>\
+    [:report_lines]"
   }
 
   Importer instproc import {-object:required -replace -create_user_ids} {
@@ -45,18 +44,17 @@ namespace eval ::xowiki {
     # single object and inserts it (or updates it) in the database. It
     # takes as well care about categories.
     # 
-    my instvar package_id user_id
 
-    $object demarshall -parent_id [$object parent_id] -package_id $package_id \
-        -creation_user $user_id -create_user_ids $create_user_ids
+    $object demarshall -parent_id [$object parent_id] -package_id ${:package_id} \
+        -creation_user ${:user_id} -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
     #my msg "lookup of [$object name] parent [$object parent_id] => $item_id"
     if {$item_id != 0} {
       if {$replace} { ;# we delete the original
         ::xo::db::CrClass delete -item_id $item_id
         set item_id 0
-        my report_line $object replaced
-        my incr replaced
+        :report_line $object replaced
+        incr :replaced
       } else {
         #my msg "$item_id update: [$object name]"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
@@ -66,8 +64,8 @@ namespace eval ::xowiki {
         #my log "$item_id saved"
         $object set item_id [$item_id item_id]
         #my msg "$item_id updated: [$object name]"
-        my report_line $item_id updated
-        my incr updated
+        :report_line $item_id updated
+        incr :updated
       }
     }
     if {$item_id == 0} {
@@ -76,8 +74,8 @@ namespace eval ::xowiki {
       $object set item_id $n
       set item_id $object
       #my msg "$object added: [$object name]"
-      my report_line $object added
-      my incr added
+      :report_line $object added
+      incr :added
     }
     #
     # The method demarshall might set the mapped __category_ids in $object.
@@ -88,7 +86,7 @@ namespace eval ::xowiki {
       $item_id map_categories [$object set __category_ids]
     }
 
-    $package_id flush_references -item_id [$object item_id] -name [$object name]
+    ${:package_id} flush_references -item_id [$object item_id] -name [$object name]
   }
 
   Importer instproc import_all {-replace -objects:required {-create_user_ids 0} {-keep_inherited 1}} {
@@ -126,7 +124,7 @@ namespace eval ::xowiki {
       # Handle import of categories in the first pass
       #
       if {[$o exists __map_command]} {
-        $o package_id [my package_id]
+        $o package_id ${:package_id}
         $o eval [$o set __map_command]
       }
       # FIXME remove?
@@ -154,7 +152,7 @@ namespace eval ::xowiki {
           set old_template_id [$o page_template]
           if {![info exists old_names($old_template_id)]} {
             set new 0
-            my msg "need name for $old_template_id. Maybe item_ids for PageTemplate missing?"
+            :msg "need name for $old_template_id. Maybe item_ids for PageTemplate missing?"
             break
           }
           
@@ -185,7 +183,7 @@ namespace eval ::xowiki {
             && [$o exists __export_reason] 
             && [$o set __export_reason] eq "implicit_page_template"} {
           $o unset __export_reason
-          set page [[my package_id] get_page_from_item_ref \
+          set page [${:package_id} get_page_from_item_ref \
                         -allow_cross_package_item_refs false \
                         -use_package_path true \
                         -use_site_wide_pages true \
@@ -199,8 +197,8 @@ namespace eval ::xowiki {
           #   set inherited [expr {[$page physical_parent_id] ne [$page parent_id]}]
 
           if {$page ne ""} {
-            #my msg "page [$o name] can ne found in folder [my parent_id]"
-            my incr inherited
+            #my msg "page [$o name] can ne found in folder ${:parent_id}"
+            incr :inherited
             unset todo($o)
             set o $page
             set need_to_import 0
@@ -216,23 +214,23 @@ namespace eval ::xowiki {
           if {[$o istype ::xowiki::PageInstance]} {
             #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
             $o page_template $name_map($template_name_key)
-            #my msg "exists template? [my isobject [$o page_template]]"
-            if {![my isobject [$o page_template]]} {
+            #my msg "exists template? [:isobject [$o page_template]]"
+            if {![:isobject [$o page_template]]} {
               ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-              #my msg "[my isobject [$o page_template]] loaded"
+              #my msg "[:isobject [$o page_template]] loaded"
             }
           }
           
           if {[info exists item_ids($old_parent_id)]} {
             $o set parent_id $id_map($old_parent_id)
           } else {
-            $o set parent_id [my parent_id]
+            $o set parent_id ${:parent_id}
           }
           
           # Everything is mapped, we can now do the import.
           
           #my msg "start import for $o, name=[$o name]"
-          my import \
+          :import \
               -object $o \
               -replace $replace \
               -create_user_ids $create_user_ids
@@ -253,7 +251,7 @@ namespace eval ::xowiki {
         set new 1
       }
       if {$new == 0} {
-        my msg "could not import [array names todo]"
+        :msg "could not import [array names todo]"
         break
       }
     }
@@ -264,7 +262,7 @@ namespace eval ::xowiki {
     #
     foreach o $objects {$o destroy}
 
-    [my package_id] flush_page_fragment_cache
+    ${:package_id} flush_page_fragment_cache
   }
 
   #
@@ -278,7 +276,7 @@ namespace eval ::xowiki {
     #
     foreach item_id $item_ids {
       if {[::xo::db::CrClass get_instance_from_db -item_id $item_id] eq ""} {
-        my log "Warning: cannot fetch item $item_id for exporting"
+        :log "Warning: cannot fetch item $item_id for exporting"
       } else {
         set items($item_id) 1
       }
@@ -345,7 +343,7 @@ namespace eval ::xowiki {
     #
     # include implictely needed objects, instantiate the objects.
     #
-    set item_ids [my include_needed_objects $item_ids]
+    set item_ids [:include_needed_objects $item_ids]
     #
     # stream the objects via ns_write
     #
@@ -379,40 +377,39 @@ namespace eval ::xowiki {
     {use_photo_form false}
   }
   ArchiveFile instproc init {} {
-    my destroy_on_cleanup
-    ::xo::db::CrClass get_instance_from_db -item_id [my parent_id]
-    my set tmpdir [ad_tmpnam]
-    file mkdir [my set tmpdir]
+    :destroy_on_cleanup
+    ::xo::db::CrClass get_instance_from_db -item_id ${:parent_id}
+    set :tmpdir [ad_tmpnam]
+    file mkdir ${:tmpdir}
   }
   ArchiveFile instproc delete {} {
-    file delete -force -- [my set tmpdir]
+    file delete -force -- ${:tmpdir}
     next
   }
   ArchiveFile instproc unpack {} {
-    my instvar name file
     set success 0
-    #my log "::xowiki::guesstype '$name' => [::xowiki::guesstype $name]"
-    switch [::xowiki::guesstype $name] {
+    #my log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
+    switch [::xowiki::guesstype ${:name}] {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
         set zipcmd [::util::which unzip]
-        #my msg "zip = $zipcmd, tempdir = [my set tmpdir]"
-        exec $zipcmd $file -d [my set tmpdir]
-        my import -dir [my set tmpdir] -parent_id [my parent_id]
+        #my msg "zip = $zipcmd, tempdir = ${:tmpdir}"
+        exec $zipcmd ${:file} -d ${:tmpdir}
+        :import -dir ${:tmpdir} -parent_id ${:parent_id}
         set success 1
       }
       application/x-compressed {
-        if {[string match "*tar.gz" $name]} {
+        if {[string match "*tar.gz" ${:name}]} {
           set cmd [::util::which tar]
-          exec $cmd -xzf $file -C [my set tmpdir]
-          my import -dir [my set tmpdir] -parent_id [my parent_id]
+          exec $cmd -xzf ${:file} -C ${:tmpdir}
+          :import -dir ${:tmpdir} -parent_id ${:parent_id}
           set success 1
         } else {
-          my msg "unknown compressed file type $name"
+          :msg "unknown compressed file type ${:name}"
         }
       }
-      default {my msg "type [::xowiki::guesstype $name] of $name unknown"}
+      default {my msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
     }
     #my msg success=$success
     return $success
@@ -446,14 +443,14 @@ namespace eval ::xowiki {
           # ..... and refetch it under its canonical name
           ::xo::db::CrClass get_instance_from_db -item_id [$folder_object item_id]
         }
-        my import -dir $tmpfile -parent_id [$folder_object item_id]
+        :import -dir $tmpfile -parent_id [$folder_object item_id]
       } else {
         set mime_type [::xowiki::guesstype $file_name]
-        if {[string match "image/*" $mime_type] && [my use_photo_form]} {
+        if {[string match "image/*" $mime_type] && [:use_photo_form]} {
           set photo_object [$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
           if {$photo_object ne ""} {
             # photo entry exists already, create a new revision
-            my log "Photo $file_name exists already"
+            :log "Photo $file_name exists already"
             $photo_object set title $file_name
             set f [::xowiki::formfield::file new -object $photo_object -name "image" -destroy_on_cleanup]
             $f set value $file_name
@@ -463,7 +460,7 @@ namespace eval ::xowiki {
             $photo_object save
           } else {
             # create a new photo entry
-            my log "new Photo $file_name"
+            :log "new Photo $file_name"
             set photoFormObj [::xowiki::Weblog instantiate_forms \
                                   -parent_id $parent_id -forms en:photo.form -package_id $package_id]
             set photo_object [$photoFormObj create_form_page_instance \
@@ -486,14 +483,14 @@ namespace eval ::xowiki {
         } else {
           set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
           if {$file_object ne ""} {
-            my msg "file $file_name exists already"
+            :msg "file $file_name exists already"
             # file entry exists already, create a new revision
             $file_object set import_file $tmpfile
             $file_object set mime_type $mime_type
             $file_object set title $file_name
             $file_object save
           } else {
-            my msg "file $file_name created new"
+            :msg "file $file_name created new"
             set file_object [::xowiki::File new -destroy_on_cleanup \
                                  -title $file_name \
                                  -name file:$file_name \
