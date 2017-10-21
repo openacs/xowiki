@@ -128,15 +128,12 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc validate {obj} {
-    :instvar name required
-
     # use the 'value' method to deal e.g. with compound fields
     set value [:value]
-    #my msg "[:info class] value=$value req=$required // ${:value} //"
+    #my msg "[:info class] value=$value req=${:required} // ${:value} //"
 
-    if {$required && $value eq "" && ![:istype ::xowiki::formfield::hidden]} {
-      :instvar label
-      return [_ acs-templating.Element_is_required]
+    if {${:required} && $value eq "" && ![:istype ::xowiki::formfield::hidden]} {
+      return [_ acs-templating.Element_is_required [list label ${:label}]]
     }
     #
     #my msg "++ ${:name} [:info class] validator=[:validator] ([llength [:validator]]) value=$value"
@@ -387,39 +384,38 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc asWidgetSpec {} {
-    :instvar widget_type options label help_text format html display_html
-    set spec $widget_type
+    set spec ${:widget_type}
     if {[info exists :spell]} {append spec ",[expr {[:spell] ? {} : {no}}]spell"}
 
     if {![:required]} {append spec ",optional"}
     if {[info exists :editor]} {append spec " {options {editor ${:editor}}} "}
-    append spec " {label " [list $label] "} "
+    append spec " {label " [list ${:label}] "} "
 
     if {[string match *bootstrap* [subsite::get_theme]]} {
-      :array set html {class "form-control"}
+      array set :html {class "form-control"}
     }
 
     if {[info exists :html]} {
       append spec " {html {"
-      foreach {key value} [array get html] {
+      foreach {key value} [array get :html] {
         append spec $key " " [list $value] " "
       }
       append spec "}} "
     }
 
     if {[info exists :options]} {
-      append spec " {options " [list $options] "} "
+      append spec " {options " [list ${:options}] "} "
     }
     if {[info exists :format]} {
-      append spec " {format " [list $format] "} "
+      append spec " {format " [list ${:format}] "} "
     }
 
-    if {$help_text ne ""} {
-      if {[string match "#*#" $help_text]} {
-        set internationalized [:localize $help_text]
+    if {${:help_text} ne ""} {
+      if {[string match "#*#" ${:help_text}]} {
+        set internationalized [:localize ${:help_text}]
         append spec " {help_text {$internationalized}}"
       } else {
-        append spec " {help_text {$help_text}}"
+        append spec " {help_text {${:help_text}}}"
       }
     }
     return $spec
@@ -554,7 +550,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc render_error_msg {} {
     if {[:error_msg] ne "" && ![info exists :error_reported]} {
       ::html::div -class form-error {
-        :instvar label
+        set label ${:label} ;# needed for error_msg; TODO: we should provide a substitution_list similar to "_"
         ::html::t [::xo::localize [:error_msg]]
         :render_localizer
         set :error_reported 1
@@ -1004,18 +1000,17 @@ namespace eval ::xowiki::formfield {
 
   file instproc pretty_value {v} {
     if {$v ne ""} {
-      :instvar object
       array set "" [:entry_info]
 
       set result ""
       foreach object_name $(name) fn [:get_from_value $v name] {
 
-        array set "" [$object item_ref -default_lang [${:object} lang] -parent_id $(parent_id) $object_name]
+        array set "" [${:object} item_ref -default_lang [${:object} lang] -parent_id $(parent_id) $object_name]
 
         #my log "name <$object_name> pretty value name '$(stripped_name)'"
 
         set l [::xowiki::Link new -destroy_on_cleanup \
-                   -page $object -type "file" -lang $(prefix) \
+                   -page ${:object} -type "file" -lang $(prefix) \
                    [list -stripped_name $(stripped_name)] [list -label $fn] \
                    [list -extra_query_parameter [list [list filename $fn]]] \
                    -parent_id $(parent_id) -item_id $(item_id)]
@@ -1027,11 +1022,9 @@ namespace eval ::xowiki::formfield {
 
   file instproc render_input {} {
 
-    :instvar value
     set package_id [${:object} package_id]
-
     array set entry_info [:entry_info]
-    set fns [:get_from_value $value name $value]
+    set fns [:get_from_value ${:value} name ${:value}]
 
     #
     # The HTML5 handling of "required" would force us to upload in
@@ -1047,14 +1040,14 @@ namespace eval ::xowiki::formfield {
     ::html::t " "
     set id __old_value_${:name}
     ::html::div {
-      ::html::input -type hidden -name $id -id $id -value $value
+      ::html::input -type hidden -name $id -id $id -value ${:value}
     }
     ::html::div -class file-control -id __a$id {
       foreach \
           object_name $entry_info(name) \
-          revision_id [:get_from_value $value revision_id ""] \
+          revision_id [:get_from_value ${:value} revision_id ""] \
           fn $fns {
-            #my msg "${:name}: [list :get_from_value <$value> name] => '$fn'"
+            #my msg "${:name}: [list :get_from_value <${:value}> name] => '$fn'"
             set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
 
             if {![:istype image]} {
@@ -1078,7 +1071,7 @@ namespace eval ::xowiki::formfield {
       # - the form-field is not sticky (default)
       #
       set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
-      if {$value ne "" && !$disabled && ![:sticky] } {
+      if {${:value} ne "" && !$disabled && ![:sticky] } {
         ::html::input -type button -value [_ xowiki.clear] -id $id-control
         template::add_event_listener \
             -id $id-control \
@@ -1103,16 +1096,15 @@ namespace eval ::xowiki::formfield {
     if {[:help_text] eq ""} {my help_text "#xowiki.formfield-import_archive-help_text#"}
   }
   import_archive instproc pretty_value {v} {
-    :instvar object
-    set package_id [$object package_id]
-    set parent_id  [$object parent_id]
+    set package_id [${:object} package_id]
+    set parent_id  [${:object} parent_id]
     if {$v eq ""} {return ""}
     array set "" [:entry_info]
     set fn [:get_from_value $v name $v]
     #
     # Get the file object of the imported file to obtain is full name and path
     #
-    set file_id [$package_id lookup -parent_id [$object item_id] -name $(name)]
+    set file_id [$package_id lookup -parent_id [${:object} item_id] -name $(name)]
     ::xo::db::CrClass get_instance_from_db -item_id $file_id
     set full_file_name [$file_id full_file_name]
     #
@@ -1128,7 +1120,7 @@ namespace eval ::xowiki::formfield {
       #
       if {[:cleanup]} {
         set return_url [$package_id query_parameter "return_url" [$parent_id pretty_link]]
-        $package_id returnredirect [$object pretty_link -query [export_vars {m delete} return_url]]
+        $package_id returnredirect [${:object} pretty_link -query [export_vars {m delete} return_url]]
       }
     }
   }
@@ -1508,7 +1500,6 @@ namespace eval ::xowiki::formfield {
   }
   author instproc pretty_value {v} {
     if {$v ne ""} {
-      :instvar object
       acs_user::get -user_id $v -array user
       if {[:with_photo]} {
         set portrait_id [acs_user::get_portrait_id -user_id $v]
@@ -1525,10 +1516,10 @@ namespace eval ::xowiki::formfield {
         set photo_class ""
       }
       set date_field [::xowiki::FormPage get_table_form_fields \
-                          -base_item $object \
+                          -base_item ${:object} \
                           -field_names _last_modified \
                           -form_constraints ""]
-      set date [$date_field pretty_value [$object property _last_modified]]
+      set date [$date_field pretty_value [${:object} property _last_modified]]
 
       if {[:with_user_link]} {
         set user_link_begin "<a href='[ns_quotehtml /shared/community-member?user_id=$v]'>"
@@ -2648,18 +2639,17 @@ namespace eval ::xowiki::formfield {
   select instproc initialize {} {
     set :widget_type text(select)
     next
-    if {![info exists :options]} {my options [list]}
+    if {![info exists :options]} {set :options [list]}
   }
 
   select instproc render_input {} {
     set atts [:get_attributes id name disabled {CSSclass class}]
     if {[:multiple]} {lappend atts multiple [:multiple]}
-    set options [:options]
     if {![:required]} {
-      set options [linsert $options 0 [list "--" ""]]
+      set :options [linsert ${:options} 0 [list "--" ""]]
     }
     ::html::select $atts {
-      foreach o $options {
+      foreach o ${:options} {
         lassign $o label rep
         set atts [:get_attributes disabled]
         lappend atts value $rep
@@ -2699,7 +2689,7 @@ namespace eval ::xowiki::formfield {
         ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
 
         set js ""
-        foreach o [:options] {
+        foreach o ${:options} {
           lassign $o label rep
           set js_label [::xowiki::Includelet js_encode $label]
           set js_rep   [::xowiki::Includelet js_encode $rep]
@@ -2726,8 +2716,8 @@ namespace eval ::xowiki::formfield {
         ::html::div -class workarea {
           ::html::h3 { ::html::t "#xowiki.Candidates#"}
           ::html::ul -id [:id]_candidates -class region {
-            #my msg [:options]
-            foreach o [:options] {
+            #my msg ${:options}
+            foreach o ${:options} {
               lassign $o label rep
               # Don't show current values under candidates
               if {[info exists __values($rep)]} continue
@@ -2782,14 +2772,13 @@ namespace eval ::xowiki::formfield {
   }
 
   abstract_page instproc pretty_value {v} {
-    :instvar package_id
     set object ${:object}
     set parent_id [$object parent_id]
     set :options [:get_labels $v]
     if {[:multiple]} {
       foreach o ${:options} {
         lassign $o label value
-        set href [$package_id pretty_link -parent_id $parent_id $value]
+        set href [${:package_id} pretty_link -parent_id $parent_id $value]
         set labels($value) "<a href='[ns_quotehtml $href]'>$label</a>"
       }
       set hrefs [list]
@@ -2798,7 +2787,7 @@ namespace eval ::xowiki::formfield {
           #my msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
           set labels($i) $i
         }
-        set href [$package_id pretty_link -parent_id $parent_id $i]
+        set href [${:package_id} pretty_link -parent_id $parent_id $i]
         lappend hrefs "<a href='[ns_quotehtml $href]'>$labels($i)</a>"
       }
       if {[:multiple_style] eq "list"} {
@@ -2814,7 +2803,7 @@ namespace eval ::xowiki::formfield {
           if {[:as_box]} {
             return [$object include [list $value -decoration rightbox]]
           }
-          set href [$package_id pretty_link -parent_id $parent_id $value]
+          set href [${:package_id} pretty_link -parent_id $parent_id $value]
           return "<a href='[ns_quotehtml $href]'>$label</a>"
         }
       }
@@ -2838,52 +2827,50 @@ namespace eval ::xowiki::formfield {
   }
 
   form_page instproc initialize {} {
-    :instvar form_object_item_ids package_id object
     if {![info exists :form]} { return }
     next
     set form_name [:form]
-    set package_id [$object package_id]
+    set :package_id [${:object} package_id]
     set form_objs [::xowiki::Weblog instantiate_forms \
-                       -parent_id [$object parent_id] \
-                       -default_lang [$object lang] \
-                       -forms $form_name -package_id $package_id]
+                       -parent_id [${:object} parent_id] \
+                       -default_lang [${:object} lang] \
+                       -forms $form_name -package_id ${:package_id}]
 
     #set form_obj [${:object} resolve_included_page_name $form_name]
     if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}
 
-    set form_object_item_ids [list]
-    foreach form_obj $form_objs {lappend form_object_item_ids [$form_obj item_id]}
+    set :form_object_item_ids [list]
+    foreach form_obj $form_objs {lappend :form_object_item_ids [$form_obj item_id]}
   }
   form_page instproc compute_options {} {
-    :instvar form_object_item_ids where package_id entry_label
     #my msg "${:name} compute_options [info exists :form]"
     if {![info exists :form]} {
       return
     }
 
     array set wc {tcl true h "" vars "" sql ""}
-    if {[info exists where]} {
-      array set wc [::xowiki::FormPage filter_expression $where &&]
-      #my msg "where '$where' => wc=[array get wc]"
+    if {[info exists :where]} {
+      array set wc [::xowiki::FormPage filter_expression ${:where} &&]
+      #my msg "where '${:where}' => wc=[array get wc]"
     }
 
     set from_package_ids {}
-    set package_path [::$package_id package_path]
+    set package_path [::${:package_id} package_path]
     if {[llength $package_path] > 0} {
       foreach p $package_path {
         lappend from_package_ids [$p id]
       }
     }
-    lappend from_package_ids $package_id
+    lappend from_package_ids ${:package_id}
     set items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_object_item_ids \
+                   -base_item_ids ${:form_object_item_ids} \
                    -form_fields [list] \
                    -publish_status ready \
                    -h_where [array get wc] \
-                   -package_id $package_id \
+                   -package_id ${:package_id} \
                    -from_package_ids $from_package_ids]
 
-    set options [list]
+    set :options [list]
     foreach i [$items children] {
       #
       # If the form_page has a different package_id, prepend the
@@ -2891,19 +2878,18 @@ namespace eval ::xowiki::formfield {
       # have no special parent_id.
       #
       set object_package_id [$i package_id]
-      if {$package_id != $object_package_id} {
+      if {${:package_id} != $object_package_id} {
         set package_prefix /[$object_package_id package_url]
       } else {
         set package_prefix ""
       }
 
-      lappend options [list [$i property $entry_label] $package_prefix[$i name]]
+      lappend :options [list [$i property ${:entry_label}] $package_prefix[$i name]]
     }
-    :options $options
   }
 
   form_page instproc pretty_value {v} {
-    :options [:get_labels $v]
+    set :options [:get_labels $v]
     if {![info exists :form_object_item_ids]} {
       error "No forms specified for form_field '${:name}'"
     }
@@ -2931,7 +2917,7 @@ namespace eval ::xowiki::formfield {
     }
 
     set package_id [${:object} package_id]
-    set options [list]
+    set :options [list]
     ::xo::dc foreach instance_select \
         [${:type} instance_select_query \
              -folder_id [$package_id folder_id] \
@@ -2941,9 +2927,8 @@ namespace eval ::xowiki::formfield {
              -where_clause "p.page_id = bt.revision_id $extra_where_clause" \
              -orderby ci.name \
             ] {
-              lappend options [list [set [:entry_label]] $name]
+              lappend :options [list [set [:entry_label]] $name]
             }
-    :options $options
   }
 
   page instproc pretty_value {v} {
@@ -2960,10 +2945,10 @@ namespace eval ::xowiki::formfield {
 
   Class create security_policy -superclass select
   security_policy instproc initialize {} {
+    set :options {}
     foreach p [lsort [::xowiki::Policy info instances]] {
-      lappend options [list $p $p]
+      lappend :options [list $p $p]
     }
-    :options $options
     next
   }
 
@@ -2975,7 +2960,7 @@ namespace eval ::xowiki::formfield {
 
   Class create DD -superclass select
   DD instproc initialize {} {
-    :options {
+    set :options {
       {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9} {10 10}
       {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19} {20 20}
       {21 21} {22 22} {23 23} {24 24} {25 25} {26 26} {27 27} {28 28} {29 29} {30 30}
@@ -2992,7 +2977,7 @@ namespace eval ::xowiki::formfield {
 
   Class create HH24 -superclass select
   HH24 instproc initialize {} {
-    :options {
+    set :options {
       {00  0} {01  1} {02  2} {03  3} {04  4} {05  5} {06  6} {07  7} {08  8} {09  9}
       {10 10} {11 11} {12 12} {13 13} {14 14} {15 15} {16 16} {17 17} {18 18} {19 19}
       {20 20} {21 21} {22 22} {23 23}
@@ -3012,12 +2997,12 @@ namespace eval ::xowiki::formfield {
       set v [lindex $args 0]
       if {$v eq ""} {return [:set value ""]} else {
         # round to 5 minutes
-        set :value [lindex [:options] [expr {($v + 2) / 5}] 1]
+        set :value [lindex ${:options} [expr {($v + 2) / 5}] 1]
       }
     }
   }
   MI instproc initialize {} {
-    :options {
+    set :options {
       {00  0} {05  5} {10 10} {15 15} {20 20} {25 25}
       {30 30} {35 35} {40 40} {45 45} {50 50} {55 55}
     }
@@ -3032,7 +3017,7 @@ namespace eval ::xowiki::formfield {
 
   Class create MM -superclass select
   MM instproc initialize {} {
-    :options {
+    set :options {
       {01  1} {02  2} {03 3} {04 4} {05 5} {06 6} {07 7} {08 8} {09 9} {10 10}
       {11 11} {12 12}
     }
@@ -3049,11 +3034,11 @@ namespace eval ::xowiki::formfield {
     set values [lang::message::lookup [:locale] acs-lang.localization-abmon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
+    set :options {}
     foreach m {1 2 3 4 5 6 7 8 9 10 11 12} {
-      lappend options [list [lindex $values $last] $m]
+      lappend :options [list [lindex $values $last] $m]
       set last $m
     }
-    :options $options
     next
   }
   ###########################################################
@@ -3067,11 +3052,11 @@ namespace eval ::xowiki::formfield {
     set values [lang::message::lookup [:locale] acs-lang.localization-mon]
     if {[lang::util::translator_mode_p]} {set values [::xo::localize $values]}
     set last 0
+    set :options {}
     foreach m {1 2 3 4 5 6 7 8 9 10 11 12} {
-      lappend options [list [lindex $values $last] $m]
+      lappend :options [list [lindex $values $last] $m]
       set last $m
     }
-    :options $options
     next
   }
 
@@ -3208,8 +3193,7 @@ namespace eval ::xowiki::formfield {
   include instproc pretty_value {v} {
     if {$v eq ""} { return $v }
 
-    :instvar object
-    set item_id  [$object get_property_from_link_page item_id]
+    set item_id  [${:object} get_property_from_link_page item_id]
     if {$item_id == 0} {
       # Here, we could call "::xowiki::Link render" to offer the user means
       # to create the entry like with [[..]], if he has sufficient permissions...;
@@ -3217,8 +3201,8 @@ namespace eval ::xowiki::formfield {
       # resolved
       return "Cannot resolve symbolic link '$v'"
     }
-    set link_type [$object get_property_from_link_page link_type]
-    $object references resolved [list $item_id $link_type]
+    set link_type [${:object} get_property_from_link_page link_type]
+    ${:object} references resolved [list $item_id $link_type]
 
     set resolve_local [:resolve_local]
     if {$resolve_local} {
@@ -3229,8 +3213,8 @@ namespace eval ::xowiki::formfield {
       #my log "set __RESOLVE_LOCAL"
       $item_id set __RESOLVE_LOCAL 1
       $item_id set_resolve_context \
-          -package_id [$object package_id] -parent_id [$object parent_id] \
-          -item_id [$object item_id]
+          -package_id [${:object} package_id] -parent_id [${:object} parent_id] \
+          -item_id [${:object} item_id]
 
       set html [$item_id render]
 
@@ -3561,21 +3545,19 @@ namespace eval ::xowiki::formfield {
     # for now, we allow just FormPages as child_pages
     #
     if {![info exists :form]} { return }
-    :instvar object
     set :form_objs [::xowiki::Weblog instantiate_forms \
-                          -parent_id [$object parent_id] \
-                          -default_lang [$object lang] \
-                          -forms [:form] \
-                          -package_id [$object package_id]]
+                        -parent_id [${:object} parent_id] \
+                        -default_lang [${:object} lang] \
+                        -forms [:form] \
+                        -package_id [${:object} package_id]]
   }
   child_pages instproc pretty_value {v} {
     if {[info exists :form_objs]} {
-      :instvar object
       set count 0
       foreach form ${:form_objs} {
         incr count [$form count_usages \
-                        -package_id [$object package_id] \
-                        -parent_id [$object item_id] \
+                        -package_id [${:object} package_id] \
+                        -parent_id [${:object} item_id] \
                         -publish_status [:publish_status]]
       }
       return $count
@@ -3602,8 +3584,8 @@ namespace eval ::xowiki::formfield {
     #my msg "DATE has value [:value]//d=[:default] format=[:format] disabled?[info exists :disabled]"
     set :widget_type date
     set :format [string map [list _ " "] [:format]]
-    :array set defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
-    :array set format_map {
+    array set :defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
+    array set :format_map {
       SS    {SS    %S 1}
       MI    {MI    %M 1}
       HH24  {HH24  %H 1}
@@ -3728,18 +3710,17 @@ namespace eval ::xowiki::formfield {
   }
 
   date instproc pretty_value {v} {
-    :instvar display_format
     #
     # Internally, we use the ansi date format. For displaying the date,
     # use the specified display format and present the time localized.
     #
     # Drop of the value after the "." we assume to have a date in the local zone
     regexp {^([^.]+)[.]} $v _ v
-    #return [clock format [clock scan $v] -format [string map [list _ " "] [:display_format]]]
-    if {$display_format eq "pretty-age"} {
+    #return [clock format [clock scan $v] -format [string map [list _ " "] ${:display_format}]]
+    if {${:display_format} eq "pretty-age"} {
       return [::xowiki::utility pretty_age -timestamp [clock scan $v] -locale [:locale]]
     } else {
-      return [lc_time_fmt $v [string map [list _ " "] [:display_format]] [:locale]]
+      return [lc_time_fmt $v [string map [list _ " "] ${:display_format}] [:locale]]
     }
   }
 
@@ -3768,7 +3749,7 @@ namespace eval ::xowiki::formfield {
   }
   boolean instproc initialize {} {
     # should be with cvs head message catalogs:
-    :options "{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}"
+    set :options "{#acs-kernel.common_Yes# t} {#acs-kernel.common_No# f}"
     next
   }
 
@@ -3789,17 +3770,15 @@ namespace eval ::xowiki::formfield {
     set :widget_type boolean(hidden)
   }
   boolean_image instproc render_input {} {
-    :instvar t_img_url f_img_url CSSclass
     set title [expr {[info exists :__render_help_text_as_title_attr] ? ${:help_text} : ""}]
-    set id [:id]
     ::html::img \
         -title $title \
-        -class $CSSclass \
-        -src [expr {[:value] ? $t_img_url : $f_img_url}] \
-        -id $id-image
+        -class ${:CSSclass} \
+        -src [expr {[:value] ? ${:t_img_url} : ${:f_img_url}}] \
+        -id ${:id}-image
     template::add_event_listener \
-        -id $id-image \
-        -script [subst {toggle_img_boolean(this,'$t_img_url','$f_img_url');}]
+        -id ${:id}-image \
+        -script [subst {toggle_img_boolean(this,'${:t_img_url}','${:f_img_url}');}]
 
     ::html::input -type hidden -name ${:name} -value [:value]
 
@@ -3826,12 +3805,10 @@ namespace eval ::xowiki::formfield {
 
   Class create scale -superclass radio -parameter {{n 5} {horizontal true}}
   scale instproc initialize {} {
-    :instvar n
-    set options [list]
-    for {set i 1} {$i <= $n} {incr i} {
-      lappend options [list $i $i]
+    set :options [list]
+    for {set i 1} {$i <= ${:n}} {incr i} {
+      lappend :options [list $i $i]
     }
-    :options $options
     next
   }
 
