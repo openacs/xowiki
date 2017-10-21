@@ -52,13 +52,13 @@ namespace eval ::xowiki {
   BootstrapNavbar ad_instproc render {} {
     http://getbootstrap.com/components/#navbar
   } {
-    html::nav -class [my navbarClass] -role "navigation" {
+    html::nav -class [:navbarClass] -role "navigation" {
       #
       # Render the pull down menues
       # 
-      html::div -class [my containerClass] {
+      html::div -class [:containerClass] {
         set rightMenuEntries {}
-        foreach entry [my children] {
+        foreach entry [:children] {
           if {[$entry istype ::xowiki::BootstrapNavbarDropdownMenu]} {
             $entry render
           } else {
@@ -96,13 +96,13 @@ namespace eval ::xowiki {
     html::ul -class "nav navbar-nav" {
       html::li -class "dropdown" {
         set class "dropdown-toggle"
-        if {[my brand]} {lappend class "navbar-brand"}
+        if {[:brand]} {lappend class "navbar-brand"}
         html::a -href "\#" -class $class -data-toggle "dropdown" {
-          html::t [my text] 
+          html::t [:text] 
           html::b -class "caret"
         }
         html::ul -class "dropdown-menu" {
-          foreach dropdownmenuitem [my children] {
+          foreach dropdownmenuitem [:children] {
             if {[$dropdownmenuitem set group] ne "" && [$dropdownmenuitem set group] ne $group } {
               if {$group ne " "} {
                 html::li -class "divider"
@@ -260,7 +260,7 @@ namespace eval ::xowiki {
           }
         }
       }
-      my js -uploadlink ${:href}&uploader=${:uploader}
+      :js -uploadlink ${:href}&uploader=${:uploader}
     }
   }
 
@@ -295,7 +295,7 @@ namespace eval ::xowiki {
         };
       }
       html t [subst {
-        document.getElementById('[my id]').addEventListener('click', function (event) {
+        document.getElementById('[:id]').addEventListener('click', function (event) {
           mode_button_ajax_submit(this.form);
         });
       }]
@@ -308,13 +308,13 @@ namespace eval ::xowiki {
         html::div -class "checkbox ${:CSSclass}" {
           html::label -class "checkbox-inline" {
             set checked [expr {${:on} ? {-checked true} : ""}]
-            html::input -id [my id] -class "debug form-control" -name "debug" -type "checkbox" {*}$checked
+            html::input -id [:id] -class "debug form-control" -name "debug" -type "checkbox" {*}$checked
             html::span -style ${:spanStyle} {html::t ${:text}}
             html::input -name "modebutton" -type "hidden" -value "${:button}"
           }
         }
       }
-      my js
+      :js
     }
   }
 
@@ -351,40 +351,40 @@ namespace eval ::xowiki {
   # Render MenuBar in bootstap fashion
   # --------------------------------------------------------------------------
   ::xowiki::MenuBar instproc render-bootstrap {} {
-    set dict [my content]
+    set dict [:content]
     set mb [::xowiki::BootstrapNavbar \
-                -id [my get_prop $dict id] \
+                -id [:get_prop $dict id] \
                 -menubar [self] {
                   foreach {att value} $dict {
                     if {$att eq "id"} continue
-                    switch [my get_prop $value kind] {
+                    switch [:get_prop $value kind] {
                       "DropZone" {
                         ::xowiki::BootstrapNavbarDropzone \
-                            -text [my get_prop $value label] \
-                            -href [my get_prop $value url] \
-                            -uploader [my get_prop $value uploader] {}
+                            -text [:get_prop $value label] \
+                            -href [:get_prop $value url] \
+                            -uploader [:get_prop $value uploader] {}
                       }
                       "ModeButton" {
                         template::head::add_css -href "/resources/xotcl-core/titatoggle/titatoggle-dist.css"
 
                         ::xowiki::BootstrapNavbarModeButton \
-                            -text [my get_prop $value label] \
-                            -href [my get_prop $value url] \
-                            -button [my get_prop $value button admin] \
-                            -on [my get_prop $value on] {}
+                            -text [:get_prop $value label] \
+                            -href [:get_prop $value url] \
+                            -button [:get_prop $value button admin] \
+                            -on [:get_prop $value on] {}
                       }
                       "MenuButton" {
                         # render erverthing as a dropdown
                         ::xowiki::BootstrapNavbarDropdownMenu \
-                            -text [my get_prop $value label] {
+                            -text [:get_prop $value label] {
                               #ns_log notice "... dropdown att $att menu $value"
                               foreach {item_att item} $value {
                                 if {[string match {[a-z]*} $item_att]} continue
                                 ::xowiki::BootstrapNavbarDropdownMenuItem \
-                                    -text [my get_prop $item label] \
-                                    -href [my get_prop $item url] \
-                                    -group [my get_prop $item group] \
-                                    -listener [my get_prop $item listener] \
+                                    -text [:get_prop $item label] \
+                                    -href [:get_prop $item url] \
+                                    -group [:get_prop $item group] \
+                                    -listener [:get_prop $item listener] \
                                     {}
                               }
                             }
@@ -412,7 +412,7 @@ namespace eval ::xo::Table {
 
   ::xowiki::BootstrapTable instproc init {} {
     set trn_mixin [expr {[lang::util::translator_mode_p] ?"::xo::TRN-Mode" : ""}]
-    my render_with BootstrapTableRenderer $trn_mixin
+    :render_with BootstrapTableRenderer $trn_mixin
     next
   }
   
@@ -420,10 +420,10 @@ namespace eval ::xo::Table {
       -superclass TABLE3 \
       -instproc init_renderer {} {
         next
-        my set css.table-class "table table-striped"
-        my set css.tr.even-class even
-        my set css.tr.odd-class odd
-        my set id [::xowiki::Includelet js_name [::xowiki::Includelet html_id [self]]]
+        set :css.table-class "table table-striped"
+        set :css.tr.even-class even
+        set :css.tr.odd-class odd
+        set :id [::xowiki::Includelet js_name [::xowiki::Includelet html_id [self]]]
       }
 
   BootstrapTableRenderer instproc render-body {} {
@@ -435,10 +435,10 @@ namespace eval ::xo::Table {
         }
       }
     }
-    set children [my children]
+    set children [:children]
     html::tbody {
-      foreach line [my children] {
-        html::tr -class [expr {[my incr __rowcount]%2 ? [my set css.tr.odd-class] : [my set css.tr.even-class] }] {
+      foreach line [:children] {
+        html::tr -class [expr {[incr :__rowcount]%2 ? [:set css.tr.odd-class] : [:set css.tr.even-class] }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             if {[$field istype HiddenField]} continue
@@ -486,8 +486,8 @@ namespace eval ::xo::Table {
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
     
-    if {![my isobject [self]::__actions]} {my actions {}}
-    if {![my isobject [self]::__bulkactions]} {my __bulkactions {}}
+    if {![:isobject [self]::__actions]} {my actions {}}
+    if {![:isobject [self]::__bulkactions]} {my __bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
@@ -495,10 +495,10 @@ namespace eval ::xo::Table {
       set name [::xowiki::Includelet js_name [self]]
     }
     if {[llength $bulkactions]>0} {
-      html::div -id [my set id]_wrapper -class "table-responsive" {
+      html::div -id ${:id}_wrapper -class "table-responsive" {
         html::form -name $name -id $name -method POST { 
-          html::div -id [my set id]_container {
-            html::table -id [my set id] -class [my set css.table-class] {
+          html::div -id ${:id}_container {
+            html::table -id ${:id} -class [:set css.table-class] {
               my render-actions
               my render-body
             }
@@ -508,9 +508,9 @@ namespace eval ::xo::Table {
       }
     } else {
       #nesting forms inside a xowf page will place the action buttons at the wrong place!
-      html::div -id [my set id]_wrapper -class "table-responsive" {
-        html::div -id [my set id]_container {
-          html::table -id [my set id] -class [my set css.table-class] {
+      html::div -id ${:id}_wrapper -class "table-responsive" {
+        html::div -id ${:id}_container {
+          html::table -id ${:id} -class [:set css.table-class] {
             my render-actions
             my render-body
           }
@@ -532,11 +532,10 @@ namespace eval ::xo::Table {
             </ul>
         " \
       -instproc render-data {line} {
-        set __name [my name]
+        set __name [:name]
         if {[$line exists $__name.href] &&
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line
-          my instvar CSSclass
           $line instvar [list $__name.title title] [list $__name.target target]
           if {[$line exists $__name.onclick]} {
             set id [::xowiki::Includelet html_id $line]
@@ -544,8 +543,9 @@ namespace eval ::xo::Table {
                 -id $id \
                 -script "[$line set $__name.onclick];"
           }
-          html::a [my get_local_attributes href title {CSSclass class} target id] {
-            return "[next]"
+          set CSSclass ${:CSSclass}
+          html::a [:get_local_attributes href title {CSSclass class} target id] {
+            return [next]
           }
         }
         next

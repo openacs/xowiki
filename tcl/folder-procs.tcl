@@ -39,19 +39,19 @@ namespace eval ::xowiki::includelet {
   }
 
   folders instproc render {} {
-    my get_parameters
+    :get_parameters
     set js "
-      var [my js_name];
+      var [:js_name];
       YAHOO.util.Event.onDOMReady(function() {
-         [my js_name] = new YAHOO.widget.TreeView('foldertree_[my id]'); 
-         [my js_name].subscribe('clickEvent',function(oArgs) { 
+         [:js_name] = new YAHOO.widget.TreeView('foldertree_[:id]'); 
+         [:js_name].subscribe('clickEvent',function(oArgs) { 
             var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
             return false;
           });
-         [my js_name].render();
+         [:js_name].render();
       });
      "
-    set tree [my build_tree]
+    set tree [:build_tree]
     return [$tree render -style yuitree -js $js]
   }
 
@@ -129,7 +129,7 @@ namespace eval ::xowiki::includelet {
     #
     # get folders
     #
-    set sql [my folder_query -form_id $folder_form_id \
+    set sql [:folder_query -form_id $folder_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
     #ns_log notice "folder_pages:\n$sql"
@@ -140,7 +140,7 @@ namespace eval ::xowiki::includelet {
     #
     # get links
     #
-    set sql [my folder_query -form_id $link_form_id \
+    set sql [:folder_query -form_id $link_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
     #ns_log notice "links (parent-id ='$parent_id'):\n$sql"
@@ -167,7 +167,7 @@ namespace eval ::xowiki::includelet {
         # we found a cross-package link. These kind of links require further queries
         #
         set target [$l get_target_from_link_page]
-        set sub_folders [my collect_folders -package_id [$target physical_package_id] \
+        set sub_folders [:collect_folders -package_id [$target physical_package_id] \
                              -folder_form_id $folder_form_id -link_form_id $link_form_id \
                              -parent_id [$target item_id] \
                              -depth [expr {$depth -1}]]
@@ -211,9 +211,9 @@ namespace eval ::xowiki::includelet {
   }
 
   folders instproc build_tree {} {
-    my get_parameters
+    :get_parameters
 
-    set page [my set __including_page]
+    set page ${:__including_page}
     if {[$page exists __link_source]} {
       set page [$page set __link_source]
     }
@@ -375,7 +375,7 @@ namespace eval ::xowiki::includelet {
       set label "[$top_folder_of_tree title] ..."
     }
 
-    set t [::xowiki::Tree new -id foldertree_[my id] -destroy_on_cleanup]
+    set t [::xowiki::Tree new -id foldertree_[:id] -destroy_on_cleanup]
     set node [::xowiki::TreeNode new \
                   -href $href \
                   -label $label \
@@ -386,15 +386,15 @@ namespace eval ::xowiki::includelet {
                   -open_requests 1 \
                   -destroy_on_cleanup]
     $t add $node
-    set folders [my collect_folders \
+    set folders [:collect_folders \
                      -package_id $package_id \
                      -folder_form_id ${:folder_form_id} \
                      -link_form_id ${:link_form_id}]
 
     #my msg "folder ${:folder_form_id} has [llength $folders] entries"
-    #foreach f $folders {lappend _ [$f item_id]}; my msg $_
+    #foreach f $folders {lappend _ [$f item_id]}; :msg $_
 
-    my build_sub_tree -node $node -folders $folders
+    :build_sub_tree -node $node -folders $folders
     return $t
   }
 
@@ -403,7 +403,7 @@ namespace eval ::xowiki::includelet {
     {-folders}
 
   } {
-    my get_parameters
+    :get_parameters
 
     set current_object [$node object]
     set current_item_id [$current_object item_id]
@@ -451,7 +451,7 @@ namespace eval ::xowiki::includelet {
         }
       }
 
-      my build_sub_tree -node $subnode -folders $remaining_folders
+      :build_sub_tree -node $subnode -folders $remaining_folders
     }
   }
 }
@@ -485,15 +485,15 @@ namespace eval ::xowiki::includelet {
       }
   
   child-resources instproc types_to_show {} {
-    my get_parameters
+    :get_parameters
     foreach type [split $show_types ,] {set ($type) 1}
     return [lsort [array names ""]]
   }
 
   child-resources instproc render {} {
-    my get_parameters
+    :get_parameters
 
-    set current_folder [my set __including_page]
+    set current_folder ${:__including_page}
 
     if {$parent eq ".."} {
       set current_folder [$current_folder parent_id]
@@ -593,7 +593,7 @@ namespace eval ::xowiki::includelet {
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
-                   -object_types [my types_to_show] \
+                   -object_types [:types_to_show] \
                    -extra_where_clause $extra_where_clause]
     
     set package_id [::xo::cc package_id]
@@ -614,7 +614,7 @@ namespace eval ::xowiki::includelet {
       array set icon [$c render_icon]
       
       if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
-        my msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+        :msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
         set prettyName $name
       }
 
@@ -703,8 +703,8 @@ namespace eval ::xowiki::formfield {
     {cols 80}
   }
   menuentries instproc pretty_value {v} {
-    [my object] do_substitutions 0
-    return "<pre class='code'>[string map [list & {&amp;} < {&lt;} > {&gt;}]  [my value]]</pre>"
+    [:object] do_substitutions 0
+    return "<pre class='code'>[string map [list & {&amp;} < {&lt;} > {&gt;}]  [:value]]</pre>"
   }
 }
 

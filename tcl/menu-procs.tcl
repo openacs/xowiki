@@ -32,13 +32,13 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create Menu \
       -superclass MenuComponent \
       -parameter {
-        {id "[my html_id]"}
+        {id "[:html_id]"}
         CSSclass
       }
 
   Menu ad_instproc render {} {doku} {
-    html::ul [my get_attributes id {CSSclass class}] {
-      foreach menuitem [my children] {$menuitem render}
+    html::ul [:get_attributes id {CSSclass class}] {
+      foreach menuitem [:children] {$menuitem render}
     }
   }
 
@@ -51,7 +51,7 @@ namespace eval ::xowiki {
         text
         href
         title
-        {id "[my html_id]"}
+        {id "[:html_id]"}
         CSSclass
         style
         linkclass
@@ -164,18 +164,18 @@ namespace eval ::xowiki {
     }
     lappend :Menues $name
     if {$label eq ""} {set label $name}
-    my set Menu($name) [list label $label]
+    set :Menu($name) [list label $label]
     #my log "menues: ${:Menues}"
   }
 
   ::xowiki::MenuBar instproc additional_sub_menu {-kind:required -pages:required -owner:required} {
-    my set submenu_pages($kind) $pages
-    my set submenu_owner($kind) $owner
+    set :submenu_pages($kind) $pages
+    set :submenu_owner($kind) $owner
   }
 
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
-    array set "" [my set Menu($menu)]
-    my set Menu($menu) [list label $(label)]
+    array set "" [set :Menu($menu)]
+    set :Menu($menu) [list label $(label)]
   }
 
   ::xowiki::MenuBar instproc current_folder {} {
@@ -257,7 +257,7 @@ namespace eval ::xowiki {
     if {$type ni {"DropZone" "ModeButton"}} {
       error "unknown extra item type: $type"
     }
-    my set ${type}($name) $item
+    set :${type}($name) $item
   }
 
 
@@ -276,7 +276,7 @@ namespace eval ::xowiki {
     # {modebutton -name Admin -label admin -button admin}
 
    
-    my set parent_id $parent_id
+    set :parent_id $parent_id
 
     foreach me $items {
       array unset ""
@@ -287,7 +287,7 @@ namespace eval ::xowiki {
       switch -- $kind {
         
         clear_menu {
-          my clear_menu -menu [dict get $properties -menu]
+          :clear_menu -menu [dict get $properties -menu]
         }
         
         form_link -
@@ -307,14 +307,14 @@ namespace eval ::xowiki {
                           [list object_type [dict get $properties -object_type]] \
                           parent_id return_url autoname template_file]
           } else {
-            my log "Warning: no link specified"
+            :log "Warning: no link specified"
             set link ""
           }
           set item [list url $link]
           if {[dict exists $properties -label]} {
             lappend item label [dict get $properties -label]
           }
-          my add_menu_item -name [dict get $properties -name] -item $item
+          :add_menu_item -name [dict get $properties -name] -item $item
         }
         
         "dropzone" {
@@ -330,7 +330,7 @@ namespace eval ::xowiki {
           }
 
           set link [$package_id make_link $parent_id file-upload]
-          my add_extra_item -name $name -type DropZone \
+          :add_extra_item -name $name -type DropZone \
               -item [list url $link uploader $uploader label $label]
         }
 
@@ -348,7 +348,7 @@ namespace eval ::xowiki {
           if {$label eq ""} {set label $button}
           set state [::xowiki::mode::$button get]
           set link [$package_id make_link $parent_id toggle-modebutton]
-          my add_extra_item -name $name -type ModeButton \
+          :add_extra_item -name $name -type ModeButton \
               -item [list url $link on $state label $label]
         }
 
@@ -360,17 +360,17 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc content {} {
-    set result [list id [my id]]
-    foreach e [my set Menues] {
-      lappend result $e [concat kind MenuButton [my set Menu($e)]]
+    set result [list id [:id]]
+    foreach e ${:Menues} {
+      lappend result $e [concat kind MenuButton [set :Menu($e)]]
     }
     
-    foreach e [my array name ModeButton] {
-      lappend result $e [concat kind ModeButton [my set ModeButton($e)]]
+    foreach e [:array name ModeButton] {
+      lappend result $e [concat kind ModeButton [set :ModeButton($e)]]
     }
 
-    foreach e [my array name DropZone] {
-      lappend result $e [concat kind DropZone [my set DropZone($e)]]
+    foreach e [:array name DropZone] {
+      lappend result $e [concat kind DropZone [set :DropZone($e)]]
     }
 
     return $result
@@ -392,7 +392,7 @@ namespace eval ::xowiki {
   #       text
   #       href
   #       title
-  #       {id "[my html_id]"}
+  #       {id "[:html_id]"}
   #       CSSclass
   #     }
 
@@ -400,21 +400,21 @@ namespace eval ::xowiki {
   # MenuDropZone instproc init args {
   #   next
   #   # Use computed default values when not specified
-  #   if {![my exists title]} {
+  #   if {![info exists :title]} {
   #     # set the mouseover-title to the "MenuItem-Label"
   #     # TODO: Do we really want "text" to be required ?
-  #     my title [my text]
+  #     :title [:text]
   #   }
 
-  #   if {![my exists href] || [my href] eq ""} {
-  #     my append CSSclass " " [string tolower [namespace tail [my info class]]]-disabled
+  #   if {![info exists :href] || [:href] eq ""} {
+  #     append :CSSclass " " [string tolower [namespace tail [:info class]]]-disabled
   #   }
   # }
 
   # MenuDropZone instproc render {} {
-  #   html::li [my get_attributes id {CSSclass class}] {
-  #     html::a [my get_attributes title href target] {
-  #       html::t [my text]
+  #   html::li [:get_attributes id {CSSclass class}] {
+  #     html::a [:get_attributes title href target] {
+  #       html::t [:text]
   #     }
   #   }
   # }
