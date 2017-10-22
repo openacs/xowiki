@@ -1404,7 +1404,7 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
     
     set p_link [${:__including_page} pretty_link]
-    set return_url "[::xo::cc url]?[::xo::cc actual_query]"
+    set return_url [::xo::cc url]?[::xo::cc actual_query]
     set weblog_page [$package_id get_parameter weblog_page weblog]
     set save_tag_link [$package_id make_link -link $p_link ${:__including_page} \
                            save-tags return_url]
@@ -3458,7 +3458,7 @@ namespace eval ::xowiki::includelet {
       if {${:parent_id} != [${:package_id} folder_id]} {
         set parent_id ${:parent_id}
       }
-      set return_url ${:return_url}
+      if {[info exists :return_url]} {set return_url ${:return_url}}
       set :link [${:package_id} make_link -link ${:base} ${:form} ${:method} return_url parent_id]
     }
     if {${:link} eq ""} {

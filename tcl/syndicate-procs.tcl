@@ -108,13 +108,13 @@ namespace eval ::xowiki {
       append extra_where_clause "and " \
           [::xo::dc since_interval_condition p.publish_date "${:days} days"]
     }
-    if {$entries_of ne ""} {
-      if {[regexp {^[0-9 ]+$} $entries_of]} {
+    if {${:entries_of} ne ""} {
+      if {[regexp {^[0-9 ]+$} ${:entries_of}]} {
         # form item_ids were provided as a filter
-        set form_items $entries_of
+        set form_items ${:entries_of}
       } else {
         set form_items [::xowiki::Weblog instantiate_forms \
-                            -forms $entries_of \
+                            -forms ${:entries_of} \
                             -package_id $package_id]
       }
 
