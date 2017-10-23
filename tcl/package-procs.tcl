@@ -1130,8 +1130,10 @@ namespace eval ::xowiki {
       return $page
     }
 
-    #my log "try to import a prototype page for '$stripped_object'"
-    set page [:www-import-prototype-page -lang $lang -add_revision false $(stripped_name)]
+    #my log "try to import a prototype page for '$(stripped_name)'"
+    if {$(stripped_name) ne ""} {
+      set page [:www-import-prototype-page -lang $lang -add_revision false $(stripped_name)]
+    }
     if {$page eq ""} {
       :log "no prototype for '$object' found"
     }
