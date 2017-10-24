@@ -115,7 +115,7 @@ namespace eval ::xowiki {
       } else {
         set form_items [::xowiki::Weblog instantiate_forms \
                             -forms ${:entries_of} \
-                            -package_id $package_id]
+                            -package_id ${:package_id}]
       }
 
       if {[llength $form_items] == 0} {
