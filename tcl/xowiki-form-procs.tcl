@@ -586,12 +586,12 @@ namespace eval ::xowiki {
 
   PodcastForm instproc new_data {} {
     set pub_date [:var pub_date]
-    :var pub_date [list [:to_timestamp $pub_date]]
+    ${:data} set pub_date [list [:to_timestamp $pub_date]]
     return [next]
   }
   PodcastForm instproc edit_data {} {
     set pub_date [:var pub_date]
-    :var pub_date [list [:to_timestamp $pub_date]]
+    ${:data} set pub_date [list [:to_timestamp $pub_date]]
     return [next]
   }
 
