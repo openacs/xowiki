@@ -681,7 +681,7 @@ namespace eval ::xowiki::includelet {
     set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
     set viewer_links ""
     foreach v $viewers {
-      set wf_link "${v}?p.folder=[${current_folder} name]"
+      set wf_link "${v}?p.folder=[$current_folder name]"
       append wf_link "&m=create-or-use"
       append viewer_links [subst -nocommands -nobackslashes {<li><a href="[ns_quotehtml $wf_link]">view with $v</a></li>}]
     }
