@@ -3096,7 +3096,7 @@ namespace eval ::xowiki {
   }
   File instproc full_file_name {} {
     if {![info exists :full_file_name]} {
-      if {[info exists :item_id]} {
+      if {[info exists :revision_id]} {
         set :full_file_name [content::revision::get_cr_file_path \
                                    -revision_id ${:revision_id}]
         #my log "--F setting FILE=${:full_file_name}"
