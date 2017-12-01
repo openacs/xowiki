@@ -932,7 +932,6 @@ namespace eval ::xowiki {
     if {[info exists :__file_content]} {
       set :import_file [ad_tmpnam]
       ::xowiki::write_file ${:import_file} [::base64::decode ${:__file_content}]
-      catch {unset :full_file_name}
       unset :__file_content
     } elseif {[info exists :__file_name]} {
       set :import_file ${:__file_name}
@@ -3097,9 +3096,15 @@ namespace eval ::xowiki {
   File instproc full_file_name {} {
     if {![info exists :full_file_name]} {
       if {[info exists :revision_id]} {
-        set :full_file_name [content::revision::get_cr_file_path \
-                                   -revision_id ${:revision_id}]
-        #my log "--F setting FILE=${:full_file_name}"
+        # 
+        # For a given revision_id, the full_file_name will never
+        # change.  Therefore, we can easily cache the full file name
+        # for the revision_id.
+        #
+        set :full_file_name [ns_cache eval xowiki_cache ffn-${:revision_id} {
+          return [content::revision::get_cr_file_path -revision_id ${:revision_id}]
+        }]
+        #:log "--F setting full-file-name of ${:revision_id}  ${:full_file_name}"
       }
     }
     return ${:full_file_name}
