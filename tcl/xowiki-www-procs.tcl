@@ -666,13 +666,14 @@ namespace eval ::xowiki {
         -folderspec $folder_spec \
         -submit_link $submit_link \
         -autoname $autoname
-    
+    #:log "form created"
+
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {
       ::xowiki::f1 generate
     }
-
+    #:log "form rendered"
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
     
     if {[info exists item_id]} {
@@ -797,7 +798,7 @@ namespace eval ::xowiki {
     #:log "__form_action [:form_parameter __form_action {}]"
     
     if {[:form_parameter __form_action ""] eq "save-form-data"} {
-      #:msg "we have to validate"
+      #:log "we have to validate"
       #
       # we have to valiate and save the form data
       #
@@ -851,6 +852,8 @@ namespace eval ::xowiki {
         #:log "after save refs=[expr {[info exists :references]?${:references} : {NONE}}]"
 
         set redirect_method [:form_parameter __form_redirect_method "view"]
+        #:log "redirect_method $redirect_method"
+
         if {$redirect_method eq "__none"} {
           return
         } else {
