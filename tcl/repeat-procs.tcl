@@ -160,16 +160,19 @@ namespace eval ::xowiki::formfield {
     set neededComponents [expr {[llength $value] / 2}]
     set availableComponents [llength ${:components}]
     #ns_log notice "[self] repeatContainer set_compound_value <$value> have $availableComponents needed $neededComponents"
+    :check_nr_components $neededComponents $availableComponents
+    next
+  }
+
+  repeatContainer instproc check_nr_components {neededComponents availableComponents} {
     if {$neededComponents > $availableComponents} {
       lassign [:item_spec] isRequired itemSpec
       for {set i $availableComponents} {$i < $neededComponents} {incr i} {
         :require_component $i
       }
     }
-
-    next
   }
-  
+
   repeatContainer instproc convert_to_internal {} {
     set values [:value]
     :trim_values
@@ -285,7 +288,12 @@ namespace eval ::xowiki::formfield {
     #
     set ff [dict create {*}$v]
     set html "<ol class='repeatContainer'>\n"
-    foreach c [lrange [:components] 1 [:count_values [:value]]] {
+
+    set neededComponents [expr {[llength $v] / 2}]
+    set availableComponents [llength ${:components}]
+    :check_nr_components $neededComponents $availableComponents
+
+    foreach c [lrange ${:components} 1 [:count_values $v]] {
       if {[dict exists $ff [$c set name]]} {
         append html "<li>[$c pretty_value [dict get $ff [$c set name]]]</li>\n"
       }
