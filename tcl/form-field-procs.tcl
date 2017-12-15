@@ -3308,6 +3308,31 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  CompoundField instproc object args {
+    set l [llength $args]
+    switch $l {
+      0 {
+        #
+        # Called without args, return the current value
+        #
+        return ${:object}
+      }
+      1 {
+        #
+        # Called with a single value, set object for all components
+        #
+        foreach c [:components] {
+          $c object [lindex $args 0]
+        }
+
+        set :object [lindex $args 0]
+      }
+      default {
+        error "wrong number of arguments"
+      }
+    }
+  }
+
   CompoundField instproc validate {obj} {
     # Delegate validate to the components. If a validation of a
     # component fails, report the error message back.
