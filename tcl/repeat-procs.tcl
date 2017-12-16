@@ -152,14 +152,14 @@ namespace eval ::xowiki::formfield {
     :add_component $componentItemSpec
   }
   
-  repeatContainer instproc set_compound_value value {
+  repeatContainer instproc set_compound_value {value} {
     #
     # Before setting compound values, check if we have the repeat
     # strucure already set.
     #
     set neededComponents [expr {[llength $value] / 2}]
     set availableComponents [llength ${:components}]
-    #ns_log notice "[self] repeatContainer set_compound_value <$value> have $availableComponents needed $neededComponents"
+    #:log "repeatContainer set_compound_value <$value> have $availableComponents needed $neededComponents"
     :check_nr_components $neededComponents $availableComponents
     next
   }
@@ -289,10 +289,7 @@ namespace eval ::xowiki::formfield {
     set ff [dict create {*}$v]
     set html "<ol class='repeatContainer'>\n"
 
-    set neededComponents [expr {[llength $v] / 2}]
-    set availableComponents [llength ${:components}]
-    :check_nr_components $neededComponents $availableComponents
-
+    :set_compound_value $v
     foreach c [lrange ${:components} 1 [:count_values $v]] {
       if {[dict exists $ff [$c set name]]} {
         append html "<li>[$c pretty_value [dict get $ff [$c set name]]]</li>\n"
