@@ -871,25 +871,56 @@ namespace eval ::xowiki {
     csv-dump 1 download 1 list 1
   }
 
-  Package instproc invoke {-method {-error_template error-template} {-batch_mode 0}} {
-    if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {return [:error_msg "No valid method provided!"] }
-    if {[catch {set page_or_package [:resolve_page ${:object} method]} errorMsg]} {
+  Package instproc invoke {
+    -method
+    {-error_template error-template}
+    {-batch_mode:boolean 0}
+  } {
+    #
+    # Do we have a valid method?
+    #
+    if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {
+      return [:error_msg "No valid method provided!"]
+    }
+    
+    #
+    # Call the method on the resolved page. This call might trigger an
+    # ad_script_abort, so use ad_try to catch these properly.
+    #
+    ad_try {
+      set page_or_package [:resolve_page ${:object} method]
+    } on error {errorMsg} {
+      #
+      # Report true errors in the error log and return the template.
+      #
       ad_log error $errorMsg
       return [:error_msg -template_file $error_template $errorMsg]
     }
+
+    #
+    # Set the invoke object, such it might be used later
+    #
     ::xo::cc invoke_object $page_or_package
+    
     #my log "--r resolve_page '${:object}' => $page_or_package"
     if {$page_or_package ne ""} {
+      #
+      # Check, of the target is a symbolic link
+      #
       if {[$page_or_package istype ::xowiki::FormPage]
-          && [$page_or_package is_link_page]} {
+          && [$page_or_package is_link_page]
+        } {
+        #
         # If the target is a symbolic link, we may want to call the
         # method on the target. The default behavior is defined in the
         # array delegate_link_to_target, but if can be overruled with
         # the boolean query parameter "deref".
+        #
         set deref [[self class] exists delegate_link_to_target($method)]
         if {[:exists_query_parameter deref]} {
           set deref [:query_parameter deref]
         }
+        
         #my log "invoke on LINK <$method> default deref $deref"
         if {$deref} {
           set target [$page_or_package get_target_from_link_page]
