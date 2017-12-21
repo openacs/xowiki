@@ -1555,7 +1555,7 @@ namespace eval ::xowiki {
 
         if {$item_id == 0 && $(link_type) eq "link" && $use_default_lang && $(prefix) ne "en"} {
           #
-          # If the name was not specified explicitely (we are using
+          # If the name was not specified explicitly (we are using
           # $default_lang), try again with language "en" try again,
           # maybe element is folder in a different language
           #

@@ -210,7 +210,7 @@ test subsection "Check Permissions based on default policy"
 
 ########################################################################
 #
-# run a new query, use en/index explicitely
+# run a new query, use en/index explicitly
 #
 ##################################################
 test section "New Query: /$instance_name/en/index"

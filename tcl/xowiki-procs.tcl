@@ -2865,7 +2865,7 @@ namespace eval ::xowiki {
           #
           set repeatField [set ::_form_field_names($path)]
           #
-          # Add all components from i to specifed number to the list,
+          # Add all components from i to specified number to the list,
           # unless restricted by the max value. This frees us from
           # potential problems, when the browser sends the form fields
           # in an unexpected order. The resulting components will be
