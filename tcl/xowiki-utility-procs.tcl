@@ -175,9 +175,9 @@ namespace eval ::xowiki::hstore {
       if {[$package_id get_parameter use_hstore 0] == 0} {
         continue
       }
-      if {[catch {
+      ad_try {
         xowiki::hstore::update_form_instance_item_index -package_id $package_id
-      } errorMsg]} {
+      } on error {errorMsg} {
         ns_log Warning "initializing package $package_id lead to error: $errorMsg"
       }
       db_release_unused_handles

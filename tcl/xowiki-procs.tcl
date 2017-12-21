@@ -812,22 +812,24 @@ namespace eval ::xowiki {
   }
 
   Page instproc map_party {-property party_id} {
-    #my log "+++ $party_id"
-    # So far, we just handle users, but we should support parties in
-    # the future as well.
     if {$party_id eq "" || $party_id == 0} {
       return $party_id
     }
-    if {![catch {acs_user::get -user_id $party_id -array info}]} {
+    ad_try {
+      acs_user::get -user_id $party_id -array info
       set result [list]
       foreach a {username email first_names last_name screen_name url} {
         lappend result $a $info($a)
       }
-      ns_log notice "--    map_party $party_id: $result"
+      :log "--    map_party $party_id: $result"
       return $result
+    } on error {errorMsg} {
+      # swallow errors; there should be a better way to check if user
+      # and or group info exists
     }
-    if {![catch {group::get -group_id $party_id -array info}]} {
-      ns_log notice "got group info: [array get info]"
+    ad_try {
+      group::get -group_id $party_id -array info
+      :log "got group info: [array get info]"
       set result [array get info]
       set members {}
       foreach member_id [group::get_members -group_id $party_id] {
@@ -836,6 +838,9 @@ namespace eval ::xowiki {
       lappend result members $members
       ns_log notice "--    map_party $party_id: $result"
       return $result
+    } on error {errorMsg} {
+      # swallow errors; there should be a better way to check if user
+      # and or group info exists
     }
     ns_log warning "Cannot map party_id $party_id, probably not a user; property $property lost during export"
     return {}
@@ -1072,9 +1077,9 @@ namespace eval ::xowiki {
     if {[llength $value] != 2} {
       error "two arguments for match required, [llength $value] passed (arguments='$value')"
     }
-    if {[catch {
+    ad_try {
       set success [string match [lindex $value 1] [:set [lindex $value 0]]]
-    } errorMsg]} {
+    } on error {errorMsg} {
       ns_log error "error during condition match: $errorMsg"
       set success 0
     }
@@ -1100,9 +1105,9 @@ namespace eval ::xowiki {
     if {[llength $value] != 2} {
       error "two arguments for regexp required, [llength $value] passed (arguments='$value')"
     }
-    if {[catch {
+    ad_try {
       set success [regexp [lindex $value 1] [:set [lindex $value 0]]]
-    } errorMsg]} {
+    } on error {errorMsg} {
       ns_log error "error during condition regexp: $errorMsg"
       set success 0
     }
@@ -1813,7 +1818,9 @@ namespace eval ::xowiki {
     set package_id ${:package_id}
 
     # do we have a wellformed list?
-    if {[catch {set page_name [lindex $arg 0]} errMsg]} {
+    ::try {
+      set page_name [lindex $arg 0]
+    } on error {errMsg} {
       # there must be something syntactically wrong
       return [:error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
@@ -1887,13 +1894,13 @@ namespace eval ::xowiki {
     }
 
     # "render" might be cached
-    if {[catch {set html [$includelet render]} errorMsg]} {
+    set html ""
+    ad_try {
+      set html [$includelet render]
+    } on error {errorMsg} {
       set errorCode $::errorCode
       set errorInfo $::errorInfo
-      if {[ad_exception $errorCode] eq "ad_script_abort"} {
-        set html ""
-      } elseif {[string match "*for parameter*" $errorMsg]} {
-        set html ""
+      if {[string match "*for parameter*" $errorMsg]} {
         ad_return_complaint 1 [ns_quotehtml $errorMsg]
       } else {
         ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)\n$errorInfo"
@@ -1967,15 +1974,16 @@ namespace eval ::xowiki {
   }
 
   Page instproc include_content {arg ch2} {
-    # make recursion depth a global variable to ease the deletion etc.
-    if {[catch {incr ::xowiki_inclusion_depth}]} {
-      set ::xowiki_inclusion_depth 1
-    }
-    if {$::xowiki_inclusion_depth > 10} {
+    #
+    # Recursion depth is a global variable to ease the deletion etc.
+    #
+    if {[incr ::xowiki_inclusion_depth] > 10} {
       return [:error_in_includelet $arg [_ xowiki.error-includelet-nesting_to_deep]]$ch2
     }
     if {[regexp {^adp (.*)$} $arg _ adp]} {
-      if {[catch {lindex $adp 0} errMsg]} {
+      try {
+        lindex $adp 0
+      } on error {errMsg} {
         # there is something syntactically wrong
         incr ::xowiki_inclusion_depth -1
         return [:error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
@@ -2003,22 +2011,17 @@ namespace eval ::xowiki {
 
       lappend adp_args __including_page [self]
       set including_page_level [template::adp_level]
-      if {[catch {set page [template::adp_include $adp_fn $adp_args]} errorMsg]} {
-        if {[ad_exception $::errorCode] eq "ad_script_abort"} {
-          #
-          # If the exception was from an ad_script_abort, propagate it up
-          #
-          incr ::xowiki_inclusion_depth -1
-          ad_script_abort
-        }
+      ad_try {
+        set page [template::adp_include $adp_fn $adp_args]
+      } on error {errorMsg} {
         ad_log error "$errorMsg\n$::errorInfo"
         # in case of error, reset the adp_level to the previous value
         set ::template::parse_level $including_page_level
-        incr ::xowiki_inclusion_depth -1
         return [:error_in_includelet $arg \
                     [_ xowiki.error-includelet-error_during_adp_evaluation]]$ch2
+      } finally {
+        incr ::xowiki_inclusion_depth -1
       }
-      incr ::xowiki_inclusion_depth -1
 
       return $page$ch2
     } else {
@@ -2235,12 +2238,14 @@ namespace eval ::xowiki {
       [self]::link href ""
     }
 
-    if {[catch {[self]::link configure {*}$options} errorMsg]} {
+    ad_try {
+      [self]::link configure {*}$options
+      set result [[self]::link]
+      
+    } on error {errorMsg} {
       ns_log error "$errorMsg\n$::errorInfo"
       set result "<div class='errorMsg'>Error during processing of options [list $options]\
         of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
-    } else {
-      set result [[self]::link]
     }
     return $result
   }
@@ -2297,10 +2302,14 @@ namespace eval ::xowiki {
   }
 
   Page instproc anchor {arg} {
-    if {[catch {set l [:create_link $arg]} errorMsg]} {
+    ad_try {
+      set l [:create_link $arg]
+    } on error {errorMsg} {
       return "<div class='errorMsg'>Error during processing of anchor ${arg}:<blockquote>$errorMsg</blockquote></div>"
     }
-    if {$l eq ""} {return ""}
+    if {$l eq ""} {
+      return ""
+    }
 
     if {[info exists :__RESOLVE_LOCAL] && [$l is_self_link]} {
       :set_resolve_context -package_id [:physical_package_id] -parent_id [:physical_parent_id]
@@ -2392,22 +2401,30 @@ namespace eval ::xowiki {
     set __vars [info vars]
     regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content_noquote
     #my log "--adp before adp_eval '[template::adp_level]'"
-    #
-    # The adp buffer has limited size. For large pages, it might happen
-    # that the buffer overflows. In AOLserver 4.5, we can increase the
-    # buffer size. In 4.0.10, we are out of luck.
-    #
+
     set __l [string length $content]
-    if {[catch {set __bufsize [ns_adp_ctl bufsize]}]} {
+    try {
+      set __bufsize [ns_adp_ctl bufsize]
+    } on error {errorMsg} {
+      #
+      # The adp buffer has limited size. For large pages, it might happen
+      # that the buffer overflows. In AOLserver 4.5, we can increase the
+      # buffer size. In 4.0.10, we are out of luck.
+      #
       set __bufsize 0
     }
     if {$__bufsize > 0 && $__l > $__bufsize} {
-      # we have AOLserver 4.5, we can increase the bufsize
+      #
+      # We have AOLserver 4.5 or NaviServer , we can increase the
+      # bufsize
+      #
       ns_adp_ctl bufsize [expr {$__l + 1024}]
     }
     set template_code [template::adp_compile -string $content_noquote]
     set my_parse_level [template::adp_level]
-    if {[catch {set template_value [template::adp_eval template_code]} __errMsg]} {
+    ad_try {
+      set template_value [template::adp_eval template_code]
+    } on error {__errMsg} {
       #
       # Something went wrong during substitution; prepare a
       # user-friendly error message containing a listing of the
@@ -2425,7 +2442,7 @@ namespace eval ::xowiki {
       append __template_variables__ "</ul>\n"
       set ::template::parse_level $my_parse_level
       #my log "--adp after adp_eval '[template::adp_level]' mpl=$my_parse_level"
-      return "<div class='errorMsg'>Error in Page $name: $__errMsg</div>$content<p>Possible values are$__template_variables__"
+      set template_value "<div class='errorMsg'>Error in Page $name: $__errMsg</div>$content<p>Possible values are$__template_variables__"
     }
     return $template_value
   }
@@ -3513,7 +3530,7 @@ namespace eval ::xowiki {
     # .... or, we try to resolve it against a local property.
     #
     # This case is currently needed in the workflow case, where
-    # e.g. anon_instances is tried to be catched from the first form,
+    # e.g. anon_instances is tried to be fetched from the first form,
     # which might not contain it, if e.g. the first form is a plain
     # wiki page.
     #
@@ -3594,28 +3611,22 @@ namespace eval ::xowiki {
     :set_payload ${:text}
     next
   }
+  
   Object instproc set_payload {cmd} {
     set payload [self]::payload
     if {[:isobject $payload]} {$payload destroy}
     ::xo::Context create $payload -requireNamespace \
         -actual_query [::xo::cc actual_query]
     $payload set package_id ${:package_id}
-    if {[catch {$payload contains $cmd} errorMsg]} {
-      set errorCode $::errorCode
-      if {[ad_exception $errorCode] eq "ad_script_abort"} {
-        ad_return_complaint 1 [ns_quotehtml $errorMsg]
-        ns_log notice "xowiki::Object->set_payload aborted"
-        ad_script_abort
-      } else {
-        ad_log error "xowiki::Object set_payload: $errorMsg ($errorCode) in\n$cmd"
-      }
-      ad_log error "content $cmd lead to error: $errorMsg"
-      ::xo::clusterwide ns_cache flush xotcl_object_cache ${:item_id}
-    } else {
-      #my log "call init mixins=[:info mixin]//[$payload info mixin]"
+    ad_try {
+      $payload contains $cmd
       $payload init
+    } on error {errorMsg} {
+      ad_log error "xowiki::Object set_payload: content $cmd lead to error: $errorMsg"
+      ::xo::clusterwide ns_cache flush xotcl_object_cache ${:item_id}
     }
   }
+  
   Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
     if {![:isobject $payload]} {
@@ -3735,12 +3746,12 @@ namespace eval ::xowiki {
     #
     # Create from fields from all specs and report, if there are any errors
     #
-    if {[catch {
+    ad_try {
       :create_form_fields_from_form_constraints $form_constraints
-    } errorMsg]} {
-      ns_log error "error during form_constraints validator: $errorMsg\n$::errorInfo"
+    } on error {errorMsg} {
+      ad_log error "error during form_constraints validator: $errorMsg"
       :uplevel [list set errorMsg $errorMsg]
-      #my msg "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
+      #:log "ERROR: invalid spec '$short_spec' for form field '$spec_name' -- $errorMsg"
       return 0
     }
     return 1
@@ -4582,7 +4593,7 @@ namespace eval ::xowiki {
 
 
   Page instproc is_new_entry {old_name} {
-    return [expr {[:publish_status] eq "production" && $old_name eq [:revision_id]}]
+    return [expr {${:publish_status} eq "production" && $old_name eq ${:revision_id}}]
   }
 
   Page instproc unset_temporary_instance_variables {} {
@@ -4601,7 +4612,7 @@ namespace eval ::xowiki {
   Page instproc rename {-old_name -new_name} {
     ${:package_id} flush_name_cache -name $old_name -parent_id ${:parent_id}
     next
-    ns_log notice "----- rename"
+    :log "----- rename <$old_name> to <$new_name>"
     #ns_log notice [:serialize]
   }
 

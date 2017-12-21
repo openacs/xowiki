@@ -32,7 +32,7 @@ namespace eval ::xowiki {
     }
     foreach page_name [:form_parameter objects] {
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id $parent_id]
-      ns_log notice "bulk-delete: DELETE $page_name in folder [:name]-> $item_id"
+      :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
       $package_id www-delete -item_id $item_id
     }
     $package_id returnredirect .
@@ -96,8 +96,10 @@ namespace eval ::xowiki {
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
     set content [::xowiki::exporter marshall_all -mode copy $item_ids]
-    if {[catch {namespace eval ::xo::import $content} error]} {
-      :msg "Error: $error\n$::errorInfo"
+    ad_try {
+      namespace eval ::xo::import $content
+    } on error {errMsg} {
+      :msg "Error: $errMsg\n$::errorInfo"
       return
     }
     set folder_id [expr {[:is_folder_page] ? ${:item_id} : ${:parent_id}}]
@@ -137,14 +139,14 @@ namespace eval ::xowiki {
       #
       # Initialize the target package and set the variable package_id.
       #
-      if {[catch {
+      ad_try {
         ::xowiki::Package initialize \
             -url $package_instance -user_id [::xo::cc user_id] \
             -actual_query ""
-      } errorMsg]} {
-        ns_log error "$errorMsg\n$::errorInfo"
+      } on error {errorMsg} {
+        ns_log error "Package initialize: $errorMsg\n$::errorInfo"
         return [$original_package_id error_msg \
-                    "Page <b>'[:name]'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
+                    "Page <b>'${:name}'</b> invalid provided package instance=$package_instance<p>$errorMsg</p>"]
       }
     }
 
@@ -395,11 +397,13 @@ namespace eval ::xowiki {
       return ""
     }
     ::xo::Page requireCSS /resources/xowiki/xowiki.css
-    set my_page [::xowiki::Package instantiate_page_from_id -revision_id [:revision_id]]
+    set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
     $my_page volatile
 
-    if {[catch {set html1 [$my_page render]} errorMsg]} {
-      set html2 "Error rendering [:revision_id]: $errorMsg"
+    ad_try {
+      set html1 [$my_page render]
+    } on error {errorMsg} {
+      set html1 "Error rendering ${:revision_id}: $errorMsg"
     }
     set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
     set user1 [::xo::get_user_name [$my_page set creation_user]]
@@ -411,7 +415,9 @@ namespace eval ::xowiki {
     $other_page volatile
     #$other_page absolute_links 1
 
-    if {[catch {set html2 [$other_page render]} errorMsg]} {
+    ad_try {
+      set html2 [$other_page render]
+    } on error {errorMsg} {
       set html2 "Error rendering $compare_id: $errorMsg"
     }
     set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
@@ -424,7 +430,9 @@ namespace eval ::xowiki {
     set context [list $title]
     
     # try util::html diff if it is available and works
-    if {[catch {set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]}]} {
+    ad_try {
+      set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
+    } on error {errMsg} {
       # otherwise, fall back to proven text based diff
       set content [::xowiki::html_diff $text2 $text1]
     }
@@ -516,7 +524,7 @@ namespace eval ::xowiki {
       if {![file isdirectory /tmp/$geometry]} {
         file mkdir /tmp/$geometry
       }
-      set scaled_image /tmp/$geometry/[:revision_id]
+      set scaled_image /tmp/$geometry/${:revision_id}
       if {![file readable $scaled_image]} {
         set cmd [::util::which convert]
         if {$cmd ne ""} {
@@ -612,6 +620,7 @@ namespace eval ::xowiki {
     {-autoname:boolean false}
     {-validation_errors ""}
   } {
+
     :instvar package_id item_id revision_id parent_id
     #:msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
@@ -864,7 +873,7 @@ namespace eval ::xowiki {
           # with highest precedence
           #
           set return_url [$package_id query_parameter return_url $url]
-          #:log "[:name]: url=$url, return_url=$return_url"
+          #:log "${:name}: url=$url, return_url=$return_url"
           $package_id returnredirect $return_url
 
           return
@@ -880,7 +889,7 @@ namespace eval ::xowiki {
       # 
       # Build the input form and display the current values.
       #
-      if {[:is_new_entry [:name]]} {
+      if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [ad_conn locale]
       }
@@ -892,8 +901,8 @@ namespace eval ::xowiki {
       # For named entries, just set the entry fields to empty,
       # without changing the instance variables
 
-      #:log "my is_new_entry [:name] = [:is_new_entry [:name]]"
-      if {[:is_new_entry [:name]]} {
+      #:log "my is_new_entry ${:name} = [:is_new_entry ${:name}]"
+      if {[:is_new_entry ${:name}]} {
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [${:page_template} name]]
           set name [::xowiki::autoname new -name $basename -parent_id ${:parent_id}]
@@ -972,9 +981,9 @@ namespace eval ::xowiki {
     #
     $rootNode insertBeforeFromScript {
       ::html::div {
-        ::html::input -type hidden -name __object_name -value [:name]
+        ::html::input -type hidden -name __object_name -value ${:name}
         ::html::input -type hidden -name __form_action -value save-form-data
-        ::html::input -type hidden -name __current_revision_id -value [:revision_id]
+        ::html::input -type hidden -name __current_revision_id -value ${:revision_id}
         ::html::CSRFToken
       }
       # insert automatic form fields on top 
@@ -1037,7 +1046,7 @@ namespace eval ::xowiki {
       }
       set m [:form_parameter __form_redirect_method "edit"]
       set url [export_vars -no_base_encode -base [:action_url] {m return_url}]
-      #:log "=== setting action <$url> for form-action my-name [:name]"
+      #:log "=== setting action <$url> for form-action my-name ${:name}"
       $formNode setAttribute action $url method POST role form
       if {$has_file} {$formNode setAttribute enctype multipart/form-data}
       Form add_dom_attribute_value $formNode class [${:page_template} css_class_name]
@@ -1147,7 +1156,7 @@ namespace eval ::xowiki {
       # larger form-usages (a few MB) where otherwise
       # "ad_html_text_convert" in Page.get_description tend to use forever
       # (at least in Tcl 8.5)
-      set :description "form-usages for [:name] [:title]"
+      set :description "form-usages for ${:name} [:title]"
       
       return [:www-view [:include [list form-usages -form_item_id ${:item_id}]]]
     }
@@ -1576,8 +1585,10 @@ namespace eval ::xowiki {
         }
       }
       set header_stuff [::xo::Page header_stuff]
-      #ns_log notice "=== HEADER STUFF <$header_stuff>"
-      if {![info exists :description]} {set :description [:get_description $content]}
+      #:log "HEADER STUFF <$header_stuff>"
+      if {![info exists :description]} {
+        set :description [:get_description $content]
+      }
 
       if {[info commands ::template::head::add_meta] ne ""} {
         #set meta(language) [:lang]
@@ -1627,10 +1638,11 @@ namespace eval ::xowiki {
                                        [array get __adp_properties]]]
           }
         }
-        if {[catch {set content [template::adp_eval template_code]} errmsg]} {
-          ns_return 200 text/html "Error in Page ${:name}: $errmsg<br />$template"
-        } else {
+        ad_try {
+          set content [template::adp_eval template_code]
           ns_return 200 text/html $content
+        } on error {errMsg} {
+          ns_return 200 text/html "Error in Page ${:name}: $errMsg<br>$template"
         }
       } else {
         # use adp file
@@ -1770,7 +1782,7 @@ namespace eval ::xowiki {
       set default ""
     }
     set f [::xowiki::formfield::FormField new -name $name \
-               -id        [::xowiki::Includelet html_id F.[:name].$name] \
+               -id        [::xowiki::Includelet html_id F.${:name}.$name] \
                -locale    [:nls_language] \
                -label     $label \
                -type      [expr {[$slot exists datatype]  ? [$slot set datatype]  : "text"}] \
@@ -1861,7 +1873,7 @@ namespace eval ::xowiki {
                  -type select \
                  -value $value \
                  -required $require_category_p]
-      #:msg "category field [:name] created, value '$value'"
+      #:msg "category field ${:name} created, value '$value'"
       $f destroy_on_cleanup
       $f options $options
       $f multiple [expr {!$assign_single_p}]
@@ -2178,7 +2190,7 @@ namespace eval ::xowiki {
     }
     #:msg "validation returns $validation_errors errors"
     set current_revision_id [$cc form_parameter __current_revision_id ""]
-    if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != [:revision_id]} {
+    if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != ${:revision_id}} {
       set validation_errors [:mutual_overwrite_occurred]
     }
 
@@ -2392,13 +2404,7 @@ namespace eval ::xowiki {
     }
   }
 
-  if {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1} {
-    ns_log notice "Zen-state: 5.3.2 or newer"
-    Form set extraCSS ""
-  } else {
-    ns_log notice "Zen-state: pre 5.3.1, use backward compatible form css file"
-    Form set extraCSS "zen-forms-backward-compatibility.css"
-  }
+  Form set extraCSS ""
   Form proc requireFormCSS {} {
     #:msg requireFormCSS
     set css ${:extraCSS}

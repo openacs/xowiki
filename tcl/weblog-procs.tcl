@@ -247,8 +247,9 @@ namespace eval ::xowiki {
         if {[$p info mixin] ne ""} {$p mixin {}}
         if {[info exists :entry_flag]} {$p set [:entry_flag] 1}
         if {[:no_footer]} {$p set __no_footer 1}
-        #        if {[catch {$p set description [$p render]} errorMsg]} {}
-        if {[catch {$p set description [$p render -with_footer false]} errorMsg]} {
+        ad_try {
+          $p set description [$p render -with_footer false]
+        } on error {errorMsg} {
           $p set description "Render Error ($errorMsg) $revision_id $name $title"
         }
         if {[info exists :entry_flag]} {$p unset [:entry_flag]}

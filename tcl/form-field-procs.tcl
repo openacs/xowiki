@@ -1436,20 +1436,25 @@ namespace eval ::xowiki::formfield {
     set :is_integer [regexp {%[0-9.]*d} [:format]]
   }
   numeric instproc convert_to_external value {
-    if {$value ne ""} {
-      if { [catch "lc_numeric $value [:format] [:locale]" result] } {
-        util_user_message -message "[:label]: $result (locale=[:locale])"
-        #my msg [list lc_numeric $value [:format] [:locale]]
-        set converted_value $value
-        if {[catch {scan $value [:format] converted_value}]} {
-          return $value
-        } else {
-          return $converted_value
-        }
+    if {$value eq ""} {
+      set result ""
+    } else {
+      ad_try {
+        return [lc_numeric $value [:format] [:locale]]
+      } on error errorMsg {
+        util_user_message -message "[:label]: $errorMsg (locale=[:locale])"
       }
-      return $result
+      #
+      # try again
+      #
+      set converted_value $value
+      ad_try {
+        scan $value [:format] result
+      } on error {errMsg} {
+        set result $value
+      }
     }
-    return $value
+    return $result
   }
   numeric instproc convert_to_internal {} {
     if {[:value] ne ""} {
@@ -3149,13 +3154,15 @@ namespace eval ::xowiki::formfield {
       fconfigure $f translation binary
       set img [read $f]
       close $f
-    } elseif {[catch {
-      set request [util::http::get -url $value]
-      set img [expr {[dict exists $request page] ? [dict get $request page] : ""}]
-    } errorMsg]} {
-      # cannot transfer image
-      :log "--img cannot tranfer image '$value' ($errorMsg)"
-      return 0
+    } else {
+      ad_try {
+        set request [util::http::get -url $value]
+        set img [expr {[dict exists $request page] ? [dict get $request page] : ""}]
+      } on error {errorMsg} {
+        # cannot transfer image
+        :log "--img cannot obtain image '$value' ($errorMsg)"
+        return 0
+      }
     }
     #my msg "guess mime_type of $entry_name = [::xowiki::guesstype $entry_name]"
     set import_file [ad_tmpnam]

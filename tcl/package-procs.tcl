@@ -485,7 +485,7 @@ namespace eval ::xowiki {
       set encoded_name ""
     } else {
       if {$parent_id eq ""} {
-        ns_log notice "pretty_link of $name: you should consider to pass a parent_id to support folders"
+        ns_log warning "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id [:folder_id]
       }
       set folder [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
@@ -818,12 +818,12 @@ namespace eval ::xowiki {
     } else {
       # determine privilege from policy
       #my msg "-- check permissions from ${:id} of object $object $method"
-      if {[catch {
+      ad_try {
         set granted [:check_permissions \
                          -user_id $party_id \
                          -package_id ${:id} \
                          -link $computed_link $object $method]
-      } errorMsg ]} {
+      } on error {errorMsg} {
         ns_log error "error in check_permissions: $errorMsg"
         set granted 0
       }
@@ -932,27 +932,21 @@ namespace eval ::xowiki {
         }
       }
 
-      #ns_log notice "call procsearch www-$method on: [$page_or_package info precedence]"
+      #:log "call procsearch www-$method on: [$page_or_package info precedence]"
       if {[$page_or_package procsearch www-$method] eq ""} {
         return [:error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
 
-        #my log "--invoke ${:object} id=$page_or_package method=$method (${:id} batch_mode $batch_mode)"
+        #:log "--invoke ${:object} id=$page_or_package method=$method (${:id} batch_mode $batch_mode)"
 
-        if {$batch_mode} {${:id} set __batch_mode 1}
-        set err [catch { set r [:call $page_or_package $method ""]} errorMsg]
-        if {$err} {set errorCode $::errorCode}
-        if {$batch_mode} {${:id} unset -nocomplain __batch_mode}
-        if {$err} {
-          #
-          # Check, if we were called from "ad_script_abort" (intentional abortion)
-          #
-          if {[ad_exception $errorCode] eq "ad_script_abort"} {
-            #
-            # Yes, this was an intentional abortion
-            #
-            return ""
-          } elseif {[string match "*for parameter*" $errorMsg]} {
+        if {$batch_mode} {
+          ${:id} set __batch_mode 1
+        }
+
+        ad_try {
+          set r [:call $page_or_package $method ""]
+        } on error {errorMsg} {
+          if {[string match "*for parameter*" $errorMsg]} {
             #
             # The exception might have been due to invalid input parameters
             #
@@ -967,7 +961,13 @@ namespace eval ::xowiki {
                         -template_file $error_template \
                         "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
           }
+          
+        } finally {
+          if {$batch_mode} {
+            ${:id} unset -nocomplain __batch_mode
+          }
         }
+
         return $r
       }
     } else {
@@ -1990,7 +1990,7 @@ namespace eval ::xowiki {
           select item_id from cr_items where name = :name and parent_id = :parent_id
         }]
         if {$old_folder_id ne ""} {
-          ns_log notice "-- try to transform old root folder $old_folder_id of package ${:id}"
+          :log "-- try to transform old root folder $old_folder_id of package ${:id}"
           ::xowiki::transform_root_folder ${:id}
           set folder_id $old_folder_id
         } else {
@@ -2433,7 +2433,7 @@ namespace eval ::xowiki {
     if {$item_id eq ""} {
       array set "" [:item_info_from_url -with_package_prefix false $name]
       if {$(item_id) == 0} {
-        ns_log notice "url lookup of '$name' failed"
+        :log "www-delete: url lookup of '$name' failed"
       } else {
         set parent_id $(parent_id)
         set item_id $(item_id)
@@ -2568,7 +2568,7 @@ namespace eval ::xowiki {
       default {error "unknown scope for flushing page fragment cache"}
     }
     foreach entry [ns_cache names xowiki_cache $key] {
-      ns_log notice "::xo::clusterwide ns_cache flush xowiki_cache $entry"
+      #:log "::xo::clusterwide ns_cache flush xowiki_cache $entry"
       ::xo::clusterwide ns_cache flush xowiki_cache $entry
     }
   }
@@ -2589,7 +2589,7 @@ namespace eval ::xowiki {
       return [::xo::cc cache_set $key [next]]
     } else {
       # in case, we have no ::xo::cc (e.g. during bootstrap).
-      ns_log notice "warning: no ::xo::cc available, returning default for parameter $attribute"
+      ns_log warning "no ::xo::cc available, returning default for parameter $attribute"
       return $default
     }
   }

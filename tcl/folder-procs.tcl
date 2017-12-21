@@ -613,7 +613,9 @@ namespace eval ::xowiki::includelet {
                          $name]
       array set icon [$c render_icon]
       
-      if {[catch {set prettyName [$c pretty_name]} errorMsg]} {
+      ad_try {
+        set prettyName [$c pretty_name]
+      } on error {errorMsg} {
         :msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
         set prettyName $name
       }
