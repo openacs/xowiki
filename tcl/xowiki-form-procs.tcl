@@ -74,7 +74,7 @@ namespace eval ::xowiki {
         #my msg "we got richtext spec for $__field = '$s'"
         set __spec $s
         set __wspec [lindex $__spec 0]
-        # old style folder spec substituion. ugly.
+        # old style folder spec substitution. ugly.
         if {[:folderspec] ne ""} {
           # append the folder spec to its options
           set __newspec [list $__wspec]
@@ -451,7 +451,7 @@ namespace eval ::xowiki {
   WikiForm instproc after_submit {item_id} {
     set link [:submit_link]
     if {$link eq "."} {
-      # we can determine submit link only after nls_langauge 
+      # we can determine submit link only after nls_language 
       # is returned from the user
       :submit_link [${:data} pretty_link]
     }

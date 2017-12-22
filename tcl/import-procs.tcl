@@ -290,7 +290,7 @@ namespace eval ::xowiki {
       ns_log notice "--export works on [array names items]"
       foreach item_id [array names items] {
         #
-        # We flag the reason, why the implicitely included elements were
+        # We flag the reason, why the implicitly included elements were
         # included. If the target can resolve already such items
         # (e.g. forms), we might not have to materialize these finally.
         #

@@ -71,7 +71,7 @@ namespace eval ::xowiki {
       # influenced by the buffering behavior of a reverse proxy, which
       # might have to be configured appropriately.
       #
-      # To be independet of the guessing mode, instantiate the chat
+      # To be independent of the guessing mode, instantiate the chat
       # object with "mode" specified.
       #
       set mode polling

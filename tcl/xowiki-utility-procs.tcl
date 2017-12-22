@@ -817,7 +817,7 @@ namespace eval ::xowiki {
       }
     }
     #
-    # Flush the page fragement caches (page fragments based on page_order might be sufficient)
+    # Flush the page fragment caches (page fragments based on page_order might be sufficient)
     $package_id flush_page_fragment_cache -scope agg
   }
 

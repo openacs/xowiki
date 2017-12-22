@@ -123,7 +123,7 @@ namespace eval ::xowiki::notification {
       #
       # The notification renderer returned empty. Nothing to do.
       #
-      #ns_log notice "--n notification renderer returned emtpy for page [$page name] (revision_id $revision_id). Nothing to do"
+      #ns_log notice "--n notification renderer returned empty for page [$page name] (revision_id $revision_id). Nothing to do"
       return
     }
 

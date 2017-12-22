@@ -326,7 +326,7 @@ namespace eval ::xowiki::includelet {
       # todo: we should check either, whether to user is allowed to
       # copy-to-clipboard from the current folder, and/or the user is
       # allowed to do this with certain items.... (the latter in
-      # clipboad-add)
+      # clipboard-add)
       $mb add_menu_item -name Clipboard.Add \
           -item [list url \# listener [list click acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]]
       $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
@@ -563,7 +563,7 @@ namespace eval ::xowiki::includelet {
                          -url $::__xowiki_folder_link
                    }
                  }
-                 # The "-html" options are currenty ignored in the YUI
+                 # The "-html" options are currently ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way. 
                  #
                  HiddenField create ID

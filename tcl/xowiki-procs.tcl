@@ -1060,7 +1060,7 @@ namespace eval ::xowiki {
   ############################################
   Page instproc condition=match {query_context value} {
     #
-    # Conditon for conditional checks in policy rules
+    # Condition for conditional checks in policy rules
     # The match condition is called with an attribute
     # name and a pattern like in
     #
@@ -1088,7 +1088,7 @@ namespace eval ::xowiki {
 
   Page instproc condition=regexp {query_context value} {
     #
-    # Conditon for conditional checks in policy rules
+    # Condition for conditional checks in policy rules
     # The match condition is called with an attribute
     # name and a pattern like in
     #

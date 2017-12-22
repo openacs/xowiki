@@ -220,7 +220,7 @@ namespace eval ::xowiki {
   TreeRenderer create TreeRenderer=list 
   TreeRenderer=list proc include_head_entries {args} {
     # In the general case, we have nothing to include.  more
-    # specialied renderes will provide their head entries.
+    # specialized renders will provide their head entries.
   }
   TreeRenderer=list proc render {tree} {
     return "<ul id='[$tree id]'>[next]</ul>"

@@ -1018,7 +1018,7 @@ namespace eval ::xowiki {
   } {
     #
     # Try to resolve from object (path) and query parameter the called
-    # object (might be a packge or page) and the method to be called.
+    # object (might be a package or page) and the method to be called.
     #
     # @return instantiated object (Page or Package) or empty
     #
