@@ -107,12 +107,14 @@ namespace eval ::xowiki {
     #
     if {![file exists $adpFilename]
         || [file mtime [info script]] > [file mtime $adpFilename]} {
-      if {[catch {set f [open $adpFilename w]} errorMsg]} {
+      try {
+        set f [open $adpFilename w]
+      } on error {errorMsg} {
         :log "Warning: cannot overwrite ADP $adpFilename, ignoring possible changes"
-      } else {
+      } on ok {r} {
         ::puts -nonewline $f [:generate]
         close $f
-        :log "Notice: create ADP $adpFilename"
+        :log "Notice: created ADP $adpFilename"
       }
     }
   }

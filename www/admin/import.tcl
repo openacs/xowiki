@@ -46,7 +46,9 @@ ad_form \
       foreach o [::xowiki::Page allinstances] { 
         set preexists($o) 1
       }
-      if {[catch {namespace eval ::xo::import $content} errorMsg]} {
+      ad_try {
+        namespace eval ::xo::import $content
+      } on error {errorMsg} {
 	ad_log error $errorMsg
 	# cleanup all objects, that did not exist before
         foreach o [::xowiki::Page allinstances] {
@@ -54,7 +56,7 @@ ad_form \
 	    if {[::xotcl::Object isobject $o]} {$o destroy}
 	  }
         }
-      } else {
+      } on ok {r} {
         set objects [list]
         foreach o [::xowiki::Page allinstances] {
           if {![info exists preexists($o)]} {lappend objects $o}
@@ -62,16 +64,20 @@ ad_form \
         ns_log notice "objects to import: $objects"
         set parent_id [ns_queryget parent_id 0]
         #::xotcl::Object msg parent_id=$parent_id
-        if {[catch {
+        ad_try {
           set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
                        -parent_id $parent_id -objects $objects]
-        } errMsg]} {
+        } on error {errMsg} {
           ns_log notice "Error during import: $errMsg\nErrInfo: $::errorInfo"
           ::xotcl::Object msg "Error during import: $errMsg\nErrInfo: $::errorInfo"
           foreach o $objects {$o destroy}
           error $errMsg
         }
-        foreach o $objects {if {[::xotcl::Object isobject $o]} {$o destroy}}
+        foreach o $objects {
+          if {[::xotcl::Object isobject $o]} {
+            $o destroy
+          }
+        }
       }
       namespace delete ::xo::import
     }

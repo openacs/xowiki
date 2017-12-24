@@ -301,7 +301,7 @@ namespace eval ::xowiki::formfield {
         if {[string match "::xotcl::*" $definition_class] || $method eq ""} {
           error [_ xowiki.error-form_constraint-unknown_attribute [list class [:info class] name ${:name} entry $attribute]]
         }
-        if {[catch {
+        ad_try {
           #
           # We want to allow a programmer to use e.g. options=[xowiki::locales]
           #
@@ -313,7 +313,7 @@ namespace eval ::xowiki::formfield {
             set value [subst $value]
           }
           my $attribute $value
-        } errMsg]} {
+        } on error {errMsg} {
           error "Error during setting attribute '$attribute' to value '$value': $errMsg"
         }
       }

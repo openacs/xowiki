@@ -30,8 +30,11 @@ test proc without_ns_form {cmd} {
     list [::xo::cc form_parameter $key {}] 
   }
   proc ::ad_returnredirect url {::xo::cc returnredirect $url}
-  if {[catch {set r [uplevel $cmd]} errmsg]} {
-    if {$errmsg ne ""} {test code "error in command: $errmsg [info exists r]"}
+  
+  ad_try {
+    set r [uplevel $cmd]
+  } on error errmsg} {
+    test code "error in command: $errmsg [info exists r]"
     set r ""
   }
   rename ::ns_queryget ""

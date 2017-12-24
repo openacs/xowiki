@@ -329,19 +329,20 @@ namespace eval ::xowiki {
   exporter proc marshall_all {{-mode export} item_ids} {
     set content ""
     foreach item_id $item_ids {
-      if {[catch {set obj [$item_id marshall -mode $mode]} errorMsg]} {
+      ad_try {
+        set obj [$item_id marshall -mode $mode]
+      } on error {errorMsg} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
         error $errorMsg
-      } else {
-        append content $obj\n
       }
+      append content $obj\n
     }
     return $content
   }
 
   exporter proc export {item_ids} {
     #
-    # include implictely needed objects, instantiate the objects.
+    # include implicitly needed objects, instantiate the objects.
     #
     set item_ids [:include_needed_objects $item_ids]
     #
@@ -355,7 +356,9 @@ namespace eval ::xowiki {
       ns_log notice "--exporting $item_id [$item_id name]"
       set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
       ns_write "# exporting $item_id [$item_id name] $pretty_link\n"
-      if {[catch {set obj [$item_id marshall]} errorMsg]} {
+      ad_try {
+        set obj [$item_id marshall]
+      } on error {errorMsg} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
       } else {
         ns_write "$obj\n" 
