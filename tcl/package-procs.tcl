@@ -133,7 +133,7 @@ namespace eval ::xowiki {
   Package proc get_nls_language_from_lang {lang} {
     # Return the first nls_language matching the provided lang
     # prefix. This method is not precise (when e.g. two nls_languages
-    # are defined with the same lang), but the only thing relvant is
+    # are defined with the same lang), but the only thing relevant is
     # the lang anyhow.  If nothing matches return empty.
     foreach nls_language [lang::system::get_locales] {
       if {[string range $nls_language 0 1] eq $lang} {
@@ -374,7 +374,7 @@ namespace eval ::xowiki {
         if {0} {
           #
           # In some older versions, this code was necessary. Keep it
-          # inhere as a reference, in case not all relvant cases were
+          # inhere as a reference, in case not all relevant cases were
           # covered by the tests
           #
           set target [$fo get_target_from_link_page]
