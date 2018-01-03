@@ -62,7 +62,7 @@
       if {[llength $categories] == 0} continue
 
       set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
-		where c.object_id = ci.item_id and ci.parent_id = $folder_id \
+		where c.object_id = ci.item_id and ci.parent_id = :folder_id \
 		and ci.content_type not in ('::xowiki::PageTemplate') \
 		and category_id in ([join $categories ,]) \
 		and r.revision_id = ci.live_revision \
@@ -99,7 +99,7 @@
               set prefix ""
               set suffix ""
               foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
-              $itemobj set href [::$package_id pretty_link $name]
+              $itemobj set href [::$package_id pretty_link -parent_id $folder_id $name]
               $cattree(0) add_item \
                   -category $category($category_id) \
                   -itemobj $itemobj \
