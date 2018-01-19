@@ -16,6 +16,7 @@ foreach o $objects {
 }
 
 ad_returnredirect "./list"
+ad_script_abort
 
 # Local variables:
 #    mode: tcl
