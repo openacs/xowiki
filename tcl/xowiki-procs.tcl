@@ -1902,6 +1902,7 @@ namespace eval ::xowiki {
       set errorInfo $::errorInfo
       if {[string match "*for parameter*" $errorMsg]} {
         ad_return_complaint 1 [ns_quotehtml $errorMsg]
+        ad_script_abort
       } else {
         ad_log error "render_includelet $includeletClass led to: $errorMsg ($errorCode)\n$errorInfo"
         set page_name [$includelet name]
