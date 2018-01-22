@@ -8,11 +8,11 @@
 
   @param object_type show objects of this class and its subclasses
 } -parameter {
-  {-object_type:optional}
-  {-orderby:optional "last_modified,desc"}
+  {-object_type:token,optional}
+  {-orderby:token,optional "last_modified,desc"}
 }
 
-set context   [list index]
+set context [list index]
 
 # if object_type is specified, only list entries of this type;
 # otherwise show types and subtypes of $supertype

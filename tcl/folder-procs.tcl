@@ -472,9 +472,9 @@ namespace eval ::xowiki::includelet {
             {-skin:optional "yui-skin-sam"}
             {-show_types "::xowiki::Page,::xowiki::File,::xowiki::Form,::xowiki::FormPage"}
             {-regexp:optional}
-            {-with_subtypes:optional false}
-            {-orderby:optional "last_modified,desc"}
-            {-publish_status "ready"}
+            {-with_subtypes:boolean,optional false}
+            {-orderby:token,optional "last_modified,desc"}
+            {-publish_status:wordchar "ready"}
             {-view_target ""}
             {-html-content}
             {-parent .}
