@@ -21,6 +21,7 @@ if {$page eq ""} {
   ad_return_error \
       [_ xowiki.portlet_page_does_not_exist_error_short] \
       [_ xowiki.portlet_page_does_not_exist_error_long $page_name]
+  ad_script_abort
 
 } else {
   #
@@ -42,6 +43,7 @@ if {$page eq ""} {
     ad_return_error \
 	[_ xowiki.portlet_title_exists_error_short] \
 	[_ xowiki.portlet_title_exists_error_long $page_title]
+    ad_script_abort
   } else {
     #
     # everything ok, add the portal element
