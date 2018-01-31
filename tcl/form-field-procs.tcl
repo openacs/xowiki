@@ -24,7 +24,7 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
-  # ::xowiki::FormField (Base Class)
+  # ::xowiki::formfield::FormField (Base Class)
   #
   ###########################################################
   Class create FormField -superclass ::xo::tdom::Object -parameter {
