@@ -60,7 +60,7 @@ namespace eval ::xowiki {
   #
   # Install clamav daemon with
   #    FC21:   yum install clamav-scanner
-  #  Ununtu:   apt-get install clamav-daemon
+  #  Ubuntu:   apt-get install clamav-daemon
   # 
   ::xotcl::Object create virus
   virus proc check {fns} {
@@ -282,7 +282,7 @@ namespace eval ::xowiki {
     -package_id
     -item_id
   } {
-    Delete supposedly uninportant items and revision from the content repository.
+    Delete supposedly unimportant items and revision from the content repository.
     
     @param doit if not true, then just write delete operation to the logfile
     @param delete_orphans if true, delete orphaned items

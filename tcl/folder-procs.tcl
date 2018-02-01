@@ -1,6 +1,6 @@
 ::xo::library doc { 
 
-  This is an experimental implemetation for folders
+  This is an experimental implementation for folders
   based on xowiki form pages. In particular, this file provides
 
   * An xowiki includelet to display the "folders"

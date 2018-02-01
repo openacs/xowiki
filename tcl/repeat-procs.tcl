@@ -155,7 +155,7 @@ namespace eval ::xowiki::formfield {
   repeatContainer instproc set_compound_value {value} {
     #
     # Before setting compound values, check if we have the repeat
-    # strucure already set.
+    # structure already set.
     #
     set neededComponents [expr {[llength $value] / 2}]
     set availableComponents [llength ${:components}]
@@ -192,7 +192,7 @@ namespace eval ::xowiki::formfield {
   }
 
   repeatContainer instproc trim_values {} {
-    # Trim trailing values idential to default.
+    # Trim trailing values identical to default.
     # Trimming the components list seems sufficient.
     set count [:count_values [:value]]
     set :components [lrange [:components] 0 $count]

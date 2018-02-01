@@ -87,7 +87,7 @@ namespace eval ::xowiki {
         set mode scripted-streaming
         if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
           # Explorer doesn't expose partial response until request state != 4, while Opera fires
-          # onreadystateevent only once. For this reason, for every broser except them, we could 
+          # onreadystateevent only once. For this reason, for every browser except them, we could 
           # use the nice mode without the spinning load indicator.
           #
           set mode streaming

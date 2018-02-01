@@ -165,7 +165,7 @@ namespace eval ::xowiki {
     # following should be done:
     #  - create an includelet to create the form markup automatically
     #  - validate and transform input as usual
-    # We should probably allow as well controlling autonaming and
+    # We should probably allow as well controlling auto-naming and
     # and prohibit empty postings.
 
     set text_to_html [:form_parameter "__text_to_html" ""]
@@ -639,7 +639,7 @@ namespace eval ::xowiki {
     set object_type [:info class]
 
     # We have to do template mangling here; ad_form_template writes
-    # form variables into the actual parselevel, so we have to be in
+    # form variables into the actual parse-level, so we have to be in
     # our own level in order to access an pass these.
     lappend ::template::parse_level [info level]
 
@@ -648,7 +648,7 @@ namespace eval ::xowiki {
 
     #
     # Determine the package_id of some mounted xowiki instance to find
-    # the directory + URL, from where the scripts called from xinha
+    # the directory + URL, from where the scripts called from Xinha
     # can be used.
     if {[$package_id info class] eq "::xowiki::Package"} {
       # The actual instance is a plain xowiki instance, we can use it
@@ -1059,7 +1059,7 @@ namespace eval ::xowiki {
       # (b) disable input in HTML-specified fields
       set disabled [Form dom_disable_input_fields $rootNode]
       #
-      # Collect these variables in a hiddden field to be able to
+      # Collect these variables in a hidden field to be able to
       # distinguish later between e.g. un unchecked checkmark and an
       # disabled field. Maybe, we have to add the fields from case (a)
       # as well.

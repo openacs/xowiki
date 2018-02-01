@@ -96,7 +96,7 @@ namespace eval ::xowiki {
     # of object-imports.
     #
     #
-    # Extact information from objects to be imported, that might be
+    # Extract information from objects to be imported, that might be
     # changed later in the objects.
     #
     foreach o $objects {
@@ -136,7 +136,7 @@ namespace eval ::xowiki {
 
     #
     # Make a fix-point iteration during import. Do only import, when
-    # all prerequirement pages are already loaded.
+    # all pre-requirement pages are already loaded.
     #
     while {[array size todo] > 0} {
       set new 0
