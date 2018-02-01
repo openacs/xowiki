@@ -4456,7 +4456,7 @@ namespace eval ::xowiki::includelet {
 
   random-form-page proc page_names {package_id form publish_status} {
     #
-    # This is a cacheable method returing a list of the names from
+    # This is a cacheable method returning a list of the names from
     # which the random page is selected. We use a class method and the
     # argument list with util_memoize inability to provide a key for
     # caching.

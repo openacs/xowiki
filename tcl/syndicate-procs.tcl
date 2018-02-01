@@ -41,7 +41,7 @@ namespace eval ::xowiki {
         is taken from the description field of the folder object.
         
         @param maxentries maximum number of entries retrieved
-        @param days report entries changed in speficied last days
+        @param days report entries changed in specified last days
         @param name_filter include only pages matching the provided regular expression (postgres)
       }
 

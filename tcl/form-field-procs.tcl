@@ -18,7 +18,7 @@ namespace eval ::xowiki::formfield {
   #
   # and inherit properties of the original datatypes via slots
   # (e.g. for boolean entries). FormFields can be subclassed
-  # to ensure tailorability and high reuse.
+  # to ensure tailor-ability and high reuse.
   #
   # todo: at some later time, this could go into xotcl-core
 
@@ -114,7 +114,7 @@ namespace eval ::xowiki::formfield {
   }
 
   #
-  # Basic initialze method, doing nothing; should be subclassed by the
+  # Basic initialize method, doing nothing; should be subclassed by the
   # application classes
   FormField instproc initialize {} {next}
 
@@ -347,7 +347,7 @@ namespace eval ::xowiki::formfield {
     if {[[:info class] exists abstract]} {
       # had earlier here: [:info class] eq [self class]
       # Check, whether the actual class is a concrete class (mapped to
-      # concrete field type) or an abstact class.  Since
+      # concrete field type) or an abstract class.  Since
       # config_from_spec can be called multiple times, we want to do
       # the reclassing only once.
       if {[:isclass ::xowiki::formfield::${:type}]} {
@@ -473,7 +473,7 @@ namespace eval ::xowiki::formfield {
     #
     # This is the most general widget content renderer.
     # If no special renderer is defined, we fall back to this one,
-    # which is in most cases  a simple input fied of type string.
+    # which is in most cases  a simple input field of type string.
     #
     set value [:value]
     if {[:mode] ne "edit"} {
@@ -509,7 +509,7 @@ namespace eval ::xowiki::formfield {
     set :value $old_value
 
     #
-    # Disabled fieds are not returned by the browsers. For some
+    # Disabled fields are not returned by the browsers. For some
     # fields, we require to be sent. therefore we include in these
     # cases the value in an additional hidden field. Maybe we should
     # change in the future the "name" of the disabled entry to keep
@@ -2597,7 +2597,7 @@ namespace eval ::xowiki::formfield {
     # Here we have to distinguish between two cases to:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
-    # - view mode: the fields were deactivted (made insensitive);
+    # - view mode: the fields were deactivated (made insensitive);
     #   this means: keep the old value
 
     #my msg "${:name} disabled=[info exists :disabled]"
@@ -3387,7 +3387,7 @@ namespace eval ::xowiki::formfield {
 
   CompoundField instproc create_components {spec_list} {
     #
-    # Omit after specs for compund fields to avoid multiple
+    # Omit after specs for compound fields to avoid multiple
     # recreations.
     #
     if {[:specs_unmodified $spec_list]} return
@@ -4046,7 +4046,7 @@ namespace eval ::xowiki::formfield {
   event instproc update_calendar {-cal_item_id -calendar_id -start -end -name -description} {
     #
     # If we have already a valid cal_item_id (checked previously)
-    # update the entry. Otherwise create a new calender item and
+    # update the entry. Otherwise create a new calendar item and
     # update the instance variables.
     #
     if {$cal_item_id ne ""} {

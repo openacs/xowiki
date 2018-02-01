@@ -297,14 +297,14 @@ namespace eval ::xowiki {
     {-path_encode:boolean true}
   } {
 
-    Constuct a folder path from a hierarchy of xowiki objects. It is
+    Construct a folder path from a hierarchy of xowiki objects. It is
     designed to work with linked objects, respecting logical and
     physical parent IDs. The result is URL encoded, unless path_encode
     is set to false.
 
   } {
     #
-    # handle different parent_ids
+    # Handle different parent_ids
     #
     if {$parent_id eq "" || $parent_id == ${:folder_id}} {
       return ""
@@ -443,7 +443,7 @@ namespace eval ::xowiki {
   } {
 
     Generate a (minimal) link to a wiki page with the specified name.
-    Pratically all links in the xowiki systems are generated through
+    Practically all links in the xowiki systems are generated through
     this function. The function returns the URL path urlencoded,
     unless path_encode is set to false.
 
@@ -478,7 +478,7 @@ namespace eval ::xowiki {
     }
 
     if {$parent_id eq -100} {
-      # In case, we have a cr-toplevel entry, we assume, we can
+      # In case, we have a CR toplevel entry, we assume, we can
       # resolve it at lease against the root folder of the current
       # package.
       set folder ""
@@ -1366,7 +1366,7 @@ namespace eval ::xowiki {
     link
   } {
 
-    An item_ref refers to an item (existing or nonexisting) in the
+    An item_ref refers to an item (existing or non-existing) in the
     content repository relative to some parent_id. The item might be
     either a folder or some kind of "page" (e.g. a file). An item_ref
     might be complex, i.e. consist of a path of simple_item_refs,
@@ -1737,7 +1737,7 @@ namespace eval ::xowiki {
       if {$referenced_package_id != 0 && $referenced_package_id != ${:id}} {
         # TODO: we have still to check, whether or not we want
         # site-wide-pages etc.  in cross package links, and if, under
-        # which parent we would like to create newly importage pages.
+        # which parent we would like to create newly imported pages.
         #
         # For now, we do not want to create pages this way, we pass
         # the root folder of the referenced package as start
@@ -1996,7 +1996,7 @@ namespace eval ::xowiki {
         } else {
           #
           # Check, if the package_key belongs to xowiki (it might be a
-          # subclass). If this is not the case, the call is proably an
+          # subclass). If this is not the case, the call is probably an
           # error and we do not want to create a root folder.
           #
           set package_class [::xo::PackageMgr get_package_class_from_package_key ${:package_key}]
@@ -2051,7 +2051,7 @@ namespace eval ::xowiki {
   #
 
   Package ad_instproc www-refresh-login {} {
-    Force a refresh of a login and do a redict. Intended for use from ajax.
+    Force a refresh of a login and do a redirect. Intended for use from ajax.
   } {
     set return_url [:query_parameter return_url]
     if {[::xo::cc user_id] == 0} {
@@ -2060,7 +2060,6 @@ namespace eval ::xowiki {
     } else {
       ad_returnredirect $return_url
     }
-    ad_script_abort
   }
 
   #
@@ -2125,7 +2124,7 @@ namespace eval ::xowiki {
     is taken from the description field of the folder object.
 
     @param maxentries maximum number of entries retrieved
-    @param days report entries changed in speficied last days
+    @param days report entries changed in specified last days
 
   } {
     set package_id ${:id}

@@ -303,7 +303,7 @@ namespace eval ::xowiki::formfield {
     # Here we have to distinguish between two cases to:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
-    # - view mode: the fields were deactivted (made insensitive);
+    # - view mode: the fields were deactivated (made insensitive);
     #   this means: keep the old value
 
     if {[info exists :disabled]} {return $default} else {return ""}

@@ -532,7 +532,7 @@ namespace eval ::xowiki {
   Page instproc serialize_relocatable {} {
     if {[::package vcompare [package require xotcl::serializer] 2.1] > -1} {
       #
-      # nsf 2.1 has support for speciying the target as argument of
+      # nsf 2.1 has support for specifying the target as argument of
       # the serialize method.
       #
       set content [:serialize -target [string trimleft [self] :]]
@@ -1004,7 +1004,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc demarshall {-parent_id -package_id -creation_user {-create_user_ids 0}} {
-    # reverse map assingees
+    # reverse map assignees
     :reverse_map_party_attribute -attribute assignee -create_user_ids $create_user_ids
     #
     # The function will compute the category_ids, which are were used
@@ -1139,7 +1139,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # tag management, get_tags works on instance or gobally
+  # Tag management, get_tags works on instance or globally.
   #
 
   Page proc save_tags {
@@ -1260,7 +1260,7 @@ namespace eval ::xowiki {
     if {![:is_link_page]} {return $default}
     set item_ref [:property link]
 
-    # TODO we could save some double-fetch by collecing in
+    # TODO we could save some double-fetch by collecting in
     # get_form_entries via item-ids, not via new-objects
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
 
@@ -1389,8 +1389,8 @@ namespace eval ::xowiki {
   FormPage ad_instproc update_attribute_from_slot {-revision_id slot value} {
 
     Tailored version of update_attribute_from_slot to keep
-    insert_xowiki_form_instance_item_index in sync after singe
-    attribtute updates.
+    insert_xowiki_form_instance_item_index in sync after single
+    attribute updates.
 
   } {
     #
@@ -1669,7 +1669,7 @@ namespace eval ::xowiki {
         #           break
         #     } elseif {$page_template_name eq "en:folder.form"} {
         #       # safety belt, in case we have in different directories
-        #       # diffenent en:folder.form
+        #       # different en:folder.form
         #       break
         #     } elseif {$page_template_name eq "en:link.form"} {
         #       set fp [:is_folder_page]
@@ -1701,7 +1701,7 @@ namespace eval ::xowiki {
     # This is a stub which can / should be refined in applications,
     # which want to disallow links to other pages, in the sense, that
     # the links are not shown at all. A sample implementation might
-    # look like the follwing.
+    # look like the following.
     #
     # if {$item_id ne 0} {
     #   set obj [::xo::db::CrClass get_instance_from_db -item_id $item_id]
@@ -1719,7 +1719,7 @@ namespace eval ::xowiki {
     #
     # Determine the parent object of the page to be saved. If the
     # parent object is an page as well, then call can_contain. The
-    # function is just determining a boolen value shuch it can be used
+    # function is just determining a Boolean value such it can be used
     # for testing insertability as well.
     #
     set parent [:get_parent_object]
@@ -1937,7 +1937,7 @@ namespace eval ::xowiki {
                        -user_id [::xo::cc set untrusted_user_id] \
                        $page view]
       if {!$allowed} {
-        return "<div class='errorMsg'>Unsufficient privileges to view content of [$page name].</div>"
+        return "<div class='errorMsg'>Insufficient privileges to view content of [$page name].</div>"
       }
     }
     if {[info exists configure]} {
@@ -2324,7 +2324,7 @@ namespace eval ::xowiki {
     if {[info commands $l] ne ""} {
       $l destroy
     } else {
-      ns_log notice "link object already destroyed. This might be due to a recurisive inclusion"
+      ns_log notice "link object already destroyed. This might be due to a recursive inclusion"
     }
     return $html
   }
@@ -2723,7 +2723,7 @@ namespace eval ::xowiki {
   #
   # The method "notification_notify" calls typically the notification
   # updater on the current page. It might be used as well to trigger
-  # notifications on other pages (in other myabe packages), when the
+  # notifications on other pages (in other maybe packages), when the
   # page content is e.g. linked.
   #
   Page instproc notification_notify {} {
@@ -3343,7 +3343,7 @@ namespace eval ::xowiki {
   Page instproc css_class_name {{-margin_form:boolean true}} {
     # Determine the CSS class name for xowiki forms
     #
-    # We need this acually only for PageTemplate and FormPage, but
+    # We need this actually only for PageTemplate and FormPage, but
     # aliases will require XOTcl 2.0.... so we define it for the time
     # being on ::xowiki::Page
     if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] ne "bootstrap"} {
@@ -3913,7 +3913,7 @@ namespace eval ::xowiki {
     #
     # "-from_package_ids {}" means get pages from the instance
     # provided via package_id, "*" means from all
-    # packages. Forthermore, a list of package_ids can be given.
+    # packages. Furthermore, a list of package_ids can be given.
     #
     # "-always_queried_attributes *" means to obtain enough attributes
     # to allow a save operatons etc. on the instances.
@@ -4561,7 +4561,7 @@ namespace eval ::xowiki {
     set group_name "fpg-${:parent_id}-[:name]"
     set group_id [group::get_id -group_name $group_name]
     if {$group_id eq ""} {
-      # group::new does not flush the chash - sigh!  Therefore we have
+      # group::new does not flush the cache - sigh!  Therefore we have
       # to flush the old cache entry here manually.
       ns_cache flush util_memoize \
           "group::get_id_not_cached -group_name $group_name -subsite_id {} -application_group_id {}"
@@ -4644,9 +4644,9 @@ namespace eval ::xowiki {
       #
       # Handle now further database operations that should be saved in
       # a transaction. Examples are calender-items defined in a
-      # FormPage, that should show up in the calender.
+      # FormPage, that should show up in the calendar.
       #
-      # Problably, categories should also be moved into the
+      # Probably, categories should also be moved into the
       # transaction queue.
       #
       set queue ::__xowiki__transaction_queue(${:item_id})

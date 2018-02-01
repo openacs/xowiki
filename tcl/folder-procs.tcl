@@ -188,7 +188,7 @@ namespace eval ::xowiki::includelet {
             #
             $f set_resolve_context -package_id [$l package_id] -parent_id [$l item_id]
             #
-            # TODO we could save the double-fetch by collecing in
+            # TODO we could save the double-fetch by collecting in
             # get_form_entries via item-ids, not via new-objects
             #
             #::xo::db::CrClass get_instance_from_db -item_id [$f item_id]
