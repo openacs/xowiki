@@ -106,6 +106,24 @@ namespace eval ::xowiki {
         ::xo::db::CrAttribute create instance_attributes \
             -sqltype long_text \
             -default ""
+        #
+        # To enable hstore for xowiki/xowf, make sure, hstore is
+        # installed in your PostgreSQL installation, e.g. via
+        #
+        #      $PGBIN/psql -U nsadmin -d oacs-head -tAc "create extension hstore"
+        #
+        # .... and add a index for the hstore key to xowiki_page_instance:
+        #
+        #    CREATE INDEX hidx ON xowiki_page_instance using GIST(hkey);
+        #
+        # ... and set the parameter "use_hstore" to 1. Then the
+        # condition [::xo::dc has_hstore] will be true.
+        #
+        if {[::xo::dc has_hstore]} {
+          ::xo::db::CrAttribute create hkey \
+              -sqltype hstore \
+              -default ""
+        }
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
