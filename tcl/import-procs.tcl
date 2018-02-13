@@ -360,7 +360,7 @@ namespace eval ::xowiki {
         set obj [$item_id marshall]
       } on error {errorMsg} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
-      } else {
+      } finally {
         ns_write "$obj\n" 
       }
     }
