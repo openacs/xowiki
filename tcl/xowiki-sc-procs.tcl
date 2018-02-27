@@ -39,8 +39,19 @@ ad_proc -private ::xowiki::datasource { revision_id } {
   switch [dict get $d mime] {
     text/html {
       set content [dict get $d html]
-      set text [ad_html_text_convert -from text/html -to text/plain -- [dict get $d html]]
-      #set text [ad_text_to_html -- [dict get $d html]]; #this could be used for entity encoded html text in rss entries
+      #
+      # The function ad_html_text_convert can take forever on largish
+      # files, when e.g. someone loads a huge plain/text file into an
+      # xowiki file. so, when available, use "ns_striphtml", which
+      # might produce a less beautiful rendering, but wich is
+      # irrelevant for search.
+      #
+      if {[info commands ns_striphtml] ne ""} {
+        set text [ns_striphtml [dict get $d html]]
+      } else {
+        set text [ad_html_text_convert -from text/html -to text/plain -- [dict get $d html]]
+        #set text [ad_text_to_html -- [dict get $d html]]; #this could be used for entity encoded html text in rss entries
+      }
       
       # If the html contains links (which are rendered by ad_html_text as [1], [2], ...)
       # then we have to use CDATA in the description
