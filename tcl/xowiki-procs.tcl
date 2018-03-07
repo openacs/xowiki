@@ -1808,7 +1808,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc error_in_includelet {arg msg} {
-    return [:error_during_render "[_ xowiki.error_in_includelet [name ${:name}]]<br >\n$msg"]
+    return [:error_during_render "[_ xowiki.error_in_includelet [list arg $arg name ${:name}]]<br >\n$msg"]
   }
 
   Page ad_instproc resolve_included_page_name {page_name} {
@@ -2011,12 +2011,13 @@ namespace eval ::xowiki {
       #
       # Check the provided name of the adp file
       #
-      array set "" [:check_adp_include_path [lindex $adp 0]]
-      if {!$(allowed)} {
+      set path_info [:check_adp_include_path [lindex $adp 0]]
+      ns_log notice "path_info returned $path_info"
+      if {![dict get $path_info allowed]} {
         incr ::xowiki_inclusion_depth -1
-        return [:error_in_includelet $arg $(msg)]$ch2
+        return [:error_in_includelet $arg [dict get $path_info msg]]$ch2
       }
-      set adp_fn $(fn)
+      set adp_fn [dict get $path_info fn]
       #
       # check the provided arguments
       #
