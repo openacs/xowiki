@@ -488,7 +488,7 @@ namespace eval ::xowiki::formfield {
       ::xowiki::Includelet require_YUI_JS -ajaxhelper 0 "connection/connection-min.js"
       ::xo::Page requireJS  "/resources/xowiki/yui-form-field-validate.js"
       set package_url [[${:object} package_id] package_url]
-      ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('[:id]','$package_url');"
+      ::xo::Page requireJS  "YAHOO.xo_form_field_validate.add('${:id}','$package_url');"
     }
 
     set booleanAtts [:booleanAttributes required readonly disabled multiple \
@@ -531,7 +531,7 @@ namespace eval ::xowiki::formfield {
         set CSSclass form-label
       }
       ::html::div -class $CSSclass {
-        ::html::label -for [:id] {
+        ::html::label -for ${:id} {
           ::html::t [:label]
         }
         if {[:required] && [:mode] eq "edit"} {
@@ -1821,7 +1821,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
     # Mangle the id to make it compatible with jquery; most probably
     # not optimal and just a temporary solution
-    regsub -all {[.:]} [:id] "" id
+    regsub -all {[.:]} ${:id} "" id
     :id $id
   }
 
@@ -1891,7 +1891,7 @@ namespace eval ::xowiki::formfield {
 
       # In contrary to the doc, ckeditor names instances after the id,
       # not the name.
-      set id [:id]
+      set id ${:id}
       set name ${:name}
       set package_id [${:object} package_id]
       #my extraPlugins {timestamp xowikiimage}
@@ -2010,7 +2010,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
     # Mangle the id to make it compatible with jquery; most probably
     # not optimal and just a temporary solution
-    regsub -all {[.:-]} [:id] "" id
+    regsub -all {[.:-]} ${:id} "" id
     :id $id
   }
 
@@ -2080,10 +2080,10 @@ namespace eval ::xowiki::formfield {
   richtext::ckeditor4 instproc render_input {} {
     set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
     set is_repeat_template [expr {[info exists :is_repeat_template] && ${:is_repeat_template} == "true"}]
-    # :msg "[:id] ${:name} - $is_repeat_template"
+    # :msg "${:id} ${:name} - $is_repeat_template"
 
     if {$is_repeat_template} {
-      set :data-repeat-template-id [:id]
+      set :data-repeat-template-id ${:id}
     }
 
     # if value is empty, we need something to be clickable for display mode inplace
@@ -2095,22 +2095,39 @@ namespace eval ::xowiki::formfield {
       :render_richtext_as_div
     } else {
 
-      security::csp::require script-src 'unsafe-eval'
-      security::csp::require -force script-src 'unsafe-inline'
+      template::head::add_javascript -src "/resources/xowiki/jquery/jquery.min.js"
+      try {
+        #
+        # Try to use the ckeditor from the richtext-ckeditor4
+        # installation. 
+        #
+        ::richtext::ckeditor4::add_editor \
+            -order 90 \
+            -ck_package standard-all \
+            -adapters "jquery.js"
 
-      security::csp::require script-src cdn.ckeditor.com
-      security::csp::require style-src cdn.ckeditor.com
-      security::csp::require img-src cdn.ckeditor.com
+      } trap {TCL LOOKUP COMMAND} {errorMsg} {
+        #
+        # If for whatever reason, richtext-ckeditor4 is not available,
+        # fall back to the CDN. If there are other errors, raise an
+        # exception.
+        #
+        security::csp::require script-src 'unsafe-eval'
+        security::csp::require -force script-src 'unsafe-inline'
 
-      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-      #::xo::Page requireJS "/resources/xowiki/ckeditor4/ckeditor.js"
-      #::xo::Page requireJS "/resources/xowiki/ckeditor4/adapters/jquery.js"
-      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.11/standard-all/ckeditor.js"
-      ::xo::Page requireJS "//cdn.ckeditor.com/4.5.11/standard-all/adapters/jquery.js"
-
-      # In contrary to the doc, ckeditor4 names instances after the id,
-      # not the name.
-      set id [:id]
+        security::csp::require script-src cdn.ckeditor.com
+        security::csp::require style-src cdn.ckeditor.com
+        security::csp::require img-src cdn.ckeditor.com
+        
+        template::head::add_javascript -order 90 -src "//cdn.ckeditor.com/4.8.0/standard-all/ckeditor.js"
+        template::head::add_javascript -order 90.1 -src "//cdn.ckeditor.com/4.8.0/standard-all/adapters/jquery.js"
+      }
+      
+      #
+      # In contrary to the documentation, ckeditor4 names instances
+      # after the id, not the name.
+      #
+      set id ${:id}
       set name ${:name}
       set package_id [${:object} package_id]
       if {${:displayMode} eq "inline"} {
@@ -2294,7 +2311,7 @@ namespace eval ::xowiki::formfield {
           ::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/$plugin/jquery.wymeditor.$plugin.js"
         }
       }
-      regsub -all {[.:]} [:id] {\\\\&} JID
+      regsub -all {[.:]} ${:id} {\\\\&} JID
 
       # possible skins are per in the distribution: "default", "sliver", "minimal" and "twopanels"
       set config [list "skin: '[:skin]'"]
@@ -2410,23 +2427,23 @@ namespace eval ::xowiki::formfield {
         append xinha_options $o(javascript) \n
       }
       set ::acs_blank_master(xinha.options) $xinha_options
-      lappend ::acs_blank_master__htmlareas [:id]
+      lappend ::acs_blank_master__htmlareas ${:id}
 
       if {${:displayMode} eq "inplace"} {
         ::html::div [:get_attributes id name {CSSclass class} disabled] {
           set href \#
-          ::html::a -style "float: right;" -class edit-item-button -href $href -id [:id]-edit {
+          ::html::a -style "float: right;" -class edit-item-button -href $href -id ${:id}-edit {
             ::html::t  -disableOutputEscaping &nbsp;
           }
           template::add_event_listener \
-              -id [:id]-edit \
-              -script [subst {xinha.inplace.openEditor('[:id]');}]
+              -id ${:id}-edit \
+              -script [subst {xinha.inplace.openEditor('${:id}');}]
 
-          ::html::div -id "[:id]__CONTENT__" {
+          ::html::div -id "${:id}__CONTENT__" {
             ::html::t -disableOutputEscaping  [:value]
           }
         }
-        set :hiddenid [:id]__HIDDEN__
+        set :hiddenid ${:id}__HIDDEN__
         set :type hidden
         ::html::input [:get_attributes {hiddenid id} name type value] {}
       } else {
@@ -2560,7 +2577,7 @@ namespace eval ::xowiki::formfield {
       } {
         set name ${:name}
       }
-      set id [:id]:$rep
+      set id ${:id}:$rep
       lappend atts id $id name $name type radio value $rep
       if {$value eq $rep} {
         lappend atts checked checked
@@ -2609,7 +2626,7 @@ namespace eval ::xowiki::formfield {
     set value [:value]
     foreach o [:options] {
       lassign $o label rep
-      set id [:id]:$rep
+      set id ${:id}:$rep
       set atts [:get_attributes disabled]
       lappend atts id $id name ${:name} type checkbox value $rep
       if {$rep in $value} {lappend atts checked checked}
@@ -2720,7 +2737,7 @@ namespace eval ::xowiki::formfield {
         }
         ::html::div -class workarea {
           ::html::h3 { ::html::t "#xowiki.Candidates#"}
-          ::html::ul -id [:id]_candidates -class region {
+          ::html::ul -id ${:id}_candidates -class region {
             #my msg ${:options}
             foreach o ${:options} {
               lassign $o label rep
@@ -3404,7 +3421,7 @@ namespace eval ::xowiki::formfield {
       # create for each component a form field
       #
       set c [::xowiki::formfield::FormField create [self]::$name \
-                 -name ${:name}.$name -id [:id].$name \
+                 -name ${:name}.$name -id ${:id}.$name \
                  -locale [:locale] -object ${:object} \
                  -spec $spec]
       set :component_index(${:name}.$name) $c
@@ -3420,7 +3437,7 @@ namespace eval ::xowiki::formfield {
     lappend :structure $entry
     lassign $entry name spec
     set c [::xowiki::formfield::FormField create [self]::$name \
-               -name ${:name}.$name -id [:id].$name \
+               -name ${:name}.$name -id ${:id}.$name \
                -locale [:locale] -object ${:object} \
                -spec $spec]
     set :component_index(${:name}.$name) $c
@@ -3638,7 +3655,7 @@ namespace eval ::xowiki::formfield {
         #
         set name $element
         set c [::xowiki::formfield::label create [self]::$name \
-                   -name ${:name}.$name -id [:id].$name \
+                   -name ${:name}.$name -id ${:id}.$name \
                    -locale [:locale] -object ${:object} \
                    -value $element]
         $c set_disabled 1; # this is a dummy field, never query for its value
@@ -3651,7 +3668,7 @@ namespace eval ::xowiki::formfield {
       #
       set name $class
       set c [::xowiki::formfield::$class create [self]::$name \
-                 -name ${:name}.$name -id [:id].$name \
+                 -name ${:name}.$name -id ${:id}.$name \
                  -locale [:locale] -object ${:object}]
       #my msg "creating ${:name}.$name"
       $c set_disabled [info exists :disabled]
