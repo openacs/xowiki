@@ -339,8 +339,8 @@ namespace eval ::YUI {
         # Drag & Drop Utility, Animation Utility, YUI Loader and the Get Utility.
         # Use this file to reduce HTTP requests whenever you are including more
         # than three of its constituent components.
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} "yahoo-dom-event/yahoo-dom-event.js"
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} "utilities/utilities.js"
+        ::xo::Page requireJS urn:ad:js:yui2:yahoo-dom-event/yahoo-dom-event
+        ::xo::Page requireJS urn:ad:js:yui2:utilities/utilities
       }
       menubar {
         #
@@ -358,78 +358,76 @@ namespace eval ::YUI {
         :require -module "utilities"
         # todo : this is more than necessary
         foreach jsFile {
-          "container/container-min.js"
-          "treeview/treeview-min.js"
-          "button/button-min.js"
-          "menu/menu-min.js"
-          "datasource/datasource-min.js"
-          "autocomplete/autocomplete-min.js"
-          "datatable/datatable-min.js"
-          "selector/selector-min.js"
+          container/container-min
+          treeview/treeview-min
+          button/button-min
+          menu/menu-min
+          datasource/datasource-min
+          autocomplete/autocomplete-min
+          datatable/datatable-min
+          selector/selector-min
         } {
-          ::xowiki::Includelet require_YUI_JS -ajaxhelper ${:ajaxhelper} $jsFile
+          ::xo::Page requireJS urn:ad:js:yui2:$jsFile
         }
 
         :require -module "reset-fonts-grids"
         :require -module "base"
 
         foreach cssFile {
-          "container/assets/container.css"
-          "datatable/assets/skins/sam/datatable.css"
-          "button/assets/skins/sam/button.css"
-          "assets/skins/sam/skin.css"
-          "menu/assets/skins/sam/menu.css"
+          container/assets/container
+          datatable/assets/skins/sam/datatable
+          button/assets/skins/sam/button
+          assets/skins/sam/skin
+          menu/assets/skins/sam/menu
+          treeview/assets/folders/tree
         } {
-          ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} $cssFile
+          ::xo::Page requireCSS urn:ad:css:yui2:$cssFile
         }
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/folders/tree.css"
       }
       datatable {
         # see comment above
         :require -module "utilities"
         # todo : this is more than necessary
         foreach jsFile {
-          "container/container-min.js"
-          "treeview/treeview-min.js"
-          "button/button-min.js"
-          "menu/menu-min.js"
-          "datasource/datasource-min.js"
-          "autocomplete/autocomplete-min.js"
-          "datatable/datatable-min.js"
-          "selector/selector-min.js"
+          container/container-min
+          treeview/treeview-min
+          button/button-min
+          menu/menu-min
+          datasource/datasource-min
+          autocomplete/autocomplete-min
+          datatable/datatable-min
+          selector/selector-min
         } {
-          ::xowiki::Includelet require_YUI_JS -version "2.7.0b" -ajaxhelper ${:ajaxhelper} $jsFile
+          ::xo::Page requireJS urn:ad:js:yui2:$jsFile
         }
 
         :require -module "reset-fonts-grids"
         :require -module "base"
 
         foreach cssFile {
-          "container/assets/container.css"
-          "datatable/assets/skins/sam/datatable.css"
-          "button/assets/skins/sam/button.css"
-          "assets/skins/sam/skin.css"
-          "menu/assets/skins/sam/menu.css"
+          container/assets/container
+          datatable/assets/skins/sam/datatable
+          button/assets/skins/sam/button
+          assets/skins/sam/skin
+          menu/assets/skins/sam/menu
         } {
-          ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} $cssFile
+          ::xo::Page requireCSS urn:ad:css:yui2:$cssFile
         }
-        #::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/skins/sam/treeview.css"
-        #::xowiki::Includelet require_YUI_CSS -ajaxhelper 1 "treeview/assets/folders/tree.css"
       }
       reset {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "reset/reset.css"
+        ::xo::Page requireCSS urn:ad:css:yui2:reset/reset
       }
       fonts {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "fonts/fonts.css"
+        ::xo::Page requireCSS urn:ad:css:yui2:fonts/fonts-min
       }
       grids {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "grids/grids.css"
+        ::xo::Page requireCSS urn:ad:css:yui2:grids/grids
       }
       base {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "base/base.css"
+        ::xo::Page requireCSS urn:ad:css:yui2:base/base
       }
       "reset-fonts-grids" {
-        ::xowiki::Includelet require_YUI_CSS -ajaxhelper ${:ajaxhelper} "reset-fonts-grids/reset-fonts-grids.css"
+        ::xo::Page requireCSS urn:ad:css:yui2:reset-fonts-grids/reset-fonts-grids
       }
     }
   }

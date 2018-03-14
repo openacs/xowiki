@@ -1401,7 +1401,7 @@ namespace eval ::xowiki::includelet {
   
   my-tags instproc render {} {
     :get_parameters
-    ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
+    ::xo::Page requireJS urn:ad:js:get-http-object
     
     set p_link [${:__including_page} pretty_link]
     set return_url [::xo::cc url]?[::xo::cc actual_query]
@@ -1425,7 +1425,7 @@ namespace eval ::xowiki::includelet {
       set :id [::xowiki::Includelet html_id [self]]
     }
     set content [subst {
-      #xowiki.your_tags_label#: $tags_with_links
+      <span class='your-tags'>#xowiki.your_tags_label#: $tags_with_links</span>
       (<a id='${:id}-edit-tags-control' href='.'>#xowiki.edit_link#</a>,
        <a id='${:id}-popular-tags-control' href='.'>#xowiki.popular_tags_link#</a>)
       <form id='${:id}-edit_tags' style='display: none' action="[ns_quotehtml $save_tag_link]" method='POST'>
@@ -2707,7 +2707,7 @@ namespace eval ::xowiki::includelet {
         <li>[join [:render_images $pages] "</li>\n<li>"]</li> \
         "</ul></div>\n"
 
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     ::xo::Page requireJS "/resources/xowiki/jquery.carousel.min.js"
     ::xo::Page requireJS [subst -novariables {
       $(function(){
@@ -2760,7 +2760,7 @@ namespace eval ::xowiki::includelet {
         <li>[join [:render_images $pages] "</li>\n<li>"]</li> \
         "</ul></div>\n"
 
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     ::xo::Page requireJS "/resources/xowiki/infiniteCarousel/jquery.infinitecarousel2.min.js"
     ::xo::Page requireJS [subst -novariables {
       $(function(){
@@ -2820,7 +2820,7 @@ namespace eval ::xowiki::includelet {
         "</div>\n"
 
     ::xo::Page requireStyle "div.jquery-cloud-carousel div {width:650px; height:400px;background:#000;}"
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     ::xo::Page requireJS "/resources/xowiki/jquery.mousewheel.min.js"
     ::xo::Page requireJS "/resources/xowiki/cloud-carousel.1.0.5.min.js"
 
@@ -2898,7 +2898,7 @@ namespace eval ::xowiki::includelet {
 
     ::xo::Page requireStyle "div.spacegallery {width:600px; height:450px;}"
     ::xo::Page requireCSS "/resources/xowiki/spacegallery/spacegallery.css"
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     ::xo::Page requireJS "/resources/xowiki/spacegallery/js/eye.js"
     ::xo::Page requireJS "/resources/xowiki/spacegallery/js/utils.js"
     ::xo::Page requireJS "/resources/xowiki/spacegallery/js/spacegallery.js"
@@ -3653,7 +3653,7 @@ namespace eval ::xowiki::includelet {
   #
   ::xotcl::Class highcharts -parameter {title id}
   highcharts instproc pie {names data} {
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     ::xo::Page requireJS "/resources/xowiki/highcharts/js/highcharts.js"
     ::xo::Page requireJS "/resources/xowiki/highcharts/js/themes/gray.js"
     set result "<div id='[:id]' style='width: 100%; height: 400px'></div>\n"

@@ -311,23 +311,23 @@ namespace eval ::xowiki {
       -li_expanded_atts [list "class='expanded'" ""]
 
   TreeRenderer=yuitree proc include_head_entries {{-style ""} {-ajax 1} args} {
-    set ajaxhelper 1
-    ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper "fonts/fonts-min.css"
-    ::xowiki::Includelet require_YUI_CSS -ajaxhelper $ajaxhelper \
-        "treeview/assets/skins/sam/treeview.css"
+    ::xo::Page requireCSS urn:ad:css:yui2:fonts/fonts-min
+    ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/skins/sam/treeview
     if {$style ne ""} {
       # yuitree default css style files are in the assets directory
-      if {$style eq "yuitree"} {set style ""}
-      ::xo::Page requireCSS "/resources/ajaxhelper/yui/treeview/assets/$style/tree.css"
+      if {$style eq "yuitree"} {
+        ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/tree
+      } else {
+        ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/$style/tree
+      }
     }
-
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "yahoo-dom-event/yahoo-dom-event.js"
+    ::xo::Page requireJS urn:ad:js:yui2:yahoo-dom-event/yahoo-dom-event
 
     if {$ajax} {
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "connection/connection-min.js"
-      ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "animation/animation-min.js"   ;# ANIM
+      ::xo::Page requireJS urn:ad:js:yui2:connection/connection-min
+      ::xo::Page requireJS urn:ad:js:yui2:animation/animation-min
     }
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "treeview/treeview-min.js"
+    ::xo::Page requireJS urn:ad:js:yui2:treeview/treeview-min
   }
   TreeRenderer=yuitree proc render {tree} {
     return "<div id='[$tree id]'><ul>[next]</ul></div>"
@@ -344,9 +344,9 @@ namespace eval ::xowiki {
 
   TreeRenderer=listdnd proc include_head_entries {args} {
     set ajaxhelper 0
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-    ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-    ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+    ::xo::Page requireJS urn:ad:js:yui2:utilities/utilities
+    ::xo::Page requireJS urn:ad:js:yui2:selector/selector-min
+    ::xo::Page requireJS "/resources/xowiki/yui-page-order-region.js"
   }
   TreeRenderer=listdnd proc render {tree} {
     array set "" ${:context}

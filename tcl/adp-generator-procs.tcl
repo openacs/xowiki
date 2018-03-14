@@ -28,7 +28,7 @@ namespace eval ::xowiki {
                   <if @item_id@ not nil><property name="displayed_object_id">@item_id;literal@</property></if>
                   <property name="&body">body</property>
                   <property name="&doc">doc</property>
-                  <property name="head">[:extra_header_stuff]@header_stuff;literal@</property>}]\n
+                  <property name="head">[:extra_header_stuff]</property>}]\n
   }
 
   ADP_Generator instproc wikicmds_part {} {
@@ -446,7 +446,7 @@ if {$book_next_link ne ""} {
 
                       <div id='book-page'>
                       <include src="view-page" &="package_id"
-                      &="references" &="name" &="title" &="item_id" &="page" &="context" &="header_stuff" &="return_url"
+                      &="references" &="name" &="title" &="item_id" &="page" &="context" &="return_url"
                       &="content" &="references" &="lang_links" &="package_id"
                       &="rev_link" &="edit_link" &="delete_link" &="new_link" &="admin_link" &="index_link"
                       &="tags" &="no_tags" &="tags_with_links" &="save_tag_link" &="popular_tags_link"

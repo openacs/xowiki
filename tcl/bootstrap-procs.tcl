@@ -31,9 +31,7 @@ namespace eval ::xowiki {
       }
   
   BootstrapNavbar instproc init {} {
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-    set css [parameter::get_global_value -package_key xowiki -parameter BootstrapCSS] 
-    set js  [parameter::get_global_value -package_key xowiki -parameter BootstrapJS]
+    ::xo::Page requireJS urn:ad:js:jquery
     #
     # TODO: We should dynamically be able to determine (some of) the
     # CSP directives. However, for the time being, the urls below are
@@ -43,8 +41,8 @@ namespace eval ::xowiki {
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
     
-    foreach url $css {::xo::Page requireCSS $url}
-    foreach url $js  {::xo::Page requireJS  $url}
+    ::xo::Page requireCSS urn:ad:css:bootstrap3
+    ::xo::Page requireJS  urn:ad:js:bootstrap3
     next
   }
 
@@ -482,12 +480,12 @@ namespace eval ::xo::Table {
   }
 
   BootstrapTableRenderer instproc render {} {
-    ::xo::Page requireCSS "//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+    ::xo::Page requireCSS urn:ad:css:bootstrap3
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
     
-    if {![:isobject [self]::__actions]} {my actions {}}
-    if {![:isobject [self]::__bulkactions]} {my __bulkactions {}}
+    if {![:isobject [self]::__actions]} {:actions {}}
+    if {![:isobject [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
@@ -498,11 +496,11 @@ namespace eval ::xo::Table {
       html::div -id ${:id}_wrapper -class "table-responsive" {
         html::form -name $name -id $name -method POST { 
           html::div -id ${:id}_container {
-            html::table -id ${:id} -class [:set css.table-class] {
-              my render-actions
-              my render-body
+            html::table -id ${:id} -class ${:css.table-class} {
+              :render-actions
+              :render-body
             }
-            if {[llength $bulkactions]>0} { my render-bulkactions }
+            if {[llength $bulkactions]>0} { :render-bulkactions }
           }
         }
       }
@@ -510,11 +508,11 @@ namespace eval ::xo::Table {
       #nesting forms inside a xowf page will place the action buttons at the wrong place!
       html::div -id ${:id}_wrapper -class "table-responsive" {
         html::div -id ${:id}_container {
-          html::table -id ${:id} -class [:set css.table-class] {
-            my render-actions
-            my render-body
+          html::table -id ${:id} -class ${:css.table-class} {
+            :render-actions
+            :render-body
           }
-          if {[llength $bulkactions]>0} { my render-bulkactions }
+          if {[llength $bulkactions]>0} { :render-bulkactions }
         }
       }
     }

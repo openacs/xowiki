@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="5.10.0d5" url="http://openacs.org/repository/download/apm/xowiki-5.10.0d5.apm">
+    <version name="5.10.0d6" url="http://openacs.org/repository/download/apm/xowiki-5.10.0d6.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
         <release-date>2017-08-06</release-date>
@@ -55,11 +55,11 @@ Some features:
         <license>BSD-Style</license>
         <maturity>2</maturity>
 
-        <provides url="xowiki" version="5.10.0d5"/>
+        <provides url="xowiki" version="5.10.0d6"/>
         <requires url="acs-datetime" version="5.9.1"/>
         <requires url="acs-kernel" version="5.9.1"/>
 	<requires url="acs-tcl" version="5.10.0d2"/>
-	<requires url="acs-templating" version="5.9.1"/>
+	<requires url="acs-templating" version="5.10.0d5"/>
         <requires url="acs-subsite" version="5.9.1"/>
 	<requires url="richtext-ckeditor4" version="0.16"/>
         <requires url="categories" version="1.1.3"/>
@@ -74,8 +74,6 @@ Some features:
             <callback type="after-upgrade"  proc="::xowiki::upgrade_callback"/>
         </callbacks>
         <parameters>
-            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapCSS"  default="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" description="One or more CSS files for loading bootstrap (e.g. //maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css)"/>
-            <parameter scope="global" datatype="text"  min_n_values="1"  max_n_values="1"  name="BootstrapJS"  default="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" description="One or more urls for loading bootstrap javascript (e.g. //maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js)"/>
             <parameter scope="global" datatype="number"  min_n_values="1"  max_n_values="1"  name="CacheSize"  default="400000" description="Size of the xowiki_cache"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBar"  default="0" description="Activate experimental menubar stuff"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="MenuBarSymLinks"  default="0" description="Activate experimental menubar stuff"/>	    

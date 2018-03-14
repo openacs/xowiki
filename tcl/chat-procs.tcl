@@ -97,7 +97,7 @@ namespace eval ::xowiki {
     }
 
     # small javascript library to obtain a portable ajax request object
-    ::xo::Page requireJS "/resources/xowiki/get-http-object.js"
+    ::xo::Page requireJS urn:ad:js:get-http-object
 
     switch -- $mode {
       polling {

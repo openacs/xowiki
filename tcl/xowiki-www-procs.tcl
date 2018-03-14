@@ -396,7 +396,8 @@ namespace eval ::xowiki {
     if {$compare_id == 0} {
       return ""
     }
-    ::xo::Page requireCSS /resources/xowiki/xowiki.css
+    ::xo::Page requireCSS urn:ad:css:xowiki
+
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
     $my_page volatile
 
@@ -439,10 +440,10 @@ namespace eval ::xowiki {
 
     ::xo::Page set_property doc title $title
     array set property_doc [::xo::Page get_property doc]
-    set header_stuff [::xo::Page header_stuff]
+    ::xo::Page header_stuff
 
     ${:package_id} return_page -adp /packages/xowiki/www/diff -variables {
-      content title context header_stuff
+      content title context
       time1 time2 user1 user2 revision_id1 revision_id2 property_doc
     }
   }
@@ -1206,7 +1207,7 @@ namespace eval ::xowiki {
                set label [ns_quotehtml "$tag ($nr)"]
                lappend entries "<a href='[ns_quotehtml $href&ptag=[ad_urlencode $tag]]'>$label</a>"
              }
-    ns_return 200 text/html "[_ xowiki.popular_tags_label]: [join $entries {, }]"
+    ns_return 200 text/html "<span class='popular-tags'>[_ xowiki.popular_tags_label]: [join $entries {, }]</span>"
   }
 
   #
@@ -1538,12 +1539,12 @@ namespace eval ::xowiki {
       # }
 
       #:log "--after context delete_link=$delete_link "
-      #$context_package_id instvar folder_id  ;# this is the root folder
-      #set template [$folder_id get_payload template]
       set template [$context_package_id get_parameter "template" ""]
       set page [self]
 
-      foreach css [$context_package_id get_parameter extra_css ""] {::xo::Page requireCSS -order 10 $css}
+      foreach css [$context_package_id get_parameter extra_css ""] {
+        ::xo::Page requireCSS -order 10 $css
+      }
       # refetch template_file, since it might have been changed via set-parameter
       # the cache flush (next line) is not pretty here and should be supported from xotcl-core
       ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
@@ -1554,7 +1555,6 @@ namespace eval ::xowiki {
       # standard location
       #
       if {![regexp {^[./]} $template_file]} {
-        #set template_file /packages/xowiki/www/$template_file
         set template_file [${:package_id} get_adp_template $template_file]
       }
 
@@ -1563,7 +1563,7 @@ namespace eval ::xowiki {
       # a. adp_compile/ adp_eval
       # b. return_page/ adp_include
       #
-      ::xo::Page requireCSS /resources/xowiki/xowiki.css
+      ::xo::Page requireCSS urn:ad:css:xowiki
       if {$footer ne ""} {
         template::add_body_script -script {
           function get_popular_tags(popular_tags_link, prefix) {
@@ -1584,8 +1584,14 @@ namespace eval ::xowiki {
           }
         }
       }
-      set header_stuff [::xo::Page header_stuff]
-      #:log "HEADER STUFF <$header_stuff>"
+
+      #
+      # The method header_stuff performs the requried
+      # template::head::add_script and template::head::add_css
+      # etc. operations
+      #
+      ::xo::Page header_stuff
+      
       if {![info exists :description]} {
         set :description [:get_description $content]
       }
@@ -1652,7 +1658,7 @@ namespace eval ::xowiki {
         set name       ${:name}
         set item_id    ${:item_id}
         $context_package_id return_page -adp $template_file -variables {
-          name title item_id context header_stuff return_url
+          name title item_id context return_url
           content footer package_id page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image 

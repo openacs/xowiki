@@ -73,8 +73,7 @@ namespace eval ::xowiki::formfield {
   }
   repeatContainer instproc initialize {} {
     ::xo::Page requireJS "/resources/xowiki/repeat.js"
-    ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
-    #::xo::Page requireJS "/resources/ajaxhelper/jquery/jquery-1.11.1.min.js"
+    ::xo::Page requireJS urn:ad:js:jquery
     
     if {[info exists :__initialized_repeat]} {return}
     next

@@ -575,7 +575,7 @@ namespace eval ::xowiki {
     return 0
   }
   ::xowiki::Link::glossary instproc render_found {href label} {
-    ::xo::Page requireJS  "/resources/xowiki/get-http-object.js"
+    ::xo::Page requireJS urn:ad:js:get-http-object
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
     if {![info exists :cssid]} {my cssid [::xowiki::Includelet html_id [self]]}

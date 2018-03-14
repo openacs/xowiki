@@ -1882,7 +1882,7 @@ namespace eval ::xowiki::formfield {
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
       :render_richtext_as_div
     } else {
-      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+      ::xo::Page requireJS urn:ad:js:jquery
       ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor_source.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
@@ -2095,7 +2095,7 @@ namespace eval ::xowiki::formfield {
       :render_richtext_as_div
     } else {
 
-      template::head::add_javascript -src "/resources/xowiki/jquery/jquery.min.js"
+      template::head::add_javascript -src urn:ad:js:jquery
       try {
         #
         # Try to use the ckeditor from the richtext-ckeditor4
@@ -2294,7 +2294,7 @@ namespace eval ::xowiki::formfield {
       :render_richtext_as_div
     } else {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
-      ::xo::Page requireJS "/resources/xowiki/jquery/jquery.min.js"
+      ::xo::Page requireJS urn:ad:js:jquery
       ::xo::Page requireJS  "/resources/xowiki/wymeditor/jquery.wymeditor.pack.js"
       set postinit ""
       foreach plugin {hovertools resizable fullscreen embed} {
