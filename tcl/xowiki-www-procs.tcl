@@ -1586,7 +1586,7 @@ namespace eval ::xowiki {
       }
 
       #
-      # The method header_stuff performs the requried
+      # The method header_stuff performs the required
       # template::head::add_script and template::head::add_css
       # etc. operations
       #

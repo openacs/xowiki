@@ -42,8 +42,8 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       #
       # The function ad_html_text_convert can take forever on largish
       # files, when e.g. someone loads a huge plain/text file into an
-      # xowiki file. so, when available, use "ns_striphtml", which
-      # might produce a less beautiful rendering, but wich is
+      # xowiki file. So, when available, use "ns_striphtml", which
+      # might produce a less beautiful rendering, but this is
       # irrelevant for search.
       #
       if {[info commands ns_striphtml] ne ""} {
