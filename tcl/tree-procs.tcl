@@ -206,17 +206,18 @@ namespace eval ::xowiki {
   #   - render_node {{-open:boolean false} cat_content}
   #   - render_item {{-highlight:boolean false} item}
   #
-  # The last two methods are required.
+  # The last two methods are required.  Below are the currently
+  # defined tree renderers. We use as naming convention
+  # TreeRenderer=<style>.
 
-  # Below are the currently defined tree renderers. We use as naming
-  # convention TreeRenderer=<style>.
-  #
+  #--------------------------------------------------------------------------------
   # List-specific renderer
   # 
   # This is a very common render that maps the tree structure into an
   # unordered HTML list. The rendered is specialized by e.g. the
   # mktree an yuitree render below.
-  #
+  #--------------------------------------------------------------------------------  
+
   TreeRenderer create TreeRenderer=list 
   TreeRenderer=list proc include_head_entries {args} {
     # In the general case, we have nothing to include.  more
@@ -271,9 +272,9 @@ namespace eval ::xowiki {
     return "<li $o_atts><span $h_atts>[:prefix] $entry</span>$content"
   }
   
-  #
+  #--------------------------------------------------------------------------------
   # List-specific renderer based on mktree
-  #
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=mktree \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='liOpen'" "class='liClosed'"]
@@ -287,9 +288,9 @@ namespace eval ::xowiki {
     return "<ul class='mktree' id='[$tree id]'>[next]</ul>"
   }
 
-  #
+  #--------------------------------------------------------------------------------
   # List-specific renderer based for some menus
-  #
+  #--------------------------------------------------------------------------------  
   TreeRenderer create TreeRenderer=samplemenu \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='menu-open'" "class='menu-closed'"] \
@@ -302,10 +303,9 @@ namespace eval ::xowiki {
     return "<ul class='menu' id='[$tree id]'>[next]</ul>"
   }
 
-  #
+  #--------------------------------------------------------------------------------
   # List-specific renderer based on yuitree
-  #
-
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=yuitree \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='expanded'" ""]
@@ -334,10 +334,9 @@ namespace eval ::xowiki {
   }
 
 
-  #
+  #--------------------------------------------------------------------------------
   # list-specific render with YUI drag and drop functionality
-  #
-
+  #--------------------------------------------------------------------------------  
   TreeRenderer create TreeRenderer=listdnd \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "" ""]
@@ -375,9 +374,9 @@ namespace eval ::xowiki {
     return [next]
   }
 
-  #
-  # a tree rendere based on a section structure
-  #
+  #--------------------------------------------------------------------------------
+  # Tree renderer based on a section structure
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=sections \
       -superclass TreeRenderer=list 
   TreeRenderer=sections instproc render_item {{-highlight:boolean false} item} {
@@ -401,6 +400,83 @@ namespace eval ::xowiki {
        <div style='margin-left: 2em; margin-right:0px;'>$cat_content</div>\n"
   }
 
+  #--------------------------------------------------------------------------------
+  # Bootstrap tree renderer based on
+  # http://jonmiles.github.io/bootstrap-treeview/
+  #--------------------------------------------------------------------------------  
+
+  TreeRenderer create TreeRenderer=bootstrap3
+  TreeRenderer=bootstrap3 proc include_head_entries {args} {
+    ::xo::Page requireJS urn:ad:js:jquery
+    ::xo::Page requireCSS urn:ad:css:bootstrap3-treeview
+    ::xo::Page requireJS  urn:ad:js:bootstrap3-treeview
+    security::csp::require style-src cdnjs.cloudflare.com
+    security::csp::require script-src cdnjs.cloudflare.com
+  }
+
+  TreeRenderer=bootstrap3 proc render {tree} {
+    set jsTree [string trimright [next] ", \n"]
+    set id [$tree id]
+    set options ""
+    lappend options \
+        "enableLinks: true"
+    template::add_body_script -script "\n\$('#$id').treeview({data: \[$jsTree\], [join $options ,] });"
+    return "<div id='$id'></div>"
+  }
+  TreeRenderer=bootstrap3 instproc render_href {href} {
+    if {${:href} ne ""} {
+      set jsHref "href: '[::xowiki::Includelet js_encode $href]',"
+    } else {
+      set jsHref ""
+    }
+    return $jsHref
+  }
+  TreeRenderer=bootstrap3 instproc render_item {{-highlight:boolean false} item} {
+    :log "======UNTESTED============ highlight $highlight item $item"
+    $item instvar title href prefix suffix
+    set label  [::xowiki::Includelet js_encode "$prefix$title$suffix"]
+    set jsHref [:render_href ${href}]
+    set selected [expr {$highlight ? "true" : "false"}]
+    return "\n{text: '${label}', $jsHref state: {selected: $selected}},"
+  }
+  TreeRenderer=bootstrap3 instproc render_node {{-open:boolean false} cat_content} {
+    #:log "open $open cat_content $cat_content"
+
+    if {[info exists :count]} {
+      set jsTags "tags: \['${:count}'\],"
+    } else {
+      set jsTags ""
+    }
+    set jsHref [:render_href ${:href}]
+    if {$cat_content ne ""} {
+      set cat_content [string trimright $cat_content ", \n"]
+      set content ", \nnodes: \[$cat_content\]\n"
+    } else {
+      set content ""
+    }
+    set label [::xowiki::Includelet js_encode ${:label}]
+    set expanded [expr {${:expanded} ? "true" : "false"}]
+    set selected [expr {${:highlight} ? "true" : "false"}]
+    return "\n{text: '${label}', $jsTags $jsHref state: {expanded: $expanded, selected: $selected} $content},"
+  }
+
+  #--------------------------------------------------------------------------------
+  # Bootstrap3 tree renderer with folder structure
+  #--------------------------------------------------------------------------------  
+  TreeRenderer create TreeRenderer=bootstrap3-folders -superclass TreeRenderer=bootstrap3
+  TreeRenderer=bootstrap3-folders proc render {tree} {
+    set jsTree [string trimright [next] ", \n"]
+    set id [$tree id]
+    set options ""
+    lappend options \
+        "expandIcon: 'glyphicon glyphicon-folder-close'" \
+        "collapseIcon: 'glyphicon glyphicon-folder-open'" \
+        "enableLinks: true"
+    template::add_body_script -script "\n\$('#$id').treeview({data: \[$jsTree\], [join $options ,] });"
+    return "<div id='$id'></div>"
+  }
+
+  
 }
 ::xo::library source_dependent 
 

@@ -35,24 +35,39 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    ::xowiki::Tree include_head_entries -renderer yuitree -style folders
+    switch [${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+      yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
+      bootstrap -
+      default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
+    }
   }
 
   folders instproc render {} {
     :get_parameters
-    set js "
-      var [:js_name];
-      YAHOO.util.Event.onDOMReady(function() {
-         [:js_name] = new YAHOO.widget.TreeView('foldertree_[:id]'); 
-         [:js_name].subscribe('clickEvent',function(oArgs) { 
-            var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
-            return false;
-          });
-         [:js_name].render();
-      });
-     "
+ 
     set tree [:build_tree]
-    return [$tree render -style yuitree -js $js]
+    switch [${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+      yui {
+           set js "
+           var [:js_name];
+           YAHOO.util.Event.onDOMReady(function() {
+             [:js_name] = new YAHOO.widget.TreeView('foldertree_[:id]'); 
+             [:js_name].subscribe('clickEvent',function(oArgs) { 
+               var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
+               return false;
+             });
+             [:js_name].render();
+           });
+           "
+        set HTML [$tree render -style yuitree -js $js]
+      }
+      bootstrap -
+      default   {
+        set HTML [$tree render -style bootstrap3-folders]
+      }
+    }
+    #:log HTML=$HTML
+    return $HTML
   }
 
   folders instproc folder_query {
