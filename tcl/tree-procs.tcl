@@ -40,7 +40,9 @@ namespace eval ::xowiki {
   #
   Tree instproc init {} {
     # If there is no id specified, use the name as id.
-    if {![info exists :id]} {my id [:name]}
+    if {![info exists :id]} {
+      set :id ${:name}
+    }
   }
 
   Tree instproc add_item {
@@ -155,7 +157,7 @@ namespace eval ::xowiki {
       }
       foreach c [:children] {append cat_content [$c render] \n}
       append content [:render_node -open [expr {[:open_requests]>0}] $cat_content]
-    } elseif {[:open_requests]>0 || [:some_child_has_items]} {
+    } elseif {${:open_requests} > 0 || [:some_child_has_items]} {
       set cat_content ""
       foreach c [:children] {append cat_content [$c render] \n}
       append content [:render_node -open true $cat_content]
@@ -241,10 +243,10 @@ namespace eval ::xowiki {
     }
   }
   TreeRenderer=list instproc render_node {{-open:boolean false} cat_content} {
-    #my msg "[:label] [:expanded]"
+    #:msg "[:label] [:expanded]"
     set cl [lindex [:info precedence] 0]
-    set o_atts [lindex [$cl li_expanded_atts] [expr {[:expanded] ? 0 : 1}]]
-    set h_atts [lindex [$cl highlight_atts] [expr {[:highlight] ? 0 : 1}]]
+    set o_atts [lindex [$cl li_expanded_atts] [expr {${:expanded} ? 0 : 1}]]
+    set h_atts [lindex [$cl highlight_atts] [expr {${:highlight} ? 0 : 1}]]
     set u_atts ""
 
     if {[info exists :li_id]} {append o_atts " id='${:li_id}'"}
@@ -255,10 +257,10 @@ namespace eval ::xowiki {
     if {[info exists :count]} {
       set entry "$label <a href='[ns_quotehtml [:href]]'>([:count])</a>"
     } else {
-      if {[:href] ne ""} {
+      if {${:href} ne ""} {
         set entry "<a href='[ns_quotehtml [:href]]'>[ns_quotehtml $label]</a>"
       } else {
-        set entry [:label]
+        set entry ${:label}
       }
     }
     if {$cat_content ne ""} {
@@ -269,7 +271,7 @@ namespace eval ::xowiki {
     } else {
       set content ""
     }
-    return "<li $o_atts><span $h_atts>[:prefix] $entry</span>$content"
+    return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content"
   }
   
   #--------------------------------------------------------------------------------
@@ -357,19 +359,19 @@ namespace eval ::xowiki {
     return "<div id='[$tree id]'><ul class='$css_class'>\n[next]</ul></div>"
   }
   TreeRenderer=listdnd instproc render_node {{-open:boolean false} cat_content} {
-    #set open_state [expr {[:open_requests]>0?"class='liOpen'" : "class='liClosed'"}]
+    #set open_state [expr {${:open_requests} > 0 ?"class='liOpen'" : "class='liClosed'"}]
     #set cl [lindex [:info precedence] 0]
     set obj [:object]
     set o [:owner]
     $obj instvar page_order
     set :li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
-    set :ul_id [::xowiki::Includelet js_name [$o set id]__l[:level]_$page_order]
+    set :ul_id [::xowiki::Includelet js_name [$o set id]__l${:level}_$page_order]
 
     set cl [self class]
     $cl append js "\nYAHOO.xo_page_order_region.DDApp.cd\['${:li_id}'\] = '$page_order';"
 
     array set "" [$cl set context]
-    set :ul_class [expr {[info exists (min_level)] && [:level] >= $(min_level) ?
+    set :ul_class [expr {[info exists (min_level)] && ${:level} >= $(min_level) ?
                            "page_order_region" : "page_order_region_no_target"}]
     return [next]
   }
@@ -394,8 +396,8 @@ namespace eval ::xowiki {
     }
   }
   TreeRenderer=sections instproc render_node {{-open:boolean false} cat_content} {
-    set section [expr {[:level] + 2}]
-    set label [::xowiki::Includelet html_encode [:label]]
+    set section [expr {${:level} + 2}]
+    set label [::xowiki::Includelet html_encode ${:label}]
     return "<h$section>$label</h$section>\n<p>\
        <div style='margin-left: 2em; margin-right:0px;'>$cat_content</div>\n"
   }
@@ -435,9 +437,9 @@ namespace eval ::xowiki {
     :log "======UNTESTED============ highlight $highlight item $item"
     $item instvar title href prefix suffix
     set label  [::xowiki::Includelet js_encode "$prefix$title$suffix"]
-    set jsHref [:render_href ${href}]
+    set jsHref [:render_href $href]
     set selected [expr {$highlight ? "true" : "false"}]
-    return "\n{text: '${label}', $jsHref state: {selected: $selected}},"
+    return "\n{text: '$label', $jsHref state: {selected: $selected}},"
   }
   TreeRenderer=bootstrap3 instproc render_node {{-open:boolean false} cat_content} {
     #:log "open $open cat_content $cat_content"
