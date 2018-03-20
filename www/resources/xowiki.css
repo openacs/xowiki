@@ -395,6 +395,9 @@ div.xowiki-content div.book ul.page_order_region_no_target {
     padding: 0;
 }
 
+div.xowiki-content div.toc ul {                            
+    padding: 8px;
+}
 div.xowiki-content div.toc ul.page_order_region_no_target { 
     list-style: none;
     margin: 0px 1em;
