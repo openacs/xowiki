@@ -1497,7 +1497,7 @@ namespace eval ::xowiki {
 
     # Deal with the views package (many thanks to Malte for this snippet!)
     if {[$context_package_id get_parameter with_views_package_if_available 1] 
-        && [apm_package_installed_p "views"]} {
+        && [info commands ::views::record_view] ne ""} {
       views::record_view -object_id ${:item_id} -viewer_id [::xo::cc user_id]
       array set views_data [views::get -object_id ${:item_id}]
     }
