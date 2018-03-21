@@ -1096,7 +1096,7 @@ namespace eval ::xowiki {
       error "two arguments for match required, [llength $value] passed (arguments='$value')"
     }
     ad_try {
-      set success [string match [lindex $value 1] [:set [lindex $value 0]]]
+      set success [string match [lindex $value 1] [set :[lindex $value 0]]]
     } on error {errorMsg} {
       ns_log error "error during condition match: $errorMsg"
       set success 0
@@ -1124,7 +1124,7 @@ namespace eval ::xowiki {
       error "two arguments for regexp required, [llength $value] passed (arguments='$value')"
     }
     ad_try {
-      set success [regexp [lindex $value 1] [:set [lindex $value 0]]]
+      set success [regexp [lindex $value 1] [set :[lindex $value 0]]]
     } on error {errorMsg} {
       ns_log error "error during condition regexp: $errorMsg"
       set success 0
@@ -3494,7 +3494,7 @@ namespace eval ::xowiki {
   }
 
   #FormPage instproc save args {
-  #  :debug_msg [:set instance attributes]
+  #  :debug_msg [set :instance attributes]
   #  :log "IA=${:instance_attributes}"
   #  next
   #}
@@ -3851,7 +3851,7 @@ namespace eval ::xowiki {
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
             if {[info exists :$lhs_var]} {
-              set lhs_var "\[:set $lhs_var\]"
+              set lhs_var "\[set :$lhs_var\]"
               lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
             } else {
               :msg "ignoring unknown variable $lhs_var in expression"

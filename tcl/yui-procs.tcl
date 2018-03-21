@@ -541,7 +541,7 @@ namespace eval ::xo::Table {
     set children [:children]
     html::tbody {
       foreach line [:children] {
-        html::tr -class [expr {[incr :__rowcount]%2 ? [:set css.tr.odd-class] : [:set css.tr.even-class] }] {
+        html::tr -class [expr {[incr :__rowcount]%2 ? ${:css.tr.odd-class} : ${:css.tr.even-class} }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             html::td  [concat [list class list] [$field html]] { 
@@ -555,20 +555,20 @@ namespace eval ::xo::Table {
 
   YUIDataTableRenderer instproc render {} {
     ::YUI::loader require -module "datatable"
-    if {![:isobject [self]::__actions]} {my actions {}}
-    if {![:isobject [self]::__bulkactions]} {my __bulkactions {}}
+    if {![:isobject [self]::__actions]} {:actions {}}
+    if {![:isobject [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
     } else {
       set name [::xowiki::Includelet js_name [self]]
     }
-    # TODO: maybe use skin everywhere? hen to use style/CSSclass or skin?
+    # TODO: maybe use skin everywhere? When to use style/CSSclass or skin?
     set skin [expr {[info exists :skin] ? ${:skin} : ""}]
     html::div -id ${:id}_wrapper -class $skin {
       html::form -name $name -id $name -method POST { 
         html::div -id ${:id}_container {
-          html::table -id ${:id} -class [:set css.table-class] {
+          html::table -id ${:id} -class ${:css.table-class} {
             # TODO do i need that?
             my render-actions
             my render-body

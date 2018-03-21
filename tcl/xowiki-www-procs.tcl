@@ -2126,7 +2126,7 @@ namespace eval ::xowiki {
         _* {
           set f  [:lookup_form_field -name $c $form_fields]
           set processed($c) 1
-          :set [string range $c 1 end] [$f value]
+          set :[string range $c 1 end] [$f value]
         }
         default {
           set f  [:lookup_form_field -name $c $form_fields]

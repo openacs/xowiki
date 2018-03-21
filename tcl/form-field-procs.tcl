@@ -3017,7 +3017,9 @@ namespace eval ::xowiki::formfield {
   MI instproc value args {
     if {[llength $args] == 0} {return ${:value}} else {
       set v [lindex $args 0]
-      if {$v eq ""} {return [:set value ""]} else {
+      if {$v eq ""} {
+        set :value ""
+      } else {
         # round to 5 minutes
         set :value [lindex ${:options} [expr {($v + 2) / 5}] 1]
       }

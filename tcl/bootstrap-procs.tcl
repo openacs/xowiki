@@ -436,7 +436,7 @@ namespace eval ::xo::Table {
     set children [:children]
     html::tbody {
       foreach line [:children] {
-        html::tr -class [expr {[incr :__rowcount]%2 ? [:set css.tr.odd-class] : [:set css.tr.even-class] }] {
+        html::tr -class [expr {[incr :__rowcount]%2 ? ${:css.tr.odd-class} : ${:css.tr.even-class} }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             if {[$field istype HiddenField]} continue

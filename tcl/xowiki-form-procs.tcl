@@ -56,7 +56,7 @@ namespace eval ::xowiki {
 
     foreach __field $field_list {
       # if there is no field spec, use the default from the slot definitions
-      set __spec  [expr {[:exists f.$__field] ? [:set f.$__field] : "="}]
+      set __spec  [expr {[info exists :f.$__field] ? [set :f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
       #my msg "$__field: wspec=$__wspec, spec=$__spec"
 

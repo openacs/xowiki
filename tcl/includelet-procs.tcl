@@ -1836,8 +1836,8 @@ namespace eval ::xowiki::includelet {
   }
   PageReorderSupport instproc page_reorder_item_id {-ID -prefix_js -page_order js_} {
     :upvar $js_ js 
-    set key __count($prefix_js)
-    if {[info exists :$key]} {set p [incr :$key]} {set p [:set $key 0]}
+    set key :__count($prefix_js)
+    set p [incr $key]
     set id ${ID}_${prefix_js}_$p
     append js "YAHOO.xo_page_order_region.DDApp.cd\['$id'\] = '$page_order';\n"
     return $id
@@ -1945,7 +1945,7 @@ namespace eval ::xowiki::includelet {
     if {$source ne ""} {
       # add the page_order to the objects
       foreach p [$pages children] {
-        $p set page_order [:set page_order([$p set name])]
+        $p set page_order [set :page_order([$p set name])]
       }
     }
 
