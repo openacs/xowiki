@@ -391,7 +391,7 @@ namespace eval ::xowiki::includelet {
   #
   # Fragment caching depends in the class variables
   #   - cacheable    (the mixin is only registered, when cacheable is set to true)
-  #   - aggregating  (requires flusing when items are added/edited/deleted)
+  #   - aggregating  (requires flushing when items are added/edited/deleted)
   #   - localized    (dependency on locale)
   #   - personalized (dependency on userid)
   #

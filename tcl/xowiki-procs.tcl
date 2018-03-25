@@ -4423,7 +4423,7 @@ namespace eval ::xowiki {
           return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='folder-link'> \
           <img src='/resources/file-storage/folder.gif' width='12' alt='folder'>" is_richtext true]
         }
-        return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='interal-link'>" is_richtext true]
+        return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='internal-link'>" is_richtext true]
       }
       default {
         return [list text [$page_template title] is_richtext false]
@@ -4662,7 +4662,7 @@ namespace eval ::xowiki {
 
       #
       # Handle now further database operations that should be saved in
-      # a transaction. Examples are calender-items defined in a
+      # a transaction. Examples are calendar-items defined in a
       # FormPage, that should show up in the calendar.
       #
       # Probably, categories should also be moved into the

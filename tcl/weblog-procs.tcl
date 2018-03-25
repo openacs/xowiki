@@ -197,7 +197,7 @@ namespace eval ::xowiki {
     }
     #
     # Since there is no filtering on the left join tables, there is no
-    # need to incude these in the count query.
+    # need to include these in the count query.
     #
     set :nr_items [::xo::dc get_value count-weblog-entries \
                        [$base_type instance_select_query \
@@ -333,7 +333,7 @@ namespace eval ::xowiki {
     append content "<DIV class='post'>" \
         "<h2><a href='[ns_quotehtml $link]'>[ns_quotehtml ${:title}]</a></h2>" \
         "<p class='auth'>Created by ${:creator}, " \
-        "last modfied by [::xo::get_user_name ${:creation_user}] " \
+        "last modified by [::xo::get_user_name ${:creation_user}] " \
         "<span class='date'>${:pretty_date}</span></p>" \
         ${:description} $more \n\
         "</DIV>"

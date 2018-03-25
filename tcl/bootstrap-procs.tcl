@@ -346,7 +346,7 @@ namespace eval ::xowiki {
   
   
   # --------------------------------------------------------------------------
-  # Render MenuBar in bootstap fashion
+  # Render MenuBar in bootstrap fashion
   # --------------------------------------------------------------------------
   ::xowiki::MenuBar instproc render-bootstrap {} {
     set dict [:content]

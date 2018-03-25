@@ -945,10 +945,10 @@ namespace eval ::xowiki {
     # set form [:regsub_eval  \
         #              [template::adp_variable_regexp] $form \
         #              {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
-    # Due to this bug, we program around and replace the at-character 
-    # by \x03 to avoid conflict withe the input and we replace these
+    # Due to this bug, we program around and replace the at-character
+    # by \x03 to avoid conflict with the input and we replace these
     # magic chars finally with the fields resulting from tdom.
-    
+
     set form [:substitute_markup $form]
     set form [string map [list @ \x03] $form]
     #:msg form=$form
@@ -975,7 +975,7 @@ namespace eval ::xowiki {
       # Normally, the root node is the formNode, fcn is the first
       # child (often a TEXT_NODE), but ic can be even empty.
     }
-    
+
 
     #
     # prepend some fields above the HTML contents of the form

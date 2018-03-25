@@ -2,7 +2,7 @@
 
   Basic classes for Menues (context menu, menu bar, menu item).  The
   design is influenced by the YUI2 classes, but we tried to keep the
-  implmentation generic. The original version was developed by Michael
+  implementation generic. The original version was developed by Michael
   Aram in his Master Thesis. Over the time it was simplified,
   downstripped and refactored by Gustaf Neumann. The currently
   preferred interface is the class.
@@ -119,7 +119,7 @@ namespace eval ::xowiki {
   #  2) All menu entry names must start with a capital letter
   #  3) All menu entry names should be named after the menu name
   #
-  # Notice: the current implementation uses interally dicts. Since the
+  # Notice: the current implementation uses internally dicts. Since the
   # code should as well work with Tcl 8.4 instances, we provide a
   # compatibility layer. Maybe it would be better to base the code on
   # an ordered composite. Ideally, the interface should stay mostly
