@@ -24,7 +24,7 @@ namespace eval ::xowiki {
       set package_id [::xo::package_id_from_package_key xowiki]
       set folder_id  [::xowiki::Page require_folder \
                           -package_id $package_id \
-                          -content_types ::xowki::Page* \
+                          -content_types ::xowiki::Page* \
                           -name xowiki]
       set r [::CrWikiPage get_instances_from_db -folder_id $folder_id]
       db_transaction {
