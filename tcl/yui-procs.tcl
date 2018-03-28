@@ -211,7 +211,7 @@ namespace eval ::xowiki {
     next
     append :CSSclass " first-of-type"
     if {![info exists :href]} {
-      # If not set to #, the title of the menubaritems wont expand the submenu (only the arrow)
+      # If not set to #, the title of the menu bar items won't expand the submenu (only the arrow)
       set :href "#"
     }
   }
