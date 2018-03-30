@@ -1839,8 +1839,9 @@ namespace eval ::xowiki {
 
     if {[info exists via_url] && [:exists_query_parameter "return_url"]} {
       :returnredirect [:query_parameter "return_url" [:package_url]]
+    } else {
+      return $page
     }
-    return $page
   }
 
   Package proc import_prototype_page {
@@ -2057,9 +2058,9 @@ namespace eval ::xowiki {
     set return_url [:query_parameter return_url]
     if {[::xo::cc user_id] == 0} {
       set url [subsite::get_url]register
-      ad_returnredirect [export_vars -base $url return_url]
+      :returnredirect [export_vars -base $url return_url]
     } else {
-      ad_returnredirect $return_url
+      :returnredirect $return_url
     }
   }
 
@@ -2082,7 +2083,7 @@ namespace eval ::xowiki {
       #search::queue -object_id $page_id -event DELETE
       search::queue -object_id $page_id -event INSERT
     }
-    ad_returnredirect .
+    :returnredirect .
   }
 
   #
@@ -2105,7 +2106,8 @@ namespace eval ::xowiki {
         -package_id ${:id} \
         -publish_status [string trim [:form_parameter publish_status "ready|live|expired"]]
 
-    ns_return 200 text/plain ok
+    set :mime_type text/plain
+    return ""
   }
 
 
@@ -2157,9 +2159,8 @@ namespace eval ::xowiki {
                -description $description \
                -days $days]
 
-    #set t text/plain
-    set t text/xml
-    ns_return 200 $t [$r render]
+    set :mime_type text/xml
+    return [$r render]
   }
 
   #
@@ -2220,29 +2221,29 @@ namespace eval ::xowiki {
 
     append content </urlset> \n
 
-    #set t text/plain
-    set t text/xml
-    ns_return 200 $t $content
+    set :mime_type text/xml
+    return $content
+
   }
 
   Package ad_proc www-google-sitemapindex {
     {-changefreq "daily"}
     {-priority "priority"}
+    {-package}
   } {
     Provide a sitemap index of all xowiki instances in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
 
     @param maxentries maximum number of entries retrieved
-    @param package_id to determine the xowiki instance
+    @param package to determine the delivery instance
     @param changefreq changefreq as defined by google
     @param priority priority as defined by google
 
   } {
-
     set content {<?xml version="1.0" encoding="UTF-8"?>
       <sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
     }
-    foreach package_id  [::xowiki::Package instances] {
+    foreach package_id [::xowiki::Package instances] {
       if {![::xo::parameter get -package_id $package_id \
                 -parameter include_in_google_sitemap_index -default 1]} {
         continue
@@ -2264,13 +2265,25 @@ namespace eval ::xowiki {
           </sitemap>
     }
     append content </sitemapindex> \n
-    #set t text/plain
-    set t text/xml
-    ns_return 200 $t $content
+    if {[info exists package]} {
+      #
+      # Since we are running here in a proc, and we were called via
+      # "reply_to_user", we have to provide the proper mime_type to the
+      # calling package instance for delivery
+      #
+      $package set mime_type text/xml
+      return $content
+    } else {
+      #
+      # In case, someone called us differently
+      #
+      ns_return 200 text/xml $content
+      ad_script_abort
+    }
   }
 
   Package instproc www-google-sitemapindex {} {
-    [self class] www-google-sitemapindex
+    [self class] www-google-sitemapindex -package [self]
   }
 
   Package instproc clipboard-copy {} {
@@ -2352,7 +2365,7 @@ namespace eval ::xowiki {
       ad_return_complaint 1 "invalid object_id"
       ad_script_abort
     }
-    set tree_id   [:query_parameter tree_id]
+    set tree_id [:query_parameter tree_id]
     if {![string is integer -strict $tree_id]}   {
       ad_return_complaint 1 "invalid tree_id"
       ad_script_abort
@@ -2360,7 +2373,8 @@ namespace eval ::xowiki {
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
-    :returnredirect [site_node::get_package_url -package_key categories]cadmin/tree-view?tree_id=$tree_id&ctx_id=$object_id&object_id=$object_id
+    :returnredirect [site_node::get_package_url \
+                         -package_key categories]cadmin/tree-view?tree_id=$tree_id&ctx_id=$object_id&object_id=$object_id
   }
 
 
