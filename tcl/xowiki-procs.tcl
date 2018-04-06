@@ -4355,8 +4355,8 @@ namespace eval ::xowiki {
     #
     # this method returns the form attributes (including _*)
     #
-    set allvars [concat [[:info class] array names db_slot] \
-                     [::xo::db::CrClass set common_query_atts]]
+    set allvars [list {*}[[:info class] array names db_slot] \
+                     {*}[::xo::db::CrClass set common_query_atts]]
 
     set template [:get_html_from_content [:get_from_template text]]
     #my msg template=$template

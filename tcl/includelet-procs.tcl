@@ -3945,12 +3945,12 @@ namespace eval ::xowiki::includelet {
     array set uc {tcl false h "" vars "" sql ""}
     if {[info exists unless]} {
       array set uc [::xowiki::FormPage filter_expression $unless ||]
-      set init_vars [concat $init_vars $uc(vars)]
+      set init_vars [list {*}$init_vars {*}$uc(vars)]
     }
     array set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
       array set wc [::xowiki::FormPage filter_expression $where &&]
-      set init_vars [concat $init_vars $wc(vars)]
+      set init_vars [list {*}$init_vars {*}$wc(vars)]
     }
     #my msg uc=[array get uc]
     #my msg wc=[array get wc]

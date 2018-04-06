@@ -736,7 +736,7 @@ namespace eval ::xowiki::formfield {
     # value with the new value
     foreach c [:info heritage] {
       if {[info commands ${c}::slot::$name] ne ""} {
-        set value [concat $value [${c}::slot::$name default]]
+        set value [list $value {*}[${c}::slot::$name default]]
         break
       }
     }
@@ -4102,7 +4102,7 @@ namespace eval ::xowiki::formfield {
   class instproc initialize {} {
     set :options ""
     set baseclass [:subclass_of]
-    foreach cl [lsort [concat $baseclass [$baseclass info subclass -closure]]] {
+    foreach cl [lsort [list $baseclass {*}[$baseclass info subclass -closure]]] {
       lappend :options [list $cl $cl]
     }
     next

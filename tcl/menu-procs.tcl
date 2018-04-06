@@ -362,15 +362,15 @@ namespace eval ::xowiki {
   ::xowiki::MenuBar instproc content {} {
     set result [list id [:id]]
     foreach e ${:Menues} {
-      lappend result $e [concat kind MenuButton [set :Menu($e)]]
+      lappend result $e [list kind MenuButton {*}[set :Menu($e)]]
     }
     
     foreach e [:array name ModeButton] {
-      lappend result $e [concat kind ModeButton [set :ModeButton($e)]]
+      lappend result $e [list kind ModeButton {*}[set :ModeButton($e)]]
     }
 
     foreach e [:array name DropZone] {
-      lappend result $e [concat kind DropZone [set :DropZone($e)]]
+      lappend result $e [list kind DropZone {*}[set :DropZone($e)]]
     }
 
     return $result

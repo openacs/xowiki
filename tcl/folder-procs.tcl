@@ -363,9 +363,9 @@ namespace eval ::xowiki::includelet {
           -parent_id $opt_parent_id \
           -return_url $return_url \
           -nls_language $nls_language \
-          [concat \
-               [$package_id get_parameter ExtraMenuEntries {}] \
-               [${:current_folder} property extra_menu_entries]]
+          [list \
+               {*}[$package_id get_parameter ExtraMenuEntries {}] \
+               {*}[${:current_folder} property extra_menu_entries]]
     }
 
     set top_folder_of_tree $root_folder

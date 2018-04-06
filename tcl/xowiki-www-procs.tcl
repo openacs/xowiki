@@ -1737,7 +1737,7 @@ namespace eval ::xowiki {
   }
 
   Page proc find_slot {-start_class:required name} {
-    foreach cl [concat $start_class [$start_class info heritage]] {
+    foreach cl [list $start_class {*}[$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
       if {[:isobject $slotobj]} {
         #:msg $slotobj
