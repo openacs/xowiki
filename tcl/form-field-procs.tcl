@@ -2700,7 +2700,7 @@ namespace eval ::xowiki::formfield {
     #my msg "mul=[:multiple]"
     # makes only sense currently for multiple selects
     if {[:multiple] && [:dnd]} {
-      if {([info exists :disabled] && [:disabled])} {
+      if {[info exists :disabled] && [:disabled]} {
         html::t -disableOutputEscaping [:pretty_value [:value]]
       } else {
 
