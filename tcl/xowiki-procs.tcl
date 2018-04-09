@@ -2646,7 +2646,7 @@ namespace eval ::xowiki {
     #
     # prepare language links
     #
-    :array set lang_links {found "" undefined ""}
+    array set :lang_links {found "" undefined ""}
     #
     # prepare references management
     #

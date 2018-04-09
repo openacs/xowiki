@@ -401,7 +401,7 @@ namespace eval ::xowiki {
 
     switch [RSS-client getRSSVersion $doc] {
       0.91 - 0.92 - 0.93 - 2.0 {
-        :array set xpath {
+        array set :xpath {
           title        {/rss/channel/title/text()}
           link        {/rss/channel/link/text()}
           imgNode    {/rss/channel/image/title}
@@ -417,7 +417,7 @@ namespace eval ::xowiki {
         }
       }
       1.0 {
-        :array set xpath {
+        array set :xpath {
           title        {/rdf:RDF/*[local-name()='channel']/*[local-name()='title']/text()}
           link        {/rdf:RDF/*[local-name()='channel']/*[local-name()='link']/text()}
           imgNode    {/rdf:RDF/*[local-name()='image']}

@@ -29,7 +29,7 @@ set show_heritage $admin_p
 TableWidget t1 -volatile \
     -set show_heritage $admin_p \
     -columns {
-      if {[[my info parent] set show_heritage]} {
+      if {[[:info parent] set show_heritage]} {
         Field inherited -label ""
       }
       AnchorField name -label [_ xowiki.Page-name] -CSSclass "ok-handler"
