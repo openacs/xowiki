@@ -4488,7 +4488,7 @@ namespace eval ::xowiki {
       :setCSSDefaults
 
       lassign [:field_names_from_form -form $form] form_vars field_names
-      :array unset __field_in_form
+      array unset :__field_in_form
       if {$form_vars} {foreach v $field_names {set :__field_in_form($v) 1}}
       set form_fields [:create_form_fields $field_names]
       :load_values_into_form_fields $form_fields
@@ -4619,8 +4619,8 @@ namespace eval ::xowiki {
   Page instproc unset_temporary_instance_variables {} {
     # don't marshall/save/cache the following vars
     #my array unset __ia
-    :array unset __field_in_form
-    :array unset __field_needed
+    array unset :__field_in_form
+    array unset :__field_needed
   }
 
   Page instproc map_categories {category_ids} {

@@ -2307,8 +2307,8 @@ namespace eval ::xowiki {
   FormPage instproc field_names {{-form ""}} {
     lassign [:field_names_from_form -form $form] form_vars needed_attributes
     #:msg "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
-    :array unset __field_in_form
-    :array unset __field_needed
+    array unset :__field_in_form
+    array unset :__field_needed
     if {$form_vars} {foreach v $needed_attributes {set :__field_in_form($v) 1}}
     foreach v $needed_attributes {set :__field_needed($v) 1}
     
