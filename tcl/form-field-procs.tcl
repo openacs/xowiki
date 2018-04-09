@@ -106,7 +106,7 @@ namespace eval ::xowiki::formfield {
   #}
 
   FormField instproc init {} {
-    if {![info exists :label]} {my label [string totitle ${:name}]}
+    if {![info exists :label]} {:label [string totitle ${:name}]}
     if {![info exists :id]} {set :id ${:name}}
     set :html(id) ${:id}
     #if {[info exists :default]} {set :value [:default]}
@@ -239,7 +239,7 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc remove_omit {} {
     set m ::xowiki::formfield::omit
-    if {[:ismixin $m]} {my mixin delete $m}
+    if {[:ismixin $m]} {:mixin delete $m}
   }
   FormField instproc set_disabled {disable} {
     #:msg "${:name} set disabled $disable"
@@ -285,13 +285,13 @@ namespace eval ::xowiki::formfield {
     switch -glob -- $s {
       optional    {set :required false}
       required    {set :required true; my remove_omit}
-      omit        {my mixin add ::xowiki::formfield::omit}
-      noomit      {my remove_omit}
-      disabled    {my set_disabled true}
-      readonly    {my readonly true}
-      enabled     {my set_disabled false}
-      label=*     {my label     [lindex [split $s =] 1]}
-      help_text=* {my help_text [lindex [split $s =] 1]}
+      omit        {:mixin add ::xowiki::formfield::omit}
+      noomit      {:remove_omit}
+      disabled    {:set_disabled true}
+      readonly    {:readonly true}
+      enabled     {:set_disabled false}
+      label=*     {:label     [lindex [split $s =] 1]}
+      help_text=* {:help_text [lindex [split $s =] 1]}
       *=*         {
         set p [string first = $s]
         set attribute [string range $s 0 $p-1]
@@ -465,7 +465,7 @@ namespace eval ::xowiki::formfield {
     #
     foreach att $atts {
       lassign $att var value
-      if {[info exists :$var]} {my unset $var}
+      if {[info exists :$var]} {:unset $var}
     }
   }
 
@@ -758,7 +758,7 @@ namespace eval ::xowiki::formfield {
   }
   submit_button instproc render_input {} {
     # don't disable submit buttons
-    if {[:type] eq "submit"} {my unset -nocomplain disabled}
+    if {[:type] eq "submit"} {:unset -nocomplain disabled}
     ::html::button [:get_attributes name type {form_button_CSSclass class} title disabled] {
       ::html::t ${:value}
     }
@@ -795,8 +795,8 @@ namespace eval ::xowiki::formfield {
     }
     return 1
   }
-  file instproc tmpfile {value}      {my set [self proc] $value}
-  file instproc content-type {value} {my set [self proc] $value}
+  file instproc tmpfile {value}      {:set [self proc] $value}
+  file instproc content-type {value} {:set [self proc] $value}
   file instproc initialize {} {
     :type file
     set :booleanHTMLAttributes {multiple}
@@ -1093,7 +1093,7 @@ namespace eval ::xowiki::formfield {
   }
   import_archive instproc initialize {} {
     next
-    if {[:help_text] eq ""} {my help_text "#xowiki.formfield-import_archive-help_text#"}
+    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-import_archive-help_text#"}
   }
   import_archive instproc pretty_value {v} {
     set package_id [${:object} package_id]
@@ -1165,7 +1165,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type text(hidden)
     # remove mixins in case of retyping
     :mixin ""
-    if {[info exists :size]} {my unset size}
+    if {[info exists :size]} {:unset size}
   }
   hidden instproc render_item {} {
     # don't render the labels
@@ -1628,8 +1628,8 @@ namespace eval ::xowiki::formfield {
     if {![:istype ::xowiki::formfield::richtext] && [info exists :editor]} {
       # downgrading
       #:msg "downgrading [:info class]"
-      foreach m [:info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
-      foreach v {editor options} {if {[info exists :$v]} {my unset $v}}
+      foreach m [:info mixin] {if {[$m exists editor_mixin]} {:mixin delete $m}}
+      foreach v {editor options} {if {[info exists :$v]} {:unset $v}}
     }
     next
   }
@@ -1702,7 +1702,7 @@ namespace eval ::xowiki::formfield {
         error [_ xowiki.error-form_constraint-unknown_editor \
                    [list name ${:name} editor [:editor] editors $editors]]
       }
-      foreach m [:info mixin] {if {[$m exists editor_mixin]} {my mixin delete $m}}
+      foreach m [:info mixin] {if {[$m exists editor_mixin]} {:mixin delete $m}}
       :mixin add $editor_class
       #:msg "MIXIN $editor: [:info precedence]"
       :reset_parameter
@@ -3112,7 +3112,7 @@ namespace eval ::xowiki::formfield {
 
   youtube_url instproc initialize {} {
     next
-    if {[:help_text] eq ""} {my help_text "#xowiki.formfield-youtube_url-help_text#"}
+    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-youtube_url-help_text#"}
   }
   youtube_url instproc pretty_value {v} {
     if {$v eq ""} {
@@ -3145,7 +3145,7 @@ namespace eval ::xowiki::formfield {
       }
   image_url instproc initialize {} {
     next
-    if {[:help_text] eq ""} {my help_text "#xowiki.formfield-image_url-help_text#"}
+    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-image_url-help_text#"}
   }
   image_url instproc entry_name {value} {
     set value [string map [list %2e .] $value]
@@ -3565,7 +3565,7 @@ namespace eval ::xowiki::formfield {
   }
   label instproc render_item {} {
     # sanity check; required and label do not fit well together
-    if {[:required]} {my required false}
+    if {[:required]} {:required false}
     next
   }
   label instproc render_input {} {

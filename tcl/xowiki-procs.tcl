@@ -1582,7 +1582,7 @@ namespace eval ::xowiki {
         #
         set name $stripped_name
       } else {
-        if {$nls_language ne ""} {my nls_language $nls_language}
+        if {$nls_language ne ""} {:nls_language $nls_language}
         set name [:lang]:$stripped_name
       }
     }
@@ -2373,9 +2373,9 @@ namespace eval ::xowiki {
     foreach l0 [split $content \n] {
       append l [string map $markupmap(escape) $l0]
       if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}
-      set l [:regsub_eval $RE(anchor)  $l {my anchor  "\1"} "1"]
-      set l [:regsub_eval $RE(div)     $l {my div     "\1"}]
-      set l [:regsub_eval $RE(include) $l {my include_content "\1" "\2"}]
+      set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"} "1"]
+      set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
+      set l [:regsub_eval $RE(include) $l {:include_content "\1" "\2"}]
       #regsub -all $RE(clean) $l {\1} l
       regsub -all $RE(clean2) $l { \1} l
       set l [string map $markupmap(unescape) $l]
@@ -3101,9 +3101,9 @@ namespace eval ::xowiki {
     set html ""
     foreach l [split $raw_content \n] {
       set l [string map $markupmap(escape) $l]
-      set l [:regsub_eval $RE(anchor)  $l {my anchor  "\1"}]
-      set l [:regsub_eval $RE(div)     $l {my div     "\1"}]
-      set l [:regsub_eval $RE(include) $l {my include_content "\1" ""}]
+      set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"}]
+      set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
+      set l [:regsub_eval $RE(include) $l {:include_content "\1" ""}]
       #regsub -all $RE(clean) $l {\1} l
       set l [string map $markupmap(unescape) $l]
       append html $l \n
@@ -4470,7 +4470,7 @@ namespace eval ::xowiki {
   FormPage instproc render_content {} {
     set package_id ${:package_id}
     :include_header_info -prefix form_view
-    if {[::xo::cc mobile]} {my include_header_info -prefix mobile}
+    if {[::xo::cc mobile]} {:include_header_info -prefix mobile}
 
     set text [:get_from_template text]
     if {$text ne ""} {
@@ -4499,7 +4499,7 @@ namespace eval ::xowiki {
 
       set form [:regsub_eval  \
                     [template::adp_variable_regexp] $form \
-                    {my form_field_as_html -mode display "\\\1" "\2" $form_fields}]
+                    {:form_field_as_html -mode display "\\\1" "\2" $form_fields}]
 
       # we parse the form just for the margin-form.... maybe regsub?
       dom parse -simple -html $form :doc
@@ -4567,7 +4567,7 @@ namespace eval ::xowiki {
     # Iterate over the variables for substitution
     set content [:regsub_eval -noquote true \
                      [template::adp_variable_regexp] " $content" \
-                     {my get_value -field_spec $field_spec -cr_field_spec $cr_field_spec "\\\1" "\2"}]
+                     {:get_value -field_spec $field_spec -cr_field_spec $cr_field_spec "\\\1" "\2"}]
     return [string range $content 1 end]
   }
 

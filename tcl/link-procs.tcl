@@ -578,7 +578,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS urn:ad:js:get-http-object
     ::xo::Page requireJS  "/resources/xowiki/popup-handler.js"
     ::xo::Page requireJS  "/resources/xowiki/overlib/overlib.js"
-    if {![info exists :cssid]} {my cssid [::xowiki::Includelet html_id [self]]}
+    if {![info exists :cssid]} {:cssid [::xowiki::Includelet html_id [self]]}
     template::add_event_listener \
         -id [:cssid] \
         -script [subst {showInfo('[ns_quotehtml $href?master=0]','[ns_quotehtml $label]')}]

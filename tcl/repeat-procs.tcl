@@ -66,7 +66,7 @@ namespace eval ::xowiki::formfield {
       # don't propagate "repeat" and "label" properties
       if { [string match "repeat=*" $s] || [string match "label=*" $s] } continue
       if { "required" eq $s} {set is_required true; continue}
-      if { "disabled" eq $s} {my set_disabled true}
+      if { "disabled" eq $s} {:set_disabled true}
       lappend result $s
     }
     return [list $is_required [join $result ,]]

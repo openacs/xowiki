@@ -4,10 +4,10 @@ Object test
 test set passed 0
 test set failed 0
 test proc case msg {ad_return_top_of_page "<title>$msg</title><h2>$msg</h2>"}
-test proc section msg    {my reset; ns_write "<hr><h3>$msg</h3>"}
+test proc section msg    {:reset; ns_write "<hr><h3>$msg</h3>"}
 test proc subsection msg {ns_write "<h4>$msg</h4>"}
 test proc subsubsection msg {ns_write "<h5>$msg</h5>"}
-test proc errmsg msg     {my code "ERROR: [string map [list < {&lt;} > {&gt;}] $msg]<br/>";test incr failed}
+test proc errmsg msg     {:code "ERROR: [string map [list < {&lt;} > {&gt;}] $msg]<br/>";test incr failed}
 test proc okmsg msg      {ns_write "OK: $msg<br/>"; test incr passed}
 test proc code msg       {ns_write "<pre>$msg</pre>"}
 test proc hint msg       {ns_write "$msg<br/>"}

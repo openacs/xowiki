@@ -50,8 +50,8 @@ namespace eval ::xowiki {
     set __fields ""
     set field_list [:field_list]
     set show_page_order [[${:data} package_id] show_page_order]
-    if {!$show_page_order} { my f.page_order "= hidden" } 
-    if {${:autoname}}      { my f.name       "= hidden,optional"}
+    if {!$show_page_order} { :f.page_order "= hidden" } 
+    if {${:autoname}}      { :f.name       "= hidden,optional"}
     set form_fields [list]
 
     foreach __field $field_list {
@@ -620,7 +620,7 @@ namespace eval ::xowiki {
       # don't call validate on the folder object, don't let people change its name
       set name [${:data} set name]
       if {$name eq "::[${:data} set parent_id]"} {
-        my f.name  "= inform,help_text="
+        :f.name  "= inform,help_text="
         :validate {{name {1} {dummy}} }
         #:log "--e don't validate folder id - parent_id = [${:data} set parent_id]"
       }
@@ -734,7 +734,7 @@ namespace eval ::xowiki {
 
     set __ia [${:data} set instance_attributes]
     foreach var ${:page_instance_form_atts} {
-      if {[dict exists $__ia $var]} {my var $var [list [dict get $__ia $var]]}
+      if {[dict exists $__ia $var]} {:var $var [list [dict get $__ia $var]]}
     }
   }
 

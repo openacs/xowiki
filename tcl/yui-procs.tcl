@@ -573,7 +573,7 @@ namespace eval ::xo::Table {
             my render-actions
             my render-body
           }
-          if {[llength $bulkactions]>0} { my render-bulkactions }
+          if {[llength $bulkactions]>0} { :render-bulkactions }
         }
       }
       ::xo::Page requireJS "YAHOO.util.Event.onDOMReady(function () {\n[:render_yui_js]});"
