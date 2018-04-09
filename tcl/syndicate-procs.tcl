@@ -293,9 +293,9 @@ namespace eval ::xowiki {
       set clock [clock scan $publish_date]
 
       if {$last_user == $creation_user && $last_item == $item_id && $last_clock ne ""} {
-        #my log "--clockdiff = [expr {$last_clock - $clock }] $name [clock format $clock -format {%b %d %Y %X %Z} -gmt true]"
+        #:log "--clockdiff = [expr {$last_clock - $clock }] $name [clock format $clock -format {%b %d %Y %X %Z} -gmt true]"
         if {($last_clock - $clock) < 7500 } {
-          #my log "--clock ignore change due to cockdiff"
+          #:log "--clock ignore change due to cockdiff"
           continue
         }
       }
@@ -379,7 +379,7 @@ namespace eval ::xowiki {
     set status [dict get $request status]
     set data [expr {[dict exists $request page] ? [dict get $request page] : ""}]
     
-    #my msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
+    #:msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
     #set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
     # if {[$r exists status] && [$r set status] eq "canceled"} {
     #   set :errorMessage [$r set cancel_message]

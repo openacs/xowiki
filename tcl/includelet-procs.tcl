@@ -53,7 +53,7 @@ namespace eval ::xowiki::includelet {
   }    
   
   ::xowiki::Includelet proc describe_includelets {includelet_classes} {
-    #my log "--plc=$includelet_classes "
+    #:log "--plc=$includelet_classes "
     foreach cl $includelet_classes {
       set result ""
       append result "{{<b>[namespace tail $cl]</b>"
@@ -163,14 +163,14 @@ namespace eval ::xowiki::includelet {
       set locale $default_locale
       set include_system_locale 0
     }
-    #my msg "--L with_system_locale=$with_system_locale, locale=$locale, default_locale=$default_locale"
+    #:msg "--L with_system_locale=$with_system_locale, locale=$locale, default_locale=$default_locale"
 
     set locale_clause ""    
     if {$locale ne ""} {
       set locale_clause " and $revisions.nls_language = '$locale'" 
       if {$with_system_locale} {
         set system_locale [lang::system::locale -package_id $package_id]
-        #my msg "system_locale=$system_locale, default_locale=$default_locale"
+        #:msg "system_locale=$system_locale, default_locale=$default_locale"
         if {$system_locale ne $default_locale} {
           set locale_clause " and ($revisions.nls_language = '$locale' 
         or $revisions.nls_language = '$system_locale' and not exists
@@ -180,7 +180,7 @@ namespace eval ::xowiki::includelet {
       } 
     }
 
-    #my msg "--locale $locale, def=$default_locale sys=$system_locale, cl=$locale_clause locale_clause=$locale_clause"
+    #:msg "--locale $locale, def=$default_locale sys=$system_locale, cl=$locale_clause locale_clause=$locale_clause"
     return [list $locale $locale_clause]
   }
 
@@ -212,7 +212,7 @@ namespace eval ::xowiki::includelet {
       set cnames [join $or_names { or }]
       set extra_where_clause "and ([join $ors { or }])"
     }
-    #my log "--cnames $category_spec -> $cnames // <$extra_where_clause>"
+    #:log "--cnames $category_spec -> $cnames // <$extra_where_clause>"
     return [list $cnames $extra_where_clause]
   }
 
@@ -420,12 +420,12 @@ namespace eval ::xowiki::includelet {
     if {[catch {set data [ns_cache get xowiki_cache $key-data]}]} {
       :cache_includelet_data $key-data
     } else {
-      #my msg "eval $data"
+      #:msg "eval $data"
       {*}$data
     }
     return $HTML
   } -instproc cache_includelet_data {key} {
-    #my msg "data=[next]"
+    #:msg "data=[next]"
     set data [next]
     if {$data ne ""} {ns_cache set xowiki_cache $key $data}
   }
@@ -711,7 +711,7 @@ namespace eval ::xowiki::includelet {
                    -names $tree_name \
                    -output {tree_id tree_name}]
     
-    #my msg "[llength $trees] == 0 && $tree_name"
+    #:msg "[llength $trees] == 0 && $tree_name"
     if {[llength $trees] == 0 && $tree_name ne ""} {
       # we have nothing left from mapped trees, maybe the tree_names are not mapped; 
       # try to get these
@@ -1019,7 +1019,7 @@ namespace eval ::xowiki::includelet {
       if {$allow_edit} {
         set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
         set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
-        #my log "page_link=$page_link, edit=$edit_link"
+        #:log "page_link=$page_link, edit=$edit_link"
         [t1 last_child] set edit.href $edit_link
         [t1 last_child] set edit "&nbsp;"
       }
@@ -1472,7 +1472,7 @@ namespace eval ::xowiki::includelet {
     }
     foreach cat_id [category::get_mapped_categories [${:__including_page} set item_id]] {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
-      #my log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
+      #:log "--cat $cat_id $category_id $category_name $tree_id $tree_name"
       set label [ns_quotehtml "$category_name ($tree_name)"]
       set entry "<a href='[ns_quotehtml $href&category_id=$category_id]'>[ns_quotehtml $label]</a>"
       if {$notification_type ne ""} {
@@ -1801,7 +1801,7 @@ namespace eval ::xowiki::includelet {
                        -user_id [[${:package_id} context] user_id] \
                        -package_id ${:package_id} \
                        ${:package_id} change-page-order]
-      #my msg "granted=$granted"
+      #:msg "granted=$granted"
       if {$granted} {
         if {$with_head_entries} {
           set ajaxhelper 1
@@ -1902,7 +1902,7 @@ namespace eval ::xowiki::includelet {
     }
     lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
         locale locale_clause
-    #my msg locale_clause=$locale_clause
+    #:msg locale_clause=$locale_clause
 
     if {$source ne ""} {
       :get_page_order -source $source
@@ -1962,7 +1962,7 @@ namespace eval ::xowiki::includelet {
   }
 
   toc instproc page_number {page_order remove_levels} {
-    #my log "o: $page_order"
+    #:log "o: $page_order"
     set displayed_page_order $page_order
     for {set i 0} {$i < $remove_levels} {incr i} {
       regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order
@@ -2006,7 +2006,7 @@ namespace eval ::xowiki::includelet {
       }
     }
     set :navigation(count) $node_cnt
-    #my log OPEN=[lsort [array names :open_node]]
+    #:log OPEN=[lsort [array names :open_node]]
   }
 
   #
@@ -2161,7 +2161,7 @@ namespace eval ::xowiki::includelet {
     # Render the tree with the yui widget (with or without ajax)
     #
     if {$book_mode} {
-      #my log "--warn: cannot use bookmode with ajax, resetting ajax"
+      #:log "--warn: cannot use bookmode with ajax, resetting ajax"
       set ajax 0
     }
     set :ajax $ajax
@@ -2394,7 +2394,7 @@ namespace eval ::xowiki::includelet {
   composite-form instproc render {} {
     :get_parameters
     set inner_html [next]
-    #my log "innerhtml=$inner_html"
+    #:log "innerhtml=$inner_html"
     regsub -nocase -all "<form " $inner_html "<div class='form' " inner_html
     regsub -nocase -all "<form>" $inner_html "<div class='form'>" inner_html
     regsub -nocase -all "</form *>" $inner_html "</div>" inner_html
@@ -3133,7 +3133,7 @@ namespace eval ::xowiki::includelet {
     foreach p [lsort -index 1 -decreasing -integer $edges] {
       lassign $p edge weight width
       lassign [split $edge ,] a b
-      #my log "--G $a -> $b check $c > $max_edges, $weight < $cutoff"
+      #:log "--G $a -> $b check $c > $max_edges, $weight < $cutoff"
       if {[incr c] > $max_edges} break
       if {$weight < $cutoff} continue
       append edgesHTML "g.addEdge(\$('$a'), \$('$b'), $weight, 0, $width);\n"
@@ -3275,7 +3275,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set tmp_table_name XOWIKI_TMP_ACTIVITY
-    #my msg "tmp exists [::xo::db::require exists_table $tmp_table_name]"
+    #:msg "tmp exists [::xo::db::require exists_table $tmp_table_name]"
     set tt [::xo::db::temp_table new \
                 -name $tmp_table_name \
                 -query [::xo::dc select \
@@ -3509,7 +3509,7 @@ namespace eval ::xowiki::includelet {
   
   form-menu instproc render {} {
     :get_parameters
-    #my msg form-menu-[info exists form_item_id] buttons=$buttons
+    #:msg form-menu-[info exists form_item_id] buttons=$buttons
     if {![info exists form_item_id]} {
       set form_item_id [::xowiki::Weblog instantiate_forms \
                             -forms $form \
@@ -3805,7 +3805,7 @@ namespace eval ::xowiki::includelet {
     foreach form_item $form_item_ids {
       append form_constraints [$form_item get_form_constraints -trylocal true] \n
     }
-    #my log fc=$form_constraints
+    #:log fc=$form_constraints
 
     # load table properties; order_by won't work due to comma, but solve that later (TODO)
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
@@ -3821,7 +3821,7 @@ namespace eval ::xowiki::includelet {
         where -   with_categories - with_form_link - csv - view_field -
         voting_form - voting_form_form - voting_form_anon_instances {
           set $attr $value
-          #my msg " set $attr $value"
+          #:msg " set $attr $value"
         }
         default {error "unknown table property '$attr' provided"}
       }
@@ -3934,7 +3934,7 @@ namespace eval ::xowiki::includelet {
       if {$att eq "_page_order"} {
         t1 mixin add ::xo::OrderedComposite::IndexCompare
       }
-      #my msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
+      #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
       t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
     }
 
@@ -3952,13 +3952,13 @@ namespace eval ::xowiki::includelet {
       array set wc [::xowiki::FormPage filter_expression $where &&]
       set init_vars [list {*}$init_vars {*}$wc(vars)]
     }
-    #my msg uc=[array get uc]
-    #my msg wc=[array get wc]
+    #:msg uc=[array get uc]
+    #:msg wc=[array get wc]
 
     #
     # get an ordered composite of the base set (currently including extra_where clause)
     # 
-    #my log "exists category_id [info exists category_id]"
+    #:log "exists category_id [info exists category_id]"
     set extra_where_clause ""
     if {[info exists category_id]} {
       lassign [:category_clause $category_id item_id] cnames extra_where_clause
@@ -3989,7 +3989,7 @@ namespace eval ::xowiki::includelet {
                             -package_id $package_id]
       }
     }
-    #my log "queries done"
+    #:log "queries done"
     if {[info exists wf]} {
       set wf_link [$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
     }
@@ -4098,7 +4098,7 @@ namespace eval ::xowiki::includelet {
       lappend links " <a href='[ns_quotehtml $href]'>Generate Voting Form $voting_form</a>"
     }
     append html [join $links ,]
-    #my log "render done"
+    #:log "render done"
 
     if {[info exists with_categories]} {
       set category_html [$o include [list categories -count 1 -tree_name $with_categories \
@@ -4109,7 +4109,7 @@ namespace eval ::xowiki::includelet {
   }
 
   form-usages instproc generate_voting_form {form_name form_form t1 field_names voting_form_anon_instances} {
-    #my msg "generate_voting anon=$voting_form_anon_instances"
+    #:msg "generate_voting anon=$voting_form_anon_instances"
     set form "<form> How do you rate<br /> 
     <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
       <tbody> 
@@ -4257,7 +4257,7 @@ namespace eval ::xowiki::includelet {
                      -extra_where_clause " and mime_type like 'image/%'" \
                      -orderby "name asc" \
                      -glob $glob]
-    #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$listing children]]"
+    #:msg "parent-id=$parent_id, glob=$glob entries=[llength [$listing children]]"
 
     foreach entry [$listing children] {
       $entry class ::xowiki::Page
@@ -4282,7 +4282,7 @@ namespace eval ::xowiki::includelet {
                    -always_queried_attributes * \
                    -parent_id $parent_id \
                    -package_id $package_id]
-    #my msg "parent-id=$parent_id, glob=$glob entries=[llength [$items children]]"
+    #:msg "parent-id=$parent_id, glob=$glob entries=[llength [$items children]]"
 
     foreach entry [$items children] {
       # order?
@@ -4309,7 +4309,7 @@ namespace eval ::xowiki::includelet {
         $ff(image) label [$entry property _title]
       }
       $entry set html [$entry render_content]
-      #my log html=[$entry set html]
+      #:log html=[$entry set html]
     }
     return $items
   }
@@ -4575,7 +4575,7 @@ namespace eval ::xowiki::includelet {
   }
 
   html-file instproc page_number {page_order remove_levels} {
-    #my log "o: $page_order"
+    #:log "o: $page_order"
     set displayed_page_order $page_order
     for {set i 0} {$i < $remove_levels} {incr i} {
       regsub {^[^.]+[.]} $displayed_page_order "" displayed_page_order

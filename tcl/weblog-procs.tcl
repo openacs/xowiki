@@ -35,24 +35,24 @@ namespace eval ::xowiki {
      } {
     set form_item_ids [list]
     foreach t [split $forms |] {
-      #my log "trying to get $t // parent_id $parent_id"
+      #:log "trying to get $t // parent_id $parent_id"
       set page [$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
                     -use_package_path true \
                     -parent_id $parent_id \
                     $t]
-      #my log "weblog form $t => $page"
+      #:log "weblog form $t => $page"
       if {$page ne ""} {
         lappend form_item_ids [$page item_id]
       }
     }
-    #my log "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
+    #:log "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
     return $form_item_ids
   }
 
   ::xowiki::Weblog instproc init {} {
     
-    #my log "--W starting"
+    #:log "--W starting"
     set folder_id [::${:package_id} folder_id]
     set :filter_msg  ""
     set query_parm ""
@@ -98,7 +98,7 @@ namespace eval ::xowiki {
       set query_parm "&category_id=${:category_id}"
       set query [::xo::update_query $query category_id ${:category_id}]
     }
-    #my msg "tag=${:tag}"
+    #:msg "tag=${:tag}"
     if {${:tag} ne ""} {
       ${:package_id} validate_tag ${:tag}
       set :filter_msg "Filtered by your tag ${:tag}"
@@ -108,7 +108,7 @@ namespace eval ::xowiki {
         tags.user_id = [::xo::cc user_id]" 
       set query_parm "&tag=[ad_urlencode ${:tag}]"
     }
-    #my msg "ptag=${:ptag}"
+    #:msg "ptag=${:ptag}"
     if {${:ptag} ne ""} {
       ${:package_id} validate_tag ${:ptag}
       set :filter_msg "Filtered by popular tag ${:ptag}"
@@ -118,7 +118,7 @@ namespace eval ::xowiki {
       set query_parm "&ptag=[ad_urlencode ${:ptag}]"
       set query [::xo::update_query $query ptag ${:ptag}]
     }
-    #my msg filter_msg=${:filter_msg} 
+    #:msg filter_msg=${:filter_msg} 
     if {${:name_filter} ne ""} {
       append extra_where_clause "and ci.name ~ E'${:name_filter}' "
     }
@@ -161,7 +161,7 @@ namespace eval ::xowiki {
     if {${:locale} ne ""} {
       #set :locale "default+system"
       lassign [::xowiki::Includelet locale_clause -revisions bt -items ci ${:package_id} ${:locale}] :locale locale_clause
-      #my msg "--L locale_clause=$locale_clause"
+      #:msg "--L locale_clause=$locale_clause"
       append extra_where_clause $locale_clause
     }
     
@@ -203,7 +203,7 @@ namespace eval ::xowiki {
                        [$base_type instance_select_query \
                             -from_clause $extra_from_clause \
                             {*}$sqlParams -count true]]
-    #my log count=${:nr_items}
+    #:log count=${:nr_items}
 
     #
     # Obtain the set of answers
@@ -253,15 +253,15 @@ namespace eval ::xowiki {
           $p set description "Render Error ($errorMsg) $revision_id $name $title"
         }
         if {[info exists :entry_flag]} {$p unset [:entry_flag]}
-        #my log "--W $p render (mixins=[$p info mixin]) => $description"
+        #:log "--W $p render (mixins=[$p info mixin]) => $description"
       }
       $p set pretty_date $pretty_date
       $p set publish_date $publish_date
-      #my log "--W setting $p set publish_date $publish_date"
-      #$p proc destroy {} {my log "--Render temporal object destroyed"; next}
+      #:log "--W setting $p set publish_date $publish_date"
+      #$p proc destroy {} {:log "--Render temporal object destroyed"; next}
       #ns_log notice "--W Render object $p DONE $revision_id $name $title "
       $p mixin add ${:entry_renderer}
-      #my log "--W items=${:items}, added mixin ${:entry_renderer} to $p, has now <[$p info mixin]>"
+      #:log "--W items=${:items}, added mixin ${:entry_renderer} to $p, has now <[$p info mixin]>"
       ${:items} add $p
     }
     array set smsg {1 full 0 summary}
@@ -294,18 +294,18 @@ namespace eval ::xowiki {
         set :prev_page_link [::xo::cc url]?$query
       }
     }
-    #my proc destroy {} {my log "--W"; next}
+    #my proc destroy {} {:log "--W"; next}
     
     if {${:sort_composite} ne ""} {
       lassign [split ${:sort_composite} ,] kind att direction
       if {$kind eq "method"} {${:items} mixin add ::xo::OrderedComposite::MethodCompare}
       ${:items} orderby -order [expr {$direction eq "asc" ? "increasing" : "decreasing"}] $att
     }
-    #my log "--W done"
+    #:log "--W done"
   }
 
   ::xowiki::Weblog instproc render {} {
-    #my log "--W begin"
+    #:log "--W begin"
     #
     # We need the following CSS file for rendering
     #
@@ -315,7 +315,7 @@ namespace eval ::xowiki {
 
     set content [${:items} render]
     ${:items} destroy_on_cleanup
-    #my log "--W end"
+    #:log "--W end"
     return $content
   }
   

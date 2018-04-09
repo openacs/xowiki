@@ -71,7 +71,7 @@ namespace eval ::xowiki {
         set s [${:data} get_rich_text_spec $__field ""]
       }
       if {$s ne ""} {
-        #my msg "we got richtext spec for $__field = '$s'"
+        #:msg "we got richtext spec for $__field = '$s'"
         set __spec $s
         set __wspec [lindex $__spec 0]
         # old style folder spec substitution. ugly.
@@ -83,7 +83,7 @@ namespace eval ::xowiki {
             if {$__name eq "options"} {lappend __value {*}[:folderspec]}
             lappend __newspec [list $__name $__value]
           }
-          #my msg "--F rewritten spec is '$__newspec'"
+          #:msg "--F rewritten spec is '$__newspec'"
           set __spec $__newspec
         }
       } elseif {[lindex $__wspec 0] eq "="} {
@@ -120,7 +120,7 @@ namespace eval ::xowiki {
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
 
-      #my msg "--F field <$__field> = $__spec"
+      #:msg "--F field <$__field> = $__spec"
       append __fields [list $__spec] \n
     }
 
@@ -329,7 +329,7 @@ namespace eval ::xowiki {
   #
   #   WikiForm instproc set_form_data {} {
   #     next
-  #     #my msg "name in form=[:var name]"
+  #     #:msg "name in form=[:var name]"
   #     set name_in_form [:var name]
   #     if {[regexp {^..:(.*)$} $name_in_form _ stripped_name]} {
   #       # use stripped "name" in form to avoid possible confusions
@@ -394,7 +394,7 @@ namespace eval ::xowiki {
       }
     }
 
-    #my log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
+    #:log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
     if {[apm_version_names_compare [ad_acs_version] 5.3.0d4] == 1} {
       application_data_link::update_links_from \
           -object_id [${:data} set item_id] \
@@ -411,7 +411,7 @@ namespace eval ::xowiki {
     foreach f [:field_list] {
       set s [${:data} find_slot $f] 
       if {$s ne "" && [$s exists default] && [$s default] ne ""} {
-        #my msg "new_request $f default = '[$s default]'"
+        #:msg "new_request $f default = '[$s default]'"
         ${:data} set $f [$s default]
       }
     }
@@ -496,7 +496,7 @@ namespace eval ::xowiki {
   }
 
   FileForm instproc get_uploaded_file {} {
-    #my log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
+    #:log "--F... [ns_conn url] [ns_conn query] form vars = [ns_set array [ns_getform]]"
     set upload_file [${:data} form_parameter upload_file]
     # :log "--F... upload_file = $upload_file"
     if {$upload_file ne "" && $upload_file ne "{}"} {
@@ -509,7 +509,7 @@ namespace eval ::xowiki {
           || $mime_type eq "application/octet-stream" 
           || $mime_type eq "application/force-download"} {
         set guessed_mime_type [::xowiki::guesstype $upload_file]
-        #my msg guess=$guessed_mime_type
+        #:msg guess=$guessed_mime_type
         if {$guessed_mime_type ne "*/*"} {
           set mime_type $guessed_mime_type
         }
@@ -519,12 +519,12 @@ namespace eval ::xowiki {
       # :log "--F no upload_file provided [lsort [${:data} info vars]]"
       if {[${:data} exists mime_type]} {
         :log "--mime_type=[${:data} set mime_type]"
-        #my log "   text=[${:data} set text]"
+        #:log "   text=[${:data} set text]"
         regexp {^[^:]+:(.*)$} [${:data} set name] _ upload_file
         ${:data} set upload_file $upload_file
         ${:data} set import_file [${:data} full_file_name]
         # :log "--F upload_file $upload_file  import_file [${:data} full_file_name]"
-        #my log "   import_type=[${:data} set import_file]"
+        #:log "   import_type=[${:data} set import_file]"
       } 
     } else {
       # :log "--F no name and no upload file"
@@ -622,7 +622,7 @@ namespace eval ::xowiki {
       if {$name eq "::[${:data} set parent_id]"} {
         my f.name  "= inform,help_text="
         :validate {{name {1} {dummy}} }
-        #my log "--e don't validate folder id - parent_id = [${:data} set parent_id]"
+        #:log "--e don't validate folder id - parent_id = [${:data} set parent_id]"
       }
     }
     next
@@ -679,7 +679,7 @@ namespace eval ::xowiki {
   }
   PageInstanceForm instproc set_submit_link_edit {} {
     set object_type [[${:data} info class] object_type]
-    #my log "-- data=${:data} cl=[${:data} info class] ot=$object_type"
+    #:log "-- data=${:data} cl=[${:data} info class] ot=$object_type"
     set item_id [${:data} set item_id]
     set page_template [${:data} form_parameter page_template]
     if {[${:data} exists_query_parameter return_url]} {
@@ -718,7 +718,7 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc new_data {} {
     set __vars {folder_id item_id page_template return_url}
     set object_type [[${:data} info class] object_type]
-    #my log "-- cl=[${:data} info class] ot=$object_type $__vars"
+    #:log "-- cl=[${:data} info class] ot=$object_type $__vars"
     foreach __v $__vars {set $__v [${:data} from_parameter $__v] ""}
     set item_id [next]
 
@@ -794,7 +794,7 @@ namespace eval ::xowiki {
 
     :edit_page_title [${:data} get_from_template title]
     next
-    #my log "--fields = [:fields]"
+    #:log "--fields = [:fields]"
   }
 
   proc ::xowiki::validate_form_text {} {
@@ -811,7 +811,7 @@ namespace eval ::xowiki {
     #ns_log notice "--validate_form_content '$content' clean='$clean_content', \
         #    stripped='[string trim $clean_content]'"
     if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
-    #my log "final text='$text'"
+    #:log "final text='$text'"
     return 1
   }
 

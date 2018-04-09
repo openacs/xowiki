@@ -45,9 +45,9 @@ namespace eval ::xowiki {
         ::xowiki::write_file $in_file $text
         catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
         file delete -- $in_file
-        #my msg o=$output
+        #:msg o=$output
         regexp <body>\n(.*)\n</body> $output _ text
-        #my msg o=$text
+        #:msg o=$text
         return $text
       }
     }
@@ -676,7 +676,7 @@ namespace eval ::xowiki {
             [::xowiki::Includelet publish_status_clause $publish_status] \
             and ci.parent_id = $parent_id \
             and ([join $likes { or }])"
-    #my log $sql
+    #:log $sql
     set pages [::xo::dc list_of_lists get_pages_with_page_order $sql]
     return $pages
   }
@@ -689,9 +689,9 @@ namespace eval ::xowiki {
      -to
    } {
     set pages [:get_page_order_items -parent_id $parent_id -publish_status $publish_status $to]
-    #my log "pages=$pages"
+    #:log "pages=$pages"
     array set npo [::xowiki::utility page_order_compute_new_names $start $to]
-    #my log npo=[array get npo]=>to='$to'
+    #:log npo=[array get npo]=>to='$to'
     set renames [list]
     foreach tuple $pages {
       lassign $tuple old_page_order page_id item_id name
@@ -701,9 +701,9 @@ namespace eval ::xowiki {
         #
         if {$npo($old_page_order) eq $old_page_order} {
           # Nothing to do
-          #my log "--cpo name $old_page_order not changed"
+          #:log "--cpo name $old_page_order not changed"
         } else {
-          #my log "--cpo name $old_page_order changed to '$npo($old_page_order)'"
+          #:log "--cpo name $old_page_order changed to '$npo($old_page_order)'"
           lappend renames $page_id $item_id $name $old_page_order $npo($old_page_order)
         }
       } else {
@@ -711,7 +711,7 @@ namespace eval ::xowiki {
         # We have no translation in the list. This must be an item
         # from a subtree of changed page_orders.
         #
-        #my log "--cpo no translation for $old_page_order, check prefix"
+        #:log "--cpo no translation for $old_page_order, check prefix"
         foreach new_name [array names npo] {
           if {[string match $new_name.* $old_page_order]} {
             #

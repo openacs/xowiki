@@ -48,7 +48,7 @@ namespace eval ::xowiki {
     $object demarshall -parent_id [$object parent_id] -package_id ${:package_id} \
         -creation_user ${:user_id} -create_user_ids $create_user_ids
     set item_id [::xo::db::CrClass lookup -name [$object name] -parent_id [$object parent_id]]
-    #my msg "lookup of [$object name] parent [$object parent_id] => $item_id"
+    #:msg "lookup of [$object name] parent [$object parent_id] => $item_id"
     if {$item_id != 0} {
       if {$replace} { ;# we delete the original
         ::xo::db::CrClass delete -item_id $item_id
@@ -56,14 +56,14 @@ namespace eval ::xowiki {
         :report_line $object replaced
         incr :replaced
       } else {
-        #my msg "$item_id update: [$object name]"
+        #:msg "$item_id update: [$object name]"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
         $item_id copy_content_vars -from_object $object
         $item_id save -use_given_publish_date [$item_id exists publish_date] \
             -modifying_user [$object set modifying_user]
-        #my log "$item_id saved"
+        #:log "$item_id saved"
         $object set item_id [$item_id item_id]
-        #my msg "$item_id updated: [$object name]"
+        #:msg "$item_id updated: [$object name]"
         :report_line $item_id updated
         incr :updated
       }
@@ -73,7 +73,7 @@ namespace eval ::xowiki {
                  -creation_user [$object set modifying_user] ]
       $object set item_id $n
       set item_id $object
-      #my msg "$object added: [$object name]"
+      #:msg "$object added: [$object name]"
       :report_line $object added
       incr :added
     }
@@ -82,7 +82,7 @@ namespace eval ::xowiki {
     # Insert these into the category object map
     #
     if {[$object exists __category_ids]} {
-      #my msg "$item_id map_categories [object set __category_ids] // [$item_id item_id]"
+      #:msg "$item_id map_categories [object set __category_ids] // [$item_id item_id]"
       $item_id map_categories [$object set __category_ids]
     }
 
@@ -132,7 +132,7 @@ namespace eval ::xowiki {
       #  array set ::__category_map [$o set __category_map]
       #}
     }
-    #my msg "item_ids=[array names item_ids], parent_ids=[array names parent_ids]"
+    #:msg "item_ids=[array names item_ids], parent_ids=[array names parent_ids]"
 
     #
     # Make a fix-point iteration during import. Do only import, when
@@ -141,7 +141,7 @@ namespace eval ::xowiki {
     while {[array size todo] > 0} {
       set new 0
       foreach o [array names todo] {
-        #my msg "work on $o [$o info class] [$o name]"
+        #:msg "work on $o [$o info class] [$o name]"
 
         set old_name      [$o name]
         set old_item_id   [$o item_id]
@@ -158,16 +158,16 @@ namespace eval ::xowiki {
           
           set template_name_key $parent_ids($old_template_id)-$old_names($old_template_id)
           if {![info exists name_map($template_name_key)]} {
-            #my msg "... delay import of $o (no object with name $template_name_key) imported"
+            #:msg "... delay import of $o (no object with name $template_name_key) imported"
             continue
           }
-          #my msg "we found entry for name_map($template_name_key) = $name_map($template_name_key)"
+          #:msg "we found entry for name_map($template_name_key) = $name_map($template_name_key)"
         }
 
         if {[info exists item_ids($old_parent_id)]} {
           # we have a child object
           if {![info exists id_map($old_parent_id)]} {
-            #my msg "... delay import of $o (map of parent_id $old_parent_id missing)"
+            #:msg "... delay import of $o (map of parent_id $old_parent_id missing)"
             continue
           }
         }
@@ -197,7 +197,7 @@ namespace eval ::xowiki {
           #   set inherited [expr {[$page physical_parent_id] ne [$page parent_id]}]
 
           if {$page ne ""} {
-            #my msg "page [$o name] can ne found in folder ${:parent_id}"
+            #:msg "page [$o name] can ne found in folder ${:parent_id}"
             incr :inherited
             unset todo($o)
             set o $page
@@ -212,12 +212,12 @@ namespace eval ::xowiki {
           # objects to new IDs.
           #
           if {[$o istype ::xowiki::PageInstance]} {
-            #my msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
+            #:msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
             $o page_template $name_map($template_name_key)
-            #my msg "exists template? [:isobject [$o page_template]]"
+            #:msg "exists template? [:isobject [$o page_template]]"
             if {![:isobject [$o page_template]]} {
               ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-              #my msg "[:isobject [$o page_template]] loaded"
+              #:msg "[:isobject [$o page_template]] loaded"
             }
           }
           
@@ -229,12 +229,12 @@ namespace eval ::xowiki {
           
           # Everything is mapped, we can now do the import.
           
-          #my msg "start import for $o, name=[$o name]"
+          #:msg "start import for $o, name=[$o name]"
           :import \
               -object $o \
               -replace $replace \
               -create_user_ids $create_user_ids
-          #my msg "import for $o done, name=[$o name]"
+          #:msg "import for $o done, name=[$o name]"
 
           unset todo($o)
         }
@@ -246,7 +246,7 @@ namespace eval ::xowiki {
           set id_map($old_item_id) [$o item_id]
         }
         set name_map($old_parent_id-$old_name) [$o item_id]
-        #my msg "setting name_map($old_parent_id-$old_name)=$name_map($old_parent_id-$old_name), o=$o, old_item_id=$old_item_id"
+        #:msg "setting name_map($old_parent_id-$old_name)=$name_map($old_parent_id-$old_name), o=$o, old_item_id=$old_item_id"
         
         set new 1
       }
@@ -255,7 +255,7 @@ namespace eval ::xowiki {
         break
       }
     }
-    #my msg "final name_map=[array get name_map], id_map=[array get id_map]"
+    #:msg "final name_map=[array get name_map], id_map=[array get id_map]"
 
     #
     # final cleanup
@@ -391,13 +391,13 @@ namespace eval ::xowiki {
   }
   ArchiveFile instproc unpack {} {
     set success 0
-    #my log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
+    #:log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
     switch [::xowiki::guesstype ${:name}] {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
         set zipcmd [::util::which unzip]
-        #my msg "zip = $zipcmd, tempdir = ${:tmpdir}"
+        #:msg "zip = $zipcmd, tempdir = ${:tmpdir}"
         exec $zipcmd ${:file} -d ${:tmpdir}
         :import -dir ${:tmpdir} -parent_id ${:parent_id}
         set success 1
@@ -412,16 +412,16 @@ namespace eval ::xowiki {
           :msg "unknown compressed file type ${:name}"
         }
       }
-      default {my msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
+      default {:msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
     }
-    #my msg success=$success
+    #:msg success=$success
     return $success
   }
   ArchiveFile instproc import {-dir -parent_id} {
     set package_id [$parent_id package_id]
 
     foreach tmpfile [glob -nocomplain -directory $dir *] {
-      #my msg "work on $tmpfile [::file isdirectory $tmpfile]"
+      #:msg "work on $tmpfile [::file isdirectory $tmpfile]"
       set file_name [::file tail $tmpfile]
       if {[::file isdirectory $tmpfile]} {
         # ignore mac os x resource fork directories
@@ -481,7 +481,7 @@ namespace eval ::xowiki {
             $f content-type $mime_type
             $f set tmpfile $tmpfile
             $f convert_to_internal
-            #my log "after convert to internal $file_name"
+            #:log "after convert to internal $file_name"
           }
         } else {
           set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]

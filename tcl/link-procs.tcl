@@ -75,7 +75,7 @@ namespace eval ::xowiki {
     if {![info exists :label]}      {set :label ${:name}}
     if {![info exists :parent_id]}  {set :parent_id [${:page} parent_id]}
     if {![info exists :package_id]} {set :package_id [${:page} package_id]}
-    #my msg "--L link has class [:info class] // $class // [:type] // ${:parent_id}"
+    #:msg "--L link has class [:info class] // $class // [:type] // ${:parent_id}"
   }
   Link instproc link_name {-lang -stripped_name} {
     return $lang:$stripped_name
@@ -205,7 +205,7 @@ namespace eval ::xowiki {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
                           -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
-        #my log "--LINK found package_id=$package_id [:isobject ::$package_id]"
+        #:log "--LINK found package_id=$package_id [:isobject ::$package_id]"
         ::xowiki::Package require $package_id
         return $package_id
       }
@@ -403,11 +403,11 @@ namespace eval ::xowiki {
   ::xowiki::Link::image instproc render {} {
     set page [:page]
     set item_id [:resolve]
-    #my log "-- image resolve for $page returned $item_id (name=${:name}, label=${:label})"
+    #:log "-- image resolve for $page returned $item_id (name=${:name}, label=${:label})"
     if {$item_id} {
       set link [${:package_id} pretty_link -download true -query [:query] \
                     -absolute [$page absolute_links] -parent_id ${:parent_id} ${:name}]
-      #my log "--l fully quali [$page absolute_links], link=$link"
+      #:log "--l fully quali [$page absolute_links], link=$link"
       $page references resolved [list $item_id [:type]]
       :render_found $link ${:label}
     } else {
@@ -561,17 +561,17 @@ namespace eval ::xowiki {
     # look for a package instance of xowiki, named "glossary" (the type)
     set id [:lookup_xowiki_package_by_name [:type] \
                 [site_node::get_node_id_from_object_id -object_id ${:package_id}]]
-    #my log "--LINK glossary lookup returned package_id $id"
+    #:log "--LINK glossary lookup returned package_id $id"
     if {$id > 0} {
       # set correct package id for rendering the link
       set :package_id $id
-      #my log "-- INITIALIZE $id"
+      #:log "-- INITIALIZE $id"
       #::xowiki::Package initialize -package_id $id
-      #my log "--u setting package_id to $id"
+      #:log "--u setting package_id to $id"
       # lookup the item from the found folder
       return [::xo::db::CrClass lookup -name [:name] -parent_id [$id set parent_id]]
     }
-    #my log "--LINK no page found [:name], [:lang], type=[:type]."
+    #:log "--LINK no page found [:name], [:lang], type=[:type]."
     return 0
   }
   ::xowiki::Link::glossary instproc render_found {href label} {

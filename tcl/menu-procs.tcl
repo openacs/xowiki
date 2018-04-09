@@ -165,7 +165,7 @@ namespace eval ::xowiki {
     lappend :Menues $name
     if {$label eq ""} {set label $name}
     set :Menu($name) [list label $label]
-    #my log "menues: ${:Menues}"
+    #:log "menues: ${:Menues}"
   }
 
   ::xowiki::MenuBar instproc additional_sub_menu {-kind:required -pages:required -owner:required} {

@@ -34,14 +34,14 @@ namespace eval ::xowiki {
   Chat proc initialize_nsvs {} {;}      ;# noop
 
   Chat proc login {-chat_id -package_id {-mode ""} {-path ""}} {
-    #my log "--chat"
+    #:log "--chat"
     if {![ns_conn isconnected]} return
     auth::require_login
     if {![info exists package_id]} {set package_id [ad_conn package_id] }
     if {![info exists chat_id]}    {set chat_id $package_id }
     set session_id [ad_conn session_id].[clock seconds]
     set context id=$chat_id&s=$session_id
-    #my log "chat_id=$chat_id, path=$path"
+    #:log "chat_id=$chat_id, path=$path"
     if {$path eq ""} {
       set path [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
     } elseif {[string index $path end] ne "/"} {
