@@ -191,6 +191,9 @@ namespace eval ::xowiki {
         }
 
       } elseif {[regexp {^(file|image|swf|download/file|download/..|tag)/(.*)$} $path _ lang local_name]} {
+        #
+        # special "lang" contents
+        #
       } else {
         set local_name $path
         if {$default_lang eq ""} {set default_lang [:default_language]}
