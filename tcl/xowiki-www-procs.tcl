@@ -513,7 +513,7 @@ namespace eval ::xowiki {
     $package_id set mime_type ${:mime_type}
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
-    ns_log notice delivery=[$package_id set delivery]
+
     if {[:exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [:query_parameter filename]]
       ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"$fn\""
