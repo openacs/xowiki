@@ -513,6 +513,7 @@ namespace eval ::xowiki {
     $package_id set mime_type ${:mime_type}
     $package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
+    ns_log notice delivery=[$package_id set delivery]
     if {[:exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [:query_parameter filename]]
       ns_set put [ns_conn outputheaders] Content-Disposition "attachment;filename=\"$fn\""
@@ -542,8 +543,13 @@ namespace eval ::xowiki {
     set cmptime [ns_set iget [ns_conn headers] If-Modified-Since]
     if {$cmptime ne ""} {
       if {[clock scan $cmptime] >= $modtime} {
-        ns_returnnotice 304 "Not modified" "not modified"
-        return ""
+        #
+        # TODO: we should set the status_code and delivery the same
+        # way, ... but keek things compatible for now.
+        #
+        ::xo::cc set status_code 304
+        $package_id set delivery ns_returnnotice
+        return "not modified"
       }
     }
     ns_set put [ns_conn outputheaders] Last-Modified [ns_httptime $modtime]
