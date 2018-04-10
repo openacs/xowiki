@@ -256,8 +256,7 @@ namespace eval ::xowiki::formfield {
     # Specify the behavior of a form field via
     # per object mixins
     #
-    set obj ${:object}
-    set pkgctx [[$obj package_id] context]
+    set pkgctx [[${:object} package_id] context]
     if {[$pkgctx exists embedded_context]} {
       set ctx [$pkgctx set embedded_context]
       set classname ${ctx}::$mixin
@@ -278,9 +277,8 @@ namespace eval ::xowiki::formfield {
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
 
-    set object ${:object}
-    set package_id [$object package_id]
-    set s [::xowiki::formfield::FormField get_single_spec -object $object -package_id $package_id $s]
+    set package_id [${:object} package_id]
+    set s [::xowiki::formfield::FormField get_single_spec -object ${:object} -package_id $package_id $s]
 
     switch -glob -- $s {
       optional    {set :required false}
@@ -2794,8 +2792,7 @@ namespace eval ::xowiki::formfield {
   }
 
   abstract_page instproc pretty_value {v} {
-    set object ${:object}
-    set parent_id [$object parent_id]
+    set parent_id [${:object} parent_id]
     set :options [:get_labels $v]
     if {[:multiple]} {
       foreach o ${:options} {
@@ -2823,7 +2820,7 @@ namespace eval ::xowiki::formfield {
         #:log "comparing '$value' with '$v'"
         if {$value eq $v} {
           if {[:as_box]} {
-            return [$object include [list $value -decoration rightbox]]
+            return [${:object} include [list $value -decoration rightbox]]
           }
           set href [${:package_id} pretty_link -parent_id $parent_id $value]
           return "<a href='[ns_quotehtml $href]'>$label</a>"
