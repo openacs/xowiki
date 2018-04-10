@@ -2696,7 +2696,7 @@ namespace eval ::xowiki {
   # and keywords".  Below is an example of a workflow specific search
   # content.
   #
-  #   [:object] proc search_render {} {
+  #   ${:object} proc search_render {} {
   #        return [list html "Hello World" keywords "hello world"]
   #   }
   #

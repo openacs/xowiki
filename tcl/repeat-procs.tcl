@@ -181,7 +181,7 @@ namespace eval ::xowiki::formfield {
     #
     # remove "unneeded" entries from instance attributes
     #
-    [:object] instvar instance_attributes
+    ${:object} instvar instance_attributes
     foreach {name value} $values {
       if {[dict exists $instance_attributes $name]} {
         dict unset instance_attributes $name

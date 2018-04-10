@@ -720,7 +720,7 @@ namespace eval ::xowiki::formfield {
     {cols 80}
   }
   menuentries instproc pretty_value {v} {
-    [:object] do_substitutions 0
+    ${:object} do_substitutions 0
     return "<pre class='code'>[string map [list & {&amp;} < {&lt;} > {&gt;}]  [:value]]</pre>"
   }
 }

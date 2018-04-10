@@ -361,7 +361,7 @@ namespace eval ::xowiki {
   TreeRenderer=listdnd instproc render_node {{-open:boolean false} cat_content} {
     #set open_state [expr {${:open_requests} > 0 ?"class='liOpen'" : "class='liClosed'"}]
     #set cl [lindex [:info precedence] 0]
-    set obj [:object]
+    set obj ${:object}
     set o [:owner]
     $obj instvar page_order
     set :li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
