@@ -730,7 +730,7 @@ namespace eval ::xowiki::formfield {
     ::xotcl::Class instproc extend_slot_default
   }
   Class instproc extend_slot_default {name value} {
-    # Search for the slot. If the slot exists, extend it's default
+    # Search for the slot. If the slot exists, extend its default
     # value with the new value
     foreach c [:info heritage] {
       if {[info commands ${c}::slot::$name] ne ""} {
