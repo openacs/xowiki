@@ -545,7 +545,7 @@ namespace eval ::xowiki {
       if {[clock scan $cmptime] >= $modtime} {
         #
         # TODO: we should set the status_code and delivery the same
-        # way, ... but keek things compatible for now.
+        # way, ... but keep things compatible for now.
         #
         ::xo::cc set status_code 304
         $package_id set delivery ns_returnnotice
