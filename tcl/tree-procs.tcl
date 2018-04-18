@@ -174,7 +174,7 @@ namespace eval ::xowiki {
   #
   # In particular, the TreeRenders are defined to work with xowiki's
   # page fragment caching. Via page fragment caching, the result of
-  # the rendering of includedlets is cached. However, the renderer
+  # the rendering of includelets is cached. However, the renderer
   # might require additional CSS or JavaScript code, which has to be
   # included for the cached HTML fragment as well. Therefore, the
   # method "include_head_entries" is provided, which is called
