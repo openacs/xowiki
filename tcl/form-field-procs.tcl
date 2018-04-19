@@ -1383,8 +1383,11 @@ namespace eval ::xowiki::formfield {
     set :widget_type text
   }
   number instproc render_input {} {
-    ::html::input [:get_attributes type id name value disabled {CSSclass class} min max step value \
-                       autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
+    set boolean_atts [:booleanAttributes required readonly disabled \
+        formnovalidate autofocus]
+    ::html::input [:get_attributes type id name value {CSSclass class} \
+        min max step autocomplete placeholder {*}$boolean_atts] {}
+    :resetBooleanAttributes $boolean_atts
   }
 
   ###########################################################
