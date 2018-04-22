@@ -160,7 +160,7 @@ namespace eval ::xowiki {
     }
 
     if {[$page exists __unresolved_object_type]} {
-      # get the desired object_type for unresoved entries
+      # get the desired object_type for unresolved entries
       set object_type [$page set __unresolved_object_type]
     } else {
       set object_type [[$page info class] set object_type]
