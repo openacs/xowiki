@@ -1968,8 +1968,8 @@ namespace eval ::xowiki {
     #
     # For security reasons, don't allow arbitrary paths to different
     # packages.  All allowed includelets must be made available
-    # under xowiki/www (preferable xowiki/www/portlets/*). If the
-    # provided path contains a admin/* admin rights are required.
+    # under xowiki/www (preferable xowiki/www/portlets/*). When the
+    # provided path contains "admin/*", admin rights are required.
     #
     if {[string match "admin/*" $adp_fn]} {
       set allowed [::xo::cc permission \
