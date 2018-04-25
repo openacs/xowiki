@@ -24,7 +24,7 @@ namespace eval ::xowiki {
     set mapped_trees [expr {$have_locale ?
                             [category_tree::get_mapped_trees $object_id $locale] :
                             [category_tree::get_mapped_trees $object_id]}]
-    set trees [list]
+    set trees {}
     foreach tree $mapped_trees {
       lassign $tree tree_id my_tree_name ...
 
@@ -50,7 +50,7 @@ namespace eval ::xowiki {
       # Get the values from info in "tree" into separate variables given by output.
       # Note, that the order matters!
       lassign $tree {*}$output
-      set l [list]
+      set l {}
       foreach __var $output {lappend l [set $__var]}
       lappend trees $l
     }

@@ -151,7 +151,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc init {} {
-    set :Menues [list]
+    set :Menues {}
     :destroy_on_cleanup
   }
 
@@ -233,7 +233,7 @@ namespace eval ::xowiki {
     # such an entry.
     #
     set updated 0
-    set newitems [list]
+    set newitems {}
     foreach {n i} [set :Menu($menu)] {
       if {$n eq $name} {
         lappend newitems $name $item

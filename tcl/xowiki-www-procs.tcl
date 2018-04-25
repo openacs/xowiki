@@ -45,7 +45,7 @@ namespace eval ::xowiki {
     if {![:exists_form_parameter "objects"]} {
       :msg "nothing to copy"
     }
-    set ids [list]
+    set ids {}
     foreach page_name [:form_parameter objects] {
       # the page_name is the name exactly as stored in the content repository
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:item_id}]
@@ -153,7 +153,7 @@ namespace eval ::xowiki {
     #
     # collect some default values from query parameters
     #
-    set default_variables [list]
+    set default_variables {}
     foreach key {name title page_order last_page_id nls_language} {
       if {[:exists_query_parameter $key]} {
         lappend default_variables $key [:query_parameter $key]
@@ -183,7 +183,7 @@ namespace eval ::xowiki {
     }
 
     # load the instance attributes from the form parameters
-    set instance_attributes [list]
+    set instance_attributes {}
     foreach {_att _value} [::xo::cc get_all_form_parameter] {
       if {[string match _* $_att]} continue
       lappend instance_attributes $_att $_value
@@ -837,7 +837,7 @@ namespace eval ::xowiki {
         # problems.
         #
         if {[$package_id exists __batch_mode]} {
-          set errors [list]
+          set errors {}
           foreach f $form_fields { 
             if {[$f error_msg] ne ""} {
               lappend errors [list field [$f name] value [$f set value] error [$f error_msg]]
@@ -1201,7 +1201,7 @@ namespace eval ::xowiki {
     set weblog_page [${:package_id} get_parameter weblog_page weblog]
     set href        [${:package_id} pretty_link -parent_id [${:package_id} folder_id] $weblog_page]?summary=1
 
-    set entries [list]
+    set entries {}
     xo::dc foreach get_popular_tags \
         [::xo::dc select \
              -vars "count(*) as nr, tag" \
@@ -1226,8 +1226,8 @@ namespace eval ::xowiki {
     page without adding a new revision.
   } {
     set field_names [:field_names]
-    set form_fields [list]
-    set query_field_names [list]
+    set form_fields {}
+    set query_field_names {}
 
     set validation_errors 0
     foreach field_name $field_names {
@@ -1774,7 +1774,7 @@ namespace eval ::xowiki {
       $slot destroy_on_cleanup
     }
 
-    set spec_list [list]
+    set spec_list {}
     if {[$slot exists spec]} {lappend spec_list [$slot set spec]}
     if {$spec ne ""}         {lappend spec_list $spec}
     #:msg "[self args] spec_list $spec_list"
@@ -1835,7 +1835,7 @@ namespace eval ::xowiki {
     }
 
     #:log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
-    set spec_list [list]
+    set spec_list {}
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     #:log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
@@ -1856,7 +1856,7 @@ namespace eval ::xowiki {
       if {$f eq "off"} {return ""}
     }
     
-    set category_fields [list]
+    set category_fields {}
     set container_object_id ${:package_id}
     set category_trees [category_tree::get_mapped_trees $container_object_id]
     set category_ids [category::get_mapped_categories ${:item_id}]
@@ -1865,9 +1865,9 @@ namespace eval ::xowiki {
     foreach category_tree $category_trees {
       lassign $category_tree tree_id tree_name subtree_id assign_single_p require_category_p
 
-      set options [list] 
+      set options {} 
       #if {!$require_category_p} {lappend options [list "--" ""]}
-      set value [list]
+      set value {}
       foreach category [::xowiki::Category get_category_infos \
                             -subtree_id $subtree_id -tree_id $tree_id] {
         lassign $category category_id category_name deprecated_p level
@@ -2062,8 +2062,8 @@ namespace eval ::xowiki {
 
   } {
     set validation_errors 0
-    set category_ids [list]
-    array set containers [list]
+    set category_ids {}
+    array set containers {}
     set cc [${:package_id} context]
 
     if {![info exists field_names]} {
@@ -2342,7 +2342,7 @@ namespace eval ::xowiki {
 
   Page instproc field_names {{-form ""}} {
     array set dont_modify [list item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1]
-    set field_names [list]
+    set field_names {}
     foreach field_name [[:info class] array names db_slot] {
       if {[info exists dont_modify($field_name)]} continue
       lappend field_names _$field_name

@@ -1695,7 +1695,7 @@ namespace eval ::xowiki::formfield {
     set editor_class [self class]::$editor
     if {$editor ne "" && ![:hasclass $editor_class]} {
       if {![:isclass $editor_class]} {
-        set editors [list]
+        set editors {}
         foreach c [::xowiki::formfield::richtext info subclass] {
           if {![$c exists editor_mixin]} continue
           lappend editors [namespace tail $c]
@@ -1867,7 +1867,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor instproc pathNames {fileNames} {
-    set result [list]
+    set result {}
     foreach fn $fileNames {
       if {[regexp {^[./]} $fn]} {
         append result $fn
@@ -2067,7 +2067,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor4 instproc pathNames {fileNames} {
-    set result [list]
+    set result {}
     foreach fn $fileNames {
       if {[regexp {^[./]} $fn]} {
         append result $fn
@@ -2412,7 +2412,7 @@ namespace eval ::xowiki::formfield {
       # we use for the time being the initialization of xinha based on
       # the blank master
       set ::acs_blank_master(xinha) 1
-      set quoted [list]
+      set quoted {}
       foreach e [:plugins] {lappend quoted '$e'}
       set ::acs_blank_master(xinha.plugins) [join $quoted ", "]
 
@@ -2482,7 +2482,7 @@ namespace eval ::xowiki::formfield {
 
   enumeration instproc get_labels {values} {
     if {[:multiple]} {
-      set labels [list]
+      set labels {}
       foreach v $values {lappend labels [list [:get_entry_label $v] $v]}
       return $labels
     } else {
@@ -2499,7 +2499,7 @@ namespace eval ::xowiki::formfield {
         lassign $o label value
         set labels($value) [:localize $label]
       }
-      set values [list]
+      set values {}
       foreach i $v {lappend values $labels($i)}
       return [join $values {, }]
     } else {
@@ -2534,7 +2534,7 @@ namespace eval ::xowiki::formfield {
       return
     }
     set subtree_id ""
-    set options [list]
+    set options {}
 
     foreach category [::xowiki::Category get_category_infos \
                           -subtree_id $subtree_id -tree_id $tree_id] {
@@ -2803,7 +2803,7 @@ namespace eval ::xowiki::formfield {
         set href [${:package_id} pretty_link -parent_id $parent_id $value]
         set labels($value) "<a href='[ns_quotehtml $href]'>$label</a>"
       }
-      set hrefs [list]
+      set hrefs {}
       foreach i $v {
         if {![info exists labels($i)]} {
           #:msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
@@ -2861,7 +2861,7 @@ namespace eval ::xowiki::formfield {
     #set form_obj [${:object} resolve_included_page_name $form_name]
     if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}
 
-    set :form_object_item_ids [list]
+    set :form_object_item_ids {}
     foreach form_obj $form_objs {lappend :form_object_item_ids [$form_obj item_id]}
   }
   form_page instproc compute_options {} {
@@ -2892,7 +2892,7 @@ namespace eval ::xowiki::formfield {
                    -package_id ${:package_id} \
                    -from_package_ids $from_package_ids]
 
-    set :options [list]
+    set :options {}
     foreach i [$items children] {
       #
       # If the form_page has a different package_id, prepend the
@@ -2939,7 +2939,7 @@ namespace eval ::xowiki::formfield {
     }
 
     set package_id [${:object} package_id]
-    set :options [list]
+    set :options {}
     ::xo::dc foreach instance_select \
         [${:type} instance_select_query \
              -folder_id [$package_id folder_id] \
@@ -3389,7 +3389,7 @@ namespace eval ::xowiki::formfield {
 
   CompoundField instproc get_compound_value {} {
     # Set the internal representation based on the components values.
-    set value [list]
+    set value {}
     foreach c [:components] {
       #:msg "$c [$c info class] lappending [list [$c name] [$c value]]"
       lappend value [$c name] [$c value]
@@ -3416,7 +3416,7 @@ namespace eval ::xowiki::formfield {
     # of the form {name spec}.
     #
     set :structure $spec_list
-    set :components [list]
+    set :components {}
     foreach entry $spec_list {
       lassign $entry name spec
       #
@@ -3501,7 +3501,7 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc generate_fieldnames {{-prefix "v-"} n} {
-    set names [list]
+    set names {}
     for {set i 1} {$i <= $n} {incr i} {lappend names $prefix$i}
     return $names
   }
@@ -3856,7 +3856,7 @@ namespace eval ::xowiki::formfield {
 
   Class create scale -superclass radio -parameter {{n 5} {horizontal true}}
   scale instproc initialize {} {
-    set :options [list]
+    set :options {}
     for {set i 1} {$i <= ${:n}} {incr i} {
       lappend :options [list $i $i]
     }

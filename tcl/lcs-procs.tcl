@@ -35,8 +35,8 @@ if { [package vcompare [package provide Tcl] 8.4] < 0 } {
 
 proc list::longestCommonSubsequence { sequence1 sequence2 } {
 
-  set seta [list]
-  set setb [list]
+  set seta {}
+  set setb {}
 
   # Construct a set of equivalence classes of lines in file 2
 

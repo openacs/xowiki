@@ -57,7 +57,7 @@ ad_form \
 	  }
         }
       } on ok {r} {
-        set objects [list]
+        set objects {}
         foreach o [::xowiki::Page allinstances] {
           if {![info exists preexists($o)]} {lappend objects $o}
         }

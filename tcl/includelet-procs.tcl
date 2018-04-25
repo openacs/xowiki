@@ -137,7 +137,7 @@ namespace eval ::xowiki::includelet {
       set publish_status_clause ""
     } else {
       array set valid_state [list production 1 ready 1 live 1 expired 1]
-      set clauses [list]
+      set clauses {}
       foreach state [split $value |] {
         if {![info exists valid_state($state)]} {
           error "no such state: '$state'; valid states are: production, ready, live, expired"
@@ -189,11 +189,11 @@ namespace eval ::xowiki::includelet {
     # pipe symbols are or-operations, commas are and-operations;
     # no parenthesis are permitted
     set extra_where_clause ""
-    set or_names [list]
-    set ors [list]
+    set or_names {}
+    set ors {}
     foreach cid_or [split $category_spec |] {
-      set ands [list]
-      set and_names [list]
+      set ands {}
+      set and_names {}
       foreach cid_and [split $cid_or ,] {
         if {![string is integer -strict $cid_and]} {
           ad_return_complaint 1 "invalid category id '[ns_quotehtml $cid_and]'"
@@ -743,7 +743,7 @@ namespace eval ::xowiki::includelet {
       } elseif {$edit_html ne ""} {
         append content "$edit_html<br>"
       }
-      set categories [list]
+      set categories {}
       set pos 0
       set cattree(0) [::xowiki::Tree new -volatile -orderby pos \
                           -id [:id]-$my_tree_name -name $my_tree_name]
@@ -766,7 +766,7 @@ namespace eval ::xowiki::includelet {
       }
       
       if {[info exists ordered_composite]} {
-        set items [list]
+        set items {}
         foreach c [$ordered_composite children] {lappend items [$c item_id]}
         
         # If we have no item, provide a dummy one to avoid sql error
@@ -1371,13 +1371,13 @@ namespace eval ::xowiki::includelet {
       set sql "select count(*) as nr,tag from xowiki_tags where \
         user_id = :user_id and package_id = :package_id group by tag order by tag"
     }
-    set entries [list]
+    set entries {}
 
     if {![info exists page]} {set page [$package_id get_parameter weblog_page]}
 
     set href [$package_id package_url]tag/
     ::xo::dc foreach get_tag_counts $sql {
-      set q [list]
+      set q {}
       if {$summary} {lappend q "summary=[ad_urlencode_query $summary]"}
       if {$popular} {lappend q "popular=[ad_urlencode_query $popular]"}
       set link $href$tag?[join $q &]
@@ -1413,7 +1413,7 @@ namespace eval ::xowiki::includelet {
     
     set :tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
                           -item_id [${:__including_page} item_id] -package_id $package_id]]
-    set entries [list]
+    set entries {}
 
     foreach tag ${:tags} {
       set href [export_vars -base [$package_id package_url]/tag/$tag {summary}]
@@ -1460,7 +1460,7 @@ namespace eval ::xowiki::includelet {
     set content ""
 
     set weblog_page [$package_id get_parameter weblog_page weblog]
-    set entries [list]
+    set entries {}
     set href [export_vars -base [$package_id package_url]$weblog_page {summary}]
     set notification_type ""
     if {[$package_id get_parameter "with_notifications" 1] &&
@@ -1615,7 +1615,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set item_id [${:__including_page} item_id] 
-    set refs [list]
+    set refs {}
     # The same image might be linked both, as img or file on one page, 
     # so we need DISTINCT.
 
@@ -1663,7 +1663,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set item_id [${:__including_page} item_id] 
-    set refs [list]
+    set refs {}
 
     ::xo::dc foreach get_refers "SELECT DISTINCT reference,ci.name,ci.parent_id,o.package_id as pid \
         from xowiki_references,cr_items ci,acs_objects o \
@@ -2364,7 +2364,7 @@ namespace eval ::xowiki::includelet {
         }
       }
 
-      set menu [list]
+      set menu {}
       foreach b $menu_buttons {
         if {[info commands ::xowiki::includelet::$b] eq ""} {
           set b $b-item-button
@@ -2460,7 +2460,7 @@ namespace eval ::xowiki::includelet {
     -level:required
   } {
     $object instvar page_order title name
-    set menu [list]
+    set menu {}
     foreach b $menu_buttons {
       if {[info commands ::xowiki::includelet::$b] eq ""} {
         set b $b-item-button
@@ -3239,7 +3239,7 @@ namespace eval ::xowiki::includelet {
         if {$collab($x) > $max} {set max $collab($x)}
       }
       
-      set edges [list]
+      set edges {}
       foreach x [array names collab] {
         lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
       }
@@ -3331,7 +3331,7 @@ namespace eval ::xowiki::includelet {
         if {$collab($x) > $max} {set max $collab($x)}
       }
       
-      set edges [list]
+      set edges {}
       foreach x [array names collab] {
         lappend edges [list $x $collab($x) [expr {$collab($x)*5.0/$max}]]
       }
@@ -3559,7 +3559,7 @@ namespace eval ::xowiki::includelet {
         lappend button_objs $obj
       }
     }
-    set links [list]
+    set links {}
     foreach b $button_objs { lappend links [$b render] }
     return "<div style='clear: both;'><div class='wiki-menu'>[join $links { &middot; }]</div></div>\n"
   }
@@ -3618,7 +3618,7 @@ namespace eval ::xowiki::includelet {
       #
       # experimental highcharts pie renderer
       #
-      set percentages [list]
+      set percentages {}
       foreach {value count} [array get __count] {
         lappend percentages $value [format %.2f [expr {$count*100.0/$sum}]]
       }
@@ -3660,7 +3660,7 @@ namespace eval ::xowiki::includelet {
     set title [:title]
     if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
     set id [:id]
-    set values [list]
+    set values {}
     foreach {name value} $data {
       lappend values "\['[::xowiki::Includelet js_encode $name]', $value\]"
     }
@@ -3848,7 +3848,7 @@ namespace eval ::xowiki::includelet {
     }
 
     # finally, evaluate conditions if included
-    set field_names [list]
+    set field_names {}
     foreach f $raw_field_names {
       set _ [string trim [::xowiki::formfield::FormField get_single_spec \
                               -object $o -package_id $package_id $f]]
@@ -3941,7 +3941,7 @@ namespace eval ::xowiki::includelet {
     # 
     # Compute filter clauses
     #
-    set init_vars [list]
+    set init_vars {}
     array set uc {tcl false h "" vars "" sql ""}
     if {[info exists unless]} {
       array set uc [::xowiki::FormPage filter_expression $unless ||]
@@ -4080,7 +4080,7 @@ namespace eval ::xowiki::includelet {
       return ""
     }
 
-    set links [list]
+    set links {}
     set base [$form_item pretty_link]
     set label [$form_item name]
 
@@ -4124,14 +4124,14 @@ namespace eval ::xowiki::includelet {
     # corresponding to the wanted field name. This is guaranteed by the construction
     # in form-usages.
     set count 0
-    set table_field_names [list]
+    set table_field_names {}
     foreach t [$t1 children] {
       incr count
       lappend table_field_names $count
       # In most situations, it seems useful to have just one field in
       # the voting table. If there are multiple, we use a comma to
       # separate the values (looks bettern than separate columns).
-      set field_contents [list]
+      set field_contents {}
       foreach __fn $field_names {
         lappend field_contents [$t set $__fn]
       }
@@ -4470,7 +4470,7 @@ namespace eval ::xowiki::includelet {
                    -initialize false \
                    -publish_status $publish_status \
                    -package_id $package_id]
-    set result [list]
+    set result {}
     foreach item [$items children] {
       lappend result [$item name]
     }

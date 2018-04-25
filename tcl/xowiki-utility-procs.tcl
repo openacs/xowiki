@@ -213,8 +213,8 @@ namespace eval ::xowiki {
     in acs_objects; this proc updates the package_ids of all items
     and revisions in acs_objects
   } {
-    set folder_ids [list]
-    set package_ids [list]
+    set folder_ids {}
+    set package_ids {}
     foreach package_id [::xowiki::Package instances] {
       ns_log notice "checking package_id $package_id"
       set folder_id [::xo::dc list get_folder_id "select f.folder_id from cr_items c, cr_folders f \
@@ -661,7 +661,7 @@ namespace eval ::xowiki {
   }
 
   :proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
-    set likes [list]
+    set likes {}
     foreach page_order $page_orders {
       if {[::xowiki::page_order_uses_ltree]} {
         lappend likes "p.page_order <@ '$page_order'" 
@@ -692,7 +692,7 @@ namespace eval ::xowiki {
     #:log "pages=$pages"
     array set npo [::xowiki::utility page_order_compute_new_names $start $to]
     #:log npo=[array get npo]=>to='$to'
-    set renames [list]
+    set renames {}
     foreach tuple $pages {
       lassign $tuple old_page_order page_id item_id name
       if {[info exists npo($old_page_order)]} {
@@ -755,7 +755,7 @@ namespace eval ::xowiki {
     }
     
     #ns_log notice "--cpo from=$from, to=$to, clean=$clean"
-    set gap_renames [list]
+    set gap_renames {}
     #
     # We distinguish two cases:
     # - pure reordering: length(to) == length(from)
@@ -779,7 +779,7 @@ namespace eval ::xowiki {
       # 
       # Compute the remaining list.
       #
-      set remaining [list]
+      set remaining {}
       foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
       #
       # Compute rename commands for it.
@@ -856,7 +856,7 @@ namespace eval ::xowiki {
   if {[ns_info name] eq "NaviServer"} {
     :proc urlencode {string} {ns_urlencode $string}
   } else {
-    set ue_map [list]
+    set ue_map {}
     for {set i 0} {$i < 256} {incr i} {
       set c [format %c $i]
       set x %[format %02x $i]
