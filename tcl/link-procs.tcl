@@ -601,7 +601,7 @@ namespace eval ::xowiki {
   #       break
   #     }
   #     if {![info exists r(item_id)]} {return 0}
-  #     # we have a valid item. Set the the package_id and return the item_id
+  #     # we have a valid item. Set the package_id and return the item_id
   #     :package_id $r(package_id)
   #     return $r(item_id)
   #   }

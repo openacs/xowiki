@@ -821,7 +821,7 @@ namespace eval ::xowiki::formfield {
 
   file instproc get_from_value {value attribute {raw ""}} {
     #
-    # The value of of a form entry might be:
+    # The value of a form entry might be:
     # - an atomic list element
     # - a list with attribute value pairs
     #
@@ -1433,7 +1433,7 @@ namespace eval ::xowiki::formfield {
   numeric instproc initialize {} {
     next
     set :widget_type numeric
-    # check, if we we have an integer format
+    # check, if we have an integer format
     set :is_integer [regexp {%[0-9.]*d} [:format]]
   }
   numeric instproc convert_to_external value {

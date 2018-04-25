@@ -469,8 +469,10 @@ namespace eval ::xowiki {
 
     set package_prefix [:get_parameter package_prefix ${:package_url}]
     if {$package_prefix eq "/" && [string length $lang]>2} {
-      # don't compact the the path for images etc. to avoid conflicts
+      #
+      # Don't compact the path for images etc. to avoid conflicts
       # with e.g. //../image/*
+      #
       set package_prefix ${:package_url}
     }
     #:msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"

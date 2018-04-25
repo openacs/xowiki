@@ -370,7 +370,7 @@ namespace eval ::xowiki {
   #   form_instance_item_index of all child items under the tree based
   #   on parent_ids. Use a query like the following to count the
   #   children of an item having a certain page_template (e.g.
-  #   find all the folders/links/... having the the specified item
+  #   find all the folders/links/... having the specified item
   #   as parent):
   #
   #      select count(*) from xowiki_form_instance_children

@@ -777,12 +777,12 @@ namespace eval ::xowiki {
       }
       if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
       # 
-      # compute the remaining list
+      # Compute the remaining list.
       #
       set remaining [list]
       foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
       #
-      # compute rename rename commands for it
+      # Compute rename commands for it.
       #
       set gap_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
                            -publish_status $publish_status \
@@ -792,7 +792,7 @@ namespace eval ::xowiki {
       }
     }
     #
-    # Compute the rename commands for the drop target
+    # Compute the rename commands for the drop target.
     #
     set drop_renames [::xowiki::utility page_order_renames -parent_id $folder_id \
                           -publish_status $publish_status \
@@ -803,7 +803,7 @@ namespace eval ::xowiki {
     }
 
     #
-    # Perform the actual renames
+    # Perform the actual renames.
     #
     set temp_obj [::xowiki::Page new -name dummy -volatile]
     set slot [$temp_obj find_slot page_order]
@@ -817,7 +817,8 @@ namespace eval ::xowiki {
       }
     }
     #
-    # Flush the page fragment caches (page fragments based on page_order might be sufficient)
+    # Flush the page fragment caches (page fragments based on
+    # page_order might be sufficient).
     $package_id flush_page_fragment_cache -scope agg
   }
 

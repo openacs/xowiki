@@ -191,7 +191,7 @@ namespace eval ::xowiki {
 
     #
     # To create form_pages in different places than the form, one can
-    # provide provide parent_id and package_id.
+    # provide parent_id and package_id.
     #
     # The following construct is more complex than necessary to
     # provide backward compatibility. Note that the passed-in
