@@ -785,7 +785,7 @@ namespace eval ::xowiki::includelet {
           # faster SQL like above.
           set sql "category_object_map c, cr_items ci, cr_revisions r
               where c.object_id in ([join $items ,])
-              and c.object_id = ci.item_id and 
+              and c.object_id = ci.item_id
               and r.revision_id = ci.live_revision 
               and ci.publish_status <> 'production'
            "
