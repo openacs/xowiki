@@ -837,7 +837,7 @@ namespace eval ::xowiki {
   # RFC-compliant handling of "+" in the "path" segment of the url,
   # namely no interpretation.
   #
-  # Here an example, consider an url path "a + b".  The AOLserver
+  # Here an example, consider a URL path "a + b".  The AOLserver
   # ns_encode yields "a+%2b+b", the AOLserver ns_decode maps it back
   # to "a + b", everything is fine. However, the NaviServer C-level
   # decode in [ns_conn url] converts "a+%2b+b" to "a+++b", which is

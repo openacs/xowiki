@@ -113,7 +113,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
 }
 
 ad_proc -private ::xowiki::url { revision_id} {
-  returns a url for a message to the search package
+  returns a URL for a message to the search package
 } {
   return [::xowiki::Package get_url_from_id -revision_id $revision_id]
 }
