@@ -1015,7 +1015,7 @@ namespace eval ::xowiki {
     } else {
       :msg "cannot map value '$value' (map_type $map_type)\
         of [:name] to an ID; maybe there is some\
-        same_named category tree with less entries..."
+        same_named category tree with fewer entries..."
       :msg "reverse category map has values [lsort [array names ::__xowiki_reverse_category_map]]"
       return ""
     }
@@ -3847,7 +3847,7 @@ namespace eval ::xowiki {
           #
           set lhs_var [string range $lhs 1 end]
           set rhs [split $rhs_expr |]
-          #:msg "check op '$op' in sql [info exists op_map($op,sql)]"
+          #:msg "check op '$op' in SQL [info exists op_map($op,sql)]"
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
             if {[info exists :$lhs_var]} {
