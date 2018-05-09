@@ -53,16 +53,16 @@ namespace eval ::xowiki {
     # split the list of entries into groups, which will be separated
     # with lines in the rendering
     #
-    set result {}
+    set result [list]
     if {[llength $list] < 1} {return $result}
     set group_name [[lindex $list 0] group]
-    set group_list {}
+    set group_list [list]
     foreach e $list {
       set gn [$e group]
       if {$gn ne $group_name} {
         lappend result $group_list
         set group_name $gn
-        set group_list {}
+        set group_list [list]
       }
       lappend group_list $e
     }
@@ -494,14 +494,14 @@ namespace eval ::xo::Table {
     append js   "$datasource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE; \n"
     append js   "$datasource.responseSchema = \{ \n"
     append js   "   fields: \[ \n"
-    set js_fields {}
+    set js_fields [list]
     foreach field [[self]::__columns children] {
       if {[$field hide]} continue
       lappend js_fields "       \{ key: \"[$field set name]\" \}"
     }
     append js [join $js_fields ", "] "   \] \n\};\n"
     append js "var $coldef = \[\n"
-    set js_fields {}
+    set js_fields [list]
     foreach field [[self]::__columns children] {
       if {[$field hide]} continue
       if {[$field istype HiddenField]} continue

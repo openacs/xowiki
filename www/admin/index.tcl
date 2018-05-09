@@ -10,7 +10,7 @@
   {-object_type ::xowiki::Page}
 }
 
-set context {}
+set context [list]
 set pretty_plural [$object_type set pretty_plural]
 set title [_ xowiki.admin_all_title]
 

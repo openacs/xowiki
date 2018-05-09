@@ -640,7 +640,7 @@ namespace eval ::xowiki {
     # mapped with the same name.
     set tree_id [lindex $tree_ids 0]
     array set data [category_tree::get_data $tree_id]
-    set categories {}
+    set categories [list]
     if {[info exists :__category_map]} {array set cm ${:__category_map}}
     foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
       lassign $category category_id category_name deprecated_p level
@@ -739,7 +739,7 @@ namespace eval ::xowiki {
   FormPage instproc map_values {map_type values} {
     # Map a list of values (for multi-valued form fields)
     # :log "map_values $map_type, $values"
-    set mapped_values {}
+    set mapped_values [list]
     foreach value $values {lappend mapped_values [:map_value $map_type $value]}
     return $mapped_values
   }
@@ -802,7 +802,7 @@ namespace eval ::xowiki {
       # :log "+++ starting with instance_attributes [:instance_attributes]"
       array set use ${:__instance_attribute_map}
       array set multiple_index [list category 2 party_id 1 file 1]
-      set ia {}
+      set ia [list]
       foreach {name value} [:instance_attributes] {
         #:log "marshall check $name $value [info exists use($name)]"
         if {[info exists use($name)]} {
@@ -835,7 +835,7 @@ namespace eval ::xowiki {
     }
     ad_try {
       acs_user::get -user_id $party_id -array info
-      set result {}
+      set result [list]
       foreach a {username email first_names last_name screen_name url} {
         lappend result $a $info($a)
       }
@@ -987,7 +987,7 @@ namespace eval ::xowiki {
     # Apply reverse_map_value to a list of values (for multi-valued
     # form fields)
     :upvar $category_ids_name category_ids
-    set mapped_values {}
+    set mapped_values [list]
     foreach value $values {
       lappend mapped_values [:reverse_map_value \
                                  -creation_user $creation_user -create_user_ids $create_user_ids \
@@ -1027,7 +1027,7 @@ namespace eval ::xowiki {
     #
     # The function will compute the category_ids, which are were used
     # to categorize this objects in the source instance.
-    set category_ids {}
+    set category_ids [list]
 
     #:msg "[:name] check cm=[info exists ::__xowiki_reverse_category_map] && iam=[info exists :__instance_attribute_map]"
 
@@ -1039,7 +1039,7 @@ namespace eval ::xowiki {
       #
       # replace all symbolic category values by the mapped IDs
       #
-      set ia {}
+      set ia [list]
       array set use ${:__instance_attribute_map}
       array set multiple_index [list category 2 party_id 1 file 1]
       foreach {name value} [:instance_attributes] {
@@ -2451,7 +2451,7 @@ namespace eval ::xowiki {
       # available variables.
       #
       # compute list of possible variables
-      set __varlist {}
+      set __varlist [list]
       set __template_variables__ "<ul>\n"
       foreach __v [lsort $__vars] {
         if {[array exists $__v]} continue ;# don't report  arrays
@@ -2935,7 +2935,7 @@ namespace eval ::xowiki {
     }
 
     if {$name ni {langmarks fontname fontsize formatblock}} {
-      set names {}
+      set names [list]
       foreach f $form_fields {lappend names [$f name]}
       :msg "No form field with name '$name' found\
     (available fields: [lsort [array names ::_form_field_names]])"
@@ -3389,7 +3389,7 @@ namespace eval ::xowiki {
     set spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
                   -name $name \
                   -form_constraints $form_constraints]
-    set result {}
+    set result [list]
     foreach spec [split $spec ,] {
       if {[regexp {^([^=]+)=(.*)$} $spec _ attr value]} {
         lappend result $attr $value
@@ -3572,7 +3572,7 @@ namespace eval ::xowiki {
     return "<div class='[[:page_template] css_class_name -margin_form false]'>[:substitute_markup $html]</div>"
   }
   PageInstance instproc template_vars {content} {
-    set result {}
+    set result [list]
     foreach {_ _ v} [regexp -inline -all [template::adp_variable_regexp] $content] {
       lappend result $v ""
     }
@@ -3664,7 +3664,7 @@ namespace eval ::xowiki {
 
   Form proc dom_disable_input_fields {{-with_submit 0} root} {
     set fields [$root selectNodes "//button | //input | //optgroup | //option | //select | //textarea "]
-    set disabled {}
+    set disabled [list]
     foreach field $fields {
       set type ""
       if {[$field hasAttribute type]} {set type [$field getAttribute type]}
@@ -3740,7 +3740,7 @@ namespace eval ::xowiki {
     # Since create_raw_form_field uses destroy_on_cleanup, we do not
     # have to care here about destroying the objects.
     #
-    set form_fields {}
+    set form_fields [list]
     foreach name_and_spec $form_constraints {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
       if {[string match "@table*" $spec_name] || $spec_name eq "@categories"} continue
@@ -3833,10 +3833,10 @@ namespace eval ::xowiki {
     array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {{$rhs} in $lhs_var}}
     #:msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
-    set tcl_clause {}
-    set h_clause {}
-    set vars {}
-    set sql_clause {}
+    set tcl_clause [list]
+    set h_clause [list]
+    set vars [list]
+    set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
       if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
@@ -4362,7 +4362,7 @@ namespace eval ::xowiki {
     #:msg template=$template
 
     #set field_names [list _name _title _description _creator _nls_language _page_order]
-    set field_names {}
+    set field_names [list]
     if {$form eq ""} {set form [:get_form]}
     if {$form eq ""} {
       foreach {var _} [:template_vars $template] {

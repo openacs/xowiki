@@ -1183,7 +1183,7 @@ namespace eval ::xowiki {
     # Compute a list fo package objects which should be used for
     # resolving ("inheritance of objects from other instances").
     #
-    set packages {}
+    set packages [list]
     set package_url [string trimright [:package_url] /]
     set package_path [:get_parameter PackagePath]
     #

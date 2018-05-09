@@ -136,7 +136,7 @@ namespace eval ::xowiki::includelet {
     {-subtree_query ""}
     {-depth 3}
   } {
-    set folders {}
+    set folders [list]
 
     # safety belt, for recursive structures
     if {$depth < 1} {return $folders}
@@ -422,8 +422,8 @@ namespace eval ::xowiki::includelet {
 
     set current_object [$node object]
     set current_item_id [$current_object item_id]
-    set sub_folders {}
-    set remaining_folders {}
+    set sub_folders [list]
+    set remaining_folders [list]
     
     foreach f $folders {
       if {[$f parent_id] ne $current_item_id} {
