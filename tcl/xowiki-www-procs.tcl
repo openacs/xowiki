@@ -1903,7 +1903,7 @@ namespace eval ::xowiki {
     if {$fields eq ""} {return ""}
     foreach field $fields {
       #
-      # Handling first TEXTARA 
+      # Handling first TEXTAREA
       #
       if {[$field nodeName] eq "textarea"} {
         return [$field nodeValue]
