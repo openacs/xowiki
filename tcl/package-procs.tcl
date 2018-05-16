@@ -1858,7 +1858,7 @@ namespace eval ::xowiki {
                                       {-add_revision:boolean true}
                                     } {
     set page ""
-    set fn [get_server_root]/packages/$package_key/www/prototypes/$name.page
+    set fn [acs_root_dir]/packages/$package_key/www/prototypes/$name.page
     #:log "--W check $fn"
     if {[file readable $fn]} {
       # We have the file of the prototype page. We try to create
