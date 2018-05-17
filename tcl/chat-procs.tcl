@@ -96,7 +96,7 @@ namespace eval ::xowiki {
       :log "--chat mode $mode"
     }
 
-    # small javascript library to obtain a portable ajax request object
+    # small JavaScript library to obtain a portable ajax request object
     ::xo::Page requireJS urn:ad:js:get-http-object
 
     switch -- $mode {

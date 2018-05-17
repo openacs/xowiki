@@ -2191,7 +2191,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     #
-    # Build a reduced toc tree based on pure HTML (no javascript or
+    # Build a reduced toc tree based on pure HTML (no JavaScript or
     # ajax involved).  If an open_page is specified, produce an as
     # small as possible tree and omit all non-visible nodes.
     #
@@ -2521,7 +2521,7 @@ namespace eval ::xowiki::includelet {
           set last_level $level
           set last_prefix $prefix
         }
-        # Pass the page_order for the element to javascript and add
+        # Pass the page_order for the element to JavaScript and add
         # the li element for the section.
         set item_id [:page_reorder_item_id -ID $ID -prefix_js $prefix_js -page_order $page_order js]
         append output "<li id='[ns_quotehtml $item_id]'>"

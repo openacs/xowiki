@@ -1222,7 +1222,7 @@ namespace eval ::xowiki {
 
   Page ad_instproc www-save-attributes {} {
     The method save-attributes is typically callable over the 
-    REST interface. It allows to save attributes of a 
+    REST interface. It allows one to save attributes of a 
     page without adding a new revision.
   } {
     set field_names [:field_names]

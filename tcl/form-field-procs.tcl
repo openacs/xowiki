@@ -318,7 +318,7 @@ namespace eval ::xowiki::formfield {
       default {
         # Check, if the spec value $s is a class.
         set old_class [:info class]
-        # Don't allow to use namespaced values, since we would run
+        # Don't allow one to use namespaced values, since we would run
         # into a recursive loop for richtext::wym (could be altered there as well).
         if {[:isclass ::xowiki::formfield::$s] && ![string match "*:*" $s]} {
           :class ::xowiki::formfield::$s

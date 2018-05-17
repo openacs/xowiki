@@ -20,7 +20,7 @@ set search_driver [parameter::get -package_id [apm_package_id_from_key search] \
 # e.g. a search link.
 #
 # For the time being, the check is just for xowiki, but in general, we
-# might want to have more global option, which allows to check for
+# might want to have more global option, which allows one to check for
 # example, if search is available for a certain subsite (when search
 # is subsite aware).
 #

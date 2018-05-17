@@ -1939,7 +1939,7 @@ namespace eval ::xowiki {
 
   Page ad_instproc include {-configure arg} {
     Include the html of the includelet. The method generates
-    an includelet object (might be an other xowiki page) and
+    an includelet object (might be another xowiki page) and
     renders it and returns either html or an error message.
   } {
     set page [:instantiate_includelet $arg]
@@ -2157,7 +2157,7 @@ namespace eval ::xowiki {
       if {[regsub {^//} $link / link]} {
         #
         # For local links (starting with //), we provide
-        # a direct treatment. Javascript and CSS files are
+        # a direct treatment. JavaScript and CSS files are
         # included, images are rendered directly.
         #
         switch -glob -- [::xowiki::guesstype $link] {

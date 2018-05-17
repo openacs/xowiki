@@ -63,7 +63,7 @@ namespace eval ::xowiki {
   ad_proc -public ::xowiki::delete_gc_messages {
     {-package_id:required}
   } {
-    Deletes the messages of general comments to allow to
+    Deletes the messages of general comments to allow one to
     uninstantiate the package without violating constraints.
     
     @author Gustaf Neumann
