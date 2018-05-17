@@ -3370,15 +3370,8 @@ namespace eval ::xowiki {
     } else {
       set name ""
     }
-    set CSSname [:name]
-
-    # Remove language prefix, if used.
-    regexp {^..:(.*)$} $CSSname _ CSSname
-
-    # Remove "file extension", since dot's in CSS class names do not
-    # make much sense.
-    regsub {[.].*$} $CSSname "" CSSname
-    return [append name "Form-$CSSname"]
+    
+    return [append name [::xowiki::utility formCSSclass [:name]]]
   }
 
   #

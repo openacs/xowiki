@@ -731,6 +731,15 @@ namespace eval ::xowiki {
     return $renames
   }
 
+  ::xowiki::utility ad_proc formCSSclass {form_name} {
+    Obtain CSS class name for a form from its name
+  } {
+    set CSSname $form_name
+    regexp {^..:(.*)$} $CSSname _ CSSname
+    regsub {[.].*$} $CSSname "" CSSname
+    return "Form-$CSSname"
+  }
+
   ::xowiki::utility ad_proc change_page_order {
     -from:required
     -to:required
