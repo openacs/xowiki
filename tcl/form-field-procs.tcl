@@ -884,7 +884,7 @@ namespace eval ::xowiki::formfield {
       # one. We could check, whether this mime type is registered. If
       # not, we could add it on the fly or we could map it to the
       # registered unknown type (maybe via package parameter of
-      # acs-content-repository + a new api call).
+      # acs-content-repository + a new API call).
       #
     }
 

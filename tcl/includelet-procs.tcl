@@ -1564,10 +1564,10 @@ namespace eval ::xowiki::includelet {
   delicious instproc render {} {
     :get_parameters
 
-    # the following opens a window, where a user can edit the posted info.
-    # however, it seems not possible to add tags this way automatically.
-    # Alternatively, one could use the api as described below; this allows
-    # tags, but no editing...
+    # Fhe following snippet opens a window, where a user can edit the
+    # posted info.  however, it seems not possible to add tags this
+    # way automatically.  Alternatively, one could use the API as
+    # described below; this supports tags, but no editing...
     # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
 
     set delicious_link [export_vars -base "http://del.icio.us/post" {
