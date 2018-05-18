@@ -1564,7 +1564,7 @@ namespace eval ::xowiki::includelet {
   delicious instproc render {} {
     :get_parameters
 
-    # Fhe following snippet opens a window, where a user can edit the
+    # The following snippet opens a window, where a user can edit the
     # posted info.  however, it seems not possible to add tags this
     # way automatically.  Alternatively, one could use the API as
     # described below; this supports tags, but no editing...
