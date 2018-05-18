@@ -25,11 +25,11 @@ namespace eval ::xowiki {
     set href [$obj pretty_link]
     set name [[$obj package_id] external_name -parent_id [$obj parent_id] [$obj name]]
     switch -- $operation {
-        "added" { set operation "[_ xowiki.added]" }
-        "replaced" { set operation "[_ xowiki.replaced]" }
-        "updated" { set operation "[_ xowiki.updated]" }
-        "inherited" { set operation "[_ xowiki.inherited]" }
-	}
+      "added"     { set operation [_ xowiki.added]     }
+      "replaced"  { set operation [_ xowiki.replaced]  }
+      "updated"   { set operation [_ xowiki.updated]   }
+      "inherited" { set operation [_ xowiki.inherited] }
+    }
     append :log "<tr><td>$operation</td><td><a href='[ns_quotehtml $href]'>$name</a></td></tr>\n"
   }
   Importer instproc report {} {
@@ -43,7 +43,7 @@ namespace eval ::xowiki {
     # Import a single object. In essence, this method demarshalls a
     # single object and inserts it (or updates it) in the database. It
     # takes as well care about categories.
-    # 
+    #
 
     $object demarshall -parent_id [$object parent_id] -package_id ${:package_id} \
         -creation_user ${:user_id} -create_user_ids $create_user_ids
@@ -119,7 +119,7 @@ namespace eval ::xowiki {
         $o parent_id ""
       }
       set todo($o) 1
-      
+
       #
       # Handle import of categories in the first pass
       #
@@ -155,7 +155,7 @@ namespace eval ::xowiki {
             :msg "need name for $old_template_id. Maybe item_ids for PageTemplate missing?"
             break
           }
-          
+
           set template_name_key $parent_ids($old_template_id)-$old_names($old_template_id)
           if {![info exists name_map($template_name_key)]} {
             #:msg "... delay import of $o (no object with name $template_name_key) imported"
@@ -179,8 +179,8 @@ namespace eval ::xowiki {
         # or a workflow) with the same name can be found in the
         # target, don't materialize the inherited page.
         #
-        if {$keep_inherited 
-            && [$o exists __export_reason] 
+        if {$keep_inherited
+            && [$o exists __export_reason]
             && [$o set __export_reason] eq "implicit_page_template"} {
           $o unset __export_reason
           set page [${:package_id} get_page_from_item_ref \
@@ -220,15 +220,15 @@ namespace eval ::xowiki {
               #:msg "[:isobject [$o page_template]] loaded"
             }
           }
-          
+
           if {[info exists item_ids($old_parent_id)]} {
             $o set parent_id $id_map($old_parent_id)
           } else {
             $o set parent_id ${:parent_id}
           }
-          
+
           # Everything is mapped, we can now do the import.
-          
+
           #:msg "start import for $o, name=[$o name]"
           :import \
               -object $o \
@@ -247,7 +247,7 @@ namespace eval ::xowiki {
         }
         set name_map($old_parent_id-$old_name) [$o item_id]
         #:msg "setting name_map($old_parent_id-$old_name)=$name_map($old_parent_id-$old_name), o=$o, old_item_id=$old_item_id"
-        
+
         set new 1
       }
       if {$new == 0} {
@@ -269,7 +269,7 @@ namespace eval ::xowiki {
   # A small helper for exporting objects
   #
 
-  Object create exporter 
+  Object create exporter
   exporter proc include_needed_objects {item_ids} {
     #
     # Load the objects
@@ -315,7 +315,7 @@ namespace eval ::xowiki {
           if {![info exists items($item_id)]} {
             ::xo::db::CrClass get_instance_from_db -item_id $item_id
             ns_log notice "--export including child $item_id [$item_id name]"
-            set items($item_id) 1 
+            set items($item_id) 1
             set new 1
             $item_id set __export_reason implicit_child_page
           }
@@ -350,8 +350,8 @@ namespace eval ::xowiki {
     #
     ns_set put [ns_conn outputheaders] "Content-Type" "text/plain"
     ns_set put [ns_conn outputheaders] "Content-Disposition" "attachment;filename=export.xotcl"
-    ad_return_top_of_page "" 
-    
+    ad_return_top_of_page ""
+
     foreach item_id $item_ids {
       ns_log notice "--exporting $item_id [$item_id name]"
       set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
@@ -361,7 +361,7 @@ namespace eval ::xowiki {
       } on error {errorMsg} {
         ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
       } finally {
-        ns_write "$obj\n" 
+        ns_write "$obj\n"
       }
     }
   }
@@ -509,7 +509,7 @@ namespace eval ::xowiki {
     }
   }
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

@@ -34,7 +34,7 @@ set YUI_JS_PATHS {
     utilities/utilities
     yahoo-dom-event/yahoo-dom-event
 }
- 
+
 
 #
 # The following asset files is up to my knowledge not available via CDN
@@ -52,28 +52,35 @@ template::register_urn \
 if {[file isdirectory $::acs::rootdir/packages/ajaxhelper/www/resources]} {
 
     foreach path $YUI_CSS_PATHS {
-	template::register_urn \
-	    -urn      urn:ad:css:yui2:$path \
-	    -resource /resources/ajaxhelper/yui/$path.css
+        template::register_urn \
+            -urn      urn:ad:css:yui2:$path \
+            -resource /resources/ajaxhelper/yui/$path.css
     }
 
     foreach path $YUI_JS_PATHS {
-	template::register_urn \
-	    -urn      urn:ad:js:yui2:$path \
-	    -resource /resources/ajaxhelper/yui/$path.js
+        template::register_urn \
+            -urn      urn:ad:js:yui2:$path \
+            -resource /resources/ajaxhelper/yui/$path.js
     }
-   
+
 } else {
     set version 2.7.0
     foreach path $YUI_CSS_PATHS {
-	template::register_urn \
-	    -urn      urn:ad:css:yui2:$path \
-	    -resource //yui.yahooapis.com/$version/build/$path.css
+        template::register_urn \
+            -urn      urn:ad:css:yui2:$path \
+            -resource //yui.yahooapis.com/$version/build/$path.css
     }
 
     foreach path $YUI_JS_PATHS {
-	template::register_urn \
-	    -urn      urn:ad:js:yui2:$path \
-	    -resource //yui.yahooapis.com/$version/build/$path.js
+        template::register_urn \
+            -urn      urn:ad:js:yui2:$path \
+            -resource //yui.yahooapis.com/$version/build/$path.js
     }
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
