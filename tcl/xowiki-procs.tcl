@@ -1184,27 +1184,33 @@ namespace eval ::xowiki {
     if {[info exists item_id]} {
       if {[info exists user_id]} {
         # tags for item and user
-        set tags [::xo::dc list get_tags {
+        set tags [::xo::dc list -prepare integer,integer,integer get_tags {
           SELECT distinct tag from xowiki_tags
           where user_id = :user_id and item_id = :item_id and package_id = :package_id
         }]
       } else {
-        # all tags for this item
-        set tags [::xo::dc list get_tags {
+        #
+        # All tags for this item
+        #
+        set tags [::xo::dc list -prepare integer,integer get_tags {
           SELECT distinct tag from xowiki_tags
           where item_id = :item_id and package_id = :package_id
         }]
       }
     } else {
       if {[info exists user_id]} {
-        # all tags for this user
-        set tags [::xo::dc list get_tags {
+        #
+        # All tags for this user
+        #
+        set tags [::xo::dc list -prepare integer,integer get_tags {
           SELECT distinct tag from xowiki_tags
           where user_id = :user_id and package_id :package_id
         }]
       } else {
-        # all tags for the package
-        set tags [::xo::dc list get_tags {
+        #
+        # All tags for the package instance
+        #
+        set tags [::xo::dc list -prepare integer get_tags {
           SELECT distinct tag from xowiki_tags
           where package_id = :package_id
         }]
@@ -2474,7 +2480,7 @@ namespace eval ::xowiki {
       set description [ad_html_text_convert -from text/html -to text/plain -- $content]
     }
     if {$description eq "" && $revision_id > 0} {
-      set body [::xo::dc get_value get_description_from_syndication \
+      set body [::xo::dc get_value -prepare integer get_description_from_syndication \
                     "select body from syndication where object_id = :revision_id" \
                     -default ""]
       set description [ad_html_text_convert -from text/html -to text/plain -- $body]
@@ -2541,7 +2547,7 @@ namespace eval ::xowiki {
   Page instproc references_update {references} {
     #:msg $references
     set item_id ${:item_id}
-    ::xo::dc dml delete_references \
+    ::xo::dc dml -prepare integer delete_references \
         "delete from xowiki_references where page = :item_id"
     foreach ref $references {
       lassign $ref r link_type
@@ -4162,9 +4168,10 @@ namespace eval ::xowiki {
       # append it to the list_of_folders.
       #
       set folder_form [$folder page_template]
-      set child_folders [xo::dc list get_child_folders {
+      set child_folders [xo::dc list -prepare integer,integer get_child_folders {
         select item_id from xowiki_form_instance_item_index
-        where parent_id = :folder_id and page_template = :folder_form
+        where parent_id = :folder_id
+        and page_template = :folder_form
       }]
       foreach f $child_folders {
         ::xo::db::CrClass get_instance_from_db -item_id $f

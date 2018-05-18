@@ -367,7 +367,7 @@ namespace eval ::xowiki {
                       [export_vars -base [$package_id url] {{m revisions}}]]
     if {$live_revision == ${:revision_id}} {
       # latest revision might have changed by delete_revision, so we have to fetch here
-      xo::dc 1row get_revision "select latest_revision from cr_items where item_id = :item_id"
+      xo::dc 1row -prepare integer get_revision {select latest_revision from cr_items where item_id = :item_id}
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
         $package_id delete -name ${:name} -item_id $item_id
