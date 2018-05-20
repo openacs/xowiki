@@ -2681,6 +2681,8 @@ namespace eval ::xowiki {
     }
     #my unset -nocomplain __references
     #
+    #:log "Page [:name] render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
+    #
     # handle footer
     #
     if {$with_footer && [::xo::cc get_parameter content-type text/html] eq "text/html"} {
@@ -3615,7 +3617,7 @@ namespace eval ::xowiki {
   Object instproc render_content {} {
     if {[[self]::payload info methods content] ne ""} {
       set html [[self]::payload content]
-      #:msg render-adp=[:render_adp]
+      #:log render-adp=[:render_adp]
       if {[:render_adp]} {
         set html [:adp_subst $html]
         return [:substitute_markup $html]
