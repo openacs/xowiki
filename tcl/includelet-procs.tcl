@@ -1565,7 +1565,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     # The following snippet opens a window, where a user can edit the
-    # posted info.  however, it seems not possible to add tags this
+    # posted info.  However, it seems not possible to add tags this
     # way automatically.  Alternatively, one could use the API as
     # described below; this supports tags, but no editing...
     # http://farm.tucows.com/blog/_archives/2005/3/24/462869.html#adding
@@ -4060,8 +4060,10 @@ namespace eval ::xowiki::includelet {
     }
 
     if {[info exists voting_form]} {
-      # if the user provided a voting form name without a language prefix,
-      # add one.
+      #
+      # If the user provided a voting form name without a language
+      # prefix, add one.
+      #
       if {![regexp {^..:} $voting_form]} {
         set obj ${:__including_page}
         set voting_form [$obj lang]:$voting_form
@@ -4538,7 +4540,7 @@ namespace eval ::xowiki::includelet {
                 autoPlay: false,
                 autoBuffering: false,                        
         
-        // provide MP4 file for Flash version 9.0.115 and above. otherwise use FLV
+        // Provide MP4 file for Flash version 9.0.115 and above. Otherwise use FLV
         url: '$mp4'
     }
     

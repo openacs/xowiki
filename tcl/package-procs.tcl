@@ -313,7 +313,7 @@ namespace eval ::xowiki {
       return ""
     }
     #
-    # The item might be in a folder along the folder path.  so it
+    # The item might be in a folder along the folder path.  So it
     # will be found by the object resolver. For the time being, we
     # do nothing more about this.
     #
@@ -682,7 +682,7 @@ namespace eval ::xowiki {
 
   Package instproc resolve_page_name_and_init_context {{-lang} page_name} {
     # todo: currently only used from
-    # Page->resolve_included_page_name. maybe, it could be replaced by
+    # Page->resolve_included_page_name. Maybe, it could be replaced by
     # get_page_from_name or get_page_from_item_ref
     set page ""
     #
@@ -887,7 +887,7 @@ namespace eval ::xowiki {
     if {![regexp {^[.a-zA-Z0-9_-]+$} $method]} {
       return [:error_msg "No valid method provided!"]
     }
-    
+
     #
     # Call the method on the resolved page. This call might trigger an
     # ad_script_abort, so use ad_try to catch these properly.
@@ -906,7 +906,7 @@ namespace eval ::xowiki {
     # Set the invoke object, such it might be used later
     #
     ::xo::cc invoke_object $page_or_package
-    
+
     #:log "--r resolve_page '${:object}' => $page_or_package"
     if {$page_or_package ne ""} {
       #
@@ -925,7 +925,7 @@ namespace eval ::xowiki {
         if {[:exists_query_parameter deref]} {
           set deref [:query_parameter deref]
         }
-        
+
         #:log "invoke on LINK <$method> default deref $deref"
         if {$deref} {
           set target [$page_or_package get_target_from_link_page]
@@ -966,7 +966,7 @@ namespace eval ::xowiki {
                         -template_file $error_template \
                         "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
           }
-          
+
         } finally {
           if {$batch_mode} {
             ${:id} unset -nocomplain __batch_mode

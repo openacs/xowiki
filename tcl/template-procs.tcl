@@ -10,10 +10,12 @@ ad_proc -public ::template::adp_include {
   src
   varlist
 } {
-  return a the output of a tcl/adp pair as a string.  adp_level is
-  set to the calling procedure so that pass by reference works.
-  and example of using this is in the search indexer for various content
+  
+  Return a the output of a tcl/adp pair as a string.  "adp_level" is
+  set to the calling procedure so that pass by reference works.  and
+  example of using this is in the search indexer for various content
   types:
+  
   <pre>
     bookshelf::book::get -book_id $book_id -array bookdata
     set body [template::adp_include /packages/bookshelf/lib/one-book \ 

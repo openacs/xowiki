@@ -508,7 +508,7 @@ namespace eval ::xowiki::formfield {
 
     #
     # Disabled fields are not returned by the browsers. For some
-    # fields, we require to be sent. therefore we include in these
+    # fields, we require to be sent. Therefore we include in these
     # cases the value in an additional hidden field. Maybe we should
     # change in the future the "name" of the disabled entry to keep
     # some hypothetical html-checker quiet.

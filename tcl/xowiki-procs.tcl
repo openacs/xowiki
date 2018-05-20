@@ -564,7 +564,7 @@ namespace eval ::xowiki {
       #
       # The following statement drops the leading colons from the object
       # names such that the imported objects are inserted into the
-      # current (rather than the global) namespace. rather than the
+      # current (rather than the global) namespace. Rather than the
       # global namespace. The approach is cruel, but backward compatible
       # and avoids potential name clashes with pre-existing objects.
       #
@@ -729,10 +729,9 @@ namespace eval ::xowiki {
 
 
   Form instproc marshall {{-mode export}} {
-    #set form_fields [:create_form_fields_from_form_constraints \
-                                 #                     [:get_form_constraints]]
+    #set form_fields [:create_form_fields_from_form_constraints [:get_form_constraints]]
     #:log "--ff=$form_fields"
-    #my build_instance_attribute_map $form_fields
+    # :build_instance_attribute_map $form_fields
     next
   }
 
@@ -780,7 +779,7 @@ namespace eval ::xowiki {
     # use different xowiki::Forms in its life-cycle.
     #
     # Note, that only types of form-fields implied by the derived form
-    # constraints are recognized. E.g. in workflows, it might be
+    # constraints are recognized. E.g. In workflows, it might be
     # necessary to move e.g. category definitions into the global form
     # constraints.
     #
@@ -1274,7 +1273,7 @@ namespace eval ::xowiki {
     if {[llength [info commands ${:page_template}]] == 0} {
       ::xo::db::CrClass get_instance_from_db -item_id ${:page_template}
     }
-    return [expr {[${:page_template} name] eq "en:link.form"}]    
+    return [expr {[${:page_template} name] eq "en:link.form"}]
   }
 
   #
@@ -2267,7 +2266,7 @@ namespace eval ::xowiki {
     ad_try {
       [self]::link configure {*}$options
       set result [[self]::link]
-      
+
     } on error {errorMsg} {
       ns_log error "$errorMsg\n$::errorInfo"
       set result "<div class='errorMsg'>Error during processing of options [list $options]\
@@ -2679,7 +2678,7 @@ namespace eval ::xowiki {
     if {$update_references || [llength [:references get unresolved]] > 0} {
       :references_update [lsort -unique [:references get resolved]]
     }
-    #my unset -nocomplain __references
+    # unset -nocomplain :__references
     #
     #:log "Page [:name] render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
     #
@@ -3141,7 +3140,7 @@ namespace eval ::xowiki {
   File instproc full_file_name {} {
     if {![info exists :full_file_name]} {
       if {[info exists :revision_id]} {
-        # 
+        #
         # For a given revision_id, the full_file_name will never
         # change.  Therefore, we can easily cache the full file name
         # for the revision_id.
@@ -3378,7 +3377,7 @@ namespace eval ::xowiki {
     } else {
       set name ""
     }
-    
+
     return [append name [::xowiki::utility formCSSclass [:name]]]
   }
 
@@ -3632,7 +3631,7 @@ namespace eval ::xowiki {
     :set_payload ${:text}
     next
   }
-  
+
   Object instproc set_payload {cmd} {
     set payload [self]::payload
     if {[:isobject $payload]} {$payload destroy}
@@ -3647,7 +3646,7 @@ namespace eval ::xowiki {
       ::xo::clusterwide ns_cache flush xotcl_object_cache ${:item_id}
     }
   }
-  
+
   Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
     if {![:isobject $payload]} {
@@ -3808,7 +3807,7 @@ namespace eval ::xowiki {
         ::xo::Package require $package_id
       }
     }
-    #my array set __ia [:instance_attributes]
+    # array set :__ia [:instance_attributes]
     next
   }
   FormPage instproc initialize {} {
@@ -4163,7 +4162,7 @@ namespace eval ::xowiki {
         lappend list_of_folders [$folder item_id]
       }
     }
-    
+
     if {$include_child_folders eq "direct"} {
       #
       # Get all children of the current folder on the first level and
@@ -4180,7 +4179,7 @@ namespace eval ::xowiki {
       }
       lappend list_of_folders {*}$child_folders
     }
-    
+
     $result set folder_ids $list_of_folders
 
     foreach folder_id $list_of_folders {
@@ -4619,14 +4618,19 @@ namespace eval ::xowiki {
   }
 
   Page instproc unset_temporary_instance_variables {} {
-    # don't marshall/save/cache the following vars
-    #my array unset __ia
+    #
+    # Don't marshall/save/cache the following vars:
+    #
+    # array unset :__ia
     array unset :__field_in_form
     array unset :__field_needed
   }
 
   Page instproc map_categories {category_ids} {
-    # could be optimized, if we do not want to have categories (form constraints?)
+    #
+    # Could be optimized, if we do not want to have categories (form
+    # constraints?)
+    #
     #:log "--category::map_object -remove_old -object_id ${:item_id} <$category_ids>"
     category::map_object -remove_old -object_id ${:item_id} $category_ids
   }
@@ -4641,7 +4645,7 @@ namespace eval ::xowiki {
   #
   # The method save_data is called typically via www-callable methods
   # and has some similarity to "new_data" and "edit_data" in
-  # "ad_forms". it performs some updates in an instance (e.g. caused
+  # "ad_forms". It performs some updates in an instance (e.g. caused
   # by categories), saves the data and calls finally the notification
   # procs.
   #

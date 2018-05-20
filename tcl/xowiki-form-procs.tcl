@@ -74,7 +74,9 @@ namespace eval ::xowiki {
         #:msg "we got richtext spec for $__field = '$s'"
         set __spec $s
         set __wspec [lindex $__spec 0]
-        # old style folder spec substitution. ugly.
+        #
+        # Old style folder spec substitution. Ugly.
+        #
         if {[:folderspec] ne ""} {
           # append the folder spec to its options
           set __newspec [list $__wspec]
@@ -88,7 +90,8 @@ namespace eval ::xowiki {
         }
       } elseif {[lindex $__wspec 0] eq "="} {
         # 
-        # get the information from the attribute definitions & given specs
+        # Get the information from the attribute definitions and given
+        # specs.
         #
 
         set f [${:data} create_raw_form_field \
@@ -385,7 +388,9 @@ namespace eval ::xowiki {
         ![${:data} istype ::xowiki::PageTemplate] } {
       if {[${:data} istype ::xowiki::PageInstance]} {
         if {[${:data} set instance_attributes] ne ""} {
-          # fieldless page instances are not notified. problem?
+          #
+          # Field-less page instances are not notified. Problem?
+          #
           # :log "--i instance_attributes = <[${:data} set instance_attributes]>"
           ::xowiki::notification::do_notifications -page ${:data}
         }
@@ -855,7 +860,8 @@ namespace eval ::xowiki {
     #       foreach field $fields {
     #         $field setAttribute name $id.[$field getAttribute name]
     #       }
-    #       # updating is rather crude. we need the item_id in advance to fill it
+    #       # Updating is rather crude. We need the item_id in advance to fill it.
+    #       #
     #       # into the items, but it is returned from saving the file.
     #       :log "item_id=$item_id form=[$root asHTML] [${:data} serialize]"
     #       ${:data} update_content [${:data} revision_id] [list [$root asHTML] [lindex $form 1] ]

@@ -351,7 +351,7 @@ namespace eval ::YUI {
         # the tree-procs uses the local yahoo-dom-event.
 
         # In future, the YUI loader object should be capable of
-        # resolving such conflicts. for now, the simple fix is to stick to
+        # resolving such conflicts. For now, the simple fix is to stick to
         # the local versions, because then the requireJS function takes care
         # of duplicates.
         #

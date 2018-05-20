@@ -89,7 +89,7 @@ namespace eval ::xowiki {
     set target [:target]
     if {[info commands ::xowiki::template::$target] ne ""} {
       #
-      # The target template exists. use the template
+      # The target template exists. Use the template
       #
       # This is a situation, where potentially a
       # recursive inclusion is happening. The included content is
@@ -165,7 +165,7 @@ namespace eval ::xowiki {
     } else {
       set object_type [[$page info class] set object_type]
       if {$object_type ne "::xowiki::Page" && $object_type ne "::xowiki::PlainPage"} {
-        # TODO: this is a temporary solution. we should find a way to
+        # TODO: this is a temporary solution. We should find a way to
         # pass similar to file or image entries the type of this
         # entry. Maybe we can get the type as well from a kind of
         # blackboard, where the type of the "edit" wiki-menu-entry is
