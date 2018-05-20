@@ -1393,7 +1393,7 @@ namespace eval ::xowiki {
     
     set admin_link  [$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}] 
     set index_link  [$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
-    set toc_link  [$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
+    set toc_link    [$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
     set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
     set page_show_link [$page_package_id make_link -privilege admin [self] show-object return_url]
 
@@ -1656,6 +1656,7 @@ namespace eval ::xowiki {
         } on error {errMsg} {
           ns_return 200 text/html "Error in Page ${:name}: $errMsg<br>$template"
         }
+        ad_script_abort
       } else {
         # use adp file
         #:log "use adp"
@@ -1673,7 +1674,8 @@ namespace eval ::xowiki {
         }
       }
     } else {
-      ns_return 200 [::xo::cc get_parameter content-type text/html] $content
+      set :mime_type [::xo::cc get_parameter content-type text/html]
+      return $content
     }
   }
 }
