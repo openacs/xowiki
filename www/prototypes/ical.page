@@ -1,8 +1,8 @@
 # -*- tcl-*-
 # $Id$
-::xowiki::Object new -title "News" -text {
+::xowiki::Object new -title "Ical" -text {
   #
-  # A sample News object.
+  # A sample Ical object.
   #
   my initialize -parameter {
     {-page_size:integer 100}
@@ -19,20 +19,24 @@
   # news entry. This is executed in the context of every displayed page.
   #
   Class create IcalEntryRenderer -instproc render {} {
-    array set {} [my instance_attributes]
-    array set event $(event)
-    #my msg [my instance_attributes]
-    set dtstart  [::xo::ical clock_to_utc [clock scan $event(event.dtstart)]]
-    set dtend    [::xo::ical clock_to_utc [clock scan $event(event.dtend)]]
-    set body     "SUMMARY:[::xo::ical text_to_ical -remove_tags true $event(event.summary)]"
-    foreach f {location} {
-      set key event(event.$f)
-      if {[info exists $key] && [set $key] ne ""} {
-        append body \n[string toupper $f]:[::xo::ical text_to_ical -remove_tags true [set $key]]
+      array set {} [my instance_attributes]
+      if {![info exists (event)]} {
+	  ns_log warning "ical renderer: no event found page ${:name}"
+	  return ""
       }
-    }
+      array set event $(event)
+      #my msg [my instance_attributes]
+      set dtstart  [::xo::ical clock_to_utc [clock scan $event(event.dtstart)]]
+      set dtend    [::xo::ical clock_to_utc [clock scan $event(event.dtend)]]
+      set body     "SUMMARY:[::xo::ical text_to_ical -remove_tags true $event(event.summary)]"
+      foreach f {location} {
+	  set key event(event.$f)
+	  if {[info exists $key] && [set $key] ne ""} {
+	      append body \n[string toupper $f]:[::xo::ical text_to_ical -remove_tags true [set $key]]
+	  }
+      }
 
-    return [subst {BEGIN:VEVENT
+      return [subst {BEGIN:VEVENT
 DTSTART:$dtstart
 DTEND:$dtend
 $body
