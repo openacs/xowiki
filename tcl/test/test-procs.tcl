@@ -1,13 +1,44 @@
 namespace eval ::xowiki::test {
 
     ad_proc -private ::xowiki::test::get_object_name {node} {
+
+        This proc obtains the "value" attribute of an input field
+        named "__object_name". This can be used to obtain the
+        object_id behind a form.  This object_id is used as well in
+        the construction of HTML ids.
+
+    } {
         return [$node selectNodes {string(//form//input[@name="__object_name"]/@value)}]
     }
+
     ad_proc -private ::xowiki::test::get_form_CSSclass {node} {
+
+        Obtain the "class" attribute of a form containing in input
+        field named "__object_name".
+
+    } {
         return [$node selectNodes {string(//form//input[@name="__object_name"]/../../@class)}]
     }
-    ad_proc -private ::xowiki::test::get_form_value {node id name} {
-        set q string(//form//input\[@id='F.$id.$name'\]/@value)
+
+    ad_proc -private ::xowiki::test::get_named_form_value {node formCSSClass name} {
+
+        Obtain the "value" attribute of an input field with the
+        provided "name" from a form identified by the "formCSSClass".
+
+    } {
+        set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@name='$name'\]/@value)}]
+        ns_log notice "get_named_form_value selector = $selector"
+        return [$node selectNodes  $selector]
+    }
+
+    ad_proc -private ::xowiki::test::get_form_value {node object_id name} {
+
+        Obtain the "value" attribute of an input field identified by
+        the object_id and the provided name. This kind of addressing
+        is used by xowiki form instances.
+
+    } {
+        set q string(//form//input\[@id='F.$object_id.$name'\]/@value)
         return [$node selectNodes $q]
     }
 
@@ -23,13 +54,34 @@ namespace eval ::xowiki::test {
         return $url
     }
 
+    ad_proc -private ::xowiki::test::pretty_form_content {d} {
+        set pretty_form_content ""
+        foreach {k v} $d {
+            append  pretty_form_content "$k: $v\n"
+        }
+        return $pretty_form_content
+    }
+
+
     ad_proc -private ::xowiki::test::get_form_values {node className} {
         set values {}
         foreach n [$node selectNodes //form\[contains(@class,'$className')\]//input] {
             set name  [$n getAttribute name]
-            set value [$n getAttribute value]
+            ns_log notice "form $className input node $n name $name:"
+            if {[$n hasAttribute value]} {
+                set value [$n getAttribute value]
+            } else {
+                set value ""
+            }
             lappend values $name $value
         }
+        foreach n [$node selectNodes //form\[contains(@class,'$className')\]//textarea] {
+            set name  [$n getAttribute name]
+            ns_log notice "form $className textarea node $n name $name:"
+            set value [$n text]
+            lappend values $name $value
+        }
+        ns_log notice "final values $values"
         return $values
     }
     ad_proc -private ::xowiki::test::get_form_action {node className} {
@@ -47,13 +99,15 @@ namespace eval ::xowiki::test {
         }
         #ns_log notice "final form_content $form_content"
         #
-        # Transform the doct into export format
+        # Transform the dict into export format. Since export_vars
+        # will skip all names containing a ":", such as
+        # "formbutton:ok", we do this "manually".
         #
         set export {}
         foreach {att value} $form_content {
-            lappend export [list $att $value]
+            lappend export [ad_urlencode_query $att]=[ad_urlencode_query $value]
         }
-        set body [export_vars $export]
+        set body [join $export &]
         #ns_log notice "body=$body"
         #
         # Send the POST request
@@ -148,6 +202,9 @@ namespace eval ::xowiki::test {
         {-autonamed:boolean false}
         {-update ""}
     } {
+
+        Create a form page via the web interface.
+
     } {
         #
         # Create a page under the parent_id
@@ -199,11 +256,14 @@ namespace eval ::xowiki::test {
                    -update $update \
                    $form_content]
         aa_equals "Status code valid" [dict get $d status] 302
+        set response [dict get $d body]
+        ns_log notice "FORM POST\n$response"
 
         foreach {key value} $update {
             dict set form_content $key $value
         }
-        aa_log "form_content: $form_content"
+        aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
+
         set location [::xowiki::test::get_url_from_location $d]
         aa_true "location '$location' is valid" {$location ne ""}
 
@@ -231,6 +291,9 @@ namespace eval ::xowiki::test {
         -path:required
         {-update ""}
     } {
+
+        Edit a form page via the web interface
+
     } {
         aa_log "... edit page $path"
         set d [aa_http -user_id $user_id $instance/$path?m=edit]
@@ -268,13 +331,106 @@ namespace eval ::xowiki::test {
         foreach {key value} $update {
             dict set form_content $key $value
         }
-        aa_log "form_content: $form_content"
+        aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
 
         set d [aa_http -user_id $user_id $instance/$path]
         aa_equals "Status code valid" [dict get $d status] 200
 
         set response [dict get $d body]
         aa_true "page contains title" {[string match "*[dict get $form_content _title]*" $response]}
+    }
+
+    ad_proc ::xowiki::test::create_form {
+        -user_id:required
+        -instance:required
+        -path:required
+        -parent_id:required
+        -name:required
+        {-autonamed:boolean false}
+        {-update ""}
+    } {
+
+        Create a form via the web interface.
+
+    } {
+        #
+        # Create a form under the parent_id
+        #
+        aa_log "... create a new form in the test folder $parent_id"
+        #
+        # New form creation happens over the top-level URL
+        #
+        set d [aa_http \
+                   -user_id $user_id \
+                   $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
+
+        aa_equals "Status code valid" [dict get $d status] 200
+        set response [dict get $d body]
+        #ns_log notice response=$response
+        set formCSSClass "margin-form"
+
+        aa_dom_html root $response {
+
+            set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
+            set f_submit [$root selectNodes $selector]
+            aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+
+            set f_id     [::xowiki::test::get_object_name $root]
+            aa_true "page_id '$f_id' is empty" {$f_id eq ""}
+
+            set f_name   [xowiki::test::get_named_form_value $root $formCSSClass "name"]
+
+            set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@name='creator'\]/@value)}]
+            ns_log notice "$selector --> [$root selectNodes $selector]"
+
+            set f_creator [xowiki::test::get_named_form_value $root $formCSSClass "creator"]
+            aa_true "name '$f_name' is empty"           {$f_name eq ""}
+            aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
+
+            set f_form_action  [::xowiki::test::get_form_action $root $formCSSClass]
+            aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+
+            set form_content [::xowiki::test::get_form_values $root $formCSSClass]
+            set names [dict keys $form_content]
+            aa_log "form names: [lsort $names]"
+            aa_true "page has at least 9 fields" { [llength $names] >= 9 }
+        }
+        aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
+        dict set form_content name $name
+
+        set d [::xowiki::test::form_reply \
+                   -user_id $user_id \
+                   -url $f_form_action \
+                   -update $update \
+                   $form_content]
+        aa_equals "Status code valid" [dict get $d status] 302
+
+        foreach {key value} $update {
+            dict set form_content $key $value
+        }
+        aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
+
+        if {[dict get $d status] eq 200} {
+            set response [dict get $d body]
+            ns_log notice "Maybe a validation error? response\n$response"
+        }
+
+        set location [::xowiki::test::get_url_from_location $d]
+        aa_true "location '$location' is valid" {$location ne ""}
+
+        ::xo::Package initialize -url $location
+        set page_info [::$package_id item_ref \
+                           -default_lang en \
+                           -parent_id $parent_id \
+                           $name \
+                          ]
+        set item_id [dict get $page_info item_id]
+        aa_log "lookup of form $name -> $item_id"
+        ::xo::db::CrClass get_instance_from_db -item_id $item_id
+
+        set d [aa_http -user_id $user_id \
+                   $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
+        aa_equals "Status code valid" [dict get $d status] 302
     }
 
 }
