@@ -631,7 +631,7 @@ namespace eval ::xowiki {
   } {
 
     :instvar package_id item_id revision_id parent_id
-    #:msg "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
+    #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
 
@@ -639,8 +639,11 @@ namespace eval ::xowiki {
       set submit_link [:query_parameter "return_url" "."]
       set return_url $submit_link
     } else {
-      # before we used "." as default submit link (resulting in a "ad_returnredirect .").
-      # However, this does not seem to work in case we have folders in use....
+      #
+      # Before we used "." as default submit link (resulting in a
+      # "ad_returnredirect .").  However, this does not seem to work
+      # in case we have folders in use....
+      #
       #set submit_link "."
       set submit_link [:pretty_link]
     }
@@ -742,7 +745,9 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc action_url {} {
-    # can be overloaded
+    #
+    # Can be overloaded.
+    #
     return [:pretty_link]
   }
 
@@ -795,8 +800,10 @@ namespace eval ::xowiki {
       }
     }
 
-    # include _text only, if explicitly needed (in form needed(_text)]"
-
+    #
+    # Include _text only, if explicitly needed (in form
+    # needed(_text))".
+    #
     if {![info exists :__field_needed(_text)]} {
       #:msg "setting text hidden"
       set f [:lookup_form_field -name _text $form_fields]
@@ -804,8 +811,10 @@ namespace eval ::xowiki {
     }
 
     if {[:exists_form_parameter __disabled_fields]} {
+      #
       # Disable some form-fields since these are disabled in the form
       # as well.
+      #
       foreach name [:form_parameter __disabled_fields] {
         set f [:lookup_form_field -name $name $form_fields]
         $f disabled disabled
@@ -818,9 +827,8 @@ namespace eval ::xowiki {
     if {[:form_parameter __form_action ""] eq "save-form-data"} {
       #:log "we have to validate"
       #
-      # we have to valiate and save the form data
+      # We have to valiate and save the form data.
       #
-
       # In case we are triggered internally, we might not have a
       # a connection and therefore do not valide the csrf token
       if {![$package_id exists __batch_mode]} {
@@ -828,9 +836,8 @@ namespace eval ::xowiki {
       }
 
       lassign [:get_form_data $form_fields] validation_errors category_ids
-
       if {$validation_errors != 0} {
-        #:msg "$validation_errors errors in $form_fields"
+        #:log "$validation_errors validation errors in $form_fields"
         #foreach f $form_fields { :log "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
         #
         # In case we are triggered internally, we might not have a
@@ -852,7 +859,9 @@ namespace eval ::xowiki {
           }
           error "[llength $errors] validation error(s): $errors $evaluation_errors"
         }
-        # reset the name in error cases to the original one
+        #
+        # Reset the name in error cases to the original one.
+        #
         set :name [:form_parameter __object_name]
       } else {
         #
@@ -889,8 +898,10 @@ namespace eval ::xowiki {
         }
       }
     } elseif {[:form_parameter __form_action ""] eq "view-form-data" && ![info exists :__feedback_mode]} {
+      #
       # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
+      #
       set redirect_method [:form_parameter __form_redirect_method "view"]
       #:log "__redirect_method=$redirect_method"
       return [:www-view]
@@ -907,9 +918,10 @@ namespace eval ::xowiki {
       :load_values_into_form_fields $form_fields
       foreach f $form_fields {set ff([$f name]) $f }
 
+      #
       # For named entries, just set the entry fields to empty,
       # without changing the instance variables
-
+      #
       #:log "my is_new_entry ${:name} = [:is_new_entry ${:name}]"
       if {[:is_new_entry ${:name}]} {
         if {$anon_instances} {
@@ -944,10 +956,13 @@ namespace eval ::xowiki {
       $ff(_nls_language) set transmit_field_always 1
     }
 
-    # some final sanity checks
+    #
+    # Some final sanity checks.
+    #
     :form_fields_sanity_check $form_fields
     :post_process_form_fields $form_fields
 
+    #
     # The following command would be correct, but does not work due to a bug in
     # tdom.
     # set form [:regsub_eval  \
@@ -986,7 +1001,7 @@ namespace eval ::xowiki {
 
 
     #
-    # prepend some fields above the HTML contents of the form
+    # Prepend some fields above the HTML contents of the form.
     #
     $rootNode insertBeforeFromScript {
       ::html::div {
@@ -995,7 +1010,9 @@ namespace eval ::xowiki {
         ::html::input -type hidden -name __current_revision_id -value ${:revision_id}
         ::html::CSRFToken
       }
-      # insert automatic form fields on top
+      #
+      # Insert automatic form fields on top.
+      #
       foreach att $field_names {
         #if {$formgiven && ![string match _* $att]} continue
         if {[info exists :__field_in_form($att)]} continue
@@ -1005,7 +1022,7 @@ namespace eval ::xowiki {
       }
     } $fcn
     #
-    # append some fields after the HTML contents of the form
+    # Append some fields after the HTML contents of the form.
     #
     set button_class(wym) ""
     set button_class(xinha) ""
@@ -1026,13 +1043,17 @@ namespace eval ::xowiki {
         }
       }
 
-      # insert unreported errors
+      #
+      # Insert unreported errors.
+      #
       foreach f $form_fields {
         if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
           $f render_error_msg
         }
       }
-      # add a submit field(s) at bottom
+      #
+      # Add a submit field(s) at bottom.
+      #
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
     }
 
@@ -1063,9 +1084,13 @@ namespace eval ::xowiki {
 
     :set_form_data $form_fields
     if {$disable_input_fields} {
-      # (a) disable explicit input fields
+      #
+      # (a) Disable explicit input fields.
+      #
       foreach f $form_fields {$f disabled 1}
-      # (b) disable input in HTML-specified fields
+      #
+      # (b) Disable input in HTML-specified fields.
+      #
       set disabled [Form dom_disable_input_fields $rootNode]
       #
       # Collect these variables in a hidden field to be able to
@@ -1083,7 +1108,9 @@ namespace eval ::xowiki {
     set html [:regsub_eval  \
                   {(^|[^\\])\x03([a-zA-Z0-9_:]+)\x03} $html \
                   {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
-    # replace unbalanced @ characters
+    #
+    # Replace unbalanced @ characters.
+    #
     set html [string map [list \x03 @] $html]
 
     #:log "calling VIEW with HTML [string length $html]"
@@ -1161,10 +1188,12 @@ namespace eval ::xowiki {
   #
   Page instproc www-list {} {
     if {[:is_form]} {
+      #
       # The following line is here to provide a short description for
       # larger form-usages (a few MB) where otherwise
-      # "ad_html_text_convert" in Page.get_description tend to use forever
-      # (at least in Tcl 8.5)
+      # "ad_html_text_convert" in Page.get_description tend to use
+      # forever (at least in Tcl 8.5)
+      #
       set :description "form-usages for ${:name} [:title]"
 
       return [:www-view [:include [list form-usages -form_item_id ${:item_id}]]]
@@ -1243,12 +1272,14 @@ namespace eval ::xowiki {
 
     if {$validation_errors == 0} {
       #
-      # we have no validation errors, so we can save the content
+      # We have no validation errors, so we can save the content.
       #
       set update_without_revision [${:package_id} query_parameter replace 0]
 
       foreach form_field $form_fields {
-        # fix richtext content in accordance with oacs conventions
+        #
+        # Fix richtext content in accordance with oacs conventions.
+        #
         if {[$form_field istype ::xowiki::formfield::richtext]} {
           $form_field value [list [$form_field value] text/html]
         }
@@ -1259,8 +1290,10 @@ namespace eval ::xowiki {
         foreach form_field $form_fields {
           set s [$form_field slot]
           if {$s eq ""} {
-            # empty slot means that we have an instance_attribute;
-            # we save all in one statement below
+            #
+            # Empty slot means that we have an instance_attribute; we
+            # save all in one statement below.
+            #
             set update_instance_attributes 1
           } else {
             error "Not implemented yet"
@@ -1273,7 +1306,7 @@ namespace eval ::xowiki {
         }
       } else {
         #
-        # perform standard update (with revision)
+        # Perform standard update (with revision).
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
@@ -1330,7 +1363,9 @@ namespace eval ::xowiki {
     set field_names [:field_names]
     set validation_errors 0
 
-    # get the first transmitted form field
+    #
+    # Fet the first transmitted form field.
+    #
     foreach field_name $field_names {
       if {[::xo::cc exists_form_parameter $field_name]} {
         set form_fields [:create_form_field $field_name]
@@ -1357,9 +1392,11 @@ namespace eval ::xowiki {
   #
 
   Page instproc www-view {{content ""}} {
+    #
     # The method "view" is used primarily for the toplevel call, when
     # the xowiki page is viewed.  It is not intended for e.g. embedded
     # wiki pages (see include), since it contains full framing, etc.
+    #
     ::xowiki::Page set recursion_count 0
     set page_package_id    ${:package_id}
     set context_package_id [::xo::cc package_id]
@@ -1374,7 +1411,7 @@ namespace eval ::xowiki {
     }
 
     #
-    # set up template variables
+    # Set up template variables.
     #
     set object_type [$page_package_id get_parameter object_type [:info class]]
     set rev_link    [$page_package_id make_link -with_entities 0 [self] revisions]
@@ -1457,20 +1494,22 @@ namespace eval ::xowiki {
       }
     }
 
-    # the content may be passed by other methods (e.g. edit) to
+    #
+    # The content may be passed by other methods (e.g. edit) to
     # make use of the same templating machinery below.
+    #
     if {$content eq ""} {
       set content [:render]
       #:msg "--after render"
     }
 
     #
-    # these variables can be influenced via set-parameter
+    # These variables can be influenced via set-parameter.
     #
     set autoname [$page_package_id get_parameter autoname 0]
 
     #
-    # setup top includeletes and footers
+    # Setup top includeletes and footers.
     #
 
     set footer [:htmlFooter -content $content]
@@ -1482,7 +1521,7 @@ namespace eval ::xowiki {
 
     if {$mb ne "0"} {
       #
-      # The following block should not be here, but in the templates
+      # The following block should not be here, but in the templates.
       #
       set showFolders [$context_package_id get_parameter "MenuBarWithFolder" 1]
       if {$showFolders} {
@@ -1492,7 +1531,7 @@ namespace eval ::xowiki {
       }
 
       #
-      # At this place, the menu should be complete, we can render it
+      # At this place, the menu should be complete, we can render it.
       #
       set mbHTML [$mb render-preferred]
       #append top_includelets \n "<div class='visual-clear'><!-- --></div>" $mbHTML
@@ -1503,7 +1542,10 @@ namespace eval ::xowiki {
       :record_last_visited
     }
 
-    # Deal with the views package (many thanks to Malte for this snippet!)
+    #
+    # Deal with the views package (many thanks to Malte for this
+    # snippet!)
+    #
     if {[$context_package_id get_parameter with_views_package_if_available 1]
         && [info commands ::views::record_view] ne ""} {
       views::record_view -object_id ${:item_id} -viewer_id [::xo::cc user_id]
