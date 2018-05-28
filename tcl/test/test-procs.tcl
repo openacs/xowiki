@@ -124,7 +124,10 @@ namespace eval ::xowiki::test {
         -user_id:required
         -instance:required
         -folder_name:required
+        {-form_name folder.form}
         {-fresh:boolean false}
+        {-update ""}
+        {-extra_url_parameter {}}
     } {
         Make sure a testfolder with the specified name exists in the
         top level directory of the specified instance. If this folder
@@ -179,11 +182,13 @@ namespace eval ::xowiki::test {
                 -path "" \
                 -autonamed \
                 -parent_id [::$package_id folder_id] \
-                -form_name folder.form \
+                -form_name $form_name \
                 -update [subst {
                     _title "Test folder"
                     _name $folder_name
-                }]
+                    $update
+                }] \
+                -extra_url_parameter $extra_url_parameter
         }
 
         set new_folder_id [::$package_id lookup -name $folder_name]
@@ -201,6 +206,7 @@ namespace eval ::xowiki::test {
         -path:required
         {-autonamed:boolean false}
         {-update ""}
+        {-extra_url_parameter {}}
     } {
 
         Create a form page via the web interface.
@@ -212,7 +218,7 @@ namespace eval ::xowiki::test {
         aa_log "... create a page in test test folder $parent_id"
         set d [aa_http \
                    -user_id $user_id \
-                   $instance/$path/$form_name?m=create-new&parent_id=$parent_id]
+                   $instance/$path/$form_name?m=create-new&parent_id=$parent_id&[export_vars $extra_url_parameter]]
 
         aa_equals "Status code valid" [dict get $d status] 302
         set location [::xowiki::test::get_url_from_location $d]
