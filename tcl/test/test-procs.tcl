@@ -173,7 +173,7 @@ namespace eval ::xowiki::test {
             # When we try folder creation without being logged in, we
             # expect a permission denied error.
             #
-            set d [aa_http -user_id 0 $instance/folder.form?m=create-new&return_url=$instance/]
+            set d [aa_http -user_id 0 $instance/$form_name?m=create-new&return_url=$instance/]
             aa_equals "Status code valid" [dict get $d status] 403
 
             ::xowiki::test::create_form_page \
