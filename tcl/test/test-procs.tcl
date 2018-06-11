@@ -134,7 +134,7 @@ namespace eval ::xowiki::test {
         exists already, it is deleted are recreated empty.
 
         @param user_id the user, under which the operations should be performed
-        @param instance the path leading the the instance, e.g. /xowiki
+        @param instance the path leading the instance, e.g. /xowiki
         @param folder_name the name of the folder, e.g. "testfolder"
         @param fresh create a fresh folder, this means, delete a pre-existing folder first
         @return folder_id
