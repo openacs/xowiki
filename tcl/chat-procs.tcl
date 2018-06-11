@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # Chat instproc render {} {
   #   :orderby time
   #   set result ""
-  #   foreach child [:children] { 
+  #   foreach child [:children] {
   #     set msg       [$child msg]
   #     set user_id   [$child user_id]
   #     set timelong  [clock format [$child time]]
@@ -47,7 +47,7 @@ namespace eval ::xowiki {
     } elseif {[string index $path end] ne "/"} {
       append path /
     }
-    
+
     if {$mode eq ""} {
       #
       # The parameter "mode" was not specified, we try to guess the
@@ -56,10 +56,10 @@ namespace eval ::xowiki {
       # The most conservative mode is
       # - "polling" (which requires for every connected client polling
       #    requests), followed by
-      # - "scripted-streaming" (which opens and "infinitely long" HTML 
-      #   files with embedded script tags; very portable, but this 
+      # - "scripted-streaming" (which opens and "infinitely long" HTML
+      #   files with embedded script tags; very portable, but this
       #   causes the loading indicator to spin), followed by
-      # - "streaming" (true streaming, but this requires 
+      # - "streaming" (true streaming, but this requires
       #   an HTTP stack supporting partial reads).
       #
       # NOTICE 1: The guessing is based on current versions of the
@@ -87,7 +87,7 @@ namespace eval ::xowiki {
         set mode scripted-streaming
         if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
           # Explorer doesn't expose partial response until request state != 4, while Opera fires
-          # onreadystateevent only once. For this reason, for every browser except them, we could 
+          # onreadystateevent only once. For this reason, for every browser except them, we could
           # use the nice mode without the spinning load indicator.
           #
           set mode streaming
@@ -148,8 +148,8 @@ namespace eval ::xowiki {
             -id "messages-form" \
             -event "submit" \
             -script [subst {
-          chatSendMsg(\"$send_url\",chatReceiver);
-        }]
+              chatSendMsg(\"$send_url\",chatReceiver);
+            }]
         return "\
       <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
       $js
@@ -196,7 +196,7 @@ namespace eval ::xowiki {
       var send_url = \"$send_url\";
       </script>
       <div id='messages' style='$style'>
-      <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $subscribe_url]' 
+      <iframe name='ichat' id='ichat' frameborder='0' src='[ns_quotehtml $subscribe_url]'
               style='width:0px; height:0px; border: 0px'>
       </iframe>
       </div>

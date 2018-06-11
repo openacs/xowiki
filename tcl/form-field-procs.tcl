@@ -919,8 +919,8 @@ namespace eval ::xowiki::formfield {
       # is not in a published state.
       #
       if {[$package_id get_parameter production_mode 0]} {
-          $file_object publish_status "production"
-      }      
+        $file_object publish_status "production"
+      }
       $file_object save_new {*}$save_flag
     }
     return $file_object
@@ -1384,9 +1384,9 @@ namespace eval ::xowiki::formfield {
   }
   number instproc render_input {} {
     set boolean_atts [:booleanAttributes required readonly disabled \
-        formnovalidate autofocus]
+                          formnovalidate autofocus]
     ::html::input [:get_attributes type id name value {CSSclass class} \
-        min max step autocomplete placeholder {*}$boolean_atts] {}
+                       min max step autocomplete placeholder {*}$boolean_atts] {}
     :resetBooleanAttributes $boolean_atts
   }
 
@@ -1730,7 +1730,7 @@ namespace eval ::xowiki::formfield {
     #ns_log notice "==== ${:name} EDITOR specified? [info exists :editor]"
     if {![info exists :editor]} {
       set :editor [parameter::get_global_value -package_key xowiki \
-                         -parameter PreferredRichtextEditor -default ckeditor4]
+                       -parameter PreferredRichtextEditor -default ckeditor4]
       #:msg "setting default of ${:name} to ${:editor}"
     }
     if {![info exists :__initialized]} {
@@ -2100,7 +2100,7 @@ namespace eval ::xowiki::formfield {
       try {
         #
         # Try to use the ckeditor from the richtext-ckeditor4
-        # installation. 
+        # installation.
         #
         ::richtext::ckeditor4::add_editor \
             -order 90 \
@@ -2119,11 +2119,11 @@ namespace eval ::xowiki::formfield {
         security::csp::require script-src cdn.ckeditor.com
         security::csp::require style-src cdn.ckeditor.com
         security::csp::require img-src cdn.ckeditor.com
-        
+
         template::head::add_javascript -order 90 -src "//cdn.ckeditor.com/4.8.0/standard-all/ckeditor.js"
         template::head::add_javascript -order 90.1 -src "//cdn.ckeditor.com/4.8.0/standard-all/adapters/jquery.js"
       }
-      
+
       #
       # In contrary to the documentation, ckeditor4 names instances
       # after the id, not the name.
@@ -2641,7 +2641,7 @@ namespace eval ::xowiki::formfield {
       if {![:horizontal]} {
         html::br
       }
-      
+
       #::html::input $atts {}
       #::html::label -for $id {html::t "$label  "}
       #if {![:horizontal]} {html::br}

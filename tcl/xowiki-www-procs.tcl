@@ -832,7 +832,7 @@ namespace eval ::xowiki {
       # In case we are triggered internally, we might not have a
       # a connection and therefore do not valide the csrf token
       if {![$package_id exists __batch_mode]} {
-          security::csrf::validate
+        security::csrf::validate
       }
 
       lassign [:get_form_data $form_fields] validation_errors category_ids
@@ -2082,8 +2082,8 @@ namespace eval ::xowiki {
   }
 
   Page instproc mutual_overwrite_occurred {} {
-     util_user_message -html \
-         -message "[_ xowiki.User] <em>[::xo::get_user_name ${:modifying_user}]</em> [_ xowiki.has_modified_this_page]. \
+    util_user_message -html \
+        -message "[_ xowiki.User] <em>[::xo::get_user_name ${:modifying_user}]</em> [_ xowiki.has_modified_this_page]. \
    [_ xowiki.Please_open] <a href='[ns_quotehtml [::xo::cc url]]' target='_blank'>[_ xowiki.modified_page]</a> [_ xowiki.new_window_or_OK]."
     # return 1 to flag validation error, 0 to ignore this fact
     return 1

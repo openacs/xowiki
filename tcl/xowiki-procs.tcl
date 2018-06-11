@@ -911,9 +911,9 @@ namespace eval ::xowiki {
       set :$attribute $default_party
     } else {
       set :$attribute [:reverse_map_party \
-                             -entry [set :$attribute] \
-                             -default_party $default_party \
-                             -create_user_ids $create_user_ids]
+                           -entry [set :$attribute] \
+                           -default_party $default_party \
+                           -create_user_ids $create_user_ids]
     }
   }
 
@@ -2501,7 +2501,7 @@ namespace eval ::xowiki {
 
   Page instproc set_content {text} {
     :text [list [string map [list >> "\n&gt;&gt;" << "&lt;&lt;\n"] \
-                       [string trim $text " \n"]] text/html]
+                     [string trim $text " \n"]] text/html]
   }
 
   Page instproc get_rich_text_spec {field_name default} {
@@ -2606,8 +2606,8 @@ namespace eval ::xowiki {
                          [::xo::get_user_name [::xo::cc user_id]]]
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [:include [list my-yahoo-publisher \
-                           -publisher $publisher \
-                           -rssurl "$package_url?rss"]] \
+                         -publisher $publisher \
+                         -rssurl "$package_url?rss"]] \
           "</div>\n"
     }
 
@@ -3759,8 +3759,7 @@ namespace eval ::xowiki {
     # First check for invalid meta characters for security reasons.
     #
     if {[regexp {[\[\]]} $form_constraints]} {
-      :uplevel [list set errorMsg \
-                      [_ xowiki.error-form_constraint-invalid_characters]]
+      :uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]
       return 0
     }
     #
@@ -4339,7 +4338,7 @@ namespace eval ::xowiki {
       set is_form [:property is_form__ 0]
       if {[:is_form]} {
         return [:include [list form-menu -form_item_id ${:item_id} \
-                                -buttons [list new answers [list form [:page_template]]]]]
+                              -buttons [list new answers [list form [:page_template]]]]]
       } else {
         return [:include [list form-menu -form_item_id [:page_template] -buttons form]]
       }
@@ -4347,14 +4346,9 @@ namespace eval ::xowiki {
   }
 
 
-  #   FormPage instproc form_attributes {} {
-  #     :log "DEPRECATRED, use 'field_names_from_form' instead "
-  #     return [:field_names_from_form]
-  #   }
-
   FormPage instproc field_names_from_form {{-form ""}} {
     #
-    # this method returns the form attributes (including _*)
+    # This method returns the form attributes (including _*).
     #
     set allvars [list {*}[[:info class] array names db_slot] \
                      {*}[::xo::db::CrClass set common_query_atts]]
