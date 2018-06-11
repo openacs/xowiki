@@ -67,7 +67,7 @@ namespace eval ::xowiki::test {
         set values {}
         foreach n [$node selectNodes //form\[contains(@class,'$className')\]//input] {
             set name  [$n getAttribute name]
-            ns_log notice "form $className input node $n name $name:"
+            #ns_log notice "form $className input node $n name $name:"
             if {[$n hasAttribute value]} {
                 set value [$n getAttribute value]
             } else {
@@ -77,7 +77,7 @@ namespace eval ::xowiki::test {
         }
         foreach n [$node selectNodes //form\[contains(@class,'$className')\]//textarea] {
             set name  [$n getAttribute name]
-            ns_log notice "form $className textarea node $n name $name:"
+            #ns_log notice "form $className textarea node $n name $name:"
             set value [$n text]
             lappend values $name $value
         }
@@ -210,7 +210,8 @@ namespace eval ::xowiki::test {
     } {
 
         Create a form page via the web interface.
-
+        In essence this calls $instance/$path/$form_name?m=create-new
+        
     } {
         #
         # Create a page under the parent_id
@@ -262,8 +263,8 @@ namespace eval ::xowiki::test {
                    -update $update \
                    $form_content]
         aa_equals "Status code valid" [dict get $d status] 302
-        set response [dict get $d body]
-        ns_log notice "FORM POST\n$response"
+        #set response [dict get $d body]
+        #ns_log notice "FORM POST\n$response"
 
         foreach {key value} $update {
             dict set form_content $key $value
@@ -298,7 +299,8 @@ namespace eval ::xowiki::test {
         {-update ""}
     } {
 
-        Edit a form page via the web interface
+        Edit a form page via the web interface.
+        In essence, this calls $instance/$path?m=edit
 
     } {
         aa_log "... edit page $path"
