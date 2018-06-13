@@ -57,9 +57,9 @@ function onOK(caller) {
   <div class="title">#acs-templating.HTMLArea_InsertWikiLink#</div>
   <div style="padding-left:10px;padding-right:10px;">
     <p>#xowiki.select_link_target#</p>
-    <if @back_link@><a href="@back_link@">previous</a></if>
+    <if @back_link;literal@ not nil><a href="@back_link@">previous</a></if>
     @t1;noquote@
-    <if @next_link@><a href="@next_link@">next</a></if>
+    <if @next_link:literal@ not nil><a href="@next_link@">next</a></if>
     </br>
     Label: <input id="label" type="text"/>
   </div>
