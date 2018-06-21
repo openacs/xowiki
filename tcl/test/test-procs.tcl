@@ -297,6 +297,7 @@ namespace eval ::xowiki::test {
         -instance:required
         -path:required
         {-update ""}
+        {-extra_url_parameter {{m edit}}}
     } {
 
         Edit a form page via the web interface.
@@ -304,7 +305,7 @@ namespace eval ::xowiki::test {
 
     } {
         aa_log "... edit page $path"
-        set d [aa_http -user_id $user_id $instance/$path?m=edit]
+        set d [aa_http -user_id $user_id $instance/$path?[export_vars $extra_url_parameter]]
 
         aa_equals "Status code valid" [dict get $d status] 200
         #set location [::xowiki::test::get_url_from_location $d]
