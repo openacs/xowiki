@@ -54,7 +54,7 @@ namespace eval ::xowiki {
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-$instance_name
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name    
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_key-$package_id
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache root_folder-$package_id
+    ::xo::clusterwide ns_cache flush xotcl_package_cache root_folder-$package_id
 
     ns_log notice "before-uninstantiate DONE"
   }
