@@ -3643,7 +3643,7 @@ namespace eval ::xowiki {
       $payload init
     } on error {errorMsg} {
       ad_log error "xowiki::Object set_payload: content $cmd lead to error: $errorMsg"
-      ::xo::clusterwide ns_cache flush xotcl_object_cache ${:item_id}
+      ::xo::xotcl_object_cache flush ::${:item_id}
     }
   }
 

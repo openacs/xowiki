@@ -1985,7 +1985,7 @@ namespace eval ::xowiki {
 
     @return folder_id
   } {
-    set folder_id [ns_cache eval xotcl_object_type_cache root_folder-${:id} {
+    set folder_id [ns_cache eval xotcl_package_cache root_folder-${:id} {
 
       set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       if {$folder_id == 0} {
@@ -2417,8 +2417,8 @@ namespace eval ::xowiki {
   }
 
   Package instproc delete_revision {-revision_id:required -item_id:required} {
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+    ::xo::xotcl_object_cache flush ::$item_id
+    ::xo::xotcl_object_cache flush ::$revision_id
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
@@ -2567,7 +2567,7 @@ namespace eval ::xowiki {
     :flush_references -item_id $item_id -name $name -parent_id $parent_id
     :flush_page_fragment_cache -scope agg
 
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
+    ::xo::xotcl_object_cache flush ::$item_id
 
     #
     # Clear potentially cached revisions. The function could be
@@ -2577,7 +2577,7 @@ namespace eval ::xowiki {
     foreach revision_id [::xo::dc list get_revisions {
       select revision_id from cr_revisions where item_id = :item_id
     }] {
-      ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+      ::xo::xotcl_object_cache flush ::$revision_id
     }
   }
 

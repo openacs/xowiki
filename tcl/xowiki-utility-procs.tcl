@@ -484,9 +484,9 @@ namespace eval ::xowiki {
     ::xo::dc dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
     ::xo::dc dml chg6 "update cr_items set content_type = '::xowiki::FormPage',  publish_status = 'ready', live_revision = :revision_id, latest_revision = :revision_id where item_id = :item_id"
 
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$package_id
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
-    ::xo::clusterwide ns_cache flush xotcl_object_cache ::$revision_id
+    ::xo::xotcl_object_cache flush ::$package_id
+    ::xo::xotcl_object_cache flush ::$item_id
+    ::xo::xotcl_object_cache flush ::$revision_id
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache root-folder-$package_id
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
     ::xo::clusterwide ns_cache flush xotcl_object_type_cache $revision_id
@@ -821,8 +821,8 @@ namespace eval ::xowiki {
         #ns_log notice "--cpo UPDATE $page_id new_page_order $new_page_order"
         $temp_obj item_id $item_id
         $temp_obj update_attribute_from_slot -revision_id $page_id $slot $new_page_order
-        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$item_id
-        ::xo::clusterwide ns_cache flush xotcl_object_cache ::$page_id
+        ::xo::xotcl_object_cache flush ::$item_id
+        ::xo::xotcl_object_cache flush ::$page_id
       }
     }
     #
