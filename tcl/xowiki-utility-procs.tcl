@@ -431,7 +431,7 @@ namespace eval ::xowiki {
 
   proc ::xowiki::page_order_uses_ltree {} {
     if {[::xo::dc has_ltree]} {
-      ::xo::xotcl_object_type_cache eval ::xowiki::page_order_uses_ltree {
+      ::xo::xotcl_package_cache eval ::xowiki::page_order_uses_ltree {
         return [::xo::dc get_value check_po_ltree {
           select count(*) from pg_attribute a, pg_type t, pg_class c 
           where attname = 'page_order' and a.atttypid = t.oid and c.oid = a.attrelid 
@@ -459,7 +459,7 @@ namespace eval ::xowiki {
         select item_id from cr_items where name = :name and parent_id = -100
       }]
     }
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
+    xo::xotcl_object_type_cache flush -tree_key $item_id $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
     if {[::xo::dc 0or1row check {
@@ -487,9 +487,10 @@ namespace eval ::xowiki {
     ::xo::xotcl_object_cache flush $package_id
     ::xo::xotcl_object_cache flush $item_id
     ::xo::xotcl_object_cache flush $revision_id
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache root-folder-$package_id
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $item_id
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache $revision_id
+    ::xo::xotcl_object_type_cache flush 
+    ::xo::xotcl_package_cache flush root-folder-$package_id
+    ::xo::xotcl_object_type_cache flush -tree_key $item_id $item_id
+    ::xo::xotcl_object_type_cache flush -tree_key $revision_id $revision_id
   }
 
   proc ::xowiki::refresh_id_column_fk_constraints {} {

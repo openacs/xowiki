@@ -51,10 +51,10 @@ namespace eval ::xowiki {
    
     set instance_name [apm_instance_name_from_id $package_id]
     
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_id-$instance_name
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache -100-$instance_name    
-    ::xo::clusterwide ns_cache flush xotcl_object_type_cache package_key-$package_id
-    ::xo::clusterwide ns_cache flush xotcl_package_cache root_folder-$package_id
+    ::xo::xotcl_package_cache flush package_id-$instance_name
+    ::xo::xotcl_package_cache flush package_key-$package_id
+    ::xo::xotcl_package_cache flush root_folder-$package_id
+    ::xo::xotcl_object_type_cache flush -tree_key -100 -100-$instance_name    
 
     ns_log notice "before-uninstantiate DONE"
   }
