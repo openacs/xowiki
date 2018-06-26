@@ -459,7 +459,7 @@ namespace eval ::xowiki {
         select item_id from cr_items where name = :name and parent_id = -100
       }]
     }
-    xo::xotcl_object_type_cache flush -tree_key $item_id $item_id
+    xo::xotcl_object_type_cache flush -partition_key $item_id $item_id
     set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
 
     if {[::xo::dc 0or1row check {
@@ -489,8 +489,8 @@ namespace eval ::xowiki {
     ::xo::xotcl_object_cache flush $revision_id
     ::xo::xotcl_object_type_cache flush 
     ::xo::xotcl_package_cache flush root-folder-$package_id
-    ::xo::xotcl_object_type_cache flush -tree_key $item_id $item_id
-    ::xo::xotcl_object_type_cache flush -tree_key $revision_id $revision_id
+    ::xo::xotcl_object_type_cache flush -partition_key $item_id $item_id
+    ::xo::xotcl_object_type_cache flush -partition_key $revision_id $revision_id
   }
 
   proc ::xowiki::refresh_id_column_fk_constraints {} {
