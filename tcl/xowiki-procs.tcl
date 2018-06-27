@@ -506,7 +506,8 @@ namespace eval ::xowiki {
         -name xowiki_cache \
         -package_key xowiki \
         -parameter Cache \
-        -default_size 400000
+        -default_size 400000 \
+        -partitions 2
   }
 
   #############################
