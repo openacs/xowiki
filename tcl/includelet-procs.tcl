@@ -410,7 +410,7 @@ namespace eval ::xowiki::includelet {
     #
     # Get the HTML from the rendered includelet by calling "next"
     #
-    set HTML [ns_cache eval xowiki_cache $key next]
+    set HTML [::xowiki::cache eval -partition_key ${:package_id} $key next]
     #
     # Some side-effects might be necessary, even when the HTML output
     # of the includelet is cached (e.g. some associative arrays,
@@ -418,7 +418,7 @@ namespace eval ::xowiki::includelet {
     # additional some "includelet data", if the includelet provides
     # it.
     #
-    if {[catch {set data [ns_cache get xowiki_cache $key-data]}]} {
+    if {[catch {set data [::xowiki::cache get -partition_key ${:package_id} $key-data]}]} {
       :cache_includelet_data $key-data
     } else {
       #:msg "eval $data"
@@ -428,9 +428,12 @@ namespace eval ::xowiki::includelet {
   } -instproc cache_includelet_data {key} {
     #:msg "data=[next]"
     set data [next]
-    if {$data ne ""} {ns_cache set xowiki_cache $key $data}
+    if {$data ne ""} {
+      ::xowiki::cache set -partition_key ${:package_id} $key $data
+    }
   }
 }
+
 namespace eval ::xowiki::includelet {
   #############################################################################
   # dotlrn style includelet decoration for includelets
@@ -4485,7 +4488,11 @@ namespace eval ::xowiki::includelet {
 
     set cmd [list ::xowiki::includelet::random-form-page page_names $package_id $form $publish_status]
     if {[ns_info name] eq "NaviServer"} {
-      set names [ns_cache_eval -expires $expires xowiki_cache random-$package_id-$form $cmd]
+      set names [::xowiki::cache \
+                     -expires $expires \
+                     -partition_key $package_id \
+                     random-$package_id-$form \
+                     $cmd]
     } else {
       set names [util_memoize $cmd]
     }

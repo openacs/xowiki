@@ -2410,9 +2410,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc flush_name_cache {-name:required -parent_id:required} {
-    # Different machines in the cluster might have different entries in their caches.
-    # Since we use wild-cards to find these, it has to be done on every machine
-    ::xo::clusterwide xo::cache_flush_all xowiki_cache link-*-$name-$parent_id
+    # xowiki::LinkCache flush $parent_id
     ::xo::xotcl_object_type_cache flush -partition_key $parent_id $parent_id-$name
   }
 
@@ -2587,10 +2585,7 @@ namespace eval ::xowiki {
       all {set key PF-${:id}-*}
       default {error "unknown scope for flushing page fragment cache"}
     }
-    foreach entry [ns_cache names xowiki_cache $key] {
-      #:log "::xo::clusterwide ns_cache flush xowiki_cache $entry"
-      ::xo::clusterwide ns_cache flush xowiki_cache $entry
-    }
+    xowiki::cache flush_pattern -partition_key ${:id} $key
   }
 
   #

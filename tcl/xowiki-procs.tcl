@@ -497,18 +497,16 @@ namespace eval ::xowiki {
   #
   # Create the xowiki_cache
   #
-  # We do here the same as in xotcl-core/tcl/05-db-procs.tcl
-  # Read there for the reasons, why the cache is not created in
-  # a -init file.....
+  # We do here the same way as in xotcl-core/tcl/05-db-procs.tcl
   #
-  if {[catch {ns_cache flush xowiki_cache NOTHING}]} {
+  if {[catch {ns_cache flush xowiki_cache-0 NOTHING}]} {
     ns_log notice "xotcl-core: creating xowiki cache"
 
-    ns_cache create xowiki_cache \
-        -size [parameter::get_global_value \
-                   -package_key xowiki \
-                   -parameter CacheSize \
-                   -default 400000]
+    ::acs::KeyPartitionedCache create ::xowiki::cache \
+        -name xowiki_cache \
+        -package_key xowiki \
+        -parameter Cache \
+        -default_size 400000
   }
 
   #############################
@@ -3145,7 +3143,7 @@ namespace eval ::xowiki {
         # change.  Therefore, we can easily cache the full file name
         # for the revision_id.
         #
-        set :full_file_name [ns_cache eval xowiki_cache ffn-${:revision_id} {
+        set :full_file_name [::xowiki::cache eval -partition_key ${:revision_id} ffn-${:revision_id} {
           return [content::revision::get_cr_file_path -revision_id ${:revision_id}]
         }]
         #:log "--F setting full-file-name of ${:revision_id}  ${:full_file_name}"

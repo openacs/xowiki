@@ -586,10 +586,22 @@ namespace eval ::xowiki {
   }
 
   #
-  # link cache
+  # Link cache - deactivated.
+  # When it will become activated again, it should get its own cache.
   #
-
   #   Class create LinkCache
+  #   LinkCache proc flush {parent_id {item_id ""}} {
+  #     if {$item_id eq ""} {
+  #       :xo::clusterwide xo::cache_flush_all xowiki_cache link-*-$name-$parent_id
+  #     } else {
+  #       foreach entry [ns_cache names xowiki_cache link-*-$parent_id] {
+  #         array set tmp [ns_cache get xowiki_cache $entry]
+  #         if {$tmp(item_id) == $item_id} {
+  #           ::xo::clusterwide ns_cache flush xowiki_cache $entry
+  #         }
+  #       }
+  #     }
+  #   }
   #   LinkCache instproc resolve {} {
   #     set key link-[:type]-[:name]-${:parent_id}
   #     while {1} {

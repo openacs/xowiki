@@ -375,17 +375,11 @@ namespace eval ::xowiki {
     # The logic could be made more intelligent to delete entries is more rare cases, like
     # in case the file was renamed, but this is more bullet-proof.
     #
-    # In case "ns_cache names xowiki_cache *pattern*" is not working on your installation;
-    #    upgrade ns_cache from cvs or use
-    #    foreach entry [lsearch -inline -all [ns_cache names xowiki_cache] link-*-${:folder_id}] 
-    foreach entry [ns_cache names xowiki_cache link-*-${:folder_id}] {
-      array set tmp [ns_cache get xowiki_cache $entry]
-      if {$tmp(item_id) == [${:data} set item_id]} {
-        ::xo::clusterwide ns_cache flush xowiki_cache $entry
-      }
-    }
-    if {![${:data} istype ::xowiki::Object] &&
-        ![${:data} istype ::xowiki::PageTemplate] } {
+    # xowiki::LinkCache flush ${:folder_id} [${:data} set item_id]
+    #
+    if {![${:data} istype ::xowiki::Object]
+        && ![${:data} istype ::xowiki::PageTemplate]
+      } {
       if {[${:data} istype ::xowiki::PageInstance]} {
         if {[${:data} set instance_attributes] ne ""} {
           #
