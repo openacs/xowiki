@@ -2152,6 +2152,7 @@ namespace eval ::xowiki::formfield {
         language: '[lang::conn::language]',
         skin: '[:skin]',
         startupMode: '[:mode]',
+        disableNativeSpellChecker: false,
         parent_id: '[${:object} item_id]',
         package_url: '[$package_id package_url]',
         extraPlugins: '[join [:extraPlugins] ,]',
