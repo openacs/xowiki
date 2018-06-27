@@ -363,8 +363,11 @@ namespace eval ::xowiki::includelet {
   }
 
   ::xowiki::Includelet instproc screen_name {user_id} {
-    acs_user::get -user_id $user_id -array user
-    return [expr {$user(screen_name) ne "" ? $user(screen_name) : $user(name)}]
+    set screen_name [acs_user::get_user_info -user_id $user_id -element screen_name]
+    if {$screen_name eq ""} {
+      set screen_name [person::get_person_info -person_id $user_id -element name]
+    }
+    return $screen_name
   }
 }
 
