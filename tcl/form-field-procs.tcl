@@ -1995,6 +1995,7 @@ namespace eval ::xowiki::formfield {
     {submit_callback ""}
     {extraPlugins "xowikiimage"}
     {extraAllowedContent {*(*)}}
+    {ck_package standard-all}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
@@ -2102,9 +2103,17 @@ namespace eval ::xowiki::formfield {
         # Try to use the ckeditor from the richtext-ckeditor4
         # installation.
         #
+        # There seems to be something broken on 4.9.2 version on
+        # cdn. if we do not use standard-all, then we see an error
+        # about a missing
+        # ".../4.9.2/full/plugins/iframedialog/plugin.js". There
+        # exists a "iframe" and a "iframedialog" plugin for ckeditor4,
+        # the latter is not included in the standard bulds (only in
+        # "-all").
+        #
         ::richtext::ckeditor4::add_editor \
             -order 90 \
-            -ck_package standard-all \
+            -ck_package ${:ck_package} \
             -adapters "jquery.js"
 
       } trap {TCL LOOKUP COMMAND} {errorMsg} {
@@ -2120,8 +2129,8 @@ namespace eval ::xowiki::formfield {
         security::csp::require style-src cdn.ckeditor.com
         security::csp::require img-src cdn.ckeditor.com
 
-        template::head::add_javascript -order 90 -src "//cdn.ckeditor.com/4.8.0/standard-all/ckeditor.js"
-        template::head::add_javascript -order 90.1 -src "//cdn.ckeditor.com/4.8.0/standard-all/adapters/jquery.js"
+        template::head::add_javascript -order 90 -src "//cdn.ckeditor.com/4.9.2/${:ck_package}/ckeditor.js"
+        template::head::add_javascript -order 90.1 -src "//cdn.ckeditor.com/4.9.2/${:ck_package}/adapters/jquery.js"
       }
 
       #
