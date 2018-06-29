@@ -1634,7 +1634,7 @@ namespace eval ::xowiki {
     # Obtain item info (item_id parent_id lang stripped_name) from the
     # specified url. Search starts always at the root.
     #
-    # @parm with_package_prefix flag, if provided url contains package-url
+    # @param with_package_prefix flag, if provided url contains package-url
     # @return item ref data (parent_id lang stripped_name method)
     #
     if {$with_package_prefix && [string match "/*" $url]} {
