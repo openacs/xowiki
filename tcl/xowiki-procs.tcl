@@ -2012,15 +2012,17 @@ namespace eval ::xowiki {
         return [:error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
       }
       set adp [string map {&nbsp; " "} $adp]
+      
       #
       # Check the provided name of the adp file
       #
       set path_info [:check_adp_include_path [lindex $adp 0]]
-      ns_log notice "path_info returned $path_info"
+      #:log "path_info returned $path_info"
       if {![dict get $path_info allowed]} {
         incr ::xowiki_inclusion_depth -1
         return [:error_in_includelet $arg [dict get $path_info msg]]$ch2
       }
+      
       set adp_fn [dict get $path_info fn]
       #
       # check the provided arguments
