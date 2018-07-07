@@ -17,7 +17,7 @@ namespace eval ::xowiki {
         header
       }
 
-  YUIMenuItemList ad_instproc render {} {} {
+  YUIMenuItemList instproc render {} {
     if {[info exists :header]} {
       html::h6 {
         html::t [:header]
@@ -206,7 +206,7 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create YUIMenuBarItem \
       -superclass YUIMenuItem
 
-  YUIMenuBarItem ad_instproc init {} {} {
+  YUIMenuBarItem instproc init {} {
     #goto YUIMenuItem and set all those nice defaults
     next
     append :CSSclass " first-of-type"
@@ -216,7 +216,7 @@ namespace eval ::xowiki {
     }
   }
 
-  YUIMenuBarItem ad_instproc render {} {} {
+  YUIMenuBarItem instproc render {} {
     set :extrajs ""
     set result [next]
     if {[info exists :__parent]} {

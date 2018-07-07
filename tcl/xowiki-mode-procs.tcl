@@ -41,7 +41,10 @@ namespace eval ::xowiki {
       return [ad_get_client_property -cache_only t xowiki $mode_name]
     }
 
-    :public method toggle {} {
+    :public method toggle {} { 
+      #
+      # Switch state of the toggle
+      #
       set oldState [:get]
       :set [expr {!$oldState}]
     }
