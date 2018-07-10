@@ -287,7 +287,9 @@ namespace eval ::xowiki {
     #
     while {1} {
       set new 0
-      ns_log notice "--export works on [array names items]"
+      if {[llength [array names items]] > 0} {
+        ns_log notice "--export works on [array names items]"
+      }
       foreach item_id [array names items] {
         #
         # We flag the reason, why the implicitly included elements were
@@ -321,7 +323,9 @@ namespace eval ::xowiki {
           }
         }
       }
-      if {!$new} break
+      if {!$new} {
+        break
+      }
     }
     return [array names items]
   }
