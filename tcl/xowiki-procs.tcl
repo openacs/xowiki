@@ -107,17 +107,38 @@ namespace eval ::xowiki {
             -sqltype long_text \
             -default ""
         #
-        # To enable hstore for xowiki/xowf, make sure, hstore is
-        # installed in your PostgreSQL installation, e.g. via
+        # To enable hstore for xowiki/xowf, for pre-existing
+        # xowiki/xowf instancs, make sure, hstore is installed in your
+        # PostgreSQL installation, e.g. via
         #
         #      $PGBIN/psql -U nsadmin -d oacs-head -tAc "create extension hstore"
         #
-        # .... and add a index for the hstore key to xowiki_page_instance:
+        # Then the condition [::xo::dc has_hstore] will be true and
+        # hstore can be used in principle. During startup, xowiki will
+        # create indices for the hkey column on
         #
-        #    CREATE INDEX hidx ON xowiki_page_instance using GIST(hkey);
+        #   - xowiki_page_instance(hkey) and
+        #   - xowiki_form_instance_item_index(hkey).
         #
-        # ... and set the parameter "use_hstore" to 1. Then the
-        # condition [::xo::dc has_hstore] will be true.
+        # The OpenACS content repository requires updates for its
+        # automatically created views und update procs. This can be done via
+        #
+        #    xo::db::sql::content_type refresh_view -content_type ::xowiki::PageInstance
+        #    xo::db::sql::content_type refresh_view -content_type ::xowiki::FormPage
+        #
+        # In order to use it for certain xowf/xowiki instances, set
+        # the package parameter "use_hstore" of the xowiki/xowf
+        # instances that want to use hstore to 1.
+        #
+        # To update all hkey attributes in e.g. a package mounted at /xowf 
+        # use:
+        #
+        #     ::xowf::Package initialize -url /xowf
+        #     ::xowf::update_hstore $package_id
+        #     ::xowiki::hstore::update_form_instance_item_index -package_id $package_id
+        #
+        # The first update command updates xowiki_page_instance, the second
+        # xowiki_form_instance_item_index. 
         #
         if {[::xo::dc has_hstore]} {
           ::xo::db::CrAttribute create hkey \
@@ -127,6 +148,10 @@ namespace eval ::xowiki {
       } \
       -form ::xowiki::PageInstanceForm \
       -edit_form ::xowiki::PageInstanceEditForm
+
+  if {[::xo::dc has_hstore]} {
+    ::xo::db::require index -table xowiki_page_instance -col hkey -using gist
+  }
 
   ::xo::db::CrClass create Object -superclass PlainPage \
       -pretty_name "#xowiki.Object_pretty_name#" -pretty_plural "#xowiki.Object_pretty_plural#" \
@@ -242,8 +267,10 @@ namespace eval ::xowiki {
   #         and page_template = 20260757
   #         and publish_status='ready';
   #
-  #   In order to get rid of this helper table (may be to regenerate it
-  #   on the next load) use
+  #   In order to get rid of the helper table
+  #   "xowiki_form_instance_item_index", one may drop it, such it will
+  #   be regenerated on the next load, but this make some time
+  #   depending on the size of the instance:
   #
   #       drop table xowiki_form_instance_item_index cascade;
   #
@@ -269,7 +296,7 @@ namespace eval ::xowiki {
 
   if {[::xo::dc has_hstore]} {
     #
-    # Create table with hstore column
+    # Create table "xowiki_form_instance_item_index" with hstore column
     #
     # If the table does not exist, we have first to populate it, and
     # at the time, when all libraries are loaded, we have to update
@@ -294,7 +321,7 @@ namespace eval ::xowiki {
     set hkey_in_view "xi.hkey,"
   } else {
     #
-    # Create table without hstore column
+    # Create table "xowiki_form_instance_item_index" without hstore column
     #
     ::xo::db::require table xowiki_form_instance_item_index {
       item_id             {integer references cr_items(item_id) on delete cascade}
