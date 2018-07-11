@@ -16,7 +16,8 @@ namespace eval ::xowiki {
   Class create Tree \
       -superclass ::xo::OrderedComposite \
       -parameter {
-        {name ""} 
+        {name ""}
+        {verbose 0}
         id
       }
 
@@ -95,12 +96,14 @@ namespace eval ::xowiki {
     set tree(-1) [self]
     set :open_node($tree(-1)) 1
     set pos 0
+    if {${:verbose}} {:log "add_pages want to add [llength [$pages children]] pages"}
     foreach o [$pages children] {
       $o instvar page_order title name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
       set page_number [$owner page_number $page_order $remove_levels]
 
       set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+      if {${:verbose}} {:log "... work on [$o set page_order] level $level full $full"}
       if {$full || [info exists :open_node($parent)] || [info exists :open_node($page_order)]} {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
@@ -110,7 +113,8 @@ namespace eval ::xowiki {
                    -label $title -prefix $page_number -href $href \
                    -highlight $is_current \
                    -expanded $is_open \
-                   -open_requests 1]
+                   -open_requests 1 \
+                   -verbose ${:verbose}]
         set tree($level) $c
         for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
@@ -130,9 +134,14 @@ namespace eval ::xowiki {
   # "add_item".
   #
   Class create TreeNode -superclass Tree -parameter {
-    level label pos {open_requests 0} count {href ""} 
+    level label pos
+    {open_requests 0}
+    count
+    {href ""} 
     object owner li_id ul_id ul_class
-    {prefix ""} {expanded false} {highlight false}
+    {prefix ""}
+    {expanded false}
+    {highlight false}
   }
 
   TreeNode instproc open_tree {} {
@@ -163,6 +172,7 @@ namespace eval ::xowiki {
       append content [:render_node -open true $cat_content]
 
     }
+    if {${:verbose}} {:log "TreeNode items [:isobject [self]::items] render open_requests ${:open_requests} -> $content"}
     return $content
   }
 
@@ -306,6 +316,78 @@ namespace eval ::xowiki {
   }
 
   #--------------------------------------------------------------------------------
+  # List-specific renderer based for bootstrap3 horizontal menu
+  #
+  # This tree renderer does not support the fancy options like
+  # counting, or attached items etc, but could be certainly extended
+  # to do so, if there is some application need. Also highlighting
+  # should be possible via the "open" parameter as in "list", but
+  # depends on the generator of the tree.
+  # --------------------------------------------------------------------------------
+  TreeRenderer create TreeRenderer=bootstrap3horizontal \
+      -superclass TreeRenderer=list
+
+  TreeRenderer=bootstrap3horizontal instproc render_node {{-open:boolean false} cat_content} {
+    set label [::xowiki::Includelet html_encode ${:label}]
+
+    if {${:level} == 0} {
+      #
+      # Top level entry: build menu-button and wrapper for dropdown menu
+      #
+      append entry \
+          "<a class='dropdown-toggle' data-toggle='dropdown' href='#'>" \
+          [ns_quotehtml $label] \
+          "<span class='caret'></span></a>"
+      set o_atts "class='dropdown'"
+      set u_atts "class='dropdown-menu'"
+
+    } else {
+      #
+      # Lower level entry: build dropdown menu entries
+      #
+      # Probably, entries on a deeper level than 1 should be ignored
+      # or differently handled.
+      #
+      append entry \
+          "<a href='[ns_quotehtml ${:href}]'>" \
+          [ns_quotehtml $label] \
+          </a>
+      set o_atts ""
+      set u_atts ""
+    }
+    if {$cat_content ne ""} {
+      set content "\n<ul $u_atts>\n$cat_content</ul>"
+    } else {
+      set content ""
+    }
+    return "<li $o_atts>$entry $content"
+  }
+  
+  TreeRenderer=bootstrap3horizontal proc render {tree} {
+    set name [$tree name]
+    if {$name ne ""} {
+      set navbarLabel [subst {
+        <div class="navbar-header">
+        <a class="navbar-brand" href="#">[ns_quotehtml $name]</a>
+        </div>
+      }]
+    } else {
+      set navbarLabel ""
+    }
+        
+    return [subst {
+      <nav class="navbar navbar-inverse">
+      <div class="container-fluid">[ns_quotehtml $navbarLabel]
+      <ul class="nav navbar-nav">
+      [next]
+      </ul>
+      </div>      
+      </nav>
+    }]
+  }
+  
+  
+  #--------------------------------------------------------------------------------
   # List-specific renderer based on yuitree
   #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=yuitree \
@@ -417,6 +499,7 @@ namespace eval ::xowiki {
   }
 
   TreeRenderer=bootstrap3 proc render {tree} {
+    if {${:verbose}} {:log "TreeRenderer=bootstrap3 p=[:info precedence]"}
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
@@ -442,7 +525,8 @@ namespace eval ::xowiki {
     return "\n{text: '$label', $jsHref state: {selected: $selected}},"
   }
   TreeRenderer=bootstrap3 instproc render_node {{-open:boolean false} cat_content} {
-    #:log "open $open cat_content $cat_content"
+    if {${:verbose}} {:log "======bootstrap3==render_node========== ${:label}"}
+    if {${:verbose}} {:log "open $open cat_content $cat_content"}
 
     if {[info exists :count]} {
       set jsTags "tags: \['${:count}'\],"

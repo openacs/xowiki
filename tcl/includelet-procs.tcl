@@ -124,7 +124,7 @@ namespace eval ::xowiki::includelet {
     }
 
     # replace unwanted characters
-    regsub -all {[^A-Za-z0-9_:.-]} $name _ name
+    regsub -all {[^A-Za-z0-9_.-]} $name _ name
     return $name
   }
 
@@ -1861,6 +1861,7 @@ namespace eval ::xowiki::includelet {
         {__decoration plain}
         {parameter_declaration {
           {-style ""}
+          {-renderer ""}
           {-open_page ""}
           {-book_mode false}
           {-folder_mode false}
@@ -1872,6 +1873,7 @@ namespace eval ::xowiki::includelet {
           {-source ""}
           {-range ""}
           {-allow_reorder ""}
+          {-include_in_foldertree "true"}
         }}
         id
       }
@@ -2190,6 +2192,21 @@ namespace eval ::xowiki::includelet {
     return $HTML
   }
 
+  
+  toc instproc render_tree {{-full false} pages} {
+    :get_parameters
+    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id] -verbose 1]
+    $tree array set open_node [array get :open_node]
+    $tree add_pages -full $full -remove_levels $remove_levels \
+        -book_mode $book_mode -open_page $open_page \
+        -owner [self] \
+        $pages
+
+    set HTML [$tree render -style ${:renderer}]
+    #:log "render_tree HTML  => $HTML"
+    return $HTML
+  }  
+
   toc instproc parent_id {} {
     ${:__including_page} parent_id
   }
@@ -2234,7 +2251,9 @@ namespace eval ::xowiki::includelet {
 
   toc instproc include_head_entries {} {
     switch -- ${:renderer} {
-      yuitree {::xowiki::Tree include_head_entries -renderer yuitree -style ${:style}}
+      yuitree {
+        ::xowiki::Tree include_head_entries -renderer yuitree -style ${:style}
+      }
       list    {
         :get_parameters
         set tree_renderer [expr {$allow_reorder eq "" ? "list" : "listdnd"}]
@@ -2247,17 +2266,29 @@ namespace eval ::xowiki::includelet {
   toc instproc initialize {} {
     :get_parameters
     array set :navigation {count 0 position 0 current ""}
-
     set list_mode 0
-    switch -- $style {
-      "menu"    {set s "menu/"; set renderer yuitree}
-      "folders" {set s "folders/"; set renderer yuitree}
-      "list"    {set s ""; set list_mode 1; set renderer list}
-      "none"    {set s ""; set renderer none}
-      "default" {set s ""; set renderer yuitree}
+
+    #
+    # If there is no renderer specified, determine the renderer from
+    # the (provided) style. When the render is explicitly specified,
+    # use it for rendering.
+    #
+    if {$renderer eq ""} {
+      switch -- $style {
+        "menu"    {set s "menu/"; set renderer yuitree}
+        "folders" {set s "folders/"; set renderer yuitree}
+        "list"    {set s ""; set list_mode 1; set renderer list}
+        "none"    {set s ""; set renderer none}
+        "default" {set s ""; set renderer yuitree}
+      }
+      set :use_tree_renderer 0
+    } else {
+      set :use_tree_renderer 1
     }
+
+    set :include_in_foldertree $include_in_foldertree
     set :renderer $renderer
-    set :style $s
+    set :style $style
     set :list_mode $list_mode
     set :book_mode $book_mode
   }
@@ -2265,13 +2296,19 @@ namespace eval ::xowiki::includelet {
   toc instproc render {} {
     :get_parameters
 
-    if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
-    if {[info exists category_id]} {set :category_id $category_id}
+    if {![info exists :id]} {
+      set :id [::xowiki::Includelet html_id [self]]
+    }
+    if {[info exists category_id]} {
+      set :category_id $category_id
+    }
 
     #
-    # Collect the pages
+    # Collect the pages which are either children of the page, or
+    # children of the parent of the page depending on "folder_mode".
     #
     set pages [:build_toc $package_id $locale $source $range]
+
     #
     # Build the general navigation structure using associative arrays
     #
@@ -2279,7 +2316,7 @@ namespace eval ::xowiki::includelet {
     #
     # Call a render on the created structure
     #
-    if {[info commands ::__xowiki__MenuBar] ne ""} {
+    if {[info commands ::__xowiki__MenuBar] ne "" && ${:include_in_foldertree}} {
       ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner [self]
     }
     #
@@ -2287,7 +2324,10 @@ namespace eval ::xowiki::includelet {
     # of the toc-specific renderers, but first we have to check, if
     # these are fully feature-compatible.
     #
+
     if {${:renderer} eq "none"} {
+    } elseif {${:use_tree_renderer}} {
+      return [:render_tree -full 1 $pages]      
     } elseif {${:list_mode}} {
       return [:render_list $pages]
     } else {
@@ -2355,7 +2395,7 @@ namespace eval ::xowiki::includelet {
   selection instproc render_children {pages menu_buttons} {
     set output ""
     foreach o [$pages children] {
-      $o instvar page_order title page_id name title
+      $o instvar page_order title page_id name
       set level [expr {[regsub {[.]} $page_order . page_order] + 1}]
       set edit_markup ""
       set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
