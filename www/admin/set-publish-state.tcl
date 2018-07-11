@@ -18,7 +18,7 @@ $page set_live_revision \
     -revision_id $revision_id \
     -publish_status $state
 
-ns_cache flush xotcl_object_cache ::$revision_id
+::xo::xotcl_object_cache flush $revision_id
 
 if {$state ne "production"} {
   ::xowiki::notification::do_notifications -revision_id $revision_id
