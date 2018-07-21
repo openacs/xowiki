@@ -3195,7 +3195,7 @@ namespace eval ::xowiki::formfield {
     }
     #:msg "guess mime_type of $entry_name = [::xowiki::guesstype $entry_name]"
     set import_file [ad_tmpnam]
-    ::xowiki::write_file $import_file $img
+    ::xo::write_file $import_file $img
     set file_object [::xowiki::File new -destroy_on_cleanup \
                          -title $entry_name \
                          -name $entry_name \

@@ -645,7 +645,7 @@ namespace eval ::xowiki {
   File instproc marshall {{-mode export}} {
     set fn [:full_file_name]
     if {$mode eq "export"} {
-      set :__file_content [::base64::encode [::xowiki::read_file $fn]]
+      set :__file_content [::base64::encode [::xo::read_file $fn]]
     } else {
       set :__file_name $fn
     }
@@ -979,7 +979,7 @@ namespace eval ::xowiki {
 
     if {[info exists :__file_content]} {
       set :import_file [ad_tmpnam]
-      ::xowiki::write_file ${:import_file} [::base64::decode ${:__file_content}]
+      ::xo::write_file ${:import_file} [::base64::decode ${:__file_content}]
       unset :__file_content
     } elseif {[info exists :__file_name]} {
       set :import_file ${:__file_name}
@@ -3327,7 +3327,7 @@ namespace eval ::xowiki {
         $l destroy
       }
       text/plain {
-        set text [::xowiki::read_file [:full_file_name]]
+        set text [::xo::read_file [:full_file_name]]
         set preview "<pre class='code'>[::xowiki::Includelet html_encode $text]</pre>"
       }
       default {set preview ""}

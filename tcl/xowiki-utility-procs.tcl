@@ -42,7 +42,7 @@ namespace eval ::xowiki {
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
         set in_file [ad_tmpnam]
-        ::xowiki::write_file $in_file $text
+        ::xo::write_file $in_file $text
         catch {exec $tidycmd -q -w 0 -ashtml < $in_file 2> /dev/null} output
         file delete -- $in_file
         #:msg o=$output
