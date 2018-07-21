@@ -388,45 +388,18 @@ namespace eval ::xowiki {
   }
 
   proc read_file {fn} {
-    set F [open $fn]
-    fconfigure $F -translation binary
-    set content [read $F]
-    close $F
-    return $content
+    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    return [::xo::read_file $fn]
   }
+  
   proc write_file {fn content} {
-    set F [::open $fn w]
-    ::fconfigure $F -translation binary -encoding binary
-    ::puts -nonewline $F $content
-    ::close $F
+    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    return [::xo::write_file $fn $content]
   }
   
   nsf::proc ::xowiki::get_raw_request_body {-as_string:switch -as_file:switch} {
-    if {$as_string eq $as_file} {
-      error "either -as_string or -as_file must be specified"
-    }
-    set contentfile [ns_conn contentfile]
-    if {$as_file} {
-      #
-      # If the file was not spooled, obtained it via [ns_conn content]
-      # as write it to a file.
-      #
-      if {$contentfile eq ""} {
-        set contentfile [ad_tmpnam]
-        write_file $contentfile [ns_conn content -binary]
-      }
-      set result $contentfile
-    } else {
-      #
-      # Return the result as a string
-      #
-      if {$contentfile eq ""} {
-        set result [ns_conn content -binary]
-      } else {
-        set result [read_file $contentfile]
-      }
-    }
-    return $result
+    ns_log warning "::xowiki::get_raw_request_body deprecated. Use ::xo::get_raw_request_body instead"
+    return [::xo::get_raw_request_body -as_string $as_string_p -as_file $as_file_p]
   }
 
   proc ::xowiki::page_order_uses_ltree {} {
