@@ -1,1 +1,0 @@
-::xowiki::dav register
