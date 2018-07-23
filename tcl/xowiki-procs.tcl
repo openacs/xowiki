@@ -665,25 +665,27 @@ namespace eval ::xowiki {
     # Make sure to have only one tree_id, in case multiple trees are
     # mapped with the same name.
     set tree_id [lindex $tree_ids 0]
-    array set data [category_tree::get_data $tree_id]
+    set tree_description [dict get [category_tree::get_data $tree_id] description]
     set categories [list]
-    if {[info exists :__category_map]} {array set cm ${:__category_map}}
+    if {![info exists :__category_map]} {
+      set :__category_map [dict create]
+    }
     foreach category [::xowiki::Category get_category_infos -tree_id $tree_id] {
       lassign $category category_id category_name deprecated_p level
       lappend categories $level $category_name
       set names($level) $category_name
       set node_name $tree_name
       for {set l 1} {$l <= $level} {incr l} {append node_name /$names($l)}
-      set cm($category_id) $node_name
+      dict set :__category_map $category_id $node_name
     }
     set cmd [list :category_import \
-                 -name $tree_name -description $data(description) \
+                 -name $tree_name -description $tree_description \
                  -locale [lang::system::site_wide_locale] \
                  -categories $categories]
     if {![info exists :__map_command] || [string first $cmd ${:__map_command}] == -1} {
       append :__map_command \n $cmd
     }
-    set :__category_map [array get cm]
+    return ${:__category_map}
     #:log "cmd=$cmd"
   }
 
