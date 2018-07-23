@@ -892,37 +892,42 @@ namespace eval ::xowiki {
     # So far, we just handle users, but we should support parties in
     # the future as well.http://localhost:8003/nimawf/admin/export
 
-    array set "" $entry
-    if {[info exists (email)] && $(email) ne ""} {
-      set id [party::get_by_email -email $(email)]
+    set email [expr {[dict exists $entry email] ? [dict get $entry email] : ""}]
+    if {$email ne ""} {
+      set id [party::get_by_email -email $email]
       if {$id ne ""} { return $id }
     }
-    if {[info exists (username)] && $(username) ne ""} {
-      set id [acs_user::get_by_username -username $(username)]
+    set username [expr {[dict exists $entry username] ? [dict get $entry username] : ""}]
+    if {$username ne ""} {
+      set id [acs_user::get_by_username -username $username]
       if {$id ne ""} { return $id }
     }
-    if {[info exists (group_name)] && $(group_name) ne ""} {
-      set id [group::get_id -group_name $(group_name)]
+    set group_name [expr {[dict exists $entry group_name] ? [dict get $entry group_name] : ""}]
+    if {$group_name ne ""} {
+      set id [group::get_id -group_name $group_name]
       if {$id ne ""} { return $id }
     }
 
     if {$create_user_ids} {
-      if {[info exists (group_name)] && $(group_name) ne ""} {
-        :log "+++ create a new group group_name=$(group_name)"
-        set group_id [group::new -group_name $(group_name)]
-        array set info [list join_policy $(join_policy)]
+      if {$group_name ne ""} {
+        :log "+++ create a new group group_name=${group_name}"
+        set group_id [group::new -group_name $group_name]
+        set info(join_policy) [dict get $entry join_policy]
         group::update -group_id $group_id -array info
-        ns_log notice "+++ reverse_party_map: we could add members $(members) - but we don't"
+        ns_log notice "+++ reverse_party_map: we could add members [dict get $entry members] - but we don't"
         return $group_id
       } else {
-        :log "+++ create a new user username=$(username), email=$(email)"
-        array set status [auth::create_user -username $(username) -email $(email) \
-                              -first_names $(first_names) -last_name $(last_name) \
-                              -screen_name $(screen_name) -url $(url) -nologin]
-        if {$status(creation_status) eq "ok"} {
-          return $status(user_id)
+        :log "+++ create a new user username=${username}, email=${email}"
+        set status [auth::create_user -username $username -email $email \
+                        -first_names [dict get $entry first_names] \
+                        -last_name [dict get $entry last_name] \
+                        -screen_name [dict get $entry screen_name] \
+                        -url [dict get $entry url] -nologin]
+        set creation_status [dict get $status creation_status]
+        if {$creation_status eq "ok"} {
+          return [dict get $status user_id]
         }
-        :log "+++ create user username=${username}, email=$(email) failed, reason=$status(creation_status)"
+        :log "+++ create user username=${username}, email=${email} failed, reason=${creation_status}"
       }
     }
     return $default_party
