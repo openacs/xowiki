@@ -62,62 +62,13 @@ namespace eval ::xowiki::test {
         return $pretty_form_content
     }
 
-
     ad_proc -private ::xowiki::test::get_form_values {node className} {
-        set values {}
-        foreach n [$node selectNodes //form\[contains(@class,'$className')\]//input] {
-            set name  [$n getAttribute name]
-            #ns_log notice "form $className input node $n name $name:"
-            if {[$n hasAttribute value]} {
-                set value [$n getAttribute value]
-            } else {
-                set value ""
-            }
-            lappend values $name $value
-        }
-        foreach n [$node selectNodes //form\[contains(@class,'$className')\]//textarea] {
-            set name  [$n getAttribute name]
-            #ns_log notice "form $className textarea node $n name $name:"
-            set value [$n text]
-            lappend values $name $value
-        }
-        ns_log notice "final values $values"
-        return $values
+        return [::aa_xpath::get_form_values $node \
+                    "//form\[contains(@class,'$className')\]" ]
     }
+    
     ad_proc -private ::xowiki::test::get_form_action {node className} {
         return [$node selectNodes string(//form\[contains(@class,'$className')\]/@action)]
-    }
-
-    ad_proc -private ::xowiki::test::form_reply {
-        -user_id
-        -url
-        {-update {}}
-        form_content
-    } {
-        foreach {att value} $update {
-            dict set form_content $att $value
-        }
-        #ns_log notice "final form_content $form_content"
-        #
-        # Transform the dict into export format. Since export_vars
-        # will skip all names containing a ":", such as
-        # "formbutton:ok", we do this "manually".
-        #
-        set export {}
-        foreach {att value} $form_content {
-            lappend export [ad_urlencode_query $att]=[ad_urlencode_query $value]
-        }
-        set body [join $export &]
-        #ns_log notice "body=$body"
-        #
-        # Send the POST request
-        #
-        return [aa_http \
-                    -user_id $user_id \
-                    -method POST -body $body \
-                    -headers {Content-Type application/x-www-form-urlencoded} \
-                    $url]
-
     }
 
     ad_proc ::xowiki::test::require_test_folder {
@@ -156,19 +107,22 @@ namespace eval ::xowiki::test {
                 # since -fresh was specified, we delete the folder and
                 # create it later again.
                 #
-                aa_log "test folder $folder_name exists already, ... delete it"
+                aa_log "test folder $folder_name exists already, ... delete it (user_id $user_id)"
                 set d [aa_http -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
                 aa_equals "Status code valid" [dict get $d status] 302
-                set location [::xowiki::test::get_url_from_location $d]
-                set d [aa_http -user_id $user_id $location/]
-                aa_equals "Status code valid" [dict get $d status] 200
+                if {[dict get $d status] == 302} {
+                    set location [::xowiki::test::get_url_from_location $d]
+                    set d [aa_http -user_id $user_id $location/]
+                    aa_equals "Status code valid" [dict get $d status] 200
+
+                }
             } else {
                 set must_create 0
             }
         }
 
         if {$must_create} {
-            aa_log "create a frest test folder $folder_name"
+            aa_log "create a fresh test folder $folder_name"
             #
             # When we try folder creation without being logged in, we
             # expect a permission denied error.
@@ -257,7 +211,7 @@ namespace eval ::xowiki::test {
             aa_true "page has at least 9 fields" { [llength $names] >= 9 }
         }
 
-        set d [::xowiki::test::form_reply \
+        set d [::aa_test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
@@ -330,7 +284,7 @@ namespace eval ::xowiki::test {
             aa_true "page has at least 9 fields" { [llength $names] >= 9 }
         }
 
-        set d [::xowiki::test::form_reply \
+        set d [::aa_test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
@@ -407,7 +361,7 @@ namespace eval ::xowiki::test {
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
         dict set form_content name $name
 
-        set d [::xowiki::test::form_reply \
+        set d [::aa_test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
