@@ -824,14 +824,14 @@ namespace eval ::xowiki {
     if {[info exists :__instance_attribute_map]} {
       # :log "+++ we have an instance_attribute_map for [:name]"
       # :log "+++ starting with instance_attributes [:instance_attributes]"
-      array set use ${:__instance_attribute_map}
       array set multiple_index [list category 2 party_id 1 file 1]
       set ia [list]
       foreach {name value} [:instance_attributes] {
         #:log "marshall check $name $value [info exists use($name)]"
-        if {[info exists use($name)]} {
-          set map_type [lindex $use($name) 0]
-          set multiple [lindex $use($name) $multiple_index($map_type)]
+        if {[dict exists ${:__instance_attribute_map} $name]} {
+          set use_name [dict get ${:__instance_attribute_map} $name]
+          set map_type [lindex $use_name 0]
+          set multiple [lindex $use_name $multiple_index($map_type)]
           #:log "+++ marshall check $name $value use <$use($name)> m=?$multiple"
           if {$multiple} {
             lappend ia $name [:map_values $map_type $value]
