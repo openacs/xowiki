@@ -63,7 +63,7 @@ namespace eval ::xowiki::test {
     }
 
     ad_proc -private ::xowiki::test::get_form_values {node className} {
-        return [::aa_xpath::get_form_values $node \
+        return [::acs::test::xpath::get_form_values $node \
                     "//form\[contains(@class,'$className')\]" ]
     }
     
@@ -97,7 +97,7 @@ namespace eval ::xowiki::test {
         #
         # First check, if test folder exists already.
         #
-        set d [aa_http -user_id $user_id $instance/$folder_name]
+        set d [acs::test::http -user_id $user_id $instance/$folder_name]
         if {[dict get $d status] == 200} {
             #
             # yes it exists - so delete it
@@ -108,11 +108,11 @@ namespace eval ::xowiki::test {
                 # create it later again.
                 #
                 aa_log "test folder $folder_name exists already, ... delete it (user_id $user_id)"
-                set d [aa_http -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
+                set d [acs::test::http -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
                 aa_equals "Status code valid" [dict get $d status] 302
                 if {[dict get $d status] == 302} {
                     set location [::xowiki::test::get_url_from_location $d]
-                    set d [aa_http -user_id $user_id $location/]
+                    set d [acs::test::http -user_id $user_id $location/]
                     aa_equals "Status code valid" [dict get $d status] 200
 
                 }
@@ -127,7 +127,7 @@ namespace eval ::xowiki::test {
             # When we try folder creation without being logged in, we
             # expect a permission denied error.
             #
-            set d [aa_http -user_id 0 $instance/$form_name?m=create-new&return_url=$instance/]
+            set d [acs::test::http -user_id 0 $instance/$form_name?m=create-new&return_url=$instance/]
             aa_equals "Status code valid" [dict get $d status] 403
 
             ::xowiki::test::create_form_page \
@@ -171,7 +171,7 @@ namespace eval ::xowiki::test {
         # Create a page under the parent_id
         #
         aa_log "... create a page in test test folder $parent_id"
-        set d [aa_http \
+        set d [acs::test::http \
                    -user_id $user_id \
                    $instance/$path/$form_name?m=create-new&parent_id=$parent_id&[export_vars $extra_url_parameter]]
 
@@ -182,13 +182,13 @@ namespace eval ::xowiki::test {
         #
         # call edit on the new page
         #
-        set d [aa_http -user_id $user_id $location]
+        set d [acs::test::http -user_id $user_id $location]
         aa_equals "Status code valid" [dict get $d status] 200
 
         set formCSSClass [::xowiki::utility formCSSclass $form_name]
         set response [dict get $d body]
 
-        aa_dom_html root $response {
+        acs::test::dom_html root $response {
             aa_xpath::non_empty $root [subst {
                 //form\[contains(@class,'$formCSSClass')\]//button
             }]
@@ -211,7 +211,7 @@ namespace eval ::xowiki::test {
             aa_true "page has at least 9 fields" { [llength $names] >= 9 }
         }
 
-        set d [::aa_test::form_reply \
+        set d [::acs::test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
@@ -228,7 +228,7 @@ namespace eval ::xowiki::test {
         set location [::xowiki::test::get_url_from_location $d]
         aa_true "location '$location' is valid" {$location ne ""}
 
-        set d [aa_http -user_id $user_id $location]
+        set d [acs::test::http -user_id $user_id $location]
         aa_equals "Status code valid" [dict get $d status] 200
 
         ::xo::Package initialize -url $location
@@ -241,7 +241,7 @@ namespace eval ::xowiki::test {
         #aa_log "lookup of $folder_name/page -> $item_id"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
 
-        set d [aa_http -user_id $user_id \
+        set d [acs::test::http -user_id $user_id \
                    $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
         aa_equals "Status code valid" [dict get $d status] 302
     }
@@ -259,14 +259,14 @@ namespace eval ::xowiki::test {
 
     } {
         aa_log "... edit page $path"
-        set d [aa_http -user_id $user_id $instance/$path?[export_vars $extra_url_parameter]]
+        set d [acs::test::http -user_id $user_id $instance/$path?[export_vars $extra_url_parameter]]
 
         aa_equals "Status code valid" [dict get $d status] 200
         #set location [::xowiki::test::get_url_from_location $d]
         #aa_true "location '$location' is valid" {$location ne ""}
         set response [dict get $d body]
 
-        aa_dom_html root $response {
+        acs::test::dom_html root $response {
             set f_id          [::xowiki::test::get_object_name $root]
             set f_page_name   [::xowiki::test::get_form_value $root $f_id _name]
             set f_creator     [::xowiki::test::get_form_value $root $f_id _creator]
@@ -284,7 +284,7 @@ namespace eval ::xowiki::test {
             aa_true "page has at least 9 fields" { [llength $names] >= 9 }
         }
 
-        set d [::aa_test::form_reply \
+        set d [::acs::test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
@@ -296,7 +296,7 @@ namespace eval ::xowiki::test {
         }
         aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
 
-        set d [aa_http -user_id $user_id $instance/$path]
+        set d [acs::test::http -user_id $user_id $instance/$path]
         aa_equals "Status code valid" [dict get $d status] 200
 
         set response [dict get $d body]
@@ -323,7 +323,7 @@ namespace eval ::xowiki::test {
         #
         # New form creation happens over the top-level URL
         #
-        set d [aa_http \
+        set d [acs::test::http \
                    -user_id $user_id \
                    $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
 
@@ -332,7 +332,7 @@ namespace eval ::xowiki::test {
         #ns_log notice response=$response
         set formCSSClass "margin-form"
 
-        aa_dom_html root $response {
+        acs::test::dom_html root $response {
 
             set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
             set f_submit [$root selectNodes $selector]
@@ -361,7 +361,7 @@ namespace eval ::xowiki::test {
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
         dict set form_content name $name
 
-        set d [::aa_test::form_reply \
+        set d [::acs::test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
@@ -391,7 +391,7 @@ namespace eval ::xowiki::test {
         aa_log "lookup of form $name -> $item_id"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
 
-        set d [aa_http -user_id $user_id \
+        set d [acs::test::http -user_id $user_id \
                    $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
         aa_equals "Status code valid" [dict get $d status] 302
     }
