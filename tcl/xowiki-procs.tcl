@@ -775,8 +775,7 @@ namespace eval ::xowiki {
       #
       # map a category item
       #
-      array set cm ${:__category_map}
-      return $cm($value)
+      return [dict get ${:__category_map} $value]
     } elseif {$map_type eq "party_id" && $value ne ""} {
       #
       # map a party_id
