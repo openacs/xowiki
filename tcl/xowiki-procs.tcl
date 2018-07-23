@@ -698,26 +698,24 @@ namespace eval ::xowiki {
     #
     #foreach f $form_fields {lappend fns [list [$f name] [$f info class]]}
     #:msg "page [:name] build_instance_attribute_map $fns"
-    if {[info exists :__instance_attribute_map]} {
-      array set cm ${:__instance_attribute_map}
+    if {![info exists :__instance_attribute_map]} {
+      set :__instance_attribute_map [dict create]
     }
     foreach f $form_fields {
       set multiple [expr {[$f exists multiple] ? [$f set multiple] : 0}]
       #:msg "$f [$f name] cat_tree [$f exists category_tree] is fc: [$f exists is_category_field]"
       if {[$f exists category_tree] && [$f exists is_category_field]} {
         #:msg "page [:name] field [$f name] is a category_id from [$f category_tree]"
-        set cm([$f name]) [list category [$f category_tree] $multiple]
+        dict set :__instance_attribute_map [$f name] [list category [$f category_tree] $multiple]
         :category_export [$f category_tree]
       } elseif {[$f exists is_party_id]} {
         #:msg "page [:name] field [$f name] is a party_id"
-        set cm([$f name]) [list party_id $multiple]
+        dict set :__instance_attribute_map [$f name] [list party_id $multiple]
       } elseif {[$f istype "::xowiki::formfield::file"]} {
-        set cm([$f name]) [list file 0]
+        dict set :__instance_attribute_map [$f name] [list file 0]
       }
     }
-    if {[array exists cm]} {
-      set :__instance_attribute_map [array get cm]
-    }
+    return ${:__instance_attribute_map}
   }
 
   Page instproc category_import {-name -description -locale -categories} {
