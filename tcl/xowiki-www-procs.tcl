@@ -2012,7 +2012,7 @@ namespace eval ::xowiki {
       # between different kinds of inputs.
       #
       set type [expr {[$field hasAttribute type] ? [$field getAttribute type] : "text"}]
-      # the switch should be really different objects ad classes...., but thats HTML, anyhow.
+      # the switch should be really different objects ad classes...., but that's HTML, anyhow.
       switch -- $type {
         checkbox {
           #:msg "$att: CHECKBOX value='$value', [$field hasAttribute checked], [$field hasAttribute value]"
