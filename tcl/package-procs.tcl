@@ -2180,8 +2180,7 @@ namespace eval ::xowiki {
     Report content of xowiki folder in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
 
-    @param maxentries maximum number of entries retrieved
-    @param package_id to determine the xowiki instance
+    @param max_entries maximum number of entries retrieved
     @param changefreq changefreq as defined by google
     @param priority priority as defined by google
 
@@ -2239,7 +2238,6 @@ namespace eval ::xowiki {
     Provide a sitemap index of all xowiki instances in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
 
-    @param maxentries maximum number of entries retrieved
     @param package to determine the delivery instance
     @param changefreq changefreq as defined by google
     @param priority priority as defined by google
