@@ -66,7 +66,7 @@ namespace eval ::xowiki::test {
         return [::acs::test::xpath::get_form_values $node \
                     "//form\[contains(@class,'$className')\]" ]
     }
-    
+
     ad_proc -private ::xowiki::test::get_form_action {node className} {
         return [$node selectNodes string(//form\[contains(@class,'$className')\]/@action)]
     }
@@ -109,12 +109,10 @@ namespace eval ::xowiki::test {
                 #
                 aa_log "test folder $folder_name exists already, ... delete it (user_id $user_id)"
                 set d [acs::test::http -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
-                aa_equals "Status code valid" [dict get $d status] 302
-                if {[dict get $d status] == 302} {
+                if {[acs::test::reply_has_status_code $d 302]} {
                     set location [::xowiki::test::get_url_from_location $d]
                     set d [acs::test::http -user_id $user_id $location/]
-                    aa_equals "Status code valid" [dict get $d status] 200
-
+                    acs::test::reply_has_status_code $d 200
                 }
             } else {
                 set must_create 0
@@ -165,7 +163,7 @@ namespace eval ::xowiki::test {
 
         Create a form page via the web interface.
         In essence this calls $instance/$path/$form_name?m=create-new
-        
+
     } {
         #
         # Create a page under the parent_id
@@ -174,22 +172,22 @@ namespace eval ::xowiki::test {
         set d [acs::test::http \
                    -user_id $user_id \
                    $instance/$path/$form_name?m=create-new&parent_id=$parent_id&[export_vars $extra_url_parameter]]
+        acs::test::reply_has_status_code $d 302
 
-        aa_equals "Status code valid" [dict get $d status] 302
         set location [::xowiki::test::get_url_from_location $d]
         aa_true "location '$location' is valid" {$location ne ""}
 
         #
-        # call edit on the new page
+        # Call "edit" method on the new page
         #
         set d [acs::test::http -user_id $user_id $location]
-        aa_equals "Status code valid" [dict get $d status] 200
+        acs::test::reply_has_status_code $d 200
 
         set formCSSClass [::xowiki::utility formCSSclass $form_name]
         set response [dict get $d body]
 
         acs::test::dom_html root $response {
-            aa_xpath::non_empty $root [subst {
+            ::acs::test::xpath::non_empty $root [subst {
                 //form\[contains(@class,'$formCSSClass')\]//button
             }]
             set f_id          [::xowiki::test::get_object_name $root]
@@ -216,7 +214,8 @@ namespace eval ::xowiki::test {
                    -url $f_form_action \
                    -update $update \
                    $form_content]
-        aa_equals "Status code valid" [dict get $d status] 302
+        acs::test::reply_has_status_code $d 302
+
         #set response [dict get $d body]
         #ns_log notice "FORM POST\n$response"
 
@@ -229,7 +228,7 @@ namespace eval ::xowiki::test {
         aa_true "location '$location' is valid" {$location ne ""}
 
         set d [acs::test::http -user_id $user_id $location]
-        aa_equals "Status code valid" [dict get $d status] 200
+        acs::test::reply_has_status_code $d 200
 
         ::xo::Package initialize -url $location
         set page_info [::$package_id item_ref \
@@ -243,7 +242,7 @@ namespace eval ::xowiki::test {
 
         set d [acs::test::http -user_id $user_id \
                    $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
-        aa_equals "Status code valid" [dict get $d status] 302
+        acs::test::reply_has_status_code $d 302
     }
 
     ad_proc ::xowiki::test::edit_form_page {
@@ -260,36 +259,41 @@ namespace eval ::xowiki::test {
     } {
         aa_log "... edit page $path"
         set d [acs::test::http -user_id $user_id $instance/$path?[export_vars $extra_url_parameter]]
+        acs::test::reply_has_status_code $d 200
 
-        aa_equals "Status code valid" [dict get $d status] 200
         #set location [::xowiki::test::get_url_from_location $d]
         #aa_true "location '$location' is valid" {$location ne ""}
         set response [dict get $d body]
 
         acs::test::dom_html root $response {
-            set f_id          [::xowiki::test::get_object_name $root]
-            set f_page_name   [::xowiki::test::get_form_value $root $f_id _name]
-            set f_creator     [::xowiki::test::get_form_value $root $f_id _creator]
-            aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
-            aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
-            set CSSclass      [::xowiki::test::get_form_CSSclass $root]
-            aa_log "CSSclass: $CSSclass"
-
-            set f_form_action  [::xowiki::test::get_form_action $root $CSSclass]
-            aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
-
-            set form_content [::xowiki::test::get_form_values $root $CSSclass]
-            set names [dict keys $form_content]
-            aa_log "form names: [lsort $names]"
-            aa_true "page has at least 9 fields" { [llength $names] >= 9 }
+            set f_id     [::xowiki::test::get_object_name $root]
+            set CSSclass [::xowiki::test::get_form_CSSclass $root]
+            aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+            aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
         }
+
+        set form [acs::test::get_form $response "//form\[contains(@class,'$CSSclass')\]"]
+
+        set f_page_name [dict get $form fields _name]
+        set f_creator   [dict get $form fields _creator]
+
+        aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
+        aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
+
+        set f_form_action  [dict get $form @action]
+        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+
+        set form_content [dict get $form fields]
+        set names [dict keys $form_content]
+        aa_log "form names: [lsort $names]"
+        aa_true "page has at least 9 fields" { [llength $names] >= 9 }
 
         set d [::acs::test::form_reply \
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
                    $form_content]
-        aa_equals "Status code valid" [dict get $d status] 302
+        acs::test::reply_has_status_code $d 302
 
         foreach {key value} $update {
             dict set form_content $key $value
@@ -297,10 +301,8 @@ namespace eval ::xowiki::test {
         aa_log "form_content:\n[::xowiki::test::pretty_form_content $form_content]"
 
         set d [acs::test::http -user_id $user_id $instance/$path]
-        aa_equals "Status code valid" [dict get $d status] 200
-
-        set response [dict get $d body]
-        aa_true "page contains title" {[string match "*[dict get $form_content _title]*" $response]}
+        acs::test::reply_has_status_code $d 200
+        acs::test::reply_contains $d [dict get $form_content _title]
     }
 
     ad_proc ::xowiki::test::create_form {
@@ -326,8 +328,8 @@ namespace eval ::xowiki::test {
         set d [acs::test::http \
                    -user_id $user_id \
                    $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
+        acs::test::reply_has_status_code $d 200
 
-        aa_equals "Status code valid" [dict get $d status] 200
         set response [dict get $d body]
         #ns_log notice response=$response
         set formCSSClass "margin-form"
@@ -340,24 +342,23 @@ namespace eval ::xowiki::test {
 
             set f_id     [::xowiki::test::get_object_name $root]
             aa_true "page_id '$f_id' is empty" {$f_id eq ""}
-
-            set f_name   [xowiki::test::get_named_form_value $root $formCSSClass "name"]
-
-            set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@name='creator'\]/@value)}]
-            ns_log notice "$selector --> [$root selectNodes $selector]"
-
-            set f_creator [xowiki::test::get_named_form_value $root $formCSSClass "creator"]
-            aa_true "name '$f_name' is empty"           {$f_name eq ""}
-            aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
-
-            set f_form_action  [::xowiki::test::get_form_action $root $formCSSClass]
-            aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
-
-            set form_content [::xowiki::test::get_form_values $root $formCSSClass]
-            set names [dict keys $form_content]
-            aa_log "form names: [lsort $names]"
-            aa_true "page has at least 9 fields" { [llength $names] >= 9 }
         }
+
+        set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
+
+        set f_page_name   [dict get $form fields name]
+        set f_creator     [dict get $form fields creator]
+        set f_form_action [dict get $form @action]
+
+        aa_true "name '$f_page_name' is empty"              {$f_page_name eq ""}
+        aa_true "creator '$f_creator' is non-empty"         {$f_creator ne ""}
+        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+
+        set form_content [dict get $form fields]
+        set names [dict keys $form_content]
+        aa_log "form names: [lsort $names]"
+        aa_true "page has at least 9 fields" { [llength $names] >= 9 }
+
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
         dict set form_content name $name
 
@@ -366,7 +367,7 @@ namespace eval ::xowiki::test {
                    -url $f_form_action \
                    -update $update \
                    $form_content]
-        aa_equals "Status code valid" [dict get $d status] 302
+        acs::test::reply_has_status_code $d 302
 
         foreach {key value} $update {
             dict set form_content $key $value
@@ -393,7 +394,7 @@ namespace eval ::xowiki::test {
 
         set d [acs::test::http -user_id $user_id \
                    $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
-        aa_equals "Status code valid" [dict get $d status] 302
+        acs::test::reply_has_status_code $d 302
     }
 
 }
