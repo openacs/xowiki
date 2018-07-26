@@ -766,7 +766,7 @@ namespace eval ::xowiki {
     make_link checks in advance, whether the actual user has enough
     rights to invoke the method. If not, this method returns empty.
 
-    @param Object The object to which the link refers to. If it is a package_id it will base \
+    @param object The object to which the link refers to. If it is a package_id it will base \
         to the root_url of the package_id. If it is a page, it will base to the page_url
     @param method Which method to use. This will be appended as "m=method" to the url.
 
