@@ -272,7 +272,7 @@ namespace eval ::xowiki::test {
             aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
         }
 
-        set form [acs::test::get_form $response "//form\[contains(@class,'$CSSclass')\]"]
+        set form [acs::test::get_form $response "//form\[contains(@class,'$CSSclass') and contains(@method,'POST')\]"]
 
         set f_page_name [dict get $form fields _name]
         set f_creator   [dict get $form fields _creator]
