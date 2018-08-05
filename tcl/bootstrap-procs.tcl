@@ -34,7 +34,7 @@ namespace eval ::xowiki {
     ::xo::Page requireJS urn:ad:js:jquery
     #
     # TODO: We should dynamically be able to determine (some of) the
-    # CSP directives. However, for the time being, the urls below are
+    # CSP directives. However, for the time being, the URLs below are
     # trusted.
     #
     security::csp::require script-src maxcdn.bootstrapcdn.com

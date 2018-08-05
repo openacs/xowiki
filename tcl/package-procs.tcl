@@ -1651,7 +1651,7 @@ namespace eval ::xowiki {
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
       set (method) ""
-      # The lang value "tag" is used for allowing tag-urls without
+      # The lang value "tag" is used for allowing tag-URLs without
       # parameters, since several tag harvester assume such a syntax
       # and don't process arguments. We rewrite in such cases simply
       # the url and query parameters and update the connection

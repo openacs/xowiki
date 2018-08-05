@@ -688,7 +688,7 @@ test section "Item refs"
 # Testing item refs and wiki links (between [[ .... ]])
 #
 # Still missing:
-#    - test reverse mappings from urls generated from item-refs back to item_ids
+#    - test reverse mappings from URLs generated from item-refs back to item_ids
 #    - syntax Person:de:p1 (if de:p1 does not exist, create an instance of Person name de:p1)
 #    - typed links (glossary app)... important?
 #    - interaction between PackagePath and folders (would be nice to inherit from folders, not packages)
