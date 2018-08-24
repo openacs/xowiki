@@ -2275,11 +2275,11 @@ namespace eval ::xowiki::includelet {
     #
     if {$renderer eq ""} {
       switch -- $style {
-        "menu"    {set s "menu/"; set renderer yuitree}
-        "folders" {set s "folders/"; set renderer yuitree}
-        "list"    {set s ""; set list_mode 1; set renderer list}
-        "none"    {set s ""; set renderer none}
-        "default" {set s ""; set renderer yuitree}
+        "menu"    {set style "menu"; set renderer yuitree}
+        "folders" {set style "folders"; set renderer yuitree}
+        "list"    {set style ""; set list_mode 1; set renderer list}
+        "none"    {set style ""; set renderer none}
+        "default" {set style "yuitree"; set renderer yuitree}
       }
       set :use_tree_renderer 0
     } else {
