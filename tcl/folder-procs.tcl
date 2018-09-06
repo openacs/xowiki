@@ -550,8 +550,7 @@ namespace eval ::xowiki::includelet {
     }
 
     $package_id instvar package_key
-
-    set return_url [::xo::cc url] ;#"[$package_id package_url]edit-done"
+    set return_url [export_vars -base [::xo::cc url] {orderby}]
     set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
     set columns {objects edit object_type name last_modified mod_user delete}
