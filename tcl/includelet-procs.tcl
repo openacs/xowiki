@@ -2192,7 +2192,7 @@ namespace eval ::xowiki::includelet {
     return $HTML
   }
 
-  
+
   toc instproc render_tree {{-full false} pages} {
     :get_parameters
     set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id] -verbose 1]
@@ -2205,7 +2205,7 @@ namespace eval ::xowiki::includelet {
     set HTML [$tree render -style ${:renderer}]
     #:log "render_tree HTML  => $HTML"
     return $HTML
-  }  
+  }
 
   toc instproc parent_id {} {
     ${:__including_page} parent_id
@@ -2327,7 +2327,7 @@ namespace eval ::xowiki::includelet {
 
     if {${:renderer} eq "none"} {
     } elseif {${:use_tree_renderer}} {
-      return [:render_tree -full 1 $pages]      
+      return [:render_tree -full 1 $pages]
     } elseif {${:list_mode}} {
       return [:render_list $pages]
     } else {
