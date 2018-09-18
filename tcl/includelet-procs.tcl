@@ -893,7 +893,7 @@ namespace eval ::xowiki::includelet {
     set :style sections
     # When pretty age is activated, this includedlet is not suited for
     # caching (it could make sense e.g. when the age granularity is 1
-    # minute or more). This measure here (turing off caching
+    # minute or more). This measure here (turning off caching
     # completely) is a little bit too much, but it is safe.
     :get_parameters
     if {[[:info class] cacheable] && $pretty_age ne "off"} {
