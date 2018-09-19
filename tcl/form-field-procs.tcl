@@ -2103,8 +2103,8 @@ namespace eval ::xowiki::formfield {
         # Try to use the ckeditor from the richtext-ckeditor4
         # installation.
         #
-        # There seems to be something broken on 4.9.2 version on
-        # cdn. if we do not use standard-all, then we see an error
+        # There seems to be something broken on 4.9.2 version on the
+        # CDN. If we do not use standard-all, then we see an error
         # about a missing
         # ".../4.9.2/full/plugins/iframedialog/plugin.js". There
         # exists a "iframe" and a "iframedialog" plugin for ckeditor4,
