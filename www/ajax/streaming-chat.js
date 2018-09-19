@@ -14,7 +14,8 @@ function getData() {
     var messages = document.getElementById('messages');
     //console.log('streaming chat has response');
     //console.log(response);
-    var data = eval('(' + response + ')');
+    alert(response);
+    var data = JSON.parse(response);
     for (var i=0;i<data.messages.length;i++) {
       p = document.createElement('p');
       p.className = 'line';
