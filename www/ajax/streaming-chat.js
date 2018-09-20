@@ -25,7 +25,7 @@ function getData() {
       
       span = document.createElement('span');
       var user = data.messages[i].user.replace("\\'", "'");
-      span.innerHTML = '&nbsp;' + user + '&nbsp;';
+      span.innerHTML = '&nbsp;' + user + ':&nbsp;';
       span.className = 'user';
       p.appendChild(span);
       
