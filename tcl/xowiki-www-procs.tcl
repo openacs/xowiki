@@ -1268,7 +1268,7 @@ namespace eval ::xowiki {
       }
     }
     #:show_fields $form_fields
-    lassign [:get_form_data -field_names $query_field_names $form_fields] validation_erors category_ids
+    lassign [:get_form_data -field_names $query_field_names $form_fields] validation_errors category_ids
 
     if {$validation_errors == 0} {
       #
