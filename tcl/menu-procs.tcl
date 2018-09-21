@@ -1,6 +1,6 @@
 ::xo::library doc {
 
-  Basic classes for Menues (context menu, menu bar, menu item).  The
+  Basic classes for Menus (context menu, menu bar, menu item).  The
   design is influenced by the YUI2 classes, but we tried to keep the
   implementation generic. The original version was developed by Michael
   Aram in his Master Thesis. Over the time it was simplified,
