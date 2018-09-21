@@ -18,7 +18,7 @@ namespace eval ::xowiki {
   #
   ::xo::tdom::Class create MenuComponent \
       -superclass ::xo::tdom::Object
-  
+
   MenuComponent instproc js_name {} {
     return [::xowiki::Includelet js_name [self]]
   }
@@ -275,7 +275,7 @@ namespace eval ::xowiki {
     # {dropzone -name DropZone -label DropZone -uploader File}
     # {modebutton -name Admin -label admin -button admin}
 
-   
+
     set :parent_id $parent_id
 
     foreach me $items {
@@ -285,11 +285,11 @@ namespace eval ::xowiki {
       set properties [lrange $me 1 end]
 
       switch -- $kind {
-        
+
         clear_menu {
           :clear_menu -menu [dict get $properties -menu]
         }
-        
+
         form_link -
         entry {
           # sample entry: entry -name New.YouTubeLink -label YouTube -form en:YouTube.form
@@ -316,7 +316,7 @@ namespace eval ::xowiki {
           }
           :add_menu_item -name [dict get $properties -name] -item $item
         }
-        
+
         "dropzone" {
           foreach {var default} {
             name dropzone
@@ -364,7 +364,7 @@ namespace eval ::xowiki {
     foreach e ${:Menues} {
       lappend result $e [list kind MenuButton {*}[set :Menu($e)]]
     }
-    
+
     foreach e [:array name ModeButton] {
       lappend result $e [list kind ModeButton {*}[set :ModeButton($e)]]
     }
@@ -385,7 +385,7 @@ namespace eval ::xowiki {
   }
 
 
-  
+
   # ::xo::tdom::Class create MenuDropZone \
   #     -superclass MenuComponent \
   #     -parameter {
