@@ -29,6 +29,9 @@ function renderMessage(msg) {
 
     messages.appendChild(p);
     messages.scrollTop = messages.scrollHeight;
+
+    // IE will lose focus on message send
+    document.getElementById('xowiki-chat-send').focus();
 }
 
 function renderUsers(msg) {
