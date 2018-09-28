@@ -17,38 +17,23 @@ ad_page_contract {
 switch -- $m {
   add_msg {
     #ns_log notice "--c call c1 $m '$msg'"
-    set _ [c1 $m $msg]
+    ns_return 200 application/json [c1 $m $msg]
+    ad_script_abort
     #ns_log notice "--c add_msg returns '$_'"
+  }
+  get_new {
+    ns_return 200 application/json [c1 $m]
+    ad_script_abort
   }
   login -
   subscribe -
-  get_new -
   get_all {set _ [c1 $m]}
-  default {ns_log error "--c unknown method $m called."} 
+  default {ns_log error "--c unknown method $m called."}
 }
 
 #ns_log notice "--chat.tcl $m: returns '$_'"
 
-set style {
-  padding:1em 0 1em 1em;
-  background-color: #f9f9f9;
-  font-size:.95em;
-  color:#333;
-  overflow:auto;
-}
-
-ns_return 200 text/html "
-<HTML>
-<style type='text/css'>
-#messages .timestamp {vertical-align: top; font-size: 80%; color: #717171;}
-#messages .user {text-align: right; vertical-align: top; font-size: 80%; font-weight: bold; color: #717171;}
-#messages .message {vertical-align: top;}
-body {$style}
-</style>
-<body>
-$_
-</body>
-</HTML>"
+ns_return 200 text/html [subst {<HTML><body>$_</body></HTML>}]
 
 # Local variables:
 #    mode: tcl

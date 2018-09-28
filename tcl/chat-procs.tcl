@@ -5,26 +5,45 @@
   @author Gustaf Neumann
   @cvs-id $Id$
 }
+
 namespace eval ::xowiki {
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
-  Chat proc login {-chat_id -package_id {-mode ""} {-path ""}} {
+  ::xo::ChatClass instproc login {-chat_id -package_id {-mode ""} {-path ""}} {
     #:log "--chat"
     if {![ns_conn isconnected]} return
     auth::require_login
-    if {![info exists package_id]} {set package_id [ad_conn package_id] }
-    if {![info exists chat_id]}    {set chat_id $package_id }
+
+    if {[ad_conn package_key] eq "xowiki"} {
+      set xowiki_package_id [ad_conn package_id]
+    } else {
+      set main_node_id [site_node::get_node_id -url "/"]
+      set xowiki_package_id [lindex [site_node::get_children -all \
+                                         -package_key xowiki \
+                                         -element object_id \
+                                         -node_id $main_node_id] 0]
+    }
+
+    if {![info exists package_id]} {
+      set package_id $xowiki_package_id
+    }
+
+    #:log "chat_id=$chat_id, path=$path"
+    if {$path eq ""} {
+      set path [lindex [site_node::get_url_from_object_id \
+                            -object_id $package_id] 0]
+    } elseif {[string index $path end] ne "/"} {
+      append path /
+    }
+
+    set xowiki_path [lindex [site_node::get_url_from_object_id \
+                                 -object_id $xowiki_package_id] 0]
+
+    if {![info exists chat_id]} {set chat_id $package_id}
 
     set session_id [ad_conn session_id].[clock seconds]
     set context id=$chat_id&s=$session_id
     set base_url ${path}ajax/chat?${context}
-
-    #:log "chat_id=$chat_id, path=$path"
-    if {$path eq ""} {
-      set path [lindex [site_node::get_url_from_object_id -object_id $package_id] 0]
-    } elseif {[string index $path end] ne "/"} {
-      append path /
-    }
 
     if {$mode eq ""} {
       #
@@ -74,22 +93,17 @@ namespace eval ::xowiki {
       :log "--chat mode $mode"
     }
 
-    # small JavaScript library to obtain a portable ajax request object
-    ::xo::Page requireJS urn:ad:js:get-http-object
-
     switch -- $mode {
       polling {
-        set jspath ${path}ajax/chat.js
-        set login_url  ${base_url}&m=login
-        set get_update "chatSendCmd(\"${base_url}&m=get_new\",chatReceiver)"
-        set get_all    "chatSendCmd(\"${base_url}&m=get_all\",chatReceiver)"
+        set jspath ${xowiki_path}ajax/chat.js
+        set subscribe_url ${base_url}&m=get_new
       }
       streaming {
-        set jspath ${path}ajax/streaming-chat.js
+        set jspath ${xowiki_path}ajax/streaming-chat.js
         set subscribe_url ${base_url}&m=subscribe
       }
       scripted-streaming {
-        set jspath ${path}ajax/scripted-streaming-chat.js
+        set jspath ${xowiki_path}ajax/scripted-streaming-chat.js
         set subscribe_url ${base_url}&m=subscribe&mode=scripted
       }
       default {
@@ -97,95 +111,92 @@ namespace eval ::xowiki {
       }
     }
 
-    ::xo::Page requireJS $jspath
-    set users_url [ns_quotehtml ${base_url}&m=get_users]
+    # small JavaScript library to obtain a portable ajax request object
+    template::head::add_javascript -src urn:ad:js:get-http-object -order 10
+    template::head::add_javascript -src ${xowiki_path}ajax/chat-common.js -order 20
+    template::head::add_javascript -src $jspath -order 30
+
     set send_url ${base_url}&m=add_msg&msg=
 
     :log "--CHAT mode=$mode"
 
-    # TODO: styling should happen in some template
-    # set style {
-    #   margin:1.5em 0 1.5em 0;
-    #   padding:1em 0 1em 1em;
-    #   background-color: #f9f9f9;
-    #   border:1px solid #dedede;
-    #   height:150px;
-    #   font-size:.95em;
-    #   line-height:.7em;
-    #   color:#333;
-    #   overflow:auto;
-    # }
-
     template::add_body_script -script {
-      document.getElementById('chatMsg').focus();
+      document.getElementById('xowiki-chat-send').focus();
     }
 
-    if {$mode ne "polling"} {
-      ::xowiki::Chat create c1 \
+    set html ""
+
+    if {[apm_package_installed_p chat]} {
+      set message_label [_ chat.message]
+      set send_label [_ chat.Send_Refresh]
+    } else {
+      set message_label "Message"
+      set send_label "Send"
+    }
+
+    # TODO: it is currently not possible to embed multiple chats in
+    # the same page.
+    append html [subst {
+      <div id='xowiki-chat'>
+         <div id='xowiki-chat-messages'></div>
+         <div id='xowiki-chat-users'></div>
+      </div>
+      <form id='xowiki-chat-messages-form' action='#'>
+         $message_label <input type='text' size='40' name='msg' id='xowiki-chat-send'>
+         <input type="submit" value="$send_label">
+      </form>
+    }]
+
+    [self] create c1 \
           -destroy_on_cleanup \
           -chat_id    $chat_id \
           -session_id $session_id \
           -mode       $mode
+
+    set data [c1 login]
+    if {$data ne ""} {
+      append html [subst {
+      <script nonce='$::__csp_nonce'>
+         var data = $data;
+         for(var i = 0; i < data.length; i++) {
+            renderData(data\[i\]);
+         }
+        </script>
+      }]
     }
 
-    set html ""
     switch -- $mode {
       "polling" {
-        set r [subst {
-          <iframe name='ichat' id='ichat'
-             scrolling='no'
-             style='border: 0px; width: 100%; height:100%;'
-             src='[ns_quotehtml $login_url]'>
-          </iframe>
-        }]
-        template::add_event_listener \
-            -id "messages-form" \
-            -event "submit" \
-            -script [subst {
-              chatSendMsg('$send_url',chatReceiver);
-            }]
         append html [subst -nocommands {
           <script nonce='$::__csp_nonce'>
-             setInterval(function() {$get_update},5000);
-          </script>
-        }]
-      }
-
-      "streaming" {
-        set r [ns_urldecode [c1 get_all]]
-        template::add_event_listener \
-            -id "messages-form" -event "submit" \
-            -script {chatSendMsg();}
-        append html [subst {
-          <script nonce='$::__csp_nonce'>
-             var send_url = '$send_url';
              chatSubscribe('$subscribe_url');
           </script>
         }]
+        set send_msg_handler pollingSendMsgHandler
+      }
+
+      "streaming" {
+        append html [subst {
+          <script nonce='$::__csp_nonce'>
+             chatSubscribe('$subscribe_url');
+          </script>
+        }]
+        set send_msg_handler streamingSendMsgHandler
       }
 
       "scripted-streaming" {
-        set r [ns_urldecode [c1 get_all]]
-        template::add_event_listener \
-            -id "messages-form" -event "submit" \
-            -script {chatSendMsg();}
         append html [subst {
-          <script nonce='$::__csp_nonce'>
-             var send_url = '$send_url';
-          </script>
           <iframe name='ichat' id='ichat' src='[ns_quotehtml $subscribe_url]'
              style='width:0px; height:0px; border: 0px'>
           </iframe>
         }]
+        set send_msg_handler scriptedStreamingSendMsgHandler
       }
     }
 
-    append html [subst {
-      <div id='messages'>$r</div>
-      <form id='messages-form' action='#'>
-         <input type='text' size='40' name='msg' id='chatMsg'>
-      </form>
-    }]
+    template::add_event_listener \
+        -id "xowiki-chat-messages-form" -event "submit" \
+        -script [subst {chatSendMsg('${send_url}', ${send_msg_handler});}]
 
     return $html
   }

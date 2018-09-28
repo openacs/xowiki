@@ -3,50 +3,38 @@
 // -gustaf neumann   April 2006
 
 var http = getHttpObject();
+var http_send = getHttpObject();
 
-function chatReceiver() {
-  if (http.readyState == 4) {
-    // alert('status code =' + http.status);
-    if (http.status == 200) {
-      appendToMessages(http.responseText);
-    } else {
-      clearInterval();
-      alert('Something wrong in HTTP request, status code = ' + http.status);
+function chatSubscribe(subscribe_url) {
+    setInterval(function () {
+        http.open('GET', subscribe_url);
+        http.onreadystatechange = function () {
+            if (http.readyState == 4) {
+                // alert('status code =' + http.status);
+                if (http.status == 200) {
+                    var json = JSON.parse(http.responseText);
+                    for (var i = 0; i < json.length; i++) {
+                        renderData(json[i]);
+                    }
+                } else {
+                    clearInterval();
+                    alert('Something wrong in HTTP request, status code = ' + http.status);
+                }
+            }
+        };
+        http.send(null);
+    }, 5000);
+}
+
+function pollingSendMsgHandler() {
+    if (http_send.readyState == 4) {
+        if (http_send.status != 200) {
+	    alert('Something wrong in HTTP request, status code = ' + http_send.status);
+        } else {
+            var json = JSON.parse(http_send.responseText);
+            for (var i = 0; i < json.length; i++) {
+                renderData(json[i]);
+            }
+        }
     }
-  }
-}
-
-function appendToMessages(content) {
-    var xmlobject = (new DOMParser()).parseFromString(content, 'application/xhtml+xml');
-    var items = xmlobject.getElementsByTagName('div')[0].children;
-
-    //console.debug("items: " + items.length);
-    //if (items.length > 0) {console.log(content);}
-    //if (items.length > 0) {console.log(items[0].innerHTML);}
-
-    var doc = frames['ichat'].document;
-    var messages = frames['ichat'].document.getElementsByTagName('div')[0];
-    for (var i = 0 ; i < items.length ; i++) {
-	var p   = doc.createElement('p'); // add class 'line'
-	var att = doc.createAttribute("class");
-	att.value = 'line';
-	p.setAttributeNode(att);
-	p.innerHTML = decodeURIComponent(items[i].innerHTML).replace(/\+/g,' ');
-	messages.appendChild(p);
-    }
-    frames['ichat'].window.scrollTo(0,messages.offsetHeight);
-}
-
-
-function chatSendMsg(send_url,handler) {
-  var msgField = document.getElementById('chatMsg');
-  chatSendCmd(send_url + encodeURIComponent(msgField.value),handler);
-  msgField.value = '';
-}
-
-var msgcount = 0; // hack to overcome IE
-function chatSendCmd(url,handler) {
-  http.open('GET', url  + '&mc=' + msgcount++, true);
-  http.onreadystatechange = handler;
-  http.send(null);
-}
+};
