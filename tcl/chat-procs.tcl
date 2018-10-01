@@ -17,9 +17,8 @@ namespace eval ::xowiki {
     if {[ad_conn package_key] eq "xowiki"} {
       set xowiki_package_id [ad_conn package_id]
     } else {
-      set main_node_id [site_node::get_node_id -url "/"]
-      set xowiki_package_id [lindex [apm_package_ids_from_key \
-                                         -package_key xowiki -mounted] 0]
+      set xowiki_package_id [::xowiki::Package first_instance -privilege read \
+                                 -party_id [ad_conn user_id]]
     }
 
     if {![info exists package_id]} {
