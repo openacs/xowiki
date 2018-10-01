@@ -18,10 +18,8 @@ namespace eval ::xowiki {
       set xowiki_package_id [ad_conn package_id]
     } else {
       set main_node_id [site_node::get_node_id -url "/"]
-      set xowiki_package_id [lindex [site_node::get_children -all \
-                                         -package_key xowiki \
-                                         -element object_id \
-                                         -node_id $main_node_id] 0]
+      set xowiki_package_id [lindex [apm_package_ids_from_key \
+                                         -package_key xowiki -mounted] 0]
     }
 
     if {![info exists package_id]} {
