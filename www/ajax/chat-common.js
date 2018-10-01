@@ -17,7 +17,7 @@ function renderMessage(msg) {
     p.appendChild(span);
 
     span = document.createElement('span');
-    var user = msg.user.replace("\\'", "'");
+    var user = msg.user.replace(/\\'/g, "\"");
     span.innerHTML = '&nbsp;' + user + ':&nbsp;';
     span.className = 'xowiki-chat-user';
     p.appendChild(span);
@@ -47,7 +47,7 @@ function renderUsers(msg) {
         p.appendChild(span);
 
         span = document.createElement('span');
-        var user = msg.message[i].user.replace("\\'", "'");
+        var user = msg.message[i].user.replace(/\\'/g, "\"");
         span.innerHTML = '&nbsp;' + user + '&nbsp;';
         span.className = 'xowiki-chat-user';
         p.appendChild(span);
