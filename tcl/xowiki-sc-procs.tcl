@@ -44,19 +44,22 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       try {
         dom parse -simple -html <html>$content doc
         $doc documentElement root
-        foreach n [$root selectNodes {//script|//noscript||//style//nav|//button}] {$n delete}
+        foreach n [$root selectNodes {//script|//noscript||//style//nav|//button}] {
+          $n delete
+        }
         set content [$root asHTML]
       } on error {errorMsg} {
         ns_log notice "xowiki::datasource: could not parse result of search_render for page $page: $errorMsg"
       }
       #
       # The function ad_html_text_convert can take forever on largish
-      # files, when e.g. someone loads a huge plain/text file into an
-      # xowiki file. So, when available, use "ns_striphtml", which
-      # might produce a less beautiful rendering, but this is
-      # irrelevant for search.
+      # files, when e.g. someone loads a huge content into xowiki.
+      # So, when available, and performance is an issue, one could
+      # consider to use "ns_striphtml", but this produces no nice
+      # rendering, so text base syndication will suffer. For now,
+      # "ns_striphtml" is deactivated.
       #
-      if {[info commands ns_striphtml] ne ""} {
+      if {0 && [info commands ns_striphtml] ne ""} {
         set text [ns_striphtml [dict get $d html]]
       } else {
         set text [ad_html_text_convert -from text/html -to text/plain -- [dict get $d html]]
