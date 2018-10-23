@@ -44,7 +44,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
       try {
         dom parse -simple -html <html>$content doc
         $doc documentElement root
-        foreach n [$root selectNodes {//script|//noscript|//nav|//button}] {$n delete}
+        foreach n [$root selectNodes {//script|//noscript||//style//nav|//button}] {$n delete}
         set content [$root asHTML]
       } on error {errorMsg} {
         ns_log notice "xowiki::datasource: could not parse result of search_render for page $page: $errorMsg"
