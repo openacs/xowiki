@@ -191,6 +191,8 @@ namespace eval ::xowiki {
       }
     }
 
+    template::add_refresh_on_history_handler
+
     template::add_event_listener \
         -id "xowiki-chat-messages-form" -event "submit" \
         -script [subst {chatSendMsg('${send_url}', ${send_msg_handler});}]
