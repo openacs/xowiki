@@ -9,7 +9,7 @@
 namespace eval ::xowiki {
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
-  ::xo::ChatClass instproc login {-chat_id -package_id {-mode ""} {-path ""}} {
+  ::xo::ChatClass instproc login {-chat_id {-package_id ""} {-mode ""} {-path ""}} {
     #:log "--chat"
     if {![ns_conn isconnected]} return
     auth::require_login
@@ -21,7 +21,7 @@ namespace eval ::xowiki {
                                  -party_id [ad_conn user_id]]
     }
 
-    if {![info exists package_id]} {
+    if {$package_id eq ""} {
       set package_id $xowiki_package_id
     }
 
