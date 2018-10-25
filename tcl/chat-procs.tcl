@@ -139,8 +139,8 @@ namespace eval ::xowiki {
          <div id='xowiki-chat-users'></div>
       </div>
       <form id='xowiki-chat-messages-form' action='#'>
-         $message_label <input type='text' size='40' name='msg' id='xowiki-chat-send'>
-         <input type="submit" value="$send_label">
+        <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send'>
+        <input type="hidden" value="$send_label">
       </form>
     }]
 
