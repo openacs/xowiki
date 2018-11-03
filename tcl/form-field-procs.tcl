@@ -305,7 +305,7 @@ namespace eval ::xowiki::formfield {
           #
           # Note: do not allow users to use [] via forms, since they might
           # execute arbitrary commands. The validator for the form fields
-          # makes sure, that the input specs are free from square brackets.
+          # makes sure that the input specs are free from square brackets.
           #
           if {[string match {\[*\]} $value]} {
             set value [subst $value]

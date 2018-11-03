@@ -526,6 +526,13 @@ namespace eval ::xowiki {
   #
   # We do here the same way as in xotcl-core/tcl/05-db-procs.tcl
   #
+  # The sizes can be tailored in the config
+  # file like the following:
+  #
+  # ns_section ns/server/${server}/acs/xowiki
+  #   ns_param CacheSize                1000000
+  #   ns_param CachePartitions                3
+  #
   if {[catch {ns_cache flush xowiki_cache-0 NOTHING}]} {
     ns_log notice "xotcl-core: creating xowiki cache"
 
@@ -803,7 +810,7 @@ namespace eval ::xowiki {
     # and not on xowiki::Forms, since a single xowiki::FormPages might
     # use different xowiki::Forms in its life-cycle.
     #
-    # Note, that only types of form-fields implied by the derived form
+    # Note that only types of form-fields implied by the derived form
     # constraints are recognized. E.g. In workflows, it might be
     # necessary to move e.g. category definitions into the global form
     # constraints.
@@ -816,7 +823,7 @@ namespace eval ::xowiki {
     :build_instance_attribute_map $form_fields
 
     # In case we have a mapping from IDs to external values, use it
-    # and rewrite instance attributes. Note, that the marshalled
+    # and rewrite instance attributes. Note that the marshalled
     # objects have to be flushed from memory later since the
     # representation of instances_attributes is changed by this
     # method.
@@ -3562,7 +3569,7 @@ namespace eval ::xowiki {
     #:msg "parent of self [:name] is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
-    # properties of this page. Note, that we cannot distinguish here between
+    # properties of this page. Note that we cannot distinguish here between
     # intrinsic (starting with _) and extension variables, since get_from
     # template does not know about the logic with "_" (just "property" does).
     #
@@ -3830,7 +3837,7 @@ namespace eval ::xowiki {
       # The Form might come from a different package type (e.g. a
       # workflow) make sure, the source package is available.
       #
-      # Note, that global pages (site_wide_pages) might not belong to
+      # Note that global pages (site_wide_pages) might not belong to
       # a package and have therefore an empty package_id.
       #
       set package_id [$p package_id]
@@ -4093,7 +4100,7 @@ namespace eval ::xowiki {
                    -object_class ::xowiki::FormPage -initialize $initialize]
 
     if {!$use_hstore && $wc(tcl) != "true"} {
-      # Make sure, that the expr method is available;
+      # Make sure that the expr method is available;
       # in xotcl 2.0 this will not be needed
       ::xotcl::alias ::xowiki::FormPage expr -objscope ::expr
 

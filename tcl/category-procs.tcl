@@ -48,7 +48,7 @@ namespace eval ::xowiki {
         if {!$match} continue
       }
       # Get the values from info in "tree" into separate variables given by output.
-      # Note, that the order matters!
+      # Note that the order matters!
       lassign $tree {*}$output
       set l [list]
       foreach __var $output {lappend l [set $__var]}

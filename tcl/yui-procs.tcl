@@ -313,7 +313,7 @@ namespace eval ::YUI {
     "::YUI::loader require menu" and "::YUI::loader require datatable"
     it should take care of selecting all the files needed and assemble them
     into one single resource, that may be delivered.
-    Note, that this is not implemented yet.
+    Note that this is not implemented yet.
   }
 
   loader set ajaxhelper 1

@@ -695,7 +695,7 @@ namespace eval ::xowiki {
       #
       # Handle cross package resolve requests
       #
-      # Note, that package::initialize might change the package id.
+      # Note that package::initialize might change the package id.
       # Preserving the package-url is just necessary, if for some
       # reason the same package is initialized here with a different
       # url. This could be done probably with a flag to initialize,
