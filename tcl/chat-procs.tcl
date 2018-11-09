@@ -135,13 +135,17 @@ namespace eval ::xowiki {
     # the same page.
     append html [subst {
       <div id='xowiki-chat'>
-         <div id='xowiki-chat-messages'></div>
+         <div id='xowiki-chat-messages-and-form'>
+           <div id='xowiki-chat-messages'></div>
+           <div id='xowiki-chat-messages-form-block'>
+             <form id='xowiki-chat-messages-form' action='#'>
+               <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send' autocomplete="off">
+               <input type="hidden" value="$send_label">
+             </form>
+           </div>
+         </div>
          <div id='xowiki-chat-users'></div>
       </div>
-      <form id='xowiki-chat-messages-form' action='#'>
-        <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send'>
-        <input type="hidden" value="$send_label">
-      </form>
     }]
 
     [self] create c1 \
