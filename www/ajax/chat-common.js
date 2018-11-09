@@ -3,12 +3,14 @@
 var previous_user_id = "";
 var current_color = "";
 
-// Simple function to create links
 function createLink(text) {
-    var linkRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(linkRegex, function(url) {
-        return '<a class="xowiki-chat-message-url" href="' + url + '">' + url + '</a>';
-    })
+    if (linkRegex != null) {
+        return text.replace(new RegExp(linkRegex,'g'), function(url) {
+            return '<a class="xowiki-chat-message-url" href="' + url + '">' + url + '</a>';
+        })
+    } else {
+        return text;
+    }
 }
 
 function renderData(json) {

@@ -108,8 +108,14 @@ namespace eval ::xowiki {
       }
     }
 
+    # get LinkRegex parameter from the chat package
+    set link_regex [parameter::get_global_value \
+                        -package_key "chat" \
+                        -parameter "LinkRegex"]
+
     # small JavaScript library to obtain a portable ajax request object
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
+    template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
     template::head::add_javascript -src ${xowiki_path}ajax/chat-common.js -order 20
     template::head::add_javascript -src $jspath -order 30
 
