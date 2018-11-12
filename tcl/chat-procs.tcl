@@ -113,6 +113,9 @@ namespace eval ::xowiki {
                         -package_key "chat" \
                         -parameter "LinkRegex"]
 
+    # Should we add a full screen link to the chat?
+    set fs_link_p true
+
     # small JavaScript library to obtain a portable ajax request object
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
@@ -163,11 +166,19 @@ namespace eval ::xowiki {
     set data [c1 login]
     if {$data ne ""} {
       append html [subst {
-      <script nonce='$::__csp_nonce'>
-         var data = $data;
-         for(var i = 0; i < data.length; i++) {
+        <script nonce='$::__csp_nonce'>
+          var data = $data;
+          for(var i = 0; i < data.length; i++) {
             renderData(data\[i\]);
-         }
+          }
+        </script>
+      }]
+    }
+
+    if {$fs_link_p} {
+      append html [subst {
+        <script nonce='$::__csp_nonce'>
+          addFullScreenLink();
         </script>
       }]
     }
