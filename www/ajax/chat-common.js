@@ -152,12 +152,25 @@ function renderUsers(msg) {
         user_block.className = 'xowiki-chat-user-block';
         a.appendChild(user_block);
 
+        // User picture
+        wrapper = document.createElement('div');
+        wrapper.className = 'xowiki-chat-user-pic-wrap';
+        img = document.createElement('img');
+        img.src = '/shared/portrait-bits.tcl?user_id=' + user_id
+        img.className = 'xowiki-chat-user-pic';
+        img.style = 'border-color:' + color;
+        wrapper.appendChild(img);
+        user_block.appendChild(wrapper);
+
         // User name
         span = document.createElement('span');
         span.innerHTML = user;
         span.className = 'xowiki-chat-user';
         span.style = 'color:' + color;
         user_block.appendChild(span);
+
+        br = document.createElement('br');
+        user_block.appendChild(br);
 
         // Timestamp
         span = document.createElement('span');
