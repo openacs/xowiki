@@ -4665,7 +4665,6 @@ namespace eval ::xowiki::includelet {
           {-chat_id ""}
           {-mode ""}
           {-path ""}
-          {-package_id ""}
         }}
       }
   chat instproc render {} {
@@ -4674,7 +4673,7 @@ namespace eval ::xowiki::includelet {
       # make the chat just for including page
       set chat_id [${:__including_page} item_id]
     }
-    set r [::xowiki::Chat login -chat_id $chat_id -mode $mode -path $path -package_id $package_id]
+    set r [::xowiki::Chat login -chat_id $chat_id -mode $mode -path $path]
     #ns_log notice chat=>$r
 
     return $r
