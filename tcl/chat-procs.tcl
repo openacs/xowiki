@@ -387,10 +387,11 @@ namespace eval ::xowiki {
     set context id=$chat_id&s=$session_id
     set base_url ${path}ajax/chat?${context}
 
-    # This will point to chat/resources/chat.css for a chat instance
-    # and to <xowiki_mountpoint>/resources.chat.css for a plain xowiki
-    # chat
-    template::head::add_css -href ${path}resources/chat.css
+    # Get the css from resources folder in the right package depending
+    # on chat implementation (chat or xowiki package). Request
+    # processor will serve the proper themed css when available.
+    set package_key [apm_package_key_from_id $package_id]
+    template::head::add_css -href /resources/${package_key}/chat.css
 
     if {$mode eq ""} {
       #
