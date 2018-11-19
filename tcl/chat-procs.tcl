@@ -387,6 +387,11 @@ namespace eval ::xowiki {
     set context id=$chat_id&s=$session_id
     set base_url ${path}ajax/chat?${context}
 
+    # This will point to chat/resources/chat.css for a chat instance
+    # and to <xowiki_mountpoint>/resources.chat.css for a plain xowiki
+    # chat
+    template::head::add_css -href ${path}resources/chat.css
+
     if {$mode eq ""} {
       #
       # The parameter "mode" was not specified, we try to guess the
