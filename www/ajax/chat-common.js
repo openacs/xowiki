@@ -39,6 +39,17 @@ function addFullScreenLink() {
     formBlock.appendChild(triggerFSblock);
 }
 
+// Send link pic
+function addSendPic() {
+
+    var sendPic = '<svg id="xowiki-chat-messages-form-send-pic" width="25" height="25" viewBox="0 0 15 15" preserveAspectRatio="xMidYMin meet"><path id="xowiki-chat-messages-form-send-pic-out" d="m1.7299 8.5886 10.052 4.2854 1.683-11.337z" stroke-width="1.4007px"/><path id="xowiki-chat-messages-form-send-pic-in" d="m5.3056 10.712-0.0096 3.399 2.6009-2.374 2.7331-6.4636-5.1662 4.7486z"/></svg>';
+    var button = document.getElementById('xowiki-chat-send-button');
+
+    if (button != null) {
+        button.innerHTML = sendPic;
+    }
+}
+
 // Simple function to create links
 function createLink(text) {
     if (linkRegex != null) {

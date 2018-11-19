@@ -499,8 +499,8 @@ namespace eval ::xowiki {
            <div id='xowiki-chat-messages'></div>
            <div id='xowiki-chat-messages-form-block'>
              <form id='xowiki-chat-messages-form' action='#'>
-               <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send' autocomplete="off">
-               <input type="hidden" value="$send_label">
+               <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send' autocomplete="off" />
+               <button id='xowiki-chat-send-button' type='submit' value="$send_label" />
              </form>
            </div>
          </div>
@@ -533,6 +533,12 @@ namespace eval ::xowiki {
         </script>
       }]
     }
+
+    append html [subst {
+      <script nonce='$::__csp_nonce'>
+        addSendPic();
+      </script>
+    }]
 
     switch -- $mode {
       "polling" {
