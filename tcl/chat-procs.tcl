@@ -354,6 +354,51 @@ namespace eval ::xowiki {
 
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
+  ::xo::ChatClass instproc get_mode {} {
+    # The most conservative mode is
+    # - "polling" (which requires for every connected client polling
+    #    requests), followed by
+    # - "scripted-streaming" (which opens and "infinitely long" HTML
+    #   files with embedded script tags; very portable, but this
+    #   causes the loading indicator to spin), followed by
+    # - "streaming" (true streaming, but this requires
+    #   an HTTP stack supporting partial reads).
+    #
+    # NOTICE 1: The guessing is based on current versions of the
+    # browsers. Older versions of the browser might behave
+    # differently.
+    #
+    # NOTICE 2: "streaming" (and to a lesser extend
+    # "scripted-streaming" - which used chunked encoding) might be
+    # influenced by the buffering behavior of a reverse proxy, which
+    # might have to be configured appropriately.
+    #
+    # To be independent of the guessing mode, instantiate the chat
+    # object with "mode" specified.
+    #
+    set mode polling
+    #
+    # Check, whether we have the tcllibthread and a sufficiently new
+    # aolserver/NaviServer supporting bgdelivery transfers.
+    #
+    if {[info commands ::thread::mutex] ne "" &&
+        ![catch {ns_conn contentsentlength}]} {
+      #
+      # scripted streaming should work everywhere
+      #
+      set mode scripted-streaming
+      if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
+        # Explorer doesn't expose partial response until request state != 4, while Opera fires
+        # onreadystateevent only once. For this reason, for every browser except them, we could
+        # use the nice mode without the spinning load indicator.
+        #
+        set mode streaming
+      }
+    }
+
+    return $mode
+  }
+
   ::xo::ChatClass instproc login {-chat_id {-package_id ""} {-mode ""} {-path ""}} {
     #:log "--chat"
     if {![ns_conn isconnected]} return
@@ -403,46 +448,7 @@ namespace eval ::xowiki {
       # The parameter "mode" was not specified, we try to guess the
       # "best" mode known to work for the currently used browser.
       #
-      # The most conservative mode is
-      # - "polling" (which requires for every connected client polling
-      #    requests), followed by
-      # - "scripted-streaming" (which opens and "infinitely long" HTML
-      #   files with embedded script tags; very portable, but this
-      #   causes the loading indicator to spin), followed by
-      # - "streaming" (true streaming, but this requires
-      #   an HTTP stack supporting partial reads).
-      #
-      # NOTICE 1: The guessing is based on current versions of the
-      # browsers. Older versions of the browser might behave
-      # differently.
-      #
-      # NOTICE 2: "streaming" (and to a lesser extend
-      # "scripted-streaming" - which used chunked encoding) might be
-      # influenced by the buffering behavior of a reverse proxy, which
-      # might have to be configured appropriately.
-      #
-      # To be independent of the guessing mode, instantiate the chat
-      # object with "mode" specified.
-      #
-      set mode polling
-      #
-      # Check, whether we have the tcllibthread and a sufficiently new
-      # aolserver/NaviServer supporting bgdelivery transfers.
-      #
-      if {[info commands ::thread::mutex] ne "" &&
-          ![catch {ns_conn contentsentlength}]} {
-        #
-        # scripted streaming should work everywhere
-        #
-        set mode scripted-streaming
-        if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
-          # Explorer doesn't expose partial response until request state != 4, while Opera fires
-          # onreadystateevent only once. For this reason, for every browser except them, we could
-          # use the nice mode without the spinning load indicator.
-          #
-          set mode streaming
-        }
-      }
+      set mode [:get_mode]
       :log "--chat mode $mode"
     }
 
