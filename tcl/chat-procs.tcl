@@ -370,28 +370,33 @@ namespace eval ::xowiki {
       set package_id $xowiki_package_id
     }
 
-    #:log "chat_id=$chat_id, path=$path"
-    if {$path eq ""} {
-      set path [lindex [site_node::get_url_from_object_id \
-                            -object_id $package_id] 0]
-    } elseif {[string index $path end] ne "/"} {
-      append path /
-    }
-
     set xowiki_path [lindex [site_node::get_url_from_object_id \
                                  -object_id $xowiki_package_id] 0]
 
-    if {![info exists chat_id]} {set chat_id $package_id}
+    if {$path eq ""} {
+      set path [lindex [site_node::get_url_from_object_id \
+                            -object_id $package_id] 0]
+    }
 
+    if {[string index $path end] ne "/"} {append path /}
+    if {![info exists chat_id]} {set chat_id $package_id}
     set session_id [ad_conn session_id].[clock seconds]
     set context id=$chat_id&s=$session_id
-    set base_url ${path}ajax/chat?${context}
+    set base_url ${xowiki_path}chat?${context}
 
-    # Get the css from resources folder in the right package depending
-    # on chat implementation (chat or xowiki package). Request
-    # processor will serve the proper themed css when available.
+    # Take note of the chat class implementation handling current
+    # chat_id. This in order to reuse the chat.tcl in the xowiki
+    # package for different chat subclasses.
+    nsv_set ::xowiki_chat_class $chat_id [self]
+
+    # Get the static content from resources folder in the right
+    # package depending on chat implementation (chat or xowiki
+    # package). Request processor will serve the proper themed css
+    # when available.
     set package_key [apm_package_key_from_id $package_id]
-    template::head::add_css -href /resources/${package_key}/chat.css
+    set resources_path /resources/${package_key}
+
+    template::head::add_css -href ${resources_path}/chat.css
 
     if {$mode eq ""} {
       #
@@ -443,15 +448,15 @@ namespace eval ::xowiki {
 
     switch -- $mode {
       polling {
-        set jspath ${xowiki_path}ajax/chat.js
+        set jspath /resources/xowiki/chat.js
         set subscribe_url ${base_url}&m=get_new
       }
       streaming {
-        set jspath ${xowiki_path}ajax/streaming-chat.js
+        set jspath /resources/xowiki/streaming-chat.js
         set subscribe_url ${base_url}&m=subscribe
       }
       scripted-streaming {
-        set jspath ${xowiki_path}ajax/scripted-streaming-chat.js
+        set jspath /resources/xowiki/scripted-streaming-chat.js
         set subscribe_url ${base_url}&m=subscribe&mode=scripted
       }
       default {
@@ -470,7 +475,7 @@ namespace eval ::xowiki {
     # small JavaScript library to obtain a portable ajax request object
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
-    template::head::add_javascript -src ${xowiki_path}ajax/chat-common.js -order 20
+    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 20
     template::head::add_javascript -src $jspath -order 30
 
     set send_url ${base_url}&m=add_msg&msg=
