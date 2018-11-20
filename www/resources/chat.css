@@ -216,6 +216,7 @@
     #xowiki-chat-messages-and-form {
         width: 100%;
         order: 2;
+        height: 80%;
         flex: 1 1 auto;
     }
 }
