@@ -31,6 +31,8 @@ function addFullScreenLink() {
             chatFS.id = 'xowiki-chat';
             triggerFSlink.innerHTML = triggerFSon;
         }
+        // Restore focus on input field
+        document.getElementById('xowiki-chat-send').focus();
     }
 
     // Add Full screen trigger to the chat
