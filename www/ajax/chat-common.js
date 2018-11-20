@@ -42,7 +42,7 @@ function addFullScreenLink() {
 // Send link pic
 function addSendPic() {
 
-    var sendPic = '<svg id="xowiki-chat-messages-form-send-pic" width="25" height="25" viewBox="0 0 15 15" preserveAspectRatio="xMidYMin meet"><path id="xowiki-chat-messages-form-send-pic-out" d="m1.7299 8.5886 10.052 4.2854 1.683-11.337z" stroke-width="1.4007px"/><path id="xowiki-chat-messages-form-send-pic-in" d="m5.3056 10.712-0.0096 3.399 2.6009-2.374 2.7331-6.4636-5.1662 4.7486z"/></svg>';
+    var sendPic = '<svg id="xowiki-chat-messages-send-pic" viewBox="0 0 17 17"><g transform="matrix(.68293 0 0 .68293 -6.8692 -10.005)"><path d="m12.464 29.628 6.1719 2.62v3.0647l2.1274-2.1993 6.2291 2.7083 2.4332-16.385z" stroke-width="2.0246px"/><path style="paint-order:fill markers stroke" d="m19.418 31.75 2.0106-1.59-0.87695 2.3341-0.85313 0.03109z" stroke-width="2.6148"/></g></svg>';
     var button = document.getElementById('xowiki-chat-send-button');
 
     if (button != null) {
