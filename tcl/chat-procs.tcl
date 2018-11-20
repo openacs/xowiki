@@ -433,14 +433,11 @@ namespace eval ::xowiki {
     set context id=$chat_id&s=$session_id&class=[self]
     set base_url ${xowiki_path}chat?${context}
 
-    # Get the static content from resources folder in the right
-    # package depending on chat implementation (chat or xowiki
-    # package). Request processor will serve the proper themed css
-    # when available.
-    set package_key [apm_package_key_from_id $package_id]
-    set resources_path /resources/${package_key}
-
-    template::head::add_css -href ${resources_path}/chat.css
+    # This might come in handy to get resources from the chat package
+    # if we want to have e.g. a separate css.
+    # set package_key [apm_package_key_from_id $package_id]
+    # set resources_path /resources/${package_key}
+    template::head::add_css -href /resources/xowiki/chat.css
 
     if {$mode eq ""} {
       #
