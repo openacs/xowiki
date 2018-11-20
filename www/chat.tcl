@@ -9,16 +9,17 @@ ad_page_contract {
   id:integer
   s
   msg:optional,allhtml
+  class:token
   {mode ""}
 }
 
-if {![nsv_get ::xowiki_chat_class $id chat_class]} {
+if {![::xo::ChatClass is_chat_p $class]} {
   ns_returnnotfound
   ad_script_abort
 }
 
 #ns_log notice "--chat m=$m session_id=$s [clock format [lindex [split $s .] 1] -format %H:%M:%S] mode=$mode" 
-$chat_class create c1 -destroy_on_cleanup -chat_id $id -session_id $s -mode $mode
+$class create c1 -destroy_on_cleanup -chat_id $id -session_id $s -mode $mode
 switch -- $m {
   add_msg {
     #ns_log notice "--c call c1 $m '$msg'"

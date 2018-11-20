@@ -354,6 +354,10 @@ namespace eval ::xowiki {
 
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
+  ::xo::ChatClass proc is_chat_p {class} {
+    return [expr {[:isobject $class] && [$class class] eq [self]}]
+  }
+
   ::xo::ChatClass instproc get_mode {} {
     # The most conservative mode is
     # - "polling" (which requires for every connected client polling
@@ -426,13 +430,8 @@ namespace eval ::xowiki {
     if {[string index $path end] ne "/"} {append path /}
     if {![info exists chat_id]} {set chat_id $package_id}
     set session_id [ad_conn session_id].[clock seconds]
-    set context id=$chat_id&s=$session_id
+    set context id=$chat_id&s=$session_id&class=[self]
     set base_url ${xowiki_path}chat?${context}
-
-    # Take note of the chat class implementation handling current
-    # chat_id. This in order to reuse the chat.tcl in the xowiki
-    # package for different chat subclasses.
-    nsv_set ::xowiki_chat_class $chat_id [self]
 
     # Get the static content from resources folder in the right
     # package depending on chat implementation (chat or xowiki
