@@ -408,9 +408,6 @@ namespace eval ::xowiki {
     {-package_id ""}
     {-mode ""}
     {-path ""}
-    -login_messages_p
-    -logout_messages_p
-    -timewindow
   } {
     #:log "--chat"
     if {![ns_conn isconnected]} return
@@ -524,22 +521,11 @@ namespace eval ::xowiki {
       </div>
     }]
 
-    set chat_cmd [list \
-                      [self] create c1 \
-                      -destroy_on_cleanup \
-                      -chat_id    $chat_id \
-                      -session_id $session_id \
-                      -mode       $mode]
-    # We don't want to override Chat class default with our own and
-    # therefore we build the command dynamically depending if these
-    # variables are there or not.
-    set optional_vars [list login_messages_p logout_messages_p timewindow]
-    foreach var $optional_vars {
-      if {[info exists $var]} {
-        lappend chat_cmd -${var} [set $var]
-      }
-    }
-    {*}$chat_cmd
+    [self] create c1 \
+        -destroy_on_cleanup \
+        -chat_id    $chat_id \
+        -session_id $session_id \
+        -mode       $mode
 
     set data [c1 login]
     if {$data ne ""} {
