@@ -21,7 +21,7 @@ function addFullScreenLink() {
     triggerFSlink.innerHTML = triggerFSon;
 
     // Full screen when clicked
-    triggerFSlink.onclick = () => {
+    triggerFSlink.addEventListener("click", function() {
         var chat = document.getElementById('xowiki-chat');
         var chatFS = document.getElementById('xowiki-chat-fs');
         if (chat != null) {
@@ -31,7 +31,7 @@ function addFullScreenLink() {
             chatFS.id = 'xowiki-chat';
             triggerFSlink.innerHTML = triggerFSon;
         }
-    }
+    });
 
     // Add Full screen trigger to the chat
     const formBlock = document.getElementById('xowiki-chat-messages-form-block');
