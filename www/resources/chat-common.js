@@ -167,9 +167,9 @@ function renderUsers(msg) {
         wrapper = document.createElement('div');
         wrapper.className = 'xowiki-chat-user-pic-wrap';
         img = document.createElement('img');
-        img.src = '/shared/portrait-bits.tcl?user_id=' + user_id
-        img.className = 'xowiki-chat-user-pic';
-        img.style = 'border-color:' + color;
+        img.setAttribute("src", "/shared/portrait-bits.tcl?user_id=" + user_id);
+        img.setAttribute("class", "xowiki-chat-user-pic");
+        img.setAttribute("style", "border-color:" + color);
         wrapper.appendChild(img);
         user_block.appendChild(wrapper);
 
