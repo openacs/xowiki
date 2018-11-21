@@ -4665,6 +4665,9 @@ namespace eval ::xowiki::includelet {
           {-chat_id ""}
           {-mode ""}
           {-path ""}
+          -login_messages_p
+          -logout_messages_p
+          -timewindow
         }}
       }
   chat instproc render {} {
@@ -4673,7 +4676,22 @@ namespace eval ::xowiki::includelet {
       # make the chat just for including page
       set chat_id [${:__including_page} item_id]
     }
-    set r [::xowiki::Chat login -chat_id $chat_id -mode $mode -path $path]
+    set chat_cmd [list \
+                      ::xowiki::Chat login \
+                      -chat_id $chat_id \
+                      -mode $mode \
+                      -path $path]
+    # We don't want to override Chat class default with our own and
+    # therefore we build the command dynamically depending if these
+    # variables are there or not.
+    set optional_vars [list login_messages_p logout_messages_p timewindow]
+    foreach var $optional_vars {
+      if {[info exists $var]} {
+        lappend chat_cmd -${var} [set $var]
+      }
+    }
+    set r [{*}$chat_cmd]
+
     #ns_log notice chat=>$r
 
     return $r

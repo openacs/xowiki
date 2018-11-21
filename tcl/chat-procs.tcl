@@ -403,7 +403,15 @@ namespace eval ::xowiki {
     return $mode
   }
 
-  ::xo::ChatClass instproc login {-chat_id {-package_id ""} {-mode ""} {-path ""}} {
+  ::xo::ChatClass instproc login {
+    -chat_id
+    {-package_id ""}
+    {-mode ""}
+    {-path ""}
+    -login_messages_p
+    -logout_messages_p
+    -timewindow
+  } {
     #:log "--chat"
     if {![ns_conn isconnected]} return
     auth::require_login
@@ -430,8 +438,9 @@ namespace eval ::xowiki {
     if {[string index $path end] ne "/"} {append path /}
     if {![info exists chat_id]} {set chat_id $package_id}
     set session_id [ad_conn session_id].[clock seconds]
-    set context id=$chat_id&s=$session_id&class=[self]
-    set base_url ${xowiki_path}chat?${context}
+    set base_url [export_vars -base ${xowiki_path}chat -no_empty {
+      {id $chat_id} {s $session_id} {class "[self]"}
+    }]
 
     # This might come in handy to get resources from the chat package
     # if we want to have e.g. a separate css.
@@ -515,11 +524,22 @@ namespace eval ::xowiki {
       </div>
     }]
 
-    [self] create c1 \
-          -destroy_on_cleanup \
-          -chat_id    $chat_id \
-          -session_id $session_id \
-          -mode       $mode
+    set chat_cmd [list \
+                      [self] create c1 \
+                      -destroy_on_cleanup \
+                      -chat_id    $chat_id \
+                      -session_id $session_id \
+                      -mode       $mode]
+    # We don't want to override Chat class default with our own and
+    # therefore we build the command dynamically depending if these
+    # variables are there or not.
+    set optional_vars [list login_messages_p logout_messages_p timewindow]
+    foreach var $optional_vars {
+      if {[info exists $var]} {
+        lappend chat_cmd -${var} [set $var]
+      }
+    }
+    {*}$chat_cmd
 
     set data [c1 login]
     if {$data ne ""} {
