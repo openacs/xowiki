@@ -96,9 +96,9 @@ function renderMessage(msg) {
 
     // User name
     span = document.createElement('span');
-    span.innerHTML = user;
-    span.className = 'xowiki-chat-user';
-    span.style = 'color:' + color;
+    span.textContent = user;
+    span.setAttribute("class", "xowiki-chat-user");
+    span.setAttribute("style", "color:" + color);
     a.appendChild(span);
     user_block.appendChild(a);
     previous_user_id = user_id;
@@ -175,9 +175,9 @@ function renderUsers(msg) {
 
         // User name
         span = document.createElement('span');
-        span.innerHTML = user;
-        span.className = 'xowiki-chat-user';
-        span.style = 'color:' + color;
+        span.textContent = user;
+        span.setAttribute("class", "xowiki-chat-user");
+        span.setAttribute("style", "color:" + color);
         user_block.appendChild(span);
 
         br = document.createElement('br');
