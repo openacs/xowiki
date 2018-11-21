@@ -516,7 +516,7 @@ namespace eval ::xowiki {
            <div id='xowiki-chat-messages-form-block'>
              <form id='xowiki-chat-messages-form' action='#'>
                <input type='text' placeholder="$message_label" name='msg' id='xowiki-chat-send' autocomplete="off" />
-               <button id='xowiki-chat-send-button' type='submit' value="$send_label" />
+               <button id='xowiki-chat-send-button' type='submit'>$send_label</button>
              </form>
            </div>
          </div>
