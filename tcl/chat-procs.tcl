@@ -19,6 +19,7 @@ namespace eval ::xo {
         {sweepinterval 5}
         {login_messages_p t}
         {logout_messages_p t}
+        {conf {}}
       }
 
   Chat instproc init {} {
@@ -48,9 +49,19 @@ namespace eval ::xo {
     if {[:user_id] != 0 || [:session_id] != 0} {
       :init_user_color
     }
+    :set_options
   }
 
-
+  Chat instproc set_options {} {
+    dict for {key value} ${:conf} {
+      ::xo::clusterwide nsv_set ${:array}-options $key $value
+    }
+    if {[nsv_array exists ${:array}-options]} {
+      foreach {key value} [nsv_array get ${:array}-options] {
+        :set $key $value
+      }
+    }
+  }
 
   Chat instproc register_nsvs {msg_id user_id msg color secs} {
     # Tell the system we are back again, in case we were auto logged out
@@ -408,6 +419,9 @@ namespace eval ::xowiki {
     {-package_id ""}
     {-mode ""}
     {-path ""}
+    -login_messages_p
+    -logout_messages_p
+    -timewindow
   } {
     #:log "--chat"
     if {![ns_conn isconnected]} return
@@ -521,11 +535,19 @@ namespace eval ::xowiki {
       </div>
     }]
 
+    set conf [dict create]
+    foreach var [list login_messages_p logout_messages_p timewindow] {
+      if {[info exists $var]} {
+        dict set conf $var [set $var]
+      }
+    }
+
     [self] create c1 \
         -destroy_on_cleanup \
         -chat_id    $chat_id \
         -session_id $session_id \
-        -mode       $mode
+        -mode       $mode \
+        -conf       $conf
 
     set data [c1 login]
     if {$data ne ""} {
