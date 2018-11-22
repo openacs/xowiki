@@ -28,9 +28,11 @@ function addFullScreenLink() {
         if (chat != null) {
             chat.id = 'xowiki-chat-fs';
             triggerFSlink.innerHTML = triggerFSoff;
+            document.body.style.overflow = "hidden";
         } else if (chatFS != null) {
             chatFS.id = 'xowiki-chat';
             triggerFSlink.innerHTML = triggerFSon;
+            document.body.style.overflow = "scroll";
         }
     });
 
