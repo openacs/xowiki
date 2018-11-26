@@ -185,6 +185,7 @@
     cursor: pointer;
     height: 35px;
     width: 35px;
+    min-width: 35px;
     border-radius: 50%;
     border: 0 !important;
     margin-left: -40px;
