@@ -20,7 +20,7 @@
 }
 
 #xowiki-chat-fs {
-    height: 100vh;
+    height: 100%;
     width: 100%;
     overflow: hidden;
     display: flex;
@@ -229,7 +229,6 @@
     }
     #xowiki-chat-fs {
         flex-direction: column;
-        height: 100%;
     }
     #xowiki-chat-users {
         order: 1;
