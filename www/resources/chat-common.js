@@ -34,6 +34,9 @@ function addFullScreenLink() {
             triggerFSlink.innerHTML = triggerFSon;
             document.body.style.overflow = "scroll";
         }
+        // Scroll down the messages
+        var messages = document.getElementById('xowiki-chat-messages');
+        messages.scrollTop = messages.scrollHeight;
     });
 
     // Add Full screen trigger to the chat
