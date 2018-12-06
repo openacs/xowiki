@@ -416,6 +416,7 @@ namespace eval ::xowiki {
 
   ::xo::ChatClass instproc login {
     -chat_id
+    {-skin "classic"}
     {-package_id ""}
     {-mode ""}
     {-path ""}
@@ -457,7 +458,7 @@ namespace eval ::xowiki {
     # if we want to have e.g. a separate css.
     # set package_key [apm_package_key_from_id $package_id]
     # set resources_path /resources/${package_key}
-    template::head::add_css -href /resources/xowiki/chat.css
+    template::head::add_css -href /resources/xowiki/chat-skins/chat-$skin.css
 
     if {$mode eq ""} {
       #
@@ -497,7 +498,7 @@ namespace eval ::xowiki {
     # small JavaScript library to obtain a portable ajax request object
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
-    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 20
+    template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin-common.js -order 20
     template::head::add_javascript -src $jspath -order 30
 
     set send_url ${base_url}&m=add_msg&msg=
