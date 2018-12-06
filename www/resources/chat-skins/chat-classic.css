@@ -64,6 +64,14 @@
     background-color: rgb(235,235,235);
 }
 
+#xowiki-chat-users .xowiki-chat-user-block:after {
+    clear: both;
+    height: 0;
+    width: 100%;
+    content: '';
+    display: block;
+}
+
 #xowiki-chat-users .xowiki-chat-user-pic {
     width: 45px;
     height: 45px;
