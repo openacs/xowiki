@@ -534,6 +534,7 @@ namespace eval ::xowiki {
          </div>
          <div id='xowiki-chat-users'></div>
       </div>
+      <span id="xowiki-my-user-id" hidden>[ad_conn user_id]</span>
     }]
 
     set conf [dict create]

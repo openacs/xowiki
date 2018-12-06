@@ -9,6 +9,13 @@
     position: relative;
 }
 
+/* Chat includelet */
+#xowiki-chat-includelet {
+    height: 700px;
+    width: 100%;
+    position: relative;
+}
+
 /* Users and messages container */
 #xowiki-chat {
     height: 100%;

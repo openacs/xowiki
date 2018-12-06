@@ -82,7 +82,7 @@ function renderMessage(msg) {
     var user = msg.user.replace(/\\'/g, "\"");
     var message = createLink(msg.message);
     var user_id = msg.user_id;
-    var my_user = document.getElementById('my-user-id');
+    var my_user = document.getElementById('xowiki-my-user-id');
     if (my_user == null) {
         my_user_id = "";
     } else {
