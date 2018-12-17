@@ -472,7 +472,7 @@ namespace eval ::xo::Table {
         }
         template::add_body_script -script [subst {
           document.getElementById('$id').addEventListener('click', function (event) {
-            acs_ListBulkActionClick('$name','[$ba url]');
+            acs_ListBulkActionClick("$name","[$ba url]");
           }, false);
         }]
       }
