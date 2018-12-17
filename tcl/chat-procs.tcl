@@ -89,7 +89,7 @@ namespace eval ::xo {
     }
     :register_nsvs ${:now}.$user_id $user_id $msg $color [clock seconds]
     # this in any case a valid result, but only needed for the polling interface
-    if {$get_new} {my get_new}
+    if {$get_new} {:get_new}
   }
 
   Chat instproc current_message_valid {} {
@@ -134,9 +134,9 @@ namespace eval ::xo {
         }
       }
       ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
-      # my log "--c setting session_id ${:session_id}: ${:now}"
+      # :log "--c setting session_id ${:session_id}: ${:now}"
     } else {
-      # my log "--c nothing new for ${:session_id}"
+      # :log "--c nothing new for ${:session_id}"
     }
     :render
   }
@@ -544,7 +544,7 @@ namespace eval ::xowiki {
       }
     }
 
-    [self] create c1 \
+    :create c1 \
         -destroy_on_cleanup \
         -chat_id    $chat_id \
         -session_id $session_id \
