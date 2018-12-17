@@ -389,7 +389,7 @@ namespace eval ::xowiki::formfield {
     if {[info exists :editor]} {append spec " {options {editor ${:editor}}} "}
     append spec " {label " [list ${:label}] "} "
 
-    if {[string match *bootstrap* [subsite::get_theme]]} {
+    if {[string match "*bootstrap*" [subsite::get_theme]]} {
       array set :html {class "form-control"}
     }
 

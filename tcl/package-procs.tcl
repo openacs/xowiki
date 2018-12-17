@@ -103,7 +103,7 @@ namespace eval ::xowiki {
     }
     set suffix [string trim $suffix]
     # temporary measure; TODO: remove the following if-clause
-    if {[string match *:* $suffix]} {
+    if {[string match "*:*" $suffix]} {
       ad_log warning "normalize_name receives name '$suffix' containing a colon. A missing -with_prefix?"
       xo::show_stack
     }
