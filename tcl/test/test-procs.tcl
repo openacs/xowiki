@@ -258,7 +258,7 @@ namespace eval ::xowiki::test {
 
     } {
         aa_log "... edit page $path"
-        set d [acs::test::http -user_id $user_id $instance/$path?[export_vars $extra_url_parameter]]
+        set d [acs::test::http -user_id $user_id [export_vars -base $instance/$path $extra_url_parameter]]
         acs::test::reply_has_status_code $d 200
 
         #set location [::xowiki::test::get_url_from_location $d]
