@@ -37,9 +37,12 @@
 <table>
 <tr>
 <td colspan="3">
-<% template::add_event_listener -event change -id upload_file -script {document.getElementById('subm_upld').removeAttribute('disabled');}
-%>
 #xowiki.choose_file#: <formwidget id="upload_file">
+<script <if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
+  document.getElementById('upload_file').addEventListener('change', function (event) {
+     document.getElementById('subm_upld').removeAttribute('disabled');
+  });
+</script>
 </td>
 </tr>
 <tr>
