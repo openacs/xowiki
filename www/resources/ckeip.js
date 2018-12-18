@@ -38,7 +38,7 @@ $.fn.ckeip = function (callback,options) {
 
     // if the xowikiimage plugin is available we have to rewrite the wiki_image_links to image tags before loading
     if (settings.ckeditor_config.extraPlugins.indexOf("xowikiimage") != -1) {
-        var eip_html = calc_wiki_image_links_to_image_tags($(this).html());
+        var eip_html = calc_wiki_image_links_to_image_tags(window.location.pathname, $(this).html());
         $(this).html(eip_html);
     } else {
         var eip_html = $(this).html();
