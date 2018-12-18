@@ -32,9 +32,16 @@ function changePreview(url,name,mime) {
     @sub_files.mime_type@
     <if @sub_files.mime_type@ in "image/jpeg" "image/png" "image/gif">
       <img id="@sub_files.img_id@" src="@sub_files.download_url@" height="60" width="100">
+      <if @sub_files.image_p;literal@ true>
+        <script type="text/javascript"<if @::__csp_nonce@ not nil> nonce="@::__csp_nonce;literal@"</if>>
+          document.getElementById('@sub_files.img_id@').addEventListener('click', function (event) {
+             changePreview("@sub_files.download_url@","@sub_files.name@", "@sub_files.mime_type@");
+          });
+        </script>
+      </if>
     <!-- </a> -->
     </if>
-<small><br>@sub_files.date@ </small><a href="@sub_files.url@?m=delete&amp;return_url=@return_url@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="delete" title="Delete" ></a>
+<small><br>@sub_files.date@ </small><a href="@sub_files.delete_url@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="delete" title="Delete" ></a>
 </center>
 </div>
 <br/>
