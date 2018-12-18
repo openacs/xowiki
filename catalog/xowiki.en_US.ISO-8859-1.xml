@@ -20,6 +20,7 @@
   <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once chice is correct.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
   <msg key="choose_file">Choose file</msg>
+  <msg key="ckeip_help">Inplace mode</msg>  
   <msg key="clear">clear</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configure</msg>
