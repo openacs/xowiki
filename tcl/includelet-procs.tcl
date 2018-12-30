@@ -1702,6 +1702,68 @@ namespace eval ::xowiki::includelet {
     return $result
   }
 
+
+  #
+  # unresolved-references lists the pages with unresolved references
+  # in the current xowiki/xowf package. This is intended for use by admins.
+  #
+  ::xowiki::IncludeletClass create unresolved-references \
+      -superclass ::xowiki::Includelet \
+      -parameter {{__decoration none}}
+
+  unresolved-references instproc render {} {
+    :get_parameters
+
+    set items [xo::dc list _ {
+      select object_id from acs_objects
+      where package_id = :package_id
+      and   object_type = 'content_item'}]
+    set pages_with_unresolved_items {}
+    foreach i $items {
+      #
+      # Do not try to re-instantiate the including page and the
+      # package root folder.
+      #
+      if {$i eq [${:__including_page} item_id]
+          || $i eq [$package_id  folder_id]} {
+        continue
+      }
+      set page [::xo::db::CrClass get_instance_from_db -item_id $i]
+
+      #
+      # Skip as well Objects
+      #
+      if {[$page info class] eq "::xowiki::Object"} continue
+
+      #
+      # Render the page to obtain the references. This will as well
+      # update references (e.g. after importing the dump).
+      #
+      $page render -update_references true -with_footer false
+      #
+      # Some (dynammic) pages are volatile, skip these as well
+      #
+      if {[info commands $page] ne ""} {
+        set unresolved [$page references get unresolved]
+        if {$unresolved ne ""} {
+          #ns_log notice "[$page name] contains unresolved: <$unresolved>"
+          set entry "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains [join $unresolved {, }]"
+          lappend pages_with_unresolved_items $entry
+        } else {
+          $page destroy
+        }
+      }
+    }
+    if {[llength $pages_with_unresolved_items] > 0} {
+      #
+      # Return the pages with unresolved references in form of an
+      # unordered list.
+      #
+      return <ul><li>[join [lsort -dictionary $pages_with_unresolved_items] </li><li>]</li></ul>
+    } else {
+      return ""
+    }
+  }
 }
 
 namespace eval ::xowiki::includelet {
