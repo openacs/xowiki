@@ -260,7 +260,7 @@ namespace eval ::xowiki {
     #
     # final cleanup
     #
-    foreach o $objects {$o destroy}
+    foreach o $objects {if {[::xotcl::Object isobject $o]} {$o destroy}}
 
     ${:package_id} flush_page_fragment_cache
   }
