@@ -70,12 +70,13 @@ ad_form \
         } on error {errMsg} {
           ns_log notice "Error during import: $errMsg\nErrInfo: $::errorInfo"
           ::xotcl::Object msg "Error during import: $errMsg\nErrInfo: $::errorInfo"
-          foreach o $objects {$o destroy}
           error $errMsg
-        }
-        foreach o $objects {
-          if {[::xotcl::Object isobject $o]} {
-            $o destroy
+        } finally {
+          # Make sure objects have been cleaned up
+          foreach o $objects {
+            if {[::xotcl::Object isobject $o]} {
+              $o destroy
+            }
           }
         }
       }
