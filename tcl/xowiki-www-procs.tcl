@@ -18,24 +18,35 @@ namespace eval ::xowiki {
   # Externally callable method: bulk-delete
   #
   Page instproc www-bulk-delete {} {
-    set package_id ${:package_id}
     ::security::csrf::validate
 
     if {![:exists_form_parameter "objects"]} {
       :msg "nothing to delete"
     }
-    if {${:parent_id} == [$package_id folder_id]} {
-      # from root index page
-      set parent_id ${:parent_id}
-    } else {
-      set parent_id ${:item_id}
+
+    # By default we resolve object names from this object...
+    set parent_id ${:item_id}
+    set root_folder_id [${:package_id} folder_id]
+    if {${:parent_id} == $root_folder_id} {
+      # ...unless we realize this is the package index page. In this
+      # case we resolve based on the root folder (this happens e.g. in
+      # the table of contents for xowf).
+      set index_name [${:package_id} get_parameter index_page index]
+      ${:package_id} get_lang_and_name -name $index_name lang stripped_name
+      set index_item_id [::xo::db::CrClass lookup \
+                             -name ${lang}:${stripped_name} \
+                             -parent_id $root_folder_id]
+      if {${:item_id} == $index_item_id} {
+        set parent_id ${:parent_id}
+      }
     }
+
     foreach page_name [:form_parameter objects] {
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id $parent_id]
       :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
-      $package_id www-delete -item_id $item_id
+      ${:package_id} www-delete -item_id $item_id
     }
-    $package_id returnredirect .
+    ${:package_id} returnredirect .
   }
 
   #
