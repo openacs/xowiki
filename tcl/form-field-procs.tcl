@@ -2173,6 +2173,10 @@ namespace eval ::xowiki::formfield {
         textarea_id: id
       }]
       if {${:allowedContent} ne ""} {
+        #
+        # Syntax rules:
+        # https://ckeditor.com/docs/ckeditor4/latest/guide/dev_allowed_content_rules.html#string-format
+        #
         if {${:allowedContent} in {true false}} {
           append options "  , allowedContent: ${:allowedContent}\n"
         } else {
