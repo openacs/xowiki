@@ -417,6 +417,7 @@ namespace eval ::xowiki {
   ::xo::ChatClass instproc login {
     -chat_id
     {-skin "classic"}
+    {-show_avatar_p "true"}
     {-package_id ""}
     {-mode ""}
     {-path ""}
@@ -569,6 +570,12 @@ namespace eval ::xowiki {
           addFullScreenLink();
         </script>
       }]
+    }
+
+    if {$show_avatar_p} {
+      append html {
+        <span id="xowiki-chat-show-avatar" hidden></span>
+      }
     }
 
     append html [subst {

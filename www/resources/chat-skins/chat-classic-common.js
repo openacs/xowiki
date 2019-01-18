@@ -170,14 +170,17 @@ function renderUsers(msg) {
         a.appendChild(user_block);
 
         // User picture
-        wrapper = document.createElement('div');
-        wrapper.className = 'xowiki-chat-user-pic-wrap';
-        img = document.createElement('img');
-        img.setAttribute("src", "/shared/portrait-bits.tcl?user_id=" + user_id);
-        img.setAttribute("class", "xowiki-chat-user-pic");
-        img.setAttribute("style", "border-color:" + color);
-        wrapper.appendChild(img);
-        user_block.appendChild(wrapper);
+        var show_avatar = document.getElementById('xowiki-chat-show-avatar');
+        if (show_avatar != null) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'xowiki-chat-user-pic-wrap';
+            img = document.createElement('img');
+            img.setAttribute("src", "/shared/portrait-bits.tcl?user_id=" + user_id);
+            img.setAttribute("class", "xowiki-chat-user-pic");
+            img.setAttribute("style", "border-color:" + color);
+            wrapper.appendChild(img);
+            user_block.appendChild(wrapper);
+        }
 
         // User name
         span = document.createElement('span');
