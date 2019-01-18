@@ -2172,8 +2172,12 @@ namespace eval ::xowiki::formfield {
         customConfig: '[:customConfig]',
         textarea_id: id
       }]
-      if {[:allowedContent] ne ""} {
-        append options "  , allowedContent: '[:allowedContent]'\n"
+      if {${:allowedContent} ne ""} {
+        if {${:allowedContent} in {true false}} {
+          append options "  , allowedContent: ${:allowedContent}\n"
+        } else {
+          append options "  , allowedContent: '${:allowedContent}'\n"
+        }
       }
       if {[:templatesFiles] ne ""} {
         append options "  , templates_files: \['[join [:pathNames [:templatesFiles]] ',' ]' \]\n"
