@@ -1761,7 +1761,7 @@ namespace eval ::xowiki::includelet {
       #
       return <ul><li>[join [lsort -dictionary $pages_with_unresolved_items] </li><li>]</li></ul>
     } else {
-      return ""
+      return "<ul><li>[_ acs-subsite.none]/li></ul>"
     }
   }
 }
