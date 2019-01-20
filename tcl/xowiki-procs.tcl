@@ -1789,6 +1789,13 @@ namespace eval ::xowiki {
     return 1
   }
 
+  Page instproc evaluate_form_field_condition {cond} {
+    #
+    # Can be refined
+    #
+    return 0
+  }
+
   Page instproc save args {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache

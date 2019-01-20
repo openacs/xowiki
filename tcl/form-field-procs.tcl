@@ -88,7 +88,7 @@ namespace eval ::xowiki::formfield {
     foreach f [::xowiki::formfield::FormField info instances -closure] {
       if {[$f name] eq $name} {
         if {![$f exists object]} {
-          :msg "strange, $f [$f name] was created without object but fits name"
+          #ad_log warning "strange, $f [$f name] was created without object but fits name"
           return $f
         } elseif {$object eq [$f object]} {
           return $f
@@ -219,7 +219,7 @@ namespace eval ::xowiki::formfield {
                          -package_id $package_id]
       }
     } else {
-      set success 0
+      set success [$object evaluate_form_field_condition $cond]
     }
     return $success
   }
