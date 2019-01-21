@@ -20,6 +20,7 @@
   <msg key="choiceInteraction_maxChoices_help_text">Scelta Singola significa che solo una risposta è corretta.</msg>
   <msg key="choiceInteraction_simpleChoice">Inserisci alcune scelte.</msg>
   <msg key="choose_file">Scegli file</msg>
+  <msg key="ckeip_help">Modalità &#34;In loco&#34;</msg>
   <msg key="clear">sgombera</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configura</msg>
@@ -47,7 +48,7 @@
   <msg key="error-form_constraint-invalid_characters">Il vincolo form contiene caratteri invalidi</msg>
   <msg key="error-form_constraint-unknown_attribute">Il campo form &#39;%name%&#39; (class %class%) contiene attributi sconosciuti &#39;%entry%&#39;</msg>
   <msg key="error-form_constraint-unknown_editor">Editor %editor% sconosciuto. I valori possibili sono: %editors%</msg>
-  <msg key="error-form_constraint-unknown_spec_entry">Il campo form &#39;%name%&#39; (class %class%) ha una specifica sconosciuta &#39;%entry%&#39;</msg>
+  <msg key="error-form_constraint-unknown_spec_entry">Il campo form &#39;%name%&#39; ha una specifica sconosciuta &#39;%entry%&#39;</msg>
   <msg key="error-includelet-adp_syntax_invalid">Sintassi: adp &amp;lt;nome di file adp&amp;gt; {&amp;lt;lista argomenti&amp;gt;}&lt;br/&gt; Lista argomenti non valida: &#39;%adp%&#39;; deve essere nella forma: coppie attributo valore (numero pari di elementi)</msg>
   <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt; La lista argomenti deve contenere coppie attributo valore (attributi con il trattino)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">la valutazione del file adp ha ritornato il messaggio di errore: %errorMsg%</msg>
@@ -204,7 +205,7 @@
   <msg key="PageTemplate_pretty_plural">Template Wiki Page</msg>
   <msg key="party_id-validate_party_id_check">Il valore non è un party_id valido</msg>
   <msg key="permissions_manage_package">Gestisci i Permessi per il Wiki: %package_name%</msg>
-  <msg key="permissions_manage_page">Gestisci i Permessi per la pagina: %package_name%</msg>
+  <msg key="permissions_manage_page">Gestisci i Permessi per la pagina: %page_name%</msg>
   <msg key="PlainPage_pretty_name">Wiki Plain Page</msg>
   <msg key="PlainPage_pretty_plural">Wiki Plain Page</msg>
   <msg key="Please_open">Prego aprire</msg>
