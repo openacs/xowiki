@@ -130,7 +130,7 @@ namespace eval ::xowiki {
         # the package parameter "use_hstore" of the xowiki/xowf
         # instances that want to use hstore to 1.
         #
-        # To update all hkey attributes in e.g. a package mounted at /xowf 
+        # To update all hkey attributes in e.g. a package mounted at /xowf
         # use:
         #
         #     ::xowf::Package initialize -url /xowf
@@ -138,7 +138,7 @@ namespace eval ::xowiki {
         #     ::xowiki::hstore::update_form_instance_item_index -package_id $package_id
         #
         # The first update command updates xowiki_page_instance, the second
-        # xowiki_form_instance_item_index. 
+        # xowiki_form_instance_item_index.
         #
         if {[::xo::dc has_hstore]} {
           ::xo::db::CrAttribute create hkey \
@@ -2057,7 +2057,7 @@ namespace eval ::xowiki {
         return [:error_in_includelet $arg [_ xowiki.error-includelet-adp_syntax_invalid]]$ch2
       }
       set adp [string map {&nbsp; " "} $adp]
-      
+
       #
       # Check the provided name of the adp file
       #
@@ -2067,7 +2067,7 @@ namespace eval ::xowiki {
         incr ::xowiki_inclusion_depth -1
         return [:error_in_includelet $arg [dict get $path_info msg]]$ch2
       }
-      
+
       set adp_fn [dict get $path_info fn]
       #
       # check the provided arguments
@@ -4347,6 +4347,18 @@ namespace eval ::xowiki {
       set page [:resolve_included_page_name $source]
     }
     return [$page property $name $default]
+  }
+
+  FormPage instproc lappend_property {name value} {
+    #
+    # lappend the specified value to the named property. If the
+    # property does not exists, create a new one.
+    #
+    if {[:exists_property $name]} {
+      :set_property $name [concat [:get_property -name $name] $value]
+    } else {
+      :set_property -new 1 $name $value
+    }
   }
 
   FormPage instproc condition=is_true {query_context value} {
