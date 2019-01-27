@@ -8,13 +8,12 @@
 
 namespace eval ::xowiki {}
 
-ad_proc -private ::xowiki::datasource { revision_id } {
+ad_proc -private ::xowiki::datasource { -nocleanup:boolean revision_id } {
   @param revision_id
 
   returns a datasource for the search package
 } {
   #ns_log notice "--sc ::xowiki::datasource called with revision_id = $revision_id"
-
   set page [::xowiki::Package instantiate_page_from_id -revision_id $revision_id -user_id 0]
 
   #ns_log notice "--sc ::xowiki::datasource $page [$page set publish_status]"
@@ -117,7 +116,7 @@ ad_proc -private ::xowiki::datasource { revision_id } {
                                    guid "$item_id" \
                                    pubDate $pubDate] \
                  ]
-  if {[catch {::xo::at_cleanup} errorMsg]} {
+  if {!$nocleanup_p && [catch {::xo::at_cleanup} errorMsg]} {
     ns_log notice "cleanup in ::xowiki::datasource returned $errorMsg"
   }
   return $result

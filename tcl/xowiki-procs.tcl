@@ -1839,6 +1839,36 @@ namespace eval ::xowiki {
     return ""
   }
 
+  Page instproc update_publish_status {new_publish_status} {
+    #
+    # The publish_status of xowiki is used for "advertising"
+    # pages. When the publish_status is e.g. "production", users can
+    # access this object when they know obout its existence
+    # (e.g. workflow assignments), but it is excluded from listings,
+    # which contain - per default - only elements in publish_status
+    # "ready".
+    #
+    # This proc can be used to change the publish status of a page and
+    # handle visibility via syndication.
+    #
+    if {$new_publish_status ne ${:publish_status}} {
+      :set_live_revision \
+          -revision_id ${:revision_id} \
+          -publish_status $new_publish_status
+
+      ::xo::xotcl_object_cache flush ${:revision_id}
+      ::xo::xotcl_object_cache flush ${:item_id}
+
+      if {$new_publish_status ne "production"} {
+        ::xowiki::notification::do_notifications -revision_id ${:revision_id}
+        ::xowiki::datasource -nocleanup ${:revision_id}
+      } else {
+        set revision_id ${:revision_id}
+        db_dml flush_syndication {delete from syndication where object_id = :revision_id}
+      }
+    }
+  }
+
   #
   # render and substitutions
   #

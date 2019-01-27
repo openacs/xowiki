@@ -1221,7 +1221,6 @@ namespace eval ::xowiki {
   #
 
   Page instproc www-make-live-revision {} {
-    set package_id ${:package_id}
     set page_id [:query_parameter "revision_id"]
     if {[string is integer -strict $page_id]} {
       set revision_id $page_id
@@ -1230,8 +1229,25 @@ namespace eval ::xowiki {
     }
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
-    ::$package_id returnredirect [:query_parameter "return_url" \
-                                      [export_vars -base [$package_id url] {{m revisions}}]]
+    ${:package_id} returnredirect [:query_parameter "return_url" \
+                                       [export_vars -base [${:package_id} url] {{m revisions}}]]
+  }
+
+  #
+  # Externally callable method: toggle-publish-status
+  #
+  # Toggle from arbitrary states to "ready" and from "ready" to
+  # "production".
+  #
+
+  Page instproc www-toggle-publish-status {} {
+    if {${:publish_status} ne "ready"} {
+      set new_publish_status "ready"
+    } else {
+      set new_publish_status "production"
+    }
+    :update_publish_status $new_publish_status
+    ${:package_id} returnredirect [:query_parameter "return_url" [ad_return_url]]
   }
 
   #

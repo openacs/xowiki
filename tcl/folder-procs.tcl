@@ -1,4 +1,4 @@
-::xo::library doc { 
+::xo::library doc {
 
   This is an experimental implementation for folders
   based on xowiki form pages. In particular, this file provides
@@ -44,15 +44,15 @@ namespace eval ::xowiki::includelet {
 
   folders instproc render {} {
     :get_parameters
- 
+
     set tree [:build_tree]
     switch [${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
       yui {
            set js "
            var [:js_name];
            YAHOO.util.Event.onDOMReady(function() {
-             [:js_name] = new YAHOO.widget.TreeView('foldertree_[:id]'); 
-             [:js_name].subscribe('clickEvent',function(oArgs) { 
+             [:js_name] = new YAHOO.widget.TreeView('foldertree_[:id]');
+             [:js_name].subscribe('clickEvent',function(oArgs) {
                var m = /href=\"(\[^\"\]+)\"/.exec(oArgs.node.html);
                return false;
              });
@@ -124,10 +124,10 @@ namespace eval ::xowiki::includelet {
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (o.object_id = xowiki_page.page_id)
          left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
-         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)      
+         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
     }]
   }
-    
+
   folders instproc collect_folders {
     -package_id:required
     -folder_form_id:required
@@ -162,7 +162,7 @@ namespace eval ::xowiki::includelet {
     set links [::xowiki::FormPage instantiate_objects -sql $sql \
                     -named_objects true -object_named_after "item_id" \
                     -object_class ::xowiki::FormPage -initialize true]
-    
+
     #my msg "[llength [$links children]] links"
 
     set folders [$folder_pages children]
@@ -194,7 +194,7 @@ namespace eval ::xowiki::includelet {
             #my msg "1 found child [$f name] and reset parent_id from [$f parent_id] to [$l item_id], package_id [$l package_id]"
             #
             # reset the current_folder if necessary
-            # 
+            #
             if {${:current_folder_id} eq [$f parent_id]} {
               set :current_folder_id [$l item_id]
             }
@@ -261,7 +261,7 @@ namespace eval ::xowiki::includelet {
     if {$mb ne ""} {
       #
       # We have a menubar. Add folder-specific content to the
-      # menubar. 
+      # menubar.
       #
       if {$root_folder_is_current} {
         #
@@ -357,7 +357,7 @@ namespace eval ::xowiki::includelet {
       #set modebutton_link [$package_id make_link ${:current_folder} toggle-modebutton]
       #$mb add_extra_item -name admin -type ModeButton \
       #    -item [list url $modebutton_link on $modestate label admin]
-      
+
       $mb update_items \
           -package_id $package_id \
           -parent_id $opt_parent_id \
@@ -413,7 +413,7 @@ namespace eval ::xowiki::includelet {
     return $t
   }
 
-  folders instproc build_sub_tree { 
+  folders instproc build_sub_tree {
     {-node}
     {-folders}
 
@@ -424,7 +424,7 @@ namespace eval ::xowiki::includelet {
     set current_item_id [$current_object item_id]
     set sub_folders [list]
     set remaining_folders [list]
-    
+
     foreach f $folders {
       if {[$f parent_id] ne $current_item_id} {
         lappend remaining_folders $f
@@ -456,7 +456,7 @@ namespace eval ::xowiki::includelet {
       if {$is_current} {
         $node open_tree
 
-        if {[info commands ::__xowiki__MenuBar] ne "" 
+        if {[info commands ::__xowiki__MenuBar] ne ""
             && [::__xowiki__MenuBar exists submenu_pages(folder)]} {
           set owner [::__xowiki__MenuBar set submenu_owner(folder)]
           $subnode add_pages -full true \
@@ -498,7 +498,7 @@ namespace eval ::xowiki::includelet {
           }
         }
       }
-  
+
   child-resources instproc types_to_show {} {
     :get_parameters
     foreach type [split $show_types ,] {set ($type) 1}
@@ -564,7 +564,7 @@ namespace eval ::xowiki::includelet {
     # scoping in "-columns"
     set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
     set ::__xowiki_folder_link [$package_id make_link $current_folder bulk-delete {__csrf_token [::security::csrf::token]}]
-    
+
     switch [$package_id get_parameter PreferredCSSToolkit bootstrap] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
@@ -579,7 +579,7 @@ namespace eval ::xowiki::includelet {
                    }
                  }
                  # The "-html" options are currently ignored in the YUI
-                 # DataTable. Not sure, it can be integrated in the traditional way. 
+                 # DataTable. Not sure, it can be integrated in the traditional way.
                  #
                  HiddenField create ID
                  AnchorField create edit -CSSclass edit-item-button -label "" \
@@ -592,10 +592,10 @@ namespace eval ::xowiki::includelet {
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
                  AnchorField create name -label [_ xowiki.Page-name] -orderby name \
-                     -hide $::hidden(name) 
+                     -hide $::hidden(name)
                  Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
-                     -hide $::hidden(last_modified) 
-                 Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user) 
+                     -hide $::hidden(last_modified)
+                 Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user)
                  AnchorField create delete -CSSclass delete-item-button \
                      -hide $::hidden(delete) \
                      -label ""
@@ -610,7 +610,7 @@ namespace eval ::xowiki::includelet {
                    -publish_status $publish_status \
                    -object_types [:types_to_show] \
                    -extra_where_clause $extra_where_clause]
-    
+
     set package_id [::xo::cc package_id]
     set pkg ::$package_id
     set url [::xo::cc url]
@@ -627,7 +627,7 @@ namespace eval ::xowiki::includelet {
                          -path_encode false \
                          $name]
       array set icon [$c render_icon]
-      
+
       ad_try {
         set prettyName [$c pretty_name]
       } on error {errorMsg} {
@@ -663,15 +663,14 @@ namespace eval ::xowiki::includelet {
         set revision_id [$c set revision_id]
         [$t last_child] set publish_status.src /resources/xowiki/$image
         [$t last_child] set publish_status.href \
-            [export_vars -base [$package_id package_url]admin/set-publish-state \
-                 {state revision_id return_url}]
+            [export_vars -base $page_link {{m toggle-publish-status} return_url}]
       }
     }
 
     lassign [split $orderby ,] att order
     $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
     set resources_list "[$t asHTML]"
-    
+
     if {$menubar ne ""} {
       set mb [::xowiki::MenuBar new -id submenubar]
       # for now, just the first group
@@ -726,7 +725,7 @@ namespace eval ::xowiki::formfield {
 }
 
 
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:
