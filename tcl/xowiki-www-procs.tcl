@@ -1355,15 +1355,9 @@ namespace eval ::xowiki {
   #
 
   Page instproc www-revisions {} {
-    set context [list [list [${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
-    set title "[_ xotcl-core.revision_title] '${:name}'"
-    ::xo::Page set_property doc title $title
-    set content [next]
-    array set doc [::xo::Page get_property doc]
-    array set body [::xo::Page get_property body]
-    ${:package_id} return_page -adp [${:package_id} get_adp_template revisions] -variables {
-      content context {page_id ${:item_id}} title doc body
-    }
+    #set context [list [list [${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
+    #set title "[_ xotcl-core.revision_title] '${:name}'"
+    return [:www-view [next]]
   }
 
   #
@@ -1462,6 +1456,7 @@ namespace eval ::xowiki {
     set toc_link    [$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
     set import_link [$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
     set page_show_link [$page_package_id make_link -privilege admin [self] show-object return_url]
+    set view_link   [$page_package_id make_link -with_entities 0 [self] view return_url]
 
     set notification_subscribe_link ""
     if {[$context_package_id get_parameter "with_notifications" 1]} {
@@ -1487,10 +1482,10 @@ namespace eval ::xowiki {
 
       set clipboard_size [::xowiki::clipboard size]
       set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
+
       #
       # Define standard xowiki menubar
       #
-
       set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
       $mb add_menu -name Package -label [$context_package_id instance_name]
       $mb add_menu -name New -label [_ xowiki.menu-New]
@@ -1507,14 +1502,18 @@ namespace eval ::xowiki {
           -item [list text #xowiki.admin# url $admin_link]
       $mb add_menu_item -name Package.ImportDump \
           -item [list url $import_link]
+
       $mb add_menu_item -name New.Page \
           -item [list text #xowiki.new# url $new_link]
+
       $mb add_menu_item -name Page.Edit \
           -item [list text #xowiki.edit# url $edit_link]
-      $mb add_menu_item -name Page.Revisions \
-          -item [list text #xowiki.revisions# url $rev_link]
+      $mb add_menu_item -name Page.View \
+          -item [list text #xowiki.menu-Page-View url $view_link]
       $mb add_menu_item -name Page.Delete \
           -item [list text #xowiki.delete# url $delete_link]
+      $mb add_menu_item -name Page.Revisions \
+          -item [list text #xowiki.revisions# url $rev_link]
       if {[acs_user::site_wide_admin_p]} {
         $mb add_menu_item -name Page.Show \
             -item [list text "Show Object" url $page_show_link]

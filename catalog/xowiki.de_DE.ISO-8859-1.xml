@@ -150,10 +150,11 @@
   <msg key="menu-Package-Subscribe">Abonnieren</msg>
   <msg key="menu-Package-Toc">Inhaltsverzeichnis</msg>
   <msg key="menu-Page">Diese Seite</msg>
-  <msg key="menu-Page-Delete">Seite löschen</msg>
-  <msg key="menu-Page-Edit">Seite bearbeiten</msg>
+  <msg key="menu-Page-Delete">Löschen</msg>
+  <msg key="menu-Page-Edit">Bearbeiten</msg>
   <msg key="menu-Page-Revisions">Revisionen</msg>
-  <msg key="menu-Page-Show">Seite anzeigen</msg>
+  <msg key="menu-Page-Show">Objekt anzeigen</msg>
+  <msg key="menu-Page-View">Anzeigen</msg>  
   <msg key="minute">Minute</msg>
   <msg key="minutes">Minuten</msg>
   <msg key="modified_page">die veränderte Seite</msg>
