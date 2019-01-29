@@ -231,13 +231,15 @@ namespace eval ::xowiki::test {
         acs::test::reply_has_status_code $d 200
 
         ::xo::Package initialize -url $location
+        set lang [string range [lang::system::locale] 0 1]
         set page_info [::$package_id item_ref \
-                           -default_lang en \
+                           -default_lang $lang \
                            -parent_id $parent_id \
                            [dict get $form_content _name] \
                           ]
         set item_id [dict get $page_info item_id]
         #aa_log "lookup of $folder_name/page -> $item_id"
+        if {$item_id == 0} {error "Page not found"}
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
 
         set d [acs::test::http -user_id $user_id \
