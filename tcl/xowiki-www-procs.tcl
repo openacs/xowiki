@@ -1509,7 +1509,7 @@ namespace eval ::xowiki {
       $mb add_menu_item -name Page.Edit \
           -item [list text #xowiki.edit# url $edit_link]
       $mb add_menu_item -name Page.View \
-          -item [list text #xowiki.menu-Page-View url $view_link]
+          -item [list text #xowiki.menu-Page-View# url $view_link]
       $mb add_menu_item -name Page.Delete \
           -item [list text #xowiki.delete# url $delete_link]
       $mb add_menu_item -name Page.Revisions \
