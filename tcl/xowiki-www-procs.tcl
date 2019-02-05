@@ -131,6 +131,7 @@ namespace eval ::xowiki {
     ::xowiki::exporter export $clipboard
     ns_conn close
     ::xowiki::clipboard clear
+    ad_script_abort
     #${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
   }
 
