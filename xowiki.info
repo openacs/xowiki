@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="5.10.0d20" url="http://openacs.org/repository/download/apm/xowiki-5.10.0d20.apm">
+    <version name="5.10.0d21" url="http://openacs.org/repository/download/apm/xowiki-5.10.0d21.apm">
         <owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
         <summary>A xotcl-based enterprise wiki system with multiple object types</summary>
         <release-date>2017-08-06</release-date>
@@ -55,7 +55,7 @@ Some features:
         <license>BSD-Style</license>
         <maturity>2</maturity>
 
-        <provides url="xowiki" version="5.10.0d20"/>
+        <provides url="xowiki" version="5.10.0d21"/>
         <requires url="xotcl-core" version="5.10.0d11"/>
 	<requires url="acs-datetime" version="5.9.1"/>
         <requires url="acs-kernel" version="5.9.1"/>
@@ -119,6 +119,7 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, per-user specific information is used to determine the default language. Users with different language preferences will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used." section_name="URL"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="use_fallback_page_in_system_locale"  default="0" description="When this flag is set, use the page in the system locale as fallback rather than offering a link for creation of a page in that locale, when the page in the requested locale does not exist. Per default this flag is turned off." section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg

@@ -1033,6 +1033,7 @@ namespace eval ::xowiki {
     # get the default language if not specified
     if {![info exists lang]} {
       set lang [:default_language]
+      :log "no lang specified for '$object', use default_language <$lang>"
     }
     #:log "resolve_page '$object', default-lang $lang"
 
@@ -1082,11 +1083,20 @@ namespace eval ::xowiki {
     }
 
     #
-    # second, resolve object level, unless we got a value already
+    # Second, resolve on object level, unless we have already an
+    # item_id from above.
     #
     if {![info exists (item_id)]} {
       array set "" [:item_info_from_url -with_package_prefix false -default_lang $lang $object]
       #:log "item_info_from_url returns [array get {}]"
+    }
+
+    if {$(item_id) == 0 && [:get_parameter use_fallback_page_in_system_locale 0] eq "1"} {
+      set system_lang [string range [lang::system::locale] 0 1]
+      if {$system_lang ne $lang} {
+        array set "" [:item_info_from_url -with_package_prefix false -default_lang $system_lang $object]
+        :log "item_info_from_url based on system_lang <$system_lang> returns [array get {}]"
+      }
     }
 
     if {$(item_id) ne 0} {
@@ -1105,7 +1115,10 @@ namespace eval ::xowiki {
 
       return $page
     }
-    if {$simple} { return ""}
+
+    if {$simple} {
+      return ""
+    }
     #:log "NOT found object=$object"
 
     # try standard page
