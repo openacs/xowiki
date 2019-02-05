@@ -535,6 +535,7 @@ namespace eval ::xowiki {
 
     set full_file_name [:full_file_name]
     #:log "--F FILE=$full_file_name // ${:mime_type}"
+
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
       if {![file isdirectory /tmp/$geometry]} {
@@ -562,8 +563,8 @@ namespace eval ::xowiki {
         # way, ... but keep things compatible for now.
         #
         ::xo::cc set status_code 304
-        $package_id set delivery ns_returnnotice
-        return "not modified"
+        $package_id set delivery ns_return
+        return ""
       }
     }
     ns_set put [ns_conn outputheaders] Last-Modified [ns_httptime $modtime]
