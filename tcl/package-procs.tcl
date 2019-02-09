@@ -1091,11 +1091,15 @@ namespace eval ::xowiki {
       #:log "item_info_from_url returns [array get {}]"
     }
 
-    if {$(item_id) == 0 && [:get_parameter use_fallback_page_in_system_locale 0] eq "1"} {
-      set system_lang [string range [lang::system::locale] 0 1]
-      if {$system_lang ne $lang} {
-        array set "" [:item_info_from_url -with_package_prefix false -default_lang $system_lang $object]
-        :log "item_info_from_url based on system_lang <$system_lang> returns [array get {}]"
+    if {$(item_id) == 0 && [:get_parameter fallback_languages ""] ne ""} {
+      foreach fallback_lang [:get_parameter fallback_languages ""] {
+        if {$fallback_lang ne $lang} {
+          array set "" [:item_info_from_url -with_package_prefix false -default_lang $fallback_lang $object]
+          if { $(item_id) != 0 } {
+            :log "item_info_from_url based on fallback_lang <$fallback_lang> returns [array get {}]"
+            break
+          }
+        }
       }
     }
 
