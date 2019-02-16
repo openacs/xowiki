@@ -1,5 +1,5 @@
 ::xo::library doc {
-  XoWiki - adp generator procs: remove redundancy in adp files by generating it
+  XoWiki - ADP generator procs: remove redundancy in ADP files by generating it
 
   @creation-date 2007-03-13
   @author Gustaf Neumann
@@ -89,7 +89,7 @@ namespace eval ::xowiki {
 
     append _ \
         {<!-- The following DIV is needed for overlib to function! -->
-          <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>    
+          <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
           <div class='xowiki-content'>} \n
 
     append _ [:wikicmds_part] \n
@@ -152,7 +152,7 @@ namespace eval ::xowiki {
         return [subst -novariables -nobackslashes \
                     {<div style="float:left; width: 25%; font-size: 85%;
      background: url(/resources/xowiki/bw-shadow.png) no-repeat bottom right;
-     margin-left: 6px; margin-top: 6px; padding: 0px;            
+     margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8;">
                       <include src="/packages/xowiki/www/portlets/include" &__including_page=page
@@ -283,7 +283,7 @@ namespace eval ::xowiki {
 
         }]
       }
-  
+
   # oacs-view3-bootstrap3
   #
   # similar to oacs view3, but based on bootstrap
@@ -311,16 +311,16 @@ namespace eval ::xowiki {
         set open_page {-open_page [list @name@]}
         return [subst -novariables -nobackslashes {\
 
-    <div class="row"> 
+    <div class="row">
 
         <div class="col-md-9 col-sm-8 col-xs-12 col-md-push-3 col-sm-push-4"> <!-- content -->
             @top_includelets;noquote@
             <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
             <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
             <else><h1>@body.title@</h1></else>
-            <if @folderhtml@ not nil> 
-                <div class='folders' style=''>@folderhtml;noquote@</div> 
-                <div class='content-with-folders'>@content;noquote@</div> 
+            <if @folderhtml@ not nil>
+                <div class='folders' style=''>@folderhtml;noquote@</div>
+                <div class='content-with-folders'>@content;noquote@</div>
             </if>
             <else>@content;noquote@</else>
         </div> <!-- content -->
@@ -357,7 +357,7 @@ namespace eval ::xowiki {
     </div>
    <div class="row">
         <div class="col-xs-12">
-            <hr>        
+            <hr>
             @footer;noquote@
         </div>
     </div>
@@ -365,7 +365,7 @@ namespace eval ::xowiki {
       }
 
 
-  
+
   ####################################################################################
   #
   # view-book
@@ -462,7 +462,7 @@ if {$book_next_link ne ""} {
   #
   # view-book-no-ajax
   #
-  # adp identical to view-book.
+  # ADP identical to view-book.
   #
   ADP_Generator create view-book-no-ajax -master 1 -footer 1 -wikicmds 0 \
       -extra_header_stuff {
