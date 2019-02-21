@@ -1645,6 +1645,14 @@ namespace eval ::xowiki {
       # a. "adp_compile" / "adp_eval"
       # b. "return_page" / "adp_include"
       #
+      # Force xowiki css to be loaded first(ish), so we can override
+      # its styling via the theme (e.g. different buttons...). This
+      # currently needs template:: api directly, as resources from
+      # requireCSS might be (and normally are) loaded later than those
+      # from the theme, as often doesn't use requireCSS.
+      # ::xo::Page requireCSS urn:ad:css:xowiki
+      template::head::add_css -href urn:ad:css:xowiki -order 0
+      ##
       ::xo::Page requireCSS urn:ad:css:xowiki
       if {$footer ne ""} {
         template::add_body_script -script {
