@@ -4002,6 +4002,13 @@ namespace eval ::xowiki::includelet {
       append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
       append cols {HiddenField create ID} \n
     }
+    if {[info exists use_button(publish_status)]} {
+      append cols {ImageAnchorField create _publish_status -orderby _publish_status.src -src "" \
+                       -width 8 -height 8 -title "Toggle Publish Status" \
+                       -alt "publish status" -label [_ xowiki.publish_status] \
+                       -CSSclass publish-status-item-button \
+                       -html {style "padding: 2px;text-align: center;"}} \n
+    }
     if {[info exists use_button(edit)]} {
       append cols {AnchorField  create _edit -CSSclass edit-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
@@ -4116,6 +4123,7 @@ namespace eval ::xowiki::includelet {
       set wf_link [$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
     }
 
+    set this_url [ad_return_url]
     foreach p [$items children] {
       $p set package_id $package_id
       set __ia [dict merge $init_vars [$p instance_attributes]]
@@ -4138,6 +4146,21 @@ namespace eval ::xowiki::includelet {
         # relative to the package url
         set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
         $__c set ID $url
+      }
+      if {[info exists use_button(publish_status)]} {
+        $__c set _publish_status "&nbsp;"
+        $__c set _publish_status.title #xowiki.publish_status#
+        if {[$p set publish_status] eq "ready"} {
+          set image active.png
+          set state "production"
+        } else {
+          set image inactive.png
+          set state "ready"
+        }
+        set url [export_vars -base [$package_id package_url]admin/set-publish-state \
+                     {state {revision_id "[$p set revision_id]"} {return_url $this_url}}]
+        $__c set _publish_status.src /resources/xowiki/$image
+        $__c set _publish_status.href $url
       }
       if {[info exists use_button(edit)]} {
         $__c set _edit "&nbsp;"
