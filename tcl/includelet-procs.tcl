@@ -3848,6 +3848,7 @@ namespace eval ::xowiki::includelet {
           {-with_form_link true}
           {-with_categories}
           {-wf}
+          {-bulk_actions ""}
           {-buttons "edit delete"}
           {-renderer ""}
         }}
@@ -3989,6 +3990,18 @@ namespace eval ::xowiki::includelet {
     foreach b $buttons {set use_button($b) 1}
 
     set cols ""
+    # we currently support only 'export' as bulk action
+    set bulk_action_cols ""
+    foreach bulk_action $bulk_actions {
+      if {$bulk_action eq "export"} {
+        append actions [subst {Action bulk-delete -label [_ xowiki.export] -tooltip [_ xowiki.export] \
+                                   -url [$package_id package_url]admin/export}]\n
+      }
+    }
+    if {[llength $bulk_actions] > 0} {
+      append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
+      append cols {HiddenField create ID} \n
+    }
     if {[info exists use_button(edit)]} {
       append cols {AnchorField  create _edit -CSSclass edit-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
@@ -4120,6 +4133,12 @@ namespace eval ::xowiki::includelet {
       t1 add
       set __c [t1 last_child]
 
+      if {[llength $bulk_actions] > 0} {
+        # xowiki/www/admin/export expects a path to the object
+        # relative to the package url
+        set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
+        $__c set ID $url
+      }
       if {[info exists use_button(edit)]} {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
