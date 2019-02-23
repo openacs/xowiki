@@ -16,14 +16,28 @@ namespace eval ::xo {
         {mode default}
         {encoder noencode}
         {timewindow 600}
-        {sweepinterval 5}
+        {sweepinterval 60}
         {login_messages_p t}
         {logout_messages_p t}
         {conf {}}
+        {message_relay {bgdelivery connchan none}}
       }
 
   Chat instproc init {} {
     # :log "-- "
+
+    #
+    # Work through the list of provided message_relays an select a
+    # usable one.
+    #
+    set :mr ::xo::mr::none
+    foreach mr ${:message_relay} {
+      if {[::xo::mr::$mr can_be_used]} {
+        set :mr ::xo::mr::$mr
+        break
+      }
+    }
+
     set :now [clock clicks -milliseconds]
     if {![info exists :user_id]} {
       set :user_id [ad_conn user_id]
@@ -79,17 +93,19 @@ namespace eval ::xo {
     set user_id [expr {$uid ne "" ? $uid : ${:user_id}}]
     set color   [:user_color $user_id]
     set msg     [ns_quotehtml $msg]
-    # :log "-- msg=$msg"
 
-    if {[info commands ::thread::mutex] ne "" &&
-        [info commands ::bgdelivery] ne ""} {
-      # we could use the streaming interface
-      :broadcast_msg [Message new -volatile -time [clock seconds] \
-                            -user_id $user_id -color $color [list -msg $msg]]
-    }
+    # :log "-- msg=$msg"
+    :broadcast_msg [Message new -volatile -time [clock seconds] \
+                        -user_id $user_id -color $color [list -msg $msg]]
+
     :register_nsvs ${:now}.$user_id $user_id $msg $color [clock seconds]
-    # this in any case a valid result, but only needed for the polling interface
-    if {$get_new} {:get_new}
+    #
+    # This in any case a valid result, but only needed for the polling
+    # interface
+    #
+    if {$get_new} {
+      :get_new
+    }
   }
 
   Chat instproc current_message_valid {} {
@@ -134,9 +150,9 @@ namespace eval ::xo {
         }
       }
       ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
-      # :log "--c setting session_id ${:session_id}: ${:now}"
+      # :log "--chat setting session_id ${:session_id}: ${:now}"
     } else {
-      # :log "--c nothing new for ${:session_id}"
+      # :log "--chat nothing new for ${:session_id}"
     }
     :render
   }
@@ -148,7 +164,7 @@ namespace eval ::xo {
         :add [Message new -time $secs -user_id $user -msg $msg -color $color]
       }
     }
-    #my log "--c setting session_id ${:session_id}: ${:now}"
+    #my log "--chat setting session_id ${:session_id}: ${:now}"
     ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
     :render
   }
@@ -156,18 +172,16 @@ namespace eval ::xo {
   Chat instproc sweeper {} {
     #:log "--core-chat starting"
     foreach {user timestamp} [nsv_array get ${:array}-last-activity] {
-      #ns_log notice "--core-chat at user $user with $timestamp"
       set ago [expr {(${:now} - $timestamp) / 1000}]
       #ns_log notice "--core-chat Checking: now=${:now}, timestamp=$timestamp, ago=$ago"
-      # was 1200
       if {$ago > 300} {
         :logout -user_id $user -msg "auto logout"
         # ns_log warning "-user_id $user auto logout"
-        try {::bgdelivery do ::Subscriber sweep chat-[:chat_id]}
+        ${:mr} sweep chat-[:chat_id]
       }
     }
     :broadcast_msg [Message new -volatile -type "users" -time [clock seconds]]
-    :log "-- ending"
+    #:log "-- ending"
   }
 
   Chat instproc logout {{-user_id ""} {-msg ""}} {
@@ -209,12 +223,12 @@ namespace eval ::xo {
 
   Chat instproc user_active {user_id} {
     # was the user already active?
-    :log "--chat login already avtive? [nsv_exists ${:array}-last-activity $user_id]"
+    #:log "--chat login already avtive? [nsv_exists ${:array}-last-activity $user_id]"
     return [nsv_exists ${:array}-last-activity $user_id]
   }
 
   Chat instproc login {} {
-    :log "--chat login"
+    :log "--chat login mode=${:mode}"
     if {${:login_messages_p} && ![:user_active ${:user_id}]} {
       :add_msg -uid ${:user_id} -get_new false [_ xotcl-core.has_entered_the_room]
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
@@ -224,7 +238,7 @@ namespace eval ::xo {
       ::xo::clusterwide nsv_set ${:array}-last-activity ${:user_id} ${:now}
     }
     :encoder noencode
-    :log "--c setting session_id ${:session_id}: ${:now}"
+    #:log "--chat setting session_id ${:session_id}: ${:now} mode=${:mode}"
     return [:get_all]
   }
 
@@ -305,14 +319,14 @@ namespace eval ::xo {
 
   Chat instproc broadcast_msg {msg} {
     #:log "--chat broadcast_msg"
-    ::xo::clusterwide \
-        bgdelivery send_to_subscriber chat-[:chat_id] [:json_encode_msg $msg]
+    ${:mr} send_to_subscriber chat-[:chat_id] [:json_encode_msg $msg]
   }
 
   Chat instproc subscribe {-uid} {
     set user_id [expr {[info exists uid] ? $uid : ${:user_id}}]
     set color [:user_color $user_id]
-    bgdelivery subscribe chat-[:chat_id] "" [:mode]
+    #ns_log notice "--CHAT [self] subscribe chat-${:chat_id} -mode ${:mode} via <${:mr}>"
+    ${:mr} subscribe chat-${:chat_id} -mode ${:mode}
   }
 
   Chat instproc render {} {
@@ -339,7 +353,7 @@ namespace eval ::xo {
         :new -volatile -chat_id $chat_id -user_id 0 -session_id 0 -init -sweeper
       }
     }
-    :log "-- ending"
+    #:log "-- ending"
   }
 
   ChatClass method initialize_nsvs {} {
@@ -394,7 +408,7 @@ namespace eval ::xowiki {
     set mode polling
     #
     # Check, whether we have the tcllibthread and a sufficiently new
-    # aolserver/NaviServer supporting bgdelivery transfers.
+    # AOLserver/NaviServer supporting bgdelivery transfers.
     #
     if {[info commands ::thread::mutex] ne "" &&
         ![catch {ns_conn contentsentlength}]} {
@@ -403,9 +417,11 @@ namespace eval ::xowiki {
       #
       set mode scripted-streaming
       if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
-        # Explorer doesn't expose partial response until request state != 4, while Opera fires
-        # onreadystateevent only once. For this reason, for every browser except them, we could
-        # use the nice mode without the spinning load indicator.
+        #
+        # Explorer doesn't expose partial response until request state
+        # != 4, while Opera fires onreadystateevent only once. For
+        # this reason, for every browser except them, we could use the
+        # nice mode without the spinning load indicator.
         #
         set mode streaming
       }
@@ -473,11 +489,11 @@ namespace eval ::xowiki {
     switch -- $mode {
       polling {
         set jspath /resources/xowiki/chat.js
-        set subscribe_url ${base_url}&m=get_new
+        set subscribe_url ${base_url}&m=get_new&=polling
       }
       streaming {
         set jspath /resources/xowiki/streaming-chat.js
-        set subscribe_url ${base_url}&m=subscribe
+        set subscribe_url ${base_url}&m=subscribe&mode=streaming
       }
       scripted-streaming {
         set jspath /resources/xowiki/scripted-streaming-chat.js
@@ -551,6 +567,7 @@ namespace eval ::xowiki {
         -session_id $session_id \
         -mode       $mode \
         -conf       $conf
+    #:log "--CHAT created c1 with mode=$mode"
 
     set data [c1 login]
     if {$data ne ""} {
@@ -583,6 +600,8 @@ namespace eval ::xowiki {
         addSendPic();
       </script>
     }]
+
+    #:log "--CHAT create HTML for mode=$mode"
 
     switch -- $mode {
       "polling" {
