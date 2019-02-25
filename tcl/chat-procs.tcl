@@ -516,7 +516,7 @@ namespace eval ::xowiki {
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
     template::head::add_javascript -src /resources/xowiki/chat-common.js -order 20
-    template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin-common.js -order 21
+    template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 21
     template::head::add_javascript -src $jspath -order 30
 
     set send_url ${base_url}&m=add_msg&msg=

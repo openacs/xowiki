@@ -1,4 +1,4 @@
-// Common xowiki chat functions, mainly for data rendering.
+// Javascript side of the Classic Chat skin
 
 var previous_user_id = "";
 var current_color = "";
@@ -53,26 +53,6 @@ function addSendPic() {
 
     if (button != null) {
         button.innerHTML = sendPic;
-    }
-}
-
-// Simple function to create links
-function createLink(text) {
-    if (linkRegex != null) {
-        return text.replace(new RegExp(linkRegex,'g'), function(url) {
-            return '<a class="xowiki-chat-message-url" href="' + url + '">' + url + '</a>';
-        })
-    } else {
-        return text;
-    }
-}
-
-// Render the data, being a user or a message
-function renderData(json) {
-    if (json.type == "message") {
-        renderMessage(json);
-    } else if (json.type == "users") {
-        renderUsers(json);
     }
 }
 
