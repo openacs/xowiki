@@ -243,7 +243,6 @@ namespace eval ::xowiki::includelet {
 
     set :folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
                              -package_id $package_id]
-    ns_log notice FOLDER.FORM=[${:folder_form_id} serialize]
     set :link_form_id   [::xowiki::Weblog instantiate_forms -forms en:link.form \
                              -package_id $package_id]
     #my msg folder_form=${:folder_form_id}
