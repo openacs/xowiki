@@ -4772,6 +4772,7 @@ namespace eval ::xowiki::includelet {
           -skin
           -login_messages_p
           -logout_messages_p
+          -avatar_p
           -timewindow
         }}
       }
@@ -4789,7 +4790,7 @@ namespace eval ::xowiki::includelet {
     # We don't want to override Chat class default with our own and
     # therefore we build the command dynamically depending if these
     # variables are there or not.
-    set optional_vars [list login_messages_p logout_messages_p timewindow skin]
+    set optional_vars [list login_messages_p logout_messages_p timewindow skin avatar_p]
     foreach var $optional_vars {
       if {[info exists $var]} {
         lappend chat_cmd -${var} [set $var]

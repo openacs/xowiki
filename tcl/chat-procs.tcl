@@ -19,6 +19,7 @@ namespace eval ::xo {
         {sweepinterval 60}
         {login_messages_p t}
         {logout_messages_p t}
+        {avatar_p t}
         {conf {}}
         {message_relay {bgdelivery connchan none}}
       }
@@ -433,10 +434,10 @@ namespace eval ::xowiki {
   ::xo::ChatClass instproc login {
     -chat_id
     {-skin "classic"}
-    {-show_avatar_p "true"}
     {-package_id ""}
     {-mode ""}
     {-path ""}
+    -avatar_p
     -login_messages_p
     -logout_messages_p
     -timewindow
@@ -512,11 +513,19 @@ namespace eval ::xowiki {
     # Should we add a full screen link to the chat?
     set fs_link_p true
 
+    # Should we display avatars? (JavaScript can only take 'true' or 'false' as boolean values)
+    if {$avatar_p} {
+        set show_avatar true
+    } else {
+        set show_avatar false
+    }
+
     # small JavaScript library to obtain a portable ajax request object
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
-    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 20
-    template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 21
+    template::head::add_javascript -script "const show_avatar = $show_avatar;" -order 20
+    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 21
+    template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 22
     template::head::add_javascript -src $jspath -order 30
 
     set send_url ${base_url}&m=add_msg&msg=
@@ -588,12 +597,6 @@ namespace eval ::xowiki {
           addFullScreenLink();
         </script>
       }]
-    }
-
-    if {$show_avatar_p} {
-      append html {
-        <span id="xowiki-chat-show-avatar" hidden></span>
-      }
     }
 
     append html [subst {

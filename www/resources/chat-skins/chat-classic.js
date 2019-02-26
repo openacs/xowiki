@@ -150,8 +150,7 @@ function renderUsers(msg) {
         a.appendChild(user_block);
 
         // User picture
-        var show_avatar = document.getElementById('xowiki-chat-show-avatar');
-        if (show_avatar != null) {
+        if (show_avatar) {
             wrapper = document.createElement('div');
             wrapper.className = 'xowiki-chat-user-pic-wrap';
             img = document.createElement('img');
