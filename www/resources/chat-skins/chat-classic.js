@@ -76,7 +76,11 @@ function renderMessage(msg) {
 
     // User link
     a = document.createElement('a');
-    a.href = '/shared/community-member?user%5fid=' + user_id;
+    if (user_id != my_user_id) {
+        a.href = '/shared/community-member?user%5fid=' + user_id;
+    } else {
+        a.href = '/pvt/home';
+    }
     a.target = '_blank';
     a.className = 'xowiki-chat-user-link';
 
@@ -140,7 +144,11 @@ function renderUsers(msg) {
 
         // User link
         a = document.createElement('a');
-        a.href = '/shared/community-member?user%5fid=' + user_id;
+        if (user_id != my_user_id) {
+            a.href = '/shared/community-member?user%5fid=' + user_id;
+        } else {
+            a.href = '/pvt/home';
+        }
         a.target = '_blank';
         a.className = 'xowiki-chat-user-link';
 
