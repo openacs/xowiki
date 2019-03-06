@@ -24,7 +24,7 @@ namespace eval ::xowiki {
 
   Class create RSS -superclass XMLSyndication -parameter {
     maxentries 
-    {parent_ids ""}
+    {parent_ids:integer,0..n ""}
     {name_filter ""}
     {entries_of ""}
     {days ""}

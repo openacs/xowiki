@@ -35,6 +35,9 @@ namespace eval ::xowiki {
      } {
     set form_item_ids [list]
     foreach t [split $forms |] {
+      if {![regexp {^[[:alnum:]:._]+$} $t]} {
+        error "invalid form specificaton '$t'"
+      }
       #:log "trying to get $t // parent_id $parent_id"
       set page [$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
