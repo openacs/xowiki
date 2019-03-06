@@ -149,7 +149,7 @@ namespace eval ::xowiki {
         if {${:form_ids} ne ""} {
           append extra_where_clause " and bt.page_template in ('[join ${:form_ids} ',']') and bt.page_instance_id = bt.revision_id "
         } else {
-          :msg "could not lookup forms ${:entries_of}"
+          error "could not lookup forms ${:entries_of}"
         }
         set base_type ::xowiki::FormPage
         set base_table xowiki_form_pagei
