@@ -4,10 +4,10 @@ namespace eval ::xowiki {
   #
 
   Class create ::xowiki::Weblog -parameter {
-    package_id
-    {parent_id 0}
-    {page_size 20}
-    {page_number ""}
+    package_id:integer
+    {parent_id:integer 0}
+    {page_size:integer 20}
+    {page_number:integer,0..1 ""}
     date
     tag
     ptag
@@ -19,7 +19,7 @@ namespace eval ::xowiki {
     {no_footer false}
     {name_filter ""}
     {entry_label "Postings"}
-    {exclude_item_ids 0}
+    {exclude_item_ids:integer,0..n 0}
     {entry_renderer ::xowiki::Weblog::Entry}
     {entry_flag}
     {summary:boolean false}
