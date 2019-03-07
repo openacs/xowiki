@@ -178,7 +178,7 @@ namespace eval ::xo {
       if {$ago > 300} {
         :logout -user_id $user -msg "auto logout"
         # ns_log warning "-user_id $user auto logout"
-        ${:mr} sweep chat-[:chat_id]
+        ${:mr} sweep chat-${:chat_id}
       }
     }
     :broadcast_msg [Message new -volatile -type "users" -time [clock seconds]]
@@ -299,7 +299,7 @@ namespace eval ::xo {
           lappend message [subst {{"timestamp": "$timestamp", "user": "$user", "color": "$color", "user_id": "$user_id"}}]
         }
         set message "\[[join $message ,]\]"
-        return [subst {{"type": "$type", "chat_id": "[:chat_id]", "message": $message}\n}]
+        return [subst {{"type": "$type", "chat_id": "${:chat_id}", "message": $message}\n}]
       }
     }
   }
@@ -320,7 +320,7 @@ namespace eval ::xo {
 
   Chat instproc broadcast_msg {msg} {
     #:log "--chat broadcast_msg"
-    ${:mr} send_to_subscriber chat-[:chat_id] [:json_encode_msg $msg]
+    ${:mr} send_to_subscriber chat-${:chat_id} [:json_encode_msg $msg]
   }
 
   Chat instproc subscribe {-uid} {
