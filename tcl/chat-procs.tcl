@@ -437,7 +437,7 @@ namespace eval ::xowiki {
     {-package_id ""}
     {-mode ""}
     {-path ""}
-    -avatar_p
+    {-avatar_p true}
     -login_messages_p
     -logout_messages_p
     -timewindow
