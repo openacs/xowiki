@@ -490,7 +490,7 @@ namespace eval ::xowiki {
     switch -- $mode {
       polling {
         set jspath /resources/xowiki/chat.js
-        set subscribe_url ${base_url}&m=get_new&=polling
+        set subscribe_url ${base_url}&m=get_new&mode=polling
       }
       streaming {
         set jspath /resources/xowiki/streaming-chat.js
