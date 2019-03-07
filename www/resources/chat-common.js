@@ -1,5 +1,15 @@
 // Common xowiki chat functions
 
+function chatGetMyUserId() {
+    var my_user = document.getElementById('xowiki-my-user-id');
+    if (my_user == null) {
+        my_user_id = "";
+    } else {
+        my_user_id = my_user.innerText;
+    }
+    return my_user_id;
+}
+
 // Send the message
 function chatSendMsg(send_url, handler) {
     var msgField = document.getElementById('xowiki-chat-send');
