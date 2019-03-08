@@ -35,7 +35,11 @@ namespace eval ::xowiki {
      } {
     set form_item_ids [list]
     foreach t [split $forms |] {
-      if {![regexp {^/?[[:alnum:]:._-]+$} $t]} {
+      #
+      # The following regexp should include the majority of alid
+      # items refs.
+      #
+      if {![regexp {^[[:alnum:]:./_-]+$} $t]} {
         error "invalid form specificaton '$t'"
       }
       #:log "trying to get $t // parent_id $parent_id"
