@@ -64,7 +64,7 @@ namespace eval ::xowiki::notification {
   ad_proc -private get_url {id} {
     if {[::xo::dc 0or1row is_package_id {select 1 from apm_packages where package_id = :id}]} {
       #
-      # the specified id is an package_id
+      # the specified id is a package_id
       #
       set node_id [::xo::dc get_value get_node_id {select node_id from site_nodes where object_id = :id}]
       set url [site_node::get_url -node_id $node_id]
@@ -80,7 +80,7 @@ namespace eval ::xowiki::notification {
       # multiple xowiki instances, we give up here.
       return /categories
     }
-    # id is an revision_id
+    # id is a revision_id
     return [::xowiki::url $id]
   }
   

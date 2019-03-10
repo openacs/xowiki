@@ -4575,7 +4575,7 @@ namespace eval ::xowiki::includelet {
       }
 
   gravatar proc url {-email {-size 80}} {
-    # reusable helper proc to compute an gravatar URL
+    # reusable helper proc to compute a gravatar URL
     if {[info commands ns_md5] ne ""} {
       set md5 [string tolower [ns_md5 $email]]
     } else {
@@ -4707,7 +4707,7 @@ namespace eval ::xowiki::includelet {
 namespace eval ::xowiki::includelet {
   #############################################################################
   #
-  # Show the content of an html file in includelet
+  # Show the content of an HTML file in includelet
   #
   ::xowiki::IncludeletClass create html-file \
       -superclass ::xowiki::Includelet \

@@ -28,7 +28,7 @@ namespace eval ::xo {
     # :log "-- "
 
     #
-    # Work through the list of provided message_relays an select a
+    # Work through the list of provided message_relays and select a
     # usable one.
     #
     set :mr ::xo::mr::none

@@ -1778,7 +1778,7 @@ namespace eval ::xowiki {
   Page instproc can_save {} {
     #
     # Determine the parent object of the page to be saved. If the
-    # parent object is an page as well, then call can_contain. The
+    # parent object is a page as well, then call can_contain. The
     # function is just determining a Boolean value such it can be used
     # for testing insertability as well.
     #
