@@ -36,7 +36,7 @@ function Init() {
 }
 
 function onOK(caller) {
-    // Note, that this code assumes, that onOK() was clicked on a A
+    // Note that this code assumes that onOK() was clicked on a A
     // included in a TD, which contains the "name" of the page...
     var caller = caller.parentNode;
     var anchor = caller.firstChild;
