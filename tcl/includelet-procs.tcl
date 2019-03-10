@@ -1750,7 +1750,7 @@ namespace eval ::xowiki::includelet {
           set entry "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains [join $unresolved {, }]"
           lappend pages_with_unresolved_items $entry
         } else {
-          $page destroy
+          # $page destroy
         }
       }
     }
@@ -4804,6 +4804,26 @@ namespace eval ::xowiki::includelet {
   }
 }
 
+namespace eval ::xowiki::includelet {
+
+  ::xowiki::IncludeletClass create community-link \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-text ""}
+          {-url ""}
+        }}
+      } -instproc render {} {
+        :get_parameters
+        if {[info commands ::dotlrn_community::get_community_id] ne ""} { 
+          set community_id [::dotlrn_community::get_community_id]
+          set base_url [dotlrn_community::get_community_url $community_id]
+
+          return [subst {<a href="$base_url/$url">[ns_quotehtml $text]</a>}]
+        }
+      }
+}
 
 ::xo::library source_dependent
 
