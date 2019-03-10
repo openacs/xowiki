@@ -1632,7 +1632,7 @@ namespace eval ::xowiki {
   } {
     #
     # Obtain (partial) item info from id. It does not handle
-    # e.g. special link_types as for e.g file|image|js|css|swf, etc.
+    # e.g. special link_types as for e.g. file|image|js|css|swf, etc.
     #
     ::xo::db::CrClass get_instance_from_db -item_id $item_id
     set name [$item_id name]

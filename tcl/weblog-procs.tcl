@@ -40,7 +40,7 @@ namespace eval ::xowiki {
       # items refs.
       #
       if {![regexp {^[[:alnum:]:./_-]+$} $t]} {
-        error "invalid form specificaton '$t'"
+        error "invalid form specification '$t'"
       }
       #:log "trying to get $t // parent_id $parent_id"
       set page [$package_id get_page_from_item_ref \

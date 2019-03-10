@@ -19,7 +19,7 @@
 XoWiki is a Wiki implementation for OpenACS in XOTcl. Instead of
 trying to implement the full set of Wiki markup commands of systems
 like MediaWiki, XoWiki is based on a rich text editor and focuses more
-on integration with OpenACS (e.g categories, general comments,
+on integration with OpenACS (e.g. categories, general comments,
 ADP-includes). XoWiki combines aspects of wikis (ease of
 page-creation) with aspects of a content management system (revisions,
 re-usable items, multiple languages). Furthermore, XoWiki allows one to
@@ -119,7 +119,7 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="template_file"  default="view-default" description="Name of the ADP file to be used for viewing xowiki pages. The default value is 'view-default'. Alternatively, one can use 'view-book' to view pages in book style (needs page_ordering) or e.g. 'oacs-view' for providing a view with the category-tree on the left, or any other tailored view"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="top_includelet"  default="presence -interval &quot;10 minutes&quot;" description="Specify an xowiki includelet (defined in ::xowiki::includelet::*) to be included on top over every pages. In order or add e.g. on each page of this wiki instance a listing of the users currently active in this xowiki instance, set the value of this parameter e.g. to 'presence -interval &quot;10 minutes&quot;'. The valid parameters are defined by the xowiki includlets."/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="use_connection_locale"  default="0" description="When this flag is set, per-user specific information is used to determine the default language. Users with different language preferences will see under the same url different content. Per default this flag is turned off, and the package or system wide locale is used." section_name="URL"/>
-            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="fallback_languages"  default="" description="Specify space delimited two character codes for checking default languages. When this parameter is non-empty, try to get the page in the specified languages as fallback rather than offering a link for creation of a page in the requested locale. Per default this paramter is empty." section_name="URL"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="fallback_languages"  default="" description="Specify space delimited two character codes for checking default languages. When this parameter is non-empty, try to get the page in the specified languages as fallback rather than offering a link for creation of a page in the requested locale. Per default this parameter is empty." section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg
