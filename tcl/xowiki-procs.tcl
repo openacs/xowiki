@@ -343,6 +343,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_form_instance_item_index -col page_template,package_id
   ::xo::db::require index -table xowiki_form_instance_item_index -col parent_id
   ::xo::db::require index -table xowiki_form_instance_item_index -col parent_id,page_template
+  ::xo::db::require index -table xowiki_form_instance_item_index -col assignee
 
   #
   # Define helper views in connection with the form_instance_item_index:
