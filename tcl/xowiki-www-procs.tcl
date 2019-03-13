@@ -221,8 +221,24 @@ namespace eval ::xowiki {
     # use the actual package_id.
     set fp_package_id [:form_parameter "package_id" [:query_parameter "package_id" ${:package_id}]]
 
+    #
+    # Handling publish_status. When the publish_status is provided via
+    # query parameter, this has the highest priority. Otherwise use
+    # the publish_status according to the production_mode. We control
+    # this here explicitly, since when "name" is provided via query
+    # variable, the default production/ready selection fails, and we
+    # have to set the publish_status manually (see issue #3380).
+    #
     if {$publish_status eq ""} {
       set publish_status [:query_parameter "publish_status" ""]
+    }
+    if {$publish_status eq "" && [:exists_query_parameter name]} {
+      if {[${:package_id} get_parameter production_mode 0]} {
+        set publish_status "production"
+      } else {
+        set publish_status "ready"
+      }
+      ns_log notice "FINAL publish_status $publish_status"
     }
 
     ::xo::Package require $fp_package_id
