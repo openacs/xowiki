@@ -457,9 +457,6 @@ namespace eval ::xowiki {
       set package_id $xowiki_package_id
     }
 
-    set xowiki_path [lindex [site_node::get_url_from_object_id \
-                                 -object_id $xowiki_package_id] 0]
-
     if {$path eq ""} {
       set path [lindex [site_node::get_url_from_object_id \
                             -object_id $package_id] 0]
@@ -468,7 +465,7 @@ namespace eval ::xowiki {
     if {[string index $path end] ne "/"} {append path /}
     if {![info exists chat_id]} {set chat_id $package_id}
     set session_id [ad_conn session_id].[clock seconds]
-    set base_url [export_vars -base ${xowiki_path}chat -no_empty {
+    set base_url [export_vars -base /shared/ajax/chat -no_empty {
       {id $chat_id} {s $session_id} {class "[self]"}
     }]
 
