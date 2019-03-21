@@ -20,7 +20,7 @@
   <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once chice is correct.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
   <msg key="choose_file">Choose file</msg>
-  <msg key="ckeip_help">Inplace mode</msg>  
+  <msg key="ckeip_help">Inplace mode</msg>
   <msg key="clear">clear</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configure</msg>
@@ -46,21 +46,21 @@
   <msg key="entries_using_form">Entries for form %form%</msg>
   <msg key="error-delete_entries_first">This page is still used by %count% entries. Please delete these first before deleting this page.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint contains invalid characters</msg>
-  <msg key="error-form_constraint-unknown_attribute">From field '%name%' (class %class%) has unknown attribute '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_attribute">From field &#39;%name%&#39; (class %class%) has unknown attribute &#39;%entry%&#39;</msg>
   <msg key="error-form_constraint-unknown_editor">Unknown editor %editor%. Possible values are: %editors%</msg>
-  <msg key="error-form_constraint-unknown_spec_entry">From field '%name%' has unknown specification '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_spec_entry">From field &#39;%name%&#39; has unknown specification &#39;%entry%&#39;</msg>
   <msg key="error-includelet-adp_syntax_invalid">Syntax: adp &amp;lt;name of adp-file&amp;gt; {&amp;lt;argument list&amp;gt;}&lt;br/&gt;
 
-Invalid argument list: '%adp%'; must be of form: attribute value pairs (even number of elements)</msg>
+Invalid argument list: &#39;%adp%&#39;; must be of form: attribute value pairs (even number of elements)</msg>
   <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt;
 
 Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">evaluation of adp file returned error message: %errorMsg%</msg>
-  <msg key="error-includelet-error_during_render">Error in includelet '%page_name%':
+  <msg key="error-includelet-error_during_render">Error in includelet &#39;%page_name%&#39;:
 &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
   <msg key="error-includelet-nesting_to_deep">Nesting of includelets is too deep</msg>
-  <msg key="error-includelet-unknown">Error: includelet '%page_name%' unknown</msg>
-  <msg key="error_in_includelet">Error in includelet '{{%arg%}}' of page %name%:</msg>
+  <msg key="error-includelet-unknown">Error: includelet &#39;%page_name%&#39; unknown</msg>
+  <msg key="error_in_includelet">Error in includelet &#39;{{%arg%}}&#39; of page %name%:</msg>
   <msg key="event">Event</msg>
   <msg key="event-end_of_event">End Time</msg>
   <msg key="event-end_of_lecture">End of Lecture</msg>
@@ -195,7 +195,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-text">Content</msg>
   <msg key="Page-title">Page Title</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
-  <msg key="Page-validate_name">Another item with the name '%value%' exists already in this folder</msg>
+  <msg key="Page-validate_name">Another item with the name &#39;%value%&#39; exists already in this folder</msg>
   <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lower case letters, underscore, digits and dots</msg>
   <msg key="page_kind">Type</msg>
   <msg key="Page_pretty_name">XoWiki Page</msg>
@@ -226,10 +226,10 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PodcastItem_pretty_plural">Podcast Items</msg>
   <msg key="popular_tags_label">Popular tags</msg>
   <msg key="popular_tags_link">popular tags</msg>
-  <msg key="portlet_name_does_not_exist_error_long">There is no page with name &quot;%page_name%&quot; available.</msg>
+  <msg key="portlet_name_does_not_exist_error_long">There is no page with name &#34;%page_name%&#34; available.</msg>
   <msg key="portlet_page_does_not_exist_error_short">The given page does not exist</msg>
-  <msg key="portlet_title_exists_error_long">Please either change the existing portlets' name or the title of the xowiki page you want to add to the portal.</msg>
-  <msg key="portlet_title_exists_error_short">A portlet with the title '%page_title%' already exists in this portal.</msg>
+  <msg key="portlet_title_exists_error_long">Please either change the existing portlets&#39; name or the title of the xowiki page you want to add to the portal.</msg>
+  <msg key="portlet_title_exists_error_short">A portlet with the title &#39;%page_title%&#39; already exists in this portal.</msg>
   <msg key="pretty_name">Wiki</msg>
   <msg key="processing_objects">Processing objects:</msg>
   <msg key="prompt">Prompt</msg>
