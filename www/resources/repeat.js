@@ -8,7 +8,8 @@ var data_repeat = new Array();
  * this function just invisible items visible.
  */
 xowiki.repeat.addItem = function(e, json) {
-    var data = eval("(" + json + ')');
+    //var data = eval("(" + json + ')');
+    var data = JSON.parse(json);
     var items = $(e.parentNode).children(".repeatable:hidden");
     var currentItem = '';
     // the loop starts with 1 because items[0] is the template
@@ -66,7 +67,7 @@ xowiki.repeat.addItem = function(e, json) {
  */
 xowiki.repeat.newItem = function(e, json) {
 
-    var data = eval("(" + json + ')');
+    var data = JSON.parse(json);
     var item = e;
 
     var stats =  this.itemStats(item);
@@ -258,7 +259,8 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
             // Replace the ID in the name compontent inside the json
             // structure.
             //
-            var data = eval("(" + data_repeat_attribute + ')');
+            var data = JSON.parse(data_repeat_attribute);
+
             var compareLength = from.length;
             if (data.name.substring(0,compareLength) == from) {
                 var new_name = to + data.name.substring(compareLength,data.name.length);
@@ -282,7 +284,8 @@ xowiki.repeat.renameItem = function(top, e, from, to) {
  * the fields.
  */
 xowiki.repeat.delItem = function(e, json) {
-    var data = eval("(" + json + ')');
+
+    var data = JSON.parse(json);
     var item = e.parentNode;
     var stats =  this.itemStats(item);
     //console.info(item);

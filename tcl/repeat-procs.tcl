@@ -218,7 +218,7 @@ namespace eval ::xowiki::formfield {
     #
     html::fieldset [:get_attributes id {CSSclass class}] {
       set i 0
-      set clientData "{'min':${:min},'max':${:max}, 'name':'${:name}'}"
+      set clientData [subst {{"min":${:min},"max":${:max}, "name":"${:name}"}}]
       set CSSclass   "[:form_widget_CSSclass] repeatable"
       set providedValues [:count_values [:value]]
       if {${:min} > $providedValues} {
@@ -237,8 +237,11 @@ namespace eval ::xowiki::formfield {
           lappend atts style "display: none;"
         }
         ::html::div $atts {
-          $c render_input 
-          # compound fields - link not shown if we are not rendering for the template and copy the template afterwards
+          $c render_input
+          #
+          # Compound fields - link not shown if we are not rendering
+          # for the template and copy the template afterwards.
+          #
           if {!$containerIsDisabled || $containerIsPrototype} {
             set del_id "repeat-del-link-[$c set id]"
             ::html::a -href "#" \
@@ -248,7 +251,7 @@ namespace eval ::xowiki::formfield {
                 }
             template::add_event_listener \
                 -id $del_id \
-                -script [subst {xowiki.repeat.delItem(this,\"$clientData\");}]
+                -script [subst {xowiki.repeat.delItem(this,'$clientData');}]
           }
         }
         incr i
@@ -257,7 +260,7 @@ namespace eval ::xowiki::formfield {
       if {!$containerIsDisabled || $containerIsPrototype } {
         set hidden [expr {[:count_values [:value]] == ${:max} ? "display: none;" : ""}]
         set add_id "repeat-add-link-[:id]"
-        ns_log notice "... add another for ${:name}"
+        #ns_log notice "... add another for ${:name}"
         html::a -href "#" \
             -id $add_id \
             -style $hidden \
@@ -266,7 +269,7 @@ namespace eval ::xowiki::formfield {
             }
         template::add_event_listener \
             -id $add_id \
-            -script [subst {xowiki.repeat.newItem(this,\"$clientData\");}]
+            -script [subst {xowiki.repeat.newItem(this,'$clientData');}]
       }
     }
   }
@@ -299,13 +302,30 @@ namespace eval ::xowiki::formfield {
   }
 
   repeatContainer instproc value_if_nothing_is_returned_from_form {default} {
+    #
     # Here we have to distinguish between two cases to:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
     # - view mode: the fields were deactivated (made insensitive);
     #   this means: keep the old value
-
-    if {[info exists :disabled]} {return $default} else {return ""}
+    #
+    #ns_log notice "=== repeatContainer value_if_nothing_is_returned_from_form <$default>"
+    set result ""
+    if {![info exists :disabled]} {
+      #
+      # Leave the first entry (template on position "0") untouched
+      #
+      set result [lrange $default 0 1]
+      #
+      # Return values from the included components
+      #
+      set l [:count_values $default]
+      foreach c [lrange ${:components} 1 $l] d [lrange $default 1 $l] {
+        lappend result [$c name] [$c value_if_nothing_is_returned_from_form $d]
+      }
+      #ns_log notice "=== repeatContainer computes $result"
+    }
+    return $result
   }
 
   Class create repeattest -superclass CompoundField

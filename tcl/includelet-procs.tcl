@@ -4010,16 +4010,16 @@ namespace eval ::xowiki::includelet {
                        -html {style "padding: 2px;text-align: center;"}} \n
     }
     if {[info exists use_button(edit)]} {
-      append cols {AnchorField  create _edit -CSSclass edit-item-button -label "" \
+      append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     if {[info exists use_button(view)]} {
-      append cols {AnchorField  create _view -CSSclass view-item-button -label "" \
+      append cols {AnchorField create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
-      append cols [list AnchorField  create $fn \
+      append cols [list AnchorField create $fn \
                        -label [$__ff($fn) label] \
                        -richtext 1 \
                        -orderby $fn \
