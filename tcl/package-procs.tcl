@@ -201,7 +201,7 @@ namespace eval ::xowiki {
       }
     } elseif {[info exists name]} {
       #
-      # Determine lang and name from a names as it stored in the database
+      # Determine lang and name from a name as it stored in the database.
       #
       if {![regexp {^(..):(.*)$} $name _ lang local_name]} {
         if {![regexp {^(file|image|swf):(.*)$} $name _ lang local_name]} {
