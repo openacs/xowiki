@@ -2630,6 +2630,7 @@ namespace eval ::xowiki::formfield {
 
 
   checkbox instproc value_if_nothing_is_returned_from_form {default} {
+    
     # Here we have to distinguish between two cases to:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
@@ -2637,7 +2638,11 @@ namespace eval ::xowiki::formfield {
     #   this means: keep the old value
 
     #:msg "${:name} disabled=[info exists :disabled]"
-    if {[info exists :disabled]} {return $default} else {return ""}
+    if {[info exists :disabled]} {
+      return $default
+    } else {
+      return ""
+    }
   }
   checkbox instproc render_input {} {
     # identical to radio, except "checkbox" type and "in" expression for value;
