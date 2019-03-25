@@ -3253,8 +3253,7 @@ namespace eval ::xowiki::formfield {
     set link_type [${:object} get_property_from_link_page link_type]
     ${:object} references resolved [list $item_id $link_type]
 
-    set resolve_local [:resolve_local]
-    if {$resolve_local} {
+    if {${:resolve_local}} {
       #
       # resetting esp. the item-id is dangerous.
       # Therefore we reset it immediately after the rendering
