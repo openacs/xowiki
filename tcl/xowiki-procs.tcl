@@ -2413,7 +2413,7 @@ namespace eval ::xowiki {
       return ""
     }
 
-    if {[info exists :__RESOLVE_LOCAL] && [$l is_self_link]} {
+    if {[info exists :__RESOLVE_LOCAL] && [$l exists is_self_link] && [$l is_self_link]} {
       :set_resolve_context -package_id [:physical_package_id] -parent_id [:physical_parent_id]
       $l parent_id [:anchor_parent_id]
       set html [$l render]
