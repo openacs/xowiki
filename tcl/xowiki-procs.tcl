@@ -1326,10 +1326,9 @@ namespace eval ::xowiki {
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
 
     set props [::xo::cc cache [list ${:item_id} compute_link_properties $item_ref]]
-    array set "" $props
-    if {[info exists ($property)]} {
-      #${:item_id} msg "prop $property ==> $($property)"
-      return $($property)
+    if {[info exists [dict exists $props $property]} {
+      #${:item_id} msg "prop $property ==> [dict get $props $property]"
+      return [dict get $props $property]
     }
     return $default
   }
@@ -2213,9 +2212,9 @@ namespace eval ::xowiki {
 
   Page instproc detail_link {} {
     if {[info exists :instance_attributes]} {
-      set __ia ${:instance_attributes}
-      if {[dict exists $__ia detail_link] && [dict get $__ia detail_link] ne ""} {
-        return [dict get $__ia detail_link]
+      if {[dict exists ${:instance_attributes} detail_link]
+          && [dict get ${:instance_attributes} detail_link] ne ""} {
+        return [dict get ${:instance_attributes} detail_link]
       }
     }
     return [:pretty_link]
@@ -2277,8 +2276,7 @@ namespace eval ::xowiki {
     # set name file:$stripped_name
     #  }
 
-    array set "" [:get_anchor_and_query $link]
-
+    set link_info [:get_anchor_and_query $link]
     set parent_id [expr {$package_id == ${:package_id} ?
                          ${:parent_id} : [$package_id folder_id]}]
 
@@ -2286,16 +2284,18 @@ namespace eval ::xowiki {
     set use_package_path true
     set is_self_link false
 
-    if {[regexp {^:(..):(.+)$} $(link) _ lang stripped_name]} {
-      # we found a language link (it starts with a ':')
+    if {[regexp {^:(..):(.+)$} [dict get $link_info link] _ lang stripped_name]} {
+      #
+      # a language link (it starts with a ':')
+      #
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
                         -default_lang [:lang] \
                         -parent_id $parent_id \
                         ${lang}:$stripped_name]
-      set (link_type) language
+      dict set link_info link_type language
 
-    } elseif {[regexp {^[.]SELF[.]/(.*)$} $(link) _ (link)]} {
+    } elseif {[regexp {^[.]SELF[.]/(.*)$} [dict get $link_info link] _ (link)]} {
       #
       # Remove ".SELF./" from the path and search for the named
       # resource (e.g. the image name) under the current (physical)
@@ -2307,36 +2307,45 @@ namespace eval ::xowiki {
                         -use_package_path $use_package_path \
                         -default_lang [:lang] \
                         -parent_id [:physical_item_id] \
-                        $(link)]
+                        [dict get $link_info link]]
       #:log "SELF-LINK returns [array get {}]"
 
     } else {
       #
-      # a plain link, search relative to the parent
+      # A plain link, search relative to the parent.
       #
       array set "" [$package_id item_ref \
                         -use_package_path $use_package_path \
                         -default_lang [:lang] \
                         -parent_id $parent_id \
-                        $(link)]
+                        [dict get $link_info link]]
     }
 
-    #:log "link '$(link)' package_id $package_id ${:package_id} => [array get {}]"
+    #:log "link '[dict get $link_info link]' package_id $package_id ${:package_id} => [array get {}]"
 
-    if {$label eq $arg} {set label $(link)}
+    if {$label eq $arg} {
+      set label [dict get $link_info link]
+    }
 
-    set item_name [string trimleft $(prefix):$(stripped_name) :]
+    set item_name [string trimleft [dict get $link_info prefix]:[dict get $link_info stripped_name] :]
     Link create [self]::link \
-        -page [self] -form $(form) \
-        -type $(link_type) [list -name $item_name] -lang $(prefix) \
-        [list -anchor $(anchor)] [list -query $(query)] \
-        [list -stripped_name $(stripped_name)] [list -label $label] \
-        -parent_id $(parent_id) -item_id $(item_id) -package_id $package_id \
+        -page [self] \
+        -form [dict get $link_info form] \
+        -type [dict get $link_info link_type] \
+        [list -name $item_name] \
+        -lang [dict get $link_info prefix] \
+        [list -anchor [dict get $link_info anchor]] \
+        [list -query [dict get $link_info query]] \
+        [list -stripped_name [dict get $link_info stripped_name]] \
+        [list -label $label] \
+        -parent_id [dict get $link_info parent_id] \
+        -item_id [dict get $link_info item_id] \
+        -package_id $package_id \
         -is_self_link $is_self_link
 
     # in case, we can't link, flush the href
-    if {[:can_link $(item_id)] == 0} {
-      :references refused $(item_id)
+    if {[:can_link [dict get $link_info item_id]] == 0} {
+      :references refused [dict get $link_info item_id]
       [self]::link href ""
     }
 
@@ -2353,7 +2362,9 @@ namespace eval ::xowiki {
   }
 
   Page instproc new_link {-object_type -name -title -nls_language -return_url -parent_id page_package_id} {
-    if {[info exists parent_id] && $parent_id eq ""} {unset parent_id}
+    if {[info exists parent_id] && $parent_id eq ""} {
+      unset parent_id
+    }
     return [$page_package_id make_link $page_package_id \
                 edit-new object_type name title nls_language return_url parent_id autoname]
   }
@@ -2363,7 +2374,9 @@ namespace eval ::xowiki {
       next
     } else {
       set template_id [:page_template]
-      if {![info exists parent_id]} {set parent_id [$page_package_id folder_id]}
+      if {![info exists parent_id]} {
+        set parent_id [$page_package_id folder_id]
+      }
       set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
       return [$page_package_id make_link -link $form $template_id \
                   create-new return_url name title nls_language]
@@ -3883,7 +3896,6 @@ namespace eval ::xowiki {
         ::xo::Package require $package_id
       }
     }
-    # array set :__ia [:instance_attributes]
     next
   }
   FormPage instproc initialize {} {

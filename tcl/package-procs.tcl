@@ -606,20 +606,22 @@ namespace eval ::xowiki {
     set name $path
 
     if {[regexp {^/(/.*)$} $path _ path]} {
-      array set "" [site_node::get_from_url -url $path]
-      if {$(package_key) eq "acs-subsite"} {
+      set siten_node_info [site_node::get_from_url -url $path]
+      set package_key [dict get $siten_node_info package_key]
+
+      if {$package_key eq "acs-subsite"} {
         # the main site
         return 0
       }
-      set package_id $(package_id)
-      set package_class [::xo::PackageMgr get_package_class_from_package_key $(package_key)]
+      set package_id [dict get $siten_node_info package_id]
+      set package_class [::xo::PackageMgr get_package_class_from_package_key $package_key]
       if {$package_class ne ""} {
         # we found an xo::Package, but is it an xowiki package?
         set classes [list $package_class {*}[$package_class info heritage]]
         if {"::xowiki::Package" in $classes} {
           # yes, it is an xowiki::package, compute the name and return the package_id
           ::xowiki::Package require $package_id
-          set name [string range $path [string length $(url)] end]
+          set name [string range $path [string length [dict get $siten_node_info url]] end]
           return $package_id
         }
       }
@@ -640,14 +642,19 @@ namespace eval ::xowiki {
       # When we have an absolute url, we are working on a different
       # package.
       #
-      array set "" [site_node::get_from_url -url $fullurl]
-      if {$(package_id) eq ""} {return ""}
-      if {$(name) ne ""} {set package_id $(package_id)}
+      set siten_node_info [site_node::get_from_url -url $fullurl]
+
+      if {[dict get $siten_node_info package_id] eq ""} {
+        return ""
+      }
+      if {[dict get $siten_node_info name] ne ""} {
+        set package_id $(package_id)
+      }
       #
       # Use site-node url as package_url and get the full path within
       # under the xo* sitenode (provided path)
       #
-      set url $(url)
+      set url [dict get $siten_node_info url]
       set provided_name [string range $fullurl [string length $url] end]
       ::xowiki::Package require $package_id
       :get_lang_and_name -default_lang $default_lang -path $page_name lang stripped_name
