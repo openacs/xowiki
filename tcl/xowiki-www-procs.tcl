@@ -2211,8 +2211,19 @@ namespace eval ::xowiki {
             set f     [:lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
             #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
-            if {![string match "*.*" $att]} {dict set :instance_attributes $att $value}
-            if {[$f exists is_category_field]} {foreach v $value {lappend category_ids $v}}
+            if {![string match "*.*" $att]} {
+              #
+              # If the field is not a compound field, put the revieved
+              # value into the instance attributes. The containerized
+              # input values con compound fields are processed below.
+              #
+              dict set :instance_attributes $att $value
+            }
+            if {[$f exists is_category_field]} {
+              foreach v $value {
+                lappend category_ids $v
+              }
+            }
           }
         }
       }
@@ -2239,9 +2250,9 @@ namespace eval ::xowiki {
         default {
           set f  [:lookup_form_field -name $c $form_fields]
           set processed($c) 1
-          #:msg "container $c: compute value of $c [$f info class]"
+          #:log "container $c: compute value of $c [$f info class]"
           dict set :instance_attributes $c [$f value]
-          #:msg "container $c: is set to '[dict get ${:instance_attributes} $c]'"
+          #:log "container $c: is set to '[dict get ${:instance_attributes} $c]'"
         }
       }
     }
@@ -2252,7 +2263,7 @@ namespace eval ::xowiki {
     # data and to validate it.
     #
     foreach f $form_fields {
-      #:msg "validate $f [$f name] [info exists processed([$f name])]"
+      #:log "validate $f [$f name] [info exists processed([$f name])]"
       set att [$f name]
 
       # Certain form field types (e.g. checkboxes) are not transmitted, if not
@@ -2271,6 +2282,7 @@ namespace eval ::xowiki {
             set default ""
             if {[info exists :$varname]} {set default [set :$varname]}
             set v [$f value_if_nothing_is_returned_from_form $default]
+            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {$v ne $default} {
               if {![string match "*.*" $att]} {set :$varname $value}
@@ -2283,9 +2295,11 @@ namespace eval ::xowiki {
             # the old value is due to "show-solution" in the qti
             # use-case. Maybe one should alter this use-case to
             # simplify the semantics here.
-            if {[dict exists ${:instance_attributes} $att]} {set default [dict get ${:instance_attributes} $att]}
+            if {[dict exists ${:instance_attributes} $att]} {
+              set default [dict get ${:instance_attributes} $att]
+            }
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:msg "value_if_nothing_is_returned_from_form '$default' => '$v' (type=[$f info class])"
+            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {![string match "*.*" $att]} {dict set :instance_attributes $att $value}
           }
