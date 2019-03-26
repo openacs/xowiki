@@ -3311,7 +3311,7 @@ namespace eval ::xowiki::formfield {
     }
     return 1
   }
-
+  
   CompoundField instproc set_disabled {disable} {
     #:msg "${:name} set disabled $disable"
     if {$disable} {
@@ -3410,11 +3410,34 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc get_compound_value {} {
+    #
     # Set the internal representation based on the components values.
+    #
+    set cc [[${:object} package_id] context]
+
     set value [list]
     foreach c [:components] {
-      #:msg "$c [$c info class] lappending [list [$c name] [$c value]]"
-      lappend value [$c name] [$c value]
+      #
+      # Handle here the special cases, when no data is transmitted
+      # from a form (e.g. when e.g. a checkbox is not selected).
+      #
+      if {![$cc exists_form_parameter [$c name]]} {
+        #
+        # We have no data. Determine, what this means in terms of the
+        # form-field value.
+        #
+        set default ""
+        if {[$c exists default]} {
+          set default [$c default]
+        }
+        set v [$c value_if_nothing_is_returned_from_form $default]
+      } else {
+        #
+        # We have some data, and it was already set.
+        #
+        set v [$c value]
+      }
+      lappend value [$c name] $v
     }
     #:msg "${:name}: get_compound_value returns value=$value"
     return $value
@@ -4112,6 +4135,17 @@ namespace eval ::xowiki::formfield {
 
 namespace eval ::xowiki::formfield {
 
+  # Class create mycompound -superclass CompoundField
+  #
+  # mycompound instproc initialize {} {
+  #   if {${:__state} ne "after_specs"} return
+  #   :create_components  [subst {
+  #     {start_on_publish {checkbox,default=t,options={YES t}}}
+  #     {whatever   {text}}
+  #   }]
+  #   set :__initialized 1
+  # }
+
   ###########################################################
   #
   # ::xowiki::formfield::class
@@ -4130,6 +4164,8 @@ namespace eval ::xowiki::formfield {
     next
   }
 }
+
+
 
 ::xo::library source_dependent
 
