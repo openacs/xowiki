@@ -2630,7 +2630,7 @@ namespace eval ::xowiki::formfield {
 
 
   checkbox instproc value_if_nothing_is_returned_from_form {default} {
-    
+
     # Here we have to distinguish between two cases to:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
@@ -3311,7 +3311,7 @@ namespace eval ::xowiki::formfield {
     }
     return 1
   }
-  
+
   CompoundField instproc set_disabled {disable} {
     #:msg "${:name} set disabled $disable"
     if {$disable} {
