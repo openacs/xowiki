@@ -4411,7 +4411,9 @@ namespace eval ::xowiki {
     #     {property-name operator property-value}
     #
     lassign $value property_name op property_value
-    if {![info exists property_value]} {return 0}
+    if {![info exists property_value]} {
+      return 0
+    }
 
     #:log "$value => [:adp_subst $value]"
     array set wc [::xowiki::FormPage filter_expression [:adp_subst $value] &&]
