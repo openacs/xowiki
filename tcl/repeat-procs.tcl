@@ -301,33 +301,6 @@ namespace eval ::xowiki::formfield {
     return $html
   }
 
-  repeatContainer instproc value_if_nothing_is_returned_from_form {default} {
-    #
-    # Here we have to distinguish between two cases to:
-    # - edit mode: somebody has removed a mark from a check button;
-    #   this means: clear the field
-    # - view mode: the fields were deactivated (made insensitive);
-    #   this means: keep the old value
-    #
-    #ns_log notice "=== repeatContainer value_if_nothing_is_returned_from_form <$default>"
-    set result ""
-    if {![info exists :disabled]} {
-      #
-      # Leave the first entry (template on position "0") untouched
-      #
-      set result [lrange $default 0 1]
-      #
-      # Return values from the included components
-      #
-      set l [:count_values $default]
-      foreach c [lrange ${:components} 1 $l] d [lrange $default 1 $l] {
-        lappend result [$c name] [$c value_if_nothing_is_returned_from_form $d]
-      }
-      #ns_log notice "=== repeatContainer computes $result"
-    }
-    return $result
-  }
-
   Class create repeattest -superclass CompoundField
   repeattest instproc initialize {} {
     :create_components  [subst {
