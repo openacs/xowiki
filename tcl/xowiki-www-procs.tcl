@@ -1232,7 +1232,7 @@ namespace eval ::xowiki {
     the elements of this folder via the "child-resources" includelet.
 
     If The above fails, it redirects to the starting page.
-    
+
   } {
     if {[:is_form]} {
       #
@@ -1291,10 +1291,10 @@ namespace eval ::xowiki {
   #
 
   Page ad_instproc www-popular-tags {} {
-    
+
     AJAX called function, returns an HTML snippet with the popular
     tags.
-    
+
   } {
     set limit       [:query_parameter "limit" 20]
     set weblog_page [${:package_id} get_parameter weblog_page weblog]
