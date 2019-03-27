@@ -1192,9 +1192,16 @@ namespace eval ::xowiki {
   #
   # Externally callable method: toggle-modebutton
   #
-  FormPage instproc www-toggle-modebutton {} {
+  FormPage ad_instproc www-toggle-modebutton {} {
+
+    AJAX called function, called via POST. The function toggles the
+    state of a button in the backend. The client provides the name of
+    the button as form field named "button". If none is provided, the
+    button is named as default "admin"
+
+  } {
     #
-    # This method is typically called via modebutton in a POST request via ajax;
+    # Check, if this function was called via POST
     #
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
@@ -1208,14 +1215,25 @@ namespace eval ::xowiki {
     set form [ns_getform]
     set button [ns_set get $form button admin]
     ::xowiki::mode::$button toggle
-    #${:package_id} returnredirect [ns_set get $form return_url [::xo::cc url]]
     ns_return 200 text/plain ok
   }
 
   #
   # Externally callable method: list
   #
-  Page instproc www-list {} {
+  Page ad_instproc www-list {} {
+
+    Provide a listing of pages.
+
+    Then this method is called on any kind of Form, it returns the
+    form instances via the "form-usages" includelet.
+
+    When this method is caleled on any kind of folder pages, it returns
+    the elements of this folder via the "child-resources" includelet.
+
+    If The above fails, it redirects to the starting page.
+    
+  } {
     if {[:is_form]} {
       #
       # The following line is here to provide a short description for
@@ -1272,7 +1290,12 @@ namespace eval ::xowiki {
   # Externally callable method: popular-tags
   #
 
-  Page instproc www-popular-tags {} {
+  Page ad_instproc www-popular-tags {} {
+    
+    AJAX called function, returns an HTML snippet with the popular
+    tags.
+    
+  } {
     set limit       [:query_parameter "limit" 20]
     set weblog_page [${:package_id} get_parameter weblog_page weblog]
     set href        [${:package_id} pretty_link -parent_id [${:package_id} folder_id] $weblog_page]?summary=1
