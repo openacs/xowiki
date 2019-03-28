@@ -938,6 +938,7 @@ namespace eval ::xowiki {
       #
       # Build the input form and display the current values.
       #
+
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [ad_conn locale]
@@ -945,6 +946,7 @@ namespace eval ::xowiki {
 
       #array set __ia ${:instance_attributes}
       :load_values_into_form_fields $form_fields
+      
       foreach f $form_fields {set ff([$f name]) $f }
 
       #
@@ -953,6 +955,7 @@ namespace eval ::xowiki {
       #
       #:log "my is_new_entry ${:name} = [:is_new_entry ${:name}]"
       if {[:is_new_entry ${:name}]} {
+
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [${:page_template} name]]
           set name [::xowiki::autoname new -name $basename -parent_id ${:parent_id}]
@@ -2501,19 +2504,47 @@ namespace eval ::xowiki {
     # is presented; can be overloaded
   }
 
+  FormPage ad_instproc combine_data_and_form_field_default {is_new form_field data_value} {
+
+    Combine the value of the form field (e.g. determined by the
+    default) with the value in the instance attributes. This function
+    decides, whether it should honor the data value or the form fiel
+    value for e.g. rendering forms.
+
+    @param is_new is this a new entry?
+    @param form_field object id of the form field
+    @param data_value the data from the instance attributes.
+  } {
+    set form_field_value [$form_field value]
+    if {$is_new && $form_field_value ne "" && $data_value eq ""} {
+      #
+      # On fresh entries, take the default value in case the old
+      # value is blank.
+      #
+    } else {
+      #
+      # Reset for form field value to the external
+      # respresentation of the data value.
+      #
+      $form_field value [$form_field convert_to_external $data_value]
+    }
+  }
+
+  
   FormPage instproc load_values_into_form_fields {form_fields} {
+    set is_new [:is_new_entry ${:name}]
+
     foreach f $form_fields {
       set att [$f name]
       switch -glob $att {
         __* {}
         _* {
           set varname [string range $att 1 end]
-          $f value [$f convert_to_external [set :$varname]]
+          :combine_data_and_form_field_default $is_new $f [set :$varname]
         }
         default {
           if {[dict exists ${:instance_attributes} $att]} {
-            #:msg "setting $f ([$f info class]) value [dict get ${:instance_attributes} $att]"
-            $f value [$f convert_to_external [dict get ${:instance_attributes} $att]]
+            :combine_data_and_form_field_default $is_new $f [dict get ${:instance_attributes} $att]
           }
         }
       }
