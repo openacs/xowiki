@@ -431,8 +431,8 @@ namespace eval ::xowiki {
     return $mode
   }
 
-  ::xo::ChatClass instproc login {
-    -chat_id
+  ::xo::ChatClass ad_instproc login {
+    -chat_id:required
     {-skin "classic"}
     {-package_id ""}
     {-mode ""}
@@ -442,28 +442,12 @@ namespace eval ::xowiki {
     -logout_messages_p
     -timewindow
   } {
+    Logs into a chat
+  } {
     #:log "--chat"
     if {![ns_conn isconnected]} return
     auth::require_login
 
-    if {[ad_conn package_key] eq "xowiki"} {
-      set xowiki_package_id [ad_conn package_id]
-    } else {
-      set xowiki_package_id [::xowiki::Package first_instance -privilege read \
-                                 -party_id [ad_conn user_id]]
-    }
-
-    if {$package_id eq ""} {
-      set package_id $xowiki_package_id
-    }
-
-    if {$path eq ""} {
-      set path [lindex [site_node::get_url_from_object_id \
-                            -object_id $package_id] 0]
-    }
-
-    if {[string index $path end] ne "/"} {append path /}
-    if {![info exists chat_id]} {set chat_id $package_id}
     set session_id [ad_conn session_id].[clock seconds]
     set base_url [export_vars -base /shared/ajax/chat -no_empty {
       {id $chat_id} {s $session_id} {class "[self]"}
