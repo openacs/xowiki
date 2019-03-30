@@ -11,10 +11,10 @@ set total_rows [::xowiki::Includelet listing -package_id $package_id -count true
 
 set url [ad_conn url]
 set back_link [expr { ($page_number > 1) ? \
-                          [export_vars -base $url [list package_id [list page_number [expr {$page_number-1}]]]] \
+                          [export_vars -base $url {package_id {page_number [expr {$page_number-1}]}}] \
                           : ""}]
 set next_link [expr { $total_rows > ($page_number * $page_size) ? \
-                          [export_vars -base $url [list package_id [list page_number [expr {$page_number+1}]]]] \
+                          [export_vars -base $url {package_id {page_number [expr {$page_number+1}]}}] \
                           : ""}]
 
 set listing [::xowiki::Includelet listing \
