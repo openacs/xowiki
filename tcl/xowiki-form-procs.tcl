@@ -800,7 +800,7 @@ namespace eval ::xowiki {
     upvar text text
     if {$text eq ""} { return 1 }
     if {[llength $text] != 2} { return 0 }
-    regsub -all "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (firefox bug?)
+    #regsub -all "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (Firefox bug?)
     lassign $text content mime
     if {$content eq ""} {return 1}
     #ns_log notice "VALUE='$content'"
