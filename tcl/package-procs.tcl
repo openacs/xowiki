@@ -1002,6 +1002,10 @@ namespace eval ::xowiki {
     set index_link [:make_link -privilege public -link "" ${:id} {} {}]
     set link [:query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
+    if {[util::external_url $link]} {
+      set link ""
+      unset back_link
+    }
     set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
     ::xo::Page requireCSS urn:ad:css:xowiki

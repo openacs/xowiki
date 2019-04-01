@@ -392,9 +392,7 @@ namespace eval ::xowiki {
     }
     # do real deletion via package
     $package_id delete_revision -revision_id ${:revision_id} -item_id $item_id
-    # Take care about UI specific stuff....
-    set redirect [:query_parameter "return_url" \
-                      [export_vars -base [$package_id url] {{m revisions}}]]
+
     if {$live_revision == ${:revision_id}} {
       # latest revision might have changed by delete_revision, so we have to fetch here
       xo::dc 1row -prepare integer get_revision {select latest_revision from cr_items where item_id = :item_id}
@@ -665,7 +663,7 @@ namespace eval ::xowiki {
     set fs_folder_id [:edit_set_file_selector_folder]
 
     if {[$package_id exists_query_parameter "return_url"]} {
-      set submit_link [:query_parameter "return_url" "."]
+      set submit_link [:get_query_parameter_return_url]
       set return_url $submit_link
     } else {
       #
@@ -946,7 +944,7 @@ namespace eval ::xowiki {
 
       #array set __ia ${:instance_attributes}
       :load_values_into_form_fields $form_fields
-      
+
       foreach f $form_fields {set ff([$f name]) $f }
 
       #
@@ -1089,10 +1087,11 @@ namespace eval ::xowiki {
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
     }
 
+
     if {$formNode ne ""} {
 
       if {[:exists_query_parameter "return_url"]} {
-        set return_url [:query_parameter "return_url"]
+        set return_url [:get_query_parameter_return_url]
       } else {
         #
         # When no return_url is specified and we edit a page different
@@ -1446,7 +1445,9 @@ namespace eval ::xowiki {
     } else {
       set status_code 406
       foreach f $form_fields {
-        if {[$f error_msg] ne ""} {set error [::xo::localize [$f error_msg] 1]}
+        if {[$f error_msg] ne ""} {
+          set error [::xo::localize [$f error_msg] 1]
+        }
       }
     }
     ns_return $status_code text/html $error
@@ -2229,7 +2230,7 @@ namespace eval ::xowiki {
           #ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
           #if {$varname eq "text"} {regsub -all "­" $value "" value}
           #ns_log notice "FORM_DATA var=$varname, value='$value'"
-          
+
           if {![string match "*.*" $att]} {
             set :$varname $value
           }
@@ -2537,7 +2538,7 @@ namespace eval ::xowiki {
     }
   }
 
-  
+
   FormPage instproc load_values_into_form_fields {form_fields} {
     set is_new [:is_new_entry ${:name}]
 
