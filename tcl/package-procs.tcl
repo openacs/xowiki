@@ -1002,7 +1002,8 @@ namespace eval ::xowiki {
     set index_link [:make_link -privilege public -link "" ${:id} {} {}]
     set link [:query_parameter "return_url" ""]
     if {$link ne ""} {set back_link $link}
-    if {[util::external_url $link]} {
+    if {[util::external_url_p $link]} {
+      ns_log warning "return_url is apparently an external URL: $link"
       set link ""
       unset back_link
     }

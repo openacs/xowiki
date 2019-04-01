@@ -1266,13 +1266,14 @@ namespace eval ::xowiki {
   Page instforward form_parameter {%set :package_id} %proc
   Page instforward exists_form_parameter {%set :package_id} %proc
 
-  Page insproc get_query_parameter_return_url {{default ""}} {
+  Page instproc get_query_parameter_return_url {{default ""}} {
     #
     # Get the return_url from query parameters and check, if this is
     # local.
     #
     set return_url [:query_parameter "return_url" $default]
-    if {[util::external_url $return_url]} {
+    if {[util::external_url_p $return_url]} {
+      ns_log warning "return_url $return_url is apparently an external URL"
       ad_return_complaint 1 "Page <b>'${:name}'</b> non-local return_url was specified"
       ad_script_abort
     }
