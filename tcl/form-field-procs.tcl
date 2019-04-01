@@ -667,7 +667,7 @@ namespace eval ::xowiki::formfield {
     if {$is_template} {
       set :is_repeat_template true
     } else {
-      :unset -nocomplain is_repeat_template
+      unset :is_repeat_template
     }
   }
 
@@ -3417,29 +3417,9 @@ namespace eval ::xowiki::formfield {
 
     set value [list]
     foreach c [:components] {
-      #
-      # Handle here the special cases, when no data is transmitted
-      # from a form (e.g. when e.g. a checkbox is not selected).
-      #
-      if {![$cc exists_form_parameter [$c name]]} {
-        #
-        # We have no data. Determine, what this means in terms of the
-        # form-field value.
-        #
-        set default ""
-        if {[$c exists default]} {
-          set default [$c default]
-        }
-        set v [$c value_if_nothing_is_returned_from_form $default]
-      } else {
-        #
-        # We have some data, and it was already set.
-        #
-        set v [$c value]
-      }
-      lappend value [$c name] $v
+      lappend value [$c name] [$c value]
     }
-    #:msg "${:name}: get_compound_value returns value=$value"
+    #:log "${:name}: get_compound_value returns value=$value"
     return $value
   }
 
@@ -3551,6 +3531,18 @@ namespace eval ::xowiki::formfield {
     return $names
   }
 
+  CompoundField instproc leaf_components {} {
+    set leaf_components {}
+    foreach c ${:components} {
+      if {[self class] in [[$c info class] info heritage]} {
+        lappend leaf_components {*}[$c leaf_components]
+      } else {
+        lappend leaf_components $c        
+      }
+    }
+    return $leaf_components
+  }
+  
   CompoundField instproc render_input {} {
     #
     # Render content within in a fieldset, but with labels etc.

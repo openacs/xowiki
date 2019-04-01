@@ -2267,36 +2267,29 @@ namespace eval ::xowiki {
       }
     }
 
-    #:msg "containers = [array names containers]"
-    #:msg "ia=[array get __ia]"
-    #
-    # In a second iteration, combine the values from the components
-    # of a container to the value of the container.
-    #
-    foreach c [array names containers] {
-      switch -glob -- $c {
-        __* {}
-        _* {
-          set f  [:lookup_form_field -name $c $form_fields]
-          set processed($c) 1
-          set :[string range $c 1 end] [$f value]
-        }
-        default {
-          set f  [:lookup_form_field -name $c $form_fields]
-          set processed($c) 1
-          #:log "container $c: compute value of $c [$f info class]"
-          dict set :instance_attributes $c [$f value]
-          #:log "container $c: is set to '[dict get ${:instance_attributes} $c]'"
-        }
-      }
-    }
-
     #
     # The first round was a processing based on the transmitted input
     # fields of the forms. Now we use the formfields to complete the
     # data and to validate it.
     #
+    set leaf_components {}
+    set container_fields {}
     foreach f $form_fields {
+      #set f  [:lookup_form_field -name $c $form_fields]
+      if {[$f exists :components]} {
+        #ns_log notice "TOP call leaf_components for [$f info class]"
+        lappend leaf_components {*}[$f leaf_components]
+        lappend container_fields $f
+        set processed([$f name]) 1
+      }
+    }
+
+    #ns_log notice "PROCESSED <[lsort [array names processed]]>"
+    #ns_log notice "LEAF COMPONENTS <[lsort [lmap f $leaf_components {$f name}]]>"
+    #ns_log notice "FORM_FIELDS [lsort [lmap f $form_fields {$f name}]]"
+    #ns_log notice "CONTAINER   [lsort [array names containers]]"
+
+    foreach f [concat $form_fields $leaf_components] {
       #:log "validate $f [$f name] [info exists processed([$f name])]"
       set att [$f name]
 
@@ -2305,7 +2298,11 @@ namespace eval ::xowiki {
       # have to do it now.
 
       if {![info exists processed($att)]} {
-        #:msg "form field $att not yet processed"
+
+        if {[$f exists is_repeat_template]} {
+          continue
+        }
+        #:log  "==== form field $att [$f info class] not yet processed"
         switch -glob -- $att {
           __* {
             # other internal variables (like __object_name) are ignored
@@ -2339,9 +2336,26 @@ namespace eval ::xowiki {
           }
         }
       }
+    }
 
+    #
+    # In the third iteration, combine the values from the components
+    # of a container to the value of the container.
+    #
+    foreach f $container_fields {
+      #set f  [:lookup_form_field -name $c $form_fields]
+      set name [$f name]
+      :log "container $name: compute value for [$f info class]"
+      dict set :instance_attributes $name [$f value]
+      :log "container $name: is set to '[dict get ${:instance_attributes} $name]'"
+    }
+
+    #
+    # Finally run the validator on the toplevel fields
+    #
+    foreach f [concat $form_fields] {
       #
-      # Run validators
+      # Run validator on every field
       #
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
@@ -2350,6 +2364,7 @@ namespace eval ::xowiki {
         incr validation_errors
       }
     }
+
     #:msg "validation returns $validation_errors errors"
     set current_revision_id [$cc form_parameter __current_revision_id ""]
     if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != ${:revision_id}} {
@@ -2536,6 +2551,7 @@ namespace eval ::xowiki {
       #
       $form_field value [$form_field convert_to_external $data_value]
     }
+    #ns_log notice "combine_data_and_form_field_default $is_new form_field [$form_field name] data_value <$data_value> final <[$form_field value]>"
   }
 
 
