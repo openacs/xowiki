@@ -158,6 +158,7 @@ namespace eval ::xowiki::test {
         -path:required
         {-autonamed:boolean false}
         {-update ""}
+        {-remove ""}
         {-extra_url_parameter {}}
     } {
 
@@ -213,6 +214,7 @@ namespace eval ::xowiki::test {
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
+                   -remove $remove \
                    $form_content]
         acs::test::reply_has_status_code $d 302
 
@@ -252,6 +254,7 @@ namespace eval ::xowiki::test {
         -instance:required
         -path:required
         {-update ""}
+        {-remove ""}
         {-extra_url_parameter {{m edit}}}
     } {
 
@@ -262,6 +265,7 @@ namespace eval ::xowiki::test {
         aa_log "... edit page $path"
         set d [acs::test::http -user_id $user_id [export_vars -base $instance/$path $extra_url_parameter]]
         acs::test::reply_has_status_code $d 200
+        ns_log notice d=$d
 
         #set location [::xowiki::test::get_url_from_location $d]
         #aa_true "location '$location' is valid" {$location ne ""}
@@ -294,6 +298,7 @@ namespace eval ::xowiki::test {
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
+                   -remove $remove \
                    $form_content]
         acs::test::reply_has_status_code $d 302
 
@@ -315,6 +320,7 @@ namespace eval ::xowiki::test {
         -name:required
         {-autonamed:boolean false}
         {-update ""}
+        {-remove ""}
     } {
 
         Create a form via the web interface.
@@ -368,6 +374,7 @@ namespace eval ::xowiki::test {
                    -user_id $user_id \
                    -url $f_form_action \
                    -update $update \
+                   -remove $remove \
                    $form_content]
         acs::test::reply_has_status_code $d 302
 
