@@ -63,7 +63,7 @@ namespace eval ::xowf::test {
 
             #
             # The created form contains several checkboxes, which are
-            # nasty to handle. When a ceckbox was marked, but is thenq
+            # nasty to handle. When a checkbox was marked, but is thenq
             # # unchecked, this values is NOT returned by the
             # browser. The server has to detect by the fact of
             # untransmitted values that the instance attribute value
