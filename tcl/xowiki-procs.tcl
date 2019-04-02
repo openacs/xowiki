@@ -2303,12 +2303,12 @@ namespace eval ::xowiki {
       #
       # a language link (it starts with a ':')
       #
-      array set "" [$package_id item_ref \
-                        -use_package_path $use_package_path \
-                        -default_lang [:lang] \
-                        -parent_id $parent_id \
-                        ${lang}:$stripped_name]
-      dict set link_info link_type language
+      set item_ref_info [$package_id item_ref \
+                             -use_package_path $use_package_path \
+                             -default_lang [:lang] \
+                             -parent_id $parent_id \
+                             ${lang}:$stripped_name]
+      dict set item_ref_info link_type language
 
     } elseif {[regexp {^[.]SELF[.]/(.*)$} [dict get $link_info link] _ (link)]} {
       #
@@ -2318,23 +2318,25 @@ namespace eval ::xowiki {
       #
       set is_self_link true
       set package_id [:physical_package_id]
-      array set "" [$package_id item_ref \
-                        -use_package_path $use_package_path \
-                        -default_lang [:lang] \
-                        -parent_id [:physical_item_id] \
-                        [dict get $link_info link]]
-      #:log "SELF-LINK returns [array get {}]"
+      set item_ref_info [$package_id item_ref \
+                             -use_package_path $use_package_path \
+                             -default_lang [:lang] \
+                             -parent_id [:physical_item_id] \
+                             [dict get $link_info link]]
+      #:log "SELF-LINK returns $item_ref_info"
 
     } else {
       #
       # A plain link, search relative to the parent.
       #
-      array set "" [$package_id item_ref \
-                        -use_package_path $use_package_path \
-                        -default_lang [:lang] \
-                        -parent_id $parent_id \
-                        [dict get $link_info link]]
+      set item_ref_info [$package_id item_ref \
+                             -use_package_path $use_package_path \
+                             -default_lang [:lang] \
+                             -parent_id $parent_id \
+                             [dict get $link_info link]]
     }
+    #ns_log notice "link_info $link_info"
+    #ns_log notice "item_ref_info $item_ref_info"
 
     #:log "link '[dict get $link_info link]' package_id $package_id ${:package_id} => [array get {}]"
 
@@ -2342,25 +2344,25 @@ namespace eval ::xowiki {
       set label [dict get $link_info link]
     }
 
-    set item_name [string trimleft [dict get $link_info prefix]:[dict get $link_info stripped_name] :]
+    set item_name [string trimleft [dict get $item_ref_info prefix]:[dict get $item_ref_info stripped_name] :]
     Link create [self]::link \
         -page [self] \
-        -form [dict get $link_info form] \
-        -type [dict get $link_info link_type] \
+        -form [dict get $item_ref_info form] \
+        -type [dict get $item_ref_info link_type] \
         [list -name $item_name] \
-        -lang [dict get $link_info prefix] \
+        -lang [dict get $item_ref_info prefix] \
         [list -anchor [dict get $link_info anchor]] \
         [list -query [dict get $link_info query]] \
-        [list -stripped_name [dict get $link_info stripped_name]] \
+        [list -stripped_name [dict get $item_ref_info stripped_name]] \
         [list -label $label] \
-        -parent_id [dict get $link_info parent_id] \
-        -item_id [dict get $link_info item_id] \
+        -parent_id [dict get $item_ref_info parent_id] \
+        -item_id [dict get $item_ref_info item_id] \
         -package_id $package_id \
         -is_self_link $is_self_link
 
     # in case, we can't link, flush the href
-    if {[:can_link [dict get $link_info item_id]] == 0} {
-      :references refused [dict get $link_info item_id]
+    if {[:can_link [dict get $item_ref_info item_id]] == 0} {
+      :references refused [dict get $item_ref_info item_id]
       [self]::link href ""
     }
 
