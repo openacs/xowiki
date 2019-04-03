@@ -25,7 +25,12 @@ namespace eval ::xowf::test {
         "::xowiki::test::create_form_page"
     } create_form_with_form_instance {
 
-        Create an xowiki form and an instance of this form
+        Create an xowiki form and an instance of this form.  Here we
+        test primarily checkboxes (plain, repeated and in a compound
+        form), which are especially nasty in cases, where e.g. a
+        per-default marked checkbox is unmarked. In this case, the
+        server has to detect the new value by the fact that no value
+        was sent by the browser.
 
     } {
         #
@@ -37,13 +42,20 @@ namespace eval ::xowf::test {
         set testfolder .testfolder
 
         try {
+            #
+            # Run one upfront request to obtain the request_info, used
+            # in later cases.
+            #
+            set request_info [acs::test::http -user_id $user_id $instance/]
+            #aa_log "request_info vars: [dict keys $request_info]"
+            #aa_log "request_info session [ns_quotehtml <[dict get $request_info session]>]"
 
             ###########################################################
             aa_section "Require test folder"
             ###########################################################
 
             set folder_info [::xowiki::test::require_test_folder \
-                                 -user_id $user_id \
+                                 -last_request $request_info \
                                  -instance $instance \
                                  -folder_name $testfolder \
                                  -fresh \
@@ -52,7 +64,6 @@ namespace eval ::xowf::test {
             set folder_id  [dict get $folder_info folder_id]
             set package_id [dict get $folder_info package_id]
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
-
 
             set locale [lang::system::locale]
             set lang [string range $locale 0 1]
@@ -78,7 +89,7 @@ namespace eval ::xowf::test {
             #    contains a default for the sub-component.
 
             ::xowiki::test::create_form \
-                -user_id $user_id \
+                -last_request $request_info \
                 -instance $instance \
                 -path $testfolder \
                 -parent_id $folder_id \
@@ -88,7 +99,7 @@ namespace eval ::xowf::test {
                     nls_language $locale
                     text {<p>@_text@</p><p>box1 @box1@ box2 @box2@</p>}
                     text.format text/html
-                    form {<form>@box1@ @box2@ @txt@ @mycompound@</form>}
+                    form {<form>@box1@ @box2@ @mycompound@</form>}
                     form.format text/html
                     form_constraints {
                         _page_order:omit _title:omit _nls_language:omit _description:omit
@@ -105,7 +116,7 @@ namespace eval ::xowf::test {
             set page_name $lang:cb1
 
             ::xowiki::test::create_form_page \
-                -user_id $user_id \
+                -last_request $request_info \
                 -instance $instance \
                 -path $testfolder \
                 -parent_id $folder_id \
@@ -118,8 +129,8 @@ namespace eval ::xowf::test {
             aa_log "Page $page_name created"
 
             set extra_url_parameter {{m edit}}
-            aa_log "... check content of the fresh instance"
-            set d [acs::test::http -user_id $user_id [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            aa_log "check content of the fresh instance"
+            set d [acs::test::http -last_request $request_info [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
@@ -146,7 +157,7 @@ namespace eval ::xowf::test {
             ###########################################################
 
             ::xowiki::test::edit_form_page \
-                -user_id $user_id \
+                -last_request $request_info \
                 -instance $instance \
                 -path $testfolder/$page_name \
                 -remove {box1 box2.1 mycompound.start_on_publish} \
@@ -154,7 +165,7 @@ namespace eval ::xowf::test {
                     _title "edited $page_name"
                 }]
 
-            aa_log "... check content of the edited instance"
+            aa_log "check content of the edited instance"
             set d [acs::test::http -user_id $user_id [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
