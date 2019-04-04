@@ -1341,7 +1341,7 @@ namespace eval ::xowiki {
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
 
     set props [::xo::cc cache [list ${:item_id} compute_link_properties $item_ref]]
-    if {[info exists [dict exists $props $property]]} {
+    if {[dict exists $props $property]} {
       #${:item_id} msg "prop $property ==> [dict get $props $property]"
       return [dict get $props $property]
     }
