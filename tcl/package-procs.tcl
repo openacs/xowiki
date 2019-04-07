@@ -1849,10 +1849,16 @@ namespace eval ::xowiki {
   # import for prototype pages
   #
 
-  Package instproc www-import-prototype-page {
+  Package ad_instproc www-import-prototype-page {
     {-add_revision:boolean true}
     {-lang en}
     {prototype_name ""}
+  } {
+
+    This web-callable method is designed for admin to ease the import
+    of prototpye pages. When called via web, the query parameter
+    "import-prototype-page" determines the page for the import.
+
   } {
     set page ""
     if {$prototype_name eq ""} {
@@ -2087,7 +2093,10 @@ namespace eval ::xowiki {
   #
 
   Package ad_instproc www-refresh-login {} {
-    Force a refresh of a login and do a redirect. Intended for use from ajax.
+
+    This web-callable method forces a refresh of a login and do a
+    redirect. Intended for use from ajax.
+
   } {
     set return_url [:query_parameter return_url]
     if {[::xo::cc user_id] == 0} {
@@ -2103,7 +2112,10 @@ namespace eval ::xowiki {
   #
 
   Package ad_instproc www-reindex {} {
-    reindex all items of this package
+
+    This web-callable method can be used to reindex all items of this
+    package by adding all pages of this package to the search queue.
+
   } {
     set id ${:id}
     set pages [::xo::dc list get_pages {
@@ -2121,12 +2133,13 @@ namespace eval ::xowiki {
   }
 
   #
-  # change-page-order (normally called via ajax POSTs)
+  # change-page-order (normally called via AJAX POSTs)
   #
   Package ad_instproc www-change-page-order {} {
 
-    Change Page Order for pages by renumbering and filling gaps. The
-    parameter "clean" is just used for page inserts.
+    This web-callable method changes the page order for pages by
+    renumbering and filling gaps. The parameter "clean" is just used
+    for page inserts. This method is typically called via AJAX.
 
   } {
 
@@ -2155,10 +2168,11 @@ namespace eval ::xowiki {
     -title
     -days
   } {
-    Report content of xowiki folder in rss 2.0 format. The
-    reporting order is descending by date. The title of the feed
-    is taken from the title, the description
-    is taken from the description field of the folder object.
+
+    This web-callable method reports the content of xowiki folder in
+    rss 2.0 format. The reporting order is descending by date. The
+    title of the feed is taken from the title, the description is
+    taken from the description field of the folder object.
 
     @param maxentries maximum number of entries retrieved
     @param days report entries changed in specified last days
@@ -2206,7 +2220,9 @@ namespace eval ::xowiki {
     {-changefreq "daily"}
     {-priority "0.5"}
   } {
-    Report content of xowiki folder in google site map format
+
+    This web-callable method reports the content of xowiki folder in
+    google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
 
     @param max_entries maximum number of entries retrieved
@@ -2259,12 +2275,14 @@ namespace eval ::xowiki {
 
   }
 
-  Package ad_proc www-google-sitemapindex {
+  Package ad_proc google_sitemapindex {
     {-changefreq "daily"}
     {-priority "priority"}
     {-package}
   } {
-    Provide a sitemap index of all xowiki instances in google site map format
+
+    This method provides a sitemap index of all xowiki
+    instances in google site map format
     https://www.google.com/webmasters/sitemaps/docs/en/protocol.html
 
     @param package to determine the delivery instance
@@ -2314,8 +2332,13 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc www-google-sitemapindex {} {
-    [self class] www-google-sitemapindex -package [self]
+  Package ad_instproc www-google-sitemapindex {} {
+
+    This web-callable method calls "google_sitemapindex" for producing
+    a sitemap index.
+
+  } {
+    [self class] google_sitemapindex -package [self]
   }
 
   Package instproc clipboard-copy {} {
@@ -2326,7 +2349,16 @@ namespace eval ::xowiki {
   # Create new pages
   #
 
-  Package instproc www-edit-new {} {
+  Package ad_instproc www-edit-new {} {
+
+    This web-callable method can be used to create new pages in the
+    current package. The behavior can be influenced by the query
+    parameters "object_type", "autoname", "parent_id" and
+    "source_item_id".
+
+    Finally, it calls "www-edit" for the freshly created page.
+
+  } {
     set object_type [:query_parameter object_type "::xowiki::Page"]
     set autoname [:get_parameter autoname 0]
     set parent_id [${:id} query_parameter parent_id ""]
@@ -2368,10 +2400,16 @@ namespace eval ::xowiki {
   }
 
   #
-  # manage categories
+  # Manage categories
   #
 
-  Package instproc www-manage-categories {} {
+  Package ad_instproc www-manage-categories {} {
+
+    This web-callable method redirects the caller to the category
+    admin page configured for the current package. The "object_id" has
+    to be provided as a query parameter.
+
+  } {
     set object_id [:query_parameter object_id]
     if {![string is integer -strict $object_id]} {
       ad_return_complaint 1 "invalid object_id"
@@ -2388,10 +2426,16 @@ namespace eval ::xowiki {
   }
 
   #
-  # edit a single category tree
+  # Edit a single category tree
   #
 
-  Package instproc www-edit-category-tree {} {
+  Package ad_instproc www-edit-category-tree {} {
+
+    This web-callable method redirects the caller to the category
+    admin page for a certain category tree. The "object_id" and
+    "tree_id" have to be provided as a query parameter.
+
+  } {
     set object_id [:query_parameter object_id]
     if {![string is integer -strict $object_id]} {
       ad_return_complaint 1 "invalid object_id"
@@ -2447,19 +2491,20 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
-  Package instproc www-delete {-item_id -name -parent_id} {
-    #
-    # This delete method does not require an instantiated object,
-    # while the class-specific delete methods in xowiki-procs need these.
-    # If a (broken) object can't be instantiated, it cannot be deleted.
-    # Therefore we need this package level delete method.
-    # While the class specific methods are used from the
-    # application pages, the package_level method is used from the admin pages.
-    #
+  Package ad_instproc www-delete {-item_id -name -parent_id} {
+
+    This web-callabel "delete" method does not require an instantiated object,
+    while the class-specific delete methods in xowiki-procs need these.
+    If a (broken) object can't be instantiated, it cannot be deleted.
+    Therefore we need this package level delete method.
+    While the class specific methods are used from the
+    application pages, the package_level method is used from the admin pages.
+
+    If no item_id given, take it from the query parameter
+
+  } {
     #:log "--D delete [self args]"
-    #
-    # if no item_id given, take it from the query parameter
-    #
+
     if {![info exists item_id]} {
       set item_id [:query_parameter item_id]
       if {![string is integer $item_id]} {

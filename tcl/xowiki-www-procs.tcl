@@ -17,20 +17,32 @@ namespace eval ::xowiki {
   #
   # Externally callable method: bulk-delete
   #
-  Page instproc www-bulk-delete {} {
+  Page ad_instproc www-bulk-delete {} {
+
+    This web-callable method performs a bulk delete based on the
+    object names provided by the form-variable "objects" and refresh
+    then the caller page.  This method is e.g. called by the
+    folder-procs.
+
+  } {
     ::security::csrf::validate
 
     if {![:exists_form_parameter "objects"]} {
       :msg "nothing to delete"
     }
 
-    # By default we resolve object names from this object...
+    #
+    # By default we resolve object names relative to the current
+    # object...
+    #
     set parent_id ${:item_id}
     set root_folder_id [${:package_id} folder_id]
     if {${:parent_id} == $root_folder_id} {
+      #
       # ...unless we realize this is the package index page. In this
       # case we resolve based on the root folder (this happens e.g. in
       # the table of contents for xowf).
+      #
       set index_name [${:package_id} get_parameter index_page index]
       ${:package_id} get_lang_and_name -name $index_name lang stripped_name
       set index_item_id [::xo::db::CrClass lookup \
@@ -52,7 +64,17 @@ namespace eval ::xowiki {
   #
   # Externally callable method: clipboard-add
   #
-  Page instproc www-clipboard-add {} {
+  Page ad_instproc www-clipboard-add {} {
+
+    This web-callable method adds elements to the clipboard based on
+    the names provided by the form variable "objects". The objects are
+    resolved below the current object, which is treated as containing
+    folder.
+
+    After a adding elements to the clipboard, redirect either to the
+    return_url of the calling page.
+
+  } {
     if {![:exists_form_parameter "objects"]} {
       :msg "nothing to copy"
     }
@@ -77,7 +99,12 @@ namespace eval ::xowiki {
   #
   # Externally callable method: clipboard-clear
   #
-  Page instproc www-clipboard-clear {} {
+  Page ad_instproc www-clipboard-clear {} {
+
+    This web-callable method clears the clibpboard contents.  Finally
+    redirect either to the return_url of the calling page.
+
+  } {
     ::xowiki::clipboard clear
     ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
   }
@@ -85,7 +112,12 @@ namespace eval ::xowiki {
   #
   # Externally callable method: clipboard-content
   #
-  Page instproc www-clipboard-content {} {
+  Page ad_instproc www-clipboard-content {} {
+
+    This web-callable method displaysthe content of the clipboard.
+    Finally redirect either to the return_url of the calling page.
+
+  } {
     set clipboard [::xowiki::clipboard get]
     if {$clipboard eq ""} {
       util_user_message -message "Clipboard empty"
@@ -104,7 +136,15 @@ namespace eval ::xowiki {
   #
   # Externally callable method: clipboard-copy
   #
-  Page instproc www-clipboard-copy {} {
+  Page ad_instproc www-clipboard-copy {} {
+
+    This web-callable method copies the content of the clipboard to
+    the current folder.
+
+    After a copying the elements from the clipboard, redirect either
+    to the return_url of the calling page.
+
+  } {
     set package_id ${:package_id}
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
@@ -126,7 +166,13 @@ namespace eval ::xowiki {
   #
   # Externally callable method: clipboard-export
   #
-  Page instproc www-clipboard-export {} {
+  Page ad_instproc www-clipboard-export {} {
+
+    This web-callable method exports the content of the clipboard in
+    form of an xowiki dump.  Then clear the clipboard and stop the
+    script.
+
+  } {
     set clipboard [::xowiki::clipboard get]
     ::xowiki::exporter export $clipboard
     ns_conn close
@@ -139,12 +185,23 @@ namespace eval ::xowiki {
   # Externally callable method: create-new
   #
 
-  Page instproc www-create-new {
+  Page ad_instproc www-create-new {
     {-parent_id 0}
     {-view_method edit}
     {-name ""}
     {-nls_language ""}
     {-publish_status ""}
+  } {
+
+    This web-callable method creates a new page, typically an instance
+    of a form page. The method accesses several form variables sich as
+    "__form_redirect", "__text_to_html", "last_page_id", "name",
+    "nls_language", "package_id", "package_instance", "page_order",
+    "parent_id", "publish_status", "source_item_id", "title"
+
+    The call redirects either to the "__form_redirect" or to the
+    created page.
+
   } {
     set original_package_id ${:package_id}
 
@@ -165,7 +222,7 @@ namespace eval ::xowiki {
     }
 
     #
-    # collect some default values from query parameters
+    # Collect some default values from query parameters.
     #
     set default_variables [list]
     foreach key {name title page_order last_page_id nls_language} {
@@ -290,11 +347,16 @@ namespace eval ::xowiki {
   # Externally callable method: create-or-use
   #
 
-  Page instproc www-create-or-use {
+  Page ad_instproc www-create-or-use {
     {-parent_id 0}
     {-view_method edit}
     {-name ""}
     {-nls_language ""}
+  } {
+
+    This web-callable method calls www-create-new, unless overloaded
+    from some other package, as done e.g. by xowf.
+
   } {
     # can be overloaded
     :www-create-new \
@@ -306,7 +368,12 @@ namespace eval ::xowiki {
   # Externally callable method: csv-dump
   #
 
-  Page instproc www-csv-dump {} {
+  Page ad_instproc www-csv-dump {} {
+
+    This web-callable method produces a cvs dump based on the
+    includelet "form-usages".
+
+  } {
     if {![:is_form]} {
       error "not called on a form"
     }
@@ -330,27 +397,40 @@ namespace eval ::xowiki {
   #
   # Externally callable method: use-template
   #
-  PageInstance instproc www-use-template {} {
+  PageInstance ad_instproc www-use-template {} {
+
+    This web-callable method can be used to change the "template" of a
+    PageInstance.  The caller provides the "form" as query parameter
+    which should be used in future for handling the instance
+    parameters of the PageInstance.
+
+    This method can be as well be used for changing the associated
+    workflow of an workflow instance.
+
+  } {
     set package_id ${:package_id}
     set formName [:query_parameter "form" ""]
     if {$formName eq ""} {
       error "no form specified"
     }
     $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
-    array set "" [$package_id item_ref -default_lang $lang -parent_id [$package_id folder_id] $formName]
-    if {$(item_id) == 0} { error "cannot lookup page $formName" }
-    ::xo::db::CrClass get_instance_from_db -item_id $(item_id)
-    if {[info commands ::$(item_id)] eq ""
-        || "::xowiki::PageTemplate" ni [$(item_id) info precedence]} {
+    set d [$package_id item_ref -default_lang $lang -parent_id [$package_id folder_id] $formName]
+    set item_id [dict get $d item_id]
+    if {$item_id == 0} {
+      error "cannot lookup page $formName"
+    }
+    ::xo::db::CrClass get_instance_from_db -item_id $item_id
+    if {[info commands ::$item_id] eq ""
+        || "::xowiki::PageTemplate" ni [$item_id info precedence]} {
       error "OK $formName is not suited to be used as template. Should be a Form!"
     }
-    if {[:page_template] == $(item_id)} {
-      :msg "old page_template $(item_id) is already the same as the new one"
+    if {[:page_template] == $item_id} {
+      :msg "old page_template $item_id is already the same as the new one"
     } else {
-      set msg "change template_id [:page_template] to $(item_id)"
-      :page_template $(item_id)
+      set msg "change template_id [:page_template] to $item_id"
+      :page_template $item_id
       :save
-      :msg "ok $msg"
+      #:msg "ok $msg"
     }
     $package_id returnredirect [::xo::cc url]
   }
@@ -360,12 +440,23 @@ namespace eval ::xowiki {
   # Externally callable method: delete
   #
 
-  Page instproc www-delete {} {
+  Page ad_instproc www-delete {} {
+
+    This web-callable method deletes a page via the delete
+    method of the package.
+
+  } {
     # delete always via package
     ${:package_id} www-delete -item_id ${:item_id} -name ${:name}
   }
 
-  PageTemplate instproc www-delete {} {
+  PageTemplate ad_instproc www-delete {} {
+
+    This web-callable method deletes a page via the delete method
+    of the package.  This method checks first, if there exists still
+    instances of this page (depending on it).
+
+  } {
     set count [:count_usages -publish_status all]
     #:msg count=$count
     if {$count > 0} {
@@ -384,21 +475,31 @@ namespace eval ::xowiki {
   # Externally callable method: delete-revision
   #
 
-  Page instproc www-delete-revision {} {
+  Page ad_instproc www-delete-revision {} {
+
+    This web-callable method deletes a single revision of a Page,
+    which is actually performed by the "delete_revision" method of the
+    package, which is reponsible for caching.
+
+    Since we instantiate the Page based on the "revision_id" query
+    parameter, it is sufficient to delete here just based on the
+    current instance variable of the revision_id.
+
+  } {
     set item_id ${:item_id}
-    set package_id ${:package_id}
-    ::xo::dc 1row get_revision {
+    ::xo::dc 1row -prepare integer get_revision {
       select latest_revision,live_revision from cr_items where item_id = :item_id
     }
+
     # do real deletion via package
-    $package_id delete_revision -revision_id ${:revision_id} -item_id $item_id
+    ${:package_id} delete_revision -revision_id ${:revision_id} -item_id $item_id
 
     if {$live_revision == ${:revision_id}} {
       # latest revision might have changed by delete_revision, so we have to fetch here
       xo::dc 1row -prepare integer get_revision {select latest_revision from cr_items where item_id = :item_id}
       if {$latest_revision eq ""} {
         # we are out of luck, this was the final revision, delete the item
-        $package_id delete -name ${:name} -item_id $item_id
+        ${:package_id} delete -name ${:name} -item_id $item_id
       } else {
         # Fetch fresh instance from db so that we have actual values
         # from the latest revision for e.g. the update of the
@@ -409,8 +510,8 @@ namespace eval ::xowiki {
     }
     if {$latest_revision ne ""} {
       # otherwise, "delete" did already the redirect
-      ::$package_id returnredirect [:query_parameter "return_url" \
-                                        [export_vars -base [$package_id url] {{m revisions}}]]
+      ${:package_id} returnredirect [:query_parameter "return_url" \
+                                         [export_vars -base [$package_id url] {{m revisions}}]]
     }
   }
 
@@ -418,7 +519,16 @@ namespace eval ::xowiki {
   # Externally callable method: diff
   #
 
-  Page instproc www-diff {} {
+  Page ad_instproc www-diff {} {
+
+    This web-callable method produces a "diff" of two pages based on
+    the current page and the revision_id provided as query parameter
+    by "compare_revision_id".  We can choose here between the more
+    fancy "::util::html_diff" and a plain text diff.  The latter is
+    used, when the query variable "plain_text_diff" is provided, or
+    when the fnacy diff raises an exception.
+
+  } {
 
     set compare_id [:query_parameter "compare_revision_id" 0]
     if {$compare_id == 0} {
@@ -427,14 +537,12 @@ namespace eval ::xowiki {
     ::xo::Page requireCSS urn:ad:css:xowiki
 
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
-    $my_page volatile
 
     ad_try {
       set html1 [$my_page render]
     } on error {errorMsg} {
       set html1 "Error rendering ${:revision_id}: $errorMsg"
     }
-    set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
     set user1 [::xo::get_user_name [$my_page set creation_user]]
     set time1 [$my_page set creation_date]
     set revision_id1 [$my_page set revision_id]
@@ -449,7 +557,6 @@ namespace eval ::xowiki {
     } on error {errorMsg} {
       set html2 "Error rendering $compare_id: $errorMsg"
     }
-    set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
     set user2 [::xo::get_user_name [$other_page set creation_user]]
     set time2 [$other_page set creation_date]
     set revision_id2 [$other_page set revision_id]
@@ -458,12 +565,25 @@ namespace eval ::xowiki {
     set title "Differences for ${:name}"
     set context [list $title]
 
-    # try util::html diff if it is available and works
-    ad_try {
-      set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
-    } on error {errMsg} {
-      # otherwise, fall back to proven text based diff
-      set content [::xowiki::html_diff $text2 $text1]
+    if {![:exists_query_parameter plain_text_diff]} {
+      #
+      # try util::html diff if it is available and works
+      #
+      ad_try {
+        set content [::util::html_diff -old $html2 -new $html1 -show_old_p t]
+      } on error {errMsg} {
+        ns_log notice "::util::html_diff failed on comparing page ${:name}, revisions_id ${:revision_id} and $compare_id"
+      }
+    }
+
+    if {![info exists content]} {
+      #
+      # If the fist attempt failed, or the plain text based diff was
+      # desired, fall back to proven plain text based diff
+      #
+      set text1 [ad_html_text_convert -from text/html -to text/plain -- $html1]
+      set text2 [ad_html_text_convert -from text/html -to text/plain -- $html2]
+      set content [::xowiki::text_diff_in_html $text2 $text1]
     }
 
     ::xo::Page set_property doc title $title
@@ -476,16 +596,17 @@ namespace eval ::xowiki {
     }
   }
 
-  proc html_diff {doc1 doc2} {
+  ad_proc -private text_diff_in_html {doc1 doc2} {
+
+    Simple plain text based diff, used as fallback.
+
+  } {
     set out ""
     set i 0
     set j 0
 
-    #set lines1 [split $doc1 "\n"]
-    #set lines2 [split $doc2 "\n"]
-
-    regsub -all \n $doc1 " <br />" doc1
-    regsub -all \n $doc2 " <br />" doc2
+    regsub -all \n $doc1 " <br>" doc1
+    regsub -all \n $doc2 " <br>" doc2
     set lines1 [split $doc1 " "]
     set lines2 [split $doc2 " "]
 
@@ -521,15 +642,25 @@ namespace eval ::xowiki {
       #puts "\t$j\t$m"
       append out "<span class='added'>$m</span>\n"
     }
+
     return $out
   }
 
   #
   # Externally callable method: download
   #
-  File instproc www-download {} {
+  File ad_instproc www-download {} {
+
+    This web-callable method downloads the file content of the current
+    File object.  The following query parameter can be used to
+    influence the behavior
+
+    @param "filename"  use this query parameter as filename in the content-disposition.
+    @param "geometry"  when used on images, the images are scaled before delivery
+
+  } {
     #
-    # determine the delivery method
+    # Determine the delivery method.
     #
     set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] &&
                                [info commands ::bgdelivery] ne ""}]
@@ -537,6 +668,7 @@ namespace eval ::xowiki {
     # The package where the object is coming from might be different
     # from the package on which it is delivered. Use the latter one
     # with the proper delivery information.
+    #
     set package_id [::xo::cc package_id]
     $package_id set mime_type ${:mime_type}
     $package_id set delivery \
@@ -651,10 +783,19 @@ namespace eval ::xowiki {
   # Externally callable method: edit
   #
 
-  Page instproc www-edit {
+  Page ad_instproc www-edit {
     {-new:boolean false}
     {-autoname:boolean false}
     {-validation_errors ""}
+  } {
+
+    This web-callable method renders a page in "edit" mode
+    (i.e. provide input fields).  This is the old-style edit based on
+    the old-style xowiki-form-procs.  FormPages should be used when
+    possible for better user experience.
+
+    @param "return_url"
+
   } {
 
     :instvar package_id item_id revision_id parent_id
@@ -778,10 +919,18 @@ namespace eval ::xowiki {
     return [:pretty_link]
   }
 
-  FormPage instproc www-edit {
+  FormPage ad_instproc www-edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
     {-view true}
+  } {
+
+    This web-callable method renders a form page in "edit" mode
+    (i.e. provide input fields).
+
+    The following query parameters can be used to influene the results
+    "return_url", "title", "detail_link", "text", and "description".
+
   } {
     #:log "edit [self args]"
     set package_id ${:package_id}
@@ -1157,11 +1306,15 @@ namespace eval ::xowiki {
   # Externally callable method: file-upload
   #
 
-  FormPage instproc www-file-upload {} {
-    #
-    # This method is typically called via drop-zone in a POST request,
-    # where the FormPage is a folder (which is treated as parent object).
-    #
+  FormPage ad_instproc www-file-upload {} {
+
+    This web-callable method can be used for uploading files using the
+    current object as parent object for the new content. This method
+    is typically called via drop-zone in a POST request, where the
+    FormPage is a folder (which is treated as parent object)
+
+  } {
+
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
     }
@@ -1225,7 +1378,7 @@ namespace eval ::xowiki {
   #
   Page ad_instproc www-list {} {
 
-    Provide a listing of pages.
+    This web-callable method provides a listing of pages.
 
     Then this method is called on any kind of Form, it returns the
     form instances via the "form-usages" includelet.
@@ -1258,7 +1411,12 @@ namespace eval ::xowiki {
   # Externally callable method: make-live-revision
   #
 
-  Page instproc www-make-live-revision {} {
+  Page ad_instproc www-make-live-revision {} {
+
+    This web-callable method makes the revision specified by
+    parameter "revision_id" the live revision.
+
+  } {
     set page_id [:query_parameter "revision_id"]
     if {[string is integer -strict $page_id]} {
       set revision_id $page_id
@@ -1274,11 +1432,12 @@ namespace eval ::xowiki {
   #
   # Externally callable method: toggle-publish-status
   #
-  # Toggle from arbitrary states to "ready" and from "ready" to
-  # "production".
-  #
+  Page ad_instproc www-toggle-publish-status {} {
 
-  Page instproc www-toggle-publish-status {} {
+    This web-callable method toggles from arbitrary states to "ready"
+    and from "ready" to "production".
+
+  } {
     if {${:publish_status} ne "ready"} {
       set new_publish_status "ready"
     } else {
@@ -1291,7 +1450,6 @@ namespace eval ::xowiki {
   #
   # Externally callable method: popular-tags
   #
-
   Page ad_instproc www-popular-tags {} {
 
     AJAX called function, returns an HTML snippet with the popular
@@ -1322,9 +1480,11 @@ namespace eval ::xowiki {
   #
 
   Page ad_instproc www-save-attributes {} {
-    The method save-attributes is typically callable over the
-    REST interface. It allows one to save attributes of a
-    page without adding a new revision.
+
+    The web-callable method save-attributes is typically callable over
+    the REST interface. It allows one to save attributes of a page
+    without adding a new revision.
+
   } {
     set field_names [:field_names]
     set form_fields [list]
@@ -1397,7 +1557,13 @@ namespace eval ::xowiki {
   # Externally callable method: revisions
   #
 
-  Page instproc www-revisions {} {
+  Page ad_instproc www-revisions {} {
+
+    This web-callable method lists the revisions based. The rendering
+    is actually performed in the cr-procs, but can overloaded per
+    package.
+
+  } {
     #set context [list [list [${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
     #set title "[_ xotcl-core.revision_title] '${:name}'"
     return [:www-view [next]]
@@ -1407,7 +1573,11 @@ namespace eval ::xowiki {
   # Externally callable method: save-tags
   #
 
-  Page instproc www-save-tags {} {
+  Page ad_instproc www-save-tags {} {
+
+    This web-callable method saves tags (provided via form parameter "new_tags").
+
+  } {
     ::xowiki::Page save_tags \
         -user_id [::xo::cc user_id] \
         -item_id ${:item_id} \
@@ -1423,12 +1593,17 @@ namespace eval ::xowiki {
   # Externally callable method: validate-attribute
   #
 
-  Page instproc www-validate-attribute {} {
+  Page ad_instproc www-validate-attribute {} {
+
+    This web-callable method can be used to validate form attributes,
+    typically called via AJAX.
+
+  } {
     set field_names [:field_names]
     set validation_errors 0
 
     #
-    # Fet the first transmitted form field.
+    # Get the first transmitted form field.
     #
     foreach field_name $field_names {
       if {[::xo::cc exists_form_parameter $field_name]} {
@@ -1457,11 +1632,19 @@ namespace eval ::xowiki {
   # Externally callable method: view
   #
 
-  Page instproc www-view {{content ""}} {
+  Page ad_instproc www-view {{content ""}} {
+
+    This web-callable method is called when viewing wiki content.
+    The method "view" is used primarily for the toplevel call, when
+    the xowiki page is viewed.  It is not intended for e.g. embedded
+    wiki pages (see include), since it contains full framing, etc.
+
+    When "content" is not provided via the method parameter - the
+    common case - the rendered content is the result of the "render"
+    method of the current object.
+
+  } {
     #
-    # The method "view" is used primarily for the toplevel call, when
-    # the xowiki page is viewed.  It is not intended for e.g. embedded
-    # wiki pages (see include), since it contains full framing, etc.
     #
     ::xowiki::Page set recursion_count 0
     set page_package_id    ${:package_id}
@@ -1521,7 +1704,9 @@ namespace eval ::xowiki {
       }
     }
 
-    # the menubar is work in progress
+    #
+    # The menubar is work in progress
+    #
     set mb [$context_package_id get_parameter "MenuBar" 0]
     if {$mb ne "0" && [info commands ::xowiki::MenuBar] ne ""} {
 
@@ -2530,7 +2715,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc combine_data_and_form_field_default {is_new form_field data_value} {
 
     Combine the value of the form field (e.g. determined by the
-    default) with the value in the instance attributes. This function
+                                         default) with the value in the instance attributes. This function
     decides, whether it should honor the data value or the form fiel
     value for e.g. rendering forms.
 
