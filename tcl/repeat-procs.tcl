@@ -220,6 +220,7 @@ namespace eval ::xowiki::formfield {
       set i 0
       set clientData [subst {{"min":${:min},"max":${:max}, "name":"${:name}"}}]
       set CSSclass   "[:form_widget_CSSclass] repeatable"
+
       set providedValues [:count_values [:value]]
       if {${:min} > $providedValues} {
         set nrItems ${:min}
@@ -227,6 +228,7 @@ namespace eval ::xowiki::formfield {
         set nrItems $providedValues
       }
       incr nrItems
+
       set containerIsDisabled [expr {[info exists :disabled] && [:disabled] != "false"}]
       set containerIsPrototype [string match "*.0*" ${:name}]
       set isPrototypeElement 0
