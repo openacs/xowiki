@@ -2461,7 +2461,7 @@ namespace eval ::xowiki {
     set container_fields {}
     foreach f $form_fields {
       #set f  [:lookup_form_field -name $c $form_fields]
-      if {[$f exists :components]} {
+      if {[$f info methods leaf_components] ne ""} {
         #ns_log notice "TOP call leaf_components for [$f info class]"
         lappend leaf_components {*}[$f leaf_components]
         lappend container_fields $f
