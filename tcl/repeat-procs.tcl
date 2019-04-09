@@ -1,6 +1,6 @@
 ::xo::library doc {
 
-  Form-field "repeat" 
+  Form-field "repeat"
 
   @author Gustaf Neumann
   @creation-date 2013-02-27
@@ -11,7 +11,7 @@
 namespace eval ::xowiki::formfield {
 
   # TODO:
-  # - improve styling (e.g. remove/deactivate controls for 
+  # - improve styling (e.g. remove/deactivate controls for
   #   addition/deletion, when min/max is reached)
   # - test for more input types
   # - maybe deactivate container display for "repeat=1..1"
@@ -21,7 +21,7 @@ namespace eval ::xowiki::formfield {
 
     set oldClass [:info class]
     :class ::xowiki::formfield::repeatContainer
-    
+
     if {$oldClass ne [:info class]} {
       :reset_parameter
       set :__state reset
@@ -74,7 +74,7 @@ namespace eval ::xowiki::formfield {
   repeatContainer instproc initialize {} {
     ::xo::Page requireJS "/resources/xowiki/repeat.js"
     ::xo::Page requireJS urn:ad:js:jquery
-    
+
     if {[info exists :__initialized_repeat]} {return}
     next
 
@@ -150,7 +150,7 @@ namespace eval ::xowiki::formfield {
     #ns_log notice "dynamic repeat field: add component on the fly: $componentItemSpec"
     :add_component $componentItemSpec
   }
-  
+
   repeatContainer instproc set_compound_value {value} {
     #
     # Before setting compound values, check if we have the repeat
@@ -275,7 +275,7 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
-  
+
   repeatContainer instproc validate {obj} {
     foreach c [lrange [:components] 1 [:count_values [:value]]] {
       set result [$c validate $obj]
