@@ -479,7 +479,7 @@ namespace eval ::xowiki {
 
     This web-callable method deletes a single revision of a Page,
     which is actually performed by the "delete_revision" method of the
-    package, which is reponsible for caching.
+    package, which is responsible for caching.
 
     Since we instantiate the Page based on the "revision_id" query
     parameter, it is sufficient to delete here just based on the
@@ -2460,8 +2460,7 @@ namespace eval ::xowiki {
     set leaf_components {}
     set container_fields {}
     foreach f $form_fields {
-      #set f  [:lookup_form_field -name $c $form_fields]
-      if {[$f info methods leaf_components] ne ""} {
+      if {[$f istype ::xowiki::formfield::CompoundField]} {
         #ns_log notice "TOP call leaf_components for [$f info class]"
         lappend leaf_components {*}[$f leaf_components]
         lappend container_fields $f
