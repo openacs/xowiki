@@ -21,7 +21,7 @@ namespace eval ::xo {
         {logout_messages_p t}
         {avatar_p t}
         {conf {}}
-        {message_relay {bgdelivery connchan none}}
+        {message_relay {connchan bgdelivery none}}
       }
 
   Chat instproc init {} {
