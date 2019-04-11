@@ -2310,7 +2310,7 @@ namespace eval ::xowiki {
                              ${lang}:$stripped_name]
       dict set item_ref_info link_type language
 
-    } elseif {[regexp {^[.]SELF[.]/(.*)$} [dict get $link_info link] _ (link)]} {
+    } elseif {[regexp {^[.]SELF[.]/(.*)$} [dict get $link_info link] _ link]} {
       #
       # Remove ".SELF./" from the path and search for the named
       # resource (e.g. the image name) under the current (physical)
@@ -2322,7 +2322,7 @@ namespace eval ::xowiki {
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
                              -parent_id [:physical_item_id] \
-                             [dict get $link_info link]]
+                             $link]
       #:log "SELF-LINK returns $item_ref_info"
 
     } else {
