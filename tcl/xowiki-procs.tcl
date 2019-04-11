@@ -2323,6 +2323,7 @@ namespace eval ::xowiki {
                              -default_lang [:lang] \
                              -parent_id [:physical_item_id] \
                              $link]
+      dict set link_info link $link
       #:log "SELF-LINK returns $item_ref_info"
 
     } else {
