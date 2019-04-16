@@ -15,7 +15,7 @@ namespace eval ::xowiki::formfield {
     }
 }
 
-namespace eval ::xowf::test {
+namespace eval ::xowiki::test {
 
     aa_register_case -cats {web} -procs {
         "::xowiki::Package instproc initialize"
