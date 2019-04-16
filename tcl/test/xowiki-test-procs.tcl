@@ -17,58 +17,14 @@ namespace eval ::xowiki::formfield {
 
 namespace eval ::xowiki::test {
 
-    ad_proc -private require_instance {
-        {-instance_name "xowiki-test"}
-        {-empty:boolean}
-    } {
-        Returns the xowiki test instance id with specified name. Will
-        create it if it is not found. It is currently assumed the
-        instance will be mounted under the main subsite.
-
-        @param instance name name of the site-node this instance will
-        be mounted to.
-        @param empty require an empty instance. If an existing
-        instance is found, it will be deleted.
-
-        @return xowiki package id
-    } {
-        set main_node_id [site_node::get_element \
-                              -url / -element node_id]
-        set instance_name [string trim $instance_name /]
-
-        set package_exists_p [::xo::dc 0or1row lookup_test_package {
-            select node_id, object_id as package_id
-            from site_nodes
-            where parent_id = :main_node_id
-            and name = :instance_name
-        }]
-
-        if {$package_exists_p} {
-            set package_key [apm_package_key_from_id $package_id]
-            if {$package_key ne "xowiki"} {
-                error "An instance of '$package_key' is already mounted at '$instance_name'"
-            } elseif {$empty_p} {
-                site_node::delete -node_id $node_id -delete_package
-            }
-        }
-
-        if {!$package_exists_p || $empty_p} {
-            set package_id [site_node::instantiate_and_mount \
-                                -package_name $instance_name \
-                                -node_name $instance_name \
-                                -package_key xowiki]
-        }
-
-        return $package_id
-    }
-
     aa_register_init_class \
         require_test_instance {
             Make sure the test tlf-lrn instance is there and create it if necessary.
         } {
             aa_export_vars {_test_instance_name}
             set _test_instance_name /xowiki-test
-            ::xowiki::test::require_instance \
+            ::acs::test::require_package_instance \
+                -package_key xowiki \
                 -instance_name $_test_instance_name
         } {
             # Here one might unmount the package afterwards. Right now
