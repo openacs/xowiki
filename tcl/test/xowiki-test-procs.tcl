@@ -19,7 +19,7 @@ namespace eval ::xowiki::test {
 
     aa_register_init_class \
         require_test_instance {
-            Make sure the test tlf-lrn instance is there and create it if necessary.
+            Make sure the test instance is there and create it if necessary.
         } {
             aa_export_vars {_test_instance_name}
             set _test_instance_name /xowiki-test
