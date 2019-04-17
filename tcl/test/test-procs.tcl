@@ -196,9 +196,14 @@ namespace eval ::xowiki::test {
             ::acs::test::xpath::non_empty $root [subst {
                 //form\[contains(@class,'$formCSSClass')\]//button
             }]
-            set f_id          [::xowiki::test::get_object_name $root]
-            set f_page_name   [::xowiki::test::get_form_value $root $f_id _name]
-            set f_creator     [::xowiki::test::get_form_value $root $f_id _creator]
+            set form [::acs::test::xpath::get_form $root [subst {
+                //form\[contains(@class,'$formCSSClass')\]
+            }]]
+            set fields [acs::test::form_get_fields $form]
+
+            #aa_log "FORM_CONTENT !$form!"
+            set f_page_name   [dict get $fields _name]
+            set f_creator     [dict get $fields _creator]
             if {$autonamed_p} {
                 aa_true "create_form_page: page_name '$f_page_name' is NOT empty" {$f_page_name ne ""}
             } else {
@@ -206,21 +211,19 @@ namespace eval ::xowiki::test {
             }
             aa_true "create_form_page: creator '$f_creator' is non-empty" {$f_creator ne ""}
 
-            set f_form_action  [::xowiki::test::get_form_action $root $formCSSClass]
+            set f_form_action [dict get $form @action]
             aa_true "create_form_page: form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
 
-            set form_content [::xowiki::test::get_form_values $root $formCSSClass]
-            set names [dict keys $form_content]
+            set names [dict keys $fields]
             aa_log "create_form_page: form names: [lsort $names]"
             aa_true "create_form_page: page has at least 9 fields" { [llength $names] >= 9 }
         }
 
         set d [::acs::test::form_reply \
                    -last_request $last_request -user_id $user_id \
-                   -url $f_form_action \
+                   -form $form \
                    -update $update \
-                   -remove $remove \
-                   $form_content]
+                   -remove $remove]
         acs::test::reply_has_status_code $d 302
 
         #set response [dict get $d body]
@@ -307,10 +310,9 @@ namespace eval ::xowiki::test {
 
         set d [::acs::test::form_reply \
                    -last_request $last_request -user_id $user_id \
-                   -url $f_form_action \
+                   -form $form \
                    -update $update \
-                   -remove $remove \
-                   $form_content]
+                   -remove $remove]
         acs::test::reply_has_status_code $d 302
 
         foreach {key value} $update {
@@ -383,13 +385,13 @@ namespace eval ::xowiki::test {
 
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
         dict set form_content name $name
+        set form [acs::test::form_set_fields $form $form_content]
 
         set d [::acs::test::form_reply \
                    -last_request $last_request -user_id $user_id \
-                   -url $f_form_action \
+                   -form $form \
                    -update $update \
-                   -remove $remove \
-                   $form_content]
+                   -remove $remove]
         acs::test::reply_has_status_code $d 302
 
         foreach {key value} $update {
