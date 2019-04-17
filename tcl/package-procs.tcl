@@ -648,7 +648,7 @@ namespace eval ::xowiki {
         return ""
       }
       if {[dict get $siten_node_info name] ne ""} {
-        set package_id $(package_id)
+        set package_id [dict get $siten_node_info package_id]
       }
       #
       # Use site-node url as package_url and get the full path within
