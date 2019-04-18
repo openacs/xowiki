@@ -668,8 +668,13 @@ namespace eval ::xowiki::includelet {
     }
 
     lassign [split $orderby ,] att order
-    $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    set resources_list "[$t asHTML]"
+    if {$att in [$t column_names]} {
+      $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+    } else {
+      ad_log warning "Ignore invalid sorting criterion '$att'"
+      util_user_message -message "Ignore invalid sorting criterion '$att'"
+    }
+    set resources_list [$t asHTML]
 
     if {$menubar ne ""} {
       set mb [::xowiki::MenuBar new -id submenubar]

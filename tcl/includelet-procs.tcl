@@ -4050,14 +4050,17 @@ namespace eval ::xowiki::includelet {
     lassign [split $orderby ,] att order
     set sortable 1
     if {$att ni $field_names} {
-      if {[ns_conn isconnected]} {
-        set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
-        if {[string match "*bingbot*" $user_agent] || [string match "*turnitin*" $user_agent]} {
-          # search engines like bingbot might still have old buggy pages in their indices;
-          # don't generate errors on non existing attributes starting with "__*"
-          set sortable 0
-        }
-      }
+      # if {[ns_conn isconnected]} {
+      #   set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+      #   if {[string match "*bingbot*" $user_agent] || [string match "*turnitin*" $user_agent]} {
+      #     # search engines like bingbot might still have old buggy pages in their indices;
+      #     # don't generate errors on non existing attributes starting with "__*"
+      #     set sortable 0
+      #   }
+      # }
+      ad_log warning "Ignore invalid sorting criterion '$att'"
+      util_user_message -message "Ignore invalid sorting criterion '$att'"
+      set sortable 0
     }
     if {$sortable} {
       if {$att eq "_page_order"} {
@@ -4816,7 +4819,7 @@ namespace eval ::xowiki::includelet {
         }}
       } -instproc render {} {
         :get_parameters
-        if {[info commands ::dotlrn_community::get_community_id] ne ""} { 
+        if {[info commands ::dotlrn_community::get_community_id] ne ""} {
           set community_id [::dotlrn_community::get_community_id]
           set base_url [dotlrn_community::get_community_url $community_id]
 
