@@ -8,6 +8,7 @@
 }
 
 ::xo::library require menu-procs
+::xo::library require -package xotcl-core 30-widget-procs
 
 namespace eval ::xowiki {
   # minimal implementation of Bootstrap "navbar"
@@ -433,7 +434,16 @@ namespace eval ::xo::Table {
         }
       }
     }
-    set children [:children]
+    ad_try {
+      set children [:children]
+    } on error {errorMsg} {
+      html::div -class "alert alert-danger" {
+        html::span -class danger {
+          html::t $errorMsg
+        }
+      }
+      return
+    }
     html::tbody {
       foreach line [:children] {
         html::tr -class [expr {[incr :__rowcount]%2 ? ${:css.tr.odd-class} : ${:css.tr.even-class} }] {
