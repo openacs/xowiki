@@ -1887,8 +1887,8 @@ namespace eval ::xowiki::formfield {
       ::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor_source.js"
       #::xo::Page requireJS "/resources/xowiki/ckeditor/ckeditor.js"
       ::xo::Page requireJS "/resources/xowiki/ckeditor/adapters/jquery.js"
-      ::xo::Page requireJS "/resources/xowiki/jquery-ui-1.8.17.custom.min.js"
-      ::xo::Page requireCSS "/resources/xowiki/jquery-ui-1.8.17.custom.css"
+      ::xo::Page requireJS urn:ad:js:jquery-ui
+      ::xo::Page requireCSS urn:ad:css:jquery-ui
 
       # In contrary to the doc, ckeditor names instances after the id,
       # not the name.
@@ -2321,8 +2321,7 @@ namespace eval ::xowiki::formfield {
           switch -- $plugin {
             embed {}
             resizable {
-              ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.ui.js"
-              ::xo::Page requireJS  "/resources/xowiki/jquery/jquery.ui.resizable.js"
+              ::xo::Page requireJS  urn:ad:js:jquery-ui
               append postinit "wym.${plugin}();\n"
             }
             default {append postinit "wym.${plugin}();\n"}
@@ -3537,12 +3536,12 @@ namespace eval ::xowiki::formfield {
       if {[self class] in [[$c info class] info heritage]} {
         lappend leaf_components {*}[$c leaf_components]
       } else {
-        lappend leaf_components $c        
+        lappend leaf_components $c
       }
     }
     return $leaf_components
   }
-  
+
   CompoundField instproc render_input {} {
     #
     # Render content within in a fieldset, but with labels etc.
