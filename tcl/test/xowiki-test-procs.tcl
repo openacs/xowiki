@@ -18,7 +18,7 @@ namespace eval ::xowiki::formfield {
 namespace eval ::xowiki::test {
 
     aa_register_init_class \
-        require_test_instance {
+        xowiki_require_test_instance {
             Make sure the test instance is there and create it if necessary.
         } {
             aa_export_vars {_test_instance_name}
@@ -32,7 +32,7 @@ namespace eval ::xowiki::test {
             # the results or test further in the mounted instance.
         }
 
-    aa_register_case -init_classes {require_test_instance} -cats {web} -procs {
+    aa_register_case -init_classes {xowiki_require_test_instance} -cats {web} -procs {
         "::xowiki::Package instproc initialize"
         "::xowiki::Package instproc invoke"
         "::xo::Package instproc reply_to_user"
