@@ -16,7 +16,7 @@ set title [_ xowiki.admin_all_title]
 
 set object_types [$object_type object_types]
 set return_url   [ns_conn url]
-set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
 lang::message::lookup "" xowiki.admin " "
 TableWidget t1 -volatile \
@@ -63,7 +63,7 @@ foreach object_type $object_types {
     set delete_title [_ xowiki.delete_all_items]
   } else {
     set add_title [_ xotcl-core.add [list type [$object_type pretty_name]]]
-    set add_href  [$package_id make_link -with_entities 0 $package_id edit-new object_type return_url autoname]
+    set add_href  [::$package_id make_link -with_entities 0 $package_id edit-new object_type return_url autoname]
     set delete_title [_ xowiki.delete_all_instances]
   }
   t1 add \

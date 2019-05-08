@@ -157,7 +157,7 @@ test subsection "Basic Setup: Package, url= /$instance_name/"
 ? {$package_id url} /$instance_name/
 ? {$package_id id} $package_id "the id of the package object = package_id"
 
-test code [$package_id serialize]
+test code [::$package_id serialize]
 
 ############################################
 test subsection "Basic Setup: Folder Object"
@@ -178,8 +178,8 @@ test subsection "Create and Render Index Page"
 ##############################################
 ? {$package_id set object} "" "object name parsed"
 ? {set m} view "method passed from package initialize"
-set object [$package_id set object]
-set page_item_id [$package_id resolve_page $object $m]
+set object [::$package_id set object]
+set page_item_id [::$package_id resolve_page $object $m]
 ? {expr {$page_item_id ne ""}} 1 "index page resolved"
 ? {::xotcl::Object isobject ::$page_item_id} 1 "we have a page object"
 ? {expr {[::$page_item_id item_id]>0}} 1 "item_id given"
@@ -189,14 +189,14 @@ set page_item_id [$package_id resolve_page $object $m]
 ? {::$page_item_id name} en:index "name of resolved index page"
 ? {::$page_item_id istype ::xowiki::Page} 1 "type or subtype of ::xowiki::Page"
 
-set content [$package_id call $page_item_id $m ""]
+set content [::$package_id call $page_item_id $m ""]
 set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
 ? {xo::dc get_value count "select count(*) from cr_items where parent_id = $folder_id"} 1 \
     "folder contains the index page"
-#test code [$page_item_id serialize]
+#test code [::$page_item_id serialize]
 
 ###########################################################
 test subsection "Check Permissions based on default policy"
@@ -273,8 +273,8 @@ test subsection "Render Index Page (2nd)"
 #########################################
 ? {$package_id set object} "" "object name parsed"
 ? {set m} view "method passed from package initialize"
-set object [$package_id set object]
-set page_item_id [$package_id resolve_page $object $m]
+set object [::$package_id set object]
+set page_item_id [::$package_id resolve_page $object $m]
 ? {expr {$page_item_id ne ""}} 1 "index page resolved"
 ? {::xotcl::Object isobject ::$page_item_id} 1 "we have a page object"
 ? {expr {[::$page_item_id item_id]>0}} 1 "item_id given"
@@ -284,12 +284,12 @@ set page_item_id [$package_id resolve_page $object $m]
 ? {::$page_item_id name} en:index "name of resolved index page"
 ? {::$page_item_id istype ::xowiki::Page} 1 "type or subtype of ::xowiki::Page"
 
-set content [$package_id call $page_item_id $m ""]
+set content [::$package_id call $page_item_id $m ""]
 set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-#test code [$page_item_id serialize]
+#test code [::$page_item_id serialize]
 
 ########################################################################
 #
@@ -396,7 +396,7 @@ test subsection "Check Permissions based on default policy"
     "SWA sees the delete link"
 ? {expr {[::$package_id make_link -privilege admin -link admin/ $package_id {} {}] ne ""}} 1 \
     "SWA sees admin link"
-? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[::$package_id folder_id]"} 3 \
     "folder contains: index and weblog page (+1 includelet)"
 ::xo::at_cleanup
 
@@ -415,7 +415,7 @@ set content [::$package_id invoke -method $m]
 ? {::xo::cc exists __continuation} 1 "continuation exists"
 ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/" \
     "redirect to main instance"
-? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 2 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[::$package_id folder_id]"} 2 \
     "folder contains: index and weblog page (+0 includelet)"
 
 ############################################################################
@@ -425,7 +425,7 @@ set page [::xowiki::Page new \
               -title "Hello World" \
               -name en:hello \
               -package_id $package_id \
-              -parent_id [$package_id folder_id] \
+              -parent_id [::$package_id folder_id] \
               -destroy_on_cleanup \
               -text {
                 Hello [[Wiki]] World.
@@ -434,7 +434,7 @@ $page set_content [string trim [$page text] " \n"]
 $page initialize_loaded_object
 $page save_new
 ? {$page set package_id} $package_id "package_id $package_id not modified"
-? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[::$package_id folder_id]"} 3 \
     "folder contains: index and weblog, hello page (+0 includelet)"
 ? {expr {[$page revision_id]>0}} 1 "revision_id given"
 ? {expr {[$page item_id]>0}} 1 "item_id given"
@@ -443,7 +443,7 @@ set item_id1 [$page item_id]
 
 $page append title "- V.2"
 $page save
-? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 3 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[::$package_id folder_id]"} 3 \
     "still 3 pages"
 ? {expr {[$page revision_id]>$revision_id1}} 1 "revision_id > old revision_id"
 ? {expr {[$page item_id] == $item_id1}} 1 "item id the same"
@@ -467,7 +467,7 @@ set content_length [string length $content]
 ? {expr {$content_length > 1000}} 1 \
     "page rendered, content-length $content_length > 1000"
 ? {string first Error $content} -1 "page contains no error"
-? {xo::dc get_value count "select count(*) from cr_items where parent_id=[$package_id folder_id]"} 4 \
+? {xo::dc get_value count "select count(*) from cr_items where parent_id=[::$package_id folder_id]"} 4 \
     "again, 4 pages"
 
 ::xo::at_cleanup
@@ -517,8 +517,8 @@ regexp {name="__key_signature" value="([^\"]+)"} $content _ signature
 ? {info exists signature} 1 "signature contained in form"
 ? {expr {$signature ne ""}} 1 "signature not empty"
 
-set title [$returned_item_id title]
-set text [lindex [$returned_item_id text] 0]
+set title [::$returned_item_id title]
+set text [lindex [::$returned_item_id text] 0]
 
 ? {set title} {Hello World- V.2}
 ? {set text}  {Hello [[Wiki]] World.}
@@ -704,7 +704,7 @@ test section "Item refs"
 
     if {$item_id == 0} {
       set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
-      set f [$form_id create_form_page_instance \
+      set f [::$form_id create_form_page_instance \
                  -name $name \
                  -nls_language en_US \
                  -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
@@ -723,7 +723,7 @@ test section "Item refs"
       set target [::xo::db::CrClass get_instance_from_db -item_id $target_id]
       set item_ref [[$target package_id] external_name -parent_id [$target parent_id] [$target name]]
 
-      set f [$form_id create_form_page_instance \
+      set f [::$form_id create_form_page_instance \
                  -name $name \
                  -nls_language en_US \
                  -instance_attributes [list link $item_ref] \
@@ -773,16 +773,16 @@ foreach nls_language [lang::system::get_locales] {
 # destroyed later. However, if some test bails out with an error,
 # the destroy might not be reached
 ::xowiki::Page create p \
-    -package_id $package_id -nls_language de_DE -parent_id [$package_id folder_id] \
+    -package_id $package_id -nls_language de_DE -parent_id [::$package_id folder_id] \
     -name p -destroy_on_cleanup
 
   p set unresolved_references 0
 
   test subsection "Ingredients:"
-  set folder_id [$package_id folder_id]
+  set folder_id [::$package_id folder_id]
   test hint "folder_id => $folder_id"
 
-  set folder_id [$package_id folder_id]
+  set folder_id [::$package_id folder_id]
 
   # make sure, we have folder "f1" with subfolder "f3" with subfolder "subf3"
   set f1_id          [require_folder "f1"          $folder_id $package_id]
@@ -1272,43 +1272,43 @@ test section "page properties"
 
   set l [$f1 pretty_link]
   set test [label "url" "topfolder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
 ? {expr {$(item_id) == $f1_id && $(stripped_name) eq "f1"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$f2 pretty_link]
   set test [label "url" "folder under topfolder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $f3_id && $(stripped_name) eq "f3"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$f3 pretty_link]
   set test [label "url" "subsubfolder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subf3_id && $(stripped_name) eq "subf3"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$p1 pretty_link]
   set test [label "url" "toppage" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$p2 pretty_link]
   set test [label "url" "page in folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$p3 pretty_link]
   set test [label "url" "page under page" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $childpage_id && $(stripped_name) eq "childpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$p4 pretty_link]
   set test [label "url" "toplevel en page" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $enpage_id && $(stripped_name) eq "page"
            && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$p5 pretty_link]
   set test [label "url" "en page under subfolder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $f3page_id && $(stripped_name) eq "page"
            && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
 
@@ -1316,19 +1316,19 @@ test section "page properties"
 
   set l [$i1 pretty_link]
   set test [label "url" "toplevel image" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
            && $(name) eq "file:image.png"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$i2 pretty_link]
   set test [label "url" "toplevel image" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subimage_id && $(stripped_name) eq "image2.png"
            && $(name) eq "file:image2.png"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$i3 pretty_link]
   set test [label "url" "toplevel image" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $childimage_id && $(stripped_name) eq "image3.png"
            && $(name) eq "file:image3.png" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
@@ -1337,31 +1337,31 @@ test section "page properties"
 
   set l [$l1 pretty_link]
   set test [label "url" "toplevel link to page" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $pagelink_id && $(stripped_name) eq "link1"
            && $(name) eq "link1" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$l2 pretty_link]
   set test [label "url" "toplevel link to folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $folderlink_id && $(stripped_name) eq "link2"
            && $(name) eq "link2" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$l3 pretty_link]
   set test [label "url" "toplevel link to page under folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subpagelink_id && $(stripped_name) eq "link3"
            && $(name) eq "link3" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$l4 pretty_link]
   set test [label "url" "toplevel link to folder under folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subfolderlink_id && $(stripped_name) eq "link4"
            && $(name) eq "link4" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
   set l [$l5 pretty_link]
   set test [label "url" "toplevel link to image under folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
            && $(name) eq "link5" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
@@ -1372,14 +1372,14 @@ test section "item info from variations of pretty links"
   # download
   set l /XOWIKI-TEST/download/file/image.png
   set test [label "url" "toplevel image download" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
            && $(name) eq "file:image.png"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
 
   # download via link
   #set l /XOWIKI-TEST/download/file/link5
   #set test [label "url" "toplevel image download" $l]
-  #array set "" [$package_id item_info_from_url $l]
+  #array set "" [::$package_id item_info_from_url $l]
   #test hint "<p>found $(item_id) should be $subimagelink_id"
   # ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
   #        && $(name) eq "file:link5"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
@@ -1387,7 +1387,7 @@ test section "item info from variations of pretty links"
   # tag link
   set l /XOWIKI-TEST/tag/a
   set test [label "url" "tag query" $l]
-  array set "" [$package_id item_info_from_url -default_lang de $l]
+  array set "" [::$package_id item_info_from_url -default_lang de $l]
   ? {expr {$(item_id) != 0 && $(stripped_name) eq "weblog"
            && $(name) eq "en:weblog"  && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n"
   # missing: tag links to subdirectories
@@ -1395,18 +1395,18 @@ test section "item info from variations of pretty links"
   # url without default lang
   set l /XOWIKI-TEST/parentpage
   set test [label "url" "toppage w/o de" $l]
-  array set "" [$package_id item_info_from_url -default_lang de $l]
+  array set "" [::$package_id item_info_from_url -default_lang de $l]
   ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   # prefixed name
   set l /XOWIKI-TEST/de:parentpage
   set test [label "url" "toppage prefixed eq default_lang" $l]
-  array set "" [$package_id item_info_from_url -default_lang de $l]
+  array set "" [::$package_id item_info_from_url -default_lang de $l]
   ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l /XOWIKI-TEST/de:parentpage
   set test [label "url" "toppage prefixed ne default_lang" $l]
-  array set "" [$package_id item_info_from_url -default_lang en $l]
+  array set "" [::$package_id item_info_from_url -default_lang en $l]
   ? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
 
@@ -1418,25 +1418,25 @@ test section "item info via links to folders"
 
   set l /XOWIKI-TEST/link2/testpage
   set test [label "url" "reference page over links to folder default-lang" $l]
-  array set "" [$package_id item_info_from_url -default_lang de $l]
+  array set "" [::$package_id item_info_from_url -default_lang de $l]
   ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"
          && $(name) eq "de:testpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l /XOWIKI-TEST/link2/de:testpage
   set test [label "url" "reference page over links to folder direct name" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $testpage_id && $(stripped_name) eq "testpage"
          && $(name) eq "de:testpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l /XOWIKI-TEST/download/file/link2/image2.png
   set test [label "url" "reference download image over links to folder" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $subimage_id && $(stripped_name) eq "image2.png"
            && $(name) eq "file:image2.png"}} 1 "\n$test:\n  [array get {}]\n "
 
   set l /XOWIKI-TEST/link2/f3/page
   set test [label "url" "path contains link and references finally page" $l]
-  array set "" [$package_id item_info_from_url $l]
+  array set "" [::$package_id item_info_from_url $l]
   ? {expr {$(item_id) == $f3page_id && $(stripped_name) eq "page"
            && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
 
@@ -1447,7 +1447,7 @@ test section "item info via links to folders"
 
   #set l /XOWIKI-TEST/en/folder.form
   #set test [label "url" "site-wide-page top" $l]
-  #array set "" [$package_id item_info_from_url -default_lang de $l]
+  #array set "" [::$package_id item_info_from_url -default_lang de $l]
   #? {expr {$(item_id) == $parentpage_id && $(stripped_name) eq "parentpage"}} 1 "\n$test:\n  [array get {}]\n "
 
   # link to page in other package

@@ -71,7 +71,7 @@ namespace eval ::xowiki {
       set package_id [${:parent_object} package_id]
       set parent_id [${:parent_object} item_id]
       
-      set photo_object [$package_id get_page_from_name -name en:${:file_name} -parent_id $parent_id]
+      set photo_object [::$package_id get_page_from_name -name en:${:file_name} -parent_id $parent_id]
       if {$photo_object ne ""} {
         #
         # The photo page instance exists already, create a new revision.

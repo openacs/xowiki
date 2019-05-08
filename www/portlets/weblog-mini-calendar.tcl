@@ -6,9 +6,9 @@ set including_item_id [$__including_page set item_id]
 
 if {![info exists base_url] || $base_url eq ""} {
   if {![info exists page]} {
-    set page [$package_id get_parameter weblog_page]
+    set page [::$package_id get_parameter weblog_page]
   }
-  set base_url [$package_id pretty_link -parent_id $parent_id -path_encode false $page]
+  set base_url [::$package_id pretty_link -parent_id $parent_id -path_encode false $page]
 }
 
 set date [ns_queryget date]

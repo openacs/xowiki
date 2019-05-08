@@ -1186,7 +1186,7 @@ namespace eval ::xowiki {
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
     :log "DEPRECATED"
     if {![info exists package_id]}  {set package_id  [::xo::cc package_id]}
-    set cmd [list $package_id import -replace $replace]
+    set cmd [list ::$package_id import -replace $replace]
 
     if {[info exists user_id]}   {lappend cmd -user_id $user_id}
     if {[info exists objects]}   {lappend cmd -objects $objects}
@@ -1340,7 +1340,7 @@ namespace eval ::xowiki {
     # get_form_entries via item-ids, not via new-objects
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
 
-    set props [::xo::cc cache [list ${:item_id} compute_link_properties $item_ref]]
+    set props [::xo::cc cache [list ::${:item_id} compute_link_properties $item_ref]]
     if {[dict exists $props $property]} {
       #${:item_id} msg "prop $property ==> [dict get $props $property]"
       return [dict get $props $property]
@@ -1375,7 +1375,7 @@ namespace eval ::xowiki {
 
   FormPage instproc compute_link_properties {item_ref} {
     set package_id ${:package_id}
-    set page [$package_id get_page_from_item_ref \
+    set page [::$package_id get_page_from_item_ref \
                   -default_lang [:lang] \
                   -parent_id ${:parent_id} \
                   $item_ref]
@@ -1425,7 +1425,7 @@ namespace eval ::xowiki {
     :instvar name item_id package_id parent_id publish_status \
         page_template instance_attributes assignee state
 
-    set useHstore [$package_id get_parameter use_hstore 0]
+    set useHstore [::$package_id get_parameter use_hstore 0]
     set updateVars {name = :name, package_id = :package_id,
       parent_id = :parent_id, publish_status = :publish_status,
       page_template = :page_template, assignee = :assignee,
@@ -1951,7 +1951,7 @@ namespace eval ::xowiki {
       # Include a wiki page, tailorable.
       #
       #set page [:resolve_included_page_name $page_name]
-      set page [$package_id get_page_from_item_ref \
+      set page [::$package_id get_page_from_item_ref \
                     -use_package_path true \
                     -use_site_wide_pages true \
                     -use_prototype_pages true \
@@ -1963,7 +1963,7 @@ namespace eval ::xowiki {
         # we use as default decoration for included pages
         # the "portlet" decoration
         #
-        $page set __decoration [$package_id get_parameter default-portlet-decoration portlet]
+        $page set __decoration [::$package_id get_parameter default-portlet-decoration portlet]
       }
     }
 
@@ -2044,7 +2044,7 @@ namespace eval ::xowiki {
     }
     if {[$page istype ::xowiki::Page]} {
       set package_id [$page package_id]
-      set allowed [[$package_id set policy] check_permissions \
+      set allowed [[::$package_id set policy] check_permissions \
                        -package_id $package_id \
                        -user_id [::xo::cc set untrusted_user_id] \
                        $page view]
@@ -2293,7 +2293,7 @@ namespace eval ::xowiki {
 
     set link_info [:get_anchor_and_query $link]
     set parent_id [expr {$package_id == ${:package_id} ?
-                         ${:parent_id} : [$package_id folder_id]}]
+                         ${:parent_id} : [::$package_id folder_id]}]
 
     # we might consider make this configurable
     set use_package_path true
@@ -2303,7 +2303,7 @@ namespace eval ::xowiki {
       #
       # a language link (it starts with a ':')
       #
-      set item_ref_info [$package_id item_ref \
+      set item_ref_info [::$package_id item_ref \
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
                              -parent_id $parent_id \
@@ -2318,7 +2318,7 @@ namespace eval ::xowiki {
       #
       set is_self_link true
       set package_id [:physical_package_id]
-      set item_ref_info [$package_id item_ref \
+      set item_ref_info [::$package_id item_ref \
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
                              -parent_id [:physical_item_id] \
@@ -2330,7 +2330,7 @@ namespace eval ::xowiki {
       #
       # A plain link, search relative to the parent.
       #
-      set item_ref_info [$package_id item_ref \
+      set item_ref_info [::$package_id item_ref \
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
                              -parent_id $parent_id \
@@ -2383,7 +2383,7 @@ namespace eval ::xowiki {
     if {[info exists parent_id] && $parent_id eq ""} {
       unset parent_id
     }
-    return [$page_package_id make_link $page_package_id \
+    return [::$page_package_id make_link $page_package_id \
                 edit-new object_type name title nls_language return_url parent_id autoname]
   }
 
@@ -2393,10 +2393,10 @@ namespace eval ::xowiki {
     } else {
       set template_id [:page_template]
       if {![info exists parent_id]} {
-        set parent_id [$page_package_id folder_id]
+        set parent_id [::$page_package_id folder_id]
       }
-      set form [$page_package_id pretty_link -parent_id $parent_id [$template_id name]]
-      return [$page_package_id make_link -link $form $template_id \
+      set form [::$page_package_id pretty_link -parent_id $parent_id [::$template_id name]]
+      return [::$page_package_id make_link -link $form $template_id \
                   create-new return_url name title nls_language]
     }
   }
@@ -2615,8 +2615,8 @@ namespace eval ::xowiki {
   Page instproc get_rich_text_spec {field_name default} {
     set package_id ${:package_id}
     set spec ""
-    #:msg WidgetSpecs=[$package_id get_parameter WidgetSpecs]
-    foreach {s widget_spec} [$package_id get_parameter WidgetSpecs] {
+    #:msg WidgetSpecs=[::$package_id get_parameter WidgetSpecs]
+    foreach {s widget_spec} [::$package_id get_parameter WidgetSpecs] {
       lassign [split $s ,] page_name var_name
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[info exists :name] ? ${:name} : $page_name}]
@@ -2679,11 +2679,11 @@ namespace eval ::xowiki {
 
     if {[ns_conn isconnected]} {
       set url         "[ns_conn location][::xo::cc url]"
-      set package_url "[ns_conn location][$package_id package_url]"
+      set package_url "[ns_conn location][::$package_id package_url]"
     }
 
     set tags ""
-    if {[$package_id get_parameter "with_tags" 1] &&
+    if {[::$package_id get_parameter "with_tags" 1] &&
         ![:exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
@@ -2696,21 +2696,21 @@ namespace eval ::xowiki {
       set tag_content ""
     }
 
-    if {[$package_id get_parameter "with_digg" 0] && [info exists url]} {
+    if {[::$package_id get_parameter "with_digg" 0] && [info exists url]} {
       if {![info exists description]} {set description [:get_description $content]}
       append footer "<div style='float: right'>" \
           [:include [list digg -description $description -url $url]] "</div>\n"
     }
 
-    if {[$package_id get_parameter "with_delicious" 0] && [info exists url]} {
+    if {[::$package_id get_parameter "with_delicious" 0] && [info exists url]} {
       if {![info exists description]} {set description [:get_description $content]}
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [:include [list delicious -description $description -url $url -tags $tags]] \
           "</div>\n"
     }
 
-    if {[$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
-      set publisher [$package_id get_parameter "my_yahoo_publisher" \
+    if {[::$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
+      set publisher [::$package_id get_parameter "my_yahoo_publisher" \
                          [::xo::get_user_name [::xo::cc user_id]]]
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [:include [list my-yahoo-publisher \
@@ -2719,11 +2719,11 @@ namespace eval ::xowiki {
           "</div>\n"
     }
 
-    if {[$package_id get_parameter "show_page_references" 1]} {
+    if {[::$package_id get_parameter "show_page_references" 1]} {
       append footer [:include my-references]
     }
 
-    if {[$package_id get_parameter "show_per_object_categories" 1]} {
+    if {[::$package_id get_parameter "show_per_object_categories" 1]} {
       set html [:include my-categories]
       if {$html ne ""} {
         append footer $html <br>
@@ -2733,7 +2733,7 @@ namespace eval ::xowiki {
 
     append footer $tag_content
 
-    if {[$package_id get_parameter "with_general_comments" 0] &&
+    if {[::$package_id get_parameter "with_general_comments" 0] &&
         ![:exists_query_parameter no_gc]} {
       append footer [:include my-general-comments]
     }
@@ -3124,7 +3124,7 @@ namespace eval ::xowiki {
     if {![info exists package_id]} { set package_id ${:package_id} }
     if {![info exists parent_id]}  { set parent_id ${:parent_id} }
     if {$creation_user eq ""} {
-      set creation_user [[$package_id context] user_id]
+      set creation_user [[::$package_id context] user_id]
     }
 
     set f [FormPage new -destroy_on_cleanup \
@@ -3305,7 +3305,7 @@ namespace eval ::xowiki {
     #
     # substitute relative links to download links in the same folder
     #
-    set prefix [$parent_id pretty_link -absolute true -download true]
+    set prefix [::$parent_id pretty_link -absolute true -download true]
     foreach n [$root selectNodes //img] {
       set src [$n getAttribute src]
       if {[regexp {^[^/]} $src]} {
@@ -3364,9 +3364,9 @@ namespace eval ::xowiki {
     set parent_id ${:parent_id}
     set package_id ${:package_id}
     # don't require permissions here, such that rss can present the link
-    #set page_link [$package_id make_link -privilege public [self] download ""]
+    #set page_link [::$package_id make_link -privilege public [self] download ""]
 
-    set ctx [$package_id context]
+    set ctx [::$package_id context]
     set revision_id [$ctx query_parameter revision_id]
     set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
     set page_link [:pretty_link -download true -query $query]
@@ -4098,7 +4098,7 @@ namespace eval ::xowiki {
     set filter_clause ""
     array set wc $h_where
     set use_hstore [expr {[::xo::dc has_hstore] &&
-                          [$package_id get_parameter use_hstore 0]
+                          [::$package_id get_parameter use_hstore 0]
                         }]
     if {$use_hstore && $wc(h) ne ""} {
       set filter_clause " and '$wc(h)' <@ hkey"
@@ -4232,7 +4232,7 @@ namespace eval ::xowiki {
     #
     lappend aggregated_folder_refs {*}$additional_folder_refs
     foreach item_ref $additional_folder_refs {
-      set page [$package_id get_page_from_item_ref $item_ref]
+      set page [::$package_id get_page_from_item_ref $item_ref]
       if {$page eq ""} {error "configured inherited folder $item_ref cannot be resolved"}
       set aggregated_folder_refs \
           [FormPage get_super_folders $package_id [$page item_id] $aggregated_folder_refs]
@@ -4261,7 +4261,7 @@ namespace eval ::xowiki {
     #:log inherit_folders=$inherit_folders
 
     foreach item_ref $inherit_folders {
-      set folder [::xo::cc cache [list $package_id get_page_from_item_ref $item_ref]]
+      set folder [::xo::cc cache [list ::$package_id get_page_from_item_ref $item_ref]]
       if {$folder eq ""} {
         ad_log error "Could not resolve parameter folder page '$item_ref' of FormPage [self]."
       } else {
@@ -4327,7 +4327,7 @@ namespace eval ::xowiki {
       if {![regexp {/?..:} $pp]} {
         ad_log error "Name of parameter page '$pp' of FormPage [self] must contain a language prefix"
       } else {
-        set page [::xo::cc cache [list ${:package_id} get_page_from_item_ref $pp]]
+        set page [::xo::cc cache [list ::${:package_id} get_page_from_item_ref $pp]]
         if {$page eq ""} {
           ad_log error "Could not resolve parameter page '$pp' of FormPage [self]."
         }
@@ -4775,7 +4775,7 @@ namespace eval ::xowiki {
       # are not, change on the first save the status to ready
       #
       if {[:is_new_entry $old_name]} {
-        if {![$package_id get_parameter production_mode 0]} {
+        if {![::$package_id get_parameter production_mode 0]} {
           set :publish_status "ready"
         }
       }

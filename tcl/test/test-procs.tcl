@@ -256,7 +256,7 @@ namespace eval ::xowiki::test {
 
         set d [acs::test::http \
                    -last_request $last_request -user_id $user_id \
-                   $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
+                   $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
         acs::test::reply_has_status_code $d 302
         aa_log "create_form_page: DONE"
     }
@@ -419,7 +419,7 @@ namespace eval ::xowiki::test {
 
         set d [acs::test::http \
                    -last_request $last_request -user_id $user_id \
-                   $instance/admin/set-publish-state?state=ready&revision_id=[$item_id revision_id]]
+                   $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
         acs::test::reply_has_status_code $d 302
     }
 

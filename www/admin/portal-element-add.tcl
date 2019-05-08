@@ -12,7 +12,7 @@
   {-referer .}
 }
 
-set page [$package_id get_page_from_item_ref $page_name]
+set page [::$package_id get_page_from_item_ref $page_name]
 
 if {$page eq ""} {
   #

@@ -300,10 +300,10 @@ namespace eval ::xowiki {
         # rename swf:name and image:name to file:name
         db_dml change_swf \
             "update cr_items set name = 'file' || substr(name,4) \
-    where name like 'swf:%' and parent_id = [$package_id folder_id]"
+    where name like 'swf:%' and parent_id = [::$package_id folder_id]"
         db_dml change_image \
             "update cr_items set name = 'file' || substr(name,6) \
-    where name like 'image:%' and parent_id = [$package_id folder_id]"
+    where name like 'image:%' and parent_id = [::$package_id folder_id]"
         # reload updated prototype pages
         $package_id import-prototype-page book
         $package_id import-prototype-page weblog
@@ -333,10 +333,10 @@ namespace eval ::xowiki {
           #
           db_dml change_swf \
               "update cr_items set name = 'file' || substr(name,4) \
-    where name like 'swf:%' and parent_id = [$package_id folder_id]"
+    where name like 'swf:%' and parent_id = [::$package_id folder_id]"
           db_dml change_image \
               "update cr_items set name = 'file' || substr(name,6) \
-    where name like 'image:%' and parent_id = [$package_id folder_id]"
+    where name like 'image:%' and parent_id = [::$package_id folder_id]"
         }
       }
       catch {
@@ -499,16 +499,16 @@ namespace eval ::xowiki {
 
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id
-        set item_id [$package_id lookup -name ::[$package_id folder_id]]
+        set item_id [::$package_id lookup -name ::[::$package_id folder_id]]
         if {$item_id ne 0} {
           ::xowiki::Object get_instance_from_db -item_id $item_id
-          set p [$item_id get_payload widget_specs]
+          set p [::$item_id get_payload widget_specs]
           if {$p ne ""} {
-            ns_log notice "Transferring widget_specs to parameter WidgetSpecs for $package_id [$package_id package_url]"
+            ns_log notice "Transferring widget_specs to parameter WidgetSpecs for $package_id [::$package_id package_url]"
             parameter::set_value -package_id $package_id -parameter WidgetSpecs -value $p
           }
         } else {
-          ns_log notice "no folder object found for $package_id - [$package_id package_url]"
+          ns_log notice "no folder object found for $package_id - [::$package_id package_url]"
         }
       }
     }

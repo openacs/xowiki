@@ -43,7 +43,7 @@ foreach entry [$listing children] {
   $entry instvar name parent_id title formatted_date page_id 
   set entry_package_id [$entry set package_id]
       
-  set page_link [$package_id pretty_link -parent_id $parent_id $name]
+  set page_link [::$package_id pretty_link -parent_id $parent_id $name]
   t1 add \
       -title $title \
       -name $name \
@@ -53,7 +53,7 @@ foreach entry [$listing children] {
     if {$entry_package_id == $package_id} {
       set label ""
     } else {
-      set label [$entry_package_id instance_name]
+      set label [::$entry_package_id instance_name]
     }
     [t1 last_child] set inherited $label
   }

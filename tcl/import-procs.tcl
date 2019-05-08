@@ -59,10 +59,10 @@ namespace eval ::xowiki {
         #:msg "$item_id update: [$object name]"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
         $item_id copy_content_vars -from_object $object
-        $item_id save -use_given_publish_date [$item_id exists publish_date] \
+        $item_id save -use_given_publish_date [::$item_id exists publish_date] \
             -modifying_user [$object set modifying_user]
         #:log "$item_id saved"
-        $object set item_id [$item_id item_id]
+        $object set item_id [::$item_id item_id]
         #:msg "$item_id updated: [$object name]"
         :report_line $item_id updated
         incr :updated
@@ -82,7 +82,7 @@ namespace eval ::xowiki {
     # Insert these into the category object map
     #
     if {[$object exists __category_ids]} {
-      #:msg "$item_id map_categories [object set __category_ids] // [$item_id item_id]"
+      #:msg "$item_id map_categories [object set __category_ids] // [::$item_id item_id]"
       $item_id map_categories [$object set __category_ids]
     }
 
@@ -298,10 +298,10 @@ namespace eval ::xowiki {
         #
         # For PageInstances (or its subtypes), include the parent-objects as well
         #
-        if {[$item_id istype ::xowiki::PageInstance]} {
-          set template_id [$item_id page_template]
+        if {[::$item_id istype ::xowiki::PageInstance]} {
+          set template_id [::$item_id page_template]
           if {![info exists items($template_id)]} {
-            ns_log notice "--export including template-object $template_id [$template_id name]"
+            ns_log notice "--export including template-object $template_id [::$template_id name]"
             set items($template_id) 1
             ::xo::db::CrClass get_instance_from_db -item_id $template_id
             set new 1
@@ -316,7 +316,7 @@ namespace eval ::xowiki {
         ::xo::dc foreach export_child_obj $sql {
           if {![info exists items($item_id)]} {
             ::xo::db::CrClass get_instance_from_db -item_id $item_id
-            ns_log notice "--export including child $item_id [$item_id name]"
+            ns_log notice "--export including child $item_id [::$item_id name]"
             set items($item_id) 1
             set new 1
             $item_id set __export_reason implicit_child_page
@@ -334,9 +334,9 @@ namespace eval ::xowiki {
     set content ""
     foreach item_id $item_ids {
       ad_try {
-        set obj [$item_id marshall -mode $mode]
+        set obj [::$item_id marshall -mode $mode]
       } on error {errorMsg} {
-        ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
         error $errorMsg
       }
       append content $obj\n
@@ -357,13 +357,13 @@ namespace eval ::xowiki {
     ad_return_top_of_page ""
 
     foreach item_id $item_ids {
-      ns_log notice "--exporting $item_id [$item_id name]"
-      set pretty_link [expr {[$item_id package_id] ne "" ? [$item_id pretty_link] : "(not visible)"}]
-      ns_write "# exporting $item_id [$item_id name] $pretty_link\n"
+      ns_log notice "--exporting $item_id [::$item_id name]"
+      set pretty_link [expr {[::$item_id package_id] ne "" ? [::$item_id pretty_link] : "(not visible)"}]
+      ns_write "# exporting $item_id [::$item_id name] $pretty_link\n"
       ad_try {
-        set obj [$item_id marshall]
+        set obj [::$item_id marshall]
       } on error {errorMsg} {
-        ns_log error "Error while exporting $item_id [$item_id name]\n$errorMsg\n$::errorInfo"
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
       } finally {
         ns_write "$obj\n"
       }
@@ -422,7 +422,7 @@ namespace eval ::xowiki {
     return $success
   }
   ArchiveFile instproc import {-dir -parent_id} {
-    set package_id [$parent_id package_id]
+    set package_id [::$parent_id package_id]
 
     foreach tmpfile [glob -nocomplain -directory $dir *] {
       #:msg "work on $tmpfile [::file isdirectory $tmpfile]"
@@ -430,7 +430,7 @@ namespace eval ::xowiki {
       if {[::file isdirectory $tmpfile]} {
         # ignore mac os x resource fork directories
         if {[string match "*__MACOSX" $tmpfile]} continue
-        set folder_object [$package_id get_page_from_name -assume_folder true \
+        set folder_object [::$package_id get_page_from_name -assume_folder true \
                                -name $file_name -parent_id $parent_id]
         if {$folder_object ne ""} {
           # if the folder exists already, we have nothing to do
@@ -454,7 +454,7 @@ namespace eval ::xowiki {
       } else {
         set mime_type [::xowiki::guesstype $file_name]
         if {[string match "image/*" $mime_type] && [:use_photo_form]} {
-          set photo_object [$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
+          set photo_object [::$package_id get_page_from_name -name en:$file_name -parent_id $parent_id]
           if {$photo_object ne ""} {
             # photo entry exists already, create a new revision
             :log "Photo $file_name exists already"
@@ -488,7 +488,7 @@ namespace eval ::xowiki {
             #:log "after convert to internal $file_name"
           }
         } else {
-          set file_object [$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
+          set file_object [::$package_id get_page_from_name -name file:$file_name -parent_id $parent_id]
           if {$file_object ne ""} {
             :msg "file $file_name exists already"
             # file entry exists already, create a new revision

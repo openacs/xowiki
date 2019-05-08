@@ -297,12 +297,12 @@ namespace eval ::xowiki {
             ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
           }
           if {[dict exists $properties -form]} {
-            set link [$package_id make_form_link \
+            set link [::$package_id make_form_link \
                           -form [dict get $properties -form] \
                           -parent_id $parent_id \
                           -nls_language $nls_language -return_url $return_url]
           } elseif {[dict exists $properties -object_type]} {
-            set link [$package_id make_link \
+            set link [::$package_id make_link \
                           $package_id edit-new \
                           [list object_type [dict get $properties -object_type]] \
                           parent_id return_url autoname template_file]
@@ -329,7 +329,7 @@ namespace eval ::xowiki {
             }
           }
 
-          set link [$package_id make_link $parent_id file-upload]
+          set link [::$package_id make_link $parent_id file-upload]
           :add_extra_item -name $name -type DropZone \
               -item [list url $link uploader $uploader label $label]
         }
@@ -347,7 +347,7 @@ namespace eval ::xowiki {
           }
           if {$label eq ""} {set label $button}
           set state [::xowiki::mode::$button get]
-          set link [$package_id make_link $parent_id toggle-modebutton]
+          set link [::$package_id make_link $parent_id toggle-modebutton]
           :add_extra_item -name $name -type ModeButton \
               -item [list url $link on $state label $label]
         }

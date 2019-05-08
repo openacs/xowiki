@@ -129,7 +129,7 @@ namespace eval ::xo {
   Chat instproc check_age {key ago} {
     if {$ago > ${:timewindow}} {
       ::xo::clusterwide nsv_unset ${:array} $key
-      #my log "--c unsetting $key"
+      #:log "--c unsetting $key"
       return 0
     }
     return 1
@@ -138,7 +138,7 @@ namespace eval ::xo {
   Chat instproc get_new {} {
     set last [expr {[nsv_exists ${:array}-seen ${:session_id}] ? [nsv_get ${:array}-seen ${:session_id}] : 0}]
     if {[nsv_get ${:array}-seen newest]>$last} {
-      #my log "--c must check ${:session_id}: [nsv_get ${:array}-seen newest] > $last"
+      #:log "--c must check ${:session_id}: [nsv_get ${:array}-seen newest] > $last"
       foreach {key value} [nsv_array get ${:array}] {
         lassign $value timestamp secs user msg color
         if {$timestamp > $last} {
@@ -165,7 +165,7 @@ namespace eval ::xo {
         :add [Message new -time $secs -user_id $user -msg $msg -color $color]
       }
     }
-    #my log "--chat setting session_id ${:session_id}: ${:now}"
+    #:log "--chat setting session_id ${:session_id}: ${:now}"
     ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
     :render
   }

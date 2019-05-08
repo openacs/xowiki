@@ -79,7 +79,7 @@ namespace eval ::xowiki::includelet {
       # we have no community_id, try to get it from site map, case (3)
       #
       set :community_id [dotlrn_community::get_community_id]
-      #my msg "got from context ${:community_id}"
+      #:msg "got from context ${:community_id}"
     }
 
     if {![info exists :community_id] || ${:community_id} eq ""} {
@@ -111,7 +111,7 @@ namespace eval ::xowiki::includelet {
                                  -applet_key [dotlrn_[:package_key]::applet_key]]
       }
     }
-    #my msg community_id=${:community_id}-package_ids=$package_ids
+    #:msg community_id=${:community_id}-package_ids=$package_ids
     :cf [list shaded_p [:shaded] community_id ${:community_id} package_id $package_ids]
   }
 

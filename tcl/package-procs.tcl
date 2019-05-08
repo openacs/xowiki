@@ -337,7 +337,7 @@ namespace eval ::xowiki {
         set context_name [lindex $parts $index]
         if {1 && $parent_id in $folder_ids} {
           #:msg "---- parent $parent_id in $folder_ids"
-          set context_id [$context_id item_id]
+          set context_id [::$context_id item_id]
           set fo [::xo::db::CrClass get_instance_from_db -item_id $context_id]
         } else {
           #:msg "context_url $context_url, parts $parts, context_name $context_name // parts $parts // index $index / folder $fo"
@@ -346,7 +346,7 @@ namespace eval ::xowiki {
             set context_folder [:get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name]
             if {$context_folder eq ""} {
               :msg "my get_page_from_name -parent_id $parent_id -assume_folder true -name $context_name ==> EMPTY"
-              :msg "Cannot lookup '$context_name' in package folder $parent_id [$parent_id name]"
+              :msg "Cannot lookup '$context_name' in package folder $parent_id [::$parent_id name]"
 
               set new_path [join [lrange $parts 0 $index] /]
               set p2 [:get_parent_and_name -path [join [lrange $parts 0 $index] /] -lang "" -parent_id $parent_id parent local_name]
@@ -369,9 +369,9 @@ namespace eval ::xowiki {
       if {[$fo is_link_page]} {
         set pid [$fo package_id]
         foreach id $ids {
-          if {[$id package_id] ne $pid} {
-            #:msg "SYMLINK ++++ have to fix package_id of $id from [$id package_id] to $pid"
-            $id set_resolve_context -package_id $pid -parent_id [$id parent_id]
+          if {[::$id package_id] ne $pid} {
+            #:msg "SYMLINK ++++ have to fix package_id of $id from [::$id package_id] to $pid"
+            $id set_resolve_context -package_id $pid -parent_id [::$id parent_id]
           }
         }
         if {0} {
@@ -494,7 +494,7 @@ namespace eval ::xowiki {
         set parent_id [:folder_id]
       }
       set folder [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
-      set pkg [$parent_id package_id]
+      set pkg [::$parent_id package_id]
       if {![:isobject ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
       }
@@ -721,16 +721,17 @@ namespace eval ::xowiki {
       #
       ::xowiki::Package initialize -parameter {{-m view}} -url $(url)$(provided_name) \
           -actual_query ""
-      #:log "url=$url=>[$package_id serialize]"
+      #:log "url=$url=>[::$package_id serialize]"
 
       if {$package_id != 0} {
         #
         # For the resolver, we create a fresh context to avoid recursive loops, when
         # e.g. revision_id is set through a query parameter...
         #
-        set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
-        $package_id context [::xo::Context new -volatile]
-        set object_name [$package_id set object]
+        set package ::$package_id
+        set last_context [expr {[$package exists context] ? [$package context] : "::xo::cc"}]
+        $package context [::xo::Context new -volatile]
+        set object_name [$package set object]
         #:log "cross package request got object=$object_name"
         #
         # A user might force the language by preceding the
@@ -743,17 +744,20 @@ namespace eval ::xowiki {
           }
           set object_name ${lang}:$object_name
         }
-        set page [$package_id resolve_page -simple true $object_name __m]
-        $package_id context $last_context
+        set page [$package resolve_page -simple true $object_name __m]
+        $package context $last_context
       }
       $last_package_id set_url -url $last_url
 
     } else {
+      #
       # It is not a cross package request
-      set last_context [expr {[$package_id exists context] ? [$package_id context] : "::xo::cc"}]
-      $package_id context [::xo::Context new -volatile]
-      set page [$package_id resolve_page -use_package_path $(search) $(page_name) __m]
-      $package_id context $last_context
+      #
+      set package ::$package_id
+      set last_context [expr {[$package exists context] ? [$package context] : "::xo::cc"}]
+      $package context [::xo::Context new -volatile]
+      set page [$package resolve_page -use_package_path $(search) $(page_name) __m]
+      $package context $last_context
     }
     #:log "returning $page"
     return $page
@@ -857,7 +861,7 @@ namespace eval ::xowiki {
     #:log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
-      set form_link [$form_id pretty_link]
+      set form_link [::$form_id pretty_link]
       #:msg "$form -> $form_id -> $form_link -> [:make_link -link $form_link $form_id \
           #            create-new return_url title parent_id name nls_language]"
       return [:make_link -link $form_link $form_id \
@@ -1350,7 +1354,7 @@ namespace eval ::xowiki {
         set target [$p get_target_from_link_page]
         set target_package_id [$target package_id]
         #:msg "SYMLINK LOOKUP from target-package $target_package_id source package $(package_id)"
-        set target_item_id [$target_package_id lookup \
+        set target_item_id [::$target_package_id lookup \
                                 -use_package_path $use_package_path \
                                 -use_site_wide_pages $use_site_wide_pages \
                                 -default_lang $default_lang \
@@ -1647,9 +1651,9 @@ namespace eval ::xowiki {
     # e.g. special link_types as for e.g. file|image|js|css|swf, etc.
     #
     ::xo::db::CrClass get_instance_from_db -item_id $item_id
-    set name [$item_id name]
-    set parent_id [$item_id parent_id]
-    if {[$item_id is_folder_page]} {
+    set name [::$item_id name]
+    set parent_id [::$item_id parent_id]
+    if {[::$item_id is_folder_page]} {
       return [list link_type "folder" prefix "" stripped_name $name parent_id $parent_id]
     }
     set stripped_name $name
@@ -1723,7 +1727,7 @@ namespace eval ::xowiki {
         # We encompassed a link to a page or folder, treat both the same way.
         #
         set link_id $(parent_id)
-        set target [$link_id get_target_from_link_page]
+        set target [::$link_id get_target_from_link_page]
 
         $target set_resolve_context -package_id ${:id} -parent_id $link_id
         array set "" [list logical_package_id ${:id} logical_parent_id $link_id]
@@ -1780,13 +1784,13 @@ namespace eval ::xowiki {
         # facilities.
 
         #:log cross-package
-        return [$referenced_package_id get_page_from_item_ref \
+        return [::$referenced_package_id get_page_from_item_ref \
                     -allow_cross_package_item_refs false \
                     -use_package_path false \
                     -use_site_wide_pages false \
                     -use_prototype_pages false \
                     -default_lang $default_lang \
-                    -parent_id [$referenced_package_id folder_id] \
+                    -parent_id [::$referenced_package_id folder_id] \
                     $rest_link]
       } else {
         # it is a link to the same package, we start search for page at top.
@@ -1924,7 +1928,7 @@ namespace eval ::xowiki {
       $page set_content [string trim [$page text] " \n"]
       $page initialize_loaded_object
 
-      set p [$package_id get_page_from_name -name $fullName -parent_id $parent_id]
+      set p [::$package_id get_page_from_name -name $fullName -parent_id $parent_id]
       #:log "--get_page_from_name --> '$p'"
       if {$p eq ""} {
         # We have to create the page new. The page is completed with
@@ -2178,8 +2182,7 @@ namespace eval ::xowiki {
     @param days report entries changed in specified last days
 
   } {
-    set package_id ${:id}
-    set folder_id [$package_id folder_id]
+    set folder_id [:${:id} folder_id]
     if {![info exists name_filter]} {
       set name_filter [:get_parameter -type word name_filter ""]
     }
@@ -2230,8 +2233,8 @@ namespace eval ::xowiki {
     @param priority priority as defined by google
 
   } {
-    set package_id ${:id}
-    set folder_id [::$package_id folder_id]
+    set package ::${:id}
+    set folder_id [$package folder_id]
 
     set timerange_clause ""
 
@@ -2261,7 +2264,7 @@ namespace eval ::xowiki {
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
 
       append content <url> \n\
-          <loc>[::$package_id pretty_link -absolute true -parent_id $parent_id $name]</loc> \n\
+          <loc>[$package pretty_link -absolute true -parent_id $parent_id $name]</loc> \n\
           <lastmod>$time</lastmod> \n\
           <changefreq>$changefreq</changefreq> \n\
           <priority>$priority</priority> \n\

@@ -58,7 +58,7 @@ namespace eval ::xowiki {
       # if there is no field spec, use the default from the slot definitions
       set __spec  [expr {[info exists :f.$__field] ? [set :f.$__field] : "="}]
       set __wspec [lindex $__spec 0]
-      #my msg "$__field: wspec=$__wspec, spec=$__spec"
+      #:msg "$__field: wspec=$__wspec, spec=$__spec"
 
       # check first if we have widget_specs.
       # TODO: this part is likely to be removed in the future.
@@ -217,7 +217,7 @@ namespace eval ::xowiki {
     $data instvar package_id
     if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
-      set ffmpeg [$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
+      set ffmpeg [::$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
       if {[file exists $ffmpeg]} {
         catch {exec $ffmpeg -i $filename} output
         if {[info exists output]} {
@@ -238,7 +238,7 @@ namespace eval ::xowiki {
       $form instvar data
     }
     $data instvar package_id
-    set cc [$package_id context]
+    set cc [::$package_id context]
 
     set old_name [$cc form_parameter __object_name ""]
     #$data msg "validate: old='$old_name', current='$name'"
@@ -252,9 +252,9 @@ namespace eval ::xowiki {
       # Caveat: the error message is always the same.
       #
       set package_id [$cc package_id]
-      set computed_link [export_vars -base [$package_id package_url] {{edit-new 1} name 
+      set computed_link [export_vars -base [::$package_id package_url] {{edit-new 1} name 
         {object_type ::xowiki::File}}]
-      set granted [$package_id check_permissions -link $computed_link $package_id edit-new]
+      set granted [::$package_id check_permissions -link $computed_link $package_id edit-new]
       #$data msg computed_link=$computed_link,granted=$granted
       if {!$granted} {
         util_user_message -message "User not authorized to create a file named $name"

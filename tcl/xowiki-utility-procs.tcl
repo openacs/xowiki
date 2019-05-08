@@ -130,7 +130,7 @@ namespace eval ::xowiki::hstore {
     ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
       return 0
     }
 
@@ -172,7 +172,7 @@ namespace eval ::xowiki::hstore {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
       ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
-      if {[$package_id get_parameter use_hstore 0] == 0} {
+      if {[::$package_id get_parameter use_hstore 0] == 0} {
         continue
       }
       ad_try {
@@ -418,7 +418,7 @@ namespace eval ::xowiki {
 
   proc ::xowiki::transform_root_folder {package_id} {
     ::xo::Package initialize -package_id $package_id
-    set item_id [$package_id folder_id]
+    set item_id [::$package_id folder_id]
     
     if {$item_id == 0} {
       #
@@ -447,7 +447,7 @@ namespace eval ::xowiki {
       return
     }
     set revision_id [::xo::db::sql::content_revision new \
-                         -title [$package_id instance_name] -text "" \
+                         -title [::$package_id instance_name] -text "" \
                          -item_id $item_id -package_id $package_id]
     ::xo::dc dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
     ::xo::dc dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
@@ -489,7 +489,7 @@ namespace eval ::xowiki {
     ns_log notice "got package_id=$package_id, object_id=$object_id, type=$type"
     ::xowiki::Package initialize -package_id $package_id
     if {[::xotcl::Object isobject ::$package_id]} {
-      return [$package_id package_url]
+      return [::$package_id package_url]
     } else {
       return ""
     }

@@ -888,7 +888,7 @@ namespace eval ::xowiki::formfield {
       #
     }
 
-    set file_object [$package_id get_page_from_name -name $object_name -parent_id $parent_id]
+    set file_object [::$package_id get_page_from_name -name $object_name -parent_id $parent_id]
     if {$file_object ne ""} {
       #
       # File entry exists already, create a new revision
@@ -918,7 +918,7 @@ namespace eval ::xowiki::formfield {
       # When produduction_mode is set, make sure, the new file object
       # is not in a published state.
       #
-      if {[$package_id get_parameter production_mode 0]} {
+      if {[::$package_id get_parameter production_mode 0]} {
         $file_object publish_status "production"
       }
       $file_object save_new {*}$save_flag
@@ -1046,7 +1046,7 @@ namespace eval ::xowiki::formfield {
           revision_id [:get_from_value ${:value} revision_id ""] \
           fn $fns {
             #:msg "${:name}: [list :get_from_value <${:value}> name] => '$fn'"
-            set href [$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
+            set href [::$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
 
             if {![:istype image]} {
               append href ?filename=[ns_urlencode $fn]
@@ -1102,9 +1102,9 @@ namespace eval ::xowiki::formfield {
     #
     # Get the file object of the imported file to obtain is full name and path
     #
-    set file_id [$package_id lookup -parent_id [${:object} item_id] -name $(name)]
+    set file_id [::$package_id lookup -parent_id [${:object} item_id] -name $(name)]
     ::xo::db::CrClass get_instance_from_db -item_id $file_id
-    set full_file_name [$file_id full_file_name]
+    set full_file_name [::$file_id full_file_name]
     #
     # Call the archiver to unpack and handle the archive
     #
@@ -1117,7 +1117,7 @@ namespace eval ::xowiki::formfield {
       # lead to maybe unexpected deletions of the form-page
       #
       if {[:cleanup]} {
-        set return_url [$package_id query_parameter "return_url" [$parent_id pretty_link]]
+        set return_url [::$package_id query_parameter "return_url" [::$parent_id pretty_link]]
         $package_id returnredirect [${:object} pretty_link -query [export_vars {m delete} return_url]]
       }
     }
@@ -1911,7 +1911,7 @@ namespace eval ::xowiki::formfield {
         skin: '[:skin]',
         startupMode: '[:mode]',
         parent_id: '[${:object} item_id]',
-        package_url: '[$package_id package_url]',
+        package_url: '[::$package_id package_url]',
         extraPlugins: '[join [:extraPlugins] ,]',
         contentsCss: '[:contentsCss]',
         imageSelectorDialog: '[:imageSelectorDialog]',
@@ -2163,7 +2163,7 @@ namespace eval ::xowiki::formfield {
         startupMode: '[:mode]',
         disableNativeSpellChecker: false,
         parent_id: '[${:object} item_id]',
-        package_url: '[$package_id package_url]',
+        package_url: '[::$package_id package_url]',
         extraPlugins: '[join [:extraPlugins] ,]',
         extraAllowedContent: '[:extraAllowedContent]',
         contentsCss: '[:contentsCss]',
@@ -2923,7 +2923,7 @@ namespace eval ::xowiki::formfield {
       #
       set object_package_id [$i package_id]
       if {${:package_id} != $object_package_id} {
-        set package_prefix /[$object_package_id package_url]
+        set package_prefix /[::$object_package_id package_url]
       } else {
         set package_prefix ""
       }
@@ -2964,7 +2964,7 @@ namespace eval ::xowiki::formfield {
     set :options [list]
     ::xo::dc foreach instance_select \
         [${:type} instance_select_query \
-             -folder_id [$package_id folder_id] \
+             -folder_id [::$package_id folder_id] \
              -with_subtypes ${:with_subtypes} \
              -select_attributes [list title] \
              -from_clause ", xowiki_page p" \
@@ -3251,6 +3251,7 @@ namespace eval ::xowiki::formfield {
     }
     set link_type [${:object} get_property_from_link_page link_type]
     ${:object} references resolved [list $item_id $link_type]
+    set item $::item_id
 
     if {${:resolve_local}} {
       #
@@ -3258,17 +3259,17 @@ namespace eval ::xowiki::formfield {
       # Therefore we reset it immediately after the rendering
       #
       #:log "set __RESOLVE_LOCAL"
-      $item_id set __RESOLVE_LOCAL 1
-      $item_id set_resolve_context \
+      $item set __RESOLVE_LOCAL 1
+      $item set_resolve_context \
           -package_id [${:object} package_id] -parent_id [${:object} parent_id] \
           -item_id [${:object} item_id]
 
-      set html [$item_id render]
+      set html [::$item_id render]
 
-      $item_id unset __RESOLVE_LOCAL
-      $item_id reset_resolve_context
+      $item unset __RESOLVE_LOCAL
+      $item reset_resolve_context
     } else {
-      set html [$item_id render]
+      set html [$item render]
     }
     return $html
   }

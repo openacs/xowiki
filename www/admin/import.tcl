@@ -65,7 +65,7 @@ ad_form \
         set parent_id [ns_queryget parent_id 0]
         #::xotcl::Object msg parent_id=$parent_id
         ad_try {
-          set msg [$package_id import -replace $replace -create_user_ids $create_user_ids \
+          set msg [::$package_id import -replace $replace -create_user_ids $create_user_ids \
                        -parent_id $parent_id -objects $objects]
         } on error {errMsg} {
           ns_log notice "Error during import: $errMsg\nErrInfo: $::errorInfo"

@@ -37,14 +37,14 @@ if {![info exists object_type]} {
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
                       [::$package_id url]}]
 
-set category_url [export_vars -base [$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 
 set actions [subst {
   Action new -label "[lang::message::lookup {} categories.Categories Categories]" \
       -url $category_url
 }]
 foreach type $object_types {
-  set link [$package_id make_link -with_entities 0 \
+  set link [::$package_id make_link -with_entities 0 \
                 $package_id edit-new {object_type $type} return_url autoname]
   if {$link eq ""} continue
   append actions [subst {
@@ -55,7 +55,7 @@ foreach type $object_types {
   }]
 }
 
-set ::individual_permissions [expr {[$package_id set policy] eq "::xowiki::policy3"}]
+set ::individual_permissions [expr {[::$package_id set policy] eq "::xowiki::policy3"}]
 set ::with_publish_status 1
 
 TableWidget create t1 -volatile \
@@ -141,7 +141,7 @@ xo::dc foreach instance_select \
               -edit.title #xowiki.edit# \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \
-              -delete.href [export_vars -base [$package_id package_url] {{delete 1} item_id name return_url}] \
+              -delete.href [export_vars -base [::$package_id package_url] {{delete 1} item_id name return_url}] \
               -delete.title #xowiki.delete# 
 
           if {$::individual_permissions} {
@@ -159,7 +159,7 @@ xo::dc foreach instance_select \
 	    }
             [::template::t1 last_child] set publish_status.src /resources/xowiki/$image
 	    [::template::t1 last_child] set publish_status.href \
-		[export_vars -base [$package_id package_url]admin/set-publish-state \
+		[export_vars -base [::$package_id package_url]admin/set-publish-state \
 		     {state revision_id return_url}]
           }
 	  [::template::t1 last_child] set page_order $page_order

@@ -43,7 +43,7 @@ namespace eval ::xowiki {
         error "invalid form specification '$t'"
       }
       #:log "trying to get $t // parent_id $parent_id"
-      set page [$package_id get_page_from_item_ref \
+      set page [::$package_id get_page_from_item_ref \
                     -use_prototype_pages true \
                     -use_package_path true \
                     -parent_id $parent_id \

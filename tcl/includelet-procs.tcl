@@ -156,7 +156,7 @@ namespace eval ::xowiki::includelet {
                                            package_id
                                            locale
                                          } {
-    set default_locale [$package_id default_locale]
+    set default_locale [::$package_id default_locale]
     set system_locale ""
 
     set with_system_locale [regexp {(.*)[+]system} $locale _ locale]
@@ -228,9 +228,9 @@ namespace eval ::xowiki::includelet {
     # of the returned pages should be a direct child of the folder.
     #
     if {$parent_id eq ""} {
-      set parent_id [$base_package_id folder_id]
+      set parent_id [::$base_package_id folder_id]
     }
-    set packages [$base_package_id package_path]
+    set packages [::$base_package_id package_path]
     if {$use_package_path && [llength $packages] > 0} {
       set parent_ids [list $parent_id]
       foreach p $packages {lappend parent_ids [$p folder_id]}
@@ -450,7 +450,7 @@ namespace eval ::xowiki::includelet {
     set html       [next]
     set localized_title [::xo::localize $title]
     set link [expr {[string match "*:*" $name] ?
-                    "<a href='[ns_quotehtml [$package_id pretty_link -parent_id [$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
+                    "<a href='[ns_quotehtml [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
                     $localized_title}]
     ::xo::render_localizer
     return [subst [[self class] set template]]
@@ -472,7 +472,7 @@ namespace eval ::xowiki::includelet {
     set localized_title [::xo::localize $title]
     set edit_button [:include [list edit-item-button -book_mode true]]
     set link [expr {[string match "*:*" $name] ?
-                    "<a href='[ns_quotehtml [$package_id pretty_link -parent_id [$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
+                    "<a href='[ns_quotehtml [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
                     $localized_title}]
     return [subst [[self class] set template]]
   } -set template {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
@@ -561,7 +561,7 @@ namespace eval ::xowiki::includelet {
   rss-button instproc render {} {
     :get_parameters
     set parent_ids [${:__including_page} parent_id]
-    set href [export_vars -base [$package_id package_url] {{rss $span} parent_ids name_filter title entries_of}]
+    set href [export_vars -base [::$package_id package_url] {{rss $span} parent_ids name_filter title entries_of}]
     ::xo::Page requireLink -rel alternate -type application/rss+xml -title RSS -href $href
     return "<a href=\"[ns_quotehtml $href]\" class='rss'>RSS</a>"
   }
@@ -582,8 +582,8 @@ namespace eval ::xowiki::includelet {
   bookmarklet-button instproc render {} {
     :get_parameters
     set parent_id [${:__including_page} parent_id]
-    set url [$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
-    if {$label eq ""} {set label "Add to [$package_id instance_name]"}
+    set url [::$package_id pretty_link -absolute 1 -siteurl $siteurl -parent_id $parent_id news-item]
+    if {$label eq ""} {set label "Add to [::$package_id instance_name]"}
     if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
 
     template::add_event_listener \
@@ -667,18 +667,19 @@ namespace eval ::xowiki::includelet {
   categories instproc category_tree_edit_button {-object_id:integer -locale {-allow_edit false} -tree_id:integer} {
     set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc set untrusted_user_id]]
     if {$allow_edit && $allow_p} {
+      set package ::${:package_id}
       if {[info exists tree_id]} {
         #
         # If a tree_id is given, edit directly the category tree ...
         #
-        set href "[${:package_id} package_url]?edit-category-tree&object_id=$object_id&tree_id=$tree_id"
+        set href "[$package package_url]?edit-category-tree&object_id=$object_id&tree_id=$tree_id"
         return [${:__including_page} include \
                     [list edit-item-button -link $href -title [_ xowiki.Edit_category] -target _blank]]
       } else {
         #
         # ... otherwise, manage categories (allow defining new category trees, map/unmap, etc.)
         #
-        set href "[${:package_id} package_url]?manage-categories&object_id=$object_id"
+        set href "[$package package_url]?manage-categories&object_id=$object_id"
         return [${:__including_page} include \
                     [list edit-item-button -link $href -title [_ xowiki.Manage_categories] -target _blank]]
       }
@@ -695,7 +696,7 @@ namespace eval ::xowiki::includelet {
     } else {
       set msg "No category tree with name '$name' found."
     }
-    ${:package_id} flush_page_fragment_cache -scope agg
+    ::${:package_id} flush_page_fragment_cache -scope agg
     set html "<div class='errorMsg'>[ns_quotehtml $msg]</div>"
     if {$edit_html ne ""} {
       return "$html Manage Categories? $edit_html"
@@ -707,7 +708,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set content ""
-    set folder_id [$package_id folder_id]
+    set folder_id [::$package_id folder_id]
     set open_item_id [expr {$open_page ne "" ?
                             [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
@@ -926,7 +927,7 @@ namespace eval ::xowiki::includelet {
                  -vars "c.category_id, ci.name, ci.parent_id, r.title, r.publish_date, \
                         to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
                  -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
-                 -where "c.object_id = ci.item_id and ci.parent_id = [$package_id folder_id] \
+                 -where "c.object_id = ci.item_id and ci.parent_id = [::$package_id folder_id] \
      and r.revision_id = ci.live_revision \
      and p.page_id = r.revision_id $tree_select_clause $locale_clause \
          and ci.publish_status <> 'production'" \
@@ -1011,7 +1012,7 @@ namespace eval ::xowiki::includelet {
       $entry instvar parent_id formatted_date page_id {title entry_title} {name entry_name}
       set entry_package_id [$entry set package_id]
 
-      set page_link [$entry_package_id pretty_link -parent_id $parent_id $entry_name]
+      set page_link [::$entry_package_id pretty_link -parent_id $parent_id $entry_name]
       switch -- $pretty_age {
         1 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [:locale]]}
         2 {set age [::xowiki::utility pretty_age -timestamp [clock scan $formatted_date] -locale [:locale] -levels 2]}
@@ -1025,7 +1026,7 @@ namespace eval ::xowiki::includelet {
 
       if {$allow_edit} {
         set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
-        set edit_link [$entry_package_id make_link -link $page_link $p edit return_url]
+        set edit_link [::$entry_package_id make_link -link $page_link $p edit return_url]
         #:log "page_link=$page_link, edit=$edit_link"
         [t1 last_child] set edit.href $edit_link
         [t1 last_child] set edit "&nbsp;"
@@ -1034,7 +1035,7 @@ namespace eval ::xowiki::includelet {
         if {![info exists p]} {
           set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $page_id]
         }
-        set delete_link [$entry_package_id make_link -link $page_link $p delete return_url]
+        set delete_link [::$entry_package_id make_link -link $page_link $p delete return_url]
         [t1 last_child] set delete.href $delete_link
         [t1 last_child] set delete "&nbsp;"
       }
@@ -1048,7 +1049,7 @@ namespace eval ::xowiki::includelet {
         } else {
           # provide a link to the original
           set href $page_link
-          set label [$entry_package_id instance_name]
+          set label [::$entry_package_id instance_name]
           set title [_ xowiki.view_in_context [list context $label]]
           set alt $title
           set class "inherited"
@@ -1099,7 +1100,7 @@ namespace eval ::xowiki::includelet {
         {
           t1 add \
               -title $title \
-              -title.href [$package_id pretty_link -parent_id $parent_id $name]
+              -title.href [::$package_id pretty_link -parent_id $parent_id $name]
         }
     return [t1 asHTML]
   }
@@ -1152,7 +1153,7 @@ namespace eval ::xowiki::includelet {
                -limit $max_entries ] {
                  t1 add \
                      -title $title \
-                     -title.href [$package_id pretty_link -parent_id $parent_id $name] \
+                     -title.href [::$package_id pretty_link -parent_id $parent_id $name] \
                      -users $nr_different_users
                }
     } else {
@@ -1174,7 +1175,7 @@ namespace eval ::xowiki::includelet {
                -limit $max_entries] {
                  t1 add \
                      -title $title \
-                     -title.href [$package_id pretty_link -parent_id $parent_id $name] \
+                     -title.href [::$package_id pretty_link -parent_id $parent_id $name] \
                      -users $nr_different_users \
                      -count $sum
                }
@@ -1310,7 +1311,7 @@ namespace eval ::xowiki::includelet {
      )"
 
     set or_clause ""
-    set folder_id [$package_id folder_id]
+    set folder_id [::$package_id folder_id]
 
     ::xo::dc foreach unread-items \
         [::xo::dc select \
@@ -1330,7 +1331,7 @@ namespace eval ::xowiki::includelet {
         {
           t1 add \
               -title $title \
-              -title.href [$package_id pretty_link -parent_id $parent_id $name]
+              -title.href [::$package_id pretty_link -parent_id $parent_id $name]
         }
     return [t1 asHTML]
   }
@@ -1380,9 +1381,9 @@ namespace eval ::xowiki::includelet {
     }
     set entries [list]
 
-    if {![info exists page]} {set page [$package_id get_parameter weblog_page]}
+    if {![info exists page]} {set page [::$package_id get_parameter weblog_page]}
 
-    set href [$package_id package_url]tag/
+    set href [::$package_id package_url]tag/
     ::xo::dc foreach get_tag_counts $sql {
       set q [list]
       if {$summary} {lappend q "summary=[ad_urlencode_query $summary]"}
@@ -1412,10 +1413,10 @@ namespace eval ::xowiki::includelet {
 
     set p_link [${:__including_page} pretty_link]
     set return_url [::xo::cc url]?[::xo::cc actual_query]
-    set weblog_page [$package_id get_parameter weblog_page weblog]
-    set save_tag_link [$package_id make_link -link $p_link ${:__including_page} \
+    set weblog_page [::$package_id get_parameter weblog_page weblog]
+    set save_tag_link [::$package_id make_link -link $p_link ${:__including_page} \
                            save-tags return_url]
-    set popular_tags_link [$package_id make_link -link $p_link ${:__including_page} \
+    set popular_tags_link [::$package_id make_link -link $p_link ${:__including_page} \
                                popular-tags]
 
     set :tags [lsort [::xowiki::Page get_tags -user_id [::xo::cc user_id] \
@@ -1423,7 +1424,7 @@ namespace eval ::xowiki::includelet {
     set entries [list]
 
     foreach tag ${:tags} {
-      set href [export_vars -base [$package_id package_url]/tag/$tag {summary}]
+      set href [export_vars -base [::$package_id package_url]/tag/$tag {summary}]
       lappend entries "<a rel='tag' href='[ns_quotehtml $href]'>[ns_quotehtml $tag]</a>"
     }
     set tags_with_links [join [lsort $entries] {, }]
@@ -1466,16 +1467,16 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     set content ""
 
-    set weblog_page [$package_id get_parameter weblog_page weblog]
+    set weblog_page [::$package_id get_parameter weblog_page weblog]
     set entries [list]
-    set href [export_vars -base [$package_id package_url]$weblog_page {summary}]
+    set href [export_vars -base [::$package_id package_url]$weblog_page {summary}]
     set notification_type ""
-    if {[$package_id get_parameter "with_notifications" 1] &&
+    if {[::$package_id get_parameter "with_notifications" 1] &&
         [::xo::cc user_id] != 0} { ;# notifications require login
       set notification_type [notification::type::get_type_id -short_name xowiki_notif]
     }
-    if {[$package_id exists_query_parameter return_url]} {
-      set return_url [$package_id query_parameter return_url]
+    if {[::$package_id exists_query_parameter return_url]} {
+      set return_url [::$package_id query_parameter return_url]
     }
     foreach cat_id [category::get_mapped_categories [${:__including_page} set item_id]] {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
@@ -1514,7 +1515,7 @@ namespace eval ::xowiki::includelet {
   my-general-comments instproc render {} {
     :get_parameters
     set item_id [${:__including_page} item_id]
-    set gc_return_url [$package_id url]
+    set gc_return_url [::$package_id url]
     #
     # Even, if general_comments is turned on, don't offer the
     # link to add comments, unless the user is logged in.
@@ -1602,7 +1603,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set publisher [ad_urlencode $publisher]
-    set feedname  [ad_urlencode [$package_id get_parameter PackageTitle [$package_id instance_name]]]
+    set feedname  [ad_urlencode [::$package_id get_parameter PackageTitle [::$package_id instance_name]]]
     set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 
@@ -1725,7 +1726,7 @@ namespace eval ::xowiki::includelet {
       # package root folder.
       #
       if {$i eq [${:__including_page} item_id]
-          || $i eq [$package_id  folder_id]} {
+          || $i eq [::$package_id  folder_id]} {
         continue
       }
       set page [::xo::db::CrClass get_instance_from_db -item_id $i]
@@ -1801,7 +1802,7 @@ namespace eval ::xowiki::includelet {
       set what " on page [${:__including_page} title]"
     } else {
       set extra_where_clause ""
-      set what " in community [$package_id instance_name]"
+      set what " in community [::$package_id instance_name]"
     }
 
     if {!$summary} {
@@ -1989,7 +1990,7 @@ namespace eval ::xowiki::includelet {
       # TODO just needed for michael aram?
       set parent_id [${:__including_page} item_id]
     } else {
-      #set parent_id [$package_id folder_id]
+      #set parent_id [::$package_id folder_id]
       set parent_id [${:__including_page} parent_id]
     }
 
@@ -2296,7 +2297,7 @@ namespace eval ::xowiki::includelet {
 
     if {$allow_reorder ne ""} {
       :page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
-      set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[$package_id package_url]';"
+      set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[::$package_id package_url]';"
       set HTML [$tree render -style listdnd -js $js -context [list min_level $min_level]]
     } else {
       set HTML [$tree render -style list]
@@ -2432,7 +2433,7 @@ namespace eval ::xowiki::includelet {
     set pages [::xowiki::Page instantiate_objects -sql \
                    "select page_id, name, title, item_id \
         from xowiki_page_live_revision p \
-        where parent_id = [$package_id folder_id] \
+        where parent_id = [::$package_id folder_id] \
         and name in $page_names \
         [::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
@@ -2707,7 +2708,7 @@ namespace eval ::xowiki::includelet {
       # TODO just needed for michael aram?
       set parent_id [${:__including_page} item_id]
     } else {
-      #set parent_id [$package_id folder_id]
+      #set parent_id [::$package_id folder_id]
       set parent_id [${:__including_page} parent_id]
     }
 
@@ -3050,15 +3051,15 @@ namespace eval ::xowiki::includelet {
     {-target ""}
   } {
     set html ""
-    if {![info exists return_url] || $return_url eq ""} {set return_url [$package_id url]}
+    if {![info exists return_url] || $return_url eq ""} {set return_url [::$package_id url]}
     if {![info exists alt]} {set alt $method}
     if {![info exists link] || $link eq ""} {
       if {[$page istype ::xowiki::Package]} {
-        set link  [$package_id make_link $package_id edit-new object_type \
+        set link  [::$package_id make_link $package_id edit-new object_type \
                        return_url page_order source_item_id]
       } else {
         set p_link [$page pretty_link]
-        set link [$package_id make_link -link $p_link $page $method \
+        set link [::$package_id make_link -link $p_link $page $method \
                       return_url page_order source_item_id]
       }
     }
@@ -3301,7 +3302,7 @@ namespace eval ::xowiki::includelet {
     }
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
 
-    set folder_id [$package_id folder_id]
+    set folder_id [::$package_id folder_id]
     ::xo::dc foreach get_collaborators {
       select count(revision_id), item_id, creation_user
       from cr_revisions r, acs_objects o
@@ -3391,7 +3392,7 @@ namespace eval ::xowiki::includelet {
                             -vars "i.item_id, revision_id, creation_user" \
                             -from "cr_revisions cr, cr_items i, acs_objects o" \
                             -where "cr.item_id = i.item_id \
-                            and i.parent_id = [$package_id folder_id] \
+                            and i.parent_id = [::$package_id folder_id] \
                             and o.object_id = revision_id" \
                             -orderby "revision_id desc" \
                             -limit $max_activities] \
@@ -3635,7 +3636,7 @@ namespace eval ::xowiki::includelet {
         set parent_id [${:__including_page} item_id]
       }
     } else {
-      #set parent_id [$package_id folder_id]
+      #set parent_id [::$package_id folder_id]
       set parent_id [${:__including_page} parent_id]
     }
     if {![info exists button_objs]} {
@@ -3901,10 +3902,10 @@ namespace eval ::xowiki::includelet {
                                  -default_lang [$o lang] \
                                  -forms $inherit_form -package_id [$o package_id]]
         if {$inherit_form_id ne ""} {
-          if {[$inherit_form_id istype ::xowiki::FormPage]} {
-            set p [$inherit_form_id property form_constraints]
+          if {[::$inherit_form_id istype ::xowiki::FormPage]} {
+            set p [::$inherit_form_id property form_constraints]
           } else {
-            set p [$inherit_form_id form_constraints]
+            set p [::$inherit_form_id form_constraints]
           }
           append form_constraints $p\n
           lappend inherit_form_ids $inherit_form_id
@@ -3995,7 +3996,7 @@ namespace eval ::xowiki::includelet {
     foreach bulk_action $bulk_actions {
       if {$bulk_action eq "export"} {
         append actions [subst {Action bulk-delete -label [_ xowiki.export] -tooltip [_ xowiki.export] \
-                                   -url [$package_id package_url]admin/export}]\n
+                                   -url [::$package_id package_url]admin/export}]\n
       }
     }
     if {[llength $bulk_actions] > 0} {
@@ -4123,7 +4124,7 @@ namespace eval ::xowiki::includelet {
     }
     #:log "queries done"
     if {[info exists wf]} {
-      set wf_link [$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
+      set wf_link [::$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
     }
 
     set this_url [ad_return_url]
@@ -4160,7 +4161,7 @@ namespace eval ::xowiki::includelet {
           set image inactive.png
           set state "ready"
         }
-        set url [export_vars -base [$package_id package_url]admin/set-publish-state \
+        set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
                      {state {revision_id "[$p set revision_id]"} {return_url $this_url}}]
         $__c set _publish_status.src /resources/xowiki/$image
         $__c set _publish_status.href $url
@@ -4169,12 +4170,12 @@ namespace eval ::xowiki::includelet {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
         #set template_file view-default
-        $__c set _edit.href [$package_id make_link -link $page_link $p edit return_url template_file]
+        $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
       }
       if {[info exists use_button(delete)]} {
         $__c set _delete "&nbsp;"
         $__c set _delete.title #xowiki.delete#
-        $__c set _delete.href [$package_id make_link -link $page_link $p delete return_url]
+        $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
       }
       if {[info exists use_button(view)]} {
         $__c set _view "&nbsp;"
@@ -4200,7 +4201,7 @@ namespace eval ::xowiki::includelet {
         $__ff($__fn) object $p
         $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
       }
-      $__c set _name [$package_id external_name -parent_id [$p parent_id] [$p name]]
+      $__c set _name [::$package_id external_name -parent_id [$p parent_id] [$p name]]
     }
 
     #
@@ -4342,7 +4343,7 @@ namespace eval ::xowiki::includelet {
         $item_id set_property form $form
       }
       $item_id save
-      set form_href [$item_id pretty_link]
+      set form_href [::$item_id pretty_link]
       set action updated
     }
     return "#xowiki.form-$action# <a href='[ns_quotehtml $form_href]'>[ns_quotehtml $form_name]</a>"
@@ -4451,7 +4452,7 @@ namespace eval ::xowiki::includelet {
         set entry_field_names [$entry field_names]
         set entry_form_fields [::xowiki::FormPage get_table_form_fields \
                                    -base_item $form_item_id -field_names $entry_field_names \
-                                   -form_constraints [$form_item_id set form_constraints]]
+                                   -form_constraints [::$form_item_id set form_constraints]]
         foreach fn $entry_field_names f $entry_form_fields {set ff($fn) $f}
       }
       $entry load_values_into_form_fields $entry_form_fields
@@ -4534,7 +4535,7 @@ namespace eval ::xowiki::includelet {
 
     set parent_id [${:__including_page} parent_id]
     if {[info exists folder]} {
-      set folder_page [$package_id get_page_from_item_ref -parent_id $parent_id $folder]
+      set folder_page [::$package_id get_page_from_item_ref -parent_id $parent_id $folder]
       if {$folder_page eq ""} {
         error "no such folder '$folder'"
       } else {
@@ -4749,7 +4750,7 @@ namespace eval ::xowiki::includelet {
 
     if {$title eq ""} {set title $file}
     set parent_id [${:__including_page} parent_id]
-    set page [$package_id get_page_from_item_ref -parent_id $parent_id $file]
+    set page [::$package_id get_page_from_item_ref -parent_id $parent_id $file]
     if {$page eq ""} {
       error "could not resolve page from item ref $file"
     }
