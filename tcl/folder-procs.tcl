@@ -35,7 +35,7 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    switch [${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
       yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
       bootstrap -
       default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
@@ -46,7 +46,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set tree [:build_tree]
-    switch [${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
       yui {
            set js "
            var [:js_name];
@@ -549,7 +549,7 @@ namespace eval ::xowiki::includelet {
       set :current_folder_id [$current_folder set physical_item_id]
     }
 
-    $package_id instvar package_key
+    ::$package_id instvar package_key
     set return_url [ad_return_url -default_url [$current_folder pretty_link]]
     set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
 

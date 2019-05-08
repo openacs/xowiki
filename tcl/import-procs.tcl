@@ -58,11 +58,12 @@ namespace eval ::xowiki {
       } else {
         #:msg "$item_id update: [$object name]"
         ::xo::db::CrClass get_instance_from_db -item_id $item_id
-        $item_id copy_content_vars -from_object $object
-        $item_id save -use_given_publish_date [::$item_id exists publish_date] \
+        set item ::$item_id
+        $item copy_content_vars -from_object $object
+        $item save -use_given_publish_date [$item exists publish_date] \
             -modifying_user [$object set modifying_user]
         #:log "$item_id saved"
-        $object set item_id [::$item_id item_id]
+        $object set item_id [$item item_id]
         #:msg "$item_id updated: [$object name]"
         :report_line $item_id updated
         incr :updated
@@ -72,7 +73,7 @@ namespace eval ::xowiki {
       set n [$object save_new -use_given_publish_date [$object exists publish_date] \
                  -creation_user [$object set modifying_user] ]
       $object set item_id $n
-      set item_id $object
+      set item $object
       #:msg "$object added: [$object name]"
       :report_line $object added
       incr :added
@@ -82,8 +83,8 @@ namespace eval ::xowiki {
     # Insert these into the category object map
     #
     if {[$object exists __category_ids]} {
-      #:msg "$item_id map_categories [object set __category_ids] // [::$item_id item_id]"
-      $item_id map_categories [$object set __category_ids]
+      #:msg "$item_id map_categories [object set __category_ids] // [$item item_id]"
+      $item map_categories [$object set __category_ids]
     }
 
     ${:package_id} flush_references -item_id [$object item_id] -name [$object name]
@@ -183,7 +184,7 @@ namespace eval ::xowiki {
             && [$o exists __export_reason]
             && [$o set __export_reason] eq "implicit_page_template"} {
           $o unset __export_reason
-          set page [${:package_id} get_page_from_item_ref \
+          set page [::${:package_id} get_page_from_item_ref \
                         -allow_cross_package_item_refs false \
                         -use_package_path true \
                         -use_site_wide_pages true \
@@ -305,7 +306,7 @@ namespace eval ::xowiki {
             set items($template_id) 1
             ::xo::db::CrClass get_instance_from_db -item_id $template_id
             set new 1
-            $template_id set __export_reason implicit_page_template
+            ::$template_id set __export_reason implicit_page_template
             continue
           }
         }
@@ -319,7 +320,7 @@ namespace eval ::xowiki {
             ns_log notice "--export including child $item_id [::$item_id name]"
             set items($item_id) 1
             set new 1
-            $item_id set __export_reason implicit_child_page
+            ::$item_id set __export_reason implicit_child_page
           }
         }
       }

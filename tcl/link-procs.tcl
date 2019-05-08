@@ -153,7 +153,7 @@ namespace eval ::xowiki {
     set page [:page]
     set nls_language [$page get_nls_language_from_lang [:lang]]
     if {${:form} ne ""} {
-      return [${:package_id} make_form_link -form ${:form} \
+      return [::${:package_id} make_form_link -form ${:form} \
                   -parent_id ${:parent_id} \
                   -name [:name] \
                   -nls_language $nls_language]
@@ -358,13 +358,13 @@ namespace eval ::xowiki {
     set item_id [:resolve]
     if {$item_id} {
       set image_css_class "found"
-      set link [${:package_id} pretty_link -lang ${:lang} -parent_id ${:parent_id} [:stripped_name]]
+      set link [::${:package_id} pretty_link -lang ${:lang} -parent_id ${:parent_id} [:stripped_name]]
     } else {
       set image_css_class "undefined"
       set last_page_id [$page set item_id]
       set object_type  [[$page info class] set object_type]
       set name ${:name}
-      set link [${:package_id} make_link ${:package_id} \
+      set link [::${:package_id} make_link ${:package_id} \
                     edit-new object_type name last_page_id]
     }
     # :log "--lang_link=$link"
@@ -405,7 +405,7 @@ namespace eval ::xowiki {
     set item_id [:resolve]
     #:log "-- image resolve for $page returned $item_id (name=${:name}, label=${:label})"
     if {$item_id} {
-      set link [${:package_id} pretty_link -download true -query [:query] \
+      set link [::${:package_id} pretty_link -download true -query [:query] \
                     -absolute [$page absolute_links] -parent_id ${:parent_id} ${:name}]
       #:log "--l fully quali [$page absolute_links], link=$link"
       $page references resolved [list $item_id [:type]]
@@ -414,7 +414,7 @@ namespace eval ::xowiki {
       set last_page_id [$page set item_id]
       set object_type ::xowiki::File
       set name ${:name}
-      set link [${:package_id} make_link ${:package_id} edit-new object_type \
+      set link [::${:package_id} make_link ${:package_id} edit-new object_type \
                     [list parent_id ${:parent_id}] \
                     [list title [ad_html_to_text -no_format -- ${:label}]] \
                     [list return_url [::xo::cc url]] \
@@ -535,7 +535,7 @@ namespace eval ::xowiki {
 
   ::xowiki::Link::swf instproc render_found {href label} {
     ::xo::Page requireJS /resources/xowiki/swfobject.js
-    #set link [${:package_id} pretty_link -absolute true  -siteurl http://localhost:8003 ${:name}]/download.swf
+    #set link [::${:package_id} pretty_link -absolute true  -siteurl http://localhost:8003 ${:name}]/download.swf
     lassign {320 240 7} width height version
     foreach a {width height version} {if {[info exists :$a]} {set $a [set :$a]}}
     set id [::xowiki::Includelet html_id ${:item_id}]

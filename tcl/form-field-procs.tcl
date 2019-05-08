@@ -1118,7 +1118,7 @@ namespace eval ::xowiki::formfield {
       #
       if {[:cleanup]} {
         set return_url [::$package_id query_parameter "return_url" [::$parent_id pretty_link]]
-        $package_id returnredirect [${:object} pretty_link -query [export_vars {m delete} return_url]]
+        ::$package_id returnredirect [${:object} pretty_link -query [export_vars {m delete} return_url]]
       }
     }
   }
@@ -2809,7 +2809,7 @@ namespace eval ::xowiki::formfield {
   }
 
   abstract_page instproc get_entry_label {value} {
-    set item_id [${:package_id} lookup -parent_id [${:object} parent_id] -name $value]
+    set item_id [::${:package_id} lookup -parent_id [${:object} parent_id] -name $value]
     if {$item_id} {
       return [::xo::cc cache [list :fetch_entry_label [:entry_label] $item_id]]
     }
@@ -2818,11 +2818,12 @@ namespace eval ::xowiki::formfield {
 
   abstract_page instproc pretty_value {v} {
     set parent_id [${:object} parent_id]
+    set package ::${:package_id}
     set :options [:get_labels $v]
     if {[:multiple]} {
       foreach o ${:options} {
         lassign $o label value
-        set href [${:package_id} pretty_link -parent_id $parent_id $value]
+        set href [$package pretty_link -parent_id $parent_id $value]
         set labels($value) "<a href='[ns_quotehtml $href]'>$label</a>"
       }
       set hrefs [list]
@@ -2831,7 +2832,7 @@ namespace eval ::xowiki::formfield {
           #:msg "can't determine label for value '$i' (values=$v, l=[array names labels])"
           set labels($i) $i
         }
-        set href [${:package_id} pretty_link -parent_id $parent_id $i]
+        set href [$package pretty_link -parent_id $parent_id $i]
         lappend hrefs "<a href='[ns_quotehtml $href]'>$labels($i)</a>"
       }
       if {[:multiple_style] eq "list"} {
@@ -2847,7 +2848,7 @@ namespace eval ::xowiki::formfield {
           if {[:as_box]} {
             return [${:object} include [list $value -decoration rightbox]]
           }
-          set href [${:package_id} pretty_link -parent_id $parent_id $value]
+          set href [$package pretty_link -parent_id $parent_id $value]
           return "<a href='[ns_quotehtml $href]'>$label</a>"
         }
       }

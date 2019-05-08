@@ -198,14 +198,14 @@ namespace eval ::xowiki::includelet {
   }
   dotlrn-info instproc render {} {
     set key [dotlrn_community::get_community_key -community_id ${:community_id}]
-    set page [${:package_id} resolve_page $key method]
+    set page [::${:package_id} resolve_page $key method]
     if {$page ne ""} {
       return [$page render]
     } else {
       #
       # If the content page does not exist, offer the user to create it.
       #
-      set edit_snippet [${:package_id} create_new_snippet $key]
+      set edit_snippet [::${:package_id} create_new_snippet $key]
       return $edit_snippet
     }
   }

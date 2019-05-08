@@ -1489,7 +1489,7 @@ namespace eval ::xowiki {
     } elseif {
               $colName eq "instance_attributes"
               && [::xo::dc has_hstore]
-              && [${:package_id} get_parameter use_hstore 0]
+              && [::${:package_id} get_parameter use_hstore 0]
             } {
       ::xowiki::update_item_index -item_id ${:item_id} -hstore_attributes $value
     }
@@ -1914,7 +1914,7 @@ namespace eval ::xowiki {
     the language prefix of the including page is used.
   } {
     if {$page_name ne ""} {
-      set page [${:package_id} resolve_page_name_and_init_context -lang [:lang] $page_name]
+      set page [::${:package_id} resolve_page_name_and_init_context -lang [:lang] $page_name]
       if {$page eq ""} {
         error "Cannot find page '$page_name' to be included in page '[:name]'"
       }
@@ -2083,7 +2083,7 @@ namespace eval ::xowiki {
       #
       return [list allowed 0 msg "Invalid name for adp_include" fn ""]
     }
-    return [list allowed 1 msg "" fn /packages/[${:package_id} package_key]/www/$adp_fn]
+    return [list allowed 1 msg "" fn /packages/[::${:package_id} package_key]/www/$adp_fn]
   }
 
   Page instproc include_content {arg ch2} {
@@ -2201,7 +2201,7 @@ namespace eval ::xowiki {
       regexp {:([^:]+)$} $name _ stripped_name
     }
 
-    set normalized_name [${:package_id} normalize_name $stripped_name]
+    set normalized_name [::${:package_id} normalize_name $stripped_name]
     #:msg "input: [self args] - lang=[:lang], [:nls_language]"
     if {$lang  eq ""}   {set lang [:lang]}
     if {$name  eq ""}   {set name $lang:$normalized_name}
@@ -2247,7 +2247,7 @@ namespace eval ::xowiki {
 
     # Get the package_id from the provided path, and - if found -
     # return the shortened link relative to it.
-    set package_id [${:package_id} resolve_package_path $link link]
+    set package_id [::${:package_id} resolve_package_path $link link]
     if {$package_id == 0} {
       # we treat all such links like external links
       if {[regsub {^//} $link / link]} {
@@ -3157,7 +3157,7 @@ namespace eval ::xowiki {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $f copy_content_vars -from_object $source
       set name "[::xowiki::autoname new -parent_id $source_item_id -name [:name]]"
-      $package_id get_lang_and_name -name $name lang name
+      ::$package_id get_lang_and_name -name $name lang name
       $f set name $name
       #:msg nls=[$f nls_language],source-nls=[$source nls_language]
     }
@@ -3243,7 +3243,7 @@ namespace eval ::xowiki {
       # filename. Just use the last part in such cases as name.
       regexp {[/\\]([^/\\]+)$} $stripped_name _ stripped_name
     }
-    return file:[${:package_id} normalize_name $stripped_name]
+    return file:[::${:package_id} normalize_name $stripped_name]
   }
   File instproc full_file_name {} {
     if {![info exists :full_file_name]} {
@@ -3385,7 +3385,7 @@ namespace eval ::xowiki {
                }]
 
     regsub {[.][0-9]+([^0-9])} ${:last_modified} {\1} last_modified
-    $package_id get_lang_and_name -name ${:name} lang stripped_name
+    ::$package_id get_lang_and_name -name ${:name} lang stripped_name
     set label $stripped_name
 
     $t add \
@@ -3555,7 +3555,7 @@ namespace eval ::xowiki {
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    foreach {s widget_spec} [${:package_id} get_parameter WidgetSpecs] {
+    foreach {s widget_spec} [::${:package_id} get_parameter WidgetSpecs] {
       lassign [split $s ,] template_name var_name
       #ns_log notice "--w template_name $template_name, given '$given_template_name' varname=$var_name name=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&

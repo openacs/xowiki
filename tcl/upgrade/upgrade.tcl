@@ -281,7 +281,7 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -305,8 +305,8 @@ namespace eval ::xowiki {
             "update cr_items set name = 'file' || substr(name,6) \
     where name like 'image:%' and parent_id = [::$package_id folder_id]"
         # reload updated prototype pages
-        $package_id import-prototype-page book
-        $package_id import-prototype-page weblog
+        ::$package_id import-prototype-page book
+        ::$package_id import-prototype-page weblog
         # TODO check: jon.griffin
       }
     }
@@ -320,7 +320,7 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page categories-portlet
+        ::$package_id import-prototype-page categories-portlet
       }
       #
       # ... Perform the upgrade of 0.62 for the s5 package as well.
@@ -360,9 +360,9 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page announcements
-        $package_id import-prototype-page news
-        $package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page announcements
+        ::$package_id import-prototype-page news
+        ::$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -376,8 +376,8 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page news
-        $package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page news
+        ::$package_id import-prototype-page weblog-portlet
       }
       # To iterate over all kind of xowiki packages, we could do
       # foreach package [concat ::xowiki::Package [::xowiki::Package info subclass]] {
@@ -396,7 +396,7 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page news-item
+        ::$package_id import-prototype-page news-item
       }
       copy_parameter top_portlet top_includelet
     }
@@ -414,8 +414,8 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page weblog
-        $package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page weblog
+        ::$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -463,7 +463,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page ical
+        ::$package_id import-prototype-page ical
       }
     }
 
@@ -473,7 +473,7 @@ namespace eval ::xowiki {
       ns_log notice "-- upgrading to $v"
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page weblog
+        ::$package_id import-prototype-page weblog
       }
       db_dml strip_colons_from_tags \
           "update xowiki_tags set tag = trim(both ',' from tag)  where tag like '%,%'"
@@ -523,8 +523,8 @@ namespace eval ::xowiki {
       #
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page weblog-portlet
-        $package_id import-prototype-page news
+        ::$package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page news
       }
     }
 
@@ -558,7 +558,7 @@ namespace eval ::xowiki {
       ::xowiki::Package require_site_wide_pages -refetch true
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
-        $package_id import-prototype-page weblog
+        ::$package_id import-prototype-page weblog
       }
     }
 
@@ -617,7 +617,7 @@ namespace eval ::xowiki {
       foreach package_id [::xowiki::Package instances -closure true] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # reload updated prototype pages
-        $package_id import-prototype-page categories-portlet
+        ::$package_id import-prototype-page categories-portlet
       }
     }
 
@@ -686,9 +686,9 @@ namespace eval ::xowiki {
         }
         ns_log notice "update prototype pages"
         # reload updated prototype pages
-        $package_id import-prototype-page bib
-        $package_id import-prototype-page news
-        $package_id import-prototype-page weblog-portlet
+        ::$package_id import-prototype-page bib
+        ::$package_id import-prototype-page news
+        ::$package_id import-prototype-page weblog-portlet
       }
     }
 
@@ -711,7 +711,7 @@ namespace eval ::xowiki {
         # work yet, try old format.
         #
         if {[catch {$package_id www-import-prototype-page sitemapindex.xml}]} {
-          $package_id import-prototype-page sitemapindex.xml
+          ::$package_id import-prototype-page sitemapindex.xml
         }
       }
     }
@@ -736,7 +736,7 @@ namespace eval ::xowiki {
       foreach package_id [::xowiki::Package instances -closure true] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # reload updated prototype pages
-        $package_id www-import-prototype-page categories-portlet        
+        ::$package_id www-import-prototype-page categories-portlet        
       }
       #
       # This "ON DELETE CASCADE" was missed in the old good days and
@@ -778,7 +778,7 @@ namespace eval ::xowiki {
         # try old format.
         #
         if {[catch {$package_id www-import-prototype-page categories-portlet}]} {
-          $package_id import-prototype-page categories-portlet
+          ::$package_id import-prototype-page categories-portlet
         }
       }
     }

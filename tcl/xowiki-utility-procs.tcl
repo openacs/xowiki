@@ -324,7 +324,7 @@ namespace eval ::xowiki {
         ::xotcl::Object log "...will delete $name doit=$doit $last_modified"
         if {$doit} {
           ::xowiki::Package require $package_id
-          $package_id delete -item_id $item_id -name $name
+          ::$package_id delete -item_id $item_id -name $name
         }
       }
     }
@@ -360,7 +360,7 @@ namespace eval ::xowiki {
             ::xotcl::Object log "...will delete $name revision=$last_revision, doit=$doit $last_modified"
             if {$doit} {
               ::xowiki::Package require $package_id
-              $package_id delete_revision -revision_id $last_revision -item_id $item_id
+              ::$package_id delete_revision -revision_id $last_revision -item_id $item_id
             }
           }
         }
@@ -802,7 +802,7 @@ namespace eval ::xowiki {
     #
     # Flush the page fragment caches (page fragments based on
     # page_order might be sufficient).
-    $package_id flush_page_fragment_cache -scope agg
+    ::$package_id flush_page_fragment_cache -scope agg
   }
 
   #

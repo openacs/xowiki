@@ -747,7 +747,7 @@ namespace eval ::xowiki {
         set page [$package resolve_page -simple true $object_name __m]
         $package context $last_context
       }
-      $last_package_id set_url -url $last_url
+      ::$last_package_id set_url -url $last_url
 
     } else {
       #
@@ -1087,9 +1087,9 @@ namespace eval ::xowiki {
       set m [:query_parameter m]
       if {$m in {list show-object file-upload}} {
         array set "" [list \
-                          name [${:folder_id} name] \
-                          stripped_name [${:folder_id} name] \
-                          parent_id [${:folder_id} parent_id] \
+                          name [::${:folder_id} name] \
+                          stripped_name [::${:folder_id} name] \
+                          parent_id [::${:folder_id} parent_id] \
                           item_id ${:folder_id} \
                           method [:query_parameter m]]
       } else {
@@ -1363,7 +1363,7 @@ namespace eval ::xowiki {
         if {$target_item_id != 0} {
           #:msg "SYMLINK FIX $target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id"
           ::xo::db::CrClass get_instance_from_db -item_id $target_item_id
-          $target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id
+          ::$target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id
         }
         return $target_item_id
       }

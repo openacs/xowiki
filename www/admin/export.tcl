@@ -21,7 +21,7 @@ if {$objects eq ""} {
   xo::dc foreach instance_select $sql { set items($item_id) 1 }
 } else {
   foreach o $objects {
-    $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $o lang stripped_name
+    ::$package_id get_lang_and_name -default_lang [::xo::cc lang] -path $o lang stripped_name
     set parent_id [::$package_id get_parent_and_name -lang $lang \
 		       -path $stripped_name -parent_id $folder_id \
 		       parent local_name]

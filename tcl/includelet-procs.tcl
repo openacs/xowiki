@@ -1524,7 +1524,7 @@ namespace eval ::xowiki::includelet {
     if {[::xo::cc user_id] != 0} {
       set gc_link [general_comments_create_link \
                        -object_name [${:__including_page} title] \
-                       $item_id $gc_return_url]
+                       ::$item_id $gc_return_url]
       set gc_link <p>$gc_link</p>
     } else {
       set gc_link ""
@@ -1867,8 +1867,8 @@ namespace eval ::xowiki::includelet {
   Class create PageReorderSupport
   PageReorderSupport instproc page_reorder_check_allow {{-with_head_entries true} allow_reorder} {
     if {$allow_reorder ne ""} {
-      set granted [${:package_id} check_permissions \
-                       -user_id [[${:package_id} context] user_id] \
+      set granted [::${:package_id} check_permissions \
+                       -user_id [[::${:package_id} context] user_id] \
                        -package_id ${:package_id} \
                        ${:package_id} change-page-order]
       #:msg "granted=$granted"
@@ -1889,7 +1889,7 @@ namespace eval ::xowiki::includelet {
 
   PageReorderSupport instproc page_reorder_init_vars {-allow_reorder js_ last_level_ ID_ min_level_} {
     :upvar $js_ js $last_level_ last_level $ID_ ID $min_level_ min_level
-    set js "YAHOO.xo_page_order_region.DDApp.package_url = '[${:package_id} package_url]';\n"
+    set js "YAHOO.xo_page_order_region.DDApp.package_url = '[::${:package_id} package_url]';\n"
     set last_level 0
     set ID [:js_name]
     if {[string is integer -strict $allow_reorder]} {
@@ -2026,9 +2026,9 @@ namespace eval ::xowiki::includelet {
 
   toc instproc href {book_mode name} {
     if {$book_mode} {
-      set href [${:package_id} url]#[toc anchor $name]
+      set href [::${:package_id} url]#[toc anchor $name]
     } else {
-      set href [${:package_id} pretty_link -parent_id [${:__including_page} parent_id] $name]
+      set href [::${:package_id} pretty_link -parent_id [${:__including_page} parent_id] $name]
     }
     return $href
   }
@@ -3034,7 +3034,9 @@ namespace eval ::xowiki::includelet {
       }
 
   item-button instproc initialize {} {
-    if {[:return_url] eq "" } { :return_url [${:package_id} url]}
+    if {[:return_url] eq "" } {
+      :return_url [::${:package_id} url]
+    }
   }
 
   item-button instproc render_button {
@@ -3565,11 +3567,11 @@ namespace eval ::xowiki::includelet {
 
   form-menu-button instproc render {} {
     if {![info exists :link]} {
-      if {${:parent_id} != [${:package_id} folder_id]} {
+      if {${:parent_id} != [::${:package_id} folder_id]} {
         set parent_id ${:parent_id}
       }
       if {[info exists :return_url]} {set return_url ${:return_url}}
-      set :link [${:package_id} make_link -link ${:base} ${:form} ${:method} return_url parent_id]
+      set :link [::${:package_id} make_link -link ${:base} ${:form} ${:method} return_url parent_id]
     }
     if {${:link} eq ""} {
       return ""
@@ -4302,18 +4304,18 @@ namespace eval ::xowiki::includelet {
     # instantiate a form page from it.
     set form_form_id 0
     if {$form_form ne ""} {
-      set form_form_id  [::xo::db::CrClass lookup -name $form_form -parent_id [${:package_id} folder_id]]
+      set form_form_id  [::xo::db::CrClass lookup -name $form_form -parent_id [::${:package_id} folder_id]]
     }
     # The normal form requires for rich-text the 2 element list as content
     if {$form_form_id == 0} { set form [list $form text/html] }
 
-    set item_id [::xo::db::CrClass lookup -name $form_name -parent_id [${:package_id} folder_id]]
+    set item_id [::xo::db::CrClass lookup -name $form_name -parent_id [::${:package_id} folder_id]]
     if {$item_id == 0} {
 
       if {$form_form_id == 0} {
         set f [::xowiki::Form new \
                    -package_id ${:package_id} \
-                   -parent_id [${:package_id} folder_id] \
+                   -parent_id [::${:package_id} folder_id] \
                    -name $form_name \
                    -anon_instances $voting_form_anon_instances \
                    -form $form \
@@ -4324,7 +4326,7 @@ namespace eval ::xowiki::includelet {
         set f [::xowiki::FormPage new \
                    -page_template $form_form_id \
                    -package_id ${:package_id} \
-                   -parent_id [${:package_id} folder_id] \
+                   -parent_id [::${:package_id} folder_id] \
                    -name $form_name]
         $f set_property anon_instances $voting_form_anon_instances
         $f set_property form $form
@@ -4338,11 +4340,11 @@ namespace eval ::xowiki::includelet {
     } else {
       ::xo::db::CrClass get_instance_from_db -item_id $item_id
       if {$form_form_id == 0} {
-        $item_id form $form
+        ::$item_id form $form
       } else {
-        $item_id set_property form $form
+        ::$item_id set_property form $form
       }
-      $item_id save
+      ::$item_id save
       set form_href [::$item_id pretty_link]
       set action updated
     }
@@ -4730,7 +4732,7 @@ namespace eval ::xowiki::includelet {
     if {$book_mode} {
       set href [::xo::cc url]#[toc anchor $name]
     } else {
-      set href [${:package_id} pretty_link -parent_id [${:__including_page} parent_id] $name]
+      set href [::${:package_id} pretty_link -parent_id [${:__including_page} parent_id] $name]
     }
     return $href
   }

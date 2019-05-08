@@ -352,7 +352,7 @@ namespace eval ::xowiki {
       append result [:tag -atts [list \
                                      start $stamp \
                                      title $title \
-                                     link [${:package_id} pretty_link \
+                                     link [::${:package_id} pretty_link \
                                                -parent_id [$i set parent_id] \
                                                [$i set name]]] \
                          event $event]  \n

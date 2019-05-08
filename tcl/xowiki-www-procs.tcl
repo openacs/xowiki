@@ -36,14 +36,14 @@ namespace eval ::xowiki {
     # object...
     #
     set parent_id ${:item_id}
-    set root_folder_id [${:package_id} folder_id]
+    set root_folder_id [::${:package_id} folder_id]
     if {${:parent_id} == $root_folder_id} {
       #
       # ...unless we realize this is the package index page. In this
       # case we resolve based on the root folder (this happens e.g. in
       # the table of contents for xowf).
       #
-      set index_name [${:package_id} get_parameter index_page index]
+      set index_name [::${:package_id} get_parameter index_page index]
       ${:package_id} get_lang_and_name -name $index_name lang stripped_name
       set index_item_id [::xo::db::CrClass lookup \
                              -name ${lang}:${stripped_name} \
@@ -269,7 +269,7 @@ namespace eval ::xowiki {
     # parent_id has priority over the other measures to obtain it.
     #
     if {$parent_id == 0} {
-      if {![info exists :parent_id]} {:parent_id [${:package_id} folder_id]}
+      if {![info exists :parent_id]} {:parent_id [::${:package_id} folder_id]}
       set fp_parent_id [:form_parameter "parent_id" [:query_parameter "parent_id" ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
@@ -290,7 +290,7 @@ namespace eval ::xowiki {
       set publish_status [:query_parameter "publish_status" ""]
     }
     if {$publish_status eq "" && [:exists_query_parameter name]} {
-      if {[${:package_id} get_parameter production_mode 0]} {
+      if {[::${:package_id} get_parameter production_mode 0]} {
         set publish_status "production"
       } else {
         set publish_status "ready"
@@ -413,7 +413,7 @@ namespace eval ::xowiki {
     if {$formName eq ""} {
       error "no form specified"
     }
-    $package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
+    ::$package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
     set d [::$package_id item_ref -default_lang $lang -parent_id [::$package_id folder_id] $formName]
     set item_id [dict get $d item_id]
     if {$item_id == 0} {
@@ -432,7 +432,7 @@ namespace eval ::xowiki {
       :save
       #:msg "ok $msg"
     }
-    $package_id returnredirect [::xo::cc url]
+    ::$package_id returnredirect [::xo::cc url]
   }
 
 
@@ -670,8 +670,8 @@ namespace eval ::xowiki {
     # with the proper delivery information.
     #
     set package_id [::xo::cc package_id]
-    $package_id set mime_type ${:mime_type}
-    $package_id set delivery \
+    ::$package_id set mime_type ${:mime_type}
+    ::$package_id set delivery \
         [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
 
     if {[:exists_query_parameter filename]} {
@@ -709,7 +709,7 @@ namespace eval ::xowiki {
         # way, ... but keep things compatible for now.
         #
         ::xo::cc set status_code 304
-        $package_id set delivery ns_return
+        ::$package_id set delivery ns_return
         return ""
       }
     }
@@ -1031,7 +1031,7 @@ namespace eval ::xowiki {
           set evaluation_errors ""
           if {[::$package_id exists __evaluation_error]} {
             set evaluation_errors "\nEvaluation error: [::$package_id set __evaluation_error]"
-            $package_id unset __evaluation_error
+            ::$package_id unset __evaluation_error
           }
           error "[llength $errors] validation error(s): $errors $evaluation_errors"
         }
@@ -1068,7 +1068,7 @@ namespace eval ::xowiki {
           #
           set return_url [::$package_id query_parameter return_url $url]
           #:log "${:name}: url=$url, return_url=$return_url"
-          $package_id returnredirect $return_url
+          ::$package_id returnredirect $return_url
 
           return
         }
@@ -1426,7 +1426,7 @@ namespace eval ::xowiki {
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
     ${:package_id} returnredirect [:query_parameter "return_url" \
-                                       [export_vars -base [${:package_id} url] {{m revisions}}]]
+                                       [export_vars -base [::${:package_id} url] {{m revisions}}]]
   }
 
   #
@@ -1456,9 +1456,10 @@ namespace eval ::xowiki {
     tags.
 
   } {
+    set package     ::${:package_id}
     set limit       [:query_parameter "limit" 20]
-    set weblog_page [${:package_id} get_parameter weblog_page weblog]
-    set href        [${:package_id} pretty_link -parent_id [${:package_id} folder_id] $weblog_page]?summary=1
+    set weblog_page [$package get_parameter weblog_page weblog]
+    set href        [$package pretty_link -parent_id [$package folder_id] $weblog_page]?summary=1
 
     set entries [list]
     xo::dc foreach get_popular_tags \
@@ -1504,7 +1505,7 @@ namespace eval ::xowiki {
       #
       # We have no validation errors, so we can save the content.
       #
-      set update_without_revision [${:package_id} query_parameter replace 0]
+      set update_without_revision [::${:package_id} query_parameter replace 0]
 
       foreach form_field $form_fields {
         #
@@ -1564,7 +1565,7 @@ namespace eval ::xowiki {
     package.
 
   } {
-    #set context [list [list [${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
+    #set context [list [list [::${:package_id} url] ${:name} ] [_ xotcl-core.revisions]]
     #set title "[_ xotcl-core.revision_title] '${:name}'"
     return [:www-view [next]]
   }
@@ -1586,7 +1587,7 @@ namespace eval ::xowiki {
         [:form_parameter new_tags]
 
     ::${:package_id} returnredirect \
-        [:query_parameter "return_url" [${:package_id} url]]
+        [:query_parameter "return_url" [::${:package_id} url]]
   }
 
   #
@@ -1865,7 +1866,7 @@ namespace eval ::xowiki {
       # standard location.
       #
       if {![regexp {^[./]} $template_file]} {
-        set template_file [${:package_id} get_adp_template $template_file]
+        set template_file [::${:package_id} get_adp_template $template_file]
       }
 
       #
@@ -1976,7 +1977,7 @@ namespace eval ::xowiki {
         set title      ${:title}
         set name       ${:name}
         set item_id    ${:item_id}
-        $context_package_id return_page -adp $template_file -variables {
+        ::$context_package_id return_page -adp $template_file -variables {
           name title item_id context return_url
           content footer package_id page_package_id page_context
           rev_link edit_link delete_link new_link admin_link index_link view_link
@@ -2378,7 +2379,7 @@ namespace eval ::xowiki {
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
-    set cc [${:package_id} context]
+    set cc [::${:package_id} context]
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
@@ -2681,7 +2682,7 @@ namespace eval ::xowiki {
     #:msg fields_from_form=[array names :__field_in_form]
 
     set field_names [list _name]
-    if {[${:package_id} show_page_order]}  { lappend field_names _page_order }
+    if {[::${:package_id} show_page_order]}  { lappend field_names _page_order }
     lappend field_names _title _creator _assignee
     foreach fn $reduced_attributes                     { lappend field_names $fn }
     foreach fn [list _text _description _nls_language] { lappend field_names $fn }

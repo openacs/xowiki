@@ -12,7 +12,7 @@
 
 foreach o $objects {
   ns_log notice "DELETE $o"
-  $package_id www-delete -name $o 
+  ::$package_id www-delete -name $o 
 }
 
 ad_returnredirect "./list"
