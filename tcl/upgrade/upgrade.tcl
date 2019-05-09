@@ -783,6 +783,17 @@ namespace eval ::xowiki {
       }
     }
 
+    set v 5.10.0d29
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      ns_log notice "dropping view xowiki_form_instance_item_view"
+      ::xo::dc dml drop {
+        drop view if exists xowiki_form_instance_item_view
+      }
+    }
+
   }
     
 }

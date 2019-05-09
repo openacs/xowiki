@@ -371,7 +371,8 @@ namespace eval ::xowiki {
       SELECT
          xi.package_id, xi.parent_id, xi.name,
          $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
-         o.object_id, o.object_type, o.title AS object_title, o.context_id,
+         o.object_id, o.object_type, o.title AS object_title,
+         (select context_id from acs_objects where object_id = xi.item_id) as context_id,
          o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
