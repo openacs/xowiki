@@ -623,6 +623,15 @@ namespace eval ::xowiki {
   #
   Page instproc marshall {{-mode export}} {
     :unset_temporary_instance_variables
+
+    # Since ORM reform circa 2019-03-05, ORM will persist the
+    # context_id it receives. The safest approach to keep the old
+    # behavior of ignoring it at import time, is that we get rid of it
+    # at export time. For most practical purposes in xowiki,
+    # context_id = parent_id anyway.
+    set old_context_id ${:context_id}
+    unset :context_id
+
     set old_creation_user  [:creation_user]
     set old_modifying_user ${:modifying_user}
     set :creation_user   [:map_party -property creation_user $old_creation_user]
@@ -646,6 +655,7 @@ namespace eval ::xowiki {
     }
     set :creation_user  $old_creation_user
     set :modifying_user $old_modifying_user
+    set :context_id     $old_context_id
 
     return $content
   }
