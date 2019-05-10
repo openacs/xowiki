@@ -367,7 +367,35 @@ namespace eval ::xowiki {
   #         and page_template = 20260757
   #         and publish_status='ready';
   #
-  ::xo::db::require view xowiki_form_instance_item_view [subst {
+  if {[db_type] eq "postgresql"} {
+    # More performant version using lateral. Oracle could support this
+    # as well since version 12c.
+    set sql [subst {
+      SELECT
+         xi.package_id, xi.parent_id, xi.name,
+         $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
+         o.object_id, o.object_type, o.title AS object_title,
+         (select context_id from acs_objects where object_id = xi.item_id) as context_id,
+         o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
+         o.last_modified, o.modifying_user, o.modifying_ip,
+         cr.revision_id, cr.title, content_revision__get_content(ci.live_revision) AS text,
+         cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
+         xowiki_form_page.xowiki_form_page_id,
+         xowiki_page_instance.page_instance_id,
+         xowiki_page_instance.instance_attributes,
+         xowiki_page.page_id,
+         xowiki_page.page_order,
+         xowiki_page.creator
+      FROM xowiki_form_instance_item_index xi,
+         lateral (select live_revision from cr_items where item_id = xi.item_id) ci
+         left join cr_revisions cr on (cr.revision_id = ci.live_revision)
+         left join acs_objects o on (o.object_id = ci.live_revision)
+         left join xowiki_page on (xowiki_page.page_id = ci.live_revision)
+         left join xowiki_page_instance on (xowiki_page_instance.page_instance_id = ci.live_revision)
+         left join xowiki_form_page on (xowiki_form_page.xowiki_form_page_id = ci.live_revision)
+    }]
+  } else {
+    set sql [subst {
       SELECT
          xi.package_id, xi.parent_id, xi.name,
          $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
@@ -383,15 +411,16 @@ namespace eval ::xowiki {
          xowiki_page.page_id,
          xowiki_page.page_order,
          xowiki_page.creator
-      FROM cr_text,
-         xowiki_form_instance_item_index xi
+      FROM xowiki_form_instance_item_index xi
          left join cr_items ci on (ci.item_id = xi.item_id)
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (o.object_id = xowiki_page.page_id)
          left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
          left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
-  }]
+    }]
+  }
+  ::xo::db::require view xowiki_form_instance_item_view $sql
 
   # xowiki_form_instance_children:
   #
