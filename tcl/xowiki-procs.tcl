@@ -380,7 +380,8 @@ namespace eval ::xowiki {
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(ci.live_revision) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
-         xowiki_form_page.xowiki_form_page_id,
+         (select xowiki_form_page_id from xowiki_form_page
+          where xowiki_form_page_id = ci.live_revision) as xowiki_form_page_id,
          xowiki_page_instance.page_instance_id,
          xowiki_page_instance.instance_attributes,
          xowiki_page.page_id,
@@ -392,7 +393,6 @@ namespace eval ::xowiki {
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (xowiki_page.page_id = ci.live_revision)
          left join xowiki_page_instance on (xowiki_page_instance.page_instance_id = ci.live_revision)
-         left join xowiki_form_page on (xowiki_form_page.xowiki_form_page_id = ci.live_revision)
     }]
   } else {
     set sql [subst {
@@ -405,7 +405,8 @@ namespace eval ::xowiki {
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
-         xowiki_form_page.xowiki_form_page_id,
+         (select xowiki_form_page_id from xowiki_form_page
+          where xowiki_form_page_id = ci.live_revision) as xowiki_form_page_id,
          xowiki_page_instance.page_instance_id,
          xowiki_page_instance.instance_attributes,
          xowiki_page.page_id,
@@ -417,7 +418,6 @@ namespace eval ::xowiki {
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (o.object_id = xowiki_page.page_id)
          left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
-         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
     }]
   }
   ::xo::db::require view xowiki_form_instance_item_view $sql
