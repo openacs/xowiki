@@ -737,7 +737,9 @@ namespace eval ::xowiki::includelet {
       return [:category_tree_missing -name $tree_name -edit_html $edit_html]
     }
 
-    if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
+    if {![info exists :id]} {
+      set :id [::xowiki::Includelet html_id [self]]
+    }
 
     foreach tree $trees {
       lassign $tree tree_id my_tree_name ...

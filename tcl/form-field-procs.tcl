@@ -2488,9 +2488,11 @@ namespace eval ::xowiki::formfield {
       :config_from_category_tree [:category_tree]
     }
     next
+    #
     # For required enumerations, the implicit default value is the
     # first entry of the options. This is as well the value, which is
     # returned from the browser in such cases.
+    #
     if {[:required] && ${:value} eq ""} {
       set :value [lindex ${:options} 0 1]
     }
@@ -2498,9 +2500,11 @@ namespace eval ::xowiki::formfield {
   enumeration abstract instproc render_input {}
 
   enumeration instproc get_labels {values} {
-    if {[:multiple]} {
+    if {${:multiple}} {
       set labels [list]
-      foreach v $values {lappend labels [list [:get_entry_label $v] $v]}
+      foreach v $values {
+        lappend labels [list [:get_entry_label $v] $v]
+      }
       return $labels
     } else {
       return [list [list [:get_entry_label $values] $values]]
@@ -2720,60 +2724,86 @@ namespace eval ::xowiki::formfield {
   candidate_box_select set abstract 1
 
   candidate_box_select instproc render_input {} {
-    #:msg "mul=[:multiple]"
+    #:msg "mul ${:multiple} dnd ${:dnd}"
     # makes only sense currently for multiple selects
+    
     if {[:multiple] && [:dnd]} {
+      
       if {[info exists :disabled] && [:disabled]} {
         html::t -disableOutputEscaping [:pretty_value [:value]]
       } else {
 
-        # utilities.js aggregates "yahoo, dom, event, connection, animation, dragdrop"
-        set ajaxhelper 0
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-        ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-        ::xo::Page requireJS  "/resources/xowiki/yui-selection-area.js"
-
-        set js ""
+        ::xo::Page requireJS  "/resources/xowiki/selection-area.js"
+        set count 0
+        set selected {}
+        set candidates {}
+        
         foreach o ${:options} {
           lassign $o label rep
-          set js_label [::xowiki::Includelet js_encode $label]
-          set js_rep   [::xowiki::Includelet js_encode $rep]
-          append js "YAHOO.xo_sel_area.DDApp.values\['$js_label'\] = '$js_rep';\n"
-          append js "YAHOO.xo_sel_area.DDApp.dict\['$js_rep'\] = '$js_label';\n"
+          if {$rep in ${:value}} {
+            lappend selected $rep
+          } else {
+            lappend candidates $rep
+          }
+          dict set labels $rep label $label
+          #dict set labels $rep label $rep
+          dict set labels $rep serial [incr count]
         }
 
-        ::html::div -class workarea {
-          ::html::h3 { ::html::t "#xowiki.Selection#"}
-          set values ""
-          foreach v [:value] {
-            append values $v \n
-            set __values($v) 1
+        html::div -class candidate-selection -id ${:id} {
+          #
+          # Internal representation
+          #
+          ::html::textarea -id ${:id}.text -name ${:name} { 
+            ::html::t [join ${:value} \n]
           }
-          :CSSclass selection
-          set :cols 30
-          set atts [:get_attributes id name disabled {CSSclass class}]
-
-          # TODO what todo with DISABLED?
-          ::html::textarea [:get_attributes id name cols rows style {CSSclass class} disabled] {
-            ::html::t $values
+          
+          #
+          # Selections
+          #
+          ::html::div -class workarea {
+            ::html::h3 { ::html::t "#xowiki.Selection#"}
+            # TODO what todo with DISABLED?
+            ::html::ul -class "region selected" \
+                -id ${:id}.selected \
+                -ondrop "drop_handler(event);" \
+                -ondragover "dragover_handler(event);" {
+                  foreach v $selected {
+                    ::html::li \
+                        -class selection \
+                        -draggable true \
+                        -id  ${:id}.selected.[dict get $labels $v serial] \
+                        -data-value $v \
+                        -ondragstart "dragstart_handler(event);" {
+                          ::html::t [dict get $labels $v label]
+                        }
+                  }
+                }
           }
-        }
-        ::html::div -class workarea {
-          ::html::h3 { ::html::t "#xowiki.Candidates#"}
-          ::html::ul -id ${:id}_candidates -class region {
-            #:msg ${:options}
-            foreach o ${:options} {
-              lassign $o label rep
-              # Don't show current values under candidates
-              if {[info exists __values($rep)]} continue
-              ::html::li -class candidates {::html::t $rep}
-            }
+          #
+          # Candidates
+          #
+          ::html::div -class workarea {
+            ::html::h3 { ::html::t "#xowiki.Candidates#"}
+            ::html::ul -id ${:id}_candidates -class region \
+                -ondrop "drop_handler(event);" \
+                -ondragover "dragover_handler(event);" {
+                  foreach v $candidates {
+                    ::html::li \
+                        -class candidates \
+                        -draggable true \
+                        -id  ${:id}.[dict get $labels $v serial] \
+                        -data-value $v \
+                        -ondragstart "dragstart_handler(event);" {
+                          ::html::t [dict get $labels $v label]
+                        }
+                  }
+                }
           }
         }
         ::html::div -class visual-clear {
           ;# maybe some comment
         }
-        ::html::script -nonce [security::csp::nonce] { html::t $js }
       }
     } else {
       next
@@ -2809,22 +2839,33 @@ namespace eval ::xowiki::formfield {
   }
 
   abstract_page instproc get_entry_label {value} {
-    set item_id [::${:package_id} lookup -parent_id [${:object} parent_id] -name $value]
-    if {$item_id} {
-      return [::xo::cc cache [list :fetch_entry_label [:entry_label] $item_id]]
+    foreach o ${:options} {
+      lassign $o label rep
+      if {$value eq $rep} {
+        return $label
+      }
     }
     return ""
   }
+
 
   abstract_page instproc pretty_value {v} {
     set parent_id [${:object} parent_id]
     set package ::${:package_id}
     set :options [:get_labels $v]
     if {[:multiple]} {
+      set default_lang [$package default_language]
+      set root_folder [$package folder_id]
+      set package_root [$package package_url]
       foreach o ${:options} {
         lassign $o label value
-        set href [$package pretty_link -parent_id $parent_id $value]
-        set labels($value) "<a href='[ns_quotehtml $href]'>$label</a>"
+        #
+        # "value" is an item_ref. Resolve it (assuming this works) and
+        # prepend the package root URL)
+        #
+        set item_info [$package item_ref -default_lang $default_lang -parent_id $root_folder $value]
+        set href $package_root[dict get $item_info link]
+        set labels($value) "<a href='[ns_quotehtml $href]'>[ns_quotehtml $label]</a>"
       }
       set hrefs [list]
       foreach i $v {
@@ -2885,8 +2926,11 @@ namespace eval ::xowiki::formfield {
     if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}
 
     set :form_object_item_ids [list]
-    foreach form_obj $form_objs {lappend :form_object_item_ids [$form_obj item_id]}
+    foreach form_obj $form_objs {
+      lappend :form_object_item_ids [$form_obj item_id]
+    }
   }
+  
   form_page instproc compute_options {} {
     #:msg "${:name} compute_options [info exists :form]"
     if {![info exists :form]} {
@@ -2918,23 +2962,18 @@ namespace eval ::xowiki::formfield {
     set :options [list]
     foreach i [$items children] {
       #
-      # If the form_page has a different package_id, prepend the
-      # package_url to the name. TODO: We assume here, that the form_pages
-      # have no special parent_id.
-      #
-      set object_package_id [$i package_id]
-      if {${:package_id} != $object_package_id} {
-        set package_prefix /[::$object_package_id package_url]
-      } else {
-        set package_prefix ""
-      }
-
-      lappend :options [list [$i property ${:entry_label}] $package_prefix[$i name]]
+      # Compute the item_ref of the page. The item_ref has the
+      # advantage over an href that it is easier relocatable via clipboard.
+      # 
+      set package_id [$i package_id]
+      set folder_path [$package_id folder_path -parent_id [$i parent_id]]
+      set item_ref $folder_path[$i name]
+      #ns_log notice "instance_select name [$i name] pl [$i pretty_link] PATH <$folder_path>"
+      lappend :options [list [$i property ${:entry_label}] $item_ref]
     }
   }
 
-  form_page instproc pretty_value {v} {
-    set :options [:get_labels $v]
+  form_page instproc pretty_value {values} {
     if {![info exists :form_object_item_ids]} {
       error "No forms specified for form_field '${:name}'"
     }
