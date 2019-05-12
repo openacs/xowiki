@@ -1,0 +1,52 @@
+/* 
+ * Appearance of item-buttons based on bootstrap glyphicons.
+ */
+
+div.xowiki-content a.edit-item-button,
+div.xowiki-content a.delete-item-button,
+div.xowiki-content a.view-item-button,
+div.xowiki-content a.create-item-button,
+div.xowiki-content a.copy-item-button,
+div.xowiki-content a.add-item-button,
+div.xowiki-content a.notification-image-button {
+    text-decoration: none;
+    color: grey;
+}
+div.xowiki-content a.edit-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e065";
+}
+div.xowiki-content a.delete-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e020";
+}
+div.xowiki-content a.view-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e105";
+}
+div.xowiki-content a.create-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2b";
+}
+div.xowiki-content a.copy-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e224";
+}
+div.xowiki-content a.add-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2b";
+}
+div.xowiki-content a.notification-image-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\2709";
+}
+
+
+/*
+ * Local Variables:
+ * mode: css
+ * c-basic-offset: 4
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */

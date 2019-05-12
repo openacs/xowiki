@@ -534,7 +534,7 @@ namespace eval ::xowiki {
     if {$compare_id == 0} {
       return ""
     }
-    ::xo::Page requireCSS urn:ad:css:xowiki
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
 
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
 
@@ -890,7 +890,7 @@ namespace eval ::xowiki {
   FormPage instproc setCSSDefaults {} {
     #:log setCSSDefaults
     # check empty
-    if {[parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] eq "bootstrap"} {
+    if {[::xowiki::Package preferredCSSToolkit] eq "bootstrap"} {
       ::xowiki::formfield::FormField parameter {
         {CSSclass form-control}
         {form_item_wrapper_CSSclass form-group}
@@ -1869,24 +1869,22 @@ namespace eval ::xowiki {
         set template_file [::${:package_id} get_adp_template $template_file]
       }
 
-      #
-      # Initialize and set the template variables, to be used by
-      # a. "adp_compile" / "adp_eval"
-      # b. "return_page" / "adp_include"
-      #
       # Force xowiki css to be loaded first(ish), so we can override
       # its styling via the theme (e.g. different buttons...). This
-      # currently needs template:: api directly, as resources from
-      # requireCSS might be (and normally are) loaded later than those
-      # from the theme, as often doesn't use requireCSS.
-      # ::xo::Page requireCSS urn:ad:css:xowiki
-      template::head::add_css -href urn:ad:css:xowiki -order 0
-      ##
-      ::xo::Page requireCSS urn:ad:css:xowiki
+      # uses the "template::head" API directly, since resources from
+      # requireCSS are typically loaded later than those from the theme.
+
+      template::head::add_css \
+          -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit] \
+          -order 0
+
+      #
+      # Popular tags handling (should probably go to includelets)
+      #
       if {$footer ne ""} {
         template::add_body_script -script {
           function get_popular_tags(popular_tags_link, prefix) {
-            var http = getHttpObject();
+            var http = new XMLHttpRequest();
             http.open('GET', popular_tags_link, true);
             http.onreadystatechange = function() {
               if (http.readyState == 4) {
@@ -1948,13 +1946,20 @@ namespace eval ::xowiki {
       }
 
       if {$template ne ""} {
+
+        #
+        # Initialize and set the template variables, to be used by
+        # a. "adp_compile" / "adp_eval"
+        # b. "return_page" / "adp_include"
+        #
+       
         set __including_page $page
         #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
         set __adp_stub [::$context_package_id get_adp_template view-default]
 
         set template_code [template::adp_compile -string $template]
         #
-        # make sure that <master/> and <slave/> tags are processed
+        # Make sure that <master/> and <slave/> tags are processed
         #
         append template_code {
           if { [info exists __adp_master] } {

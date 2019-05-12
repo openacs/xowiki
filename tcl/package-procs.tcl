@@ -1013,7 +1013,7 @@ namespace eval ::xowiki {
     }
     set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
-    ::xo::Page requireCSS urn:ad:css:xowiki
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
     ${:id} return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg
       top_includelets content folderhtml
@@ -1959,8 +1959,8 @@ namespace eval ::xowiki {
   }
 
   Package proc require_site_wide_pages {
-                                        {-refetch:boolean false}
-                                      } {
+    {-refetch:boolean false}
+  } {
     set parent_id -100
     set package_id [::xowiki::Package first_instance]
     ::xowiki::Package require $package_id
@@ -1981,6 +1981,12 @@ namespace eval ::xowiki {
     }
   }
 
+  Package proc preferredCSSToolkit {} {
+    return [parameter::get_global_value -package_key xowiki \
+                -parameter PreferredCSSToolkit \
+                -default bootstrap]
+  }
+  
   Package proc lookup_side_wide_page {-name:required} {
     return [::xo::db::CrClass lookup -name $name -parent_id -100]
   }
