@@ -1411,7 +1411,6 @@ namespace eval ::xowiki::includelet {
 
   my-tags instproc render {} {
     :get_parameters
-    ::xo::Page requireJS urn:ad:js:get-http-object
 
     set p_link [${:__including_page} pretty_link]
     set return_url [::xo::cc url]?[::xo::cc actual_query]
@@ -1867,7 +1866,10 @@ namespace eval ::xowiki::includelet {
   # includelets based on order
   #
   Class create PageReorderSupport
-  PageReorderSupport instproc page_reorder_check_allow {{-with_head_entries true} allow_reorder} {
+  PageReorderSupport instproc page_reorder_check_allow {
+    {-with_head_entries true}
+    allow_reorder
+  } {
     if {$allow_reorder ne ""} {
       set granted [::${:package_id} check_permissions \
                        -user_id [[::${:package_id} context] user_id] \
@@ -1876,10 +1878,11 @@ namespace eval ::xowiki::includelet {
       #:msg "granted=$granted"
       if {$granted} {
         if {$with_head_entries} {
-          set ajaxhelper 1
-          ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-          ::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-          ::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+          #set ajaxhelper 1
+          #::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
+          #::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
+          #::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
+          ::xo::Page requireJS "/resources/xowiki/listdnd.js"
         }
       } else {
         # the user has not enough permissions, so disallow
@@ -1891,7 +1894,7 @@ namespace eval ::xowiki::includelet {
 
   PageReorderSupport instproc page_reorder_init_vars {-allow_reorder js_ last_level_ ID_ min_level_} {
     :upvar $js_ js $last_level_ last_level $ID_ ID $min_level_ min_level
-    set js "YAHOO.xo_page_order_region.DDApp.package_url = '[::${:package_id} package_url]';\n"
+    #set js "YAHOO.xo_page_order_region.DDApp.package_url = '[::${:package_id} package_url]';\n"
     set last_level 0
     set ID [:js_name]
     if {[string is integer -strict $allow_reorder]} {
@@ -1911,12 +1914,16 @@ namespace eval ::xowiki::includelet {
     set key :__count($prefix_js)
     set p [incr $key]
     set id ${ID}_${prefix_js}_$p
-    append js "YAHOO.xo_page_order_region.DDApp.cd\['$id'\] = '$page_order';\n"
+    #append js "YAHOO.xo_page_order_region.DDApp.cd\['$id'\] = '$page_order';\n"
     return $id
   }
 
   #
   # toc -- Table of contents
+  #
+  # The "toc" includelet renders the page titles of the current files
+  # based on the value of the "page_order" attributes. Only those
+  # pages are rendered that have a non-empty "page_order" field.
   #
   ::xowiki::IncludeletClass create toc \
       -superclass ::xowiki::Includelet \
@@ -2260,20 +2267,30 @@ namespace eval ::xowiki::includelet {
 
   toc instproc render_tree {{-full false} pages} {
     :get_parameters
-    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id] -verbose 1]
+    set tree [::xowiki::Tree new -destroy_on_cleanup \
+                  -orderby pos \
+                  -id [:id] \
+                  -verbose 0 \
+                  -owner [self]]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page \
         -owner [self] \
         $pages
 
-    set HTML [$tree render -style ${:renderer}]
+    if {$allow_reorder ne ""} {
+      set allow_reorder [:page_reorder_check_allow -with_head_entries false $allow_reorder]
+    }
+
+    if {$allow_reorder ne ""} {
+      :page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
+      #:log "=== call tree render [list $tree render -style listdnd] min_level=$min_level"
+      set HTML [$tree render -style listdnd -context [list min_level $min_level]]
+    } else {
+      set HTML [$tree render -style list]
+    }
     #:log "render_tree HTML  => $HTML"
     return $HTML
-  }
-
-  toc instproc parent_id {} {
-    ${:__including_page} parent_id
   }
 
   toc instproc render_list {{-full false} pages} {
@@ -2292,15 +2309,16 @@ namespace eval ::xowiki::includelet {
     }
     set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id]]
     $tree array set open_node [array get :open_node]
-    $tree add_pages -full $full -remove_levels $remove_levels \
+    $tree add_pages -full $full \
+        -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
         -owner [self] \
         $pages
 
     if {$allow_reorder ne ""} {
       :page_reorder_init_vars -allow_reorder $allow_reorder js last_level ID min_level
-      set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[::$package_id package_url]';"
-      set HTML [$tree render -style listdnd -js $js -context [list min_level $min_level]]
+      #set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[::$package_id package_url]';"
+      set HTML [$tree render -style listdnd -context [list min_level $min_level]]
     } else {
       set HTML [$tree render -style list]
     }
@@ -2389,7 +2407,7 @@ namespace eval ::xowiki::includelet {
     # of the toc-specific renderers, but first we have to check, if
     # these are fully feature-compatible.
     #
-
+    #:log "=== toc render with <${:renderer}> treerenderer ${:use_tree_renderer} list_mode <${:list_mode}>"
     if {${:renderer} eq "none"} {
     } elseif {${:use_tree_renderer}} {
       return [:render_tree -full 1 $pages]

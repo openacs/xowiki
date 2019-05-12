@@ -17,6 +17,7 @@ namespace eval ::xowiki {
       -superclass ::xo::OrderedComposite \
       -parameter {
         {name ""}
+        {owner}        
         {verbose 0}
         id
       }
@@ -172,7 +173,9 @@ namespace eval ::xowiki {
       append content [:render_node -open true $cat_content]
 
     }
-    if {${:verbose}} {:log "TreeNode items [:isobject [self]::items] render open_requests ${:open_requests} -> $content"}
+    if {${:verbose}} {
+      :log "TreeNode items [:isobject [self]::items] render open_requests ${:open_requests} -> $content"
+    }
     return $content
   }
 
@@ -259,8 +262,10 @@ namespace eval ::xowiki {
     set h_atts [lindex [$cl highlight_atts] [expr {${:highlight} ? 0 : 1}]]
     set u_atts ""
 
-    if {[info exists :li_id]} {append o_atts " id='${:li_id}'"}
-    if {[info exists :ul_id]} {append u_atts " id='${:ul_id}'"}
+    if {[info exists :li_id]}    {append o_atts " id='${:li_id}'"}
+    if {[info exists :li_atts]}  {append o_atts " ${:li_atts}"}
+    if {[info exists :ul_id]}    {append u_atts " id='${:ul_id}'"}
+    if {[info exists :ul_atts]}  {append u_atts " ${:ul_atts}"}    
     if {[info exists :ul_class]} {append u_atts " class='${:ul_class}'"}
 
     set label [::xowiki::Includelet html_encode [:label]]
@@ -281,7 +286,7 @@ namespace eval ::xowiki {
     } else {
       set content ""
     }
-    return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content"
+    return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content</li>"
   }
   
   #--------------------------------------------------------------------------------
@@ -419,42 +424,87 @@ namespace eval ::xowiki {
 
 
   #--------------------------------------------------------------------------------
-  # list-specific render with YUI drag and drop functionality
+  # list-specific render with drag and drop functionality
   #--------------------------------------------------------------------------------  
   TreeRenderer create TreeRenderer=listdnd \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "" ""]
 
   TreeRenderer=listdnd proc include_head_entries {args} {
-    set ajaxhelper 0
-    ::xo::Page requireJS urn:ad:js:yui2:utilities/utilities
-    ::xo::Page requireJS urn:ad:js:yui2:selector/selector-min
-    ::xo::Page requireJS "/resources/xowiki/yui-page-order-region.js"
+    ::xo::Page requireJS "/resources/xowiki/listdnd.js"
   }
+  TreeRenderer=listdnd proc min_level {} {
+    if {[dict exists ${:context} min_level]} {
+      return [dict get ${:context} min_level]
+    }
+    return ""
+  }
+  TreeRenderer=listdnd proc add_handler {-id -event} {
+    template::add_event_listener \
+        -id $id \
+        -event $event \
+        -preventdefault=false \
+        -script "listdnd_${event}_handler(event);"
+  }
+
   TreeRenderer=listdnd proc render {tree} {
-    array set "" ${:context}
-    if {[info exists (min_level)] && $(min_level) == 1} {
-      set css_class "page_order_region" 
+    #:log "=== TreeRenderer=listdnd render $tree"
+    #
+    # Do we allow reorder on the toplevel?
+    #
+    if {[:min_level] == 1} {
+      set css_class "page_order_region"
+      set id [$tree id]-topul
+      foreach event {drop dragover dragleave} {
+        :add:handler -id $id -event $event
+      }
     } else {
       set css_class "page_order_region_no_target"
     }
-    return "<div id='[$tree id]'><ul class='$css_class'>\n[next]</ul></div>"
+    :log "=== TreeRenderer=listdnd render $tree min_level <[:min_level]>"
+    if {[$tree exists owner]} {
+      #
+      # assume, the "owner" is an includelet.
+      set owner [$tree set owner]
+      set page [$owner set __including_page]
+      set package_url [::[$page package_id] package_url]
+      set package_url_data " data-package_url='$package_url' data-folder_id='[$page parent_id]'"
+    } else {
+      set package_url_data ""
+    }
+
+    return [subst {<div id='[$tree id]' $package_url_data>
+      <ul class='$css_class'>[next]
+      </ul></div>
+    }]
   }
   TreeRenderer=listdnd instproc render_node {{-open:boolean false} cat_content} {
+    #:log "=== TreeRenderer=listdnd render_node $cat_content"
     #set open_state [expr {${:open_requests} > 0 ?"class='liOpen'" : "class='liClosed'"}]
-    #set cl [lindex [:info precedence] 0]
-    set obj ${:object}
-    set o [:owner]
-    $obj instvar page_order
-    set :li_id [::xowiki::Includelet js_name [$o set id]_$page_order]
-    set :ul_id [::xowiki::Includelet js_name [$o set id]__l${:level}_$page_order]
+    ${:object} instvar page_order
 
-    set cl [self class]
-    $cl append js "\nYAHOO.xo_page_order_region.DDApp.cd\['${:li_id}'\] = '$page_order';"
+    set :li_id [::xowiki::Includelet js_name [${:owner} set id]_$page_order]
+    set :ul_id [::xowiki::Includelet js_name [${:owner} set id]__l${:level}_$page_order]
+    
+    set min_level [[self class] min_level]
+    set reorder_child [expr {$min_level ne "" && ${:level} >= $min_level}]
+    set reorder_self [expr {$min_level ne "" && ${:level} > $min_level}]    
+    :log "=== render_node $page_order min_level $min_level level ${:level} reorder_child $reorder_child reorder_self $reorder_self"
 
-    array set "" [$cl set context]
-    set :ul_class [expr {[info exists (min_level)] && ${:level} >= $(min_level) ?
-                           "page_order_region" : "page_order_region_no_target"}]
+    if {$reorder_child} {
+      foreach event {drop dragover dragleave} {
+        [self class] add_handler -id ${:ul_id} -event $event
+      }
+      set :ul_class "page_order_region"
+    } else {
+      set :ul_class "page_order_region_no_target"
+    }
+    if {$reorder_self} {
+      set :li_atts [subst {data-value='$page_order' draggable='true'}]
+      [self class] add_handler -id ${:li_id} -event dragstart
+    }
+    set :ul_id [::xowiki::Includelet js_name [${:owner} set id]__l${:level}_$page_order]
+
     return [next]
   }
 

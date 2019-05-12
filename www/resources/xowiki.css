@@ -55,86 +55,6 @@ div.xowiki-content a.glossary {
     padding-right: 14px;
 }
 
-/* appearance of item-buttons */
-/*
-div.xowiki-content a.edit-item-button {
-    background: url(/resources/acs-subsite/Edit16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.delete-item-button {
-    background: url(/resources/acs-subsite/Delete16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.view-item-button {
-    background: url(/resources/acs-subsite/Zoom16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.create-item-button {
-    background: url( /resources/acs-subsite/Add16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.copy-item-button {
-    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-div.xowiki-content a.copy-item-button {
-    background: url(/resources/acs-subsite/Copy16.gif) right center no-repeat; 
-    padding-right: 16px;
-}
-*/
-/* positions 
-   Add16         -2,-1
-   Copy16        -2,-22
-   Delete16      -2,-44
-   Edit16        -2,-66
-   New16         -2,-88
-   Open16        -2,-110
-   Preferences16 -2,-132
-   Properties16  -2,-154
-   Zoom16        -2,-176
-   ZoomIn16      -2,-198
-   ZoomOut16     -2,-220
-   email.png     -2,-242
-   external.png  -2,-264
-   file.png      -2,-286
-   transparent.png  -1,-308
-*/
-div.xowiki-content a.edit-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -66px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.delete-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -44px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.view-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -176px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.create-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.copy-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -22px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-    width: 16px; height: 16px;
-}
-div.xowiki-content a.add-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -1px no-repeat; 
-    padding-right: 16px;
-    text-decoration: none;
-}
-div.xowiki-content a.notification-image-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -248px no-repeat; /* 6px more */
-    padding-right: 16px;
-    text-decoration: none;
-}
 
 /* headings */
 div.xowiki-content h1 {
@@ -416,8 +336,15 @@ div.xowiki-content div.toc ul.page_order_region {
        list targetable.  Alternatively, we could leave the padding 
        off by default, adding it when we detect that the list is empty.
    */
-    padding-bottom:3ex;
+    padding-bottom:1ex;
 }
+div.xowiki-content ul.page_order_region li.mark-above {
+    border-top:  solid 4px #428bca;
+}
+div.xowiki-content ul.page_order_region li.mark-below {
+    border-bottom:  solid 4px #428bca;
+}
+
 
 /* 
    Handling hidden field-sets:
