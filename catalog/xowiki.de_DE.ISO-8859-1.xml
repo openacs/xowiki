@@ -130,12 +130,12 @@
   <msg key="listing_title">Inhaltsverzeichnis der %pretty_plural%</msg>
   <msg key="listing_title_all">Liste aller Arten von %pretty_plural% </msg>
   <msg key="Manage_categories">Kategorien verwalten</msg>
-  <msg key="menu-Clipboard-Add">Hinzufügen</msg>
+  <msg key="menu-Clipboard-Add">Zum Clipboad hinzufügen</msg>
   <msg key="menu-Clipboard-Clear">Leeren</msg>
   <msg key="menu-Clipboard-Content">Inhalt</msg>
   <msg key="menu-Clipboard-Copy">Kopieren</msg>
-  <msg key="menu-Clipboard-Use-Copy">Kopieren</msg>
-  <msg key="menu-Clipboard-Use-Export">Export</msg>
+  <msg key="menu-Clipboard-Use-Copy">Inhalt in Ordner kopieren</msg>
+  <msg key="menu-Clipboard-Use-Export">Inhalt exportieren</msg>
   <msg key="menu-New">Neu</msg>
   <msg key="menu-New-File">Datei</msg>
   <msg key="menu-New-Folder">Ordner</msg>
