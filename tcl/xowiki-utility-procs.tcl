@@ -723,8 +723,13 @@ namespace eval ::xowiki {
     {-publish_status "ready|live|expired"}
   } {
     
-    Change Page Order for pages by renumbering and filling
-    gaps. Parameter clean is just for inserts.
+    Update page_order attributes for pages by renumbering and filling
+    gaps.
+
+    @param from list of page_orders before a move/insert operation
+    @param to   list of page_orders after a move/insert operation
+    @param clean list of page_orders for insert operatons, to update
+                 the hierarchy from where items were moved to the new hierarchy.
     
   } {
 
@@ -732,7 +737,11 @@ namespace eval ::xowiki {
     #set from {1.2 1.3 1.4}; set to {1.3 1.4 2.1 1.2}; set clean {2.1}
     #set from {1 2}; set to {1 1.2 2}; set clean {1.2 1.3 1.4}
 
-    if {$from eq "" || $to eq "" || [llength $to]-[llength $from] >1 || [llength $to]-[llength $from]<0} {
+    if {$from eq ""
+        || $to eq ""
+        || [llength $to]-[llength $from] > 1
+        || [llength $to]-[llength $from] < 0
+      } {
       ad_log warning "unreasonable request to change page_order from='$from', to='$to'"
       return
     }
@@ -758,12 +767,18 @@ namespace eval ::xowiki {
           break
         }
       }
-      if {![info exists inserted]} {error "invalid 'to' list (no inserted element detected)"}
+      if {![info exists inserted]} {
+        error "invalid 'to' list (no inserted element detected)"
+      }
       # 
       # Compute the remaining list.
       #
       set remaining [list]
-      foreach e $clean {if {$e ne $inserted} {lappend remaining $e}}
+      foreach e $clean {
+        if {$e ne $inserted} {
+          lappend remaining $e
+        }
+      }
       #
       # Compute rename commands for it.
       #
