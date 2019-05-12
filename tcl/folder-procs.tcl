@@ -551,12 +551,16 @@ namespace eval ::xowiki::includelet {
 
     ::$package_id instvar package_key
     set return_url [ad_return_url -default_url [$current_folder pretty_link]]
-    set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]
+    set category_url [export_vars -base [::$package_id package_url] {
+      {manage-categories 1} {object_id $package_id}
+    }]
 
     set columns {objects edit object_type name last_modified mod_user delete}
     foreach column $columns {set ::hidden($column) 0 }
     if {[info exists hide]} {
-      foreach column $hide {if {[info exists ::hidden($column)]} {set ::hidden($column) 1}}
+      foreach column $hide {
+        if {[info exists ::hidden($column)]} {set ::hidden($column) 1}
+      }
     }
     #
     # We have to use the global variable for the time being due to
