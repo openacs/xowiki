@@ -2146,14 +2146,11 @@ namespace eval ::xowiki {
     for page inserts. This method is typically called via AJAX.
 
   } {
-
-    set folder_id [string trim [:form_parameter folder_id ${:folder_id}]]
-
     ::xowiki::utility change_page_order \
         -from [string trim [:form_parameter from ""]] \
         -to [string trim [:form_parameter to ""]] \
         -clean [string trim [:form_parameter clean ""]] \
-        -folder_id $folder_id \
+        -folder_id [string trim [:form_parameter folder_id ${:folder_id}]] \
         -package_id ${:id} \
         -publish_status [string trim [:form_parameter publish_status "ready|live|expired"]]
 
