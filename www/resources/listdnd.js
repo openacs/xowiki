@@ -53,7 +53,7 @@ function listdnd_dragstart_handler(ev) {
     var target = listdnd_get_parent( ev.target, 'LI' );
     ev.dataTransfer.setData("text/plain", target.id);
     ev.dataTransfer.dropEffect = "move";
-    //console.log("listdnd_dragstart_handler on " + target.id);
+    //console.log("listdnd_dragstart on " + target.id);
 }
 
 function listdnd_dragover_handler(ev) {
@@ -61,7 +61,11 @@ function listdnd_dragover_handler(ev) {
     ev.dataTransfer.dropEffect = "move"
     var target = listdnd_get_parent( ev.target, 'LI' );
     var value = target.dataset.value;
-    if (typeof value !== 'undefined') {
+    var sourceElement = document.getElementById(ev.dataTransfer.getData("text/plain"))
+
+    //console.log("listdnd_dragover on " + target.id + " value " + value + " source " + sourceElement);
+
+    if (typeof value !== 'undefined' && sourceElement !== null) {
 	var bounding = target.getBoundingClientRect()
 	var offset = bounding.y + (bounding.height/2);
 	if ( event.clientY - offset > 0 ) {
@@ -85,7 +89,7 @@ function listdnd_dragleave_handler(ev) {
 
 function listdnd_drop_handler(ev) {
     ev.preventDefault();
-    //console.log("drop_handler on " + ev.target.nodeName);
+    //console.log("listdnd_drop on " + ev.target.nodeName);
 
     // Get the dropped element based on the transferred ID.
     var sourceElement = document.getElementById(ev.dataTransfer.getData("text/plain"))
@@ -95,7 +99,7 @@ function listdnd_drop_handler(ev) {
     var target = listdnd_get_parent( ev.target, 'LI');
 
     var value = target.dataset.value;
-    if (typeof value !== 'undefined') {
+    if (typeof value !== 'undefined' && sourceElement !== null) {
 	
 	// Used variables:
 	//   - dropul: The target ul, which should be updated with
