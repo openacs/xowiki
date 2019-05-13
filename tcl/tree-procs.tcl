@@ -452,16 +452,16 @@ namespace eval ::xowiki {
     #
     # Do we allow reorder on the toplevel?
     #
-    if {[:min_level] == 1} {
+    set id [$tree id]-topul
+    if {[:min_level] == -1} {
       set css_class "page_order_region"
-      set id [$tree id]-topul
       foreach event {drop dragover dragleave} {
-        :add:handler -id $id -event $event
+        :add_handler -id $id -event $event
       }
     } else {
       set css_class "page_order_region_no_target"
     }
-    :log "=== TreeRenderer=listdnd render $tree min_level <[:min_level]>"
+    #:log "=== TreeRenderer=listdnd render $tree min_level <[:min_level]>"
     if {[$tree exists owner]} {
       #
       # assume, the "owner" is an includelet.
@@ -474,7 +474,7 @@ namespace eval ::xowiki {
     }
 
     return [subst {<div id='[$tree id]' $package_url_data>
-      <ul class='$css_class'>[next]
+      <ul id='$id' class='$css_class'>[next]
       </ul></div>
     }]
   }
