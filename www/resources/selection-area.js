@@ -15,19 +15,19 @@
  * Gustaf Neumann                      fecit May 2019
  */
 
-function dragstart_handler(ev) {
+function selection_area_dragstart_handler(ev) {
     // Add the target element's id to the data transfer object
     ev.dataTransfer.setData("text/plain", ev.target.id);
     ev.dataTransfer.dropEffect = "move";
 }
 
-function dragover_handler(ev) {
+function selection_area_dragover_handler(ev) {
     ev.preventDefault();
     // Set the dropEffect to move
     ev.dataTransfer.dropEffect = "move"
 }
 
-function drop_handler(ev) {
+function selection_area_drop_handler(ev) {
     ev.preventDefault();
     //console.log("drop_handler on " + ev.target.nodeName);
 

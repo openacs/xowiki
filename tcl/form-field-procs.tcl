@@ -2723,12 +2723,23 @@ namespace eval ::xowiki::formfield {
   }
   candidate_box_select set abstract 1
 
+  candidate_box_select instproc add_drag_handler {
+    -id:required
+    -event:required
+  } {
+    template::add_event_listener \
+        -id $id \
+        -event $event \
+        -preventdefault=false \
+        -script "selection_area_${event}_handler(event);"
+  }
+
   candidate_box_select instproc render_input {} {
     #:msg "mul ${:multiple} dnd ${:dnd}"
     # makes only sense currently for multiple selects
-    
+
     if {[:multiple] && [:dnd]} {
-      
+
       if {[info exists :disabled] && [:disabled]} {
         html::t -disableOutputEscaping [:pretty_value [:value]]
       } else {
@@ -2737,7 +2748,7 @@ namespace eval ::xowiki::formfield {
         set count 0
         set selected {}
         set candidates {}
-        
+
         foreach o ${:options} {
           lassign $o label rep
           if {$rep in ${:value}} {
@@ -2754,10 +2765,10 @@ namespace eval ::xowiki::formfield {
           #
           # Internal representation
           #
-          ::html::textarea -id ${:id}.text -name ${:name} { 
+          ::html::textarea -id ${:id}.text -name ${:name} {
             ::html::t [join ${:value} \n]
           }
-          
+
           #
           # Selections
           #
@@ -2765,44 +2776,41 @@ namespace eval ::xowiki::formfield {
             ::html::h3 { ::html::t "#xowiki.Selection#"}
             # TODO what todo with DISABLED?
             ::html::ul -class "region selected" \
-                -id ${:id}.selected \
-                -ondrop "drop_handler(event);" \
-                -ondragover "dragover_handler(event);" {
+                -id ${:id}.selected {
                   foreach v $selected {
-                    ::html::li \
-                        -class selection \
-                        -draggable true \
-                        -id  ${:id}.selected.[dict get $labels $v serial] \
-                        -data-value $v \
-                        -ondragstart "dragstart_handler(event);" {
+                    set id ${:id}.selected.[dict get $labels $v serial]
+                    ::html::li -class selection \
+                        -draggable true -id $id -data-value $v {
                           ::html::t [dict get $labels $v label]
                         }
+                    :add_drag_handler -id $id -event dragstart
                   }
                 }
+            :add_drag_handler -id ${:id}.selected -event drop
+            :add_drag_handler -id ${:id}.selected -event dragover
           }
           #
           # Candidates
           #
           ::html::div -class workarea {
             ::html::h3 { ::html::t "#xowiki.Candidates#"}
-            ::html::ul -id ${:id}_candidates -class region \
-                -ondrop "drop_handler(event);" \
-                -ondragover "dragover_handler(event);" {
-                  foreach v $candidates {
-                    ::html::li \
-                        -class candidates \
-                        -draggable true \
-                        -id  ${:id}.[dict get $labels $v serial] \
-                        -data-value $v \
-                        -ondragstart "dragstart_handler(event);" {
-                          ::html::t [dict get $labels $v label]
-                        }
-                  }
-                }
+            ::html::ul -id ${:id}.candidates -class region {
+              foreach v $candidates {
+                set id ${:id}.[dict get $labels $v serial]
+                ::html::li \
+                    -class candidates \
+                    -draggable true -id $id -data-value $v {
+                      ::html::t [dict get $labels $v label]
+                    }
+                :add_drag_handler -id $id -event dragstart
+              }
+            }
+            :add_drag_handler -id ${:id}.candidates -event drop
+            :add_drag_handler -id ${:id}.candidates -event dragover
           }
         }
         ::html::div -class visual-clear {
-          ;# maybe some comment
+          ;# this space is left intentionally blank
         }
       }
     } else {
@@ -2930,7 +2938,7 @@ namespace eval ::xowiki::formfield {
       lappend :form_object_item_ids [$form_obj item_id]
     }
   }
-  
+
   form_page instproc compute_options {} {
     #:msg "${:name} compute_options [info exists :form]"
     if {![info exists :form]} {
@@ -2964,7 +2972,7 @@ namespace eval ::xowiki::formfield {
       #
       # Compute the item_ref of the page. The item_ref has the
       # advantage over an href that it is easier relocatable via clipboard.
-      # 
+      #
       set package_id [$i package_id]
       set folder_path [$package_id folder_path -parent_id [$i parent_id]]
       set item_ref $folder_path[$i name]
