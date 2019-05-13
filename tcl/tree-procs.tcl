@@ -17,12 +17,12 @@ namespace eval ::xowiki {
       -superclass ::xo::OrderedComposite \
       -parameter {
         {name ""}
-        {owner}        
+        {owner}
         {verbose 0}
         id
       }
 
-  # 
+  #
   # Class methods
   #
   Tree proc renderer {style} {
@@ -51,11 +51,11 @@ namespace eval ::xowiki {
     -category
     -orderby
     -itemobj
-    {-increasing:boolean true} 
+    {-increasing:boolean true}
     {-open_item:boolean false}
   } {
     set items ${category}::items
-    if {![:isobject $items]} { 
+    if {![:isobject $items]} {
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
         if {$orderby eq "page_order"} {
@@ -86,10 +86,10 @@ namespace eval ::xowiki {
   }
 
   Tree instproc add_pages {
-    {-full false} 
-    {-remove_levels 0} 
-    {-book_mode false} 
-    {-open_page ""} 
+    {-full false}
+    {-remove_levels 0}
+    {-book_mode false}
+    {-open_page ""}
     {-expand_all false}
     -owner
     pages
@@ -126,7 +126,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # ::xowiki::TreeNode 
+  # ::xowiki::TreeNode
   #
   # The TreeNode represents an n-ary node storing its child nodes in
   # an ordered composite.  In addition to its children, every node may
@@ -138,7 +138,7 @@ namespace eval ::xowiki {
     level label pos
     {open_requests 0}
     count
-    {href ""} 
+    {href ""}
     object owner li_id ul_id ul_class
     {prefix ""}
     {expanded false}
@@ -183,7 +183,7 @@ namespace eval ::xowiki {
   # The rendering of trees is performed via rendering classes.  All
   # renderers are created and configured via the meta-class
   # TreeRenderer. This meta-class defines the common attributes and
-  # behavior of all TreeRenders. 
+  # behavior of all TreeRenders.
   #
   # In particular, the TreeRenders are defined to work with xowiki's
   # page fragment caching. Via page fragment caching, the result of
@@ -217,7 +217,7 @@ namespace eval ::xowiki {
   #   - render {tree}
   #
   # (both are optional) and the following methods as instprocs
-  # 
+  #
   #   - render_node {{-open:boolean false} cat_content}
   #   - render_item {{-highlight:boolean false} item}
   #
@@ -227,13 +227,13 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # List-specific renderer
-  # 
+  #
   # This is a very common render that maps the tree structure into an
   # unordered HTML list. The rendered is specialized by e.g. the
   # mktree an yuitree render below.
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
 
-  TreeRenderer create TreeRenderer=list 
+  TreeRenderer create TreeRenderer=list
   TreeRenderer=list proc include_head_entries {args} {
     # In the general case, we have nothing to include.  More
     # specialized renders will provide their head entries.
@@ -265,7 +265,7 @@ namespace eval ::xowiki {
     if {[info exists :li_id]}    {append o_atts " id='${:li_id}'"}
     if {[info exists :li_atts]}  {append o_atts " ${:li_atts}"}
     if {[info exists :ul_id]}    {append u_atts " id='${:ul_id}'"}
-    if {[info exists :ul_atts]}  {append u_atts " ${:ul_atts}"}    
+    if {[info exists :ul_atts]}  {append u_atts " ${:ul_atts}"}
     if {[info exists :ul_class]} {append u_atts " class='${:ul_class}'"}
 
     set label [::xowiki::Includelet html_encode [:label]]
@@ -288,7 +288,7 @@ namespace eval ::xowiki {
     }
     return "<li $o_atts><span $h_atts>${:prefix} $entry</span>$content</li>"
   }
-  
+
   #--------------------------------------------------------------------------------
   # List-specific renderer based on mktree
   #--------------------------------------------------------------------------------
@@ -307,7 +307,7 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # List-specific renderer based for some menus
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=samplemenu \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='menu-open'" "class='menu-closed'"] \
@@ -367,7 +367,7 @@ namespace eval ::xowiki {
     }
     return "<li $o_atts>$entry $content"
   }
-  
+
   TreeRenderer=bootstrap3horizontal proc render {tree} {
     set name [$tree name]
     if {$name ne ""} {
@@ -379,19 +379,19 @@ namespace eval ::xowiki {
     } else {
       set navbarLabel ""
     }
-        
+
     return [subst {
       <nav class="navbar navbar-inverse">
       <div class="container-fluid">[ns_quotehtml $navbarLabel]
       <ul class="nav navbar-nav">
       [next]
       </ul>
-      </div>      
+      </div>
       </nav>
     }]
   }
-  
-  
+
+
   #--------------------------------------------------------------------------------
   # List-specific renderer based on yuitree
   #--------------------------------------------------------------------------------
@@ -425,7 +425,7 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # list-specific render with drag and drop functionality
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=listdnd \
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "" ""]
@@ -485,10 +485,10 @@ namespace eval ::xowiki {
 
     set :li_id [::xowiki::Includelet js_name [${:owner} set id]_$page_order]
     set :ul_id [::xowiki::Includelet js_name [${:owner} set id]__l${:level}_$page_order]
-    
+
     set min_level [[self class] min_level]
     set reorder_child [expr {$min_level ne "" && ${:level} >= $min_level}]
-    set reorder_self [expr {$min_level ne "" && ${:level} > $min_level}]    
+    set reorder_self [expr {$min_level ne "" && ${:level} > $min_level}]
     :log "=== render_node $page_order min_level $min_level level ${:level} reorder_child $reorder_child reorder_self $reorder_self"
 
     if {$reorder_child} {
@@ -512,7 +512,7 @@ namespace eval ::xowiki {
   # Tree renderer based on a section structure
   #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=sections \
-      -superclass TreeRenderer=list 
+      -superclass TreeRenderer=list
   TreeRenderer=sections instproc render_item {{-highlight:boolean false} item} {
     $item instvar title href
     set prefix [$item set prefix]
@@ -537,7 +537,7 @@ namespace eval ::xowiki {
   #--------------------------------------------------------------------------------
   # Bootstrap tree renderer based on
   # http://jonmiles.github.io/bootstrap-treeview/
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
 
   TreeRenderer create TreeRenderer=bootstrap3
   TreeRenderer=bootstrap3 proc include_head_entries {args} {
@@ -598,7 +598,7 @@ namespace eval ::xowiki {
 
   #--------------------------------------------------------------------------------
   # Bootstrap3 tree renderer with folder structure
-  #--------------------------------------------------------------------------------  
+  #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=bootstrap3-folders -superclass TreeRenderer=bootstrap3
   TreeRenderer=bootstrap3-folders proc render {tree} {
     set jsTree [string trimright [next] ", \n"]
@@ -612,9 +612,9 @@ namespace eval ::xowiki {
     return "<div id='$id'></div>"
   }
 
-  
+
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:
