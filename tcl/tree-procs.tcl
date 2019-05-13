@@ -489,7 +489,7 @@ namespace eval ::xowiki {
     set min_level [[self class] min_level]
     set reorder_child [expr {$min_level ne "" && ${:level} >= $min_level}]
     set reorder_self [expr {$min_level ne "" && ${:level} > $min_level}]
-    :log "=== render_node $page_order min_level $min_level level ${:level} reorder_child $reorder_child reorder_self $reorder_self"
+    #:log "=== render_node $page_order min_level $min_level level ${:level} reorder_child $reorder_child reorder_self $reorder_self"
 
     if {$reorder_child} {
       foreach event {drop dragover dragleave} {
