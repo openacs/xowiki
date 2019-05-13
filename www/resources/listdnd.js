@@ -162,7 +162,7 @@ function listdnd_drop_handler(ev) {
 
 /*
  * Local variables:
- *    mode: Javascript
+ *    mode: JavaScript
  *    indent-tabs-mode: nil
  * End:
  */

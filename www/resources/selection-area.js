@@ -37,11 +37,11 @@ function drop_handler(ev) {
     // Get the target UL, which should be updated with the dropped
     // item.
     if (ev.target.nodeName == "UL") {
-	var ul =  ev.target;
+        var ul =  ev.target;
     } else  if (ev.target.nodeName == "LI") {
-	var ul =  ev.target.parentElement;
+        var ul =  ev.target.parentElement;
     } else {
-	console.log("unexpected target " + ev.target);
+        console.log("unexpected target " + ev.target);
     }
 
     // Reparent the dropped item
@@ -55,8 +55,15 @@ function drop_handler(ev) {
     var internalRep = "";
 
     for (var j = 0; j < items.length; j++) {
-	internalRep += items[j].dataset.value + "\n";
+        internalRep += items[j].dataset.value + "\n";
     }
 
     textarea.value = internalRep;
 }
+
+/*
+ * Local variables:
+ *    mode: JavaScript
+ *    indent-tabs-mode: nil
+ * End:
+ */
