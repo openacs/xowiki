@@ -13,10 +13,10 @@
  * of the items in a "toc" is determiend by the "page_order" attribute
  * in the database, it reports the changed lists of page_orders back.
  *
- * The implementation uses the following data attributes: 
+ * The implementation uses the following data attributes:
  *  - <li>  data-value (containing page_order)
  *  - <div> data-folder_id data-package_url (for reporting to the backend)
- * 
+ *
  * Gustaf Neumann                      fecit May 2019
  */
 
@@ -40,10 +40,10 @@ function listdnd_page_orders( element ) {
     var result = [];
 
     for (var j = 0; j < items.length; j++) {
-	var page_order = items[j].dataset.value;
-	if (page_order != '') {
-	    result.push(page_order);
-	}
+        var page_order = items[j].dataset.value;
+        if (page_order != '') {
+            result.push(page_order);
+        }
     }
     return result;
 }
@@ -66,15 +66,15 @@ function listdnd_dragover_handler(ev) {
     //console.log("listdnd_dragover on " + target.id + " value " + value + " source " + sourceElement);
 
     if (typeof value !== 'undefined' && sourceElement !== null) {
-	var bounding = target.getBoundingClientRect()
-	var offset = bounding.y + (bounding.height/2);
-	if ( event.clientY - offset > 0 ) {
-	    target.classList.add('mark-below')
-	    target.classList.remove('mark-above')	    
-	} else {
-	    target.classList.add('mark-above')
-	    target.classList.remove('mark-below')	    
-	}
+        var bounding = target.getBoundingClientRect()
+        var offset = bounding.y + (bounding.height/2);
+        if ( event.clientY - offset > 0 ) {
+            target.classList.add('mark-below')
+            target.classList.remove('mark-above')
+        } else {
+            target.classList.add('mark-above')
+            target.classList.remove('mark-below')
+        }
     }
 }
 
@@ -100,62 +100,69 @@ function listdnd_drop_handler(ev) {
 
     var value = target.dataset.value;
     if (typeof value !== 'undefined' && sourceElement !== null) {
-	
-	// Used variables:
-	//   - dropul: The target ul, which should be updated with
-	//             the dropped item.
-	//   - div:    The outer did, needed for obtaining "folder_id"
-	//             and "package_url".
-	//   - before: collection of "page_orders" before drop.
-	//   - after:  collection of "page_orders" after drop.
-	//
-	var dropul = target.parentNode;
-	var div    = listdnd_get_parent( target.parentNode, 'DIV');
-	var before = listdnd_page_orders(dropul);
-	
-	if ( target.classList.contains('mark-above') ) {
-	    target.classList.remove('mark-above')
-	    target.parentNode.insertBefore(sourceElement, target);
-	} else {
-	    target.classList.remove('mark-below')
-	    target.parentNode.insertBefore(sourceElement, target.nextSibling);
-	}
-	
-	var after = listdnd_page_orders(dropul);
-	var diff = after.filter(x => !before.includes(x) );
-	
-	//console.log('drop before <' + before + '> after <' + after + '> diff <' + diff + '>');
-	
-	var data = 'change-page-order=1' +
+
+        // Used variables:
+        //   - dropul: The target ul, which should be updated with
+        //             the dropped item.
+        //   - div:    The outer did, needed for obtaining "folder_id"
+        //             and "package_url".
+        //   - before: collection of "page_orders" before drop.
+        //   - after:  collection of "page_orders" after drop.
+        //
+        var dropul = target.parentNode;
+        var div    = listdnd_get_parent( target.parentNode, 'DIV');
+        var before = listdnd_page_orders(dropul);
+
+        if ( target.classList.contains('mark-above') ) {
+            target.classList.remove('mark-above')
+            target.parentNode.insertBefore(sourceElement, target);
+        } else {
+            target.classList.remove('mark-below')
+            target.parentNode.insertBefore(sourceElement, target.nextSibling);
+        }
+
+        var after = listdnd_page_orders(dropul);
+        var diff = after.filter(x => !before.includes(x) );
+
+        //console.log('drop before <' + before + '> after <' + after + '> diff <' + diff + '>');
+
+        var data = 'change-page-order=1' +
             '&from='      + escape(before.join(' ')) +
             '&to='        + escape(after.join(' ')) +
-	    '&clean='     + escape(diff.join(' ')) +
-            '&folder_id=' + escape(div.dataset.folder_id) +	
-	    '';
+            '&clean='     + escape(diff.join(' ')) +
+            '&folder_id=' + escape(div.dataset.folder_id) +
+            '';
 
-	//console.log('package_url <' + div.dataset.package_url + '>');
-	if (1) {
-	    var request = new XMLHttpRequest();
-	    request.onload =  function(e) {
-		// There seems no good way to handle redirects (301 or
-		// 302) in XHR. Since we know valid results (just the
-		// "OK"), everything else must have been a
-		// redirect. We could be brutal and display the
-		// returned page, but not sure, if this would be
-		// desirable either.
-		if (this.getResponseHeader["Content-Length"] > 10) {
-		    // there must have happened a redirect
-		    alert("Refresh your login and redo update");
-		    window.location.href = div.dataset.package_url 
-			+ "?refresh-login&return_url=" 
-			+ escape(window.location.href);
-		} else {
-		    window.location.reload();
-		}
-	    };
-	    request.open('POST', div.dataset.package_url, true);
-	    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-	    request.send(data);
-	}
+        //console.log('package_url <' + div.dataset.package_url + '>');
+        if (1) {
+            var request = new XMLHttpRequest();
+            request.onload =  function(e) {
+                // There seems no good way to handle redirects (301 or
+                // 302) in XHR. Since we know valid results (just the
+                // "OK"), everything else must have been a
+                // redirect. We could be brutal and display the
+                // returned page, but not sure, if this would be
+                // desirable either.
+                if (this.getResponseHeader["Content-Length"] > 10) {
+                    // there must have happened a redirect
+                    alert("Refresh your login and redo update");
+                    window.location.href = div.dataset.package_url
+                        + "?refresh-login&return_url="
+                        + escape(window.location.href);
+                } else {
+                    window.location.reload();
+                }
+            };
+            request.open('POST', div.dataset.package_url, true);
+            request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+            request.send(data);
+        }
     }
 }
+
+/*
+ * Local variables:
+ *    mode: Javascript
+ *    indent-tabs-mode: nil
+ * End:
+ */
