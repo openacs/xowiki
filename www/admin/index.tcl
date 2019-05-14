@@ -14,6 +14,9 @@ set context [list]
 set pretty_plural [$object_type set pretty_plural]
 set title [_ xowiki.admin_all_title]
 
+template::head::add_css \
+    -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
+
 set object_types [$object_type object_types]
 set return_url   [ns_conn url]
 set category_url [export_vars -base [::$package_id package_url] { {manage-categories 1} {object_id $package_id}}]

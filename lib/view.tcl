@@ -19,10 +19,9 @@ if {[info exists url]} {
 }
 
 set html [::$package_id invoke -method $m]
-#set ::xowiki_head [::xo::Page header_stuff]
 
 if {![info exists css]} {
-    set fn [acs_root_dir]/packages/xowiki/www/resources/xowiki.css
+    set fn [acs_root_dir]/packages/xowiki/www/resources/xowiki-[::xowiki::Package preferredCSSToolkit].css
     set F [open $fn]; set css [read $F]; close $F
     set css "<style type='text/css'>$css</style>"
     set html $css$html
