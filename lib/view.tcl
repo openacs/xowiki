@@ -1,31 +1,45 @@
 set parameter [subst {
-    {-m view}
-    {-return_url "[ns_conn url]"}
-    {-template_file "view-links"}
-    {-folder_id 0}
+  {-m view}
+  {-return_url "[ns_conn url]"}
+  {-template_file "view-links"}
+  {-folder_id 0}
 }]
 
 # TODO the following should be done more elegantly
 set actual_query [expr {[info exists template_file] ? "template_file=$template_file" : " "}]
 
 if {[info exists url]} {
-    # new style, the url is sufficient
-    ::xowiki::Package initialize -parameter $parameter -url $url -actual_query $actual_query 
+  #
+  # New style, the URL is sufficient
+  #
+  ::xowiki::Package initialize \
+      -parameter $parameter \
+      -url $url \
+      -actual_query $actual_query
 } else {
-    # old style, use item_id
-    set page [::xowiki::Package instantiate_page_from_id \
-		  -item_id $item_id -parameter $parameter]
+  #
+  # Old style, use item_id.
+  #
+  # TODO: This branch should be removed after the release of OpenACS 5.10
+  #
+  ns_log warning "deprecated call of xowiki/lib/view.tcl: use 'url' as parameter instead"
+
+  set page [::xowiki::Package instantiate_page_from_id \
+                -item_id $item_id \
+                -parameter $parameter]
     ::xo::cc export_vars
 }
 
+template::head::add_css \
+    -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
+
 set html [::$package_id invoke -method $m]
 
-if {![info exists css]} {
-    set fn [acs_root_dir]/packages/xowiki/www/resources/xowiki-[::xowiki::Package preferredCSSToolkit].css
-    set F [open $fn]; set css [read $F]; close $F
-    set css "<style type='text/css'>$css</style>"
-    set html $css$html
+if {[info exists css]} {
+  set html $css$html
 }
+
+
 
 
 # Local variables:
