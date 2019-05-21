@@ -991,7 +991,7 @@ namespace eval ::xowiki {
     # Unset the context_id, which would otherwise come from the
     # original object and persisted. By default, will be set to the
     # new object's parent_id
-    unset :context_id
+    unset -nocomplain -- :context_id
     set :parent_id $parent_id
     set :package_id $package_id
     :reverse_map_party_attribute -attribute creation_user  \
