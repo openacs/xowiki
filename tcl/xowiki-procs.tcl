@@ -375,8 +375,11 @@ namespace eval ::xowiki {
          xi.package_id, xi.parent_id, xi.name,
          $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
          o.object_id, o.object_type, o.title AS object_title,
-         (select context_id from acs_objects where object_id = xi.item_id) as context_id,
-         o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
+         io.context_id,
+         io.creation_date,
+         io.creation_user,
+         io.creation_ip,
+         o.security_inherit_p,
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(ci.live_revision) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
@@ -387,7 +390,8 @@ namespace eval ::xowiki {
          xowiki_page.page_id,
          xowiki_page.page_order,
          xowiki_page.creator
-      FROM xowiki_form_instance_item_index xi,
+      FROM xowiki_form_instance_item_index xi
+         inner join acs_objects io on object_id = xi.item_id,
          lateral (select live_revision from cr_items where item_id = xi.item_id) ci
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
          left join acs_objects o on (o.object_id = ci.live_revision)
@@ -400,8 +404,11 @@ namespace eval ::xowiki {
          xi.package_id, xi.parent_id, xi.name,
          $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
          o.object_id, o.object_type, o.title AS object_title,
-         (select context_id from acs_objects where object_id = xi.item_id) as context_id,
-         o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
+         io.context_id,
+         io.creation_date,
+         io.creation_user,
+         io.creation_ip,
+         o.security_inherit_p,
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
@@ -413,6 +420,7 @@ namespace eval ::xowiki {
          xowiki_page.page_order,
          xowiki_page.creator
       FROM xowiki_form_instance_item_index xi
+         inner join acs_objects io on object_id = xi.item_id
          left join cr_items ci on (ci.item_id = xi.item_id)
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
          left join acs_objects o on (o.object_id = ci.live_revision)
