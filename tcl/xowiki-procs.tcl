@@ -678,7 +678,7 @@ namespace eval ::xowiki {
       set port [ns_config ns/server/${server}/module/nssock port]
       set new_name [ns_info address]:${port}-${:item_id}
     }
-    
+
     if {[info exists new_name]} {
       #
       # We have a new name, so patch this locally to get it into the

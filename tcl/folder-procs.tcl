@@ -582,7 +582,7 @@ namespace eval ::xowiki::includelet {
                          -url $::__xowiki_folder_link
                    }
                  }
-                
+
                  # The "-html" options are currently ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way.
                  #
@@ -591,7 +591,7 @@ namespace eval ::xowiki::includelet {
                      -hide $::hidden(edit)
                  AnchorField create duplicate -CSSclass copy-item-button \
                      -hide $::hidden(duplicate) \
-                     -label ""       
+                     -label ""
                  if {$::__xowiki_with_publish_status} {
                    ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \

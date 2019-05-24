@@ -207,7 +207,7 @@ namespace eval ::xowiki {
       # Call whatever clipboard-copy is doing....
       #
       :www-clipboard-copy
-      
+
     } finally {
       #
       # Restore the actual object
@@ -219,7 +219,7 @@ namespace eval ::xowiki {
       ::xo::xotcl_object_cache flush ${:item_id}
     }
   }
-  
+
   #
   # Externally callable method: create-new
   #
@@ -1991,7 +1991,7 @@ namespace eval ::xowiki {
         # a. "adp_compile" / "adp_eval"
         # b. "return_page" / "adp_include"
         #
-       
+
         set __including_page $page
         #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
         set __adp_stub [::$context_package_id get_adp_template view-default]
