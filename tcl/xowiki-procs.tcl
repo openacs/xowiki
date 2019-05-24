@@ -674,10 +674,18 @@ namespace eval ::xowiki {
       # Therefore, we rename anonymous entries during export to
       #    ip_address:port/item_id
       #
-      set old_name ${:name}
       set server [ns_info server]
       set port [ns_config ns/server/${server}/module/nssock port]
-      set :name [ns_info address]:${port}-${:item_id}
+      set new_name [ns_info address]:${port}-${:item_id}
+    }
+    
+    if {[info exists new_name]} {
+      #
+      # We have a new name, so patch this locally to get it into the
+      # serialized content.
+      #
+      set old_name ${:name}
+      set :name $new_name
       set content [:serialize_relocatable]
       set :name $old_name
     } else {
