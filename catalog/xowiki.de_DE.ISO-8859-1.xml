@@ -38,6 +38,7 @@
   <msg key="delete_confirm">Löschen bestätigen?</msg>
   <msg key="delete_title">Lösche diese Seite ...</msg>
   <msg key="details">Details</msg>
+  <msg key="duplicate">Duplizieren</msg>  
   <msg key="edit">Bearbeiten</msg>
   <msg key="Edit_category">Kategorienbaum bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>

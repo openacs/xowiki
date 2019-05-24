@@ -1986,7 +1986,7 @@ namespace eval ::xowiki {
                 -parameter PreferredCSSToolkit \
                 -default bootstrap]
   }
-  
+
   Package proc lookup_side_wide_page {-name:required} {
     return [::xo::db::CrClass lookup -name $name -parent_id -100]
   }
@@ -2736,6 +2736,7 @@ namespace eval ::xowiki {
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}
       bulk-delete        {{package_id admin}}
+      duplicate          {{package_id write}}
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2796,6 +2797,7 @@ namespace eval ::xowiki {
       delete-revision    swa
       delete             swa
       bulk-delete        swa
+      duplicate          {{package_id write}}
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2849,6 +2851,7 @@ namespace eval ::xowiki {
       delete-revision    swa
       delete             swa
       bulk-delete        swa
+      duplicate          {{parent_id create}}
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}
@@ -2929,6 +2932,7 @@ namespace eval ::xowiki {
       delete-revision    swa
       delete             swa
       bulk-delete        swa
+      duplicate          {{parent_id create}}
       save-tags          login
       popular-tags       login
       create-new         {{parent_id create}}

@@ -555,7 +555,7 @@ namespace eval ::xowiki::includelet {
       {manage-categories 1} {object_id $package_id}
     }]
 
-    set columns {objects edit object_type name last_modified mod_user delete}
+    set columns {objects edit object_type name last_modified mod_user duplicate delete}
     foreach column $columns {set ::hidden($column) 0 }
     if {[info exists hide]} {
       foreach column $hide {
@@ -582,12 +582,16 @@ namespace eval ::xowiki::includelet {
                          -url $::__xowiki_folder_link
                    }
                  }
+                
                  # The "-html" options are currently ignored in the YUI
                  # DataTable. Not sure, it can be integrated in the traditional way.
                  #
                  HiddenField create ID
                  AnchorField create edit -CSSclass edit-item-button -label "" \
                      -hide $::hidden(edit)
+                 AnchorField create duplicate -CSSclass copy-item-button \
+                     -hide $::hidden(duplicate) \
+                     -label ""       
                  if {$::__xowiki_with_publish_status} {
                    ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
@@ -651,10 +655,12 @@ namespace eval ::xowiki::includelet {
           -edit.href [export_vars -base $page_link {{m edit} return_url}] \
           -edit.title #xowiki.edit# \
           -mod_user [::xo::get_user_name [$c set creation_user]] \
+          -duplicate "" \
+          -duplicate.href [export_vars -base $page_link {{m duplicate} return_url}] \
+          -duplicate.title #xowiki.duplicate# \
           -delete "" \
           -delete.href [export_vars -base $page_link {{m delete} return_url}] \
           -delete.title #xowiki.delete#
-
       if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
         if {[$c set publish_status] eq "ready"} {

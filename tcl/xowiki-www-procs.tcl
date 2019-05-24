@@ -145,10 +145,10 @@ namespace eval ::xowiki {
     to the return_url of the calling page.
 
   } {
-    set package_id ${:package_id}
     set clipboard [::xowiki::clipboard get]
     set item_ids [::xowiki::exporter include_needed_objects $clipboard]
     set content [::xowiki::exporter marshall_all -mode copy $item_ids]
+
     ad_try {
       namespace eval ::xo::import $content
     } on error {errMsg} {
@@ -156,11 +156,11 @@ namespace eval ::xowiki {
       return
     }
     set folder_id [expr {[:is_folder_page] ? ${:item_id} : ${:parent_id}}]
-    set msg [::$package_id import -replace 0 -create_user_ids 1 \
+    set msg [::${:package_id} import -replace 0 -create_user_ids 1 \
                  -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
-    ::$package_id returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    ::${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
   }
 
   #
@@ -178,9 +178,48 @@ namespace eval ::xowiki {
     ns_conn close
     ::xowiki::clipboard clear
     ad_script_abort
-    #${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
   }
 
+  #
+  # Externally callable method: duplicate
+  #
+  Page ad_instproc www-duplicate {} {
+
+    This web-callable method duplcated the current object. It uses the
+    same mechanisms as the clipboard-copy operation.
+
+    After a adding elements to the clipboard, redirect either to the
+    return_url of the calling page (as handled by www-clipboard-copy)
+
+  } {
+    ::xowiki::clipboard clear
+    ::xowiki::clipboard add [list ${:item_id}]
+
+    if {![regexp {^(.*[-]copy-)\d+} ${:name} . stem]} {
+      set stem ${:name}-copy-
+    }
+    set new_name [::xowiki::autoname new -name $stem -parent_id ${:package_id}]
+    set old_name ${:name}
+
+    ad_try {
+      set :name $new_name
+      #
+      # Call whatever clipboard-copy is doing....
+      #
+      :www-clipboard-copy
+      
+    } finally {
+      #
+      # Restore the actual object
+      #
+      set :name $old_name
+      #
+      # To be on the save side, flush the cache
+      #
+      ::xo::xotcl_object_cache flush ${:item_id}
+    }
+  }
+  
   #
   # Externally callable method: create-new
   #

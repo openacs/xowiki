@@ -39,6 +39,7 @@
   <msg key="delete_confirm">Confermi la cancellazione?</msg>
   <msg key="delete_title">Elimina questa pagina...</msg>
   <msg key="details">Link Dettaglio</msg>
+  <msg key="duplicate">Duplicare</msg>  
   <msg key="edit">Edita</msg>
   <msg key="Edit_category">Edita Albero di Categorie</msg>
   <msg key="edit_link">edita tag</msg>
