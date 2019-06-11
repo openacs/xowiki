@@ -1374,7 +1374,7 @@ namespace eval ::xowiki {
     #
     # Make sure, the page_template is instantiated
     #
-    if {[llength [info commands ${:page_template}]] == 0} {
+    if {[info commands ::${:page_template}] eq ""} {
       ::xo::db::CrClass get_instance_from_db -item_id ${:page_template}
     }
     return [expr {[${:page_template} name] eq "en:link.form"}]

@@ -1124,7 +1124,7 @@ namespace eval ::xowiki {
       #
       # Build the input form and display the current values.
       #
-
+      #:log "form_action is something different: <[:form_parameter __form_action {}]>"
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [ad_conn locale]
