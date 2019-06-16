@@ -699,19 +699,17 @@ namespace eval ::xowiki {
 
   } {
     #
-    # Determine the delivery method.
-    #
-    set use_bg_delivery [expr {![catch {ns_conn contentsentlength}] &&
-                               [info commands ::bgdelivery] ne ""}]
-    #
     # The package where the object is coming from might be different
     # from the package on which it is delivered. Use the latter one
     # with the proper delivery information.
     #
     set package_id [::xo::cc package_id]
     ::$package_id set mime_type ${:mime_type}
-    ::$package_id set delivery \
-        [expr {$use_bg_delivery ? "ad_returnfile_background" : "ns_returnfile"}]
+    #
+    # Use always ad_returnfile_background, it is clever enough to use
+    # the right delivery mode in case of doubt.
+    #
+    ::$package_id set delivery ad_returnfile_background
 
     if {[:exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [:query_parameter filename]]
