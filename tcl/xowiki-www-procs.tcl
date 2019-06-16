@@ -721,10 +721,11 @@ namespace eval ::xowiki {
 
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
-      if {![file isdirectory /tmp/$geometry]} {
-        file mkdir /tmp/$geometry
+      set tmpdir [ad_tmpdir]
+      if {![file isdirectory $tmpdir/$geometry]} {
+        file mkdir $tmpdir/$geometry
       }
-      set scaled_image /tmp/$geometry/${:revision_id}
+      set scaled_image $tmpdir/$geometry/${:revision_id}
       if {![file readable $scaled_image]} {
         set cmd [::util::which convert]
         if {$cmd ne ""} {
