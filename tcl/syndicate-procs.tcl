@@ -380,7 +380,7 @@ namespace eval ::xowiki {
     set data [expr {[dict exists $request page] ? [dict get $request page] : ""}]
 
     #:msg "statuscode = [$r set status_code], content_type=[$r set content_type]"
-    #set f [open /tmp/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
+    #set f [open [ad_tmpdir]/feed w]; fconfigure $f -translation binary; puts $f [$r set data]; close $f
     # if {[$r exists status] && [$r set status] eq "canceled"} {
     #   set :errorMessage [$r set cancel_message]
     # }
