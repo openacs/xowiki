@@ -3312,7 +3312,7 @@ namespace eval ::xowiki::formfield {
           -package_id [${:object} package_id] -parent_id [${:object} parent_id] \
           -item_id [${:object} item_id]
 
-      set html [::$item_id render]
+      set html [$item render]
 
       $item unset __RESOLVE_LOCAL
       $item reset_resolve_context
