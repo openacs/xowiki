@@ -3299,7 +3299,7 @@ namespace eval ::xowiki::formfield {
     }
     set link_type [${:object} get_property_from_link_page link_type]
     ${:object} references resolved [list $item_id $link_type]
-    set item $::item_id
+    set item ::$item_id
 
     if {${:resolve_local}} {
       #
