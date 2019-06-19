@@ -2185,7 +2185,7 @@ namespace eval ::xowiki {
     @param days report entries changed in specified last days
 
   } {
-    set folder_id [:${:id} folder_id]
+    set folder_id [::${:id} folder_id]
     if {![info exists name_filter]} {
       set name_filter [:get_parameter -type word name_filter ""]
     }
