@@ -1418,16 +1418,20 @@ namespace eval ::xowiki {
 
     This web-callable method provides a listing of pages.
 
-    Then this method is called on any kind of Form, it returns the
-    form instances via the "form-usages" includelet.
+    When the query parameter "children" is used,  it returns
+    the children of this item via the "child-resources" includelet.
+    
+    Otherwise, when this method is called on any kind of Form, it
+    returns the form instances via the "form-usages" includelet.
 
-    When this method is caleled on any kind of folder pages, it returns
-    the elements of this folder via the "child-resources" includelet.
+    Otherwise, when this method is called on any kind of folder pages,
+    it returns the elements of this folder via the "child-resources"
+    includelet.
 
-    If The above fails, it redirects to the starting page.
+    If the above fails, it redirects to the starting page.
 
   } {
-    if {[:is_form]} {
+    if {[:is_form] && ![:exists_query_parameter children]} {
       #
       # The following line is here to provide a short description for
       # larger form-usages (a few MB) where otherwise
@@ -1438,7 +1442,7 @@ namespace eval ::xowiki {
 
       return [:www-view [:include [list form-usages -form_item_id ${:item_id}]]]
     }
-    if {[:is_folder_page]} {
+    if {[:is_folder_page] || [:exists_query_parameter children]} {
       return [:www-view [:include [list child-resources -publish_status all]]]
     }
     #:msg "method list undefined for this kind of object"

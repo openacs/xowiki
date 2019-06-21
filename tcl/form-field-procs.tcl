@@ -1637,7 +1637,8 @@ namespace eval ::xowiki::formfield {
 
   textarea instproc render_input {} {
     set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
-    ::html::textarea [:get_attributes id name cols rows style wrap placeholder data-repeat-template-id {CSSclass class} \
+    ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
+                          data-repeat-template-id {CSSclass class} \
                           {*}$booleanAtts] {
                             ::html::t [:value]
                           }
