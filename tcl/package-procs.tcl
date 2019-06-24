@@ -852,7 +852,7 @@ namespace eval ::xowiki {
     return ""
   }
 
-  Package instproc make_form_link {-form {-parent_id ""} -title -name -nls_language -return_url} {
+  Package instproc make_form_link {-form {-parent_id ""} {-query ""} -title -name -nls_language -return_url} {
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
     set form_id [lindex [::xowiki::Weblog instantiate_forms \
                              -parent_id $parent_id \
@@ -861,7 +861,7 @@ namespace eval ::xowiki {
     #:log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
-      set form_link [::$form_id pretty_link]
+      set form_link [::$form_id pretty_link -query $query]
       #:msg "$form -> $form_id -> $form_link -> [:make_link -link $form_link $form_id \
           #            create-new return_url title parent_id name nls_language]"
       return [:make_link -link $form_link $form_id \
