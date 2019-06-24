@@ -297,10 +297,12 @@ namespace eval ::xowiki {
             ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
           }
           if {[dict exists $properties -form]} {
+            set q [expr {[dict exists $properties -query] ? "-query [dict get $properties -query]" : ""}]
             set link [::$package_id make_form_link \
                           -form [dict get $properties -form] \
                           -parent_id $parent_id \
-                          -nls_language $nls_language -return_url $return_url]
+                          -nls_language $nls_language \
+                          -return_url $return_url {*}$q]
           } elseif {[dict exists $properties -object_type]} {
             set link [::$package_id make_link \
                           $package_id edit-new \
