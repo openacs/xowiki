@@ -4851,8 +4851,8 @@ namespace eval ::xowiki::includelet {
       }
 
   #
-  # link-with-local-return-ur: insert a link with extra return URL
-  # pointing the current object. This is particulary useful in cases,
+  # link-with-local-return-url: insert a link with extra return URL
+  # pointing the current object. This is particularly useful in cases,
   # where a return URL must be created for a page that does not yet
   # exist at time of definition (e.g. for link pointing to concrete
   # workflow instances)
