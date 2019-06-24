@@ -929,7 +929,7 @@ namespace eval ::xowiki::formfield {
 
   file instproc convert_to_internal {} {
 
-    if {[:no_value_provided]} {
+    if {[:no_value_provided] || ![info exists :content-type]} {
       ${:object} set_property -new 1 ${:name} [:get_old_value]
       return
     }
