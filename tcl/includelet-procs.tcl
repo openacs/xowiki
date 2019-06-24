@@ -133,19 +133,19 @@ namespace eval ::xowiki::includelet {
     if {$base_table ne ""} {
       set table_prefix "$base_table."
     }
-    if {$value eq "all"} {
-      # legacy
-      set publish_status_clause ""
-    } else {
-      array set valid_state [list production 1 ready 1 live 1 expired 1]
+    set publish_status_clause ""
+    if {$value ne "all"} {
+      set valid_states {production ready live expired}
       set clauses [list]
       foreach state [split $value |] {
-        if {![info exists valid_state($state)]} {
+        if {$state ni $valid_states} {
           error "no such state: '$state'; valid states are: production, ready, live, expired"
         }
         lappend clauses "${table_prefix}publish_status='$state'"
       }
-      set publish_status_clause " and ([join $clauses { or }])"
+      if {[llength $clauses] > 0} {
+        set publish_status_clause " and ([join $clauses { or }])"
+      }
     }
     return $publish_status_clause
   }
@@ -4849,6 +4849,30 @@ namespace eval ::xowiki::includelet {
           return [subst {<a href="$base_url/$url">[ns_quotehtml $text]</a>}]
         }
       }
+
+  #
+  # link-with-local-return-ur: insert a link with extra return URL
+  # pointing the current object. This is particulary useful in cases,
+  # where a return URL must be created for a page that does not yet
+  # exist at time of definition (e.g. for link pointing to concrete
+  # workflow instances)
+  #
+  ::xowiki::IncludeletClass create link-with-local-return-url \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {__decoration none}
+        {parameter_declaration {
+          {-text ""}
+          {-url ""}
+        }}
+      } -instproc render {} {
+        :get_parameters
+        #set return_url [ad_return_url]
+        set return_url [${:__including_page} pretty_link]
+        append url &return_url=$return_url
+        return [subst {<a href="[ns_quotehtml $url]">[ns_quotehtml $text]</a>}]
+      }
+
 }
 
 ::xo::library source_dependent
