@@ -2,6 +2,11 @@
  * Appearance of item-buttons based on bootstrap glyphicons.
  */
 
+div.xowiki-content a.file-icon,
+div.xowiki-content a.folder-open-icon,
+div.xowiki-content a.level-up-icon,
+div.xowiki-content a.link-icon,
+div.xowiki-content a.broken-link-icon,
 div.xowiki-content a.edit-item-button,
 div.xowiki-content a.delete-item-button,
 div.xowiki-content a.view-item-button,
@@ -41,6 +46,39 @@ div.xowiki-content a.notification-image-button::before {
     content: "\2709";
 }
 
+/*
+ * Icons file file listings
+ */
+
+div.xowiki-content a.file-icon::before {
+    /* glyphicon-file */
+    font-family: 'Glyphicons Halflings';
+    content: "\e022";
+}
+div.xowiki-content a.folder-open-icon::before {
+    /* glyphicon-folder-open */
+    font-family: 'Glyphicons Halflings';
+    content: "\e118";
+}
+div.xowiki-content a.level-up-icon::before {
+    /* glyphicon-level-up */
+    font-family: 'Glyphicons Halflings';
+    content: "\e204";
+}
+div.xowiki-content a.link-icon::before {
+    /* glyphicon-arrow-right */
+    font-family: 'Glyphicons Halflings';
+    content: "\e092";
+}
+
+div.xowiki-content a.broken-link-icon::before {
+    content: "broken";
+}
+div.xowiki-content a.broken-link-icon::after {
+    /* glyphicon-arrow-right */
+    font-family: 'Glyphicons Halflings';
+    content: "\e092";
+}
 
 /*
  * Local Variables:

@@ -4567,9 +4567,9 @@ namespace eval ::xowiki {
   }
 
   File instproc render_icon {} {
-    return [list text "<img src='/resources/file-storage/file.gif' width='12' alt='file'>" is_richtext true]
+    return {text "<a title='file' class='file-icon'>&nbsp;</a>" is_richtext true}
   }
-
+  
   FormPage instproc render_icon {} {
     set page_template [:page_template]
     if {[$page_template istype ::xowiki::FormPage]} {
@@ -4577,20 +4577,15 @@ namespace eval ::xowiki {
     }
     switch [$page_template name] {
       en:folder.form {
-        return [list text "<img src='/resources/file-storage/folder.gif' width='12' alt='folder'>" is_richtext true]
+        return {text "<a title='folder' class='folder-open-icon'>&nbsp;</a>" is_richtext true}
       }
       en:link.form {
         set link_type [:get_property_from_link_page link_type "unresolved"]
-        set link_icon "http://www.ejoe.at/typo3/sysext/rtehtmlarea/res/accessibilityicons/img/internal_link.gif"
         if {$link_type eq "unresolved"} {
-          return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='internal-link'> \
-        <img src='http://www.deeptrawl.com/images/icons/brokenLinks.png' width='15'>" is_richtext true]
+          return {text "<a title='broken link' class='broken-link-icon'>&nbsp;</a>" is_richtext true}
+        } else {
+          return {text "<a title='link' class='link-icon'>&nbsp;</a>" is_richtext true}
         }
-        if {$link_type eq "folder_link"} {
-          return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='folder-link'> \
-          <img src='/resources/file-storage/folder.gif' width='12' alt='folder'>" is_richtext true]
-        }
-        return [list text "<img src='[ns_quotehtml $link_icon]' width='12' alt='internal-link'>" is_richtext true]
       }
       default {
         return [list text [$page_template title] is_richtext false]

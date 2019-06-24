@@ -595,7 +595,7 @@ namespace eval ::xowiki::includelet {
                  if {$::__xowiki_with_publish_status} {
                    ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-                       -alt "publish status" -label [_ xowiki.publish_status]
+                       -alt "publish status" -label "" ;#[_ xowiki.publish_status]
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
@@ -613,6 +613,7 @@ namespace eval ::xowiki::includelet {
     # TODO: why filter on title and name?
     if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
 
+    :log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
@@ -634,7 +635,7 @@ namespace eval ::xowiki::includelet {
                          -folder_ids $folder_ids \
                          -path_encode false \
                          $name]
-      array set icon [$c render_icon]
+      set icon [$c render_icon]
 
       ad_try {
         set prettyName [$c pretty_name]
@@ -648,8 +649,8 @@ namespace eval ::xowiki::includelet {
           -name $prettyName \
           -name.href [export_vars -base $page_link {template_file html-content}] \
           -name.title [$c set title] \
-          -object_type $icon(text) \
-          -object_type.richtext $icon(is_richtext) \
+          -object_type [dict get $icon text] \
+          -object_type.richtext [dict get $icon is_richtext] \
           -last_modified [$c set last_modified] \
           -edit "" \
           -edit.href [export_vars -base $page_link {{m edit} return_url}] \

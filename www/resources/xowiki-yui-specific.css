@@ -55,6 +55,34 @@ div.xowiki-content a.notification-image-button {
     text-decoration: none;
 }
 
+
+div.xowiki-content a.file-icon {
+    background: transparent url(/resources/file-storage/file.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+div.xowiki-content a.folder-open-icon {
+    background: transparent url(/resources/file-storage/folder.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+
+div.xowiki-content a.level-up-icon::before {
+    /* glyphicon-level-up */
+    content: "..";
+}
+
+div.xowiki-content a.link-icon {
+    background: transparent url(/resources/file-storage/link.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+div.xowiki-content a.broken-link-icon {
+    background: transparent url(/resources/file-storage/link.gif);
+    padding-right: 12px;
+    text-decoration: none;
+}
+
 /*
  * Local Variables:
  * mode: css
