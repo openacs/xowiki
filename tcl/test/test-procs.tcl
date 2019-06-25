@@ -71,6 +71,73 @@ namespace eval ::xowiki::test {
         return [$node selectNodes string(//form\[contains(@class,'$className')\]/@action)]
     }
 
+
+    # "require_folder" and "require_page" are here just for testing
+    ad_proc -private ::xowiki::test::require_folder {name parent_id package_id} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id\n"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::require_link {name parent_id package_id target_id} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::xowiki::Weblog instantiate_forms -forms en:link.form -package_id $package_id]
+            set target [::xo::db::CrClass get_instance_from_db -item_id $target_id]
+            set item_ref [[$target package_id] external_name -parent_id [$target parent_id] [$target name]]
+
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -instance_attributes [list link $item_ref] \
+                       -default_variables [list title "Link $name" parent_id $parent_id package_id $package_id]]
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id\n"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::require_page {name parent_id package_id {file_content ""}} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+        if {$item_id == 0} {
+            if {$file_content eq ""} {
+                set f [::xowiki::Page new -name $name -description "" \
+                           -parent_id $parent_id -package_id $package_id -text [list "Content of $name" text/html]]
+            } else {
+                set mime_type [::xowiki::guesstype $name]
+                set f [::xowiki::File new -name $name -description "" \
+                           -parent_id $parent_id -package_id $package_id -mime_type $mime_type]
+                set import_file [ad_tmpnam]
+                ::xo::write_file $import_file [::base64::decode $file_content]
+                $f set import_file $import_file
+            }
+            $f save_new
+            set item_id [$f item_id]
+            $f destroy_on_cleanup
+        }
+        ns_log notice "Page  $name => $item_id"
+        aa_log "  $name => $item_id\n"
+        return $item_id
+    }
+
+    ad_proc -private ::xowiki::test::label {intro case ref} {
+        return "$intro '$ref' -- $case"
+    }
+
+
+
     ad_proc ::xowiki::test::require_test_folder {
         -instance:required
         -folder_name:required
@@ -109,7 +176,8 @@ namespace eval ::xowiki::test {
                 # create it later again.
                 #
                 aa_log "require_test_folder_ test folder $folder_name exists already, ... delete it (user_id $user_id)"
-                set d [acs::test::http -last_request $last_request -user_id $user_id $instance/$folder_name?m=delete&return_url=$instance/]
+                set d [acs::test::http -last_request $last_request -user_id $user_id \
+                           $instance/$folder_name?m=delete&return_url=$instance/]
                 if {[acs::test::reply_has_status_code $d 302]} {
                     set location [::xowiki::test::get_url_from_location $d]
                     set d [acs::test::http -last_request $last_request -user_id $user_id $location/]

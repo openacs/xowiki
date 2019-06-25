@@ -32,6 +32,45 @@ namespace eval ::xowiki::test {
             # the results or test further in the mounted instance.
         }
 
+    aa_register_case -init_classes {xowiki_require_test_instance} -cats {smoke} -procs {
+    } path_resolve {
+        Test various forms of path resolving
+    } {
+        aa_run_with_teardown -rollback -test_code {
+            set instance $_test_instance_name
+            set testfolder .testfolder
+            set locale [lang::system::locale]
+
+            ::xowiki::Package initialize -url $_test_instance_name
+            set root_folder_id [::$package_id folder_id]
+
+            set f1_id          [xowiki::test::require_folder "f1"    $root_folder_id $package_id]
+            set f3_id          [xowiki::test::require_folder "f3"    $f1_id $package_id]
+            set subf3_id       [xowiki::test::require_folder "subf3" $f3_id $package_id]
+
+
+            aa_log "package_id=$package_id   system locale $locale"
+
+            set enpage_id      [xowiki::test::require_page   en:page $root_folder_id $package_id]
+            ::xo::db::CrClass get_instance_from_db -item_id $enpage_id
+            set pretty_link1 [::$enpage_id pretty_link]
+            set item_info1   [$package_id item_info_from_url $pretty_link1]
+            aa_true "can resolve $pretty_link1 => $enpage_id" [expr {[dict get $item_info1 item_id] eq $enpage_id}]
+
+            set folder_clash_id [xowiki::test::require_page   page $root_folder_id $package_id]
+            ::xo::db::CrClass get_instance_from_db -item_id $folder_clash_id
+            set pretty_link2 [::$folder_clash_id pretty_link]
+            set item_info2   [$package_id item_info_from_url $pretty_link2]
+            aa_true "can resolve $pretty_link2 => $folder_clash_id" [expr {[dict get $item_info2 item_id] eq $folder_clash_id}]
+            set item_info1   [$package_id item_info_from_url $pretty_link1]
+            aa_true "can resolve $pretty_link1 => $enpage_id" [expr {[dict get $item_info1 item_id] eq $enpage_id}]
+
+
+        }
+
+    }
+
+
     aa_register_case -init_classes {xowiki_require_test_instance} -cats {web} -procs {
         "::xowiki::Package instproc initialize"
         "::xowiki::Package instproc invoke"
