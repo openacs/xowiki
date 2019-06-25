@@ -72,12 +72,12 @@ test section "Basic Setup"
 test hint "Using XOTcl $::xotcl::version$::xotcl::patchlevel"
 ? {expr {$::xotcl::version < 1.5}} 0 "XOTcl Version $::xotcl::version >= 1.5"
 
-set ns_cache_version_old [catch {ns_cache names xowiki_cache xxx}]
-if {$ns_cache_version_old} {
-  ? {set x old} new "upgrade ns_cache: cvs -z3 -d:pserver:anonymous@aolserver.cvs.sourceforge.net:/cvsroot/aolserver co nscache"
-} else {
-  ? {set x new} new "ns_cache version seems up to date"
-}
+#set ns_cache_version_old [catch {ns_cache names xowiki_cache xxx}]
+#if {$ns_cache_version_old} {
+#  ? {set x old} new "upgrade ns_cache: cvs -z3 -d:pserver:anonymous@aolserver.cvs.sourceforge.net:/cvsroot/aolserver co nscache"
+#} else {
+#  ? {set x new} new "ns_cache version seems up to date"
+#}
 
 set tdom_version [package require tdom]
 if {$tdom_version < "0.8.0"} {
@@ -504,13 +504,15 @@ set content [::$package_id invoke -method $m]
 ? {expr {[string first "- V.2" $content]>-1}} 1 \
     "form page contains the modified title"
 
+set returned_item_id 0
 regexp {name="item_id" value="([^\"]+)"} $content _ returned_item_id
-? {info exists returned_item_id} 1 "item_id contained in form"
-? {expr {$returned_item_id > 0}} 1 "item_id $returned_item_id > 0"
+#? {info exists returned_item_id} 1 "item_id contained in form"
+? {expr {[info exists returned_item_id] && $returned_item_id > 0}} 1 "item_id $returned_item_id > 0"
 ? {$package_id isobject $returned_item_id} 1 "item is instantiated"
 
+set returned_folder_id 0
 regexp {name="folder_id" value="([^\"]+)"} $content _ returned_folder_id
-? {info exists returned_folder_id} 1 "folder_id contained in form"
+#? {info exists returned_folder_id} 1 "folder_id contained in form"
 ? {expr {$returned_folder_id > 0}} 1 "returned folder id $returned_folder_id >0"
 
 regexp {name="__key_signature" value="([^\"]+)"} $content _ signature
