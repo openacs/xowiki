@@ -501,19 +501,20 @@ test section "Edit hello page via weblink"
 
 set content [::$package_id invoke -method $m]
 ? {string first Error $content} -1 "page contains no error"
-? {expr {[string first "- V.2" $content]>-1}} 1 \
+? {expr {[string first "- V.2" $content] > -1}} 1 \
     "form page contains the modified title"
 
 set returned_item_id 0
-regexp {name="item_id" value="([^\"]+)"} $content _ returned_item_id
+set r [regexp {name="item_id"\s+value="([^\"]+)"} $content _ returned_item_id]
 #? {info exists returned_item_id} 1 "item_id contained in form"
-? {expr {[info exists returned_item_id] && $returned_item_id > 0}} 1 "item_id $returned_item_id > 0"
+ns_log notice "====================================================\n$content\n======================"
+? {expr {$returned_item_id > 0}} 1 "item_id $returned_item_id > 0 (regexp $r)"
 ? {$package_id isobject $returned_item_id} 1 "item is instantiated"
 
 set returned_folder_id 0
-regexp {name="folder_id" value="([^\"]+)"} $content _ returned_folder_id
+set r [regexp {name="folder_id"\s+value="([^\"]+)"} $content _ returned_folder_id]
 #? {info exists returned_folder_id} 1 "folder_id contained in form"
-? {expr {$returned_folder_id > 0}} 1 "returned folder id $returned_folder_id >0"
+? {expr {$returned_folder_id > 0}} 1 "returned folder id $returned_folder_id >0 (regexp $r)"
 
 regexp {name="__key_signature" value="([^\"]+)"} $content _ signature
 ? {info exists signature} 1 "signature contained in form"
@@ -1467,42 +1468,34 @@ $o nls_language en_US
 $o package_id $info(package_id)
 
 set f0 [$o create_raw_form_field -name test -slot ::xowiki::Page::slot::name]
-? {$f0 asWidgetSpec} \
-    {text {label {#xowiki.Page-name#}}  {html {maxlength 400 id F.dummy.test size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
-    "name with help_text"
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {text.*name.*html.*size.*help_text} $widgetSpec} 1 "name with help_text"
+
+set f0 [$o create_raw_form_field -name test -slot ::xowiki::Page::slot::name -spec inform]
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {text.*inform.*html.*help_text} $widgetSpec} 1 "name with help_text + inform"
+
+set f0 [$o create_raw_form_field -name test -slot ::xowiki::Page::slot::name -spec optional]
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {text,optional.*html.*help_text} $widgetSpec} 1 "name with help_text + optional"
 
 set f0 [$o create_raw_form_field -name test \
-            -slot ::xowiki::Page::slot::name -spec inform]
-? {$f0 asWidgetSpec} \
-    {text(inform) {label {#xowiki.Page-name#}}  {html {id F.dummy.test }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
-    "name with help_text + inform"
-
-set f0 [$o create_raw_form_field -name test \
-            -slot ::xowiki::Page::slot::name -spec optional]
-? {$f0 asWidgetSpec} \
-    {text,optional {label {#xowiki.Page-name#}}  {html {maxlength 400 id F.dummy.test size 80 }}  {help_text {Shortname to identify an entry within a folder, typically lowercase characters}}} \
-    "name with help_text + optional"
-
-set f1 [$o create_raw_form_field -name test \
             -slot ::xowiki::Page::slot::description \
             -spec "textarea,cols=80,rows=2"]
-? {$f1 asWidgetSpec} \
-    {text(textarea),nospell,optional {label {#xowiki.Page-description#}}  {html {cols 80 id F.dummy.test rows 2 }} } \
-    "textarea,cols=80,rows=2"
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {text.*cols.*.*80.*rows.*2} $widgetSpec} 1 "textarea,cols=80,rows=2"
 
-    set f2 [$o create_raw_form_field -name test \
-                -slot ::xowiki::Page::slot::nls_language \
-                -spec {select,options={{de_DE de_DE} {en_US en_US} {pt_BR pt_BR} {es_ES es_ES}}}]
-? {$f2 asWidgetSpec} \
-    {text(select),optional {label {#xowiki.Page-nls_language#}}  {html {id F.dummy.test }}  {options {{{de_DE de_DE} {en_US en_US} {pt_BR pt_BR} {es_ES es_ES}}}} } \
-    {select,options=[xowiki::locales]}
+set f0 [$o create_raw_form_field -name test \
+            -slot ::xowiki::Page::slot::nls_language \
+            -spec {select,options={{de_DE de_DE} {en_US en_US} {pt_BR pt_BR} {es_ES es_ES}}}]
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {text.select.*.*en_US} $widgetSpec} 1 "{select,options=[xowiki::locales]}"
 
 $o mixin ::xowiki::PodcastItem
-set f3 [$o create_raw_form_field -name test \
-    -slot ::xowiki::PodcastItem::slot::pub_date]
-? {$f3 asWidgetSpec} \
-    {date,optional {label {#xowiki.PodcastItem-pub_date#}}  {html {id F.dummy.test }}  {format {YYYY MM DD HH24 MI}} } \
-    {date with format}
+set f0 [$o create_raw_form_field -name test \
+            -slot ::xowiki::PodcastItem::slot::pub_date]
+set widgetSpec [$f0 asWidgetSpec]
+? {regexp {date,optional.*.*YYYY.*MM.*} $widgetSpec} 1 "date with format"
 
 
 
