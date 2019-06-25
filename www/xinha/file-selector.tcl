@@ -290,13 +290,19 @@ db_multirow -extend {
 } contents get_fs_contents $fs_sql {
   set last_modified_ansi   [lc_time_system_to_conn $last_modified_ansi]
   set last_modified_pretty [lc_time_fmt $last_modified_ansi "%x %X"]
-  set content_size_pretty  [util::content_size_pretty -size $content_size]
 
   if {$type ne "folder"} {
-    incr content_size_total $content_size
+    set content_size_pretty [util::content_size_pretty -size $content_size]
+  } else {
+    set content_size_pretty ""
   }
+
   if {$title eq ""} {
     set title $name
+  }
+
+  if { $content_size ne "" } {
+    incr content_size_total $content_size
   }
 
   set file_upload_name [ad_sanitize_filename \
