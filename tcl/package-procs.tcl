@@ -460,7 +460,7 @@ namespace eval ::xowiki {
     #:msg "input name=$name, lang=$lang parent_id=$parent_id"
     set default_lang [:default_language]
 
-    :get_lang_and_name -default_lang $lang -name $name lang name
+    :get_lang_and_name -default_lang $lang -name $name lang stripped_name
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
