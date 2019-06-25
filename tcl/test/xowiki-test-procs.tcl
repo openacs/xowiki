@@ -126,7 +126,7 @@ namespace eval ::xowiki::test {
             aa_log "Form  $form_name created"
 
             ###########################################################
-            aa_section "Create an instance of $form_name"
+            aa_section "Create an instance of $form_name named '$lang:cb1'"
             ###########################################################
             set page_name $lang:cb1
 
@@ -139,13 +139,15 @@ namespace eval ::xowiki::test {
                 -update [subst {
                     _name $page_name
                     _title "fresh $page_name"
+                    _nls_language $locale
                 }]
 
             aa_log "Page $page_name created"
 
             set extra_url_parameter {{m edit}}
             aa_log "Check content of the fresh instance"
-            set d [acs::test::http -last_request $request_info [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            set d [acs::test::http -last_request $request_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
@@ -240,13 +242,15 @@ namespace eval ::xowiki::test {
                 -update [subst {
                     _name $page_name
                     _title "fresh $page_name"
+                    _nls_language $locale
                 }]
 
             aa_log "Page $page_name created"
 
             set extra_url_parameter {{m edit}}
             aa_log "Check content of the fresh instance"
-            set d [acs::test::http -last_request $request_info [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            set d [acs::test::http -last_request $request_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
@@ -276,7 +280,8 @@ namespace eval ::xowiki::test {
                 }]
 
             aa_log "Check content of the edited instance"
-            set d [acs::test::http -user_id $user_id [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            set d [acs::test::http -user_id $user_id \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
@@ -295,7 +300,7 @@ namespace eval ::xowiki::test {
         } finally {
             #
             # In case something has to be cleaned manually, do it here.
-            #            
+            #
         }
     }
 }
