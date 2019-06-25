@@ -3,13 +3,13 @@ ad_page_contract {
   @author Gustaf Neumann neumann@wu-wien.ac.at
   @creation-date 13.10.2005
   @cvs-id $Id$
-} {     
+} {
   {fs_package_id:naturalnum,notnull,optional}
   {folder_id:naturalnum,optional}
   {orderby:token,optional}
   {selector_type "image"}
   {file_types "*"}
-} 
+}
 
 set HTML_NothingSelected [_ acs-templating.HTMLArea_SelectImageNothingSelected]
 switch -- $selector_type {
@@ -89,7 +89,7 @@ if {![info exists folder_id]} {
     ad_complain $error_msg
     return
   }
-  set folder_id [fs_get_root_folder -package_id $fs_package_id] 
+  set folder_id [fs_get_root_folder -package_id $fs_package_id]
   set root_folder_id $folder_id
 }
 
@@ -121,12 +121,12 @@ if { !$root_folder_p} {
   set parent_folder_id [fs::get_parent -item_id $folder_id]
   set up_name [fs::get_object_name -object_id $parent_folder_id]
   set up_url [export_vars -base file-selector \
-                  {fs_package_id {folder_id $parent_folder_id} 
+                  {fs_package_id {folder_id $parent_folder_id}
                     selector_type file_types}]
 }
 
 
-# if user has write permission, create image upload form, 
+# if user has write permission, create image upload form,
 if {[permission::permission_p -party_id $user_id -object_id $folder_id \
          -privilege "write"]} {
   set write_p 1
@@ -148,31 +148,31 @@ if {[permission::permission_p -party_id $user_id -object_id $folder_id \
           break
         }
 
-	if {[info exists folder_size]} {
-	  # check per folder quota 
-	  set maximum_folder_size [parameter::get -parameter "MaximumFolderSize"]
-        
-	  if { $maximum_folder_size ne "" } {
-	    if { $folder_size+[file size ${upload_file.tmpfile}] > $maximum_folder_size } {
-	      template::form::set_error upload_form upload_file \
-		  [_ file-storage.out_of_space]
-	      break
-	    }
-	  }
-	}    
-        
+        if {[info exists folder_size]} {
+          # check per folder quota
+          set maximum_folder_size [parameter::get -parameter "MaximumFolderSize"]
+
+          if { $maximum_folder_size ne "" } {
+            if { $folder_size+[file size ${upload_file.tmpfile}] > $maximum_folder_size } {
+              template::form::set_error upload_form upload_file \
+                [_ file-storage.out_of_space]
+              break
+            }
+          }
+        }
+
         set file_name [template::util::file::get_property filename $upload_file]
         set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
         set mime_type [template::util::file::get_property mime_type $upload_file]
-        
+
         if {$selector_type eq "image" && ![string match "image/*" $mime_type]} {
           template::form::set_error upload_form upload_file \
               [_ acs-templating.HTMLArea_SelectImageUploadNoImage]
           break
-        }       
-        
+        }
+
         set existing_file_id [fs::get_item_id -name $file_name -folder_id $folder_id]
-        
+
         if {$existing_file_id ne ""} {
           # write new revision
           fs::add_file \
@@ -184,7 +184,7 @@ if {[permission::permission_p -party_id $user_id -object_id $folder_id \
               -creation_ip [ad_conn peeraddr] \
               -package_id $fs_package_id
         } else {
-          # write file  
+          # write file
           fs::add_file \
               -name $file_name \
               -parent_id $folder_id \
@@ -193,7 +193,7 @@ if {[permission::permission_p -party_id $user_id -object_id $folder_id \
               -creation_ip [ad_conn peeraddr] \
               -package_id $fs_package_id
         }
-        
+
       }
 }
 
@@ -206,7 +206,7 @@ set folder_path [::xo::db::sql::content_item get_path \
                      -item_id $folder_id \
                      -root_folder_id $root_folder_id]
 
-# -pass_to_urls {c} 
+# -pass_to_urls {c}
 
 template::list::create \
     -name contents \
@@ -220,25 +220,25 @@ template::list::create \
         label "[_ file-storage.Name]"
         display_template {
           <if @contents.folder_p;literal@ false>
-          <input type="radio" name="linktarget" value="@contents.object_id@" 
+          <input type="radio" name="linktarget" value="@contents.object_id@"
              id="oi@contents.object_id@" />
-          <input type="hidden" name="@contents.object_id@_file_url" 
+          <input type="hidden" name="@contents.object_id@_file_url"
              id="@contents.object_id@_file_url" value="@contents.file_url@" />
-          <input type="hidden" name="@contents.object_id@_file_name" 
+          <input type="hidden" name="@contents.object_id@_file_name"
              id="@contents.object_id@_file_name" value="@contents.name@" />
-          <input type="hidden" name="@contents.object_id@_file_title" 
+          <input type="hidden" name="@contents.object_id@_file_title"
              id="@contents.object_id@_file_title" value="@contents.title@" />
           </if>
-          <img src="@contents.icon@"  border="0" alt="#file-storage.@contents.type@#" /> 
+          <img src="@contents.icon@"  border="0" alt="#file-storage.@contents.type@#" />
           <a href="@contents.file_url@" id="link@contents.object_id@">@contents.name@</a>
         }
         orderby_desc {name desc}
         orderby_asc {name asc}
-        html {nowrap ""}        
+        html {nowrap ""}
       }
       content_size_pretty {
         label "[_ file-storage.Size]"
-        orderby_desc {content_size desc} 
+        orderby_desc {content_size desc}
         orderby_asc {content_size asc}
       }
       type {
@@ -284,8 +284,8 @@ set fs_sql "select object_id, name, live_revision, type, title,
          $filter_clause
          $order_by_clause"
 
-db_multirow -extend { 
-  icon last_modified_pretty content_size_pretty 
+db_multirow -extend {
+  icon last_modified_pretty content_size_pretty
   properties_link properties_url folder_p title
 } contents get_fs_contents $fs_sql {
   set last_modified_ansi   [lc_time_system_to_conn $last_modified_ansi]
@@ -302,15 +302,15 @@ db_multirow -extend {
   set file_upload_name [ad_sanitize_filename \
                             -tolower \
                             $file_upload_name]
-  
+
   set name [lang::util::localize $name]
-  
+
   switch -- $type {
     folder {
       set folder_p 1
       set icon /resources/file-storage/folder.gif
       set file_url [export_vars -base file-selector \
-                        {fs_package_id {folder_id $object_id} 
+                        {fs_package_id {folder_id $object_id}
                           selector_type file_types}]
     }
     url {
@@ -324,8 +324,8 @@ db_multirow -extend {
       set file_url ${fs_url}view/$file_url
     }
   }
-  
-  # We need to encode the hashes in any i18n message keys (.LRN plays 
+
+  # We need to encode the hashes in any i18n message keys (.LRN plays
   # this trick on some of its folders). If we don't, the hashes will cause
   # the path to be chopped off (by ns_conn url) at the leftmost hash.
   regsub -all {\#} $file_url {%23} file_url
