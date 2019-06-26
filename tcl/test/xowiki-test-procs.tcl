@@ -72,7 +72,7 @@ namespace eval ::xowiki::test {
 
 
     aa_register_case -init_classes {xowiki_require_test_instance} -cats {web} -procs {
-        "::xowiki::Package instproc initialize"
+        "::xo::Package instproc initialize"
         "::xowiki::Package instproc invoke"
         "::xo::Package instproc reply_to_user"
         "::xowiki::test::create_form"
