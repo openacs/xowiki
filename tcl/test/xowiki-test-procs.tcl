@@ -40,34 +40,105 @@ namespace eval ::xowiki::test {
             set instance $_test_instance_name
             set testfolder .testfolder
             set locale [lang::system::locale]
+            set lang [string range $locale 0 1]
 
             ::xowiki::Package initialize -url $_test_instance_name
             set root_folder_id [::$package_id folder_id]
+            aa_log "package_id $package_id system locale $locale"
 
-            set f1_id          [xowiki::test::require_folder "f1"    $root_folder_id $package_id]
-            set f3_id          [xowiki::test::require_folder "f3"    $f1_id $package_id]
-            set subf3_id       [xowiki::test::require_folder "subf3" $f3_id $package_id]
+            set f1_id        [xowiki::test::require_folder "f1"    $root_folder_id $package_id]
+            set f3_id        [xowiki::test::require_folder "f3"    $f1_id $package_id]
+            set subf3_id     [xowiki::test::require_folder "subf3" $f3_id $package_id]
+            set enpage_id    [xowiki::test::require_page   en:page $root_folder_id $package_id]
+            set f1_p1_id     [xowiki::test::require_page   en:p1   $f1_id $package_id]
 
+            ::xo::db::CrClass get_instance_from_db -item_id $enpage_id
+            set enpage_pl [::$enpage_id pretty_link]
+            aa_equals "Pretty link of en:page: $enpage_pl" $enpage_pl "/xowiki-test/page"
 
-            aa_log "package_id=$package_id   system locale $locale"
+            ::xo::db::CrClass get_instance_from_db -item_id $f1_p1_id
+            set f1_p1_pl [::$f1_p1_id pretty_link]
+            aa_equals "Pretty link of f1/page $f1_p1_pl" $f1_p1_pl "/xowiki-test/f1/p1"
 
-            set enpage_id      [xowiki::test::require_page   en:page $root_folder_id $package_id]
+            #
+            # Try to resolve folders, pages and inherited folder.form via URL.
+            # The method resolve_page receives the "object" instance variable
+            # initialized via "Package initialize" ALWAYS without a leading "/".
+            #
+            aa_section "resolve_pagel"
+            foreach url {
+                f1 page f1/p1
+                en:folder.form folder.form
+            } {
+                set page [$package_id resolve_page $url m]
+                aa_true "can resolve url $url -> $page" {$page ne ""}
+            }
+
+            #
+            # Try to obtain item_info from URLs pointing to folders,
+            # pages and inherited folder.form via URL. This function
+            # is a helper function of resolve_page, so same rules
+            # apply here as well.
+            #
+            aa_section "item_info_from_url -with_package_prefix false"
+            foreach url {
+                f1 page f1/p1
+            } {
+                set info [$package_id item_info_from_url \
+                              -with_package_prefix false \
+                              -default_lang $lang \
+                              $url]
+                aa_true "can get item_info from url $url -> $info" {[dict get $info item_id] ne "0"}
+            }
+
+            aa_section "item_info_from_url -with_package_prefix true"
+            foreach url {
+                /xowiki-test/f1 /xowiki-test/page /xowiki-test/f1/p1
+            } {
+                set info [$package_id item_info_from_url \
+                              -with_package_prefix true \
+                              -default_lang $lang \
+                              $url]
+                aa_true "can get item_info from url $url -> $info" {[dict get $info item_id] ne "0"}
+            }
+
+            #
+            # item_refs are different to URLs, but look similar.  The
+            # item refs can be used to navigate in the tree and they
+            # are allow symbolic names not necessarily possible via
+            # URLs (e.g. prefixed names).
+            #
+            aa_section "resolve item refs"
+            foreach item_ref {
+                f1 page f1/p1
+                ./f1 ./page ./f1/p1
+                /f1 /page /f1/p1
+            } {
+                set info [$package_id item_ref -parent_id $root_folder_id -default_lang $lang $item_ref]
+                aa_true "can resolve item_ref $item_ref -> $info" {[dict get $info item_id] ne "0"}
+            }
+
+            aa_section "bi-directional resolving via URLs"
+
             ::xo::db::CrClass get_instance_from_db -item_id $enpage_id
             set pretty_link1 [::$enpage_id pretty_link]
             set item_info1   [$package_id item_info_from_url $pretty_link1]
-            aa_true "can resolve $pretty_link1 => $enpage_id" [expr {[dict get $item_info1 item_id] eq $enpage_id}]
+            aa_true "can resolve $pretty_link1 => $enpage_id" \
+                [expr {[dict get $item_info1 item_id] eq $enpage_id}]
 
-            set folder_clash_id [xowiki::test::require_page   page $root_folder_id $package_id]
+            set folder_clash_id [xowiki::test::require_folder page $root_folder_id $package_id]
             ::xo::db::CrClass get_instance_from_db -item_id $folder_clash_id
             set pretty_link2 [::$folder_clash_id pretty_link]
             set item_info2   [$package_id item_info_from_url $pretty_link2]
-            aa_true "can resolve $pretty_link2 => $folder_clash_id" [expr {[dict get $item_info2 item_id] eq $folder_clash_id}]
-            set item_info1   [$package_id item_info_from_url $pretty_link1]
-            aa_true "can resolve $pretty_link1 => $enpage_id" [expr {[dict get $item_info1 item_id] eq $enpage_id}]
+            aa_true "same-named folder: can resolve $pretty_link2 => $folder_clash_id" \
+                [expr {[dict get $item_info2 item_id] eq $folder_clash_id}]
 
+            set pretty_link1 [::$enpage_id pretty_link]
+            set item_info1   [$package_id item_info_from_url $pretty_link1]
+            aa_true "same-named page: can resolve $pretty_link1 => $enpage_id" \
+                [expr {[dict get $item_info1 item_id] eq $enpage_id}]
 
         }
-
     }
 
 

@@ -2273,7 +2273,7 @@ namespace eval ::xowiki {
     # return the pretty_link for the current page
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
-        -lang $lang -download $download [:name]
+        -lang $lang -download $download -page [self] [:name]
   }
 
   Page instproc detail_link {} {
@@ -3917,10 +3917,10 @@ namespace eval ::xowiki {
     #
     # First check for invalid meta characters for security reasons.
     #
-    if {[regexp {[\[\]]} $form_constraints]} {
-      :uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]
-      return 0
-    }
+    #if {[regexp {[\[\]]} $form_constraints]} {
+    #  :uplevel [list set errorMsg [_ xowiki.error-form_constraint-invalid_characters]]
+    #  return 0
+    #}
     #
     # Create from fields from all specs and report, if there are any errors
     #
@@ -4569,7 +4569,7 @@ namespace eval ::xowiki {
   File instproc render_icon {} {
     return {text "<a title='file' class='file-icon'>&nbsp;</a>" is_richtext true}
   }
-  
+
   FormPage instproc render_icon {} {
     set page_template [:page_template]
     if {[$page_template istype ::xowiki::FormPage]} {

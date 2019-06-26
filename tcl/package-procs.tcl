@@ -232,7 +232,13 @@ namespace eval ::xowiki {
   }
 
 
-  Package instproc get_parent_and_name {-path:required -lang:required -parent_id:required vparent vlocal_name} {
+  Package instproc get_parent_and_name {
+    -path:required
+    -lang:required
+    -parent_id:required
+    vparent
+    vlocal_name
+  } {
     :upvar $vparent parent $vlocal_name local_name
     if {[regexp {^([^/]+)/(.+)$} $path _ parent local_name]} {
 
@@ -442,6 +448,7 @@ namespace eval ::xowiki {
     {-context_url ""}
     {-folder_ids ""}
     {-path_encode:boolean true}
+    {-page ""}
     name
   } {
 
@@ -460,7 +467,7 @@ namespace eval ::xowiki {
     #:msg "input name=$name, lang=$lang parent_id=$parent_id"
     set default_lang [:default_language]
 
-    :get_lang_and_name -default_lang $lang -name $name lang stripped_name
+    :get_lang_and_name -default_lang $lang -name $name lang name
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
@@ -508,10 +515,31 @@ namespace eval ::xowiki {
     # }
 
     #:log "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor download=$download"
-    #:msg folder=$folder,lang=$lang,default_lang=$default_lang
+
+    #
+    # Lookup plain page name. If we succeed, there is a danger of a
+    # name clash between a folder and a language prefixed page. In
+    # case, the lookup succeeds, add a language prefix to the page,
+    # although it could be omitted otherwise. This way, we can
+    # disambiguate between a folder named "foo" and a page named
+    # "en:foo" in the same folder.
+    #
+    # Note: such a naming disambiguation is probably needed in the
+    # general case as well on path segments, when arbitrary objects
+    # can have children and same-named folders exist.
+    #
+    set found_id [:lookup -parent_id $parent_id -name $name]
+    if {$found_id != 0 && $page ne ""} {
+      #:log "named page named <$name> exists, $page is folder: [$page is_folder_page], path <$folder>"
+      if {[$page is_folder_page]} {
+        :log "... on the folder page."
+        set found_id 0
+      }
+    }
+    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
     if {$download} {
       #
-      # use the special download (file) syntax
+      # Use the special download (file) syntax.
       #
       set url ${host}${package_prefix}download/file/$folder$encoded_name$query$anchor
     } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
@@ -520,9 +548,11 @@ namespace eval ::xowiki {
       # language prefix
       #
       set url ${host}${package_prefix}${lang}/$folder$encoded_name$query$anchor
+    } elseif {$found_id != 0} {
+      set url ${host}${package_prefix}$folder${lang}:$encoded_name$query$anchor
     } else {
       #
-      # Use the short notation without language prefix
+      # Use the short notation without language prefix.
       #
       set url ${host}${package_prefix}$folder$encoded_name$query$anchor
     }
@@ -1051,7 +1081,7 @@ namespace eval ::xowiki {
       set lang [:default_language]
       :log "no lang specified for '$object', use default_language <$lang>"
     }
-    #:log "resolve_page '$object', default-lang $lang"
+    #:log "--o resolve_page '$object', default-lang $lang"
 
     #
     # First, resolve package level methods,
@@ -1107,6 +1137,7 @@ namespace eval ::xowiki {
       #:log "item_info_from_url returns [array get {}]"
     }
 
+    #:log "object <$object>"
     if {$(item_id) == 0 && [:get_parameter fallback_languages ""] ne ""} {
       foreach fallback_lang [:get_parameter fallback_languages ""] {
         if {$fallback_lang ne $lang} {
@@ -1277,7 +1308,12 @@ namespace eval ::xowiki {
   }
 
 
-  Package instproc prefixed_lookup {{-default_lang ""} -lang:required -stripped_name:required -parent_id:required} {
+  Package instproc prefixed_lookup {
+    {-default_lang ""}
+    -lang:required
+    -stripped_name:required
+    -parent_id:required
+  } {
     # todo unify with package->lookup
     #
     # This method tries a direct lookup of stripped_name under
@@ -1285,13 +1321,18 @@ namespace eval ::xowiki {
     # only performed, when $default-lang == $lang. The prefixed lookup
     # might change lang in the result set.
     #
+    # Note that the "stripped_name" should be called "local_name" (or
+    # path segment), since it might contain language prefixes as well.
+    #
     # @return item-ref info
     #
+    #:log "incoming stripped name <$stripped_name>"
 
     set item_id 0
     if {$lang eq $default_lang || [string match "*:*" $stripped_name]} {
       # try a direct lookup; ($lang eq "file" needed for links to files)
       set item_id [::xo::db::CrClass lookup -name $stripped_name -parent_id $parent_id]
+      #:log "direct lookup of <$stripped_name> -> $item_id"
       if {$item_id != 0} {
         set name $stripped_name
         regexp {^(..):(.+)$} $name _ lang stripped_name
@@ -1314,6 +1355,8 @@ namespace eval ::xowiki {
     }
 
     if {$item_id == 0} {
+      #:log "last chance stripped name <$stripped_name>"
+      :get_lang_and_name -default_lang $lang -name $stripped_name lang stripped_name
       set name ${lang}:$stripped_name
       set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       #:log "comp $name"
@@ -1675,12 +1718,13 @@ namespace eval ::xowiki {
     }
     if {$default_lang eq ""} {set default_lang [:default_language]}
     :get_lang_and_name -default_lang $default_lang -path $url (lang) stripped_url
+    :log "get_lang_and_name -default_lang $default_lang -path $url -> $(lang) '$stripped_url'"
+
     set (parent_id) [:get_parent_and_name \
                          -lang $(lang) -path $stripped_url \
                          -parent_id [:folder_id] \
-                         parent (stripped_name)]
-
-    #:msg "get_parent_and_name '$stripped_url' returns [array get {}]"
+                         parent local_name]
+    #:log "get_parent_and_name '$stripped_url' returns [array get {}]"
 
     if {![regexp {^(download)/(.+)$} $(lang) _ (method) (lang)]} {
       set (method) ""
@@ -1707,15 +1751,15 @@ namespace eval ::xowiki {
         }
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
         set weblog_page [:get_parameter weblog_page]
-        :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) (stripped_name)
-        #set name $(lang):$(stripped_name)
+        :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) local_name
         set :object $weblog_page
         ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
       }
     }
     array set "" [:prefixed_lookup -parent_id $(parent_id) \
-                      -default_lang $default_lang -lang $(lang) -stripped_name $(stripped_name)]
-    #:log "prefixed_lookup '$(stripped_name)' returns [array get {}]"
+                      -default_lang $default_lang -lang $(lang) \
+                      -stripped_name $local_name]
+    #:log "prefixed_lookup '$local_name' returns [array get {}]"
 
     if {$(item_id) == 0} {
       #
@@ -1742,6 +1786,7 @@ namespace eval ::xowiki {
         #
       }
     }
+    #:log "final returns [array get {}]"
 
     return [array get ""]
   }
