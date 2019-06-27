@@ -634,6 +634,7 @@ namespace eval ::xowiki::includelet {
                          -context_url $url \
                          -folder_ids $folder_ids \
                          -path_encode false \
+                         -page $c \
                          $name]
       set icon [$c render_icon]
 
