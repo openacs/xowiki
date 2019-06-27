@@ -11,7 +11,7 @@ namespace eval ::xowiki {
   # generic link methods
   #
   Class create BaseLink -parameter {
-    cssclass cssid href label title target extra_query_parameter 
+    cssclass cssid href label title target extra_query_parameter
     {anchor ""} {query ""}
   }
 
@@ -19,7 +19,7 @@ namespace eval ::xowiki {
     # currently, we do not support named frames, which are mostly deprecated
     return [expr {[:target] in {_blank _self _parent _top}}]
   }
-  
+
   BaseLink instproc anchor_atts {} {
     set atts {}
     if {[info exists :title]}  {lappend atts "title='[string map [list ' {&#39;}] [:title]]'"}
@@ -35,7 +35,7 @@ namespace eval ::xowiki {
       if {$cls eq ""} {set cls $additional} else {append cls " " $additional}
     }
     if {$cls ne ""} {set cls "class='$cls'"}
-    return $cls 
+    return $cls
   }
 
   BaseLink instproc mk_css_class_and_id {{-additional ""} {-default ""}} {
@@ -47,7 +47,7 @@ namespace eval ::xowiki {
   #
   # external links
   #
-  Class create ExternalLink -superclass BaseLink 
+  Class create ExternalLink -superclass BaseLink
   ExternalLink instproc render {} {
     set css_atts [:mk_css_class_and_id -additional external]
     return "<a [:anchor_atts] href='[ns_quotehtml ${:href}]'>[ns_quotehtml ${:label}]<span class='external'>&nbsp;</span></a>"
@@ -57,7 +57,7 @@ namespace eval ::xowiki {
   # internal links
   #
   Class create Link -superclass BaseLink -parameter {
-    {type link} name lang stripped_name page 
+    {type link} name lang stripped_name page
     parent_id package_id item_id {form ""} revision_id
     is_self_link
   }
@@ -102,7 +102,7 @@ namespace eval ::xowiki {
       set page [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id 0]
       set content "Loading ..."
       set withBody true
-      
+
       if {[::xowiki::template::$target render_content]} {
         set key ::__xowiki_link_rendered($targetId)
         if {![info exists $key]} {
@@ -121,14 +121,14 @@ namespace eval ::xowiki {
                       -content $content \
                       -label $label \
                       -href $href]
-      
+
       return $result
     } else {
       ns_log notice "xowiki::link: unknown target $target"
       return "<a [:anchor_atts] [:mk_css_class_and_id] href='[ns_quotehtml $href]'>$label</a>"
     }
   }
-  
+
   Link instproc render_found {href label} {
     if {$href eq ""} {
       return "<span class='refused-link'>$label</span>"
@@ -146,8 +146,11 @@ namespace eval ::xowiki {
     }
   }
   Link instproc pretty_link {item_id} {
-    return [::${:package_id} pretty_link -parent_id ${:parent_id} -lang [:lang] \
-                -anchor [:anchor] -query [:query] [:name]]
+    set page [expr {$item_id == 0 ? "" : "-page ::$item_id"}]
+    return [::${:package_id} pretty_link -parent_id ${:parent_id} -lang ${:lang} \
+                -anchor ${:anchor} -query ${:query} \
+                {*}$page \
+                ${:name}]
   }
   Link instproc new_link {} {
     set page [:page]
@@ -226,10 +229,10 @@ namespace eval ::xowiki {
     {-label "LABEL"}
     {-href ""}
   } {
-    set result ""    
+    set result ""
     # this can be used into templates as id to safely attach event
     # handlers to elements
-    set timed_id [clock microseconds]    
+    set timed_id [clock microseconds]
     if {$with_link} {append result [subst [:link_template]]}
     if {$with_body} {append result [subst [:body_template]]}
     return $result
@@ -306,7 +309,7 @@ namespace eval ::xowiki {
     \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
     \$('.modal-backdrop').not('.stacked').addClass('stacked');
 });
-</script>     
+</script>
   }
 
   #
@@ -332,7 +335,7 @@ namespace eval ::xowiki {
     \$('.modal-backdrop').not('.stacked').css('z-index', 1039 + (10 * idx));
     \$('.modal-backdrop').not('.stacked').addClass('stacked');
 });
-</script>     
+</script>
 }
 
   #
@@ -343,8 +346,11 @@ namespace eval ::xowiki {
     return $stripped_name
   }
   ::xowiki::Link::folder instproc pretty_link {item_id} {
+    set page [expr {$item_id == 0 ? "" : "-page ::$item_id"}]
     return [::${:package_id} pretty_link \
-                -anchor [:anchor] -parent_id ${:parent_id} -query [:query] ${:name} ]
+                -anchor ${:anchor} -parent_id ${:parent_id} -query ${:query} \
+                {*}$page \
+                ${:name} ]
   }
 
   #
@@ -358,7 +364,10 @@ namespace eval ::xowiki {
     set item_id [:resolve]
     if {$item_id} {
       set image_css_class "found"
-      set link [::${:package_id} pretty_link -lang ${:lang} -parent_id ${:parent_id} [:stripped_name]]
+      set link [::${:package_id} pretty_link \
+                    -lang ${:lang} -parent_id ${:parent_id} \
+                    -page $item_id \
+                    ${:stripped_name}]
     } else {
       set image_css_class "undefined"
       set last_page_id [$page set item_id]
@@ -382,10 +391,10 @@ namespace eval ::xowiki {
   #
   # image links
   #
-  
+
   Class create ::xowiki::Link::image -superclass ::xowiki::Link \
       -parameter {
-        center float width height 
+        center float width height
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
         border border-width position top botton left right
@@ -406,8 +415,9 @@ namespace eval ::xowiki {
     #:log "-- image resolve for $page returned $item_id (name=${:name}, label=${:label})"
     if {$item_id} {
       set link [::${:package_id} pretty_link -download true -query [:query] \
-                    -absolute [$page absolute_links] -parent_id ${:parent_id} ${:name}]
-      #:log "--l fully quali [$page absolute_links], link=$link"
+                    -absolute [$page absolute_links] -parent_id ${:parent_id} ${:name} \
+                    -page $item_id]
+      #:log "--l fully quali [$page absolute_links], link=$link [info commands ::$item_id]"
       $page references resolved [list $item_id [:type]]
       :render_found $link ${:label}
     } else {
@@ -418,7 +428,7 @@ namespace eval ::xowiki {
                     [list parent_id ${:parent_id}] \
                     [list title [ad_html_to_text -no_format -- ${:label}]] \
                     [list return_url [::xo::cc url]] \
-                    autoname name last_page_id] 
+                    autoname name last_page_id]
       set html [:render_not_found $link ${:label}]
       $page references unresolved $html
       return $html
@@ -457,7 +467,7 @@ namespace eval ::xowiki {
   #
   # localimage link
   #
-  
+
   Class create ::xowiki::Link::localimage -superclass ::xowiki::Link::image
   ::xowiki::Link::localimage instproc render {} {
     :render_found [:href] [:label]
@@ -543,7 +553,7 @@ namespace eval ::xowiki {
     foreach a {quality wmode align salign play loop menu scale} {
       if {[info exists :$a]} {append addParams "so.addParam('$a', '[set :$a]');\n"}
     }
-    
+
     return "<div id='[ns_quotehtml $id]'>$label</div>
     <script type='text/javascript' nonce='$::__csp_nonce'>
     var so = new SWFObject('[ns_quotehtml $href]', '[ns_quotehtml ${:name}]', '[ns_quotehtml $width]', '[ns_quotehtml $height]', '[ns_quotehtml $version]');
@@ -620,7 +630,7 @@ namespace eval ::xowiki {
 
   #   Link instmixin add LinkCache
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

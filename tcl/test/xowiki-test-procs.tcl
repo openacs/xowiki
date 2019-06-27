@@ -141,6 +141,26 @@ namespace eval ::xowiki::test {
             aa_true "same-named page: can resolve $pretty_link1 => $enpage_id" \
                 [expr {[dict get $item_info1 item_id] eq $enpage_id}]
 
+
+            #
+            # link rendering
+            #
+            aa_section "render links (\[\[somelink\]\]"
+            foreach pair [subst {
+                {f1 /f1}
+                {./f1 /f1}
+                {page /page}
+                {./page /page}
+                {f1/p1 /f1/p1}
+                {f1/f3 /f1/f3}
+            }] {
+                lassign $pair link pattern
+                set l [$enpage_id create_link $link]
+                set html [$l render]
+                aa_true "render link $link -> *'$instance$pattern'*" [string match *'$instance$pattern'* $html]
+                aa_log "[ns_quotehtml $html]"
+            }
+
         }
     }
 
