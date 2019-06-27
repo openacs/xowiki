@@ -531,12 +531,16 @@ namespace eval ::xowiki {
     set found_id [:lookup -parent_id $parent_id -name $name]
     if {$found_id != 0 && $page ne ""} {
       #:log "named page named <$name> exists, $page is folder: [$page is_folder_page], path <$folder>"
-      if {[$page is_folder_page] || $name eq [$page revision_id]} {
+      #
+      # Do NOT add a language prefix for folders, links and newborn
+      # pages.
+      #
+      if {[$page is_folder_page] || [$page is_link_page] || $name eq [$page revision_id]} {
         :log "... on the folder or newborn page."
         set found_id 0
       }
     }
-    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
+    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang"
     if {$download} {
       #
       # Use the special download (file) syntax.
