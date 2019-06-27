@@ -1664,7 +1664,7 @@ namespace eval ::xowiki {
   #
 
   Page instproc lang {} {
-    return [string range [:nls_language] 0 1]
+    return [string range ${:nls_language} 0 1]
   }
 
   Page instforward get_nls_language_from_lang ::xowiki::Package %proc
@@ -1677,11 +1677,11 @@ namespace eval ::xowiki {
     # It handles as well anonymous pages, which are never equipped
     # with language prefixes. ::xowiki::File has its own method.
     #
-    set name [:name]
+    set name ${:name}
     set stripped_name $name
     regexp {^..:(.*)$} $name _ stripped_name
 
-    #:msg "$name / '$stripped_name'"
+    #:log "$name / '$stripped_name'"
     # prepend the language prefix only, if the entry is not empty
     if {$stripped_name ne ""} {
       if {[:is_folder_page] || [:is_link_page]} {
@@ -1690,7 +1690,9 @@ namespace eval ::xowiki {
         #
         set name $stripped_name
       } else {
-        if {$nls_language ne ""} {:nls_language $nls_language}
+        if {$nls_language ne ""} {
+          set :nls_language $nls_language
+        }
         set name [:lang]:$stripped_name
       }
     }
