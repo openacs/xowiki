@@ -32,10 +32,13 @@ namespace eval ::xowiki::test {
             # the results or test further in the mounted instance.
         }
 
-    aa_register_case -init_classes {xowiki_require_test_instance} -cats {smoke} -procs {
-    } path_resolve {
-        Test various forms of path resolving
-    } {
+    aa_register_case \
+        -init_classes {xowiki_require_test_instance} \
+        -cats {smoke production_safe} \
+        -procs {} \
+        path_resolve {
+            Test various forms of path resolving
+        } {
         aa_run_with_teardown -rollback -test_code {
             set instance $_test_instance_name
             set testfolder .testfolder
