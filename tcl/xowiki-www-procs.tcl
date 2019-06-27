@@ -372,6 +372,7 @@ namespace eval ::xowiki {
       }
     }
 
+    set template_file [ns_normalizepath $template_file]
     set form_redirect [:form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
       set form_redirect [$f pretty_link -query [export_vars {
@@ -1420,7 +1421,7 @@ namespace eval ::xowiki {
 
     When the query parameter "children" is used,  it returns
     the children of this item via the "child-resources" includelet.
-    
+
     Otherwise, when this method is called on any kind of Form, it
     returns the form instances via the "form-usages" includelet.
 
@@ -1695,9 +1696,8 @@ namespace eval ::xowiki {
 
     #:msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
 
-    set template_file [:query_parameter "template_file" \
-                           [::$context_package_id get_parameter template_file view-default]]
-
+    set template_file [ns_normalizepath [:query_parameter "template_file" \
+                                             [::$context_package_id get_parameter template_file view-default]]]
     if {[:isobject ::xowiki::$template_file]} {
       $template_file before_render [self]
     }
@@ -1901,14 +1901,16 @@ namespace eval ::xowiki {
       # and should be supported from xotcl-core.
       #
       ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
-      set template_file [:query_parameter "template_file" \
-                             [::$context_package_id get_parameter template_file view-default]]
+      set template_file [ns_normalizepath [:query_parameter "template_file" \
+                                               [::$context_package_id get_parameter template_file view-default]]]
       #
       # If the template_file does not have a path, assume it in the
       # standard location.
       #
       if {![regexp {^[./]} $template_file]} {
         set template_file [::${:package_id} get_adp_template $template_file]
+      } else {
+        ns_log warning "ignore template file not in standard location: $template_file"
       }
 
       # Force xowiki css to be loaded first(ish), so we can override
