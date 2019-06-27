@@ -230,7 +230,7 @@ namespace eval ::xowiki::test {
         {-autonamed:boolean false}
         {-update ""}
         {-remove ""}
-        {-extra_url_parameter {}}
+        {-extra_url_parameter ""}
     } {
 
         Create a form page via the web interface.
@@ -241,9 +241,15 @@ namespace eval ::xowiki::test {
         # Create a page under the parent_id
         #
         aa_log "create a page in test test folder $parent_id"
+        set url $instance/$path/$form_name?m=create-new&parent_id=$parent_id
+        if {$extra_url_parameter ne ""} {
+            append url &[export_vars $extra_url_parameter]
+        }
+        #aa_log "... create page via url: $url"
+
         set d [acs::test::http \
                    -last_request $last_request -user_id $user_id \
-                   $instance/$path/$form_name?m=create-new&parent_id=$parent_id&[export_vars $extra_url_parameter]]
+                   $url]
         acs::test::reply_has_status_code $d 302
 
         set location [::xowiki::test::get_url_from_location $d]
