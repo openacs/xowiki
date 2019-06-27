@@ -531,8 +531,8 @@ namespace eval ::xowiki {
     set found_id [:lookup -parent_id $parent_id -name $name]
     if {$found_id != 0 && $page ne ""} {
       #:log "named page named <$name> exists, $page is folder: [$page is_folder_page], path <$folder>"
-      if {[$page is_folder_page]} {
-        :log "... on the folder page."
+      if {[$page is_folder_page] || $name eq [$page revision_id]} {
+        :log "... on the folder or newborn page."
         set found_id 0
       }
     }
