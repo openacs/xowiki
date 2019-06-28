@@ -579,14 +579,23 @@ namespace eval ::xowiki {
   #  next
   #}
 
-  Package ad_instproc get_parameter {{-check_query_parameter true} {-type ""} attribute {default ""}} {
+  Package ad_instproc get_parameter {
+    {-check_query_parameter true}
+    {-nocache:switch}    
+    {-type ""}
+    attribute {default ""}
+  } {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
     (3) form fields from the parameter_page FormPage
     (4) standard OpenACS package parameter
   } {
-    set value [::xo::cc get_parameter $attribute]
+    if {$nocache} {
+      set value ""
+    } else {
+      set value [::xo::cc get_parameter $attribute]
+    }
     if {$check_query_parameter && $value eq ""} {set value [string trim [:query_parameter $attribute]]}
     if {$value eq "" && $attribute ne "parameter_page"} {
       #
@@ -1274,6 +1283,19 @@ namespace eval ::xowiki {
     return $packages
   }
 
+  Package instproc normalize_path {name} {
+    set nn [ns_normalizepath $name]
+    if {[string range $name 0 0] ne "/" && [string range $nn 0 0] eq "/"} {
+      set name [string range $nn 1 end] 
+    } else {
+      set name $nn
+    }
+    ns_log notice "=== normalized <$name>"  
+    return $name
+  }
+
+  #view-default/../../../etc/hosts
+  
   Package instproc get_adp_template {name} {
     #
     # Obtain the template from a name. In earlier versions, the
@@ -1286,6 +1308,7 @@ namespace eval ::xowiki {
     # location change and maintains backward compatibility. In some
     # later versions, the www location will be deprecated.
     #
+    set name [:normalize_path $name]
     foreach package_key [list [:package_key] xowiki] {
 
       #
@@ -1295,6 +1318,7 @@ namespace eval ::xowiki {
 
         set tmpl /packages/$package_key/$location/$name
         set fn [acs_root_dir]/$tmpl
+        ns_log notice "=== check get_adp_template $fn"  
 
         if {[file readable $fn.adp]} {
           set result [::template::themed_template $tmpl]
@@ -2722,17 +2746,27 @@ namespace eval ::xowiki {
   #
 
   Class create ParameterCache
-  ParameterCache instproc get_parameter {{-check_query_parameter true}  {-type ""} attribute {default ""}} {
-    set key [list ${:id} [self proc] $attribute]
-    if {[info commands "::xo::cc"] ne ""} {
-      if {[::xo::cc cache_exists $key]} {
-        return [::xo::cc cache_get $key]
-      }
-      return [::xo::cc cache_set $key [next]]
+  ParameterCache instproc get_parameter {
+    {-check_query_parameter true}
+    {-nocache:switch}    
+    {-type ""}
+    attribute
+    {default ""}
+  } {
+    if {$nocache} {
+      next
     } else {
-      # in case, we have no ::xo::cc (e.g. during bootstrap).
-      ns_log warning "no ::xo::cc available, returning default for parameter $attribute"
-      return $default
+      set key [list ${:id} [self proc] $attribute]
+      if {[info commands "::xo::cc"] ne ""} {
+        if {[::xo::cc cache_exists $key]} {
+          return [::xo::cc cache_get $key]
+        }
+        return [::xo::cc cache_set $key [next]]
+      } else {
+        # in case, we have no ::xo::cc (e.g. during bootstrap).
+        ns_log warning "no ::xo::cc available, returning default for parameter $attribute"
+        return $default
+      }
     }
   }
   Package instmixin add ParameterCache
