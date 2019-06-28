@@ -379,7 +379,7 @@ namespace eval ::xowiki {
       # TODO: check use-cases, with the restricted case actually still
       # makes sense.
       #
-      set template_file [string range [ns_normalizepath $template_file] 1 end]
+      set template_file [$fp_package_id normalizepath $template_file]
     }
     set form_redirect [:form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
