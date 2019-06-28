@@ -157,10 +157,9 @@ namespace eval ::xowiki::test {
                 lassign $pair link pattern
                 set l [$enpage_id create_link $link]
                 set html [$l render]
-                aa_true "render link $link -> *'$instance$pattern'*" [string match *'$instance$pattern'* $html]
+                aa_true "render link \[\[$link\]\] -> *'$instance$pattern'*" [string match *'$instance$pattern'* $html]
                 aa_log "[ns_quotehtml $html]"
             }
-
         }
     }
 
