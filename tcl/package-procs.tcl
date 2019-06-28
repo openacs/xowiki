@@ -1284,14 +1284,13 @@ namespace eval ::xowiki {
   }
 
   Package instproc normalize_path {name} {
+    #
+    # Don't allow any adressing outside of the jail.
+    #
+    # ns_normalizepath always adds a leading "/", so remove this.
+    #
     set nn [ns_normalizepath $name]
-    if {[string range $name 0 0] ne "/" && [string range $nn 0 0] eq "/"} {
-      set name [string range $nn 1 end]
-    } else {
-      set name $nn
-    }
-    ns_log notice "=== normalized <$name>"
-    return $name
+    return [string range $nn 1 end]
   }
 
   #view-default/../../../etc/hosts
