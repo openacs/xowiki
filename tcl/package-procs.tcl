@@ -581,7 +581,7 @@ namespace eval ::xowiki {
 
   Package ad_instproc get_parameter {
     {-check_query_parameter true}
-    {-nocache:switch}    
+    {-nocache:switch}
     {-type ""}
     attribute {default ""}
   } {
@@ -1286,16 +1286,16 @@ namespace eval ::xowiki {
   Package instproc normalize_path {name} {
     set nn [ns_normalizepath $name]
     if {[string range $name 0 0] ne "/" && [string range $nn 0 0] eq "/"} {
-      set name [string range $nn 1 end] 
+      set name [string range $nn 1 end]
     } else {
       set name $nn
     }
-    ns_log notice "=== normalized <$name>"  
+    ns_log notice "=== normalized <$name>"
     return $name
   }
 
   #view-default/../../../etc/hosts
-  
+
   Package instproc get_adp_template {name} {
     #
     # Obtain the template from a name. In earlier versions, the
@@ -1318,7 +1318,7 @@ namespace eval ::xowiki {
 
         set tmpl /packages/$package_key/$location/$name
         set fn [acs_root_dir]/$tmpl
-        ns_log notice "=== check get_adp_template $fn"  
+        ns_log notice "=== check get_adp_template $fn"
 
         if {[file readable $fn.adp]} {
           set result [::template::themed_template $tmpl]
@@ -2748,7 +2748,7 @@ namespace eval ::xowiki {
   Class create ParameterCache
   ParameterCache instproc get_parameter {
     {-check_query_parameter true}
-    {-nocache:switch}    
+    {-nocache:switch}
     {-type ""}
     attribute
     {default ""}
