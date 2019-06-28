@@ -1901,17 +1901,20 @@ namespace eval ::xowiki {
       # and should be supported from xotcl-core.
       #
       ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
-      set template_file [ns_normalizepath [:query_parameter "template_file" \
-                                               [::$context_package_id get_parameter template_file view-default]]]
+      set template_file [:query_parameter "template_file" \
+                             [::$context_package_id get_parameter template_file view-default]]
       #
       # If the template_file does not have a path, assume it in the
       # standard location.
       #
-      if {![regexp {^[./]} $template_file]} {
-        set template_file [::${:package_id} get_adp_template $template_file]
-      } else {
-        ns_log warning "ignore template file not in standard location: $template_file"
+      if {[string range $template_file 0 0] eq "/"} {
+        ns_log warning "ignore template file on non-standard location: $template_file"
+        set template_file [::$context_package_id get_parameter \
+                               -check_query_parameter false \
+                               -nocache \
+                               template_file view-default]
       }
+      set template_file [::${:package_id} get_adp_template $template_file]
 
       # Force xowiki css to be loaded first(ish), so we can override
       # its styling via the theme (e.g. different buttons...). This
