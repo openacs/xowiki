@@ -536,7 +536,7 @@ namespace eval ::xowiki {
       # pages.
       #
       if {[$page is_folder_page] || [$page is_link_page] || $name eq [$page revision_id]} {
-        :log "... on the folder or newborn page."
+        #:log "... on the folder or newborn page."
         set found_id 0
       }
     }
