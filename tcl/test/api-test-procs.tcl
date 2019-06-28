@@ -1,6 +1,9 @@
 aa_register_case \
     -init_classes {xowiki_require_test_instance} \
     -cats {smoke production_safe} \
+    -procs {
+        "::xowiki::Package instproc normalize_path"
+    } \
     package_api_calls {
 
     Checks various API calls on package level

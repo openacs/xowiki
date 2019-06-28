@@ -35,7 +35,12 @@ namespace eval ::xowiki::test {
     aa_register_case \
         -init_classes {xowiki_require_test_instance} \
         -cats {smoke production_safe} \
-        -procs {} \
+        -procs {
+            "::xowiki::Package instproc item_ref"
+            "::xowiki::Package instproc resolve_page"
+            "::xowiki::Package instproc item_info_from_url"
+            "::xowiki::Page instproc create_link"
+        } \
         path_resolve {
             Test various forms of path resolving
         } {
