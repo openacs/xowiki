@@ -235,7 +235,7 @@ namespace eval ::xowiki::includelet {
     set package_id [::xo::cc package_id]
     set with_links [::$package_id get_parameter "MenuBarSymLinks" 0]
 
-    #my ds [::xo::cc serialize]
+    #:ds [::xo::cc serialize]
     set lang [::xo::cc lang]
     #set lang en
     set return_url [::xo::cc url]

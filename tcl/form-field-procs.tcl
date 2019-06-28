@@ -124,7 +124,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc validation_check {validator_method value} {
-    return [:uplevel [list my $validator_method $value]]
+    return [:uplevel [list :$validator_method $value]]
   }
 
   FormField instproc validate {obj} {
@@ -282,7 +282,7 @@ namespace eval ::xowiki::formfield {
 
     switch -glob -- $s {
       optional    {set :required false}
-      required    {set :required true; my remove_omit}
+      required    {set :required true; :remove_omit}
       omit        {:mixin add ::xowiki::formfield::omit}
       noomit      {:remove_omit}
       disabled    {:set_disabled true}
@@ -310,7 +310,7 @@ namespace eval ::xowiki::formfield {
           if {[string match {\[*\]} $value]} {
             set value [subst $value]
           }
-          my $attribute $value
+          :$attribute $value
         } on error {errMsg} {
           error "Error during setting attribute '$attribute' to value '$value': $errMsg"
         }
@@ -1208,7 +1208,7 @@ namespace eval ::xowiki::formfield {
   Class create omit -superclass FormField
   omit instproc render_item {} {
     # don't render the labels
-    #my render_form_widget
+    #:render_form_widget
   }
   omit instproc render_help_text {} {
   }
@@ -1244,7 +1244,7 @@ namespace eval ::xowiki::formfield {
   text instproc initialize {} {
     :type text
     set :widget_type text
-    foreach p [list size maxlength] {if {[info exists :$p]} {set :html($p) [my $p]}}
+    foreach p [list size maxlength] {if {[info exists :$p]} {set :html($p) [:$p]}}
   }
 
   ###########################################################
@@ -1625,7 +1625,7 @@ namespace eval ::xowiki::formfield {
   textarea instproc initialize {} {
     set :widget_type text(textarea)
     set :booleanHTMLAttributes {required readonly disabled formnovalidate}
-    foreach p [list rows cols style] {if {[info exists :$p]} {set :html($p) [my $p]}}
+    foreach p [list rows cols style] {if {[info exists :$p]} {set :html($p) [:$p]}}
     if {![:istype ::xowiki::formfield::richtext] && [info exists :editor]} {
       # downgrading
       #:msg "downgrading [:info class]"
@@ -1714,7 +1714,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext instproc initialize {} {
-    #my display_field false
+    #set :display_field false
     switch -- ${:displayMode} {
       inplace -
       inline -
@@ -1896,7 +1896,7 @@ namespace eval ::xowiki::formfield {
       set id ${:id}
       set name ${:name}
       set package_id [${:object} package_id]
-      #my extraPlugins {timestamp xowikiimage}
+      #set :extraPlugins {timestamp xowikiimage}
 
       if {"xowikiimage" in [:extraPlugins]} {
         :js_image_helper
@@ -2833,7 +2833,7 @@ namespace eval ::xowiki::formfield {
 
   abstract_page instproc initialize {} {
     set :package_id [${:object} package_id]
-    #my compute_options
+    #:compute_options
     next
   }
 

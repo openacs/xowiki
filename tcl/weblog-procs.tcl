@@ -302,7 +302,7 @@ namespace eval ::xowiki {
         set :prev_page_link [::xo::cc url]?$query
       }
     }
-    #my proc destroy {} {:log "--W"; next}
+    #:proc destroy {} {:log "--W"; next}
     
     if {${:sort_composite} ne ""} {
       lassign [split ${:sort_composite} ,] kind att direction
