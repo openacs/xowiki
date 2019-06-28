@@ -1285,7 +1285,7 @@ namespace eval ::xowiki {
 
   Package instproc normalize_path {name} {
     #
-    # Don't allow any adressing outside of the jail.
+    # Don't allow any addressing outside of the jail.
     #
     # ns_normalizepath always adds a leading "/", so remove this.
     #
