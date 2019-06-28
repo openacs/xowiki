@@ -372,7 +372,15 @@ namespace eval ::xowiki {
       }
     }
 
-    set template_file [ns_normalizepath $template_file]
+    if {[info exists template_file]} {
+      #
+      # strip the leading "/" added by ns_normalizepath.
+      #
+      # TODO: check use-cases, with the restricted case actually still
+      # makes sense.
+      #
+      set template_file [string range [ns_normalizepath $template_file] 1 end]
+    }
     set form_redirect [:form_parameter "__form_redirect" ""]
     if {$form_redirect eq ""} {
       set form_redirect [$f pretty_link -query [export_vars {
