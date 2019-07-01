@@ -292,7 +292,7 @@ db_multirow -extend {
   set last_modified_pretty [lc_time_fmt $last_modified_ansi "%x %X"]
 
   if {$type ne "folder"} {
-    set content_size_pretty [util::content_size_pretty -size $content_size]
+    set content_size_pretty [lc_content_size_pretty -size $content_size]
   } else {
     set content_size_pretty ""
   }
