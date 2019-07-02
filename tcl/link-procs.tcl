@@ -415,8 +415,9 @@ namespace eval ::xowiki {
     #:log "-- image resolve for $page returned $item_id (name=${:name}, label=${:label})"
     if {$item_id} {
       set link [::${:package_id} pretty_link -download true -query [:query] \
-                    -absolute [$page absolute_links] -parent_id ${:parent_id} ${:name} \
-                    -page $item_id]
+                    -absolute [$page absolute_links] -parent_id ${:parent_id} \
+                    -page $item_id \
+                    ${:name}]
       #:log "--l fully quali [$page absolute_links], link=$link [info commands ::$item_id]"
       $page references resolved [list $item_id [:type]]
       :render_found $link ${:label}
