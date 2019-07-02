@@ -21,11 +21,11 @@ namespace eval ::xowiki::test {
         xowiki_require_test_instance {
             Make sure the test instance is there and create it if necessary.
         } {
-            aa_export_vars {_test_instance_name}
-            set _test_instance_name /xowiki-test
+            aa_export_vars {_xowiki_test_instance_name}
+            set _xowiki_test_instance_name /xowiki-test
             ::acs::test::require_package_instance \
                 -package_key xowiki \
-                -instance_name $_test_instance_name
+                -instance_name $_xowiki_test_instance_name
         } {
             # Here one might unmount the package afterwards. Right now
             # we decide to keep it so it is possible to e.g. inspect
@@ -45,12 +45,12 @@ namespace eval ::xowiki::test {
             Test various forms of path resolving
         } {
         aa_run_with_teardown -rollback -test_code {
-            set instance $_test_instance_name
+            set instance $_xowiki_test_instance_name
             set testfolder .testfolder
             set locale [lang::system::locale]
             set lang [string range $locale 0 1]
 
-            ::xowiki::Package initialize -url $_test_instance_name
+            ::xowiki::Package initialize -url $_xowiki_test_instance_name
             set root_folder_id [::$package_id folder_id]
             aa_log "package_id $package_id system locale $locale"
 
@@ -190,7 +190,7 @@ namespace eval ::xowiki::test {
         #
         set user_id [ad_conn user_id]
 
-        set instance $_test_instance_name
+        set instance $_xowiki_test_instance_name
         set testfolder .testfolder
 
         try {
