@@ -456,13 +456,12 @@ namespace eval ::xowiki {
     workflow of an workflow instance.
 
   } {
-    set package_id ${:package_id}
     set formName [:query_parameter "form" ""]
     if {$formName eq ""} {
       error "no form specified"
     }
-    ::$package_id get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
-    set d [::$package_id item_ref -default_lang $lang -parent_id [::$package_id folder_id] $formName]
+    ::${:package_id} get_lang_and_name -default_lang [::xo::cc lang] -path $formName lang stripped_url
+    set d [::${:package_id} item_ref -default_lang $lang -parent_id [::${:package_id} folder_id] $formName]
     set item_id [dict get $d item_id]
     if {$item_id == 0} {
       error "cannot lookup page $formName"
@@ -480,7 +479,7 @@ namespace eval ::xowiki {
       :save
       #:msg "ok $msg"
     }
-    ::$package_id returnredirect [::xo::cc url]
+    ::${:package_id} returnredirect [::xo::cc url]
   }
 
 
@@ -559,7 +558,7 @@ namespace eval ::xowiki {
     if {$latest_revision ne ""} {
       # otherwise, "delete" did already the redirect
       ${:package_id} returnredirect [:query_parameter "return_url" \
-                                         [export_vars -base [::$package_id url] {{m revisions}}]]
+                                         [export_vars -base [${:package_id} url] {{m revisions}}]]
     }
   }
 
@@ -786,12 +785,11 @@ namespace eval ::xowiki {
   #
 
   Page instproc edit_set_default_values {} {
-    set package_id ${:package_id}
     # set some default values if they are provided
     foreach key {name title page_order last_page_id nls_language} {
-      if {[::$package_id exists_query_parameter $key]} {
-        #:log "setting [self] set $key [::$package_id query_parameter $key]"
-        set :$key [::$package_id query_parameter $key]
+      if {[::${:package_id} exists_query_parameter $key]} {
+        #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
+        set :$key [::${:package_id} query_parameter $key]
       }
     }
   }
@@ -819,8 +817,7 @@ namespace eval ::xowiki {
   # was specified.
   #
   Page instproc changed_redirect_url {} {
-    set package_id ${:package_id}
-    if {[::$package_id exists_query_parameter "return_url"]} {
+    if {[::${:package_id} exists_query_parameter "return_url"]} {
       return ""
     }
     return [:pretty_link]
@@ -845,12 +842,12 @@ namespace eval ::xowiki {
 
   } {
 
-    :instvar package_id item_id revision_id parent_id
+    :instvar item_id revision_id parent_id
     #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
 
-    if {[::$package_id exists_query_parameter "return_url"]} {
+    if {[::${:package_id} exists_query_parameter "return_url"]} {
       set submit_link [:get_query_parameter_return_url]
       set return_url $submit_link
     } else {
@@ -877,9 +874,9 @@ namespace eval ::xowiki {
     # Determine the package_id of some mounted xowiki instance to find
     # the directory + URL, from where the scripts called from Xinha
     # can be used.
-    if {[::$package_id info class] eq "::xowiki::Package"} {
+    if {[::${:package_id} info class] eq "::xowiki::Package"} {
       # The actual instance is a plain xowiki instance, we can use it
-      set folder_spec [list script_dir [::$package_id package_url]]
+      set folder_spec [list script_dir [::${:package_id} package_url]]
     } else {
       # The actual instance is not a plain xowiki instance, so, we try
       # to find one, where the current user has at least read
@@ -897,7 +894,7 @@ namespace eval ::xowiki {
     }
 
     [$object_type getFormClass -data [self]] create ::xowiki::f1 -volatile \
-        -action  [export_vars -base [::$package_id url] $action_vars] \
+        -action  [export_vars -base [::${:package_id} url] $action_vars] \
         -data [self] \
         -folderspec $folder_spec \
         -submit_link $submit_link \
@@ -913,19 +910,19 @@ namespace eval ::xowiki {
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
     if {[info exists item_id]} {
-      set rev_link    [::$package_id make_link [self] revisions]
-      set view_link   [::$package_id make_link [self] view]
+      set rev_link    [::${:package_id} make_link [self] revisions]
+      set view_link   [::${:package_id} make_link [self] view]
     }
     if {[info exists last_page_id]} {
-      set back_link [::$package_id url]
+      set back_link [::${:package_id} url]
     }
 
-    set index_link  [::$package_id make_link -privilege public -link "" $package_id {} {}]
-    ::xo::Page set_property doc title "[::$package_id instance_name] - $edit_form_page_title"
+    set index_link  [::${:package_id} make_link -privilege public -link "" ${:package_id} {} {}]
+    ::xo::Page set_property doc title "[::${:package_id} instance_name] - $edit_form_page_title"
 
     array set property_doc [::xo::Page get_property doc]
-    set edit_tmpl [::$package_id get_adp_template "edit"]
-    set html [::$package_id return_page -adp $edit_tmpl \
+    set edit_tmpl [::${:package_id} get_adp_template "edit"]
+    set html [::${:package_id} return_page -adp $edit_tmpl \
                   -form f1 \
                   -variables {item_id parent_id edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link property_doc}]
@@ -980,7 +977,6 @@ namespace eval ::xowiki {
 
   } {
     #:log "edit [self args]"
-    set package_id ${:package_id}
 
     :setCSSDefaults
     :include_header_info -prefix form_edit
@@ -1054,7 +1050,7 @@ namespace eval ::xowiki {
       #
       # In case we are triggered internally, we might not have a
       # a connection and therefore do not valide the csrf token
-      if {![::$package_id exists __batch_mode]} {
+      if {![::${:package_id} exists __batch_mode]} {
         security::csrf::validate
       }
 
@@ -1068,7 +1064,7 @@ namespace eval ::xowiki {
         # error messages again, but we return simply the validation
         # problems.
         #
-        if {[::$package_id exists __batch_mode]} {
+        if {[::${:package_id} exists __batch_mode]} {
           set errors [list]
           foreach f $form_fields {
             if {[$f error_msg] ne ""} {
@@ -1076,9 +1072,9 @@ namespace eval ::xowiki {
             }
           }
           set evaluation_errors ""
-          if {[::$package_id exists __evaluation_error]} {
-            set evaluation_errors "\nEvaluation error: [::$package_id set __evaluation_error]"
-            ::$package_id unset __evaluation_error
+          if {[::${:package_id} exists __evaluation_error]} {
+            set evaluation_errors "\nEvaluation error: [::${:package_id} set __evaluation_error]"
+            ::${:package_id} unset __evaluation_error
           }
           error "[llength $errors] validation error(s): $errors $evaluation_errors"
         }
@@ -1113,9 +1109,9 @@ namespace eval ::xowiki {
           # The method query_parameter uses now "::xo::cc set_parameter ...."
           # with highest precedence
           #
-          set return_url [::$package_id query_parameter return_url $url]
+          set return_url [::${:package_id} query_parameter return_url $url]
           #:log "${:name}: url=$url, return_url=$return_url"
-          ::$package_id returnredirect $return_url
+          ::${:package_id} returnredirect $return_url
 
           return
         }
@@ -1297,7 +1293,7 @@ namespace eval ::xowiki {
         # through a link.
         #
         if {[::xo::cc exists invoke_object] && [::xo::cc invoke_object] ne [self]} {
-          #:log "=== no return_url specified, using [::xo::cc url] or [[::$package_id context] url]"
+          #:log "=== no return_url specified, using [::xo::cc url] or [[::${:package_id} context] url]"
           set return_url [::xo::cc url]
         }
       }
@@ -2775,7 +2771,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc combine_data_and_form_field_default {is_new form_field data_value} {
 
     Combine the value of the form field (e.g. determined by the
-                                         default) with the value in the instance attributes. This function
+    default) with the value in the instance attributes. This function
     decides, whether it should honor the data value or the form fiel
     value for e.g. rendering forms.
 
