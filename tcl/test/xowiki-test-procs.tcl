@@ -154,8 +154,10 @@ namespace eval ::xowiki::test {
             foreach pair [subst {
                 {f1 /f1}
                 {./f1 /f1}
-                {page /page}
-                {./page /page}
+                {page /en:page}
+                {./page /en:page}
+                {page/ /page}
+                {./page/ /page}
                 {f1/p1 /f1/p1}
                 {f1/f3 /f1/f3}
             }] {
