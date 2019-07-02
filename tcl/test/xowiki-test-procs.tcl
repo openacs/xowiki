@@ -162,6 +162,7 @@ namespace eval ::xowiki::test {
                 {page /page}
                 {./page /page}
                 {./page/ /page}
+                {en:page/ /en:page}                
                 {f1 /f1}
                 {./f1 /f1}
                 {f1/p1 /f1/p1}
