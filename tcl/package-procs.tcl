@@ -529,8 +529,11 @@ namespace eval ::xowiki {
     # can have children and same-named folders exist.
     #
     set found_id [:lookup -parent_id $parent_id -name $name]
+    #set found_id [::xo::dc get_value check_folder {select item_id from cr_items where parent_id = :parent_id and name = :name} 0]
+    #:log "-pretty_link: lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
     if {$found_id != 0 && $page ne ""} {
-      #:log "named page named <$name> exists, $page is folder: [$page is_folder_page], path <$folder>"
+      :log "... named page <$name> exists <$found_id [$found_id name]), provided page <$page [$page name]>\
+           folder [$page is_folder_page] link [$page is_link_page]"
       #
       # Do NOT add a language prefix for folders, links and newborn
       # pages.
@@ -540,7 +543,7 @@ namespace eval ::xowiki {
         set found_id 0
       }
     }
-    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang"
+    :log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
     if {$download} {
       #
       # Use the special download (file) syntax.

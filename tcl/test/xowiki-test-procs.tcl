@@ -58,11 +58,16 @@ namespace eval ::xowiki::test {
             set f3_id        [xowiki::test::require_folder "f3"    $f1_id $package_id]
             set subf3_id     [xowiki::test::require_folder "subf3" $f3_id $package_id]
             set enpage_id    [xowiki::test::require_page   en:page $root_folder_id $package_id]
+            set p0_id        [xowiki::test::require_page   en:p0   $root_folder_id $package_id]
             set f1_p1_id     [xowiki::test::require_page   en:p1   $f1_id $package_id]
 
             ::xo::db::CrClass get_instance_from_db -item_id $enpage_id
             set enpage_pl [::$enpage_id pretty_link]
             aa_equals "Pretty link of en:page: $enpage_pl" $enpage_pl "/xowiki-test/page"
+
+            ::xo::db::CrClass get_instance_from_db -item_id $p0_id
+            set p0_pl [::$p0_id pretty_link]
+            aa_equals "Pretty link of p0 $p0_pl" $p0_pl "/xowiki-test/p0"
 
             ::xo::db::CrClass get_instance_from_db -item_id $f1_p1_id
             set f1_p1_pl [::$f1_p1_id pretty_link]
@@ -134,7 +139,7 @@ namespace eval ::xowiki::test {
             aa_true "can resolve $pretty_link1 => $enpage_id" \
                 [expr {[dict get $item_info1 item_id] eq $enpage_id}]
 
-            set folder_clash_id [xowiki::test::require_folder page $root_folder_id $package_id]
+            set folder_clash_id [xowiki::test::require_folder "page" $root_folder_id $package_id]
             ::xo::db::CrClass get_instance_from_db -item_id $folder_clash_id
             set pretty_link2 [::$folder_clash_id pretty_link]
             set item_info2   [$package_id item_info_from_url $pretty_link2]
@@ -151,18 +156,19 @@ namespace eval ::xowiki::test {
             # link rendering
             #
             aa_section "render links (\[\[somelink\]\]"
+            ns_log notice "---render links---"
+
             foreach pair [subst {
+                {page /page}
+                {./page /page}
+                {./page/ /page}
                 {f1 /f1}
                 {./f1 /f1}
-                {page /en:page}
-                {./page /en:page}
-                {page/ /page}
-                {./page/ /page}
                 {f1/p1 /f1/p1}
                 {f1/f3 /f1/f3}
             }] {
                 lassign $pair link pattern
-                set l [$enpage_id create_link $link]
+                set l [::$p0_id create_link $link]
                 set html [$l render]
                 aa_true "render link \[\[$link\]\] -> *'$instance$pattern'*" [string match *'$instance$pattern'* $html]
                 aa_log "[ns_quotehtml $html]"
