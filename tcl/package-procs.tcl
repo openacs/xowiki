@@ -1745,7 +1745,7 @@ namespace eval ::xowiki {
     }
     if {$default_lang eq ""} {set default_lang [:default_language]}
     :get_lang_and_name -default_lang $default_lang -path $url (lang) stripped_url
-    :log "get_lang_and_name -default_lang $default_lang -path $url -> $(lang) '$stripped_url'"
+    #:log "get_lang_and_name -default_lang $default_lang -path $url -> $(lang) '$stripped_url'"
 
     set (parent_id) [:get_parent_and_name \
                          -lang $(lang) -path $stripped_url \
