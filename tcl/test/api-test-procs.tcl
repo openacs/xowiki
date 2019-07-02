@@ -1,5 +1,4 @@
 aa_register_case \
-    -init_classes {xowiki_require_test_instance} \
     -cats {smoke production_safe} \
     -procs {
         "::xowiki::Package instproc normalize_path"
@@ -11,8 +10,9 @@ aa_register_case \
     @author Gustaf Neumann
 } {
 
-    set instance $_test_instance_name
-    ::xowiki::Package initialize -url $_test_instance_name
+    set package_id [acs::test::require_package_instance \
+                        -package_key xowiki]
+    ::xowiki::Package initialize -package_id $package_id
 
     #
     # Don't allow addressing outside of the jail
