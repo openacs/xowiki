@@ -153,7 +153,7 @@ namespace eval ::xowiki::test {
 
 
             #
-            # link rendering
+            # Link rendering
             #
             aa_section "render links (\[\[somelink\]\]"
             ns_log notice "---render links---"
@@ -162,7 +162,7 @@ namespace eval ::xowiki::test {
                 {page /page}
                 {./page /page}
                 {./page/ /page}
-                {en:page/ /en:page}                
+                {en:page/ /en:page}
                 {f1 /f1}
                 {./f1 /f1}
                 {f1/p1 /f1/p1}
