@@ -47,6 +47,14 @@ namespace eval ::xowiki::test {
         aa_run_with_teardown -rollback -test_code {
             set instance $_xowiki_test_instance_name
             set testfolder .testfolder
+
+            #
+            # Force the system locale to en_US. The value is
+            # automatially reset to the previous value, since we are
+            # running in an transaction.
+            #
+            lang::system::set_locale en_US
+
             set locale [lang::system::locale]
             set lang [string range $locale 0 1]
 
