@@ -50,7 +50,7 @@ namespace eval ::xowiki::test {
 
             #
             # Force the system locale to en_US. The value is
-            # automatially reset to the previous value, since we are
+            # automatically reset to the previous value, since we are
             # running in an transaction.
             #
             lang::system::set_locale en_US
@@ -168,7 +168,7 @@ namespace eval ::xowiki::test {
             # Due to the adding of the folder named "page", we might
             # have a confusion when referring to item_refs.
             #
-            aa_section "Ambigous item_refs"
+            aa_section "Ambiguous item_refs"
 
             foreach pair [subst {
                 {page $enpage_id en}
