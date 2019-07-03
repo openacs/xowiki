@@ -937,7 +937,7 @@ namespace eval ::xowiki::formfield {
     #${:object} set_property -new 1 ${:name} ${:value}
 
     set package_id [${:object} package_id]
-    array set entry_info [:entry_info]
+    set entry_info [:entry_info]
 
     if {[:searchable]} {
       set publish_date_cmd {;}
@@ -959,7 +959,7 @@ namespace eval ::xowiki::formfield {
     set revision_ids {}
     set newValue ""
     foreach content_type ${:content-type} \
-        object_name $entry_info(name) \
+        object_name [dict get $entry_info name] \
         tmpfile ${:tmpfile} \
         fn ${:value} {
 
@@ -970,7 +970,7 @@ namespace eval ::xowiki::formfield {
                                -file_name $fn \
                                -content_type $content_type \
                                -package_id $package_id \
-                               -parent_id $entry_info(parent_id) \
+                               -parent_id [dict get $entry_info parent_id[ \
                                -object_name $object_name \
                                -tmpfile $tmpfile \
                                -publish_date_cmd $publish_date_cmd \
@@ -998,20 +998,26 @@ namespace eval ::xowiki::formfield {
 
   file instproc pretty_value {v} {
     if {$v ne ""} {
-      array set "" [:entry_info]
+      set entry_info [:entry_info]
 
       set result ""
-      foreach object_name $(name) fn [:get_from_value $v name] {
+      foreach object_name [dict get $entry_info name] fn [:get_from_value $v name] {
 
-        array set "" [${:object} item_ref -default_lang [${:object} lang] -parent_id $(parent_id) $object_name]
+        set item_info [${:object} item_ref \
+                           -default_lang [${:object} lang] \
+                           -parent_id [dict get $entry_info parent_id] \
+                           $object_name]
 
-        #:log "name <$object_name> pretty value name '$(stripped_name)'"
+        #:log "name <$object_name> pretty value name '[dict get $item_info stripped_name]'"
 
         set l [::xowiki::Link new -destroy_on_cleanup \
-                   -page ${:object} -type "file" -lang $(prefix) \
-                   -stripped_name $(stripped_name) -label $fn \
+                   -page ${:object} -type "file" \
+                   -lang [dict get $item_info prefix] \
+                   -stripped_name [dict get $item_info stripped_name] \
+                   -label $fn \
                    -extra_query_parameter [list [list filename $fn]] \
-                   -parent_id $(parent_id) -item_id $(item_id)]
+                   -parent_id [dict get $item_info parent_id] \
+                   -item_id [dict get $item_info item_id]]
         append result [$l render]
       }
       return $result
@@ -1021,7 +1027,7 @@ namespace eval ::xowiki::formfield {
   file instproc render_input {} {
 
     set package_id [${:object} package_id]
-    array set entry_info [:entry_info]
+    set entry_info [:entry_info]
     set fns [:get_from_value ${:value} name ${:value}]
 
     #
@@ -1042,11 +1048,13 @@ namespace eval ::xowiki::formfield {
     }
     ::html::div -class file-control -id __a$id {
       foreach \
-          object_name $entry_info(name) \
+          object_name [dict get $entry_info name] \
           revision_id [:get_from_value ${:value} revision_id ""] \
           fn $fns {
             #:msg "${:name}: [list :get_from_value <${:value}> name] => '$fn'"
-            set href [::$package_id pretty_link -download 1 -parent_id $entry_info(parent_id) $object_name]
+            set href [::$package_id pretty_link -download 1 \
+                          -parent_id [dict get $entry_info parent_id] \
+                          $object_name]
 
             if {![:istype image]} {
               append href ?filename=[ns_urlencode $fn]
@@ -1097,12 +1105,12 @@ namespace eval ::xowiki::formfield {
     set package_id [${:object} package_id]
     set parent_id  [${:object} parent_id]
     if {$v eq ""} {return ""}
-    array set "" [:entry_info]
+    set entry_info [:entry_info]
     set fn [:get_from_value $v name $v]
     #
     # Get the file object of the imported file to obtain is full name and path
     #
-    set file_id [::$package_id lookup -parent_id [${:object} item_id] -name $(name)]
+    set file_id [::$package_id lookup -parent_id [${:object} item_id] -name [dict get $entry_info name]]
     ::xo::db::CrClass get_instance_from_db -item_id $file_id
     set full_file_name [::$file_id full_file_name]
     #
@@ -1138,10 +1146,10 @@ namespace eval ::xowiki::formfield {
   }
   image instproc pretty_value {v} {
     set html ""
-    array set "" [:entry_info]
-    foreach object_name $(name) revision_id [:get_from_value $v revision_id] {
+    set entry_info [:entry_info]
+    foreach object_name [dict get $entry_info name] revision_id [:get_from_value $v revision_id] {
       append html [:pretty_image \
-                       -parent_id $(parent_id) \
+                       -parent_id [dict get $entry_info parent_id] \
                        -revision_id $revision_id \
                        $object_name]
     }
