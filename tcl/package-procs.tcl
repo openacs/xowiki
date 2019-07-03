@@ -531,6 +531,17 @@ namespace eval ::xowiki {
     set found_id [:lookup -parent_id $parent_id -name $name]
     #set found_id [::xo::dc get_value check_folder {select item_id from cr_items where parent_id = :parent_id and name = :name} 0]
     #:log "-pretty_link: lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
+
+    #
+    # In case, we did not receive a "page" but we could look up the
+    # entry, instantiate the target page to be able to distinguish
+    # between folder and page in ambiguous cases.
+    #
+    if {$found_id != 0 && $page eq ""} {
+      ns_log notice "have to fetch target page. You should provide '-page' to pretty_link"
+      set page [::xo::db::CrClass get_instance_from_db -item_id $found_id]
+    }
+
     if {$found_id != 0 && $page ne ""} {
       # :log "... named page <$name> exists <$found_id [$found_id name]), provided page <$page [$page name]>\
       #      folder [$page is_folder_page] link [$page is_link_page]"
