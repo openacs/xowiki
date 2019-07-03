@@ -2323,14 +2323,15 @@ namespace eval ::xowiki {
             Link create [self]::link \
                 -page [self] \
                 -name "" \
-                -type localimage [list -label $label] \
+                -type localimage \
+                -label $label \
                 -href $link
             [self]::link configure {*}$options
             return [self]::link
           }
         }
       }
-      set l [ExternalLink new [list -label $label] -href $link]
+      set l [ExternalLink new -label $label -href $link]
       $l configure {*}$options
       return $l
     }
@@ -2390,7 +2391,7 @@ namespace eval ::xowiki {
                              [dict get $link_info link]]
     }
     #ns_log notice "link_info $link_info"
-    #ns_log notice "item_ref_info $item_ref_info"
+    #ns_log notice "--L link <$arg> lang [:lang] CURRENT [:name] nls_lang ${:nls_language} -> item_ref_info $item_ref_info"
 
     #:log "link '[dict get $link_info link]' package_id $package_id ${:package_id} => [array get {}]"
 
@@ -2403,12 +2404,12 @@ namespace eval ::xowiki {
         -page [self] \
         -form [dict get $item_ref_info form] \
         -type [dict get $item_ref_info link_type] \
-        [list -name $item_name] \
+        -name $item_name \
         -lang [dict get $item_ref_info prefix] \
-        [list -anchor [dict get $link_info anchor]] \
-        [list -query [dict get $link_info query]] \
-        [list -stripped_name [dict get $item_ref_info stripped_name]] \
-        [list -label $label] \
+        -anchor [dict get $link_info anchor] \
+        -query [dict get $link_info query] \
+        -stripped_name [dict get $item_ref_info stripped_name] \
+        -label $label \
         -parent_id [dict get $item_ref_info parent_id] \
         -item_id [dict get $item_ref_info item_id] \
         -package_id $package_id \
