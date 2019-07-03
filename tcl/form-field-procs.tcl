@@ -695,7 +695,7 @@ namespace eval ::xowiki::formfield {
     }
     set l [::xowiki::Link create new -destroy_on_cleanup \
                -page ${:object} -type "image" -lang $(prefix) \
-               [list -stripped_name $(stripped_name)] [list -label $label] \
+               -stripped_name $(stripped_name) label $label \
                -parent_id $(parent_id) -item_id $(item_id)]
 
     if {[:istype file]} {
@@ -1009,8 +1009,8 @@ namespace eval ::xowiki::formfield {
 
         set l [::xowiki::Link new -destroy_on_cleanup \
                    -page ${:object} -type "file" -lang $(prefix) \
-                   [list -stripped_name $(stripped_name)] [list -label $fn] \
-                   [list -extra_query_parameter [list [list filename $fn]]] \
+                   -stripped_name $(stripped_name) -label $fn \
+                   -extra_query_parameter [list [list filename $fn]] \
                    -parent_id $(parent_id) -item_id $(item_id)]
         append result [$l render]
       }

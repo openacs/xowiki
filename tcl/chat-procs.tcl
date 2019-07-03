@@ -97,7 +97,7 @@ namespace eval ::xo {
 
     # :log "-- msg=$msg"
     :broadcast_msg [Message new -volatile -time [clock seconds] \
-                        -user_id $user_id -color $color [list -msg $msg]]
+                        -user_id $user_id -color $color -msg $msg]
 
     :register_nsvs ${:now}.$user_id $user_id $msg $color [clock seconds]
     #
