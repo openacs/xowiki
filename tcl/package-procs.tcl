@@ -532,8 +532,8 @@ namespace eval ::xowiki {
     #set found_id [::xo::dc get_value check_folder {select item_id from cr_items where parent_id = :parent_id and name = :name} 0]
     #:log "-pretty_link: lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
     if {$found_id != 0 && $page ne ""} {
-      :log "... named page <$name> exists <$found_id [$found_id name]), provided page <$page [$page name]>\
-           folder [$page is_folder_page] link [$page is_link_page]"
+      # :log "... named page <$name> exists <$found_id [$found_id name]), provided page <$page [$page name]>\
+      #      folder [$page is_folder_page] link [$page is_link_page]"
       #
       # Do NOT add a language prefix for folders, links and newborn
       # pages.
