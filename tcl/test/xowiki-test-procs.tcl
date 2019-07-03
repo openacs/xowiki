@@ -73,12 +73,17 @@ namespace eval ::xowiki::test {
             set f1_p1_pl [::$f1_p1_id pretty_link]
             aa_equals "Pretty link of f1/page $f1_p1_pl" $f1_p1_pl "/xowiki-test/f1/p1"
 
+            set testfolder_id [::$package_id lookup -parent_id $root_folder_id -name $testfolder]
+            ::xo::db::CrClass get_instance_from_db -item_id $testfolder_id
+            set testfolder_pl [::$testfolder_id pretty_link]
+            aa_equals "Pretty link of $testfolder $testfolder_pl" $testfolder_pl "$instance/$testfolder"
+
             #
             # Try to resolve folders, pages and inherited folder.form via URL.
             # The method resolve_page receives the "object" instance variable
             # initialized via "Package initialize" ALWAYS without a leading "/".
             #
-            aa_section "resolve_pagel"
+            aa_section "resolve_page"
             foreach url {
                 f1 page f1/p1
                 en:folder.form folder.form
@@ -151,6 +156,22 @@ namespace eval ::xowiki::test {
             aa_true "same-named page: can resolve $pretty_link1 => $enpage_id" \
                 [expr {[dict get $item_info1 item_id] eq $enpage_id}]
 
+            #
+            # Due to the adding of the folder named "page", we might
+            # have a confusion when referring to item_refs.
+            #
+            aa_section "Ambigous item_refs"
+
+            foreach pair [subst {
+                {page $enpage_id en}
+                {f1 $f1_id ""}
+            }] {
+                lassign $pair item_ref id prefix
+                set info [$package_id item_ref -parent_id $root_folder_id -default_lang $lang $item_ref]
+                #aa_log info=$info
+                aa_true "can resolve item_ref '$item_ref' -> $id" {[dict get $info item_id] eq $id}
+                aa_true "check prefix of item_ref $item_ref -> $prefix" {[dict get $info prefix] eq $prefix}
+            }
 
             #
             # Link rendering
@@ -159,8 +180,8 @@ namespace eval ::xowiki::test {
             ns_log notice "---render links---"
 
             foreach pair [subst {
-                {page /page}
-                {./page /page}
+                {page /en:page}
+                {./page /en:page}
                 {./page/ /page}
                 {en:page/ /en:page}
                 {f1 /f1}
