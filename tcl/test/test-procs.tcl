@@ -113,12 +113,17 @@ namespace eval ::xowiki::test {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
         if {$item_id == 0} {
             if {$file_content eq ""} {
+                ::$package_id get_lang_and_name -name $name lang stripped_name
+                set nls_language [::xowiki::Package get_nls_language_from_lang $lang]
                 set f [::xowiki::Page new -name $name -description "" \
-                           -parent_id $parent_id -package_id $package_id -text [list "Content of $name" text/html]]
+                           -parent_id $parent_id -package_id $package_id \
+                           -nls_language $nls_language \
+                           -text [list "Content of $name" text/html]]
             } else {
                 set mime_type [::xowiki::guesstype $name]
                 set f [::xowiki::File new -name $name -description "" \
-                           -parent_id $parent_id -package_id $package_id -mime_type $mime_type]
+                           -parent_id $parent_id -package_id $package_id \
+                           -mime_type $mime_type]
                 set import_file [ad_tmpnam]
                 ::xo::write_file $import_file [::base64::decode $file_content]
                 $f set import_file $import_file
