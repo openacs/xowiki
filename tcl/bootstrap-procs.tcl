@@ -540,7 +540,7 @@ namespace eval ::xo::Table {
             </ul>
         " \
       -instproc render-data {line} {
-        set __name [:name]
+        set __name ${:name}
         if {[$line exists $__name.href] &&
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line

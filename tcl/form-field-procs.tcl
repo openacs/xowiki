@@ -383,7 +383,7 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc asWidgetSpec {} {
     set spec ${:widget_type}
-    if {[info exists :spell]} {append spec ",[expr {[:spell] ? {} : {no}}]spell"}
+    if {[info exists :spell]} {append spec ",[expr {${:spell} ? {} : {no}}]spell"}
 
     if {![:required]} {append spec ",optional"}
     if {[info exists :editor]} {append spec " {options {editor ${:editor}}} "}
@@ -1175,7 +1175,7 @@ namespace eval ::xowiki::formfield {
   }
   hidden instproc render_item {} {
     # don't render the labels
-    if {[info exists :sign] && [:sign]} {
+    if {[info exists :sign] && ${:sign}} {
       set token_id [sec_get_random_cached_token_id]
       set secret [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
       if {[info exists :max_age]} {
@@ -1195,7 +1195,7 @@ namespace eval ::xowiki::formfield {
   }
   hidden instproc check=signature {value} {
     set v 1
-    if {[info exists :sign] && [:sign]} {
+    if {[info exists :sign] && ${:sign}} {
       set sig [::xo::cc form_parameter __${:name}:sig]
       set secret  [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
       set v [ad_verify_signature -secret $secret $value $sig]

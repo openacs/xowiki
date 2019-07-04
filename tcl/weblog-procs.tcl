@@ -252,14 +252,14 @@ namespace eval ::xowiki {
         set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $revision_id]
         # in cases, the revision was created already earlier, drop the mixins
         if {[$p info mixin] ne ""} {$p mixin {}}
-        if {[info exists :entry_flag]} {$p set [:entry_flag] 1}
+        if {[info exists :entry_flag]} {$p set ${:entry_flag} 1}
         if {[:no_footer]} {$p set __no_footer 1}
         ad_try {
           $p set description [$p render -with_footer false]
         } on error {errorMsg} {
           $p set description "Render Error ($errorMsg) $revision_id $name $title"
         }
-        if {[info exists :entry_flag]} {$p unset [:entry_flag]}
+        if {[info exists :entry_flag]} {$p unset ${:entry_flag}}
         #:log "--W $p render (mixins=[$p info mixin]) => $description"
       }
       $p set pretty_date $pretty_date

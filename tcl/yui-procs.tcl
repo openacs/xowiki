@@ -443,9 +443,9 @@ namespace eval ::YUI {
             </ul>
         " \
       -instproc get-slots {} {
-        set slots [list -[:name]]
+        set slots [list -${:name}]
         foreach subfield {href title CSSclass target onclick} {
-          lappend slots [list -[:name].$subfield ""]
+          lappend slots [list -${:name}.$subfield ""]
         }
         return $slots
       }
@@ -593,7 +593,7 @@ namespace eval ::xo::Table {
             </ul>
         " \
       -instproc render-data {line} {
-        set __name [:name]
+        set __name ${:name}
         if {[$line exists $__name.href] &&
             [set href [$line set $__name.href]] ne ""} {
           # use the CSS class rather from the Field than not the line

@@ -471,10 +471,10 @@ namespace eval ::xowiki {
         || "::xowiki::PageTemplate" ni [::$item_id info precedence]} {
       error "OK $formName is not suited to be used as template. Should be a Form!"
     }
-    if {[:page_template] == $item_id} {
+    if {${:page_template} == $item_id} {
       :msg "old page_template $item_id is already the same as the new one"
     } else {
-      set msg "change template_id [:page_template] to $item_id"
+      set msg "change template_id ${:page_template} to $item_id"
       :page_template $item_id
       :save
       #:msg "ok $msg"
@@ -1443,7 +1443,7 @@ namespace eval ::xowiki {
       # "ad_html_text_convert" in Page.get_description tend to use
       # forever (at least in Tcl 8.5)
       #
-      set :description "form-usages for ${:name} [:title]"
+      set :description "form-usages for ${:name} ${:title}"
 
       return [:www-view [:include [list form-usages -form_item_id ${:item_id}]]]
     }

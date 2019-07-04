@@ -176,7 +176,7 @@ namespace eval ::xowiki::formfield {
     set values [:value]
     :trim_values
     set r [next]
-    #:msg name=[:name],value=[:get_compound_value]
+    #:msg name=${:name},value=[:get_compound_value]
 
     #
     # remove "unneeded" entries from instance attributes

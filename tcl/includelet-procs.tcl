@@ -3789,7 +3789,7 @@ namespace eval ::xowiki::includelet {
     ::xo::Page requireJS "/resources/xowiki/highcharts/js/highcharts.js"
     ::xo::Page requireJS "/resources/xowiki/highcharts/js/themes/gray.js"
     set result "<div id='[:id]' style='width: 100%; height: 400px'></div>\n"
-    set title [:title]
+    set title ${:title}
     if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
     set id [:id]
     set values [list]

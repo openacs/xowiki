@@ -61,7 +61,7 @@ namespace eval ::xo {
     if {![nsv_exists ${:array}-color idx]} {
       ::xo::clusterwide nsv_set ${:array}-color idx 0
     }
-    if {[:user_id] != 0 || [:session_id] != 0} {
+    if {${:user_id} != 0 || [:session_id] != 0} {
       :init_user_color
     }
     :set_options

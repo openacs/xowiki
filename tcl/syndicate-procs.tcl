@@ -272,7 +272,7 @@ namespace eval ::xowiki {
     set last_user ""
     set last_item ""
     set last_clock ""
-    if {[info exists :user_id]} { append where_clause " and o.creation_user = [:user_id] " }
+    if {[info exists :user_id]} { append where_clause " and o.creation_user = ${:user_id} " }
     if {[info exists :limit]} { set limit  [:limit] }
 
     ::xo::OrderedComposite items -destroy_on_cleanup

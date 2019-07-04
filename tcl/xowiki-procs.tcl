@@ -752,7 +752,7 @@ namespace eval ::xowiki {
     # associative list (attribute/value pairs) for form-field attributes.
     #
     #foreach f $form_fields {lappend fns [list [$f name] [$f info class]]}
-    #:msg "page [:name] build_instance_attribute_map $fns"
+    #:msg "page ${:name} build_instance_attribute_map $fns"
     if {![info exists :__instance_attribute_map]} {
       set :__instance_attribute_map [dict create]
     }
@@ -760,11 +760,11 @@ namespace eval ::xowiki {
       set multiple [expr {[$f exists multiple] ? [$f set multiple] : 0}]
       #:msg "$f [$f name] cat_tree [$f exists category_tree] is fc: [$f exists is_category_field]"
       if {[$f exists category_tree] && [$f exists is_category_field]} {
-        #:msg "page [:name] field [$f name] is a category_id from [$f category_tree]"
+        #:msg "page ${:name} field [$f name] is a category_id from [$f category_tree]"
         dict set :__instance_attribute_map [$f name] [list category [$f category_tree] $multiple]
         :category_export [$f category_tree]
       } elseif {[$f exists is_party_id]} {
-        #:msg "page [:name] field [$f name] is a party_id"
+        #:msg "page ${:name} field [$f name] is a party_id"
         dict set :__instance_attribute_map [$f name] [list party_id $multiple]
       } elseif {[$f istype "::xowiki::formfield::file"]} {
         dict set :__instance_attribute_map [$f name] [list file 0]
@@ -877,7 +877,7 @@ namespace eval ::xowiki {
     # method.
     #
     if {[info exists :__instance_attribute_map]} {
-      # :log "+++ we have an instance_attribute_map for [:name]"
+      # :log "+++ we have an instance_attribute_map for ${:name}"
       # :log "+++ starting with instance_attributes [:instance_attributes]"
       array set multiple_index [list category 2 party_id 1 file 1]
       set ia [list]
@@ -1018,22 +1018,22 @@ namespace eval ::xowiki {
     # default value
     if {![info exists :page_order]} {set :page_order ""}
     set is_folder_page [:is_folder_page]
-    #:msg "is-folder-page [:name] => $is_folder_page"
+    #:msg "is-folder-page ${:name} => $is_folder_page"
     if {$is_folder_page} {
       # reset names if necessary (e.g. import from old releases)
       set :name [:build_name]
     } else {
       # Check, if nls_language and lang are aligned.
-      if {[regexp {^(..):} [:name] _ lang]} {
+      if {[regexp {^(..):} ${:name} _ lang]} {
         if {[string range [:nls_language] 0 1] ne $lang} {
           set old_nls_language [:nls_language]
           :nls_language [:get_nls_language_from_lang $lang]
-          ns_log notice "nls_language for item [:name] set from $old_nls_language to [:nls_language]"
+          ns_log notice "nls_language for item ${:name} set from $old_nls_language to [:nls_language]"
         }
       }
     }
     # in the general case, no more actions required
-    #:msg "demarshall [:name] DONE"
+    #:msg "demarshall ${:name} DONE"
   }
 
   File instproc demarshall {args} {
@@ -1090,7 +1090,7 @@ namespace eval ::xowiki {
     # mapped here again to internal representations
     :upvar $category_ids_name category_ids
     if {[info exists ::__xowiki_reverse_category_map($value)]} {
-      #:msg "map value '$value' (category tree: $use($name)) of [:name] to an ID"
+      #:msg "map value '$value' (category tree: $use($name)) of ${:name} to an ID"
       lappend category_ids $::__xowiki_reverse_category_map($value)
       return $::__xowiki_reverse_category_map($value)
     } elseif {$map_type eq "party_id"} {
@@ -1102,7 +1102,7 @@ namespace eval ::xowiki {
       return ""
     } else {
       :msg "cannot map value '$value' (map_type $map_type)\
-        of [:name] to an ID; maybe there is some\
+        of ${:name} to an ID; maybe there is some\
         same_named category tree with fewer entries..."
       :msg "reverse category map has values [lsort [array names ::__xowiki_reverse_category_map]]"
       return ""
@@ -1117,7 +1117,7 @@ namespace eval ::xowiki {
     # to categorize this objects in the source instance.
     set category_ids [list]
 
-    #:msg "[:name] check cm=[info exists ::__xowiki_reverse_category_map] && iam=[info exists :__instance_attribute_map]"
+    #:msg "${:name} check cm=[info exists ::__xowiki_reverse_category_map] && iam=[info exists :__instance_attribute_map]"
 
     if {[info exists ::__xowiki_reverse_category_map]
         && [info exists :__instance_attribute_map]
@@ -1152,7 +1152,7 @@ namespace eval ::xowiki {
         }
       }
       set :instance_attributes $ia
-      #:msg  "[:name] saving instance_attributes $ia"
+      #:msg  "${:name} saving instance_attributes $ia"
     }
     set r [next]
     set :__category_ids [lsort -unique $category_ids]
@@ -1355,7 +1355,7 @@ namespace eval ::xowiki {
     return 0
   }
   FormPage instproc is_folder_page {{-include_folder_links true}} {
-    set page_template_name [[:page_template] name]
+    set page_template_name [${:page_template} name]
     if {$page_template_name eq "en:folder.form"} {return 1}
     if {$include_folder_links && $page_template_name eq "en:link.form"} {
       set link_type [:get_property_from_link_page link_type]
@@ -1969,7 +1969,7 @@ namespace eval ::xowiki {
     if {$page_name ne ""} {
       set page [::${:package_id} resolve_page_name_and_init_context -lang [:lang] $page_name]
       if {$page eq ""} {
-        error "Cannot find page '$page_name' to be included in page '[:name]'"
+        error "Cannot find page '$page_name' to be included in page '${:name}'"
       }
     } else {
       set page [self]
@@ -2275,7 +2275,7 @@ namespace eval ::xowiki {
     # return the pretty_link for the current page
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
-        -lang $lang -download $download -page [self] [:name]
+        -lang $lang -download $download -page [self] ${:name}
   }
 
   Page instproc detail_link {} {
@@ -2391,7 +2391,7 @@ namespace eval ::xowiki {
                              [dict get $link_info link]]
     }
     #ns_log notice "link_info $link_info"
-    #ns_log notice "--L link <$arg> lang [:lang] CURRENT [:name] nls_lang ${:nls_language} -> item_ref_info $item_ref_info"
+    #ns_log notice "--L link <$arg> lang [:lang] CURRENT ${:name} nls_lang ${:nls_language} -> item_ref_info $item_ref_info"
 
     #:log "link '[dict get $link_info link]' package_id $package_id ${:package_id} => [array get {}]"
 
@@ -2445,7 +2445,7 @@ namespace eval ::xowiki {
     if {[info exists object_type]} {
       next
     } else {
-      set template_id [:page_template]
+      set template_id ${:page_template}
       if {![info exists parent_id]} {
         set parent_id [::$page_package_id folder_id]
       }
@@ -2559,7 +2559,7 @@ namespace eval ::xowiki {
     # The provided content and the returned result are strings
     # containing HTML.
     #
-    #:msg "--adp_subst in [:name] vars=[:info vars]"
+    #:msg "--adp_subst in ${:name} vars=[:info vars]"
     foreach __v [:info vars] {
       if {[info exists $__v]} continue
       #ns_log notice "import instvar $__v into current scope"
@@ -2842,7 +2842,7 @@ namespace eval ::xowiki {
     }
     # unset -nocomplain :__references
     #
-    #:log "Page [:name] render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
+    #:log "Page ${:name} render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
     #
     # handle footer
     #
@@ -2926,7 +2926,7 @@ namespace eval ::xowiki {
   #
   Page instproc notification_detail_link {} {
     set link [:pretty_link -absolute 1]
-    append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml [:title]]</a></p>"
+    append html "<p>For more details, see <a href='[ns_quotehtml $link]'>[ns_quotehtml ${:title}]</a></p>"
     append text "\nFor more details, see $link ...\n"
     return [list html $html text $text]
   }
@@ -2938,9 +2938,9 @@ namespace eval ::xowiki {
   #
   Page instproc notification_subject {-instance_name {-category_label ""} -state} {
     if {$category_label eq ""} {
-      return "\[$instance_name\]: [:title] ($state)"
+      return "\[$instance_name\]: ${:title} ($state)"
     } else {
-      return "\[$instance_name\] $category_label: [:title] ($state)"
+      return "\[$instance_name\] $category_label: ${:title} ($state)"
     }
   }
 
@@ -3210,7 +3210,7 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $f copy_content_vars -from_object $source
-      set name "[::xowiki::autoname new -parent_id $source_item_id -name [:name]]"
+      set name "[::xowiki::autoname new -parent_id $source_item_id -name ${:name}]"
       ::$package_id get_lang_and_name -name $name lang name
       $f set name $name
       #:msg nls=[$f nls_language],source-nls=[$source nls_language]
@@ -3220,7 +3220,7 @@ namespace eval ::xowiki {
     }
 
     # Finally provide base for auto-titles
-    $f set __title_prefix [:title]
+    $f set __title_prefix ${:title}
 
     return $f
   }
@@ -3540,7 +3540,7 @@ namespace eval ::xowiki {
       set name ""
     }
 
-    return [append name [::xowiki::utility formCSSclass [:name]]]
+    return [append name [::xowiki::utility formCSSclass ${:name}]]
   }
 
   #
@@ -3585,7 +3585,7 @@ namespace eval ::xowiki {
   PageInstance instproc get_short_spec {name} {
     #set form_constraints [:get_from_template form_constraints]
     set form_constraints [:get_form_constraints]
-    #:msg "fc of [self] [:name] = $form_constraints"
+    #:msg "fc of [self] ${:name} = $form_constraints"
     if {$form_constraints ne ""} {
       set s [::xowiki::PageInstance get_short_spec_from_form_constraints \
                  -name $name -form_constraints $form_constraints]
@@ -3643,7 +3643,7 @@ namespace eval ::xowiki {
   }
 
   PageInstance instproc get_template_object {} {
-    set id [:page_template]
+    set id ${:page_template}
     if {![:isobject ::$id]} {
       ::xo::db::CrClass get_instance_from_db -item_id $id
     }
@@ -3689,7 +3689,7 @@ namespace eval ::xowiki {
     # The resulting page should be either a Form (PageTemplate) or
     # a FormPage (PageInstance)
     #
-    #:msg "parent of self [:name] is [$form_obj name] type [$form_obj info class]"
+    #:msg "parent of self ${:name} is [$form_obj name] type [$form_obj info class]"
     #
     # If it is as well a PageInstance, we find the information in the
     # properties of this page. Note that we cannot distinguish here between
@@ -3731,7 +3731,7 @@ namespace eval ::xowiki {
   PageInstance instproc render_content {} {
     set html [:get_html_from_content [:get_from_template text]]
     set html [:adp_subst $html]
-    return "<div class='[[:page_template] css_class_name -margin_form false]'>[:substitute_markup $html]</div>"
+    return "<div class='[${:page_template} css_class_name -margin_form false]'>[:substitute_markup $html]</div>"
   }
   PageInstance instproc template_vars {content} {
     set result [list]
@@ -3953,9 +3953,9 @@ namespace eval ::xowiki {
   # Methods of ::xowiki::FormPage
   #
   FormPage instproc initialize_loaded_object {} {
-    #:msg "[:name] [:info class]"
+    #:msg "${:name} [:info class]"
     if {[info exists :page_template]} {
-      set p [::xo::db::CrClass get_instance_from_db -item_id [:page_template]]
+      set p [::xo::db::CrClass get_instance_from_db -item_id ${:page_template}]
       #
       # The Form might come from a different package type (e.g. a
       # workflow) make sure, the source package is available.
@@ -4513,9 +4513,9 @@ namespace eval ::xowiki {
       set is_form [:property is_form__ 0]
       if {[:is_form]} {
         return [:include [list form-menu -form_item_id ${:item_id} \
-                              -buttons [list new answers [list form [:page_template]]]]]
+                              -buttons [list new answers [list form ${:page_template}]]]]
       } else {
-        return [:include [list form-menu -form_item_id [:page_template] -buttons form]]
+        return [:include [list form-menu -form_item_id ${:page_template} -buttons form]]
       }
     }
   }
@@ -4574,7 +4574,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_icon {} {
-    set page_template [:page_template]
+    set page_template ${:page_template}
     if {[$page_template istype ::xowiki::FormPage]} {
       return [list text [$page_template property icon_markup] is_richtext true]
     }
@@ -4597,19 +4597,19 @@ namespace eval ::xowiki {
   }
 
   Page instproc pretty_name {} {
-    return [:name]
+    return ${:name}
   }
 
   FormPage instproc pretty_name {} {
     set anon_instances [:get_from_template anon_instances f]
     if {$anon_instances} {
-      return [:title]
+      return ${:title}
     }
-    return [:name]
+    return ${:name}
   }
 
   File instproc pretty_name {} {
-    set name [:name]
+    set name ${:name}
     regsub {^file:} $name "" name
     return $name
   }
@@ -4742,7 +4742,7 @@ namespace eval ::xowiki {
     # page. Since the group_names are global, the group name contains
     # the parent_id of the FormPage.
     #
-    set group_name "fpg-${:parent_id}-[:name]"
+    set group_name "fpg-${:parent_id}-${:name}"
     set group_id [group::get_id -group_name $group_name]
     if {$group_id eq ""} {
       # group::new does not flush the cache - sigh!  Therefore we have
