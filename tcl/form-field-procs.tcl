@@ -970,7 +970,7 @@ namespace eval ::xowiki::formfield {
                                -file_name $fn \
                                -content_type $content_type \
                                -package_id $package_id \
-                               -parent_id [dict get $entry_info parent_id[ \
+                               -parent_id [dict get $entry_info parent_id] \
                                -object_name $object_name \
                                -tmpfile $tmpfile \
                                -publish_date_cmd $publish_date_cmd \
