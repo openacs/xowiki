@@ -554,7 +554,7 @@ namespace eval ::xowiki {
         set found_id 0
       }
     }
-    :log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
+    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
     if {$download} {
       #
       # Use the special download (file) syntax.
