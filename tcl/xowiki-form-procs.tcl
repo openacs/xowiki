@@ -243,7 +243,9 @@ namespace eval ::xowiki {
     set old_name [$cc form_parameter __object_name ""]
     #$data msg "validate: old='$old_name', current='$name'"
 
-    if {[$data istype ::xowiki::File] && [$data exists mime_type]} {
+    if {[$data istype ::xowiki::File] &&
+        [$data exists upload_file] &&
+        [$data exists mime_type]} {
       #$data log "--mime validate_name MIME [$data set mime_type]"
       set name [$data build_name $name [$data set upload_file]]
       #
