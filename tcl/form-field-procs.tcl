@@ -695,7 +695,7 @@ namespace eval ::xowiki::formfield {
     }
     set l [::xowiki::Link create new -destroy_on_cleanup \
                -page ${:object} -type "image" -lang $(prefix) \
-               -stripped_name $(stripped_name) label $label \
+               -stripped_name $(stripped_name) -label $label \
                -parent_id $(parent_id) -item_id $(item_id)]
 
     if {[:istype file]} {
