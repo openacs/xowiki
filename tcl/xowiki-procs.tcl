@@ -1224,6 +1224,7 @@ namespace eval ::xowiki {
     array set excluded_var {
       folder_id 1 package_id 1 absolute_links 1 lang_links 1 modifying_user 1
       publish_status 1 item_id 1 revision_id 1 last_modified 1
+      parent_id 1
     }
     foreach var [$from_object info vars] {
       # don't copy vars starting with "__"
