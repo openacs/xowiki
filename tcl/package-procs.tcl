@@ -547,9 +547,10 @@ namespace eval ::xowiki {
       #      folder [$page is_folder_page] link [$page is_link_page]"
       #
       # Do NOT add a language prefix for folders, links and newborn
-      # pages.
+      # pages, or if the name lookup found exactly the page we were
+      # pointing to.
       #
-      if {[$page is_folder_page] || [$page is_link_page] || $name eq [$page revision_id]} {
+      if {$found_id == [$page item_id] || [$page is_folder_page] || [$page is_link_page] || $name eq [$page revision_id]} {
         #:log "... on the folder or newborn page."
         set found_id 0
       }
