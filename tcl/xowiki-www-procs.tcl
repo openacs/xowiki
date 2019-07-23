@@ -467,7 +467,7 @@ namespace eval ::xowiki {
       error "cannot lookup page $formName"
     }
     ::xo::db::CrClass get_instance_from_db -item_id $item_id
-    if {[info commands ::$item_id] eq ""
+    if {![nsf::is object ::$item_id]
         || "::xowiki::PageTemplate" ni [::$item_id info precedence]} {
       error "OK $formName is not suited to be used as template. Should be a Form!"
     }
