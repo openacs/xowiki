@@ -502,7 +502,7 @@ namespace eval ::xowiki {
       }
       set folder [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
       set pkg [::$parent_id package_id]
-      if {![:isobject ::$pkg]} {
+      if {![nsf::is object ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
       }
       set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
@@ -2771,7 +2771,7 @@ namespace eval ::xowiki {
       next
     } else {
       set key [list ${:id} [self proc] $attribute]
-      if {[info commands "::xo::cc"] ne ""} {
+      if {[nsf::is object "::xo::cc"]} {
         if {[::xo::cc cache_exists $key]} {
           return [::xo::cc cache_get $key]
         }

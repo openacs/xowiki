@@ -3822,14 +3822,14 @@ namespace eval ::xowiki::formfield {
     # Set the internal representation of the date based on the components values.
     # Internally, the ansi date format is used.
     set year ""; set month ""; set day ""; set hour ""; set min ""; set sec ""
-    if {[:isobject [self]::YYYY]}  {set year  [[self]::YYYY  value]}
-    if {[:isobject [self]::month]} {set month [[self]::month value]}
-    if {[:isobject [self]::mon]}   {set month [[self]::mon   value]}
-    if {[:isobject [self]::MM]}    {set month [[self]::MM    value]}
-    if {[:isobject [self]::DD]}    {set day   [[self]::DD    value]}
-    if {[:isobject [self]::HH24]}  {set hour  [[self]::HH24  value]}
-    if {[:isobject [self]::MI]}    {set min   [[self]::MI    value]}
-    if {[:isobject [self]::SS]}    {set sec   [[self]::SS    value]}
+    if {[nsf::is object [self]::YYYY]}  {set year  [[self]::YYYY  value]}
+    if {[nsf::is object [self]::month]} {set month [[self]::month value]}
+    if {[nsf::is object [self]::mon]}   {set month [[self]::mon   value]}
+    if {[nsf::is object [self]::MM]}    {set month [[self]::MM    value]}
+    if {[nsf::is object [self]::DD]}    {set day   [[self]::DD    value]}
+    if {[nsf::is object [self]::HH24]}  {set hour  [[self]::HH24  value]}
+    if {[nsf::is object [self]::MI]}    {set min   [[self]::MI    value]}
+    if {[nsf::is object [self]::SS]}    {set sec   [[self]::SS    value]}
     if {"$year$month$day$hour$min$sec" eq ""} {
       return ""
     }

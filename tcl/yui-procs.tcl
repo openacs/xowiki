@@ -555,8 +555,8 @@ namespace eval ::xo::Table {
 
   YUIDataTableRenderer instproc render {} {
     ::YUI::loader require -module "datatable"
-    if {![:isobject [self]::__actions]} {:actions {}}
-    if {![:isobject [self]::__bulkactions]} {:__bulkactions {}}
+    if {![nsf::is object [self]::__actions]} {:actions {}}
+    if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]

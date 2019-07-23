@@ -248,7 +248,7 @@ namespace eval ::xowiki {
         $p set instance_attributes $instance_attributes
       } else {
         # do full instantiation and rendering
-        # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[:isobject ::$revision_id]"
+        # ns_log notice "--Render object revision_id = $revision_id $name $title ::$revision_id?[nsf::is object ::$revision_id]"
         set p [::xo::db::CrClass get_instance_from_db -item_id 0 -revision_id $revision_id]
         # in cases, the revision was created already earlier, drop the mixins
         if {[$p info mixin] ne ""} {$p mixin {}}

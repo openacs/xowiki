@@ -1745,7 +1745,7 @@ namespace eval ::xowiki::includelet {
       #
       # Some (dynammic) pages are volatile, skip these as well
       #
-      if {[info commands $page] ne ""} {
+      if {[nsf::is object $page]} {
         set unresolved [$page references get unresolved]
         if {$unresolved ne ""} {
           #ns_log notice "[$page name] contains unresolved: <$unresolved>"
@@ -2399,7 +2399,7 @@ namespace eval ::xowiki::includelet {
     #
     # Call a render on the created structure
     #
-    if {[info commands ::__xowiki__MenuBar] ne "" && ${:include_in_foldertree}} {
+    if {[nsf::is object ::__xowiki__MenuBar] && ${:include_in_foldertree}} {
       ::__xowiki__MenuBar additional_sub_menu -kind folder -pages $pages -owner [self]
     }
     #

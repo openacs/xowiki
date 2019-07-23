@@ -1614,7 +1614,7 @@ namespace eval ::xowiki {
       return [next]
     }
 
-    if {![::xotcl::Object isobject $object]} {
+    if {![nsf::is object $object]} {
       # if the object does not yet exist, we have to create it
       :create $object
     }
@@ -1893,7 +1893,7 @@ namespace eval ::xowiki {
     #
     set parent_id ${:parent_id}
     if {$parent_id > 0} {
-      if {! [:isobject ::$parent_id] } {
+      if {! [nsf::is object ::$parent_id] } {
         ::xo::db::CrClass get_instance_from_db -item_id $parent_id
       }
       return ::$parent_id
@@ -3373,7 +3373,7 @@ namespace eval ::xowiki {
     # In case, the switch is activated, and we have a menubar, add the
     # top level section
     #
-    if {$add_sections_to_folder_tree && [info commands ::__xowiki__MenuBar] ne ""} {
+    if {$add_sections_to_folder_tree && [nsf::is object ::__xowiki__MenuBar]} {
       $owner set book_mode 1
       set pages [::xo::OrderedComposite new -destroy_on_cleanup]
       if {$add_sections_to_folder_tree == 1} {
@@ -3645,7 +3645,7 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_template_object {} {
     set id ${:page_template}
-    if {![:isobject ::$id]} {
+    if {![nsf::is object ::$id]} {
       ::xo::db::CrClass get_instance_from_db -item_id $id
     }
     return ::$id
@@ -3797,7 +3797,7 @@ namespace eval ::xowiki {
 
   Object instproc set_payload {cmd} {
     set payload [self]::payload
-    if {[:isobject $payload]} {$payload destroy}
+    if {[nsf::is object $payload]} {$payload destroy}
     ::xo::Context create $payload -requireNamespace \
         -actual_query [::xo::cc actual_query]
     $payload set package_id ${:package_id}
@@ -3812,7 +3812,7 @@ namespace eval ::xowiki {
 
   Object instproc get_payload {var {default ""}} {
     set payload [self]::payload
-    if {![:isobject $payload]} {
+    if {![nsf::is object $payload]} {
       ::xo::Context create $payload -requireNamespace
     }
     expr {[$payload exists $var] ? [$payload set $var] : $default}

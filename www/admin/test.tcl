@@ -152,7 +152,7 @@ test subsection "Basic Setup: Package, url= /$instance_name/"
 
 ? {info exists package_id} 1 "package_id is exported"
 ? {set package_id} $info(package_id) "package_id right value"
-? {::xotcl::Object isobject ::$package_id} 1 "we have a package_id object"
+? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/
 ? {$package_id id} $package_id "the id of the package object = package_id"
@@ -165,7 +165,7 @@ test subsection "Basic Setup: Folder Object"
 
 ? {$package_id exists folder_id} 1 "folder_id is set"
 set folder_id [::$package_id folder_id]
-? {::xotcl::Object isobject ::$folder_id} 1 "we have a folder object"
+? {nsf::is object ::$folder_id} 1 "we have a folder object"
 ? {::$folder_id name} "xowiki: $package_id" "name of folder object is 'xowiki: $package_id'"
 ? {::$folder_id parent_id} -100  "parent_id of folder object is -100"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
@@ -181,7 +181,7 @@ test subsection "Create and Render Index Page"
 set object [::$package_id set object]
 set page_item_id [::$package_id resolve_page $object $m]
 ? {expr {$page_item_id ne ""}} 1 "index page resolved"
-? {::xotcl::Object isobject ::$page_item_id} 1 "we have a page object"
+? {nsf::is object ::$page_item_id} 1 "we have a page object"
 ? {expr {[::$page_item_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$page_item_id revision_id]>0}} 1 "revision_id given"
 ? {::$page_item_id parent_id} $folder_id "parent_id of page object is folder_id"
@@ -223,7 +223,7 @@ test section "New Query: /$instance_name/en/index"
 
 ? {info exists package_id} 1 "package_id is exported"
 ? {set package_id} $info(package_id) "package_id right value"
-? {::xotcl::Object isobject ::$package_id} 1 "we have a package_id object"
+? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/en/index "url"
 ? {$package_id id} $package_id "the id of the package object = package_id"
@@ -250,7 +250,7 @@ test section "New Query: /$instance_name/"
 
 ? {info exists package_id} 1 "package_id is exported"
 ? {set package_id} $info(package_id) "package_id right value"
-? {::xotcl::Object isobject ::$package_id} 1 "we have a package_id object"
+? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/ "url"
 ? {$package_id id} $package_id "the id of the package object = package_id"
@@ -260,7 +260,7 @@ test subsection "Basic Setup: Folder Object (2nd)"
 ##################################################
 ? {$package_id exists folder_id} 1 "folder_id is set"
 set folder_id [::$package_id folder_id]
-? {::xotcl::Object isobject ::$folder_id} 1 "we have a folder object"
+? {nsf::is object ::$folder_id} 1 "we have a folder object"
 ? {::$folder_id name} "xowiki: $package_id" "name of folder object is 'xowiki: $package_id'"
 ? {::$folder_id parent_id} -100  "parent_id of folder object is -100"
 ? {expr {[::$folder_id item_id]>0}} 1 "item_id given"
@@ -276,7 +276,7 @@ test subsection "Render Index Page (2nd)"
 set object [::$package_id set object]
 set page_item_id [::$package_id resolve_page $object $m]
 ? {expr {$page_item_id ne ""}} 1 "index page resolved"
-? {::xotcl::Object isobject ::$page_item_id} 1 "we have a page object"
+? {nsf::is object ::$page_item_id} 1 "we have a page object"
 ? {expr {[::$page_item_id item_id]>0}} 1 "item_id given"
 ? {expr {[::$page_item_id revision_id]>0}} 1 "revision_id given"
 ? {::$page_item_id parent_id} $folder_id "parent_id of page object is folder_id"

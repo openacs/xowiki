@@ -215,10 +215,10 @@ namespace eval ::xowiki {
           if {[$o istype ::xowiki::PageInstance]} {
             #:msg "importing [$o name] page_instance, map $template_name_key to $name_map($template_name_key)"
             $o page_template $name_map($template_name_key)
-            #:msg "exists template? [:isobject [$o page_template]]"
-            if {![:isobject [$o page_template]]} {
+            #:msg "exists template? [nsf::is object [$o page_template]]"
+            if {![nsf::is object [$o page_template]]} {
               ::xo::db::CrClass get_instance_from_db -item_id [$o page_template]
-              #:msg "[:isobject [$o page_template]] loaded"
+              #:msg "[nsf::is object [$o page_template]] loaded"
             }
           }
 
@@ -261,7 +261,7 @@ namespace eval ::xowiki {
     #
     # final cleanup
     #
-    foreach o $objects {if {[::xotcl::Object isobject $o]} {$o destroy}}
+    foreach o $objects {if {[nsf::is object $o]} {$o destroy}}
 
     ${:package_id} flush_page_fragment_cache
   }

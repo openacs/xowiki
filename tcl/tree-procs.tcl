@@ -55,7 +55,7 @@ namespace eval ::xowiki {
     {-open_item:boolean false}
   } {
     set items ${category}::items
-    if {![:isobject $items]} {
+    if {![nsf::is object $items]} {
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
         if {$orderby eq "page_order"} {
@@ -153,7 +153,7 @@ namespace eval ::xowiki {
 
   TreeNode instproc some_child_has_items {} {
     foreach i [:children] {
-      if {[:isobject ${i}::items]} {return 1}
+      if {[nsf::is object ${i}::items]} {return 1}
       if {[$i some_child_has_items]} {return 1}
     }
     return 0
@@ -161,7 +161,7 @@ namespace eval ::xowiki {
 
   TreeNode instproc render {} {
     set content ""
-    if {[:isobject [self]::items]} {
+    if {[nsf::is object [self]::items]} {
       foreach i [[self]::items children] {
         append cat_content [:render_item -highlight [$i exists open_item] $i ]
       }
@@ -174,7 +174,7 @@ namespace eval ::xowiki {
 
     }
     if {${:verbose}} {
-      :log "TreeNode items [:isobject [self]::items] render open_requests ${:open_requests} -> $content"
+      :log "TreeNode items [nsf::is object [self]::items] render open_requests ${:open_requests} -> $content"
     }
     return $content
   }

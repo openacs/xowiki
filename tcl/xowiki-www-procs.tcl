@@ -1702,7 +1702,7 @@ namespace eval ::xowiki {
 
     set template_file [ns_normalizepath [:query_parameter "template_file" \
                                              [::$context_package_id get_parameter template_file view-default]]]
-    if {[:isobject ::xowiki::$template_file]} {
+    if {[nsf::is object ::xowiki::$template_file]} {
       $template_file before_render [self]
     }
 
@@ -1755,7 +1755,7 @@ namespace eval ::xowiki {
     # The menubar is work in progress
     #
     set mb [::$context_package_id get_parameter "MenuBar" 0]
-    if {$mb ne "0" && [info commands ::xowiki::MenuBar] ne ""} {
+    if {$mb ne "0" && [nsf::is object ::xowiki::MenuBar]} {
 
       set clipboard_size [::xowiki::clipboard size]
       set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
@@ -2116,7 +2116,7 @@ namespace eval ::xowiki {
   Page proc find_slot {-start_class:required name} {
     foreach cl [list $start_class {*}[$start_class info heritage]] {
       set slotobj ${cl}::slot::$name
-      if {[:isobject $slotobj]} {
+      if {[nsf::is object $slotobj]} {
         #:msg $slotobj
         return $slotobj
       }

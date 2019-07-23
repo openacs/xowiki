@@ -53,7 +53,7 @@ ad_form \
 	# cleanup all objects, that did not exist before
         foreach o [::xowiki::Page allinstances] {
 	  if {![info exists preexists($o)]} {
-	    if {[::xotcl::Object isobject $o]} {$o destroy}
+	    if {[nsf::is object $o]} {$o destroy}
 	  }
         }
       } on ok {r} {
@@ -74,7 +74,7 @@ ad_form \
         } finally {
           # Make sure objects have been cleaned up
           foreach o $objects {
-            if {[::xotcl::Object isobject $o]} {
+            if {[nsf::is object $o]} {
               $o destroy
             }
           }

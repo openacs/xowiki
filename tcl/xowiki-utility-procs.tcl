@@ -488,7 +488,7 @@ namespace eval ::xowiki {
   } {
     ns_log notice "got package_id=$package_id, object_id=$object_id, type=$type"
     ::xowiki::Package initialize -package_id $package_id
-    if {[::xotcl::Object isobject ::$package_id]} {
+    if {[nsf::is object ::$package_id]} {
       return [::$package_id package_url]
     } else {
       return ""

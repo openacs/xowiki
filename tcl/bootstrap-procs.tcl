@@ -494,8 +494,8 @@ namespace eval ::xo::Table {
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
     
-    if {![:isobject [self]::__actions]} {:actions {}}
-    if {![:isobject [self]::__bulkactions]} {:__bulkactions {}}
+    if {![nsf::is object [self]::__actions]} {:actions {}}
+    if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]

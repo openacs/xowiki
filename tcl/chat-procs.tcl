@@ -381,7 +381,7 @@ namespace eval ::xowiki {
   ::xo::ChatClass create Chat -superclass ::xo::Chat
 
   ::xo::ChatClass proc is_chat_p {class} {
-    return [expr {[:isobject $class] && [$class class] eq [self]}]
+    return [expr {[nsf::is object $class] && [$class class] eq [self]}]
   }
 
   ::xo::ChatClass instproc get_mode {} {

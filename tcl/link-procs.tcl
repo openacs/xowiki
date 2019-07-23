@@ -207,7 +207,7 @@ namespace eval ::xowiki {
       set package_id [site_node::get_children -node_id $a -package_key xowiki \
                           -filters [list name $name] -element package_id]
       if {$package_id ne ""} {
-        #:log "--LINK found package_id=$package_id [:isobject ::$package_id]"
+        #:log "--LINK found package_id=$package_id [nsf::is object ::$package_id]"
         ::xowiki::Package require $package_id
         return $package_id
       }
