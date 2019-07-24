@@ -501,8 +501,7 @@ namespace eval ::xowiki::includelet {
 
   child-resources instproc types_to_show {} {
     :get_parameters
-    foreach type [split $show_types ,] {set ($type) 1}
-    return [lsort [array names ""]]
+    return [lsort -unique [split $show_types ,]]
   }
 
   child-resources instproc render {} {
