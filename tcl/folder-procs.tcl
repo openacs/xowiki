@@ -549,7 +549,8 @@ namespace eval ::xowiki::includelet {
     }
 
     ::$package_id instvar package_key
-    set return_url [ad_return_url -default_url [$current_folder pretty_link]]
+    set current_folder_pretty_link [$current_folder pretty_link]
+    set return_url [ad_return_url -default_url $current_folder_pretty_link]
     set category_url [export_vars -base [::$package_id package_url] {
       {manage-categories 1} {object_id $package_id}
     }]
@@ -567,7 +568,9 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
     # unexisting csrf token usually means we are outside a connection thread
     set csrf [expr {[info exists ::__csrf_token] ? [list __csrf_token $::__csrf_token] : ""}]
-    set ::__xowiki_folder_link [::$package_id make_link $current_folder bulk-delete $csrf]
+    set ::__xowiki_folder_link [::$package_id make_link \
+                                    -link $current_folder_pretty_link \
+                                    $current_folder bulk-delete $csrf]
     switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}

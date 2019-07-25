@@ -58,7 +58,7 @@ namespace eval ::xowiki {
       :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
       ${:package_id} www-delete -item_id $item_id
     }
-    ${:package_id} returnredirect .
+    ${:package_id} returnredirect [:pretty_link]
   }
 
   #
