@@ -538,23 +538,20 @@ namespace eval ::xowiki {
     # between folder and page in ambiguous cases.
     #
     if {$found_id != 0 && $page eq ""} {
-      ns_log notice "have to fetch target page. You should provide '-page' to pretty_link"
+      #ad_log warning "have to fetch target page. You should provide '-page' to pretty_link"
       set page [::xo::db::CrClass get_instance_from_db -item_id $found_id]
     }
 
     if {$found_id != 0 && $page ne ""} {
-      # :log "... named page <$name> exists <$found_id [$found_id name]), provided page <$page [$page name]>\
-      #      folder [$page is_folder_page] link [$page is_link_page]"
       #
-      # Do NOT add a language prefix for folders, links and newborn
-      # pages, or if the name lookup found exactly the page we were
-      # pointing to.
+      # Do never add a language prefix for certain pages
       #
-      if {$found_id == [$page item_id] || [$page is_folder_page] || [$page is_link_page] || $name eq [$page revision_id]} {
-        #:log "... on the folder or newborn page."
+      if {[$page is_unprefixed]} {
+        #:log "... $page is unprefixed"
         set found_id 0
       }
     }
+
     #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
     if {$download} {
       #

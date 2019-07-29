@@ -850,10 +850,11 @@ namespace eval ::xowiki::includelet {
             "select ci.item_id, ci.name, ci.parent_id, r.title, category_id $order_column from $sql" {
               if {$title eq ""} {set title $name}
               set itemobj [Object new]
-              set prefix ""
-              set suffix ""
-              foreach var {name title prefix suffix page_order} {$itemobj set $var [set $var]}
-              $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]
+              $itemobj mset [list \
+                                 name $name title $title prefix "" suffix "" \
+                                 page_order $page_order \
+                                 href [::$package_id pretty_link -parent_id $parent_id $name] \
+                                ]
               $cattree(0) add_item \
                   -category $category($category_id) \
                   -itemobj $itemobj \
@@ -947,10 +948,12 @@ namespace eval ::xowiki::includelet {
       }
       if {$prefix ne ""} {set prefix "<span class='date'>$prefix</span>";$itemobj set encoded(prefix) 1}
       if {$suffix ne ""} {set suffix "<span class='date'>$suffix</span>";$itemobj set encoded(suffix) 1}
-      foreach var {name title prefix suffix} {$itemobj set $var [set $var]}
-      $itemobj set href [::$package_id pretty_link -parent_id $parent_id $name]
 
-      if {![info exists categories($category_id)]} {
+      $itemobj mset [list \
+                         name $name title $title prefix $prefix suffix $suffix \
+                         href [::$package_id pretty_link -parent_id $parent_id $name] \
+                        ]
+            if {![info exists categories($category_id)]} {
         set categories($category_id) [::xowiki::TreeNode new \
                                           -label [category::get_name $category_id $locale] \
                                           -level 1]
@@ -1092,12 +1095,12 @@ namespace eval ::xowiki::includelet {
 
     xo::dc foreach get_pages \
         [::xo::dc select \
-             -vars "i.parent_id, r.title,i.name, to_char(time,'YYYY-MM-DD HH24:MI:SS') as visited_date" \
+             -vars "i.parent_id, r.title,i.name, x.time" \
              -from "xowiki_last_visited x, xowiki_page p, cr_items i, cr_revisions r"  \
              -where "x.page_id = i.item_id and i.live_revision = p.page_id  \
         and r.revision_id = p.page_id and x.user_id = [::xo::cc set untrusted_user_id] \
-        and x.package_id = :package_id  and i.publish_status <> 'production'" \
-             -orderby "visited_date desc" \
+        and x.package_id = :package_id and i.publish_status <> 'production'" \
+             -orderby "x.time desc" \
              -limit $max_entries] \
         {
           t1 add \
@@ -1145,7 +1148,7 @@ namespace eval ::xowiki::includelet {
       set since_condition [::xo::dc since_interval_condition time $interval]
       xo::dc foreach get_pages \
           [::xo::dc select \
-               -vars "count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
+               -vars "count(x.user_id) as nr_different_users, r.title, i.name, i.parent_id" \
                -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
           i.publish_status <> 'production' and i.live_revision = r.revision_id \
@@ -1168,7 +1171,7 @@ namespace eval ::xowiki::includelet {
           }
       xo::dc foreach get_pages \
           [::xo::dc select \
-               -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, x.page_id, r.title,i.name, i.parent_id" \
+               -vars "sum(x.count) as sum, count(x.user_id) as nr_different_users, r.title,i.name, i.parent_id" \
                -from "xowiki_last_visited x, cr_items i, cr_revisions r"  \
                -where "x.package_id = :package_id and x.page_id = i.item_id and \
                i.publish_status <> 'production' and i.live_revision = r.revision_id" \
@@ -1683,7 +1686,7 @@ namespace eval ::xowiki::includelet {
       }
       if {$pid ne ""} {
         ::xowiki::Package require $pid
-        lappend refs "<a href='[ns_quotehtml [$pid pretty_link -parent_id $parent_id $name]]'>[ns_quotehtml $name]</a>"
+        lappend refs "<a href='[ns_quotehtml [::$pid pretty_link -parent_id $parent_id $name]]'>[ns_quotehtml $name]</a>"
       }
     }
 
@@ -4746,8 +4749,9 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
-
-  # the two method "href" and "page_number" are copied from "toc"
+  #
+  # The two methods "href" and "page_number" are copied from "toc"
+  #
   html-file instproc href {book_mode name} {
     if {$book_mode} {
       set href [::xo::cc url]#[toc anchor $name]

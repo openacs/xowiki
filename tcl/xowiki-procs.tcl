@@ -1355,6 +1355,7 @@ namespace eval ::xowiki {
   Page instproc is_folder_page {{-include_folder_links true}} {
     return 0
   }
+
   FormPage instproc is_folder_page {{-include_folder_links true}} {
     set page_template_name [${:page_template} name]
     if {$page_template_name eq "en:folder.form"} {return 1}
@@ -1371,6 +1372,7 @@ namespace eval ::xowiki {
   Page instproc is_link_page {} {
     return 0
   }
+
   FormPage instproc is_link_page {} {
     #
     # Make sure, the page_template is instantiated
@@ -1379,6 +1381,18 @@ namespace eval ::xowiki {
       ::xo::db::CrClass get_instance_from_db -item_id ${:page_template}
     }
     return [expr {[${:page_template} name] eq "en:link.form"}]
+  }
+
+  Page instproc is_unprefixed {} {
+    #
+    # Pages which should not get an extra language prefix.  In case,
+    # your package has further such requirements, extend this proc in
+    # you package.
+    #
+    return [expr {[:is_folder_page]
+                  || [:is_link_page]
+                  || ${:name} eq ${:revision_id}
+                }]
   }
 
   #
@@ -2434,7 +2448,14 @@ namespace eval ::xowiki {
     return $result
   }
 
-  Page instproc new_link {-object_type -name -title -nls_language -return_url -parent_id page_package_id} {
+  Page instproc new_link {
+    -object_type
+    -name -title
+    -nls_language
+    -return_url
+    -parent_id
+    page_package_id
+  } {
     if {[info exists parent_id] && $parent_id eq ""} {
       unset parent_id
     }
@@ -2442,7 +2463,15 @@ namespace eval ::xowiki {
                 edit-new object_type name title nls_language return_url parent_id autoname]
   }
 
-  FormPage instproc new_link {-object_type -name -title -nls_language -parent_id -return_url page_package_id} {
+  FormPage instproc new_link {
+    -object_type
+    -name
+    -title
+    -nls_language
+    -parent_id
+    -return_url
+    page_package_id
+  } {
     if {[info exists object_type]} {
       next
     } else {
