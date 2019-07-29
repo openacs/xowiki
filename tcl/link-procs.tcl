@@ -77,7 +77,7 @@ namespace eval ::xowiki {
     if {![info exists :label]}      {set :label ${:name}}
     if {![info exists :parent_id]}  {set :parent_id [${:page} parent_id]}
     if {![info exists :package_id]} {set :package_id [${:page} package_id]}
-    :log "--L link '${:name}' has class [:info class] // $class // ${:type} // parent ${:parent_id} // page ${:page} // [info exists :item_id]"
+    #:log "--L link '${:name}' has class [:info class] // $class // ${:type} // parent ${:parent_id} // page ${:page} // [info exists :item_id]"
   }
   Link instproc link_name {-lang -stripped_name} {
     return $lang:$stripped_name
