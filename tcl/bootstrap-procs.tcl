@@ -462,7 +462,7 @@ namespace eval ::xo::Table {
   BootstrapTableRenderer instproc render-bulkactions {} {
     set bulkactions [[self]::__bulkactions children]
     html::div -class "btn-group" -role group -aria-label "Bulk actions" {
-      html::t "Bulk-Actions:"
+      html::t "#xotcl-core.Bulk_actions#:"
       set bulkaction_container [[lindex $bulkactions 0] set __parent]
       set name [$bulkaction_container set __identifier]
 
