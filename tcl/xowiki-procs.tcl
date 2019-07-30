@@ -2983,14 +2983,16 @@ namespace eval ::xowiki {
     if {![info exists user_id]} {set user_id [::xo::cc set untrusted_user_id]}
     if {$user_id > 0} {
       # only record information for authenticated users
-      set rows [xo::dc dml -prepare integer,integer update_last_visisted {
-        update xowiki_last_visited set time = now(), count = count + 1
-        where page_id = :item_id and user_id = :user_id
-      }]
-      if {$rows ne "" && $rows < 1} {
-        ::xo::dc dml insert_last_visisted \
-            "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
-             values (:item_id, :package_id, :user_id, 1, now())"
+      ::xo::dc transaction {
+        set rows [xo::dc dml -prepare integer,integer update_last_visisted {
+          update xowiki_last_visited set time = now(), count = count + 1
+          where page_id = :item_id and user_id = :user_id
+        }]
+        if {$rows ne "" && $rows < 1} {
+          ::xo::dc dml insert_last_visisted \
+              "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
+               values (:item_id, :package_id, :user_id, 1, now())"
+        }
       }
     }
   }
