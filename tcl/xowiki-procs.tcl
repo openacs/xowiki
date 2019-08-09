@@ -4127,7 +4127,7 @@ namespace eval ::xowiki {
     # packages. Furthermore, a list of package_ids can be given.
     #
     # "-always_queried_attributes *" means to obtain enough attributes
-    # to allow a save operatons etc. on the instances.
+    # to allow a save operations etc. on the instances.
     #
 
     set sql_atts {

@@ -709,7 +709,7 @@ namespace eval ::xowiki::formfield {
       float width height
       padding padding-right padding-left padding-top padding-bottom
       margin margin-left margin-right margin-top margin-bottom
-      border border-width position top botton left right
+      border border-width position top bottom left right
       geometry
     } {
       if {[info exists :$option]} {$l set $option [set :$option]}
@@ -1142,7 +1142,7 @@ namespace eval ::xowiki::formfield {
     float width height
     padding padding-right padding-left padding-top padding-bottom
     margin margin-left margin-right margin-top margin-bottom
-    border border-width position top botton left right
+    border border-width position top bottom left right
   }
   image instproc pretty_value {v} {
     set html ""
@@ -2117,7 +2117,7 @@ namespace eval ::xowiki::formfield {
         # about a missing
         # ".../4.9.2/full/plugins/iframedialog/plugin.js". There
         # exists a "iframe" and a "iframedialog" plugin for ckeditor4,
-        # the latter is not included in the standard bulds (only in
+        # the latter is not included in the standard builds (only in
         # "-all").
         #
         ::richtext::ckeditor4::add_editor \
@@ -3220,7 +3220,7 @@ namespace eval ::xowiki::formfield {
         {float left} width height
         padding {padding-right 10px} padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
-        border border-width position top botton left right
+        border border-width position top bottom left right
       }
   image_url instproc initialize {} {
     next

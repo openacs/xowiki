@@ -9,7 +9,7 @@
 } -parameter {
   {-portal_id:required}
   {-page_name:required}
-  {-referer .}
+  {-referrer .}
 }
 
 set page [::$package_id get_page_from_item_ref $page_name]
@@ -62,7 +62,7 @@ if {$page eq ""} {
       #regexp {^..:(.*)$} $page_name _ page_name
       portal::set_element_param $element_id page_name $page_name
     }
-    ad_returnredirect $referer
+    ad_returnredirect $referrer
   }
 }
 ad_script_abort

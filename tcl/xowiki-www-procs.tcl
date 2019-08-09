@@ -2772,7 +2772,7 @@ namespace eval ::xowiki {
 
     Combine the value of the form field (e.g. determined by the
     default) with the value in the instance attributes. This function
-    decides, whether it should honor the data value or the form fiel
+    decides, whether it should honor the data value or the form field
     value for e.g. rendering forms.
 
     @param is_new is this a new entry?

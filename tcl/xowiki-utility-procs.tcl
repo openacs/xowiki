@@ -728,7 +728,7 @@ namespace eval ::xowiki {
 
     @param from list of page_orders before a move/insert operation
     @param to   list of page_orders after a move/insert operation
-    @param clean list of page_orders for insert operatons, to update
+    @param clean list of page_orders for insert operations, to update
                  the hierarchy from where items were moved to the new hierarchy.
     
   } {

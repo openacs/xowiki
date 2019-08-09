@@ -395,7 +395,7 @@ namespace eval ::xowiki {
         center float width height
         padding padding-right padding-left padding-top padding-bottom
         margin margin-left margin-right margin-top margin-bottom
-        border border-width position top botton left right
+        border border-width position top bottom left right
       }
   ::xowiki::Link::image instproc resolve_href {href} {
     set l [${:page} create_link $href]
@@ -438,7 +438,7 @@ namespace eval ::xowiki {
       float width height center
       padding padding-right padding-left padding-top padding-bottom
       margin margin-left margin-right margin-top margin-bottom
-      border border-width position top botton left right
+      border border-width position top bottom left right
     } {
       if {[info exists :$a]} {
         if {$a eq "center"} {set pre "<center>"; set post "</center>"; continue}
