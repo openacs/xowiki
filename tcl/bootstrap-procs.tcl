@@ -13,8 +13,8 @@
 namespace eval ::xowiki {
   # minimal implementation of Bootstrap "navbar"
   # currently only "dropdown" elements are supported within the navbar
-  # TODO: add support to include: 
-  # - forms 
+  # TODO: add support to include:
+  # - forms
   # - buttons
   # - text
   # - Non-nav links
@@ -30,7 +30,7 @@ namespace eval ::xowiki {
         {containerClass "container-fluid"}
         {navbarClass "navbar navbar-default navbar-static-top"}
       }
-  
+
   BootstrapNavbar instproc init {} {
     ::xo::Page requireJS urn:ad:js:jquery
     #
@@ -41,20 +41,20 @@ namespace eval ::xowiki {
     security::csp::require script-src maxcdn.bootstrapcdn.com
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
-    
+
     ::xo::Page requireCSS urn:ad:css:bootstrap3
     ::xo::Page requireJS  urn:ad:js:bootstrap3
     next
   }
 
- 
+
   BootstrapNavbar ad_instproc render {} {
     http://getbootstrap.com/components/#navbar
   } {
     html::nav -class [:navbarClass] -role "navigation" {
       #
       # Render the pull down menues
-      # 
+      #
       html::div -class [:containerClass] {
         set rightMenuEntries {}
         foreach entry [:children] {
@@ -73,31 +73,31 @@ namespace eval ::xowiki {
         }
       }
     }
-  }              
-  
+  }
+
 
   #
   # BootstrapNavbarDropdownMenu
-  #  
+  #
   ::xo::tdom::Class create BootstrapNavbarDropdownMenu \
       -superclass Menu \
       -parameter {
         text
         header
         {brand false}
-      }    
+      }
 
   BootstrapNavbarDropdownMenu ad_instproc render {} {doku} {
     # TODO: Add support for group-headers
     # get group header
     set group " "
-    
+
     html::ul -class "nav navbar-nav" {
       html::li -class "dropdown" {
         set class "dropdown-toggle"
         if {[:brand]} {lappend class "navbar-brand"}
         html::a -href "\#" -class $class -data-toggle "dropdown" {
-          html::t [:text] 
+          html::t [:text]
           html::b -class "caret"
         }
         html::ul -class "dropdown-menu" {
@@ -114,17 +114,17 @@ namespace eval ::xowiki {
       }
     }
   }
-  
+
   #
   # BootstrapNavbarDropdownMenuItem
-  #  
+  #
   ::xo::tdom::Class create BootstrapNavbarDropdownMenuItem \
       -superclass MenuItem \
       -parameter {
         {href "#"}
         helptext
-      }        
-  
+      }
+
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
     html::li -class [expr {${:href} eq "" ? "disabled": ""}] {
       html::a [:get_attributes target href title id] {
@@ -137,10 +137,10 @@ namespace eval ::xowiki {
           -preventdefault=false -script $body
     }
   }
-  
+
   #
   # BootstrapNavbarDropzone
-  #  
+  #
   ::xo::tdom::Class create BootstrapNavbarDropzone \
       -superclass MenuComponent \
       -parameter {
@@ -159,11 +159,11 @@ namespace eval ::xowiki {
           var uploadForm = document.getElementById('js-upload-form');
           var progressBar = document.getElementById('dropzone-progress-bar');
           var uploadFileRunning = 0;
-          
+
           var startUpload = function(files, csrf) {
             if (typeof files !== "undefined") {
               for (var i=0, l=files.length; i<l; i++) {
-                 // Send the file as multiple single requests and 
+                 // Send the file as multiple single requests and
                  // not as a single post containing all entries. This
                  // gives users with older NaviServers or AOLserver the chance
                  // drop multiple files.
@@ -231,7 +231,7 @@ namespace eval ::xowiki {
     }
   }
 
- 
+
   BootstrapNavbarDropzone ad_instproc render {} {doku} {
     if {${:href} ni {"" "#"}} {
       html::li {
@@ -265,7 +265,7 @@ namespace eval ::xowiki {
 
   #
   # BootstrapNavbarModeButton
-  #  
+  #
   ::xo::tdom::Class create BootstrapNavbarModeButton \
       -superclass MenuItem \
       -parameter {
@@ -274,7 +274,7 @@ namespace eval ::xowiki {
         {button}
         {CSSclass "checkbox-slider--b-flat"}
         {spanStyle "padding-left: 6px; padding-right: 6px;"}
-      }        
+      }
 
   BootstrapNavbarModeButton instproc js {} {
     #
@@ -300,7 +300,7 @@ namespace eval ::xowiki {
       }]
     }
   }
-  
+
   BootstrapNavbarModeButton ad_instproc render {} {doku} {
     html::li {
       html::form -class "form" -method "POST" -action ${:href} {
@@ -344,8 +344,8 @@ namespace eval ::xowiki {
   #
   # ::xo::library source_dependent
   # =======================================================
-  
-  
+
+
   # --------------------------------------------------------------------------
   # Render MenuBar in bootstrap fashion
   # --------------------------------------------------------------------------
@@ -414,7 +414,7 @@ namespace eval ::xo::Table {
     :render_with BootstrapTableRenderer $trn_mixin
     next
   }
-  
+
   Class create BootstrapTableRenderer \
       -superclass TABLE3 \
       -instproc init_renderer {} {
@@ -450,7 +450,7 @@ namespace eval ::xo::Table {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             if {[$field istype HiddenField]} continue
-            html::td  [concat [list class list] [$field html]] { 
+            html::td  [concat [list class list] [$field html]] {
               $field render-data $line
             }
           }
@@ -493,7 +493,7 @@ namespace eval ::xo::Table {
     ::xo::Page requireCSS urn:ad:css:bootstrap3
     security::csp::require style-src maxcdn.bootstrapcdn.com
     security::csp::require font-src maxcdn.bootstrapcdn.com
-    
+
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
@@ -504,7 +504,7 @@ namespace eval ::xo::Table {
     }
     if {[llength $bulkactions]>0} {
       html::div -id ${:id}_wrapper -class "table-responsive" {
-        html::form -name $name -id $name -method POST { 
+        html::form -name $name -id $name -method POST {
           html::div -id ${:id}_container {
             html::table -id ${:id} -class ${:css.table-class} {
               :render-actions
