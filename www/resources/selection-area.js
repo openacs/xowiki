@@ -1,5 +1,5 @@
 /*
- * A simple drag and drop handler for HTML5, simlar to the old YUI
+ * A simple drag and drop handler for HTML5, similar to the old YUI
  * handler for lists. This code interacts with the formfield class
  * "candidate_box_select".
  *
@@ -9,7 +9,7 @@
  * The candidate selection is based on two lists, the "candidates" and
  * the "selection". The user can drag values from the "candidates" to
  * the selection and vice versa. Then the form is submitted, the
- * internal representation of the selection is tranfered to the server
+ * internal representation of the selection is transferred to the server
  * (by using a hidden textarea).
  *
  * Gustaf Neumann                      fecit May 2019
