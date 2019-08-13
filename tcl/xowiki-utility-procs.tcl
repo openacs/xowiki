@@ -96,10 +96,15 @@ namespace eval ::xowiki::hstore {
   ad_proc dict_as_hkey {dict} {
     @return dict value in form of a hstore key.
   } {
+    set max_value_size [parameter::get_global_value -package_key xowiki -parameter hstore_max_value_size -default 0]
     set keys {}
     foreach {key value} $dict {
       set v [double_quote $value]
-      if {$v eq ""} continue
+      if {$v eq ""
+          || ($max_value_size > 0 && [string length $v] >= $max_value_size)
+        } {
+        continue
+      }
       lappend keys [double_quote $key]=>$v
     }
     return [join $keys ,]
