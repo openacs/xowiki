@@ -150,7 +150,7 @@ namespace eval ::xowiki {
       }
 
   BootstrapNavbarDropzone instproc js {-uploadlink:required} {
-    html::script -type "text/javascript" -nonce $::__csp_nonce {
+    html::script -type "text/javascript" -nonce [security::csp::nonce] {
       html::t [subst -nocommands {
         + function($) {
           'use strict';
@@ -281,7 +281,7 @@ namespace eval ::xowiki {
     # In the current implementation, the page refreshes itself after
     # successful mode change. This could be made configurable.
     #
-    html::script -type "text/javascript" -nonce $::__csp_nonce {
+    html::script -type "text/javascript" -nonce [security::csp::nonce] {
       html::t {
         function mode_button_ajax_submit(form) {
           $.ajax({
