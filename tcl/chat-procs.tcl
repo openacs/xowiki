@@ -224,7 +224,7 @@ namespace eval ::xo {
 
   Chat instproc user_active {user_id} {
     # was the user already active?
-    #:log "--chat login already avtive? [nsv_exists ${:array}-last-activity $user_id]"
+    #:log "--chat login already active? [nsv_exists ${:array}-last-activity $user_id]"
     return [nsv_exists ${:array}-last-activity $user_id]
   }
 

@@ -34,7 +34,7 @@ xowiki.repeat.addItem = function(e, json) {
                     $(ck_editors[k]).attr('contenteditable','true');
                 }
             }
-            // IPAD HACK ENDE
+            // IPAD HACK END
             */
             break;
         }
