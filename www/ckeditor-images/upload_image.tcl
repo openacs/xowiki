@@ -24,6 +24,7 @@ ad_form -name upload_form \
       #if {$height ne ""} {append size x$height}
 
       set file_name [template::util::file::get_property filename $upload_file]
+      ns_log notice "upload_image: uploaded file name <$file_name>"
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
       set mime_type [::xowiki::guesstype $file_name]
       set tmp_size [file size $upload_tmpfile]
@@ -51,7 +52,8 @@ ad_form -name upload_form \
       $file_object save_new
       set revision_id [$file_object set revision_id]
 
-      set bild_url "[$file_object pretty_link]?m=download"
+      set bild_url [$file_object pretty_link -download true]
+      ns_log notice "upload_image: URL <$bild_url>"
       set image_browser_url [ad_conn package_url]/ckeditor-images
       set js_update "parent.frames\['thumbs'\].location='$image_browser_url/thumb-view?parent_id=$parent_id';"
     }
