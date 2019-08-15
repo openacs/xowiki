@@ -1866,7 +1866,6 @@ namespace eval ::xowiki::formfield {
           }
 
           function calc_wiki_image_links_to_image_tags(path, data) {
-            // path = path.replace(/:/ig,"%3a");
             var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
             data = data.replace(regex_wikilink,'<img src="'+path+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
             return data
@@ -2067,7 +2066,6 @@ namespace eval ::xowiki::formfield {
 
           function calc_wiki_image_links_to_image_tags(path, text) {
             // console.log('path = <' + path + '>');
-            //path = path.replace(/:/ig,"%3a");
             var regex_wikilink = new RegExp('(\\[\\[.SELF./image:)(.*?)(\\]\\])', 'g');
             text = text.replace(regex_wikilink,'<img src="'+path+'/file:$2?m=download"  alt=".SELF./image:$2" type="wikilink"  />');
             return text;
