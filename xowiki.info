@@ -130,7 +130,7 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_user_tracking"  default="1" description="track page view usage per user" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_yahoo_publisher"  default="0" description="When specified, a button for adding the content to my.yahoo.com is added" section_name="Options"/>
             <parameter scope="instance" datatype="number" min_n_values="1"  max_n_values="1" name="use_hstore"  default="0" description="Use hstore for accessing instance  attributes. Create index for  existing values via  ::xowiki::hstore::update_form_instance_item_index -package_id $package_id"/>
-            <parameter scope="global" datatype="number" min_n_values="1"  max_n_values="1" name="hstore_max_value_size"  default="2000" description="When hstore is activate, don't store entries larger than this size in the hkey. This makes it possible to produce smaller hkey indices and to use e.g. GIN, which has a size limit of 2K"/>
+            <parameter scope="global" datatype="number" min_n_values="1"  max_n_values="1" name="hstore_max_value_size"  default="2000" description="When hstore is activate, don't store entries larger than this size in the hkey. This makes it possible to produce smaller hkey indices and to use e.g. GIN, which has a size limit of 2K. Set to 0 to disable the size limit"/>
 	  </parameters>
 
     </version>
