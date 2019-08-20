@@ -2450,7 +2450,8 @@ namespace eval ::xowiki {
 
   Page instproc new_link {
     -object_type
-    -name -title
+    -name
+    -title
     -nls_language
     -return_url
     -parent_id
