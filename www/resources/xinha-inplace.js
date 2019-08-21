@@ -3,7 +3,7 @@
  * (providing the basic configuration). The inplace editor is to be
  * used within forms to edit elements with the style 'xinha' and pass
  * the content via a hidden variable back to the application. The
- * editor was desinged to be used with xowiki and xowiki content flow.
+ * editor was designed to be used with xowiki and xowiki content flow.
  *
  * Gustaf Neumann
  */
@@ -23,7 +23,7 @@ xinha.inplace = {
 
 /*
  * Initialize the inplace editor. This means essentially to setup all
- * handlers for elemets of CSS class 'xinha' and 'xinhaupdate'.
+ * handlers for elements of CSS class 'xinha' and 'xinhaupdate'.
  */
 xinha.inplace.init = function() {
   var editElements = [];
@@ -53,7 +53,7 @@ xinha.inplace.init = function() {
 /*
  * Iterate over all nodes and copy the content of the elements of
  * class 'xinha' to the corresponding hidden fields in the form; the
- * correspondance happens via a naming convention of IDs.  
+ * correspondence happens via a naming convention of IDs.  
  *
  */	
 xinha.inplace.finish = function() {
