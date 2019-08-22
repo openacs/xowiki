@@ -58,9 +58,7 @@ namespace eval ::xowiki {
       :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
       ${:package_id} www-delete -item_id $item_id
     }
-    set return_url [expr {[ns_queryexists return_url] ?
-                          [ns_queryget return_url] : [:pretty_link]}]
-    ${:package_id} returnredirect $return_url
+    ${:package_id} returnredirect [:query_parameter "return_url" [:pretty_link]]
   }
 
   #
