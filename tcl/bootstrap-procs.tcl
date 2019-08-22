@@ -480,11 +480,20 @@ namespace eval ::xo::Table {
                 }
           }
         }
-        template::add_body_script -script [subst {
-          document.getElementById('$id').addEventListener('click', function (event) {
-            acs_ListBulkActionClick("$name","[$ba url]");
-          }, false);
+        set script [subst {
+          acs_ListBulkActionClick("$name","[$ba url]");
         }]
+        if {[$ba confirm_message] ne ""} {
+          set script [subst {
+            if (confirm('[$ba confirm_message]')) {
+              $script
+            }
+          }]
+        }
+        template::add_event_listener \
+            -id $id \
+            -preventdefault=false \
+            -script $script
       }
     }
   }
