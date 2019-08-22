@@ -570,7 +570,7 @@ namespace eval ::xowiki::includelet {
     set csrf [expr {[info exists ::__csrf_token] ? [list __csrf_token $::__csrf_token] : ""}]
     set ::__xowiki_folder_link [::$package_id make_link \
                                     -link $current_folder_pretty_link \
-                                    $current_folder bulk-delete $csrf]
+                                    $current_folder bulk-delete $csrf return_url]
     switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
