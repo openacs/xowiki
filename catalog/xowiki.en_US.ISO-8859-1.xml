@@ -37,6 +37,7 @@
   <msg key="delete_all_instances">Delete all %pretty_plural% of this instance</msg>
   <msg key="delete_all_items">Delete all such items of this instances</msg>
   <msg key="delete_confirm">Confirm delete?</msg>
+  <msg key="Delete_selected">Delete selected</msg>
   <msg key="delete_title">Delete this page ...</msg>
   <msg key="details">Detail Link</msg>
   <msg key="duplicate">Duplicate</msg>

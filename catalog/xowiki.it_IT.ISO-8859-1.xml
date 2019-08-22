@@ -37,6 +37,7 @@
   <msg key="delete_all_instances">Elimina tutti i %pretty_plural% di questa istanza</msg>
   <msg key="delete_all_items">Elimina tutti gli elementi analoghi di questa istanza</msg>
   <msg key="delete_confirm">Confermi la cancellazione?</msg>
+  <msg key="Delete_selected">Elimina selezionati</msg>
   <msg key="delete_title">Elimina questa pagina...</msg>
   <msg key="details">Link Dettaglio</msg>
   <msg key="duplicate">Duplicare</msg>

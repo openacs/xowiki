@@ -36,6 +36,7 @@
   <msg key="delete_all_instances">Alle %pretty_plural% dieses Wikis löschen</msg>
   <msg key="delete_all_items">Alle Einträge dieser Art löschen</msg>
   <msg key="delete_confirm">Löschen bestätigen?</msg>
+  <msg key="Delete_selected">Ausgewählte löschen</msg>
   <msg key="delete_title">Lösche diese Seite ...</msg>
   <msg key="details">Details</msg>
   <msg key="duplicate">Duplizieren</msg>

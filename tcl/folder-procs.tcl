@@ -580,7 +580,7 @@ namespace eval ::xowiki::includelet {
                -columns {
                  BulkAction create objects -id ID -hide $::hidden(objects) -actions {
                    if {$::__xowiki_folder_link ne ""} {
-                     Action bulk-delete -label [_ xowiki.delete] -tooltip "Delete selected" \
+                     Action bulk-delete -label [_ xowiki.delete] -tooltip [_ xowiki.Delete_selected] \
                          -url $::__xowiki_folder_link
                    }
                  }
