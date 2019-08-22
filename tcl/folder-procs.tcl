@@ -688,7 +688,6 @@ namespace eval ::xowiki::includelet {
       ad_log warning "Ignore invalid sorting criterion '$att'"
       util_user_message -message "Ignore invalid sorting criterion '$att'"
     }
-    set resources_list [$t asHTML]
 
     if {$menubar ne ""} {
       set mb [::xowiki::MenuBar new -id submenubar]
