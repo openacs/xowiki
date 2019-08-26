@@ -251,7 +251,7 @@ namespace eval ::xowiki {
       }
       html::li {
         html::div -class "upload-drop-zone" -id "drop-zone" {
-          html::t "DropZone"
+          html::span {html::t "DropZone"}
           html::div -class "progress" {
             html::div -style "width: 0%;" -class "progress-bar" -id dropzone-progress-bar {
               html::span -class "sr-only" {html::t ""}
