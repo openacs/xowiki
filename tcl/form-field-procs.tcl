@@ -1516,13 +1516,7 @@ namespace eval ::xowiki::formfield {
     if {$v ne ""} {
       acs_user::get -user_id $v -array user
       if {[:with_photo]} {
-        set portrait_id [acs_user::get_portrait_id -user_id $v]
-        if {$portrait_id == 0} {
-          set md5 [ns_md5 $user(email)]
-          set src http://www.gravatar.com/avatar/$md5?size=[:photo_size]&d=mm
-        } else {
-          set src "/shared/portrait-bits.tcl?user_id=$v"
-        }
+        set src "/shared/portrait-bits.tcl?user_id=$v"
         set photo "<img width='[:photo_size]' class='photo' src='[ns_quotehtml $src]'>"
         set photo_class "photo"
       } else {
