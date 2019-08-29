@@ -480,7 +480,7 @@ namespace eval ::xowiki {
         {f.name  "= optional,help_text=#xowiki.File-name-help_text#"}
         {f.title "= optional"}
         {f.text
-          {upload_file:file(file)
+          {upload_file:file(file),optional
             {label #xowiki.content#}
             {html {size 30}} }}
         {validate {
