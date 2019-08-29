@@ -555,7 +555,7 @@ namespace eval ::xowiki::includelet {
       {manage-categories 1} {object_id $package_id}
     }]
 
-    set columns {objects edit object_type name last_modified mod_user duplicate delete}
+    set columns {objects edit object_type name title last_modified mod_user duplicate delete}
     foreach column $columns {set ::hidden($column) 0 }
     if {[info exists hide]} {
       foreach column $hide {
@@ -603,6 +603,8 @@ namespace eval ::xowiki::includelet {
                      -hide $::hidden(object_type)
                  AnchorField create name -label [_ xowiki.Page-name] -orderby name \
                      -hide $::hidden(name)
+                 AnchorField create title -label [_ xowiki.title] -orderby title \
+                     -hide $::hidden(title)
                  Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified \
                      -hide $::hidden(last_modified)
                  Field create mod_user -label [_ xowiki.By_user] -orderby mod_user  -hide $::hidden(mod_user)
@@ -652,6 +654,8 @@ namespace eval ::xowiki::includelet {
           -name $prettyName \
           -name.href [export_vars -base $page_link {template_file html-content}] \
           -name.title [$c set title] \
+          -title [$c set title] \
+          -title.href [export_vars -base $page_link {template_file html-content}] \
           -object_type [dict get $icon text] \
           -object_type.richtext [dict get $icon is_richtext] \
           -last_modified [$c set last_modified] \
