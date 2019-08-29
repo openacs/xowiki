@@ -601,7 +601,7 @@ namespace eval ::xowiki::includelet {
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
-                 AnchorField create name -label [_ xowiki.Page-name] -orderby name \
+                 AnchorField create name -label [_ xowiki.name] -orderby name \
                      -hide $::hidden(name)
                  AnchorField create title -label [_ xowiki.title] -orderby title \
                      -hide $::hidden(title)
