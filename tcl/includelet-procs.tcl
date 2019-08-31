@@ -2604,7 +2604,7 @@ namespace eval ::xowiki::includelet {
     set menu [join $menu "&nbsp;"]
     if {$menu ne ""} {
       # <div> not allowed in h*: style='float: right; position: relative; top: -32px
-      set menu "<span style='float: right;'>$menu</span>"
+      set menu "<span class='book-item-menu'>$menu</span>"
     }
     set label "$page_order $title"
     append output \

@@ -47,7 +47,7 @@ div.xowiki-content a.notification-image-button::before {
 }
 
 /*
- * Icons file file listings
+ * Icons in file listings
  */
 
 div.xowiki-content a.file-icon::before {
@@ -78,6 +78,14 @@ div.xowiki-content a.broken-link-icon::after {
     /* glyphicon-arrow-right */
     font-family: 'Glyphicons Halflings';
     content: "\e092";
+}
+
+/*
+ * Icons in Book mode listings
+ */
+div.book span.book-item-menu {
+    float: right;
+    font-size: small;
 }
 
 /*

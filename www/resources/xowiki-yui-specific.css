@@ -84,6 +84,13 @@ div.xowiki-content a.broken-link-icon {
 }
 
 /*
+ * Icons in Book mode listings
+ */
+div.book span.book-item-menu {
+    float: right;
+}
+
+/*
  * Local Variables:
  * mode: css
  * c-basic-offset: 4
