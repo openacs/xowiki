@@ -1509,14 +1509,21 @@ namespace eval ::xowiki::formfield {
   Class create author -superclass user_id -parameter {
     {photo_size 54}
     {with_photo true}
+    {with_gravatar true}
     {with_user_link false}
     {label #xowiki.formfield-author#}
   }
   author instproc pretty_value {v} {
     if {$v ne ""} {
       acs_user::get -user_id $v -array user
-      if {[:with_photo]} {
-        set src "/shared/portrait-bits.tcl?user_id=$v"
+      if {${:with_photo}} {
+        set portrait_id [acs_user::get_portrait_id -user_id $v]
+        if {$portrait_id == 0 && ${:with_gravatar}} {
+          set src [::xowiki::includelet::gravatar url \
+                       -email $user(email) -size ${:photo_size}]
+        } else {
+          set src "/shared/portrait-bits.tcl?user_id=$v"
+        }
         set photo "<img width='[:photo_size]' class='photo' src='[ns_quotehtml $src]'>"
         set photo_class "photo"
       } else {

@@ -4603,7 +4603,7 @@ namespace eval ::xowiki::includelet {
         }}
       }
 
-  gravatar proc url {-email {-size 80}} {
+  gravatar proc url {-email {-size 80} {-default mp}} {
     # reusable helper proc to compute a gravatar URL
     if {[info commands ns_md5] ne ""} {
       set md5 [string tolower [ns_md5 $email]]
@@ -4612,7 +4612,7 @@ namespace eval ::xowiki::includelet {
       set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
     }
     security::csp::require img-src www.gravatar.com
-    return //www.gravatar.com/avatar/$md5?size=$size
+    return //www.gravatar.com/avatar/$md5?size=$size&d=$default
   }
 
   gravatar instproc render {} {
