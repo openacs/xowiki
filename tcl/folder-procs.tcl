@@ -493,7 +493,17 @@ namespace eval ::xowiki::includelet {
             {-view_target ""}
             {-html-content}
             {-parent .}
-            {-hide}
+            {-columns {
+              objects
+              edit
+              object_type
+              name
+              last_modified
+              mod_user
+              duplicate
+              delete
+            }}
+            {-hide {}}
             {-menubar ""}
           }
         }
@@ -555,13 +565,11 @@ namespace eval ::xowiki::includelet {
       {manage-categories 1} {object_id $package_id}
     }]
 
-    set columns {objects edit object_type name title last_modified mod_user duplicate delete}
-    foreach column $columns {set ::hidden($column) 0 }
-    if {[info exists hide]} {
-      foreach column $hide {
-        if {[info exists ::hidden($column)]} {set ::hidden($column) 1}
-      }
+    set all_columns {objects edit object_type name title last_modified mod_user duplicate delete}
+    foreach column $all_columns {
+      set ::hidden($column) [expr {$column ni $columns || $column in $hide}]
     }
+
     #
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
