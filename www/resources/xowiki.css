@@ -73,6 +73,7 @@ div.xowiki-content h2 {
 }
 div.xowiki-content h3 {
     /* font-size: 14px; */
+    clear: both;
     text-indent: 0em; 
     margin-top: 0.75em; margin-bottom: 0.1em;
     letter-spacing: 0px;  color: #222222;
@@ -80,7 +81,12 @@ div.xowiki-content h3 {
 }
 div.xowiki-content h4 {
     /* font-size: 12px; */
+    clear: both;
     margin: 0;
+}
+div.xowiki-content h5,
+div.xowiki-content h6 {
+   clear:both;
 }
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 div.xowiki-content .errorMsg {background: #FFF; color: red; font-weight: bold;}
