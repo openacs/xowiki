@@ -10,6 +10,8 @@ template::register_urn -urn urn:ad:js:get-http-object \
     -resource /resources/xowiki/get-http-object.js
 template::register_urn -urn urn:ad:js:bootstrap3-treeview \
     -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js
+template::register_urn -urn urn:ad:js:highcharts         -resource /resources/xowiki/highcharts/js/highcharts.js
+template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
 #
 # Produce the xowiki.css variants that can be included based on preferred CSS tookit:

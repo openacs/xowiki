@@ -3789,8 +3789,8 @@ namespace eval ::xowiki::includelet {
   ::xotcl::Class highcharts -parameter {title id}
   highcharts instproc pie {names data} {
     ::xo::Page requireJS urn:ad:js:jquery
-    ::xo::Page requireJS "/resources/xowiki/highcharts/js/highcharts.js"
-    ::xo::Page requireJS "/resources/xowiki/highcharts/js/themes/gray.js"
+    ::xo::Page requireJS urn:ad:js:highcharts
+    ::xo::Page requireJS urn:ad:js:highcharts-theme
     set result "<div id='[:id]' style='width: 100%; height: 400px'></div>\n"
     set title ${:title}
     if {![info exists :id]} {set :id [::xowiki::Includelet html_id [self]]}
