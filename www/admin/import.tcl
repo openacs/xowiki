@@ -17,11 +17,11 @@ ad_form \
     -html { enctype multipart/form-data } \
     -form {
       {upload_file:file(file) {html {size 30}} {label "[_ xowiki.import_upload_file]"}}
-      {create_user_ids:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0} 
+      {create_user_ids:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0}
         {label "[_ xowiki.import_create_user_ids]"}
         {help_text "[_ xowiki.import_create_user_ids_helptxt]"}
       }
-      {replace:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0} 
+      {replace:integer(radio),optional {options {{#acs-admin.Yes# 1} {#acs-admin.No# 0}}} {value 0}
         {label "[_ xowiki.import_replace]"}
         {help_text "[_ xowiki.import_replace_helptxt]"}
       }
@@ -37,24 +37,24 @@ ad_form \
       }
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
-      set f [open $upload_tmpfile]; 
+      set f [open $upload_tmpfile];
       # if we do not set translation binary,
       # backslashes at the end of the lines might be lost
       fconfigure $f -translation binary -encoding utf-8
       set content [read $f]; close $f
 
-      foreach o [::xowiki::Page allinstances] { 
+      foreach o [::xowiki::Page allinstances] {
         set preexists($o) 1
       }
       ad_try {
         namespace eval ::xo::import $content
       } on error {errorMsg} {
-	ad_log error $errorMsg
-	# cleanup all objects, that did not exist before
+        ad_log error $errorMsg
+        # cleanup all objects, that did not exist before
         foreach o [::xowiki::Page allinstances] {
-	  if {![info exists preexists($o)]} {
-	    if {[nsf::is object $o]} {$o destroy}
-	  }
+          if {![info exists preexists($o)]} {
+            if {[nsf::is object $o]} {$o destroy}
+          }
         }
       } on ok {r} {
         set objects [list]
