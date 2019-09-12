@@ -146,11 +146,18 @@ namespace eval ::xowiki {
     }
   }
   Link instproc pretty_link {item_id} {
-    set page [expr {$item_id == 0 ? "" : "-page ::$item_id"}]
-    ns_log notice "Link pretty_link page $page, name <${:name}> page <${:page}>"
+    if {$item_id == 0} {
+      set pageArg ""
+    } else {
+      set obj ::$item_id
+      if {![nsf::is object $obj]} {
+         set obj [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+       }
+      set pageArg [list -page $obj]
+    }
     return [::${:package_id} pretty_link -parent_id ${:parent_id} -lang ${:lang} \
                 -anchor ${:anchor} -query ${:query} \
-                {*}$page \
+                {*}$pageArg \
                 ${:name}]
   }
   Link instproc new_link {} {
