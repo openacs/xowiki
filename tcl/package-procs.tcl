@@ -2119,7 +2119,7 @@ namespace eval ::xowiki {
       set folder_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
       if {$folder_id == 0} {
         #
-        # When the folder_id is 0, then something is wrong. Maybe an
+        # When the folder_id is empty, then something is wrong. Maybe an
         # earlier update script was not running correctly.
         #
         set old_folder_id [xo::dc get_value double_check_old_package {
