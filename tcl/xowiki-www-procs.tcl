@@ -1892,7 +1892,8 @@ namespace eval ::xowiki {
       # }
 
       #:log "--after context delete_link=$delete_link "
-      set template [::$context_package_id get_parameter "template" ""]
+      # set template [::$context_package_id get_parameter "template" ""]
+      set template ""
       set page [self]
 
       foreach css [::$context_package_id get_parameter extra_css ""] {
