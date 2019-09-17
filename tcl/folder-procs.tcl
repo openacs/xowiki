@@ -6,7 +6,7 @@
   * An xowiki includelet to display the "folders"
   * An xowiki includelet to display the "child-resources"
     of a page (e.g. the contents of a folder)
- 
+
   @author Michael Aram
   @author Gustaf Neumann
 }

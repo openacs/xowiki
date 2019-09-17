@@ -508,7 +508,7 @@ namespace eval ::xowiki {
       set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
       set default_lang [$pkg default_language]
     }
-    #:msg "folder_path = $folder_path, -parent_id $parent_id -folder_ids $folder_ids // default_lang [:default_language]"    
+    #:msg "folder_path = $folder_path, -parent_id $parent_id -folder_ids $folder_ids // default_lang [:default_language]"
 
     #:log "h=${host}, prefix=${package_prefix}, folder=$folder_path, name=$encoded_name anchor=$anchor download=$download"
 
@@ -1411,7 +1411,7 @@ namespace eval ::xowiki {
     Lookup name (with maybe cross-package references) from a
     given parent_id or from the list of configured instances
     (obtained via package_path).
-    
+
   } {
     #:log "LOOKUP of <$name> on-package: ${:id} parent_id '$parent_id'"
     set pkg_info [:get_package_id_from_page_name -default_lang $default_lang $name]
@@ -1830,7 +1830,7 @@ namespace eval ::xowiki {
         #  We encompassed a link to a page or folder, treat both the same way.
         #
         #:log "item_info_from_url LINK page $(parent_id)"
-        
+
         set link_id $(parent_id)
         set target [::$link_id get_target_from_link_page]
 
@@ -2006,9 +2006,11 @@ namespace eval ::xowiki {
     set fn [acs_root_dir]/packages/$package_key/www/prototypes/$name.page
     #:log "--W check $fn"
     if {[file readable $fn]} {
+      #
       # We have the file of the prototype page. We try to create
       # either a new item or a revision from definition in the file
       # system.
+      #
       if {[regexp {^(..):(.*)$} $name _ lang local_name]} {
         set fullName $name
       } else {
@@ -2016,11 +2018,15 @@ namespace eval ::xowiki {
       }
       :log "--sourcing page definition $fn, using name '$fullName'"
       set page [source $fn]
-      $page configure -name $fullName \
-          -parent_id $parent_id -package_id $package_id
+      $page configure \
+          -name $fullName \
+          -parent_id $parent_id \
+          -package_id $package_id
+      #
       # xowiki::File has a different interface for build-name to
       # derive the "name" from a file-name. This is not important for
       # prototype pages, so we skip it
+      #
       if {![$page istype ::xowiki::File]} {
         set nls_language [:get_nls_language_from_lang $lang]
         $page name [$page build_name -nls_language $nls_language]
@@ -2037,16 +2043,20 @@ namespace eval ::xowiki {
       set p [::$package_id get_page_from_name -name $fullName -parent_id $parent_id]
       #:log "--get_page_from_name --> '$p'"
       if {$p eq ""} {
+        #
         # We have to create the page new. The page is completed with
         # missing vars on save_new.
+        #
         #:log "--save_new of $page class [$page info class]"
         $page save_new
       } else {
         #:log "--save revision $add_revision"
         if {$add_revision} {
-          # An old page exists already, make a revision.  Update the
+          #
+          # An old page exists already, create a revision.  Update the
           # existing page with all scalar variables from the prototype
           # page (which is just partial)
+          #
           foreach v [$page info vars] {
             if {[$page array exists $v]} continue ;# don't copy arrays
             $p set $v [$page set $v]
