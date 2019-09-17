@@ -3297,7 +3297,8 @@ namespace eval ::xowiki::formfield {
   include instproc pretty_value {v} {
     if {$v eq ""} { return $v }
 
-    set item_id  [${:object} get_property_from_link_page item_id]
+    set item_id [${:object} get_property_from_link_page item_id 0]
+    :log "##### include in ${:object} '[${:object} name]': get_property_from_link_page ${:object} item_id => <$item_id> (resolve_local ${:resolve_local})"
     if {$item_id == 0} {
       # Here, we could call "::xowiki::Link render" to offer the user means
       # to create the entry like with [[..]], if he has sufficient permissions...;
@@ -3314,7 +3315,7 @@ namespace eval ::xowiki::formfield {
       # resetting esp. the item-id is dangerous.
       # Therefore we reset it immediately after the rendering
       #
-      #:log "set __RESOLVE_LOCAL"
+      #:log "#### RESOLVE LOCAL: setting for $item [$item name] set_resolve_context -parent_id [${:object} parent_id] -item_id [${:object} item_id]"      
       $item set __RESOLVE_LOCAL 1
       $item set_resolve_context \
           -package_id [${:object} package_id] -parent_id [${:object} parent_id] \

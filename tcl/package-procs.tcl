@@ -144,6 +144,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc default_language {} {
+    #:log "Package ${:instance_name} has default_locale [:default_locale]"
     return [string range [:default_locale] 0 1]
   }
 
@@ -465,14 +466,12 @@ namespace eval ::xowiki {
     @param name name of the wiki page
   } {
     #:msg "input name=$name, lang=$lang parent_id=$parent_id"
-    set default_lang [:default_language]
-
-    :get_lang_and_name -default_lang $lang -name $name lang name
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
     if {$query ne ""} {set query ?$query}
-    #:log "--LINK $lang == $default_lang [expr {$lang ne $default_lang}] $name"
+
+    :get_lang_and_name -default_lang $lang -name $name lang name
 
     set package_prefix [:get_parameter package_prefix ${:package_url}]
     if {$package_prefix eq "/" && [string length $lang]>2} {
@@ -482,7 +481,7 @@ namespace eval ::xowiki {
       #
       set package_prefix ${:package_url}
     }
-    #:msg "lang=$lang, default_lang=$default_lang, name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
+    #:msg "name=$name, parent_id=$parent_id, package_prefix=$package_prefix"
     if {$path_encode} {
       set encoded_name [ad_urlencode_path $name]
     } else {
@@ -491,30 +490,27 @@ namespace eval ::xowiki {
 
     if {$parent_id eq -100} {
       # In case, we have a CR toplevel entry, we assume, we can
-      # resolve it at lease against the root folder of the current
+      # resolve it at least against the root folder of the current
       # package.
-      set folder ""
+      set folder_path ""
       set encoded_name ""
+      set default_lang [:default_language]
     } else {
       if {$parent_id eq ""} {
         ns_log warning "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id [:folder_id]
       }
-      set folder [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
+      set folder_path [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
       set pkg [::$parent_id package_id]
       if {![nsf::is object ::$pkg]} {
         ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
       }
       set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
+      set default_lang [$pkg default_language]
     }
-    #:msg "folder_path = $folder, -parent_id $parent_id -folder_ids $folder_ids // default_lang [:default_language]"
+    #:msg "folder_path = $folder_path, -parent_id $parent_id -folder_ids $folder_ids // default_lang [:default_language]"    
 
-    # if {$folder ne ""} {
-    #   # if folder has a different language than the content, we have to provide a prefix....
-    #   regexp {^(..):} $folder _ default_lang
-    # }
-
-    #:log "h=${host}, prefix=${package_prefix}, folder=$folder, name=$encoded_name anchor=$anchor download=$download"
+    #:log "h=${host}, prefix=${package_prefix}, folder=$folder_path, name=$encoded_name anchor=$anchor download=$download"
 
     #
     # Lookup plain page name. If we succeed, there is a danger of a
@@ -529,7 +525,6 @@ namespace eval ::xowiki {
     # can have children and same-named folders exist.
     #
     set found_id [:lookup -parent_id $parent_id -name $name]
-    #set found_id [::xo::dc get_value check_folder {select item_id from cr_items where parent_id = :parent_id and name = :name} 0]
     #:log "-pretty_link: lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
 
     #
@@ -552,25 +547,26 @@ namespace eval ::xowiki {
       }
     }
 
-    #:log "-pretty_link: found_id=$found_id name=$name,folder=$folder,lang=$lang,default_lang=$default_lang"
+    #:log "-pretty_link: found_id=$found_id name=$name,folder_path=$folder_path,lang=$lang,default_lang=$default_lang"
+    #:log "-pretty_link: host <${host}> package_prefix <${package_prefix}>"
     if {$download} {
       #
       # Use the special download (file) syntax.
       #
-      set url ${host}${package_prefix}download/file/$folder$encoded_name$query$anchor
+      set url ${host}${package_prefix}download/file/$folder_path$encoded_name$query$anchor
     } elseif {$lang ne $default_lang || [[self class] exists www-file($name)]} {
       #
       # If files are physical files in the www directory, add the
       # language prefix
       #
-      set url ${host}${package_prefix}${lang}/$folder$encoded_name$query$anchor
+      set url ${host}${package_prefix}${lang}/$folder_path$encoded_name$query$anchor
     } elseif {$found_id != 0} {
-      set url ${host}${package_prefix}$folder${lang}:$encoded_name$query$anchor
+      set url ${host}${package_prefix}$folder_path${lang}:$encoded_name$query$anchor
     } else {
       #
       # Use the short notation without language prefix.
       #
-      set url ${host}${package_prefix}$folder$encoded_name$query$anchor
+      set url ${host}${package_prefix}$folder_path$encoded_name$query$anchor
     }
     #:msg "final url=$url"
     return $url
@@ -1404,44 +1400,68 @@ namespace eval ::xowiki {
                 lang $lang stripped_name $stripped_name name $name ]
   }
 
-  Package instproc lookup {
+  Package ad_instproc lookup {
     {-use_package_path true}
     {-use_site_wide_pages false}
     {-default_lang ""}
     -name:required
     {-parent_id ""}
+  } -returns integer {
+
+    Lookup name (with maybe cross-package references) from a
+    given parent_id or from the list of configured instances
+    (obtained via package_path).
+    
   } {
-    # Lookup name (with maybe cross-package references) from a
-    # given parent_id or from the list of configured instances
-    # (obtained via package_path).
-    #
-    array set "" [:get_package_id_from_page_name -default_lang $default_lang $name]
-    #:msg "result = [array get {}]"
-    if {![info exists (package_id)]} {
+    #:log "LOOKUP of <$name> on-package: ${:id} parent_id '$parent_id'"
+    set pkg_info [:get_package_id_from_page_name -default_lang $default_lang $name]
+
+    if {[dict exists $pkg_info package_id]} {
+      set package_id [dict get $pkg_info package_id]
+    } else {
       return 0
     }
 
-    if {$parent_id eq ""} {set parent_id [$(package_id) folder_id]}
-    set item_id [::xo::db::CrClass lookup -name $(page_name) -parent_id $parent_id]
-    #:log "lookup $(page_name) $parent_id in package $(package_id) returns $item_id, parent_id $parent_id"
+    if {$parent_id eq ""} {
+      set parent_id [::$package_id folder_id]
+    }
+    set item_id [::xo::db::CrClass lookup \
+                     -name [dict get $pkg_info page_name] \
+                     -parent_id $parent_id]
+    #:log "lookup [dict get $pkg_info page_name] $parent_id in package $package_id returns $item_id, parent_id $parent_id"
 
-    # Test for "0" is only needed when we want to create the first root folder
-    if {$item_id == 0 && $parent_id ne "0"} {
+    #
+    # Test for "0" is only needed when we want to create the first
+    # root folder.
+    #
+    if {$item_id == 0 && $parent_id != 0} {
       #
-      # Page not found so far. Is the parent-page a regular page and a folder-link?
-      # If so, de-reference the link.
+      # Page not found so far, get the parent page.
       #
       set p [::xo::db::CrClass get_instance_from_db -item_id $parent_id]
+      #
+      # Is the parent-page a regular page and a folder-link?
+      # If so, de-reference the link.
+      #
       if {[$p istype ::xowiki::FormPage] && [$p is_link_page] && [$p is_folder_page]} {
         set target [$p get_target_from_link_page]
         set target_package_id [$target package_id]
-        #:msg "SYMLINK LOOKUP from target-package $target_package_id source package $(package_id)"
-        set target_item_id [::$target_package_id lookup \
-                                -use_package_path $use_package_path \
-                                -use_site_wide_pages $use_site_wide_pages \
-                                -default_lang $default_lang \
-                                -name $name \
-                                -parent_id [$target item_id]]
+        set target_item_id    [$target item_id]
+        #:log "SYMLINK LOOKUP from target-package $target_package_id source package $package_id name $name"
+        #
+        # Avoid potential recursive loop
+        #
+        if {${:id} != $target_package_id || $parent_id != $target_item_id} {
+          set target_item_id [::$target_package_id lookup \
+                                  -use_package_path $use_package_path \
+                                  -use_site_wide_pages $use_site_wide_pages \
+                                  -default_lang $default_lang \
+                                  -name $name \
+                                  -parent_id $target_item_id]
+        } else {
+          :log "SYMLINK LOOKUP avoid recursive loop name $name package_id ${:id} parent_id [$target item_id]"
+          set target_item_id 0
+        }
         if {$target_item_id != 0} {
           #:msg "SYMLINK FIX $target_item_id set_resolve_context -package_id ${:id} -parent_id $parent_id"
           ::xo::db::CrClass get_instance_from_db -item_id $target_item_id
@@ -1802,13 +1822,15 @@ namespace eval ::xowiki {
 
     if {$(item_id) == 0} {
       #
-      # check symlink (todo: should this happen in package->lookup?)
+      # Check symlink (todo: should this happen in package->lookup?)
       #
       ::xo::db::CrClass get_instance_from_db -item_id $(parent_id)
       if {[$(parent_id) is_link_page]} {
         #
-        # We encompassed a link to a page or folder, treat both the same way.
+        #  We encompassed a link to a page or folder, treat both the same way.
         #
+        #:log "item_info_from_url LINK page $(parent_id)"
+        
         set link_id $(parent_id)
         set target [::$link_id get_target_from_link_page]
 

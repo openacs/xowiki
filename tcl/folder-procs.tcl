@@ -139,10 +139,12 @@ namespace eval ::xowiki::includelet {
     set folders [list]
 
     # safety belt, for recursive structures
-    if {$depth < 1} {return $folders}
+    if {$depth < 1} {
+      return $folders
+    }
 
     #
-    # get folders
+    # Get Folders
     #
     set sql [:folder_query -form_id $folder_form_id \
                  -parent_id $parent_id \
@@ -153,17 +155,17 @@ namespace eval ::xowiki::includelet {
                           -object_class ::xowiki::FormPage -initialize true]
 
     #
-    # get links
+    # Get links.
     #
     set sql [:folder_query -form_id $link_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
     #ns_log notice "links (parent-id ='$parent_id'):\n$sql"
     set links [::xowiki::FormPage instantiate_objects -sql $sql \
-                    -named_objects true -object_named_after "item_id" \
-                    -object_class ::xowiki::FormPage -initialize true]
+                   -named_objects true -object_named_after "item_id" \
+                   -object_class ::xowiki::FormPage -initialize true]
 
-    #:msg "[llength [$links children]] links"
+    #:msg "[llength [$links children]] links under $parent_id "
 
     set folders [$folder_pages children]
 
@@ -174,12 +176,14 @@ namespace eval ::xowiki::includelet {
     foreach l [$links children] {
       set link_type [$l get_property_from_link_page link_type]
       set cross_package [$l get_property_from_link_page cross_package]
+      #:log "==================== [$l name]: link_type  $link_type cross package $cross_package"
 
       if {$link_type ne "folder_link"} continue
 
       if {$cross_package} {
         #
-        # we found a cross-package link. These kind of links require further queries
+        # We found a cross-package link. These kind of links require
+        # further queries.
         #
         set target [$l get_target_from_link_page]
         set sub_folders [:collect_folders -package_id [$target physical_package_id] \
@@ -518,10 +522,13 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set current_folder ${:__including_page}
+    #:log "child-resources: including_page current_folder $current_folder '[$current_folder name]'"
 
     if {$parent eq ".."} {
       set current_folder [$current_folder parent_id]
       ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    } elseif {$parent eq "."} {
+      # current_folder is already set
     } else {
       set page [::$package_id get_page_from_item_ref \
                     -use_package_path true \
@@ -531,34 +538,40 @@ namespace eval ::xowiki::includelet {
                     $parent]
       set current_folder $page
     }
+    #:log "child-resources parent $parent, current_folder $current_folder '[$current_folder name]', folder is formPage [$current_folder istype ::xowiki::FormPage]"
 
     if {![$current_folder istype ::xowiki::FormPage]} {
       # current folder has to be a FormPage
       set current_folder [$current_folder parent_id]
+      #:log "###### use parent of current folder $current_folder '[$current_folder name]'"
+
       if {![$current_folder istype ::xowiki::FormPage]} {
         error "child-resources not included from a FormPage"
       }
     }
     set :current_folder_id [$current_folder item_id]
 
-    if {[::xo::cc query_parameter m] ne "list" && $parent ne ".."} {
+    set logical_folder_id ${:current_folder_id}
+    if {[$current_folder exists physical_item_id]} {
+      set :current_folder_id [$current_folder set physical_item_id]
+    }
+
+    if {[::xo::cc query_parameter m] ne "list"} {
       set index [$current_folder property index]
+      #:log "child-resources: current folder $current_folder has index <$index>"
       if {$index ne ""} {
         set download [string match "file:*" $index]
+        #:log "child-resources: lookup index under [$current_folder item_id] ${:current_folder_id}"
         set index_link [::$package_id pretty_link \
-                            -parent_id [$current_folder item_id] \
+                            -parent_id ${:current_folder_id} \
                             -download $download \
                             $index]
         return [::$package_id returnredirect $index_link]
       }
     }
 
-    set logical_folder_id ${:current_folder_id}
-    if {[$current_folder exists physical_item_id]} {
-      set :current_folder_id [$current_folder set physical_item_id]
-    }
 
-    ::$package_id instvar package_key
+    #::$package_id instvar package_key
     set current_folder_pretty_link [$current_folder pretty_link]
     set return_url [ad_return_url -default_url $current_folder_pretty_link]
     set category_url [export_vars -base [::$package_id package_url] {
@@ -641,6 +654,8 @@ namespace eval ::xowiki::includelet {
 
     foreach c [$items children] {
       set name [$c name]
+      #:log "===###=== child-resources: get link for $name under ::$package_id logical_folder_id $logical_folder_id"
+      #set ::DDD 1
       set page_link [::$package_id pretty_link \
                          -parent_id $logical_folder_id \
                          -context_url $url \
@@ -648,6 +663,8 @@ namespace eval ::xowiki::includelet {
                          -path_encode false \
                          -page $c \
                          $name]
+      #:log "===###=== child-resources: get link for $name under ::$package_id -> $page_link"
+      #unset ::DDD
       set icon [$c render_icon]
 
       ad_try {
