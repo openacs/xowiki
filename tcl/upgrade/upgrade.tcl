@@ -827,6 +827,13 @@ namespace eval ::xowiki {
       }
     }
 
+    set v 5.10.0d37
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      ::xowiki::Package require_site_wide_pages -refetch true
+    }
+
   }
     
 }
