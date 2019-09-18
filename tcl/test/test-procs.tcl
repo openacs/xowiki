@@ -44,12 +44,16 @@ namespace eval ::xowiki::test {
 
     ad_proc -private ::xowiki::test::get_url_from_location {d} {
         set location [ns_set iget [dict get $d headers] Location ""]
-        set url [ns_parseurl $location]
-        #aa_log "parse url [ns_parseurl $location]"
-        if {[dict get $url tail] ne ""} {
-            set url [dict get $url path]/[dict get $url tail]
+        if {$location ne ""} {
+            set url [ns_parseurl $location]
+            #aa_log "parse url '$location' => $url"
+            if {[dict get $url tail] ne ""} {
+                set url [dict get $url path]/[dict get $url tail]
+            } else {
+                set url [dict get $url path]
+            }
         } else {
-            set url [dict get $url path]
+            set url ""
         }
         return $url
     }
@@ -71,8 +75,9 @@ namespace eval ::xowiki::test {
         return [$node selectNodes string(//form\[contains(@class,'$className')\]/@action)]
     }
 
-
-    # "require_folder" and "require_page" are here just for testing
+    #
+    # "require_folder", "require_page" and "require_link" are here just for testing
+    #
     ad_proc -private ::xowiki::test::require_folder {name parent_id package_id} {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
@@ -88,20 +93,17 @@ namespace eval ::xowiki::test {
         aa_log "  $name => $item_id\n"
         return $item_id
     }
-
-    ad_proc -private ::xowiki::test::require_link {name parent_id package_id target_id} {
+    
+    ad_proc -private ::xowiki::test::require_link {name parent_id package_id target_ref} {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
         if {$item_id == 0} {
             set form_id [::xowiki::Weblog instantiate_forms -forms en:link.form -package_id $package_id]
-            set target [::xo::db::CrClass get_instance_from_db -item_id $target_id]
-            set item_ref [[$target package_id] external_name -parent_id [$target parent_id] [$target name]]
-
             set f [::$form_id create_form_page_instance \
                        -name $name \
                        -nls_language en_US \
-                       -instance_attributes [list link $item_ref] \
-                       -default_variables [list title "Link $name" parent_id $parent_id package_id $package_id]]
+                       -instance_attributes [list link $target_ref] \
+                       -default_variables [list title "Link $name -> $target_ref" parent_id $parent_id package_id $package_id]]
             $f save_new
             set item_id [$f item_id]
         }

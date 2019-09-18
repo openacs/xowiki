@@ -718,27 +718,7 @@ test section "Item refs"
     return $item_id
   }
 
-  proc require_link {name parent_id package_id target_id} {
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-
-    if {$item_id == 0} {
-      set form_id [::xowiki::Weblog instantiate_forms -forms en:link.form -package_id $package_id]
-      set target [::xo::db::CrClass get_instance_from_db -item_id $target_id]
-      set item_ref [[$target package_id] external_name -parent_id [$target parent_id] [$target name]]
-
-      set f [::$form_id create_form_page_instance \
-                 -name $name \
-                 -nls_language en_US \
-                 -instance_attributes [list link $item_ref] \
-                 -default_variables [list title "Link $name" parent_id $parent_id package_id $package_id]]
-      $f save_new
-      set item_id [$f item_id]
-    }
-    test hint "  $name => $item_id\n"
-    return $item_id
-  }
-
-  proc require_page {name parent_id package_id {file_content ""}} {
+   proc require_page {name parent_id package_id {file_content ""}} {
     set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
     if {$item_id == 0} {
       if {$file_content eq ""} {
@@ -810,13 +790,24 @@ foreach nls_language [lang::system::get_locales] {
   set subimage_id    [require_page file:image2.png $f1_id $package_id $base64]
   set childimage_id  [require_page file:image3.png $parentpage_id $package_id $base64]
 
-  set pagelink_id      [require_link link1      $folder_id $package_id $parentpage_id]
-  set folderlink_id    [require_link link2      $folder_id $package_id $f1_id]
-  set subpagelink_id   [require_link link3      $folder_id $package_id $testpage_id]
-  set subfolderlink_id [require_link link4      $folder_id $package_id $f3_id]
-  set subimagelink_id  [require_link link5      $folder_id $package_id $subimage_id]
-  ################################
+  ::xo::db::CrClass get_instance_from_db -item_id $parentpage_id
+  ::xo::db::CrClass get_instance_from_db -item_id $f1_id
+  ::xo::db::CrClass get_instance_from_db -item_id $testpage_id
+  ::xo::db::CrClass get_instance_from_db -item_id $f3_id
+  ::xo::db::CrClass get_instance_from_db -item_id $subimage_id
 
+  set parentpage_ref [$package_id external_name -parent_id $folder_id [$parentpage_id name]]
+  set f1_ref         [$package_id external_name -parent_id $folder_id [$f1_id name]]
+  set testpage_ref   [$package_id external_name -parent_id $folder_id [$testpage_id name]]
+  set f3_ref         [$package_id external_name -parent_id $f1_id [$f3_id name]]
+  set subimage_ref   [$package_id external_name -parent_id $folder_id [$subimage_id name]]
+
+  set pagelink_id      [xowiki::test::require_link link1 $folder_id $package_id $parentpage_ref]
+  set folderlink_id    [xowiki::test::require_link link2 $folder_id $package_id $f1_ref]
+  set subpagelink_id   [xowiki::test::require_link link3 $folder_id $package_id $testpage_ref]
+  set subfolderlink_id [xowiki::test::require_link link4 $folder_id $package_id $f3_ref]
+  set subimagelink_id  [xowiki::test::require_link link5 $folder_id $package_id $subimage_ref]
+  ################################
 
 #################################
 test subsection "Toplevel Tests:"
@@ -1250,6 +1241,17 @@ test section "page properties"
   ? {$l4 is_folder_page} 1
   ? {$l5 is_folder_page} 0
 
+  ? {$f1 is_link_page} 0
+  ? {$f2 is_link_page} 0
+  ? {$f3 is_link_page} 0
+
+  ? {$p1 is_link_page} 0
+
+  ? {$l1 is_link_page} 1
+  ? {$l2 is_link_page} 1
+  ? {$l3 is_link_page} 1
+  ? {$l4 is_link_page} 1
+  ? {$l5 is_link_page} 1
 
 
   test section "pretty links"
