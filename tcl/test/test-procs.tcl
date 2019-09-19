@@ -90,7 +90,7 @@ namespace eval ::xowiki::test {
             $f save_new
             set item_id [$f item_id]
         }
-        aa_log "  $name => $item_id\n"
+        aa_log "  $name => $item_id"
         return $item_id
     }
     
@@ -107,7 +107,7 @@ namespace eval ::xowiki::test {
             $f save_new
             set item_id [$f item_id]
         }
-        aa_log "  $name => $item_id\n"
+        aa_log "  $name => $item_id"
         return $item_id
     }
 
@@ -135,7 +135,7 @@ namespace eval ::xowiki::test {
             $f destroy_on_cleanup
         }
         ns_log notice "Page  $name => $item_id"
-        aa_log "  $name => $item_id\n"
+        aa_log "  $name => $item_id"
         return $item_id
     }
 
