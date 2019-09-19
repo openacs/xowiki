@@ -73,9 +73,10 @@ namespace eval ::xowiki::test {
 	    aa_true "link_id $p1_id is valid " {$p1_id ne "0"}
 
 	    ::xo::db::CrClass get_instance_from_db -item_id $link_id
-	    set link_content [::$link_id render]
+	    set link_content [::$link_id render_content]
 	    #ns_log notice $link_content
 
+	    aa_section "Check links in rendered child-resources (default render_local)"
 	    #
 	    # Check, if
 	    # (a) the rendered link contains the page included in the linked folder and
@@ -91,10 +92,42 @@ namespace eval ::xowiki::test {
 		}
 	    }
 
+	    aa_section "Check links in rendered child-resources (default render_local=true)"
+
+	    #
+	    # Now we test the behavior, if the link is defined with
+	    # "resolve_local=true". Since the defining is coming from
+	    # the site-wide-pages, and many of these values are
+	    # already loaded, we modify the loaded content. In
+	    # particular, the form-field responsible for rendering can
+	    # be looked up, and we can modify in this form-field the
+	    # instance variable "resolve_local" directly.
+	    #
+	    # This is by-passing the API, but little code. Caveat:
+	    # When form-field caching is modified, we might have to
+	    # change this code as well
+
+	    foreach f [::xowiki::formfield::FormField info instances -closure] {
+		if {[$f name] eq "link"} {
+		    $f set resolve_local true
+		}
+	    }
+
+	    acs::test::dom_html root [::$link_id render_content] {
+		set node [$root selectNodes //td\[@class='list'\]/a\[@title='en:p1'\]]
+		aa_true "one page found" {[llength $node] == 1}
+		if {[llength $node] == 1} {
+		    set href [$node getAttribute href]
+		    aa_equals "href points to local folder" $href \
+			$main_xowiki_instance_name/$link_name/p1
+		}
+	    }
+
+
 	    #
 	    # reset system locale to saved value
 	    #
-    	    #lang::system::set_locale $defined_locale
+	    #lang::system::set_locale $defined_locale
 
 	    if {$finally_clean_test_instances_p} {
 		foreach instance_name [list $main_xowiki_instance_name $linked_xowiki_instance_name] {
