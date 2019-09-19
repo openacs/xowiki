@@ -384,7 +384,7 @@ namespace eval ::xowiki {
         if {0} {
           #
           # In some older versions, this code was necessary. Keep it
-          # inhere as a reference, in case not all relevant cases were
+          # here as a reference, in case not all relevant cases were
           # covered by the tests
           #
           set target [$fo get_target_from_link_page]
