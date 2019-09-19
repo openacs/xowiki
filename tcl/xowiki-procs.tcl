@@ -4668,7 +4668,9 @@ namespace eval ::xowiki {
   FormPage instproc render_content {} {
     set package_id ${:package_id}
     :include_header_info -prefix form_view
-    if {[::xo::cc mobile]} {:include_header_info -prefix mobile}
+    if {[::xo::cc mobile]} {
+      :include_header_info -prefix mobile
+    }
 
     set text [:get_from_template text]
     if {$text ne ""} {
@@ -4726,8 +4728,10 @@ namespace eval ::xowiki {
     # context.
     if {$varname eq "current_user"} {
       set value [::xo::cc set untrusted_user_id]
+
     } elseif {$varname eq "current_url"} {
       set value [::xo::cc url]
+
     } else {
       #
       # First check to find an existing form-field with that name
@@ -4735,7 +4739,7 @@ namespace eval ::xowiki {
       set f [::xowiki::formfield::FormField get_from_name [self] $varname]
       if {$f ne ""} {
         #
-        # the form field exists already, we just fill in the actual
+        # The form field exists already, we just fill in the actual
         # value (needed e.g. in weblogs, when the same form field is
         # used for multiple page instances in a single request)
         #
