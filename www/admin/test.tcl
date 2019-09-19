@@ -97,14 +97,14 @@ test section "Create New Package Instance of XoWiki"
 if {[site_node::exists_p -url /$instance_name]} {
   test hint "we have an existing instance named  /$instance_name, we delete it..."
   # we have already an instance, get rid of it
-  array set info [site_node::get_from_url -url /$instance_name -exact]
+  set info [site_node::get_from_url -url /$instance_name -exact]
   # is the instance mounted?
-  if {$info(package_id) ne ""} {
-    site_node::unmount -node_id $info(node_id)
+  if {[dict get $info package_id] ne ""} {
+    site_node::unmount -node_id [dict get $info node_id]
   }
-  site_node::delete -node_id $info(node_id)
+  site_node::delete -node_id [dict get $info node_id]
   # remove the package instance
-  apm_package_instance_delete $info(object_id)
+  apm_package_instance_delete [dict get $info object_id]
 
   #test code [array get info]
 }
@@ -137,23 +137,23 @@ site_node::instantiate_and_mount \
 
 ? {site_node::exists_p -url /$instance_name} 1 \
     "created test instance /$instance_name"
-array set info [site_node::get_from_url -url /$instance_name -exact]
+set info [site_node::get_from_url -url /$instance_name -exact]
 #test code [array get info]
 
-? {expr {$info(package_id) ne ""}} 1 "package is mounted, package_id provided: $info(package_id)"
+? {expr {[dict get $info package_id] ne ""}} 1 "package is mounted, package_id provided: [dict get $info package_id]"
 
 #############################################################
 test subsection "Basic Setup: Package, url= /$instance_name/"
 #############################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/ \
     -actual_query "" \
     -user_id 0
 
 ? {info exists package_id} 1 "package_id is exported"
-? {set package_id} $info(package_id) "package_id right value"
+? {set package_id} [dict get $info package_id] "package_id right value"
 ? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/
@@ -218,13 +218,13 @@ test section "New Query: /$instance_name/en/index"
 ##################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/index \
     -actual_query "" \
     -user_id 0
 
 ? {info exists package_id} 1 "package_id is exported"
-? {set package_id} $info(package_id) "package_id right value"
+? {set package_id} [dict get $info package_id] "package_id right value"
 ? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/en/index "url"
@@ -245,13 +245,13 @@ test section "New Query: /$instance_name/"
 ##########################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/ \
     -actual_query "" \
     -user_id 0
 
 ? {info exists package_id} 1 "package_id is exported"
-? {set package_id} $info(package_id) "package_id right value"
+? {set package_id} [dict get $info package_id] "package_id right value"
 ? {nsf::is object ::$package_id} 1 "we have a package_id object"
 ? {$package_id package_url} /$instance_name/ "package_url"
 ? {$package_id url} /$instance_name/ "url"
@@ -302,7 +302,7 @@ test section "New Query: /$instance_name/weblog"
 ################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/weblog \
     -actual_query "" \
     -user_id 0
@@ -334,7 +334,7 @@ set content_length [string length $content]
 test section "New Query: /$instance_name/en/weblog"
 ###################################################
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/weblog \
     -actual_query "" \
     -user_id 0
@@ -357,7 +357,7 @@ test section "New Query: /$instance_name/en/weblog with summary=1"
 ##################################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/weblog \
     -actual_query "summary=1" \
     -user_id 0
@@ -382,7 +382,7 @@ set swas [xo::dc list get_swa "select grantee_id from acs_permissions \
         where object_id = -4 and privilege = 'admin'"]
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/ \
     -actual_query "" \
     -user_id [lindex $swas 0]
@@ -407,7 +407,7 @@ test section "Delete weblog-portlet via weblink"
 ################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/weblog-portlet \
     -actual_query "m=delete" \
     -user_id [lindex $swas 0]
@@ -459,7 +459,7 @@ test section "Recreate weblog-portlet"
 ######################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/weblog \
     -actual_query "summary=1" \
     -user_id 0
@@ -479,7 +479,7 @@ test section "Query revisions for hello page via weblink"
 #########################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/hello \
     -actual_query "m=revisions" \
     -user_id [lindex $swas 0]
@@ -496,7 +496,7 @@ test section "Edit hello page via weblink"
 ##########################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/hello \
     -actual_query "m=edit" \
     -user_id [lindex $swas 0]
@@ -535,7 +535,7 @@ test section "Submit edited hello page via weblink"
 ###################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/hello \
     -actual_query "m=edit" \
     -user_id [lindex $swas 0] \
@@ -573,7 +573,7 @@ test section "Query revisions for hello page via weblink"
 #########################################################
 
 ::xowiki::Package initialize -parameter $index_vuh_parms \
-    -package_id $info(package_id) \
+    -package_id [dict get $info package_id] \
     -url /$instance_name/en/hello \
     -actual_query "m=revisions" \
     -user_id [lindex $swas 0]
@@ -1429,7 +1429,7 @@ set o [::xotcl::Object new -destroy_on_cleanup]
 $o mixin ::xowiki::Page
 $o name dummy
 $o nls_language en_US
-$o package_id $info(package_id)
+$o package_id [dict get $info package_id]
 
 set f0 [$o create_raw_form_field -name test -slot ::xowiki::Page::slot::name]
 set widgetSpec [$f0 asWidgetSpec]
