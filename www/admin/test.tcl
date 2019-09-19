@@ -58,6 +58,8 @@ proc ? {cmd expected {msg ""}} {
    }
 }
 
+proc label {intro case ref} {return "$intro '$ref' -- $case"}
+
 set instance_name XOWIKI-TEST
 set index_vuh_parms {
   {-m view}
@@ -701,53 +703,9 @@ test section "Item refs"
 #
 #
 
-  # "require_folder" and "require_page" are here just for testing
-  proc require_folder {name parent_id package_id} {
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
-    if {$item_id == 0} {
-      set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
-      set f [::$form_id create_form_page_instance \
-                 -name $name \
-                 -nls_language en_US \
-                 -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
-      $f save_new
-      set item_id [$f item_id]
-    }
-    test hint "  $name => $item_id\n"
-    return $item_id
-  }
-
-   proc require_page {name parent_id package_id {file_content ""}} {
-    set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
-    if {$item_id == 0} {
-      if {$file_content eq ""} {
-        ::$package_id get_lang_and_name -name $name lang stripped_name
-        set nls_language [::xowiki::Package get_nls_language_from_lang $lang]
-        set f [::xowiki::Page new -name $name -description "" \
-                   -parent_id $parent_id -package_id $package_id \
-                   -text [list "Content of $name" text/html]]
-      } else {
-        set mime_type [::xowiki::guesstype $name]
-        set f [::xowiki::File new -name $name -description "" \
-                   -parent_id $parent_id -package_id $package_id \
-                   -mime_type $mime_type]
-        set import_file [ad_tmpnam]
-        ::xo::write_file $import_file [::base64::decode $file_content]
-        $f set import_file $import_file
-      }
-      $f save_new
-      set item_id [$f item_id]
-      $f destroy_on_cleanup
-    }
-    ns_log notice "Page  $name => $item_id"
-    test hint "  $name => $item_id\n"
-    return $item_id
-  }
-  proc label {intro case ref} {return "$intro '$ref' -- $case"}
-
-  #some test cases
-  ::xowiki::Package initialize -url /$instance_name/
+#some test cases
+::xowiki::Package initialize -url /$instance_name/
 
 set expected_locale ""
 foreach nls_language [lang::system::get_locales] {
@@ -772,23 +730,23 @@ foreach nls_language [lang::system::get_locales] {
   set folder_id [::$package_id folder_id]
 
   # make sure, we have folder "f1" with subfolder "f3" with subfolder "subf3"
-  set f1_id          [require_folder "f1"          $folder_id $package_id]
-  set f3_id          [require_folder "f3"          $f1_id $package_id]
-  set subf3_id       [require_folder "subf3"       $f3_id $package_id]
+  set f1_id          [xowiki::test::require_folder "f1"          $folder_id $package_id]
+  set f3_id          [xowiki::test::require_folder "f3"          $f1_id $package_id]
+  set subf3_id       [xowiki::test::require_folder "subf3"       $f3_id $package_id]
 
   # make sure, we have the test pages
-  set parentpage_id  [require_page   de:parentpage $folder_id $package_id]
-  set enpage_id      [require_page   en:page       $folder_id $package_id]
-  set testpage_id    [require_page   de:testpage   $f1_id $package_id]
-  set f3page_id      [require_page   en:page       $f3_id $package_id]
+  set parentpage_id  [xowiki::test::require_page   de:parentpage $folder_id $package_id]
+  set enpage_id      [xowiki::test::require_page   en:page       $folder_id $package_id]
+  set testpage_id    [xowiki::test::require_page   de:testpage   $f1_id $package_id]
+  set f3page_id      [xowiki::test::require_page   en:page       $f3_id $package_id]
 
-  set childfolder_id [require_folder "childfolder" $parentpage_id $package_id]
-  set childpage_id   [require_page "de:childpage"  $parentpage_id $package_id]
+  set childfolder_id [xowiki::test::require_folder "childfolder" $parentpage_id $package_id]
+  set childpage_id   [xowiki::test::require_page "de:childpage"  $parentpage_id $package_id]
 
   set base64 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAAxJREFUCNdj\n+P//PwAF/gL+3MxZ5wAAAABJRU5ErkJggg=="
-  set image_id       [require_page file:image.png  $folder_id $package_id $base64]
-  set subimage_id    [require_page file:image2.png $f1_id $package_id $base64]
-  set childimage_id  [require_page file:image3.png $parentpage_id $package_id $base64]
+  set image_id       [xowiki::test::require_page file:image.png  $folder_id $package_id $base64]
+  set subimage_id    [xowiki::test::require_page file:image2.png $f1_id $package_id $base64]
+  set childimage_id  [xowiki::test::require_page file:image3.png $parentpage_id $package_id $base64]
 
   ::xo::db::CrClass get_instance_from_db -item_id $parentpage_id
   ::xo::db::CrClass get_instance_from_db -item_id $f1_id
