@@ -102,11 +102,7 @@ if {[site_node::exists_p -url /$instance_name]} {
   if {[dict get $info package_id] ne ""} {
     site_node::unmount -node_id [dict get $info node_id]
   }
-  site_node::delete -node_id [dict get $info node_id]
-  # remove the package instance
-  apm_package_instance_delete [dict get $info object_id]
-
-  #test code [array get info]
+  site_node::delete -node_id [dict get $info node_id] -delete_package
 }
 
 ? {site_node::exists_p -url /$instance_name} 0 \
