@@ -122,8 +122,7 @@ Example: //xowiki/en:xowiki-standard-parameter"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="fallback_languages"  default="" description="Specify space delimited two character codes for checking default languages. When this parameter is non-empty, try to get the page in the specified languages as fallback rather than offering a link for creation of a page in the requested locale. Per default this parameter is empty." section_name="URL"/>
             <parameter scope="instance" datatype="string"  min_n_values="1"  max_n_values="1"  name="weblog_page"  default="en:weblog" description="name of the page to show weblog (when clicking on tags)" section_name="Pages"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_delicious"  default="0" description="Add a delicious button to the page" section_name="Options"/>
-            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg
-" section_name="Options"/>
+            <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_digg"  default="0" description="Add a button to submit article to digg" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_general_comments"  default="1" description="use general comments package " section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_notifications"  default="1" description="Allow the user to register notifications" section_name="Options"/>
             <parameter scope="instance" datatype="number"  min_n_values="1"  max_n_values="1"  name="with_tags"  default="1" description="allow user to provide tags to pages" section_name="Options"/>

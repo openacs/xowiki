@@ -76,7 +76,12 @@ namespace eval ::xowiki::includelet {
           }
         }
       }
-      append result "}}\n"
+      append result "}}\n<p>"
+      set index [::xo::api object_index "" $cl]
+      if {[nsv_exists api_library_doc $index]} {
+        set doc_elements [nsv_get api_library_doc $index]
+        append result [lindex [dict get $doc_elements main] 0]
+      }
       set :html([namespace tail $cl]) $result
       :describe_includelets [$cl info subclass]
     }
@@ -377,6 +382,8 @@ namespace eval ::xowiki::includelet {
       -superclass ::xowiki::Includelet \
       -parameter {
         {title "The following includelets can be used in a page"}
+      } -ad_doc {
+        List the available includelets of this installation.
       }
 
   available-includelets instproc render {} {
@@ -504,6 +511,11 @@ namespace eval ::xowiki::includelet {
           {-form_variable}
           {-source ""}
         }}
+      } -ad_doc {
+
+        Get an instance variable from the current or from a different
+        page.
+
       } -instproc render {} {
         :get_parameters
         if {![info exists variable] && ![info exists form_variable]} {
@@ -534,6 +546,11 @@ namespace eval ::xowiki::includelet {
           {-source ""}
           {-format "%m-%d-%Y"}
         }}
+      } -ad_doc {
+
+        Include the creation date of the current
+        or specified page in the provided format.
+
       } -instproc render {} {
         :get_parameters
         set page [:resolve_page_name $source]
@@ -556,6 +573,10 @@ namespace eval ::xowiki::includelet {
           {-entries_of}
           {-title}
         }}
+      } -ad_doc {
+
+        Include an RSS button referring to pages of the specified time span.
+
       }
 
   rss-button instproc render {} {
@@ -577,6 +598,11 @@ namespace eval ::xowiki::includelet {
           {-siteurl ""}
           {-label ""}
         }}
+      } -ad_doc {
+
+        Include bookmarklet button that makes it easy to add the
+        current page as a bookmark in the browser of the client.
+
       }
 
   bookmarklet-button instproc render {} {
@@ -606,7 +632,14 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create set-parameter \
       -superclass ::xowiki::Includelet \
-      -parameter {{__decoration none}}
+      -parameter {{__decoration none}} \
+      -ad_doc {
+
+        Set a parameter accessible to the current page (for certain
+        tailorings), accessible in the page via e.g. the query
+        parameter interface.
+
+      }
 
   set-parameter instproc render {} {
     :get_parameters
@@ -623,7 +656,7 @@ namespace eval ::xowiki::includelet {
 
 namespace eval ::xowiki::includelet {
   #############################################################################
-  # valid parameters for he categories includelet are
+  # valid parameters for the categories includelet are
   #     tree_name: match pattern, if specified displays only the trees
   #                with matching names
   #     no_tree_name: if specified, tree names are not displayed
@@ -650,6 +683,22 @@ namespace eval ::xowiki::includelet {
           {-allow_edit false}
           {-ordered_composite}
         }}
+      } \
+      -ad_doc {
+
+        List the specified category tree.
+
+        @param tree_name match pattern, if specified displays only the
+        trees with matching names
+
+        @param no_tree_name if specified, tree names are not displayed
+
+        @param open_page name (e.g. en:iMacs) of the page to be opened
+        initially
+
+        @param tree_style boolean, default: true, rnder category tree
+        based on mktree
+
       }
 
   categories instproc initialize {} {
@@ -874,7 +923,6 @@ namespace eval ::xowiki::includelet {
   #############################################################################
   #
   # display recent entries by categories
-  # -gustaf neumann
   #
   # valid parameters from the include are
   #     tree_name: match pattern, if specified displays only the trees with matching names
@@ -891,6 +939,17 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
           {-pretty_age "off"}
         }}
+      } -ad_doc {
+
+        Display recent entries by categories.
+
+        @param tree_name match pattern, if specified displays only the
+        trees with matching names
+
+        @param max_entries show given number of new entries
+        @param locale use the specified locale
+        @param pretty_age boolean, use pretty age or not
+
       }
 
   categories-recent instproc initialize {} {
@@ -982,6 +1041,15 @@ namespace eval ::xowiki::includelet {
           {-allow_delete:boolean false}
           {-pretty_age off}
         }}
+      } -ad_doc {
+
+        Display recent modified entries.
+
+        @param max_entries show given number of new entries
+        @param allow_edit boolean to optionally offer an edit button
+        @param allow_delete boolean to optionally offer an delete button
+        @param pretty_age boolean, use pretty age or not
+
       }
 
   recent instproc render {} {
@@ -1082,7 +1150,13 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-max_entries:integer 20}
         }}
+      } -ad_doc {
+
+        Display last visited pages.
+
+        @param max_entries show given number of entries
       }
+
 
   last-visited instproc render {} {
     :get_parameters
@@ -1126,7 +1200,15 @@ namespace eval ::xowiki::includelet {
           {-max_entries:integer "10"}
           {-interval}
         }}
+      } -ad_doc {
+
+        Display most popular pages of this wiki instance.
+
+        @param max_entries show given number of entries
+        @param interval specified optionally the time interval since when pages are listed
+
       }
+
 
   most-popular instproc render {} {
     :get_parameters
@@ -1192,7 +1274,7 @@ namespace eval ::xowiki::includelet {
 namespace eval ::xowiki::includelet {
   #############################################################################
   #
-  # list the most frequent visitors
+  # include RSS content
   #
 
   ::xowiki::IncludeletClass create rss-client \
@@ -1203,7 +1285,15 @@ namespace eval ::xowiki::includelet {
           {-url:required}
           {-max_entries:integer "15"}
         }}
+      } -ad_doc {
+
+        Include RSS content
+
+        @param max_entries show given number of entries
+        @param url source for the RSS feed
+
       }
+
 
   rss-client instproc initialize {} {
     :get_parameters
@@ -1238,7 +1328,7 @@ namespace eval ::xowiki::includelet {
 namespace eval ::xowiki::includelet {
   #############################################################################
   #
-  # list the most frequent visitors
+  # List the most frequent visitors.
   #
 
   ::xowiki::IncludeletClass create most-frequent-visitors \
@@ -1248,6 +1338,12 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-max_entries:integer "15"}
         }}
+      } -ad_doc {
+
+         List the most frequent visitors.
+
+        @param max_entries show given number of entries
+
       }
 
   most-frequent-visitors instproc render {} {
@@ -1295,6 +1391,12 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-max_entries:integer 20}
         }}
+      } -ad_doc {
+
+        List unread items.
+
+        @param max_entries show given number of entries
+
       }
 
   unread-items instproc render {} {
@@ -1361,6 +1463,15 @@ namespace eval ::xowiki::includelet {
           {-popular:boolean 0}
           {-page}
         }}
+      } -ad_doc {
+
+        Display specified tags.
+
+        @param limit maximum number of new entries
+        @param summary boolean to optionally provide summary
+        @param popular boolean to optionally list popular tags
+        @param page provide alternate weblog listing page
+
       }
 
   tags instproc render {} {
@@ -1386,7 +1497,9 @@ namespace eval ::xowiki::includelet {
     }
     set entries [list]
 
-    if {![info exists page]} {set page [::$package_id get_parameter weblog_page]}
+    if {![info exists page]} {
+      set page [::$package_id get_parameter weblog_page]
+    }
 
     set href [::$package_id package_url]tag/
     ::xo::dc foreach get_tag_counts $sql {
@@ -1410,6 +1523,12 @@ namespace eval ::xowiki::includelet {
           {-summary 1}
         }}
         id
+      } \
+      -ad_doc {
+        List the tags associated with the
+        current page.
+
+        @param summary when specified, tag points to a summarized listing
       }
 
   my-tags instproc render {} {
@@ -1465,6 +1584,12 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           {-summary 1}
         }}
+      } \
+      -ad_doc {
+        List the categories associated with the
+        current page.
+
+        @param summary when specified, the category points to a summarized listing
       }
 
   my-categories instproc render {} {
@@ -1514,7 +1639,11 @@ namespace eval ::xowiki::includelet {
 
   ::xowiki::IncludeletClass create my-general-comments \
       -superclass ::xowiki::Includelet \
-      -parameter {{__decoration none}}
+      -parameter {{__decoration none}} \
+      -ad_doc {
+        List the general comments available for the
+        current page.
+      }
 
   my-general-comments instproc render {} {
     :get_parameters
@@ -1549,7 +1678,12 @@ namespace eval ::xowiki::includelet {
           {-description ""}
           {-url}
         }}
+      } -ad_doc {
+        Add a button to submit article to digg.
+        @param description
+        @param url
       }
+
 
   digg instproc render {} {
     :get_parameters
@@ -1571,6 +1705,11 @@ namespace eval ::xowiki::includelet {
           {-tags ""}
           {-url}
         }}
+      } -ad_doc {
+        Add a button to submit article to delicious.
+        @param description
+        @param url
+        @param tags
       }
 
   delicious instproc render {} {
@@ -1601,6 +1740,13 @@ namespace eval ::xowiki::includelet {
           {-publisher ""}
           {-rssurl}
         }}
+      } \
+      -ad_doc {
+        Name of the publisher, when posting URLs to my yahoo (use in
+        connection with with_yahoo_publisher).
+
+        @param publisher
+        @param rssurl
       }
 
   my-yahoo-publisher instproc render {} {
@@ -1621,7 +1767,11 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create my-references \
       -superclass ::xowiki::Includelet \
-      -parameter {{__decoration none}}
+      -parameter {{__decoration none}} \
+      -ad_doc {
+        List the pages which are referring to the
+        current page.
+      }
 
   my-references instproc render {} {
     :get_parameters
@@ -1669,7 +1819,11 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create my-refers \
       -superclass ::xowiki::Includelet \
-      -parameter {{__decoration none}}
+      -parameter {{__decoration none}} \
+      -ad_doc {
+        List the pages which are referred to the
+        current page.
+      }
 
   my-refers instproc render {} {
     :get_parameters
@@ -1714,7 +1868,12 @@ namespace eval ::xowiki::includelet {
   #
   ::xowiki::IncludeletClass create unresolved-references \
       -superclass ::xowiki::Includelet \
-      -parameter {{__decoration none}}
+      -parameter {{__decoration none}} \
+      -ad_doc {
+
+        List the pages with unresolved references in the current
+        xowiki/xowf package. This is intended for use by admins.
+      }
 
   unresolved-references instproc render {} {
     :get_parameters
@@ -1785,6 +1944,20 @@ namespace eval ::xowiki::includelet {
           {-show_anonymous "summary"}
           {-page}
         }}
+      } -ad_doc {
+
+        Show users actively in the wiki.
+
+        @param interval list users when active in the wiki in the
+        specified interval (default: 10 minutes)
+
+        @param max_users maximum number of users to list
+
+        @param show_anonymous specify, whether users not logged in
+        should get a result from this includelet. Possible values
+        "nothing", "all", "summary"
+
+        @param page restrict listing to changes on a certain page.
       }
 
   # TODO make display style -decoration
@@ -1951,6 +2124,27 @@ namespace eval ::xowiki::includelet {
           {-include_in_foldertree "true"}
         }}
         id
+      } -ad_doc {
+
+        Show table of contents of the current wiki.
+        The "toc" includelet renders the page titles of the current files
+        based on the value of the "page_order" attributes. Only those
+        pages are rendered that have a non-empty "page_order" field.
+
+        @param style
+        @param renderer
+        @param open_page
+        @param folder_mode
+        @param ajax
+        @param expand_all
+        @param remove_levels
+        @param category_id
+        @param locale
+        @param source
+        @param range
+        @param allow_reorder
+        @param include_in_foldertree
+
       }
 
   #"select page_id,  page_order, name, title, \
@@ -2438,6 +2632,17 @@ namespace eval ::xowiki::includelet {
           {-menu_buttons edit}
           {-range ""}
         }}
+      } -ad_doc {
+
+        Provide a selection of pages
+
+        @param edit_link provide an edit link, boolean.
+        @param pages pages of the selection
+        @param ordered_pages set of already ordered pages
+        @param source take "pages" or "ordered_pages" from the provided page
+        @param menu_buttons list of buttons for the entries
+        @param range (sub)range of the pages (based on page_order attribute)
+
       }
 
   selection instproc render {} {
@@ -2522,6 +2727,14 @@ namespace eval ::xowiki::includelet {
           {-pages ""}
           {-ordered_pages}
         }}
+      }  -ad_doc {
+
+        Create a form from the selection
+
+        @param edit_links provide an edit link, boolean.
+        @param pages pages of the selection
+        @param ordered_pages set of already ordered pages
+
       }
 
   composite-form instproc render {} {
@@ -2583,6 +2796,17 @@ namespace eval ::xowiki::includelet {
           {-allow_reorder ""}
           {-with_footer "false"}
         }}
+      } -ad_doc {
+
+        Show contents in book mode.
+
+        @param category_id
+        @param menu_buttons default: edit
+        @param folder_mode boolean, default false
+        @param locale for the content
+        @param range page range
+        @param allow_reorder allow optional page_reorder based on drag and drop
+        @param with_footer boolean, default: false
       }
 
 
@@ -2781,7 +3005,10 @@ namespace eval ::xowiki::includelet {
   # display a sequence of pages via W3C slidy
   #
   ::xowiki::IncludeletClass create slidy \
-      -superclass ::xowiki::includelet::book
+      -superclass ::xowiki::includelet::book \
+      -ad_doc {
+        Display a sequence of pages via W3C slidy, based on book includelet
+      }
 
   slidy instproc render_items {
     -pages:required
@@ -2821,7 +3048,12 @@ namespace eval ::xowiki::includelet {
   # display a sequence of pages via jQuery Carousel
   #
   ::xowiki::IncludeletClass create jquery-carousel \
-      -superclass ::xowiki::includelet::book
+      -superclass ::xowiki::includelet::book \
+      -ad_doc {
+        Display a sequence of pages via jquery-carousel, based on book
+        includelet.
+      }
+
 
   jquery-carousel instproc render_items {
     -pages:required
@@ -2874,7 +3106,11 @@ namespace eval ::xowiki::includelet {
   #    infiniteCarousel/jquery.infinitecarousel2.min.js
   #
   ::xowiki::IncludeletClass create jquery-infinite-carousel \
-      -superclass ::xowiki::includelet::book
+      -superclass ::xowiki::includelet::book \
+      -ad_doc {
+        Display a sequence of pages via jquery-infinite-carousel, based on book
+        includelet.
+      }
 
   jquery-infinite-carousel instproc render_items {
     -pages:required
@@ -2933,7 +3169,11 @@ namespace eval ::xowiki::includelet {
   #
 
   ::xowiki::IncludeletClass create jquery-cloud-carousel \
-      -superclass ::xowiki::includelet::book
+      -superclass ::xowiki::includelet::book \
+      -ad_doc {
+        Display a sequence of pages via jquery-cloud-carousel, based on book
+        includelet.
+      }
 
   jquery-cloud-carousel instproc render_items {
     -pages:required
@@ -3010,7 +3250,11 @@ namespace eval ::xowiki::includelet {
   # your needs.
 
   ::xowiki::IncludeletClass create jquery-spacegallery \
-      -superclass ::xowiki::includelet::book
+      -superclass ::xowiki::includelet::book \
+      -ad_doc {
+        Display a sequence of pages via jquery-spacegalleryl, based on book
+        includelet.
+      }
 
   jquery-spacegallery instproc render_items {
     -pages:required
@@ -3061,6 +3305,14 @@ namespace eval ::xowiki::includelet {
       :return_url [::${:package_id} url]
     }
   }
+  item-button instproc get_page {varname} {
+    :upvar $varname page_id
+    if {[info exists page_id]} {
+      set page [::xo::db::CrClass get_instance_from_db -item_id $page_id]
+    } else {
+      set page ${:__including_page}
+    }
+  }
 
   item-button instproc render_button {
     -page
@@ -3099,7 +3351,8 @@ namespace eval ::xowiki::includelet {
     return $html
   }
 
-  ::xowiki::IncludeletClass create edit-item-button -superclass ::xowiki::includelet::item-button \
+  ::xowiki::IncludeletClass create edit-item-button \
+      -superclass ::xowiki::includelet::item-button \
       -parameter {
         {parameter_declaration {
           {-page_id}
@@ -3109,11 +3362,15 @@ namespace eval ::xowiki::includelet {
           {-link ""}
           {-target ""}
         }}
+      } -ad_doc {
+        Button to edit the current or a different page
+
+        @param page_id optional item_id of the referred page
       }
 
   edit-item-button instproc render {} {
     :get_parameters
-    set page [expr {[info exists page_id] ? $page_id : ${:__including_page}}]
+    set page [:get_page page_id]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
       #set title "$title [$template title] [$page name]"
@@ -3137,11 +3394,15 @@ namespace eval ::xowiki::includelet {
           {-alt "delete"}
           {-book_mode false}
         }}
+      } -ad_doc {
+        Button to delete the current or a different page
+
+        @param page_id optional item_id of the referred page
       }
 
   delete-item-button instproc render {} {
     :get_parameters
-    set page [expr {[info exists page_id] ? $page_id : ${:__including_page}}]
+    set page [:get_page page_id]
     return [:render_button \
                 -page $page -method delete -package_id $package_id \
                 -title $title -alt $alt \
@@ -3159,11 +3420,15 @@ namespace eval ::xowiki::includelet {
           {-link ""}
           {-book_mode false}
         }}
+      } -ad_doc {
+        Button to view the current or a different page
+
+        @param page_id optional item_id of the referred page
       }
 
   view-item-button instproc render {} {
     :get_parameters
-    set page [expr {[info exists page_id] ? $page_id : ${:__including_page}}]
+    set page [:get_page page_id]
     return [:render_button \
                 -page $page -method view -package_id $package_id \
                 -link $link -title $title -alt $alt \
@@ -3180,11 +3445,15 @@ namespace eval ::xowiki::includelet {
           {-alt "new"}
           {-book_mode false}
         }}
+      } -ad_doc {
+        Button to create a new page based on the current one
+
+        @param page_id optional item_id of the referred page
       }
 
   create-item-button instproc render {} {
     :get_parameters
-    set page [expr {[info exists page_id] ? $page_id : ${:__including_page}}]
+    set page [:get_page page_id]
     set page_order [::xowiki::utility incr_page_order [$page page_order]]
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
@@ -3204,7 +3473,8 @@ namespace eval ::xowiki::includelet {
     }
   }
 
-  ::xowiki::IncludeletClass create copy-item-button -superclass ::xowiki::includelet::item-button \
+  ::xowiki::IncludeletClass create copy-item-button \
+      -superclass ::xowiki::includelet::item-button \
       -parameter {
         {__decoration none}
         {parameter_declaration {
@@ -3212,11 +3482,15 @@ namespace eval ::xowiki::includelet {
           {-alt "copy"}
           {-book_mode false}
         }}
+      } -ad_doc {
+        Button to copy a page
+
+        @param page_id optional item_id of the referred page
       }
 
   copy-item-button instproc render {} {
     :get_parameters
-    set page [expr {[info exists page_id] ? $page_id : ${:__including_page}}]
+    set page [:get_page page_id]
 
     if {[$page istype ::xowiki::FormPage]} {
       set template [$page page_template]
@@ -3317,6 +3591,8 @@ namespace eval ::xowiki::includelet {
           {-show_anonymous "message"}
           -user_id
         }}
+      } -ad_doc {
+        Include a collaboration graph
       }
 
   collab-graph instproc render {} {
@@ -3399,6 +3675,8 @@ namespace eval ::xowiki::includelet {
           {-max_activities:integer 100}
           {-show_anonymous "message"}
         }}
+      } -ad_doc {
+        Include an activity graph
       }
 
 
@@ -3489,7 +3767,10 @@ namespace eval ::xowiki::includelet {
           {-interval1 DAY}
           {-interval2 MONTH}
         }}
+      } -ad_doc {
+        Include a timeline of changes (based on yahoo timeline API)
       }
+
 
   timeline instproc render {} {
     :get_parameters
@@ -3562,6 +3843,9 @@ namespace eval ::xowiki::includelet {
           {-interval1 DAY}
           {-interval2 MONTH}
         }}
+      } -ad_doc {
+        Include a timeline of changes of the current or specified user
+        (based on yahoo timeline API)
       }
 
   user-timeline instproc render {} {
@@ -3640,6 +3924,8 @@ namespace eval ::xowiki::includelet {
           {-button_objs}
           {-return_url}
         }}
+      } -ad_doc {
+        Include a form menu for the specified Form
       }
 
   form-menu instproc render {} {
@@ -3712,6 +3998,8 @@ namespace eval ::xowiki::includelet {
           {-renderer "table"}
 
         }}
+      } -ad_doc {
+        Include form statistics for the specofied Form page.
       }
 
   form-stats instproc render {} {
@@ -3878,6 +4166,8 @@ namespace eval ::xowiki::includelet {
           {-buttons "edit delete"}
           {-renderer ""}
         }}
+      }  -ad_doc {
+        Show usages of the specified form.
       }
 
   #          {-renderer "YUIDataTableRenderer"}
@@ -4389,7 +4679,15 @@ namespace eval ::xowiki::includelet {
           {-width "100%"}
           {-height "500px"}
         }}
+      } -ad_doc {
+        Include an iframe contining the specified URL
+
+        @param title
+        @param url
+        @param width
+        @param height
       }
+
 
   iframe instproc render {} {
     :get_parameters
@@ -4421,6 +4719,12 @@ namespace eval ::xowiki::includelet {
           {-glob ""}
           {-form ""}
         }}
+      } -ad_doc {
+        Include YUI carousel showing the pages of the specified or
+        current folder.
+
+        @param folder
+        @param glob optional matching patter for page names
       }
 
   yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {
@@ -4601,6 +4905,11 @@ namespace eval ::xowiki::includelet {
           {-email:required}
           {-size 80}
         }}
+      } -ad_doc {
+        Include gravatar picture for the specified email
+
+        @param email
+        @param size in pixel, default 80
       }
 
   gravatar proc url {-email {-size 80} {-default mp}} {
@@ -4634,6 +4943,12 @@ namespace eval ::xowiki::includelet {
           {-publish_status "ready"}
           {-expires 600}
         }}
+      } -ad_doc {
+        Include random form page (instance of the specified form)
+
+        @param form
+        @param publish_status (default ready)
+        @param expires (default 600 secs)
       }
 
   random-form-page proc page_names {package_id form publish_status} {
@@ -4699,6 +5014,10 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {
           -mp4:required
         }}
+      } -ad_doc {
+        Include an mp4 image using flowplayer
+
+        @param mp4
       }
 
   flowplayer instproc include_head_entries {} {
@@ -4747,7 +5066,14 @@ namespace eval ::xowiki::includelet {
           {-levels 0}
           {-file:required}
         }}
+      } -ad_doc {
+        Include the specified HTML file
+
+        @param file file to be included
+        @param title
+        @param extra_css
       }
+
 
   #
   # The two methods "href" and "page_number" are copied from "toc"
@@ -4805,7 +5131,20 @@ namespace eval ::xowiki::includelet {
           -avatar_p
           -timewindow
         }}
+      } -ad_doc {
+        Include a chat in the current page
+
+        @param mode
+        @param path
+        @param skin
+        @param title
+        @param chat_id
+        @param avatar_p
+        @param login_messages_p
+        @param logout_messages_p
+        @param timewindow
       }
+
   chat instproc render {} {
     :get_parameters
     if {$chat_id eq ""} {
@@ -4844,6 +5183,13 @@ namespace eval ::xowiki::includelet {
           {-text ""}
           {-url ""}
         }}
+      } -ad_doc {
+        Include a link to the community including the current page.
+        This includelet is designed to work with dotlrn.
+
+        @param text text to be displayed in community link
+        @param url optional path relative to community
+
       } -instproc render {} {
         :get_parameters
         if {[info commands ::dotlrn_community::get_community_id] ne ""} {
@@ -4869,6 +5215,14 @@ namespace eval ::xowiki::includelet {
           {-text ""}
           {-url ""}
         }}
+      } -ad_doc {
+
+        Insert a link with extra return URL pointing the current
+        object. This is particularly useful in cases, where a
+        return URL must be created for a page that does not yet
+        exist at time of definition (e.g. for link pointing to
+        concrete workflow instances)
+
       } -instproc render {} {
         :get_parameters
         #set return_url [ad_return_url]

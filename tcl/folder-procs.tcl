@@ -32,6 +32,13 @@ namespace eval ::xowiki::includelet {
           {-context_tree_view false}
         }}
         {id "[xowiki::Includelet js_name [self]]"}
+      } -ad_doc {
+        
+        List the folder tree of the current instance
+
+        @param show_full_tree (default false)
+        @param context_tree_view (default false)        
+
       }
 
   folders instproc include_head_entries {} {
@@ -511,6 +518,20 @@ namespace eval ::xowiki::includelet {
             {-menubar ""}
           }
         }
+      } -ad_doc {
+        
+        Include the content of the current folder somewhat similar to explorer.
+
+        @param show_types types of the pages to be included
+        @param with_subtypes (default false)
+        @param orderby order entries by the specified attribite (default last_modified,desc)
+        @param publish_status show content with the provided publishstatuses (can be ored)
+        @param parent folder (defaults to . (=current page as parent))
+        @param columns columns to be displayed
+        @param hide hide certain columns
+        @param menubar include menubar optionally
+        @param regepx SQL reqexp for filtering on content item names
+
       }
 
   child-resources instproc types_to_show {} {
@@ -636,7 +657,9 @@ namespace eval ::xowiki::includelet {
 
     set extra_where_clause "true"
     # TODO: why filter on title and name?
-    if {[info exists regexp]} {set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"}
+    if {[info exists regexp]} {
+      set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
+    }
 
     :log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
