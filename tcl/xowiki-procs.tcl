@@ -200,6 +200,15 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_references -col reference
   ::xo::db::require index -table xowiki_references -col page
 
+  ::xo::db::require table xowiki_unresolved_references [subst {
+    page        {integer references cr_items(item_id) on delete cascade}
+    parent_id   {integer references cr_items(item_id) on delete cascade}
+    name        {[::xo::dc map_datatype text]}
+    link_type   {[::xo::dc map_datatype text]}
+  }]
+  ::xo::db::require index -table xowiki_unresolved_references -col page
+  ::xo::db::require index -table xowiki_unresolved_references -col parent_id
+  ::xo::db::require index -table xowiki_unresolved_references -col name,parent_id
 
   ::xo::db::require table xowiki_last_visited {
     page_id    {integer references cr_items(item_id) on delete cascade}
@@ -1883,12 +1892,14 @@ namespace eval ::xowiki {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
     next
+    :check_unresolved_references
   }
 
   Page instproc save_new args {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
     next
+    :check_unresolved_references
   }
 
   Page instproc initialize_loaded_object {} {
@@ -2736,16 +2747,41 @@ namespace eval ::xowiki {
     return 1
   }
 
-  Page instproc references_update {references} {
-    #:msg $references
+  Page instproc references_update {resolved {unresolved {}}} {
+    #:msg $resolved
+    :log "references_update resolved $resolved unresolved $unresolved"
     set item_id ${:item_id}
     ::xo::dc dml -prepare integer delete_references \
         "delete from xowiki_references where page = :item_id"
-    foreach ref $references {
+    ::xo::dc dml -prepare integer delete_unresolved_references \
+        "delete from xowiki_unresolved_references where page = :item_id"
+    foreach ref $resolved {
       lassign $ref r link_type
       ::xo::dc dml insert_reference \
           "insert into xowiki_references (reference, link_type, page) \
            values (:r,:link_type,:item_id)"
+    }
+    foreach ref $unresolved {
+      dict with ref {
+        ::xo::dc dml insert_unresolved_reference \
+            "insert into xowiki_unresolved_references (page, parent_id, name, link_type) \
+            values (:item_id,:parent_id,:name,:link_type)"
+      }
+    }
+  }
+
+  Page instproc check_unresolved_references {} {
+    #:log "check_unresolved_references: name ${:name} parent_id ${:parent_id}"
+    set parent_id ${:parent_id}
+    set name ${:name}
+    foreach i [xo::dc list -prepare integer,text items_with_unresolved_references {
+      SELECT page from xowiki_unresolved_references
+      WHERE  parent_id = :parent_id
+      AND    name = :name
+    }] {
+      set page [::xo::db::CrClass get_instance_from_db -item_id $i]
+      #:log "==== check_unresolved_references found page [$page name] with a broken reference to the new page ${:name}"
+      $page render -update_references true -with_footer false
     }
   }
 
@@ -2861,15 +2897,19 @@ namespace eval ::xowiki {
       :unset __extra_references
     }
     #
-    # get page content and care about reference management
+    # Get page content and care about reference management.
     #
     set content [:render_content]
     #
-    # record references and clear it
+    # Clear old reference and record new ones.
     #
-    #:msg "we have the content, update=$update_references, unresolved=[:references get unresolved]"
-    if {$update_references || [llength [:references get unresolved]] > 0} {
-      :references_update [lsort -unique [:references get resolved]]
+    set unresolved_references [:references get unresolved]
+    #:msg resolved=[:references get resolved]
+    #:msg unresolved=[:references get unresolved]
+    if {$update_references || [llength $unresolved_references] > 0} {
+      :references_update \
+          [lsort -unique [:references get resolved]] \
+          [lsort -unique $unresolved_references]
     }
     # unset -nocomplain :__references
     #

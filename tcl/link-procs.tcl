@@ -201,7 +201,8 @@ namespace eval ::xowiki {
     } else {
       set new_link [:new_link]
       set html [:render_not_found $new_link ${:label}]
-      ${:page} references unresolved $html
+      ${:page} references unresolved \
+          [list parent_id ${:parent_id} name ${:name} link_type ${:type} html $html]
       return $html
     }
   }

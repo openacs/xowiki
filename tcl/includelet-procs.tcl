@@ -1909,9 +1909,12 @@ namespace eval ::xowiki::includelet {
       #
       if {[nsf::is object $page]} {
         set unresolved [$page references get unresolved]
-        if {$unresolved ne ""} {
-          #ns_log notice "[$page name] contains unresolved: <$unresolved>"
-          set entry "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains [join $unresolved {, }]"
+        if {[llength $unresolved] > 0} {
+
+          set unresolvedTML [lmap r $unresolved {dict get $r html}]
+          #ns_log notice "[$page name] contains unresolved: <$unresolvedTML>"
+          set entry "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains [join $unresolvedTML {, }]"
+
           lappend pages_with_unresolved_items $entry
         } else {
           # $page destroy
