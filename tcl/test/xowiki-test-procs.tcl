@@ -17,23 +17,7 @@ namespace eval ::xowiki::formfield {
 
 namespace eval ::xowiki::test {
 
-    aa_register_init_class \
-        xowiki_require_test_instance {
-            Make sure the test instance is there and create it if necessary.
-        } {
-            aa_export_vars {_xowiki_test_instance_name}
-            set _xowiki_test_instance_name /xowiki-test
-            ::acs::test::require_package_instance \
-                -package_key xowiki \
-                -instance_name $_xowiki_test_instance_name
-        } {
-            # Here one might unmount the package afterwards. Right now
-            # we decide to keep it so it is possible to e.g. inspect
-            # the results or test further in the mounted instance.
-        }
-
     aa_register_case \
-        -init_classes {xowiki_require_test_instance} \
         -cats {smoke production_safe} \
         -procs {
             "::xowiki::Package instproc item_ref"
@@ -45,8 +29,27 @@ namespace eval ::xowiki::test {
             Test various forms of path resolving
         } {
         aa_run_with_teardown -rollback -test_code {
+            set _xowiki_test_instance_name /xowiki-test
+            ::acs::test::require_package_instance \
+                -package_key xowiki \
+                -instance_name $_xowiki_test_instance_name
+
             set instance $_xowiki_test_instance_name
             set testfolder .testfolder
+
+            # get a random swa to be able to create the folder
+            set swa_context [acs_magic_object security_context_root]
+            set one_swa [::xo::dc get_value get_swa {
+                select min(user_id) from users
+                where acs_permission.permission_p(:swa_context, user_id, 'admin')
+            }]
+            set request_info [acs::test::http -user_id $one_swa $instance/]
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
 
             #
             # Force the system locale to en_US. The value is
@@ -207,7 +210,7 @@ namespace eval ::xowiki::test {
     }
 
 
-    aa_register_case -init_classes {xowiki_require_test_instance} -cats {web} -procs {
+    aa_register_case -cats {web} -procs {
         "::xo::Package instproc initialize"
         "::xowiki::Package instproc invoke"
         "::xo::Package instproc reply_to_user"
@@ -228,7 +231,11 @@ namespace eval ::xowiki::test {
         #
         set user_id [ad_conn user_id]
 
-        set instance $_xowiki_test_instance_name
+        set instance /xowiki-test
+        ::acs::test::require_package_instance \
+            -package_key xowiki \
+            -instance_name $instance
+
         set testfolder .testfolder
 
         try {

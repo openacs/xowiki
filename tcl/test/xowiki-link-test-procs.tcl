@@ -1,7 +1,6 @@
 namespace eval ::xowiki::test {
 
     aa_register_case \
-	-init_classes {xowiki_require_test_instance} \
 	-cats {smoke production_safe} \
 	-procs {
 	    "::xowiki::Page instproc render"
@@ -10,11 +9,6 @@ namespace eval ::xowiki::test {
 	    Test links pointing to folders in different instances
 	} {
 	    #
-	    # Should we cleanup the test instances after run?
-	    #
-	    set finally_clean_test_instances_p 1
-
-	    #
 	    # Set up of the test case.
 	    #
 	    set main_xowiki_instance_name   /xowiki-test
@@ -22,9 +16,11 @@ namespace eval ::xowiki::test {
 
 	    set main_package_id [::acs::test::require_package_instance \
 				     -package_key xowiki \
+                                     -empty \
 				     -instance_name $main_xowiki_instance_name]
 	    set linked_package_id [::acs::test::require_package_instance \
 				       -package_key xowiki \
+                                       -empty \
 				       -instance_name $linked_xowiki_instance_name]
 	    aa_log main_package_id=$main_package_id
 	    aa_log linked_package_id=$linked_package_id
@@ -128,13 +124,5 @@ namespace eval ::xowiki::test {
 	    # reset system locale to saved value
 	    #
 	    #lang::system::set_locale $defined_locale
-
-	    if {$finally_clean_test_instances_p} {
-		foreach instance_name [list $main_xowiki_instance_name $linked_xowiki_instance_name] {
-		    set node_id [site_node::get_node_id -url /$instance_name]
-		    site_node::unmount -node_id $node_id
-		    site_node::delete -node_id $node_id -delete_package
-		}
-	    }
 	}
 }
