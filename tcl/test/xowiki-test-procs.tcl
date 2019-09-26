@@ -28,13 +28,14 @@ namespace eval ::xowiki::test {
         path_resolve {
             Test various forms of path resolving
         } {
-        aa_run_with_teardown -rollback -test_code {
-            set _xowiki_test_instance_name /xowiki-test
-            ::acs::test::require_package_instance \
-                -package_key xowiki \
-                -instance_name $_xowiki_test_instance_name
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
 
-            set instance $_xowiki_test_instance_name
+        aa_run_with_teardown -rollback -test_code {
+
             set testfolder .testfolder
 
             # get a random swa to be able to create the folder
@@ -61,7 +62,7 @@ namespace eval ::xowiki::test {
             set locale [lang::system::locale]
             set lang [string range $locale 0 1]
 
-            ::xowiki::Package initialize -url $_xowiki_test_instance_name
+            ::xowiki::Package initialize -package_id $package_id
             set root_folder_id [::$package_id folder_id]
             aa_log "package_id $package_id system locale $locale"
 
@@ -206,6 +207,10 @@ namespace eval ::xowiki::test {
                 aa_true "render link \[\[$link\]\] -> *'$instance$pattern'*" [string match *'$instance$pattern'* $html]
                 aa_log "[ns_quotehtml $html]"
             }
+        } -teardown_code {
+            set node_id [site_node::get_node_id -url /$instance]
+            site_node::unmount -node_id $node_id
+            site_node::delete -node_id $node_id -delete_package
         }
     }
 
@@ -232,9 +237,10 @@ namespace eval ::xowiki::test {
         set user_id [ad_conn user_id]
 
         set instance /xowiki-test
-        ::acs::test::require_package_instance \
-            -package_key xowiki \
-            -instance_name $instance
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
 
         set testfolder .testfolder
 
