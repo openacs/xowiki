@@ -1862,10 +1862,6 @@ namespace eval ::xowiki::includelet {
   }
 
 
-  #
-  # unresolved-references lists the pages with unresolved references
-  # in the current xowiki/xowf package. This is intended for use by admins.
-  #
   ::xowiki::IncludeletClass create unresolved-references \
       -superclass ::xowiki::Includelet \
       -parameter {{__decoration none}} \
@@ -1878,55 +1874,38 @@ namespace eval ::xowiki::includelet {
   unresolved-references instproc render {} {
     :get_parameters
 
-    set items [xo::dc list _ {
-      select object_id from acs_objects
-      where package_id = :package_id
-      and   object_type = 'content_item'}]
-    set pages_with_unresolved_items {}
-    foreach i $items {
+    #
+    # Get all unresolved references from this package
+    #
+    set unresolved_references [xo::dc list_of_lists _ [subst {
+      select page, name, o.package_id
+      from xowiki_unresolved_references, acs_objects o
+      where page = o.object_id
+      and o.package_id = :package_id
+      and link_type = 'link'
+    }]]
+
+    set entries_with_unresolved_items {}
+    foreach tuple $unresolved_references {
+      lassign $tuple page name
+      
+      set pageObject [::xo::db::CrClass get_instance_from_db -item_id $page]
+
       #
-      # Do not try to re-instantiate the including page and the
-      # package root folder.
+      # Skip ::xowiki::Object instances.
       #
-      if {$i eq [${:__including_page} item_id]
-          || $i eq [::$package_id  folder_id]} {
+      if {[$page info class] eq "::xowiki::Object"} {
         continue
       }
-      set page [::xo::db::CrClass get_instance_from_db -item_id $i]
-
-      #
-      # Skip as well Objects
-      #
-      if {[$page info class] eq "::xowiki::Object"} continue
-
-      #
-      # Render the page to obtain the references. This will as well
-      # update references (e.g. after importing the dump).
-      #
-      $page render -update_references true -with_footer false
-      #
-      # Some (dynammic) pages are volatile, skip these as well
-      #
-      if {[nsf::is object $page]} {
-        set unresolved [$page references get unresolved]
-        if {[llength $unresolved] > 0} {
-
-          set unresolvedTML [lmap r $unresolved {dict get $r html}]
-          #ns_log notice "[$page name] contains unresolved: <$unresolvedTML>"
-          set entry "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains [join $unresolvedTML {, }]"
-
-          lappend pages_with_unresolved_items $entry
-        } else {
-          # $page destroy
-        }
-      }
+      
+      lappend entries_with_unresolved_items "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains unresolved reference: $name"
     }
-    if {[llength $pages_with_unresolved_items] > 0} {
+    if {[llength $entries_with_unresolved_items] > 0} {
       #
       # Return the pages with unresolved references in form of an
       # unordered list.
       #
-      return <ul><li>[join [lsort -dictionary $pages_with_unresolved_items] </li><li>]</li></ul>
+      return <ul><li>[join [lsort -dictionary $entries_with_unresolved_items] </li><li>]</li></ul>
     } else {
       return "<ul><li>[_ acs-subsite.none]/li></ul>"
     }
