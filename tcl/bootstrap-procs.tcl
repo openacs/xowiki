@@ -53,7 +53,7 @@ namespace eval ::xowiki {
   } {
     html::nav -class [:navbarClass] -role "navigation" {
       #
-      # Render the pull down menues
+      # Render the pull down menus
       #
       html::div -class [:containerClass] {
         set rightMenuEntries {}

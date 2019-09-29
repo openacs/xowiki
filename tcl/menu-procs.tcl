@@ -151,21 +151,21 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc init {} {
-    set :Menues [list]
+    set :Menus [list]
     :destroy_on_cleanup
   }
 
   ::xowiki::MenuBar instproc add_menu {-name {-label ""}} {
-    if {$name in ${:Menues}} {
+    if {$name in ${:Menus}} {
       error "menu $name exists already"
     }
     if {[string match {[a-z]*} $name]} {
       error "names must start with uppercase, provided name '$name'"
     }
-    lappend :Menues $name
+    lappend :Menus $name
     if {$label eq ""} {set label $name}
     set :Menu($name) [list label $label]
-    #:log "menues: ${:Menues}"
+    #:log "menus: ${:Menus}"
   }
 
   ::xowiki::MenuBar instproc additional_sub_menu {-kind:required -pages:required -owner:required} {
@@ -208,7 +208,7 @@ namespace eval ::xowiki {
     if {![regexp {^([^.]+)[.](.+)$} $name _ menu name]} {
       error "menu item name '$name' not of the form Menu.Name"
     }
-    if {$menu ni ${:Menues}} {
+    if {$menu ni ${:Menus}} {
       error "menu $menu does not exist"
     }
     if {[string match {[a-z]*} $name]} {
@@ -363,7 +363,7 @@ namespace eval ::xowiki {
 
   ::xowiki::MenuBar instproc content {} {
     set result [list id [:id]]
-    foreach e ${:Menues} {
+    foreach e ${:Menus} {
       lappend result $e [list kind MenuButton {*}[set :Menu($e)]]
     }
 
