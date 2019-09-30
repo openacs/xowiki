@@ -1891,15 +1891,17 @@ namespace eval ::xowiki {
   Page instproc save args {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
-    next
+    set id [next]
     :check_unresolved_references
+    return $id
   }
 
   Page instproc save_new args {
     if {![:can_save]} {error "can't save this page under this parent"}
     ${:package_id} flush_page_fragment_cache
-    next
+    set id [next]
     :check_unresolved_references
+    return $id
   }
 
   Page instproc initialize_loaded_object {} {
