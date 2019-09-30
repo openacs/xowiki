@@ -865,24 +865,32 @@ namespace eval ::xowiki {
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parse-level, so we have to be in
     # our own level in order to access an pass these.
+    #
     lappend ::template::parse_level [info level]
 
     set action_vars [expr {$new ? "{edit-new 1} object_type return_url" : "{m edit} return_url"}]
-    #:log "--formclass=[$object_type getFormClass -data [self]] ot=$object_type"
+    #:log "--formclass=[$object_type getFormClass -data [self]] object_type=$object_type"
 
     #
     # Determine the package_id of some mounted xowiki instance to find
     # the directory + URL, from where the scripts called from Xinha
     # can be used.
+    #
     if {[::${:package_id} info class] eq "::xowiki::Package"} {
-      # The actual instance is a plain xowiki instance, we can use it
+      #
+      # The actual instance is a plain xowiki instance, we can use it.
+      #
       set folder_spec [list script_dir [::${:package_id} package_url]]
     } else {
+      #
       # The actual instance is not a plain xowiki instance, so, we try
       # to find one, where the current user has at least read
       # permissions.  This act is required for sub-packages, which
       # might not have the script dir.
-      set first_instance_id [::xowiki::Package first_instance -party_id [::xo::cc user_id] -privilege read]
+      #
+      set first_instance_id [::xowiki::Package first_instance \
+                                 -party_id [::xo::cc user_id] \
+                                 -privilege read]
       if {$first_instance_id ne ""} {
         ::xowiki::Package require $first_instance_id
         set folder_spec [list script_dir [::$first_instance_id package_url]]

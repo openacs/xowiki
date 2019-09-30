@@ -680,7 +680,7 @@ namespace eval ::xowiki {
   }
   PageInstanceForm instproc set_submit_link_edit {} {
     set object_type [[${:data} info class] object_type]
-    #:log "-- data=${:data} cl=[${:data} info class] ot=$object_type"
+    #:log "-- data=${:data} cl=[${:data} info class] object_type=$object_type"
     set item_id [${:data} set item_id]
     set page_template [${:data} form_parameter page_template]
     if {[${:data} exists_query_parameter return_url]} {
@@ -719,7 +719,7 @@ namespace eval ::xowiki {
   PageInstanceEditForm instproc new_data {} {
     set __vars {folder_id item_id page_template return_url}
     set object_type [[${:data} info class] object_type]
-    #:log "-- cl=[${:data} info class] ot=$object_type $__vars"
+    #:log "-- class=[${:data} info class] object_type=$object_type $__vars"
     foreach __v $__vars {set $__v [${:data} from_parameter $__v] ""}
     set item_id [next]
 

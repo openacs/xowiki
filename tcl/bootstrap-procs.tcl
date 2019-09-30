@@ -466,26 +466,28 @@ namespace eval ::xo::Table {
       set bulkaction_container [[lindex $bulkactions 0] set __parent]
       set name [$bulkaction_container set __identifier]
 
-      foreach ba $bulkactions {
-        set id [::xowiki::Includelet html_id $ba]
+      foreach bulk_action $bulkactions {
+        set id [::xowiki::Includelet html_id $bulk_action]
         html::ul -class compact {
           html::li {
+            #
             # For some reason, btn-secondary seems not to be available
             # for the "a" tag, so we set the border-color manually.
+            #
             html::a -class "btn btn-secondary" -rule button \
-                -title [$ba tooltip] -href # \
+                -title [$bulk_action tooltip] -href # \
                 -style "border-color: #ccc;" \
                 -id $id {
-                  html::t [$ba label]
+                  html::t [$bulk_action label]
                 }
           }
         }
         set script [subst {
-          acs_ListBulkActionClick("$name","[$ba url]");
+          acs_ListBulkActionClick("$name","[$bulk_action url]");
         }]
-        if {[$ba confirm_message] ne ""} {
+        if {[$bulk_action confirm_message] ne ""} {
           set script [subst {
-            if (confirm('[$ba confirm_message]')) {
+            if (confirm('[$bulk_action confirm_message]')) {
               $script
             }
           }]
