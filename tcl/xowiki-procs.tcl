@@ -1332,12 +1332,12 @@ namespace eval ::xowiki {
     # Get the return_url from query parameters and check, if this is
     # local.
     #
-    set return_url [:query_parameter "return_url" $default]
-    if {[util::external_url_p $return_url]} {
-      ns_log warning "return_url $return_url is apparently an external URL"
-      ad_return_complaint 1 "Page <b>'${:name}'</b> non-local return_url was specified"
-      ad_script_abort
-    }
+    set return_url [:query_parameter return_url:localurl $default]
+    #if {[util::external_url_p $return_url]} {
+    #  ns_log warning "return_url $return_url is apparently an external URL"
+    #  ad_return_complaint 1 "Page <b>'${:name}'</b> non-local return_url was specified"
+    #  ad_script_abort
+    #}
     return $return_url
   }
 

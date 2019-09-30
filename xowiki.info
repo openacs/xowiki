@@ -56,7 +56,7 @@ Some features:
         <maturity>2</maturity>
 
         <provides url="xowiki" version="5.10.0d39"/>
-        <requires url="xotcl-core" version="5.10.0d20"/>
+        <requires url="xotcl-core" version="5.10.0d21"/>
 	<requires url="acs-datetime" version="5.9.1"/>
         <requires url="acs-kernel" version="5.9.1"/>
 	<requires url="acs-tcl" version="5.10.0d27"/>
