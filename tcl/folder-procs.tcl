@@ -33,11 +33,11 @@ namespace eval ::xowiki::includelet {
         }}
         {id "[xowiki::Includelet js_name [self]]"}
       } -ad_doc {
-        
+
         List the folder tree of the current instance
 
         @param show_full_tree (default false)
-        @param context_tree_view (default false)        
+        @param context_tree_view (default false)
 
       }
 
@@ -519,7 +519,7 @@ namespace eval ::xowiki::includelet {
           }
         }
       } -ad_doc {
-        
+
         Include the content of the current folder somewhat similar to explorer.
 
         @param show_types types of the pages to be included

@@ -3248,7 +3248,7 @@ namespace eval ::xowiki {
     set ia [dict merge [:default_instance_attributes] $instance_attributes]
 
     if {$nls_language eq ""} {
-      set nls_language [:query_parameter nls_language [:nls_language]]
+      set nls_language [:query_parameter nls_language:wordchar [:nls_language]]
     }
     if {![info exists package_id]} { set package_id ${:package_id} }
     if {![info exists parent_id]}  { set parent_id ${:parent_id} }
@@ -3496,7 +3496,7 @@ namespace eval ::xowiki {
     #set page_link [::$package_id make_link -privilege public [self] download ""]
 
     set ctx [::$package_id context]
-    set revision_id [$ctx query_parameter revision_id]
+    set revision_id [$ctx query_parameter revision_id:intger]
     set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
     set page_link [:pretty_link -download true -query $query]
     if {[$ctx query_parameter html-content] ne ""} {

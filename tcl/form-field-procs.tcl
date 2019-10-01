@@ -1110,7 +1110,9 @@ namespace eval ::xowiki::formfield {
     #
     # Get the file object of the imported file to obtain is full name and path
     #
-    set file_id [::$package_id lookup -parent_id [${:object} item_id] -name [dict get $entry_info name]]
+    set file_id [::$package_id lookup \
+                     -parent_id [${:object} item_id] \
+                     -name      [dict get $entry_info name]]
     ::xo::db::CrClass get_instance_from_db -item_id $file_id
     set full_file_name [::$file_id full_file_name]
     #
@@ -1125,8 +1127,11 @@ namespace eval ::xowiki::formfield {
       # lead to maybe unexpected deletions of the form-page
       #
       if {[:cleanup]} {
-        set return_url [::$package_id query_parameter "return_url" [::$parent_id pretty_link]]
-        ::$package_id returnredirect [${:object} pretty_link -query [export_vars {m delete} return_url]]
+        set return_url [::$package_id query_parameter \
+                            "return_url:localurl" \
+                            [::$parent_id pretty_link]]
+        ::$package_id returnredirect [${:object} pretty_link \
+                                          -query [export_vars {m delete} return_url]]
       }
     }
   }

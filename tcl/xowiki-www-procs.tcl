@@ -2762,7 +2762,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc field_names {{-form ""}} {
-    array set dont_modify [list item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1]
+    array set dont_modify {item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1}
     set field_names [list]
     foreach field_name [[:info class] array names db_slot] {
       if {[info exists dont_modify($field_name)]} continue

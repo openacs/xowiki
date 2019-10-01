@@ -591,7 +591,8 @@ namespace eval ::xowiki {
     {-check_query_parameter true}
     {-nocache:switch}
     {-type ""}
-    attribute {default ""}
+    attribute
+    {default ""}
   } {
     resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
@@ -604,7 +605,9 @@ namespace eval ::xowiki {
     } else {
       set value [::xo::cc get_parameter $attribute]
     }
-    if {$check_query_parameter && $value eq ""} {set value [string trim [:query_parameter $attribute]]}
+    if {$check_query_parameter && $value eq ""} {
+      set value [string trim [:query_parameter $attribute]]
+    }
     if {$value eq "" && $attribute ne "parameter_page"} {
       #
       # Try to get the parameter from the parameter_page.  We have to
@@ -734,7 +737,10 @@ namespace eval ::xowiki {
     #
     # The method returns either the page object or empty ("").
     #
-    return [:get_page_from_item_ref -allow_cross_package_item_refs true -default_lang $default_lang $page_name]
+    return [:get_page_from_item_ref \
+                -allow_cross_package_item_refs true \
+                -default_lang $default_lang \
+                $page_name]
     #array set "" [:get_package_id_from_page_name $page_name]
   }
 
@@ -985,7 +991,7 @@ namespace eval ::xowiki {
         #
         set deref [[self class] exists delegate_link_to_target($method)]
         if {[:exists_query_parameter deref]} {
-          set deref [:query_parameter deref]
+          set deref [:query_parameter deref:boolean]
         }
 
         #:log "invoke on LINK <$method> default deref $deref"
@@ -1055,7 +1061,7 @@ namespace eval ::xowiki {
     set title Error
     set header_stuff [::xo::Page header_stuff]
     set index_link [:make_link -privilege public -link "" ${:id} {} {}]
-    set link [:query_parameter "return_url" ""]
+    set link [:query_parameter "return_url:localurl" ""]
     if {$link ne ""} {set back_link $link}
     if {[util::external_url_p $link]} {
       ns_log warning "return_url is apparently an external URL: $link"
@@ -1072,7 +1078,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc get_page_from_item_or_revision_id {item_id} {
-    set revision_id [:query_parameter revision_id 0]
+    set revision_id [:query_parameter revision_id:integer 0]
     if {![string is integer -strict $revision_id]} {
       ad_return_complaint 1 "invalid revision_id"
       ad_script_abort
@@ -1796,18 +1802,8 @@ namespace eval ::xowiki {
         # todo: missing: tag links to subdirectories, also on url generation
         set tag $stripped_url
         :validate_tag $tag
-        set summary [::xo::cc query_parameter summary 0]
-        set popular [::xo::cc query_parameter popular 0]
-        if {$summary eq ""} {set summary 0}
-        if {$popular eq ""} {set popular 0}
-        if {![string is boolean -strict $summary]} {
-          ad_return_complaint 1 "value of 'summary' must be boolean"
-          ad_script_abort
-        }
-        if {![string is boolean -strict $popular]} {
-          ad_return_complaint 1 "value of 'popular' must be boolean"
-          ad_script_abort
-        }
+        set summary [::xo::cc query_parameter summary:boolean 0]
+        set popular [::xo::cc query_parameter popular:boolean 0]
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
         set weblog_page [:get_parameter weblog_page]
         :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) local_name
@@ -2481,9 +2477,9 @@ namespace eval ::xowiki {
     Finally, it calls "www-edit" for the freshly created page.
 
   } {
-    set object_type [:query_parameter object_type "::xowiki::Page"]
+    set object_type [:query_parameter object_type:graph "::xowiki::Page"]
     set autoname [:get_parameter autoname 0]
-    set parent_id [${:id} query_parameter parent_id ""]
+    set parent_id [${:id} query_parameter parent_id:integer ""]
     if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
     if {![string is integer -strict $parent_id]} {
       ad_return_complaint 1 "invalid parent_id"
@@ -2502,7 +2498,7 @@ namespace eval ::xowiki {
       $page set page_template [:form_parameter page_template]
     }
 
-    set source_item_id [${:id} query_parameter source_item_id ""]
+    set source_item_id [${:id} query_parameter source_item_id:integer ""]
     if {$source_item_id ne ""} {
       if {![string is integer -strict $source_item_id]} {
         ad_return_complaint 1 "invalid source_item_id"
@@ -2532,18 +2528,15 @@ namespace eval ::xowiki {
     to be provided as a query parameter.
 
   } {
-    set object_id [:query_parameter object_id]
-    if {![string is integer -strict $object_id]} {
-      ad_return_complaint 1 "invalid object_id"
-      ad_script_abort
-    }
+    set object_id [:query_parameter object_id:integer]
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
 
-    set href [export_vars -base [site_node::get_package_url -package_key categories]cadmin/object-map {
-      {ctx_id $object_id} {object_id}
-    }]
+    set href [export_vars \
+                  -base [site_node::get_package_url -package_key categories]cadmin/object-map {
+                    {ctx_id $object_id} {object_id}
+                  }]
     :returnredirect $href
   }
 
@@ -2558,16 +2551,8 @@ namespace eval ::xowiki {
     "tree_id" have to be provided as a query parameter.
 
   } {
-    set object_id [:query_parameter object_id]
-    if {![string is integer -strict $object_id]} {
-      ad_return_complaint 1 "invalid object_id"
-      ad_script_abort
-    }
-    set tree_id [:query_parameter tree_id]
-    if {![string is integer -strict $tree_id]}   {
-      ad_return_complaint 1 "invalid tree_id"
-      ad_script_abort
-    }
+    set object_id [:query_parameter object_id:integer]
+    set tree_id [:query_parameter tree_id:integer]
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
@@ -2628,11 +2613,7 @@ namespace eval ::xowiki {
     #:log "--D delete [self args]"
 
     if {![info exists item_id]} {
-      set item_id [:query_parameter item_id]
-      if {![string is integer $item_id]} {
-        ad_return_complaint 1 "invalid item_id"
-        ad_script_abort
-      }
+      set item_id [:query_parameter item_id:integer]
       #:log "--D item_id from query parameter $item_id"
     }
     #
@@ -2643,13 +2624,13 @@ namespace eval ::xowiki {
     }
 
     if {$item_id eq ""} {
-      array set "" [:item_info_from_url -with_package_prefix false $name]
-      if {$(item_id) == 0} {
+      set item_info [:item_info_from_url -with_package_prefix false $name]
+      if {[dict get $item_info item_id] == 0} {
         :log "www-delete: url lookup of '$name' failed"
       } else {
-        set parent_id $(parent_id)
-        set item_id $(item_id)
-        set name $(name)
+        set parent_id [dict get $item_info parent_id]
+        set item_id   [dict get $item_info item_id]
+        set name      [dict get $item_info name]
       }
     } else {
       set name [::xo::db::CrClass get_name -item_id $item_id]
@@ -2820,7 +2801,7 @@ namespace eval ::xowiki {
   #
 
   Package instproc condition=has_class {query_context value} {
-    return [expr {[$query_context query_parameter object_type ""] eq $value}]
+    return [expr {[$query_context query_parameter object_type:graph ""] eq $value}]
   }
   Package instproc condition=has_name {query_context value} {
     return [regexp $value [$query_context query_parameter name ""]]

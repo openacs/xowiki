@@ -1,6 +1,6 @@
 namespace eval ::xowiki {
   #
-  # ::xowiki::Weblog  
+  # ::xowiki::Weblog
   #
 
   Class create ::xowiki::Weblog -parameter {
@@ -13,10 +13,10 @@ namespace eval ::xowiki {
     ptag
     category_id
     {entries_of ""}
-    {locale ""}
+    {locale:graph ""}
     filter_msg
     {sort_composite ""}
-    {no_footer false}
+    {no_footer:boolean false}
     {name_filter ""}
     {entry_label "Postings"}
     {exclude_item_ids:integer,0..n 0}
@@ -28,9 +28,9 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::Weblog proc instantiate_forms {
-     {-default_lang ""} 
-     {-parent_id ""} 
-     -forms:required 
+     {-default_lang ""}
+     {-parent_id ""}
+     -forms:required
      -package_id:required
      } {
     set form_item_ids [list]
@@ -58,13 +58,13 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::Weblog instproc init {} {
-    
+
     #:log "--W starting"
     set folder_id [::${:package_id} folder_id]
     set :filter_msg  ""
     set query_parm ""
     set query [expr {[ns_conn isconnected] ? [ns_conn query] : ""}]
-    
+
     # set up filters
     set extra_from_clause ""
     set extra_where_clause ""
@@ -112,7 +112,7 @@ namespace eval ::xowiki {
       set tag ${:tag}
       append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
       append extra_where_clause "and tags.tag = :tag and \
-        tags.user_id = [::xo::cc user_id]" 
+        tags.user_id = [::xo::cc user_id]"
       set query_parm "&tag=[ad_urlencode ${:tag}]"
     }
     #:msg "ptag=${:ptag}"
@@ -121,11 +121,11 @@ namespace eval ::xowiki {
       set :filter_msg "Filtered by popular tag ${:ptag}"
       set ptag ${:ptag}
       append extra_from_clause " join xowiki_tags tags on (tags.item_id = bt.item_id) "
-      append extra_where_clause "and tags.tag = :ptag " 
+      append extra_where_clause "and tags.tag = :ptag "
       set query_parm "&ptag=[ad_urlencode ${:ptag}]"
       set query [::xo::update_query $query ptag ${:ptag}]
     }
-    #:msg filter_msg=${:filter_msg} 
+    #:msg filter_msg=${:filter_msg}
     if {${:name_filter} ne ""} {
       append extra_where_clause "and ci.name ~ E'${:name_filter}' "
     }
@@ -134,7 +134,7 @@ namespace eval ::xowiki {
     set attributes [list bt.revision_id bt.publish_date bt.title bt.creator bt.creation_user \
                         ci.parent_id bt.description s.body \
                         pi.instance_attributes pi.page_template fp.state]
-    
+
     set class_clause \
         " and ci.content_type not in ('::xowiki::PageTemplate','::xowiki::Object')"
 
@@ -167,11 +167,14 @@ namespace eval ::xowiki {
 
     if {${:locale} ne ""} {
       #set :locale "default+system"
-      lassign [::xowiki::Includelet locale_clause -revisions bt -items ci ${:package_id} ${:locale}] :locale locale_clause
+      lassign [::xowiki::Includelet locale_clause \
+                   -revisions bt \
+                   -items ci ${:package_id} ${:locale}] \
+          :locale locale_clause
       #:msg "--L locale_clause=$locale_clause"
       append extra_where_clause $locale_clause
     }
-    
+
     # create an item container, which delegates rendering to its children
     set :items [::xo::OrderedComposite new -proc render {} {
       set content ""
@@ -198,7 +201,7 @@ namespace eval ::xowiki {
                 $class_clause \
                 and ci.publish_status <> 'production' \
                 $extra_where_clause"]
-    
+
     if {${:page_number} ne ""} {
       lappend sqlParams -page_number ${:page_number} -page_size ${:page_size}
     }
@@ -223,16 +226,16 @@ namespace eval ::xowiki {
         left outer join xowiki_form_page fp on (bt.revision_id = fp.xowiki_form_page_id) \
         $extra_from_clause" \
                          {*}$sqlParams]]
-    
+
     foreach c [$s children] {
       $c instvar revision_id publish_date title name item_id creator creation_user \
           parent_id description body instance_attributes
-      
+
       set time [::xo::db::tcl_date $publish_date tz]
       set pretty_date [util::age_pretty -timestamp_ansi $time \
                            -sysdate_ansi [clock_to_ansi [clock seconds]] \
                            -mode_3_fmt "%d %b %Y, at %X"]
-      
+
       if {${:summary}} {
         # we need always: package_id item_id parent_id name title creator creation_user pretty_date
         set p [Page new \
@@ -272,17 +275,17 @@ namespace eval ::xowiki {
       ${:items} add $p
     }
     array set smsg {1 full 0 summary}
-    
+
     set summary_href [::xo::cc url]?[::xo::update_query $query summary [expr {!${:summary}}]]
     #set flink "<a href='[ns_quotehtml $summary_href$query_parm]'>[ns_quotehtml $smsg(${:summary})]</a>"
     set flink "<a href='[ns_quotehtml $summary_href]'>[ns_quotehtml $smsg([string is true ${:summary}])]</a>"
-    
+
     if {${:page_number} ne ""} {
-      set nr [llength [${:items} children]] 
+      set nr [llength [${:items} children]]
       set from [expr {(${:page_number} - 1) * ${:page_size} + 1}]
       set to   [expr {(${:page_number} - 1) * ${:page_size} + $nr}]
       set range [expr {$nr > 1 ? "$from - $to" : $from}]
-      
+
       if {${:filter_msg} ne ""} {
         set package ::${:package_id}
         set all_href  [$package package_url][$package get_parameter weblog_page weblog-portlet]
@@ -290,10 +293,10 @@ namespace eval ::xowiki {
       } else {
         append :filter_msg "Showing $range of ${:nr_items} ${:entry_label} ($flink)"
       }
-      
+
       set next_p [expr {${:nr_items} > ${:page_number} * ${:page_size}}]
       set prev_p [expr {${:page_number} > 1}]
-      
+
       if {$next_p} {
         set query [::xo::update_query $query page_number [expr {${:page_number} + 1}]]
         set :next_page_link [::xo::cc url]?$query
@@ -303,7 +306,7 @@ namespace eval ::xowiki {
       }
     }
     #:proc destroy {} {:log "--W"; next}
-    
+
     if {${:sort_composite} ne ""} {
       lassign [split ${:sort_composite} ,] kind att direction
       if {$kind eq "method"} {${:items} mixin add ::xo::OrderedComposite::MethodCompare}
@@ -326,7 +329,7 @@ namespace eval ::xowiki {
     #:log "--W end"
     return $content
   }
-  
+
 
   # default layout for weblog entries
   Class create ::xowiki::Weblog::EntryRenderer -instproc render {{-with_footer false}} {
@@ -334,7 +337,7 @@ namespace eval ::xowiki {
 
     set link [:pretty_link]
     regsub -all & $link "&amp;" link
-    set more [expr {[$weblog_obj summary] ? 
+    set more [expr {[$weblog_obj summary] ?
                     " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     #append more "<p></p>"
 
@@ -353,10 +356,10 @@ namespace eval ::xowiki {
     set filter ""
     set prev ""
     set next ""
-    
+
     if {[info exists :filter_msg]} {
       set filter  "<div class='filter'>${:filter_msg}</div>"
-    } 
+    }
     if {[info exists :prev_page_link]} {
       set prev "<a href='[ns_quotehtml ${:prev_page_link}]'>\
         <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
@@ -372,7 +375,7 @@ namespace eval ::xowiki {
 
 
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 
 #

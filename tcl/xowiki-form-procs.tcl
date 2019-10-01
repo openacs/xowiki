@@ -684,7 +684,7 @@ namespace eval ::xowiki {
     set item_id [${:data} set item_id]
     set page_template [${:data} form_parameter page_template]
     if {[${:data} exists_query_parameter return_url]} {
-      set return_url [${:data} query_parameter return_url]
+      set return_url [${:data} query_parameter return_url:localurl]
     }
     :submit_link [${:data} pretty_link -query [export_vars {
       {m edit} page_template return_url item_id

@@ -1605,7 +1605,7 @@ namespace eval ::xowiki::includelet {
       set notification_type [notification::type::get_type_id -short_name xowiki_notif]
     }
     if {[::$package_id exists_query_parameter return_url]} {
-      set return_url [::$package_id query_parameter return_url]
+      set return_url [::$package_id query_parameter return_url:localurl]
     }
     foreach cat_id [category::get_mapped_categories [${:__including_page} set item_id]] {
       lassign [category::get_data $cat_id] category_id category_name tree_id tree_name
@@ -1888,7 +1888,7 @@ namespace eval ::xowiki::includelet {
     set entries_with_unresolved_items {}
     foreach tuple $unresolved_references {
       lassign $tuple page name
-      
+
       set pageObject [::xo::db::CrClass get_instance_from_db -item_id $page]
 
       #
@@ -1897,7 +1897,7 @@ namespace eval ::xowiki::includelet {
       if {[$page info class] eq "::xowiki::Object"} {
         continue
       }
-      
+
       lappend entries_with_unresolved_items "<a href='[ns_quotehtml [$page pretty_link]]'>[ns_quotehtml [$page name]]</a> contains unresolved reference: $name"
     }
     if {[llength $entries_with_unresolved_items] > 0} {
@@ -4522,7 +4522,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set given_includelet_key [::xo::cc query_parameter includelet_key ""]
+    set given_includelet_key [::xo::cc query_parameter includelet_key:graph ""]
     if {$given_includelet_key ne ""} {
       if {$given_includelet_key eq $includelet_key && [info exists generate]} {
         if {$generate eq "csv"} {
@@ -4562,7 +4562,13 @@ namespace eval ::xowiki::includelet {
     return $html
   }
 
-  form-usages instproc generate_voting_form {form_name form_form t1 field_names voting_form_anon_instances} {
+  form-usages instproc generate_voting_form {
+    form_name
+    form_form
+    t1
+    field_names
+    voting_form_anon_instances
+  } {
     #:msg "generate_voting anon=$voting_form_anon_instances"
     set form "<form> How do you rate<br />
     <table rules='all' frame='box' cellspacing='1' cellpadding='1' border='0' style='border-style: none;'>
