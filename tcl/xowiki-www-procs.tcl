@@ -245,7 +245,7 @@ namespace eval ::xowiki {
     set original_package_id ${:package_id}
 
     if {[:exists_query_parameter "package_instance"]} {
-      set package_instance [:query_parameter "package_instance"]
+      set package_instance [:query_parameter "package_instance:localurl"]
       #
       # Initialize the target package and set the variable package_id.
       #
@@ -264,9 +264,10 @@ namespace eval ::xowiki {
     # Collect some default values from query parameters.
     #
     set default_variables [list]
-    foreach key {name title page_order last_page_id nls_language} {
+    foreach param {name title page_order:graph last_page_id:integer nls_language:wordchar} {
+      regexp {^([^:]+):?} $param . key
       if {[:exists_query_parameter $key]} {
-        lappend default_variables $key [:query_parameter $key]
+        lappend default_variables $key [:query_parameter $param]
       }
     }
 
@@ -309,13 +310,13 @@ namespace eval ::xowiki {
     #
     if {$parent_id == 0} {
       if {![info exists :parent_id]} {:parent_id [::${:package_id} folder_id]}
-      set fp_parent_id [:form_parameter "parent_id" [:query_parameter "parent_id" ${:parent_id}]]
+      set fp_parent_id [:form_parameter "parent_id" [:query_parameter "parent_id:integer" ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
-    set fp_package_id [:form_parameter "package_id" [:query_parameter "package_id" ${:package_id}]]
+    set fp_package_id [:form_parameter "package_id" [:query_parameter "package_id:integer" ${:package_id}]]
 
     #
     # Handling publish_status. When the publish_status is provided via
@@ -326,10 +327,10 @@ namespace eval ::xowiki {
     # have to set the publish_status manually (see issue #3380).
     #
     if {$publish_status eq ""} {
-      set publish_status [:query_parameter "publish_status" ""]
+      set publish_status [:query_parameter "publish_status:wordchar" ""]
     }
     if {$publish_status eq "" && [:exists_query_parameter name]} {
-      if {[::${:package_id} get_parameter production_mode 0]} {
+      if {[::${:package_id} get_parameter production_mode:boolean 0]} {
         set publish_status "production"
       } else {
         set publish_status "ready"
@@ -345,7 +346,7 @@ namespace eval ::xowiki {
                -package_id $fp_package_id \
                -default_variables $default_variables \
                -instance_attributes $instance_attributes \
-               -source_item_id [:query_parameter source_item_id ""]]
+               -source_item_id [:query_parameter source_item_id:integer ""]]
 
     if {$publish_status ne "" && $publish_status in {"production" "ready" "live" "expired"}} {
       $f publish_status $publish_status
@@ -366,7 +367,7 @@ namespace eval ::xowiki {
     }
     $f notification_notify
 
-    foreach var {return_url template_file title detail_link text} {
+    foreach var {return_url:localurl template_file title detail_link:localurl text} {
       if {[:exists_query_parameter $var]} {
         set $var [:query_parameter $var]
       }
@@ -577,7 +578,7 @@ namespace eval ::xowiki {
 
   } {
 
-    set compare_id [:query_parameter "compare_revision_id" 0]
+    set compare_id [:query_parameter "compare_revision_id:integer" 0]
     if {$compare_id == 0} {
       return ""
     }
@@ -729,6 +730,9 @@ namespace eval ::xowiki {
 
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
+      if {![regexp {^\d*x?\d*$}]} {
+        error "invalid geometry $geometry"
+      }
       set tmpdir [ad_tmpdir]
       if {![file isdirectory $tmpdir/$geometry]} {
         file mkdir $tmpdir/$geometry
@@ -786,10 +790,11 @@ namespace eval ::xowiki {
 
   Page instproc edit_set_default_values {} {
     # set some default values if they are provided
-    foreach key {name title page_order last_page_id nls_language} {
+    foreach param {name title page_order:graph last_page_id:integer nls_language:wordchar} {
+      regexp {^([^:]+):?} $param . key
       if {[::${:package_id} exists_query_parameter $key]} {
         #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
-        set :$key [::${:package_id} query_parameter $key]
+        set :$key [::${:package_id} query_parameter $param]
       }
     }
   }
@@ -848,7 +853,7 @@ namespace eval ::xowiki {
     set fs_folder_id [:edit_set_file_selector_folder]
 
     if {[::${:package_id} exists_query_parameter "return_url"]} {
-      set submit_link [:get_query_parameter_return_url]
+      set submit_link [:query_parameter return_url:localurl]
       set return_url $submit_link
     } else {
       #
@@ -1165,9 +1170,10 @@ namespace eval ::xowiki {
         if {![$ff(_title) istype ::xowiki::formfield::hidden]} {
           $ff(_title) value [$ff(_title) default]
         }
-        foreach var [list title detail_link text description] {
+        foreach param [list title detail_link:localurl text description] {
+          regexp {^([^:]+):?} $param . var
           if {[:exists_query_parameter $var]} {
-            set value [:query_parameter $var]
+            set value [:query_parameter $param]
             switch -- $var {
               detail_link {
                 set f [:lookup_form_field -name $var $form_fields]
@@ -1291,7 +1297,7 @@ namespace eval ::xowiki {
     if {$formNode ne ""} {
 
       if {[:exists_query_parameter "return_url"]} {
-        set return_url [:get_query_parameter_return_url]
+        set return_url [:query_parameter return_url:localurl]
       } else {
         #
         # When no return_url is specified and we edit a page different
@@ -1512,7 +1518,7 @@ namespace eval ::xowiki {
 
   } {
     set package     ::${:package_id}
-    set limit       [:query_parameter "limit" 20]
+    set limit       [:query_parameter "limit:integer" 20]
     set weblog_page [$package get_parameter weblog_page weblog]
     set href        [$package pretty_link -parent_id [$package folder_id] $weblog_page]?summary=1
 
@@ -1560,7 +1566,7 @@ namespace eval ::xowiki {
       #
       # We have no validation errors, so we can save the content.
       #
-      set update_without_revision [::${:package_id} query_parameter replace 0]
+      set update_without_revision [::${:package_id} query_parameter replace:boolean 0]
 
       foreach form_field $form_fields {
         #
