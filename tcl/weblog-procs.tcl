@@ -13,7 +13,7 @@ namespace eval ::xowiki {
     ptag
     category_id
     {entries_of ""}
-    {locale:graph ""}
+    {locale:graph,0..1 ""}
     filter_msg
     {sort_composite ""}
     {no_footer:boolean false}
