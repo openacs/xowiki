@@ -1315,7 +1315,7 @@ namespace eval ::xowiki {
     # templates that xowiki used were in the www directory. This had
     # the disadvantage, that for e.g. the template "edit.adp" a call
     # of "/xowiki/edit" returned an error, since the index.vuh file
-    # was bypassed and xowiki/www/edit.adp was called. Therefore the
+    # was bypassed and xowiki/www/edit.adp was called. Therefore, the
     # recommended place was changed to
     # xowiki/resources/templates/. However, this method hides the
     # location change and maintains backward compatibility. In some
@@ -2603,7 +2603,7 @@ namespace eval ::xowiki {
     This web-callabel "delete" method does not require an instantiated object,
     while the class-specific delete methods in xowiki-procs need these.
     If a (broken) object can't be instantiated, it cannot be deleted.
-    Therefore we need this package level delete method.
+    Therefore, we need this package level delete method.
     While the class specific methods are used from the
     application pages, the package_level method is used from the admin pages.
 

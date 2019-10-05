@@ -508,7 +508,7 @@ namespace eval ::xowiki::formfield {
 
     #
     # Disabled fields are not returned by the browsers. For some
-    # fields, we require to be sent. Therefore we include in these
+    # fields, we require to be sent. Therefore, we include in these
     # cases the value in an additional hidden field. Maybe we should
     # change in the future the "name" of the disabled entry to keep
     # some hypothetical html-checker quiet.
@@ -3318,7 +3318,7 @@ namespace eval ::xowiki::formfield {
     if {${:resolve_local}} {
       #
       # resetting esp. the item-id is dangerous.
-      # Therefore we reset it immediately after the rendering
+      # Therefore, we reset it immediately after the rendering
       #
       #:log "#### RESOLVE LOCAL: setting for $item [$item name] set_resolve_context -parent_id [${:object} parent_id] -item_id [${:object} item_id]"
       $item set __RESOLVE_LOCAL 1

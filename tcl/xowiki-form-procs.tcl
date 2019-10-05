@@ -119,7 +119,7 @@ namespace eval ::xowiki {
       }
 
       if {[string first "richtext" $__wspec] > -1} {
-        # ad_form does a subst, therefore escape esp. the JavaScript stuff
+        # ad_form does a subst, therefore, escape esp. the JavaScript stuff
         set __spec [string map {\[ \\[ \] \\] \$ \\$ \\ \\\\} $__spec]
       }
 

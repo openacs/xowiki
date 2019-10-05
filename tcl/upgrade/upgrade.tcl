@@ -341,7 +341,7 @@ namespace eval ::xowiki {
       }
       catch {
         #
-        # For new installs, the old column might not exist, therefore
+        # For new installs, the old column might not exist, therefore,
         # the catch operation.
         #
         db_dml drop_old_column \

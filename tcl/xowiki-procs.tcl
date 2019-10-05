@@ -224,7 +224,7 @@ namespace eval ::xowiki {
   ::xo::db::require index -table xowiki_last_visited -col page_id
 
 
-  # Oracle has a limit of 3118 characters for keys, therefore we
+  # Oracle has a limit of 3118 characters for keys, therefore, we
   # cannot use "text" as type for "tag"
   ::xo::db::require table xowiki_tags {
     item_id    {integer references cr_items(item_id) on delete cascade}
@@ -4824,7 +4824,7 @@ namespace eval ::xowiki {
     set group_name "fpg-${:parent_id}-${:name}"
     set group_id [group::get_id -group_name $group_name]
     if {$group_id eq ""} {
-      # group::new does not flush the cache - sigh!  Therefore we have
+      # group::new does not flush the cache - sigh!  Therefore, we have
       # to flush the old cache entry here manually.
       ns_cache flush util_memoize \
           "group::get_id_not_cached -group_name $group_name -subsite_id {} -application_group_id {}"
