@@ -371,7 +371,7 @@ namespace eval ::xowiki {
       ### danger: update references does an ad_eval, which breaks the [template::adp_level]
       ### ad_form! don't do it in pageinstanceforms.
       ${:data} render_adp false
-      ${:data} render -update_references true
+      ${:data} render -update_references all
     }
     # Delete the link cache entries for this entry.
     # The logic could be made more intelligent to delete entries is more rare cases, like
@@ -395,7 +395,6 @@ namespace eval ::xowiki {
       }
     }
 
-    #:log "v=[ad_acs_version] 5.2] compare: [apm_version_names_compare [ad_acs_version] 5.2]"
     if {[apm_version_names_compare [ad_acs_version] 5.3.0d4] == 1} {
       application_data_link::update_links_from \
           -object_id [${:data} set item_id] \

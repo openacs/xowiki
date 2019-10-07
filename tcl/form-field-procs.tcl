@@ -3326,7 +3326,7 @@ namespace eval ::xowiki::formfield {
           -package_id [${:object} package_id] -parent_id [${:object} parent_id] \
           -item_id [${:object} item_id]
 
-      set html [$item render]
+      set html [$item render -update_references never]
 
       $item unset __RESOLVE_LOCAL
       $item reset_resolve_context

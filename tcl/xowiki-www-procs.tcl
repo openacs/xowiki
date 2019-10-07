@@ -1107,7 +1107,7 @@ namespace eval ::xowiki {
         # the references instead on every view (which would be safer, but slower). This is
         # roughly the counterpart to edit_data and save_data in ad_forms.
         #
-        set content [:render -update_references true]
+        set content [:render -update_references all]
         #:log "after save refs=[expr {[info exists :references]?${:references} : {NONE}}]"
 
         set redirect_method [:form_parameter __form_redirect_method "view"]

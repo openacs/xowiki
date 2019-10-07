@@ -2783,7 +2783,7 @@ namespace eval ::xowiki {
     }] {
       set page [::xo::db::CrClass get_instance_from_db -item_id $i]
       #:log "==== check_unresolved_references found page [$page name] with a broken reference to the new page ${:name}"
-      $page render -update_references true -with_footer false
+      $page render -update_references all -with_footer false
     }
   }
 
@@ -2875,10 +2875,21 @@ namespace eval ::xowiki {
   }
 
   Page instproc get_content {} {
-    return [:render -with_footer false]
+    return [:render -with_footer false -update_references never]
   }
 
-  Page instproc render {{-update_references:boolean false} {-with_footer:boolean true}} {
+  Page ad_instproc render {
+    {-update_references unresolved}
+    {-with_footer:boolean true}
+  } {
+
+    Render a wiki page with some optional features, such as including
+    a footer or updating references for this page.
+
+    @param update_references might be "all", "unresolved" or "never"
+    @param with_footer boolean value
+    @return rendered HTML content.
+  } {
     #
     # prepare language links
     #
@@ -2903,16 +2914,20 @@ namespace eval ::xowiki {
     #
     set content [:render_content]
     #
-    # Clear old reference and record new ones.
+    # Clear old reference and record new ones in cases updating
+    # references is activated "always" or just for unresolved
+    # references.
     #
     set unresolved_references [:references get unresolved]
-    #:msg resolved=[:references get resolved]
-    #:msg unresolved=[:references get unresolved]
-    if {$update_references || [llength $unresolved_references] > 0} {
+
+    if {$update_references eq "all"
+        || ($update_references eq "unresolved" && [llength $unresolved_references] > 0)
+      } {
       :references_update \
           [lsort -unique [:references get resolved]] \
           [lsort -unique $unresolved_references]
     }
+    #
     # unset -nocomplain :__references
     #
     #:log "Page ${:name} render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
@@ -2945,7 +2960,7 @@ namespace eval ::xowiki {
   #
   Page instproc search_render {} {
     set :__no_form_page_footer 1
-    set html [:render]
+    set html [:render -update_references none]
     :unset __no_form_page_footer
 
     foreach tag {h1 h2 h3 h4 h5 b strong} {
