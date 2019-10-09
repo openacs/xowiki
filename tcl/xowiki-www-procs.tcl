@@ -1535,6 +1535,7 @@ namespace eval ::xowiki {
                lappend entries "<a href='[ns_quotehtml $href&ptag=[ad_urlencode $tag]]'>$label</a>"
              }
     ns_return 200 text/html "<span class='popular-tags'>[_ xowiki.popular_tags_label]: [join $entries {, }]</span>"
+    ad_script_abort
   }
 
   #
