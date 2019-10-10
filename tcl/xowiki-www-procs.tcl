@@ -114,7 +114,7 @@ namespace eval ::xowiki {
   #
   Page ad_instproc www-clipboard-content {} {
 
-    This web-callable method displaysthe content of the clipboard.
+    This web-callable method displays the content of the clipboard.
     Finally redirect either to the return_url of the calling page.
 
   } {
@@ -847,7 +847,6 @@ namespace eval ::xowiki {
 
   } {
 
-    :instvar item_id revision_id parent_id
     #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
@@ -922,9 +921,9 @@ namespace eval ::xowiki {
     #:log "form rendered"
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
-    if {[info exists item_id]} {
-      set rev_link    [::${:package_id} make_link [self] revisions]
-      set view_link   [::${:package_id} make_link [self] view]
+    if {[info exists :item_id]} {
+      set rev_link  [::${:package_id} make_link [self] revisions]
+      set view_link [::${:package_id} make_link [self] view]
     }
     if {[info exists last_page_id]} {
       set back_link [::${:package_id} url]
@@ -935,10 +934,16 @@ namespace eval ::xowiki {
 
     array set property_doc [::xo::Page get_property doc]
     set edit_tmpl [::${:package_id} get_adp_template "edit"]
+    #
+    # The variable parent_id
+    #
     set html [::${:package_id} return_page -adp $edit_tmpl \
                   -form f1 \
-                  -variables {item_id parent_id edit_form_page_title context formTemplate
-                    view_link back_link rev_link index_link property_doc}]
+                  -variables {
+                    {item_id ${:item_id}} {parent_id ${:parent_id}}
+                    edit_form_page_title context formTemplate
+                    view_link back_link rev_link index_link property_doc
+                  }]
     template::util::lpop ::template::parse_level
     #:log "--edit html length [string length $html]"
     return $html
@@ -1057,18 +1062,23 @@ namespace eval ::xowiki {
     #:log "__form_action [:form_parameter __form_action {}]"
 
     if {[:form_parameter __form_action ""] eq "save-form-data"} {
+      #
+      # We want to save the form data, so we have to validate.
+      #
       #:log "we have to validate"
       #
-      # We have to valiate and save the form data.
-      #
       # In case we are triggered internally, we might not have a
-      # a connection and therefore do not valide the csrf token
+      # a connection and therefore do not valide the csrf token.
+      #
       if {![::${:package_id} exists __batch_mode]} {
         security::csrf::validate
       }
 
       lassign [:get_form_data $form_fields] validation_errors category_ids
       if {$validation_errors != 0} {
+        #
+        # We have validation errors.
+        #
         #:log "$validation_errors validation errors in $form_fields"
         #foreach f $form_fields { :log "$f: [$f name] '[$f set value]' err: [$f error_msg] " }
         #
@@ -1097,7 +1107,7 @@ namespace eval ::xowiki {
         set :name [:form_parameter __object_name]
       } else {
         #
-        # we have no validation errors, so we can save the content
+        # We have no validation errors, so we can save the content.
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
