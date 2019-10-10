@@ -2633,7 +2633,7 @@ namespace eval ::xowiki {
       #
       # Run validator on every field
       #
-      #:log "---- validate [$f name] ([$f info class]) with value '[$f value]'"
+      #:log "validate [$f name] ([$f info class]) with value '[$f value]'"
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
         #:log "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"

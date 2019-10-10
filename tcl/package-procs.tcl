@@ -1316,29 +1316,32 @@ namespace eval ::xowiki {
     # the disadvantage, that for e.g. the template "edit.adp" a call
     # of "/xowiki/edit" returned an error, since the index.vuh file
     # was bypassed and xowiki/www/edit.adp was called. Therefore, the
-    # recommended place was changed to
-    # xowiki/resources/templates/. However, this method hides the
-    # location change and maintains backward compatibility. In some
-    # later versions, the www location will be deprecated.
+    # recommended place was changed to xowiki/resources/templates/.
+    #
+    # However, this method hides the location change and maintains
+    # backward compatibility. The www location is deprecated but still
+    # "working".
     #
     set name [:normalize_path $name]
     foreach package_key [list [:package_key] xowiki] {
 
       #
-      # backward compatibility check
+      # Backward compatibility check for old style definitions.
+      # Notify user about such deprecated usages.
       #
       foreach location {resources/templates www} {
 
         set tmpl /packages/$package_key/$location/$name
         set fn [acs_root_dir]/$tmpl
-        ns_log notice "=== check get_adp_template $fn"
+        #ns_log notice "=== check get_adp_template $fn"
 
         if {[file readable $fn.adp]} {
           set result [::template::themed_template $tmpl]
           #ns_log notice "template is <$result>"
           if {$result ne ""} {
             if {$location eq "www"} {
-              ns_log warning "you should move the template $tmpl to /packages/$package_key/resources/templates/"
+              ns_log warning "deprecated location: you should move template\
+                     '$tmpl' to /packages/$package_key/resources/templates/"
             }
             return $result
           }
