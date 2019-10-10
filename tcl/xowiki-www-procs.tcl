@@ -846,7 +846,11 @@ namespace eval ::xowiki {
     @param "return_url"
 
   } {
-
+    #
+    # We have to keep the instvar for "item_id" for the time being.
+    #
+    :instvar item_id
+    
     #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
@@ -913,6 +917,10 @@ namespace eval ::xowiki {
         -autoname $autoname
     #:log "form created"
 
+    #
+    # The variable "item_id" is hard-wired in the old-style "generate"
+    # method.
+    #
     if {[info exists return_url]} {
       ::xowiki::f1 generate -export [list [list return_url $return_url]]
     } else {
@@ -921,7 +929,7 @@ namespace eval ::xowiki {
     #:log "form rendered"
     ::xowiki::f1 instvar edit_form_page_title context formTemplate
 
-    if {[info exists :item_id]} {
+    if {[info exists item_id]} {
       set rev_link  [::${:package_id} make_link [self] revisions]
       set view_link [::${:package_id} make_link [self] view]
     }
@@ -934,13 +942,11 @@ namespace eval ::xowiki {
 
     array set property_doc [::xo::Page get_property doc]
     set edit_tmpl [::${:package_id} get_adp_template "edit"]
-    #
-    # The variable parent_id
-    #
+
     set html [::${:package_id} return_page -adp $edit_tmpl \
                   -form f1 \
                   -variables {
-                    {item_id ${:item_id}} {parent_id ${:parent_id}}
+                    item_id {parent_id ${:parent_id}}
                     edit_form_page_title context formTemplate
                     view_link back_link rev_link index_link property_doc
                   }]
@@ -2556,13 +2562,14 @@ namespace eval ::xowiki {
     #ns_log notice "FORM_FIELDS [lsort [lmap f $form_fields {$f name}]]"
     #ns_log notice "CONTAINER   [lsort [array names containers]]"
 
+    #
+    # Certain HTML form field types are not transmitted by the browser
+    # (e.g. unchecked checkboxes). Therefore, we have not processed
+    # these fields above and have to do it now.
+    #
     foreach f [concat $form_fields $leaf_components] {
-      #:log "validate $f [$f name] [info exists processed([$f name])]"
+      #:log "check processed $f [$f name] [info exists processed([$f name])]"
       set att [$f name]
-
-      # Certain form field types (e.g. checkboxes) are not transmitted, if not
-      # checked. Therefore, we have not processed these fields above and
-      # have to do it now.
 
       if {![info exists processed($att)]} {
 
@@ -2599,7 +2606,9 @@ namespace eval ::xowiki {
             set v [$f value_if_nothing_is_returned_from_form $default]
             #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
-            if {![string match "*.*" $att]} {dict set :instance_attributes $att $value}
+            if {![string match "*.*" $att]} {
+              dict set :instance_attributes $att $value
+            }
           }
         }
       }
@@ -2624,6 +2633,7 @@ namespace eval ::xowiki {
       #
       # Run validator on every field
       #
+      #:log "---- validate [$f name] ([$f info class]) with value '[$f value]'"
       set validation_error [$f validate [self]]
       if {$validation_error ne ""} {
         #:log "validation of $f [$f name] with value '[$f value]' returns '$validation_error'"
@@ -2634,7 +2644,10 @@ namespace eval ::xowiki {
 
     #:msg "validation returns $validation_errors errors"
     set current_revision_id [$cc form_parameter __current_revision_id ""]
-    if {$validation_errors == 0 && $current_revision_id ne "" && $current_revision_id != ${:revision_id}} {
+    if {$validation_errors == 0
+        && $current_revision_id ne ""
+        && $current_revision_id != ${:revision_id}
+      } {
       set validation_errors [:mutual_overwrite_occurred]
     }
 
