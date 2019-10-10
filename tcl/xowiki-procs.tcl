@@ -2731,6 +2731,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc validate=name {name} {
+    :log "---- validate=name $name is called"
     upvar nls_language nls_language
     set success [::xowiki::validate_name [self]]
     if {$success} {
@@ -4914,9 +4915,10 @@ namespace eval ::xowiki {
 
     ::xo::dc transaction {
       #
-      # if the newly created item was in production mode, but ordinary entries
+      # If the newly created item was in production mode, but ordinary entries
       # are not, change on the first save the status to ready
       #
+      ns_log notice "----- save_data: old_name $old_name, is_new_entry [:is_new_entry $old_name] name <${:name}>"
       if {[:is_new_entry $old_name]} {
         if {![::$package_id get_parameter production_mode 0]} {
           set :publish_status "ready"
@@ -4927,7 +4929,7 @@ namespace eval ::xowiki {
       #
       # Handle now further database operations that should be saved in
       # a transaction. Examples are calendar-items defined in a
-      # FormPage, that should show up in the calendar.
+      # FormPage, which should show up also in the calendar.
       #
       # Probably, categories should also be moved into the
       # transaction queue.

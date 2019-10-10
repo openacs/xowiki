@@ -132,11 +132,14 @@ namespace eval ::xowiki::formfield {
     set value [:value]
     #:msg "[:info class] value=$value req=${:required} // ${:value} //"
 
-    if {${:required} && $value eq "" && ![:istype ::xowiki::formfield::hidden]} {
+    if {${:required}
+        && $value eq ""
+        && ![:istype ::xowiki::formfield::hidden]
+      } {
       return [_ acs-templating.Element_is_required [list label ${:label}]]
     }
     #
-    #:msg "++ ${:name} [:info class] validator=[:validator] ([llength [:validator]]) value=$value"
+    #:log "++ ${:name} [:info class] validator=[:validator] ([llength [:validator]]) value=$value"
     foreach validator [:validator] {
       set errorMsg ""
       #
@@ -145,18 +148,22 @@ namespace eval ::xowiki::formfield {
       set success 1
       set validator_method check=$validator
       set proc_info [:procsearch $validator_method]
-      #:msg "++ ${:name}: field-level validator exists '$validator_method' ? [expr {$proc_info ne {}}]"
+      #:log "++ ${:name}: field-level validator exists '$validator_method' ? [expr {$proc_info ne {}}]"
       if {$proc_info ne ""} {
-        # we have a slot checker, call it
+        #
+        # We have a slot checker, call it.
+        #
         #:msg "++ call-field level validator $validator_method '$value'"
         set success [:validation_check $validator_method $value]
       }
       if {$success == 1} {
-        # the previous check was ok, check now for a validator on the
-        # object level
+        #
+        # The previous check was ok, check now for a validator on the
+        # object level.
+        #
         set validator_method validate=$validator
         set proc_info [$obj procsearch $validator_method]
-        #:msg "++ ${:name}: page-level validator exists ? [expr {$proc_info ne {}}]"
+        #:log "++ ${:name}: page-level validator exists ? [expr {$proc_info ne {}}]"
         if {$proc_info ne ""} {
           set success [$obj $validator_method $value]
           #:msg "++ call page-level validator $validator_method '$value' returns $success"
