@@ -4708,7 +4708,11 @@ namespace eval ::xowiki {
   FormPage instproc include_header_info {{-prefix ""} {-js ""} {-css ""}} {
     if {$css eq ""} {set css [:get_from_template ${prefix}_css]}
     if {$js eq ""}  {set js [:get_from_template ${prefix}_js]}
-    foreach line [split $js \n] {::xo::Page requireJS [string trim $line]}
+    foreach line [split $js \n] {
+      if {[llength $line] > 1} {
+        ::xo::Page requireJS [string trim $line]
+      }
+    }
     foreach line [split $css \n] {
       set line [string trim $line]
       set order 1
