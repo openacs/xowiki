@@ -2139,18 +2139,10 @@ namespace eval ::xowiki::formfield {
       } trap {TCL LOOKUP COMMAND} {errorMsg} {
         #
         # If for whatever reason, richtext-ckeditor4 is not available,
-        # fall back to the CDN. If there are other errors, raise an
-        # exception.
+        # bail out and tell the user to install.
         #
-        security::csp::require script-src 'unsafe-eval'
-        security::csp::require -force script-src 'unsafe-inline'
 
-        security::csp::require script-src cdn.ckeditor.com
-        security::csp::require style-src cdn.ckeditor.com
-        security::csp::require img-src cdn.ckeditor.com
-
-        template::head::add_javascript -order 90 -src "//cdn.ckeditor.com/4.9.2/${:ck_package}/ckeditor.js"
-        template::head::add_javascript -order 90.1 -src "//cdn.ckeditor.com/4.9.2/${:ck_package}/adapters/jquery.js"
+        error "Please install the package: richtext-ckeditor4"
       }
 
       #
@@ -2949,10 +2941,11 @@ namespace eval ::xowiki::formfield {
                        -parent_id [${:object} parent_id] \
                        -default_lang [${:object} lang] \
                        -forms $form_name -package_id ${:package_id}]
+    #:log "form_page $form_name resolved into '$form_objs'"
 
-    #set form_obj [${:object} resolve_included_page_name $form_name]
-    if {$form_objs eq ""} {error "Cannot lookup Form '$form_name'"}
-
+    if {$form_objs eq ""} {
+      error "Cannot lookup Form '$form_name'"
+    }
     set :form_object_item_ids [list]
     foreach form_obj $form_objs {
       lappend :form_object_item_ids [$form_obj item_id]
