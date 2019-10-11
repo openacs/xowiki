@@ -2016,7 +2016,7 @@ namespace eval ::xowiki::formfield {
     {submit_callback ""}
     {extraPlugins "xowikiimage"}
     {extraAllowedContent {*(*)}}
-    {ck_package standard-all}
+    {ck_package standard}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
