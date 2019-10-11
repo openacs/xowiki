@@ -2016,7 +2016,7 @@ namespace eval ::xowiki::formfield {
     {submit_callback ""}
     {extraPlugins "xowikiimage"}
     {extraAllowedContent {*(*)}}
-    {ck_package standard}
+    {ck_package standard-all}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
@@ -2131,6 +2131,7 @@ namespace eval ::xowiki::formfield {
         # the latter is not included in the standard builds (only in
         # "-all").
         #
+        ::xo::show_stack
         ::richtext::ckeditor4::add_editor \
             -order 90 \
             -ck_package ${:ck_package} \
