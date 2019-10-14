@@ -4709,12 +4709,14 @@ namespace eval ::xowiki {
     if {$css eq ""} {set css [:get_from_template ${prefix}_css]}
     if {$js eq ""}  {set js [:get_from_template ${prefix}_js]}
     foreach line [split $js \n] {
-      if {[llength $line] > 1} {
-        ::xo::Page requireJS [string trim $line]
+      set line [string trim $line]
+      if {$line ne ""} {
+        ::xo::Page requireJS $line
       }
     }
     foreach line [split $css \n] {
       set line [string trim $line]
+      if {$line eq ""} continue
       set order 1
       if {[llength $line]>1} {
         set e1 [lindex $line 0]
@@ -4758,6 +4760,7 @@ namespace eval ::xowiki {
       # deactivate form-fields and do some final sanity checks
       foreach f $form_fields {$f set_disabled 1}
       :form_fields_sanity_check $form_fields
+      :post_process_form_fields $form_fields
 
       set form [:regsub_eval  \
                     [template::adp_variable_regexp] $form \
@@ -4768,7 +4771,6 @@ namespace eval ::xowiki {
       ${:doc} documentElement :root
       set form_node [lindex [${:root} selectNodes //form] 0]
 
-      :log "render-content"
       Form add_dom_attribute_value $form_node role form
       Form add_dom_attribute_value $form_node class [${:page_template} css_class_name]
       # The following two commands are for non-generated form contents
