@@ -564,7 +564,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_help_text {} {
-    set text [:help_text]
+    set text ${:help_text}
     if {$text ne ""} {
       html::div -class [:form_help_text_CSSclass] {
         html::img -src "/shared/images/info.gif" -alt {[i]} -title {Help text} \
@@ -583,7 +583,7 @@ namespace eval ::xowiki::formfield {
     # We localize in pretty_value the message keys in the
     # language of the item (not the connection item).
     if {[regexp "^#(.*)#$" $v _ key]} {
-      return [lang::message::lookup [:locale] $key]
+      return [lang::message::lookup ${:locale} $key]
     }
     return $v
   }
@@ -610,61 +610,70 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_check=eq {} {
-    set arg1 [lindex [:correct_when] 1]
+    set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} eq $arg1}]
   }
   FormField instproc answer_check=gt {} {
-    set arg1 [lindex [:correct_when] 1]
+    set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} > $arg1}]
   }
   FormField instproc answer_check=ge {} {
-    set arg1 [lindex [:correct_when] 1]
+    set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} >= $arg1}]
   }
   FormField instproc answer_check=lt {} {
-    set arg1 [lindex [:correct_when] 1]
+    set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} < $arg1}]
   }
   FormField instproc answer_check=le {} {
-    set arg1 [lindex [:correct_when] 1]
+    set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} <= $arg1}]
   }
   FormField instproc answer_check=btwn {} {
-    set arg1 [lindex [:correct_when] 1]
-    set arg2 [lindex [:correct_when] 2]
-    return [expr {${:value} >= $arg1 && $value <= $arg2}]
+    set arg1 [lindex ${:correct_when} 1]
+    set arg2 [lindex ${:correct_when} 2]
+    return [expr {${:value} >= $arg1 && ${:value} <= $arg2}]
   }
   FormField instproc answer_check=in {} {
-    set values [lrange [:correct_when] 1 end]
+    set values [lrange ${:correct_when} 1 end]
     return [expr {${:value} in $values}]
   }
   FormField instproc answer_check=match {} {
-    return [string match [lindex [:correct_when] 1] [:value]]
+    return [string match [lindex ${:correct_when} 1] [:value]]
   }
   FormField instproc answer_check=answer_words {} {
-    set value [regsub -all { +} [:value] " "]
-    if {[string match "*lower*" [lindex [:correct_when] 1]]} {
+    set value [regsub -all { +} ${:value} " "]
+    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
       set value [string tolower $value]
     }
     return [expr {$value eq [:answer]}]
   }
 
   FormField instproc answer_is_correct {} {
-    #:msg "${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    #:log "${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    if {[string match *mc* ${:name}]} {
+      #:log [:serialize]
+    }
     if {[info exists :correct_when]} {
-      set op [lindex [:correct_when] 0]
+      set op [lindex ${:correct_when} 0]
       if {[:procsearch answer_check=$op] ne ""} {
         set r [:answer_check=$op]
-        if {$r == 0} {return -1} {return 1}
+        if {$r == 0} {
+          return -1
+        } {
+          return 1
+        }
       } else {
         error "invalid operator '$op'"
       }
     } elseif {![info exists :answer]} {
       return 0
-    } elseif {[:value] ne [:answer]} {
+    } elseif {[:value] ne ${:answer}} {
       #:msg "v='[:value]' NE a='[:answer]'"
+      #:log "... answer_is_correct value comparison '[:value]' NE a='[:answer]'"
       return -1
     } else {
+      #:log "... answer_is_correct value comparison OK"
       return 1
     }
   }
@@ -1492,7 +1501,7 @@ namespace eval ::xowiki::formfield {
   }
   numeric instproc answer_check=eq {} {
     # use numeric equality
-    return [expr {[:value] == [lindex [:correct_when] 1]}]
+    return [expr {[:value] == [lindex ${:correct_when} 1]}]
   }
 
   ###########################################################
