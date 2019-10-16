@@ -436,7 +436,8 @@ namespace eval ::xowiki {
                     [list return_url [::xo::cc url]] \
                     autoname name last_page_id]
       set html [:render_not_found $link ${:label}]
-      ${:page} references unresolved $html
+      ${:page} references unresolved \
+          [list parent_id ${:parent_id} name ${:name} link_type ${:type} html $html]
       return $html
     }
   }
