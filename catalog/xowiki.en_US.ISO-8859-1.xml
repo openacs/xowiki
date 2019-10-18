@@ -100,6 +100,10 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Form_pretty_name">Wiki Form</msg>
   <msg key="Form_pretty_plural">Wiki Forms</msg>
   <msg key="formfield-author">Author</msg>
+  <msg key="formfield-correct_when-help_text">Condition, when
+  the answer is correct, specified as a predicate followed by arguments (Tcl
+  words). The predefined predicates are "eq", "gt", "ge", "lt",
+  "le", "btwn", "in", "match", "answer_words"</msg>  
   <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
   <msg key="formfield-import_archive-label">Import Archive</msg>

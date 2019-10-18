@@ -1115,7 +1115,9 @@ namespace eval ::xowiki::formfield {
   }
   import_archive instproc initialize {} {
     next
-    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-import_archive-help_text#"}
+    if {${:help_text} eq ""} {
+      set :help_text "#xowiki.formfield-import_archive-help_text#"
+    }
   }
   import_archive instproc pretty_value {v} {
     set package_id [${:object} package_id]
@@ -1276,6 +1278,20 @@ namespace eval ::xowiki::formfield {
     foreach p [list size maxlength] {if {[info exists :$p]} {set :html($p) [:$p]}}
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::correct_when
+  #
+  ###########################################################
+
+  Class create correct_when -superclass text
+  correct_when instproc initialize {} {
+    next
+    if {${:help_text} eq ""} {
+      set :help_text "#xowiki.formfield-correct_when-help_text#"
+    }    
+  }
+  
   ###########################################################
   #
   # ::xowiki::formfield::color
@@ -3204,7 +3220,9 @@ namespace eval ::xowiki::formfield {
 
   youtube_url instproc initialize {} {
     next
-    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-youtube_url-help_text#"}
+    if {${:help_text} eq ""} {
+      set :help_text "#xowiki.formfield-youtube_url-help_text#"
+    }
   }
   youtube_url instproc pretty_value {v} {
     if {$v eq ""} {
@@ -3237,7 +3255,9 @@ namespace eval ::xowiki::formfield {
       }
   image_url instproc initialize {} {
     next
-    if {[:help_text] eq ""} {:help_text "#xowiki.formfield-image_url-help_text#"}
+    if {${:help_text} eq ""} {
+      set :help_text "#xowiki.formfield-image_url-help_text#"
+    }
   }
   image_url instproc entry_name {value} {
     set value [string map [list %2e .] $value]
