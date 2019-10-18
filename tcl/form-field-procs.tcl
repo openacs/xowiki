@@ -651,9 +651,6 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc answer_is_correct {} {
     #:log "${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
-    if {[string match *mc* ${:name}]} {
-      #:log [:serialize]
-    }
     if {[info exists :correct_when]} {
       set op [lindex ${:correct_when} 0]
       if {[:procsearch answer_check=$op] ne ""} {
@@ -663,7 +660,9 @@ namespace eval ::xowiki::formfield {
         } {
           return 1
         }
-      } else {
+      } elseif { $op eq ""} {
+        return 0
+      } else {        
         error "invalid operator '$op'"
       }
     } elseif {![info exists :answer]} {
