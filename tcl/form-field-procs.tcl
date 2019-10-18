@@ -662,7 +662,7 @@ namespace eval ::xowiki::formfield {
         }
       } elseif { $op eq ""} {
         return 0
-      } else {        
+      } else {
         error "invalid operator '$op'"
       }
     } elseif {![info exists :answer]} {
