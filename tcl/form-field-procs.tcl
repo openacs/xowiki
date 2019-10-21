@@ -392,7 +392,7 @@ namespace eval ::xowiki::formfield {
     set spec ${:widget_type}
     if {[info exists :spell]} {append spec ",[expr {${:spell} ? {} : {no}}]spell"}
 
-    if {![:required]} {append spec ",optional"}
+    if {!${:required}} {append spec ",optional"}
     if {[info exists :editor]} {append spec " {options {editor ${:editor}}} "}
     append spec " {label " [list ${:label}] "} "
 
@@ -429,7 +429,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc render {} {
     # In case, we use an asHTML of a FormField, we use this
     # render definition
-    if {[:inline]} {
+    if {${:inline}} {
       # with label, error message, help text
       :render_form_widget
     } else {
@@ -444,7 +444,7 @@ namespace eval ::xowiki::formfield {
     set CSSclass [:form_widget_CSSclass]
     if {[:error_msg] ne ""} {append CSSclass " form-widget-error"}
     set atts [list class $CSSclass]
-    if {[:inline]} {lappend atts style "display: inline;"}
+    if {${:inline}} {lappend atts style "display: inline;"}
     ::html::div $atts { :render_input }
   }
 
@@ -537,9 +537,9 @@ namespace eval ::xowiki::formfield {
       }
       ::html::div -class $CSSclass {
         ::html::label -for ${:id} {
-          ::html::t [:label]
+          ::html::t ${:label}
         }
-        if {[:required] && [:mode] eq "edit"} {
+        if {${:required} && [:mode] eq "edit"} {
           ::html::div -class form-required-mark {
             ::html::t " (#acs-templating.required#)"
           }
@@ -699,7 +699,7 @@ namespace eval ::xowiki::formfield {
 
     array set "" [${:object} item_ref -default_lang [${:object} lang] -parent_id $parent_id $entry_name]
 
-    set label [:label] ;# the label is used for alt and title
+    set label ${:label} ;# the label is used for alt and title
     if {$label eq $(stripped_name)} {
       #
       # The label is apparently the default. For Photo.form instances,
@@ -817,7 +817,7 @@ namespace eval ::xowiki::formfield {
     next
   }
   file instproc entry_info {} {
-    if {[:multiple]} {
+    if {${:multiple}} {
       if {[info exists :tmpfile]} {
         set list ${:tmpfile}
       } else {
@@ -1050,7 +1050,7 @@ namespace eval ::xowiki::formfield {
     # every form the file again. To implement the sticky option, we
     # set temporarily the "required" attribute to false
     #
-    if {[:required]} {
+    if {${:required}} {
       set reset_required 1
       set :required false
     }
@@ -1091,7 +1091,7 @@ namespace eval ::xowiki::formfield {
       # - the formfield is not disabled, and
       # - the form-field is not sticky (default)
       #
-      set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+      set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
       if {${:value} ne "" && !$disabled && ![:sticky] } {
         ::html::input -type button -value [_ xowiki.clear] -id $id-control
         template::add_event_listener \
@@ -1288,9 +1288,9 @@ namespace eval ::xowiki::formfield {
     next
     if {${:help_text} eq ""} {
       set :help_text "#xowiki.formfield-correct_when-help_text#"
-    }    
+    }
   }
-  
+
   ###########################################################
   #
   # ::xowiki::formfield::color
@@ -1478,23 +1478,23 @@ namespace eval ::xowiki::formfield {
     next
     set :widget_type numeric
     # check, if we have an integer format
-    set :is_integer [regexp {%[0-9.]*d} [:format]]
+    set :is_integer [regexp {%[0-9.]*d} ${:format}]
   }
   numeric instproc convert_to_external value {
     if {$value eq ""} {
       set result ""
     } else {
       ad_try {
-        return [lc_numeric $value [:format] [:locale]]
+        return [lc_numeric $value ${:format} [:locale]]
       } on error errorMsg {
-        util_user_message -message "[:label]: $errorMsg (locale=[:locale])"
+        util_user_message -message "${:label}: $errorMsg (locale=[:locale])"
       }
       #
       # try again
       #
       set converted_value $value
       ad_try {
-        scan $value [:format] result
+        scan $value ${:format} result
       } on error {errMsg} {
         set result $value
       }
@@ -1924,7 +1924,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
       :render_richtext_as_div
     } else {
@@ -1977,7 +1977,7 @@ namespace eval ::xowiki::formfield {
           :value "&nbsp;"
         }
         :render_richtext_as_div
-        if {[:inline]} {
+        if {${:inline}} {
           set wrapper_class ""
         } else {
           set wrapper_class "form-item-wrapper"
@@ -2124,7 +2124,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor4 instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     set is_repeat_template [expr {[info exists :is_repeat_template] && ${:is_repeat_template} == "true"}]
     # :msg "${:id} ${:name} - $is_repeat_template"
 
@@ -2344,7 +2344,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
   }
   richtext::wym instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
       :render_richtext_as_div
     } else {
@@ -2452,7 +2452,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::xinha instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     if {![:istype ::xowiki::formfield::richtext] || $disabled} {
       :render_richtext_as_div
     } else {
@@ -2529,7 +2529,7 @@ namespace eval ::xowiki::formfield {
     # first entry of the options. This is as well the value, which is
     # returned from the browser in such cases.
     #
-    if {[:required] && ${:value} eq ""} {
+    if {${:required} && ${:value} eq ""} {
       set :value [lindex ${:options} 0 1]
     }
   }
@@ -2605,7 +2605,7 @@ namespace eval ::xowiki::formfield {
     }
     :options $options
     set :is_category_field 1
-    # :msg label_could_be=$tree_name,existing=[:label]
+    # :msg label_could_be=$tree_name,existing=${:label}
     # if {![info exists :label]} {
     #    :label $tree_name
     # }
@@ -2631,7 +2631,7 @@ namespace eval ::xowiki::formfield {
       lassign $o label rep
       set atts [:get_attributes disabled]
       if {[info exists :forced_name]} {
-        set name [:forced_name]
+        set name ${:forced_name}
       } {
         set name ${:name}
       }
@@ -2641,12 +2641,12 @@ namespace eval ::xowiki::formfield {
         lappend atts checked checked
       }
       set label_class ""
-      if {[:horizontal]} {set label_class "radio-inline"}
+      if {${:horizontal}} {set label_class "radio-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         ::html::t " $label "
       }
-      if {![:horizontal]} {
+      if {!${:horizontal}} {
         html::br
       }
     }
@@ -2687,7 +2687,7 @@ namespace eval ::xowiki::formfield {
     # identical to radio, except "checkbox" type and "in" expression for value;
     # maybe we can push this up to enumeration....
     set value [:value]
-    foreach o [:options] {
+    foreach o ${:options} {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [:get_attributes disabled]
@@ -2695,18 +2695,18 @@ namespace eval ::xowiki::formfield {
       if {$rep in $value} {lappend atts checked checked}
 
       set label_class ""
-      if {[:horizontal]} {set label_class "checkbox-inline"}
+      if {${:horizontal}} {set label_class "checkbox-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         ::html::t " $label "
       }
-      if {![:horizontal]} {
+      if {!${:horizontal}} {
         html::br
       }
 
       #::html::input $atts {}
       #::html::label -for $id {html::t "$label  "}
-      #if {![:horizontal]} {html::br}
+      #if {!${:horizontal}} {html::br}
     }
   }
 
@@ -2729,8 +2729,8 @@ namespace eval ::xowiki::formfield {
 
   select instproc render_input {} {
     set atts [:get_attributes id name disabled {CSSclass class}]
-    if {[:multiple]} {lappend atts multiple [:multiple]}
-    if {![:required]} {
+    if {${:multiple}} {lappend atts multiple ${:multiple}}
+    if {!${:required}} {
       set :options [linsert ${:options} 0 [list "--" ""]]
     }
     ::html::select $atts {
@@ -2774,9 +2774,9 @@ namespace eval ::xowiki::formfield {
     #:msg "mul ${:multiple} dnd ${:dnd}"
     # makes only sense currently for multiple selects
 
-    if {[:multiple] && [:dnd]} {
+    if {${:multiple} && ${:dnd}} {
 
-      if {[info exists :disabled] && [:disabled]} {
+      if {[info exists :disabled] && ${:disabled}} {
         html::t -disableOutputEscaping [:pretty_value [:value]]
       } else {
 
@@ -2897,7 +2897,7 @@ namespace eval ::xowiki::formfield {
     set parent_id [${:object} parent_id]
     set package ::${:package_id}
     set :options [:get_labels $v]
-    if {[:multiple]} {
+    if {${:multiple}} {
       set default_lang [$package default_language]
       set root_folder [$package folder_id]
       set package_root [$package package_url]
@@ -2930,7 +2930,7 @@ namespace eval ::xowiki::formfield {
         lassign $o label value
         #:log "comparing '$value' with '$v'"
         if {$value eq $v} {
-          if {[:as_box]} {
+          if {${:as_box}} {
             return [${:object} include [list $value -decoration rightbox]]
           }
           set href [$package pretty_link -parent_id $parent_id $value]
@@ -3056,7 +3056,7 @@ namespace eval ::xowiki::formfield {
              -where_clause "p.page_id = bt.revision_id $extra_where_clause" \
              -orderby ci.name \
             ] {
-              lappend :options [list [set [:entry_label]] $name]
+              lappend :options [list [set ${:entry_label}] $name]
             }
   }
 
@@ -3389,8 +3389,8 @@ namespace eval ::xowiki::formfield {
   } -extend_slot_default validator compound
 
   CompoundField instproc check=compound {value} {
-    #:msg "check compound in [:components]"
-    foreach c [:components] {
+    #:msg "check compound in ${:components}"
+    foreach c ${:components} {
       set error [$c validate [self]]
       if {$error ne ""} {
         set msg "[$c label]: $error"
@@ -3409,7 +3409,7 @@ namespace eval ::xowiki::formfield {
     } else {
       :unset -nocomplain disabled
     }
-    foreach c [:components] {
+    foreach c ${:components} {
       $c set_disabled $disable
     }
   }
@@ -3421,7 +3421,7 @@ namespace eval ::xowiki::formfield {
     } else {
       :unset -nocomplain is_repeat_template
     }
-    foreach c [:components] {
+    foreach c ${:components} {
       $c set_is_repeat_template $is_template
     }
   }
@@ -3459,7 +3459,7 @@ namespace eval ::xowiki::formfield {
         #
         # Called with a single value, set object for all components
         #
-        foreach c [:components] {
+        foreach c ${:components} {
           $c object [lindex $args 0]
         }
 
@@ -3474,7 +3474,7 @@ namespace eval ::xowiki::formfield {
   CompoundField instproc validate {obj} {
     # Delegate validate to the components. If a validation of a
     # component fails, report the error message back.
-    foreach c [:components] {
+    foreach c ${:components} {
       set result [$c validate $obj]
       if {$result ne ""} {
         return $result
@@ -3489,7 +3489,7 @@ namespace eval ::xowiki::formfield {
       ns_log notice "CompoundField: error during setting compound value with $value: $errorMsg"
     }
     # set the value parts for each components
-    foreach c [:components] {
+    foreach c ${:components} {
       # Set only those parts, for which attribute values pairs are
       # given.  Components might have their own default values, which
       # we do not want to overwrite ...
@@ -3506,7 +3506,7 @@ namespace eval ::xowiki::formfield {
     set cc [[${:object} package_id] context]
 
     set value [list]
-    foreach c [:components] {
+    foreach c ${:components} {
       lappend value [$c name] [$c value]
     }
     #:log "${:name}: get_compound_value returns value=$value"
@@ -3638,7 +3638,7 @@ namespace eval ::xowiki::formfield {
     # Render content within in a fieldset, but with labels etc.
     #
     html::fieldset [:get_attributes id {CSSclass class}] {
-      foreach c [:components] { $c render }
+      foreach c ${:components} { $c render }
     }
   }
 
@@ -3650,7 +3650,7 @@ namespace eval ::xowiki::formfield {
     #
     set ff [dict create {*}$v]
     set html "<ul class='CompoundField'>\n"
-    foreach c [:components] {
+    foreach c ${:components} {
       set componentName [$c set name]
       if {[dict exists $ff $componentName]} {
         append html "<li><span class='name'>$componentName:</span> " \
@@ -3664,7 +3664,7 @@ namespace eval ::xowiki::formfield {
   CompoundField instproc has_instance_variable {var value} {
     set r [next]
     if {$r} {return 1}
-    foreach c [:components] {
+    foreach c ${:components} {
       set r [$c has_instance_variable $var $value]
       if {$r} {return 1}
     }
@@ -3672,7 +3672,7 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc convert_to_internal {} {
-    foreach c [:components] {
+    foreach c ${:components} {
       $c convert_to_internal
     }
     # Finally, update the compound value entry with the compound
@@ -3688,15 +3688,15 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create label -superclass FormField -parameter {
-    {disableOutputEscaping false}
+    {disableOutputEscaping:boolean false}
   }
   label instproc render_item {} {
     # sanity check; required and label do not fit well together
-    if {[:required]} {:required false}
+    if {${:required}} {set :required false}
     next
   }
   label instproc render_input {} {
-    if {[:disableOutputEscaping]} {
+    if {${:disableOutputEscaping}} {
       ::html::t -disableOutputEscaping [:value]
     } else {
       ::html::t [:value]
@@ -3736,7 +3736,7 @@ namespace eval ::xowiki::formfield {
         incr count [$form count_usages \
                         -package_id [${:object} package_id] \
                         -parent_id [${:object} item_id] \
-                        -publish_status [:publish_status]]
+                        -publish_status ${:publish_status}]
       }
       return $count
     } else {
@@ -3759,9 +3759,9 @@ namespace eval ::xowiki::formfield {
   # "yesterday", "next week", .... use _ for blanks
 
   date instproc initialize {} {
-    #:msg "DATE has value [:value]//d=[:default] format=[:format] disabled?[info exists :disabled]"
+    #:msg "DATE has value [:value]//d=[:default] format=${:format} disabled?[info exists :disabled]"
     set :widget_type date
-    set :format [string map [list _ " "] [:format]]
+    set :format [string map [list _ " "] ${:format}]
     array set :defaults {year 2000 month 01 day 01 hour 00 min 00 sec 00}
     array set :format_map {
       SS    {SS    %S 1}
@@ -3773,11 +3773,11 @@ namespace eval ::xowiki::formfield {
       MONTH {month %m 1}
       YYYY  {YYYY  %Y 0}
     }
-    #:msg "${:name} initialize date, format=[:format] components=[:components]"
-    foreach c [:components] {$c destroy}
+    #:msg "${:name} initialize date, format=${:format} components=${:components}"
+    foreach c ${:components} {$c destroy}
     :components [list]
 
-    foreach element [split [:format]] {
+    foreach element [split ${:format}] {
       if {![info exists :format_map($element)]} {
         #
         # We add undefined formats as literal texts in the edit form
@@ -3788,7 +3788,7 @@ namespace eval ::xowiki::formfield {
                    -locale [:locale] -object ${:object} \
                    -value $element]
         $c set_disabled 1; # this is a dummy field, never query for its value
-        if {$c ni [:components]} {lappend :components $c}
+        if {$c ni ${:components}} {lappend :components $c}
         continue
       }
       lassign [set :format_map($element)] class code trim_zeros
@@ -3803,7 +3803,7 @@ namespace eval ::xowiki::formfield {
       $c set_disabled [info exists :disabled]
       $c set code $code
       $c set trim_zeros $trim_zeros
-      if {$c ni [:components]} {lappend :components $c}
+      if {$c ni ${:components}} {lappend :components $c}
     }
   }
 
@@ -3815,7 +3815,7 @@ namespace eval ::xowiki::formfield {
       # instances of this class can be used as flyweight
       # objects. Otherwise, we get side-effects when
       # we render the input widget.
-      foreach c [:components] {
+      foreach c ${:components} {
         $c value ""
       }
       return
@@ -3835,7 +3835,7 @@ namespace eval ::xowiki::formfield {
     #set :defaults(sec)   [clock format $ticks -format %S]
 
     # set the value parts for each components
-    foreach c [:components] {
+    foreach c ${:components} {
       if {[$c istype ::xowiki::formfield::label]} continue
       if {$ticks ne ""} {
         set value_part [clock format $ticks -format [$c set code]]
@@ -3908,7 +3908,7 @@ namespace eval ::xowiki::formfield {
     #
     set :style "margin: 0px; padding: 0px;"
     html::fieldset [:get_attributes id style] {
-      foreach c [:components] { $c render_input }
+      foreach c ${:components} { $c render_input }
     }
   }
 
@@ -4035,16 +4035,16 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create event -superclass CompoundField -parameter {
-    {multiday false}
+    {multiday:boolean false}
     {calendar}
     {time_label #xowiki.event-time#}
   }
 
   event instproc initialize {} {
-    #:log "event initialize [info exists :__initialized], multi=[:multiday] state=${:__state}"
+    #:log "event initialize [info exists :__initialized], multi=${:multiday} state=${:__state}"
     if {${:__state} ne "after_specs"} return
     set :widget_type event
-    if {[:multiday]} {
+    if {${:multiday}} {
       set dtend_format DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI
       set dtend_display_format %Q_%X
     } else {
@@ -4069,7 +4069,7 @@ namespace eval ::xowiki::formfield {
     }
     set dtstart  [:get_component dtstart]
     set dtend    [:get_component dtend]
-    if {![:multiday]} {
+    if {!${:multiday}} {
       # If the event is not a multi-day-event, the end_day is not
       # given by the dtend widget, but is taken from dtstart.
       set end_day  [lindex [$dtstart value] 0]
@@ -4142,14 +4142,14 @@ namespace eval ::xowiki::formfield {
       # Check, if the calendar_id can be determined
       #
       set calendar_id ""
-      if {[string is integer -strict [:calendar]]} {
-        set calendar_id [:calendar]
+      if {[string is integer -strict ${:calendar}]} {
+        set calendar_id ${:calendar}
         if {[calendar::name $calendar_id] eq ""} {
           set calendar_id ""
         }
       }
       if {$calendar_id eq ""} {
-        error "calendar '[:calendar] has no valid calendar_id"
+        error "calendar '${:calendar} has no valid calendar_id"
       }
 
       #
@@ -4239,8 +4239,7 @@ namespace eval ::xowiki::formfield {
   }
   class instproc initialize {} {
     set :options ""
-    set baseclass [:subclass_of]
-    foreach cl [lsort [list $baseclass {*}[$baseclass info subclass -closure]]] {
+    foreach cl [lsort [list ${:subclass_of} {*}[${:subclass_of} info subclass -closure]]] {
       lappend :options [list $cl $cl]
     }
     next
