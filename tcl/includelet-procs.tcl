@@ -87,7 +87,7 @@ namespace eval ::xowiki::includelet {
     }
   }
   ::xowiki::Includelet proc available_includelets {} {
-    if {[array exists :html]} {:array unset html}
+    if {[array exists :html]} {array unset :html}
     :describe_includelets [::xowiki::Includelet info subclass]
     set result "<ul>"
     foreach d [lsort [array names :html]] {
@@ -389,6 +389,86 @@ namespace eval ::xowiki::includelet {
   available-includelets instproc render {} {
     :get_parameters
     return [::xowiki::Includelet available_includelets]
+  }
+}
+
+namespace eval ::xowiki::includelet {
+  #############################################################################
+  ::xowiki::IncludeletClass create available-formfields \
+      -superclass ::xowiki::Includelet \
+      -parameter {
+        {title "The following formfield types can be used in xowiki::Forms"}
+        {parameter_declaration {
+          {-flat:boolean false}
+        }}
+      } -ad_doc {
+        List the available form field types of this installation.
+
+        @param flat when "true" display a flat list structure instead
+        of a tree (default)
+      }
+
+  available-formfields instproc render {} {
+    :get_parameters
+
+    foreach cl [lsort [::xowiki::formfield::FormField info subclass -closure]] {
+      set result ""
+      set superClassName [namespace tail [$cl info superclass]]
+      set className [namespace tail $cl]
+      append result \
+          "<b><a name='$className'>$className</a></b> " \
+          "(superclass <a href='#$superClassName'>$superClassName</a>)\n" \
+          "<ul>\n"
+      foreach p [lsort [$cl info parameter]] {
+        if {[llength $p] == 2} {
+          lassign $p name value
+          append result "<li>-$name <em>[ns_quotehtml $value]</em></li>\n"
+        } else {
+          append result "<li>-$p</li>"
+        }
+      }
+      append result "</ul>\n"
+      set index [::xo::api object_index "" $cl]
+      if {[nsv_exists api_library_doc $index]} {
+        set doc_elements [nsv_get api_library_doc $index]
+        append result <p>[lindex [dict get $doc_elements main] 0]</p>
+      } else {
+        append result <p>
+      }
+      set :html($className) $result
+    }
+    if {$flat} {
+      #
+      # Output as flat list
+      #
+      set result <ul>
+      foreach className [lsort [array names :html]] {
+        append result "<li>[set :html($className)]</li>\n"
+      }
+      append result "</ul>"
+    } else {
+      #
+      # Output as tree
+      #
+      set result [:render_as_tree ::xowiki::formfield::FormField [::xowiki::formfield::FormField info subclass]]
+
+    }
+    return $result
+  }
+
+  available-formfields instproc render_as_tree {cl subclasses} {
+    set subclassHTML ""
+    foreach subcl [lsort $subclasses] {
+      append subclassHTML <li>[:render_as_tree $subcl [$subcl info subclass]]</li>
+    }
+    if {[llength $subclasses] > 0} {
+      set subclassHTML <ul>$subclassHTML</ul>
+    }
+    set className [namespace tail $cl]
+    append result \
+        [set :html([namespace tail $cl])] \
+        $subclassHTML \
+
   }
 }
 
