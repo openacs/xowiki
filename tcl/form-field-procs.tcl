@@ -177,9 +177,10 @@ namespace eval ::xowiki::formfield {
         set cl [namespace tail [lindex $proc_info 0]]
         #:msg "__langPkg?[info exists __langPkg]"
         if {![info exists __langPkg]} {set __langPkg "xowiki"}
-        #ns_log notice "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
-        return [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
-        #return [::lang::message::lookup "" xowiki.$cl-validate_$validator %errorMsg% [list value $value errorMsg $errorMsg] 1]
+        #:log "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
+        set msg [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
+        #:log "++ ${:name}: ======> RETURN VALIDATION FAILED <$msg>"
+        return $msg
       }
     }
     return ""
@@ -1283,7 +1284,18 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class create correct_when -superclass text
+  Class create correct_when -superclass text \
+      -extend_slot_default validator valid_predicate
+
+  correct_when instproc check=valid_predicate {value} {
+    set predicate [lindex $value 0]
+    set valid [expr {[:info methods answer_check=$predicate] ne ""}]
+    if {!$valid} {
+      :uplevel [list set errorMsg "invalid predicate $predicate"]
+    }
+    return $valid
+  }
+
   correct_when instproc initialize {} {
     next
     if {${:help_text} eq ""} {
