@@ -2480,7 +2480,7 @@ namespace eval ::xowiki {
     Finally, it calls "www-edit" for the freshly created page.
 
   } {
-    set object_type [:query_parameter object_type:graph "::xowiki::Page"]
+    set object_type [:query_parameter object_type:class "::xowiki::Page"]
     set autoname [:get_parameter autoname 0]
     set parent_id [${:id} query_parameter parent_id:integer ""]
     if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
@@ -2804,7 +2804,7 @@ namespace eval ::xowiki {
   #
 
   Package instproc condition=has_class {query_context value} {
-    return [expr {[$query_context query_parameter object_type:graph ""] eq $value}]
+    return [expr {[$query_context query_parameter object_type:class ""] eq $value}]
   }
   Package instproc condition=has_name {query_context value} {
     return [regexp $value [$query_context query_parameter name ""]]
