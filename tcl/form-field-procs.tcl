@@ -2639,21 +2639,20 @@ namespace eval ::xowiki::formfield {
   }
   radio instproc render_input {} {
     set value [:value]
-    foreach o [:options] {
+
+    set base_atts [:get_attributes disabled]
+    lappend base_atts \
+        type radio \
+        name [expr {[info exists :forced_name] ? ${:forced_name} : ${:name}}]
+
+    foreach o ${:options} {
       lassign $o label rep
-      set atts [:get_attributes disabled]
-      if {[info exists :forced_name]} {
-        set name ${:forced_name}
-      } {
-        set name ${:name}
-      }
       set id ${:id}:$rep
-      lappend atts id $id name $name type radio value $rep
+      set atts [list {*}$base_atts id $id value $rep]
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      set label_class ""
-      if {${:horizontal}} {set label_class "radio-inline"}
+      set label_class [expr {${:horizontal} ? "radio-inline" : ""}]
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         ::html::t " $label "
@@ -2679,7 +2678,6 @@ namespace eval ::xowiki::formfield {
     next
   }
 
-
   checkbox instproc value_if_nothing_is_returned_from_form {default} {
 
     # Here we have to distinguish between two cases to:
@@ -2696,18 +2694,20 @@ namespace eval ::xowiki::formfield {
     }
   }
   checkbox instproc render_input {} {
-    # identical to radio, except "checkbox" type and "in" expression for value;
-    # maybe we can push this up to enumeration....
     set value [:value]
+
+    set base_atts [:get_attributes disabled]
+    lappend base_atts \
+        type checkbox \
+        name ${:name}
+
     foreach o ${:options} {
       lassign $o label rep
       set id ${:id}:$rep
-      set atts [:get_attributes disabled]
-      lappend atts id $id name ${:name} type checkbox value $rep
+      set atts [list {*}$base_atts id $id value $rep]
       if {$rep in $value} {lappend atts checked checked}
 
-      set label_class ""
-      if {${:horizontal}} {set label_class "checkbox-inline"}
+      set label_class [expr {${:horizontal} ? "checkbox-inline" : ""}]
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         ::html::t " $label "
@@ -2715,10 +2715,6 @@ namespace eval ::xowiki::formfield {
       if {!${:horizontal}} {
         html::br
       }
-
-      #::html::input $atts {}
-      #::html::label -for $id {html::t "$label  "}
-      #if {!${:horizontal}} {html::br}
     }
   }
 
