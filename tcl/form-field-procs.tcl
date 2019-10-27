@@ -790,6 +790,310 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::CompoundField
+  #
+  ###########################################################
+
+  Class create CompoundField -superclass FormField -parameter {
+    {components ""}
+    {CSSclass compound-field}
+  } -extend_slot_default validator compound
+
+  CompoundField instproc check=compound {value} {
+    #:msg "check compound in ${:components}"
+    foreach c ${:components} {
+      set error [$c validate [self]]
+      if {$error ne ""} {
+        set msg "[$c label]: $error"
+        :uplevel [list set errorMsg $msg]
+        #util_user_message -message "Error in compound field [$c name]: $error"
+        return 0
+      }
+    }
+    return 1
+  }
+
+  CompoundField instproc set_disabled {disable} {
+    #:msg "${:name} set disabled $disable"
+    if {$disable} {
+      set :disabled true
+    } else {
+      :unset -nocomplain disabled
+    }
+    foreach c ${:components} {
+      $c set_disabled $disable
+    }
+  }
+
+  CompoundField instproc set_is_repeat_template {is_template} {
+    # :msg "${:name} set is_repeat_template $is_template"
+    if {$is_template} {
+      set :is_repeat_template true
+    } else {
+      :unset -nocomplain is_repeat_template
+    }
+    foreach c ${:components} {
+      $c set_is_repeat_template $is_template
+    }
+  }
+
+  CompoundField instproc same_value {v1 v2} {
+    if {$v1 eq $v2} {return 1}
+    foreach {n1 value1} $v1 {n2 value2} $v2  {
+      set f [set :component_index($n1)]
+      if {![$f same_value $value1 $value2]} { return 0 }
+    }
+    return 1
+  }
+
+  CompoundField instproc value {args} {
+    if {[llength $args] == 0} {
+      set v [:get_compound_value]
+      #:msg "${:name}: reading compound value => '$v'"
+      return $v
+    } else {
+      #:msg "${:name}: setting compound value => '[lindex $args 0]'"
+      :set_compound_value [lindex $args 0]
+    }
+  }
+
+  CompoundField instproc object args {
+    set l [llength $args]
+    switch $l {
+      0 {
+        #
+        # Called without args, return the current value
+        #
+        return ${:object}
+      }
+      1 {
+        #
+        # Called with a single value, set object for all components
+        #
+        foreach c ${:components} {
+          $c object [lindex $args 0]
+        }
+
+        set :object [lindex $args 0]
+      }
+      default {
+        error "wrong number of arguments"
+      }
+    }
+  }
+
+  CompoundField instproc validate {obj} {
+    # Delegate validate to the components. If a validation of a
+    # component fails, report the error message back.
+    foreach c ${:components} {
+      set result [$c validate $obj]
+      if {$result ne ""} {
+        return $result
+      }
+    }
+    return ""
+  }
+
+  CompoundField instproc set_compound_value {value} {
+    if {[catch {array set {} $value} errorMsg]} {
+      # this branch could be taken, when the field was retyped
+      ns_log notice "CompoundField: error during setting compound value with $value: $errorMsg"
+    }
+    # set the value parts for each components
+    foreach c ${:components} {
+      # Set only those parts, for which attribute values pairs are
+      # given.  Components might have their own default values, which
+      # we do not want to overwrite ...
+      if {[info exists ([$c name])]} {
+        $c value $([$c name])
+      }
+    }
+  }
+
+  CompoundField instproc get_compound_value {} {
+    #
+    # Set the internal representation based on the components values.
+    #
+    set cc [[${:object} package_id] context]
+
+    set value [list]
+    foreach c ${:components} {
+      lappend value [$c name] [$c value]
+    }
+    #:log "${:name}: get_compound_value returns value=$value"
+    return $value
+  }
+
+  CompoundField instproc specs_unmodified {spec_list} {
+    expr {${:__state} eq "after_specs"
+          && [info exists :structure] && ${:structure} eq $spec_list
+        }
+  }
+
+  CompoundField instproc create_components {spec_list} {
+    #
+    # Omit after specs for compound fields to avoid multiple
+    # recreations.
+    #
+    if {[:specs_unmodified $spec_list]} return
+
+    #
+    # Build a component structure based on a list of specs
+    # of the form {name spec}.
+    #
+    set :structure $spec_list
+    set :components [list]
+    foreach entry $spec_list {
+      lassign $entry name spec
+      #
+      # create for each component a form field
+      #
+      set c [::xowiki::formfield::FormField create [self]::$name \
+                 -name ${:name}.$name -id ${:id}.$name \
+                 -locale [:locale] -object ${:object} \
+                 -spec $spec]
+      set :component_index(${:name}.$name) $c
+      lappend :components $c
+    }
+  }
+
+  CompoundField instproc add_component {entry} {
+    #
+    # Add a single component dynamically to the list of already
+    # existing components and return the component as result.
+    #
+    lappend :structure $entry
+    lassign $entry name spec
+    set c [::xowiki::formfield::FormField create [self]::$name \
+               -name ${:name}.$name -id ${:id}.$name \
+               -locale [:locale] -object ${:object} \
+               -spec $spec]
+    set :component_index(${:name}.$name) $c
+    lappend :components $c
+    return $c
+  }
+
+  CompoundField instproc get_component {component_name} {
+    set key component_index(${:name}.$component_name)
+    if {[info exists :$key]} {
+      return [set :$key]
+    }
+    error "no component named $component_name of compound field ${:name}"
+  }
+
+  CompoundField instproc exists_named_sub_component args {
+    # Iterate along the argument list to check components of a deeply
+    # nested structure. For example,
+    #
+    #    :check_named_sub_component a b
+    #
+    # returns 0 or one depending whether there exists a component "a"
+    # with a subcomponent "b".
+    set component_name ${:name}
+    set sub [self]
+    foreach e $args {
+      append component_name .$e
+      if {![$sub exists component_index($component_name)]} {
+        return 0
+      }
+      set sub [$sub set component_index($component_name)]
+    }
+    return 1
+  }
+
+  CompoundField instproc get_named_sub_component args {
+    # Iterate along the argument list to get components of a deeply
+    # nested structure. For example,
+    #
+    #    :get_named_sub_component a b
+    #
+    # returns the object of the subcomponent "b" of component "a"
+    set component_name ${:name}
+    set sub [self]
+    foreach e $args {
+      append component_name .$e
+      #:msg "check $sub set component_index($component_name)"
+      set sub [$sub set component_index($component_name)]
+    }
+    return $sub
+  }
+
+  CompoundField instproc get_named_sub_component_value {{-default ""} args} {
+    if {[:exists_named_sub_component {*}$args]} {
+      return [[:get_named_sub_component {*}$args] value]
+    } else {
+      return $default
+    }
+  }
+
+  CompoundField instproc generate_fieldnames {{-prefix "v-"} n} {
+    set names [list]
+    for {set i 1} {$i <= $n} {incr i} {lappend names $prefix$i}
+    return $names
+  }
+
+  CompoundField instproc leaf_components {} {
+    set leaf_components {}
+    foreach c ${:components} {
+      if {[self class] in [[$c info class] info heritage]} {
+        lappend leaf_components {*}[$c leaf_components]
+      } else {
+        lappend leaf_components $c
+      }
+    }
+    return $leaf_components
+  }
+
+  CompoundField instproc render_input {} {
+    #
+    # Render content within in a fieldset, but with labels etc.
+    #
+    html::fieldset [:get_attributes id {CSSclass class}] {
+      foreach c ${:components} { $c render }
+    }
+  }
+
+  CompoundField instproc pretty_value {v} {
+    #
+    # Typically, subtypes of CompoundFields should define their own
+    # "pretty_value". This is a simple renderer that provides a
+    # default behavior.
+    #
+    set ff [dict create {*}$v]
+    set html "<ul class='CompoundField'>\n"
+    foreach c ${:components} {
+      set componentName [$c set name]
+      if {[dict exists $ff $componentName]} {
+        append html "<li><span class='name'>$componentName:</span> " \
+            "[$c pretty_value [dict get $ff $componentName]]</li>\n"
+      }
+    }
+    append html "</ul>\n"
+    return $html
+  }
+
+  CompoundField instproc has_instance_variable {var value} {
+    set r [next]
+    if {$r} {return 1}
+    foreach c ${:components} {
+      set r [$c has_instance_variable $var $value]
+      if {$r} {return 1}
+    }
+    return 0
+  }
+
+  CompoundField instproc convert_to_internal {} {
+    foreach c ${:components} {
+      $c convert_to_internal
+    }
+    # Finally, update the compound value entry with the compound
+    # internal representation; actually we could drop the instance
+    # atts of the components from the "instance_attributes" ...
+    ${:object} set_property -new 1 ${:name} [:get_compound_value]
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::submit_button
   #
   ###########################################################
@@ -2888,11 +3192,12 @@ namespace eval ::xowiki::formfield {
   text_fields instproc initialize {} {
 
     next
+    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     set fields {}
     set answers [expr {[info exists :answer] ? ${:answer} : ""}]
     foreach option ${:options} a $answers {
       lassign $option text rep
-      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=${:disabled}"]
+      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled"]
     }
 
     #:log "TEXT text_fields fields <$fields>"
@@ -3600,310 +3905,6 @@ namespace eval ::xowiki::formfield {
     #ad_returnredirect -allow_complete_url $v
     #ad_script_abort
     return [[${:object} package_id] returnredirect $v]
-  }
-
-  ###########################################################
-  #
-  # ::xowiki::formfield::CompoundField
-  #
-  ###########################################################
-
-  Class create CompoundField -superclass FormField -parameter {
-    {components ""}
-    {CSSclass compound-field}
-  } -extend_slot_default validator compound
-
-  CompoundField instproc check=compound {value} {
-    #:msg "check compound in ${:components}"
-    foreach c ${:components} {
-      set error [$c validate [self]]
-      if {$error ne ""} {
-        set msg "[$c label]: $error"
-        :uplevel [list set errorMsg $msg]
-        #util_user_message -message "Error in compound field [$c name]: $error"
-        return 0
-      }
-    }
-    return 1
-  }
-
-  CompoundField instproc set_disabled {disable} {
-    #:msg "${:name} set disabled $disable"
-    if {$disable} {
-      set :disabled true
-    } else {
-      :unset -nocomplain disabled
-    }
-    foreach c ${:components} {
-      $c set_disabled $disable
-    }
-  }
-
-  CompoundField instproc set_is_repeat_template {is_template} {
-    # :msg "${:name} set is_repeat_template $is_template"
-    if {$is_template} {
-      set :is_repeat_template true
-    } else {
-      :unset -nocomplain is_repeat_template
-    }
-    foreach c ${:components} {
-      $c set_is_repeat_template $is_template
-    }
-  }
-
-  CompoundField instproc same_value {v1 v2} {
-    if {$v1 eq $v2} {return 1}
-    foreach {n1 value1} $v1 {n2 value2} $v2  {
-      set f [set :component_index($n1)]
-      if {![$f same_value $value1 $value2]} { return 0 }
-    }
-    return 1
-  }
-
-  CompoundField instproc value {args} {
-    if {[llength $args] == 0} {
-      set v [:get_compound_value]
-      #:msg "${:name}: reading compound value => '$v'"
-      return $v
-    } else {
-      #:msg "${:name}: setting compound value => '[lindex $args 0]'"
-      :set_compound_value [lindex $args 0]
-    }
-  }
-
-  CompoundField instproc object args {
-    set l [llength $args]
-    switch $l {
-      0 {
-        #
-        # Called without args, return the current value
-        #
-        return ${:object}
-      }
-      1 {
-        #
-        # Called with a single value, set object for all components
-        #
-        foreach c ${:components} {
-          $c object [lindex $args 0]
-        }
-
-        set :object [lindex $args 0]
-      }
-      default {
-        error "wrong number of arguments"
-      }
-    }
-  }
-
-  CompoundField instproc validate {obj} {
-    # Delegate validate to the components. If a validation of a
-    # component fails, report the error message back.
-    foreach c ${:components} {
-      set result [$c validate $obj]
-      if {$result ne ""} {
-        return $result
-      }
-    }
-    return ""
-  }
-
-  CompoundField instproc set_compound_value {value} {
-    if {[catch {array set {} $value} errorMsg]} {
-      # this branch could be taken, when the field was retyped
-      ns_log notice "CompoundField: error during setting compound value with $value: $errorMsg"
-    }
-    # set the value parts for each components
-    foreach c ${:components} {
-      # Set only those parts, for which attribute values pairs are
-      # given.  Components might have their own default values, which
-      # we do not want to overwrite ...
-      if {[info exists ([$c name])]} {
-        $c value $([$c name])
-      }
-    }
-  }
-
-  CompoundField instproc get_compound_value {} {
-    #
-    # Set the internal representation based on the components values.
-    #
-    set cc [[${:object} package_id] context]
-
-    set value [list]
-    foreach c ${:components} {
-      lappend value [$c name] [$c value]
-    }
-    #:log "${:name}: get_compound_value returns value=$value"
-    return $value
-  }
-
-  CompoundField instproc specs_unmodified {spec_list} {
-    expr {${:__state} eq "after_specs"
-          && [info exists :structure] && ${:structure} eq $spec_list
-        }
-  }
-
-  CompoundField instproc create_components {spec_list} {
-    #
-    # Omit after specs for compound fields to avoid multiple
-    # recreations.
-    #
-    if {[:specs_unmodified $spec_list]} return
-
-    #
-    # Build a component structure based on a list of specs
-    # of the form {name spec}.
-    #
-    set :structure $spec_list
-    set :components [list]
-    foreach entry $spec_list {
-      lassign $entry name spec
-      #
-      # create for each component a form field
-      #
-      set c [::xowiki::formfield::FormField create [self]::$name \
-                 -name ${:name}.$name -id ${:id}.$name \
-                 -locale [:locale] -object ${:object} \
-                 -spec $spec]
-      set :component_index(${:name}.$name) $c
-      lappend :components $c
-    }
-  }
-
-  CompoundField instproc add_component {entry} {
-    #
-    # Add a single component dynamically to the list of already
-    # existing components and return the component as result.
-    #
-    lappend :structure $entry
-    lassign $entry name spec
-    set c [::xowiki::formfield::FormField create [self]::$name \
-               -name ${:name}.$name -id ${:id}.$name \
-               -locale [:locale] -object ${:object} \
-               -spec $spec]
-    set :component_index(${:name}.$name) $c
-    lappend :components $c
-    return $c
-  }
-
-  CompoundField instproc get_component {component_name} {
-    set key component_index(${:name}.$component_name)
-    if {[info exists :$key]} {
-      return [set :$key]
-    }
-    error "no component named $component_name of compound field ${:name}"
-  }
-
-  CompoundField instproc exists_named_sub_component args {
-    # Iterate along the argument list to check components of a deeply
-    # nested structure. For example,
-    #
-    #    :check_named_sub_component a b
-    #
-    # returns 0 or one depending whether there exists a component "a"
-    # with a subcomponent "b".
-    set component_name ${:name}
-    set sub [self]
-    foreach e $args {
-      append component_name .$e
-      if {![$sub exists component_index($component_name)]} {
-        return 0
-      }
-      set sub [$sub set component_index($component_name)]
-    }
-    return 1
-  }
-
-  CompoundField instproc get_named_sub_component args {
-    # Iterate along the argument list to get components of a deeply
-    # nested structure. For example,
-    #
-    #    :get_named_sub_component a b
-    #
-    # returns the object of the subcomponent "b" of component "a"
-    set component_name ${:name}
-    set sub [self]
-    foreach e $args {
-      append component_name .$e
-      #:msg "check $sub set component_index($component_name)"
-      set sub [$sub set component_index($component_name)]
-    }
-    return $sub
-  }
-
-  CompoundField instproc get_named_sub_component_value {{-default ""} args} {
-    if {[:exists_named_sub_component {*}$args]} {
-      return [[:get_named_sub_component {*}$args] value]
-    } else {
-      return $default
-    }
-  }
-
-  CompoundField instproc generate_fieldnames {{-prefix "v-"} n} {
-    set names [list]
-    for {set i 1} {$i <= $n} {incr i} {lappend names $prefix$i}
-    return $names
-  }
-
-  CompoundField instproc leaf_components {} {
-    set leaf_components {}
-    foreach c ${:components} {
-      if {[self class] in [[$c info class] info heritage]} {
-        lappend leaf_components {*}[$c leaf_components]
-      } else {
-        lappend leaf_components $c
-      }
-    }
-    return $leaf_components
-  }
-
-  CompoundField instproc render_input {} {
-    #
-    # Render content within in a fieldset, but with labels etc.
-    #
-    html::fieldset [:get_attributes id {CSSclass class}] {
-      foreach c ${:components} { $c render }
-    }
-  }
-
-  CompoundField instproc pretty_value {v} {
-    #
-    # Typically, subtypes of CompoundFields should define their own
-    # "pretty_value". This is a simple renderer that provides a
-    # default behavior.
-    #
-    set ff [dict create {*}$v]
-    set html "<ul class='CompoundField'>\n"
-    foreach c ${:components} {
-      set componentName [$c set name]
-      if {[dict exists $ff $componentName]} {
-        append html "<li><span class='name'>$componentName:</span> " \
-            "[$c pretty_value [dict get $ff $componentName]]</li>\n"
-      }
-    }
-    append html "</ul>\n"
-    return $html
-  }
-
-  CompoundField instproc has_instance_variable {var value} {
-    set r [next]
-    if {$r} {return 1}
-    foreach c ${:components} {
-      set r [$c has_instance_variable $var $value]
-      if {$r} {return 1}
-    }
-    return 0
-  }
-
-  CompoundField instproc convert_to_internal {} {
-    foreach c ${:components} {
-      $c convert_to_internal
-    }
-    # Finally, update the compound value entry with the compound
-    # internal representation; actually we could drop the instance
-    # atts of the components from the "instance_attributes" ...
-    ${:object} set_property -new 1 ${:name} [:get_compound_value]
   }
 
   ###########################################################
