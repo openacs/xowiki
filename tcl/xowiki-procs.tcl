@@ -3149,12 +3149,12 @@ namespace eval ::xowiki {
     #
     set components [split $name .]
     set path [lindex $components 0]
-    ns_log notice "dynamic repeat field name $name -> components <$components>"
-
+    #ns_log notice "dynamic repeat field name '$name' -> components <$components>"
+    
     foreach c [lrange $components 1 end] {
       if {[string is integer -strict $c]} {
         # this looks like a repeat component
-        ns_log notice "dynamic repeat field root <$path> number $c exists? [info exists ::_form_field_names($path)]"
+        #ns_log notice "dynamic repeat field root <$path> number $c exists? [info exists ::_form_field_names($path)]"
 
         if {[info exists ::_form_field_names($path)]} {
           #
@@ -3175,7 +3175,7 @@ namespace eval ::xowiki {
           for {set i 1} {$i <= $max} {incr i} {
             if {![info exists ::_form_field_names($path.$i)]} {
               set f [$repeatField require_component $i]
-              ns_log notice "dynamic repeat field created $path.$i -> $f"
+              #ns_log notice "dynamic repeat field created $path.$i -> $f"
               :form_field_index $f
             }
           }
@@ -3194,6 +3194,7 @@ namespace eval ::xowiki {
       return [set $key]
     }
 
+    
     if {$name ni {langmarks fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
