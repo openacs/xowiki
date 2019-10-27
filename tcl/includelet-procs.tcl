@@ -408,16 +408,25 @@ namespace eval ::xowiki::includelet {
         of a tree (default)
       }
 
+  available-formfields instproc class_name {cl} {
+    return [expr {
+                  [string match ::xowiki::formfield:* $cl]
+                  ? [namespace tail $cl]
+                  : [string trimleft $cl :]
+                }]
+  }
+
   available-formfields instproc render {} {
     :get_parameters
 
     foreach cl [lsort [::xowiki::formfield::FormField info subclass -closure]] {
       set result ""
-      set superClassName [namespace tail [$cl info superclass]]
-      set className [namespace tail $cl]
+      set superClassName [:class_name [$cl info superclass]]
+      set className [:class_name $cl]
+      set abstract [expr {[$cl exists abstract] && [$cl set abstract] ? "abstract, " : ""}]
       append result \
-          "<b><a name='$className'>$className</a></b> " \
-          "(superclass <a href='#$superClassName'>$superClassName</a>)\n" \
+          "<b><a name='$className' title='$cl'>$className</a></b> " \
+          "(${abstract}superclass <a href='#$superClassName'>$superClassName</a>)\n" \
           "<ul>\n"
       foreach p [lsort [$cl info parameter]] {
         if {[llength $p] == 2} {
@@ -458,15 +467,18 @@ namespace eval ::xowiki::includelet {
 
   available-formfields instproc render_as_tree {cl subclasses} {
     set subclassHTML ""
-    foreach subcl [lsort $subclasses] {
+    set sort_names {}
+    foreach subcl $subclasses {
+      lappend sort_names $subcl [:class_name $subcl]
+    }
+    foreach {subcl sort_name} [lsort -index 1 -stride 2 $sort_names] {
       append subclassHTML <li>[:render_as_tree $subcl [$subcl info subclass]]</li>
     }
     if {[llength $subclasses] > 0} {
       set subclassHTML <ul>$subclassHTML</ul>
     }
-    set className [namespace tail $cl]
     append result \
-        [set :html([namespace tail $cl])] \
+        [set :html([:class_name $cl])] \
         $subclassHTML \
 
   }
