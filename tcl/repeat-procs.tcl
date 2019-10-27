@@ -121,7 +121,7 @@ namespace eval ::xowiki::formfield {
     #
     # Deactivate template item
     #
-    set componentList [:components]
+    set componentList ${:components}
     if {[llength $componentList] > 0} {
       [lindex $componentList 0] set_disabled true
       [lindex $componentList 0] set_is_repeat_template true
@@ -194,7 +194,7 @@ namespace eval ::xowiki::formfield {
     # Trim trailing values identical to default.
     # Trimming the components list seems sufficient.
     set count [:count_values [:value]]
-    set :components [lrange [:components] 0 $count]
+    set :components [lrange ${:components} 0 $count]
   }
 
   repeatContainer instproc count_values {values} {
@@ -203,7 +203,7 @@ namespace eval ::xowiki::formfield {
     if {![:required]} {set highestCount [:min]}
     # The first pair is the default from the template field (.0)
     set default [lindex $values 1]
-    foreach f [lrange [:components] 1 end] {name value} [lrange $values 2 end] {
+    foreach f [lrange ${:components} 1 end] {name value} [lrange $values 2 end] {
       if {[$f required] || ($value ne "" && ![$f same_value $value $default])} {set highestCount $count}
       incr count
     }
@@ -232,7 +232,7 @@ namespace eval ::xowiki::formfield {
       set containerIsDisabled [expr {[info exists :disabled] && [:disabled] != "false"}]
       set containerIsPrototype [string match "*.0*" ${:name}]
       set isPrototypeElement 0
-      foreach c [:components] {
+      foreach c ${:components} {
         set atts [list class $CSSclass]
         lappend atts data-repeat $clientData
         if {$i == 0 || $i >= $nrItems} {
@@ -277,7 +277,7 @@ namespace eval ::xowiki::formfield {
   }
 
   repeatContainer instproc validate {obj} {
-    foreach c [lrange [:components] 1 [:count_values [:value]]] {
+    foreach c [lrange ${:components} 1 [:count_values [:value]]] {
       set result [$c validate $obj]
       if {$result ne ""} {
         return $result
