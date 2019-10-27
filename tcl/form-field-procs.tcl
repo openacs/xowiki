@@ -61,6 +61,7 @@ namespace eval ::xowiki::formfield {
     default
     object
     slot
+
     answer
     correct_when
     feedback_answer_correct
@@ -74,9 +75,6 @@ namespace eval ::xowiki::formfield {
   FormField proc fc_decode {string} {
     return [string map [list __COMMA__ ,] $string]
   }
-  #FormField proc fc_decode_colon {string} {
-  #  return [string map [list __COLON__ :] $string]
-  #}
 
   FormField proc get_from_name {object name} {
     #
@@ -651,7 +649,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_is_correct {} {
-    #:log "${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    #:log "CORRECT? ${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {[info exists :correct_when]} {
       set op [lindex ${:correct_when} 0]
       if {[:procsearch answer_check=$op] ne ""} {
@@ -677,6 +675,36 @@ namespace eval ::xowiki::formfield {
       return 1
     }
   }
+
+  FormField instproc set_feedback {feedback_mode} {
+    set correct [:answer_is_correct]
+    :log "${:name} [:info class]: correct? $correct"
+    switch -- $correct {
+      0  { return }
+      -1 { set result "incorrect"}
+      1  { set result "correct"  }
+    }
+    :form_widget_CSSclass $result
+    set :evaluated_answer_result $result
+
+    set feedback ""
+    if {[info exists :feedback_answer_$result]} {
+      set feedback [set :feedback_answer_$result]
+    } else {
+      set feedback [_ xowf.answer_$result]
+    }
+    if {$feedback_mode > 1} {
+      #:log "===$feedback_mode=[info exists :correct_when]============[:serialize]"
+      if {[info exists :correct_when]} {
+        append feedback " ${:correct_when}"
+      } elseif {[info exists :correction]} {
+        append feedback " ${:correction}"
+      }
+    }
+    :log "==== ${:name} setting feedback $feedback"
+    set :help_text $feedback
+  }
+
 
   FormField instproc set_is_repeat_template {is_template} {
     # :msg "${:name} set is_repeat_template $is_template"
@@ -733,6 +761,7 @@ namespace eval ::xowiki::formfield {
     set html [$l render]
     return $html
   }
+
 
   ###########################################################
   #
@@ -2521,21 +2550,111 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::ShuffleField
+  #
+  ###########################################################
+
+  # abstract superclass for select and radio
+  Class create ShuffleField -superclass FormField -parameter {
+    {options ""}
+    {shuffle:boolean false}
+    {shuffle_seed:integer 0}
+  } -ad_doc {
+
+    An abstract class for shuffling options and answers.  The options
+    can be used a content of checkboxes, radioboxes and the like. This
+    is particular useful when creating quizzes.
+
+    @param shuffle turn shuffling on/off
+    @param shuffle_seed
+           In case, the shuffle_seed is "0", a different shuffling is
+           produced every call. When the seed is provided (e.g. a user_id)
+           then the shuffling is stable for this seed.
+  }
+  ShuffleField set abstract 1
+
+  ShuffleField instproc randomized_indices {length} {
+    #
+    # Produce a list of random indices.
+    #
+    # In case, the shuffle_seed is "0", a different shuffling is
+    # produced every call. When the seed is provided (e.g. a user_id)
+    # then the shuffling is stable for this seed.
+    #
+    if {${:shuffle_seed} != 0} {
+      expr {srand(${:shuffle_seed})}
+    }
+    #
+    # Produce shuffled indices between 0 and length-1.
+    #
+    set indices {}
+    for {set i 0} {$i < $length} {incr i} {
+      lappend indices $i
+    }
+    set shuffled {}
+    incr length
+    for {} {$length > 1} {incr length -1} {
+      set i [expr {int(($length-1) * rand())}]
+      lappend shuffled [lindex $indices $i]
+      set indices [lreplace $indices $i $i]
+    }
+    return $shuffled
+  }
+
+  ShuffleField instproc shuffle_options {} {
+    #
+    # Reorder :options and :answers when :shuffle is activated.
+    #
+    set length [llength ${:options}]
+    if {$length > 0} {
+      #
+      # There is something to shuffle.
+      #
+      #
+      # Produce a list of random indices.
+      #
+      set shuffled [:randomized_indices $length]
+
+      #
+      # Use the random indices for reordering the :options and
+      # :answers.
+      #
+      #ns_log notice "SHUFFLE ${:name} <$shuffled> <$indices>"
+      set option2 {}; set answer2 {}
+      foreach i $shuffled {
+        lappend option2 [lindex ${:options} $i]
+        lappend answer2 [lindex ${:answer} $i]
+      }
+      #ns_log notice "SHUFFLE ${:name} o2=$option2 answer2=$answer2"
+      set :options $option2
+      set :answer $answer2
+    }
+  }
+
+
+  ###########################################################
+  #
   # ::xowiki::formfield::enumeration
   #
   ###########################################################
 
   # abstract superclass for select and radio
-  Class create enumeration -superclass FormField -parameter {
-    {options ""}
+  Class create enumeration -superclass ShuffleField -parameter {
     {category_tree}
   }
   enumeration set abstract 1
+
   enumeration instproc initialize {} {
     if {[info exists :category_tree]} {
       :config_from_category_tree [:category_tree]
     }
     next
+    #
+    # Shuffle options when needed
+    #
+    if {${:shuffle}} {
+      :shuffle_options
+    }
     #
     # For required enumerations, the implicit default value is the
     # first entry of the options. This is as well the value, which is
@@ -2559,6 +2678,27 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  enumeration instproc answer_is_correct {} {
+    :log "enumeration CORRECT? ${:name} (value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    if {![info exists :answer]} {
+      return 0
+    } else {
+      set value [:value]
+      :log "enumeration CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
+      set :correction {}
+      foreach o ${:options} a ${:answer} {
+        lassign $o label v
+        if {$a} {
+          lappend :correction [expr {$v in $value}]
+        } else {
+          lappend :correction [expr {$v ni $value}]
+        }
+        :log "enumeration CORRECT? '$value' <$a> $v == $a => ${:correction}"
+      }
+      return [expr {0 ni ${:correction} ? 1 : -1}]
+    }
+  }
+
   enumeration instproc pretty_value {v} {
     if {[info exists :category_label($v)]} {
       return [set :category_label($v)]
@@ -2578,6 +2718,7 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
+
   enumeration instproc config_from_category_tree {tree_name} {
     # Get the options of a select or radio from the specified
     # category tree.
@@ -2590,7 +2731,8 @@ namespace eval ::xowiki::formfield {
     #set tree_id [category_tree::get_id $tree_name [:locale]]
 
     set package_id [${:object} package_id]
-    set tree_ids [::xowiki::Category get_mapped_trees -object_id $package_id -locale [:locale] \
+    set tree_ids [::xowiki::Category get_mapped_trees \
+                      -object_id $package_id -locale [:locale] \
                       -names $tree_name -output tree_id]
 
     # In case there are multiple trees with the same name,
@@ -2670,7 +2812,8 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create checkbox -superclass enumeration -parameter {
-    {horizontal false}
+    {horizontal:boolean false}
+    {richtext:boolean false}
   }
   checkbox instproc initialize {} {
     set :multiple true
@@ -2686,7 +2829,6 @@ namespace eval ::xowiki::formfield {
     # - view mode: the fields were deactivated (made insensitive);
     #   this means: keep the old value
 
-    #:msg "${:name} disabled=[info exists :disabled]"
     if {[info exists :disabled]} {
       return $default
     } else {
@@ -2701,19 +2843,94 @@ namespace eval ::xowiki::formfield {
         type checkbox \
         name ${:name}
 
-    foreach o ${:options} {
+    set answer [expr {[info exists :evaluated_answer_result] ? ${:answer} : ""}]
+    set CSSclasses {"" "" t correct f incorrect}
+
+    foreach o ${:options} a $answer {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
       if {$rep in $value} {lappend atts checked checked}
-
-      set label_class [expr {${:horizontal} ? "checkbox-inline" : ""}]
+      set label_class [dict get $CSSclasses $a]
+      if {${:horizontal}} {append label_class " checkbox-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        ::html::t " $label "
+        if {${:richtext}} {
+          ::html::div -class richtext-label {
+            ::html::t -disableOutputEscaping $label
+          }
+        } else {
+          ::html::t " $label "
+        }
       }
       if {!${:horizontal}} {
         html::br
+      }
+    }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::text_fields
+  #
+  ###########################################################
+
+  Class create text_fields -superclass {CompoundField ShuffleField} -parameter {
+  } -ad_doc {
+
+    Provide multiple text and short text entries. This field is a
+    compound field which create for every text field a sub
+    component. When the components are rendered, the items can be
+    shuffled.
+
+  }
+
+  text_fields instproc initialize {} {
+
+    next
+    set fields {}
+    set answers [expr {[info exists :answer] ? ${:answer} : ""}]
+    foreach option ${:options} a $answers {
+      lassign $option text rep
+      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=${:disabled}"]
+    }
+
+    #:log "TEXT text_fields fields <$fields>"
+    :create_components $fields
+    #:log "TEXT text_fields components <${:components}>"
+
+  }
+
+  text_fields instproc answer_is_correct {} {
+     :log "text_fields  CORRECT? ${:name}"
+     foreach c ${:components} {
+       $c set_feedback [${:object} set __feedback_mode]
+     }
+    return 0
+  }
+
+  text_fields instproc get_text_entry {componentName} {
+    set wantedRep [lindex [split $componentName .] end]
+    foreach option ${:options} {
+      lassign $option text rep
+      if {$rep eq $wantedRep} {
+        return $text
+      }
+    }
+    return ""
+  }
+
+  text_fields instproc render_input {} {
+    #
+    # Render content within in a fieldset, but with labels etc.
+    #
+    html::ul [:get_attributes id {CSSclass class}] {
+      foreach c ${:components} {
+        html::li {
+          html::t -disableOutputEscaping [:get_text_entry [$c name]]
+          $c render
+          #:log [$c serialize]
+        }
       }
     }
   }
