@@ -730,7 +730,7 @@ namespace eval ::xowiki {
 
     set geometry [::xo::cc query_parameter geometry ""]
     if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
-      if {![regexp {^\d*x?\d*$}]} {
+      if {![regexp {^\d*x?\d*$} $geometry]} {
         error "invalid geometry $geometry"
       }
       set tmpdir [ad_tmpdir]
