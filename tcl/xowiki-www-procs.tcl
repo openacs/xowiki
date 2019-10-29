@@ -368,8 +368,9 @@ namespace eval ::xowiki {
     $f notification_notify
 
     foreach var {return_url:localurl template_file title detail_link:localurl text} {
-      if {[:exists_query_parameter $var]} {
-        set $var [:query_parameter $var]
+      regexp {^([^:]+):?} $var . key
+      if {[:exists_query_parameter $key]} {
+        set $key [:query_parameter $var]
       }
     }
 
