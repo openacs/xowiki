@@ -104,8 +104,12 @@ namespace eval ::xowiki::formfield {
   #}
 
   FormField instproc init {} {
-    if {![info exists :label]} {:label [string totitle ${:name}]}
-    if {![info exists :id]} {set :id ${:name}}
+    if {![info exists :label]} {
+      set :label [string totitle ${:name}]
+    }
+    if {![info exists :id]} {
+      set :id ${:name}
+    }
     set :html(id) ${:id}
     #if {[info exists :default]} {set :value [:default]}
     :config_from_spec ${:spec}
@@ -480,7 +484,7 @@ namespace eval ::xowiki::formfield {
     # which is in most cases  a simple input field of type string.
     #
     set value [:value]
-    if {[:mode] ne "edit"} {
+    if {${:mode} ne "edit"} {
       html::t -disableOutputEscaping [:pretty_value $value]
       return
     }
@@ -538,7 +542,7 @@ namespace eval ::xowiki::formfield {
         ::html::label -for ${:id} {
           ::html::t ${:label}
         }
-        if {${:required} && [:mode] eq "edit"} {
+        if {${:required} && ${:mode} eq "edit"} {
           ::html::div -class form-required-mark {
             ::html::t " (#acs-templating.required#)"
           }
@@ -953,6 +957,7 @@ namespace eval ::xowiki::formfield {
                  -locale [:locale] -object ${:object} \
                  -spec $spec]
       set :component_index(${:name}.$name) $c
+      $c set parent_field [self]
       lappend :components $c
     }
   }
@@ -980,6 +985,17 @@ namespace eval ::xowiki::formfield {
     }
     error "no component named $component_name of compound field ${:name}"
   }
+
+  CompoundField instproc named_sub_components {} {
+    # Iterate along the argument list to check components of a deeply
+    # nested structure.
+    set component_names [array names :component_index]
+    foreach c ${:components} {
+      lappend component_names {*}[$c array names component_index]
+    }
+    return $component_names
+  }
+
 
   CompoundField instproc exists_named_sub_component args {
     # Iterate along the argument list to check components of a deeply
@@ -2299,7 +2315,7 @@ namespace eval ::xowiki::formfield {
         uiColor: '[:uiColor]',
         language: '[lang::conn::language]',
         skin: '[:skin]',
-        startupMode: '[:mode]',
+        startupMode: '${:mode}',
         parent_id: '[${:object} item_id]',
         package_url: '[::$package_id package_url]',
         extraPlugins: '[join [:extraPlugins] ,]',
@@ -2541,7 +2557,7 @@ namespace eval ::xowiki::formfield {
         uiColor: '[:uiColor]',
         language: '[lang::conn::language]',
         skin: '[:skin]',
-        startupMode: '[:mode]',
+        startupMode: '${:mode}',
         disableNativeSpellChecker: false,
         parent_id: '[${:object} item_id]',
         package_url: '[::$package_id package_url]',
@@ -2861,19 +2877,14 @@ namespace eval ::xowiki::formfield {
   # abstract superclass for select and radio
   Class create ShuffleField -superclass FormField -parameter {
     {options ""}
-    {shuffle:boolean false}
-    {shuffle_seed:integer 0}
+    {shuffle_kind:wordchar none}
   } -ad_doc {
 
     An abstract class for shuffling options and answers.  The options
     can be used a content of checkboxes, radioboxes and the like. This
     is particular useful when creating quizzes.
 
-    @param shuffle turn shuffling on/off
-    @param shuffle_seed
-           In case, the shuffle_seed is "0", a different shuffling is
-           produced every call. When the seed is provided (e.g. a user_id)
-           then the shuffling is stable for this seed.
+    @param shuffle_kind none|peruser|always
   }
   ShuffleField set abstract 1
 
@@ -2881,12 +2892,15 @@ namespace eval ::xowiki::formfield {
     #
     # Produce a list of random indices.
     #
-    # In case, the shuffle_seed is "0", a different shuffling is
-    # produced every call. When the seed is provided (e.g. a user_id)
-    # then the shuffling is stable for this seed.
+    # In case, the shuffle_kind is not "always", we assume currently a
+    # per-user shuffling.  produced every call. When the seed is
+    # provided (e.g. a user_id) then the shuffling is stable for this
+    # seed.
     #
-    if {${:shuffle_seed} != 0} {
-      expr {srand(${:shuffle_seed})}
+    if {${:shuffle_kind} ne "always"} {
+
+      #ns_log notice "===================== randomized_indices  ${:shuffle_kind} [${:object} item_id]"
+      expr {srand([xo::cc user_id])}
     }
     #
     # Produce shuffled indices between 0 and length-1.
@@ -2934,6 +2948,15 @@ namespace eval ::xowiki::formfield {
       set :answer $answer2
     }
   }
+  ShuffleField instproc initialize {} {
+    next
+    #
+    # Shuffle options when needed
+    #
+    if {${:shuffle_kind} ne "none"} {
+      :shuffle_options
+    }
+  }
 
 
   ###########################################################
@@ -2953,12 +2976,7 @@ namespace eval ::xowiki::formfield {
       :config_from_category_tree [:category_tree]
     }
     next
-    #
-    # Shuffle options when needed
-    #
-    if {${:shuffle}} {
-      :shuffle_options
-    }
+
     #
     # For required enumerations, the implicit default value is the
     # first entry of the options. This is as well the value, which is
@@ -3190,14 +3208,14 @@ namespace eval ::xowiki::formfield {
   }
 
   text_fields instproc initialize {} {
-
     next
+
     set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
     set fields {}
     set answers [expr {[info exists :answer] ? ${:answer} : ""}]
     foreach option ${:options} a $answers {
       lassign $option text rep
-      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled"]
+      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled,label="]
     }
 
     #:log "TEXT text_fields fields <$fields>"
