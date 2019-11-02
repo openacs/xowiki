@@ -2731,7 +2731,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc validate=name {name} {
-    :log "---- validate=name $name is called"
+    #:log "---- validate=name $name is called"
     upvar nls_language nls_language
     set success [::xowiki::validate_name [self]]
     if {$success} {
@@ -2751,8 +2751,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc references_update {resolved {unresolved {}}} {
-    #:msg $resolved
-    :log "references_update resolved $resolved unresolved $unresolved"
+    #:log "references_update resolved '$resolved' unresolved '$unresolved'"
     set item_id ${:item_id}
     ::xo::dc dml -prepare integer delete_references \
         "delete from xowiki_references where page = :item_id"
