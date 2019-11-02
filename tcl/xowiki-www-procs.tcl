@@ -844,14 +844,16 @@ namespace eval ::xowiki {
     the old-style xowiki-form-procs.  FormPages should be used when
     possible for better user experience.
 
-    @param "return_url"
+    @param new is this an edit-new operation?
+    @param autoname value to be passed to getFormClass
+    @param validation_errors ignored in this class, but used for compatibility with FormPage.www-edit
 
   } {
     #
     # We have to keep the instvar for "item_id" for the time being.
     #
     :instvar item_id
-    
+
     #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
@@ -2561,7 +2563,7 @@ namespace eval ::xowiki {
     #ns_log notice "PROCESSED <[lsort [array names processed]]>"
     #ns_log notice "LEAF COMPONENTS <[lsort [lmap f $leaf_components {$f name}]]>"
     #ns_log notice "FORM_FIELDS [lsort [lmap f $form_fields {$f name}]]"
-    #ns_log notice "CONTAINER   [lsort [array names containers]]"
+    #ns_log notice "CONTAINER   [lsort [array names containers]] + [lsort [lmap f $container_fields {$f name}]]"
 
     #
     # Certain HTML form field types are not transmitted by the browser
@@ -2569,15 +2571,16 @@ namespace eval ::xowiki {
     # these fields above and have to do it now.
     #
     foreach f [concat $form_fields $leaf_components] {
-      #:log "check processed $f [$f name] [info exists processed([$f name])]"
+      #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f exists disabled]"
       set att [$f name]
 
-      if {![info exists processed($att)]} {
+      if {![info exists processed($att)] && ![$f exists disabled]} {
 
         if {[$f exists is_repeat_template]} {
           continue
         }
         #:log  "==== form field $att [$f info class] not yet processed"
+
         switch -glob -- $att {
           __* {
             # other internal variables (like __object_name) are ignored
@@ -2597,15 +2600,18 @@ namespace eval ::xowiki {
           default {
             # user form content fields
             set default ""
+            #
             # The reason, why we set in the next line the default to
             # the old value is due to "show-solution" in the qti
             # use-case. Maybe one should alter this use-case to
             # simplify the semantics here.
+            #
             if {[dict exists ${:instance_attributes} $att]} {
               set default [dict get ${:instance_attributes} $att]
             }
             set v [$f value_if_nothing_is_returned_from_form $default]
             #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+
             set value [$f value $v]
             if {![string match "*.*" $att]} {
               dict set :instance_attributes $att $value
@@ -2623,7 +2629,11 @@ namespace eval ::xowiki {
       #set f  [:lookup_form_field -name $c $form_fields]
       set name [$f name]
       :log "container $name: compute value for [$f info class]"
-      dict set :instance_attributes $name [$f value]
+      if {![$f exists disabled]} {
+        dict set :instance_attributes $name [$f value]
+      } elseif {[dict exists ${:instance_attributes} $name]} {
+        $f value [dict get ${:instance_attributes} $name]
+      }
       :log "container $name: is set to '[dict get ${:instance_attributes} $name]'"
     }
 
@@ -2665,19 +2675,22 @@ namespace eval ::xowiki {
       }
     } else {
       :log validation_errors=$validation_errors
-
+      #
       # There were validation erros.  Reset the value for form-fields
       # of type "file" to avoid confusions, since a file-name was
       # provided, but the file was not uploaded due to the validation
       # error. If we would not reset the value, the provided name
       # would cause an interpretation of an uploaded empty file. Maybe
       # a new method "reset-to-default" would be a good idea.
+      #
       foreach f $form_fields {
         if {[$f type] eq "file"} {
           $f set value ""
         }
       }
     }
+
+    #:log "=== get_form_data has validation_errors $validation_errors, instance_attributes: ${:instance_attributes}"
 
     return [list $validation_errors [lsort -unique $category_ids]]
   }
