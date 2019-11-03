@@ -4582,7 +4582,6 @@ namespace eval ::xowiki::includelet {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
         #set template_file view-default
-        ns_log notice "RETURN_URL set? [info exists return_url]"
         $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
       }
       if {[info exists use_button(delete)]} {
