@@ -828,14 +828,35 @@ namespace eval ::xowiki {
   #
   # conditional links
   #
-  Package ad_instproc make_link {{-with_entities 0} -privilege -link object method args} {
+  Package ad_instproc make_link {
+    {-with_entities 0}
+    -privilege
+    -link
+    object
+    {method ""}
+    args
+  } {
     Creates conditionally a link for use in xowiki. When the generated link
     will be activated, the specified method of the object will be invoked.
     make_link checks in advance, whether the actual user has enough
     rights to invoke the method. If not, this method returns empty.
 
+    @param privilege
+        When this parameter is not specified, the policy is used to determine
+        the rights to be checked.
+        When provided, can be "public" (do not check rights) or a privilege to be
+        checked on the package_id and the current user.
+
+    @param link
+        When this parameter is specified, is used used as base link for export_vars
+        when applied on pages (or for packages as next segment under the package url).
+        When not specified, the base url for pages is the current url, and for packages
+        it is the package url.
+
     @param object The object to which the link refers to. If it is a package_id it will base \
         to the root_url of the package_id. If it is a page, it will base to the page_url
+
+
     @param method Which method to use. This will be appended as "m=method" to the url.
 
     Examples for methods:
@@ -853,28 +874,42 @@ namespace eval ::xowiki {
   } {
 
     set computed_link ""
-    #set msg "make_link obj=$object, [$object info class]"
-    #if {[info exists link]} {append msg " link '$link'"}
-    #if {"::xowiki::Page" in [$object info precedence]} {
-    #  append msg " [$object name] [$object package_id] [$object physical_package_id]"
-    #}
-    #:msg $msg
+
     if {[$object istype ::xowiki::Package]} {
       set base ${:package_url}
+      if {$method ne ""} {
+        #
+        # Convention for calling methods on the package.
+        #
+        lappend args [list $method 1]
+      }
       if {[info exists link]} {
         set computed_link [uplevel export_vars -base [list $base$link] [list $args]]
       } else {
-        lappend args [list $method 1]
         set computed_link [uplevel export_vars -base [list $base] [list $args]]
       }
     } elseif {[$object istype ::xowiki::Page]} {
       if {[info exists link]} {
         set base $link
       } else {
-        set base ${:url}
-        #:msg "base = '${:url}'"
+        #
+        # Use the provided object for computing the base URL.
+        #
+        set base [$object pretty_link]
+        #
+        # Before, we had
+        #
+        #    set base ${:url}
+        #
+        # which depends on the invocation context.
+        #
       }
-      lappend args [list m $method]
+      if {$method ne ""} {
+        #
+        # Convention for calling methods on a xowiki::Page
+        #
+        lappend args [list m $method]
+      }
       set computed_link [uplevel export_vars -base [list $base] [list $args]]
       #:msg "computed_link = '$computed_link'"
     }

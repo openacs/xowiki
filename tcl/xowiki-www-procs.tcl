@@ -940,7 +940,7 @@ namespace eval ::xowiki {
       set back_link [::${:package_id} url]
     }
 
-    set index_link  [::${:package_id} make_link -privilege public -link "" ${:package_id} {} {}]
+    set index_link  [::${:package_id} make_link -privilege public ${:package_id}]
     ::xo::Page set_property doc title "[::${:package_id} instance_name] - $edit_form_page_title"
 
     array set property_doc [::xo::Page get_property doc]
@@ -1731,6 +1731,7 @@ namespace eval ::xowiki {
     ::xowiki::Page set recursion_count 0
     set page_package_id    ${:package_id}
     set context_package_id [::xo::cc package_id]
+    set folder_id [::$page_package_id folder_id]
 
     #:msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
 
@@ -1760,10 +1761,10 @@ namespace eval ::xowiki {
       set new_link [:new_link $page_package_id]
     }
 
-    set admin_link  [::$context_package_id make_link -privilege admin -link admin/ $context_package_id {} {}]
-    set index_link  [::$context_package_id make_link -privilege public -link "" $context_package_id {} {}]
-    set toc_link    [::$context_package_id make_link -privilege public -link "list" $context_package_id {} {}]
-    set import_link [::$context_package_id make_link -privilege admin -link "" $context_package_id {} {}]
+    set admin_link  [::$context_package_id make_link -privilege admin -link admin/ ::$context_package_id]
+    set index_link  [::$context_package_id make_link -privilege public ::$context_package_id]
+    set toc_link    [::$context_package_id make_link -privilege public ::$folder_id list]
+    set import_link [::$context_package_id make_link -privilege admin -link admin/import $context_package_id]
     set page_show_link [::$page_package_id make_link -privilege admin [self] show-object return_url]
     set view_link   [::$page_package_id make_link -with_entities 0 [self] view return_url]
 

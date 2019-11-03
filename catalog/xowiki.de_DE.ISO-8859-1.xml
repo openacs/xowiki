@@ -44,7 +44,7 @@
   <msg key="Edit_category">Kategorienbaum bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
   <msg key="edit_title">Diese Seite bearbeiten ...</msg>
-  <msg key="entries_using_form">Einträge für das Formular %form%</msg>
+  <msg key="entries_using_form">Einträge für Formular %form%</msg>
   <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte löschen Sie diese, bevor Sie das Formular löschen.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint enthält ungültige Zeichen</msg>
   <msg key="error-form_constraint-unknown_attribute">From field &#39;%name%&#39; (class %class%) enthält das unbekannte Attribut &#39;%entry%&#39;
