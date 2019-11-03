@@ -4239,9 +4239,15 @@ namespace eval ::xowiki::includelet {
           {-bulk_actions ""}
           {-buttons "edit delete"}
           {-renderer ""}
+          {-return_url}
         }}
       }  -ad_doc {
         Show usages of the specified form.
+
+        @param return_url
+           When provided and NOT empty, use the value as return_url.
+           When provided and empty, do NOT set an return URL.
+           When NOT provided, set the calling page as return_url.
       }
 
   #          {-renderer "YUIDataTableRenderer"}
@@ -4250,7 +4256,24 @@ namespace eval ::xowiki::includelet {
 
     set o ${:__including_page}
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
-    set return_url [::xo::cc url]?[::xo::cc actual_query]
+
+    if {[info exists return_url]} {
+      if {$return_url eq ""} {
+        #
+        # If provided return_url is empty, NO return_url is set.
+        #
+        unset return_url
+      } else {
+        #
+        # Use the provided return_url.
+        #
+      }
+    } else {
+      #
+      # Per default, set the return_url to the current page.
+      #
+      set return_url [::xo::cc url]?[::xo::cc actual_query]
+    }
 
     if {[info exists parent_id]} {
       if {$parent_id eq "self"} {
@@ -4559,6 +4582,7 @@ namespace eval ::xowiki::includelet {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
         #set template_file view-default
+        ns_log notice "RETURN_URL set? [info exists return_url]"
         $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
       }
       if {[info exists use_button(delete)]} {
