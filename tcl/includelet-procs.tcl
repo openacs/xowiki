@@ -4650,11 +4650,16 @@ namespace eval ::xowiki::includelet {
     }
 
     set links [list]
-    set base [$form_item pretty_link]
-    set label [$form_item name]
 
     if {$with_form_link} {
-      append html [_ xowiki.entries_using_form [list form "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"]]
+      set form_links ""
+      foreach form_item_id $form_item_ids {
+        set base [::$form_item pretty_link]
+        set label [::$form_item name]
+        lappend form_links "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"
+      }
+      
+      append html [_ xowiki.entries_using_form [list form [join $form_links ", "]]]
     }
     append html [t1 asHTML]
 
