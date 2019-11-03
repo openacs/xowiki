@@ -66,6 +66,7 @@ namespace eval ::xowiki::formfield {
     correct_when
     feedback_answer_correct
     feedback_answer_incorrect
+    disabled_as_div
   }
   FormField set abstract 1
 
@@ -477,6 +478,11 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  FormField instproc is_disabled {} {
+    return [expr {[info exists :disabled] && ${:disabled} != "false"}]
+  }
+
+
   FormField instproc render_input {} {
     #
     # This is the most general widget content renderer.
@@ -638,11 +644,27 @@ namespace eval ::xowiki::formfield {
     return [expr {${:value} >= $arg1 && ${:value} <= $arg2}]
   }
   FormField instproc answer_check=in {} {
+    #
+    # Correct, when answer is in the given set.
+    #
     set values [lrange ${:correct_when} 1 end]
     return [expr {${:value} in $values}]
   }
   FormField instproc answer_check=match {} {
     return [string match [lindex ${:correct_when} 1] [:value]]
+  }
+  FormField instproc answer_check=contains {} {
+    #
+    # Correct, when answer contains any of the provided words.
+    #
+    set answer [:value]
+    set words [lrange ${:correct_when} 1 end]
+    foreach word $words {
+      if {[string match *$word* $answer]} {
+        return 1
+      }
+    }
+    return 0
   }
   FormField instproc answer_check=answer_words {} {
     set value [regsub -all { +} ${:value} " "]
@@ -682,7 +704,7 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc set_feedback {feedback_mode} {
     set correct [:answer_is_correct]
-    :log "${:name} [:info class]: correct? $correct"
+    #:log "${:name} [:info class]: correct? $correct"
     switch -- $correct {
       0  { return }
       -1 { set result "incorrect"}
@@ -698,17 +720,42 @@ namespace eval ::xowiki::formfield {
       set feedback [_ xowf.answer_$result]
     }
     if {$feedback_mode > 1} {
-      #:log "===$feedback_mode=[info exists :correct_when]============[:serialize]"
+      #:log "===$feedback_mode=[info exists :correct_when]============"
       if {[info exists :correct_when]} {
         append feedback " ${:correct_when}"
       } elseif {[info exists :correction]} {
         append feedback " ${:correction}"
       }
+      #
+      # When the widget class supports "disabled_as_div", we
+      # can try to highlight matches from correct_when.
+      #
+      if {[info exists :disabled_as_div]} {
+        #
+        # render_as_div requires output escaping
+        #
+        set :value [ns_quotehtml ${:value}]
+        if {[lindex ${:correct_when} 0] eq "contains"} {
+          #
+          # Mark matches in the div
+          #
+          foreach word [lrange ${:correct_when} 1 end] {
+            regsub -all $word ${:value} {<span class='match'>&</span>} :value
+          }
+        }
+      }
     }
-    :log "==== ${:name} setting feedback $feedback"
+    #:log "==== ${:name} setting feedback $feedback"
     set :help_text $feedback
   }
 
+  FormField instproc render_disabled_as_div {class} {
+    set attributes [:get_attributes id]
+    lappend attributes class $class
+    ::html::div $attributes {
+      ::html::t -disableOutputEscaping [:value]
+    }
+  }
 
   FormField instproc set_is_repeat_template {is_template} {
     # :msg "${:name} set is_repeat_template $is_template"
@@ -1441,7 +1488,7 @@ namespace eval ::xowiki::formfield {
       # - the formfield is not disabled, and
       # - the form-field is not sticky (default)
       #
-      set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+      set disabled [:is_disabled]
       if {${:value} ne "" && !$disabled && ![:sticky] } {
         ::html::input -type button -value [_ xowiki.clear] -id $id-control
         template::add_event_listener \
@@ -1625,6 +1672,13 @@ namespace eval ::xowiki::formfield {
     :type text
     set :widget_type text
     foreach p [list size maxlength] {if {[info exists :$p]} {set :html($p) [:$p]}}
+  }
+  text instproc render_input {} {
+    if {[:is_disabled] && [info exists :disabled_as_div]} {
+      :render_disabled_as_div text
+    } else {
+      next
+    }
   }
 
   ###########################################################
@@ -2042,13 +2096,17 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
-    ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
-                          data-repeat-template-id {CSSclass class} \
-                          {*}$booleanAtts] {
-                            ::html::t [:value]
-                          }
-    :resetBooleanAttributes $booleanAtts
+    if {[:is_disabled] && [info exists :disabled_as_div]} {
+      :render_disabled_as_div textarea
+    } else {
+      set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
+      ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
+                            data-repeat-template-id {CSSclass class} \
+                            {*}$booleanAtts] {
+                              ::html::t [:value]
+                            }
+      :resetBooleanAttributes $booleanAtts
+    }
   }
 
   ###########################################################
@@ -2285,7 +2343,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    set disabled [:is_disabled]
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
       :render_richtext_as_div
     } else {
@@ -2485,7 +2543,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::ckeditor4 instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    set disabled [:is_disabled]
     set is_repeat_template [expr {[info exists :is_repeat_template] && ${:is_repeat_template} == "true"}]
     # :msg "${:id} ${:name} - $is_repeat_template"
 
@@ -2705,7 +2763,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
   }
   richtext::wym instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    set disabled [:is_disabled]
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
       :render_richtext_as_div
     } else {
@@ -2813,7 +2871,7 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext::xinha instproc render_input {} {
-    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    set disabled [:is_disabled]
     if {![:istype ::xowiki::formfield::richtext] || $disabled} {
       :render_richtext_as_div
     } else {
@@ -3001,7 +3059,7 @@ namespace eval ::xowiki::formfield {
   }
 
   enumeration instproc answer_is_correct {} {
-    :log "enumeration CORRECT? ${:name} (value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    #:log "enumeration CORRECT? ${:name} (value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {![info exists :answer]} {
       return 0
     } else {
@@ -3012,10 +3070,11 @@ namespace eval ::xowiki::formfield {
         lassign $o label v
         if {$a} {
           lappend :correction [expr {$v in $value}]
+          #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
         } else {
           lappend :correction [expr {$v ni $value}]
+          #:log "enumeration CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
         }
-        :log "enumeration CORRECT? '$value' <$a> $v == $a => ${:correction}"
       }
       return [expr {0 ni ${:correction} ? 1 : -1}]
     }
@@ -3165,14 +3224,16 @@ namespace eval ::xowiki::formfield {
         type checkbox \
         name ${:name}
 
-    set answer [expr {[info exists :evaluated_answer_result] ? ${:answer} : ""}]
-    set CSSclasses {"" "" t correct f incorrect}
+    set answer [expr {[info exists :correction] ? ${:correction} : ""}]
+    set CSSclasses {"" "" 1 correct 0 incorrect}
 
     foreach o ${:options} a $answer {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
-      if {$rep in $value} {lappend atts checked checked}
+      if {$rep in $value} {
+        lappend atts checked checked
+      }
       set label_class [dict get $CSSclasses $a]
       if {${:horizontal}} {append label_class " checkbox-inline"}
       ::html::label -for $id -class $label_class {
@@ -3210,12 +3271,13 @@ namespace eval ::xowiki::formfield {
   text_fields instproc initialize {} {
     next
 
-    set disabled [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    set disabled [:is_disabled]
     set fields {}
     set answers [expr {[info exists :answer] ? ${:answer} : ""}]
+    set disabled_as_div disabled_as_div=[info exists :disabled_as_div]
     foreach option ${:options} a $answers {
       lassign $option text rep
-      lappend fields [list $rep "text,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled,label="]
+      lappend fields [list $rep "text,$disabled_as_div,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled,label="]
     }
 
     #:log "TEXT text_fields fields <$fields>"
@@ -3225,10 +3287,11 @@ namespace eval ::xowiki::formfield {
   }
 
   text_fields instproc answer_is_correct {} {
-     :log "text_fields  CORRECT? ${:name}"
-     foreach c ${:components} {
-       $c set_feedback [${:object} set __feedback_mode]
-     }
+    #:log "text_fields  CORRECT? ${:name}"
+    foreach c ${:components} {
+      $c set_feedback [${:object} set __feedback_mode]
+    }
+    #:log "text_fields  CORRECT? ${:name} -> 0"
     return 0
   }
 
@@ -3324,7 +3387,7 @@ namespace eval ::xowiki::formfield {
 
     if {${:multiple} && ${:dnd}} {
 
-      if {[info exists :disabled] && ${:disabled}} {
+      if {[:is_disabled]} {
         html::t -disableOutputEscaping [:pretty_value [:value]]
       } else {
 
