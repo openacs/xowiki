@@ -299,24 +299,21 @@ namespace eval ::xowiki::includelet {
                               -parent_id $opt_parent_id \
                               -nls_language $nls_language -return_url $return_url]
       }
-      #       set new_page_link [::$package_id make_link \
-          #                              $package_id edit-new \
-          #                              {object_type ::xowiki::Page} \
-          #                              parent_id return_url autoname template_file]
 
       set new_page_link [::$package_id make_form_link -form en:page.form \
                              -parent_id $opt_parent_id \
                              -return_url $return_url]
       set new_file_link [::$package_id make_link  \
-                             $package_id edit-new \
+                             ::$package_id edit-new \
                              {object_type ::xowiki::File} \
                              parent_id return_url autoname template_file]
       set new_form_link [::$package_id make_link \
-                             $package_id edit-new \
+                             ::$package_id edit-new \
                              {object_type ::xowiki::Form} \
                              parent_id return_url autoname template_file]
       set import_link  [::$package_id make_link -privilege admin \
-                            -link "admin/import" $package_id {} parent_id return_url]
+                            -link "admin/import" \
+                            ::$package_id {} parent_id return_url]
       set import_archive_link [::$package_id make_form_link -form en:import-archive.form \
                                    -parent_id $opt_parent_id]
 
