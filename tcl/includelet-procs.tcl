@@ -4658,7 +4658,7 @@ namespace eval ::xowiki::includelet {
         set label [::$form_item name]
         lappend form_links "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"
       }
-      
+
       append html [_ xowiki.entries_using_form [list form [join $form_links ", "]]]
     }
     append html [t1 asHTML]
