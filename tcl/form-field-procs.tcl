@@ -479,7 +479,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc is_disabled {} {
-    return [expr {[info exists :disabled] && ${:disabled} != "false"}]
+    return [expr {[info exists :disabled] && [string is true -strict ${:disabled}]}]
   }
 
 
@@ -3280,7 +3280,7 @@ namespace eval ::xowiki::formfield {
       lappend fields [list $rep "text,$disabled_as_div,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled,label="]
     }
 
-    #:log "TEXT text_fields fields <$fields>"
+    #:log "TEXT text_fields fields\n[join $fields \n]>"
     :create_components $fields
     #:log "TEXT text_fields components <${:components}>"
 
