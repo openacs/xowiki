@@ -4654,8 +4654,8 @@ namespace eval ::xowiki::includelet {
     if {$with_form_link} {
       set form_links ""
       foreach form_item_id $form_item_ids {
-        set base [::$form_item pretty_link]
-        set label [::$form_item name]
+        set base [::$form_item_id pretty_link]
+        set label [::$form_item_id name]
         lappend form_links "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"
       }
 
