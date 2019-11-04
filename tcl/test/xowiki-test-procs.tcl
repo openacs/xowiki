@@ -38,19 +38,11 @@ namespace eval ::xowiki::test {
 
             set testfolder .testfolder
 
-            # get a random swa to be able to create the folder
-            set swa_context [acs_magic_object security_context_root]
-            set one_swa [::xo::dc get_value get_swa {
-                select min(user_id) from users
-                where acs_permission.permission_p(:swa_context, user_id, 'admin')
-            }]
-            set request_info [acs::test::http -user_id $one_swa $instance/]
-            set folder_info [::xowiki::test::require_test_folder \
-                                 -last_request $request_info \
-                                 -instance $instance \
-                                 -folder_name $testfolder \
-                                 -fresh \
-                                ]
+            ::xowiki::Package initialize -package_id $package_id
+            set root_folder_id [::$package_id folder_id]
+
+            # Create the test folder
+            ::xowiki::test::require_folder $testfolder $root_folder_id $package_id
 
             #
             # Force the system locale to en_US. The value is
@@ -62,8 +54,6 @@ namespace eval ::xowiki::test {
             set locale [lang::system::locale]
             set lang [string range $locale 0 1]
 
-            ::xowiki::Package initialize -package_id $package_id
-            set root_folder_id [::$package_id folder_id]
             aa_log "package_id $package_id system locale $locale"
 
             set f1_id        [xowiki::test::require_folder "f1"    $root_folder_id $package_id]
