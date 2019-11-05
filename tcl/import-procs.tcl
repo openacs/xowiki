@@ -302,6 +302,7 @@ namespace eval ::xowiki {
         if {[::$item_id istype ::xowiki::PageInstance]} {
           set template_id [::$item_id page_template]
           if {![info exists items($template_id)]} {
+            ns_log notice "--export including template-object $template_id of item $item_id has name? [::$template_id exists name]"
             ns_log notice "--export including template-object $template_id [::$template_id name]"
             set items($template_id) 1
             ::xo::db::CrClass get_instance_from_db -item_id $template_id
@@ -316,6 +317,7 @@ namespace eval ::xowiki {
         set sql [::xowiki::Page instance_select_query -folder_id $item_id -with_subtypes true]
         ::xo::dc foreach export_child_obj $sql {
           if {![info exists items($item_id)]} {
+            ns_log notice "--export child $item_id not included, try to fetch"
             ::xo::db::CrClass get_instance_from_db -item_id $item_id
             ns_log notice "--export including child $item_id [::$item_id name]"
             set items($item_id) 1
