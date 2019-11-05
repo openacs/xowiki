@@ -133,8 +133,8 @@ namespace eval ::xowiki {
         # To update all hkey attributes in e.g. a package mounted at /xowf
         # use:
         #
-        #     ::xowf::Package initialize -url /xowf
-        #     ::xowf::update_hstore $package_id
+        #     ::xo::Package initialize -url /xowiki
+        #     ::xowiki::hstore::update_hstore $package_id
         #     ::xowiki::hstore::update_form_instance_item_index -package_id $package_id
         #
         # The first update command updates xowiki_page_instance, the second
