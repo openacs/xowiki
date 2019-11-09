@@ -3149,7 +3149,7 @@ namespace eval ::xowiki {
     set components [split $name .]
     set path [lindex $components 0]
     #ns_log notice "dynamic repeat field name '$name' -> components <$components>"
-    
+
     foreach c [lrange $components 1 end] {
       if {[string is integer -strict $c]} {
         # this looks like a repeat component
@@ -3193,7 +3193,7 @@ namespace eval ::xowiki {
       return [set $key]
     }
 
-    
+
     if {$name ni {langmarks fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
@@ -3986,10 +3986,15 @@ namespace eval ::xowiki {
   }
 
 
-
-  Page instproc create_form_fields_from_form_constraints {form_constraints} {
+  Page instproc create_form_fields_from_form_constraints {
+    {-lookup:switch}
+    form_constraints
+  } {
     #
-    # Create form-fields from form constraints.
+    # Create form-fields from form constraints. When "-lookup" is
+    # specified, the code reuses existing form-field instead of
+    # recrating it.
+    #
     # Since create_raw_form_field uses destroy_on_cleanup, we do not
     # have to care here about destroying the objects.
     #
@@ -3998,11 +4003,16 @@ namespace eval ::xowiki {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
       if {[string match "@table*" $spec_name] || $spec_name eq "@categories"} continue
 
-      #:msg "checking spec '$short_spec' for form field '$spec_name'"
-      lappend form_fields [:create_raw_form_field \
-                               -name $spec_name \
-                               -slot [:find_slot $spec_name] \
-                               -spec $short_spec]
+      if {$lookup && [:form_field_exists $spec_name]} {
+        #:msg "... found form_field for $spec_name"
+        lappend form_fields [:lookup_form_field -name $spec_name {}]
+      } else {
+        #:msg "create '$spec_name' with spec '$short_spec'"
+        lappend form_fields [:create_raw_form_field \
+                                 -name $spec_name \
+                                 -slot [:find_slot $spec_name] \
+                                 -spec $short_spec]
+      }
     }
     return $form_fields
   }
