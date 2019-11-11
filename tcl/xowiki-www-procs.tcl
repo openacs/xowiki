@@ -2627,15 +2627,14 @@ namespace eval ::xowiki {
     # of a container to the value of the container.
     #
     foreach f $container_fields {
-      #set f  [:lookup_form_field -name $c $form_fields]
       set name [$f name]
-      :log "container $name: compute value for [$f info class]"
+      #:log "container $name: compute value for [$f info class]"
       if {![$f exists disabled]} {
         dict set :instance_attributes $name [$f value]
+        #:log "container $name: is set to '[dict get ${:instance_attributes} $name]'"        
       } elseif {[dict exists ${:instance_attributes} $name]} {
         $f value [dict get ${:instance_attributes} $name]
       }
-      :log "container $name: is set to '[dict get ${:instance_attributes} $name]'"
     }
 
     #
