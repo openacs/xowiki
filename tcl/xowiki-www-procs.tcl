@@ -2572,7 +2572,7 @@ namespace eval ::xowiki {
     # these fields above and have to do it now.
     #
     foreach f [concat $form_fields $leaf_components] {
-      #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f exists disabled]"
+      #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
 
       if {![info exists processed($att)] && ![$f exists disabled]} {
@@ -2629,7 +2629,7 @@ namespace eval ::xowiki {
     foreach f $container_fields {
       set name [$f name]
       #:log "container $name: compute value for [$f info class]"
-      if {![$f exists disabled]} {
+      if {![$f is_disabled]} {
         dict set :instance_attributes $name [$f value]
         #:log "container $name: is set to '[dict get ${:instance_attributes} $name]'"        
       } elseif {[dict exists ${:instance_attributes} $name]} {
@@ -2671,7 +2671,9 @@ namespace eval ::xowiki {
       # Postprocess based on form fields based on form-fields methods.
       #
       foreach f $form_fields {
-        $f convert_to_internal
+        if {![$f is_disabled]} {
+          $f convert_to_internal
+        }
       }
     } else {
       :log validation_errors=$validation_errors
