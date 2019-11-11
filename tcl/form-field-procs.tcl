@@ -3068,7 +3068,7 @@ namespace eval ::xowiki::formfield {
       set :correction {}
       foreach o ${:options} a ${:answer} {
         lassign $o label v
-        if {$a} {
+        if {$a ne ""} {
           lappend :correction [expr {$v in $value}]
           #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
         } else {
