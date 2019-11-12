@@ -675,6 +675,17 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_is_correct {} {
+    #
+    # Return correctness of the answer based on the instance variables
+    # ":correct_when" and ":answer". Possible results are
+    #
+    #  -  1: correct
+    #  - -1: incorrect
+    #  -  0: can't say (or report back, that no evaluation should be
+    #        provided for this field)
+    #
+    #  This method is free from side-effects (no instance variables are updated).
+    #
     #:log "CORRECT? ${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {[info exists :correct_when]} {
       set op [lindex ${:correct_when} 0]
@@ -703,15 +714,27 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc set_feedback {feedback_mode} {
+    #
+    # Set instance variables based on correctness of an answer.
+    #
+    #   - :form_widget_CSSclass
+    #   - :evaluated_answer_result
+    #   - :value (highlights potentially partial results, e.g. "contains")
+    #   - :help_text
+    #  
     set correct [:answer_is_correct]
     #:log "${:name} [:info class]: correct? $correct"
     switch -- $correct {
-      0  { return }
+      0  { set result "unknown" }
       -1 { set result "incorrect"}
       1  { set result "correct"  }
     }
     :form_widget_CSSclass $result
     set :evaluated_answer_result $result
+
+    if {$correct == 0} {
+      return ${:evaluated_answer_result}
+    }
 
     set feedback ""
     if {[info exists :feedback_answer_$result]} {
@@ -747,6 +770,71 @@ namespace eval ::xowiki::formfield {
     }
     #:log "==== ${:name} setting feedback $feedback"
     set :help_text $feedback
+    return ${:evaluated_answer_result}
+  }
+  
+  FormField instproc make_correct {} {
+    #
+    # Set the form_field to a correct value, currently based on
+    # :correct_when.  We could use here :answer when available.
+    # Modified instance variables
+    #
+    # - :help_text is cleared to avoid stray per-user-feedback,
+    #    We could as well provide teacher-level feedback here.
+    # - :form_widget_CSSclass is altered to "correct" or "unknown".
+    #
+    #ns_log notice "FormField make_correct ${:name}: [info exists :answer] [info exists :correct_when]"
+    
+    set :form_widget_CSSclass unknown
+    if {[info exists :correct_when]} {
+      #
+      # Try to get a correct value from the correct_when spec
+      #
+      set predicate [lindex ${:correct_when} 0]
+      switch $predicate {
+        "eq"       {set correct [lindex ${:correct_when} 1]}
+        "contains" {set correct "... [lindex ${:correct_when} 1] ..."}
+      }
+      if {[info exists correct]} {
+        :value $correct
+        set :form_widget_CSSclass correct
+        #ns_log notice "FormField make_correct ${:name}: value '${:value}'"
+      } else {
+        ns_log notice "FormField make_correct ${:name}: not handled: correct_when '${:correct_when}' "
+      }
+    } else {
+      ns_log notice "FormField make_correct ${:name}: not handled: answer? [info exists :answer]"
+    }
+    set :help_text "" ;# we could provide a teacher-level feedback here.
+  }
+
+  FormField instproc add_statistics {} {
+    dict incr :result_statistics count
+    if {[info exists :evaluated_answer_result] && ${:evaluated_answer_result} eq "correct"} {
+      dict incr :result_statistics correct
+      #ns_log notice "??? add_statistics ${:name}: ${:result_statistics}"
+    }
+  }
+
+  FormField instproc render_result_statistics {} {
+    #
+    # In case, there are result_statistics, use a "progres bar" to
+    # visualize correct answers.
+    #
+    if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
+      set result_count [dict get ${:result_statistics} count]
+      #ns_log notice "??? render_result_statistics: ${:name}: ${:result_statistics}"
+      if {$result_count > 0} {
+        ::html::div -class "progress" {
+          set correctCount [expr {[dict exists ${:result_statistics} correct] ? [dict get ${:result_statistics} correct] : 0}]
+          set percentage [format %2.0f [expr {$correctCount * 100.0 / $result_count}]]
+          ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
+              -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
+                ::html::t "$percentage %"
+              }
+        }
+      }
+    }
   }
 
   FormField instproc render_disabled_as_div {class} {
@@ -1153,6 +1241,17 @@ namespace eval ::xowiki::formfield {
     # internal representation; actually we could drop the instance
     # atts of the components from the "instance_attributes" ...
     ${:object} set_property -new 1 ${:name} [:get_compound_value]
+  }
+
+  CompoundField instproc make_correct {} {
+    foreach c ${:components} {
+      $c make_correct
+    }
+  }
+  CompoundField instproc add_statistics {} {
+    foreach c ${:components} {
+      $c add_statistics
+    }
   }
 
   ###########################################################
@@ -2996,16 +3095,23 @@ namespace eval ::xowiki::formfield {
       # :answers.
       #
       #ns_log notice "SHUFFLE ${:name} <$shuffled> <$indices>"
-      set option2 {}; set answer2 {}
+      set option2 {}; set answer2 {}; set answer_value2 {}
       foreach i $shuffled {
         lappend option2 [lindex ${:options} $i]
         lappend answer2 [lindex ${:answer} $i]
+        if {${:multiple} && [info exists :answer_value]} {
+          lappend answer_value2 [lindex ${:answer_value} $i]
+        }
       }
       #ns_log notice "SHUFFLE ${:name} o2=$option2 answer2=$answer2"
       set :options $option2
       set :answer $answer2
+      if {${:multiple}} {
+        set :answer_value $answer_value2
+      }
     }
   }
+
   ShuffleField instproc initialize {} {
     next
     #
@@ -3032,6 +3138,17 @@ namespace eval ::xowiki::formfield {
   enumeration instproc initialize {} {
     if {[info exists :category_tree]} {
       :config_from_category_tree [:category_tree]
+    }
+    if {[info exists :answer]} {
+      set count 1
+      set :answer_value {}
+      foreach a ${:answer} {
+        if {$a} {
+          lappend :answer_value $count
+        }
+        incr count
+      }
+      #ns_log notice "???? answer ${:answer} -> ${:answer_value}"
     }
     next
 
@@ -3068,7 +3185,8 @@ namespace eval ::xowiki::formfield {
       set :correction {}
       foreach o ${:options} a ${:answer} {
         lassign $o label v
-        if {$a ne ""} {
+        #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
+        if {$a} {
           lappend :correction [expr {$v in $value}]
           #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
         } else {
@@ -3079,6 +3197,28 @@ namespace eval ::xowiki::formfield {
       return [expr {0 ni ${:correction} ? 1 : -1}]
     }
   }
+
+  enumeration instproc make_correct {} {
+    set :value ${:answer_value}
+    #ns_log notice "???? make_correct sets value ${:answer_value}"
+  }
+
+  enumeration instproc add_statistics {} {
+    #ns_log notice "???? add_statistics"
+    #
+    # Add generic statistics
+    #
+    next
+    #
+    # Enumeration specific statistics
+    #
+    foreach v ${:value} {
+      dict incr :result_statistics $v
+    }
+    ns_log notice "### answer ${:answer} value ${:value} correction ${:correction} "
+    #ns_log notice [:serialize]
+  }
+
 
   enumeration instproc pretty_value {v} {
     if {[info exists :category_label($v)]} {
@@ -3146,6 +3286,58 @@ namespace eval ::xowiki::formfield {
     # }
   }
 
+  enumeration instproc render_result_statistics {rep} {
+    #
+    # In case, there are result_statistics, use a "progres bar" to
+    # visualize correct answers.
+    #
+    if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
+      set result_count [dict get ${:result_statistics} count]
+
+      if {$result_count > 0} {
+        ::html::div -class "progress" {
+          set correctCount [expr {[dict exists ${:result_statistics} $rep] ? [dict get ${:result_statistics} $rep] : 0}]
+          set percentage [format %2.0f [expr {$correctCount * 100.0 / $result_count}]]
+          ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
+              -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
+                ::html::t "$percentage %"
+              }
+        }
+      }
+    }
+  }
+
+  enumeration instproc render_label_classes {} {
+    #
+    # Determine the values of the CSS classes for correct/incorrect
+    # rendering. In statistics mode (when :result_statistics exists),
+    # use the correct value of the alternative. Otherwise, use
+    # the correction of the actual value in the form field.
+    #
+    if {[info exists :result_statistics]} {
+      set values ${:answer}
+      #ns_log notice "==== radio answer $answer aw ${:answer_value} results ${:result_statistics}"
+    } else {
+      set values [expr {[info exists :correction] ? ${:correction} : ""}]
+    }
+    return [lmap v $values {dict get {"" "" 1 correct 0 incorrect t correct f incorrect} $v}]
+  }
+
+  enumeration instproc render_label_text {label} {
+    #
+    # Render a label text (typically of a checkbox or radio input)
+    # either as richtext or as plain label.
+    #
+    if {${:richtext}} {
+      ::html::div -class richtext-label {
+        ::html::t -disableOutputEscaping $label
+      }
+    } else {
+      ::html::t " $label "
+    }
+  }
+
+
   ###########################################################
   #
   # ::xowiki::formfield::radio
@@ -3154,10 +3346,12 @@ namespace eval ::xowiki::formfield {
 
   Class create radio -superclass enumeration -parameter {
     {horizontal false}
+    {richtext:boolean false}
     {forced_name}
   }
   radio instproc initialize {} {
     set :widget_type text(radio)
+    set :multiple false
     next
   }
   radio instproc render_input {} {
@@ -3168,18 +3362,19 @@ namespace eval ::xowiki::formfield {
         type radio \
         name [expr {[info exists :forced_name] ? ${:forced_name} : ${:name}}]
 
-    foreach o ${:options} {
+    foreach o ${:options} label_class [:render_label_classes] {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      set label_class [expr {${:horizontal} ? "radio-inline" : ""}]
+      if {${:horizontal}} {append label_class " radio-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        ::html::t " $label "
+        :render_label_text $label
       }
+      :render_result_statistics $rep
       if {!${:horizontal}} {
         html::br
       }
@@ -3204,7 +3399,7 @@ namespace eval ::xowiki::formfield {
 
   checkbox instproc value_if_nothing_is_returned_from_form {default} {
 
-    # Here we have to distinguish between two cases to:
+    # Here we have to distinguish between two cases:
     # - edit mode: somebody has removed a mark from a check button;
     #   this means: clear the field
     # - view mode: the fields were deactivated (made insensitive);
@@ -3216,6 +3411,7 @@ namespace eval ::xowiki::formfield {
       return ""
     }
   }
+
   checkbox instproc render_input {} {
     set value [:value]
 
@@ -3224,28 +3420,20 @@ namespace eval ::xowiki::formfield {
         type checkbox \
         name ${:name}
 
-    set answer [expr {[info exists :correction] ? ${:correction} : ""}]
-    set CSSclasses {"" "" 1 correct 0 incorrect}
-
-    foreach o ${:options} a $answer {
+    foreach o ${:options} label_class [:render_label_classes]  {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
       if {$rep in $value} {
         lappend atts checked checked
       }
-      set label_class [dict get $CSSclasses $a]
       if {${:horizontal}} {append label_class " checkbox-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        if {${:richtext}} {
-          ::html::div -class richtext-label {
-            ::html::t -disableOutputEscaping $label
-          }
-        } else {
-          ::html::t " $label "
-        }
+        :render_label_text $label
       }
+      :render_result_statistics $rep
+
       if {!${:horizontal}} {
         html::br
       }
@@ -3269,6 +3457,8 @@ namespace eval ::xowiki::formfield {
   }
 
   text_fields instproc initialize {} {
+    # The value of ":multiple" has to be true for shuffling.
+    set :multiple true
     next
 
     set disabled [:is_disabled]
@@ -3283,15 +3473,34 @@ namespace eval ::xowiki::formfield {
     #:log "TEXT text_fields fields\n[join $fields \n]>"
     :create_components $fields
     #:log "TEXT text_fields components <${:components}>"
-
   }
 
+  text_fields instproc set_feedback {feedback_mode} {
+    next
+    #
+    # Make result (fully) correct, only when all sub-questsions are as
+    # well correct.
+    #
+    set :evaluated_answer_result [expr {"0" in ${:correction} ? "incorrect" : "correct"}]
+    return ${:evaluated_answer_result}
+  }
+  
   text_fields instproc answer_is_correct {} {
     #:log "text_fields  CORRECT? ${:name}"
+
+    set feedback_mode [expr {[${:object} exists __feedback_mode] ? [${:object} set __feedback_mode] : 0}]
+    set results {}
+    set :correction {}
     foreach c ${:components} {
-      $c set_feedback [${:object} set __feedback_mode]
+      set correct [$c set_feedback $feedback_mode]
+      lappend results $correct
+      lappend :correction [expr {$correct eq "correct"}]
     }
-    #:log "text_fields  CORRECT? ${:name} -> 0"
+    #:log "text_fields  CORRECT? ${:name} results $results -> 0"
+    #
+    # Return "0" to avoid double feedback via the info text per
+    # subquestion and on the top-level.
+    #
     return 0
   }
 
@@ -3315,7 +3524,7 @@ namespace eval ::xowiki::formfield {
         html::li {
           html::t -disableOutputEscaping [:get_text_entry [$c name]]
           $c render
-          #:log [$c serialize]
+          $c render_result_statistics 
         }
       }
     }
