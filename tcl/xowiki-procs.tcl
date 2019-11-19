@@ -2299,11 +2299,14 @@ namespace eval ::xowiki {
     {-siteurl ""}
     {-lang ""}
     {-download false}
+    {-path_encode:boolean true}
   } {
     # return the pretty_link for the current page
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
-        -lang $lang -download $download -page [self] ${:name}
+        -lang $lang -download $download -page [self] \
+        -path_encode $path_encode \
+        ${:name} \
   }
 
   Page instproc detail_link {} {
