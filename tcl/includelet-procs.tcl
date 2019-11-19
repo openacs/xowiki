@@ -4426,6 +4426,10 @@ namespace eval ::xowiki::includelet {
       append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
+    if {[info exists use_button(duplicate)]} {
+      append cols {AnchorField create _duplicate -CSSclass copy-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+    }
     if {[info exists use_button(view)]} {
       append cols {AnchorField create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
@@ -4581,8 +4585,12 @@ namespace eval ::xowiki::includelet {
       if {[info exists use_button(edit)]} {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
-        #set template_file view-default
         $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
+      }
+      if {[info exists use_button(duplicate)]} {
+        $__c set _duplicate "&nbsp;"
+        $__c set _duplicate.title #xowiki.duplicate#
+        $__c set _duplicate.href [::$package_id make_link -link $page_link $p duplicate return_url template_file]
       }
       if {[info exists use_button(delete)]} {
         $__c set _delete "&nbsp;"
