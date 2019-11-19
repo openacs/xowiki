@@ -55,6 +55,16 @@ div.xowiki-content a.notification-image-button {
     text-decoration: none;
 }
 
+/*
+ * info sign (in forms)
+ */
+div.xowiki-content span.info-sign {
+    background: transparent url(/shared/images/info.gif);
+    height: 9px;
+    display: inline-block; /* otherwise height is ignored */
+    padding: 0px 12px 0px 0px;
+    margin: 0px 5px 0px 0px;
+}
 
 div.xowiki-content a.file-icon {
     background: transparent url(/resources/file-storage/file.gif);

@@ -47,6 +47,16 @@ div.xowiki-content a.notification-image-button::before {
 }
 
 /*
+ * info sign (in forms)
+ */
+div.xowiki-content span.info-sign::before {
+    font-family: 'Glyphicons Halflings';
+    font-size: smaller;
+    padding: 0px 5px 0px 0px;
+    content: "\e086";
+}
+
+/*
  * Icons in file listings
  */
 

@@ -576,8 +576,7 @@ namespace eval ::xowiki::formfield {
     set text ${:help_text}
     if {$text ne ""} {
       html::div -class [:form_help_text_CSSclass] {
-        html::img -src "/shared/images/info.gif" -alt {[i]} -title {Help text} \
-            -width "12" -height 9 -style "margin-right: 5px" {}
+        html::span -class "info-sign" { }
         html::t $text
       }
     }
