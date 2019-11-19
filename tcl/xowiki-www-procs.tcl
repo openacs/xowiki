@@ -233,7 +233,7 @@ namespace eval ::xowiki {
   } {
 
     This web-callable method creates a new page, typically an instance
-    of a form page. The method accesses several form variables sich as
+    of a form page. The method accesses several form variables such as
     "__form_redirect", "__text_to_html", "last_page_id", "name",
     "nls_language", "package_id", "package_instance", "page_order",
     "parent_id", "publish_status", "source_item_id", "title"
@@ -1362,7 +1362,7 @@ namespace eval ::xowiki {
 
     set html [${:root} asHTML]
     set html [:regsub_eval  \
-                  {(^|[^\\])\x03([a-zA-Z0-9_:]+)\x03} $html \
+                  {(^|[^\\])\x03([[:alnum:]_:]+)\x03} $html \
                   {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
     #
     # Replace unbalanced @ characters.
