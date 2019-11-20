@@ -2093,7 +2093,7 @@ namespace eval ::xowiki::includelet {
 
         regexp {^([^.]+)[.]} $time _ time
         set pretty_time [util::age_pretty -timestamp_ansi $time \
-                             -sysdate_ansi [clock_to_ansi [clock seconds]] \
+                             -sysdate_ansi [lc_clock_to_ansi [clock seconds]] \
                              -mode_3_fmt "%d %b %Y, at %X"]
         set name [::xo::get_user_name $user_id]
 

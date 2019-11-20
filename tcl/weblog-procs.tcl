@@ -233,7 +233,7 @@ namespace eval ::xowiki {
 
       set time [::xo::db::tcl_date $publish_date tz]
       set pretty_date [util::age_pretty -timestamp_ansi $time \
-                           -sysdate_ansi [clock_to_ansi [clock seconds]] \
+                           -sysdate_ansi [lc_clock_to_ansi [clock seconds]] \
                            -mode_3_fmt "%d %b %Y, at %X"]
 
       if {${:summary}} {
