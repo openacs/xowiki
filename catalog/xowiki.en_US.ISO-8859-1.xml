@@ -281,4 +281,6 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="year">year</msg>
   <msg key="years">years</msg>
   <msg key="your_tags_label">Your Tags</msg>
+  <msg key="answers">Answers</msg>
+  <msg key="words">Words</msg>  
 </message_catalog>
