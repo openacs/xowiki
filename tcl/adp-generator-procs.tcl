@@ -122,9 +122,14 @@ namespace eval ::xowiki {
   # Definition of Templates
   ####################################################################################
   #
-  # view-plain
+  # view-plain (without master)
   #
   ADP_Generator create view-plain -master 0 -wikicmds 0 -footer 0
+
+  #
+  # view-plain-master (plain with master)
+  #
+  ADP_Generator create view-plain-master -master 1 -wikicmds 0 -footer 0
 
   ####################################################################################
   #
