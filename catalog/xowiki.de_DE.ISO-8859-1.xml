@@ -211,8 +211,8 @@
   <msg key="PodcastItem-subtitle">Untertitel</msg>
   <msg key="PodcastItem_pretty_name">Podcast Item</msg>
   <msg key="PodcastItem_pretty_plural">Podcast Items</msg>
-  <msg key="popular_tags_label">Häufig verwendete Schlagworte</msg>
-  <msg key="popular_tags_link">häufige Schlagworte</msg>
+  <msg key="popular_tags_label">Häufig verwendete Schlagwörter</msg>
+  <msg key="popular_tags_link">häufige Schlagwörter</msg>
   <msg key="portlet_page_does_not_exist_error_short">Die ausgewählte Seite existiert nicht</msg>
   <msg key="portlet_title_exists_error_long">Ändern Sie entweder den Namen des existierenden Portlets oder den Titel der Xowiki-Seite, die Sie zum Portal hinzufügen wollen.</msg>
   <msg key="portlet_title_exists_error_short">Es gibt bereits ein Portlet mit dem Titel &#39;%page_title%&#39; in diesem Portal.</msg>
@@ -259,5 +259,7 @@
 </msg>
   <msg key="year">Jahr</msg>
   <msg key="years">Jahren</msg>
-  <msg key="your_tags_label">Persönliche Schlagworte</msg>
+  <msg key="your_tags_label">Persönliche Schlagwörter</msg>
+  <msg key="answers">Antworten</msg>
+  <msg key="words">Wörter</msg>  
 </message_catalog>
