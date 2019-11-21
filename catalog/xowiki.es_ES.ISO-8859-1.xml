@@ -9,6 +9,7 @@
   <msg key="admin_title">Administrar este paquete</msg>
   <msg key="ago">hace %time%</msg>
   <msg key="All_pages">Todos los elementos</msg>
+  <msg key="answers">Respuestas</msg>
   <msg key="Answers_for_Surveys">Respuestas_por_encuesta</msg>
   <msg key="attached_images">Imágenes adjuntas</msg>
   <msg key="attached_media">Multimedia adjunto</msg>
@@ -264,6 +265,7 @@
   <msg key="week">semana</msg>
   <msg key="weeks">semanas</msg>
   <msg key="width">Anchura</msg>
+  <msg key="words">Palabras</msg>
   <msg key="workflow_definition-validate_workflow">%errorMsg% </msg>
   <msg key="year">año</msg>
   <msg key="years">años</msg>
