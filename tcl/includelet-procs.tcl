@@ -4551,8 +4551,7 @@ namespace eval ::xowiki::includelet {
       if {[expr $uc(tcl)]} continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 
-      set page_link [$p pretty_link]
-
+      set page_link [$p pretty_link -path_encode false]
       if {[info exists wf]} {
         set view_link [export_vars -base $wf_link {{m create-or-use} {p.form "[$p name]"}}]
       } else {
