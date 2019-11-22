@@ -255,11 +255,15 @@
   <msg key="week">Woche</msg>
   <msg key="weeks">Wochen</msg>
   <msg key="width">Breite</msg>
-  <msg key="workflow_definition-validate_workflow">%errorMsg%
-</msg>
+  <msg key="workflow_definition-validate_workflow">%errorMsg%</msg>
   <msg key="year">Jahr</msg>
   <msg key="years">Jahren</msg>
   <msg key="your_tags_label">Persönliche Schlagwörter</msg>
   <msg key="answers">Antworten</msg>
-  <msg key="words">Wörter</msg>  
+  <msg key="words">Wörter</msg>
+  <msg key="number">Zahl</msg>
+  <msg key="single_word">Einzelwort</msg>
+  <msg key="multiple_words">Mehrere Worte</msg>
+  <msg key="multiple_lines">Mehrere Zeilen</msg>  
+
 </message_catalog>
