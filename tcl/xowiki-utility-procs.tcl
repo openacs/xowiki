@@ -317,7 +317,7 @@ namespace eval ::xowiki {
   ad_proc add_ltree_order_column {} {
     Add page_order of type ltree, when ltree is configured (otherwise string)
   } {
-    # catch sql statement to allow multiple runs
+    # catch SQL statement to allow multiple runs
     catch {::xo::db::sql::content_type create_attribute \
                -content_type ::xowiki::Page \
                -attribute_name page_order \
