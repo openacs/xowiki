@@ -623,7 +623,7 @@ namespace eval ::xowiki {
   #
   # Page marshall/demarshall operations
   #
-  # serialize_relocatable is a helper method of marshall, that returns
+  # serialize_relocatable is a helper method of marshall that returns
   # relocatable objects (objects without leading colons). The
   # serialized objects will be recreated in the current namespace at
   # the target.
@@ -2511,6 +2511,7 @@ namespace eval ::xowiki {
   #   $page references all
   #
   Page instproc references {submethod args} {
+    #ns_log notice "---- ${:name} references $submethod $args"
     switch -- $submethod {
       clear {
         set :__references { unresolved {} resolved {} refused {} }
@@ -2520,7 +2521,7 @@ namespace eval ::xowiki {
       resolved {
         return [dict lappend :__references $submethod [lindex $args 0]]
       }
-      get { return [dict  $submethod ${:__references} [lindex $args 0]] }
+      get { return [dict get ${:__references} [lindex $args 0]] }
       all { return ${:__references} }
       default {error "unknown submethod: $submethod"}
     }
@@ -2838,7 +2839,8 @@ namespace eval ::xowiki {
     if {[::$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
       set publisher [::$package_id get_parameter "my_yahoo_publisher" \
                          [::xo::get_user_name [::xo::cc user_id]]]
-      append footer "<div style='float: right; padding-right: 10px;'>" \
+      append footer \
+          "<div style='float: right; padding-right: 10px;'>" \
           [:include [list my-yahoo-publisher \
                          -publisher $publisher \
                          -rssurl "$package_url?rss"]] \
@@ -2930,8 +2932,6 @@ namespace eval ::xowiki {
           [lsort -unique [:references get resolved]] \
           [lsort -unique $unresolved_references]
     }
-    #
-    # unset -nocomplain :__references
     #
     #:log "Page ${:name} render with_footer $with_footer - [ns_conn isconnected] - [catch {ns_conn content}]"
     #
@@ -3087,7 +3087,7 @@ namespace eval ::xowiki {
 
   Page instproc form_field_flush_cache {} {
     #
-    # flus all cached form_field_names
+    # Flush all cached form_field_names.
     #
     array unset ::_form_field_names
   }
@@ -3164,7 +3164,7 @@ namespace eval ::xowiki {
           #
           set repeatField [set ::_form_field_names($path)]
           #
-          # Add all components from i to specified number to the list,
+          # Add all components from 1 to specified number to the list,
           # unless restricted by the max value. This frees us from
           # potential problems, when the browser sends the form fields
           # in an unexpected order. The resulting components will be
@@ -3293,13 +3293,15 @@ namespace eval ::xowiki {
     # Make sure to load the instance attributes
     #$f array set __ia [$f instance_attributes]
 
+    #
     # Call the application specific initialization, when a FormPage is
     # initially created. This is used to control the life-cycle of
     # FormPages.
+    #
     $f initialize
 
     #
-    # if we copy an item, we use source_item_id to provide defaults
+    # If we copy an item, we use source_item_id to provide defaults.
     #
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
@@ -3313,7 +3315,9 @@ namespace eval ::xowiki {
       $f set $att $value
     }
 
-    # Finally provide base for auto-titles
+    #
+    # Finally provide base for auto-titles.
+    #
     $f set __title_prefix ${:title}
 
     return $f
@@ -3354,7 +3358,7 @@ namespace eval ::xowiki {
 
   PlainPage instproc substitute_markup {raw_content} {
     #
-    # The provided text is a raw text, that is transformed into HTML
+    # The provided text is a raw text that is transformed into HTML
     # markup for links etc.
     #
     [self class] instvar RE markupmap
@@ -3657,10 +3661,14 @@ namespace eval ::xowiki {
   }
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
-    # For the time being we cache the form_constraints per request as a global
-    # variable, which is reclaimed at the end of the connection.
     #
-    # We have to take care, that the variable name does not contain namespace-prefixes
+    # For the time being we cache the form_constraints per request as
+    # a global variable, which is reclaimed at the end of the
+    # connection.
+    #
+    # We have to take care that the variable name does not contain
+    # namespace-prefixes.
+    #
     regsub -all :: $form_constraints ":_:_" var_name_suffix
 
     set varname ::xowiki_$var_name_suffix
@@ -3968,7 +3976,10 @@ namespace eval ::xowiki {
   Form instproc render_content {} {
     ::xowiki::Form requireFormCSS
 
-    # we assume, that the richtext is stored as 2-elem list with mime-type
+    #
+    # We assume that the richtext is stored as 2-element list with
+    # mime-type.
+    #
     #:log "-- text='${:text}'"
     if {[lindex ${:text} 0] ne ""} {
       :do_substitutions 0
