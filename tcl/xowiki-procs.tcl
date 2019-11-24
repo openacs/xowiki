@@ -3231,7 +3231,6 @@ namespace eval ::xowiki {
 
   Page instproc translate {-from -to text} {
     set langpair $from|$to
-    set ie UTF8
     set url http://translate.google.com/#$from/$to/$text
     set request [util::http::get -url $url]
     set status [dict get $request status]
