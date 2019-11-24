@@ -350,11 +350,11 @@ namespace eval ::xowiki::includelet {
 
   ::xowiki::Includelet instproc include_head_entries {} {
     # The purpose of this method is to contain all calls to include
-    # CSS files, javascript, etc. in the HTML Head. This kind of
-    # requirements could as well be included e.g. in render, but this
-    # won't work, if "render" is cached.  This method is called before
-    # render to be executed even when render is not due to caching.
-    # It is intended to be overloaded by subclasses.
+    # CSS files, JavaScript, etc. in the HTML head. This kind of
+    # requirement could as well be included e.g. in render, but this
+    # won't work, when the result of "render" is cached.  This method
+    # is called before render to be executed even when render is not
+    # due to caching.  It is intended to be overloaded by subclasses.
   }
 
   ::xowiki::Includelet instproc initialize {} {
