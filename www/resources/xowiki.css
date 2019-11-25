@@ -392,9 +392,9 @@ div.xowiki-content div.folders {
 div.xowiki-content .content-with-folders {
     float: left; width: 70%;
 }
-div.xowiki-content .content-with-folders div.form-label {
-    width: 9em;
-}
+/*div.xowiki-content .content-with-folders div.form-label {
+  width: 9em;
+}*/
 div.xowiki-content .content-with-folders div.form-widget,  
 div.xowiki-content .content-with-folders .form-help-text,
 div.xowiki-content .content-with-folders .form-button,
