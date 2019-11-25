@@ -1745,16 +1745,17 @@ namespace eval ::xowiki {
     # Set up template variables.
     #
     set object_type [::$page_package_id get_parameter object_type [:info class]]
-    set rev_link    [::$page_package_id make_link -with_entities 0 [self] revisions]
+    set rev_link    [::$page_package_id make_link [self] revisions]
 
     if {[::$context_package_id query_parameter m ""] eq "edit"} {
-      set view_link [::$page_package_id make_link -with_entities 0 [self] view return_url]
+      set view_link [::$page_package_id make_link [self] view return_url]
       set edit_link ""
     } else {
-      set edit_link [::$page_package_id make_link -with_entities 0 [self] edit return_url]
+      set edit_link [::$page_package_id make_link [self] edit return_url]
       set view_link ""
     }
-    set delete_link [::$page_package_id make_link -with_entities 0 [self] delete return_url]
+
+    set delete_link [::$page_package_id make_link [self] delete return_url]
     if {[info exists :__link(new)]} {
       set new_link [set :__link(new)]
     } else {
@@ -1766,7 +1767,7 @@ namespace eval ::xowiki {
     set toc_link    [::$context_package_id make_link -privilege public ::$folder_id list]
     set import_link [::$context_package_id make_link -privilege admin -link admin/import $context_package_id]
     set page_show_link [::$page_package_id make_link -privilege admin [self] show-object return_url]
-    set view_link   [::$page_package_id make_link -with_entities 0 [self] view return_url]
+    set view_link   [::$page_package_id make_link [self] view return_url]
 
     set notification_subscribe_link ""
     if {[::$context_package_id get_parameter "with_notifications" 1]} {
@@ -2631,7 +2632,7 @@ namespace eval ::xowiki {
       #:log "container $name: compute value for [$f info class]"
       if {![$f is_disabled]} {
         dict set :instance_attributes $name [$f value]
-        #:log "container $name: is set to '[dict get ${:instance_attributes} $name]'"        
+        #:log "container $name: is set to '[dict get ${:instance_attributes} $name]'"
       } elseif {[dict exists ${:instance_attributes} $name]} {
         $f value [dict get ${:instance_attributes} $name]
       }
