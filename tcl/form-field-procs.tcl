@@ -596,6 +596,27 @@ namespace eval ::xowiki::formfield {
     return $v
   }
 
+  FormField ad_instproc dict_to_fc {
+    -name
+    -type:required
+    dict
+  } {
+    
+    Convert the provided dict into form_constraint syntax
+    (comma separated).
+    
+    @param name optional form-field name
+    @param type required type of the form-field
+    @param dict dict to be converted.
+  } {
+    set result [expr {[info exists name] ? "$name:" : ""}]
+    set list $type
+    foreach {key value} $dict {
+      lappend list $key=[::xowiki::formfield::FormField fc_encode $value]
+    }
+    return $result[join $list ,]
+  }
+  
   FormField instproc value_if_nothing_is_returned_from_form {default} {
     return $default
   }
@@ -720,7 +741,7 @@ namespace eval ::xowiki::formfield {
     #   - :evaluated_answer_result
     #   - :value (highlights potentially partial results, e.g. "contains")
     #   - :help_text
-    #  
+    #
     set correct [:answer_is_correct]
     #:log "${:name} [:info class]: correct? $correct"
     switch -- $correct {
@@ -771,7 +792,7 @@ namespace eval ::xowiki::formfield {
     set :help_text $feedback
     return ${:evaluated_answer_result}
   }
-  
+
   FormField instproc make_correct {} {
     #
     # Set the form_field to a correct value, currently based on
@@ -783,7 +804,7 @@ namespace eval ::xowiki::formfield {
     # - :form_widget_CSSclass is altered to "correct" or "unknown".
     #
     #ns_log notice "FormField make_correct ${:name}: [info exists :answer] [info exists :correct_when]"
-    
+
     set :form_widget_CSSclass unknown
     if {[info exists :correct_when]} {
       #
@@ -807,18 +828,118 @@ namespace eval ::xowiki::formfield {
     set :help_text "" ;# we could provide a teacher-level feedback here.
   }
 
-  FormField instproc add_statistics {} {
+  FormField instproc add_statistics {{-options ""}} {
     dict incr :result_statistics count
     if {[info exists :evaluated_answer_result] && ${:evaluated_answer_result} eq "correct"} {
       dict incr :result_statistics correct
       #ns_log notice "??? add_statistics ${:name}: ${:result_statistics}"
     }
+    dict incr :answer_statistics ${:value}
+  }
+
+  FormField instproc word_statistics {flavor} {
+    #
+    # Word statistics based on :value. It is assumed here, that the
+    # value is basically a string with whitespace.
+    #
+    regsub -all {\s} ${:value} " " value
+    foreach w [split $value " "] {
+      dict incr :word_statistics $w
+    }
+    set :word_statistics_option $flavor
+  }
+
+  FormField instproc render_answer_statistics {} {
+    #ns_log notice ":answer_statistics: ${:answer_statistics}"
+    ::html::ul {
+      foreach {answer freq} [lsort -decreasing -integer -stride 2 -index 1 ${:answer_statistics}] {
+        html::li { html::t "$freq: $answer" }
+      }
+    }
+  }
+
+  FormField instproc render_word_statistics {} {
+    #ns_log notice ":answer_statistics: ${:answer_statistics}"
+    if {${:word_statistics_option} eq "word_cloud"} {
+      set jsWords {}
+      foreach {word freq} [lsort -decreasing -integer -stride 2 -index 1 ${:word_statistics}] {
+        lappend jsWords [subst {{text: "$word", weight: $freq}}]
+      }
+      set tsp [clock clicks -microseconds]
+      set height [expr {(12*[llength $jsWords]/10)  + 250}]
+      # set js [subst {
+      #   var jqcloud_$tsp = \[
+      #   [join $jsWords ",\n"]
+      #   \];
+      #   \$('#jqcloud_$tsp').jQCloud(jqcloud_$tsp, {autoResize: true, width: 500, steps: 5, height: $height});
+      # }]
+      set js [subst {
+        var jqcloud_$tsp = \[
+        [join $jsWords ",\n"]
+        \];
+        \$('#jqcloud_$tsp').jQCloud(jqcloud_$tsp, {autoResize: true, width: 500, height: $height});
+      }]
+      template::add_script -order 20 -src https://cdn.jsdelivr.net/npm/jqcloud2@2.0.3/dist/jqcloud.min.js
+      template::head::add_css -href https://cdn.jsdelivr.net/npm/jqcloud2@2.0.3/dist/jqcloud.min.css
+      security::csp::require script-src https://cdn.jsdelivr.net
+      security::csp::require style-src  https://cdn.jsdelivr.net
+
+      template::add_body_script -script $js
+      ::html::div -class "jq-cloud" -id jqcloud_$tsp  {}
+    } else {
+      ::html::ul {
+        foreach {word freq} [lsort -decreasing -integer -stride 2 -index 1 ${:word_statistics}] {
+          html::li { html::t "$freq: $word" }
+          lappend jsWords [subst {{text: "$word", weight: $freq}}]
+        }
+      }
+    }
+  }
+
+  FormField instproc render_collapsed {-id:required {-label ""} -inner_method} {
+    template::add_script -src urn:ad:js:bootstrap3
+    set num [clock clicks -microseconds]
+    ::html::button -type button -class "btn btn-xs" -data-toggle "collapse" -data-target "#$id" {
+      ::html::span -class "glyphicon glyphicon-chevron-down" {::html::t $label}
+    }
+    ::html::div -id "$id" -class "collapse" {
+      :$inner_method
+    }
+  }
+
+  FormField instproc render_modal {-id:required {-label ""} -inner_method} {
+    ::html::button -type button -class "btn btn-xs" -data-toggle "modal" -data-target "#$id" {
+      ::html::span -class "glyphicon glyphicon-chevron-down" {::html::t $label}
+    }
+    ::html::div -id "$id" -class "modal fade" -tabindex -1 -role dialog aria-hidden "true" {
+      ::html::div -class "modal-dialog" -role document {
+        ::html::div -class "modal-content" {
+          ::html::div -class "modal-header" {
+            ::html::h5 -class "modal-title" { ::html::t $label }
+            ::html::button -type "button" -class "close" -data-dismiss "modal" -aria-label "Close" {
+              ::html::span -aria-hidden "true" { ::html::t -disableOutputEscaping "&times;" }
+            }
+            ::html::div -class "modal-body" {
+              #::html::t ...
+              :$inner_method
+            }
+            ::html::div -class "modal-footer" {
+              ::html::button -type "button" -class "btn btn-secondary" -data-dismiss "modal" {
+                ::html::t Close
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   FormField instproc render_result_statistics {} {
     #
-    # In case, there are result_statistics, use a "progres bar" to
+    # In case, there are result_statistics, use a "progress bar" to
     # visualize correct answers.
+    #
+    # Currently, this is bootstrap3 only.
     #
     if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
       set result_count [dict get ${:result_statistics} count]
@@ -832,6 +953,31 @@ namespace eval ::xowiki::formfield {
                 ::html::t "$percentage %"
               }
         }
+      }
+    }
+    if {[info exists :answer_statistics]} {
+      :render_collapsed \
+          -id answers-[clock clicks -microseconds] \
+          -label "#xowiki.answers#" \
+          -inner_method render_answer_statistics
+    }
+    if {[info exists :word_statistics]} {
+      ns_log notice ":word_statistics: ${:word_statistics}"
+      if {${:word_statistics_option} eq "word_cloud"} {
+        :render_modal \
+            -id words-[clock clicks -microseconds] \
+            -label "#xowiki.words#" \
+            -inner_method render_word_statistics
+      } else {
+        #
+        # The following is not used for the word cloud, since the
+        # placement of the words in the word cloud does not work in
+        # collapsed mode.
+        #
+        :render_collapsed \
+            -id words-[clock clicks -microseconds] \
+            -label "#xowiki.words#" \
+            -inner_method render_word_statistics
       }
     }
   }
@@ -1247,9 +1393,9 @@ namespace eval ::xowiki::formfield {
       $c make_correct
     }
   }
-  CompoundField instproc add_statistics {} {
+  CompoundField instproc add_statistics {{-options ""}} {
     foreach c ${:components} {
-      $c add_statistics
+      $c add_statistics -options $options
     }
   }
 
@@ -1776,6 +1922,12 @@ namespace eval ::xowiki::formfield {
       :render_disabled_as_div text
     } else {
       next
+    }
+  }
+  text instproc add_statistics {{-options ""}} {
+    next
+    if {[dict exists $options word_statistics]} {
+      :word_statistics [dict get $options word_statistics]
     }
   }
 
@@ -2697,7 +2849,7 @@ namespace eval ::xowiki::formfield {
         lappend :extraPlugins sourcedialog
       }
 
-      if {"xowikiimage" in [:extraPlugins]} {
+      if {"xowikiimage" in ${:extraPlugins}} {
         :js_image_helper
         set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
         set ready_callback2 {xowiki_image_callback(e.editor);}
@@ -2707,22 +2859,37 @@ namespace eval ::xowiki::formfield {
         set submit_callback "/*none*/;"
       }
 
+      #
+      # Append dimensions (when available) in JSON notation.
+      #
+      set dimensions {}
+      if {[info exists :height]} {
+        lappend dimensions [subst {"height": "${:height}"}]
+      }
+      if {[info exists :width]} {
+        lappend dimensions [subst {"width": "${:width}"}]
+      }
+      if {[llength $dimensions] > 0} {
+        set dimensions [join $dimensions ,],
+      }
+
       set options [subst {
+        $dimensions
         ${:additionalConfigOptions}
-        toolbar : '[:toolbar]',
-        uiColor: '[:uiColor]',
+        toolbar : '${:toolbar}',
+        uiColor: '${:uiColor}',
         language: '[lang::conn::language]',
-        skin: '[:skin]',
+        skin: '${:skin}',
         startupMode: '${:mode}',
         disableNativeSpellChecker: false,
         parent_id: '[${:object} item_id]',
         package_url: '[::$package_id package_url]',
-        extraPlugins: '[join [:extraPlugins] ,]',
-        extraAllowedContent: '[:extraAllowedContent]',
-        contentsCss: '[:contentsCss]',
+        extraPlugins: '[join ${:extraPlugins} ,]',
+        extraAllowedContent: '${:extraAllowedContent}',
+        contentsCss: '${:contentsCss}',
         imageSelectorDialog: '[:imageSelectorDialog]?parent_id=[${:object} item_id]',
         ready_callback: '$ready_callback2',
-        customConfig: '[:customConfig]',
+        customConfig: '${:customConfig}',
         textarea_id: id
       }]
       if {${:allowedContent} ne ""} {
@@ -2736,18 +2903,16 @@ namespace eval ::xowiki::formfield {
           append options "  , allowedContent: '${:allowedContent}'\n"
         }
       }
-      if {[:templatesFiles] ne ""} {
-        append options "  , templates_files: \['[join [:pathNames [:templatesFiles]] ',' ]' \]\n"
+      if {${:templatesFiles} ne ""} {
+        append options "  , templates_files: \['[join [:pathNames ${:templatesFiles}] ',' ]' \]\n"
       }
-      if {[:templates] ne ""} {
-        append options "  , templates: '[:templates]'\n"
+      if {${:templates} ne ""} {
+        append options "  , templates: '${:templates}'\n"
       }
 
       #set parent [[${:object} package_id] get_page_from_item_or_revision_id [${:object} parent_id]];# ???
 
       if {${:displayMode} eq "inplace"} {
-        set callback [:callback]
-        set destroy_callback [:destroy_callback]
 
         lappend :CSSclass ckeip
         ::xo::Page requireJS "/resources/xowiki/ckeip.js"
@@ -2755,11 +2920,11 @@ namespace eval ::xowiki::formfield {
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
             // must use id provided as argument
-            \$('#' + id).ckeip(function() { $callback }, {
+            \$('#' + id).ckeip(function() { ${:callback}}, {
               name: '$name',
               ckeditor_config: {
                 $options,
-                destroy_callback: function() { $destroy_callback }
+                destroy_callback: function() { ${:destroy_callback} }
               }
             });
           }
@@ -2781,12 +2946,12 @@ namespace eval ::xowiki::formfield {
         }
         :render_richtext_as_div
       } elseif {${:displayMode} eq "inline"} {
-        if {"xowikiimage" in [:extraPlugins]} {
+        if {"xowikiimage" in ${:extraPlugins}} {
           set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
           set submit_callback "calc_image_tags_to_wiki_image_links_inline('$id');"
         }
 
-        set submit_callback "$submit_callback [:submit_callback]"
+        set submit_callback "$submit_callback ${:submit_callback}"
         ::xo::Page requireJS [subst {
           function load_$id (id) {
             CKEDITOR.inline(id, {
@@ -2820,11 +2985,10 @@ namespace eval ::xowiki::formfield {
         }
         next
       } else {
-        set callback [:callback]
         ::xo::Page requireJS [subst -nocommands {
           function load_$id (id) {
             // must use id provided as argument
-            \$('#' + id).ckeditor(function() { $callback }, {$options});
+            \$('#' + id).ckeditor(function() { ${:callback} }, {$options});
           }
         }]
         if {!$is_repeat_template} {
@@ -3004,7 +3168,7 @@ namespace eval ::xowiki::formfield {
         ::html::div [:get_attributes id name {CSSclass class} disabled] {
           set href \#
           ::html::a -style "float: right;" -class edit-item-button -href $href -id ${:id}-edit {
-            ::html::t  -disableOutputEscaping &nbsp;
+            ::html::t -disableOutputEscaping &nbsp;
           }
           template::add_event_listener \
               -id ${:id}-edit \
@@ -3033,6 +3197,8 @@ namespace eval ::xowiki::formfield {
   # abstract superclass for select and radio
   Class create ShuffleField -superclass FormField -parameter {
     {options ""}
+    {render_hints ""}
+    {show_max ""}    
     {shuffle_kind:wordchar none}
   } -ad_doc {
 
@@ -3048,10 +3214,9 @@ namespace eval ::xowiki::formfield {
     #
     # Produce a list of random indices.
     #
-    # In case, the shuffle_kind is not "always", we assume currently a
-    # per-user shuffling.  produced every call. When the seed is
-    # provided (e.g. a user_id) then the shuffling is stable for this
-    # seed.
+    # In case, the shuffle_kind is not "always", we assume a shuffling
+    # produced by every call. When a seed is provided (e.g. a user_id)
+    # then the shuffling is stable for this seed.
     #
     if {${:shuffle_kind} ne "always"} {
 
@@ -3075,6 +3240,37 @@ namespace eval ::xowiki::formfield {
     return $shuffled
   }
 
+  ShuffleField instproc valid_subselection {shuffled} {
+    if {${:show_max} < [llength $shuffled]} {
+      #
+      # Take first n shuffled elements as subselection
+      #
+      set range [expr {${:show_max} - 1}]
+      set subselection [lrange $shuffled 0 $range]
+
+      if {!${:multiple}} {
+        #
+        # Multiple choice: Accept every subselection as valid for the
+        # time being.
+        #
+      } else {
+        #
+        # Single choice: make sure that the correct element is
+        # included in subselection.
+        #
+        set must_contain [expr {${:answer_value} - 1}]
+        if {$must_contain ni $subselection} {
+          #ns_log notice "--- have to fix subselection does not contain $must_contain"
+          set dropIndex [expr {int($range * rand())}]
+          set subselection [lreplace $subselection $dropIndex $dropIndex $must_contain]
+          #ns_log notice "--- fixed subselection dropIndex $dropIndex -> $subselection"
+        }
+      }
+      set shuffled $subselection
+    }
+    return $shuffled
+  }
+
   ShuffleField instproc shuffle_options {} {
     #
     # Reorder :options and :answers when :shuffle is activated.
@@ -3093,13 +3289,22 @@ namespace eval ::xowiki::formfield {
       # Use the random indices for reordering the :options and
       # :answers.
       #
-      #ns_log notice "SHUFFLE ${:name} <$shuffled> <$indices>"
+      if {[info exists :answer_value] && ${:show_max} ne ""} {
+        set shuffled [:valid_subselection $shuffled]
+        ns_log notice "SHUFFLE ${:name} <$shuffled> answer_value ${:answer_value} MAX <${:show_max}>"
+      }
       set option2 {}; set answer2 {}; set answer_value2 {}
+      if {[llength ${:render_hints}] > 0} {
+        set render_hints2 {}
+      }
       foreach i $shuffled {
         lappend option2 [lindex ${:options} $i]
         lappend answer2 [lindex ${:answer} $i]
         if {${:multiple} && [info exists :answer_value]} {
           lappend answer_value2 [lindex ${:answer_value} $i]
+        }
+        if {[info exists render_hints2]} {
+          lappend render_hints2 [lindex ${:render_hints} $i]
         }
       }
       #ns_log notice "SHUFFLE ${:name} o2=$option2 answer2=$answer2"
@@ -3107,6 +3312,9 @@ namespace eval ::xowiki::formfield {
       set :answer $answer2
       if {${:multiple}} {
         set :answer_value $answer_value2
+      }
+      if {[info exists render_hints2]} {
+        set :render_hints $render_hints2
       }
     }
   }
@@ -3202,7 +3410,7 @@ namespace eval ::xowiki::formfield {
     #ns_log notice "???? make_correct sets value ${:answer_value}"
   }
 
-  enumeration instproc add_statistics {} {
+  enumeration instproc add_statistics {{-options ""}} {
     #ns_log notice "???? add_statistics"
     #
     # Add generic statistics
@@ -3287,7 +3495,7 @@ namespace eval ::xowiki::formfield {
 
   enumeration instproc render_result_statistics {rep} {
     #
-    # In case, there are result_statistics, use a "progres bar" to
+    # In case, there are result_statistics, use a "progress bar" to
     # visualize correct answers.
     #
     if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
@@ -3454,24 +3662,39 @@ namespace eval ::xowiki::formfield {
     shuffled.
 
   }
-
+  
   text_fields instproc initialize {} {
     # The value of ":multiple" has to be true for shuffling.
     set :multiple true
     next
 
-    set disabled [:is_disabled]
+    #
+    # Properties for all fields
+    #
+    dict set fc_dict disabled [:is_disabled]
+    dict set fc_dict disabled_as_div [info exists :disabled_as_div]
+    dict set fc_dict label ""
+
     set fields {}
     set answers [expr {[info exists :answer] ? ${:answer} : ""}]
-    set disabled_as_div disabled_as_div=[info exists :disabled_as_div]
-    foreach option ${:options} a $answers {
+    
+    foreach option ${:options} a $answers render_hints_dict ${:render_hints} {
+      #
+      # Properties for a single fields
+      #
+      set field_fc_dict $fc_dict
+      
+      if {[dict exists $render_hints_dict words]} {
+        dict set field_fc_dict placeholder #xowiki.[dict get $render_hints_dict words]#
+      }
+      dict set field_fc_dict correct_when $a
+
       lassign $option text rep
-      lappend fields [list $rep "text,$disabled_as_div,correct_when=[::xowiki::formfield::FormField fc_encode $a],disabled=$disabled,label="]
+      lappend fields [list $rep [:dict_to_fc -type text $field_fc_dict]]      
     }
 
     #:log "TEXT text_fields fields\n[join $fields \n]>"
     :create_components $fields
-    #:log "TEXT text_fields components <${:components}>"
   }
 
   text_fields instproc set_feedback {feedback_mode} {
@@ -3483,7 +3706,7 @@ namespace eval ::xowiki::formfield {
     set :evaluated_answer_result [expr {"0" in ${:correction} ? "incorrect" : "correct"}]
     return ${:evaluated_answer_result}
   }
-  
+
   text_fields instproc answer_is_correct {} {
     #:log "text_fields  CORRECT? ${:name}"
 
@@ -3523,7 +3746,7 @@ namespace eval ::xowiki::formfield {
         html::li {
           html::t -disableOutputEscaping [:get_text_entry [$c name]]
           $c render
-          $c render_result_statistics 
+          $c render_result_statistics
         }
       }
     }
@@ -3784,7 +4007,7 @@ namespace eval ::xowiki::formfield {
                        -parent_id [${:object} parent_id] \
                        -default_lang [${:object} lang] \
                        -forms $form_name -package_id ${:package_id}]
-    #:log "form_page $form_name resolved into '$form_objs'"
+    :log "form_page $form_name resolved into '$form_objs'"
 
     if {$form_objs eq ""} {
       error "Cannot lookup Form '$form_name'"
@@ -3801,10 +4024,10 @@ namespace eval ::xowiki::formfield {
       return
     }
 
-    array set wc {tcl true h "" vars "" sql ""}
+    set wc {tcl true h "" vars "" sql ""}
     if {[info exists :where]} {
-      array set wc [::xowiki::FormPage filter_expression ${:where} &&]
-      #:msg "where '${:where}' => wc=[array get wc]"
+      set wc [dict merge $wc [::xowiki::FormPage filter_expression ${:where} &&]]
+      #:msg "where '${:where}' => wc=$wc"
     }
 
     set from_package_ids {}
@@ -3819,7 +4042,7 @@ namespace eval ::xowiki::formfield {
                    -base_item_ids ${:form_object_item_ids} \
                    -form_fields [list] \
                    -publish_status ready \
-                   -h_where [array get wc] \
+                   -h_where $wc \
                    -package_id ${:package_id} \
                    -from_package_ids $from_package_ids]
 
@@ -3845,6 +4068,42 @@ namespace eval ::xowiki::formfield {
     next
   }
 
+  form_page instproc convert_to_internal {} {
+    #
+    # The "value" consists of multiple lines, where every line is a
+    # separate item_ref as returned by "compute_options". Add these as
+    # extra references to the associated object each time the page is
+    # updated.
+    #
+    if {${:value} ne ""} {
+      set references {}
+      #:log "---- form_page.convert_to_internal <${:value}>"
+      set package_id [${:object} package_id]
+      set parent_id [${:object} parent_id]
+      ::xo::db::CrClass get_instance_from_db -item_id $parent_id
+      set parent_id [$parent_id parent_id]
+
+      foreach name [split ${:value} \n] {
+        set item_info [::$package_id item_ref -normalize_name false \
+                           -use_package_path 1 \
+                           -default_lang [${:object} lang] \
+                           -parent_id $parent_id \
+                           $name]
+        set item_id [dict get $item_info item_id]
+        #:log "---- $name -> item_id $item_id"
+        if {$item_id ne 0} {
+          lappend references [list $item_id wf_form]
+        }
+      }
+      if {[llength $references] > 0} {
+        #:msg "updating references refs=$references"
+        #
+        # In case, there are already __extra_references, append it.
+        #
+        ${:object} lappend __extra_references {*}$references
+      }
+    }
+  }
 
   ###########################################################
   #
