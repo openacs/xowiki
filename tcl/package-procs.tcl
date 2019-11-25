@@ -910,7 +910,8 @@ namespace eval ::xowiki {
         #
         lappend args [list m $method]
       }
-      set computed_link [uplevel export_vars -base [list $base] [list $args]]
+      #set computed_link [uplevel export_vars -base [list $base] -no_base_encode [list $args]]
+      set computed_link [uplevel [list export_vars -base $base -no_base_encode $args]]
       #:msg "computed_link = '$computed_link'"
     }
     if {$with_entities} {
