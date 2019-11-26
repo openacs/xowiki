@@ -2098,11 +2098,11 @@ namespace eval ::xowiki {
                                        -base_item
                                        -field_names
                                        -form_constraints
+                                       {-nls_language ""}
                                      } {
 
     array set __att [list publish_status 1]
-    foreach att [::xowiki::FormPage array names db_slot] {set __att($att) 1}
-    foreach att [list last_modified creation_user] {
+    foreach att [list last_modified creation_user {*}[::xowiki::FormPage array names db_slot]] {
       set __att($att) 1
     }
 
@@ -2134,7 +2134,9 @@ namespace eval ::xowiki {
           set f [$base_item create_raw_form_field \
                      -name $field_name \
                      -slot [$base_item find_slot $varname] \
-                     -spec $cr_field_spec,$short_spec]
+                     -spec $cr_field_spec,$short_spec \
+                     -nls_language $nls_language \
+                    ]
           #:log "---> $f <[$f label]>"
           $f set __base_field $varname
         }
@@ -2142,7 +2144,9 @@ namespace eval ::xowiki {
           set f [$base_item create_raw_form_field \
                      -name $field_name \
                      -slot "" \
-                     -spec $field_spec,$short_spec]
+                     -spec $field_spec,$short_spec \
+                     -nls_language $nls_language \
+                    ]
         }
       }
       lappend form_fields $f
@@ -2174,12 +2178,16 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
+    {-nls_language ""} 
   } {
     set save_slot $slot
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
       set slot [::xo::Attribute new -pretty_name $name -datatype text -noinit]
       $slot destroy_on_cleanup
+    }
+    if {$nls_language eq ""} {
+      set nls_language [:nls_language]
     }
 
     set spec_list [list]
@@ -2203,7 +2211,7 @@ namespace eval ::xowiki {
     }
     set f [::xowiki::formfield::FormField new -name $name \
                -id        [::xowiki::Includelet html_id F.${:name}.$name] \
-               -locale    [:nls_language] \
+               -locale    $nls_language \
                -label     $label \
                -type      [expr {[$slot exists datatype]  ? [$slot set datatype]  : "text"}] \
                -help_text [expr {[$slot exists help_text] ? [$slot set help_text] : ""}] \
@@ -2226,6 +2234,7 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
+    {-nls_language ""} 
   } {
     # For workflows, we do not want to get the form constraints of the
     # page itself (i.e. the property of the generic workflow form) but
@@ -2247,7 +2256,13 @@ namespace eval ::xowiki {
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     #:log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
-    set f [next -name $name -slot $slot -spec [join $spec_list ,] -configuration $configuration]
+    set f [next \
+               -name $name \
+               -slot $slot \
+               -spec [join $spec_list ,] \
+               -configuration $configuration \
+               -nls_language $nls_language \
+              ]
     #:log "created form-field '$name' $f [$f info class] validator=[$f validator] p=[$f info precedence]"
     return $f
   }

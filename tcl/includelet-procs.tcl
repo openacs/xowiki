@@ -4218,7 +4218,7 @@ namespace eval ::xowiki::includelet {
           {-form}
           {-parent_id}
           {-package_ids ""}
-          {-orderby "_last_modified,desc"}
+          {-orderby "_raw_last_modified,desc"}
           {-view_field _name}
           {-publish_status "all"}
           {-field_names}
@@ -4240,6 +4240,7 @@ namespace eval ::xowiki::includelet {
           {-buttons "edit delete"}
           {-renderer ""}
           {-return_url}
+          {-date_format}
         }}
       }  -ad_doc {
         Show usages of the specified form.
@@ -4248,6 +4249,9 @@ namespace eval ::xowiki::includelet {
            When provided and NOT empty, use the value as return_url.
            When provided and empty, do NOT set an return URL.
            When NOT provided, set the calling page as return_url.
+        @param date_format
+           Date format used for modification date.
+           Might be "pretty-age" or a format string like "%Y-%m-%d %T".
       }
 
   #          {-renderer "YUIDataTableRenderer"}
@@ -4334,6 +4338,7 @@ namespace eval ::xowiki::includelet {
     set table_properties [::xowiki::PageInstance get_list_from_form_constraints \
                               -name @table_properties \
                               -form_constraints $form_constraints]
+
     foreach {attr value} $table_properties {
       # All labels of the following switch statement are used
       # as variable names. Take care when adding new labels not to
@@ -4388,9 +4393,13 @@ namespace eval ::xowiki::includelet {
       set form_fields [::xowiki::FormPage get_table_form_fields \
                            -base_item $form_item \
                            -field_names $field_names \
-                           -form_constraints $form_constraints]
+                           -form_constraints $form_constraints \
+                           -nls_language [${:__including_page} nls_language] \
+                          ]
       #$form_item show_fields $form_fields
-      foreach f $form_fields {set __ff([$f name]) $f}
+      foreach f $form_fields {
+        set __ff([$f name]) $f
+      }
       #foreach f $form_fields {ns_log notice "form <[$form_item name]: field [$f name] label [$f label]"}
     }
     # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
@@ -4398,17 +4407,28 @@ namespace eval ::xowiki::includelet {
     # TODO: wiki-substitution is just forced in here. Maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
-    if {[info exists __ff(_text)]} {$__ff(_text) set wiki 1}
+    if {[info exists __ff(_text)]} {
+      $__ff(_text) set wiki 1
+    }
 
-    foreach b $buttons {set use_button($b) 1}
+    if {[info exists __ff(_last_modified)] && [info exists date_format]} {
+      $__ff(_last_modified) display_format $date_format
+    }
+
+    foreach b $buttons {
+      set use_button($b) 1
+    }
 
     set cols ""
     # we currently support only 'export' as bulk action
     set bulk_action_cols ""
     foreach bulk_action $bulk_actions {
       if {$bulk_action eq "export"} {
-        append actions [subst {Action bulk-delete -label [_ xowiki.export] -tooltip [_ xowiki.export] \
-                                   -url [::$package_id package_url]admin/export}]\n
+        append actions [list Action bulk-delete \
+                            -label [_ xowiki.export] \
+                            -tooltip [_ xowiki.export] \
+                            -url [::$package_id package_url]admin/export \
+                           ] \n
       }
     }
     if {[llength $bulk_actions] > 0} {
@@ -4416,7 +4436,8 @@ namespace eval ::xowiki::includelet {
       append cols {HiddenField create ID} \n
     }
     if {[info exists use_button(publish_status)]} {
-      append cols {ImageAnchorField create _publish_status -orderby _publish_status.src -src "" \
+      append cols {ImageAnchorField create _publish_status \
+                       -orderby _publish_status.src -src "" \
                        -width 8 -height 8 -title "Toggle Publish Status" \
                        -alt "publish status" -label [_ xowiki.publish_status] \
                        -CSSclass publish-status-item-button \
@@ -4434,24 +4455,35 @@ namespace eval ::xowiki::includelet {
       append cols {AnchorField create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
+    set sort_fields {}
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
+      set field_orderby [expr {$fn eq "_last_modified" ? "_raw_last_modified" : $fn}]
       append cols [list AnchorField create $fn \
                        -label [$__ff($fn) label] \
                        -richtext 1 \
-                       -orderby $fn \
+                       -orderby $field_orderby \
                       ] \n
+      lappend sort_fields $field_orderby
     }
     if {[info exists use_button(delete)]} {
       #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
-      append cols [list AnchorField create _delete -CSSclass delete-item-button -label "" -no_csv 1 -richtext 1] \n
+      append cols [list AnchorField create _delete \
+                       -CSSclass delete-item-button \
+                       -label "" \
+                       -no_csv 1 \
+                       -richtext 1] \n
     }
+    #ns_log notice "COLS\n$cols"
 
     set cmd [list TableWidget create t1 -volatile -columns $cols]
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] {
+      switch [parameter::get_global_value \
+                  -package_key xowiki \
+                  -parameter PreferredCSSToolkit \
+                  -default bootstrap] {
         bootstrap {set renderer BootstrapTableRenderer}
         default   {set renderer YUIDataTableRenderer}
       }
@@ -4466,7 +4498,7 @@ namespace eval ::xowiki::includelet {
     #
     lassign [split $orderby ,] att order
     set sortable 1
-    if {$att ni $field_names} {
+    if {$att ni $sort_fields} {
       # if {[ns_conn isconnected]} {
       #   set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
       #   if {[string match "*bingbot*" $user_agent] || [string match "*turnitin*" $user_agent]} {
@@ -4615,6 +4647,7 @@ namespace eval ::xowiki::includelet {
 
       # set always last_modified for default sorting
       $__c set _last_modified [$p set last_modified]
+      $__c set _raw_last_modified [$p set last_modified]
 
       foreach __fn $field_names {
         $__ff($__fn) object $p
