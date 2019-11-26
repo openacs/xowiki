@@ -3291,7 +3291,7 @@ namespace eval ::xowiki::formfield {
       #
       if {[info exists :answer_value] && ${:show_max} ne ""} {
         set shuffled [:valid_subselection $shuffled]
-        ns_log notice "SHUFFLE ${:name} <$shuffled> answer_value ${:answer_value} MAX <${:show_max}>"
+        #ns_log notice "SHUFFLE ${:name} <$shuffled> answer_value ${:answer_value} MAX <${:show_max}>"
       }
       set option2 {}; set answer2 {}; set answer_value2 {}
       if {[llength ${:render_hints}] > 0} {
