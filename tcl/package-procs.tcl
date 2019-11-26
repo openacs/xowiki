@@ -997,7 +997,7 @@ namespace eval ::xowiki {
     # ad_script_abort, so use ad_try to catch these properly.
     #
     ad_try {
-      set page_or_package [:resolve_page ${:object} method]
+      set page_or_package [:resolve_page -lang [:default_language] ${:object} method]
     } on error {errorMsg} {
       #
       # Report true errors in the error log and return the template.
