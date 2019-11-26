@@ -859,7 +859,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_word_statistics {} {
-    #ns_log notice ":answer_statistics: ${:answer_statistics}"
+    #ns_log notice ":render_word_statistics: ${:word_statistics_option}"
     if {${:word_statistics_option} eq "word_cloud"} {
       set jsWords {}
       foreach {word freq} [lsort -decreasing -integer -stride 2 -index 1 ${:word_statistics}] {
@@ -2356,6 +2356,21 @@ namespace eval ::xowiki::formfield {
                               ::html::t [:value]
                             }
       :resetBooleanAttributes $booleanAtts
+    }
+    :render_result_statistics
+  }
+
+  textarea instproc set_feedback {feedback_mode} {
+    set :correction [next]
+    return ${:correction}
+  }
+  
+  textarea instproc add_statistics {{-options ""}} {
+    #:log "add_statistics $options"
+    next
+    if {[dict exists $options word_statistics]} {
+      :log "add_statistics call :word_statistics"
+      :word_statistics [dict get $options word_statistics]
     }
   }
 
