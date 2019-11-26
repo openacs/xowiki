@@ -1121,7 +1121,9 @@ namespace eval ::xowiki {
     }
     set [expr {$revision_id ? "item_id" : "revision_id"}] 0
     #:log "--instantiate item_id $item_id revision_id $revision_id"
-    return [::xo::db::CrClass get_instance_from_db -item_id $item_id -revision_id $revision_id]
+    return [::xo::db::CrClass get_instance_from_db \
+                -item_id $item_id \
+                -revision_id $revision_id]
   }
 
   Package instproc resolve_page {
@@ -2139,7 +2141,10 @@ namespace eval ::xowiki {
   }
 
   Package proc lookup_side_wide_page {-name:required} {
-    return [::xo::db::CrClass lookup -name $name -parent_id -100]
+    return [::xo::db::CrClass lookup \
+                -name $name \
+                -parent_id -100 \
+                -content_type "::%"]
   }
 
   Package proc get_site_wide_page {-name:required} {
