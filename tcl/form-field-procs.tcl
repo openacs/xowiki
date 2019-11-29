@@ -811,9 +811,19 @@ namespace eval ::xowiki::formfield {
       # Try to get a correct value from the correct_when spec
       #
       set predicate [lindex ${:correct_when} 0]
+      set args [lrange ${:correct_when} 1 end]
       switch $predicate {
-        "eq"       {set correct [lindex ${:correct_when} 1]}
-        "contains" {set correct "... [lindex ${:correct_when} 1] ..."}
+        "match"    {set correct $args}
+        "eq"       {set correct $args}
+        "gt"       {set correct "> $args"}
+        "ge"       {set correct ">= $args"}
+        "lt"       {set correct "< $args"}
+        "le"       {set correct "<= $args"}
+        "contains" {set correct "... [join $args { ... }] ..."}
+        "answer_words" {set correct "... [join $args { ... }] ..."}
+        "in"       {set correct "... [join args { OR }] ..."}
+        "btwn"     {set correct "[index $args 0] <= X <= [index $args 1]"}
+
       }
       if {[info exists correct]} {
         :value $correct
