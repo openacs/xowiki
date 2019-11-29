@@ -3591,7 +3591,7 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      if {${:horizontal}} {append label_class " radio-inline"}
+      if {1 || ${:horizontal}} {append label_class "col-sm2 radio-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label
