@@ -601,10 +601,10 @@ namespace eval ::xowiki::formfield {
     -type:required
     dict
   } {
-    
+
     Convert the provided dict into form_constraint syntax
     (comma separated).
-    
+
     @param name optional form-field name
     @param type required type of the form-field
     @param dict dict to be converted.
@@ -616,7 +616,7 @@ namespace eval ::xowiki::formfield {
     }
     return $result[join $list ,]
   }
-  
+
   FormField instproc value_if_nothing_is_returned_from_form {default} {
     return $default
   }
@@ -2364,7 +2364,7 @@ namespace eval ::xowiki::formfield {
     set :correction [next]
     return ${:correction}
   }
-  
+
   textarea instproc add_statistics {{-options ""}} {
     #:log "add_statistics $options"
     next
@@ -3213,7 +3213,7 @@ namespace eval ::xowiki::formfield {
   Class create ShuffleField -superclass FormField -parameter {
     {options ""}
     {render_hints ""}
-    {show_max ""}    
+    {show_max ""}
     {shuffle_kind:wordchar none}
   } -ad_doc {
 
@@ -3263,7 +3263,7 @@ namespace eval ::xowiki::formfield {
       set range [expr {${:show_max} - 1}]
       set subselection [lrange $shuffled 0 $range]
 
-      if {!${:multiple}} {
+      if {${:multiple}} {
         #
         # Multiple choice: Accept every subselection as valid for the
         # time being.
@@ -3677,7 +3677,7 @@ namespace eval ::xowiki::formfield {
     shuffled.
 
   }
-  
+
   text_fields instproc initialize {} {
     # The value of ":multiple" has to be true for shuffling.
     set :multiple true
@@ -3692,20 +3692,20 @@ namespace eval ::xowiki::formfield {
 
     set fields {}
     set answers [expr {[info exists :answer] ? ${:answer} : ""}]
-    
+
     foreach option ${:options} a $answers render_hints_dict ${:render_hints} {
       #
       # Properties for a single fields
       #
       set field_fc_dict $fc_dict
-      
+
       if {[dict exists $render_hints_dict words]} {
         dict set field_fc_dict placeholder #xowiki.[dict get $render_hints_dict words]#
       }
       dict set field_fc_dict correct_when $a
 
       lassign $option text rep
-      lappend fields [list $rep [:dict_to_fc -type text $field_fc_dict]]      
+      lappend fields [list $rep [:dict_to_fc -type text $field_fc_dict]]
     }
 
     #:log "TEXT text_fields fields\n[join $fields \n]>"
