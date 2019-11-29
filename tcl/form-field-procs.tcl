@@ -3649,7 +3649,7 @@ namespace eval ::xowiki::formfield {
       if {$rep in $value} {
         lappend atts checked checked
       }
-      if {${:horizontal}} {append label_class " checkbox-inline"}
+      if {1 || ${:horizontal}} {append label_class "col-sm2 checkbox-inline"}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label
