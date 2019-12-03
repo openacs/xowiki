@@ -2,7 +2,6 @@
   <property name="doc(title)">@title;literal@</property>
   <property name="context">@context;literal@</property>
   <property name="head">@header_stuff;literal@
-  <link rel="stylesheet" type="text/css" href="/resources/xowiki/xowiki-<%= ::xowiki::Package preferredCSSToolkit %>.css" media="all" />
   </property>
 
 <div class='xowiki-content'>
