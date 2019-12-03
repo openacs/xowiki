@@ -3395,6 +3395,21 @@ namespace eval ::xowiki::formfield {
   }
   enumeration abstract instproc render_input {}
 
+  enumeration instproc value_if_nothing_is_returned_from_form {default} {
+
+    # Here we have to distinguish between two cases:
+    # - edit mode: somebody has removed a mark from a check button;
+    #   this means: clear the field
+    # - view mode: the fields were deactivated (made insensitive);
+    #   this means: keep the old value -> return default
+
+    if {[info exists :disabled]} {
+      return $default
+    } else {
+      return ""
+    }
+  }
+
   enumeration instproc get_labels {values} {
     if {${:multiple}} {
       set labels [list]
@@ -3627,21 +3642,6 @@ namespace eval ::xowiki::formfield {
     set :multiple true
     set :widget_type text(checkbox)
     next
-  }
-
-  checkbox instproc value_if_nothing_is_returned_from_form {default} {
-
-    # Here we have to distinguish between two cases:
-    # - edit mode: somebody has removed a mark from a check button;
-    #   this means: clear the field
-    # - view mode: the fields were deactivated (made insensitive);
-    #   this means: keep the old value
-
-    if {[info exists :disabled]} {
-      return $default
-    } else {
-      return ""
-    }
   }
 
   checkbox instproc render_input {} {
@@ -4722,7 +4722,11 @@ namespace eval ::xowiki::formfield {
     {default t}
   }
   boolean instproc value_if_nothing_is_returned_from_form {default} {
-    if {[info exists :disabled]} {return $default} else {return f}
+    if {[info exists :disabled]} {
+      return $default
+    } else {
+      return f
+    }
   }
   boolean instproc initialize {} {
     # should be with cvs head message catalogs:
