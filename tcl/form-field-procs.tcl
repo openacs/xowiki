@@ -482,6 +482,20 @@ namespace eval ::xowiki::formfield {
     return [expr {[info exists :disabled] && [string is true -strict ${:disabled}]}]
   }
 
+  FormField instproc handle_transmit_always {value} {  
+    #
+    # Disabled fields are not returned by the browsers. For some
+    # fields, we require to be sent. Therefore, we include in these
+    # cases the value in an additional hidden field. Maybe we should
+    # change in the future the "name" of the disabled entry to keep
+    # some hypothetical html-checker quiet.
+    #
+    if {[info exists :disabled] && [info exists :transmit_field_always]} {
+      ::html::div {
+        ::html::input [list type hidden name ${:name} value $value] {}
+      }
+    }
+  }
 
   FormField instproc render_input {} {
     #
@@ -522,18 +536,8 @@ namespace eval ::xowiki::formfield {
     :resetBooleanAttributes $booleanAtts
     set :value $old_value
 
-    #
-    # Disabled fields are not returned by the browsers. For some
-    # fields, we require to be sent. Therefore, we include in these
-    # cases the value in an additional hidden field. Maybe we should
-    # change in the future the "name" of the disabled entry to keep
-    # some hypothetical html-checker quiet.
-    #
-    if {[info exists :disabled] && [info exists :transmit_field_always]} {
-      ::html::div {
-        ::html::input [list type hidden name ${:name} value $value] {}
-      }
-    }
+    :handle_transmit_always $value
+
     set :__rendered 1
   }
 
@@ -3626,6 +3630,7 @@ namespace eval ::xowiki::formfield {
         html::br
       }
     }
+    :handle_transmit_always $value
   }
 
   ###########################################################
@@ -3670,6 +3675,7 @@ namespace eval ::xowiki::formfield {
         html::br
       }
     }
+    :handle_transmit_always $value
   }
 
   ###########################################################
@@ -3795,6 +3801,7 @@ namespace eval ::xowiki::formfield {
   }
 
   select instproc render_input {} {
+    set value [:value]
     set atts [:get_attributes id name disabled {CSSclass class}]
     if {${:multiple}} {lappend atts multiple ${:multiple}}
     if {!${:required}} {
@@ -3805,13 +3812,15 @@ namespace eval ::xowiki::formfield {
         lassign $o label rep
         set atts [:get_attributes disabled]
         lappend atts value $rep
-        #:msg "lsearch {[:value]} $rep ==> [lsearch [:value] $rep]"
-        if {$rep in [:value]} {
+        #:msg "lsearch {$value} $rep ==> [lsearch $value $rep]"
+        if {$rep in $value} {
           lappend atts selected selected
         }
         ::html::option $atts {::html::t $label}
         ::html::t \n
-      }}
+      }
+    }
+    :handle_transmit_always $value
   }
 
 
