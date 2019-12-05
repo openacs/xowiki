@@ -858,7 +858,7 @@ namespace eval ::xowiki::formfield {
     #
     regsub -all {\s} ${:value} " " value
     foreach w [split $value " "] {
-      dict incr :word_statistics $w
+      dict incr :word_statistics [string tolower $w]
     }
     set :word_statistics_option $flavor
   }
@@ -875,8 +875,14 @@ namespace eval ::xowiki::formfield {
   FormField instproc render_word_statistics {} {
     #ns_log notice ":render_word_statistics: ${:word_statistics_option}"
     if {${:word_statistics_option} eq "word_cloud"} {
+      # stopword list based on lucene, added a few more terms
+      set stopWords { 
+        a about an and are as at be but by do does for from how if in into is it no not of on or 
+        such that the their then there these they this to vs was what when where who will with
+      }
       set jsWords {}
       foreach {word freq} [lsort -decreasing -integer -stride 2 -index 1 ${:word_statistics}] {
+        if {$word in $stopWords} continue
         lappend jsWords [subst {{text: "$word", weight: $freq}}]
       }
       set tsp [clock clicks -microseconds]
