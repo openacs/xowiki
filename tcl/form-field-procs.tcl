@@ -1461,7 +1461,7 @@ namespace eval ::xowiki::formfield {
     if {[:viruscheck]
         && [info exists :tmpfile]
         && $value ne ""
-        && [file exists ${:tmpfile}]
+        && [::file exists ${:tmpfile}]
         && [::xowiki::virus check ${:tmpfile}]
       } {
       #util_user_message -message "uploaded file contains a virus; upload rejected"
