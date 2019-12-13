@@ -482,7 +482,7 @@ namespace eval ::xowiki::formfield {
     return [expr {[info exists :disabled] && [string is true -strict ${:disabled}]}]
   }
 
-  FormField instproc handle_transmit_always {value} {  
+  FormField instproc handle_transmit_always {value} {
     #
     # Disabled fields are not returned by the browsers. For some
     # fields, we require to be sent. Therefore, we include in these
@@ -876,8 +876,8 @@ namespace eval ::xowiki::formfield {
     #ns_log notice ":render_word_statistics: ${:word_statistics_option}"
     if {${:word_statistics_option} eq "word_cloud"} {
       # stopword list based on lucene, added a few more terms
-      set stopWords { 
-        a about an and are as at be but by do does for from how if in into is it no not of on or 
+      set stopWords {
+        a about an and are as at be but by do does for from how if in into is it no not of on or
         such that the their then there these they this to vs was what when where who will with
       }
       set jsWords {}
@@ -3626,7 +3626,7 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {append label_class "col-sm2 radio-inline"}
+      if {1 || ${:horizontal}} {lappend label_class col-sm2 radio-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label
@@ -3670,7 +3670,7 @@ namespace eval ::xowiki::formfield {
       if {$rep in $value} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {append label_class "col-sm2 checkbox-inline"}
+      if {1 || ${:horizontal}} {lappend label_class col-sm2 checkbox-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label
@@ -3727,7 +3727,13 @@ namespace eval ::xowiki::formfield {
       dict set field_fc_dict correct_when $a
 
       lassign $option text rep
-      lappend fields [list $rep [:dict_to_fc -type text $field_fc_dict]]
+      if {[dict get $render_hints_dict words] eq "multiple_lines"} {
+        set type textarea
+        dict set field_fc_dict rows [dict get $render_hints_dict lines]
+      } else {
+        set type text
+      }
+      lappend fields [list $rep [:dict_to_fc -type $type $field_fc_dict]]
     }
 
     #:log "TEXT text_fields fields\n[join $fields \n]>"
