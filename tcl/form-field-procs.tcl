@@ -1962,9 +1962,13 @@ namespace eval ::xowiki::formfield {
 
   correct_when instproc check=valid_predicate {value} {
     set predicate [lindex $value 0]
-    set valid [expr {[:info methods answer_check=$predicate] ne ""}]
-    if {!$valid} {
-      :uplevel [list set errorMsg "invalid predicate $predicate"]
+    if {$predicate ne ""} {
+      set valid [expr {[:info methods answer_check=$predicate] ne ""}]
+      if {!$valid} {
+        :uplevel [list set errorMsg "invalid predicate $predicate"]
+      }
+    } else {
+      set valid 1
     }
     return $valid
   }
