@@ -1,12 +1,17 @@
+ad_include_contract {
+  View a page
+} {
+  item_id:naturalnum,optional
+  url:localurl,optional
+  template_file:optional
+}
+
 set parameter [subst {
   {-m view}
   {-return_url "[ns_conn url]"}
   {-template_file "view-links"}
   {-folder_id 0}
 }]
-
-# TODO the following should be done more elegantly
-set actual_query [expr {[info exists template_file] ? "template_file=$template_file" : " "}]
 
 if {[info exists url]} {
   #
@@ -15,7 +20,7 @@ if {[info exists url]} {
   ::xowiki::Package initialize \
       -parameter $parameter \
       -url $url \
-      -actual_query $actual_query
+      -actual_query [export_vars -no_empty template_file]
 } else {
   #
   # Old style, use item_id.
