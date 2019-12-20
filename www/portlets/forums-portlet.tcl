@@ -1,3 +1,6 @@
+ad_include_contract {
+  Show the forum portlets for the current user
+}
 
 set portal_id [dotlrn::get_portal_id -user_id [ad_conn user_id]]
 set config(shaded_p) f
