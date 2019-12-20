@@ -1,4 +1,9 @@
-#      
+ad_page_contract {
+  Display portlet
+} {
+  portlet:path,notnull
+}
+
 if {![string match "/*" $portlet]} {
   set portlet /packages/xowiki/www/portlets/$portlet
 }

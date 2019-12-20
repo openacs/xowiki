@@ -4,6 +4,8 @@ ad_page_contract {
 
   @author Gustaf Neumann
   @creation_date fecit may 2006
+} {
+  portlet:path,notnull
 }
 
 ::xo::Page requireJS urn:ad:js:get-http-object
