@@ -1,4 +1,8 @@
-#
+ad_include_contract {
+  Calendar portlet
+} {
+}
+
 ::xo::Page requireCSS "/resources/calendar/calendar.css"
 
 set date [dt_sysdate]
