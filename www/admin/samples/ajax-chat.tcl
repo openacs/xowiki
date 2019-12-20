@@ -1,3 +1,8 @@
+ad_page_contract {
+  Sample page generating a xowiki object embedding a chat
+} {
+}
+
 namespace eval ::xowiki::tmp {
   ::xowiki::Object create ajax-chat -noinit \
       -set object_type ::xowiki::Object \

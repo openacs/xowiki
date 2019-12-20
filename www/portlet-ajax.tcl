@@ -1,5 +1,10 @@
-# like portlet, except with background loading via ajax
-# gustaf neumann, fecit may 2006
+ad_page_contract {
+
+  Like portlet, except with background loading via ajax
+
+  @author Gustaf Neumann
+  @creation_date fecit may 2006
+}
 
 ::xo::Page requireJS urn:ad:js:get-http-object
 

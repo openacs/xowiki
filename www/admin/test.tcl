@@ -1,5 +1,14 @@
-# regression test for xowiki
-# $Id$
+ad_page_contract {
+
+  Regression test for xowiki.
+
+  This should be made part of the acs-automated-testing framework at
+  some point.
+
+  $Id$
+
+}
+
 Object test
 test set passed 0
 test set failed 0
