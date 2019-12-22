@@ -772,6 +772,9 @@ namespace eval ::xowiki::formfield {
         append feedback " ${:correct_when}"
       } elseif {[info exists :correction]} {
         append feedback " ${:correction}"
+        if {[info exists :correction_data]} {
+          append feedback " ${:correction_data}"
+        }
       }
       #
       # When the widget class supports "disabled_as_div", we
@@ -2660,7 +2663,7 @@ namespace eval ::xowiki::formfield {
       set options [subst {
         toolbar : '[:toolbar]',
         uiColor: '[:uiColor]',
-        language: '[lang::conn::language]',
+        language: '[${:object} lang]',
         skin: '[:skin]',
         startupMode: '${:mode}',
         parent_id: '[${:object} item_id]',
@@ -3444,17 +3447,69 @@ namespace eval ::xowiki::formfield {
       set value [:value]
       :log "enumeration CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
       set :correction {}
+      set r 0; set f 0; set rk 0; set fk 0; set W 0; set O 0; set R 0
       foreach o ${:options} a ${:answer} {
         lassign $o label v
         #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
         if {$a} {
-          lappend :correction [expr {$v in $value}]
-          #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
+          incr r
+          set correctly_answered [expr {$v in $value}]
         } else {
-          lappend :correction [expr {$v ni $value}]
-          #:log "enumeration CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
+          set correctly_answered [expr {$v ni $value}]
+          incr f
+          #:log "enumeration - CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
         }
+        lappend :correction $correctly_answered
+        if {$correctly_answered} {
+          incr R
+        } else {
+          incr W
+        }
+        if {[expr {$v in $value}]} {
+          #
+          # Marked entries: mark can be correct or wrong.
+          #
+          if {$a} {
+            incr rk
+          } else {
+            incr fk
+          }
+        }
+        if {$r>0} {
+          if {$f == 0} {
+            #
+            # No penalty for marking a wrong solution, when there is no wrong solution.
+            #
+            set wi1 [expr {max((100.0/$r)*$rk,0)}]
+            set wi2 [expr {max((100.0/$r)*$rk, 0)}]
+          } else {
+            set wi1 [expr {max((100.0/$r)*$rk - (100.0/$f)*$fk, 0)}]
+            if {$f == 1} {
+              #
+              # Special rule when there is just one wrong solution
+              #
+              set wi2 [expr {max((100.0/$r)*$rk - min(50.0, (100.0/$f))*$fk, 0)}]
+            } else {
+              set wi2 $wi1
+            }
+          }
+          set s1  [expr {100.0 * $R / ($R + $W) }]
+          set s2  [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
+          set etk [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
+          set et1 [expr {100.0 * ($R - $W) / ($R + $W) }]
+          set et2 [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
+
+          set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk et1 $et1 et2 $et2]
+        } else {
+          set scores {}
+        }
+        set :correction_data [list \
+                                  item [list r $r f $f] \
+                                  marks [list rk $rk fk $fk] \
+                                  answers [list R $R W $W] \
+                                  scores $scores]
       }
+      #:log "enumeration CHECKED CORRECT? ${:correction_data}"
       return [expr {0 ni ${:correction} ? 1 : -1}]
     }
   }
