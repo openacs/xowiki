@@ -3451,6 +3451,11 @@ namespace eval ::xowiki::formfield {
       foreach o ${:options} a ${:answer} {
         lassign $o label v
         #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
+        #
+        # A correct answer might be:
+        # - a mark on a correct entry
+        # - no mark on a wrong entry
+        #
         if {$a} {
           incr r
           set correctly_answered [expr {$v in $value}]
@@ -3465,6 +3470,7 @@ namespace eval ::xowiki::formfield {
         } else {
           incr W
         }
+
         if {[expr {$v in $value}]} {
           #
           # Marked entries: mark can be correct or wrong.
@@ -3475,20 +3481,25 @@ namespace eval ::xowiki::formfield {
             incr fk
           }
         }
-        if {$r>0} {
+        #
+        # Now calculate the scores of different scoring schemes. For
+        # now, we do not allow questions having no correct answer.
+        #
+        if {$r > 0} {
           if {$f == 0} {
             #
-            # No penalty for marking a wrong solution, when there is no wrong solution.
+            # No penalty for marking a wrong solution, when there is
+            # no wrong solution.
             #
-            set wi1 [expr {max((100.0/$r)*$rk,0)}]
-            set wi2 [expr {max((100.0/$r)*$rk, 0)}]
+            set wi1 [expr {max((100.0/$r) * $rk,0)}]
+            set wi2 [expr {max((100.0/$r) * $rk, 0)}]
           } else {
-            set wi1 [expr {max((100.0/$r)*$rk - (100.0/$f)*$fk, 0)}]
+            set wi1 [expr {max((100.0/$r) * $rk - (100.0/$f) * $fk, 0)}]
             if {$f == 1} {
               #
-              # Special rule when there is just one wrong solution
+              # Special rule when there is just one wrong solution.
               #
-              set wi2 [expr {max((100.0/$r)*$rk - min(50.0, (100.0/$f))*$fk, 0)}]
+              set wi2 [expr {max((100.0/$r) * $rk - min(50.0, (100.0/$f)) * $fk, 0)}]
             } else {
               set wi2 $wi1
             }
