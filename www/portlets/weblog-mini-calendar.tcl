@@ -21,7 +21,7 @@ if {![info exists base_url] || $base_url eq ""} {
 set date [ns_queryget date]
 if {$date eq ""} {
   set date [dt_sysdate]
-} 
+}
 
 array set message_key_array {
     list #acs-datetime.List#
@@ -68,7 +68,7 @@ set innersql "from xowiki_pagei p, cr_items ci \
         and ci.item_id != :including_item_id \
         and ci.publish_status <> 'production' "
 
-xo::dc foreach entries_this_month "select count(ci.item_id) as c, 
+xo::dc foreach entries_this_month "select count(ci.item_id) as c,
         [::xo::dc date_trunc day p.publish_date] as d \
         $innersql
         and [::xo::dc date_trunc_expression month p.publish_date :date_reference] \
@@ -80,7 +80,7 @@ xo::dc foreach entries_this_month "select count(ci.item_id) as c,
 # The following time range specifies the dates between the navigation
 # arrows of the weblog mini calendar should be. Without a limitation,
 # crawler will iterate over this pages until they reach infinite past
-# or infinite future. 
+# or infinite future.
 #
 #set earliest_date "2006-01-1"
 #set latest_date   "1 year"
@@ -124,14 +124,14 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   }
   set today_p f
   set active_p t
-  
+
   if {$julian_date < $first_julian_date_of_month} {
     set active_p f
   } elseif {$julian_date > $last_julian_date_in_month} {
     set active_p f
-  } 
+  }
   set ansi_date [dt_julian_to_ansi $julian_date]
-  
+
   if {$julian_date == $first_julian_date_of_month} {
     set day_number 1
   } elseif {$julian_date == $last_julian_date_in_month +1} {
@@ -141,13 +141,13 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   if {$julian_date == $julian_date_today} {
     set today_p t
   }
-  
+
   if { $day_of_week == 1} {
     set beginning_of_week_p t
   } else {
     set beginning_of_week_p f
   }
-  
+
   if { $day_of_week == 7 } {
     set day_of_week 0
     set end_of_week_p t
@@ -155,8 +155,8 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
     set end_of_week_p f
   }
   # ns_log notice "--D julian_date = $julian_date [dt_julian_to_ansi $julian_date] //$ansi_date"
-  set count [expr {[info exists entries($ansi_date)] ? 
-                   ($noparens ? "$entries($ansi_date)" : "($entries($ansi_date))") 
+  set count [expr {[info exists entries($ansi_date)] ?
+                   ($noparens ? "$entries($ansi_date)" : "($entries($ansi_date))")
                    : ""}]
   if {$today_p} {
     set class today
@@ -166,7 +166,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
     set class inactive
   }
   set url [export_vars -base $base_url {{date $ansi_date} summary}]
-  
+
   set id minicalendar-$ansi_date
   if {$count ne ""} {
     append js [subst {
@@ -177,7 +177,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
       });
     }]
   }
-  
+
   multirow append days $day_number $beginning_of_week_p $end_of_week_p $today_p $active_p \
       $url $id $count $class
   incr day_number

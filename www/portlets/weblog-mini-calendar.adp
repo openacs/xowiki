@@ -18,7 +18,7 @@
       </table>
     </td>
   </tr>
-  
+
   <tr>
     <td colspan="4">
       <table id="at-a-glance" cellspacing="0" cellpadding="0">
@@ -28,26 +28,26 @@
               <td>@days_of_week.day_short@</td>
             </multiple>
           </tr>
-      
+
           <multiple name="days">
             <if @days.beginning_of_week_p;literal@ true>
               <tr>
             </if>
-        
+
 	    <if @days.count@ ne "">
                 <td class="@days.class@" id="@days.id@">
                 <span style='font-size: 80%;'>@days.count@</span> @days.day_number@</td>
              </if><else>
                 <td class="@days.class@"> @days.day_number@</td>
              </else>
-        
+
             <if @days.end_of_week_p;literal@ true>
               </tr>
             </if>
           </multiple>
- 
+
       </table>
-  
+
     </td>
   </tr>
  </table>
