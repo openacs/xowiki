@@ -1,3 +1,10 @@
+ad_include_contract {
+  Weblog Mini Calendar Portlet Include
+} {
+  __including_page:token,notnull
+  {summary:boolean false}
+  {noparens:boolean false}
+}
 
 ::xo::Page requireCSS "/resources/calendar/calendar.css"
 set package_id        [::xo::cc package_id]
@@ -149,7 +156,7 @@ for {set julian_date $calendar_starts_with_julian_date} {$julian_date <= $last_j
   }
   # ns_log notice "--D julian_date = $julian_date [dt_julian_to_ansi $julian_date] //$ansi_date"
   set count [expr {[info exists entries($ansi_date)] ? 
-                   ([info exists noparens] && $noparens ? "$entries($ansi_date)" : "($entries($ansi_date))") 
+                   ($noparens ? "$entries($ansi_date)" : "($entries($ansi_date))") 
                    : ""}]
   if {$today_p} {
     set class today
