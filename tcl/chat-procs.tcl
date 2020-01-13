@@ -308,7 +308,7 @@ namespace eval ::xo {
     set json [string trim [:json_encode_msg $msg]]
     if {$json ne ""} {
       return [subst {
-        <script type='text/javascript' language='javascript' nonce='$::__csp_nonce'>
+        <script nonce='[security::csp::nonce]'>
            var data = $json;
            parent.getData(data);
         </script>\n
@@ -563,7 +563,7 @@ namespace eval ::xowiki {
     set data [c1 login]
     if {$data ne ""} {
       append html [subst {
-        <script nonce='$::__csp_nonce'>
+        <script nonce='[security::csp::nonce]'>
           var data = $data;
           for(var i = 0; i < data.length; i++) {
             renderData(data\[i\]);
@@ -574,14 +574,14 @@ namespace eval ::xowiki {
 
     if {$fs_link_p} {
       append html [subst {
-        <script nonce='$::__csp_nonce'>
+        <script nonce='[security::csp::nonce]'>
           addFullScreenLink();
         </script>
       }]
     }
 
     append html [subst {
-      <script nonce='$::__csp_nonce'>
+      <script nonce='[security::csp::nonce]'>
         addSendPic();
       </script>
     }]
@@ -590,8 +590,8 @@ namespace eval ::xowiki {
 
     switch -- $mode {
       "polling" {
-        append html [subst -nocommands {
-          <script nonce='$::__csp_nonce'>
+        append html [subst {
+          <script nonce='[security::csp::nonce]'>
              chatSubscribe('$subscribe_url');
           </script>
         }]
@@ -600,7 +600,7 @@ namespace eval ::xowiki {
 
       "streaming" {
         append html [subst {
-          <script nonce='$::__csp_nonce'>
+          <script nonce='[security::csp::nonce]'>
              chatSubscribe('$subscribe_url');
           </script>
         }]
