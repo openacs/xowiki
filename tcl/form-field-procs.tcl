@@ -2915,12 +2915,18 @@ namespace eval ::xowiki::formfield {
         set dimensions [join $dimensions ,],
       }
 
+      if {[ns_conn isconnected]} {
+        set ckeditor_lang [lang::conn::language]
+      } else {
+        set ckeditor_lang [${:object} lang]
+      }
+
       set options [subst {
         $dimensions
         ${:additionalConfigOptions}
         toolbar : '${:toolbar}',
         uiColor: '${:uiColor}',
-        language: '[lang::conn::language]',
+        language: '$ckeditor_lang',
         skin: '${:skin}',
         startupMode: '${:mode}',
         disableNativeSpellChecker: false,
