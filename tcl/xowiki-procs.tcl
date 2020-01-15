@@ -2319,6 +2319,11 @@ namespace eval ::xowiki {
     {-path_encode:boolean true}
   } {
     # return the pretty_link for the current page
+
+    # Make sure package is initialized
+    if {![nsf::is object ::${:package_id}]} {
+      ::xowiki::Package initialize -package_id ${:package_id}
+    }
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
         -lang $lang -download $download -page [self] \
