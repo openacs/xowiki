@@ -1358,14 +1358,25 @@ namespace eval ::xowiki {
   # check certain properties of a page (is_* methods)
   #
 
-  #
-  # Check, if page is a folder
-  #
-  Page instproc is_folder_page {{-include_folder_links true}} {
+  Page ad_instproc is_folder_page {
+    {-include_folder_links true}
+  } {
+    Check, if page is a folder. Pages are never folders.
+
+    @return boolean
+  } {
     return 0
   }
 
-  FormPage instproc is_folder_page {{-include_folder_links true}} {
+  FormPage ad_instproc is_folder_page {
+    {-include_folder_links true}
+  } {
+    Check, if FormPage is a folder. A FormPage is a folder when its
+    page template is the folder.form or if this is a link pointing to
+    a folder.
+
+    @return boolean
+  } {
     set page_template_name [${:page_template} name]
     if {$page_template_name eq "en:folder.form"} {return 1}
     if {$include_folder_links && $page_template_name eq "en:link.form"} {
