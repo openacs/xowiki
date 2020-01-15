@@ -2309,7 +2309,7 @@ namespace eval ::xowiki {
 
   Page instforward item_ref {%my package_id} %proc
 
-  Page instproc pretty_link {
+  Page ad_instproc pretty_link {
     {-anchor ""}
     {-query ""}
     {-absolute:boolean false}
@@ -2318,8 +2318,8 @@ namespace eval ::xowiki {
     {-download false}
     {-path_encode:boolean true}
   } {
-    # return the pretty_link for the current page
-
+    @return the pretty_link for the current page
+  } {
     # Make sure package is initialized
     if {![nsf::is object ::${:package_id}]} {
       ::xowiki::Package initialize -package_id ${:package_id}
