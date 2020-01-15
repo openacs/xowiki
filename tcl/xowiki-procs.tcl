@@ -1377,6 +1377,12 @@ namespace eval ::xowiki {
 
     @return boolean
   } {
+    #
+    # Make sure, the page_template is instantiated
+    #
+    if {![nsf::is object ::${:page_template}]} {
+      ::xo::db::CrClass get_instance_from_db -item_id ${:page_template}
+    }
     set page_template_name [${:page_template} name]
     if {$page_template_name eq "en:folder.form"} {return 1}
     if {$include_folder_links && $page_template_name eq "en:link.form"} {
