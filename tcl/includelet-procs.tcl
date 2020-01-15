@@ -3856,9 +3856,11 @@ namespace eval ::xowiki::includelet {
     set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
     if {[info exists user_id]} {append data "?user_id=$user_id"}
 
+    set nonce [security::csp::nonce] 
+
     return [subst -nocommands -nobackslashes {
       <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
-      <script type="text/javascript" nonce='[security::csp::nonce]'>
+      <script type="text/javascript" nonce='$nonce'>
       var tl;
       function onLoad() {
         var eventSource = new Timeline.DefaultEventSource();
@@ -4162,8 +4164,11 @@ namespace eval ::xowiki::includelet {
       lappend values "\['[::xowiki::Includelet js_encode $name]', $value\]"
     }
     set values [join $values ",\n"]
+
+    set nonce [security::csp::nonce] 
+
     append result [subst -nocommands {
-      <script type='text/javascript' nonce='[security::csp::nonce]'>
+      <script type='text/javascript' nonce='$nonce'>
       var chart;
       chart = new Highcharts.Chart({
         chart: {
