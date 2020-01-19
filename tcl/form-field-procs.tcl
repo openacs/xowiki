@@ -2663,7 +2663,7 @@ namespace eval ::xowiki::formfield {
       set options [subst {
         toolbar : '[:toolbar]',
         uiColor: '[:uiColor]',
-        language: '[${:object} lang]',
+        language: '[::xo::cc lang]',
         skin: '[:skin]',
         startupMode: '${:mode}',
         parent_id: '[${:object} item_id]',
@@ -2915,18 +2915,12 @@ namespace eval ::xowiki::formfield {
         set dimensions [join $dimensions ,],
       }
 
-      if {[ns_conn isconnected]} {
-        set ckeditor_lang [lang::conn::language]
-      } else {
-        set ckeditor_lang [${:object} lang]
-      }
-
       set options [subst {
         $dimensions
         ${:additionalConfigOptions}
         toolbar : '${:toolbar}',
         uiColor: '${:uiColor}',
-        language: '$ckeditor_lang',
+        language: '[::xo::cc lang]',
         skin: '${:skin}',
         startupMode: '${:mode}',
         disableNativeSpellChecker: false,
