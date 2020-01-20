@@ -2316,7 +2316,7 @@ namespace eval ::xowiki {
 
   Page instforward item_ref {%my package_id} %proc
 
-  Page ad_instproc pretty_link {
+  Page ad_instproc -private pretty_link {
     {-anchor ""}
     {-query ""}
     {-absolute:boolean false}
