@@ -2325,6 +2325,7 @@ namespace eval ::xowiki {
     {-download false}
     {-path_encode:boolean true}
   } {
+    @see ::xowiki::Package instproc pretty_link
     @return the pretty_link for the current page
   } {
     ${:package_id} pretty_link -parent_id ${:parent_id} \
