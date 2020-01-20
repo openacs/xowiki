@@ -1361,13 +1361,13 @@ namespace eval ::xowiki {
   Page ad_instproc is_folder_page {
     {-include_folder_links true}
   } {
-    
+
     Check, if page is a folder.  This function is typically overlaaded
-    by specializations. Plain xwoiki::Pages are never folders.
-    
+    by specializations. Plain xowiki::Pages are never folders.
+
     @param include_folder_links return true, if the current page is a
            link to a folder.
-    
+
     @return boolean
   } {
     return 0
@@ -2316,7 +2316,7 @@ namespace eval ::xowiki {
 
   Page instforward item_ref {%my package_id} %proc
 
-  Page instproc pretty_link {
+  Page ad_instproc pretty_link {
     {-anchor ""}
     {-query ""}
     {-absolute:boolean false}
@@ -2325,9 +2325,8 @@ namespace eval ::xowiki {
     {-download false}
     {-path_encode:boolean true}
   } {
-    
-    # return the pretty_link for the current page
-
+    @return the pretty_link for the current page
+  } {
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
         -lang $lang -download $download -page [self] \
