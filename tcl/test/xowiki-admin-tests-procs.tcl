@@ -15,6 +15,12 @@ aa_register_case \
       "::xo::db::CrClass instproc get_instance_from_db"
       "::xowiki::Package instproc external_name"
       "::xowiki::Package instproc item_ref"
+      site_node::exists_p
+      site_node::unmount
+      site_node::delete
+      site_node::get
+      site_node::instantiate_and_mount
+      site_node::get_from_url
     } \
     xowiki_test_cases {
       XoWiki Test Cases
