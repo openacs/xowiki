@@ -8,6 +8,14 @@ ad_library {
 
 aa_register_case \
     -cats {api smoke} \
+    -procs {
+      "::xowiki::Package instproc make_link"
+      "::xowiki::Package instproc resolve_page"
+      lang::system::get_locales
+      "::xo::db::CrClass instproc get_instance_from_db"
+      "::xowiki::Package instproc external_name"
+      "::xowiki::Package instproc item_ref"
+    } \
     xowiki_test_cases {
       XoWiki Test Cases
 
