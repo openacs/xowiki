@@ -54,6 +54,35 @@ namespace eval ::xowiki {
     return $text
   }
 
+  ad_proc randomized_indices {-seed length} {
+    #
+    # Produce a list of "length" random numbers between 0 and
+    # length-1.
+    #
+  } {
+    # In case, the seed is specified, set the seed to this value to
+    # achieve e.g. a stable bat random order for a user.
+    #
+    if {[info exists seed]} {
+      expr {srand($seed)}
+    }
+    #
+    # Produce shuffled indices between 0 and length-1.
+    #
+    set indices {}
+    for {set i 0} {$i < $length} {incr i} {
+      lappend indices $i
+    }
+    set shuffled {}
+    incr length
+    for {} {$length > 1} {incr length -1} {
+      set i [expr {int(($length-1) * rand())}]
+      lappend shuffled [lindex $indices $i]
+      set indices [lreplace $indices $i $i]
+    }
+    return $shuffled
+  }
+
   #
   #
   # Helper for virus checks

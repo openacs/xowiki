@@ -3261,23 +3261,9 @@ namespace eval ::xowiki::formfield {
     # then the shuffling is stable for this seed.
     #
     if {${:shuffle_kind} ne "always"} {
-
-      #ns_log notice "===================== randomized_indices  ${:shuffle_kind} [${:object} item_id]"
-      expr {srand([xo::cc user_id])}
-    }
-    #
-    # Produce shuffled indices between 0 and length-1.
-    #
-    set indices {}
-    for {set i 0} {$i < $length} {incr i} {
-      lappend indices $i
-    }
-    set shuffled {}
-    incr length
-    for {} {$length > 1} {incr length -1} {
-      set i [expr {int(($length-1) * rand())}]
-      lappend shuffled [lindex $indices $i]
-      set indices [lreplace $indices $i $i]
+      set shuffled [::xowiki::randomized_indices -seed [xo::cc user_id] $length]
+    } else {
+      set shuffled [::xowiki::randomized_indices $length]
     }
     return $shuffled
   }

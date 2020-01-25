@@ -455,15 +455,17 @@ namespace eval ::xowiki {
 
     Generate a (minimal) link to a wiki page with the specified name.
     Practically all links in the xowiki systems are generated through
-    this function. The function returns the URL path urlencoded,
+    this method. The method returns the URL path urlencoded,
     unless path_encode is set to false.
 
     @param anchor anchor to be added to the link
+    @param query query parameters to be added literally to the resulting URL
     @param absolute make an absolute link (including protocol and host)
     @param lang use the specified 2 character language code (rather than computing the value)
     @param download create download link (without m=download)
     @param parent_id parent_id
     @param name name of the wiki page
+    @param path_encode control URL encoding of the path segmemts
   } {
     #:msg "input name=$name, lang=$lang parent_id=$parent_id"
 

@@ -2316,7 +2316,7 @@ namespace eval ::xowiki {
 
   Page instforward item_ref {%my package_id} %proc
 
-  Page ad_instproc -private pretty_link {
+  Page ad_instproc pretty_link {
     {-anchor ""}
     {-query ""}
     {-absolute:boolean false}
@@ -2325,8 +2325,22 @@ namespace eval ::xowiki {
     {-download false}
     {-path_encode:boolean true}
   } {
-    @see ::xowiki::Package instproc pretty_link
+    This method is a convenience stub for Package->pretty_link
+    and can be overloaded for different pages types.
+
+    Note that it is necessary to initialize the package before this
+    method can be used.
+
+    @param anchor anchor to be added to the link
+    @param query query parameters to be added literally to the resulting URL
+    @param absolute make an absolute link (including protocol and host)
+    @param lang use the specified 2 character language code (rather than computing the value)
+    @param download create download link (without m=download)
+    @param path_encode control encoding of the url path. Returns the URL path urlencoded,
+    unless path_encode is set to false.
+    
     @return the pretty_link for the current page
+    @see ::xowiki::Package instproc pretty_link
   } {
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
