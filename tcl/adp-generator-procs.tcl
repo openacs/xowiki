@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     if {![:wikicmds]} {return ""}
     return {
       <%
-      if {$::::xowiki::search_mounted_p} {
+      if {$::xowiki::search_mounted_p} {
         template::add_event_listener \
           -id wiki-menu-do-search-control \
           -script {
