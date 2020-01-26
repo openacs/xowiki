@@ -34,6 +34,7 @@ namespace eval ::xowiki::formfield {
     {inline false}
     {mode edit}
     {disabled}
+    {disabled_as_div}
     {show_raw_value}
 
     {style}
@@ -73,7 +74,7 @@ namespace eval ::xowiki::formfield {
     correct_when
     feedback_answer_correct
     feedback_answer_incorrect
-    disabled_as_div
+    grading
   }
   FormField set abstract 1
 
@@ -785,6 +786,13 @@ namespace eval ::xowiki::formfield {
         append feedback " ${:correction}"
         if {[info exists :correction_data]} {
           append feedback " ${:correction_data}"
+          if {[info exists :grading]
+              && [dict exists ${:correction_data} scores ${:grading}]
+            } {
+            set grading_score [dict get ${:correction_data} scores ${:grading}]
+            #:log "=== grading ${:grading} => $grading_score"
+            append feedback " selected_grading_score $grading_score"
+          }
         }
       }
       #
@@ -3506,13 +3514,13 @@ namespace eval ::xowiki::formfield {
               set wi2 $wi1
             }
           }
-          set s1  [expr {100.0 * $R / ($R + $W) }]
-          set s2  [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
-          set etk [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
-          set et1 [expr {100.0 * ($R - $W) / ($R + $W) }]
-          set et2 [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
+          set s1   [expr {100.0 * $R / ($R + $W) }]
+          set s2   [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
+          set etk  [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
+          set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
+          set ggw  [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
 
-          set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk et1 $et1 et2 $et2]
+          set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
         } else {
           set scores {}
         }
