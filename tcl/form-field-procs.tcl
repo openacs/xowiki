@@ -35,7 +35,7 @@ namespace eval ::xowiki::formfield {
     {mode edit}
     {disabled}
     {show_raw_value}
-    
+
     {style}
     {type text}
     {label}
@@ -55,7 +55,7 @@ namespace eval ::xowiki::formfield {
     {form_button_CSSclass}
     {form_button_wrapper_CSSclass}
     {form_help_text_CSSclass}
-    
+
     {autocomplete}
     {autofocus}
     {formnovalidate}
