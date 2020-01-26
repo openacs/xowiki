@@ -35,7 +35,7 @@ namespace eval ::xowiki::formfield {
     {mode edit}
     {disabled}
     {show_raw_value}
-    {CSSclass}
+    
     {style}
     {type text}
     {label}
@@ -49,6 +49,13 @@ namespace eval ::xowiki::formfield {
     {validator ""}
     {validate_via_ajax}
 
+    {CSSclass}
+    {form_item_wrapper_CSSclass}
+    {form_widget_CSSclass}
+    {form_button_CSSclass}
+    {form_button_wrapper_CSSclass}
+    {form_help_text_CSSclass}
+    
     {autocomplete}
     {autofocus}
     {formnovalidate}
@@ -445,10 +452,14 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    set CSSclass [:form_widget_CSSclass]
-    if {[:error_msg] ne ""} {append CSSclass " form-widget-error"}
+    set CSSclass [expr {[info exists :form_widget_CSSclass] ? ${:form_widget_CSSclass} : ""}]
+    if {${:error_msg} ne ""} {
+      append CSSclass " form-widget-error"
+    }
     set atts [list class $CSSclass]
-    if {${:inline}} {lappend atts style "display: inline;"}
+    if {${:inline}} {
+      lappend atts style "display: inline;"
+    }
     ::html::div $atts { :render_input }
   }
 
@@ -542,7 +553,7 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_item {} {
-    ::html::div -class [:form_item_wrapper_CSSclass] {
+    ::html::div [:get_attributes {form_item_wrapper_CSSclass class}] {
       if {[:error_msg] ne ""} {
         set CSSclass form-label-error
       } else {
@@ -1238,11 +1249,15 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc create_components {spec_list} {
+    #:log "create_components $spec_list"
+
     #
     # Omit after specs for compound fields to avoid multiple
     # recreations.
     #
-    if {[:specs_unmodified $spec_list]} return
+    if {[:specs_unmodified $spec_list]} {
+      return
+    }
 
     #
     # Build a component structure based on a list of specs
@@ -1251,6 +1266,7 @@ namespace eval ::xowiki::formfield {
     set :structure $spec_list
     set :components [list]
     foreach entry $spec_list {
+      #:log "create_components creates $entry"
       lassign $entry name spec
       #
       # create for each component a form field
@@ -4900,7 +4916,10 @@ namespace eval ::xowiki::formfield {
   Class create form_constraints -superclass textarea -parameter {
     {rows 5}
   } -extend_slot_default validator form_constraints
-  # the form_constraints checker is defined already on the ::xowiki::Page level
+  #
+  # The form_constraints checker is defined on the
+  # ::xowiki::Page level as validate=form_constraints
+  #
 
 
   ###########################################################

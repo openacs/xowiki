@@ -2891,10 +2891,12 @@ namespace eval ::xowiki {
     set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
                -name __form_button_ok \
                -CSSclass $CSSclass]
-
-    ::html::div -class [$f form_button_wrapper_CSSclass] {
-      $f render_input
-    }
+    
+    ::html::div [expr {[$f exists form_button_wrapper_CSSclass]
+                       ? [list class [$f form_button_wrapper_CSSclass]]
+                       : {} }] {
+                         $f render_input
+                       }
   }
 
   FormPage instproc form_fields_sanity_check {form_fields} {
