@@ -4460,6 +4460,15 @@ namespace eval ::xowiki::includelet {
       append cols {AnchorField create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
+    if {[info exists use_button(slim_publish_status)]} {
+      append cols {ImageAnchorField create _publish_status \
+                       -orderby _publish_status.src -src "" \
+                       -width 8 -height 8 -title "Toggle Publish Status" \
+                       -alt "publish status" -label "" \
+                       -CSSclass publish-status-item-button \
+                       -html {style "padding: 2px;text-align: center;"}} \n
+    }
+    
     set sort_fields {}
     foreach fn $field_names {
       if {[info exists __hidden($fn)]} continue
@@ -4603,7 +4612,7 @@ namespace eval ::xowiki::includelet {
         set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
         $__c set ID $url
       }
-      if {[info exists use_button(publish_status)]} {
+      if {[info exists use_button(publish_status)] || [info exists use_button(slim_publish_status)]} {
         $__c set _publish_status "&nbsp;"
         $__c set _publish_status.title #xowiki.publish_status#
         if {[$p set publish_status] eq "ready"} {
