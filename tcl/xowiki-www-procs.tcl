@@ -1238,7 +1238,7 @@ namespace eval ::xowiki {
       error "form '$form' is not valid"
     }
 
-    ::require_html_procs
+    ::xo::require_html_procs
     ${:root} firstChild fcn
     #:msg "orig fcn $fcn, root ${:root} [${:root} nodeType] [${:root} nodeName]"
 
@@ -2431,7 +2431,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc set_form_data {form_fields} {
     Store the instance attributes or default values in the form.
   } {
-    ::require_html_procs
+    ::xo::require_html_procs
 
     #array set __ia ${:instance_attributes}
     foreach f $form_fields {
