@@ -4691,7 +4691,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set given_includelet_key [::xo::cc query_parameter includelet_key ""]
+    set given_includelet_key [ns_base64urldecode [::xo::cc query_parameter includelet_key:graph ""]]
     if {$given_includelet_key ne ""} {
       if {$given_includelet_key eq $includelet_key && [info exists generate]} {
         if {$generate eq "csv"} {
@@ -4718,11 +4718,13 @@ namespace eval ::xowiki::includelet {
     append html [t1 asHTML]
 
     if {$csv} {
-      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=csv"
+      set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
+      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=csv"
       lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
     }
     if {[info exists voting_form]} {
-      set href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=[ns_urlencode $includelet_key]&generate=voting_form"
+      set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
+      set href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=voting_form"
       lappend links " <a href='[ns_quotehtml $href]'>Generate Voting Form $voting_form</a>"
     }
     append html [join $links ,]

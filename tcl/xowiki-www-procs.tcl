@@ -437,7 +437,7 @@ namespace eval ::xowiki {
     set attributes [lsort -dictionary [array names vars]]
     # make sure, we the includelet honors the cvs generation
     set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
-    ::xo::cc set queryparm(includelet_key) $includelet_key
+    ::xo::cc set queryparm(includelet_key) [ns_base64urlencode $includelet_key]
     # call the includelet
     :www-view [:include [list form-usages -field_names $attributes \
                              -extra_form_constraints _creation_user:numeric,format=%d \
