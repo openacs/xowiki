@@ -3856,7 +3856,7 @@ namespace eval ::xowiki::includelet {
     set stamp [clock format [clock seconds] -format "%b %d %Y %X %Z" -gmt true]
     if {[info exists user_id]} {append data "?user_id=$user_id"}
 
-    set nonce [security::csp::nonce] 
+    set nonce [security::csp::nonce]
 
     return [subst -nocommands -nobackslashes {
       <div id="my-timeline" style="font-size:70%; height: 350px; border: 1px solid #aaa"></div>
@@ -4165,7 +4165,7 @@ namespace eval ::xowiki::includelet {
     }
     set values [join $values ",\n"]
 
-    set nonce [security::csp::nonce] 
+    set nonce [security::csp::nonce]
 
     append result [subst -nocommands {
       <script type='text/javascript' nonce='$nonce'>
@@ -4258,6 +4258,121 @@ namespace eval ::xowiki::includelet {
            Date format used for modification date.
            Might be "pretty-age" or a format string like "%Y-%m-%d %T".
       }
+
+  form-usages instproc create_table_widget_from_form_fields {
+    {-package_id}
+    {-buttons {}}
+    {-form_fields}
+    {-field_names}
+    {-bulk_actions}
+    {-renderer ""}
+    {-orderby ""}
+  } {
+
+    set actions ""
+    set cols ""
+
+    # we currently support only 'export' as bulk action
+    set bulk_action_cols ""
+    foreach bulk_action $bulk_actions {
+      if {$bulk_action eq "export"} {
+        append actions [list Action bulk-delete \
+                            -label [_ xowiki.export] \
+                            -tooltip [_ xowiki.export] \
+                            -url [::$package_id package_url]admin/export \
+                           ] \n
+      }
+    }
+    if {[llength $bulk_actions] > 0} {
+      append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
+      append cols {HiddenField create ID} \n
+    }
+    if {"publish_status" in $buttons} {
+      append cols {ImageAnchorField create _publish_status \
+                       -orderby _publish_status.src -src "" \
+                       -width 8 -height 8 -title "Toggle Publish Status" \
+                       -alt "publish status" -label [_ xowiki.publish_status] \
+                       -CSSclass publish-status-item-button \
+                       -html {style "padding: 2px;text-align: center;"}} \n
+    }
+    if {"edit" in $buttons} {
+      append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+    }
+    if {"duplicate" in $buttons} {
+      append cols {AnchorField create _duplicate -CSSclass copy-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+    }
+    if {"view" in $buttons} {
+      append cols {AnchorField create _view -CSSclass view-item-button -label "" \
+                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+    }
+    if {"slim_publish_status" in $buttons} {
+      append cols {ImageAnchorField create _publish_status \
+                       -orderby _publish_status.src -src "" \
+                       -width 8 -height 8 -title "Toggle Publish Status" \
+                       -alt "publish status" -label "" \
+                       -CSSclass publish-status-item-button \
+                       -html {style "padding: 2px;text-align: center;"}} \n
+    }
+
+    set sort_fields {}
+    foreach fn $field_names {
+      if {[info exists __hidden($fn)]} continue
+      set field_orderby [expr {$fn eq "_last_modified" ? "_raw_last_modified" : $fn}]
+      append cols [list AnchorField create $fn \
+                       -label [[dict get $form_fields $fn] label] \
+                       -richtext 1 \
+                       -orderby $field_orderby \
+                      ] \n
+      lappend sort_fields $field_orderby
+    }
+    if {"delete" in $buttons} {
+      #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
+      append cols [list AnchorField create _delete \
+                       -CSSclass delete-item-button \
+                       -label "" \
+                       -no_csv 1 \
+                       -richtext 1] \n
+    }
+    #ns_log notice "COLS\n$cols"
+
+    set cmd [list TableWidget create t1 -columns $cols]
+    if {$renderer ne ""} {
+      lappend cmd -renderer $renderer
+    } else {
+      switch [parameter::get_global_value \
+                  -package_key xowiki \
+                  -parameter PreferredCSSToolkit \
+                  -default bootstrap] {
+                    bootstrap {set renderer BootstrapTableRenderer}
+                    default   {set renderer YUIDataTableRenderer}
+                  }
+      lappend cmd -renderer $renderer
+    }
+    set table_widget [{*}$cmd]
+
+    #
+    # Sorting is done for the time being in Tcl. This has the advantage
+    # that page_order can be sorted with the special mixin and that
+    # instance attributes can be used for sorting as well.
+    #
+    lassign [split $orderby ,] att order
+    set sortable 1
+    if {$att ni $sort_fields} {
+      ad_log warning "Ignore invalid sorting criterion '$att'"
+      util_user_message -message "Ignore invalid sorting criterion '$att'"
+      set sortable 0
+    }
+    if {$sortable} {
+      if {$att eq "_page_order"} {
+        $table_widget mixin add ::xo::OrderedComposite::IndexCompare
+      }
+      #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
+      $table_widget orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+    }
+    return $table_widget
+  }
 
   #          {-renderer "YUIDataTableRenderer"}
   form-usages instproc render {} {
@@ -4420,119 +4535,14 @@ namespace eval ::xowiki::includelet {
       $__ff(_last_modified) display_format $date_format
     }
 
-    foreach b $buttons {
-      set use_button($b) 1
-    }
-
-    set cols ""
-    # we currently support only 'export' as bulk action
-    set bulk_action_cols ""
-    foreach bulk_action $bulk_actions {
-      if {$bulk_action eq "export"} {
-        append actions [list Action bulk-delete \
-                            -label [_ xowiki.export] \
-                            -tooltip [_ xowiki.export] \
-                            -url [::$package_id package_url]admin/export \
-                           ] \n
-      }
-    }
-    if {[llength $bulk_actions] > 0} {
-      append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
-      append cols {HiddenField create ID} \n
-    }
-    if {[info exists use_button(publish_status)]} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label [_ xowiki.publish_status] \
-                       -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
-    }
-    if {[info exists use_button(edit)]} {
-      append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {[info exists use_button(duplicate)]} {
-      append cols {AnchorField create _duplicate -CSSclass copy-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {[info exists use_button(view)]} {
-      append cols {AnchorField create _view -CSSclass view-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {[info exists use_button(slim_publish_status)]} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label "" \
-                       -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
-    }
-    
-    set sort_fields {}
-    foreach fn $field_names {
-      if {[info exists __hidden($fn)]} continue
-      set field_orderby [expr {$fn eq "_last_modified" ? "_raw_last_modified" : $fn}]
-      append cols [list AnchorField create $fn \
-                       -label [$__ff($fn) label] \
-                       -richtext 1 \
-                       -orderby $field_orderby \
-                      ] \n
-      lappend sort_fields $field_orderby
-    }
-    if {[info exists use_button(delete)]} {
-      #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
-      append cols [list AnchorField create _delete \
-                       -CSSclass delete-item-button \
-                       -label "" \
-                       -no_csv 1 \
-                       -richtext 1] \n
-    }
-    #ns_log notice "COLS\n$cols"
-
-    set cmd [list TableWidget create t1 -volatile -columns $cols]
-    if {$renderer ne ""} {
-      lappend cmd -renderer $renderer
-    } else {
-      switch [parameter::get_global_value \
-                  -package_key xowiki \
-                  -parameter PreferredCSSToolkit \
-                  -default bootstrap] {
-        bootstrap {set renderer BootstrapTableRenderer}
-        default   {set renderer YUIDataTableRenderer}
-      }
-      lappend cmd -renderer $renderer
-    }
-    {*}$cmd
-
-    #
-    # Sorting is done for the time being in Tcl. This has the advantage
-    # that page_order can be sorted with the special mixin and that
-    # instance attributes can be used for sorting as well.
-    #
-    lassign [split $orderby ,] att order
-    set sortable 1
-    if {$att ni $sort_fields} {
-      # if {[ns_conn isconnected]} {
-      #   set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
-      #   if {[string match "*bingbot*" $user_agent] || [string match "*turnitin*" $user_agent]} {
-      #     # search engines like bingbot might still have old buggy pages in their indices;
-      #     # don't generate errors on non existing attributes starting with "__*"
-      #     set sortable 0
-      #   }
-      # }
-      ad_log warning "Ignore invalid sorting criterion '$att'"
-      util_user_message -message "Ignore invalid sorting criterion '$att'"
-      set sortable 0
-    }
-    if {$sortable} {
-      if {$att eq "_page_order"} {
-        t1 mixin add ::xo::OrderedComposite::IndexCompare
-      }
-      #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-      t1 orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    }
-
+    set table_widget [:create_table_widget_from_form_fields \
+                          -package_id $package_id \
+                          -buttons $buttons \
+                          -form_fields [array get __ff] \
+                          -field_names $field_names \
+                          -bulk_actions $bulk_actions \
+                          -renderer $renderer \
+                          -orderby $orderby]
     #
     # Compute filter clauses
     #
@@ -4589,12 +4599,53 @@ namespace eval ::xowiki::includelet {
       set wf_link [::$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
     }
 
-    set this_url [ad_return_url]
+    set HTML [:render_items_as_table \
+                  -return_url [ad_return_url] \
+                  -package_id $package_id \
+                  -items $items \
+                  -init_vars $init_vars \
+                  -uc [array get uc] \
+                  -table_widget $table_widget \
+                  -view_field $view_field \
+                  -field_names $field_names \
+                  -form_fields [array get __ff] \
+                  -buttons $buttons \
+                  -package_relative_url [expr {[llength $bulk_actions] > 0}] \
+                  -form_item_ids $form_item_ids \
+                  -with_form_link $with_form_link \
+                  -csv $csv \
+                  {*}[expr {[info exists generate] ? [list -generate $generate] : ""}] \
+                 ]
+    $table_widget destroy
+    return $HTML
+  }
+
+  form-usages instproc render_items_as_table {
+    -return_url
+    -package_id
+    -items
+    {-init_vars ""}
+    {-uc {tcl false h "" vars "" sql ""}}
+    {-table_widget}
+    {-view_field _name}
+    {-field_names}
+    {-form_fields}
+    {-buttons ""}     
+    {-package_relative_url:boolean false}
+    {-form_item_ids ""}
+    {-with_form_link:boolean false}
+    {-csv:boolean false}
+    {-generate}
+  } {
     foreach p [$items children] {
       $p set package_id $package_id
+      $p add_computed_instance_attributes
+    }
+    
+    foreach p [$items children] {
       set __ia [dict merge $init_vars [$p instance_attributes]]
 
-      if {[expr $uc(tcl)]} continue
+      if {[expr [dict get $uc tcl]]} continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 
       set page_link [$p pretty_link -path_encode false]
@@ -4603,16 +4654,16 @@ namespace eval ::xowiki::includelet {
       } else {
         set view_link $page_link
       }
-      t1 add
-      set __c [t1 last_child]
+      $table_widget add
+      set __c [$table_widget last_child]
 
-      if {[llength $bulk_actions] > 0} {
+      if {$package_relative_url} {
         # xowiki/www/admin/export expects a path to the object
         # relative to the package url
         set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
         $__c set ID $url
       }
-      if {[info exists use_button(publish_status)] || [info exists use_button(slim_publish_status)]} {
+      if {"publish_status" in $buttons || "slim_publish_status" in $buttons} {
         $__c set _publish_status "&nbsp;"
         $__c set _publish_status.title #xowiki.publish_status#
         if {[$p set publish_status] eq "ready"} {
@@ -4623,34 +4674,34 @@ namespace eval ::xowiki::includelet {
           set state "ready"
         }
         set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
-                     {state {revision_id "[$p set revision_id]"} {return_url $this_url}}]
+                     {state {revision_id "[$p set revision_id]"} return_url}]
         $__c set _publish_status.src /resources/xowiki/$image
         $__c set _publish_status.href $url
       }
-      if {[info exists use_button(edit)]} {
+      if {"edit" in $buttons} {
         $__c set _edit "&nbsp;"
         $__c set _edit.title #xowiki.edit#
         $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
       }
-      if {[info exists use_button(duplicate)]} {
+      if {"duplicate" in $buttons} {
         $__c set _duplicate "&nbsp;"
         $__c set _duplicate.title #xowiki.duplicate#
         $__c set _duplicate.href [::$package_id make_link -link $page_link $p duplicate return_url template_file]
       }
-      if {[info exists use_button(delete)]} {
+      if {"delete" in $buttons} {
         $__c set _delete "&nbsp;"
         $__c set _delete.title #xowiki.delete#
         $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
       }
-      if {[info exists use_button(view)]} {
+      if {"view" in $buttons} {
         $__c set _view "&nbsp;"
         $__c set _view.title #xowiki.view#
         $__c set _view.href $view_link
-      } elseif {![info exists use_button(no-view)]} {
+      } elseif {"no-view" ni $buttons} {
         #
         # Set always a view link, if we have no view button ...
         #
-        if {[info exists __ff($view_field)]} {
+        if {[dict exists $form_fields $view_field]} {
           # .... on $view_field) (per default: _name) ....
           $__c set $view_field.href $view_link
         } else {
@@ -4664,8 +4715,8 @@ namespace eval ::xowiki::includelet {
       $__c set _raw_last_modified [$p set last_modified]
 
       foreach __fn $field_names {
-        $__ff($__fn) object $p
-        $__c set $__fn [$__ff($__fn) pretty_value [$p property $__fn]]
+        [dict get $form_fields $__fn] object $p
+        $__c set $__fn [[dict get $form_fields $__fn] pretty_value [$p property $__fn]]
       }
       $__c set _name [::$package_id external_name -parent_id [$p parent_id] [$p name]]
     }
@@ -4693,11 +4744,13 @@ namespace eval ::xowiki::includelet {
 
     set given_includelet_key [ns_base64urldecode [::xo::cc query_parameter includelet_key:graph ""]]
     if {$given_includelet_key ne ""} {
-      if {$given_includelet_key eq $includelet_key && [info exists generate]} {
-        if {$generate eq "csv"} {
-          return [t1 write_csv]
-        } elseif {$generate eq "voting_form"} {
-          return [:generate_voting_form $voting_form $voting_form_form t1 $field_names $voting_form_anon_instances]
+      if {$given_includelet_key eq $includelet_key
+          && [info exists generate]
+        } {
+        switch $generate {
+          "csv" {return [$table_widget write_csv]}
+          "voting_form" {
+            return [:generate_voting_form $voting_form $voting_form_form $table_widget $field_names $voting_form_anon_instances]}
         }
       }
       return ""
@@ -4715,7 +4768,7 @@ namespace eval ::xowiki::includelet {
 
       append html [_ xowiki.entries_using_form [list form [join $form_links ", "]]]
     }
-    append html [t1 asHTML]
+    append html [$table_widget asHTML]
 
     if {$csv} {
       set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]

@@ -4099,8 +4099,16 @@ namespace eval ::xowiki {
     #
     # We want to be able to create FormPages from all pages.
     # by defining this method, we allow derived applications
-    # to provide their own set of instance attributes
+    # to provide their own set of instance attributes.
     return [list]
+  }
+
+  Page instproc add_computed_instance_attributes {} {
+    #
+    # Provide a hook to add computed instances attributes e.g. from a
+    # workflow. This method is used e.g. in form-usages for displaying
+    # instance attributes in a sortable table or via csv.
+    #
   }
 
   #
