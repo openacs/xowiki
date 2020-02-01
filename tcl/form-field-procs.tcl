@@ -785,7 +785,7 @@ namespace eval ::xowiki::formfield {
       } elseif {[info exists :correction]} {
         append feedback " ${:correction}"
         if {[info exists :correction_data]} {
-          append feedback " ${:correction_data}"
+          #append feedback " ${:correction_data}"
           if {[info exists :grading]
               && [dict exists ${:correction_data} scores ${:grading}]
             } {

@@ -4691,7 +4691,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    set given_includelet_key [::xo::cc query_parameter includelet_key:graph ""]
+    set given_includelet_key [::xo::cc query_parameter includelet_key ""]
     if {$given_includelet_key ne ""} {
       if {$given_includelet_key eq $includelet_key && [info exists generate]} {
         if {$generate eq "csv"} {
