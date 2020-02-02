@@ -2338,7 +2338,7 @@ namespace eval ::xowiki {
     @param download create download link (without m=download)
     @param path_encode control encoding of the url path. Returns the URL path urlencoded,
     unless path_encode is set to false.
-    
+
     @return the pretty_link for the current page
     @see ::xowiki::Package instproc pretty_link
   } {
@@ -3808,7 +3808,9 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc get_form_constraints {{-trylocal false}} {
-    # We define it as a method to ease overloading.
+    #
+    # This method os likely to be overloaded, maybe by xowf.
+    #
     #:msg "is_form=[:is_form]"
     if {$trylocal && [:is_form]} {
       return [:property form_constraints]
@@ -4054,8 +4056,9 @@ namespace eval ::xowiki {
     set form_fields [list]
     foreach name_and_spec $form_constraints {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
-      if {[string match "@table*" $spec_name] || $spec_name eq "@categories"} continue
-
+      if {[string match "@table*" $spec_name]
+          || $spec_name in {@categories @cr_fields}
+        } continue
       if {$lookup && [:form_field_exists $spec_name]} {
         #:msg "... found form_field for $spec_name"
         lappend form_fields [:lookup_form_field -name $spec_name {}]
