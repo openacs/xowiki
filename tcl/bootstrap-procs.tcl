@@ -102,7 +102,9 @@ namespace eval ::xowiki {
         }
         html::ul -class "dropdown-menu" {
           foreach dropdownmenuitem [:children] {
-            if {[$dropdownmenuitem set group] ne "" && [$dropdownmenuitem set group] ne $group } {
+            if {[$dropdownmenuitem set group] ne ""
+                && [$dropdownmenuitem set group] ne $group
+              } {
               if {$group ne " "} {
                 html::li -class "divider"
               }
@@ -418,7 +420,6 @@ namespace eval ::xo::Table {
   Class create BootstrapTableRenderer \
       -superclass TABLE3 \
       -instproc init_renderer {} {
-        ns_log notice "INIT BootstrapTableRenderer "
         next
         set :css.table-class "table table-striped"
         set :css.tr.even-class even
@@ -549,8 +550,9 @@ namespace eval ::xo::Table {
         " \
       -instproc render-data {line} {
         set __name ${:name}
-        if {[$line exists $__name.href] &&
-            [set href [$line set $__name.href]] ne ""} {
+        if {[$line exists $__name.href]
+            && [set href [$line set $__name.href]] ne ""
+          } {
           # use the CSS class rather from the Field than not the line
           $line instvar [list $__name.title title] [list $__name.target target]
           if {[$line exists $__name.onclick]} {
