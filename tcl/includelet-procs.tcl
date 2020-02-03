@@ -4259,122 +4259,6 @@ namespace eval ::xowiki::includelet {
            Might be "pretty-age" or a format string like "%Y-%m-%d %T".
       }
 
-  form-usages instproc create_table_widget_from_form_fields {
-    {-package_id}
-    {-buttons {}}
-    {-form_fields}
-    {-field_names}
-    {-bulk_actions}
-    {-renderer ""}
-    {-orderby ""}
-  } {
-
-    set actions ""
-    set cols ""
-
-    # we currently support only 'export' as bulk action
-    set bulk_action_cols ""
-    foreach bulk_action $bulk_actions {
-      if {$bulk_action eq "export"} {
-        append actions [list Action bulk-delete \
-                            -label [_ xowiki.export] \
-                            -tooltip [_ xowiki.export] \
-                            -url [::$package_id package_url]admin/export \
-                           ] \n
-      }
-    }
-    if {[llength $bulk_actions] > 0} {
-      append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
-      append cols {HiddenField create ID} \n
-    }
-    if {"publish_status" in $buttons} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label [_ xowiki.publish_status] \
-                       -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
-    }
-    if {"edit" in $buttons} {
-      append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {"duplicate" in $buttons} {
-      append cols {AnchorField create _duplicate -CSSclass copy-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {"view" in $buttons} {
-      append cols {AnchorField create _view -CSSclass view-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
-    }
-    if {"slim_publish_status" in $buttons} {
-      append cols {ImageAnchorField create _publish_status \
-                       -orderby _publish_status.src -src "" \
-                       -width 8 -height 8 -title "Toggle Publish Status" \
-                       -alt "publish status" -label "" \
-                       -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
-    }
-
-    set sort_fields {}
-    foreach fn $field_names {
-      if {[info exists __hidden($fn)]} continue
-      set field_orderby [expr {$fn eq "_last_modified" ? "_raw_last_modified" : $fn}]
-      append cols [list AnchorField create $fn \
-                       -label [[dict get $form_fields $fn] label] \
-                       -richtext 1 \
-                       -orderby $field_orderby \
-                      ] \n
-      lappend sort_fields $field_orderby
-    }
-    if {"delete" in $buttons} {
-      #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
-      append cols [list AnchorField create _delete \
-                       -CSSclass delete-item-button \
-                       -label "" \
-                       -no_csv 1 \
-                       -richtext 1] \n
-    }
-    #ns_log notice "COLS\n$cols"
-
-    set cmd [list TableWidget create t1 -columns $cols]
-    if {$renderer ne ""} {
-      lappend cmd -renderer $renderer
-    } else {
-      switch [parameter::get_global_value \
-                  -package_key xowiki \
-                  -parameter PreferredCSSToolkit \
-                  -default bootstrap] {
-                    bootstrap {set renderer BootstrapTableRenderer}
-                    default   {set renderer YUIDataTableRenderer}
-                  }
-      lappend cmd -renderer $renderer
-    }
-    set table_widget [{*}$cmd]
-
-    #
-    # Sorting is done for the time being in Tcl. This has the advantage
-    # that page_order can be sorted with the special mixin and that
-    # instance attributes can be used for sorting as well.
-    #
-    lassign [split $orderby ,] att order
-    set sortable 1
-    if {$att ni $sort_fields} {
-      ad_log warning "Ignore invalid sorting criterion '$att'"
-      util_user_message -message "Ignore invalid sorting criterion '$att'"
-      set sortable 0
-    }
-    if {$sortable} {
-      if {$att eq "_page_order"} {
-        $table_widget mixin add ::xo::OrderedComposite::IndexCompare
-      }
-      #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-      $table_widget orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
-    }
-    return $table_widget
-  }
-
-  #          {-renderer "YUIDataTableRenderer"}
   form-usages instproc render {} {
     :get_parameters
 
@@ -4487,7 +4371,6 @@ namespace eval ::xowiki::includelet {
     }
 
     foreach fn $hidden_field_names {
-      set __hidden($fn) 1
       lappend raw_field_names $fn
     }
 
@@ -4509,56 +4392,81 @@ namespace eval ::xowiki::includelet {
       set item_ids $form_item_ids
     }
 
+    set form_fields ""
     foreach form_item $item_ids {
-      set form_fields [::xowiki::FormPage get_table_form_fields \
-                           -base_item $form_item \
-                           -field_names $field_names \
-                           -form_constraints $form_constraints \
-                           -nls_language [${:__including_page} nls_language] \
-                          ]
-      #$form_item show_fields $form_fields
-      foreach f $form_fields {
-        set __ff([$f name]) $f
+      set form_field_objs [::xowiki::FormPage get_table_form_fields \
+                               -base_item $form_item \
+                               -field_names $field_names \
+                               -form_constraints $form_constraints \
+                               -nls_language [${:__including_page} nls_language] \
+                              ]
+      #$form_item show_fields $form_field_objs
+      foreach f $form_field_objs {
+        dict set form_fields [$f name] $f
       }
-      #foreach f $form_fields {ns_log notice "form <[$form_item name]: field [$f name] label [$f label]"}
+      #foreach f $form_field_objs {ns_log notice "form <[$form_item name]: field [$f name] label [$f label]"}
     }
-    # if {[info exists __ff(_creation_user)]} {$__ff(_creation_user) label "By User"}
+    # if {[dict exists $form_fields _creation_user]} {[dict get $form_fields _creation_user] label "By User"}
 
+    #
     # TODO: wiki-substitution is just forced in here. Maybe it makes
     # more sense to use it as a default for _text, but we have to
     # check all the nested cases to avoid double-substitutions.
-    if {[info exists __ff(_text)]} {
-      $__ff(_text) set wiki 1
+    #
+    if {[dict exists $form_fields _text]} {
+      [dict get $form_fields _text] set wiki 1
     }
 
-    if {[info exists __ff(_last_modified)] && [info exists date_format]} {
-      $__ff(_last_modified) display_format $date_format
+    if {[dict exists $form_fields _last_modified] && [info exists date_format]} {
+      [dict get $form_fields _last_modified] display_format $date_format
     }
 
-    set table_widget [:create_table_widget_from_form_fields \
+    #
+    # Create Table widget
+    #
+    set table_widget [::xowiki::TableWidget create_from_form_fields \
+                          -form_field_objs $form_field_objs \
                           -package_id $package_id \
                           -buttons $buttons \
-                          -form_fields [array get __ff] \
-                          -field_names $field_names \
+                          -hidden_field_names $hidden_field_names \
                           -bulk_actions $bulk_actions \
                           -renderer $renderer \
                           -orderby $orderby]
     #
+    # Handling voting_forms
+    #
+    if {[info exists voting_form]} {
+      #
+      # If the user provided a voting form name without a language
+      # prefix, add one.
+      #
+      if {![regexp {^..:} $voting_form]} {
+        set voting_form [${:__including_page} lang]:$voting_form
+      }
+      dict set voting_dict voting_form $voting_form
+      dict set voting_dict renderer \
+          [list [self] generate_voting_form $voting_form $voting_form_form \
+               $table_widget $field_names $voting_form_anon_instances]
+    } else {
+      set voting_dict ""
+    }
+
+    #
     # Compute filter clauses
     #
     set init_vars [list]
-    array set uc {tcl false h "" vars "" sql ""}
+    set uc {tcl false h "" vars "" sql ""}
     if {[info exists unless]} {
-      array set uc [::xowiki::FormPage filter_expression $unless ||]
-      set init_vars [list {*}$init_vars {*}$uc(vars)]
+      set uc [dict merge $uc [::xowiki::FormPage filter_expression $unless ||]]
+      set init_vars [list {*}$init_vars {*}[dict get $uc vars]]
     }
-    array set wc {tcl true h "" vars "" sql ""}
+    set wc {tcl true h "" vars "" sql ""}
     if {[info exists where]} {
-      array set wc [::xowiki::FormPage filter_expression $where &&]
-      set init_vars [list {*}$init_vars {*}$wc(vars)]
+      set wc [dict merge $wc [::xowiki::FormPage filter_expression $where &&]]
+      set init_vars [list {*}$init_vars {*}[dict get $wc vars]]
     }
-    #:msg uc=[array get uc]
-    #:msg wc=[array get wc]
+    #:msg uc=$uc
+    #:msg wc=$wc
 
     #
     # get an ordered composite of the base set (currently including extra_where clause)
@@ -4572,10 +4480,10 @@ namespace eval ::xowiki::includelet {
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids $form_item_ids \
                    -parent_id $query_parent_id \
-                   -form_fields $form_fields \
+                   -form_fields $form_field_objs \
                    -publish_status $publish_status \
                    -extra_where_clause $extra_where_clause \
-                   -h_where [array get wc] \
+                   -h_where $wc \
                    -from_package_ids $package_ids \
                    -package_id $package_id]
 
@@ -4587,9 +4495,9 @@ namespace eval ::xowiki::includelet {
         set base_items [::xowiki::FormPage get_form_entries \
                             -base_item_ids $form_item_ids \
                             -parent_id $query_parent_id \
-                            -form_fields $form_fields \
+                            -form_fields $form_field_objs \
                             -publish_status $publish_status \
-                            -h_where [array get wc] \
+                            -h_where $wc \
                             -from_package_ids $package_ids \
                             -package_id $package_id]
       }
@@ -4599,196 +4507,24 @@ namespace eval ::xowiki::includelet {
       set wf_link [::$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
     }
 
-    set HTML [:render_items_as_table \
+    set HTML [$table_widget render_page_items_as_table \
+                  -form_field_objs $form_field_objs \
                   -return_url [ad_return_url] \
                   -package_id $package_id \
                   -items $items \
                   -init_vars $init_vars \
-                  -uc [array get uc] \
-                  -table_widget $table_widget \
+                  -uc $uc \
                   -view_field $view_field \
-                  -field_names $field_names \
-                  -form_fields [array get __ff] \
                   -buttons $buttons \
                   -package_relative_url [expr {[llength $bulk_actions] > 0}] \
                   -form_item_ids $form_item_ids \
                   -with_form_link $with_form_link \
                   -csv $csv \
                   {*}[expr {[info exists generate] ? [list -generate $generate] : ""}] \
+                  -voting_dict $voting_dict \
                  ]
     $table_widget destroy
     return $HTML
-  }
-
-  form-usages instproc render_items_as_table {
-    -return_url
-    -package_id
-    -items
-    {-init_vars ""}
-    {-uc {tcl false h "" vars "" sql ""}}
-    {-table_widget}
-    {-view_field _name}
-    {-field_names}
-    {-form_fields}
-    {-buttons ""}     
-    {-package_relative_url:boolean false}
-    {-form_item_ids ""}
-    {-with_form_link:boolean false}
-    {-csv:boolean false}
-    {-generate}
-  } {
-    foreach p [$items children] {
-      $p set package_id $package_id
-      $p add_computed_instance_attributes
-    }
-    
-    foreach p [$items children] {
-      set __ia [dict merge $init_vars [$p instance_attributes]]
-
-      if {[expr [dict get $uc tcl]]} continue
-      #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
-
-      set page_link [$p pretty_link -path_encode false]
-      if {[info exists wf]} {
-        set view_link [export_vars -base $wf_link {{m create-or-use} {p.form "[$p name]"}}]
-      } else {
-        set view_link $page_link
-      }
-      $table_widget add
-      set __c [$table_widget last_child]
-
-      if {$package_relative_url} {
-        # xowiki/www/admin/export expects a path to the object
-        # relative to the package url
-        set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
-        $__c set ID $url
-      }
-      if {"publish_status" in $buttons || "slim_publish_status" in $buttons} {
-        $__c set _publish_status "&nbsp;"
-        $__c set _publish_status.title #xowiki.publish_status#
-        if {[$p set publish_status] eq "ready"} {
-          set image active.png
-          set state "production"
-        } else {
-          set image inactive.png
-          set state "ready"
-        }
-        set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
-                     {state {revision_id "[$p set revision_id]"} return_url}]
-        $__c set _publish_status.src /resources/xowiki/$image
-        $__c set _publish_status.href $url
-      }
-      if {"edit" in $buttons} {
-        $__c set _edit "&nbsp;"
-        $__c set _edit.title #xowiki.edit#
-        $__c set _edit.href [::$package_id make_link -link $page_link $p edit return_url template_file]
-      }
-      if {"duplicate" in $buttons} {
-        $__c set _duplicate "&nbsp;"
-        $__c set _duplicate.title #xowiki.duplicate#
-        $__c set _duplicate.href [::$package_id make_link -link $page_link $p duplicate return_url template_file]
-      }
-      if {"delete" in $buttons} {
-        $__c set _delete "&nbsp;"
-        $__c set _delete.title #xowiki.delete#
-        $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
-      }
-      if {"view" in $buttons} {
-        $__c set _view "&nbsp;"
-        $__c set _view.title #xowiki.view#
-        $__c set _view.href $view_link
-      } elseif {"no-view" ni $buttons} {
-        #
-        # Set always a view link, if we have no view button ...
-        #
-        if {[dict exists $form_fields $view_field]} {
-          # .... on $view_field) (per default: _name) ....
-          $__c set $view_field.href $view_link
-        } else {
-          # .... otherwise on the first form_field
-          $__c set _[lindex $field_names 0].href $view_link
-        }
-      }
-
-      # set always last_modified for default sorting
-      $__c set _last_modified [$p set last_modified]
-      $__c set _raw_last_modified [$p set last_modified]
-
-      foreach __fn $field_names {
-        [dict get $form_fields $__fn] object $p
-        $__c set $__fn [[dict get $form_fields $__fn] pretty_value [$p property $__fn]]
-      }
-      $__c set _name [::$package_id external_name -parent_id [$p parent_id] [$p name]]
-    }
-
-    #
-    # If there are multiple includelets on a single page,
-    # we have to identify the right one for e.g. producing the
-    # csv table. Therefore, we compute an includelet_key
-    #
-    set includelet_key ""
-    foreach var {:name form_item_ids form publish_states field_names unless} {
-      if {[info exists $var]} {append includelet_key $var : [set $var] ,}
-    }
-
-    if {[info exists voting_form]} {
-      #
-      # If the user provided a voting form name without a language
-      # prefix, add one.
-      #
-      if {![regexp {^..:} $voting_form]} {
-        set obj ${:__including_page}
-        set voting_form [$obj lang]:$voting_form
-      }
-    }
-
-    set given_includelet_key [ns_base64urldecode [::xo::cc query_parameter includelet_key:graph ""]]
-    if {$given_includelet_key ne ""} {
-      if {$given_includelet_key eq $includelet_key
-          && [info exists generate]
-        } {
-        switch $generate {
-          "csv" {return [$table_widget write_csv]}
-          "voting_form" {
-            return [:generate_voting_form $voting_form $voting_form_form $table_widget $field_names $voting_form_anon_instances]}
-        }
-      }
-      return ""
-    }
-
-    set links [list]
-
-    if {$with_form_link} {
-      set form_links ""
-      foreach form_item_id $form_item_ids {
-        set base [::$form_item_id pretty_link]
-        set label [::$form_item_id name]
-        lappend form_links "<a href='[ns_quotehtml $base]'>[ns_quotehtml $label]</a>"
-      }
-
-      append html [_ xowiki.entries_using_form [list form [join $form_links ", "]]]
-    }
-    append html [$table_widget asHTML]
-
-    if {$csv} {
-      set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
-      set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=csv"
-      lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
-    }
-    if {[info exists voting_form]} {
-      set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
-      set href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=voting_form"
-      lappend links " <a href='[ns_quotehtml $href]'>Generate Voting Form $voting_form</a>"
-    }
-    append html [join $links ,]
-    #:log "render done"
-
-    if {[info exists with_categories]} {
-      set category_html [$o include [list categories -count 1 -tree_name $with_categories \
-                                         -ordered_composite $base_items]]
-      return "<div style='width: 15%; float: left;'>$category_html</div></div width='69%'>$html</div>\n"
-    }
-    return $html
   }
 
   form-usages instproc generate_voting_form {
@@ -5447,7 +5183,6 @@ namespace eval ::xowiki::includelet {
         append url &return_url=$return_url
         return [subst {<a href="[ns_quotehtml $url]">[ns_quotehtml $text]</a>}]
       }
-
 }
 
 ::xo::library source_dependent
