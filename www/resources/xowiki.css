@@ -460,7 +460,22 @@ div.xowiki-content .forum .cite p.date {
     text-align: right;
     font-size: 85%;
     color: #777777;
-    
+}
+
+/*
+ * Prevent line breaks in list tables headers (before the sorting sign)
+ */
+div.xowiki-content tr.list-header a {
+    white-space: nowrap;
+}
+div.xowiki-content table.table td.right {
+    text-align: right;
+}
+div.xowiki-content table.table td.center {
+    text-align: center;
+}
+div.xowiki-content table.table td.left {
+    text-align: left;
 }
 
 nav.navbar a {

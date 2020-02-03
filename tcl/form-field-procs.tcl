@@ -56,6 +56,7 @@ namespace eval ::xowiki::formfield {
     {form_button_CSSclass}
     {form_button_wrapper_CSSclass}
     {form_help_text_CSSclass}
+    {td_CSSclass}
 
     {autocomplete}
     {autofocus}
@@ -792,6 +793,7 @@ namespace eval ::xowiki::formfield {
             set grading_score [dict get ${:correction_data} scores ${:grading}]
             #:log "=== grading ${:grading} => $grading_score"
             append feedback " selected_grading_score $grading_score"
+            ${:object} set_property -new 1 grading_score $grading_score
           }
         }
       }
@@ -2137,6 +2139,7 @@ namespace eval ::xowiki::formfield {
 
   Class create number -superclass FormField -parameter {
     min max step value
+    {td_CSSclass right}
   }
   number instproc initialize {} {
     :type number

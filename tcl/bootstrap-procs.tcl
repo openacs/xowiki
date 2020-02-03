@@ -418,6 +418,7 @@ namespace eval ::xo::Table {
   Class create BootstrapTableRenderer \
       -superclass TABLE3 \
       -instproc init_renderer {} {
+        ns_log notice "INIT BootstrapTableRenderer "
         next
         set :css.table-class "table table-striped"
         set :css.tr.even-class even
@@ -450,7 +451,8 @@ namespace eval ::xo::Table {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             if {[$field istype HiddenField]} continue
-            html::td  [concat [list class list] [$field html]] {
+            set CSSclass [list "list" {*}[$field CSSclass]]
+            html::td [concat [list class  $CSSclass] [$field html]] {
               $field render-data $line
             }
           }
