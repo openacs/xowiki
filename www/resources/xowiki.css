@@ -13,7 +13,7 @@
 
 /* menues and such */
 div.wiki-menu {
-    position: relative; right: 0px; 
+    position: relative; right: 0px;
     text-align: right;  font-family: sans-serif; font-size: 85%;color: #7A7A78;
 }
 
@@ -41,17 +41,17 @@ div.xowiki-content {
 
 /* appearance of link types */
 div.xowiki-content span.external {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -264px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -4px -264px no-repeat;
     padding-right: 10px;
     text-decoration: none; /* added here for &nbsp; required in IE */
 }
 div.xowiki-content span.file {
-    background: transparent url(/resources/xowiki/sprite16.png) -4px -286px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -4px -286px no-repeat;
     padding-right: 10px;
     text-decoration: none;
 }
 div.xowiki-content a.glossary {
-    background: url(/resources/xowiki/glossary.gif) right center no-repeat; 
+    background: url(/resources/xowiki/glossary.gif) right center no-repeat;
     padding-right: 14px;
 }
 
@@ -60,7 +60,7 @@ div.xowiki-content a.glossary {
 div.xowiki-content h1 {
     /* font-size: 24px; */
     clear: both;
-    border-bottom: solid silver 1px; color: #222222; 
+    border-bottom: solid silver 1px; color: #222222;
     margin-top: 1em;  margin-bottom: 0.5em;
     text-align: left; font-weight: normal;
 }
@@ -74,7 +74,7 @@ div.xowiki-content h2 {
 div.xowiki-content h3 {
     /* font-size: 14px; */
     clear: both;
-    text-indent: 0em; 
+    text-indent: 0em;
     margin-top: 0.75em; margin-bottom: 0.1em;
     letter-spacing: 0px;  color: #222222;
     text-align: left; font-weight: bold;
@@ -91,7 +91,7 @@ div.xowiki-content h6 {
 div.xowiki-content .box {border: 1px solid #a1a5a9; padding: 0 5px 5px 5px; margin: 0 0 1.25em 0;}
 div.xowiki-content .errorMsg {background: #FFF; color: red; font-weight: bold;}
 div.xowiki-content .hr {
-    height: 1px; border: none; 
+    height: 1px; border: none;
     background-color: silver;
 }
 
@@ -148,7 +148,7 @@ div.rightbox {float:right; right: 1em; clear: right; font-size: 75%; padding: 5p
               border:dotted; border-width:1px;background: #f8f8f8;
              }
 div.presence div.title {font-size: 90%; margin-bottom: 0px;
-                        border-bottom: solid silver 1px; color: #222222; 
+                        border-bottom: solid silver 1px; color: #222222;
                        }
 
 div.xowiki-content a.missing {
@@ -208,7 +208,7 @@ div.xowiki-content .item-footer {
     text-align: left; font-size: 85%;
     margin-left: 10px; margin-right: 10px; margin-top: 5px;
     padding-top: 5px;
-    border-top: 1px solid; border-color: #c8c8c8; 
+    border-top: 1px solid; border-color: #c8c8c8;
     color: #555555;
 }
 div.xowiki-content .content-chunk-footer {clear: both;}
@@ -220,13 +220,13 @@ div.book-navigation img {border: 0px;}
 
 /* Make help_text nicer. Would like to make the font-sizer smaller as well,
    but this does not fit together with the OpenACS form styles, using
-   magin-left as 17em 
+   magin-left as 17em
 */
 div.xowiki-content .margin-form .form-button, .margin-form div.form-help-text {
     color: #7A7A78;
 }
 
-/* Make the weblog-mini-calendar slightly nicer by alignig its columns 
+/* Make the weblog-mini-calendar slightly nicer by alignig its columns
    and extending the width as it was with styles before zen.
 */
 .weblog-mini-calendar {width: 100%;}
@@ -256,7 +256,7 @@ div.categories-recent .date {
 
 /* inherited markup */
 div.xowiki-content a.inherited {
-    background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat; 
+    background: url(/resources/acs-subsite/arrow-down.gif) right center no-repeat;
     padding-right: 14px;
     font-size: 65%;
 }
@@ -270,16 +270,16 @@ div.xowiki-content fieldset.compound-field {
 div.candidate-selection div.workarea { padding-right: 10px; float:left; }
 div.candidate-selection div.workarea h3 { margin-top: 0px; margin-bottom: 0.5ex;}
 
-div.candidate-selection ul.region { 
+div.candidate-selection ul.region {
     border: 1px solid gray;
     position: relative;
-    width: 300px; 
+    width: 300px;
     list-style: none;
     margin:0;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
     padding-bottom:3ex;
@@ -287,7 +287,7 @@ div.candidate-selection ul.region {
 
 div.candidate-selection ul.region li {
     margin: 1px;
-    cursor: move; 
+    cursor: move;
 }
 
 div.candidate-selection li.candidates {
@@ -304,42 +304,42 @@ div.candidate-selection textarea {
 }
 
 
-div.xowiki-content div.book ul.page_order_region { 
+div.xowiki-content div.book ul.page_order_region {
     border: 0px solid gray;
-    width: 100%; 
+    width: 100%;
     list-style: none;
     margin: 10px;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
     padding-bottom:3ex;
 }
-div.xowiki-content div.book ul.page_order_region_no_target { 
+div.xowiki-content div.book ul.page_order_region_no_target {
     border: 0px solid gray;
-    width: 100%; 
+    width: 100%;
     list-style: none;
     margin: 10px;
     padding: 0;
 }
 
-div.xowiki-content div.toc ul {                            
+div.xowiki-content div.toc ul {
     padding: 8px;
 }
-div.xowiki-content div.toc ul.page_order_region_no_target { 
+div.xowiki-content div.toc ul.page_order_region_no_target {
     list-style: none;
     margin: 0px 1em;
     padding: 0;
 }
-div.xowiki-content div.toc ul.page_order_region { 
+div.xowiki-content div.toc ul.page_order_region {
     list-style: none;
     margin: 0px 1em;
     padding:0;
     /*
-       The bottom padding provides the cushion that makes the empty 
-       list targetable.  Alternatively, we could leave the padding 
+       The bottom padding provides the cushion that makes the empty
+       list targetable.  Alternatively, we could leave the padding
        off by default, adding it when we detect that the list is empty.
    */
     padding-bottom:1ex;
@@ -352,30 +352,30 @@ div.xowiki-content ul.page_order_region li.mark-below {
 }
 
 
-/* 
+/*
    Handling hidden field-sets:
-   
-   child selectors are apparently not supported by IE 5 and 6, 
+
+   child selectors are apparently not supported by IE 5 and 6,
    but the content is usable in IE anyhow; maybe we have to use the
    parent-node hack
-   
+
      background-color: expression(/currentpage/.test(this.parentNode.className)? "#eff" : "#ef0");
-   
+
    or the nesting hack
-   
+
      div * { margin-left: 20px; }
      div * * { margin-left: 0}
-   
+
    as well...
 */
 div.xowiki-content  div.hidden-field-set > div.form-label {
-    display: none; 
+    display: none;
 }
 div.xowiki-content  div.hidden-field-set > div.form-widget {
-    margin-left: 0px; 
+    margin-left: 0px;
 }
 div.xowiki-content  div.hidden-field-set > div.form-widget > .compound-field {
-    border: 0px; 
+    border: 0px;
 }
 
 
@@ -386,7 +386,7 @@ div.xowiki-content .margin-form fieldset .form-item-wrapper {
 /* folder menu placement */
 
 div.xowiki-content div.folders {
-    float:left; width: 200px; 
+    float:left; width: 200px;
     font-size: 90%;
 }
 div.xowiki-content .content-with-folders {
@@ -395,7 +395,7 @@ div.xowiki-content .content-with-folders {
 /*div.xowiki-content .content-with-folders div.form-label {
   width: 9em;
 }*/
-div.xowiki-content .content-with-folders div.form-widget,  
+div.xowiki-content .content-with-folders div.form-widget,
 div.xowiki-content .content-with-folders .form-help-text,
 div.xowiki-content .content-with-folders .form-button,
 div.xowiki-content .content-with-folders .form-widget-error,
@@ -468,13 +468,16 @@ div.xowiki-content .forum .cite p.date {
 div.xowiki-content tr.list-header a {
     white-space: nowrap;
 }
-div.xowiki-content table.table td.right {
+div.xowiki-content table.table td.right,
+div.xowiki-content table.table th.right {
     text-align: right;
 }
-div.xowiki-content table.table td.center {
+div.xowiki-content table.table td.center,
+div.xowiki-content table.table th.center {
     text-align: center;
 }
-div.xowiki-content table.table td.left {
+div.xowiki-content table.table td.left.
+div.xowiki-content table.table th.left {
     text-align: left;
 }
 
