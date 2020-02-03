@@ -798,7 +798,7 @@ namespace eval ::xowiki::formfield {
             }
           } else {
             set :grading_score ""
-            #ns_log notice "=== UNKOWN grading ${:grading} => ${:grading_score}"
+            #ns_log notice "=== UNKNOWN grading ${:grading} => ${:grading_score}"
           }
         }
       }
