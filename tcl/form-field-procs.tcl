@@ -787,13 +787,18 @@ namespace eval ::xowiki::formfield {
         append feedback " ${:correction}"
         if {[info exists :correction_data]} {
           #append feedback " ${:correction_data}"
-          if {[info exists :grading]
-              && [dict exists ${:correction_data} scores ${:grading}]
-            } {
-            set grading_score [dict get ${:correction_data} scores ${:grading}]
-            #:log "=== grading ${:grading} => $grading_score"
-            append feedback " selected_grading_score $grading_score"
-            ${:object} set_property -new 1 grading_score $grading_score
+          if {[info exists :grading]} {
+            if {[dict exists ${:correction_data} scores ${:grading}] } {
+              set grading_score [dict get ${:correction_data} scores ${:grading}]
+              #:log "=== grading ${:grading} => $grading_score"
+              append feedback " selected_grading_score $grading_score"
+              ${:object} set_property -new 1 grading_score $grading_score
+              set :grading_score $grading_score
+              #ns_log notice "SET GRADING score $grading_score for [self]"
+            }
+          } else {
+            set :grading_score ""
+            #ns_log notice "=== UNKOWN grading ${:grading} => ${:grading_score}"
           }
         }
       }
@@ -1406,10 +1411,11 @@ namespace eval ::xowiki::formfield {
     #
     set ff [dict create {*}$v]
     set html "<ul class='CompoundField'>\n"
-    foreach c ${:components} {
+    foreach c [lsort ${:components}] {
       set componentName [$c set name]
       if {[dict exists $ff $componentName]} {
-        append html "<li><span class='name'>$componentName:</span> " \
+        set componentLabel [string range $componentName [string length ${:name}]+1 end]
+        append html "<li><span class='name'>$componentLabel:</span> " \
             "[$c pretty_value [dict get $ff $componentName]]</li>\n"
       }
     }
@@ -3839,12 +3845,16 @@ namespace eval ::xowiki::formfield {
     set feedback_mode [expr {[${:object} exists __feedback_mode] ? [${:object} set __feedback_mode] : 0}]
     set results {}
     set :correction {}
-    foreach c ${:components} {
+    foreach c [lsort ${:components}] {
       set correct [$c set_feedback $feedback_mode]
       lappend results $correct
       lappend :correction [expr {$correct eq "correct"}]
     }
-    #:log "text_fields  CORRECT? ${:name} results $results -> 0"
+
+
+    set nr_correct [llength [lmap c ${:correction} { if {!$c} continue; set _ 1}]]
+    set :grading_score [format %.2f [expr {$nr_correct*100.0/[llength ${:correction}]}]]
+    #:log "text_fields CORRECT? ${:name} results $results :correction ${:correction} -> ${:grading_score}"
     #
     # Return "0" to avoid double feedback via the info text per
     # subquestion and on the top-level.
@@ -3876,6 +3886,19 @@ namespace eval ::xowiki::formfield {
         }
       }
     }
+  }
+
+  text_fields instproc pretty_value {v} {
+    set result ""
+    set ff [dict create {*}$v]
+    foreach c [lsort ${:components}] {
+      set componentName [$c set name]
+      if {[dict exists $ff $componentName]} {
+        set componentLabel [string range $componentName [string length ${:name}]+1 end]
+        append result $componentLabel: " " [$c pretty_value [dict get $ff $componentName]] \n
+      }
+    }
+    return $result
   }
 
 
