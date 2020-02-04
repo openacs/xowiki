@@ -792,7 +792,7 @@ namespace eval ::xowiki::formfield {
               set grading_score [dict get ${:correction_data} scores ${:grading}]
               #:log "=== grading ${:grading} => $grading_score"
               append feedback " selected_grading_score $grading_score"
-              ${:object} set_property -new 1 grading_score $grading_score
+              #${:object} set_property -new 1 grading_score $grading_score
               set :grading_score $grading_score
               #ns_log notice "SET GRADING score $grading_score for [self]"
             }
@@ -3851,9 +3851,8 @@ namespace eval ::xowiki::formfield {
       lappend :correction [expr {$correct eq "correct"}]
     }
 
-
     set nr_correct [llength [lmap c ${:correction} { if {!$c} continue; set _ 1}]]
-    set :grading_score [format %.2f [expr {$nr_correct*100.0/[llength ${:correction}]}]]
+    set :grading_score [format %.2f [expr {$nr_correct*100.0/[llength ${:correction}]}]]*
     #:log "text_fields CORRECT? ${:name} results $results :correction ${:correction} -> ${:grading_score}"
     #
     # Return "0" to avoid double feedback via the info text per
