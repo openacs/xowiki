@@ -315,6 +315,15 @@ namespace eval ::xowiki {
           set item [list url $link]
           if {[dict exists $properties -label]} {
             lappend item label [dict get $properties -label]
+          } else {
+            set name [dict get $properties -name]
+            set locale [::xo::cc locale]
+            ns_log notice "[list lang::message::message_exists_p $locale xowiki.$name] [lang::message::message_exists_p $locale xowiki.$name]"
+            if {[lang::message::message_exists_p $locale xowiki.$name]} {
+              lappend item label [lang::message::lookup $locale xowiki.$name]
+            } elseif {[lang::message::message_exists_p $locale xowf.$name]} {
+              lappend item label [lang::message::lookup $locale xowf.$name]
+            }
           }
           :add_menu_item -name [dict get $properties -name] -item $item
         }
