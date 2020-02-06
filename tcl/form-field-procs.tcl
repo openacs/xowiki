@@ -3464,7 +3464,7 @@ namespace eval ::xowiki::formfield {
       return 0
     } else {
       set value [:value]
-      :log "enumeration CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
+      #:log "enumeration CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
       set :correction {}
       set r 0; set f 0; set rk 0; set fk 0; set W 0; set O 0; set R 0
       foreach o ${:options} a ${:answer} {
