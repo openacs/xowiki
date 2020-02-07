@@ -1,8 +1,8 @@
 ad_page_contract {
-	
+
 } {
-	revision:notnull,integer 
-} 
+  revision:notnull,integer
+}
 
 template::add_event_listener \
     -id controls-link \

@@ -15,7 +15,7 @@ ad_form -name upload_form \
     -has_submit 1 \
     -mode edit \
     -form {
-	{upload_file:file(file),optional {label #xowiki.choose_file#}}
+      {upload_file:file(file),optional {label #xowiki.choose_file#}}
     } -on_submit {
       #set width [template::element::get_values upload_form width]
       #set height [template::element::get_values upload_form height]
@@ -33,7 +33,7 @@ ad_form -name upload_form \
       if {![regexp (image/*|audio/mpeg|application/x-shockwave-flash|application/vnd.adobe.flash-movie|video/mp4) $mime_type]} {
         #template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
         break
-      }    
+      }
 
       set title $file_name
       set existing_filenames [xo::dc list _ "select name from cr_items  where parent_id = :parent_id" ]

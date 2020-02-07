@@ -22,16 +22,16 @@ template::register_urn -urn urn:ad:js:highcharts \
 #
 set resDir $::acs::rootdir/packages/xowiki/www/resources
 foreach variant {yui bootstrap3} {
-    if {![file exists $resDir/xowiki-$variant.css]
-	|| [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki.css]
-	|| [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki-$variant-specific.css]
+  if {![file exists $resDir/xowiki-$variant.css]
+      || [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki.css]
+      || [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki-$variant-specific.css]
     } {
-	set content ""
-	set F [open $resDir/xowiki.css]; append content [read $F] \n; close $F
-	set F [open $resDir/xowiki-$variant-specific.css]; append content [read $F] \n; close $F
-	set F [open $resDir/xowiki-$variant.css w]; puts -nonewline $F $content; close $F
-	unset content
-    }
+    set content ""
+    set F [open $resDir/xowiki.css]; append content [read $F] \n; close $F
+    set F [open $resDir/xowiki-$variant-specific.css]; append content [read $F] \n; close $F
+    set F [open $resDir/xowiki-$variant.css w]; puts -nonewline $F $content; close $F
+    unset content
+  }
 }
 
 template::register_urn -urn urn:ad:css:bootstrap3 -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css
@@ -39,3 +39,10 @@ template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xo
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
 template::register_urn -urn urn:ad:css:bootstrap3-treeview \
     -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

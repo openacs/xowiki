@@ -76,8 +76,8 @@ TableWidget create t1 -volatile \
             -alt permsissions -label "" -html {style "padding: 2px;"}
       }
       if {$::with_publish_status} {
-	ImageAnchorField create publish_status -orderby publish_status.src -src "" \
-	    -width 8 -height 8 -title "Toggle Publish Status" \
+        ImageAnchorField create publish_status -orderby publish_status.src -src "" \
+            -width 8 -height 8 -title "Toggle Publish Status" \
             -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
       }
       Field create syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
@@ -106,7 +106,7 @@ set attributes [list revision_id content_length creation_user title page_order p
 
 set folder_id [::$package_id folder_id]
 foreach i [xo::dc list get_syndicated {
-  select s.object_id from syndication s, cr_items ci 
+  select s.object_id from syndication s, cr_items ci
   where s.object_id = ci.live_revision and ci.parent_id = :folder_id
 }] { set syndicated($i) 1 }
 
@@ -132,7 +132,7 @@ xo::dc foreach instance_select \
                              $name]
           set name [::$package_id external_name -parent_id $parent_id $name]
 
-	  ::template::t1 add \
+          ::template::t1 add \
               -name $name \
               -title $title \
               -object_type [string map [list "::xowiki::" ""] $object_type] \
@@ -146,27 +146,27 @@ xo::dc foreach instance_select \
               -mod_user [::xo::get_user_name $creation_user] \
               -delete "" \
               -delete.href [export_vars -base [::$package_id package_url] {{delete 1} item_id name return_url}] \
-              -delete.title #xowiki.delete# 
+              -delete.title #xowiki.delete#
 
           if {$::individual_permissions} {
             [::template::t1 last_child] set permissions.href \
-                [export_vars -base permissions {item_id return_url}] 
+                [export_vars -base permissions {item_id return_url}]
           }
           if {$::with_publish_status} {
             # TODO: this should get some architectural support
-	    if {$publish_status eq "ready"} {
-	      set image active.png
-	      set state "production"
-	    } else {
-	      set image inactive.png
-	      set state "ready"
-	    }
+            if {$publish_status eq "ready"} {
+              set image active.png
+              set state "production"
+            } else {
+              set image inactive.png
+              set state "ready"
+            }
             [::template::t1 last_child] set publish_status.src /resources/xowiki/$image
-	    [::template::t1 last_child] set publish_status.href \
-		[export_vars -base [::$package_id package_url]admin/set-publish-state \
-		     {state revision_id return_url}]
+            [::template::t1 last_child] set publish_status.href \
+                [export_vars -base [::$package_id package_url]admin/set-publish-state \
+                     {state revision_id return_url}]
           }
-	  [::template::t1 last_child] set page_order $page_order
+          [::template::t1 last_child] set page_order $page_order
         }
 
 

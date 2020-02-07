@@ -1,8 +1,8 @@
 ad_page_contract {
-	
+  
 } {
-	parent_id:notnull,integer 
-	revision:notnull,integer 
+  parent_id:notnull,integer 
+  revision:notnull,integer 
 } 
 
 set item_id [content::revision::item_id -revision_id $revision]
