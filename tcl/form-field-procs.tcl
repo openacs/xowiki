@@ -3405,7 +3405,7 @@ namespace eval ::xowiki::formfield {
 
   enumeration instproc initialize {} {
     if {[info exists :category_tree]} {
-      :config_from_category_tree [:category_tree]
+      :config_from_category_tree ${:category_tree}
     }
     if {[info exists :answer]} {
       set count 1
@@ -3599,7 +3599,7 @@ namespace eval ::xowiki::formfield {
 
     set package_id [${:object} package_id]
     set tree_ids [::xowiki::Category get_mapped_trees \
-                      -object_id $package_id -locale [:locale] \
+                      -object_id $package_id -locale ${:locale} \
                       -names $tree_name -output tree_id]
 
     # In case there are multiple trees with the same name,
@@ -3624,7 +3624,18 @@ namespace eval ::xowiki::formfield {
       }
       lappend options [list $category_name $category_id]
     }
-    :options $options
+    set :options $options
+    if {[info exists :default] && ${:default} ne ""} {
+      #
+      # When a default is provided, and the default is a valid
+      # name. Note that the "symbolic" default has to be provided
+      # exactly like the label, and it might not be unique.
+      #
+      set optdict [concat {*}$options]
+      if {[dict exists $optdict ${:default}]} {
+        set :default [dict get $optdict ${:default}]
+      }
+    }
     set :is_category_field 1
     # :msg label_could_be=$tree_name,existing=${:label}
     # if {![info exists :label]} {
