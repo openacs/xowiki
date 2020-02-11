@@ -688,13 +688,13 @@ namespace eval ::xowiki::formfield {
     return [expr {${:value} in $values}]
   }
   FormField instproc answer_check=match {} {
-    return [string match [lindex ${:correct_when} 1] [:value]]
+    return [string match [lindex ${:correct_when} 1] ${:value}]
   }
   FormField instproc answer_check=contains {} {
     #
     # Correct, when answer contains any of the provided words.
     #
-    set answer [:value]
+    set answer ${:value}
     set words [lrange ${:correct_when} 1 end]
     foreach word $words {
       if {[string match *$word* $answer]} {
@@ -734,7 +734,7 @@ namespace eval ::xowiki::formfield {
     #
     #  This method is free from side-effects (no instance variables are updated).
     #
-    #:log "CORRECT? ${:name} ([:info class]): value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
+    #:log "CORRECT? ${:name} ([:info class]): value=${:value}, answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {[info exists :correct_when]} {
       set op [lindex ${:correct_when} 0]
       if {[:procsearch answer_check=$op] ne ""} {
@@ -751,9 +751,9 @@ namespace eval ::xowiki::formfield {
       }
     } elseif {![info exists :answer]} {
       return 0
-    } elseif {[:value] ne ${:answer}} {
-      #:msg "v='[:value]' NE a='[:answer]'"
-      #:log "... answer_is_correct value comparison '[:value]' NE a='[:answer]'"
+    } elseif {${:value} ne ${:answer}} {
+      #:msg "v='${:value}' NE a='[:answer]'"
+      #:log "... answer_is_correct value comparison '${:value}' NE a='${:answer}'"
       return -1
     } else {
       #:log "... answer_is_correct value comparison OK"
