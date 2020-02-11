@@ -318,7 +318,6 @@ namespace eval ::xowiki {
           } else {
             set name [dict get $properties -name]
             set locale [::xo::cc locale]
-            ns_log notice "[list lang::message::message_exists_p $locale xowiki.$name] [lang::message::message_exists_p $locale xowiki.$name]"
             if {[lang::message::message_exists_p $locale xowiki.$name]} {
               lappend item label [lang::message::lookup $locale xowiki.$name]
             } elseif {[lang::message::message_exists_p $locale xowf.$name]} {
