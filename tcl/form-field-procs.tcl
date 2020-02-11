@@ -712,7 +712,7 @@ namespace eval ::xowiki::formfield {
     # consequence the comparison is not case sensitive. Note that the
     # answer_words have to be provided in lower case as well.
     #
-    set value [regsub -all {[ ]+} ${:value} " "]
+    set value [string trim [regsub -all {[ ]+} ${:value} " "]]
     if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
       set value [string tolower $value]
       set words [lrange ${:correct_when} 2 end]
