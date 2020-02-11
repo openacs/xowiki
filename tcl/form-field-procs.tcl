@@ -704,11 +704,22 @@ namespace eval ::xowiki::formfield {
     return 0
   }
   FormField instproc answer_check=answer_words {} {
-    set value [regsub -all { +} ${:value} " "]
+    #
+    # Correct, when the answer is equal to the provided (sequence of)
+    # words, but white-space is ignored. When the first word is
+    # "*lower*" then the provided answer of the student is converted
+    # to lower case before the comparison is performed; as a
+    # consequence the comparison is not case sensitive. Note that the
+    # answer_words have to be provided in lower case as well.
+    #
+    set value [regsub -all {[ ]+} ${:value} " "]
     if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
       set value [string tolower $value]
+      set words [lrange ${:correct_when} 2 end]
+    } else {
+      set words [lrange ${:correct_when} 1 end]
     }
-    return [expr {$value eq [:answer]}]
+    return [expr {$value eq $words}]
   }
 
   FormField instproc answer_is_correct {} {
