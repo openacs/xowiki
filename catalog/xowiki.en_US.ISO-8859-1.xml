@@ -284,6 +284,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="questions">Questions</msg>
   <msg key="answers">Answers</msg>
   <msg key="words">Words</msg>
+  <msg key="file_upload">File Upload</msg>  
 
   <msg key="number">Number</msg>
   <msg key="single_word">Single Word</msg>

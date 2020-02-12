@@ -266,5 +266,6 @@
   <msg key="single_word">Einzelwort</msg>
   <msg key="multiple_words">Mehrere Worte</msg>
   <msg key="multiple_lines">Mehrere Zeilen</msg>  
+  <msg key="file_upload">Dateiabgabe</msg>  
 
 </message_catalog>

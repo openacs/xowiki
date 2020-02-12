@@ -3838,11 +3838,18 @@ namespace eval ::xowiki::formfield {
       dict set field_fc_dict correct_when $a
 
       lassign $option text rep
-      if {[dict get $render_hints_dict words] eq "multiple_lines"} {
-        set type textarea
-        dict set field_fc_dict rows [dict get $render_hints_dict lines]
-      } else {
-        set type text
+      set render_hints [dict get $render_hints_dict words]
+      switch $render_hints {
+        "multiple_lines" {
+          set type textarea
+          dict set field_fc_dict rows [dict get $render_hints_dict lines]
+        }
+        "file_upload" {
+          set type file
+        }
+        default {
+          set type text
+        }
       }
       lappend fields [list $rep [:dict_to_fc -type $type $field_fc_dict]]
     }
