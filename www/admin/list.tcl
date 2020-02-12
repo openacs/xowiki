@@ -37,6 +37,9 @@ if {![info exists object_type]} {
 template::head::add_css \
     -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
 
+template::add_confirm_handler -CSSclass "list delete-item-button" \
+    -message [_ xowiki.delete_confirm]
+
 set return_url [expr {$per_type ? [export_vars -base [::$package_id url] object_type] :
                       [::$package_id url]}]
 
