@@ -316,12 +316,18 @@ namespace eval ::xowiki {
           if {[dict exists $properties -label]} {
             lappend item label [dict get $properties -label]
           } else {
-            set name [dict get $properties -name]
+            #
+            # We have not explicit label. Replace dots of menu entry
+            # names by dashes for message key.
+            #
             set locale [::xo::cc locale]
-            if {[lang::message::message_exists_p $locale xowiki.$name]} {
-              lappend item label [lang::message::lookup $locale xowiki.$name]
-            } elseif {[lang::message::message_exists_p $locale xowf.$name]} {
-              lappend item label [lang::message::lookup $locale xowf.$name]
+            set dname [string map {. -} [dict get $properties -name]]
+            
+            foreach message_key [list xowiki.menu-$dname xowf.menu-$dname] {
+              if {[lang::message::message_exists_p en_US $message_key]} {
+                lappend item label [lang::message::lookup $locale $message_key]
+                break
+              }
             }
           }
           :add_menu_item -name [dict get $properties -name] -item $item
