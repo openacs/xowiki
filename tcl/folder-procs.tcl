@@ -604,7 +604,8 @@ namespace eval ::xowiki::includelet {
     #
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
-    set ::__xowiki_with_publish_status [expr {$publish_status ne "ready"}]
+    set ::__xowiki_with_publish_status [expr {$publish_status ne "ready" || "publish_status" in $columns}]
+
     # unexisting csrf token usually means we are outside a connection thread
     set csrf [expr {[info exists ::__csrf_token] ? [list __csrf_token $::__csrf_token] : ""}]
     set ::__xowiki_folder_link [::$package_id make_link \
