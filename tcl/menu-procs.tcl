@@ -317,7 +317,7 @@ namespace eval ::xowiki {
             lappend item label [dict get $properties -label]
           } else {
             #
-            # We have not explicit label. Replace dots of menu entry
+            # We have no explicit label. Replace dots of menu entry
             # names by dashes for message key.
             #
             set locale [::xo::cc locale]

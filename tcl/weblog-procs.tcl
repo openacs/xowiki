@@ -36,7 +36,7 @@ namespace eval ::xowiki {
     set form_item_ids [list]
     foreach t [split $forms |] {
       #
-      # The following regexp should include the majority of alid
+      # The following regexp should include the majority of valid
       # items refs.
       #
       if {![regexp {^[[:alnum:]:./_-]+$} $t]} {
