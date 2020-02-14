@@ -834,6 +834,13 @@ namespace eval ::xowiki {
       ::xowiki::Package require_site_wide_pages -refetch true
     }
 
+    set v 5.10.0d49
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      ::xowiki::Package reparent_site_wide_pages
+    }
+
   }
     
 }

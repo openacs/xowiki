@@ -1,0 +1,34 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:Parameter.form \
+    -title "XoWiki Parameter Form" \
+    -set anon_instances t \
+    -set text {} \
+    -set form {{<form>
+@MenuBar@ 
+@top_includelet@
+@production_mode@
+@with_delicious@ @with_digg@ @with_general_comments@ 
+@with_notifications@ @with_tags@ @with_user_tracking@ 
+@ExtraMenuEntries@ @security_policy@
+@_description@ @_nls_language@
+</form>} text/html} \
+    -set form_constraints {
+MenuBar:boolean,horizontal=true
+top_includelet:text,default=none
+{_title:text,default=Parameter Page}
+_creator:hidden
+production_mode:boolean,horizontal=true,default=t
+with_delicious:boolean,horizontal=true,default=f
+with_digg:boolean,horizontal=true,default=f
+{with_general_comments:boolean,horizontal=true,default=f,label=User Comments}
+with_notifications:boolean,horizontal=true,default=f
+with_tags:boolean,horizontal=true,default=f
+with_user_tracking:boolean,horizontal=true
+_page_order:omit _description:omit
+{ExtraMenuEntries:textarea,cols=80,rows=4,default={form_link -name New.Extra.Workflow -label "#xowf.menu-New-Extra-Workflow#" -form en:workflow.form}}
+security_policy:security_policy,default=::xowiki::policy1
+}
+
+
+

@@ -16,10 +16,15 @@ namespace eval ::xowiki {
         {folder_id 0}
         {force_refresh_login false}
       }
-  # {folder_id "[::xo::cc query_parameter folder_id 0]"}
 
-  if {[apm_version_names_compare [ad_acs_version] 5.2] <= -1} {
-    error "We require at least OpenACS Version 5.2; current version is [ad_acs_version]"
+  Package site_wide_package_parameters {
+    MenuBar 1
+    index_page table-of-contents
+    top_includelet ""
+    with_general_comments 0
+    with_notifications 0
+    with_tags 0
+    with_user_tracking 0
   }
 
   Package ad_proc get_package_id_from_page_id {
@@ -1973,17 +1978,29 @@ namespace eval ::xowiki {
     }
 
     if {!$(item_id) && $use_prototype_pages} {
-      array set "" [:item_ref \
-                        -normalize_name false \
-                        -default_lang $default_lang \
-                        -parent_id $parent_id \
-                        $link]
-      set page [::xowiki::Package import_prototype_page \
-                    -package_key [:package_key] \
-                    -name $(stripped_name) \
-                    -parent_id $(parent_id) \
-                    -package_id ${:id} ]
-      #:msg "import_prototype_page for '$(stripped_name)' => '$page'"
+      set item_info [:item_ref \
+                         -normalize_name false \
+                         -default_lang $default_lang \
+                         -parent_id $parent_id \
+                         $link]
+      foreach pkgClass [${:id} info precedence] {
+        if {[$pkgClass exists package_key]} {
+          set package_key [$pkgClass package_key]
+          if {$package_key ne "apm_package"} {
+            set page [::xowiki::Package import_prototype_page \
+                          -package_key $package_key \
+                          -name [dict get $item_info stripped_name] \
+                          -parent_id [dict get $item_info parent_id] \
+                          -package_id ${:id} ]
+            if {$page ne ""} {
+              :log "loading prototype page for [dict get $item_info stripped_name] from $package_key"
+              break
+            }
+          }
+        }
+      }
+      #:msg "import_prototype_page for '[dict get $item_info stripped_name]' => '$page'"
+
       if {$page ne ""} {
         # we want to be able to address the page via ::$item_id
         set page [::xo::db::CrClass get_instance_from_db -item_id [$page item_id]]
@@ -2033,136 +2050,47 @@ namespace eval ::xowiki {
     }
   }
 
-  Package proc import_prototype_page {
-                                      -package_key:required
-                                      -name:required
-                                      -parent_id:required
-                                      -package_id:required
-                                      {-lang en}
-                                      {-add_revision:boolean true}
-                                    } {
-    set page ""
-    set fn [acs_root_dir]/packages/$package_key/www/prototypes/$name.page
-    #:log "--W check $fn"
-    if {[file readable $fn]} {
-      #
-      # We have the file of the prototype page. We try to create
-      # either a new item or a revision from definition in the file
-      # system.
-      #
-      if {[regexp {^(..):(.*)$} $name _ lang local_name]} {
-        set fullName $name
-      } else {
-        set fullName en:$name
-      }
-      :log "--sourcing page definition $fn, using name '$fullName'"
-      set page [source $fn]
-      $page configure \
-          -name $fullName \
-          -parent_id $parent_id \
-          -package_id $package_id
-      #
-      # xowiki::File has a different interface for build-name to
-      # derive the "name" from a file-name. This is not important for
-      # prototype pages, so we skip it
-      #
-      if {![$page istype ::xowiki::File]} {
-        set nls_language [:get_nls_language_from_lang $lang]
-        $page name [$page build_name -nls_language $nls_language]
-        #:log "--altering name of page $page to '[$page name]'"
-        set fullName [$page name]
-      }
-      if {![$page exists title]} {
-        $page set title $object
-      }
-      $page destroy_on_cleanup
-      $page set_content [string trim [$page text] " \n"]
-      $page initialize_loaded_object
-
-      set p [::$package_id get_page_from_name -name $fullName -parent_id $parent_id]
-      #:log "--get_page_from_name --> '$p'"
-      if {$p eq ""} {
+  Package proc reparent_site_wide_pages {} {
+    #
+    # Reparent the site_wide pages from parent_id -100 to the
+    # site_wide xowiki instance. Reparenting is necessary to keep the
+    # relations to form instances.
+    #
+    # This is transitional code (just for the move). It is safe to
+    # execute this method multiple times.
+    #
+    set site_info [:require_site_wide_info]
+    set parent_id [dict get $site_info folder_id]
+    set page_info [::xo::dc list_of_lists get_site_wide_pages {
+      select item_id,name from cr_items
+      where parent_id = -100
+      and content_type like '::%'
+      and name not like 'xowiki: %';
+    }]
+    xo::dc transaction {
+      foreach {item_id name} [concat {*}$page_info] {
         #
-        # We have to create the page new. The page is completed with
-        # missing vars on save_new.
+        # Avoid potential name clashes in case require_site_wide_pages
+        # was already run and has populated the site.
         #
-        #:log "--save_new of $page class [$page info class]"
-        $page save_new
-      } else {
-        #:log "--save revision $add_revision"
-        if {$add_revision} {
-          #
-          # An old page exists already, create a revision.  Update the
-          # existing page with all scalar variables from the prototype
-          # page (which is just partial)
-          #
-          foreach v [$page info vars] {
-            if {[$page array exists $v]} continue ;# don't copy arrays
-            $p set $v [$page set $v]
-          }
-          #:log "--save of $p class [$p info class]"
-          $p save
+        xo::dc dml maybe_delete_page {
+          delete from cr_items where parent_id = :parent_id and name = :name
         }
-        set page $p
-      }
-      if {$page ne ""} {
-        # we want to be able to address the page via the canonical name ::$item_id
-        set page [::xo::db::CrClass get_instance_from_db -item_id [$page item_id]]
-      }
-    }
-    return $page
-  }
-
-  Package proc require_site_wide_pages {
-    {-refetch:boolean false}
-  } {
-    set parent_id -100
-    set package_id [::xowiki::Package first_instance]
-    ::xowiki::Package require $package_id
-    #::xowiki::Package initialize -package_id $package_id -init_url false -keep_cc true
-    set package_key "xowiki"
-
-    foreach n {folder.form link.form page.form import-archive.form photo.form} {
-      set item_id [::xo::db::CrClass lookup -name en:$n -parent_id $parent_id]
-      #:log "lookup en:$n => $item_id"
-      if {!$item_id || $refetch} {
-        set page [::xowiki::Package import_prototype_page \
-                      -name $n \
-                      -package_key $package_key \
-                      -parent_id $parent_id \
-                      -package_id $package_id ]
-        :log "Page en:$n loaded as '$page'"
+        #
+        # Reparent page (identified by item_id) to site_wide instance
+        #
+        xo::dc dml reparent_page {
+          update cr_items set parent_id = :parent_id where item_id = :item_id
+        }
       }
     }
   }
+
 
   Package proc preferredCSSToolkit {} {
     return [parameter::get_global_value -package_key xowiki \
                 -parameter PreferredCSSToolkit \
                 -default bootstrap]
-  }
-
-  Package proc lookup_side_wide_page {-name:required} {
-    return [::xo::db::CrClass lookup \
-                -name $name \
-                -parent_id -100 \
-                -content_type "::%"]
-  }
-
-  Package proc get_site_wide_page {-name:required} {
-    set item_id [:lookup_side_wide_page -name $name]
-    # :ds "lookup from base objects $name => $item_id"
-    if {$item_id} {
-      set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
-      set package_id [$page package_id]
-      if {$package_id ne ""} {
-        #$form set_resolve_context -package_id $package_id -parent_id $parent_id
-        ::xo::Package require $package_id
-      }
-
-      return $page
-    }
-    return ""
   }
 
   Package instproc call {object method options} {
