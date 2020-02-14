@@ -74,17 +74,19 @@ namespace eval ::xowiki {
 
     set sort_fields {}
     foreach fn [dict keys $form_fields] {
-      if {$fn in $hidden_field_names} continue
       set field_obj [dict get $form_fields $fn]
       set field_orderby [expr {$fn eq "_last_modified" ? "_raw_last_modified" : $fn}]
-      set CSSclass [expr {[$field_obj exists td_CSSclass] ? [$field_obj td_CSSclass] : ""}]
-      append cols [list AnchorField create $fn \
-                       -label [$field_obj label] \
-                       -richtext 1 \
-                       -orderby $field_orderby \
-                       -CSSclass $CSSclass \
-                      ] \n
       lappend sort_fields $field_orderby
+
+      if {$fn ni $hidden_field_names} {
+        set CSSclass [expr {[$field_obj exists td_CSSclass] ? [$field_obj td_CSSclass] : ""}]
+        append cols [list AnchorField create $fn \
+                         -label [$field_obj label] \
+                         -richtext 1 \
+                         -orderby $field_orderby \
+                         -CSSclass $CSSclass \
+                        ] \n
+      }
     }
     if {"delete" in $buttons} {
       #append cols [list ImageField_DeleteIcon _delete -label "" -no_csv 1] \n
