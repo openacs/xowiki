@@ -616,7 +616,7 @@ namespace eval ::xowiki::includelet {
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
 
-    set t [$tableWidgetClass child-resources-[$current_folder item_id] -volatile -skin $skin \
+    set t [$tableWidgetClass new -volatile -skin $skin \
                -columns {
                  BulkAction create objects -id ID -hide $::hidden(objects) -actions {
                    if {$::__xowiki_folder_link ne ""} {
