@@ -3064,7 +3064,7 @@ namespace eval ::xowiki {
 
   #
   # The method "notification_subject" is called from
-  # do_notifications to provide a the subject line for notifications.
+  # do_notifications to provide the subject line for notifications.
   # The "-category_label" might be empty.
   #
   Page instproc notification_subject {-instance_name {-category_label ""} -state} {
