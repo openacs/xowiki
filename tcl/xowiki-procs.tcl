@@ -3113,14 +3113,14 @@ namespace eval ::xowiki {
     return $content
   }
 
-  Page instproc form_field_index {nodes} {
-    set marker ::__computed_form_field_names($nodes)
+  Page instproc form_field_index {form_field_objs} {
+    set marker ::__computed_form_field_names($form_field_objs)
     if {[info exists $marker]} return
 
-    foreach n $nodes {
-      if {![$n istype ::xowiki::formfield::FormField]} continue
-      set ::_form_field_names([$n name]) $n
-      :form_field_index [$n info children]
+    foreach form_field_obj $form_field_objs {
+      if {![$form_field_obj istype ::xowiki::formfield::FormField]} continue
+      set ::_form_field_names([$form_field_obj name]) $form_field_obj
+      :form_field_index [$form_field_obj info children]
     }
     set $marker 1
   }
