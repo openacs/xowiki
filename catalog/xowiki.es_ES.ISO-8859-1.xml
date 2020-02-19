@@ -21,12 +21,14 @@
   <msg key="choiceInteraction_maxChoices_help_text">Respuesta única significa que sólo una respuesta es correcta.</msg>
   <msg key="choiceInteraction_simpleChoice">Introduce algunas respuestas.</msg>
   <msg key="choose_file">Elija el archivo</msg>
+  <msg key="ckeip_help">Modo local</msg>
   <msg key="clear">limpiar</msg>
   <msg key="CompoundField-validate_compound">%errorMsg%</msg>
   <msg key="Configure">Configurar</msg>
   <msg key="content">Contenido</msg>
   <msg key="content_type">Tipo de contenido</msg>
   <msg key="copy_entry">Copiar entrada</msg>
+  <msg key="correct_when-validate_valid_predicate">%errorMsg%</msg>
   <msg key="create_new_entry_of_type">Crear nueva entrada del tipo %type%</msg>
   <msg key="create_this_page_in_language">Crear esta página en un lenguaje diferente</msg>
   <msg key="day">día</msg>
@@ -37,6 +39,7 @@
   <msg key="delete_all_instances">Eliminar todo %pretty_plural% de esta instancia</msg>
   <msg key="delete_all_items">Eliminar todos los elementos de estas instancias</msg>
   <msg key="delete_confirm">¿Confirma la eliminación?</msg>
+  <msg key="Delete_selected">Borrar selección</msg>
   <msg key="delete_title">Borrar esta página</msg>
   <msg key="details">Detalles</msg>
   <msg key="duplicate">Duplicar</msg>
@@ -73,6 +76,7 @@
   <msg key="File-name-help_text">Puede ser obtenido del nombre del archivo subido</msg>
   <msg key="File_pretty_name">Archivo Wiki</msg>
   <msg key="File_pretty_plural">Archivos Wiki</msg>
+  <msg key="file_upload">Subida de ficheros</msg>
   <msg key="form-created">Forumlario creado</msg>
   <msg key="Form-form">Forme</msg>
   <msg key="Form-form_constraints">restricciones del formulario</msg>
@@ -94,6 +98,11 @@
   <msg key="Form_pretty_name">Formulario Wiki</msg>
   <msg key="Form_pretty_plural">Formularios Wiki</msg>
   <msg key="formfield-author">Autor</msg>
+  <msg key="formfield-correct_when-help_text">Condicion, cuando
+  la respuesta es correcta, especificada como un predicado seguido
+  de argumentos (palabras Tcl). Los predicados predefinidos son
+  "eq", "gt", "ge", "lt", "le", "btwn", "in", "contains", "match",
+  "answer_words"</msg>
   <msg key="formfield-image_url-help_text">URL HTTP de la imagen (puede arrastrar una imagen mostrada por un navegador web aquí)</msg>
   <msg key="formfield-import_archive-help_text">Seleccione el nombre del archivo .zip o .tar.gz </msg>
   <msg key="formfield-import_archive-label">Importar archivo</msg>
@@ -154,6 +163,7 @@
   <msg key="menu-Page-Edit">Editar página</msg>
   <msg key="menu-Page-Revisions">Revisiones</msg>
   <msg key="menu-Page-Show">Mostrar página</msg>
+  <msg key="menu-Page-View">Ver</msg>
   <msg key="minute">minuto</msg>
   <msg key="minutes">minutos</msg>
   <msg key="modified_page">página modificada</msg>
@@ -161,6 +171,8 @@
   <msg key="months">meses</msg>
   <msg key="most_frequent_visitors">Visitantes más frecuentes</msg>
   <msg key="most_popular_pages">Páginas más populares</msg>
+  <msg key="multiple_words">Palabras múltiples</msg>
+  <msg key="multiple_lines">Líneas múltiples</msg>
   <msg key="name">Nombre</msg>
   <msg key="new">Nueva página</msg>
   <msg key="new_page">Nueva Página</msg>
@@ -171,6 +183,7 @@
   <msg key="no_data">sin datos</msg>
   <msg key="notifications">Notificaciones</msg>
   <msg key="notifications_title">Administrar notificaciones ...</msg>
+  <msg key="number">Número</msg>
   <msg key="numeric-validate_numeric">Valor numérico no válido</msg>
   <msg key="Object_pretty_name">Objeto Wiki</msg>
   <msg key="Object_pretty_plural">Objetos Wiki</msg>
@@ -231,6 +244,7 @@
   <msg key="publish_status">Publicado</msg>
   <msg key="QtiInteraction_weight">Peso</msg>
   <msg key="QtiInteraction_weight_help_text">Para la puntuación global de la pregunta, cada interacción se pondera por este valor.</msg>
+  <msg key="questions">Preguntas</msg>
   <msg key="recently_changed_pages">Páginas modificadas recientemente</msg>
   <msg key="recently_changed_pages_by_categories">Páginas modificadas recientemente (por categoría)</msg>
   <msg key="references_label">Referencias a esta Página:</msg>
@@ -250,6 +264,7 @@
   <msg key="Selection">Selección</msg>
   <msg key="shuffle">Mezclar las respuestas aleatoriamente</msg>
   <msg key="shuffle_help_text">¿Mostrar las respuestas en orden aleatorio?</msg>
+  <msg key="single_word">Palabra única</msg>
   <msg key="Size">Tamaño</msg>
   <msg key="subscribe">Suscribir</msg>
   <msg key="title">Título</msg>
