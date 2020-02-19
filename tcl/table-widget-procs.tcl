@@ -172,7 +172,7 @@ namespace eval ::xowiki {
     foreach p [$items children] {
       set __ia [dict merge $init_vars [$p instance_attributes]]
 
-      if {[dict get $uc tcl]} continue
+      if [dict get $uc tcl] continue
       #if {![expr $wc(tcl)]} continue ;# already handled in get_form_entries
 
       set page_link [$p pretty_link -path_encode false]
