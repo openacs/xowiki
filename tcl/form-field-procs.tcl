@@ -3501,7 +3501,7 @@ namespace eval ::xowiki::formfield {
           incr W
         }
 
-        if {[expr {$v in $value}]} {
+        if {$v in $value} {
           #
           # Marked entries: mark can be correct or wrong.
           #
