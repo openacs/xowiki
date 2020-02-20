@@ -185,7 +185,7 @@ namespace eval ::xowiki {
         # case of potential conflicts, like for file....
 
         # check if we have a LANG - FOLDER "conflict"
-        set item_id [::xo::db::CrClass lookup -name $lang -parent_id [:folder_id]]
+        set item_id [::xo::db::CrClass lookup -name $lang -parent_id ${:folder_id}]
         if {$item_id} {
           :msg "We have a lang-folder 'conflict' (or a two-char folder) with folder: $lang"
           set local_name $path
@@ -408,7 +408,7 @@ namespace eval ::xowiki {
       set path $name/$path
 
       if {${:folder_id} == [$fo parent_id]} {
-        #:msg ".... :folder_id [:folder_id] == $fo parentid"
+        #:msg ".... :folder_id ${:folder_id} == $fo parentid"
         break
       }
 
@@ -502,7 +502,7 @@ namespace eval ::xowiki {
     } else {
       if {$parent_id eq ""} {
         ns_log warning "pretty_link of $name: you should consider to pass a parent_id to support folders"
-        set parent_id [:folder_id]
+        set parent_id ${:folder_id}
       }
       set folder_path [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
       set pkg [::$parent_id package_id]
@@ -639,7 +639,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    #if {$value eq ""} {set value [::[:folder_id] get_payload $attribute]}
+    #if {$value eq ""} {set value [::${:folder_id} get_payload $attribute]}
     if {$value eq ""} {set value [next $attribute $default]}
     if {$type ne ""} {
       # to be extended and generalized
@@ -1284,7 +1284,7 @@ namespace eval ::xowiki {
       foreach package [:package_path] {
         set page [$package resolve_page -simple true -lang $lang $object method]
         if {$page ne ""} {
-          #:msg "set_resolve_context inherited -package_id ${:id} -parent_id [:folder_id]"
+          #:msg "set_resolve_context inherited -package_id ${:id} -parent_id ${:folder_id}"
           $page set_resolve_context -package_id ${:id} -parent_id ${:folder_id}
           return $page
         }
@@ -1705,9 +1705,8 @@ namespace eval ::xowiki {
     # ".", "..", ...
     #
     if {$element eq "" || $element eq "\0"} {
-      set folder_id [:folder_id]
-      array set "" [:item_info_from_id $folder_id]
-      set item_id $folder_id
+      array set "" [:item_info_from_id ${:folder_id}]
+      set item_id ${:folder_id}
       set parent_id $(parent_id)
       #:msg "SETTING item_id $item_id parent_id $parent_id // [array get {}]"
     } elseif {$element eq "." || $element eq ".\0"} {
@@ -1854,7 +1853,7 @@ namespace eval ::xowiki {
 
     set (parent_id) [:get_parent_and_name \
                          -lang $(lang) -path $stripped_url \
-                         -parent_id [:folder_id] \
+                         -parent_id ${:folder_id} \
                          parent local_name]
     #:log "get_parent_and_name '$stripped_url' returns [array get {}]"
 
@@ -1970,13 +1969,13 @@ namespace eval ::xowiki {
       set search_parent_id $parent_id
     }
 
-    #:log "my folder [:folder_id]"
+    #:log "my folder ${:folder_id}"
 
     if {$search_parent_id eq ""} {
-      set search_parent_id [:folder_id]
+      set search_parent_id ${:folder_id}
     }
     if {$parent_id eq ""} {
-      set parent_id [:folder_id]
+      set parent_id ${:folder_id}
     }
     #:log call-item_ref-on:$link-parent_id=$parent_id,search_parent_id=$search_parent_id
     array set "" [:item_ref -normalize_name false \
@@ -1986,7 +1985,7 @@ namespace eval ::xowiki {
                       -parent_id $search_parent_id \
                       $link]
 
-    #:msg  "[:instance_name] (root [:folder_id]) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+    #:msg  "[:instance_name] (root ${:folder_id}) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
       if {[$page package_id] ne ${:id} || [$page parent_id] != $(parent_id)} {
@@ -2456,7 +2455,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc clipboard-copy {} {
-    [:folder_id] clipboard-copy
+    ${:folder_id} clipboard-copy
   }
 
   #
@@ -2564,7 +2563,7 @@ namespace eval ::xowiki {
   Package ad_instproc import {-user_id {-parent_id 0} {-replace 0} -objects {-create_user_ids 0}} {
     import the specified pages into the xowiki instance
   } {
-    if {$parent_id == 0} {set parent_id  [:folder_id]}
+    if {$parent_id == 0} {set parent_id ${:folder_id}}
     if {![info exists user_id]} {set user_id [::xo::cc user_id]}
     if {![info exists objects]} {set objects [::xowiki::Page allinstances]}
     set msg "#xowiki.processing_objects#: $objects<p>"
