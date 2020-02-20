@@ -36,7 +36,7 @@ namespace eval ::xowiki {
     import-archive.form
     photo.form
   }
-  
+
   Package ad_proc get_package_id_from_page_id {
     {-revision_id 0}
     {-item_id 0}
@@ -1552,7 +1552,15 @@ namespace eval ::xowiki {
       #
       # Page not found so far. Is the page a site_wide page?
       #
-      set item_id [::xowiki::Package lookup_side_wide_page -name $name]
+      foreach pkgClass [${:id} info precedence] {
+        if {[$pkgClass istype ::xo::PackageMgr] && [$pkgClass package_key] ne "apm_package"} {
+          set item_id [$pkgClass lookup_side_wide_page -name $name]
+          #ns_log notice "SITE_WIDE: [list $pkgClass lookup_side_wide_page -name $name] -> $item_id"
+          if {$item_id ne 0} {
+            break
+          }
+        }
+      }
     }
 
     return $item_id
@@ -1994,22 +2002,21 @@ namespace eval ::xowiki {
                          -default_lang $default_lang \
                          -parent_id $parent_id \
                          $link]
+
       foreach pkgClass [${:id} info precedence] {
-        if {[$pkgClass exists package_key]} {
-          set package_key [$pkgClass package_key]
-          if {$package_key ne "apm_package"} {
-            set page [::xowiki::Package import_prototype_page \
-                          -package_key $package_key \
-                          -name [dict get $item_info stripped_name] \
-                          -parent_id [dict get $item_info parent_id] \
-                          -package_id ${:id} ]
-            if {$page ne ""} {
-              :log "loading prototype page for [dict get $item_info stripped_name] from $package_key"
-              break
-            }
+        if {[$pkgClass istype ::xo::PackageMgr] && [$pkgClass package_key] ne "apm_package"} {
+          set page [$pkgClass import_prototype_page \
+                        -package_key [$pkgClass package_key] \
+                        -name [dict get $item_info stripped_name] \
+                        -parent_id [dict get $item_info parent_id] \
+                        -package_id ${:id} ]
+          if {$page ne ""} {
+            :log "loading prototype page for [dict get $item_info stripped_name] from $package_key"
+            break
           }
         }
       }
+
       #:msg "import_prototype_page for '[dict get $item_info stripped_name]' => '$page'"
 
       if {$page ne ""} {
