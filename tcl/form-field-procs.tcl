@@ -2440,7 +2440,7 @@ namespace eval ::xowiki::formfield {
     #:log "add_statistics $options"
     next
     if {[dict exists $options word_statistics]} {
-      :log "add_statistics call :word_statistics"
+      #:log "add_statistics call :word_statistics"
       :word_statistics [dict get $options word_statistics]
     }
   }
