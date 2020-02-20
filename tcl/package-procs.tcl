@@ -6,6 +6,8 @@
   @cvs-id $Id$
 }
 
+::xo::library require -package xotcl-core 06-package-procs
+
 namespace eval ::xowiki {
 
   ::xo::PackageMgr create ::xowiki::Package \
@@ -141,19 +143,6 @@ namespace eval ::xowiki {
     }
     set :__default_locale $locale
     return $locale
-  }
-
-  Package proc get_nls_language_from_lang {lang} {
-    # Return the first nls_language matching the provided lang
-    # prefix. This method is not precise (when e.g. two nls_languages
-    # are defined with the same lang), but the only thing relevant is
-    # the lang anyhow.  If nothing matches return empty.
-    foreach nls_language [lang::system::get_locales] {
-      if {[string range $nls_language 0 1] eq $lang} {
-        return $nls_language
-      }
-    }
-    return ""
   }
 
   Package instproc default_language {} {
