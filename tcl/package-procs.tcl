@@ -1256,7 +1256,7 @@ namespace eval ::xowiki {
                     -use_site_wide_pages true \
                     -use_prototype_pages true \
                     -default_lang $lang \
-                    -parent_id [:folder_id] \
+                    -parent_id ${:folder_id} \
                     $standard_page]
       #:log "--o resolving standard_page '$standard_page' returns $page"
       if {$page ne ""} {
@@ -1288,7 +1288,7 @@ namespace eval ::xowiki {
         set page [$package resolve_page -simple true -lang $lang $object method]
         if {$page ne ""} {
           #:msg "set_resolve_context inherited -package_id ${:id} -parent_id [:folder_id]"
-          $page set_resolve_context -package_id ${:id} -parent_id [:folder_id]
+          $page set_resolve_context -package_id ${:id} -parent_id ${:folder_id}
           return $page
         }
       }
@@ -1298,14 +1298,25 @@ namespace eval ::xowiki {
     set page [::xowiki::Package get_site_wide_page -name en:$(stripped_name)]
     #:msg "get_site_wide_page for en:'$(stripped_name)' returned '$page' (stripped name)"
     if {$page ne ""} {
-      #:msg "set_resolve_context site-wide -package_id ${:id} -parent_id [:folder_id]"
-      $page set_resolve_context -package_id ${:id} -parent_id [:folder_id]
+      #:msg "set_resolve_context site-wide -package_id ${:id} -parent_id ${:folder_id}"
+      $page set_resolve_context -package_id ${:id} -parent_id ${:folder_id}
       return $page
     }
 
-    #:log "try to import a prototype page for '$(stripped_name)'"
+    :log "try to import a prototype page for '$(stripped_name)' [array get {}]"
     if {$(stripped_name) ne ""} {
-      set page [:www-import-prototype-page -lang $lang -add_revision false $(stripped_name)]
+      if {[info exists (logical_parent_id)]} {
+        set parent_id $(logical_parent_id)
+      } elseif {[info exists (parent_id)]} {
+        set parent_id $(parent_id)
+      } else {
+        set parent_id ${:folder_id}
+      }
+      set page [:www-import-prototype-page \
+                    -lang $lang \
+                    -parent_id $parent_id \
+                    -add_revision false \
+                    $(stripped_name)]
     }
     if {$page eq ""} {
       :log "no prototype for '$object' found"
@@ -2018,6 +2029,7 @@ namespace eval ::xowiki {
   Package ad_instproc www-import-prototype-page {
     {-add_revision:boolean true}
     {-lang en}
+    {-parent_id}
     {prototype_name ""}
   } {
 
@@ -2031,6 +2043,9 @@ namespace eval ::xowiki {
       set prototype_name [:query_parameter import-prototype-page ""]
       set via_url 1
     }
+    if {![info exists parent_id]} {
+      set parent_id ${:folder_id}
+    }
     if {$prototype_name eq ""} {
       error "No name for prototype given"
     }
@@ -2039,7 +2054,7 @@ namespace eval ::xowiki {
                   -package_key [:package_key] \
                   -name $prototype_name \
                   -lang $lang \
-                  -parent_id [:folder_id] \
+                  -parent_id $parent_id \
                   -package_id ${:id} \
                   -add_revision $add_revision]
 
