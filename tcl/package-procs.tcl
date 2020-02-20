@@ -27,6 +27,14 @@ namespace eval ::xowiki {
     with_user_tracking 0
   }
 
+  Package site_wide_pages {
+    folder.form
+    link.form
+    page.form
+    import-archive.form
+    photo.form
+  }
+  
   Package ad_proc get_package_id_from_page_id {
     {-revision_id 0}
     {-item_id 0}
@@ -1305,6 +1313,9 @@ namespace eval ::xowiki {
 
     :log "try to import a prototype page for '$(stripped_name)' [array get {}]"
     if {$(stripped_name) ne ""} {
+      #
+      # Allow import of prototype pages into the actual folder.
+      #
       if {[info exists (logical_parent_id)]} {
         set parent_id $(logical_parent_id)
       } elseif {[info exists (parent_id)]} {
