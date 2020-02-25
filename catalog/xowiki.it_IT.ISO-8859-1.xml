@@ -75,6 +75,7 @@
   <msg key="File-name-help_text">Può essere ottenuto dal nome del file caricato</msg>
   <msg key="File_pretty_name">File Wiki</msg>
   <msg key="File_pretty_plural">File Wiki</msg>
+  <msg key="file_upload">Caricamento File</msg>
   <msg key="form-created">Creato da</msg>
   <msg key="Form-form">Form</msg>
   <msg key="Form-form_constraints">Vincoli Form</msg>
@@ -96,6 +97,7 @@
   <msg key="Form_pretty_name">Wiki Form</msg>
   <msg key="Form_pretty_plural">Wiki Form</msg>
   <msg key="formfield-author">Autore</msg>
+  <msg key="formfield-correct_when-help_text">Condizione tale per cui la risposta è corretta, specificata come predicato seguito da argomenti (Tcl words). I predicati predefiniti sono &#34;eq&#34;, &#34;gt&#34;, &#34;ge&#34;, &#34;lt&#34;, &#34;le&#34;, &#34;btwn&#34;, &#34;in&#34;, &#34;contains&#34;, &#34;match&#34;, &#34;answer_words&#34;</msg>
   <msg key="formfield-image_url-help_text">URL HTTP dell&#39;immagine (puoi trascinare un#immagine mostrata da un browser web qui)</msg>
   <msg key="formfield-import_archive-help_text">Seleziona il Nome di un File .zip o .tar.gz</msg>
   <msg key="formfield-import_archive-label">Importa Archivio</msg>
@@ -164,6 +166,8 @@
   <msg key="months">mesi</msg>
   <msg key="most_frequent_visitors">Visitatori Più Frequenti</msg>
   <msg key="most_popular_pages">Pagine Più Popolari</msg>
+  <msg key="multiple_lines">Più linee</msg>
+  <msg key="multiple_words">Più parole</msg>
   <msg key="name">Nome</msg>
   <msg key="new">Nuova Pagina</msg>
   <msg key="new_page">Nuova Pagina</msg>
@@ -174,6 +178,7 @@
   <msg key="no_data">nessun dato</msg>
   <msg key="notifications">Notifiche</msg>
   <msg key="notifications_title">Gestisci notifiche...</msg>
+  <msg key="number">Numero</msg>
   <msg key="numeric-validate_numeric">Valore numerico non valido</msg>
   <msg key="Object_pretty_name">Oggetto Wiki</msg>
   <msg key="Object_pretty_plural">Oggetti Wiki</msg>
@@ -234,6 +239,7 @@
   <msg key="publish_status">Pubblicato</msg>
   <msg key="QtiInteraction_weight">Peso</msg>
   <msg key="QtiInteraction_weight_help_text">Per il punteggio complessivo della domanda, ogni interazione viene pesata per il suo valore.</msg>
+  <msg key="questions">Domande</msg>
   <msg key="recently_changed_pages">Pagine Modificate di Recente</msg>
   <msg key="recently_changed_pages_by_categories">Pagine Modificate di Recente (per categorie)</msg>
   <msg key="references_label">Riferimenti a questa Pagina:</msg>
@@ -253,6 +259,7 @@
   <msg key="Selection">Selezione</msg>
   <msg key="shuffle">Mescola le Risposte</msg>
   <msg key="shuffle_help_text">L&#39;ordine delle risposte deve essere presentato casualmente?</msg>
+  <msg key="single_word">Parola singola</msg>
   <msg key="Size">Dimensione</msg>
   <msg key="subscribe">Iscriviti</msg>
   <msg key="title">Titolo</msg>
