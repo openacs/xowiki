@@ -62,9 +62,9 @@ namespace eval ::xowiki {
 		    -nls_language en_US \
 		    -default_variables $instance_vars
 	    } on error {errorMsg} {
-		error "cannot create instance named '$name' of form $form"
+              error "cannot create instance named '$name' of form $form: $errorMsg\n$::errorInfo"
 	    } on ok {p} {
-		ns_log notice "form $form: try to create form page $name DONE, do a save_new"    	    
+                ns_log notice "form $form: try to create form page $name DONE, do a save_new"    	    
 		$p save_new
 		ns_log notice "form $form: try to create form page $name DONE, do a save_new DONE"    	    
 	    }
