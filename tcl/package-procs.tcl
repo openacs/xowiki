@@ -2010,7 +2010,7 @@ namespace eval ::xowiki {
                         -parent_id [dict get $item_info parent_id] \
                         -package_id ${:id} ]
           if {$page ne ""} {
-            :log "loading prototype page for [dict get $item_info stripped_name] from $package_key"
+            :log "loading prototype page for [dict get $item_info stripped_name] from [$pkgClass package_key]"
             break
           }
         }
