@@ -34,8 +34,12 @@ if {![info exists object_type]} {
   set with_children true
 }
 
+set CSSToolkit [::xowiki::Package preferredCSSToolkit]
+if {$CSSToolkit eq "bootstrap"} {
+  template::head::add_css -href urn:ad:css:bootstrap3
+}
 template::head::add_css \
-    -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
+    -href urn:ad:css:xowiki-$CSSToolkit
 
 # if you would like to have a confirmation popup before deleting, uncomment the following lines
 # template::add_confirm_handler -CSSclass "list delete-item-button" \

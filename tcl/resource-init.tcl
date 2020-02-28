@@ -5,13 +5,19 @@ template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jq
 template::register_urn -urn urn:ad:js:jquery-ui   -resource /resources/xowiki/jquery/jquery-ui.min.js
 template::register_urn -urn urn:ad:css:jquery-ui  -resource /resources/xowiki/jquery/jquery-ui.css
 
-template::register_urn -urn urn:ad:js:bootstrap3  -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js
+template::register_urn -urn urn:ad:js:bootstrap3  \
+    -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js \
+    -csp_list {script-src maxcdn.bootstrapcdn.com}
+
 template::register_urn -urn urn:ad:js:get-http-object \
     -resource /resources/xowiki/get-http-object.js
 template::register_urn -urn urn:ad:js:bootstrap3-treeview \
-    -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js
+    -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js \
+    -csp_list {script-src cdnjs.cloudflare.com}
+
 template::register_urn -urn urn:ad:js:highcharts \
-    -resource //code.highcharts.com/highcharts.js
+    -resource //code.highcharts.com/highcharts.js \
+    -csp_list {script-src code.highcharts.com}
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
 #
@@ -34,7 +40,10 @@ foreach variant {yui bootstrap3} {
   }
 }
 
-template::register_urn -urn urn:ad:css:bootstrap3 -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css
+template::register_urn -urn urn:ad:css:bootstrap3 \
+    -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css \
+    -csp_list {font-src maxcdn.bootstrapcdn.com style-src maxcdn.bootstrapcdn.com}
+
 template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xowiki-yui.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
 template::register_urn -urn urn:ad:css:bootstrap3-treeview \

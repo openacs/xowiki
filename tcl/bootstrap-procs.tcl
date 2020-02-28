@@ -33,15 +33,6 @@ namespace eval ::xowiki {
 
   BootstrapNavbar instproc init {} {
     ::xo::Page requireJS urn:ad:js:jquery
-    #
-    # TODO: We should dynamically be able to determine (some of) the
-    # CSP directives. However, for the time being, the URLs below are
-    # trusted.
-    #
-    security::csp::require script-src maxcdn.bootstrapcdn.com
-    security::csp::require style-src maxcdn.bootstrapcdn.com
-    security::csp::require font-src maxcdn.bootstrapcdn.com
-
     ::xo::Page requireCSS urn:ad:css:bootstrap3
     ::xo::Page requireJS  urn:ad:js:bootstrap3
     next
@@ -510,8 +501,6 @@ namespace eval ::xo::Table {
 
   BootstrapTableRenderer instproc render {} {
     ::xo::Page requireCSS urn:ad:css:bootstrap3
-    security::csp::require style-src maxcdn.bootstrapcdn.com
-    security::csp::require font-src maxcdn.bootstrapcdn.com
 
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
