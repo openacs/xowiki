@@ -16,7 +16,7 @@ template::register_urn -urn urn:ad:js:bootstrap3-treeview \
     -csp_list {script-src cdnjs.cloudflare.com}
 
 template::register_urn -urn urn:ad:js:highcharts \
-    -resource //code.highcharts.com/highcharts.js \
+    -resource //code.highcharts.com/7.0/highcharts.js \
     -csp_list {script-src code.highcharts.com}
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
