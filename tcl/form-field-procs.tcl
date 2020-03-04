@@ -1046,7 +1046,8 @@ namespace eval ::xowiki::formfield {
     set attributes [:get_attributes id]
     lappend attributes class $class
     ::html::div $attributes {
-      ::html::t -disableOutputEscaping [:value]
+      ::html::t [:value]
+      #::html::t -disableOutputEscaping [:value]
     }
   }
 
