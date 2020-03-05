@@ -1432,14 +1432,15 @@ namespace eval ::xowiki {
   # link properties
   #
   Page instproc get_property_from_link_page {property {default ""}} {
-    if {![:is_link_page]} {return $default}
+
+    if {![:is_link_page]} {
+      return $default
+    }
+
     set item_ref [:property link]
-
-    # TODO we could save some double-fetch operations by collecting in
-    # get_form_entries via item-ids, not via new-objects
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
-
     set props [::xo::cc cache [list ::${:item_id} compute_link_properties $item_ref]]
+    
     if {[dict exists $props $property]} {
       #${:item_id} msg "prop $property ==> [dict get $props $property]"
       return [dict get $props $property]
