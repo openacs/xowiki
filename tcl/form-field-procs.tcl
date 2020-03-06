@@ -815,19 +815,34 @@ namespace eval ::xowiki::formfield {
       }
       #
       # When the widget class supports "disabled_as_div", we
-      # can try to highlight matches from correct_when.
+      # can try to highlight matches from :correct_when.
       #
-      if {[info exists :disabled_as_div]} {
+      if {[info exists :disabled_as_div] && [info exists :correct_when]} {
         #
-        # render_as_div requires output escaping
+        # When render_as_div might or might not require output
+        # escaping. When we have a markup produced form match
+        # highlighting, the code sets :value_with_markup for
+        # rendering. Otherwise, the plain :value is used.
         #
         set :value [ns_quotehtml ${:value}]
         if {[lindex ${:correct_when} 0] eq "contains"} {
           #
-          # Mark matches in the div
+          # Mark matches in the div element.
           #
+          set annotated_value ${:value}
           foreach word [lrange ${:correct_when} 1 end] {
-            regsub -all $word ${:value} {<span class='match'>&</span>} :value
+            #
+            # We need here probably more escapes, or we should be more
+            # restrictive on allowed content in the "contains" clause.
+            #
+            regsub -all * $word "\\*" word
+            regsub -all [ns_quotehtml $word] \
+                $annotated_value \
+                {<span class='match'>&</span>} \
+                annotated_value
+          }
+          if {$annotated_value ne ${:value}} {
+            set :value_with_markup $annotated_value
           }
         }
       }
@@ -1046,8 +1061,11 @@ namespace eval ::xowiki::formfield {
     set attributes [:get_attributes id]
     lappend attributes class $class
     ::html::div $attributes {
-      ::html::t [:value]
-      #::html::t -disableOutputEscaping [:value]
+      if {[info exists :value_with_markup]} {
+        ::html::t -disableOutputEscaping ${:value_with_markup}
+      } else {
+        ::html::t [:value]
+      }
     }
   }
 
@@ -3681,7 +3699,7 @@ namespace eval ::xowiki::formfield {
     # Determine the values of the CSS classes for correct/incorrect
     # rendering. In statistics mode (when :result_statistics exists),
     # use the correct value of the alternative. Otherwise, use
-    # the correction of the actual value in the form field.
+    # the :correction of the actual value in the form field.
     #
     if {[info exists :result_statistics]} {
       set values ${:answer}
@@ -4074,6 +4092,140 @@ namespace eval ::xowiki::formfield {
       }
     } else {
       next
+    }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::reorder_box
+  #
+  # The reorder_box form field can be used for ordering tasks (e.g. in
+  # e-assessments) where elements are provided in a given or random
+  # order and the user has to bring these to some correct order).
+  #
+  ###########################################################
+  Class create reorder_box -superclass select -parameter {
+    {shuffle:boolean true}
+  }
+
+  reorder_box instproc answer_is_correct {} {
+    #
+    # This method returns 0 (undecided), -1 (incorrect) or 1 (correct)
+    # and sets as well the instance variable :correction with the
+    # per-item correctness settings for correct/incorrect.
+    #
+    #:log "reorder_box CORRECT? ${:name} (value=[:value])"
+
+    if {![info exists :answer]} {
+      set result 0
+    } else {
+      set value [:value]
+      if {[llength $value] != [llength ${:answer}]} {
+        error "list length of value <$value> and answer <${:answer}> must be equal"
+      }
+      set result 1
+      set :correction {}
+
+      foreach v $value a ${:answer} {
+        set ok [expr {$v eq $a}]
+        lappend :correction $ok
+        if {!$ok} {
+          set result -1
+        }
+      }
+
+      #:log "reorder_box CORRECT? answers [llength ${:answer}] options [llength ${:options}] -> $result"
+    }
+    return $result
+  }
+
+
+  reorder_box instproc render_input {} {
+
+    if {${:value} eq ""} {
+      #
+      # When we have no value, provide a start value.
+      #
+      if {${:shuffle}} {
+        #
+        # When :shuffle is set, provide a randomized start value.
+        #
+        set :value [::xowiki::randomized_indices -seed [xo::cc user_id] [llength ${:options}]]
+        #ns_log notice "=== reorder_box value '${:value}' shuffle ${:shuffle} value ${:value}"
+      } else {
+        #
+        # Otherwise, take the internal representations as :value
+        #
+        set :value [lmap o ${:options} {lindex $o 1}]
+      }
+    }
+    #
+    # Make sure that value is feasible and bail out, if not.
+    #
+    set c -1; set indices [lmap o ${:options} {incr c}]
+    if {[lsort -integer ${:value}] ne $indices} {
+      error "intenal representation of options ${:options} must be subsequent integers starting with 0"
+    }
+
+    #
+    # Provide a HTML ID for ".sortable" compatible with jquery
+    #
+    regsub -all {[.]} "${:id}.sortable" - jqID
+    set textAreaID ${:id}.text
+
+    if {![:is_disabled]} {
+      #
+      # If not disabled, let people move arount the elements.
+      #
+      ::xo::Page requireCSS urn:ad:css:jquery-ui
+      ::xo::Page requireJS urn:ad:js:jquery-ui
+
+      template::add_body_script -script  [subst {
+        \$("#$jqID").sortable();
+        \$("#$jqID").on( "sortupdate", function( event, ui ) {
+          var ul       = event.target;
+          var textarea = document.getElementById('$textAreaID');
+          var items    = ul.getElementsByTagName('LI');
+          var internalRep = "";
+          for (var j = 0; j < items.length; j++) {
+            internalRep += items\[j\].dataset.value + "\\n";
+          }
+          textarea.value = internalRep;
+        } );
+      }]
+    }
+
+    #
+    # Make sure, we have :correction initialized, since the rendering
+    # code below needs it.
+    #
+    if {![info exists :correction]} {
+      set :correction {}
+    }
+
+    html::div -class reorder_box -id ${:id} {
+      #
+      # The input field of the internal representation.
+      #
+      ::html::textarea -id $textAreaID -name ${:name} {
+        ::html::t [join ${:value} \n]
+      }
+
+      #
+      # The box for reordering items.
+      #
+      ::html::div -class workarea {
+        ::html::ul -class "list-group" \
+            -id $jqID {
+              foreach v ${:value} c ${:correction} {
+                set cl "list-group-item"
+                lappend cl [expr {$c eq "1" ? "correct" : $c eq "0" ? "incorrect" : ""} ]
+                ::html::li -class $cl -data-value $v {
+                  ::html::t [lindex ${:options} $v 0]
+                }
+              }
+            }
+      }
     }
   }
 
@@ -4604,8 +4756,8 @@ namespace eval ::xowiki::formfield {
 
     if {${:resolve_local}} {
       #
-      # resetting esp. the item-id is dangerous.
-      # Therefore, we reset it immediately after the rendering
+      # Resetting esp. the item_id is dangerous.
+      # Therefore, we reset it immediately after the rendering.
       #
       #:log "#### RESOLVE LOCAL: setting for $item [$item name] set_resolve_context -parent_id [${:object} parent_id] -item_id [${:object} item_id]"
       $item set __RESOLVE_LOCAL 1

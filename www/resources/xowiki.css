@@ -303,7 +303,31 @@ div.candidate-selection textarea {
     display: none;
 }
 
+/* 
+ * (Vertical) Reorder box 
+ */
 
+div.reorder_box {
+    margin: 0px 30px 0px 40px;
+}
+div.reorder_box textarea {
+    display: none;
+}
+
+div.reorder_box li::before {
+    /* glyphicon-move */
+    font-family: 'Glyphicons Halflings';
+    content: "\e068 ";
+    float: left;
+    position: relative;
+    font-size: 12px;
+    margin-right: 10px;
+    color: #aaa;
+}
+
+/* 
+ * Book styling
+ */
 div.xowiki-content div.book ul.page_order_region {
     border: 0px solid gray;
     width: 100%;
