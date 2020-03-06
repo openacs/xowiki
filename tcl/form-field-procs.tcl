@@ -4175,7 +4175,7 @@ namespace eval ::xowiki::formfield {
 
     if {![:is_disabled]} {
       #
-      # If not disabled, let people move arount the elements.
+      # If not disabled, let people move around the elements.
       #
       ::xo::Page requireCSS urn:ad:css:jquery-ui
       ::xo::Page requireJS urn:ad:js:jquery-ui
