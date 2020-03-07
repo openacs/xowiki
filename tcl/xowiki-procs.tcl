@@ -1440,7 +1440,7 @@ namespace eval ::xowiki {
     set item_ref [:property link]
     ::xo::db::CrClass get_instance_from_db -item_id ${:item_id}
     set props [::xo::cc cache [list ::${:item_id} compute_link_properties $item_ref]]
-    
+
     if {[dict exists $props $property]} {
       #${:item_id} msg "prop $property ==> [dict get $props $property]"
       return [dict get $props $property]
@@ -3155,7 +3155,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    ns_log notice "dynamic repeat field $msg: fields & specs:\n$fields"
+    #ns_log notice "dynamic repeat field $msg: fields & specs:\n$fields"
   }
 
   Page instproc lookup_form_field {
@@ -3233,16 +3233,15 @@ namespace eval ::xowiki {
     # formfield. If so, return it.
     #
     if {[info exists $key]} {
-      ns_log notice "dynamic repeat 2nd lookup for $key succeeds"
+      #ns_log notice "dynamic repeat 2nd lookup for $key succeeds"
       return [set $key]
     }
-
 
     if {$name ni {langmarks fontname fontsize formatblock}} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
       :msg "No form field with name '$name' found\
-    (available fields: [lsort [array names ::_form_field_names]])"
+            (available fields: [lsort [array names ::_form_field_names]])"
     }
     set f [:create_form_fields_from_form_constraints [list $name:text]]
     set $key $f
