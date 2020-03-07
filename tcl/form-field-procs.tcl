@@ -1398,12 +1398,34 @@ namespace eval ::xowiki::formfield {
     return $sub
   }
 
-  CompoundField instproc get_named_sub_component_value {{-default ""} args} {
+  CompoundField ad_instproc get_named_sub_component_value {
+    {-from_repeat:switch}
+    {-default ""}
+    args
+  } {
+
+    Return the value of a named sub-component. When the named
+    sub-component is a repeated item, and the value of the 0th element
+    of the repeat (the template element) is omitted from the returned
+    value.
+
+    @param from_repeat skip template element from repeated values
+    @param default default value, when component is not found
+    @param args space separated path of elements names in a potentially
+           nested component structure (similar to dict)
+    @result value of the component
+  } {
     if {[:exists_named_sub_component {*}$args]} {
-      return [[:get_named_sub_component {*}$args] value]
+      set result [[:get_named_sub_component {*}$args] value]
+      if {$from_repeat} {
+        if {[lindex [split [lindex $result 0] .] end] eq "0"} {
+          set result [lrange $result 2 end]
+        }
+      }
     } else {
-      return $default
+      set result $default
     }
+    return $result
   }
 
   CompoundField instproc generate_fieldnames {{-prefix "v-"} n} {
