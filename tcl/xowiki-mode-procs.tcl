@@ -69,7 +69,7 @@ namespace eval ::xowiki {
     }
   }
   #
-  # one might create more such mode handler e.g. in an -init.tcl file.
+  # one might create more such mode handler e.g. in a *-init.tcl file.
   #
 }
 

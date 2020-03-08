@@ -2,7 +2,7 @@
 # Check, if we have to update the hkeys in the
 # form_instance_item_index.
 #
-# We do this in an -init file, since at that time, all library files
+# We do this in a *-init file, since at that time, all library files
 # are usable. If we would do thisduring loading, we would have
 # problems with not-yet loaded library files from other packages.
 #

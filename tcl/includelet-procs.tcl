@@ -1139,7 +1139,7 @@ namespace eval ::xowiki::includelet {
 
         @param max_entries show given number of new entries
         @param allow_edit boolean to optionally offer an edit button
-        @param allow_delete boolean to optionally offer an delete button
+        @param allow_delete boolean to optionally offer a delete button
         @param pretty_age boolean, use pretty age or not
 
       }
@@ -4252,7 +4252,7 @@ namespace eval ::xowiki::includelet {
 
         @param return_url
            When provided and NOT empty, use the value as return_url.
-           When provided and empty, do NOT set an return URL.
+           When provided and empty, do NOT set a return URL.
            When NOT provided, set the calling page as return_url.
         @param date_format
            Date format used for modification date.

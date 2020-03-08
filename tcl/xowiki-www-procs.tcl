@@ -875,7 +875,7 @@ namespace eval ::xowiki {
 
     # We have to do template mangling here; ad_form_template writes
     # form variables into the actual parse-level, so we have to be in
-    # our own level in order to access an pass these.
+    # our own level in order to access and pass these.
     #
     lappend ::template::parse_level [info level]
 
