@@ -2861,6 +2861,10 @@ namespace eval ::xowiki {
       delete         {{package_id admin}}
       edit-new       {{item_id write}}
     }
+
+    Class create FormPage -array set require_permission {
+      list           { {{is_folder_page .} read} }
+    }
   }
 
   Policy policy2 -contains {
@@ -2916,6 +2920,9 @@ namespace eval ::xowiki {
       view              admin
       edit              admin
       list              {{package_id read}}
+    }
+    Class create FormPage -array set require_permission {
+      list           { {{is_folder_page .} read} }
     }
   }
 
@@ -2983,7 +2990,10 @@ namespace eval ::xowiki {
         {{in_state initial|answered|suspended|working|done} creator}
         admin
       }
-      list               admin
+      list               {
+        {{is_folder_page .} read}
+        admin
+      }
       clipboard-add      admin
       clipboard-clear    admin
       clipboard-content  admin
@@ -3053,7 +3063,10 @@ namespace eval ::xowiki {
       edit               {
         {{in_state initial|suspended|working} creator} admin
       }
-      list               admin
+      list               {
+        {{is_folder_page .} read}
+        admin
+      }
     }
     Class create Form -array set require_permission {
       view              admin

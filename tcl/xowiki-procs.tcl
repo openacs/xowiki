@@ -1229,6 +1229,12 @@ namespace eval ::xowiki {
     return $success
   }
 
+  Page instproc condition=is_folder_page {query_context value} {
+    # query_context and value are ignored
+    return [:is_folder_page]
+  }
+
+
   Page instproc copy_content_vars {-from_object:required} {
     array set excluded_var {
       folder_id 1 package_id 1 absolute_links 1 lang_links 1 modifying_user 1
