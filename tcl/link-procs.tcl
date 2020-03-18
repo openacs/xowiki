@@ -491,7 +491,7 @@ namespace eval ::xowiki {
 
   ::xowiki::Link::file instproc render_found {internal_href label} {
     foreach f {
-      width height align pluginspage pluginurl hidden href
+      width height align pluginspage pluginurl hidden
       autostart loop volume controls controller mastersound starttime endtime
     } {
       if {[info exists :$f]} {
