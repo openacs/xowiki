@@ -3366,7 +3366,7 @@ namespace eval ::xowiki::formfield {
         # Multiple choice: Accept every subselection as valid for the
         # time being.
         #
-      } else {
+      } elseif {[info exists :answer_value]} {
         #
         # Single choice: make sure that the correct element is
         # included in subselection.
@@ -3402,7 +3402,7 @@ namespace eval ::xowiki::formfield {
       # Use the random indices for reordering the :options and
       # :answers.
       #
-      if {[info exists :answer_value] && ${:show_max} ne ""} {
+      if {[info exists :show_max] && ${:show_max} ne ""} {
         set shuffled [:valid_subselection $shuffled]
         #ns_log notice "SHUFFLE ${:name} <$shuffled> answer_value ${:answer_value} MAX <${:show_max}>"
       }
