@@ -481,17 +481,41 @@ namespace eval ::xowiki {
   }
 
   #
+  #
   # file link
   #
 
   Class create ::xowiki::Link::file -superclass ::xowiki::Link::image -parameter {
-    width height align pluginspage pluginurl hidden href
-    autostart loop volume controls controller mastersound starttime endtime
+    width height hidden
+  }
+  foreach deprecated_attribute {
+    align name pluginspage pluginurl href autostart
+    loop volume controls controller mastersound starttime endtime
+  } {
+
+    ::xowiki::Link::file ad_instproc -deprecated $deprecated_attribute {value:optional} {
+      Provide warning for deprecated HTML attribute;
+      this will be removed in releases after OpenACS 5.10.
+    } {
+      if {[info exists value]} {
+        set :[self proc] $value
+      }
+      return [set :[self proc]]
+    }
+
   }
 
   ::xowiki::Link::file instproc render_found {internal_href label} {
+    #
+    # Many of the attributes below are from HTML4 and deprecated (see
+    # "deprecated_attribute" above). We just removed "href" from the list
+    # of still accepted attributes, since this is set often via BaseLink,
+    # and it could harm applications, where the "<EMBED href> variant of the
+    # stopped working due to newer browsers, stopping to support legacy
+    # HTML attributes.
+    #
     foreach f {
-      width height align pluginspage pluginurl hidden
+      width height align pluginspage pluginurl hidden href
       autostart loop volume controls controller mastersound starttime endtime
     } {
       if {[info exists :$f]} {
