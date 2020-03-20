@@ -3806,6 +3806,9 @@ namespace eval ::xowiki::formfield {
     set :widget_type text(checkbox)
     next
   }
+  checkbox instproc td_pretty_value {v} {
+    return $v
+  }
 
   checkbox instproc render_input {} {
     set value [:value]
@@ -3955,6 +3958,15 @@ namespace eval ::xowiki::formfield {
         }
       }
     }
+  }
+
+  text_fields instproc td_pretty_value {v} {
+    set result ""
+    foreach {key value} $v {
+      set componentLabel [string range $key [string length ${:name}]+1 end]
+      append result $componentLabel: " " $value \n
+    }
+    return $result
   }
 
   text_fields instproc pretty_value {v} {
