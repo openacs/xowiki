@@ -494,7 +494,7 @@ div.xowiki-content tr.list-header a {
 }
 div.xowiki-content table.table td.right,
 div.xowiki-content table.table th.right {
-    text-align: right;
+    text-align: right; float: none;
 }
 div.xowiki-content table.table td.center,
 div.xowiki-content table.table th.center {
@@ -502,7 +502,7 @@ div.xowiki-content table.table th.center {
 }
 div.xowiki-content table.table td.left.
 div.xowiki-content table.table th.left {
-    text-align: left;
+    text-align: left; float: none;
 }
 
 nav.navbar a {
