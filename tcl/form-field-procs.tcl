@@ -1057,9 +1057,9 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  FormField instproc render_disabled_as_div {class} {
+  FormField instproc render_disabled_as_div {CSSclass} {
     set attributes [:get_attributes id]
-    lappend attributes class $class
+    lappend attributes class $CSSclass
     ::html::div $attributes {
       if {[info exists :value_with_markup]} {
         ::html::t -disableOutputEscaping ${:value_with_markup}
@@ -1727,7 +1727,7 @@ namespace eval ::xowiki::formfield {
         fn ${:value} {
 
           regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
-          set fn [::file tail $fn]
+          set fn [::file tail ./$fn]    ;# prefix $fn to avoid potential tilde expansion
 
           set file_object [:store_file \
                                -file_name $fn \
