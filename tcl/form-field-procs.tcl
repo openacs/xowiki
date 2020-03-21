@@ -684,8 +684,13 @@ namespace eval ::xowiki::formfield {
     #
     # Correct, when answer is in the given set.
     #
-    set values [lrange ${:correct_when} 1 end]
-    return [expr {${:value} in $values}]
+    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
+      set value [string tolower $value]
+      set words [lrange ${:correct_when} 2 end]
+    } else {
+      set words [lrange ${:correct_when} 1 end]      
+    }
+    return [expr {${:value} in $words}]
   }
   FormField instproc answer_check=match {} {
     return [string match [lindex ${:correct_when} 1] ${:value}]
@@ -3613,7 +3618,7 @@ namespace eval ::xowiki::formfield {
     foreach v ${:value} {
       dict incr :result_statistics $v
     }
-    ns_log notice "### answer ${:answer} value ${:value} correction ${:correction} "
+    #ns_log notice "${:name} ### answer ${:answer} value ${:value} correction ${:correction} "
     #ns_log notice [:serialize]
   }
 
