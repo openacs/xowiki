@@ -1493,8 +1493,9 @@ namespace eval ::xowiki {
 
   Page ad_instproc www-make-live-revision {} {
 
-    This web-callable method makes the revision specified by
-    parameter "revision_id" the live revision.
+    This web-callable method makes the revision specified by parameter
+    "revision_id" the live revision, or when this is not available,
+    the parameter "local_return_url".
 
   } {
     set page_id [:query_parameter "revision_id"]
@@ -1506,7 +1507,8 @@ namespace eval ::xowiki {
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
     ${:package_id} returnredirect [:query_parameter "return_url" \
-                                       [export_vars -base [::${:package_id} url] {{m revisions}}]]
+                                       [:query_parameter "local_return_url" \
+                                            [export_vars -base [::${:package_id} url] {{m revisions}}]]]
   }
 
   #
@@ -2178,7 +2180,7 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
-    {-nls_language ""} 
+    {-nls_language ""}
   } {
     set save_slot $slot
     if {$slot eq ""} {
@@ -2234,7 +2236,7 @@ namespace eval ::xowiki {
     {-spec ""}
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
-    {-nls_language ""} 
+    {-nls_language ""}
   } {
     # For workflows, we do not want to get the form constraints of the
     # page itself (i.e. the property of the generic workflow form) but
@@ -2891,7 +2893,7 @@ namespace eval ::xowiki {
     set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
                -name __form_button_ok \
                -CSSclass $CSSclass]
-    
+
     ::html::div [expr {[$f exists form_button_wrapper_CSSclass]
                        ? [list class [$f form_button_wrapper_CSSclass]]
                        : {} }] {
