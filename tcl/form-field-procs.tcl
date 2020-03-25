@@ -840,7 +840,7 @@ namespace eval ::xowiki::formfield {
             # We need here probably more escapes, or we should be more
             # restrictive on allowed content in the "contains" clause.
             #
-            regsub -all * $word "\\*" word
+            set word [string map {* \\*} $word]
             regsub -all [ns_quotehtml $word] \
                 $annotated_value \
                 {<span class='match'>&</span>} \
