@@ -655,6 +655,19 @@ namespace eval ::xowiki::formfield {
     return $value
   }
 
+  FormField instproc process_correct_when_modifier {} {
+    set value [string trim [regsub -all {[ ]+} ${:value} " "]]
+    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
+      set value [string tolower $value]
+      set words [lrange ${:correct_when} 2 end]
+      set modifier lower
+    } else {
+      set words [lrange ${:correct_when} 1 end]
+      set modifier ""
+    }
+    return [list words $words value $value modifier $modifier]
+  }
+
   FormField instproc answer_check=eq {} {
     set arg1 [lindex ${:correct_when} 1]
     return [expr {${:value} eq $arg1}]
@@ -684,13 +697,8 @@ namespace eval ::xowiki::formfield {
     #
     # Correct, when answer is in the given set.
     #
-    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
-      set value [string tolower $value]
-      set words [lrange ${:correct_when} 2 end]
-    } else {
-      set words [lrange ${:correct_when} 1 end]      
-    }
-    return [expr {${:value} in $words}]
+    set d [:process_correct_when_modifier]
+    return [expr {[dict get $d value] in [dict get $d words]}]
   }
   FormField instproc answer_check=match {} {
     return [string match [lindex ${:correct_when} 1] ${:value}]
@@ -699,10 +707,9 @@ namespace eval ::xowiki::formfield {
     #
     # Correct, when answer contains any of the provided words.
     #
-    set answer ${:value}
-    set words [lrange ${:correct_when} 1 end]
-    foreach word $words {
-      if {[string match *$word* $answer]} {
+    set d [:process_correct_when_modifier]
+    foreach word [dict get $d words] {
+      if {[string match *$word* [dict get $d value]]} {
         return 1
       }
     }
@@ -717,14 +724,8 @@ namespace eval ::xowiki::formfield {
     # consequence the comparison is not case sensitive. Note that the
     # answer_words have to be provided in lower case as well.
     #
-    set value [string trim [regsub -all {[ ]+} ${:value} " "]]
-    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
-      set value [string tolower $value]
-      set words [lrange ${:correct_when} 2 end]
-    } else {
-      set words [lrange ${:correct_when} 1 end]
-    }
-    return [expr {$value eq $words}]
+    set d [:process_correct_when_modifier]
+    return [expr {[dict get $d value] eq [dict get $d words]}]
   }
 
   FormField instproc answer_is_correct {} {
