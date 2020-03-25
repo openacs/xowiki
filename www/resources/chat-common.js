@@ -39,5 +39,12 @@ function renderData(json) {
         renderMessage(json);
     } else if (json.type == "users") {
         renderUsers(json);
+        if (document.getElementById('active_users') !== null) {
+            var active_users = document.getElementById('xowiki-chat-users').getElementsByClassName('xowiki-chat-user-block').length;
+            if (active_users == 0) {
+                    active_users = 1
+            }
+            document.getElementById('active_users').textContent = active_users;
+        }
     }
 }
