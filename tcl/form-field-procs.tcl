@@ -835,14 +835,16 @@ namespace eval ::xowiki::formfield {
           #
           # Mark matches in the div element.
           #
+          set d [:process_correct_when_modifier]
+          set nocase [expr {[dict get $d modifier] eq "lower" ? "-nocase" : ""}]
           set annotated_value ${:value}
-          foreach word [lrange ${:correct_when} 1 end] {
+          foreach word [dict get $d words] {
             #
             # We need here probably more escapes, or we should be more
             # restrictive on allowed content in the "contains" clause.
             #
             set word [string map {* \\*} $word]
-            regsub -all [ns_quotehtml $word] \
+            regsub -all {*}$nocase [ns_quotehtml $word] \
                 $annotated_value \
                 {<span class='match'>&</span>} \
                 annotated_value
@@ -3416,6 +3418,9 @@ namespace eval ::xowiki::formfield {
       if {[llength ${:render_hints}] > 0} {
         set render_hints2 {}
       }
+      if {[info exists :descriptions] && [llength ${:descriptions}] > 0} {
+        set descriptions2 {}
+      }
       foreach i $shuffled {
         lappend option2 [lindex ${:options} $i]
         lappend answer2 [lindex ${:answer} $i]
@@ -3424,6 +3429,9 @@ namespace eval ::xowiki::formfield {
         }
         if {[info exists render_hints2]} {
           lappend render_hints2 [lindex ${:render_hints} $i]
+        }
+        if {[info exists descriptions2]} {
+          lappend descriptions2 [lindex ${:descriptions} $i]
         }
       }
       #ns_log notice "SHUFFLE ${:name} o2=$option2 answer2=$answer2"
@@ -3434,6 +3442,9 @@ namespace eval ::xowiki::formfield {
       }
       if {[info exists render_hints2]} {
         set :render_hints $render_hints2
+      }
+      if {[info exists descriptions2]} {
+        set :descriptions $descriptions2
       }
     }
   }
@@ -3852,6 +3863,7 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create text_fields -superclass {CompoundField ShuffleField} -parameter {
+    {descriptions ""}
   } -ad_doc {
 
     Provide multiple text and short text entries. This field is a
@@ -3956,10 +3968,28 @@ namespace eval ::xowiki::formfield {
     # Render content within in a fieldset, but with labels etc.
     #
     html::ul [:get_attributes id {CSSclass class}] {
-      foreach c ${:components} {
+      #
+      # Descriptions are currently handled outside of the
+      # component. It might be possible to handle these on the
+      # subcomponent level, but for now we want to keep the changes as
+      # local as possible.
+      #
+      foreach c ${:components} description ${:descriptions} {
+        if {$c eq ""} {
+          ns_log bug "text_fields ${:name}: no component for description $description"
+          continue
+        }
         html::li {
           html::t -disableOutputEscaping [:get_text_entry [$c name]]
           $c render
+          #
+          # Display descriptions only for the "incorrect" cases.
+          #
+          if {[info exists :evaluated_answer_result] && ${:evaluated_answer_result} eq "incorrect"} {
+            html::div -class "help-block description" {
+              html::t $description
+            }
+          }
           $c render_result_statistics
         }
       }
