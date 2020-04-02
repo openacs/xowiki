@@ -1,5 +1,21 @@
 // Common xowiki chat functions
 
+// Add notifications of new messages in the browser tab
+var windowInactive = false;
+var notifications = 0;
+var title = document.title;
+window.addEventListener('focus', windowFocus);
+window.addEventListener('blur', windowBlur);
+function windowBlur() {
+    windowInactive = true;
+}
+function windowFocus() {
+    windowInactive = false;
+    document.title = title;
+    notifications = 0;
+}
+
+// Retrieve user_id
 function chatGetMyUserId() {
     var my_user = document.getElementById('xowiki-my-user-id');
     if (my_user == null) {
@@ -37,6 +53,12 @@ function createLink(text) {
 function renderData(json) {
     if (json.type == "message") {
         renderMessage(json);
+        // Produce tab notification
+        if (windowInactive) {
+            notifications++;
+            var newTitle = '(' + notifications + ') ' + title;
+            document.title = newTitle;
+        }
     } else if (json.type == "users") {
         renderUsers(json);
         if (document.getElementById('active_users') !== null) {
