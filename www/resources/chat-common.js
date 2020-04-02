@@ -98,9 +98,6 @@ function createLink(text) {
 
 // Render the data, being a user or a message
 function renderData(json) {
-    var notificationBtn = document.getElementById('enableNotifications');
-notificationBtn.addEventListener("click", askNotificationPermission);
-
     if (json.type == "message") {
         renderMessage(json);
         // Produce tab notification
