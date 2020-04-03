@@ -111,8 +111,9 @@ function createLink(text) {
 function renderData(json) {
     if (json.type == "message") {
         renderMessage(json);
-        // Produce tab notification
+        // Produce notifications
         if (windowInactive) {
+            // Tab notification
             notifications++;
             var newTitle = '(' + notifications + ') ' + title;
             document.title = newTitle;
