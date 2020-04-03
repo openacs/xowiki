@@ -64,7 +64,6 @@ window.onload = function () {
             // Add the listener to the button and show it, only if the
             // notification permission is 'default' (the user has not accepted
             // or explicitly denied notifications)
-            console.log(Notification.permission);
             notificationButton.style.display = 'block';
             notificationButton.addEventListener("click", function() {
                 askNotificationPermission(notificationButton);
