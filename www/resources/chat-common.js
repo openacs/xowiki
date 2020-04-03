@@ -25,8 +25,7 @@ function checkNotificationPromise() {
     }
     return true;
 }
-function askNotificationPermission() {
-    var notificationBtn = document.getElementById('enableNotifications');
+function askNotificationPermission(notificationBtn) {
     // function to actually ask the permissions
     function handlePermission(permission) {
         // Whatever the user answers, we make sure Chrome stores the information
@@ -35,7 +34,7 @@ function askNotificationPermission() {
         }
 
         // set the button to shown or hidden, depending on what the user answers
-        if(Notification.permission === 'denied' || Notification.permission === 'default') {
+        if(Notification.permission === 'default') {
             notificationBtn.style.display = 'block';
         } else {
             notificationBtn.style.display = 'none';
@@ -59,7 +58,22 @@ function askNotificationPermission() {
     }
 }
 window.onload = function () {
-    document.getElementById('enableNotifications').addEventListener("click", askNotificationPermission);
+    var notificationButton = document.getElementById('enableNotifications');
+    if (notificationButton !== null) {
+        if(!('permission' in Notification)) {
+            Notification.permission = permission;
+        }
+        if(Notification.permission === 'default') {
+            // Add the listener to the button and show it, only if the
+            // notification permission is 'default' (the user has not accepted
+            // or explicitly denied notifications)
+            console.log(Notification.permission);
+            notificationButton.style.display = 'block';
+            notificationButton.addEventListener("click", function() {
+                askNotificationPermission(notificationButton);
+            });
+        }
+    }
 }
 
 // Retrieve user_id
