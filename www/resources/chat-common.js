@@ -60,9 +60,6 @@ function askNotificationPermission(notificationBtn) {
 window.onload = function () {
     var notificationButton = document.getElementById('enableNotifications');
     if (notificationButton !== null) {
-        if(!('permission' in Notification)) {
-            Notification.permission = permission;
-        }
         if(Notification.permission === 'default') {
             // Add the listener to the button and show it, only if the
             // notification permission is 'default' (the user has not accepted
