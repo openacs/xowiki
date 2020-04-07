@@ -1217,15 +1217,12 @@ namespace eval ::xowiki::formfield {
     return 1
   }
 
-  CompoundField instproc value {args} {
-    if {[llength $args] == 0} {
-      set v [:get_compound_value]
-      #:msg "${:name}: reading compound value => '$v'"
-      return $v
-    } else {
-      #:msg "${:name}: setting compound value => '[lindex $args 0]'"
-      :set_compound_value [lindex $args 0]
+  CompoundField instproc value {value:optional} {
+    if {[info exists value]} {
+      #:msg "${:name}: setting compound value => '$value'"
+      :set_compound_value $value
     }
+    return [:get_compound_value]
   }
 
   CompoundField instproc object args {
