@@ -3351,7 +3351,10 @@ namespace eval ::xowiki::formfield {
     # then the shuffling is stable for this seed.
     #
     if {${:shuffle_kind} ne "always"} {
-      set shuffled [::xowiki::randomized_indices -seed [xo::cc user_id] $length]
+      set p [${:object} property position]
+      set seeds [${:object} property seeds]
+      set seed [expr {$p ne "" && $seeds ne "" ? [lindex $seeds $p] : [xo::cc user_id]}]
+      set shuffled [::xowiki::randomized_indices -seed $seed $length]
     } else {
       set shuffled [::xowiki::randomized_indices $length]
     }
