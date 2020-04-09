@@ -2496,7 +2496,9 @@ namespace eval ::xowiki {
     # in case, we can't link, flush the href
     if {[:can_link [dict get $item_ref_info item_id]] == 0} {
       :references refused [dict get $item_ref_info item_id]
-      [self]::link href ""
+      if {[[self]::link exists href]} {
+        [self]::link unset href
+      }
     }
 
     ad_try {
