@@ -76,6 +76,7 @@ namespace eval ::xowiki::formfield {
     feedback_answer_correct
     feedback_answer_incorrect
     grading
+    in_position
   }
   FormField set abstract 1
 
@@ -3351,10 +3352,23 @@ namespace eval ::xowiki::formfield {
     # then the shuffling is stable for this seed.
     #
     if {${:shuffle_kind} ne "always"} {
-      set p [${:object} property position]
+      #
+      # It is possible to keep different seeds in the instance
+      # attributes of the object to support a different randomization
+      # not only by user but also per position. This requires either
+      # an instance variable "in_position" in the form field or an
+      # instance_attribute "position" in the object, where the former
+      # has a higher precedence (important for combined forms).
+      #
+      if {![:exists in_position]} {
+        set :in_position [${:object} property position]
+      }
       set seeds [${:object} property seeds]
-      set seed [expr {$p ne "" && $seeds ne "" ? [lindex $seeds $p] : [xo::cc user_id]}]
+      set seed [expr {$seeds ne "" && ${:in_position} ne ""
+                      ? [lindex $seeds ${:in_position}]
+                      : [xo::cc user_id]}]
       set shuffled [::xowiki::randomized_indices -seed $seed $length]
+      #ns_log notice "randomized_indices for [xo::cc user_id] (${:in_position} - $seeds): $shuffled (inp [:exists in_position])"
     } else {
       set shuffled [::xowiki::randomized_indices $length]
     }
