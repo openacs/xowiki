@@ -644,7 +644,7 @@ namespace eval ::xowiki {
   #     }
   #   }
   #   LinkCache instproc resolve {} {
-#     set key link-${:type}-${:name}-${:parent_id}
+  #     set key link-${:type}-${:name}-${:parent_id}
   #     while {1} {
   #       array set r [ns_cache eval xowiki_cache $key {
   #         set id [next]
