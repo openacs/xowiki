@@ -77,7 +77,13 @@ namespace eval ::xowiki::formfield {
     feedback_answer_incorrect
     grading
     in_position
+    test_item_in_position
+    test_item_minutes
   }
+  #
+  # TODO: "in_position" is just for a short transitional phase here
+  # (live-updates), and should be removed ASAP.
+  #
   FormField set abstract 1
 
   FormField proc fc_encode {string} {
@@ -798,7 +804,7 @@ namespace eval ::xowiki::formfield {
       set feedback [_ xowf.answer_$result]
     }
     if {$feedback_mode > 1} {
-      #:log "===$feedback_mode=[info exists :correct_when]============"
+      #:log "=== ${:name} == $feedback_mode=[info exists :correct_when] [info exists :correction] ============"
       if {[info exists :correct_when]} {
         append feedback " ${:correct_when}"
       } elseif {[info exists :correction]} {
@@ -806,19 +812,39 @@ namespace eval ::xowiki::formfield {
         if {[info exists :correction_data]} {
           #append feedback " ${:correction_data}"
           if {[info exists :grading]} {
+            if {${:grading} in  {"" "exact"}} {
+              set score [expr {${:evaluated_answer_result} eq "correct" ? 100.0 : 0.0}]
+              dict set :correction_data scores ${:grading} $score
+            }
             if {[dict exists ${:correction_data} scores ${:grading}] } {
               set grading_score [dict get ${:correction_data} scores ${:grading}]
-              #:log "=== grading ${:grading} => $grading_score"
-              append feedback " selected_grading_score $grading_score"
+              if {$grading_score < 0} {
+                set grading_score 0.0
+              }
+              #:log "=== ${:name} grading ${:grading} => $grading_score"
+              if {[info exists :test_item_minutes]} {
+                set points [format %.2f [expr {${:test_item_minutes} * $grading_score / 100.0}]]
+                dict set :correction_data points $points
+                #append feedback " correct: $grading_score "
+                append feedback " points: $points of [format %.2f ${:test_item_minutes}]"
+              } else {
+                append feedback " grading_score $grading_score"
+              }
               #${:object} set_property -new 1 grading_score $grading_score
               set :grading_score $grading_score
               #ns_log notice "SET GRADING score $grading_score for [self]"
+            } else {
+              ns_log notice "=== ${:name} == no scores for grading '${:grading}': ${:correction_data}"
             }
           } else {
             set :grading_score ""
-            #ns_log notice "=== UNKNOWN grading ${:grading} => ${:grading_score}"
+            ns_log notice "=== ${:name} == no grading available"
           }
+        } else {
+          ns_log notice "=== ${:name} NO correction_data"
         }
+      } else {
+        ns_log notice "=== ${:name} NO correct_when and no :correction"
       }
       #
       # When the widget class supports "disabled_as_div", we
@@ -3356,19 +3382,19 @@ namespace eval ::xowiki::formfield {
       # It is possible to keep different seeds in the instance
       # attributes of the object to support a different randomization
       # not only by user but also per position. This requires either
-      # an instance variable "in_position" in the form field or an
+      # an instance variable "test_item_in_position" in the form field or an
       # instance_attribute "position" in the object, where the former
       # has a higher precedence (important for combined forms).
       #
-      if {![:exists in_position]} {
-        set :in_position [${:object} property position]
+      if {![:exists test_item_in_position]} {
+        set :test_item_in_position [${:object} property position]
       }
       set seeds [${:object} property seeds]
-      set seed [expr {$seeds ne "" && ${:in_position} ne ""
-                      ? [lindex $seeds ${:in_position}]
+      set seed [expr {$seeds ne "" && ${:test_item_in_position} ne ""
+                      ? [lindex $seeds ${:test_item_in_position}]
                       : [xo::cc user_id]}]
       set shuffled [::xowiki::randomized_indices -seed $seed $length]
-      #ns_log notice "randomized_indices for [xo::cc user_id] (${:in_position} - $seeds): $shuffled (inp [:exists in_position])"
+      #ns_log notice "randomized_indices for [xo::cc user_id] (${:test_item_in_position} - $seeds): $shuffled (inp [:exists test_item_in_position])"
     } else {
       set shuffled [::xowiki::randomized_indices $length]
     }
