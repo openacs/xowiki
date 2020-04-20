@@ -3509,6 +3509,7 @@ namespace eval ::xowiki::formfield {
   # abstract superclass for select and radio
   Class create enumeration -superclass ShuffleField -parameter {
     {category_tree}
+    {descriptions ""}
   }
   enumeration set abstract 1
 
@@ -3789,7 +3790,7 @@ namespace eval ::xowiki::formfield {
     return [lmap v $values {dict get {"" "" 1 correct 0 incorrect t correct f incorrect} $v}]
   }
 
-  enumeration instproc render_label_text {label} {
+  enumeration instproc render_label_text {label CSSclass description} {
     #
     # Render a label text (typically of a checkbox or radio input)
     # either as richtext or as plain label.
@@ -3797,6 +3798,11 @@ namespace eval ::xowiki::formfield {
     if {${:richtext}} {
       ::html::div -class richtext-label {
         ::html::t -disableOutputEscaping $label
+        if {[info exists :evaluated_answer_result] && "incorrect" in $CSSclass} {
+          html::div -class "help-block description" {
+            html::t $description
+          }
+        }        
       }
     } else {
       ::html::t " $label "
@@ -3828,7 +3834,7 @@ namespace eval ::xowiki::formfield {
         type radio \
         name [expr {[info exists :forced_name] ? ${:forced_name} : ${:name}}]
 
-    foreach o ${:options} label_class [:render_label_classes] {
+    foreach o ${:options} label_class [:render_label_classes] description ${:descriptions} {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
@@ -3838,7 +3844,7 @@ namespace eval ::xowiki::formfield {
       if {1 || ${:horizontal}} {lappend label_class col-sm2 radio-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        :render_label_text $label
+        :render_label_text $label $label_class $description
       }
       :render_result_statistics $rep
       if {!${:horizontal}} {
@@ -3875,7 +3881,7 @@ namespace eval ::xowiki::formfield {
         type checkbox \
         name ${:name}
 
-    foreach o ${:options} label_class [:render_label_classes]  {
+    foreach o ${:options} label_class [:render_label_classes] description ${:descriptions} {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
@@ -3885,7 +3891,7 @@ namespace eval ::xowiki::formfield {
       if {1 || ${:horizontal}} {lappend label_class col-sm2 checkbox-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        :render_label_text $label
+        :render_label_text $label $label_class $description     
       }
       :render_result_statistics $rep
 
