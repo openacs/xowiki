@@ -250,6 +250,22 @@ namespace eval ::xowiki {
       foreach __fn $field_names form_field_obj $form_field_objs {
         $form_field_obj object $p
         set value [$p property $__fn]
+        if {$value eq ""} {
+          #
+          # In case, the plain property lookup failed, try to fetch a
+          # value from a compound form field value.
+          #
+          if {[string first . $__fn] > -1} {
+            lassign [split $__fn .] parent child
+            if {[dict exists $__ia $parent $__fn]} {
+              set value [dict get $__ia $parent $__fn]
+            } else {
+              ns_log notice "table-widget: cannot resolve <$__fn> no '<$parent> <$__fn>'\n $__ia"
+            }
+          } else {
+            ns_log notice "table-widget: no value for <$__fn> "; #[$p serialize]
+          }
+        }
         $__c set $__fn [$form_field_obj pretty_value $value]
       }
       $__c set _name [::$package_id external_name -parent_id [$p parent_id] [$p name]]
