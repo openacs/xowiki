@@ -35,10 +35,11 @@ function chatSubscribe(subscribe_url) {
             //console.log("chatSubscribe readyState = " + http.readyState + " status " + http.status);
             // alert('status code =' + http.status);
             var status = http.status;
-            if (status == 200 || status == 0) {
-            } else {
-	        alert('Something wrong in HTTP request, status code = ' + status);
+            if (status != 200 && status != 0) {
+                console.error('Something wrong in HTTP request, status code = ' + status);
             }
+            console.log('Server has closed the connection. Try to reconnect in 10s...');
+            setTimeout(chatSubscribe, 10000, subscribe_url);
         }
     };
     http.send(null);
