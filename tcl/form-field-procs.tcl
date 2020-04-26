@@ -916,7 +916,7 @@ namespace eval ::xowiki::formfield {
         "contains" {set correct "... [join $args { ... }] ..."}
         "answer_words" {set correct "... [join $args { ... }] ..."}
         "in"       {set correct "... [join args { OR }] ..."}
-        "btwn"     {set correct "[index $args 0] <= X <= [index $args 1]"}
+        "btwn"     {set correct "[lindex $args 0] <= X <= [lindex $args 1]"}
 
       }
       if {[info exists correct]} {
