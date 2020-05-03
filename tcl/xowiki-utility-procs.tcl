@@ -59,6 +59,13 @@ namespace eval ::xowiki {
     # Produce a list of "length" random numbers between 0 and
     # length-1.
     #
+    # Measure quality of randomization:
+    #
+    #  time {lappend _ [xowiki::randomized_indices -seed [clock microseconds] 3]} 1000
+    #  foreach t $_ {
+    #    lassign $t a b c; dict incr stats "a $a"; dict incr stats "b $b"; dict incr stats "c $c"
+    #  }
+    #  set stats 
   } {
     # In case, the seed is specified, set the seed to this value to
     # achieve e.g. a stable bat random order for a user.
@@ -76,7 +83,9 @@ namespace eval ::xowiki {
     set shuffled {}
     incr length
     for {} {$length > 1} {incr length -1} {
-      set i [expr {int(($length-1) * rand())}]
+      set r [expr {rand()}]
+      set i [expr {int(($length-1) * $r)}]
+      #ns_log notice "[list expr int([expr ($length-1)] * $r)] -> [expr {($length-1) * $r}] -> $i"
       lappend shuffled [lindex $indices $i]
       set indices [lreplace $indices $i $i]
     }
@@ -177,8 +186,11 @@ namespace eval ::xowiki::hstore {
     # We get all revisions, so use the lower level interface
     #
     set items [::xowiki::FormPage instantiate_objects \
-                   -sql "select * from xowiki_form_pagei bt,cr_items i \
-                where bt.object_package_id = $package_id and bt.item_id = i.item_id" \
+                   -sql [subst {
+                     select * from xowiki_form_pagei bt,cr_items i \
+                         where bt.object_package_id = [ns_dbquotevalue $package_id] \
+                         and bt.item_id = i.item_id
+                   }] \
                    -object_class ::xowiki::FormPage]
     set count 0
     foreach i [$items children] {
@@ -529,16 +541,20 @@ namespace eval ::xowiki {
       set f [FormPage get_instance_from_db -item_id $item_id]
       if {[$f page_template] != $form_id} {
         ns_log notice "... must change form_id from [$f page_template] to $form_id"
-        ::xo::dc dml chg0 "update xowiki_page_instance set page_template = $form_id where page_instance_id = [$f revision_id]"
+        set revision_id [$f revision_id]
+        ::xo::dc dml chg0 {
+          update xowiki_page_instance set page_template = :form_id
+          where page_instance_id = :revision_id
+        }
       }
       return
     }
     set revision_id [::xo::db::sql::content_revision new \
                          -title [::$package_id instance_name] -text "" \
                          -item_id $item_id -package_id $package_id]
-    ::xo::dc dml chg1 "insert into xowiki_page (page_id) values ($revision_id)"
-    ::xo::dc dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values ($revision_id, $form_id)"
-    ::xo::dc dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values ($revision_id)"
+    ::xo::dc dml chg1 "insert into xowiki_page (page_id) values (:revision_id)"
+    ::xo::dc dml chg2 "insert into xowiki_page_instance (page_instance_id, page_template) values (:revision_id, :form_id)"
+    ::xo::dc dml chg3 "insert into xowiki_form_page (xowiki_form_page_id) values (:revision_id)"
 
     ::xo::dc dml chg4 "update acs_objects set object_type = 'content_item' where object_id = :item_id"
     ::xo::dc dml chg5 "update acs_objects set object_type = '::xowiki::FormPage' where object_id = :revision_id"
@@ -721,13 +737,15 @@ namespace eval ::xowiki {
     return $pairs
   }
 
-  :proc get_page_order_items {-parent_id {-publish_status "production"} page_orders} {
+  :proc get_page_order_items {-parent_id:integer {-publish_status "production"} page_orders} {
     set likes [list]
     foreach page_order $page_orders {
       if {[::xowiki::page_order_uses_ltree]} {
-        lappend likes "p.page_order <@ '$page_order'"
+        lappend likes "p.page_order <@ [ns_dbquotevalue $page_order]"
       } else {
-        lappend likes "p.page_order = '$page_order'" "p.page_order like '$page_order.%'"
+        lappend likes \
+            "p.page_order = [ns_dbquotevalue $page_order]" \
+            "p.page_order like [ns_dbquotevalue $page_order.%]"
       }
     }
     set sql "select p.page_order, p.page_id, cr.item_id, ci.name
