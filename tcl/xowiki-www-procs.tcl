@@ -1548,7 +1548,7 @@ namespace eval ::xowiki {
         [::xo::dc select \
              -vars "count(*) as nr, tag" \
              -from "xowiki_tags" \
-             -where "item_id = ${:item_id}" \
+             -where "item_id = [ns_dbquotevalue ${:item_id}]" \
              -groupby "tag" \
              -orderby "nr" \
              -limit $limit] {

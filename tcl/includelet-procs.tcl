@@ -202,12 +202,12 @@ namespace eval ::xowiki::includelet {
       set and_names [list]
       foreach cid_and [split $cid_or ,] {
         if {![string is integer -strict $cid_and]} {
-          ad_return_complaint 1 "invalid category id '[ns_quotehtml $cid_and]'"
+          ad_return_complaint 1 "invalid category id '$cid_and'"
           ad_script_abort
         }
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
-           where object_id = $item_ref and category_id = $cid_and)"
+           where object_id = [ns_dbquotevalue $item_ref] and category_id = [ns_dbquotevalue $cid_and])"
       }
       lappend or_names [join $and_names { and }]
       lappend ors "([join $ands { and }])"
@@ -239,9 +239,9 @@ namespace eval ::xowiki::includelet {
     if {$use_package_path && [llength $packages] > 0} {
       set parent_ids [list $parent_id]
       foreach p $packages {lappend parent_ids [$p folder_id]}
-      return "$base_table.parent_id in ([join $parent_ids ,])"
+      return "$base_table.parent_id in ([ns_dbquotelist $parent_ids])"
     } else {
-      return "$base_table.parent_id = $parent_id"
+      return "$base_table.parent_id = [ns_dbquotevalue $parent_id]"
     }
   }
 
@@ -918,15 +918,19 @@ namespace eval ::xowiki::includelet {
 
       if {[info exists ordered_composite]} {
         set items [list]
-        foreach c [$ordered_composite children] {lappend items [$c item_id]}
+        foreach c [$ordered_composite children] {
+          lappend items [$c item_id]
+        }
 
         # If we have no item, provide a dummy one to avoid sql error
         # later
-        if {[llength $items]<1} {set items -4711}
+        if {[llength $items]<1} {
+          set items -4711
+        }
 
         if {$count} {
           set sql "category_object_map c
-              where c.object_id in ([join $items ,]) "
+              where c.object_id in ([ns_dbquotelist $items]) "
         } else {
           # TODO: the non-count-part for the ordered_composite is not
           # tested yet. Although "ordered compostite" can be used
@@ -935,7 +939,7 @@ namespace eval ::xowiki::includelet {
           # names etc. from the ordered composite, resulting in a
           # faster SQL like above.
           set sql "category_object_map c, cr_items ci, cr_revisions r
-              where c.object_id in ([join $items ,])
+              where c.object_id in ([ns_dbquotelist $items])
               and c.object_id = ci.item_id
               and r.revision_id = ci.live_revision
               and ci.publish_status <> 'production'
@@ -943,19 +947,19 @@ namespace eval ::xowiki::includelet {
         }
       } else {
         set sql "category_object_map c, cr_items ci, cr_revisions r, xowiki_page p \
-            where c.object_id = ci.item_id and ci.parent_id = $folder_id \
+            where c.object_id = ci.item_id and ci.parent_id = :folder_id \
             and ci.content_type not in ('::xowiki::PageTemplate') \
-            and c.category_id in ([join $categories ,]) \
+            and c.category_id in ([ns_dbquotelist $categories]) \
             and r.revision_id = ci.live_revision \
             and p.page_id = r.revision_id \
             and ci.publish_status <> 'production'"
       }
 
-      if {$except_category_ids ne ""} {
+      if {[llength $except_category_ids] > 0} {
         append sql \
             " and not exists (select * from category_object_map c2 \
             where ci.item_id = c2.object_id \
-            and c2.category_id in ($except_category_ids))"
+            and c2.category_id in ([ns_dbquotelist $except_category_ids]))"
       }
       #ns_log notice "--c category_ids=$category_ids"
       if {$category_ids ne ""} {
@@ -968,7 +972,7 @@ namespace eval ::xowiki::includelet {
             }
           }
           append sql " and exists (select * from category_object_map \
-         where object_id = ci.item_id and category_id in ([join $or_ids ,]))"
+         where object_id = ci.item_id and category_id in ([ns_dbquotelist $or_ids]))"
         }
       }
       append sql $locale_clause
@@ -1073,7 +1077,7 @@ namespace eval ::xowiki::includelet {
                       -names $tree_name -output tree_id]
 
     if {$tree_ids ne ""} {
-      set tree_select_clause "and c.tree_id in ([join $tree_ids ,])"
+      set tree_select_clause "and c.tree_id in ([ns_dbquotelist $tree_ids])"
     } else {
       set tree_select_clause ""
     }
@@ -1081,7 +1085,7 @@ namespace eval ::xowiki::includelet {
                  -vars "c.category_id, ci.name, ci.parent_id, r.title, r.publish_date, \
                         to_char(r.publish_date,'YYYY-MM-DD HH24:MI:SS') as formatted_date" \
                  -from "category_object_map_tree c, cr_items ci, cr_revisions r, xowiki_page p" \
-                 -where "c.object_id = ci.item_id and ci.parent_id = [::$package_id folder_id] \
+                 -where "c.object_id = ci.item_id and ci.parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
      and r.revision_id = ci.live_revision \
      and p.page_id = r.revision_id $tree_select_clause $locale_clause \
          and ci.publish_status <> 'production'" \
@@ -2735,7 +2739,7 @@ namespace eval ::xowiki::includelet {
     set pages [::xowiki::Page instantiate_objects -sql \
                    "select page_id, name, title, item_id \
         from xowiki_page_live_revision p \
-        where parent_id = [::$package_id folder_id] \
+        where parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
         and name in $page_names \
         [::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
@@ -3036,7 +3040,7 @@ namespace eval ::xowiki::includelet {
     set pages [::xowiki::Page instantiate_objects -sql \
                    "select page_id, page_order, name, title, item_id \
         from xowiki_page_live_revision p \
-        where parent_id = $parent_id  \
+        where parent_id = [ns_dbquotevalue $parent_id]  \
         and not page_order is NULL $extra_where_clause \
         $locale_clause \
         [::xowiki::Page container_already_rendered item_id]" ]
@@ -3769,7 +3773,7 @@ namespace eval ::xowiki::includelet {
                             -vars "i.item_id, revision_id, creation_user" \
                             -from "cr_revisions cr, cr_items i, acs_objects o" \
                             -where "cr.item_id = i.item_id \
-                            and i.parent_id = [::$package_id folder_id] \
+                            and i.parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
                             and o.object_id = revision_id" \
                             -orderby "revision_id desc" \
                             -limit $max_activities] \
