@@ -89,7 +89,7 @@ namespace eval ::xowiki::includelet {
         #
         set references [xo::dc list _ [subst {
             select distinct reference from xowiki_references
-            where page in ([join $items ,])
+            where page in ([ns_dbquotelist $items])
             and link_type = :link_type
         }]]
         set extern [lmap ref $references {if {$ref in $items} continue; set ref}]
@@ -100,7 +100,7 @@ namespace eval ::xowiki::includelet {
         #
         set unresolved_references [xo::dc list_of_lists _ [subst {
             select page, name, parent_id from xowiki_unresolved_references
-            where page in ([join $items ,])
+            where page in ([ns_dbquotelist $items])
             and link_type = :link_type
         }]]
 
@@ -113,7 +113,7 @@ namespace eval ::xowiki::includelet {
             select ci.item_id, ci.name, ci.parent_id, cr.title, o.package_id
             from cr_items ci, cr_revisions cr, acs_objects o
             where ci.latest_revision = cr.revision_id
-            and cr.item_id in ([join $all ,])
+            and cr.item_id in ([ns_dbquotelist $all])
             and cr.item_id = o.object_id
         }]] {
             lassign $tuple item_id name parent_id title package_id
@@ -136,7 +136,7 @@ namespace eval ::xowiki::includelet {
 
         foreach pair [xo::dc list_of_lists _ [subst {
             select reference, page from xowiki_references
-            where page in ([join $items ,])
+            where page in ([ns_dbquotelist $items])
             and link_type = :link_type
         }]] {
             lassign $pair reference page
