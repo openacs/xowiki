@@ -2844,8 +2844,8 @@ namespace eval ::xowiki {
     if {![info exists ::xowiki_page_item_id_rendered]} {
       return ""
     }
-    #:log "--OMIT and not $field in ([join $::xowiki_page_item_id_rendered ,])"
-    return "and not $field in ([join $::xowiki_page_item_id_rendered ,])"
+    #:log "--OMIT and not $field in ([ns_dbquotelist $::xowiki_page_item_id_rendered])"
+    return "and not $field in ([ns_dbquotelist $::xowiki_page_item_id_rendered])"
   }
 
   Page instproc htmlFooter {{-content ""}} {
@@ -4348,7 +4348,7 @@ namespace eval ::xowiki {
     } elseif {[llength $from_package_ids] == 1} {
       set package_clause "and package_id = :from_package_ids"
     } else {
-      set package_clause "and package_id in ([join $from_package_ids ,])"
+      set package_clause "and package_id in ([ns_dbquotelist $from_package_ids])"
     }
 
     if {$parent_id eq "*"} {
@@ -4378,7 +4378,7 @@ namespace eval ::xowiki {
     set sql [::xo::dc select \
                  -vars [join $sql_atts ", "] \
                  -from xowiki_form_instance_item_view \
-                 -where " page_template in ([join $base_item_ids ,]) \
+                 -where " page_template in ([ns_dbquotelist $base_item_ids]) \
             $publish_status_clause $filter_clause $package_clause $parent_clause \
             $extra_where_clause" \
                  -orderby $orderby \

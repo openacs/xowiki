@@ -153,7 +153,7 @@ namespace eval ::xowiki {
     }
 
     if {[llength $folder_ids] > 1} {
-      set folder_select "ci.parent_id in ([join $folder_ids ,])"
+      set folder_select "ci.parent_id in ([ns_dbquotelist $folder_ids])"
     } else {
       set folder_select "ci.parent_id = :folder_ids"
     }
@@ -237,7 +237,7 @@ namespace eval ::xowiki {
     set sql [::xo::dc select \
                  -vars * \
                  -from "xowiki_podcast_itemi p, cr_items ci, cr_mime_types m" \
-                 -where  "ci.parent_id in ([join $folder_ids ,]) and ci.item_id = p.item_id \
+                 -where  "ci.parent_id in ([ns_dbquotelist $folder_ids]) and ci.item_id = p.item_id \
               and ci.live_revision = p.object_id \
               and p.mime_type = m.mime_type \
               and ci.publish_status <> 'production' [:extra_where_clause]" \
@@ -286,7 +286,7 @@ namespace eval ::xowiki {
                  -from "cr_items ci, cr_revisions cr, acs_objects o, acs_objects o2" \
                  -where "cr.item_id = ci.item_id and o.object_id = cr.revision_id
                   and o2.object_id = cr.item_id
-                  and ci.parent_id in ([join $folder_ids ,]) and o.creation_user is not null
+                  and ci.parent_id in ([ns_dbquotelist $folder_ids]) and o.creation_user is not null
                   $where_clause" \
                  -orderby "revision_id desc" \
                  -limit $limit]
