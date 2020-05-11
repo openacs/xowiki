@@ -195,7 +195,9 @@ namespace eval ::xowiki::formfield {
         #
         set cl [namespace tail [lindex $proc_info 0]]
         #:msg "__langPkg?[info exists __langPkg]"
-        if {![info exists __langPkg]} {set __langPkg "xowiki"}
+        if {![info exists __langPkg]} {
+          set __langPkg "xowiki"
+        }
         #:log "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
         set msg [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
         #:log "++ ${:name}: ======> RETURN VALIDATION FAILED <$msg>"
@@ -1282,6 +1284,7 @@ namespace eval ::xowiki::formfield {
     # component fails, report the error message back.
     foreach c ${:components} {
       set result [$c validate $obj]
+      #ns_log notice "CompoundField validate on [$c name] returns '$result' [info exists errorMsg]"
       if {$result ne ""} {
         return $result
       }
