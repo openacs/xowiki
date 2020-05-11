@@ -99,6 +99,17 @@ div.book span.book-item-menu {
 }
 
 /*
+ * form error styling
+ */
+div.xowiki-content .content-with-folders div.form-widget,
+div.xowiki-content .content-with-folders .form-help-text,
+div.xowiki-content .content-with-folders .form-button,
+div.xowiki-content .content-with-folders .form-widget-error,
+div.xowiki-content .content-with-folders .form-error {
+    margin-left: 0em;
+}
+
+/*
  * Local Variables:
  * mode: css
  * c-basic-offset: 4

@@ -419,13 +419,6 @@ div.xowiki-content .content-with-folders {
 /*div.xowiki-content .content-with-folders div.form-label {
   width: 9em;
 }*/
-div.xowiki-content .content-with-folders div.form-widget,
-div.xowiki-content .content-with-folders .form-help-text,
-div.xowiki-content .content-with-folders .form-button,
-div.xowiki-content .content-with-folders .form-widget-error,
-div.xowiki-content .content-with-folders .form-error {
-    margin-left: 10em;
-}
 
 div.xowiki-content .content-with-folders fieldset.compound-field .repeatable {
     margin-left: 1em;
