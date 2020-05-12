@@ -264,26 +264,27 @@ namespace eval ::xowiki::includelet {
     #:msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
     # Start with the "package's folder" as root folder
-    set root_folder_id [::$package_id folder_id]
-    set root_folder [::xo::db::CrClass get_instance_from_db -item_id $root_folder_id]
-    set root_folder_is_current [expr {${:current_folder_id} == [$root_folder item_id]}]
-
+    set root_folder [::xo::db::CrClass get_instance_from_db \
+                         -item_id [::$package_id folder_id]]
+    
     set mb [info commands ::__xowiki__MenuBar]
     if {$mb ne ""} {
       #
-      # We have a menubar. Add folder-specific content to the
-      # menubar.
+      # We have a menubar. Add folder-specific content to the menubar.
       #
-      if {$root_folder_is_current} {
+      if {[${:current_folder_id} is_package_root_folder]} {
         #
-        # We do not want to see unneeded parent_ids in the links. When
-        # we insert to the root folder, set opt_parent_id to empty to
-        # make argument passing easy. "make_link" just checks for the
-        # existence of the variable, so we unset parent_id in this case.
+        # We do not want to see parent_ids in the links of the root
+        # folder. When we insert to the root folder, set opt_parent_id
+        # to empty to make argument passing easy. "make_link" just
+        # checks for the existence of the variable, so we unset
+        # parent_id in this case.
         #
         set opt_parent_id ""
         set folder_link [::$package_id package_url]
-        if {[info exists parent_id]} {unset parent_id}
+        if {[info exists parent_id]} {
+          unset parent_id
+        }
       } else {
         set parent_id ${:current_folder_id}
         set opt_parent_id $parent_id
