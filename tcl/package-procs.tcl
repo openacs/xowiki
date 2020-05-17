@@ -1130,19 +1130,25 @@ namespace eval ::xowiki {
                 -revision_id $revision_id]
   }
 
-  Package instproc resolve_page {
+  Package ad_instproc resolve_page {
     {-use_package_path true}
     {-simple false}
     -lang
     object
     method_var
   } {
-    #
-    # Try to resolve from object (path) and query parameter the called
-    # object (might be a package or page) and the method to be called.
-    #
-    # @return instantiated object (Page or Package) or empty
-    #
+
+    Try to resolve from object (path) and query parameter the called
+    object (might be a package or page) and the method to be called.
+
+    @param use_package_path
+    @param simple when set, do not try to resolve using item refs, prototype pages or package_path
+    @param language used for resolving
+    @param object element to be resolved
+    @param method_var output variable for method to be called on the object
+    @return instantiated object (Page or Package) or empty
+
+  } {
     upvar $method_var method
 
     # get the default language if not specified
