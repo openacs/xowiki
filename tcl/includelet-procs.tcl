@@ -207,7 +207,7 @@ namespace eval ::xowiki::includelet {
         }
         lappend and_names [::category::get_name $cid_and]
         lappend ands "exists (select 1 from category_object_map \
-           where object_id = [ns_dbquotevalue $item_ref] and category_id = [ns_dbquotevalue $cid_and])"
+           where object_id = $item_ref and category_id = [ns_dbquotevalue $cid_and])"
       }
       lappend or_names [join $and_names { and }]
       lappend ors "([join $ands { and }])"
