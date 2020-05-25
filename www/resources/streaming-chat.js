@@ -38,7 +38,7 @@ function chatSubscribe(subscribe_url) {
             if (status != 200 && status != 0) {
                 console.error('Something wrong in HTTP request, status code = ' + status);
             }
-            if (status.match(/^4\d\d$/) == null) {
+            if (status < 400 || status >= 500) {
                 console.log('Server has closed the connection. Try to reconnect in 10s...');
                 setTimeout(chatSubscribe, 10000, subscribe_url);
             }
