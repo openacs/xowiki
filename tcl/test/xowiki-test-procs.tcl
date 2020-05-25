@@ -20,6 +20,98 @@ namespace eval ::xowiki::test {
     aa_register_case \
         -cats {smoke production_safe} \
         -procs {
+            "::xowiki::Page instproc find_slot"
+            "::xo::db::CrItem instproc update_attribute_from_slot"
+        } \
+        slot_interactions {
+            Test slot interactions
+        } {
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+
+        aa_run_with_teardown -rollback -test_code {
+
+            set testfolder .testfolder
+            ::xowiki::Package initialize -package_id $package_id
+            set root_folder_id [::$package_id folder_id]
+
+            lang::system::set_locale en_US
+
+            set f1_id        [xowiki::test::require_folder "f1"    $root_folder_id $package_id]
+            set p0_id        [xowiki::test::require_page   en:p0   $root_folder_id $package_id]
+
+            ::xo::db::CrClass get_instance_from_db -item_id $f1_id
+            ::xo::db::CrClass get_instance_from_db -item_id $p0_id
+
+            aa_section "update from slot on extend_slot (description)"
+            set s [$p0_id find_slot description]
+            aa_true "slot found: $s" {$s ne ""}
+            aa_equals "slot is " $s ::xowiki::Page::slot::description
+            aa_equals "slot domain is " [$s domain] ::xo::db::CrItem
+
+            aa_equals "old description is" [$p0_id description] ""
+            $p0_id update_attribute_from_slot $s "new description"
+            aa_equals "new description is" [$p0_id description] "new description"
+
+            set item_id [$p0_id item_id]
+            set d [db_string get_description {select description from xowiki_pagex where item_id = :item_id}]
+            aa_equals "new description from db is" $d "new description"
+
+            $p0_id destroy
+            ::xo::db::CrClass get_instance_from_db -item_id $p0_id
+            aa_equals "new description is" [$p0_id description] "new description"
+
+
+            aa_section "update from slot on plain_slot (creator)"
+            set s [$p0_id find_slot creator]
+            aa_true "slot found: $s" {$s ne ""}
+            aa_equals "slot is " $s ::xowiki::Page::slot::creator
+            aa_equals "slot domain is " [$s domain] ::xowiki::Page
+
+            aa_equals "old creator is" [$p0_id creator] ""
+            $p0_id update_attribute_from_slot $s "the creator"
+            aa_equals "new creator is" [$p0_id creator] "the creator"
+
+            set item_id [$p0_id item_id]
+            set d [db_string get_creator {select creator from xowiki_pagex where item_id = :item_id}]
+            aa_equals "new creator from db is" $d "the creator"
+
+            $p0_id destroy
+            ::xo::db::CrClass get_instance_from_db -item_id $p0_id
+            aa_equals "new creator is" [$p0_id creator] "the creator"
+
+
+            aa_section "update from slot on instance attributes"
+            set s [$f1_id find_slot instance_attributes]
+            aa_true "slot found: $s" {$s ne ""}
+            aa_equals "slot is " $s ::xowiki::PageInstance::slot::instance_attributes
+            aa_equals "slot domain is " [$s domain] ::xowiki::PageInstance
+
+            aa_equals "old instance_attributes is" [$f1_id instance_attributes] ""
+            $f1_id update_attribute_from_slot $s "a 1"
+            aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
+
+            set item_id [$f1_id item_id]
+            set d [db_string get_description {select instance_attributes from xowiki_form_pagex where item_id = :item_id}]
+            aa_equals "new instance_attributes from db is" $d "a 1"
+
+            $f1_id destroy
+            ::xo::db::CrClass get_instance_from_db -item_id $f1_id
+            aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
+
+        } -teardown_code {
+            set node_id [site_node::get_node_id -url /$instance]
+            site_node::unmount -node_id $node_id
+            site_node::delete -node_id $node_id -delete_package
+        }
+    }
+
+    aa_register_case \
+        -cats {smoke production_safe} \
+        -procs {
             "::xowiki::Package instproc item_ref"
             "::xowiki::Package instproc resolve_page"
             "::xowiki::Package instproc item_info_from_url"
