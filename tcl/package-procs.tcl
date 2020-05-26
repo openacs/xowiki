@@ -2840,6 +2840,7 @@ namespace eval ::xowiki {
         {package_id write}
       }
       save-attributes    {{package_id write}}
+      autosave-attribute {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    {{package_id admin}}
       delete             {{package_id admin}}
@@ -2905,6 +2906,7 @@ namespace eval ::xowiki {
         {package_id write}
       }
       save-attributes    {{package_id write}}
+      autosave-attribute {{package_id write}}
       make-live-revision {{package_id write}}
       delete-revision    swa
       delete             swa
@@ -2963,6 +2965,7 @@ namespace eval ::xowiki {
       edit               {{item_id write}}
       make-live-revision {{item_id write}}
       save-attributes    {{package_id write}}
+      autosave-attribute {{package_id write}}
       delete-revision    swa
       delete             swa
       bulk-delete        swa
@@ -3046,6 +3049,7 @@ namespace eval ::xowiki {
       diff               {{item_id write}}
       edit               {{item_id write}}
       save-attributes    {{item_id write}}
+      autosave-attribute {{item_id write}}
       make-live-revision {{item_id write}}
       delete-revision    swa
       delete             swa

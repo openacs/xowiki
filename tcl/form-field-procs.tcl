@@ -1395,7 +1395,6 @@ namespace eval ::xowiki::formfield {
     return $component_names
   }
 
-
   CompoundField instproc exists_named_sub_component args {
     # Iterate along the argument list to check components of a deeply
     # nested structure. For example,
@@ -2264,7 +2263,6 @@ namespace eval ::xowiki::formfield {
                        autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
   }
 
-
   ###########################################################
   #
   # ::xowiki::formfield::password
@@ -2478,16 +2476,22 @@ namespace eval ::xowiki::formfield {
     {rows 2}
     {cols 80}
     {spell false}
+    {autosave:boolean false}
   }
   textarea instproc initialize {} {
     set :widget_type text(textarea)
     set :booleanHTMLAttributes {required readonly disabled formnovalidate}
-    foreach p [list rows cols style] {if {[info exists :$p]} {set :html($p) [:$p]}}
+    foreach p [list rows cols style] {
+      if {[info exists :$p]} {set :html($p) [:$p]}
+    }
     if {![:istype ::xowiki::formfield::richtext] && [info exists :editor]} {
       # downgrading
       #:msg "downgrading [:info class]"
       foreach m [:info mixin] {if {[$m exists editor_mixin]} {:mixin delete $m}}
       foreach v {editor options} {if {[info exists :$v]} {:unset $v}}
+    }
+    if {${:autosave}} {
+      ::xo::Page requireJS  "/resources/xowiki/autosave-text.js"
     }
     next
   }
@@ -2497,11 +2501,33 @@ namespace eval ::xowiki::formfield {
       :render_disabled_as_div textarea
     } else {
       set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
-      ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
-                            data-repeat-template-id {CSSclass class} \
-                            {*}$booleanAtts] {
-                              ::html::t [:value]
-                            }
+      if {${:autosave}} {
+        ::html::div -class "autosave" {
+          ::html::div -id ${:id}-status \
+              -class "nochange" \
+              -data-saved #xowiki.autosave_saved# \
+              -data-pending #xowiki.autosave_pending# {
+                ::html::t "" ;#"no change"
+              }
+          ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
+                                data-repeat-template-id {CSSclass class} \
+                                {*}$booleanAtts] {
+                                  ::html::t [:value]
+                                }
+        }
+        template::add_event_listener \
+            -id ${:id} \
+            -event keyup \
+            -preventdefault=false \
+            -script "autosave_handler('${:id}');"
+
+      } else {
+        ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
+                              data-repeat-template-id {CSSclass class} \
+                              {*}$booleanAtts] {
+                                ::html::t [:value]
+                              }
+      }
       :resetBooleanAttributes $booleanAtts
     }
     :render_result_statistics
@@ -3805,7 +3831,7 @@ namespace eval ::xowiki::formfield {
           html::div -class "help-block description" {
             html::t $description
           }
-        }        
+        }
       }
     } else {
       ::html::t " $label "
@@ -3894,7 +3920,7 @@ namespace eval ::xowiki::formfield {
       if {1 || ${:horizontal}} {lappend label_class col-sm2 checkbox-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
-        :render_label_text $label $label_class $description     
+        :render_label_text $label $label_class $description
       }
       :render_result_statistics $rep
 
@@ -3954,6 +3980,7 @@ namespace eval ::xowiki::formfield {
         "multiple_lines" {
           set type textarea
           dict set field_fc_dict rows [dict get $render_hints_dict lines]
+          dict set field_fc_dict autosave true
         }
         "file_upload" {
           set type file

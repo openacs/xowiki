@@ -177,7 +177,7 @@ namespace eval ::xowiki {
   ::xo::db::CrClass create FormPage -superclass PageInstance \
       -pretty_name "#xowiki.FormPage_pretty_name#" -pretty_plural "#xowiki.FormPage_pretty_plural#" \
       -table_name "xowiki_form_page" -id_column "xowiki_form_page_id" \
-      -non_cached_instance_var_patterns {__* hkey} \
+      -non_cached_instance_var_patterns {__*} \
       -slots {
         ::xo::db::CrAttribute create assignee \
             -datatype integer \

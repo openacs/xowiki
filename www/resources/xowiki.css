@@ -529,6 +529,18 @@ nav.navbar ul.dropdown-menu {
   border-color: #222;
 }
 
+/* autosave */
+div.xowiki-content div.autosave div.nochange,
+div.xowiki-content div.autosave div.pending,
+div.xowiki-content div.autosave div.saved
+{
+    float: right;
+    margin-top: -3ex;
+    height: 2.5ex;
+    font-size: smaller;
+}
+
+
 /*
  * Local Variables:
  * mode: css

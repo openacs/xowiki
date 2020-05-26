@@ -1638,6 +1638,73 @@ namespace eval ::xowiki {
   }
 
   #
+  # Externally callable method: autosave-attribute
+  #
+  Page ad_instproc www-autosave-attribute {} {
+
+    The web-callable method which is a simplified version of
+    save-attributes, but which does NOT perform input validation,
+    which might be a problem in case of partial input.
+
+  } {
+
+    #ns_log notice "SAVE-att called [:field_names]"
+    set field_names [:field_names]
+    set provided_form_parameters [xo::cc get_all_form_parameter]
+    set keys [dict keys $provided_form_parameters]
+
+    if {[llength $keys] == 1} {
+      set key   [lindex $keys 0]
+      set value [::xo::cc form_parameter $key]
+      set prefix ""
+      regexp {^([^.]+)[.]} $key . prefix
+
+      if {$prefix ne "" && $prefix in $field_names} {
+        #
+        # We are inside a compound field, which is saved in the instance
+        # attributes.
+        #
+        #ns_log notice "SAVE old ia <${:instance_attributes}>"
+        if {[dict exists ${:instance_attributes} $prefix]} {
+          set innerDict [dict get ${:instance_attributes} $prefix]
+        } else {
+          set innerDict ""
+        }
+        dict set innerDict $key $value
+        dict set :instance_attributes $prefix $innerDict
+
+        #ns_log notice "SAVE new ia <${:instance_attributes}>"
+        set s [:find_slot instance_attributes]
+        :update_attribute_from_slot $s ${:instance_attributes}
+
+      } elseif {$prefix eq "" && $key in $field_names} {
+        #
+        # It is a plain attribute, either from the cr-attributes
+        # (starting with an "_") or from the instance attributes.
+        #
+        if {[string match _* $key]} {
+          set s [:find_slot [string range $key 1 end]]
+          :update_attribute_from_slot $s $value
+        } else {
+          set s [:find_slot instance_attributes]
+          dict set :instance_attributes $key $value
+          :update_attribute_from_slot $s ${:instance_attributes}
+        }
+      } else {
+        error "unexpected condition key <$key> value <$value>"
+      }
+      ns_return 200 text/plain ok
+
+    } else {
+      ns_log warning "LAST expecting a single form parameter with a prefix keys <$keys>"
+      ns_return 404 text/plain "not ok"
+    }
+    ns_log notice "SAVE-att DONE"
+    ad_script_abort
+  }
+
+
+  #
   # Externally callable method: revisions
   #
 
@@ -2543,7 +2610,7 @@ namespace eval ::xowiki {
             #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
             if {![string match "*.*" $att]} {
               #
-              # If the field is not a compound field, put the revieved
+              # If the field is not a compound field, put the received
               # value into the instance attributes. The containerized
               # input values con compound fields are processed below.
               #
@@ -2678,10 +2745,12 @@ namespace eval ::xowiki {
         && $current_revision_id != ${:revision_id}
       } {
       set validation_errors [:mutual_overwrite_occurred]
+      #:log "=== validation error due to mutual_overwrite current_revision_id <$current_revision_id> my ${:revision_id}"
     }
 
     if {[:validate=form_input_fields $form_fields] == 0} {
       incr validation_errors
+      #:log "=== validation error due validate=form_input_fields"
     }
 
     if {$validation_errors == 0} {

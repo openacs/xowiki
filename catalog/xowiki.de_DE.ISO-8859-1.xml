@@ -268,4 +268,7 @@
   <msg key="multiple_lines">Mehrere Zeilen</msg>  
   <msg key="file_upload">Dateiabgabe</msg>  
 
+  <msg key="autosave_pending">geändert</msg>
+  <msg key="autosave_saved">Änderung gespeichert</msg>      
+
 </message_catalog>
