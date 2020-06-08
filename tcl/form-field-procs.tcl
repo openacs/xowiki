@@ -2506,6 +2506,7 @@ namespace eval ::xowiki::formfield {
           ::html::div -id ${:id}-status \
               -class "nochange" \
               -data-saved #xowiki.autosave_saved# \
+              -data-rejected #xowiki.autosave_rejected# \
               -data-pending #xowiki.autosave_pending# {
                 ::html::t "" ;#"no change"
               }

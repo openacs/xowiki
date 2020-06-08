@@ -30,10 +30,12 @@ function autosave_save_contents(id) {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             //console.log('saved <' + this.responseText  + '>') ;
+            var status = document.getElementById(this.autosaveID + '-status');
             if (this.responseText == "ok") {
-                var status = document.getElementById(this.autosaveID + '-status');
                 status.setAttribute('class', 'saved');
                 status.textContent = status.dataset.saved;
+            } else {
+                status.textContent = status.dataset.rejected;
             }
         } else {
             //console.log('not saved status ' + this.status + '  this.readyState ' + this.readyState ) ;

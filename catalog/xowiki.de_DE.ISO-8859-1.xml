@@ -269,6 +269,7 @@
   <msg key="file_upload">Dateiabgabe</msg>  
 
   <msg key="autosave_pending">geändert</msg>
-  <msg key="autosave_saved">Änderung gespeichert</msg>      
+  <msg key="autosave_saved">Änderung gespeichert</msg>
+  <msg key="autosave_rejected">Änderung zurückgewiesen</msg>        
 
 </message_catalog>

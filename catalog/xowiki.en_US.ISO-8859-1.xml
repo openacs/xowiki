@@ -291,6 +291,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="multiple_words">Multiple Words</msg>
   <msg key="multiple_lines">Multiple Lines</msg>
   <msg key="autosave_pending">changed</msg>
-  <msg key="autosave_saved">changes saved</msg>      
+  <msg key="autosave_saved">changes saved</msg>
+  <msg key="autosave_rejected">change rejected</msg>      
 
 </message_catalog>
