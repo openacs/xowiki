@@ -2477,6 +2477,7 @@ namespace eval ::xowiki::formfield {
     {cols 80}
     {spell false}
     {autosave:boolean false}
+    {paste:boolean true}
   }
   textarea instproc initialize {} {
     set :widget_type text(textarea)
@@ -2529,6 +2530,22 @@ namespace eval ::xowiki::formfield {
                                 ::html::t [:value]
                               }
       }
+      if {!${:paste}} {
+        #
+        # When "paste" is deactivated, the cut&paste and drag&drop
+        # handlers are deactivated for this field. "copy" is
+        # deactivated for the full page, since otherwise, one could
+        # cut the field with the surrounding text.
+        #
+        foreach event_type {paste drag drop} {
+          template::add_event_listener -id ${:id} -event $event_type \
+              -preventdefault=true -script ""
+        }
+        template::add_script -section body -script {
+          window.addEventListener('copy', function (event) {event.preventDefault();}, false);
+        }
+      }
+
       :resetBooleanAttributes $booleanAtts
     }
     :render_result_statistics
@@ -3940,6 +3957,7 @@ namespace eval ::xowiki::formfield {
 
   Class create text_fields -superclass {CompoundField ShuffleField} -parameter {
     {descriptions ""}
+    {paste:boolean true}
   } -ad_doc {
 
     Provide multiple text and short text entries. This field is a
@@ -3982,6 +4000,9 @@ namespace eval ::xowiki::formfield {
           set type textarea
           dict set field_fc_dict rows [dict get $render_hints_dict lines]
           dict set field_fc_dict autosave true
+          if {!${:paste}} {
+            dict set field_fc_dict paste false
+          }
         }
         "file_upload" {
           set type file
