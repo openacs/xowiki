@@ -272,4 +272,6 @@
   <msg key="autosave_saved">Änderung gespeichert</msg>
   <msg key="autosave_rejected">Änderung zurückgewiesen</msg>        
 
+  <msg key="From">Von</msg>
+  <msg key="to">bis</msg>
 </message_catalog>

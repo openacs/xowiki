@@ -5316,10 +5316,38 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class create event -superclass CompoundField -parameter {
+  Class create CalendarField -superclass CompoundField -parameter {
     {multiday:boolean false}
     {calendar}
     {time_label #xowiki.event-time#}
+  }
+  CalendarField set abstract 1
+
+  CalendarField instproc update_calendar {-cal_item_id -calendar_id -start -end -name -description} {
+    #
+    # If we have already a valid cal_item_id (checked previously)
+    # update the entry. Otherwise create a new calendar item and
+    # update the instance variables.
+    #
+    if {$cal_item_id ne ""} {
+      #:log "===== [list calendar::item::edit -start_date $start -end_date $end -cal_item_id $cal_item_id ...]"
+      calendar::item::edit -cal_item_id $cal_item_id -start_date $start \
+          -end_date $end -name $name -description $description
+    } else {
+      #:log "===== [list calendar::item::new -start_date $start -end_date $end -calendar_id $calendar_id ...]"
+      set cal_item_id [calendar::item::new -start_date $start -end_date $end \
+                           -name $name -description $description -calendar_id $calendar_id]
+      [:get_component cal_item_id] value $cal_item_id
+      #
+      # The following line is required when used in transaction to
+      # update the instance attributes
+      #
+      ${:object} set_property [namespace tail [:info class]] [:get_compound_value]
+    }
+  }
+
+
+  Class create event -superclass CalendarField -parameter {
   }
 
   event instproc initialize {} {
@@ -5351,6 +5379,7 @@ namespace eval ::xowiki::formfield {
     }
     set dtstart  [:get_component dtstart]
     set dtend    [:get_component dtend]
+
     if {!${:multiday}} {
       # If the event is not a multi-day-event, the end_day is not
       # given by the dtend widget, but is taken from dtstart.
@@ -5361,6 +5390,7 @@ namespace eval ::xowiki::formfield {
     }
     next
   }
+
 
   event instproc pretty_value {v} {
     #array set {} [:value]
@@ -5471,29 +5501,62 @@ namespace eval ::xowiki::formfield {
     next
   }
 
-  event instproc update_calendar {-cal_item_id -calendar_id -start -end -name -description} {
-    #
-    # If we have already a valid cal_item_id (checked previously)
-    # update the entry. Otherwise create a new calendar item and
-    # update the instance variables.
-    #
-    if {$cal_item_id ne ""} {
-      #:log "===== [list calendar::item::edit -start_date $start -end_date $end -cal_item_id $cal_item_id ...]"
-      calendar::item::edit -cal_item_id $cal_item_id -start_date $start \
-          -end_date $end -name $name -description $description
-    } else {
-      #:log "===== [list calendar::item::new -start_date $start -end_date $end -calendar_id $calendar_id ...]"
-      set cal_item_id [calendar::item::new -start_date $start -end_date $end \
-                           -name $name -description $description -calendar_id $calendar_id]
-      [:get_component cal_item_id] value $cal_item_id
-      #
-      # The following line is required when used in transaction to
-      # update the instance attributes
-      #
-      ${:object} set_property event [:get_compound_value]
-    }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::time_span
+  #
+  # This formfield is a simplified version of the "event".  It uses
+  # the HTML5 widget rather than the classical OpenACS multifield
+  # interface.
+
+  # Currently, it does not do calendar integration, but if would be
+  # straightfoward to add it here as well.
+  #
+  ###########################################################
+
+  Class create time_span -superclass CalendarField -parameter {
   }
 
+  time_span instproc initialize {} {
+    #:log "time_span initialize [info exists :__initialized], multi=${:multiday} state=${:__state}"
+    if {${:__state} ne "after_specs"} return
+    set :widget_type time_span
+    if {${:multiday}} {
+      set dtend_format DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI
+      set dtend_display_format %Q_%X
+    } else {
+      set dtend_format HH24_MI
+      set dtend_display_format %X
+    }
+    :create_components [subst {
+      {dtstart {datetime-local,form_item_wrapper_CSSclass=form-inline,label=#xowiki.From#}}
+      {dtend   {h5time,form_item_wrapper_CSSclass=form-inline,label=#xowiki.to#}}
+      {cal_item_id hidden}
+    }]
+    set :__initialized 1
+  }
+
+  # time_span instproc get_compound_value {} {
+  #   if {![info exists :__initialized]} {
+  #     return ""
+  #   }
+  #   next
+  # }
+  #
+  #
+  # time_span instproc pretty_value {v} {
+  #
+  #   next
+  # }
+  #
+  # time_span instproc convert_to_internal {} {
+  #
+  #    # could handle calendar entries similar to
+  #    # "event.convert_to_internal", which should be refactored in
+  #    # this case.
+  #
+  # }
 
 }
 

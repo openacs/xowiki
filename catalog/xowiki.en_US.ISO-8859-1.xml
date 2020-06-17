@@ -294,4 +294,6 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="autosave_saved">changes saved</msg>
   <msg key="autosave_rejected">change rejected</msg>      
 
+  <msg key="From">From</msg>
+  <msg key="to">to</msg>  
 </message_catalog>
