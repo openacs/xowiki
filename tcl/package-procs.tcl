@@ -1298,7 +1298,12 @@ namespace eval ::xowiki {
       #:msg "package path done [array get {}]"
     }
 
-    set page [::xowiki::Package get_site_wide_page -name en:$(stripped_name)]
+    #
+    # The call ":lookup -use_site_wide_pages true" works for looking
+    # up the site-wide-pages all kind of packages, not only ::xowiki::Package
+    #
+    set (item_id) [:lookup -use_site_wide_pages true -name en:$(stripped_name)]
+    set page [expr {$(item_id) != 0 ? [:get_page_from_item_or_revision_id $(item_id)] : ""}]
     #:msg "get_site_wide_page for en:'$(stripped_name)' returned '$page' (stripped name)"
     if {$page ne ""} {
       #:msg "set_resolve_context site-wide -package_id ${:id} -parent_id ${:folder_id}"
