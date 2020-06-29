@@ -265,12 +265,12 @@
   <msg key="number">Zahl</msg>
   <msg key="single_word">Einzelwort</msg>
   <msg key="multiple_words">Mehrere Worte</msg>
-  <msg key="multiple_lines">Mehrere Zeilen</msg>  
-  <msg key="file_upload">Dateiabgabe</msg>  
+  <msg key="multiple_lines">Mehrere Zeilen</msg>
+  <msg key="file_upload">Dateiabgabe</msg>
 
   <msg key="autosave_pending">geändert</msg>
   <msg key="autosave_saved">Änderung gespeichert</msg>
-  <msg key="autosave_rejected">Änderung zurückgewiesen</msg>        
+  <msg key="autosave_rejected">Änderung zurückgewiesen</msg>
 
   <msg key="From">Von</msg>
   <msg key="to">bis</msg>

@@ -104,7 +104,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="formfield-correct_when-help_text">Condition, when
   the answer is correct, specified as a predicate followed by arguments (Tcl
   words). The predefined predicates are "eq", "gt", "ge", "lt",
-  "le", "btwn", "in", "contains", "match", "answer_words"</msg>  
+  "le", "btwn", "in", "contains", "match", "answer_words"</msg>
   <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
   <msg key="formfield-import_archive-label">Import Archive</msg>
@@ -284,7 +284,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="questions">Questions</msg>
   <msg key="answers">Answers</msg>
   <msg key="words">Words</msg>
-  <msg key="file_upload">File Upload</msg>  
+  <msg key="file_upload">File Upload</msg>
 
   <msg key="number">Number</msg>
   <msg key="single_word">Single Word</msg>
@@ -292,8 +292,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="multiple_lines">Multiple Lines</msg>
   <msg key="autosave_pending">changed</msg>
   <msg key="autosave_saved">changes saved</msg>
-  <msg key="autosave_rejected">change rejected</msg>      
+  <msg key="autosave_rejected">change rejected</msg>
 
   <msg key="From">From</msg>
-  <msg key="to">to</msg>  
+  <msg key="to">to</msg>
 </message_catalog>
