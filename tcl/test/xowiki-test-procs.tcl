@@ -371,7 +371,7 @@ namespace eval ::xowiki::test {
             # a) a checkbox box1, where a default is set
             # b) a repeated checkbox, where one value is provided
             # c) a compound field, where the compound field definition
-            #    contains a default for the sub-component.
+            #    contains a default for the subcomponent.
 
             ::xowiki::test::create_form \
                 -last_request $request_info \

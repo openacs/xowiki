@@ -290,10 +290,10 @@ namespace eval ::xowiki::test {
             } else {
                 aa_true "create_form_page: page_name '$f_page_name' is empty" {$f_page_name eq ""}
             }
-            aa_true "create_form_page: creator '$f_creator' is non-empty" {$f_creator ne ""}
+            aa_true "create_form_page: creator '$f_creator' is nonempty" {$f_creator ne ""}
 
             set f_form_action [dict get $form @action]
-            aa_true "create_form_page: form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+            aa_true "create_form_page: form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
             set names [dict keys $fields]
             aa_log "create_form_page: form names: [lsort $names]"
@@ -379,10 +379,10 @@ namespace eval ::xowiki::test {
         set f_creator   [dict get $form fields _creator]
 
         aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
-        aa_true "creator '$f_creator' is non-empty" {$f_creator ne ""}
+        aa_true "creator '$f_creator' is nonempty" {$f_creator ne ""}
 
         set f_form_action  [dict get $form @action]
-        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+        aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
         set form_content [dict get $form fields]
         set names [dict keys $form_content]
@@ -456,8 +456,8 @@ namespace eval ::xowiki::test {
         set f_form_action [dict get $form @action]
 
         aa_true "name '$f_page_name' is empty"              {$f_page_name eq ""}
-        aa_true "creator '$f_creator' is non-empty"         {$f_creator ne ""}
-        aa_true "form_action '$f_form_action' is non-empty" {$f_form_action ne ""}
+        aa_true "creator '$f_creator' is nonempty"         {$f_creator ne ""}
+        aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
         set form_content [dict get $form fields]
         set names [dict keys $form_content]

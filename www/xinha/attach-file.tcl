@@ -49,7 +49,7 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
         set share site
       } \
       -on_submit {
-        # check file name
+        # check filename
         if {$upload_file eq ""} {
           template::form::set_error upload_form upload_file \
               [_ acs-templating.HTMLArea_SpecifyUploadFilename]

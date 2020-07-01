@@ -2765,7 +2765,7 @@ namespace eval ::xowiki {
     } else {
       :log validation_errors=$validation_errors
       #
-      # There were validation erros.  Reset the value for form-fields
+      # There were validation errors.  Reset the value for form-fields
       # of type "file" to avoid confusions, since a file-name was
       # provided, but the file was not uploaded due to the validation
       # error. If we would not reset the value, the provided name

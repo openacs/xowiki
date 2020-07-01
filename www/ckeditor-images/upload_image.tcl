@@ -24,7 +24,7 @@ ad_form -name upload_form \
       #if {$height ne ""} {append size x$height}
 
       set file_name [template::util::file::get_property filename $upload_file]
-      ns_log notice "upload_image: uploaded file name <$file_name>"
+      ns_log notice "upload_image: uploaded filename <$file_name>"
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
       set mime_type [::xowiki::guesstype $file_name]
       set tmp_size [file size $upload_tmpfile]

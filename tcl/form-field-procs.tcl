@@ -729,9 +729,9 @@ namespace eval ::xowiki::formfield {
     # Correct, when the answer is equal to the provided (sequence of)
     # words, but white-space is ignored. When the first word is
     # "*lower*" then the provided answer of the student is converted
-    # to lower case before the comparison is performed; as a
+    # to lowercase before the comparison is performed; as a
     # consequence the comparison is not case sensitive. Note that the
-    # answer_words have to be provided in lower case as well.
+    # answer_words have to be provided in lowercase as well.
     #
     set d [:process_correct_when_modifier]
     return [expr {[dict get $d value] eq [dict get $d words]}]
@@ -1438,8 +1438,8 @@ namespace eval ::xowiki::formfield {
     args
   } {
 
-    Return the value of a named sub-component. When the named
-    sub-component is a repeated item, and the value of the 0th element
+    Return the value of a named subcomponent. When the named
+    subcomponent is a repeated item, and the value of the 0th element
     of the repeat (the template element) is omitted from the returned
     value.
 
@@ -1578,7 +1578,7 @@ namespace eval ::xowiki::formfield {
         link_label
       }
   file instproc check=virus {value} {
-    # In case of an upgrade script, the (uploaded) tmp file might not exist
+    # In case of an upgrade script, the (uploaded) temporary file might not exist
     if {[:viruscheck]
         && [info exists :tmpfile]
         && $value ne ""
@@ -5511,7 +5511,7 @@ namespace eval ::xowiki::formfield {
   # interface.
 
   # Currently, it does not do calendar integration, but if would be
-  # straightfoward to add it here as well.
+  # straightforward to add it here as well.
   #
   ###########################################################
 

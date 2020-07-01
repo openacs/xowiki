@@ -27,7 +27,7 @@ namespace eval ::xowiki {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                 already in this folder}}
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; \
-                might only contain upper and lower case letters, underscore, digits and dots}}
+                might only contain upper and lowercase letters, underscore, digits and dots}}
         }}
         {with_categories true}
         {submit_link "view"}
@@ -259,7 +259,7 @@ namespace eval ::xowiki {
       set granted [::$package_id check_permissions -link $computed_link $package_id edit-new]
       #$data msg computed_link=$computed_link,granted=$granted
       if {!$granted} {
-        util_user_message -message "User not authorized to create a file named $name"
+        util_user_message -message "User not authorized to create a filenamed $name"
         return 0
       }
     } else {
@@ -486,7 +486,7 @@ namespace eval ::xowiki {
           {upload_file {\[::xowiki::validate_file\]} {For new entries, \
                                                           a upload file must be provided}}
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
-            might only contain upper and lower case letters, underscore, digits and dots}}
+            might only contain upper and lowercase letters, underscore, digits and dots}}
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
         }}
@@ -559,7 +559,7 @@ namespace eval ::xowiki {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
                                                    already in this folder}}
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
-            might only contain upper and lower case letters, underscore, digits and dots}}
+            might only contain upper and lowercase letters, underscore, digits and dots}}
           {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
         }}
       }
@@ -835,7 +835,7 @@ namespace eval ::xowiki {
                                                    already in this folder}}
           {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
-            might only contain upper and lower case letters, underscore, digits and dots}}
+            might only contain upper and lowercase letters, underscore, digits and dots}}
           {form {\[::xowiki::validate_form_form\]} {Form must contain a toplevel HTML form element}}
           {form_constraints {\[::xowiki::validate_form_field form_constraints\]} {Invalid form constraints}}
         }}

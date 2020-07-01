@@ -65,7 +65,7 @@ namespace eval ::xowiki {
         return {status_code 200 message ok}
       }
       #
-      # Mime type is ok, save the file under the file name either as a
+      # Mime type is ok, save the file under the filename either as a
       # new item or as a new revision.
       #
       set package_id [${:parent_object} package_id]

@@ -3449,7 +3449,7 @@ namespace eval ::xowiki {
       if {[info exists :revision_id]} {
         #
         # For a given revision_id, the full_file_name will never
-        # change.  Therefore, we can easily cache the full file name
+        # change.  Therefore, we can easily cache the full filename
         # for the revision_id.
         #
         set :full_file_name [::xowiki::cache eval -partition_key ${:revision_id} ffn-${:revision_id} {

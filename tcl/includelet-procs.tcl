@@ -2177,7 +2177,7 @@ namespace eval ::xowiki::includelet {
   #
   # The "toc" includelet renders the page titles of the current files
   # based on the value of the "page_order" attributes. Only those
-  # pages are rendered that have a non-empty "page_order" field.
+  # pages are rendered that have a nonempty "page_order" field.
   #
   ::xowiki::IncludeletClass create toc \
       -superclass ::xowiki::Includelet \
@@ -2207,7 +2207,7 @@ namespace eval ::xowiki::includelet {
         Show table of contents of the current wiki.
         The "toc" includelet renders the page titles of the current files
         based on the value of the "page_order" attributes. Only those
-        pages are rendered that have a non-empty "page_order" field.
+        pages are rendered that have a nonempty "page_order" field.
 
         @param style
         @param renderer

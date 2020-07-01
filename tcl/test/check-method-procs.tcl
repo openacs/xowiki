@@ -13,7 +13,7 @@ aa_register_case -cats {smoke production_safe} web_callable_methods_naming {
             incr count
             regexp {www[-](.*)$} $m . suffix
             set wrong [regexp {[^a-z0-9-]} $suffix]
-            aa_false "web callable method '$cl instproc $m' does not follow naming guidelines (just lower case, digit and dash)" $wrong
+            aa_false "web callable method '$cl instproc $m' does not follow naming guidelines (just lowercase, digit and dash)" $wrong
         }
     }
     aa_log "Checked $count web callable methods"
