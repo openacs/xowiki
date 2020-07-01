@@ -203,7 +203,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="Page-title">Page Title</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">Another item with the name &#39;%value%&#39; exists already in this folder</msg>
-  <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lower case letters, underscore, digits and dots</msg>
+  <msg key="Page-validate_page_order">Page Order invalid; might only contain upper and lowercase letters, underscore, digits and dots</msg>
   <msg key="page_kind">Type</msg>
   <msg key="Page_pretty_name">XoWiki Page</msg>
   <msg key="Page_pretty_plural">Wiki Pages</msg>
