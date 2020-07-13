@@ -105,8 +105,8 @@ namespace eval ::xowiki {
     # Generate the ADP file, when does not exist, or when the
     # generator is newer.
     #
-    if {![file exists $adpFilename]
-        || [file mtime [info script]] > [file mtime $adpFilename]} {
+    if {![ad_file exists $adpFilename]
+        || [file mtime [info script]] > [ad_file mtime $adpFilename]} {
       try {
         set f [open $adpFilename w]
       } on error {errorMsg} {

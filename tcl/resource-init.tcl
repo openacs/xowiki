@@ -28,9 +28,9 @@ template::register_urn -urn urn:ad:js:highcharts \
 #
 set resDir $::acs::rootdir/packages/xowiki/www/resources
 foreach variant {yui bootstrap3} {
-  if {![file exists $resDir/xowiki-$variant.css]
-      || [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki.css]
-      || [file mtime $resDir/xowiki-$variant.css] < [file mtime $resDir/xowiki-$variant-specific.css]
+  if {![ad_file exists $resDir/xowiki-$variant.css]
+      || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki.css]
+      || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki-$variant-specific.css]
     } {
     set content ""
     set F [open $resDir/xowiki.css]; append content [read $F] \n; close $F

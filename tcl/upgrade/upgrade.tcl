@@ -450,7 +450,7 @@ namespace eval ::xowiki {
         www/prototypes/announcements.page 
         www/admin/regression_test.tcl
       } {
-        if {[file exists $dir/$file]} {
+        if {[ad_file exists $dir/$file]} {
           ns_log notice "Deleting obsolete file $dir/$file"
           file delete -- $dir/$file
         }

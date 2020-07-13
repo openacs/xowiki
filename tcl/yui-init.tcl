@@ -49,7 +49,7 @@ template::register_urn \
     -urn      urn:ad:css:yui2:treeview/assets/menu/tree \
     -resource /resources/ajaxhelper/yui/treeview/assets/menu/tree.css
 
-if {[file isdirectory $::acs::rootdir/packages/ajaxhelper/www/resources]} {
+if {[ad_file isdirectory $::acs::rootdir/packages/ajaxhelper/www/resources]} {
 
     foreach path $YUI_CSS_PATHS {
         template::register_urn \

@@ -735,11 +735,11 @@ namespace eval ::xowiki {
         error "invalid geometry $geometry"
       }
       set tmpdir [ad_tmpdir]
-      if {![file isdirectory $tmpdir/$geometry]} {
+      if {![ad_file isdirectory $tmpdir/$geometry]} {
         file mkdir $tmpdir/$geometry
       }
       set scaled_image $tmpdir/$geometry/${:revision_id}
-      if {![file readable $scaled_image]} {
+      if {![ad_file readable $scaled_image]} {
         set cmd [::util::which convert]
         if {$cmd ne ""} {
           if {![catch {exec $cmd -geometry $geometry -interlace None -sharpen 1x2 \
@@ -751,7 +751,7 @@ namespace eval ::xowiki {
         return $scaled_image
       }
     }
-    set modtime [file mtime $full_file_name]
+    set modtime [ad_file mtime $full_file_name]
     set cmptime [ns_set iget [ns_conn headers] If-Modified-Since]
     if {$cmptime ne ""} {
       if {[clock scan $cmptime] >= $modtime} {

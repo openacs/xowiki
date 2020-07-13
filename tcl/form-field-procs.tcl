@@ -1761,7 +1761,7 @@ namespace eval ::xowiki::formfield {
         fn ${:value} {
 
           regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
-          set fn [::file tail ./$fn]    ;# prefix $fn to avoid potential tilde expansion
+          set fn [ad_file tail $fn]
 
           set file_object [:store_file \
                                -file_name $fn \

@@ -1402,7 +1402,7 @@ namespace eval ::xowiki {
         set fn [acs_root_dir]/$tmpl
         #ns_log notice "=== check get_adp_template $fn"
 
-        if {[file readable $fn.adp]} {
+        if {[ad_file readable $fn.adp]} {
           set result [::template::themed_template $tmpl]
           #ns_log notice "template is <$result>"
           if {$result ne ""} {

@@ -194,7 +194,7 @@ namespace eval ::xowiki {
       # ns_guesstype was failing, which should not be the case with
       # recent versions of NaviServer
       #
-      switch [file extension $fn] {
+      switch [ad_file extension $fn] {
         .xotcl {set mime text/plain}
         .mp3 {set mime audio/mpeg}
         .cdf {set mime application/x-netcdf}
@@ -218,7 +218,7 @@ namespace eval ::xowiki {
     if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
       set ffmpeg [::$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
-      if {[file exists $ffmpeg]} {
+      if {[ad_file exists $ffmpeg]} {
         catch {exec $ffmpeg -i $filename} output
         if {[info exists output]} {
           regexp {Duration: +([0-9:.]+)[ ,]} $output _ duration

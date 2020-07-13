@@ -50,7 +50,7 @@ if {[permission::permission_p -party_id $user_id -object_id $parent_id \
           set maximum_folder_size [parameter::get -parameter "MaximumFolderSize"]
 
           if { $maximum_folder_size ne "" } {
-            if { $folder_size+[file size ${upload_file.tmpfile}] > $maximum_folder_size } {
+            if { $folder_size+[ad_file size ${upload_file.tmpfile}] > $maximum_folder_size } {
               template::form::set_error upload_form upload_file \
                   [_ file-storage.out_of_space]
               break

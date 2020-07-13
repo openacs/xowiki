@@ -106,7 +106,7 @@ namespace eval ::xowiki {
         && [info commands ::util::which] ne ""} {
       set clamscanCmd [::util::which clamdscan]
       foreach fn $fns {
-        if {$clamscanCmd ne "" && [file readable $fn]} {
+        if {$clamscanCmd ne "" && [ad_file readable $fn]} {
           if {[catch {exec $clamscanCmd $fn 2>@1} result]} {
             ns_log warning "[self] virus found:\n$result"
             return 1

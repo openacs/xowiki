@@ -133,7 +133,7 @@ namespace eval ::xowiki::notification {
     # non-wiki links. Here we are able to provide an accurate
     # pretty_link as base-url.
     #
-    set html [ad_html_qualify_links -path [file dirname $pretty_link] $html]
+    set html [ad_html_qualify_links -path [ad_file dirname $pretty_link] $html]
     
     if {![info exists text]} {
       set text [ad_html_text_convert -from text/html -to text/plain -- $html]
