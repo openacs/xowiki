@@ -156,9 +156,11 @@ namespace eval ::xowiki::includelet {
     set sql [:folder_query -form_id $folder_form_id \
                  -parent_id $parent_id \
                  -package_id $package_id]
+
     #ns_log notice "folder_pages:\n$sql"
     set folder_pages [::xowiki::FormPage instantiate_objects -sql $sql \
                           -named_objects true -object_named_after "item_id" \
+                          -keep_existing_objects true \
                           -object_class ::xowiki::FormPage -initialize true]
 
     #
@@ -266,7 +268,7 @@ namespace eval ::xowiki::includelet {
     # Start with the "package's folder" as root folder
     set root_folder [::xo::db::CrClass get_instance_from_db \
                          -item_id [::$package_id folder_id]]
-    
+
     set mb [info commands ::__xowiki__MenuBar]
     if {$mb ne ""} {
       #
@@ -317,7 +319,6 @@ namespace eval ::xowiki::includelet {
                             ::$package_id {} parent_id return_url]
       set import_archive_link [::$package_id make_form_link -form en:import-archive.form \
                                    -parent_id $opt_parent_id]
-
 
       set index_link [::$package_id make_link -link $folder_link ${:current_folder} list]
 
@@ -496,6 +497,7 @@ namespace eval ::xowiki::includelet {
             {-skin:optional "yui-skin-sam"}
             {-show_types "::xowiki::Page,::xowiki::File,::xowiki::Form,::xowiki::FormPage"}
             {-regexp:optional}
+            {-language_specific:boolean false}
             {-with_subtypes:boolean,optional false}
             {-orderby:token,optional "last_modified,desc"}
             {-publish_status:wordchar "ready"}
@@ -659,7 +661,37 @@ namespace eval ::xowiki::includelet {
     if {[info exists regexp]} {
       set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
     }
-
+    
+    if {$language_specific} {
+      #
+      # Setting the property language_specific does two things:
+      # a) filter the entries by this language
+      # b) change the title of the folder when a property ml_title is supplied.
+      #
+      set lang [string range [:locale] 0 1]
+      set extra_where_clause "ci.name like '${lang}:%'"
+      
+      #
+      # If the folder has a property "ml_title" assume that every line
+      # is a title in a different language and starts with a lang
+      # prefix.  If no matching title is found stick to the title of
+      # the folder object.
+      #
+      # One should define a form-field to make it easy for a true end
+      # user to provide ml titles.
+      #
+      set ml_title [$current_folder property ml_title]
+      if {$ml_title ne ""} {
+        foreach line [split $ml_title \n] {
+          set line [string trim $line]
+          if {[string range $line 0 1] eq $lang} {
+            $current_folder title [string range $line 2 end]
+            break
+          }
+        }
+      }
+    }
+    
     :log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
