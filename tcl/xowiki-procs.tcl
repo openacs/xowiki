@@ -4668,6 +4668,22 @@ namespace eval ::xowiki {
     return [expr $wc(tcl)]
   }
 
+  # If the folder has a property "langstring" assume that the
+  # content is a dict containing multiple attributes in multiple
+  # languages.
+  #
+  #    _title {en {This is the Title} de {Das ist der Titel}}
+  #
+  # This can be used by update_langstring_property to set arbitaries
+  # properties to language-specific value. The follogwing command updates
+  # the value of the "_title" property:
+  #
+  #    $page update_langstring_property _title $lang
+  #
+  # One should define a form-field for langstrings that convert
+  # some user-friendly format into the intrep of the dict, which
+  # can be efficiently processed.
+
   FormPage instproc langstring {attname lang {default ""}} {
     set result $default
     if {[:exists_property langstring]} {

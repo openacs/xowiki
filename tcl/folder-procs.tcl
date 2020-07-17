@@ -672,13 +672,7 @@ namespace eval ::xowiki::includelet {
       set extra_where_clause "ci.name like '${lang}:%'"
 
       #
-      # If the folder has a property "langstring" assume that the
-      # content is a dict containing multiple attributes in multiple
-      # languages.
-      #
-      # One should define a form-field for langstrings that convert
-      # some user-friendly format into the intrep of the dict, which
-      # can be efficiently processed.
+      # Update the title to a language-specific value
       #
       $current_folder update_langstring_property _title $lang
     }
