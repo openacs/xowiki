@@ -609,7 +609,7 @@ namespace eval ::xowiki {
   Page set markupmap(unescape) [list \03\01 "\[\["    \03\02 "\{\{"   \03\03 "&gt;&gt;"  ]
 
   #
-  # templating and CSS
+  # Templating and CSS
   #
 
   Page proc quoted_html_content text {
@@ -4666,6 +4666,20 @@ namespace eval ::xowiki {
     set __ia [dict merge $wc(vars) [:instance_attributes]]
     #:log "expr $wc(tcl) returns => [expr $wc(tcl)]"
     return [expr $wc(tcl)]
+  }
+
+  FormPage instproc langstring {attname lang {default ""}} {
+    set result $default
+    if {[:exists_property langstring]} {
+      set d [:property langstring]
+      if {[dict exists $d $attname $lang]} {
+        set result [dict get $d $attname $lang]
+      }
+    }
+    return $result
+  }
+  FormPage instproc update_langstring_property {attname lang} {
+    :set_property $attname [:langstring $attname $lang [:property $attname]]
   }
 
   #

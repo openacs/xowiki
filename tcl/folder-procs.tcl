@@ -661,7 +661,7 @@ namespace eval ::xowiki::includelet {
     if {[info exists regexp]} {
       set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
     }
-    
+
     if {$language_specific} {
       #
       # Setting the property language_specific does two things:
@@ -670,28 +670,19 @@ namespace eval ::xowiki::includelet {
       #
       set lang [string range [:locale] 0 1]
       set extra_where_clause "ci.name like '${lang}:%'"
-      
+
       #
-      # If the folder has a property "ml_title" assume that every line
-      # is a title in a different language and starts with a lang
-      # prefix.  If no matching title is found stick to the title of
-      # the folder object.
+      # If the folder has a property "langstring" assume that the
+      # content is a dict containing multiple attributes in multiple
+      # languages.
       #
-      # One should define a form-field to make it easy for a true end
-      # user to provide ml titles.
+      # One should define a form-field for langstrings that convert
+      # some user-friendly format into the intrep of the dict, which
+      # can be efficiently processed.
       #
-      set ml_title [$current_folder property ml_title]
-      if {$ml_title ne ""} {
-        foreach line [split $ml_title \n] {
-          set line [string trim $line]
-          if {[string range $line 0 1] eq $lang} {
-            $current_folder title [string range $line 2 end]
-            break
-          }
-        }
-      }
+      $current_folder update_langstring_property _title $lang
     }
-    
+
     :log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
