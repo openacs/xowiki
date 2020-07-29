@@ -70,6 +70,7 @@ namespace eval ::xowiki::includelet {
       }
       bootstrap -
       default   {
+        #:msg "render tree $tree // [$tree procsearch render ]"
         set HTML [$tree render -style bootstrap3-folders]
       }
     }
@@ -391,6 +392,7 @@ namespace eval ::xowiki::includelet {
     }
 
     set parent_folder [$top_folder_of_tree parent_id]
+
     if {$top_folder_of_tree eq $root_folder || $parent_folder eq "-100"} {
       set href [::$package_id package_url]
       set label  [::$package_id instance_name]
@@ -417,7 +419,7 @@ namespace eval ::xowiki::includelet {
                      -link_form_id ${:link_form_id}]
 
     #:msg "folder ${:folder_form_id} has [llength $folders] entries"
-    #foreach f $folders {lappend _ [$f item_id]}; :msg $_
+    #:msg [lmap f $folders {$f item_id}]
 
     :build_sub_tree -node $node -folders $folders
     return $t
@@ -443,6 +445,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
+    #:msg "[$node label] has [llength $sub_folders] subfolders"
     foreach c $sub_folders {
 
       set label [$c title]
