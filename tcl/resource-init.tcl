@@ -11,9 +11,6 @@ template::register_urn -urn urn:ad:js:bootstrap3  \
 
 template::register_urn -urn urn:ad:js:get-http-object \
     -resource /resources/xowiki/get-http-object.js
-template::register_urn -urn urn:ad:js:bootstrap3-treeview \
-    -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js \
-    -csp_list {script-src cdnjs.cloudflare.com}
 
 template::register_urn -urn urn:ad:js:highcharts \
     -resource //code.highcharts.com/7.0/highcharts.js \
@@ -46,8 +43,17 @@ template::register_urn -urn urn:ad:css:bootstrap3 \
 
 template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xowiki-yui.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
-template::register_urn -urn urn:ad:css:bootstrap3-treeview \
-    -resource //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css
+
+set resource_info [xowiki::bootstrap-treeview::resource_info -version 1.2.0]
+foreach URN [dict keys [dict get $resource_info urnMap]] {
+  template::register_urn \
+      -urn $URN \
+      -resource [dict get $resource_info prefix]/[dict get $resource_info urnMap $URN] \
+      -csp_list [expr {[dict exists $resource_info csp_lists $URN]
+                       ? [dict set $resource_info csp_lists $URN]
+                       : ""}]
+}
+
 
 #
 # Local variables:
