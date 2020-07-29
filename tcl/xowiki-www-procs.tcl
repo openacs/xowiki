@@ -335,7 +335,7 @@ namespace eval ::xowiki {
       } else {
         set publish_status "ready"
       }
-      ns_log notice "FINAL publish_status $publish_status"
+      :log "FINAL publish_status $publish_status"
     }
 
     ::xo::Package require $fp_package_id
@@ -371,6 +371,7 @@ namespace eval ::xowiki {
       regexp {^([^:]+):?} $var . key
       if {[:exists_query_parameter $key]} {
         set $key [:query_parameter $var]
+        :log "set instance var from queray param '$key' -> '[set $key]'"        
       }
     }
 
