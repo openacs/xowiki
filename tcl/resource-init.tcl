@@ -44,7 +44,7 @@ template::register_urn -urn urn:ad:css:bootstrap3 \
 template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xowiki-yui.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
 
-set resource_info [xowiki::bootstrap-treeview::resource_info -version 1.2.0]
+set resource_info [xowiki::bootstrap_treeview::resource_info -version 1.2.0]
 foreach URN [dict keys [dict get $resource_info urnMap]] {
   template::register_urn \
       -urn $URN \

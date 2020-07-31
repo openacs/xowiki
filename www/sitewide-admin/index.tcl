@@ -5,7 +5,7 @@ ad_page_contract {
 } {
 }
 set version 1.2.0
-set resource_info [::xowiki::bootstrap-treeview::resource_info -version $version]
+set resource_info [::xowiki::bootstrap_treeview::resource_info -version $version]
 set resoure_name  [dict get $resource_info resourceName]
 set title "$resoure_name - Sitewide Admin"
 set download_url download?version=$version

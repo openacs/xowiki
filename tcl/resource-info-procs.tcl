@@ -6,9 +6,9 @@
   @cvs-id $Id$
 }
 
-namespace eval ::xowiki::bootstrap-treeview {
+namespace eval ::xowiki::bootstrap_treeview {
 
-    ad_proc -private ::xowiki::bootstrap-treeview::resource_info {
+    ad_proc -private ::xowiki::bootstrap_treeview::resource_info {
         {-version "1.2.0"}
     } {
 

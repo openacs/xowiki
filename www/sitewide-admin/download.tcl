@@ -6,7 +6,7 @@ ad_page_contract {
     {version:token,notnull ""}
 }
 
-set resource_info [::xowiki::bootstrap-treeview::resource_info -version $version]
+set resource_info [::xowiki::bootstrap_treeview::resource_info -version $version]
 set resourceDir [dict get $resource_info resourceDir]
 file mkdir $resourceDir/$version
 
