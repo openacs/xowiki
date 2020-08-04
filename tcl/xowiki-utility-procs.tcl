@@ -376,7 +376,7 @@ namespace eval ::xowiki {
     {-doit:boolean false}
     {-delete_orphans:boolean false}
     {-delete_sequences:boolean false}
-    {-edit_interval:integer 300}
+    {-edit_interval 300}
     {-older_than "1 month ago"}
     -package_id
     -item_id
