@@ -2126,15 +2126,16 @@ namespace eval ::xowiki {
     set site_info [:require_site_wide_info]
     set parent_id [dict get $site_info folder_id]
     #
-    # Change the page template the former global forms (having
-    # parent_id = 0) to the global instance forms.
+    # Change the page template the former global forms and other forms
+    # (having parent_id != $parent_id) to the global instance forms.
     #
-    set source_list {*}[::xo::dc list_of_lists get_forms [subst {
+    set source_list [concat {*}[::xo::dc list_of_lists get_forms [subst {
       select name,item_id from cr_items
-      where parent_id = 0
+      where parent_id != :parent_id
       and content_type like '::%'
       and name in ([ns_dbquotelist $forms])
-    }]]
+    }]]]
+
     set target_list {*}[::xo::dc list_of_lists get_forms [subst {
       select name,item_id from cr_items
       where parent_id = :parent_id
@@ -2142,29 +2143,54 @@ namespace eval ::xowiki {
     }]]
 
     foreach {form id} $source_list {
+      ns_log notice "WORK ON form <$form> id <$id>"
       if {[dict exist $target_list $form]} {
         #
         # Change page template to site_wide page except for site_wide
         # instance folder itself (chicken/egg problem).
         #
-        set cmd [list xo::dc dml change_page_template [subst {
+        set where_clause [subst {
+          where page_template = $id
+          and name != 'xowiki: [dict get $site_info instance_id]'
+        }]
+        #
+        # Update xowiki_form_instance_item_index.
+        #
+        set cmd1 [list xo::dc dml change_page_template [subst {
             update xowiki_form_instance_item_index
-            set page_template = '[dict get $target_list $form]'
-            where page_template = $id
-            and name !=  'xowiki: [dict get $site_info instance_id]'
+            set page_template = '[dict get $target_list $form]' $where_clause
+        }]]
+        #
+        # Update revisions.
+        #
+        set cmd2 [list xo::dc dml change_page_template [subst {
+          update xowiki_page_instance
+          set page_template = '[dict get $target_list $form]'
+          where page_instance_id in (
+                                     select page_instance_id
+                                     from xowiki_page_instance x, cr_revisions cr, cr_items ci
+                                     $where_clause and cr.revision_id = page_instance_id
+                                     and cr.item_id = ci.item_id
+                                     )
         }]]
 
         if {$doit} {
-          {*}$cmd
+          {*}$cmd1
+          {*}$cmd2
         } else {
-          ns_log notice "unify_forms would do: $cmd"
+          ns_log notice "unify_forms would do: $cmd1"
+          ns_log notice "unify_forms would do: $cmd2"
+          set item_ids [::xo::dc list get_items [subst {
+            select item_id from xowiki_form_instance_item_index
+            $where_clause
+          }]]
+          ns_log notice "affected items $item_ids"
         }
       } else {
         error "no such target form"
       }
     }
   }
-
 
 
 
