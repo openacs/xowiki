@@ -2097,7 +2097,7 @@ namespace eval ::xowiki {
       select item_id,name from cr_items
       where parent_id = -100
       and content_type like '::%'
-      and name not like 'xowiki: %';
+      and name not like 'xowiki: %'
     }]
     xo::dc transaction {
       foreach {item_id name} [concat {*}$page_info] {
@@ -2116,7 +2116,56 @@ namespace eval ::xowiki {
         }
       }
     }
+    :fix_site_wide_package_ids
   }
+
+  Package proc unify_forms {
+    {-doit:boolean false}
+    {-forms {en:folder.form en:folder.form en:folder.form en:import-archive.form en:photo.form}}
+  } {
+    set site_info [:require_site_wide_info]
+    set parent_id [dict get $site_info folder_id]
+    #
+    # Change the page template the former global forms (having
+    # parent_id = 0) to the global instance forms.
+    #
+    set source_list {*}[::xo::dc list_of_lists get_forms [subst {
+      select name,item_id from cr_items
+      where parent_id = 0
+      and content_type like '::%'
+      and name in ([ns_dbquotelist $forms])
+    }]]
+    set target_list {*}[::xo::dc list_of_lists get_forms [subst {
+      select name,item_id from cr_items
+      where parent_id = :parent_id
+      and name in ([ns_dbquotelist $forms])
+    }]]
+
+    foreach {form id} $source_list {
+      if {[dict exist $target_list $form]} {
+        #
+        # Change page template to site_wide page except for site_wide
+        # instance folder itself (chicken/egg problem).
+        #
+        set cmd [list xo::dc dml change_page_template [subst {
+            update xowiki_form_instance_item_index
+            set page_template = '[dict get $target_list $form]'
+            where page_template = $id
+            and name !=  'xowiki: [dict get $site_info instance_id]'
+        }]]
+
+        if {$doit} {
+          {*}$cmd
+        } else {
+          ns_log notice "unify_forms would do: $cmd"
+        }
+      } else {
+        error "no such target form"
+      }
+    }
+  }
+
+
 
 
   Package proc preferredCSSToolkit {} {

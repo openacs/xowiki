@@ -373,10 +373,10 @@ namespace eval ::xowiki {
   }
 
   ad_proc cr_thin_out {
-    {-doit false}
-    {-delete_orphans false}
-    {-delete_sequences false}
-    {-edit_interval 300}
+    {-doit:boolean false}
+    {-delete_orphans:boolean false}
+    {-delete_sequences:boolean false}
+    {-edit_interval:integer 300}
     {-older_than "1 month ago"}
     -package_id
     -item_id
