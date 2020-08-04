@@ -4336,7 +4336,7 @@ namespace eval ::xowiki::formfield {
     }
 
     #
-    # Provide a HTML ID for ".sortable" compatible with jquery
+    # Provide an HTML ID for ".sortable" compatible with jquery
     #
     regsub -all {[.]} "${:id}.sortable" - jqID
     set textAreaID ${:id}.text
