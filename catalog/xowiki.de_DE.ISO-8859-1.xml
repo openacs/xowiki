@@ -272,6 +272,15 @@
   <msg key="autosave_saved">Änderung gespeichert</msg>
   <msg key="autosave_rejected">Änderung zurückgewiesen</msg>
 
+  <msg key="Urgency">Wichtigkeit</msg>
+  <msg key="urgency_low">niedrig</msg>
+  <msg key="urgency_normal">mittel</msg>    
+  <msg key="urgency_high">hoch</msg> 
+  <msg key="Send_message_to">Schicke Nachricht an</msg>
+  <msg key="Enter_message">Nachrichtentext</msg>  
+  <msg key="Message">Nachricht</msg>
+  <msg key="Send">Abschicken</msg>
+
   <msg key="From">Von</msg>
   <msg key="to">bis</msg>
 </message_catalog>
