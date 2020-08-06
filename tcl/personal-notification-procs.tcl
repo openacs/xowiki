@@ -123,16 +123,16 @@ namespace eval ::xowiki::includelet {
     <div class="modal-body">
       <div class="form-group">
       <label for="msg"><span class="glyphicon glyphicon-$glyphicon"></span> #xowiki.Message#</label>
-	<input class="form-control" id="msg" name="msg" Placeholder="#xowiki.Enter_message#" required autofocus>
+        <input class="form-control" id="msg" name="msg" Placeholder="#xowiki.Enter_message#" required autofocus>
       </div>
       <div class="form-group">
       #xowiki.Urgency#
-	<label class="radio-inline" for="option1">#xowiki.urgency_low#</label>
-	<input id="option1" name="urgency" value="info" type="radio">
-	<label class="radio-inline" for="option2">#xowiki.urgency_normal#</label>
-	<input id="option2" name="urgency" value="warning" type="radio" checked>
-	<label class="radio-inline" for="option3">#xowiki.urgency_high#</label>
-	<input id="option3" name="urgency" value="danger" type="radio">
+        <label class="radio-inline" for="option1">#xowiki.urgency_low#</label>
+        <input id="option1" name="urgency" value="info" type="radio">
+        <label class="radio-inline" for="option2">#xowiki.urgency_normal#</label>
+        <input id="option2" name="urgency" value="warning" type="radio" checked>
+        <label class="radio-inline" for="option3">#xowiki.urgency_high#</label>
+        <input id="option3" name="urgency" value="danger" type="radio">
       </div> <!--form-group-->
 
       <input type="hidden" name="to_user_id" value="$to_user_id">
@@ -144,7 +144,7 @@ namespace eval ::xowiki::includelet {
   </div>
 </form>
       </div><!--modal-dialog-->
-      </div><!--modal-->      
+      </div><!--modal-->
     }]]
   }
 
