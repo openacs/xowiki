@@ -71,7 +71,7 @@ namespace eval ::xowiki {
     resolved below the current object, which is treated as containing
     folder.
 
-    After a adding elements to the clipboard, redirect either to the
+    After adding elements to the clipboard, redirect either to the
     return_url of the calling page.
 
   } {
@@ -141,7 +141,7 @@ namespace eval ::xowiki {
     This web-callable method copies the content of the clipboard to
     the current folder.
 
-    After a copying the elements from the clipboard, redirect either
+    After copying the elements from the clipboard, redirect either
     to the return_url of the calling page.
 
   } {
@@ -188,7 +188,7 @@ namespace eval ::xowiki {
     This web-callable method duplcated the current object. It uses the
     same mechanisms as the clipboard-copy operation.
 
-    After a adding elements to the clipboard, redirect either to the
+    After adding elements to the clipboard, redirect either to the
     return_url of the calling page (as handled by www-clipboard-copy)
 
   } {
@@ -847,8 +847,8 @@ namespace eval ::xowiki {
 
     @param new is this an edit-new operation?
     @param autoname value to be passed to getFormClass
-    @param validation_errors ignored in this class, but used for compatibility with FormPage.www-edit
-
+    @param validation_errors ignored in this class, but used for
+           compatibility with FormPage.www-edit
   } {
     #
     # We have to keep the instvar for "item_id" for the time being.
