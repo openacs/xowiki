@@ -456,7 +456,7 @@ namespace eval ::xowiki {
     parameters of the PageInstance.
 
     This method can be as well be used for changing the associated
-    workflow of an workflow instance.
+    workflow of a workflow instance.
 
   } {
     set formName [:query_parameter "form" ""]

@@ -230,7 +230,7 @@ namespace eval ::xowiki {
   #
   # This is a very common render that maps the tree structure into an
   # unordered HTML list. The rendered is specialized by e.g. the
-  # mktree an yuitree render below.
+  # mktree a yuitree render below.
   #--------------------------------------------------------------------------------
 
   TreeRenderer create TreeRenderer=list
