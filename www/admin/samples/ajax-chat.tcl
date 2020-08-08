@@ -1,5 +1,5 @@
 ad_page_contract {
-  Sample page generating a xowiki object embedding a chat
+  Sample page generating an xowiki object embedding a chat
 } {
 }
 

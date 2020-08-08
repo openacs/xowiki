@@ -637,7 +637,7 @@ namespace eval ::xowiki {
       set content [:serialize -target [string trimleft [self] :]]
     } else {
       #
-      # Since we serialize nx and xotcl objects, make objects the
+      # Since we serialize nx and XOTcl objects, make objects the
       # old-fashioned way relocatable. This is dangerous, since it
       # might substitute as well content.
       #

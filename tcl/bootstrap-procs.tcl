@@ -520,7 +520,10 @@ namespace eval ::xo::Table {
       }
     } else {
       set name [::xowiki::Includelet js_name [self]]
-      #nesting forms inside a xowf page will place the action buttons at the wrong place!
+      #
+      # Nesting forms inside an xowf page will place the action
+      # buttons at the wrong place!
+      #
       html::div -id ${:id}_wrapper -class "table-responsive" {
         html::div -id ${:id}_container {
           html::table -id ${:id} -class ${:css.table-class} {

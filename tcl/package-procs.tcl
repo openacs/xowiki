@@ -910,7 +910,7 @@ namespace eval ::xowiki {
       }
       if {$method ne ""} {
         #
-        # Convention for calling methods on a xowiki::Page
+        # Convention for calling methods on an xowiki::Page
         #
         lappend args [list m $method]
       }

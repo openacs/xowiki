@@ -139,7 +139,7 @@ namespace eval ::xowiki::test {
             #
             # Force the system locale to en_US. The value is
             # automatically reset to the previous value, since we are
-            # running in an transaction.
+            # running in a transaction.
             #
             lang::system::set_locale en_US
 

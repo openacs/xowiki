@@ -188,7 +188,7 @@ namespace eval ::xowiki::notification {
 
 
   ad_proc -private process_reply { reply_id} {
-    handles a reply to an xowiki notif
+    Handles a reply to an xowiki notification.
     
     @author Deds Castillo (deds@i-manila.com.ph)
     @creation-date 2006-06-08
