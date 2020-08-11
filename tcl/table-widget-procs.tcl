@@ -121,7 +121,7 @@ namespace eval ::xowiki {
     lassign [split $orderby ,] att order
     set sortable 1
     if {$att ni $sort_fields} {
-      ad_log warning "Ignore invalid sorting criterion '$att'"
+      ad_log warning "Ignore invalid sorting criterion '$att' (possible: $sort_fields)"
       util_user_message -message "Ignore invalid sorting criterion '$att'"
       set sortable 0
     }
