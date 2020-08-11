@@ -4231,7 +4231,7 @@ namespace eval ::xowiki::includelet {
           {-view_field _name}
           {-publish_status "all"}
           {-field_names}
-          {-hidden_field_names ""}
+          {-hidden_field_names "_last_modified"}
           {-extra_form_constraints ""}
           {-inherit_from_forms ""}
           {-category_id}
@@ -4348,9 +4348,9 @@ namespace eval ::xowiki::includelet {
                               -form_constraints $form_constraints]
 
     foreach {attr value} $table_properties {
-      # All labels of the following switch statement are used
-      # as variable names. Take care when adding new labels not to
-      # overwrite existing variables.
+      # All labels of the following switch statement are used as
+      # variable names. Take care when adding new labels to avoid
+      # overwriting existing variables.
       switch -- $attr {
         orderby {set $attr _[::xowiki::formfield::FormField fc_decode $value]}
         buttons - publish_status - category_id - unless -
