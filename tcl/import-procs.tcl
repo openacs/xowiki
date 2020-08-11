@@ -70,9 +70,9 @@ namespace eval ::xowiki {
       }
     }
     if {$item_id == 0} {
-      set n [$object save_new -use_given_publish_date [$object exists publish_date] \
-                 -creation_user [$object set modifying_user] ]
-      $object set item_id $n
+      $object save_new \
+          -use_given_publish_date [$object exists publish_date] \
+          -creation_user [$object set modifying_user]
       set item $object
       #:msg "$object added: [$object name]"
       :report_line $object added
