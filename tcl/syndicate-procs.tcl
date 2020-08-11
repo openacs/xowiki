@@ -35,7 +35,7 @@ namespace eval ::xowiki {
     {title ""}
   } \
       -ad_doc {
-        Report content of xowiki folder in rss 2.0 format. The
+        Report content of xowiki folder in RSS 2.0 format. The
         reporting order is descending by date. The title of the feed
         is taken from the title, the description
         is taken from the description field of the folder object.
@@ -511,7 +511,7 @@ namespace eval ::xowiki {
     }
   }
 
-  # this class is used to contain rss items
+  # this class is used to contain RSS items
   Class create RSS-client::item -parameter node
   RSS-client::item instforward xpath {%my info parent} %proc
 

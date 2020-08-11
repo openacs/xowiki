@@ -1123,7 +1123,7 @@ namespace eval ::xowiki {
     :reverse_map_party_attribute -attribute assignee -create_user_ids $create_user_ids
     #
     # The function will compute the category_ids, which are were used
-    # to categorize this objects in the source instance.
+    # to categorize these objects in the source instance.
     set category_ids [list]
 
     #:msg "${:name} check cm=[info exists ::__xowiki_reverse_category_map] && iam=[info exists :__instance_attribute_map]"

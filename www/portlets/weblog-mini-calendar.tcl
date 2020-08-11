@@ -79,7 +79,7 @@ xo::dc foreach entries_this_month "select count(ci.item_id) as c,
 #
 # The following time range specifies the dates between the navigation
 # arrows of the weblog mini calendar should be. Without a limitation,
-# crawler will iterate over this pages until they reach infinite past
+# crawler will iterate over these pages until they reach infinite past
 # or infinite future.
 #
 #set earliest_date "2006-01-1"
