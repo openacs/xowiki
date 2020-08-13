@@ -3621,12 +3621,12 @@ namespace eval ::xowiki::formfield {
       return 0
     } else {
       set value [:value]
-      #:log "enumeration CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
+      #:log "enumeration ${:name} CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
       set :correction {}
       set r 0; set f 0; set rk 0; set fk 0; set W 0; set O 0; set R 0
       foreach o ${:options} a ${:answer} {
         lassign $o label v
-        #:log "enumeration CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
+        #:log "enumeration ${:name} CORRECT? <$a> <$v in $value> -> [expr {$v in $value}]"
         #
         # A correct answer might be:
         # - a mark on a correct entry
@@ -3638,7 +3638,7 @@ namespace eval ::xowiki::formfield {
         } else {
           set correctly_answered [expr {$v ni $value}]
           incr f
-          #:log "enumeration - CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
+          #:log "enumeration - ${:name} CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
         }
         lappend :correction $correctly_answered
         if {$correctly_answered} {
