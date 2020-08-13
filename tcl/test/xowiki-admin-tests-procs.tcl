@@ -25,7 +25,7 @@ aa_register_case \
     xowiki_test_cases {
       XoWiki Test Cases
 
-      This tests have been ported from those originally stored in
+      These tests have been ported from those originally stored in
       xowiki/www/admin/test.tcl and cover various aspects of XoWiki
       API.
 

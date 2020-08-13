@@ -1883,8 +1883,13 @@ namespace eval ::xowiki::includelet {
       where reference = :item_id and ci.item_id = page and ci.item_id = o.object_id
     } {
       if {$pid eq ""} {
-        # in version less then oacs 5.2, this returns empty
-        set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
+        #
+        # In versions before oacs 5.2, the following query returns
+        # empty.
+        #
+        set pid [::xo::dc get_value 5.2 {
+          select package_id from cr_folders where folder_id = :parent_id
+        }]
       }
       if {$pid ne ""} {
         ::xowiki::Package require $pid
@@ -1931,8 +1936,13 @@ namespace eval ::xowiki::includelet {
         from xowiki_references,cr_items ci,acs_objects o \
         where page = :item_id and ci.item_id = reference and ci.item_id = o.object_id" {
       if {$pid eq ""} {
-        # in version less then oacs 5.2, this returns empty
-        set pid [::xo::dc get_value 5.2 {select package_id from cr_folders where folder_id = :parent_id}]
+        #
+        # In versions begore oacs 5.2, the following query returns
+        # empty.
+        #
+        set pid [::xo::dc get_value 5.2 {
+          select package_id from cr_folders where folder_id = :parent_id
+        }]
       }
       if {$pid ne ""} {
         ::xowiki::Package require $pid

@@ -241,7 +241,7 @@ namespace eval ::xowiki::test {
     } {
 
         Create a form page via the web interface.
-        In essence this calls $instance/$path/$form_name?m=create-new
+        In essence, this calls $instance/$path/$form_name?m=create-new
 
     } {
         #
