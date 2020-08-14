@@ -71,10 +71,8 @@ namespace eval ::xo {
     dict for {key value} ${:conf} {
       ::xo::clusterwide nsv_set ${:array}-options $key $value
     }
-    if {[nsv_array exists ${:array}-options]} {
-      foreach {key value} [nsv_array get ${:array}-options] {
-        :set $key $value
-      }
+    foreach {key value} [nsv_array get ${:array}-options] {
+      set :$key $value
     }
   }
 
@@ -122,8 +120,11 @@ namespace eval ::xo {
   }
 
   Chat instproc last_activity {} {
-    if { ![nsv_exists ${:array}-seen last] } { return "-" }
-    return [clock format [nsv_get ${:array}-seen last] -format "%d.%m.%y %H:%M:%S"]
+    if { [:nsv_get ${:array}-seen last ts]} {
+      return [clock format $ts -format "%d.%m.%y %H:%M:%S"]
+    } else {
+      return "-"
+    }
   }
 
   Chat instproc check_age {key ago} {
@@ -135,9 +136,29 @@ namespace eval ::xo {
     return 1
   }
 
+  if {[ns_info name] eq "NaviServer"} {
+    Chat instproc nsv_get {array key v_value} {
+      :upvar $v_value value
+      return [::nsv_get $array $key value]
+    }
+
+  } else {
+    Chat instproc nsv_get {array key v_value} {
+      if {[::nsv_exists $array $key]} {
+        :upvar $v_value value
+        set value [::nsv_get $array $key]
+        return 1
+      } else {
+        return 0
+      }
+    }
+  }
+
   Chat instproc get_new {} {
-    set last [expr {[nsv_exists ${:array}-seen ${:session_id}] ? [nsv_get ${:array}-seen ${:session_id}] : 0}]
-    if {[nsv_get ${:array}-seen newest]>$last} {
+    if {![:nsv_get ${:array}-seen ${:session_id} last]} {
+      set last 0
+    }
+    if {[nsv_get ${:array}-seen newest] > $last} {
       #:log "--c must check ${:session_id}: [nsv_get ${:array}-seen newest] > $last"
       foreach {key value} [nsv_array get ${:array}] {
         lassign $value timestamp secs user msg color
@@ -244,11 +265,11 @@ namespace eval ::xo {
   }
 
   Chat instproc user_color { user_id } {
-    if { ![nsv_exists ${:array}-color $user_id] } {
+    if { ![:nsv_get ${:array}-color $user_id color] } {
       :log "warning: Cannot find user color for chat (${:array}-color $user_id)!"
-      return [lindex [[:info class] set colors] 0]
+      set color [lindex [[:info class] set colors] 0]
     }
-    return [nsv_get ${:array}-color $user_id]
+    return $color
   }
 
   Chat instproc user_name { user_id } {
