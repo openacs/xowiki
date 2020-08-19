@@ -2208,10 +2208,9 @@ namespace eval ::xowiki {
   }
 
   Package instproc require_folder_object { } {
-    set folder_id [:require_root_folder -name "xowiki: ${:id}" \
+    set :folder_id [:require_root_folder -name "xowiki: ${:id}" \
                        -content_types ::xowiki::Page* ]
-    ::xo::db::CrClass get_instance_from_db -item_id $folder_id
-    set :folder_id $folder_id
+    ::xo::db::CrClass get_instance_from_db -item_id ${:folder_id}
   }
 
 
