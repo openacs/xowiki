@@ -1164,7 +1164,7 @@ namespace eval ::xowiki {
       #:log "form_action is something different: <[:form_parameter __form_action {}]>"
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
-        set :nls_language [ad_conn locale]
+        set :nls_language [::${:package_id} default_locale]
       }
 
       #array set __ia ${:instance_attributes}

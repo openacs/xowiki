@@ -420,7 +420,8 @@ namespace eval ::xowiki {
     #
     ${:data} set creator [::xo::get_user_name [::xo::cc user_id]]
     if {[${:data} name] eq ""} {
-      ${:data} set nls_language [::xo::cc locale]
+      set nls_language [[${:data} package_id] default_locale]
+      ${:data} set nls_language $nls_language
     }
     next
   }
