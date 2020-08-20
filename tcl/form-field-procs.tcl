@@ -1126,10 +1126,10 @@ namespace eval ::xowiki::formfield {
   FormField instproc pretty_image {-parent_id:required {-revision_id ""} entry_name} {
     if {$entry_name eq "" || ${:value} eq ""} return
 
-    array set "" [${:object} item_ref -default_lang [${:object} lang] -parent_id $parent_id $entry_name]
+    set item_ref [${:object} item_ref -default_lang [${:object} lang] -parent_id $parent_id $entry_name]
 
     set label ${:label} ;# the label is used for alt and title
-    if {$label eq $(stripped_name)} {
+    if {$label eq [dict get $item_ref stripped_name]} {
       #
       # The label is apparently the default. For Photo.form instances,
       # this is always "image". In such cases, use the title of the
@@ -1138,9 +1138,12 @@ namespace eval ::xowiki::formfield {
       set label [${:object} title]
     }
     set l [::xowiki::Link create new -destroy_on_cleanup \
-               -page ${:object} -type "image" -lang $(prefix) \
-               -stripped_name $(stripped_name) -label $label \
-               -parent_id $(parent_id) -item_id $(item_id)]
+               -page ${:object} -type "image" \
+               -lang [dict get $item_ref prefix] \
+               -stripped_name [dict get $item_ref stripped_name] \
+               -label $label \
+               -parent_id [dict get $item_ref parent_id] \
+               -item_id $[dict get $item_ref item_id]]
 
     if {[:istype file]} {
       if {$revision_id ne ""} {
@@ -1293,17 +1296,19 @@ namespace eval ::xowiki::formfield {
   }
 
   CompoundField instproc set_compound_value {value} {
-    if {[catch {array set {} $value} errorMsg]} {
+    if {![string is list $value] || ([llength $value] % 2) == 1} {
       # this branch could be taken, when the field was retyped
-      ns_log notice "CompoundField: error during setting compound value with $value: $errorMsg"
+      ns_log notice "CompoundField: value '$value' is not avalid dict"
+      return
     }
     # set the value parts for each components
     foreach c ${:components} {
       # Set only those parts, for which attribute values pairs are
       # given.  Components might have their own default values, which
       # we do not want to overwrite ...
-      if {[info exists ([$c name])]} {
-        $c value $([$c name])
+      set cname [$c name]
+      if {[dict exists $value $cname]} {
+        $c value [dict get $value $cname]
       }
     }
   }
@@ -1627,10 +1632,9 @@ namespace eval ::xowiki::formfield {
     # default value.
     #
     set valueLength [llength $value]
-    if {$valueLength > 1 && $valueLength %2 == 0} {
-      array set "" $value
-      if {[info exists ($attribute)]} {
-        return $($attribute)
+    if {$valueLength > 1 && $valueLength % 2 == 0} {
+      if {[dict exists $value $attribute]} {
+        return [dict get $value $attribute]
       }
     }
     return [lindex $raw 0]

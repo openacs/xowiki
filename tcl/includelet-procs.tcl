@@ -330,11 +330,11 @@ namespace eval ::xowiki::includelet {
     if {[info exists source]} {
       set p [:resolve_page_name $source]
       if {$p ne ""} {
-        array set ia [$p set instance_attributes]
-        if {[info exists ia(pages)]} {
-          set pages $ia(pages)
-        } elseif {[info exists ia(ordered_pages)]} {
-          set ordered_pages $ia(ordered_pages)
+        set ia [$p set instance_attributes]
+        if {[dict exists $ia pages]} {
+          set pages [dict get $ia pages]
+        } elseif {[dict exists $ia ordered_pages]} {
+          set ordered_pages [dict get $ia ordered_pages]
         }
       }
     }
