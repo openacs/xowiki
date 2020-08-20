@@ -80,7 +80,11 @@ namespace eval ::xowiki {
     }
     set ids [list]
     foreach page_name [:form_parameter objects] {
-      # the page_name is the name exactly as stored in the content repository
+      #
+      # The page_name is either the name exactly as stored in the
+      # content repository ("name" attribute in the database) or a
+      # fully qualified path.
+      #
       set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:item_id}]
       if {$item_id == 0} {
         #
@@ -89,11 +93,36 @@ namespace eval ::xowiki {
         #
         set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:parent_id}]
       }
-      #:msg "want to copy $page_name // $item_id"
-      if {$item_id ne 0} {lappend ids $item_id}
+
+      if {$item_id == 0} {
+        #ns_log notice "www-clipboard-add calls resolve_page_name"
+        set page_obj [${:package_id} resolve_page_name \
+                          -default_lang [${:package_id} default_language] \
+                          /$page_name]
+        if {$page_obj ne ""} {
+          set item_id [$page_obj item_id]
+        }
+      }
+      if {$item_id ne 0} {
+        #:log "clipboard-add adds $page_name // $item_id"        
+        lappend ids $item_id
+      } else {
+        ns_log warning "www-clipboard-add: clipboard entry <$page_name> could not be resolved"
+       
+      }
     }
     ::xowiki::clipboard add $ids
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+
+    #
+    # When called via AJAX, we have reason to make a redirect.
+    #
+    if {[ns_set iget [ns_conn headers] "X-Requested-With"] eq "XMLHttpRequest"} {
+      ns_log notice "HEADERS: got X-Requested-With"
+      return OK
+    } else {
+      ns_log notice "HEADERS: no X-Requested-With"
+      ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    }
   }
 
   #
