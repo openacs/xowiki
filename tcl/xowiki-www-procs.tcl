@@ -31,35 +31,64 @@ namespace eval ::xowiki {
       :msg "nothing to delete"
     }
 
-    #
-    # By default we resolve object names relative to the current
-    # object...
-    #
-    set parent_id ${:item_id}
-    set root_folder_id [::${:package_id} folder_id]
-    if {${:parent_id} == $root_folder_id} {
-      #
-      # ...unless we realize this is the package index page. In this
-      # case we resolve based on the root folder (this happens e.g. in
-      # the table of contents for xowf).
-      #
-      set index_name [::${:package_id} get_parameter index_page index]
-      ${:package_id} get_lang_and_name -name $index_name lang stripped_name
-      set index_item_id [::xo::db::CrClass lookup \
-                             -name ${lang}:${stripped_name} \
-                             -parent_id $root_folder_id]
-      if {${:item_id} == $index_item_id} {
-        set parent_id ${:parent_id}
-      }
-    }
-
-    foreach page_name [:form_parameter objects] {
-      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id $parent_id]
-      :log "bulk-delete: DELETE $page_name in folder ${:name}-> $item_id"
+    set item_ids [:get_ids_for_bulk_actions [:form_parameter objects]]
+    foreach item_id $item_ids {
+      :log "bulk-delete: DELETE item_id $item_id"
       ${:package_id} www-delete -item_id $item_id
     }
+
     ${:package_id} returnredirect [:query_parameter "return_url" [:pretty_link]]
   }
+
+
+  Page ad_instproc get_ids_for_bulk_actions {-parent_id page_references} {
+
+    The page_name is either a fully qualified URL path or the
+    name exactly as stored in the content repository ("name"
+    attribute in the database)
+
+    @param parent_id optional
+    @param page_references paths or names to be resolved as item_ids
+    @return list of item_ids
+
+  } {
+    set item_ids {}
+    foreach page_ref $page_references {
+      set item_id 0
+      if {[string index $page_ref 0] eq "/"} {
+        #
+        # $page_ref looks like a URL
+        #
+        set ref [${:package_id} item_info_from_url $page_ref]
+        set item_id [dict get $ref item_id]
+        ns_log notice "www-clipboard-add item_ref <$ref> -> item_id"
+      }
+      if {$item_id == 0} {
+        #
+        # Try to resolve either via a passed in parent_id or via direct
+        # child or via sibling.
+        #
+        set parent_ids [expr {[info exists parent_id]
+                               ? $parent_id
+                               : [list ${:item_id} ${:parent_id}]}]
+        foreach parent_id $parent_ids {
+          set item_id [::xo::db::CrClass lookup -name $page_ref -parent_id $parent_id]
+          if {$item_id != 0} {
+            break
+          }
+        }
+      }
+
+      if {$item_id ne 0} {
+        #:log "clipboard-add adds $page_name // $item_id"
+        lappend item_ids $item_id
+      } else {
+        ns_log warning "get_ids_for_bulk_actions: clipboard entry <$page_name> could not be resolved"
+      }
+    }
+    return $item_ids
+  }
+
 
   #
   # Externally callable method: clipboard-add
@@ -75,44 +104,11 @@ namespace eval ::xowiki {
     return_url of the calling page.
 
   } {
-    if {![:exists_form_parameter "objects"]} {
+    if {![:exists_form_parameter "objects"] && [ns_conn method] eq "POST"} {
       :msg "nothing to copy"
     }
-    set ids [list]
-    foreach page_name [:form_parameter objects] {
-      #
-      # The page_name is either the name exactly as stored in the
-      # content repository ("name" attribute in the database) or a
-      # fully qualified path.
-      #
-      set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:item_id}]
-      if {$item_id == 0} {
-        #
-        # When the pasted item was from a child-resources includelet
-        # included on e.g. a plain page. We look for a sibling.
-        #
-        set item_id [::xo::db::CrClass lookup -name $page_name -parent_id ${:parent_id}]
-      }
 
-      if {$item_id == 0} {
-        #ns_log notice "www-clipboard-add calls resolve_page_name"
-        set page_obj [${:package_id} resolve_page_name \
-                          -default_lang [${:package_id} default_language] \
-                          /$page_name]
-        if {$page_obj ne ""} {
-          set item_id [$page_obj item_id]
-        }
-      }
-      if {$item_id ne 0} {
-        #:log "clipboard-add adds $page_name // $item_id"        
-        lappend ids $item_id
-      } else {
-        ns_log warning "www-clipboard-add: clipboard entry <$page_name> could not be resolved"
-       
-      }
-    }
-    ::xowiki::clipboard add $ids
-
+    ::xowiki::clipboard add [:get_ids_for_bulk_actions [:form_parameter objects]]
     #
     # When called via AJAX, we have reason to make a redirect.
     #
@@ -400,7 +396,7 @@ namespace eval ::xowiki {
       regexp {^([^:]+):?} $var . key
       if {[:exists_query_parameter $key]} {
         set $key [:query_parameter $var]
-        :log "set instance var from queray param '$key' -> '[set $key]'"        
+        :log "set instance var from queray param '$key' -> '[set $key]'"
       }
     }
 

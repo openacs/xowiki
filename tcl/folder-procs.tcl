@@ -354,7 +354,7 @@ namespace eval ::xowiki::includelet {
       # allowed to do this with certain items.... (the latter in
       # clipboard-add)
       $mb add_menu_item -name Clipboard.Add \
-          -item [list url \# listener [list click acs_ListBulkActionClick("objects","$folder_link?m=clipboard-add")]]
+          -item [list url \# listener [list click acs_ListBulkActionMultiFormClick("objects","$folder_link?m=clipboard-add&return_url=$return_url")]]
       $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
       $mb add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
       $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
@@ -554,10 +554,12 @@ namespace eval ::xowiki::includelet {
     } elseif {$parent eq "."} {
       # current_folder is already set
     } else {
+      set lang [string range ${:locale} 0 1]
       set page [::$package_id get_page_from_item_ref \
                     -use_package_path true \
                     -use_site_wide_pages true \
                     -use_prototype_pages true \
+                    -default_lang $lang \
                     -parent_id [$current_folder item_id] \
                     $parent]
       set current_folder $page
@@ -717,7 +719,7 @@ namespace eval ::xowiki::includelet {
       }
 
       $t add \
-          -ID [$c name] \
+          -ID $page_link \
           -name $prettyName \
           -name.href [export_vars -base $page_link {template_file html-content}] \
           -name.title [$c set title] \

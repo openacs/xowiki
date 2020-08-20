@@ -1178,8 +1178,11 @@ namespace eval ::xowiki {
     }
 
     if {[string match "//*" $object]} {
-      # we have a reference to another instance, we can't resolve this from this package.
-      # Report back not found
+      #
+      # We have a reference to another instance, we can't resolve this
+      # from this package.  Report back not found by empty result.
+      #
+      #ns_log notice "reference to onother instance: <$object>"
       return ""
     }
 
@@ -1618,8 +1621,10 @@ namespace eval ::xowiki {
       set elements [list $link]
     }
 
-    # Iterate until the first unknown element appears in the path
-    # (we can handle only one unknown at a time).
+    #
+    # Iterate bottom-up until the first unknown element appears in the
+    # path (we can handle only one unknown at a time).
+    #
     set nr_elements [llength $elements]
     set n 0
     set ref_ids {}
@@ -1634,7 +1639,7 @@ namespace eval ::xowiki {
                         -parent_id $parent_id \
                         -assume_folder [expr {[incr n] < $nr_elements}] \
                         $element]
-      #:msg "simple_item_ref $element => [array get {}]"
+      #:msg "simple_item_ref <$element> => [array get {}]"
       if {$(item_id) == 0} {
         set parent_id $(parent_id)
         break
@@ -1925,8 +1930,6 @@ namespace eval ::xowiki {
     return [array get ""]
   }
 
-
-
   Package instproc get_page_from_item_ref {
     {-allow_cross_package_item_refs true}
     {-use_package_path false}
@@ -1972,7 +1975,11 @@ namespace eval ::xowiki {
                     -parent_id [::$referenced_package_id folder_id] \
                     $rest_link]
       } else {
-        # it is a link to the same package, we start search for page at top.
+        #
+        # It is a link to the same package, we start search for page
+        # at the top.
+        #
+        #:log "--absolute link to the same package <$link> restlink <$rest_link>"
         set link $rest_link
         set search_parent_id ""
       }
@@ -2782,6 +2789,7 @@ namespace eval ::xowiki {
     attribute
     {default ""}
   } {
+    #ns_log notice "check for parameter $attribute, xo::cc exists <[info commands ::xo::cc]>"
     if {$nocache} {
       next
     } else {
@@ -2793,7 +2801,7 @@ namespace eval ::xowiki {
         return [::xo::cc cache_set $key [next]]
       } else {
         # in case, we have no ::xo::cc (e.g. during bootstrap).
-        ns_log warning "no ::xo::cc available, returning default for parameter $attribute"
+        ad_log warning "no ::xo::cc available (package_id ${:id}), returning default for parameter $attribute"
         return $default
       }
     }
