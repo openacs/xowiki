@@ -247,7 +247,12 @@ namespace eval ::xowiki {
       $__c set _last_modified [$p set last_modified]
       $__c set _raw_last_modified [$p set last_modified]
 
+      #ns_log notice "field_names <$field_names> [llength $field_names] [llength $form_field_objs]"
       foreach __fn $field_names form_field_obj $form_field_objs {
+        #ns_log notice "... field_name <$__fn> obj $form_field_obj <[$form_field_obj name]>"
+        if {$__fn eq ""} {
+          set __fn [$form_field_obj name]
+        }
         $form_field_obj object $p
         set value [$p property $__fn]
         if {$value eq ""} {
