@@ -972,7 +972,7 @@ namespace eval ::xowiki::includelet {
             }
           }
           append sql " and exists (select * from category_object_map \
-         where object_id = ci.item_id and category_id in ([ns_dbquotelist $or_ids]))"
+         where object_id = ci.item_id and c.category_id in ([ns_dbquotelist $or_ids]))"
         }
       }
       append sql $locale_clause
