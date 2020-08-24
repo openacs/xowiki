@@ -718,8 +718,9 @@ namespace eval ::xowiki::includelet {
         set prettyName $name
       }
 
+      # -ID $page_link
       $t add \
-          -ID $page_link \
+          -ID [$c item_id] \
           -name $prettyName \
           -name.href [export_vars -base $page_link {template_file html-content}] \
           -name.title [$c set title] \

@@ -43,21 +43,29 @@ namespace eval ::xowiki {
 
   Page ad_instproc get_ids_for_bulk_actions {-parent_id page_references} {
 
-    The page_name is either a fully qualified URL path or the
-    name exactly as stored in the content repository ("name"
-    attribute in the database)
+    The page_reference is either an item_id, a fully qualified URL
+    path or the name exactly as stored in the content repository
+    ("name" attribute in the database)
 
     @param parent_id optional
-    @param page_references paths or names to be resolved as item_ids
+    @param page_references item_ids, paths or names to be resolved as item_ids
     @return list of item_ids
 
   } {
     set item_ids {}
     foreach page_ref $page_references {
-      set item_id 0
-      if {[string index $page_ref 0] eq "/"} {
+      #
+      # First check whether we got a valid item_id, then check for a
+      # URL path. If both are failing, resort to the legacy methods
+      # (which will be dropped eventually).
+      #
+      if {[string is integer -strict $page_ref]} {
+        if {[content::item::get -item_id $page_ref]} {
+          set item_id $page_ref
+        }
+      } elseif {[string index $page_ref 0] eq "/"} {
         #
-        # $page_ref looks like a URL
+        # $page_ref looks like a URL path
         #
         set ref [${:package_id} item_info_from_url $page_ref]
         set item_id [dict get $ref item_id]
