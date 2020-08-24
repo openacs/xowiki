@@ -133,21 +133,11 @@ namespace eval ::xowiki {
     {parent_id ""}
   }
 
-  if {[info commands ::dict] ne ""} {
-    ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
-      if {![dict exists $dict $key]} {
-        return $default
-      }
-      return [dict get $dict $key]
+  ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
+    if {![dict exists $dict $key]} {
+      return $default
     }
-  } else {
-    ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
-      array set "" $dict
-      if {![info exists ($key)]} {
-        return $default
-      }
-      return [set ($key)]
-    }
+    return [dict get $dict $key]
   }
 
   ::xowiki::MenuBar instproc init {} {
@@ -174,8 +164,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
-    array set "" [set :Menu($menu)]
-    set :Menu($menu) [list label $(label)]
+    set :Menu($menu) [list label [dict get $:Menu($menu) label]]
   }
 
   ::xowiki::MenuBar instproc current_folder {} {
@@ -224,9 +213,7 @@ namespace eval ::xowiki {
     # provide a default label
     #
     regsub -all {[.]} $full_name - full_name
-    array set "" [list label "#xowiki.menu-$full_name#" group $group_name]
-    array set "" $item
-    set item [array get ""]
+    set item [dict merge [list label "#xowiki.menu-$full_name#" group $group_name] $item]
 
     #
     # If an entry with the given name exists, update it. Otherwise add
@@ -262,8 +249,13 @@ namespace eval ::xowiki {
 
 
   ::xowiki::MenuBar instproc update_items {
-    -package_id:required -nls_language:required -parent_id:required
-    -return_url  -autoname -template_file items
+    -package_id:required
+    -nls_language:required
+    -parent_id:required
+    -return_url
+    -autoname
+    -template_file
+    items
   } {
     # A folder page can contain extra menu entries (sample
     # below). Iterate of the extra_menu property and add according
