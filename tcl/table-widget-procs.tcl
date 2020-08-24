@@ -279,7 +279,7 @@ namespace eval ::xowiki {
     #
     # If there are multiple includelets on a single page,
     # we have to identify the right one for e.g. producing the
-    # csv table. Therefore, we compute an includelet_key
+    # CSV table. Therefore, we compute an includelet_key
     #
     set includelet_key ""
     foreach var {:name form_item_ids form publish_states field_names unless} {

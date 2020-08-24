@@ -454,7 +454,7 @@ namespace eval ::xowiki {
 
   Page ad_instproc www-csv-dump {} {
 
-    This web-callable method produces a cvs dump based on the
+    This web-callable method produces a CSV dump based on the
     includelet "form-usages".
 
   } {
@@ -469,7 +469,9 @@ namespace eval ::xowiki {
     foreach i [$items children] {array set vars [$i set instance_attributes]}
     array set vars [list _name 1 _last_modified 1 _creation_user 1]
     set attributes [lsort -dictionary [array names vars]]
-    # make sure, we the includelet honors the cvs generation
+    #
+    # Make sure, we the includelet honors the CSV generation
+    #
     set includelet_key name:form-usages,form_item_ids:$form_item_id,field_names:[join $attributes " "],
     ::xo::cc set queryparm(includelet_key) [ns_base64urlencode $includelet_key]
     # call the includelet
