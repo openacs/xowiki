@@ -4501,7 +4501,7 @@ namespace eval ::xowiki {
       # Get all children of the current folder on the first level and
       # append it to the list_of_folders.
       #
-      set folder_form [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+      set folder_form [::$package_id instantiate_forms -forms en:folder.form]
       set child_folders [xo::dc list -prepare integer,integer get_child_folders {
         select item_id from xowiki_form_instance_item_index
         where parent_id = :folder_id

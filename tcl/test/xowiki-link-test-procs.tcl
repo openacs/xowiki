@@ -41,8 +41,8 @@ namespace eval ::xowiki::test {
         # locale at the end of this run, since we have no
         # transaction.
         #
-        #set defined_locale [lang::system::locale]
-        #lang::system::set_locale en_US
+        set defined_locale [lang::system::locale]
+        lang::system::set_locale en_US
 
         set locale [lang::system::locale]
         set lang [string range $locale 0 1]
@@ -78,6 +78,8 @@ namespace eval ::xowiki::test {
         # (a) the rendered link contains the page included in the linked folder and
         # (b) that the page link points to the target instance (no resolve_local provided)
         #
+        aa_log "check content of /$linked_xowiki_instance_name/$linked_folder_name"
+        ns_log notice "search for link with title en:p1: link_content $link_content"
         acs::test::dom_html root $link_content {
           set node [$root selectNodes //td\[@class='list'\]/a\[@title='en:p1'\]]
           aa_true "one page found" {[llength $node] == 1}
@@ -123,7 +125,7 @@ namespace eval ::xowiki::test {
         #
         # reset system locale to saved value
         #
-        #lang::system::set_locale $defined_locale
+        lang::system::set_locale $defined_locale
       }
 }
 

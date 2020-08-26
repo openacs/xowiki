@@ -951,10 +951,9 @@ namespace eval ::xowiki {
 
   Package instproc make_form_link {-form {-parent_id ""} {-query ""} -title -name -nls_language -return_url} {
     # use the same instantiate_forms as everywhere; TODO: will go to a different namespace
-    set form_id [lindex [::xowiki::Weblog instantiate_forms \
+    set form_id [lindex [::${:id} instantiate_forms \
                              -parent_id $parent_id \
-                             -forms $form \
-                             -package_id ${:id}] 0]
+                             -forms $form] 0]
     #:log "instantiate_forms -parent_id $parent_id -forms $form => $form_id "
     if {$form_id ne ""} {
       if {$parent_id eq ""} {unset parent_id}
@@ -2182,7 +2181,7 @@ namespace eval ::xowiki {
             error "trying to create an xowiki root folder for non-xowiki package ${:id}"
           } else {
             ::xowiki::Package require_site_wide_pages
-            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id ${:id}]
+            set form_id [::${:id} instantiate_forms -forms en:folder.form]
             set f [FormPage new -destroy_on_cleanup \
                        -name $name \
                        -text "" \

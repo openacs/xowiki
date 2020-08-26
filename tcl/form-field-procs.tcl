@@ -4507,11 +4507,10 @@ namespace eval ::xowiki::formfield {
     if {![info exists :form]} { return }
     next
     set form_name [:form]
-    set :package_id [${:object} package_id]
-    set form_objs [::xowiki::Weblog instantiate_forms \
+    set form_objs [::${:package_id} instantiate_forms \
                        -parent_id [${:object} parent_id] \
                        -default_lang [${:object} lang] \
-                       -forms $form_name -package_id ${:package_id}]
+                       -forms $form_name]
     :log "form_page $form_name resolved into '$form_objs'"
 
     if {$form_objs eq ""} {
@@ -4569,7 +4568,7 @@ namespace eval ::xowiki::formfield {
     if {![info exists :form_object_item_ids]} {
       error "No forms specified for form_field '${:name}'"
     }
-    set :package_id [[lindex ${:form_object_item_ids} 0] package_id]
+    #set :package_id [[lindex ${:form_object_item_ids} 0] package_id]
     next
   }
 
@@ -5002,18 +5001,18 @@ namespace eval ::xowiki::formfield {
     # for now, we allow just FormPages as child_pages
     #
     if {![info exists :form]} { return }
-    set :form_objs [::xowiki::Weblog instantiate_forms \
+    set :package_id [${:object} package_id]
+    set :form_objs [::${:package_id} instantiate_forms \
                         -parent_id [${:object} parent_id] \
                         -default_lang [${:object} lang] \
-                        -forms [:form] \
-                        -package_id [${:object} package_id]]
+                        -forms [:form]]
   }
   child_pages instproc pretty_value {v} {
     if {[info exists :form_objs]} {
       set count 0
       foreach form ${:form_objs} {
         incr count [$form count_usages \
-                        -package_id [${:object} package_id] \
+                        -package_id ${:package_id} \
                         -parent_id [${:object} item_id] \
                         -publish_status ${:publish_status}]
       }

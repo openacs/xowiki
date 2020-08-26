@@ -4020,12 +4020,13 @@ namespace eval ::xowiki::includelet {
 
   form-menu instproc render {} {
     :get_parameters
+    set package_id [${:__including_page} package_id]
     #:msg form-menu-[info exists form_item_id] buttons=$buttons
+
     if {![info exists form_item_id]} {
-      set form_item_id [::xowiki::Weblog instantiate_forms \
+      set form_item_id [::$package_id instantiate_forms \
                             -forms $form \
-                            -parent_id [${:__including_page} parent_id] \
-                            -package_id [${:__including_page} package_id]]
+                            -parent_id [${:__including_page} parent_id]]
       if {$form_item_id eq ""} {
         # we could throw an error as well...
         :msg "could not locate form '$form' for parent_id [${:__including_page} parent_id]"
@@ -4037,7 +4038,6 @@ namespace eval ::xowiki::includelet {
         set parent_id [${:__including_page} item_id]
       }
     } else {
-      #set parent_id [::$package_id folder_id]
       set parent_id [${:__including_page} parent_id]
     }
     if {![info exists button_objs]} {
@@ -4096,8 +4096,8 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     set o ${:__including_page}
     if {![info exists parent_id]} {set parent_id [$o parent_id]}
-    set form_item_ids [::xowiki::Weblog instantiate_forms \
-                           -forms $form -package_id $package_id \
+    set form_item_ids [::$package_id instantiate_forms \
+                           -forms $form \
                            -parent_id $parent_id]
     if {[llength $form_item_ids] != 1} {
       return "no such form $form<br>\n"
@@ -4315,10 +4315,9 @@ namespace eval ::xowiki::includelet {
       # Start for search for form in the directory of the including
       # form.  The provided package_id and parent_id refers to the
       # form instances, not to the forms.
-      set form_item_ids [::xowiki::Weblog instantiate_forms \
+      set form_item_ids [::$package_id instantiate_forms \
                              -parent_id $parent_id \
-                             -default_lang [$o lang] \
-                             -forms $form -package_id [$o package_id]]
+                             -default_lang [$o lang]]
       if {$form_item_ids eq ""} {
         return -code error "could not load form '$form' (default-language [$o lang])"
       }
@@ -4331,10 +4330,10 @@ namespace eval ::xowiki::includelet {
     set inherit_form_ids {}
     if {$inherit_from_forms ne ""} {
       foreach inherit_form $inherit_from_forms {
-        set inherit_form_id [::xowiki::Weblog instantiate_forms \
+        set inherit_form_id [::$package_id instantiate_forms \
                                  -parent_id [$o parent_id] \
                                  -default_lang [$o lang] \
-                                 -forms $inherit_form -package_id [$o package_id]]
+                                 -forms $inherit_form]
         if {$inherit_form_id ne ""} {
           if {[::$inherit_form_id istype ::xowiki::FormPage]} {
             set p [::$inherit_form_id property form_constraints]
@@ -4725,7 +4724,7 @@ namespace eval ::xowiki::includelet {
     {-form "en:photo.form"}
     {-glob ""} {-width ""} {-height ""}
   } {
-    set form_item_ids [::xowiki::Weblog instantiate_forms -parent_id $parent_id -forms $form -package_id $package_id]
+    set form_item_ids [::$package_id instantiate_forms -parent_id $parent_id -forms $form]
     if {$form_item_ids eq ""} {error "could not find en:photo.form"}
     set form_item_id [lindex $form_item_ids 0]
 
@@ -4925,7 +4924,7 @@ namespace eval ::xowiki::includelet {
     # argument list with util_memoize inability to provide a key for
     # caching.
     #
-    set form_item_ids [::xowiki::Weblog instantiate_forms -forms $form -package_id $package_id]
+    set form_item_ids [::$package_id instantiate_forms -forms $form]
     set form_fields [::xowiki::FormPage get_table_form_fields \
                          -base_item [lindex $form_item_ids 0] -field_names _name \
                          -form_constraints ""]

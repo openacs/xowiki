@@ -32,29 +32,12 @@ namespace eval ::xowiki {
      {-parent_id ""}
      -forms:required
      -package_id:required
-     } {
-    set form_item_ids [list]
-    foreach t [split $forms |] {
-      #
-      # The following regexp should include the majority of valid
-      # items refs.
-      #
-      if {![regexp {^[[:alnum:]:./_-]+$} $t]} {
-        error "invalid form specification '$t'"
-      }
-      #:log "trying to get $t // parent_id $parent_id"
-      set page [::$package_id get_page_from_item_ref \
-                    -use_prototype_pages true \
-                    -use_package_path true \
-                    -parent_id $parent_id \
-                    $t]
-      #:log "weblog form $t => $page"
-      if {$page ne ""} {
-        lappend form_item_ids [$page item_id]
-      }
-    }
-    #:log "instantiate: parent_id=$parent_id-forms=$forms -> $form_item_ids"
-    return $form_item_ids
+   } {
+    return [::$package_id instantiate_forms \
+                -forms $forms \
+                -default_lang $default_lang \
+                -parent_id $parent_id \
+                -package_id ${:id}]
   }
 
   ::xowiki::Weblog instproc init {} {
@@ -149,9 +132,8 @@ namespace eval ::xowiki {
           set :form_ids ${:entries_of}
         } else {
           # form names provided as a filter
-          set :form_ids [::xowiki::Weblog instantiate_forms \
-                             -forms ${:entries_of} \
-                             -package_id ${:package_id}]
+          set :form_ids [::${:package_id} instantiate_forms \
+                             -forms ${:entries_of}]
         }
         if {${:form_ids} ne ""} {
           append extra_where_clause " and bt.page_template in ('[join ${:form_ids} ',']') and bt.page_instance_id = bt.revision_id "

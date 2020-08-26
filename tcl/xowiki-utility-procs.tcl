@@ -65,7 +65,7 @@ namespace eval ::xowiki {
     #  foreach t $_ {
     #    lassign $t a b c; dict incr stats "a $a"; dict incr stats "b $b"; dict incr stats "c $c"
     #  }
-    #  set stats 
+    #  set stats
   } {
     # In case, the seed is specified, set the seed to this value to
     # achieve e.g. a stable bat random order for a user.
@@ -532,7 +532,7 @@ namespace eval ::xowiki {
       }]
     }
     xo::xotcl_object_type_cache flush -partition_key $item_id $item_id
-    set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+    set form_id [::$package_id instantiate_forms -forms en:folder.form]
 
     if {[::xo::dc 0or1row check {
       select 1 from cr_items where content_type = '::xowiki::FormPage' and item_id = :item_id

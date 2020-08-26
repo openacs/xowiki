@@ -252,10 +252,9 @@ namespace eval ::xowiki::includelet {
     set return_url [::xo::cc url]
     set nls_language [$page get_nls_language_from_lang $lang]
 
-    set :folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
-                             -package_id $package_id]
-    set :link_form_id   [::xowiki::Weblog instantiate_forms -forms en:link.form \
-                             -package_id $package_id]
+    set :folder_form_id [::$package_id instantiate_forms -forms en:folder.form]
+    set :link_form_id   [::$package_id instantiate_forms -forms en:link.form]
+
     #:msg folder_form=${:folder_form_id}
 
     set :current_folder [$page get_folder -folder_form_ids ${:folder_form_id}]
@@ -322,12 +321,12 @@ namespace eval ::xowiki::includelet {
       # easy. "make_link" just checks for the existence of the
       # variable, so no add "parent_id" to the "bind_vars".
       #
-      
+
       if {[${:current_folder_id} is_package_root_folder]} {
         set opt_parent_id ""
         set folder_link [::$package_id package_url]
         set bind_vars {}
-        #:msg "use instance name as title to [::$package_id instance_name]"        
+        #:msg "use instance name as title to [::$package_id instance_name]"
         ${:current_folder} title [::$package_id instance_name]
       } else {
         set parent_id ${:current_folder_id}
@@ -366,7 +365,7 @@ namespace eval ::xowiki::includelet {
         #:msg top_folder_of_tree=$top_folder_of_tree
       }
     }
-    
+
     if {$top_folder_of_tree eq $root_folder
         || [$top_folder_of_tree parent_id] eq "-100"
       } {

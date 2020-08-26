@@ -82,11 +82,16 @@ namespace eval ::xowiki::test {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
         if {$item_id == 0} {
-            set form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form -package_id $package_id]
+            set form_id [::$package_id instantiate_forms -forms en:folder.form]
             set f [::$form_id create_form_page_instance \
                        -name $name \
                        -nls_language en_US \
-                       -default_variables [list title "Folder $name" parent_id $parent_id package_id $package_id]]
+                       -default_variables [list \
+                                               title "Folder $name" \
+                                               parent_id $parent_id \
+                                               package_id $package_id \
+                                               description {{{child-resources}}}]]
+            $f publish_status ready
             $f save_new
             set item_id [$f item_id]
         }
@@ -98,12 +103,16 @@ namespace eval ::xowiki::test {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
         if {$item_id == 0} {
-            set form_id [::xowiki::Weblog instantiate_forms -forms en:link.form -package_id $package_id]
+            set form_id [::$package_id instantiate_forms -forms en:link.form]
             set f [::$form_id create_form_page_instance \
                        -name $name \
                        -nls_language en_US \
                        -instance_attributes [list link $target_ref] \
-                       -default_variables [list title "Link $name -> $target_ref" parent_id $parent_id package_id $package_id]]
+                       -default_variables [list \
+                                               title "Link $name -> $target_ref" \
+                                               parent_id $parent_id \
+                                               package_id $package_id]]
+            $f publish_status ready
             $f save_new
             set item_id [$f item_id]
         }
@@ -130,12 +139,14 @@ namespace eval ::xowiki::test {
                 ::xo::write_file $import_file [::base64::decode $file_content]
                 $f set import_file $import_file
             }
+            $f publish_status ready
             $f save_new
             set item_id [$f item_id]
             $f destroy_on_cleanup
         }
         ns_log notice "Page  $name => $item_id"
         aa_log "  $name => $item_id"
+        
         return $item_id
     }
 

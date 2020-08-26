@@ -27,7 +27,7 @@ namespace eval ::xowiki {
       error "not implemented"
     }
   }
-  
+
   nx::Class create ::xowiki::UploadFile -superclass ::xowiki::Upload {
     #
     # Class for storing files as xowiki::File instances.
@@ -70,7 +70,7 @@ namespace eval ::xowiki {
       #
       set package_id [${:parent_object} package_id]
       set parent_id [${:parent_object} item_id]
-      
+
       set photo_object [::$package_id get_page_from_name -name en:${:file_name} -parent_id $parent_id]
       if {$photo_object ne ""} {
         #
@@ -83,14 +83,14 @@ namespace eval ::xowiki {
         $f content-type ${:content_type}
         $f set tmpfile ${:tmpfile}
         $f convert_to_internal
-        $photo_object save      
+        $photo_object save
       } else {
         #
         # Create a new page instance of photo.form.
         #
         ns_log notice "new Photo ${:file_name}"
-        set photoFormObj [::xowiki::Weblog instantiate_forms \
-                              -parent_id $parent_id -forms en:photo.form -package_id $package_id]
+        set photoFormObj [::$package_id instantiate_forms \
+                              -parent_id $parent_id -forms en:photo.form]
         set photo_object [$photoFormObj create_form_page_instance \
                               -name en:${:file_name} \
                               -nls_language en_US \
@@ -107,7 +107,7 @@ namespace eval ::xowiki {
         $f set tmpfile ${:tmpfile}
         $f convert_to_internal
       }
-      
+
       return {status_code 201 message created}
     }
   }

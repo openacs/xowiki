@@ -439,8 +439,7 @@ namespace eval ::xowiki {
           # if the folder exists already, we have nothing to do
         } else {
           # we create a new folder ...
-          set folder_form_id [::xowiki::Weblog instantiate_forms -forms en:folder.form \
-                                  -package_id $package_id]
+          set folder_form_id [::$package_id instantiate_forms -forms en:folder.form]
           set folder_object [FormPage new -destroy_on_cleanup \
                                  -title $file_name \
                                  -name $file_name \
@@ -471,8 +470,8 @@ namespace eval ::xowiki {
           } else {
             # create a new photo entry
             :log "new Photo $file_name"
-            set photoFormObj [::xowiki::Weblog instantiate_forms \
-                                  -parent_id $parent_id -forms en:photo.form -package_id $package_id]
+            set photoFormObj [::$package_id instantiate_forms \
+                                  -parent_id $parent_id -forms en:photo.form]
             set photo_object [$photoFormObj create_form_page_instance \
                                   -name en:$file_name \
                                   -nls_language en_US \

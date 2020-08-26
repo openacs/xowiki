@@ -113,9 +113,7 @@ namespace eval ::xowiki {
         # form item_ids were provided as a filter
         set form_items ${:entries_of}
       } else {
-        set form_items [::xowiki::Weblog instantiate_forms \
-                            -forms ${:entries_of} \
-                            -package_id ${:package_id}]
+        set form_items [::${:package_id} instantiate_forms -forms ${:entries_of}]
       }
 
       if {[llength $form_items] == 0} {
