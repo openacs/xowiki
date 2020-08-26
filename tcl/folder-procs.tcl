@@ -247,11 +247,8 @@ namespace eval ::xowiki::includelet {
       set page [$page set __link_source]
     }
     set package_id [::xo::cc package_id]
-    set with_links [::$package_id get_parameter "MenuBarSymLinks" 0]
 
-    #:ds [::xo::cc serialize]
     set lang [::xo::cc lang]
-    #set lang en
     set return_url [::xo::cc url]
     set nls_language [$page get_nls_language_from_lang $lang]
 
@@ -266,123 +263,102 @@ namespace eval ::xowiki::includelet {
 
     #:msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
-    # Start with the "package's folder" as root folder
-    set root_folder [::xo::db::CrClass get_instance_from_db \
-                         -item_id [::$package_id folder_id]]
+    if {[::$package_id get_parameter "MenuBar" 0]} {
 
-    set mb [info commands ::__xowiki__MenuBar]
-    if {$mb ne ""} {
       #
-      # We have a menubar. Add folder-specific content to the menubar.
+      # We want a menubar. Create a menubar object, which might be
+      # configured via the menu_entries property in the current
+      # folder.
       #
+      set menu_entries [list \
+                            {*}[::$package_id get_parameter ExtraMenuEntries {}] \
+                            {*}[${:current_folder} property extra_menu_entries]]
+      set have_config [lsearch -index 0 $menu_entries config]
+
+      if {$have_config > -1} {
+        #
+        # We have a special configuration for the menubar, probably
+        # consisting of a default setup and/or a menubar class. The
+        # entry should be of the form:
+        #
+        #    {config -use xxxx -class MenuBar}
+        #
+        set properties [lrange [lindex $menu_entries $have_config] 1 end]
+        if {[dict exists $properties -class]} {
+          set p_class [dict get $properties -class]
+        }
+        foreach p {-class -use} {
+          if {[dict exists $properties $p]} {
+            set p$p [dict get $properties $p]
+          }
+        }
+      }
+      set class ::xowiki::MenuBar
+      if {[info exists p-class]
+          && [info commands ::xowiki::${p-class}]
+          && [::xowiki::${p-class} istype ::xowiki::MenuBar]
+        } {
+        set class ::xowiki::${p-class}
+      } else {
+        set class ::xowiki::MenuBar
+      }
+      set mb [$class create ::__xowiki__MenuBar -id menubar]
+
+      if {[info exists p-use]
+          && [$mb procsearch config=${p-use}] ne ""
+        } {
+        set config ${p-use}
+      } else {
+        set config default
+      }
+
+      #
+      # Now we have a menubar $mb. Add folder-specific content to it.
+      #
+      # "bind_vars" will contain the variables used by "make_link" to
+      # set the query parameters.  We do not want to see parent_ids in
+      # the links of the root folder. When we insert to the root
+      # folder, set opt_parent_id to empty to make argument passing
+      # easy. "make_link" just checks for the existence of the
+      # variable, so no add "parent_id" to the "bind_vars".
+      #
+      
       if {[${:current_folder_id} is_package_root_folder]} {
-        #
-        # We do not want to see parent_ids in the links of the root
-        # folder. When we insert to the root folder, set opt_parent_id
-        # to empty to make argument passing easy. "make_link" just
-        # checks for the existence of the variable, so we unset
-        # parent_id in this case.
-        #
         set opt_parent_id ""
         set folder_link [::$package_id package_url]
-        if {[info exists parent_id]} {
-          unset parent_id
-        }
+        set bind_vars {}
+        #:msg "use instance name as title to [::$package_id instance_name]"        
+        ${:current_folder} title [::$package_id instance_name]
       } else {
         set parent_id ${:current_folder_id}
         set opt_parent_id $parent_id
         ::xo::db::CrClass get_instance_from_db -item_id $parent_id
         set folder_link [${:current_folder} pretty_link]
+        set bind_vars [list parent_id $parent_id opt_parent_id $parent_id]
       }
+      lappend bind_vars nls_language $nls_language
+
       set return_url [::xo::cc url]
-      set new_folder_link [::$package_id make_form_link -form en:folder.form \
-                               -parent_id $opt_parent_id \
-                               -return_url $return_url]
-      if {$with_links} {
-        set new_sym_link [::$package_id make_form_link -form en:link.form \
-                              -parent_id $opt_parent_id \
-                              -nls_language $nls_language -return_url $return_url]
-      }
-
-      set new_page_link [::$package_id make_form_link -form en:page.form \
-                             -parent_id $opt_parent_id \
-                             -return_url $return_url]
-      set new_file_link [::$package_id make_link  \
-                             ::$package_id edit-new \
-                             {object_type ::xowiki::File} \
-                             parent_id return_url autoname template_file]
-      set new_form_link [::$package_id make_link \
-                             ::$package_id edit-new \
-                             {object_type ::xowiki::Form} \
-                             parent_id return_url autoname template_file]
-      set import_link  [::$package_id make_link -privilege admin \
-                            -link "admin/import" \
-                            ::$package_id {} parent_id return_url]
-      set import_archive_link [::$package_id make_form_link -form en:import-archive.form \
-                                   -parent_id $opt_parent_id]
-
-      set index_link [::$package_id make_link -link $folder_link ${:current_folder} list]
-
-      $mb add_menu_item -name Package.Startpage -item [list url $folder_link]
-      $mb add_menu_item -name Package.Toc -item [list url $index_link]
-
-      $mb add_menu_item -name New.Page   -item [list url $new_page_link]
-      $mb add_menu_item -name New.File   -item [list url $new_file_link]
-      $mb add_menu_item -name New.Folder -item [list url $new_folder_link]
-      if {$with_links} {
-        $mb add_menu_item -name New.SymLink -item [list url $new_sym_link]
-      }
-      $mb add_menu_item -name New.Form -item [list url $new_form_link]
-
-      $mb add_menu_item -name Package.ImportDump -item [list url $import_link]
-      $mb add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
-
-      if {[::xowiki::clipboard is_empty]} {
-        set clipboard_copy_link ""
-        set clipboard_export_link ""
-        set clipboard_content_link ""
-        set clipboard_clear_link ""
-      } else {
-        # todo: check, whether the use is allowed to insert into the current folder
-        set clipboard_copy_link    $folder_link?m=clipboard-copy
-        set clipboard_export_link  $folder_link?m=clipboard-export
-        set clipboard_content_link $folder_link?m=clipboard-content
-        set clipboard_clear_link   $folder_link?m=clipboard-clear
-      }
-      # todo: we should check either, whether to user is allowed to
-      # copy-to-clipboard from the current folder, and/or the user is
-      # allowed to do this with certain items.... (the latter in
-      # clipboard-add)
-      $mb add_menu_item -name Clipboard.Add \
-          -item [list url \# listener [list click acs_ListBulkActionMultiFormClick("objects","$folder_link?m=clipboard-add&return_url=$return_url")]]
-      $mb add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
-      $mb add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
-      $mb add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
-      $mb add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
-
-      set uploader_link [::$package_id make_link ${:current_folder} file-upload]
-      $mb add_extra_item -name dropzone1 -type DropZone \
-          -item [list url $uploader_link label DropZone uploader File]
-
-      #set modestate [::xowiki::mode::admin get]
-      #set modebutton_link [::$package_id make_link ${:current_folder} toggle-modebutton]
-      #$mb add_extra_item -name admin -type ModeButton \
-      #    -item [list url $modebutton_link on $modestate label admin]
-
+      $mb current_folder ${:current_folder}
+      $mb parent_id $opt_parent_id
+      #:log "folders: call update_items with config '$config' bind_vars=$bind_vars"
       $mb update_items \
+          -bind_vars $bind_vars \
+          -config $config \
+          -current_page $page \
+          -folder_link $folder_link \
           -package_id $package_id \
-          -parent_id $opt_parent_id \
-          -return_url $return_url \
-          -nls_language $nls_language \
-          [list \
-               {*}[::$package_id get_parameter ExtraMenuEntries {}] \
-               {*}[${:current_folder} property extra_menu_entries]]
+          -return_url $return_url
     }
 
-    set top_folder_of_tree $root_folder
+    # Start with the "package's folder" as root folder
+    set root_folder [::xo::db::CrClass get_instance_from_db \
+                         -item_id [::$package_id folder_id]]
+
     #
     # Check, if the optional context tree view is activated
     #
+    set top_folder_of_tree $root_folder
     if {$context_tree_view || [::$package_id get_parameter FolderContextTreeView false]} {
       set parent_id [${:current_folder} parent_id]
       if {$parent_id ne -100} {
@@ -390,15 +366,15 @@ namespace eval ::xowiki::includelet {
         #:msg top_folder_of_tree=$top_folder_of_tree
       }
     }
-
-    set parent_folder [$top_folder_of_tree parent_id]
-
-    if {$top_folder_of_tree eq $root_folder || $parent_folder eq "-100"} {
-      set href [::$package_id package_url]
-      set label  [::$package_id instance_name]
-      #:msg "use instance name"
+    
+    if {$top_folder_of_tree eq $root_folder
+        || [$top_folder_of_tree parent_id] eq "-100"
+      } {
+      set href  [::$package_id package_url]
+      set label [::$package_id instance_name]
+      #:msg "use instance name in tree display"
     } else {
-      set href [$top_folder_of_tree pretty_link]
+      set href  [$top_folder_of_tree pretty_link]
       set label "[$top_folder_of_tree title] ..."
     }
 
@@ -612,7 +588,9 @@ namespace eval ::xowiki::includelet {
     #
     # We have to use the global variable for the time being due to
     # scoping in "-columns"
-    set ::__xowiki_with_publish_status [expr {$publish_status ne "ready" || "publish_status" in $columns}]
+    set ::__xowiki_with_publish_status [expr {
+                                              $publish_status ne "ready"
+                                              || "publish_status" in $columns}]
 
     # unexisting csrf token usually means we are outside a connection thread
     set csrf [expr {[info exists ::__csrf_token] ? [list __csrf_token $::__csrf_token] : ""}]
@@ -628,8 +606,11 @@ namespace eval ::xowiki::includelet {
                -columns {
                  BulkAction create objects -id ID -hide $::hidden(objects) -actions {
                    if {$::__xowiki_folder_link ne ""} {
-                     Action bulk-delete -label [_ xowiki.delete] -tooltip [_ xowiki.Delete_selected] \
-                         -url $::__xowiki_folder_link -confirm_message [_ xowiki.delete_confirm]
+                     Action bulk-delete \
+                         -label [_ xowiki.delete] \
+                         -tooltip [_ xowiki.Delete_selected] \
+                         -url $::__xowiki_folder_link \
+                         -confirm_message [_ xowiki.delete_confirm]
                    }
                  }
 
@@ -680,9 +661,9 @@ namespace eval ::xowiki::includelet {
       # Update the title to a language-specific value
       #
       $current_folder update_langstring_property _title $lang
+      :msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
     }
-
-    :log "child-resources of folder_id ${:current_folder_id}"
+    #:log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
@@ -763,35 +744,39 @@ namespace eval ::xowiki::includelet {
       util_user_message -message "Ignore invalid sorting criterion '$att'"
     }
 
-    if {$menubar ne ""} {
-      set mb [::xowiki::MenuBar new -id submenubar]
-      # for now, just the first group
-      lassign $menubar Menu entries
-      $mb add_menu -name $Menu
-      set menuEntries {}
-      foreach e $entries {
-        switch -- $e {
-          ::xowiki::File {
-            lappend menuEntries {entry -name New.File -label File -object_type ::xowiki::File}
-          }
-          default {ns_log notice "can't handle $e in submenubar so far"}
-        }
-      }
-      $mb update_items \
-          -package_id $package_id \
-          -parent_id ${:current_folder_id} \
-          -return_url $return_url \
-          -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]] \
-          $menuEntries
-
-      set menubar [$mb render-preferred]
-    }
-    set viewers [util_coalesce [$current_folder property viewers] [$current_folder get_parameter viewers]]
+    # if {$menubar ne ""} {
+    #   set mb [::xowiki::MenuBar new -id submenubar]
+    #   # for now, just the first group
+    #   lassign $menubar Menu entries
+    #   $mb add_menu -name $Menu
+    #   set menuEntries {}
+    #   foreach e $entries {
+    #     switch -- $e {
+    #       ::xowiki::File {
+    #         lappend menuEntries {entry -name New.File -label File -object_type ::xowiki::File}
+    #       }
+    #       default {ns_log notice "can't handle $e in submenubar so far"}
+    #     }
+    #   }
+    #   ns_log notice "================= 2nd call update_items"
+    #   $mb update_items \
+    #       -package_id $package_id \
+    #       -parent_id ${:current_folder_id} \
+    #       -return_url $return_url \
+    #       -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]]
+    #   set menubar [$mb render-preferred]
+    # }
+    ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
+    set viewers [util_coalesce \
+                     [$current_folder property viewers] \
+                     [$current_folder get_parameter viewers]]
     set viewer_links ""
     foreach v $viewers {
       set wf_link "${v}?p.folder=[$current_folder name]"
       append wf_link "&m=create-or-use"
-      append viewer_links [subst -nocommands -nobackslashes {<li><a href="[ns_quotehtml $wf_link]">view with $v</a></li>}]
+      append viewer_links [subst -nocommands -nobackslashes {
+        <li><a href="[ns_quotehtml $wf_link]">view with $v</a></li>
+      }]
     }
     return "$menubar<ul>$viewer_links</ul> [$t asHTML]"
 

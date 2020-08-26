@@ -414,7 +414,7 @@ div.xowiki-content div.folders {
     font-size: 90%;
 }
 div.xowiki-content .content-with-folders {
-    float: left; width: 70%;
+    padding-left: 1em; float: left; width: 70%;
 }
 /*div.xowiki-content .content-with-folders div.form-label {
   width: 9em;

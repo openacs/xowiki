@@ -72,8 +72,8 @@ namespace eval ::xowiki {
      <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>\n\
      <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>\n\
      <else><h1>@body.title@</h1></else>\n\
-     <if @folderhtml@ not nil> \n\
-       <div class='folders' style=''>@folderhtml;noquote@</div> \n\
+     <if @body.folderHTML@ not nil> \n\
+       <div class='folders' style=''>@body.folderHTML;noquote@</div> \n\
        <div class='content-with-folders'>@content;noquote@</div> \n\
      </if>
     <else>@content;noquote@</else>"
@@ -323,8 +323,8 @@ namespace eval ::xowiki {
             <if @body.menubarHTML@ not nil><div class='visual-clear'><!-- --></div>@body.menubarHTML;noquote@</if>
             <if @page_context@ not nil><h1>@body.title@ (@page_context@)</h1></if>
             <else><h1>@body.title@</h1></else>
-            <if @folderhtml@ not nil>
-                <div class='folders' style=''>@folderhtml;noquote@</div>
+            <if @body.folderHTML@ not nil>
+                <div class='folders' style=''>@body.folderHTML;noquote@</div>
                 <div class='content-with-folders'>@content;noquote@</div>
             </if>
             <else>@content;noquote@</else>
@@ -458,7 +458,7 @@ if {$book_next_link ne ""} {
                       &="per_object_categories_with_links"
                       &="digg_link" &="delicious_link" &="my_yahoo_link"
                       &="gc_link" &="gc_comments" &="notification_subscribe_link" &="notification_image"
-                      &="top_includelets" &="folderhtml" &="page" &="doc" &="body">
+                      &="top_includelets" &="page" &="doc" &="body">
                       </div>
                       </div>
                     }}

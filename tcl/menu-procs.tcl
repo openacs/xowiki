@@ -130,6 +130,7 @@ namespace eval ::xowiki {
   Class create ::xowiki::MenuBar -parameter {
     id
     {dropzone:boolean true}
+    {current_folder:object}
     {parent_id ""}
   }
 
@@ -164,24 +165,7 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc clear_menu {-menu:required} {
-    set :Menu($menu) [list label [dict get $:Menu($menu) label]]
-  }
-
-  ::xowiki::MenuBar instproc current_folder {} {
-    if {${:parent_id} ne ""} {
-      return ${:parent_id}
-    } else {
-      #
-      # If the current object is the package, use the root folder as
-      # current_folder; else use the parent of the current object.
-      #
-      set object [::xo::cc invoke_object]
-      if {[$object is_folder_page]} {
-        return $object
-      } else {
-        return [$object parent_id]
-      }
-    }
+    set :Menu($menu) [list label [dict get [set :Menu($menu)] label]]
   }
 
   ::xowiki::MenuBar instproc add_menu_item {
@@ -248,36 +232,264 @@ namespace eval ::xowiki {
   }
 
 
-  ::xowiki::MenuBar instproc update_items {
+  ::xowiki::MenuBar instproc config_menu=Package {
+    -folder_link:required
+    -return_url_required
     -package_id:required
-    -nls_language:required
-    -parent_id:required
+    {-bind_vars {}}
+  } {
+
+    set index_link [::$package_id make_link \
+                        -link $folder_link \
+                        ${:current_folder} list]
+
+    set admin_link [::$package_id make_link -privilege admin \
+                        -link admin/ ::$package_id]
+    dict with bind_vars {
+      set import_link \
+          [::$package_id make_link -privilege admin \
+               -link "admin/import" \
+               ::$package_id {} parent_id return_url]
+
+      set import_archive_link \
+          [::$package_id make_form_link -form en:import-archive.form \
+               -parent_id ${:parent_id}]
+    }
+    
+    :add_menu_item -name Package.Startpage -item [list url $folder_link]
+    :add_menu_item -name Package.Toc -item [list url $index_link]
+    
+    if {[::$package_id get_parameter "with_notifications" 1]} {
+      if {[::xo::cc user_id] != 0} {
+        #
+        # notifications require login
+        #
+        set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
+        set notification_type [notification::type::get_type_id -short_name xowiki_notif]
+        set notification_text "Subscribe to [::$package_id instance_name]"
+        set notification_subscribe_link \
+                                         [export_vars -base /notifications/request-new \
+                                              {{return_url $notifications_return_url}
+                                                {pretty_name $notification_text}
+                                                {type_id $notification_type}
+                                                {object_id $package_id}}]
+        :add_menu_item -name Package.Notifications \
+            -item [list url /notifications/manage]
+      }
+    }
+    
+    :add_menu_item -name Package.Admin \
+        -item [list text #xowiki.admin# url $admin_link]    
+    :add_menu_item -name Package.ImportDump -item [list url $import_link]
+    :add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
+  }
+
+  ::xowiki::MenuBar instproc config_menu=New {
+    -folder_link:required
+    -return_url:required
+    -package_id:required
+    {-bind_vars {}}
+  } {
+
+    dict with bind_vars {
+
+      set new_folder_link \
+          [::$package_id make_form_link -form en:folder.form \
+               -parent_id ${:parent_id} \
+               -return_url $return_url]
+
+      set new_page_link \
+          [::$package_id make_form_link -form en:page.form \
+               -parent_id ${:parent_id} \
+               -return_url $return_url]
+      #
+      # Two old style links for xowiki::File and xowiki::Form
+      #
+      set new_file_link \
+          [::$package_id make_link  \
+               ::$package_id edit-new \
+               {object_type ::xowiki::File} \
+               parent_id return_url autoname template_file]
+
+      set new_form_link \
+          [::$package_id make_link \
+               ::$package_id edit-new \
+               {object_type ::xowiki::Form} \
+               parent_id return_url autoname template_file]
+    }
+
+    :add_menu_item -name New.Page   -item [list url $new_page_link]
+    :add_menu_item -name New.File   -item [list url $new_file_link]
+    :add_menu_item -name New.Folder -item [list url $new_folder_link]
+
+    if {[::$package_id get_parameter "MenuBarSymLinks" 0]} {
+      #
+      # Symlinks are configured
+      #
+      dict with bind_vars {
+        set new_sym_link [::$package_id make_form_link -form en:link.form \
+                              -parent_id ${:parent_id} \
+                              -nls_language $nls_language -return_url $return_url]
+      }
+      :add_menu_item -name New.SymLink -item [list url $new_sym_link]
+    }
+    :add_menu_item -name New.Form -item [list url $new_form_link]
+  }
+
+  ::xowiki::MenuBar instproc config_menu=Clipboard {
+    -folder_link:required
+    -return_url:required
+  } {
+    if {[::xowiki::clipboard is_empty]} {
+      set clipboard_copy_link ""
+      set clipboard_export_link ""
+      set clipboard_content_link ""
+      set clipboard_clear_link ""
+    } else {
+      set clipboard_copy_link    $folder_link?m=clipboard-copy
+      set clipboard_export_link  $folder_link?m=clipboard-export
+      set clipboard_content_link $folder_link?m=clipboard-content
+      set clipboard_clear_link   $folder_link?m=clipboard-clear
+    }
+
+    # TODO: we should check either, whether to user is allowed to
+    # copy-to-clipboard from the current folder, and/or the user is
+    # allowed to do this with certain items.... (the latter in
+    # clipboard-add)
+    :add_menu_item -name Clipboard.Add \
+        -item [list url \# listener [list click acs_ListBulkActionMultiFormClick("objects","$folder_link?m=clipboard-add&return_url=$return_url")]]
+    :add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
+    :add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
+    :add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]
+    :add_menu_item -name Clipboard.Use.Export  -item [list url $clipboard_export_link]
+  }
+
+  ::xowiki::MenuBar instproc config_menu=Page {
+    -folder_link:required
+    -return_url:required
+    -current_page:required
+  } {
+    set package_id [$current_page package_id]
+
+    set edit_link   [::$package_id make_link $current_page edit return_url]
+    set view_link   [::$package_id make_link $current_page view return_url]
+    set delete_link [::$package_id make_link $current_page delete return_url]
+    set rev_link    [::$package_id make_link $current_page revisions]
+
+    :add_menu_item -name Page.Edit \
+        -item [list text #xowiki.edit# url $edit_link]
+    :add_menu_item -name Page.View \
+        -item [list text #xowiki.menu-Page-View# url $view_link]
+    :add_menu_item -name Page.Delete \
+        -item [list text #xowiki.delete# url $delete_link]
+    :add_menu_item -name Page.Revisions \
+        -item [list text #xowiki.revisions# url $rev_link]
+    if {[acs_user::site_wide_admin_p]} {
+      set page_show_link [::$package_id make_link -privilege admin \
+                              $current_page show-object return_url]
+      :add_menu_item -name Page.Show \
+          -item [list text "Show Object" url $page_show_link]
+    }
+  }
+
+
+  ::xowiki::MenuBar instproc config=default {
+    {-bind_vars {}}
+    -current_page:required
+    -package_id:required
+    -folder_link:required
     -return_url
+  } {
+
+    #:log folder_link=$folder_link
+    #:log parent_id=${:parent_id}
+
+    #
+    # Define standard xowiki menubar
+    #
+    set clipboard_size [::xowiki::clipboard size]
+    set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
+
+    :add_menu -name Package   -label [::$package_id instance_name]
+    :add_menu -name New       -label [_ xowiki.menu-New]
+    :add_menu -name Clipboard -label $clipboard_label
+    :add_menu -name Page      -label [_ xowiki.menu-Page]
+
+    :config_menu=Package \
+        -folder_link $folder_link \
+        -return_url $return_url \
+        -package_id $package_id \
+        -bind_vars $bind_vars
+
+    :config_menu=New \
+        -folder_link $folder_link \
+        -return_url $return_url \
+        -package_id $package_id \
+        -bind_vars $bind_vars
+
+    :config_menu=Clipboard \
+        -folder_link $folder_link \
+        -return_url $return_url
+
+    :config_menu=Page \
+        -folder_link $folder_link \
+        -return_url $return_url \
+        -current_page $current_page
+
+
+    set uploader_link [::$package_id make_link ${:current_folder} file-upload]
+    :add_extra_item -name dropzone1 -type DropZone \
+        -item [list url $uploader_link label DropZone uploader File]
+
+    #set modestate [::xowiki::mode::admin get]
+    #set modebutton_link [::$package_id make_link ${:current_folder} toggle-modebutton]
+    #:add_extra_item -name admin -type ModeButton \
+        #    -item [list url $modebutton_link on $modestate label admin]
+    return {}
+  }
+
+  ::xowiki::MenuBar instproc update_items {
     -autoname
+    {-bind_vars ""}
+    -current_page:required
+    {-config default}
+    -folder_link:required
+    -package_id:required
+    -return_url:required
     -template_file
-    items
   } {
     # A folder page can contain extra menu entries (sample
     # below). Iterate of the extra_menu property and add according
     # menu entries. Sample:
     #
-    # {clear_menu -menu New}
-    # {entry -name New.Page -label #xowiki.new# -form en:page.form}
-    # {entry -name New.File -label File -object_type ::xowiki::File}
-    # {dropzone -name DropZone -label DropZone -uploader File}
-    # {modebutton -name Admin -label admin -button admin}
+    #   {clear_menu -menu New}
+    #   {entry -name New.Page -label #xowiki.new# -form en:page.form}
+    #   {entry -name New.File -label File -object_type ::xowiki::File}
+    #   {dropzone -name DropZone -label DropZone -uploader File}
+    #   {modebutton -name Admin -label admin -button admin}
 
+    set config_items [:config=$config \
+                          -package_id $package_id \
+                          -current_page $current_page \
+                          -folder_link $folder_link \
+                          -bind_vars $bind_vars \
+                          -return_url $return_url]
 
-    set :parent_id $parent_id
+    set menu_entries [list \
+                          {*}[::$package_id get_parameter ExtraMenuEntries {}] \
+                          {*}$config_items \
+                          {*}[${:current_folder} property extra_menu_entries]]
 
-    foreach me $items {
-      array unset ""
+    :log "config=$config DONE menu_entries=$menu_entries"
+    
+    foreach me $menu_entries {
       set kind [lindex $me 0]
       if {[string index $kind 0] eq "#"} continue
+      #:log notice "menu_entry <$kind> full <$me>"
       set properties [lrange $me 1 end]
-
+      
       switch -- $kind {
-
+        
         clear_menu {
           :clear_menu -menu [dict get $properties -menu]
         }
@@ -290,11 +502,14 @@ namespace eval ::xowiki {
           }
           if {[dict exists $properties -form]} {
             set q [expr {[dict exists $properties -query] ? "-query [dict get $properties -query]" : ""}]
-            set link [::$package_id make_form_link \
-                          -form [dict get $properties -form] \
-                          -parent_id $parent_id \
-                          -nls_language $nls_language \
-                          -return_url $return_url {*}$q]
+            dict with bind_vars {
+              set link [::$package_id make_form_link \
+                            -form [dict get $properties -form] \
+                            -parent_id ${:parent_id} \
+                            -nls_language $nls_language \
+                            -return_url $return_url \
+                            {*}$q]
+            }
           } elseif {[dict exists $properties -object_type]} {
             set link [::$package_id make_link \
                           $package_id edit-new \
@@ -314,7 +529,7 @@ namespace eval ::xowiki {
             #
             set locale [::xo::cc locale]
             set dname [string map {. -} [dict get $properties -name]]
-            
+
             foreach message_key [list xowiki.menu-$dname xowf.menu-$dname] {
               if {[lang::message::message_exists_p en_US $message_key]} {
                 lappend item label [lang::message::lookup $locale $message_key]
@@ -325,7 +540,7 @@ namespace eval ::xowiki {
           :add_menu_item -name [dict get $properties -name] -item $item
         }
 
-        "dropzone" {
+        dropzone {
           foreach {var default} {
             name dropzone
             uploader File
@@ -337,12 +552,12 @@ namespace eval ::xowiki {
             }
           }
 
-          set link [::$package_id make_link $parent_id file-upload]
+          set link [::$package_id make_link ${:parent_id} file-upload]
           :add_extra_item -name $name -type DropZone \
               -item [list url $link uploader $uploader label $label]
         }
 
-        "modebutton" {
+        modebutton {
           foreach {var default} {
             name modebutton
             button admin
@@ -355,11 +570,11 @@ namespace eval ::xowiki {
           }
           if {$label eq ""} {set label $button}
           set state [::xowiki::mode::$button get]
-          set link [::$package_id make_link $parent_id toggle-modebutton]
+          set link [::$package_id make_link ${:parent_id} toggle-modebutton]
           :add_extra_item -name $name -type ModeButton \
               -item [list url $link on $state label $label]
         }
-
+        config {}
         default {
           error "unknown kind of menu entry: $kind"
         }
@@ -385,52 +600,20 @@ namespace eval ::xowiki {
   }
 
   ::xowiki::MenuBar instproc render-preferred {} {
-    switch [parameter::get_global_value -package_key xowiki -parameter PreferredCSSToolkit -default bootstrap] {
+    switch [parameter::get_global_value \
+                -package_key xowiki \
+                -parameter PreferredCSSToolkit \
+                -default bootstrap] {
       bootstrap {set menuBarRenderer render-bootstrap}
       default   {set menuBarRenderer render-yui}
     }
-    my $menuBarRenderer
+    :$menuBarRenderer
   }
 
-
-
-  # ::xo::tdom::Class create MenuDropZone \
-  #     -superclass MenuComponent \
-  #     -parameter {
-  #       text
-  #       href
-  #       title
-  #       {id "[:html_id]"}
-  #       CSSclass
-  #     }
-
-
-  # MenuDropZone instproc init args {
-  #   next
-  #   # Use computed default values when not specified
-  #   if {![info exists :title]} {
-  #     # set the mouseover-title to the "MenuItem-Label"
-  #     # TODO: Do we really want "text" to be required ?
-  #     :title [:text]
-  #   }
-
-  #   if {![info exists :href] || [:href] eq ""} {
-  #     append :CSSclass " " [string tolower [namespace tail [:info class]]]-disabled
-  #   }
-  # }
-
-  # MenuDropZone instproc render {} {
-  #   html::li [:get_attributes id {CSSclass class}] {
-  #     html::a [:get_attributes title href target] {
-  #       html::t [:text]
-  #     }
-  #   }
-  # }
-
-
   namespace export Menu
-  # end of namespace
+  # end of namespace ::xowiki
 }
+
 ::xo::library source_dependent
 
 #

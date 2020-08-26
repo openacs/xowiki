@@ -1869,14 +1869,14 @@ namespace eval ::xowiki {
 
     set admin_link  [::$context_package_id make_link -privilege admin -link admin/ ::$context_package_id]
     set index_link  [::$context_package_id make_link -privilege public ::$context_package_id]
-    set toc_link    [::$context_package_id make_link -privilege public ::$folder_id list]
-    set import_link [::$context_package_id make_link -privilege admin -link admin/import $context_package_id]
-    set page_show_link [::$page_package_id make_link -privilege admin [self] show-object return_url]
     set view_link   [::$page_package_id make_link [self] view return_url]
 
     set notification_subscribe_link ""
     if {[::$context_package_id get_parameter "with_notifications" 1]} {
-      if {[::xo::cc user_id] != 0} { ;# notifications require login
+      if {[::xo::cc user_id] != 0} {
+        #
+        # notifications require login
+        #
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
         set notification_text "Subscribe to [::$context_package_id instance_name]"
@@ -1889,52 +1889,6 @@ namespace eval ::xowiki {
         set notification_image \
                                          "<img style='border: 0px;' src='/resources/xowiki/email.png' \
         alt='$notification_text' title='$notification_text'>"
-      }
-    }
-
-    #
-    # The menubar is work in progress
-    #
-    set mb [::$context_package_id get_parameter "MenuBar" 0]
-    if {$mb ne "0" && [nsf::is object ::xowiki::MenuBar]} {
-
-      set clipboard_size [::xowiki::clipboard size]
-      set clipboard_label [expr {$clipboard_size ? "Clipboard ($clipboard_size)" : "Clipboard"}]
-
-      #
-      # Define standard xowiki menubar
-      #
-      set mb [::xowiki::MenuBar create ::__xowiki__MenuBar -id menubar]
-      $mb add_menu -name Package -label [::$context_package_id instance_name]
-      $mb add_menu -name New -label [_ xowiki.menu-New]
-      $mb add_menu -name Clipboard -label $clipboard_label
-      $mb add_menu -name Page -label [_ xowiki.menu-Page]
-      $mb add_menu_item -name Package.Startpage -item [list url $index_link]
-      $mb add_menu_item -name Package.Toc -item [list url $toc_link]
-
-      $mb add_menu_item -name Package.Subscribe \
-          -item [list text #xowiki.subscribe# url $notification_subscribe_link]
-      $mb add_menu_item -name Package.Notifications \
-          -item [list text #xowiki.notifications# url /notifications/manage]
-      $mb add_menu_item -name Package.Admin \
-          -item [list text #xowiki.admin# url $admin_link]
-      $mb add_menu_item -name Package.ImportDump \
-          -item [list url $import_link]
-
-      $mb add_menu_item -name New.Page \
-          -item [list text #xowiki.new# url $new_link]
-
-      $mb add_menu_item -name Page.Edit \
-          -item [list text #xowiki.edit# url $edit_link]
-      $mb add_menu_item -name Page.View \
-          -item [list text #xowiki.menu-Page-View# url $view_link]
-      $mb add_menu_item -name Page.Delete \
-          -item [list text #xowiki.delete# url $delete_link]
-      $mb add_menu_item -name Page.Revisions \
-          -item [list text #xowiki.revisions# url $rev_link]
-      if {[acs_user::site_wide_admin_p]} {
-        $mb add_menu_item -name Page.Show \
-            -item [list text "Show Object" url $page_show_link]
       }
     }
 
@@ -1963,23 +1917,30 @@ namespace eval ::xowiki {
       set top_includelets [:include $vp]
     }
 
-    if {$mb ne "0"} {
+    if {[::$context_package_id get_parameter "MenuBar" 0]} {
       #
       # The following block should not be here, but in the templates.
       #
-      set showFolders [::$context_package_id get_parameter "MenuBarWithFolder" 1]
-      if {$showFolders} {
-        set folderhtml [:include {folders -style folders}]
-      } else {
-        set folderhtml ""
-      }
+      #set showFolders [::$context_package_id get_parameter "MenuBarWithFolder" 1]
+      #if {$showFolders} {
+      #  set folderhtml [:include {folders -style folders}]
+      #} else {
+      #  set folderhtml ""
+      #}
+
+      set folderhtml [:include {folders -style folders}]
+      ::xo::Page set_property body folderHTML $folderhtml
+      # TODO: there should be no need to pass manually folderhtml,
+      # use the property instead
 
       #
       # At this place, the menu should be complete, we can render it.
       #
-      set mbHTML [$mb render-preferred]
-      #append top_includelets \n "<div class='visual-clear'><!-- --></div>" $mbHTML
-      ::xo::Page set_property body menubarHTML $mbHTML
+      set mb [::xowiki::MenuBar info instances -closure]
+      if {$mb ne ""} {
+        set mbHTML [$mb render-preferred]
+        ::xo::Page set_property body menubarHTML $mbHTML
+      }
     }
 
     if {[::$context_package_id get_parameter "with_user_tracking" 1]} {
@@ -2181,7 +2142,6 @@ namespace eval ::xowiki {
           rev_link edit_link delete_link new_link admin_link index_link view_link
           notification_subscribe_link notification_image
           top_includelets page views_data body doc
-          folderhtml
         }
       }
     } else {
