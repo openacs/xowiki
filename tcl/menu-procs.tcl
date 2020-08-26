@@ -255,10 +255,10 @@ namespace eval ::xowiki {
           [::$package_id make_form_link -form en:import-archive.form \
                -parent_id ${:parent_id}]
     }
-    
+
     :add_menu_item -name Package.Startpage -item [list url $folder_link]
     :add_menu_item -name Package.Toc -item [list url $index_link]
-    
+
     if {[::$package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} {
         #
@@ -277,9 +277,9 @@ namespace eval ::xowiki {
             -item [list url /notifications/manage]
       }
     }
-    
+
     :add_menu_item -name Package.Admin \
-        -item [list text #xowiki.admin# url $admin_link]    
+        -item [list text #xowiki.admin# url $admin_link]
     :add_menu_item -name Package.ImportDump -item [list url $import_link]
     :add_menu_item -name Package.ImportArchive -item [list url $import_archive_link]
   }
@@ -481,15 +481,15 @@ namespace eval ::xowiki {
                           {*}[${:current_folder} property extra_menu_entries]]
 
     :log "config=$config DONE menu_entries=$menu_entries"
-    
+
     foreach me $menu_entries {
       set kind [lindex $me 0]
       if {[string index $kind 0] eq "#"} continue
       #:log notice "menu_entry <$kind> full <$me>"
       set properties [lrange $me 1 end]
-      
+
       switch -- $kind {
-        
+
         clear_menu {
           :clear_menu -menu [dict get $properties -menu]
         }

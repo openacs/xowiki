@@ -18,8 +18,8 @@ namespace eval ::xowiki {
     ::xowiki::sc::unregister_implementations
     ::xowiki::notifications-uninstall
 
-    # Unregister all types from all folders 
-    ::xowiki::Page folder_type_unregister_all 
+    # Unregister all types from all folders
+    ::xowiki::Page folder_type_unregister_all
 
     # Delete object types
     foreach type [::xowiki::Page object_types -subtypes_first true] {
@@ -32,7 +32,7 @@ namespace eval ::xowiki {
     {-package_id:required}
   } {
     Callback to be called whenever a package instance is deleted.
-    
+
     @author Gustaf Neumann
   } {
     ns_log notice "Executing before-uninstantiate"
@@ -48,13 +48,13 @@ namespace eval ::xowiki {
         ::xo::db::sql::content_item delete -item_id $root_folder_id
       }
     }
-   
+
     set instance_name [apm_instance_name_from_id $package_id]
-    
+
     ::xo::xotcl_package_cache flush package_id-$instance_name
     ::xo::xotcl_package_cache flush package_key-$package_id
     ::xo::xotcl_package_cache flush root_folder-$package_id
-    ::xo::xotcl_object_type_cache flush -partition_key -100 -100-$instance_name    
+    ::xo::xotcl_object_type_cache flush -partition_key -100 -100-$instance_name
 
     ns_log notice "before-uninstantiate DONE"
   }
@@ -65,7 +65,7 @@ namespace eval ::xowiki {
   } {
     Deletes the messages of general comments to allow one to
     uninstantiate the package without violating constraints.
-    
+
     @author Gustaf Neumann
   } {
     set comment_ids [::xo::dc list get_comments {
@@ -109,7 +109,7 @@ namespace eval ::xowiki {
     rename __upgrade ""
   }
 }
-::xo::library source_dependent 
+::xo::library source_dependent
 
 #
 # Local variables:

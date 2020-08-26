@@ -9,13 +9,13 @@
 namespace eval ::xowiki {
   #
   # Commonly used code for categories
-  # 
+  #
   Class create Category
   Category proc get_mapped_trees {
                   -object_id
-                 {-locale ""} 
-                 {-names ""} 
-                 {-output {tree_id tree_name subtree_category_id assign_single_p require_category_p}} 
+                 {-locale ""}
+                 {-names ""}
+                 {-output {tree_id tree_name subtree_category_id assign_single_p require_category_p}}
                } {
     # Return matched category trees matching the specified names (or all)
 
@@ -71,7 +71,7 @@ namespace eval ::xowiki {
   }
 }
 
-::xo::library source_dependent 
+::xo::library source_dependent
 
 
 # Local variables:
