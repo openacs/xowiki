@@ -50,7 +50,7 @@ namespace eval ::xowiki {
           } else {
             ns_log notice "-- no new class for $oldClass"
           }
-        }       
+        }
       }
     }
 
@@ -143,13 +143,13 @@ namespace eval ::xowiki {
         ::xowiki::PageTemplate ::xowiki::PageInstance} {
         db_dml delete_orphan_revisions "
           delete from cr_revisions where revision_id in (
-                 select r.revision_id from cr_items i,cr_revisions r  
-                 where i.content_type = '$class' and r.item_id = i.item_id 
+                 select r.revision_id from cr_items i,cr_revisions r
+                 where i.content_type = '$class' and r.item_id = i.item_id
                  and not r.revision_id in (select [$class id_column] from [$class table_name]))
         "
         db_dml delete_orphan_items "
-         delete from acs_objects where object_type = '$class' 
-             and not object_id in (select item_id from cr_items where content_type = '$class') 
+         delete from acs_objects where object_type = '$class'
+             and not object_id in (select item_id from cr_items where content_type = '$class')
              and not object_id in (select [$class id_column] from [$class table_name])
          "
       }
@@ -164,10 +164,10 @@ namespace eval ::xowiki {
         set folder_id [db_string get_folder_id "select f.folder_id from cr_items c, cr_folders f \
                 where c.name = 'xowiki: $package_id' and c.item_id = f.folder_id"]
         if {$folder_id ne ""} {
-          db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in 
+          db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in
             (select item_id as object_id from cr_items where parent_id = :folder_id)}
-          db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in 
-            (select r.revision_id as object_id from cr_revisions r, cr_items i where 
+          db_dml update_package_id {update acs_objects set package_id = :package_id where object_id in
+            (select r.revision_id as object_id from cr_revisions r, cr_items i where
              i.item_id = r.item_id and i.parent_id = :folder_id)}
           ::xowiki::Package initialize -package_id $package_id -init_url false
           ::$package_id reindex
@@ -201,7 +201,7 @@ namespace eval ::xowiki {
             -drop_column t
       }
       # drop old non-conformant indices
-      foreach index { xowiki_ref_index 
+      foreach index { xowiki_ref_index
         xowiki_last_visited_index_unique xowiki_last_visited_index
         xowiki_tags_index_tag xowiki_tags_index_user
       } {
@@ -294,7 +294,7 @@ namespace eval ::xowiki {
       #
       ::xowiki::add_ltree_order_column
 
-      # for all xowiki package instances 
+      # for all xowiki package instances
       foreach package_id [::xowiki::Package instances] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # rename swf:name and image:name to file:name
@@ -427,7 +427,7 @@ namespace eval ::xowiki {
       foreach file {
         tcl/xowiki-portlet-procs.tcl
         www/delete-revision.tcl www/delete.tcl www/edit.tcl www/revisions.tcl
-        www/index.adp www/index.tcl 
+        www/index.adp www/index.tcl
         www/view.adp www/view.tcl
         www/make-live-revision.tcl www/popular_tags.tcl www/save_tags.tcl www/weblog.tcl
         www/portlets/categories-recent.adp
@@ -438,8 +438,8 @@ namespace eval ::xowiki {
         www/portlets/last-visited.tcl
         www/portlets/most-popular.adp
         www/portlets/most-popular.tcl
-        www/portlets/recent.adp 
-        www/portlets/recent.tcl 
+        www/portlets/recent.adp
+        www/portlets/recent.tcl
         www/portlets/rss-button.adp
         www/portlets/rss-button.tcl
         www/portlets/tags.tcl
@@ -447,7 +447,7 @@ namespace eval ::xowiki {
         www/portlets/weblog.tcl
         www/portlets/wiki.adp
         www/portlets/wiki.tcl
-        www/prototypes/announcements.page 
+        www/prototypes/announcements.page
         www/admin/regression_test.tcl
       } {
         if {[ad_file exists $dir/$file]} {
@@ -597,7 +597,7 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
-      
+
       foreach object_type {PlainPage Page File PodcastItem PageTemplate PageInstance Object Form FormPage} {
         set pretty_name_key "#xowiki.${object_type}_pretty_name#"
         set pretty_plural_key "#xowiki.${object_type}_pretty_plural#"
@@ -613,7 +613,7 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
-      
+
       foreach package_id [::xowiki::Package instances -closure true] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # reload updated prototype pages
@@ -675,7 +675,7 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
-      
+
       foreach package_id [::xowiki::Package instances -closure true] {
         ns_log notice "::xowiki::Package initialize -package_id $package_id -init_url false"
         if {[catch {
@@ -696,7 +696,7 @@ namespace eval ::xowiki {
     if {[apm_version_names_compare $from_version_name $v] == -1 &&
         [apm_version_names_compare $to_version_name $v] > -1} {
       ns_log notice "-- upgrading to $v"
-      
+
       foreach package_id [::xowiki::Package instances -closure true] {
         ns_log notice "::xowiki::Package initialize -package_id $package_id -init_url false"
         if {[catch {
@@ -736,7 +736,7 @@ namespace eval ::xowiki {
       foreach package_id [::xowiki::Package instances -closure true] {
         ::xowiki::Package initialize -package_id $package_id -init_url false
         # reload updated prototype pages
-        ::$package_id www-import-prototype-page categories-portlet        
+        ::$package_id www-import-prototype-page categories-portlet
       }
       #
       # This "ON DELETE CASCADE" was missed in the old good days and
@@ -842,7 +842,7 @@ namespace eval ::xowiki {
     }
 
   }
-    
+
 }
 
 #

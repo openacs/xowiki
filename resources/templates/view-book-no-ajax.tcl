@@ -19,7 +19,7 @@ if {$i ne "" && ![$page exists __is_book_page]} {
     set page_title "<h2>[$i current] $title</h2>"
   } else {
     set book_relpos 0.0%
-    set page_title "<h2>$title</h2>"    
+    set page_title "<h2>$title</h2>"
   }
 }
 set header_stuff [::xo::Page header_stuff]

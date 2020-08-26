@@ -98,7 +98,7 @@ namespace eval ::xowiki::test {
         aa_log "  $name => $item_id"
         return $item_id
     }
-    
+
     ad_proc -private ::xowiki::test::require_link {name parent_id package_id target_ref} {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
 
@@ -146,7 +146,7 @@ namespace eval ::xowiki::test {
         }
         ns_log notice "Page  $name => $item_id"
         aa_log "  $name => $item_id"
-        
+
         return $item_id
     }
 

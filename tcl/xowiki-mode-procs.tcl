@@ -41,14 +41,14 @@ namespace eval ::xowiki {
       return [ad_get_client_property -cache_only t xowiki $mode_name]
     }
 
-    :public method toggle {} { 
+    :public method toggle {} {
       #
       # Switch state of the toggle
       #
       set oldState [:get]
       :set [expr {!$oldState}]
     }
-    
+
     :public method set {value:boolean} {
       #
       # Set the mode to the specified value
@@ -65,7 +65,10 @@ namespace eval ::xowiki {
   ::xowiki::Mode create ::xowiki::mode::admin {
     :public object method default {} {
       # Admins are per default in admin-mode
-      return [::xo::cc permission -object_id [xo::cc package_id] -privilege admin -party_id [xo::cc user_id]]
+      return [::xo::cc permission \
+                  -object_id [xo::cc package_id] \
+                  -privilege admin \
+                  -party_id [xo::cc user_id]]
     }
   }
   #
