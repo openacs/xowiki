@@ -36,8 +36,7 @@ namespace eval ::xowiki {
     return [::$package_id instantiate_forms \
                 -forms $forms \
                 -default_lang $default_lang \
-                -parent_id $parent_id \
-                -package_id ${:id}]
+                -parent_id $parent_id]
   }
 
   ::xowiki::Weblog instproc init {} {
