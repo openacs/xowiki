@@ -4592,22 +4592,45 @@ namespace eval ::xowiki {
     return [dict exists ${:instance_attributes} $name]
   }
 
-  FormPage instproc property {name {default ""}} {
+  FormPage ad_instproc property {
+    name
+    {default ""}
+  } {
+    Retrieve a FormPage property.
 
+    @param name property name. Names starting with _ refer to object's
+                members, rather than instance attributes.
+    @param default fallback value when property is not set.
+  } {
+    set value $default
     if {[regexp {^_([^_].*)$} $name _ varname]} {
       if {[info exists :$varname]} {
-        return [set :$varname]
+        set value [set :$varname]
       }
-      return $default
+    } elseif {[dict exists ${:instance_attributes} $name]} {
+      set value [dict get ${:instance_attributes} $name]
     }
 
-    if {[dict exists ${:instance_attributes} $name]} {
-      return [dict get ${:instance_attributes} $name]
-    }
-    return $default
+    return $value
   }
 
-  FormPage instproc set_property {{-new 0} name value} {
+  FormPage ad_instproc set_property {
+    {-new 0}
+    name
+    value
+  } {
+    Stores a value as FormPage property
+
+    @param new boolean flag telling if the property is new. Setting a
+               value on a non-existing property without specifying
+               this flag will result in an error.
+    @param name property name. Names starting with _ indicate an
+                object variable rather than a property stored in
+                instance_attributes
+    @param value property value
+
+    @return value
+  } {
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
 
@@ -4628,7 +4651,16 @@ namespace eval ::xowiki {
     return $value
   }
 
-  FormPage instproc get_property {-source -name:required {-default ""}} {
+  FormPage ad_instproc get_property {
+    -source
+    -name:required
+    {-default ""}
+  } {
+    Retrieves a FormPage property
+
+    @param source page name to be resolved and used instead this
+                  FormPage to fetch the property
+  } {
     if {![info exists source]} {
       set page [self]
     } else {
