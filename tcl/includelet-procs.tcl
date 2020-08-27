@@ -4312,12 +4312,16 @@ namespace eval ::xowiki::includelet {
     }
 
     if {![info exists form_item_id]} {
-      # Start for search for form in the directory of the including
-      # form.  The provided package_id and parent_id refers to the
-      # form instances, not to the forms.
+      #
+      # Resolve forms by name, since we have no id.  The variable
+      # "$form" can be acutally refer to multiple forms in the ususal
+      # syntax, therefore the result has the plural form.
+      #
       set form_item_ids [::$package_id instantiate_forms \
                              -parent_id $parent_id \
-                             -default_lang [$o lang]]
+                             -default_lang [$o lang] \
+                             -forms $form \
+                            ]
       if {$form_item_ids eq ""} {
         return -code error "could not load form '$form' (default-language [$o lang])"
       }
