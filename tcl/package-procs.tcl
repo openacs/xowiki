@@ -2428,9 +2428,10 @@ namespace eval ::xowiki {
         continue
       }
       set last_modified [::xo::dc get_value get_newest_modification_date \
-                             {select last_modified from acs_objects
+                             {select max(last_modified)
+                               from acs_objects
                                where package_id = :package_id
-                               order by last_modified desc limit 1}]
+                             }]
 
       set time [::xo::db::tcl_date $last_modified tz]
       set time "[clock format [clock scan $time] -format {%Y-%m-%dT%T}]${tz}:00"
