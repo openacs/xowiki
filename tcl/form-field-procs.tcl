@@ -1670,7 +1670,9 @@ namespace eval ::xowiki::formfield {
   } {
 
     set content_type_registered [::xo::dc get_value check_content_type {
-      select exists(select 1 from cr_mime_types where mime_type = :content_type)
+      select case when exists
+      (select 1 from cr_mime_types where mime_type = :content_type) then 1 else 0 end
+      from dual
     }]
     #
     # If the provided mime type is not registered, or unknown, try
