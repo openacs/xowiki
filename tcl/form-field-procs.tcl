@@ -8,20 +8,6 @@
 
 namespace eval ::xowiki::formfield {
 
-  # FormFields are objects, which can be outputted as well in ad_forms
-  # or asHTML included in wiki pages. FormFields support
-  #
-  #  - validation
-  #  - help_text
-  #  - error messages
-  #  - internationalized pretty_values
-  #
-  # and inherit properties of the original datatypes via slots
-  # (e.g. for boolean entries). FormFields can be subclassed
-  # to ensure tailor-ability and high reuse.
-  #
-  # todo: at some later time, this could go into xotcl-core
-
   ###########################################################
   #
   # ::xowiki::formfield::FormField (Base Class)
@@ -67,6 +53,7 @@ namespace eval ::xowiki::formfield {
     {readonly}
 
     locale
+    {language_specific false}
     default
     object
     slot
@@ -79,6 +66,29 @@ namespace eval ::xowiki::formfield {
     in_position
     test_item_in_position
     test_item_minutes
+  } -ad_doc {
+    Base FormField class.
+
+    FormFields are objects, which can be outputted as well in ad_forms
+    or asHTML included in wiki pages. FormFields support:
+     - validation
+     - help_text
+     - error messages
+     - internationalized pretty_values
+
+    and inherit properties of the original datatypes via slots
+    (e.g. for boolean entries). FormFields can be subclassed
+    to ensure tailor-ability and high reuse.
+
+    todo: at some later time, this could go into xotcl-core.
+
+    @param language_specific this parameter decides that the value
+                             collected by this formfield should be
+                             transparently stored as a message
+                             key. The translation language is that of
+                             the current package, determined by
+                             'use_connection_locale' package parameter,
+                             connection locale and system settings.
   }
   #
   # TODO: "in_position" is just for a short transitional phase here
@@ -656,12 +666,13 @@ namespace eval ::xowiki::formfield {
     if {[info exists :$var] && [set :$var] eq $value} {return 1}
     return 0
   }
-  FormField instproc convert_to_internal {} {
-    # to be overloaded
-  }
+
   FormField instproc convert_to_external {value} {
-    # to be overloaded
-    return $value
+    ${:object} get_property -localized ${:language_specific} -name ${:name} -default $value
+  }
+
+  FormField instproc convert_to_internal {} {
+    ${:object} set_property -new 1 -localized ${:language_specific} ${:name} ${:value}
   }
 
   FormField instproc process_correct_when_modifier {} {
