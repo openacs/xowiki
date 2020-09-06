@@ -3245,7 +3245,7 @@ namespace eval ::xowiki {
       return [set $key]
     }
 
-    if {$name ni {langmarks fontname fontsize formatblock}} {
+    if {$name ni {langmarks fontname fontsize formatblock} && ![string match *__locale $name]} {
       set names [list]
       foreach f $form_fields {lappend names [$f name]}
       :msg "No form field with name '$name' found\

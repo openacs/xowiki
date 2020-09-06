@@ -528,7 +528,14 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
-
+  FormField instproc escape_message_keys {value} {
+    #
+    # Can be overloaded, when e.g. no escaping of message keys or
+    # other representations of message keys are desired.
+    #
+    return [xo::escape_message_keys $value]
+  }
+  
   FormField instproc render_input {} {
     #
     # This is the most general widget content renderer.
@@ -559,7 +566,7 @@ namespace eval ::xowiki::formfield {
     # renderer.
     #
     set old_value ${:value}
-    set :value [xo::escape_message_keys $old_value]
+    set :value [:escape_message_keys $old_value]
     ::html::input [:get_attributes type size maxlength id name value \
                        autocomplete pattern placeholder {CSSclass class} {*}$booleanAtts] {}
     #
@@ -2098,6 +2105,93 @@ namespace eval ::xowiki::formfield {
       :word_statistics [dict get $options word_statistics]
     }
   }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::localized_text
+  #
+  ###########################################################
+
+  Class create localized_text -superclass text -ad_doc {
+
+    This class can be used to provide an interface for specifying
+    internationalized text strings saved in message keys via input
+    from a form. When editing the content provided via the input field
+    is saved together with an item-specific message keys in the
+    message key tables via lang::util::convert_to_i18n.
+
+    This formfield class is especially useful for xowiki items which
+    have no language-prefix (e.g. folders or links). In other cases it
+    is probably still a better idea to create same named pages with
+    different language prefixes.
+
+    @see ::lang::util::convert_to_i18n
+  }
+
+
+  localized_text instproc escape_message_keys {value} {
+    #
+    # Do NOT escape message keys (i.e. let them be rendered localized)
+    #
+    return $value
+  }
+
+  localized_text instproc build_message_key_name {-object_id:integer value} {
+    #
+    # Construct a per-item message key for this formfield
+    #
+    return xowiki-$object_id-formfield-${:name}
+  }
+  
+  localized_text instproc convert_to_internal {} {
+    set value [:value]
+    #
+    # When the provided values does not look like a message key, then
+    # create a new one on the fly.
+    #
+    :log "localized_text sees <$value>"
+    if {![regexp [lang::util::message_key_regexp] $value]} {
+      set object_id  [${:object} item_id]
+      set package_id [${:object} package_id]      
+      #
+      # Try to get the desired locale first from a form parameter with
+      # a name suffix "__locale" or get the locale as specified by the user.
+      #
+      set locale [::$package_id form_parameter \
+                      "${:name}__locale" \
+                      [::$package_id default_locale]]
+      #
+      # Save the value in the message keys with the resulting locale
+      #
+      set value [lang::util::convert_to_i18n \
+                     -locale $locale \
+                     -object_id $object_id \
+                     -message_key [:build_message_key_name -object_id $object_id ${:name}] \
+                     -text $value]
+      ${:object} set_property -new 1 ${:name} $value
+    }
+  }
+
+  localized_text instproc render_input {} {
+    ::html::input [:get_attributes type id name value disabled autocomplete {CSSclass class}] {}
+    #
+    # Add a small selector for specifying the locale for the provided
+    # message string.
+    #
+    set value [[${:object} package_id] default_locale]
+    ::html::select [list id ${:id}__locale name ${:name}__locale] {
+      foreach o [xowiki::locales] {
+        lassign $o label rep
+        set atts [:get_attributes disabled]
+        lappend atts value $rep
+        if {$rep in $value} {
+          lappend atts selected selected
+        }
+        ::html::option $atts {::html::t $label}
+      }
+    }
+  }
+  
 
   ###########################################################
   #
