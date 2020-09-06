@@ -53,7 +53,6 @@ namespace eval ::xowiki::formfield {
     {readonly}
 
     locale
-    {language_specific false}
     default
     object
     slot
@@ -674,22 +673,13 @@ namespace eval ::xowiki::formfield {
     return 0
   }
 
-  FormField instproc convert_to_external {value} {
-    ${:object} get_property -localized ${:language_specific} -name ${:name} -default $value
+  FormField instproc convert_to_internal {} {
+    # To be overloaded.
   }
 
-  FormField instproc convert_to_internal {} {
-    # Do not apply any possible conversion to the name: this is a
-    # delicate property with many technical implications. Furthermore,
-    # name validation happens before this conversion is executed, and
-    # it has the side-effect of adding the eventual language prefix to
-    # the name value and store it on the Page object. Such side-effect
-    # is not reflected on the value of the FormField, and calling
-    # set_property now would override it, preventing pages from
-    # receiving their language prefix.
-    if {${:name} ne "_name"} {
-      return [${:object} set_property -new 1 -localized ${:language_specific} ${:name} ${:value}]
-    }
+  FormField instproc convert_to_external {value} {
+    # To be overloaded.
+    return $value
   }
 
   FormField instproc process_correct_when_modifier {} {

@@ -4593,44 +4593,27 @@ namespace eval ::xowiki {
   }
 
   FormPage ad_instproc property {
-    {-localized false}
     name
     {default ""}
   } {
     Retrieve a FormPage property.
 
-    @param localized boolean flag telling that value should be passed
-           through localization
     @param name property name. Names starting with _ refer to object's
                 members, rather than instance attributes.
     @param default fallback value when property is not set.
   } {
-    set value $default
     if {[regexp {^_([^_].*)$} $name _ varname]} {
       if {[info exists :$varname]} {
-        set value [set :$varname]
+        return [set :$varname]
       }
     } elseif {[dict exists ${:instance_attributes} $name]} {
-      set value [dict get ${:instance_attributes} $name]
+      return [dict get ${:instance_attributes} $name]
     }
-
-    if {$localized} {
-      set locale [${:package_id} default_locale]
-      set value [lang::util::localize $value $locale]
-    }
-
-    return $value
-  }
-
-  FormPage instproc build_property_message_key_name {
-    name
-  } {
-    return xowiki-${:item_id}-property-${name}
+    return $default
   }
 
   FormPage ad_instproc set_property {
     {-new 0}
-    {-localized false}
     name
     value
   } {
@@ -4639,8 +4622,6 @@ namespace eval ::xowiki {
     @param new boolean flag telling if the property is new. Setting a
                value on a non-existing property without specifying
                this flag will result in an error.
-    @param localized boolean flag telling that provided value should
-                     automatically be converted to a message key
     @param name property name. Names starting with _ indicate an
                 object variable rather than a property stored in
                 instance_attributes
@@ -4648,16 +4629,6 @@ namespace eval ::xowiki {
 
     @return value (eventually converted to a has-notation message key)
   } {
-    if {$localized} {
-      if {![regexp [lang::util::message_key_regexp] $value]} {
-        set value [lang::util::convert_to_i18n \
-                       -locale [${:package_id} default_locale] \
-                       -object_id ${:item_id} \
-                       -message_key [:build_property_message_key_name $name] \
-                       -text $value]
-      }
-    }
-
     if {[string match "_*" $name]} {
       set key [string range $name 1 end]
 
@@ -4681,7 +4652,6 @@ namespace eval ::xowiki {
   FormPage ad_instproc get_property {
     -source
     -name:required
-    {-localized false}
     {-default ""}
   } {
     Retrieves a FormPage property
@@ -4694,7 +4664,7 @@ namespace eval ::xowiki {
     } else {
       set page [:resolve_included_page_name $source]
     }
-    return [$page property -localized $localized $name $default]
+    return [$page property $name $default]
   }
 
   FormPage instproc lappend_property {name value} {
