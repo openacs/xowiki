@@ -4314,8 +4314,8 @@ namespace eval ::xowiki::includelet {
     if {![info exists form_item_id]} {
       #
       # Resolve forms by name, since we have no id.  The variable
-      # "$form" can be acutally refer to multiple forms in the ususal
-      # syntax, therefore the result has the plural form.
+      # "$form" can be actually refer to multiple forms in the ususal
+      # syntax, therefore, the result has the plural form.
       #
       set form_item_ids [::$package_id instantiate_forms \
                              -parent_id $parent_id \
