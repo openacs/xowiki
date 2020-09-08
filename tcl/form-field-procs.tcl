@@ -1161,7 +1161,7 @@ namespace eval ::xowiki::formfield {
                -stripped_name [dict get $item_ref stripped_name] \
                -label $label \
                -parent_id [dict get $item_ref parent_id] \
-               -item_id $[dict get $item_ref item_id]]
+               -item_id [dict get $item_ref item_id]]
 
     if {[:istype file]} {
       if {$revision_id ne ""} {
