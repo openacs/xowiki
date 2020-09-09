@@ -13,6 +13,15 @@ if {[nsv_exists xowiki must_update_hkeys]
     nsv_unset xowiki must_update_hkeys
 }
 
+# Make sure, the site-wide pages are loaded and/or refetched when the
+# source code in the prototype pages changed.
+#
+try {
+  ::xowiki::Package require_site_wide_pages -refetch_if_modified true
+} on error {errorMsg} {
+  ns_log error "xowiki-init:  require_site_wide_pages lead to: $errorMsg"
+}
+
 set ::xowiki::search_mounted_p 1
 set search_driver [parameter::get -package_id [apm_package_id_from_key search] \
                        -parameter FtsEngineDriver]
