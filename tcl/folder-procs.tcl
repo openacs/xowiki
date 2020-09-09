@@ -424,6 +424,9 @@ namespace eval ::xowiki::includelet {
     foreach c $sub_folders {
 
       set label [$c title]
+      if {[regexp [lang::util::message_key_regexp] $label . innerValue]} {
+        set label [_ $innerValue]
+      }
       set folder_href [$c pretty_link]
 
       set is_current [expr {${:current_folder_id} eq [$c item_id]}]
