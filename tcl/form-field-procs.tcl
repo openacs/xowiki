@@ -2139,7 +2139,7 @@ namespace eval ::xowiki::formfield {
     # When the provided values does not look like a message key, then
     # create a new one on the fly.
     #
-    :log "localized_text sees <$value>"
+    #:log "localized_text sees <$value>"
     if {![regexp [lang::util::message_key_regexp] $value]} {
       set object_id  [${:object} item_id]
       set package_id [${:object} package_id]      
