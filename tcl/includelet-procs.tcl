@@ -1983,13 +1983,13 @@ namespace eval ::xowiki::includelet {
     #
     # Get all unresolved references from this package
     #
-    set unresolved_references [xo::dc list_of_lists _ [subst {
+    set unresolved_references [xo::dc list_of_lists _ {
       select page, name, o.package_id
       from xowiki_unresolved_references, acs_objects o
       where page = o.object_id
       and o.package_id = :package_id
       and link_type = 'link'
-    }]]
+    }]
 
     set entries_with_unresolved_items {}
     foreach tuple $unresolved_references {
