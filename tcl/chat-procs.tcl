@@ -581,49 +581,36 @@ namespace eval ::xowiki {
         -conf       $conf
     #:log "--CHAT created c1 with mode=$mode"
 
+    set js ""
     set data [c1 login]
     if {$data ne ""} {
-      append html [subst {
-        <script nonce='[security::csp::nonce]'>
-          var data = $data;
-          for(var i = 0; i < data.length; i++) {
-            renderData(data\[i\]);
-          }
-        </script>
+      append js [subst {
+        var data = $data;
+        for (var i = 0; i < data.length; i++) {
+          renderData(data\[i\]);
+        }
       }]
     }
 
     if {$fs_link_p} {
-      append html [subst {
-        <script nonce='[security::csp::nonce]'>
-          addFullScreenLink();
-        </script>
-      }]
+      append js {addFullScreenLink();}
     }
 
-    append html [subst {
-      <script nonce='[security::csp::nonce]'>
-        addSendPic();
-      </script>
-    }]
+    append js {addSendPic();}
 
     #:log "--CHAT create HTML for mode=$mode"
 
     switch -- $mode {
       "polling" {
-        append html [subst {
-          <script nonce='[security::csp::nonce]'>
-             chatSubscribe('$subscribe_url');
-          </script>
+        append js [subst {
+          chatSubscribe('$subscribe_url');
         }]
         set send_msg_handler pollingSendMsgHandler
       }
 
       "streaming" {
-        append html [subst {
-          <script nonce='[security::csp::nonce]'>
-             chatSubscribe('$subscribe_url');
-          </script>
+        append js [subst {
+          chatSubscribe('$subscribe_url');
         }]
         set send_msg_handler streamingSendMsgHandler
       }
@@ -637,6 +624,11 @@ namespace eval ::xowiki {
         set send_msg_handler scriptedStreamingSendMsgHandler
       }
     }
+    append html [subst {
+      <script nonce='[security::csp::nonce]'>
+      $js
+      </script>
+    }]
 
     template::add_refresh_on_history_handler
 
