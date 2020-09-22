@@ -534,7 +534,7 @@ namespace eval ::xowiki::formfield {
     #
     return [xo::escape_message_keys $value]
   }
-  
+
   FormField instproc render_input {} {
     #
     # This is the most general widget content renderer.
@@ -2132,7 +2132,7 @@ namespace eval ::xowiki::formfield {
     #
     return xowiki-$object_id-formfield-${:name}
   }
-  
+
   localized_text instproc convert_to_internal {} {
     set value [:value]
     #
@@ -2142,7 +2142,7 @@ namespace eval ::xowiki::formfield {
     #:log "localized_text sees <$value>"
     if {![regexp [lang::util::message_key_regexp] $value]} {
       set object_id  [${:object} item_id]
-      set package_id [${:object} package_id]      
+      set package_id [${:object} package_id]
       #
       # Try to get the desired locale first from a form parameter with
       # a name suffix "__locale" or get the locale as specified by the user.
@@ -2181,7 +2181,7 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
-  
+
 
   ###########################################################
   #
@@ -5074,6 +5074,9 @@ namespace eval ::xowiki::formfield {
 
   Class create label -superclass FormField -parameter {
     {disableOutputEscaping:boolean false}
+  }
+  label instproc pretty_value {v} {
+    return [expr {${:disableOutputEscaping} ? $v : [next]}]
   }
   label instproc render_item {} {
     # sanity check; required and label do not fit well together
