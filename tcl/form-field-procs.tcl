@@ -65,6 +65,7 @@ namespace eval ::xowiki::formfield {
     in_position
     test_item_in_position
     test_item_minutes
+    test_item_points    
   } -ad_doc {
     Base FormField class.
 
@@ -842,11 +843,11 @@ namespace eval ::xowiki::formfield {
                 set grading_score 0.0
               }
               #:log "=== ${:name} grading ${:grading} => $grading_score"
-              if {[info exists :test_item_minutes]} {
-                set points [format %.2f [expr {${:test_item_minutes} * $grading_score / 100.0}]]
+              if {[info exists :test_item_points]} {
+                set points [format %.2f [expr {${:test_item_points} * $grading_score / 100.0}]]
                 dict set :correction_data points $points
                 #append feedback " correct: $grading_score "
-                append feedback " points: $points of [format %.2f ${:test_item_minutes}]"
+                append feedback " points: $points of [format %.2f ${:test_item_points}]"
               } else {
                 append feedback " grading_score $grading_score"
               }
