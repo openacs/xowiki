@@ -71,7 +71,7 @@ namespace eval ::xowiki {
         set item_id [dict get $ref item_id]
         ns_log notice "www-clipboard-add item_ref <$ref> -> item_id"
       }
-      if {$item_id == 0} {
+      if {![info exists item_id] || $item_id == 0} {
         #
         # Try to resolve either via a passed in parent_id or via direct
         # child or via sibling.
