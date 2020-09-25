@@ -88,10 +88,10 @@ namespace eval ::xowiki {
       }
 
       if {$item_id ne 0} {
-        #:log "clipboard-add adds $page_name // $item_id"
+        #:log "clipboard-add adds $page_ref // $item_id"
         lappend item_ids $item_id
       } else {
-        ns_log warning "get_ids_for_bulk_actions: clipboard entry <$page_name> could not be resolved"
+        ns_log warning "get_ids_for_bulk_actions: clipboard entry <$page_ref> could not be resolved"
       }
     }
     return $item_ids
