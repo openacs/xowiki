@@ -2501,15 +2501,9 @@ namespace eval ::xowiki {
       }
     }
 
-    ad_try {
-      [self]::link configure {*}$options
-      set result [[self]::link]
+    [self]::link configure {*}$options
+    set result [[self]::link]
 
-    } on error {errorMsg} {
-      ns_log error "$errorMsg\n$::errorInfo"
-      set result "<div class='errorMsg'>Error during processing of options [list $options]\
-        of link of type [[self]::link info class]:<blockquote>$errorMsg</blockquote></div>"
-    }
     return $result
   }
 
