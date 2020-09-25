@@ -63,7 +63,7 @@ namespace eval ::xowiki {
         if {[content::item::get -item_id $page_ref]} {
           set item_id $page_ref
         }
-      } elseif {[string index $page_ref 0] eq "/"} {
+      } elseif {[string first / $page_ref] != -1} {
         #
         # $page_ref looks like a URL path
         #
