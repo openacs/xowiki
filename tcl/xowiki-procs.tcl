@@ -976,8 +976,7 @@ namespace eval ::xowiki {
       if {$group_name ne ""} {
         :log "+++ create a new group group_name=${group_name}"
         set group_id [group::new -group_name $group_name]
-        set info(join_policy) [dict get $entry join_policy]
-        group::update -group_id $group_id -array info
+        group::update -group_id $group_id [list join_policy [dict get $entry join_policy]]
         ns_log notice "+++ reverse_party_map: we could add members [dict get $entry members] - but we don't"
         return $group_id
       } else {
