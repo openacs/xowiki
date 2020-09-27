@@ -3347,9 +3347,10 @@ namespace eval ::xowiki {
     if {$source_item_id ne ""} {
       set source [FormPage get_instance_from_db -item_id $source_item_id]
       $f copy_content_vars -from_object $source
-      set name "[::xowiki::autoname new -parent_id $source_item_id -name ${:name}]"
-      ::$package_id get_lang_and_name -name $name lang name
-      $f set name $name
+      #set name "[::xowiki::autoname new -parent_id $source_item_id -name ${:name}]"
+      #::$package_id get_lang_and_name -name $name lang name
+      #$f set name $name
+      #ns_log notice "FINAL NAME <$name>"
       #:msg nls=[$f nls_language],source-nls=[$source nls_language]
     }
     foreach {att value} $default_variables {
@@ -3394,7 +3395,7 @@ namespace eval ::xowiki {
     return [:substitute_markup $html]
   }
   PlainPage instproc set_content {text} {
-    :text $text
+    set :text $text
   }
 
   PlainPage instproc substitute_markup {raw_content} {
@@ -3819,6 +3820,14 @@ namespace eval ::xowiki {
     } else {
       #:msg "get_form_constraints returns '[:get_from_template form_constraints]'"
       return [:get_from_template form_constraints]
+    }
+  }
+
+  FormPage instproc set_content {text} {
+    if {$text eq ""} {
+      set :text $text
+    } else {
+      next
     }
   }
 

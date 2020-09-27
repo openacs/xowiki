@@ -326,7 +326,7 @@ namespace eval ::xowiki {
       }
     }
 
-    # load the instance attributes from the form parameters
+    # Load the instance attributes from the form parameters
     set instance_attributes [list]
     foreach {_att _value} [::xo::cc get_all_form_parameter] {
       if {[string match _* $_att]} continue
@@ -371,6 +371,32 @@ namespace eval ::xowiki {
       :log "FINAL publish_status $publish_status"
     }
 
+    #
+    # Provide "p.configure" hook to programmatically configure pages
+    #
+    if {[:exists_query_parameter p.configure]} {
+      set configure_method [:query_parameter p.configure:wordchar]
+      if {[$f procsearch configure_page=$configure_method] ne ""} {
+        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
+        $f configure_page=$configure_method $name
+      } else {
+        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
+      }
+    }
+
+    #
+    # Provide "p.source" hook to configure pages by copying variables
+    # from other pages (e.g. sitewide pages)
+    #
+    set source_item_id 0
+    if {[:exists_query_parameter p.source]} {
+      set source_page [:query_parameter p.source:token]
+      set source_item_id [::${:package_id} lookup -use_site_wide_pages true -name $source_page]
+    }
+    if {$source_item_id == 0} {
+      set source_item_id [:query_parameter source_item_id:integer ""]
+    }
+    
     ::xo::Package require $fp_package_id
     set f [:create_form_page_instance \
                -name $name \
@@ -379,12 +405,12 @@ namespace eval ::xowiki {
                -package_id $fp_package_id \
                -default_variables $default_variables \
                -instance_attributes $instance_attributes \
-               -source_item_id [:query_parameter source_item_id:integer ""]]
+               -source_item_id $source_item_id]
 
     if {$publish_status ne "" && $publish_status in {"production" "ready" "live" "expired"}} {
       $f publish_status $publish_status
     }
-
+   
     if {$name eq ""} {
       $f save_new
     } else {
@@ -398,16 +424,17 @@ namespace eval ::xowiki {
         $f save
       }
     }
+
     $f notification_notify
 
     foreach var {return_url:localurl template_file title detail_link:localurl text} {
       regexp {^([^:]+):?} $var . key
       if {[:exists_query_parameter $key]} {
         set $key [:query_parameter $var]
-        :log "set instance var from queray param '$key' -> '[set $key]'"
+        :log "set instance var from query param '$key' -> '[set $key]'"
       }
     }
-
+    
     if {[info exists template_file]} {
       #
       # strip the leading "/" added by ns_normalizepath.
