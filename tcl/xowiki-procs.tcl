@@ -3884,6 +3884,17 @@ namespace eval ::xowiki {
   PageInstance instproc render_content {} {
     set html [:get_html_from_content [:get_from_template text]]
     set html [:adp_subst $html]
+    #
+    # Transitional code, should be removed after the release of
+    # OpenACS 5.10: In case we have a folder instances without the
+    # "description" field set, and we use the new folder.form, and the
+    # update script was not yet executed, folders might appear as
+    # empty. In htese cases, call child-resosurces manually.
+    #
+    if {$html eq "" && [:is_folder_page]} {
+      set html [:include child-resources]
+    }
+
     return "<div class='[${:page_template} css_class_name -margin_form false]'>[:substitute_markup $html]</div>"
   }
   PageInstance instproc template_vars {content} {
@@ -3891,6 +3902,7 @@ namespace eval ::xowiki {
     foreach {_ _ v} [regexp -inline -all [template::adp_variable_regexp] $content] {
       lappend result $v ""
     }
+    
     return $result
   }
 
