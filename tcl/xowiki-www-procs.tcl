@@ -218,7 +218,7 @@ namespace eval ::xowiki {
   #
   Page ad_instproc www-duplicate {} {
 
-    This web-callable method duplcated the current object. It uses the
+    This web-callable method duplicated the current object. It uses the
     same mechanisms as the clipboard-copy operation.
 
     After adding elements to the clipboard, redirect either to the
