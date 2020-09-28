@@ -396,7 +396,7 @@ namespace eval ::xowiki {
     if {$source_item_id == 0} {
       set source_item_id [:query_parameter source_item_id:integer ""]
     }
-    
+
     ::xo::Package require $fp_package_id
     set f [:create_form_page_instance \
                -name $name \
@@ -407,10 +407,12 @@ namespace eval ::xowiki {
                -instance_attributes $instance_attributes \
                -source_item_id $source_item_id]
 
-    if {$publish_status ne "" && $publish_status in {"production" "ready" "live" "expired"}} {
+    if {$publish_status ne ""
+        && $publish_status in {"production" "ready" "live" "expired"}
+      } {
       $f publish_status $publish_status
     }
-   
+
     if {$name eq ""} {
       $f save_new
     } else {
@@ -434,7 +436,7 @@ namespace eval ::xowiki {
         :log "set instance var from query param '$key' -> '[set $key]'"
       }
     }
-    
+
     if {[info exists template_file]} {
       #
       # strip the leading "/" added by ns_normalizepath.
@@ -793,7 +795,9 @@ namespace eval ::xowiki {
     #:log "--F FILE=$full_file_name // ${:mime_type}"
 
     set geometry [::xo::cc query_parameter geometry ""]
-    if {[string match "image/*" ${:mime_type}] && $geometry ne ""} {
+    if {[string match "image/*" ${:mime_type}]
+        && $geometry ne ""
+      } {
       if {![regexp {^\d*x?\d*$} $geometry]} {
         error "invalid geometry $geometry"
       }
@@ -1103,7 +1107,9 @@ namespace eval ::xowiki {
     if {$anon_instances} {
       #$name_field config_from_spec hidden
     } else {
-      if {[$name_field istype ::xowiki::formfield::hidden] && [$name_field required] == true} {
+      if {[$name_field istype ::xowiki::formfield::hidden]
+          && [$name_field required] == true
+        } {
         $name_field config_from_spec text,required
         $name_field type text
       }
@@ -1198,7 +1204,11 @@ namespace eval ::xowiki {
         if {$redirect_method eq "__none"} {
           return
         } else {
-          if {$redirect_method ne "view"} {set qp "?m=$redirect_method"} {set qp ""}
+          if {$redirect_method ne "view"} {
+            set qp "?m=$redirect_method"
+          } else {
+            set qp ""
+          }
           set url [:pretty_link]$qp
           #
           # The method query_parameter uses now "::xo::cc set_parameter ...."
@@ -1211,7 +1221,9 @@ namespace eval ::xowiki {
           return
         }
       }
-    } elseif {[:form_parameter __form_action ""] eq "view-form-data" && ![info exists :__feedback_mode]} {
+    } elseif {[:form_parameter __form_action ""] eq "view-form-data"
+              && ![info exists :__feedback_mode]
+            } {
       #
       # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
@@ -1365,7 +1377,9 @@ namespace eval ::xowiki {
       # Insert unreported errors.
       #
       foreach f $form_fields {
-        if {[$f set error_msg] ne "" && ![$f exists error_reported]} {
+        if {[$f set error_msg] ne ""
+            && ![$f exists error_reported]
+          } {
           $f render_error_msg
         }
       }
@@ -1388,7 +1402,9 @@ namespace eval ::xowiki {
         # object after the edit. This happens if one edits e.g. a page
         # through a link.
         #
-        if {[::xo::cc exists invoke_object] && [::xo::cc invoke_object] ne [self]} {
+        if {[::xo::cc exists invoke_object]
+            && [::xo::cc invoke_object] ne [self]
+          } {
           #:log "=== no return_url specified, using [::xo::cc url] or [[::${:package_id} context] url]"
           set return_url [::xo::cc url]
         }
