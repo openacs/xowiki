@@ -3609,7 +3609,7 @@ namespace eval ::xowiki::includelet {
   graph instproc graphHTML {-edges -nodes -max_edges -cutoff -base {-attrib node_id}} {
 
     ::xo::Page requireJS "/resources/ajaxhelper/prototype/prototype.js"
-    set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+    set user_agent [string tolower [ns_set iget [ns_conn headers] User-Agent]]
     if {[string match "*msie *" $user_agent]} {
       # canvas support for MSIE
       ::xo::Page requireJS "/resources/xowiki/excanvas.js"

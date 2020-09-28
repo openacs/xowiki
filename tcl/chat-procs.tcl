@@ -438,7 +438,7 @@ namespace eval ::xowiki {
       # scripted streaming should work everywhere
       #
       set mode scripted-streaming
-      if {![regexp msie|opera [string tolower [ns_set get [ns_conn headers] User-Agent]]]} {
+      if {![regexp msie|opera [string tolower [ns_set iget [ns_conn headers] User-Agent]]]} {
         #
         # Explorer doesn't expose partial response until request state
         # != 4, while Opera fires onreadystateevent only once. For

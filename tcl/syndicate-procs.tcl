@@ -52,7 +52,7 @@ namespace eval ::xowiki {
       #    http://www.blingblog.info/2006/10/30/firefox-big-browser/
       # when we want to use custom style sheets
       #
-      set user_agent [string tolower [ns_set get [ns_conn headers] User-Agent]]
+      set user_agent [string tolower [ns_set iget [ns_conn headers] User-Agent]]
       set filler [expr {[string first firefox $user_agent] >- 1 ?
                         "<!-- [string repeat deadbef 100] -->" : ""
                       }]
