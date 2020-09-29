@@ -63,13 +63,18 @@ namespace eval ::xowiki {
         if {[content::item::get -item_id $page_ref]} {
           set item_id $page_ref
         }
-      } elseif {[string first / $page_ref] != -1} {
+      } elseif {[string index $page_ref 0] eq "/"} {
         #
         # $page_ref looks like a URL path
         #
         set ref [${:package_id} item_info_from_url $page_ref]
         set item_id [dict get $ref item_id]
         ns_log notice "www-clipboard-add item_ref <$ref> -> item_id"
+      } else {
+        set p [${:package_id} get_page_from_item_ref $page_ref]
+        if {$p ne ""} {
+          set item_id [$p item_id]
+        }
       }
       if {![info exists item_id] || $item_id == 0} {
         #
