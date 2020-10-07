@@ -10,9 +10,9 @@
   {-objects ""}
 }
 
-foreach o $objects {
-  ns_log notice "DELETE $o"
-  ::$package_id www-delete -name $o
+foreach item_id [$package_id get_ids_for_bulk_actions $objects] {
+  ns_log notice "DELETE $item_id"
+  ::$package_id www-delete -item_id $item_id
 }
 
 ad_returnredirect "./list"

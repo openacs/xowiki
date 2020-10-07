@@ -40,69 +40,6 @@ namespace eval ::xowiki {
     ${:package_id} returnredirect [:query_parameter "return_url" [:pretty_link]]
   }
 
-
-  Page ad_instproc get_ids_for_bulk_actions {-parent_id page_references} {
-
-    The page_reference is either an item_id, a fully qualified URL
-    path or the name exactly as stored in the content repository
-    ("name" attribute in the database)
-
-    @param parent_id optional
-    @param page_references item_ids, paths or names to be resolved as item_ids
-    @return list of item_ids
-
-  } {
-    set item_ids {}
-    foreach page_ref $page_references {
-      #
-      # First check whether we got a valid item_id, then check for a
-      # URL path. If both are failing, resort to the legacy methods
-      # (which will be dropped eventually).
-      #
-      if {[string is integer -strict $page_ref]} {
-        if {[content::item::get -item_id $page_ref]} {
-          set item_id $page_ref
-        }
-      } elseif {[string index $page_ref 0] eq "/"} {
-        #
-        # $page_ref looks like a URL path
-        #
-        set ref [${:package_id} item_info_from_url $page_ref]
-        set item_id [dict get $ref item_id]
-        ns_log notice "www-clipboard-add item_ref <$ref> -> item_id"
-      } else {
-        set p [${:package_id} get_page_from_item_ref $page_ref]
-        if {$p ne ""} {
-          set item_id [$p item_id]
-        }
-      }
-      if {![info exists item_id] || $item_id == 0} {
-        #
-        # Try to resolve either via a passed in parent_id or via direct
-        # child or via sibling.
-        #
-        set parent_ids [expr {[info exists parent_id]
-                               ? $parent_id
-                               : [list ${:item_id} ${:parent_id}]}]
-        foreach parent_id $parent_ids {
-          set item_id [::xo::db::CrClass lookup -name $page_ref -parent_id $parent_id]
-          if {$item_id != 0} {
-            break
-          }
-        }
-      }
-
-      if {$item_id ne 0} {
-        #:log "clipboard-add adds $page_ref // $item_id"
-        lappend item_ids $item_id
-      } else {
-        ns_log warning "get_ids_for_bulk_actions: clipboard entry <$page_ref> could not be resolved"
-      }
-    }
-    return $item_ids
-  }
-
-
   #
   # Externally callable method: clipboard-add
   #

@@ -1,5 +1,6 @@
 ::xowiki::Package initialize -ad_doc {
-  import objects in xotcl format
+  
+  Import objects in XOTcl serializer format
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date Aug 11, 2006

@@ -1754,7 +1754,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # context handling
+  # Resolve context handling.
   #
   Page instproc set_resolve_context {-package_id:required -parent_id:required -item_id} {
     #
@@ -2320,7 +2320,11 @@ namespace eval ::xowiki {
     return [list name $name lang $lang normalized_name $normalized_name anchor $anchor query $query]
   }
 
+  #
+  # Forwarder to the Package instance object
+  #
   Page instforward item_ref {%my package_id} %proc
+  Page instforward get_ids_for_bulk_actions {%my package_id} %proc
 
   Page ad_instproc pretty_link {
     {-anchor ""}
@@ -3902,7 +3906,7 @@ namespace eval ::xowiki {
     foreach {_ _ v} [regexp -inline -all [template::adp_variable_regexp] $content] {
       lappend result $v ""
     }
-    
+
     return $result
   }
 

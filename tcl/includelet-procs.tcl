@@ -4533,7 +4533,7 @@ namespace eval ::xowiki::includelet {
                   -uc $uc \
                   -view_field $view_field \
                   -buttons $buttons \
-                  -package_relative_url [expr {[llength $bulk_actions] > 0}] \
+                  -include_object_id_attribute [expr {[llength $bulk_actions] > 0}] \
                   -form_item_ids $form_item_ids \
                   -with_form_link $with_form_link \
                   -csv $csv \

@@ -147,7 +147,7 @@ namespace eval ::xowiki {
     {-uc {tcl false h "" vars "" sql ""}}
     {-view_field _name}
     {-buttons ""}
-    {-package_relative_url:boolean false}
+    {-include_object_id_attribute:boolean false}
     {-form_item_ids ""}
     {-with_form_link:boolean false}
     {-csv:boolean false}
@@ -190,11 +190,8 @@ namespace eval ::xowiki {
       :add
       set __c [:last_child]
 
-      if {$package_relative_url} {
-        # xowiki/www/admin/export expects a path to the object
-        # relative to the package url
-        set url [[$p package_id] folder_path -parent_id [$p parent_id]][$p name]
-        $__c set ID $url
+      if {$include_object_id_attribute} {
+        $__c set ID [$p item_id]
       }
       if {"publish_status" in $buttons || "slim_publish_status" in $buttons} {
         $__c set _publish_status "&nbsp;"
