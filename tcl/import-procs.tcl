@@ -403,9 +403,7 @@ namespace eval ::xowiki {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
-        set zipcmd [::util::which unzip]
-        #:msg "zip = $zipcmd, tempdir = ${:tmpdir}"
-        exec $zipcmd ${:file} -d ${:tmpdir}
+        ::util::unzip -source ${:file} -destination ${:tmpdir}
         :import -dir ${:tmpdir} -parent_id ${:parent_id}
         set success 1
       }
