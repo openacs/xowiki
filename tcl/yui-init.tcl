@@ -21,18 +21,20 @@ set YUI_CSS_PATHS {
 # manually, where we can get it
 #
 set YUI_JS_PATHS {
-    animation/animation-min
-    autocomplete/autocomplete-min
-    button/button-min
-    connection/connection-min
-    container/container-min
-    datasource/datasource-min
-    datatable/datatable-min
-    menu/menu-min
-    selector/selector-min
-    treeview/treeview-min
-    utilities/utilities
-    yahoo-dom-event/yahoo-dom-event
+  animation/animation-min
+  autocomplete/autocomplete-min
+  button/button-min
+  connection/connection-min
+  container/container-min
+  datasource/datasource-min
+  datatable/datatable-min
+  event/event-min
+  menu/menu-min
+  selector/selector-min
+  treeview/treeview-min
+  utilities/utilities
+  yahoo-dom-event/yahoo-dom-event
+  yahoo/yahoo-min
 }
 
 

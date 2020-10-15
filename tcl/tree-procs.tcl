@@ -410,9 +410,11 @@ namespace eval ::xowiki {
         ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/$style/tree
       }
     }
+    ::xo::Page requireJS urn:ad:js:yui2:yahoo/yahoo-min
     ::xo::Page requireJS urn:ad:js:yui2:yahoo-dom-event/yahoo-dom-event
 
     if {$ajax} {
+      ::xo::Page requireJS urn:ad:js:yui2:event/event-min
       ::xo::Page requireJS urn:ad:js:yui2:connection/connection-min
       ::xo::Page requireJS urn:ad:js:yui2:animation/animation-min
     }
