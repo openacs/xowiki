@@ -20,7 +20,7 @@ if {$page eq ""} {
   #
   ad_return_error \
       [_ xowiki.portlet_page_does_not_exist_error_short] \
-      [_ xowiki.portlet_page_does_not_exist_error_long $page_name]
+      [_ xowiki.portlet_page_does_not_exist_error_long [list page_name $page_name]]
   ad_script_abort
 
 } else {

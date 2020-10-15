@@ -207,7 +207,7 @@
   <msg key="PodcastItem_pretty_plural">Пункты из подкаста</msg>
   <msg key="popular_tags_label">Популярные тэги</msg>
   <msg key="popular_tags_link">популярные тэги</msg>
-  <msg key="portlet_name_does_not_exist_error_long">Cтраница с именем &quot;%page_name%&quot; отсутствует.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">Cтраница с именем &quot;%page_name%&quot; отсутствует.</msg>
   <msg key="portlet_page_does_not_exist_error_short">Указанная страница не существует</msg>
   <msg key="portlet_title_exists_error_long">Пожалуйста,измените имя существующего портлета либо название xowiki страницы, которую вы хотите добавить в портал.</msg>
   <msg key="portlet_title_exists_error_short">Портлет с заголовком '%page_title%' уже существует в этом портале.</msg>

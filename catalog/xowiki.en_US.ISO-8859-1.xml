@@ -233,7 +233,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PodcastItem_pretty_plural">Podcast Items</msg>
   <msg key="popular_tags_label">Popular tags</msg>
   <msg key="popular_tags_link">popular tags</msg>
-  <msg key="portlet_name_does_not_exist_error_long">There is no page with name &#34;%page_name%&#34; available.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">There is no page with name &#34;%page_name%&#34; available.</msg>
   <msg key="portlet_page_does_not_exist_error_short">The given page does not exist</msg>
   <msg key="portlet_title_exists_error_long">Please either change the existing portlets&#39; name or the title of the xowiki page you want to add to the portal.</msg>
   <msg key="portlet_title_exists_error_short">A portlet with the title &#39;%page_title%&#39; already exists in this portal.</msg>

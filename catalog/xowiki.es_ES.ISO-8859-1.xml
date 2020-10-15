@@ -234,7 +234,7 @@
   <msg key="PodcastItem_pretty_plural">Elementos Podcast</msg>
   <msg key="popular_tags_label">Tags populares</msg>
   <msg key="popular_tags_link">tags populares</msg>
-  <msg key="portlet_name_does_not_exist_error_long">No existe ninguna página con el nombre &#34;%page_name%&#34; disponible.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">No existe ninguna página con el nombre &#34;%page_name%&#34; disponible.</msg>
   <msg key="portlet_page_does_not_exist_error_short">La página indicada no existe</msg>
   <msg key="portlet_title_exists_error_long">Por favor, cambie el nombre de los portlets existentes ó el título de la página del xowiki que se quiere añadir al portal.</msg>
   <msg key="portlet_title_exists_error_short">Un portlet cuyo título es &#39;%page_title%&#39; ya existe en este portal.</msg>
