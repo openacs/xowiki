@@ -93,6 +93,21 @@ div.xowiki-content a.broken-link-icon {
     text-decoration: none;
 }
 
+/* appearance of link types */
+
+div.xowiki-content a span.external {
+    background: transparent url(/resources/xowiki/sprite16.png) -4px -264px no-repeat;
+    padding-right: 10px;
+    text-decoration: none; /* added here for &nbsp; required in IE */
+}
+
+div.xowiki-content a span.file {
+    background: transparent url(/resources/xowiki/sprite16.png) -4px -286px no-repeat;
+    padding-right: 10px;
+    text-decoration: none;
+}
+
+
 /*
  * Icons in Book mode listings
  */
