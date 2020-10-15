@@ -1753,7 +1753,7 @@ namespace eval ::xowiki::includelet {
     if {[::xo::cc user_id] != 0} {
       set gc_link [general_comments_create_link \
                        -object_name [${:__including_page} title] \
-                       ::$item_id $gc_return_url]
+                       $item_id $gc_return_url]
       set gc_link <p>$gc_link</p>
     } else {
       set gc_link ""
