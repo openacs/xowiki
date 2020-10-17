@@ -841,8 +841,22 @@ namespace eval ::xowiki {
       ::xowiki::Package reparent_site_wide_pages
     }
 
+    set v 5.10.0d65
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+      foreach p {BootstrapCSS BootstrapJS} {
+        if {[::xo::dc 0or1row p {
+          select parameter_id from apm_parameters
+          where package_key = 'xowiki' and parameter_name = :p
+        }]} {
+          ns_log notice "unregister parameter $p"
+          apm_parameter_unregister -package_key xowiki -parameter $p -parameter_id $parameter_id
+        }
+      }
+    }
+    
   }
-
 }
 
 #
