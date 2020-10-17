@@ -50,7 +50,7 @@ namespace eval ::xowiki {
   Class create ExternalLink -superclass BaseLink
   ExternalLink instproc render {} {
     set css_atts [:mk_css_class_and_id -additional external]
-    return "<a [:anchor_atts] href='[ns_quotehtml ${:href}]'>[ns_quotehtml ${:label}]<span class='external'>&nbsp;</span></a>"
+    return "<a [:anchor_atts] href='[ns_quotehtml ${:href}]' class='external'>[ns_quotehtml ${:label}]</a>"
   }
 
   #
@@ -533,7 +533,7 @@ namespace eval ::xowiki {
       if {[info exists :revision_id]} {append internal_href ?revision_id=${:revision_id}}
     }
     if {![info exists embed_options]} {
-      return "<a href='[ns_quotehtml $internal_href]' [:mk_css_class_and_id -additional file]>$label<span class='file'>&nbsp;</span></a>"
+      return "<a href='[ns_quotehtml $internal_href]' [:mk_css_class_and_id -additional file]>$label</a>"
     } else {
       set internal_href [string map [list %2e .] $internal_href]
       return "<embed src='[ns_quotehtml $internal_href]' name=\"${:name}\" $embed_options></embed>"

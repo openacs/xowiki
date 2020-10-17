@@ -91,22 +91,22 @@ div.xowiki-content a.broken-link-icon::after {
 }
 
 /* appearance of link types */
-div.xowiki-content a span.external::after {
+div.xowiki-content a.external::after {
     /* glyphicon-new-window */
     font-family: 'Glyphicons Halflings';
     font-size: x-small;
     vertical-align: sub;
-    margin-left: -2px;
+    margin-left: 2px;
     margin-right: 2px;    
     content: "\e164";
 }
 
-div.xowiki-content a span.file::after {
+div.xowiki-content a.file::after {
     /* glyphicon-file */
     font-family: 'Glyphicons Halflings';
     font-size: x-small;
     vertical-align: sub;
-    margin-left: -2px;
+    margin-left: 2px;
     margin-right: 2px;    
     content: "\e022";
 }
