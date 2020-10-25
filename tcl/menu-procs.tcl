@@ -519,6 +519,9 @@ namespace eval ::xowiki {
             :log "Warning: no link specified"
             set link ""
           }
+          if {[dict exists $properties -disabled] && [dict get $properties -disabled]} {
+            set link ""
+          }
           set item [list url $link]
           if {[dict exists $properties -label]} {
             lappend item label [dict get $properties -label]
