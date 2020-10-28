@@ -422,6 +422,10 @@ div.xowiki-content #menubar a.disabled {
 }
 
 
+div.xowiki-content a.repeat-del-link {
+    float: right;
+}
+
 /* mc stuff */
 div.xowiki-content table.mchoice td.selection {
     width: 25px;

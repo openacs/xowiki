@@ -53,7 +53,7 @@ namespace eval ::xowiki::formfield {
     {min 1}
     {max 5}
     {repeat_add_label "#xowiki.form-repeatable-add#"}
-    {repeat_remove_label "#xowiki.form-repeatable-delete#"}
+    {repeat_remove_label "#xowiki.delete#"}
   }
   repeatContainer instproc item_spec {} {
     #
@@ -239,7 +239,6 @@ namespace eval ::xowiki::formfield {
           lappend atts style "display: none;"
         }
         ::html::div $atts {
-          $c render_input
           #
           # Compound fields - link not shown if we are not rendering
           # for the template and copy the template afterwards.
@@ -248,13 +247,15 @@ namespace eval ::xowiki::formfield {
             set del_id "repeat-del-link-[$c set id]"
             ::html::a -href "#" \
                 -id $del_id \
-                -class "repeat-del-link" {
-                  html::t [:repeat_remove_label]
+                -title ${:repeat_remove_label} \
+                -class "delete-item-button repeat-del-link" {
+                  html::t ""
                 }
             template::add_event_listener \
                 -id $del_id \
                 -script [subst {xowiki.repeat.delItem(this,'$clientData');}]
           }
+          $c render_input          
         }
         incr i
       }
