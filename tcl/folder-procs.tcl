@@ -672,6 +672,7 @@ namespace eval ::xowiki::includelet {
                    -object_types [:types_to_show] \
                    -extra_where_clause $extra_where_clause]
 
+    set package_id [::xo::cc package_id]
     set pkg ::$package_id
     set url [::xo::cc url]
     $pkg get_lang_and_name -default_lang "" -name [$current_folder name] lang name
