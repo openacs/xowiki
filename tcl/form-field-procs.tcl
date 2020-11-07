@@ -2179,32 +2179,21 @@ namespace eval ::xowiki::formfield {
     # message string.
     #
     set value [[${:object} package_id] default_locale]
-    ::html::select [list id ${:id}__locale name ${:name}__locale] {
+    set :localizer_class locale-selector
+    set :localizer_id ${:id}__locale
+    set :localizer_name ${:name}__locale
+    set atts [:get_attributes disabled {localizer_class class} {localizer_id id} {localizer_name name}]
+
+    ::html::select $atts {
       foreach o [xowiki::locales] {
         lassign $o label rep
-        set atts [:get_attributes disabled]
-        lappend atts value $rep
+        set atts [list value $rep]
         if {$rep in $value} {
           lappend atts selected selected
         }
         ::html::option $atts {::html::t $label}
       }
     }
-  }
-
-  ###########################################################
-  #
-  # ::xowiki::formfield::localized_richtext
-  #
-  ###########################################################
-
-  Class create localized_richtext -superclass {localized_text richtext} -ad_doc {
-
-    This class can be used to provide an interface for specifying
-    internationalized text strings saved in message keys via input
-    from a form. Very similar to localized_text
-
-    @see ::xowiki::formfield::localized_text
   }
 
   ###########################################################
@@ -2838,6 +2827,21 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::localized_richtext
+  #
+  ###########################################################
+
+  Class create localized_richtext -superclass {localized_text richtext} -ad_doc {
+
+    This class can be used to provide an interface for specifying
+    internationalized text strings saved in message keys via input
+    from a form. Very similar to localized_text
+
+    @see ::xowiki::formfield::localized_text
+  }
+  
   ###########################################################
   #
   # ::xowiki::formfield::richtext::ckeditor
