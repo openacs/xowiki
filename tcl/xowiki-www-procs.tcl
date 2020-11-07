@@ -582,7 +582,7 @@ namespace eval ::xowiki {
     by "compare_revision_id".  We can choose here between the more
     fancy "::util::html_diff" and a plain text diff.  The latter is
     used, when the query variable "plain_text_diff" is provided, or
-    when the fnacy diff raises an exception.
+    when the fancy diff raises an exception.
 
   } {
 
@@ -1289,7 +1289,7 @@ namespace eval ::xowiki {
         #if {$formgiven && ![string match _* $att]} continue
         if {[info exists :__field_in_form($att)]} continue
         set f [:lookup_form_field -name $att $form_fields]
-        #:log "insert auto_field $att $f"
+        #:log "insert auto_field $att $f ([$f info class])"
         $f render_item
       }
     } $fcn
@@ -2834,12 +2834,30 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc field_names {{-form ""}} {
+    #
+    # Ge the field-names mentioned in form (the provided form has
+    # always highest precedence).
+    #
     lassign [:field_names_from_form -form $form] form_vars needed_attributes
-    #:msg "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
+    #
+    # In case, we have no form, get the field-names from the form
+    # constraints.
+    #
+    if {[llength $needed_attributes] == 0} {
+      set needed_attributes [:field_names_from_form_constraints]
+    }
+    #:log "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
+
     array unset :__field_in_form
     array unset :__field_needed
-    if {$form_vars} {foreach v $needed_attributes {set :__field_in_form($v) 1}}
-    foreach v $needed_attributes {set :__field_needed($v) 1}
+    if {$form_vars} {
+      foreach v $needed_attributes {
+        set :__field_in_form($v) 1
+      }
+    }
+    foreach v $needed_attributes {
+      set :__field_needed($v) 1
+    }
 
     #
     # Remove the fields already included in auto_fields form the needed_attributes.
@@ -2851,20 +2869,23 @@ namespace eval ::xowiki {
     foreach f $auto_fields {
       set p [lsearch -exact $reduced_attributes $f]
       if {$p > -1} {
-        #if {$form_vars} {
-        #set auto_field_in_form($f) 1
-        #}
         set reduced_attributes [lreplace $reduced_attributes $p $p]
       }
     }
     #:msg reduced_attributes(after)=$reduced_attributes
     #:msg fields_from_form=[array names :__field_in_form]
 
-    set field_names [list _name]
-    if {[::${:package_id} show_page_order]}  { lappend field_names _page_order }
+    set field_names _name
+    if {[::${:package_id} show_page_order]}  {
+      lappend field_names _page_order
+    }
     lappend field_names _title _creator _assignee
-    foreach fn $reduced_attributes                     { lappend field_names $fn }
-    foreach fn [list _text _description _nls_language] { lappend field_names $fn }
+    foreach fn $reduced_attributes {
+      lappend field_names $fn
+    }
+    foreach fn [list _text _description _nls_language] {
+      lappend field_names $fn
+    }
     #:msg final-field_names=$field_names
     return $field_names
   }
@@ -2873,7 +2894,9 @@ namespace eval ::xowiki {
     array set dont_modify {item_id 1 revision_id 1 object_id 1 object_title 1 page_id 1 name 1}
     set field_names [list]
     foreach field_name [[:info class] array names db_slot] {
-      if {[info exists dont_modify($field_name)]} continue
+      if {[info exists dont_modify($field_name)]} {
+        continue
+      }
       lappend field_names _$field_name
     }
     #:msg field_names=$field_names

@@ -1396,12 +1396,14 @@ namespace eval ::xowiki {
       ::xo::db::CrClass get_instance_from_db -item_id ${:page_template}
     }
     set page_template_name [${:page_template} name]
-    if {$page_template_name eq "en:folder.form"} {return 1}
-    if {$include_folder_links && $page_template_name eq "en:link.form"} {
+    if {$page_template_name eq "en:folder.form"} {
+      return 1
+    } elseif {$include_folder_links && $page_template_name eq "en:link.form"} {
       set link_type [:get_property_from_link_page link_type]
       return [expr {$link_type eq "folder_link"}]
+    } else {
+      return 0
     }
-    return 0
   }
 
   #
@@ -3264,9 +3266,8 @@ namespace eval ::xowiki {
     error "No form field with name $name found"
   }
 
-  Page instproc show_fields {form_fields} {
+  Page instproc show_fields {form_fields {msg ""}} {
     # this method is for debugging only
-    set msg ""
     foreach f $form_fields { append msg "[$f name] [namespace tail [$f info class]], " }
     :msg $msg
     :log "form_fields: $msg"
@@ -3730,6 +3731,20 @@ namespace eval ::xowiki {
     return ""
   }
 
+  PageInstance instproc field_names_from_form_constraints {} {
+    set form_constraints [:get_form_constraints]
+    set result {}
+    foreach name_and_spec $form_constraints {
+      regexp {^([^:]+):} $name_and_spec _ name
+      if {[string range $name 0 0] eq "@"} {
+        # return no aggregated (pseudo) form field names
+        continue
+      }
+      lappend result $name
+    }
+    return $result
+  }
+  
   PageInstance instproc get_short_spec {name} {
     #set form_constraints [:get_from_template form_constraints]
     set form_constraints [:get_form_constraints]
