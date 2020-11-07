@@ -65,7 +65,7 @@ namespace eval ::xowiki::formfield {
     in_position
     test_item_in_position
     test_item_minutes
-    test_item_points    
+    test_item_points
   } -ad_doc {
     Base FormField class.
 
@@ -645,8 +645,12 @@ namespace eval ::xowiki::formfield {
     dict
   } {
 
-    Convert the provided dict into form_constraint syntax
-    (comma separated).
+    Convert the provided dict into form_constraint syntax (comma
+    separated). The other direction would be more complex, since the
+    fcs are interpreted from left to right, overwriting potentially
+    previous values. The fc-interpretation creates already the form
+    fields, produces intended errors, when certain attributes are not
+    allowed, etc.
 
     @param name optional form-field name
     @param type required type of the form-field
