@@ -2168,7 +2168,12 @@ namespace eval ::xowiki::formfield {
   }
 
   localized_text instproc render_input {} {
-    ::html::input [:get_attributes type id name value disabled autocomplete {CSSclass class}] {}
+    #
+    # Rely on the superclass to do the right rendering of the main
+    # content widget.
+    #
+    next
+
     #
     # Add a small selector for specifying the locale for the provided
     # message string.
@@ -2187,6 +2192,20 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  ###########################################################
+  #
+  # ::xowiki::formfield::localized_richtext
+  #
+  ###########################################################
+
+  Class create localized_richtext -superclass {localized_text richtext} -ad_doc {
+
+    This class can be used to provide an interface for specifying
+    internationalized text strings saved in message keys via input
+    from a form. Very similar to localized_text
+
+    @see ::xowiki::formfield::localized_text
+  }
 
   ###########################################################
   #
