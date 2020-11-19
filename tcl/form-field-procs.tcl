@@ -2196,6 +2196,16 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  localized_text instproc pretty_value {v} {
+    #
+    # Convert message keys to text so that e.g. wikicmds are
+    # afterwards evaluated.
+    #
+
+    set locale [[${:object} package_id] default_locale]
+    return [lang::util::localize $v $locale]
+  }
+
   ###########################################################
   #
   # ::xowiki::formfield::correct_when
