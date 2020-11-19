@@ -4982,7 +4982,7 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {__decoration none}
         {parameter_declaration {
-          -mp4:required
+          -mp4:required,localurl
         }}
       } -ad_doc {
         Include an mp4 image using flowplayer
