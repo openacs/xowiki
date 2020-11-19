@@ -4975,14 +4975,14 @@ namespace eval ::xowiki::includelet {
   # Get pseudostreaming plugin from
   #     http://flowplayer.org/plugins/streaming/pseudostreaming.html#download
   #
-  # install bowth under packages/xowiki/www/resources/flowplayer
+  # install both under packages/xowiki/www/resources/flowplayer
   #
   ::xowiki::IncludeletClass create flowplayer \
       -superclass ::xowiki::Includelet \
       -parameter {
         {__decoration none}
         {parameter_declaration {
-          -mp4:required,localurl
+          -mp4:required,nohtml
         }}
       } -ad_doc {
         Include an mp4 image using flowplayer
