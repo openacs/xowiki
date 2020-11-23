@@ -2851,7 +2851,7 @@ namespace eval ::xowiki::formfield {
 
     @see ::xowiki::formfield::localized_text
   }
-  
+
   ###########################################################
   #
   # ::xowiki::formfield::richtext::ckeditor
@@ -4312,8 +4312,15 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class create candidate_box_select -superclass select -parameter {
-    {as_box false}
-    {dnd true}
+    {as_box:boolean false}
+    {keep_order:boolean false}
+    {dnd:boolean true}
+  }  -ad_doc {
+    Class for selecing a subset from a list of candidates.
+    @param as_box makes something like in info box in wikipedie (right flushed)
+    @param keep_order when set, the user provided urder is preserved, otherwise
+           the order form the candidates is used.
+    @param dnd allow drag and drop
   }
   candidate_box_select set abstract 1
 
@@ -4354,6 +4361,9 @@ namespace eval ::xowiki::formfield {
           #dict set labels $rep label $rep
           dict set labels $rep serial [incr count]
         }
+        if {${:keep_order}} {
+          set selected ${:value}
+        }
 
         html::div -class candidate-selection -id ${:id} {
           #
@@ -4373,7 +4383,7 @@ namespace eval ::xowiki::formfield {
                 -id ${:id}.selected {
                   foreach v $selected {
                     set id ${:id}.selected.[dict get $labels $v serial]
-                    ::html::li -class selection \
+                    ::html::li -class "selection list-group-item" \
                         -draggable true -id $id -data-value $v {
                           ::html::t [dict get $labels $v label]
                         }
@@ -4392,7 +4402,7 @@ namespace eval ::xowiki::formfield {
               foreach v $candidates {
                 set id ${:id}.[dict get $labels $v serial]
                 ::html::li \
-                    -class candidates \
+                    -class "candidates list-group-item" \
                     -draggable true -id $id -data-value $v {
                       ::html::t [dict get $labels $v label]
                     }
@@ -4481,7 +4491,7 @@ namespace eval ::xowiki::formfield {
     #
     set c -1; set indices [lmap o ${:options} {incr c}]
     if {[lsort -integer ${:value}] ne $indices} {
-      error "intenal representation of options ${:options} must be subsequent integers starting with 0"
+      error "internal representation of options ${:options} must be subsequent integers starting with 0"
     }
 
     #
