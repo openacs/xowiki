@@ -294,12 +294,14 @@ div.candidate-selection ul.region li {
 
 div.candidate-selection li.candidates {
     background-color: #D1E6EC;
-    border:1px solid #7EA6B2;
+    border: 1px solid #7EA6B2;
+    padding: 5px 15px;
 }
 
 div.candidate-selection li.selection {
     background-color: #D8D4E2;
-    border:1px solid #6B4C86;
+    border: 1px solid #6B4C86;
+    padding: 5px 15px;
 }
 div.candidate-selection textarea {
     display: none;
