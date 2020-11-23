@@ -42,20 +42,10 @@ namespace eval ::xowiki::test {
         return [$node selectNodes $q]
     }
 
-    ad_proc -private ::xowiki::test::get_url_from_location {d} {
-        set location [ns_set iget [dict get $d headers] Location ""]
-        if {$location ne ""} {
-            set url [ns_parseurl $location]
-            #aa_log "parse url '$location' => $url"
-            if {[dict get $url tail] ne ""} {
-                set url [dict get $url path]/[dict get $url tail]
-            } else {
-                set url [dict get $url path]
-            }
-        } else {
-            set url ""
-        }
-        return $url
+    ad_proc -private -deprecated ::xowiki::test::get_url_from_location {d} {
+        Deprecated version of ::acs::test::get_url_from_location
+    } {
+        ::acs::test::get_url_from_location $d
     }
 
     ad_proc -private ::xowiki::test::pretty_form_content {d} {
@@ -197,7 +187,7 @@ namespace eval ::xowiki::test {
                 set d [acs::test::http -last_request $last_request -user_id $user_id \
                            $instance/$folder_name?m=delete&return_url=$instance/]
                 if {[acs::test::reply_has_status_code $d 302]} {
-                    set location [::xowiki::test::get_url_from_location $d]
+                    set location [::acs::test::get_url_from_location $d]
                     set d [acs::test::http -last_request $last_request -user_id $user_id $location/]
                     acs::test::reply_has_status_code $d 200
                 }
@@ -270,7 +260,7 @@ namespace eval ::xowiki::test {
                    $url]
         acs::test::reply_has_status_code $d 302
 
-        set location [::xowiki::test::get_url_from_location $d]
+        set location [::acs::test::get_url_from_location $d]
         aa_true "create_form_page: location '$location' is valid" {$location ne ""}
 
         #
@@ -326,7 +316,7 @@ namespace eval ::xowiki::test {
         }
         aa_log "create_form_page: form_content:\n[::xowiki::test::pretty_form_content $form_content]"
 
-        set location [::xowiki::test::get_url_from_location $d]
+        set location [::acs::test::get_url_from_location $d]
         aa_true "create_form_page: location '$location' is valid" {$location ne ""}
 
         set d [acs::test::http \
@@ -373,7 +363,7 @@ namespace eval ::xowiki::test {
                    [export_vars -base $instance/$path $extra_url_parameter]]
         acs::test::reply_has_status_code $d 200
 
-        #set location [::xowiki::test::get_url_from_location $d]
+        #set location [::acs::test::get_url_from_location $d]
         #aa_true "location '$location' is valid" {$location ne ""}
         set response [dict get $d body]
 
@@ -496,7 +486,7 @@ namespace eval ::xowiki::test {
             ns_log notice "Maybe a validation error? response\n$response"
         }
 
-        set location [::xowiki::test::get_url_from_location $d]
+        set location [::acs::test::get_url_from_location $d]
         aa_true "location '$location' is valid" {$location ne ""}
 
         ::xo::Package initialize -url $location
