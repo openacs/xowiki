@@ -3200,9 +3200,13 @@ namespace eval ::xowiki::formfield {
       set id ${:id}
       set name ${:name}
       set package_id [${:object} package_id]
-      if {${:displayMode} eq "inline"} {
-        lappend :extraPlugins sourcedialog
-      }
+
+      # Earlier versions required the plugin "sourcedialog" in
+      # "inline" mode. Not sure why. This plugin was removed from
+      # CKEditor.
+      #if {${:displayMode} eq "inline"} {
+      #  lappend :extraPlugins sourcedialog
+      #}
 
       if {"xowikiimage" in ${:extraPlugins}} {
         :js_image_helper

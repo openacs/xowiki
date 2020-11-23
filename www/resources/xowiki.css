@@ -260,7 +260,11 @@ div.xowiki-content fieldset.compound-field fieldset.compound-field {
     border-right: 1px;
     border-left : 1px;
     border-bottom: 0px;
-    color: #888888;
+    color: #888;
+}
+div.xowiki-content div.cke_editable_inline {
+    color: #444;
+    padding-top: 10px;
 }
 div.xowiki-content fieldset.compound-field fieldset.compound-field .form-group > .form-label {
     background-color: #eeeeee;
@@ -547,7 +551,6 @@ div.xowiki-content div.autosave div.saved
     height: 2.5ex;
     font-size: smaller;
 }
-
 
 /*
  * Local Variables:
