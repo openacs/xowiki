@@ -5377,6 +5377,29 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::boolean-checkox
+  #
+  ###########################################################
+
+  Class create boolean_checkbox -superclass checkbox -parameter {
+    {default t}
+  }
+  boolean_checkbox instproc value_if_nothing_is_returned_from_form {default} {
+    if {[info exists :disabled]} {
+      return $default
+    } else {
+      return f
+    }
+  }
+  boolean_checkbox instproc initialize {} {
+    # should be with cvs head message catalogs:
+    set :options "{{} t}"
+    next
+  }
+  
+
+  ###########################################################
+  #
   # ::xowiki::boolean_image
   #
   ###########################################################
