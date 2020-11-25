@@ -3791,7 +3791,7 @@ namespace eval ::xowiki::formfield {
         } else {
           set correctly_answered [expr {$v ni $value}]
           incr f
-          #:log "enumeration - ${:name} CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
+          #:log "enumeration ${:name} CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
         }
         lappend :correction $correctly_answered
         if {$correctly_answered} {
@@ -3811,10 +3811,13 @@ namespace eval ::xowiki::formfield {
           }
         }
         #
-        # Now calculate the scores of different scoring schemes. For
-        # now, we do not allow questions having no correct answer.
+        # Now calculate the scores of different scoring schemes.
         #
         if {$r > 0} {
+          #
+          # Certain correction schemes devide by $r. We cannot use
+          # these schemes in such cases.
+          #
           if {$f == 0} {
             #
             # No penalty for marking a wrong solution, when there is
@@ -3833,16 +3836,20 @@ namespace eval ::xowiki::formfield {
               set wi2 $wi1
             }
           }
-          set s1   [expr {100.0 * $R / ($R + $W) }]
-          set s2   [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
           set etk  [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
-          set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
-          set ggw  [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
-
-          set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
         } else {
-          set scores {}
+          set wi1 0.0
+          set wi2 0.0
+          set etk 0.0
         }
+
+        set s1   [expr {100.0 * $R / ($R + $W) }]
+        set s2   [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
+
+        set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
+        set ggw  [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
+
+        set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
         set :correction_data [list \
                                   item [list r $r f $f] \
                                   marks [list rk $rk fk $fk] \
@@ -5396,7 +5403,7 @@ namespace eval ::xowiki::formfield {
     set :options "{{} t}"
     next
   }
-  
+
 
   ###########################################################
   #
