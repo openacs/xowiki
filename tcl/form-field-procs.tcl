@@ -829,7 +829,7 @@ namespace eval ::xowiki::formfield {
       set feedback [_ xowf.answer_$result]
     }
     if {$feedback_mode > 1} {
-      #:log "=== ${:name} == $feedback_mode=[info exists :correct_when] [info exists :correction] ============"
+      #:log "=== ${:name} == $feedback_mode=[info exists :correct_when] correction?[info exists :correction] ============"
       if {[info exists :correct_when]} {
         append feedback " ${:correct_when}"
       } elseif {[info exists :correction]} {
@@ -842,11 +842,17 @@ namespace eval ::xowiki::formfield {
               dict set :correction_data scores ${:grading} $score
             }
             if {[dict exists ${:correction_data} scores ${:grading}] } {
+              #
+              # We end up here for
+              #   - MC (xowiki::formfield::checkbox) and
+              #   - SC (xowiki::formfield::radio)
+              #   - Reorder (::xowiki::formfield::reorder_box)
+              #
               set grading_score [dict get ${:correction_data} scores ${:grading}]
               if {$grading_score < 0} {
                 set grading_score 0.0
               }
-              #:log "=== ${:name} grading ${:grading} => $grading_score"
+              #:log "=== ${:name} grading '${:grading}' => $grading_score"
               if {[info exists :test_item_points]} {
                 set points [format %.2f [expr {${:test_item_points} * $grading_score / 100.0}]]
                 dict set :correction_data points $points
@@ -866,7 +872,7 @@ namespace eval ::xowiki::formfield {
             ns_log notice "=== ${:name} == no grading available"
           }
         } else {
-          ns_log notice "=== ${:name} NO correction_data"
+          ns_log notice "=== ${:name} NO correction_data available"
         }
       } else {
         ns_log notice "=== ${:name} NO correct_when and no :correction"
@@ -4475,6 +4481,7 @@ namespace eval ::xowiki::formfield {
           set result -1
         }
       }
+      dict set :correction_data scores [expr {$result == 1 ? {"" 1.0} : {"" 0.0} }]
 
       #:log "reorder_box CORRECT? answers [llength ${:answer}] options [llength ${:options}] -> $result"
     }
