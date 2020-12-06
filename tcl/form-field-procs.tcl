@@ -2664,6 +2664,10 @@ namespace eval ::xowiki::formfield {
                                 ::html::t [:value]
                               }
       }
+      #
+      # For emergency situations, one might allow swa always pasting
+      # if {!${:paste} && ![acs_user::site_wide_admin_p -user_id [::xo::cc user_id]]} { ... }
+      #
       if {!${:paste}} {
         #
         # When "paste" is deactivated, the cut&paste and drag&drop
