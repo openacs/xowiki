@@ -480,7 +480,7 @@ namespace eval ::xowiki {
                           {*}$config_items \
                           {*}[${:current_folder} property extra_menu_entries]]
 
-    :log "config=$config DONE menu_entries=$menu_entries"
+    #:log "config=$config DONE menu_entries=$menu_entries"
 
     foreach me $menu_entries {
       set kind [lindex $me 0]
