@@ -691,8 +691,9 @@ namespace eval ::xowiki::formfield {
     #
     # Return a dict containing "words", "value" and "modifier",
     # skipping and processing optional parameters (just "-nocase" for
-    # now). When "-nocase" was used, "value" and "words" are
-    # translated to lower case.
+    # now). When "-nocase" is used, "value" and "words" are translated
+    # to lowercase such that the result comparison is not case
+    # sensitive.
     #
     set value [string trim [regsub -all {[ ]+} ${:value} " "]]
     set firstword [lindex ${:correct_when} 1]
@@ -4216,8 +4217,8 @@ namespace eval ::xowiki::formfield {
   text_fields instproc set_feedback {feedback_mode} {
     next
     #
-    # Make result (fully) correct, only when all sub-questsions are as
-    # well correct.
+    # Mark result as (fully) correct, when all sub-questions are
+    # (fully) correct.
     #
     set :evaluated_answer_result [expr {"0" in ${:correction} ? "incorrect" : "correct"}]
     return ${:evaluated_answer_result}
@@ -4234,10 +4235,23 @@ namespace eval ::xowiki::formfield {
       lappend results $correct
       lappend :correction [expr {$correct eq "correct"}]
     }
+    set feedback "Subquestions correct ${:correction}"
 
     set nr_correct [llength [lmap c ${:correction} { if {!$c} continue; set _ 1}]]
-    set :grading_score [format %.2f [expr {$nr_correct*100.0/[llength ${:correction}]}]]*
+    set :grading_score [format %.2f [expr {$nr_correct*100.0/[llength ${:correction}]}]]
+
+    if {[info exists :test_item_points]} {
+      set points [format %.2f [expr {${:test_item_points} * ${:grading_score} / 100.0}]]
+      dict set :correction_data points $points
+      append feedback " points: $points of [format %.2f ${:test_item_points}]"
+    }
+    append :grading_score *
+
     #:log "text_fields CORRECT? ${:name} results $results :correction ${:correction} -> ${:grading_score}"
+
+    dict set :correction_data scores [list "" ${:grading_score}]
+    set :help_text $feedback
+
     #
     # Return "0" to avoid double feedback via the info text per
     # subquestion and on the top-level.
