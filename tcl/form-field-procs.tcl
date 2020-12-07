@@ -688,11 +688,18 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc process_correct_when_modifier {} {
+    #
+    # Return a dict containing "words", "value" and "modifier",
+    # skipping and processing optional parameters (just "-nocase" for
+    # now). When "-nocase" was used, "value" and "words" are
+    # translated to lower case.
+    #
     set value [string trim [regsub -all {[ ]+} ${:value} " "]]
-    if {[string match "*lower*" [lindex ${:correct_when} 1]]} {
+    set firstword [lindex ${:correct_when} 1]
+    if {$firstword eq "-nocase" || [string match "*lower*" $firstword]} {
       set value [string tolower $value]
-      set words [lrange ${:correct_when} 2 end]
-      set modifier lower
+      set words [string tolower [lrange ${:correct_when} 2 end]]
+      set modifier nocase
     } else {
       set words [lrange ${:correct_when} 1 end]
       set modifier ""
@@ -701,39 +708,55 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc answer_check=eq {} {
-    set arg1 [lindex ${:correct_when} 1]
-    return [expr {${:value} eq $arg1}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value eq [lindex $words 0]}]
+    }
   }
   FormField instproc answer_check=gt {} {
-    set arg1 [lindex ${:correct_when} 1]
-    return [expr {${:value} > $arg1}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value > [lindex $words 0]}]
+    }
   }
   FormField instproc answer_check=ge {} {
-    set arg1 [lindex ${:correct_when} 1]
-    return [expr {${:value} >= $arg1}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value >= [lindex $words 0]}]
+    }
   }
   FormField instproc answer_check=lt {} {
-    set arg1 [lindex ${:correct_when} 1]
-    return [expr {${:value} < $arg1}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value < [lindex $words 0]}]
+    }
   }
   FormField instproc answer_check=le {} {
-    set arg1 [lindex ${:correct_when} 1]
-    return [expr {${:value} <= $arg1}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value <= [lindex $words 0]}]
+    }
   }
   FormField instproc answer_check=btwn {} {
-    set arg1 [lindex ${:correct_when} 1]
-    set arg2 [lindex ${:correct_when} 2]
-    return [expr {${:value} >= $arg1 && ${:value} <= $arg2}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [expr {$value >= [lindex $words 0] && $value >= [lindex $words 1]}]
+    }
   }
   FormField instproc answer_check=in {} {
     #
     # Correct, when answer is in the given set.
     #
     set d [:process_correct_when_modifier]
-    return [expr {[dict get $d value] in [dict get $d words]}]
+    dict with d {
+      return [expr {$value in $words}]
+    }
   }
   FormField instproc answer_check=match {} {
-    return [string match [lindex ${:correct_when} 1] ${:value}]
+    set d [:process_correct_when_modifier]
+    dict with d {
+      return [string match [lindex $words 0] $value]
+    }
   }
   FormField instproc answer_check=contains {} {
     #
@@ -757,7 +780,9 @@ namespace eval ::xowiki::formfield {
     # answer_words have to be provided in lowercase as well.
     #
     set d [:process_correct_when_modifier]
-    return [expr {[dict get $d value] eq [dict get $d words]}]
+    dict with d {
+      return [expr {$value eq $words}]
+    }
   }
 
   FormField instproc answer_is_correct {} {
@@ -894,7 +919,7 @@ namespace eval ::xowiki::formfield {
           # Mark matches in the div element.
           #
           set d [:process_correct_when_modifier]
-          set nocase [expr {[dict get $d modifier] eq "lower" ? "-nocase" : ""}]
+          set nocase [expr {[dict get $d modifier] eq "nocase" ? "-nocase" : ""}]
           set annotated_value ${:value}
           foreach word [dict get $d words] {
             #
