@@ -3317,7 +3317,9 @@ namespace eval ::xowiki {
     if {![info exists package_id]} { set package_id ${:package_id} }
     if {![info exists parent_id]}  { set parent_id ${:parent_id} }
     if {$creation_user eq ""} {
-      ::xo::ConnectionContext require -package_id $package_id
+      ::xo::ConnectionContext require \
+          -package_id $package_id \
+          -url [:pretty_link]
       set creation_user [[::$package_id context] user_id]
     }
 
