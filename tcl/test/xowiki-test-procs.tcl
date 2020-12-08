@@ -303,6 +303,10 @@ namespace eval ::xowiki::test {
         "::xo::Package instproc reply_to_user"
         "::xowiki::test::create_form"
         "::xowiki::test::create_form_page"
+        "::xowiki::test::require_test_folder"
+        "::xowiki::test::edit_form_page"
+        "::xowiki::Page instproc www-edit"
+        "::xowiki::Page instproc www-create-new"
     } create_form_with_form_instance {
 
         Create an xowiki form and an instance of this form.  Here we

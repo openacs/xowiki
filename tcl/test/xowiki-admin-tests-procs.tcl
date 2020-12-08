@@ -15,6 +15,11 @@ aa_register_case \
       "::xo::db::CrClass instproc get_instance_from_db"
       "::xowiki::Package instproc external_name"
       "::xowiki::Package instproc item_ref"
+      "::xowiki::Page instproc www-delete"
+      "::xowiki::Page instproc www-edit"     
+      "::xowiki::Page instproc www-revisions"      
+      "::xowiki::Page instproc www-view"
+      "::xowiki::Page instproc www-viewcreate-new"      
       site_node::exists_p
       site_node::unmount
       site_node::delete
