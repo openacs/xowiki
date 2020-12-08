@@ -60,7 +60,7 @@ namespace eval ::xowiki {
   }
 
 
-  ad_proc -public ::xowiki::delete_gc_messages {
+  ad_proc -private ::xowiki::delete_gc_messages {
     {-package_id:required}
   } {
     Deletes the messages of general comments to allow one to

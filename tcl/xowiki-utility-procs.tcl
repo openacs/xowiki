@@ -165,7 +165,7 @@ namespace eval ::xowiki::hstore {
     return [join $keys ,]
   }
 
-  ad_proc ::xowiki::hstore::update_hstore {package_id} {
+  ad_proc -private ::xowiki::hstore::update_hstore {package_id} {
     update all instance attributes in hstore
   } {
     if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
@@ -204,7 +204,7 @@ namespace eval ::xowiki::hstore {
 
 
 
-  ad_proc ::xowiki::hstore::update_form_instance_item_index {
+  ad_proc -private ::xowiki::hstore::update_form_instance_item_index {
     {-package_id}
     {-object_class ::xowiki::FormPage}
     {-initialize false}
@@ -307,7 +307,7 @@ namespace eval ::xowiki {
     $parameter_obj destroy
   }
 
-  ad_proc fix_all_package_ids {} {
+  ad_proc -private fix_all_package_ids {} {
     Earlier versions of OpenACS did not have the package_id set correctly
     in acs_objects; this proc updates the package_ids of all items
     and revisions in acs_objects
@@ -332,7 +332,7 @@ namespace eval ::xowiki {
     }
   }
 
-  ad_proc update_views {} {
+  ad_proc -private update_views {} {
     update all automatic views of xowiki
   } {
     foreach object_type [::xowiki::Page object_types] {
@@ -355,7 +355,7 @@ namespace eval ::xowiki {
             and ci.publish_status <> 'production'"
   }
 
-  ad_proc add_ltree_order_column {} {
+  ad_proc -private add_ltree_order_column {} {
     Add page_order of type ltree, when ltree is configured (otherwise string)
   } {
     # catch SQL statement to allow multiple runs
@@ -372,7 +372,7 @@ namespace eval ::xowiki {
     return 1
   }
 
-  ad_proc cr_thin_out {
+  ad_proc -private cr_thin_out {
     {-doit:boolean false}
     {-delete_orphans:boolean false}
     {-delete_sequences:boolean false}
