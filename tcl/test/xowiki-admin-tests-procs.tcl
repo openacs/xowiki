@@ -19,7 +19,7 @@ aa_register_case \
       "::xowiki::Page instproc www-edit"     
       "::xowiki::Page instproc www-revisions"      
       "::xowiki::Page instproc www-view"
-      "::xowiki::Page instproc www-viewcreate-new"      
+      "::xowiki::Page instproc www-create-new"
       site_node::exists_p
       site_node::unmount
       site_node::delete
