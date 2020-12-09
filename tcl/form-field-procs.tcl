@@ -1821,8 +1821,15 @@ namespace eval ::xowiki::formfield {
         tmpfile ${:tmpfile} \
         fn ${:value} {
 
+          # Sanitize the filename
           regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
           set fn [ad_file tail $fn]
+          # Flip the two flags in the command below in case we want to
+          # become stricter. For now we just make sure the filename
+          # does not contain funky characters.
+          set fn [ad_sanitize_filename \
+                      -collapse_spaces=false \
+                      -tolower=false $fn]
 
           set file_object [:store_file \
                                -file_name $fn \
