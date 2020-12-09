@@ -16,8 +16,8 @@ aa_register_case \
       "::xowiki::Package instproc external_name"
       "::xowiki::Package instproc item_ref"
       "::xowiki::Page instproc www-delete"
-      "::xowiki::Page instproc www-edit"     
-      "::xowiki::Page instproc www-revisions"      
+      "::xowiki::Page instproc www-edit"
+      "::xowiki::Page instproc www-revisions"
       "::xowiki::Page instproc www-view"
       "::xowiki::Page instproc www-create-new"
       site_node::exists_p
