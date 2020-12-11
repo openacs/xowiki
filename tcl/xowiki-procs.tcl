@@ -3314,13 +3314,30 @@ namespace eval ::xowiki {
     if {$nls_language eq ""} {
       set nls_language [:query_parameter nls_language:wordchar [:nls_language]]
     }
-    if {![info exists package_id]} { set package_id ${:package_id} }
-    if {![info exists parent_id]}  { set parent_id ${:parent_id} }
+    #
+    # Take the value of the instance variables package_id and
+    # parent_id as default.
+    #
+    if {![info exists package_id]} {
+      set package_id ${:package_id}
+    }
+    if {![info exists parent_id]}  {
+      set parent_id ${:parent_id}
+    }
+
     if {$creation_user eq ""} {
-      ::xo::ConnectionContext require \
-          -package_id $package_id \
-          -url [:pretty_link]
-      set creation_user [[::$package_id context] user_id]
+      #
+      # When no creation_user is provided, take the current user_id,
+      # but take care as well for situations, where no connections is
+      # available.
+      #
+      set context [::$package_id context]
+      if {![nsf::is object $context]} {
+        ::xo::ConnectionContext require \
+            -package_id $package_id \
+            -url [:pretty_link]
+      }
+      set creation_user [$context user_id]
     }
 
     set f [FormPage new -destroy_on_cleanup \
@@ -3746,7 +3763,7 @@ namespace eval ::xowiki {
     }
     return $result
   }
-  
+
   PageInstance instproc get_short_spec {name} {
     #set form_constraints [:get_from_template form_constraints]
     set form_constraints [:get_form_constraints]
