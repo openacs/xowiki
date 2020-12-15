@@ -4048,7 +4048,10 @@ namespace eval ::xowiki::formfield {
     if {${:richtext}} {
       ::html::div -class richtext-label {
         ::html::t -disableOutputEscaping $label
-        if {[info exists :evaluated_answer_result] && "incorrect" in $CSSclass} {
+        if {[info exists :evaluated_answer_result]
+            && "incorrect" in $CSSclass
+            && $description ne ""
+          } {
           html::div -class "help-block description" {
             html::t $description
           }
@@ -4091,7 +4094,7 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class col-sm2 radio-inline}
+      if {1 || ${:horizontal}} {lappend label_class radio-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description
@@ -4138,7 +4141,7 @@ namespace eval ::xowiki::formfield {
       if {$rep in $value} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class col-sm2 checkbox-inline}
+      if {1 || ${:horizontal}} {lappend label_class checkbox-inline}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description
@@ -4299,7 +4302,10 @@ namespace eval ::xowiki::formfield {
           #
           # Display descriptions only for the "incorrect" cases.
           #
-          if {[info exists :evaluated_answer_result] && ${:evaluated_answer_result} eq "incorrect"} {
+          if {[info exists :evaluated_answer_result]
+              && ${:evaluated_answer_result} eq "incorrect"
+              && $description ne ""
+            } {
             html::div -class "help-block description" {
               html::t $description
             }
