@@ -2612,38 +2612,55 @@ namespace eval ::xowiki {
   }
 
 
-  Page instproc substitute_markup {content} {
+  Page instproc substitute_markup {{-context_obj ""} content} {
 
     if {${:mime_type} eq "text/enhanced"} {
       set content [ad_enhanced_text_to_html $content]
     }
-    if {![:do_substitutions]} {return $content}
+    if {!${:do_substitutions}} {
+      return $content
+    }
     #
     # The provided content and the returned result are strings
     # containing HTML (unless we have other rich-text encodings).
     #
-    # First get the right regular expression definitions
+    # First get the potentially class sepcific regular expression
+    # definitions.
     #
     set baseclass [expr {[[:info class] exists RE] ? [:info class] : [self class]}]
     $baseclass instvar RE markupmap
     #:log "-- baseclass for RE = $baseclass"
 
     #
-    # secondly, iterate line-wise over the text
+    # Secondly, iterate line-wise over the text.
     #
     set output ""
     set l ""
-    foreach l0 [split $content \n] {
-      append l [string map $markupmap(escape) $l0]
-      if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}
-      set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"} "1"]
-      set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
-      set l [:regsub_eval $RE(include) $l {:include_content "\1" "\2"}]
-      #regsub -all $RE(clean) $l {\1} l
-      regsub -all $RE(clean2) $l { \1} l
-      set l [string map $markupmap(unescape) $l]
-      append output $l \n
-      set l ""
+
+    try {
+      if {$context_obj ne ""} {
+        :set_resolve_context \
+            -package_id [$context_obj package_id] -parent_id [$context_obj item_id]
+      }
+
+      foreach l0 [split $content \n] {
+        append l [string map $markupmap(escape) $l0]
+        if {[string first \{\{ $l] > -1 && [string first \}\} $l] == -1} {append l " "; continue}
+        set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"} "1"]
+        set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
+        set l [:regsub_eval $RE(include) $l {:include_content "\1" "\2"}]
+        #regsub -all $RE(clean) $l {\1} l
+        regsub -all $RE(clean2) $l { \1} l
+        set l [string map $markupmap(unescape) $l]
+        append output $l \n
+        set l ""
+      }
+    } on error {errorMsg} {
+      error $errorMsg
+    } finally {
+      if {$context_obj ne ""} {
+        :reset_resolve_context
+      }
     }
     #:log "--substitute_markup returns $output"
     return $output
@@ -3422,24 +3439,36 @@ namespace eval ::xowiki {
     set :text $text
   }
 
-  PlainPage instproc substitute_markup {raw_content} {
+  PlainPage instproc substitute_markup {{-context_obj ""} raw_content} {
     #
     # The provided text is a raw text that is transformed into HTML
     # markup for links etc.
     #
     [self class] instvar RE markupmap
-    if {![:do_substitutions]} {
+    if {!${:do_substitutions}} {
       return $raw_content
     }
     set html ""
-    foreach l [split $raw_content \n] {
-      set l [string map $markupmap(escape) $l]
-      set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"}]
-      set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
-      set l [:regsub_eval $RE(include) $l {:include_content "\1" ""}]
-      #regsub -all $RE(clean) $l {\1} l
-      set l [string map $markupmap(unescape) $l]
-      append html $l \n
+    try {
+      if {$context_obj ne ""} {
+        :set_resolve_context \
+            -package_id [$context_obj package_id] -parent_id [$context_obj item_id]
+      }
+      foreach l [split $raw_content \n] {
+        set l [string map $markupmap(escape) $l]
+        set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"}]
+        set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
+        set l [:regsub_eval $RE(include) $l {:include_content "\1" ""}]
+        #regsub -all $RE(clean) $l {\1} l
+        set l [string map $markupmap(unescape) $l]
+        append html $l \n
+      }
+    } on error {errorMsg} {
+      error $errorMsg
+    } finally {
+      if {$context_obj ne ""} {
+        :reset_resolve_context
+      }
     }
     return $html
   }
@@ -4084,7 +4113,7 @@ namespace eval ::xowiki {
     #
     #:log "-- text='${:text}'"
     if {[lindex ${:text} 0] ne ""} {
-      :do_substitutions 0
+      set :do_substitutions 0
       set html ""; set mime ""
       lassign ${:text} html mime
       set content [:substitute_markup $html]
