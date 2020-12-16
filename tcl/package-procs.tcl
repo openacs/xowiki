@@ -1209,7 +1209,7 @@ namespace eval ::xowiki {
 
     @param use_package_path
     @param simple when set, do not try to resolve using item refs, prototype pages or package_path
-    @param language used for resolving
+    @param lang language used for resolving
     @param object element to be resolved
     @param method_var output variable for method to be called on the object
     @return instantiated object (Page or Package) or empty
