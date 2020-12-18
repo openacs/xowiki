@@ -311,17 +311,19 @@ namespace eval ::xowiki {
     # form_fields
     #
     upvar $field_name $field_name
-    $form instvar data
+    set data [$form set data]
     #
     # Get the form-field and set its value....
     #
     set f [$data lookup_form_field -name $field_name [$form set form_fields]]
     $f value [set $field_name]
+
     set validation_error [$f validate $data]
     #
     # If we get an error, we report it as well via util-user message
     #
-    #$form msg "***** field_name = $field_name, cls=[$f info class] validation_error=$validation_error"
+    #$form log "***** field_name = $field_name, validation_error=$validation_error"
+
     if {$validation_error ne ""} {
       util_user_message -message "Error in field [$f label]: $validation_error"
       return 0
@@ -352,16 +354,18 @@ namespace eval ::xowiki {
     }
   }
 
+  WikiForm instproc on_submit args {
+    #:log "--form on_submit $args <[${:data} info vars]> "
+    :var page_order [${:data} set page_order]
+    next
+  }
+
   WikiForm instproc data_from_form {{-new 0}} {
     if {[${:data} exists_form_parameter text.format]} {
       ${:data} set mime_type [${:data} form_parameter text.format]
     }
     if {$new && [[${:data} set package_id] get_parameter production_mode 0]} {
       ${:data} set publish_status production
-    }
-    upvar #[template::adp_level] page_order page_order
-    if {[info exists page_order] && $page_order ne ""} {
-      set page_order [string trim $page_order " ."]
     }
     :tidy
   }
@@ -405,7 +409,7 @@ namespace eval ::xowiki {
 
   WikiForm instproc new_request {} {
     #
-    # get the defaults from the slots and set it in the data.
+    # Get the defaults from the slots and set it in the data.
     # This should not be necessary with xotocl 1.6.*
     #
     foreach f [:field_list] {
@@ -443,6 +447,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc edit_data {} {
+    #:log "--form edit_data "
     :data_from_form -new 0
     set item_id [next]
     :update_references
@@ -450,6 +455,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc after_submit {item_id} {
+    #:log "--form after submit"
     set link [:submit_link]
     if {$link eq "."} {
       # we can determine submit link only after nls_language

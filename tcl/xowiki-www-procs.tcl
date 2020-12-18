@@ -1651,8 +1651,8 @@ namespace eval ::xowiki {
           [:query_parameter "return_url" [:pretty_link]]
       return
     } else {
-      # todo: handle errors in a user friendly way
-      :log "we have $validation_errors validation_errors"
+      # TODO: handle errors in a user friendly way
+      ns_log warning "www-save-attributes: we have $validation_errors validation_errors"
     }
     ${:package_id} returnredirect \
         [:query_parameter "return_url" [:pretty_link]]
@@ -1669,14 +1669,15 @@ namespace eval ::xowiki {
 
   } {
 
-    #ns_log notice "SAVE-att called [:field_names]"
     set field_names [:field_names]
+    #ns_log notice "[self] autosave-attribute called field-names: $field_names"
     set provided_form_parameters [xo::cc get_all_form_parameter]
     set keys [dict keys $provided_form_parameters]
 
     if {[llength $keys] == 1} {
       set key   [lindex $keys 0]
       set value [::xo::cc form_parameter $key]
+      ns_log notice "[self] autosave-attribute save '$key' <$value>"
       set prefix ""
       regexp {^([^.]+)[.]} $key . prefix
 
@@ -2726,12 +2727,12 @@ namespace eval ::xowiki {
         && $current_revision_id != ${:revision_id}
       } {
       set validation_errors [:mutual_overwrite_occurred]
-      #:log "=== validation error due to mutual_overwrite current_revision_id <$current_revision_id> my ${:revision_id}"
+      #:log "validation error due to mutual_overwrite current_revision_id <$current_revision_id> my ${:revision_id}"
     }
 
     if {[:validate=form_input_fields $form_fields] == 0} {
       incr validation_errors
-      #:log "=== validation error due validate=form_input_fields"
+      #:log "validation error due validate=form_input_fields"
     }
 
     if {$validation_errors == 0} {
