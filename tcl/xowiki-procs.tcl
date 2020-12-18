@@ -2795,7 +2795,9 @@ namespace eval ::xowiki {
         break
       }
     }
-    if {$spec eq ""} {return $default}
+    if {$spec eq ""} {
+      return $default
+    }
     return $field_name:$spec
   }
 
@@ -2813,7 +2815,8 @@ namespace eval ::xowiki {
   Page instproc validate=page_order {value} {
     if {[info exists :page_order]} {
       set page_order [string trim $value " ."]
-      :page_order $page_order
+      set :page_order $page_order
+      # :log "validate=page_order '$value' -> '$page_order'"
       return [expr {![regexp {[^0-9a-zA-Z_.]} $page_order]}]
     }
     return 1
