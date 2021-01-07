@@ -3637,7 +3637,9 @@ namespace eval ::xowiki::formfield {
                       ? [lindex $seeds ${:test_item_in_position}]
                       : [xo::cc user_id]}]
       set shuffled [::xowiki::randomized_indices -seed $seed $length]
-      #ns_log notice "randomized_indices for [xo::cc user_id] (${:test_item_in_position} - $seeds): $shuffled (inp [:exists test_item_in_position])"
+      #ns_log notice "${:name} randomized_indices for seed $seed (user_id [xo::cc user_id])" \
+          "(${:test_item_in_position} - $seeds): $shuffled" \
+          "(inp [:exists test_item_in_position])"
     } else {
       set shuffled [::xowiki::randomized_indices $length]
     }
