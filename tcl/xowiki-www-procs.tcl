@@ -1028,7 +1028,7 @@ namespace eval ::xowiki {
     set field_names [:field_names -form $form]
     #:msg field_names=$field_names
     set form_fields [:create_form_fields $field_names]
-
+    
     if {$form eq ""} {
       #
       # Since we have no form, we create it on the fly
@@ -1061,7 +1061,7 @@ namespace eval ::xowiki {
     # Include _text only, if explicitly needed (in form
     # needed(_text))".
     #
-    if {![info exists :__field_needed(_text)]} {
+    if {![dict exists ${:__field_needed} _text]} {
       #:msg "setting text hidden"
       set f [:lookup_form_field -name _text $form_fields]
       $f config_from_spec hidden
@@ -1287,7 +1287,7 @@ namespace eval ::xowiki {
       #
       foreach att $field_names {
         #if {$formgiven && ![string match _* $att]} continue
-        if {[info exists :__field_in_form($att)]} continue
+        if {[dict exists ${:__field_in_form} $att]} continue
         set f [:lookup_form_field -name $att $form_fields]
         #:log "insert auto_field $att $f ([$f info class])"
         $f render_item
@@ -2488,7 +2488,7 @@ namespace eval ::xowiki {
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry
-      if {![info exists :__field_in_form($att)]} continue
+      if {![dict exists ${:__field_in_form} $att]} continue
       #:msg "set form_value to form-field $att [dict exists ${:instance_attributes} $att]"
       if {[dict exists ${:instance_attributes} $att]} {
         #:msg "my set_form_value from ia $att '[dict get ${:instance_attributes} $att]', external='[$f convert_to_external [dict get ${:instance_attributes} $att]]' f.value=[$f value]"
@@ -2849,15 +2849,15 @@ namespace eval ::xowiki {
     }
     #:log "form=$form, form_vars=$form_vars needed_attributes=$needed_attributes"
 
-    array unset :__field_in_form
-    array unset :__field_needed
+    set :__field_in_form ""
+    set :__field_needed ""
     if {$form_vars} {
       foreach v $needed_attributes {
-        set :__field_in_form($v) 1
+        dict set :__field_in_form $v 1
       }
     }
     foreach v $needed_attributes {
-      set :__field_needed($v) 1
+      dict set :__field_needed $v 1
     }
 
     #
@@ -2874,7 +2874,7 @@ namespace eval ::xowiki {
       }
     }
     #:msg reduced_attributes(after)=$reduced_attributes
-    #:msg fields_from_form=[array names :__field_in_form]
+    #:msg fields_from_form=[dict keys ${:__field_in_form}]
 
     set field_names _name
     if {[::${:package_id} show_page_order]}  {
