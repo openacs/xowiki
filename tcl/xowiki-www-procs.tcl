@@ -1028,7 +1028,7 @@ namespace eval ::xowiki {
     set field_names [:field_names -form $form]
     #:msg field_names=$field_names
     set form_fields [:create_form_fields $field_names]
-    
+
     if {$form eq ""} {
       #
       # Since we have no form, we create it on the fly
@@ -1186,7 +1186,9 @@ namespace eval ::xowiki {
       #array set __ia ${:instance_attributes}
       :load_values_into_form_fields $form_fields
 
-      foreach f $form_fields {set ff([$f name]) $f }
+      foreach f $form_fields {
+        set ff([$f name]) $f
+      }
 
       #
       # For named entries, just set the entry fields to empty,
@@ -1812,12 +1814,18 @@ namespace eval ::xowiki {
     the xowiki page is viewed.  It is not intended for e.g. embedded
     wiki pages (see include), since it contains full framing, etc.
 
-    When "content" is not provided via the method parameter - the
-    common case - the rendered content is the result of the "render"
-    method of the current object.
+    In most cases, the argument "content" is not provided, and it is
+    computed via the "render" method of the current object. It is as
+    well possible to reuse the rendering logic for other situation,
+    where some HTML content is already computed, but it should be
+    viewed exactly as in the page viewing cases.
 
   } {
+    #ns_log notice "www-view <$content>"
+
     #
+    # The recursion_count os maintained to avoid recursive includes
+    # inside a page.
     #
     ::xowiki::Page set recursion_count 0
     set page_package_id    ${:package_id}
@@ -1861,7 +1869,7 @@ namespace eval ::xowiki {
     if {[::$context_package_id get_parameter "with_notifications" 1]} {
       if {[::xo::cc user_id] != 0} {
         #
-        # notifications require login
+        # Notifications are only be displayed for logged-in users.
         #
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
@@ -1905,14 +1913,10 @@ namespace eval ::xowiki {
 
     if {[::$context_package_id get_parameter "MenuBar" 0]} {
       #
-      # The following block should not be here, but in the templates.
-      #
-      #set showFolders [::$context_package_id get_parameter "MenuBarWithFolder" 1]
-      #if {$showFolders} {
-      #  set folderhtml [:include {folders -style folders}]
-      #} else {
-      #  set folderhtml ""
-      #}
+      # When a "MenuBar" is used, it might contain folder-specific
+      # content. Therefore we have to compute the tree. The resulting
+      # HTML code can be placed via adp templates differently (or it
+      # can be ignored).
 
       set folderhtml [:include {folders -style folders}]
       ::xo::Page set_property body folderHTML $folderhtml
@@ -2075,8 +2079,8 @@ namespace eval ::xowiki {
       }
 
       #
-      # pass variables for properties doc and body
-      # example: ::xo::Page set_property body class "yui-skin-sam"
+      # Pass variables for properties doc and body.
+      # Example: ::xo::Page set_property body class "yui-skin-sam"
       #
       array set body [::xo::Page get_property body]
       array set doc  [::xo::Page get_property doc]
@@ -2116,8 +2120,10 @@ namespace eval ::xowiki {
         }
         ad_script_abort
       } else {
-        # use adp file
-        #:log "use adp"
+        #
+        # Use adp file.
+        #
+        #:log "use adp content=$content"
         set package_id $context_package_id
         set title      ${:title}
         set name       ${:name}
