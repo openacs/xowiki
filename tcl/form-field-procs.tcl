@@ -1773,7 +1773,7 @@ namespace eval ::xowiki::formfield {
       $file_object set import_file $tmpfile
       eval $publish_date_cmd
       #
-      # When produduction_mode is set, make sure, the new file object
+      # When production_mode is set, make sure, the new file object
       # is not in a published state.
       #
       if {[::$package_id get_parameter production_mode 0]} {
@@ -1807,7 +1807,7 @@ namespace eval ::xowiki::formfield {
 
     #
     # Make sure that we do not mis-interprete spaces in paths or file
-    # names.
+    # names in the foreach loop.
     #
     if {[llength ${:content-type}] == 1} {
       set :tmpfile [list ${:tmpfile}]
@@ -1850,6 +1850,7 @@ namespace eval ::xowiki::formfield {
     # the revision_id. TODO: clear revision_id on export.
     #
     set newValue [list name $newValue revision_id $revision_ids]
+
     ${:object} set_property -new 1 ${:name} $newValue
     set :value $newValue
   }
