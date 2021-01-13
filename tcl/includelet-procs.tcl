@@ -4387,15 +4387,16 @@ namespace eval ::xowiki::includelet {
       set raw_field_names $field_names
     }
 
+    if {$raw_field_names eq ""} {
+      set raw_field_names {_name _last_modified _creation_user}
+    }
     foreach fn $hidden_field_names {
       lappend raw_field_names $fn
     }
 
-    if {$raw_field_names eq ""} {
-      set raw_field_names {_name _last_modified _creation_user}
-    }
-
-    # finally, evaluate conditions if included
+    #
+    # Finally, evaluate conditions in case these are included.
+    #
     set field_names [list]
     foreach f $raw_field_names {
       set _ [string trim [::xowiki::formfield::FormField get_single_spec \
