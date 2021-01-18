@@ -428,6 +428,11 @@ div.xowiki-content .content-with-folders {
   width: 9em;
 }*/
 
+div.xowiki-content input.form-control-hidden {
+    display: none;
+}
+
+
 div.xowiki-content .content-with-folders fieldset.compound-field .repeatable {
     margin-left: 1em;
 }
@@ -552,6 +557,13 @@ div.xowiki-content div.autosave div.saved
     font-size: smaller;
 }
 
+.xowiki-content div.file-control div {
+    display: inline;
+    margin-right: 6px;
+}
+.xowiki-content div.repeatable input[type=file] {
+    width: 95%
+}
 /*
  * Local Variables:
  * mode: css

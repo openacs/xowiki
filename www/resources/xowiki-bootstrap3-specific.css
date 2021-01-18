@@ -45,6 +45,13 @@ div.xowiki-content a.notification-image-button::before {
     font-family: 'Glyphicons Halflings';
     content: "\2709";
 }
+div.xowiki-content .upload-btn-label::before {
+    /* glyphicon-upload */
+    font-family: 'Glyphicons Halflings';
+    content: "\e027";
+    margin-right: 6px;
+}
+
 
 /*
  * info sign (in forms)
@@ -75,6 +82,8 @@ div.xowiki-content a.level-up-icon::before {
     font-family: 'Glyphicons Halflings';
     content: "\e204";
 }
+
+
 div.xowiki-content a.link-icon::before {
     /* glyphicon-arrow-right */
     font-family: 'Glyphicons Halflings';

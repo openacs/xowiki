@@ -567,7 +567,7 @@ namespace eval ::xowiki::formfield {
     #
     set old_value ${:value}
     set :value [:escape_message_keys $old_value]
-    ::html::input [:get_attributes type size maxlength id name value \
+    ::html::input [:get_attributes type size maxlength id name value style \
                        autocomplete pattern placeholder {CSSclass class} {*}$booleanAtts] {}
     #
     # Reset values to original content
@@ -1635,6 +1635,7 @@ namespace eval ::xowiki::formfield {
         {sticky:boolean false}
         {searchable:boolean false}
         {multiple:boolean false}
+        choose_file_label
         link_label
       }
   file instproc check=virus {value} {
@@ -1824,9 +1825,12 @@ namespace eval ::xowiki::formfield {
           # Sanitize the filename
           regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
           set fn [ad_file tail $fn]
-          # Flip the two flags in the command below in case we want to
-          # become stricter. For now we just make sure the filename
-          # does not contain funky characters.
+          #
+          # Set the value of the two flags in the command below in
+          # case a more strict sanitizing is needed. With the settings
+          # below, ad_sanitize_filename makes just sure the filename
+          # does not contain invalid characters.
+          #
           set fn [ad_sanitize_filename \
                       -collapse_spaces=false \
                       -tolower=false $fn]
@@ -1850,7 +1854,6 @@ namespace eval ::xowiki::formfield {
     # the revision_id. TODO: clear revision_id on export.
     #
     set newValue [list name $newValue revision_id $revision_ids]
-
     ${:object} set_property -new 1 ${:name} $newValue
     set :value $newValue
   }
@@ -1905,6 +1908,25 @@ namespace eval ::xowiki::formfield {
       set reset_required 1
       set :required false
     }
+    #if {${:CSSclass} eq "form-control"} {
+    #  append :CSSclass -file
+    #}
+    #
+    # The following snippet is Bootstrap-only and requires in
+    # non-bootstrap cases styling.
+    #
+    #if {[info exists :choose_file_label]} {
+    #  ::html::label -for ${:id} -class "btn btn-default" {
+    #    ::html::span -class upload-btn-label {
+    #      ::html::t ${:choose_file_label}
+    #    }
+    #    set :CSSclass form-control-hidden
+    #    next
+    #  }
+    #} else {
+    #  next
+    #}
+
     next
 
     ::html::t " "
@@ -1943,8 +1965,16 @@ namespace eval ::xowiki::formfield {
       # - the form-field is not sticky (default)
       #
       set disabled [:is_disabled]
-      if {${:value} ne "" && !$disabled && ![:sticky] } {
-        ::html::input -type button -value [_ xowiki.clear] -id $id-control
+      if {${:value} ne "" && !$disabled && !${:sticky}} {
+        #::html::input -type button -value [_ xowiki.clear] -id $id-control
+
+        set del_id "$id-control"
+        ::html::a -href "#" \
+            -id $del_id \
+            -title [_ xowiki.clear] \
+            -class "delete-item-button" {
+              html::t ""
+            }
         template::add_event_listener \
             -id $id-control \
             -script [subst {document.getElementById('$id').value = ''; document.getElementById('__a$id').style.display = 'none';}]
@@ -3861,7 +3891,7 @@ namespace eval ::xowiki::formfield {
         #
         if {$r > 0} {
           #
-          # Certain correction schemes devide by $r. We cannot use
+          # Certain correction schemes divide by $r. We cannot use
           # these schemes in such cases.
           #
           if {$f == 0} {
