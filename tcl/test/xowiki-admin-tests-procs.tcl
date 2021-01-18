@@ -893,7 +893,7 @@ aa_register_case \
                  && $(parent_id) eq $folder_id && $(item_id) == 0}} 1 "\n$test:\n  [array get {}]\n "
 
         ################################
-        test subsection "Absolute to toplevel:"
+        test subsection "Absolute to top-level:"
 
         set l "/f1"
         set test [label "item_ref" "absolute existing topfolder short" $l]
@@ -1310,7 +1310,7 @@ aa_register_case \
         ? {expr {$(item_id) == $childpage_id && $(stripped_name) eq "childpage"}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$p4 pretty_link]
-        set test [label "url" "toplevel en page" $l]
+        set test [label "url" "top-level en page" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $enpage_id && $(stripped_name) eq "page"
                  && $(name) eq "en:page"}} 1 "\n$test:\n  [array get {}]\n "
@@ -1324,19 +1324,19 @@ aa_register_case \
         # image links
 
         set l [$i1 pretty_link]
-        set test [label "url" "toplevel image" $l]
+        set test [label "url" "top-level image" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
                  && $(name) eq "file:image.png"}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$i2 pretty_link]
-        set test [label "url" "toplevel image" $l]
+        set test [label "url" "top-level image" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $subimage_id && $(stripped_name) eq "image2.png"
                  && $(name) eq "file:image2.png"}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$i3 pretty_link]
-        set test [label "url" "toplevel image" $l]
+        set test [label "url" "top-level image" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $childimage_id && $(stripped_name) eq "image3.png"
                  && $(name) eq "file:image3.png" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
@@ -1345,31 +1345,31 @@ aa_register_case \
         # links
 
         set l [$l1 pretty_link]
-        set test [label "url" "toplevel link to page" $l]
+        set test [label "url" "top-level link to page" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $pagelink_id && $(stripped_name) eq "link1"
                  && $(name) eq "link1" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$l2 pretty_link]
-        set test [label "url" "toplevel link to folder" $l]
+        set test [label "url" "top-level link to folder" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $folderlink_id && $(stripped_name) eq "link2"
                  && $(name) eq "link2" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$l3 pretty_link]
-        set test [label "url" "toplevel link to page under folder" $l]
+        set test [label "url" "top-level link to page under folder" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $subpagelink_id && $(stripped_name) eq "link3"
                  && $(name) eq "link3" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$l4 pretty_link]
-        set test [label "url" "toplevel link to folder under folder" $l]
+        set test [label "url" "top-level link to folder under folder" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $subfolderlink_id && $(stripped_name) eq "link4"
                  && $(name) eq "link4" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
 
         set l [$l5 pretty_link]
-        set test [label "url" "toplevel link to image under folder" $l]
+        set test [label "url" "top-level link to image under folder" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"
                  && $(name) eq "link5" && $(method) eq ""}} 1 "\n$test:\n  [array get {}]\n "
@@ -1380,14 +1380,14 @@ aa_register_case \
 
         # download
         set l /XOWIKI-TEST/download/file/image.png
-        set test [label "url" "toplevel image download" $l]
+        set test [label "url" "top-level image download" $l]
         array set "" [::$package_id item_info_from_url $l]
         ? {expr {$(item_id) == $image_id && $(stripped_name) eq "image.png"
                  && $(name) eq "file:image.png"  && $(method) eq "download"}} 1 "\n$test:\n  [array get {}]\n "
 
         # download via link
         #set l /XOWIKI-TEST/download/file/link5
-        #set test [label "url" "toplevel image download" $l]
+        #set test [label "url" "top-level image download" $l]
         #array set "" [::$package_id item_info_from_url $l]
         #test hint "<p>found $(item_id) should be $subimagelink_id"
         # ? {expr {$(item_id) == $subimagelink_id && $(stripped_name) eq "link5"

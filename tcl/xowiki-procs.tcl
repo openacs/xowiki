@@ -2624,7 +2624,7 @@ namespace eval ::xowiki {
     # The provided content and the returned result are strings
     # containing HTML (unless we have other rich-text encodings).
     #
-    # First get the potentially class sepcific regular expression
+    # First get the potentially class specific regular expression
     # definitions.
     #
     set baseclass [expr {[[:info class] exists RE] ? [:info class] : [self class]}]

@@ -452,7 +452,7 @@ namespace eval ::xowiki {
   TreeRenderer=listdnd proc render {tree} {
     #:log "=== TreeRenderer=listdnd render $tree"
     #
-    # Do we allow reorder on the toplevel?
+    # Do we allow reorder on the top-level?
     #
     set id [$tree id]-topul
     if {[:min_level] == -1} {

@@ -560,7 +560,7 @@ namespace eval ::xowiki {
     }
 
     if {$parent_id eq -100} {
-      # In case, we have a CR toplevel entry, we assume, we can
+      # In case, we have a CR top-level entry, we assume, we can
       # resolve it at least against the root folder of the current
       # package.
       set folder_path ""
@@ -1320,7 +1320,7 @@ namespace eval ::xowiki {
     set standard_page [${:id} get_parameter $(stripped_name)_page]
     if {$standard_page ne ""} {
       #
-      # Allow for now mapped standard pages just on the toplevel
+      # Allow for now mapped standard pages just on the top-level
       #
       set page [:get_page_from_item_ref \
                     -allow_cross_package_item_refs false \

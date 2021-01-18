@@ -843,7 +843,7 @@ namespace eval ::xowiki {
           {text {\[::xowiki::validate_form_text\]} {Form must contain a valid template}}
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid;
             might only contain upper and lowercase letters, underscore, digits and dots}}
-          {form {\[::xowiki::validate_form_form\]} {Form must contain a toplevel HTML form element}}
+          {form {\[::xowiki::validate_form_form\]} {Form must contain a top-level HTML form element}}
           {form_constraints {\[::xowiki::validate_form_field form_constraints\]} {Invalid form constraints}}
         }}
       }
