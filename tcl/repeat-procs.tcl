@@ -43,6 +43,11 @@ namespace eval ::xowiki::formfield {
     }
     :initialize
   }
+  ::xowiki::formfield::FormField instproc repeat_add_label {label} {
+    if {[info exists :__initialized_repeat]} return
+    set :repeat_add_label $label
+  }
+
 
   ###########################################################
   #
@@ -268,7 +273,7 @@ namespace eval ::xowiki::formfield {
             -id $add_id \
             -style $hidden \
             -class "repeat-add-link" {
-              html::t [:repeat_add_label]
+              html::t ${:repeat_add_label}
             }
         template::add_event_listener \
             -id $add_id \

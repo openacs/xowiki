@@ -87,6 +87,8 @@
   <msg key="form-menu-button-wf-instances">Ausprägungen von %form_name%</msg>
   <msg key="form-menu-new_link">Formular ausfüllen</msg>
   <msg key="form-repeatable-add">[weiteres Element hinzufügen]</msg>
+  <msg key="form-repeatable-add-file">[Datei anfügen]</msg>
+  <msg key="form-repeatable-add-another-file">[Weitere Datei anfügen]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">OK</msg>
   <msg key="Form-template">Template</msg>

@@ -91,6 +91,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-menu-button-wf-instances">Instances of %form_name%</msg>
   <msg key="form-menu-new_link">Fill out</msg>
   <msg key="form-repeatable-add">[add another]</msg>
+  <msg key="form-repeatable-add-file">[add file]</msg>
+  <msg key="form-repeatable-add-another-file">[add another file]</msg>    
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">       OK       </msg>
   <msg key="Form-template">Template</msg>
