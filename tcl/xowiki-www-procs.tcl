@@ -863,7 +863,7 @@ namespace eval ::xowiki {
     #
     :instvar item_id
 
-    #:log "--edit new=$new autoname=$autoname, valudation_errors=$validation_errors, parent=${:parent_id}"
+    #:log "--edit new=$new autoname=$autoname, validation_errors=$validation_errors, parent=${:parent_id}"
     :edit_set_default_values
     set fs_folder_id [:edit_set_file_selector_folder]
 
@@ -1809,16 +1809,16 @@ namespace eval ::xowiki {
 
   Page ad_instproc www-view {{content ""}} {
 
-    This web-callable method is called when viewing wiki content.
-    The method "view" is used primarily for the toplevel call, when
-    the xowiki page is viewed.  It is not intended for e.g. embedded
-    wiki pages (see include), since it contains full framing, etc.
+    This web-callable method is called when viewing wiki content.  The
+    method "view" is used primarily as web API call, when the xowiki
+    page is viewed.  It is not intended for e.g. embedded wiki pages
+    (use includes), since it contains full framing, etc.
 
     In most cases, the argument "content" is not provided, and it is
     computed via the "render" method of the current object. It is as
-    well possible to reuse the rendering logic for other situation,
-    where some HTML content is already computed, but it should be
-    viewed exactly as in the page viewing cases.
+    well possible to reuse the rendering logic of the method for other
+    pages, where some HTML content is already computed, but it should
+    be viewed exactly as in the page viewing cases.
 
   } {
     #ns_log notice "www-view <$content>"
@@ -1914,7 +1914,7 @@ namespace eval ::xowiki {
     if {[::$context_package_id get_parameter "MenuBar" 0]} {
       #
       # When a "MenuBar" is used, it might contain folder-specific
-      # content. Therefore we have to compute the tree. The resulting
+      # content. Therefore, we have to compute the tree. The resulting
       # HTML code can be placed via adp templates differently (or it
       # can be ignored).
 
@@ -2711,7 +2711,7 @@ namespace eval ::xowiki {
     }
 
     #
-    # Finally run the validator on the toplevel fields
+    # Finally run the validator on the top-level fields
     #
     foreach f [concat $form_fields] {
       #
