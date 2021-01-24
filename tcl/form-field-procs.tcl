@@ -4422,7 +4422,7 @@ namespace eval ::xowiki::formfield {
     {keep_order:boolean false}
     {dnd:boolean true}
   }  -ad_doc {
-    Class for selecing a subset from a list of candidates.
+    Class for selecting a subset from a list of candidates.
     @param as_box makes something like in info box in wikipedie (right flushed)
     @param keep_order when set, the user provided urder is preserved, otherwise
            the order form the candidates is used.
