@@ -741,7 +741,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc answer_check=btwn {} {
     set d [:process_correct_when_modifier]
     dict with d {
-      return [expr {$value >= [lindex $words 0] && $value >= [lindex $words 1]}]
+      return [expr {$value >= [lindex $words 0] && $value <= [lindex $words 1]}]
     }
   }
   FormField instproc answer_check=in {} {
