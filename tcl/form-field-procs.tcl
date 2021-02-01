@@ -395,7 +395,7 @@ namespace eval ::xowiki::formfield {
       # set missing instance vars with defaults
       :set_instance_vars_defaults
     }
-    regsub -all {,\s+} $spec , spec
+    regsub -all -- {,\s+} $spec , spec
     foreach s [split $spec ,] {
       :interprete_single_spec [FormField fc_decode $s]
     }
@@ -695,7 +695,7 @@ namespace eval ::xowiki::formfield {
     # to lowercase such that the result comparison is not case
     # sensitive.
     #
-    set value [string trim [regsub -all {[ ]+} ${:value} " "]]
+    set value [string trim [regsub -all -- {[ ]+} ${:value} " "]]
     set firstword [lindex ${:correct_when} 1]
     if {$firstword eq "-nocase" || [string match "*lower*" $firstword]} {
       set value [string tolower $value]
@@ -1003,7 +1003,7 @@ namespace eval ::xowiki::formfield {
     # Word statistics based on :value. It is assumed here, that the
     # value is basically a string with whitespace.
     #
-    regsub -all {\s} ${:value} " " value
+    regsub -all -- {\s} ${:value} " " value
     foreach w [split $value " "] {
       dict incr :word_statistics [string tolower $w]
     }
@@ -1823,7 +1823,7 @@ namespace eval ::xowiki::formfield {
         fn ${:value} {
 
           # Sanitize the filename
-          regsub -all {\\+} $fn {/} fn  ;# fix IE upload path
+          regsub -all -- {\\+} $fn {/} fn  ;# fix IE upload path
           set fn [ad_file tail $fn]
           #
           # Set the value of the two flags in the command below in
@@ -2787,7 +2787,7 @@ namespace eval ::xowiki::formfield {
     ${:object} do_substitutions 0
     if {[info commands ::apidoc::tclcode_to_html] ne ""} {
       set html [::apidoc::tclcode_to_html [:value]]
-      regsub -all "\n?\r</FONT></EM>" $html </FONT></EM> html
+      regsub -all -- "\n?\r</FONT></EM>" $html </FONT></EM> html
       return "<pre class='code'>$html</pre>"
     } else {
       return "<pre class='code'>[string map [list & {&amp;} < {&lt;} > {&gt;}]  [:value]]</pre>"
@@ -2966,7 +2966,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
     # Mangle the id to make it compatible with jquery; most probably
     # not optimal and just a temporary solution
-    regsub -all {[.:]} ${:id} "" id
+    regsub -all -- {[.:]} ${:id} "" id
     :id $id
   }
 
@@ -3155,7 +3155,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type richtext
     # Mangle the id to make it compatible with jquery; most probably
     # not optimal and just a temporary solution
-    regsub -all {[.:-]} ${:id} "" id
+    regsub -all -- {[.:-]} ${:id} "" id
     :id $id
   }
 
@@ -3479,7 +3479,7 @@ namespace eval ::xowiki::formfield {
           ::xo::Page requireJS  "/resources/xowiki/wymeditor/plugins/$plugin/jquery.wymeditor.$plugin.js"
         }
       }
-      regsub -all {[.:]} ${:id} {\\\\&} JID
+      regsub -all -- {[.:]} ${:id} {\\\\&} JID
 
       # possible skins are per in the distribution: "default", "sliver", "minimal" and "twopanels"
       set config [list "skin: '[:skin]'"]
@@ -4604,7 +4604,7 @@ namespace eval ::xowiki::formfield {
     #
     # Provide an HTML ID for ".sortable" compatible with jquery
     #
-    regsub -all {[.]} "${:id}.sortable" - jqID
+    regsub -all -- {[.]} "${:id}.sortable" - jqID
     set textAreaID ${:id}.text
 
     if {![:is_disabled]} {

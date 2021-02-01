@@ -103,7 +103,7 @@ namespace eval ::xowiki {
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
       set page_number [$owner page_number $page_order $remove_levels]
 
-      set level [regsub -all {[.]} [$o set page_order] _ page_order_js]
+      set level [regsub -all -- {[.]} [$o set page_order] _ page_order_js]
       if {${:verbose}} {:log "... work on [$o set page_order] level $level full $full"}
       if {$full || [info exists :open_node($parent)] || [info exists :open_node($page_order)]} {
         set href [$owner href $book_mode $name]

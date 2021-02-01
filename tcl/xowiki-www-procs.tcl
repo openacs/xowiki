@@ -2579,7 +2579,7 @@ namespace eval ::xowiki {
           # Get rid of strange utf-8 characters hex C2AD (Firefox bug?)
           #
           #ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
-          #if {$varname eq "text"} {regsub -all "­" $value "" value}
+          #if {$varname eq "text"} {regsub -all -- "­" $value "" value}
           #ns_log notice "FORM_DATA var=$varname, value='$value'"
 
           if {![string match "*.*" $att]} {

@@ -196,7 +196,7 @@ namespace eval ::xowiki {
     #
     # provide a default label
     #
-    regsub -all {[.]} $full_name - full_name
+    regsub -all -- {[.]} $full_name - full_name
     set item [dict merge [list label "#xowiki.menu-$full_name#" group $group_name] $item]
 
     #

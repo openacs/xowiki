@@ -658,7 +658,7 @@ namespace eval ::xowiki {
       # Replace leading occurrences of the object name (when e.g. procs
       # are as well exported as separate statements)
       #
-      regsub -all {\n::([0-9]+) } $content "\n\\1 " content
+      regsub -all -- {\n::([0-9]+) } $content "\n\\1 " content
     }
     return $content
   }
@@ -2007,7 +2007,7 @@ namespace eval ::xowiki {
     } else {
       set map { \" \\\" \[ \\[ \] \\] \$ \\$ \\ \\\\}
     }
-    uplevel [list subst [regsub -all $re [string map $map $string] "\[$cmd\]"]]
+    uplevel [list subst [regsub -all -- $re [string map $map $string] "\[$cmd\]"]]
   }
 
   Page instproc error_during_render {msg} {
@@ -2649,8 +2649,8 @@ namespace eval ::xowiki {
         set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"} "1"]
         set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
         set l [:regsub_eval $RE(include) $l {:include_content "\1" "\2"}]
-        #regsub -all $RE(clean) $l {\1} l
-        regsub -all $RE(clean2) $l { \1} l
+        #regsub -all -- $RE(clean) $l {\1} l
+        regsub -all -- $RE(clean2) $l { \1} l
         set l [string map $markupmap(unescape) $l]
         append output $l \n
         set l ""
@@ -2699,7 +2699,7 @@ namespace eval ::xowiki {
     set current_url [::xo::cc url]
 
     set __vars [info vars]
-    regsub -all [template::adp_variable_regexp] $content {\1@\2;noquote@} content_noquote
+    regsub -all -- [template::adp_variable_regexp] $content {\1@\2;noquote@} content_noquote
     #:log "--adp before adp_eval '[template::adp_level]'"
 
     set __l [string length $content]
@@ -3462,7 +3462,7 @@ namespace eval ::xowiki {
         set l [:regsub_eval $RE(anchor)  $l {:anchor  "\1"}]
         set l [:regsub_eval $RE(div)     $l {:div     "\1"}]
         set l [:regsub_eval $RE(include) $l {:include_content "\1" ""}]
-        #regsub -all $RE(clean) $l {\1} l
+        #regsub -all -- $RE(clean) $l {\1} l
         set l [string map $markupmap(unescape) $l]
         append html $l \n
       }
@@ -3538,16 +3538,16 @@ namespace eval ::xowiki {
 
     # Ugly hack to fight against a problem with tDom: asHTML strips
     # spaces between a </span> and the following <span>"
-    #regsub -all "/span>      <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    #regsub -all "/span>     <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    #regsub -all "/span>    <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    #regsub -all "/span>   <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;<span" data
-    #regsub -all "/span>  <span" $data "/span>\\&nbsp;\\&nbsp;<span" data
+    #regsub -all -- "/span>      <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all -- "/span>     <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all -- "/span>    <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all -- "/span>   <span" $data "/span>\\&nbsp;\\&nbsp;\\&nbsp;<span" data
+    #regsub -all -- "/span>  <span" $data "/span>\\&nbsp;\\&nbsp;<span" data
 
-    regsub -all "/span> " $data "/span>\\&nbsp;" data
-    regsub -all " <span " $data "\\&nbsp;<span " data
-    regsub -all "/span>\n<span " $data "/span><br><span " data
-    regsub -all "/span>\n\n<span " $data "/span><br><br><span " data
+    regsub -all -- "/span> " $data "/span>\\&nbsp;" data
+    regsub -all -- " <span " $data "\\&nbsp;<span " data
+    regsub -all -- "/span>\n<span " $data "/span><br><span " data
+    regsub -all -- "/span>\n\n<span " $data "/span><br><br><span " data
 
     dom parse -html $data doc
     $doc documentElement root

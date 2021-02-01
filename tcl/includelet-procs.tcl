@@ -129,7 +129,7 @@ namespace eval ::xowiki::includelet {
     }
 
     # replace unwanted characters
-    regsub -all {[^A-Za-z0-9_.-]} $name _ name
+    regsub -all -- {[^A-Za-z0-9_.-]} $name _ name
     return $name
   }
 
@@ -2942,7 +2942,7 @@ namespace eval ::xowiki::includelet {
 
     foreach o [$pages children] {
       $o instvar page_order page_id
-      set level [expr {[regsub -all {[.]} $page_order _ page_order_js] + 1}]
+      set level [expr {[regsub -all -- {[.]} $page_order _ page_order_js] + 1}]
 
       if {$allow_reorder ne ""} {
         #
@@ -2960,7 +2960,7 @@ namespace eval ::xowiki::includelet {
         if {$last_level != $level} {
           for {set l $last_level} {$l > $level} {incr l -1} {append output "</ul>\n" }
           for {set l $last_level} {$l < $level} {incr l} {
-            regsub -all {[.]} $prefix _ prefix_js
+            regsub -all -- {[.]} $prefix _ prefix_js
             append output [:page_reorder_open_ul -min_level $min_level -ID $ID -prefix_js $prefix_js $l]
           }
           set last_level $level

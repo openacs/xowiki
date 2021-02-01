@@ -808,13 +808,13 @@ namespace eval ::xowiki {
     upvar text text
     if {$text eq ""} { return 1 }
     if {[llength $text] != 2} { return 0 }
-    #regsub -all "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (Firefox bug?)
+    #regsub -all -- "­" $text "" text  ;# get rid of strange utf-8 characters hex C2AD (Firefox bug?)
     lassign $text content mime
     if {$content eq ""} {return 1}
     #ns_log notice "VALUE='$content'"
     set clean_content $content
-    regsub -all "<br */?>" $clean_content "" clean_content
-    regsub -all "</?p */?>" $clean_content "" clean_content
+    regsub -all -- "<br */?>" $clean_content "" clean_content
+    regsub -all -- "</?p */?>" $clean_content "" clean_content
     #ns_log notice "--validate_form_content '$content' clean='$clean_content', \
         #    stripped='[string trim $clean_content]'"
     if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
