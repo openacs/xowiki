@@ -928,7 +928,7 @@ namespace eval ::xowiki::formfield {
             # restrictive on allowed content in the "contains" clause.
             #
             set word [string map {* \\*} $word]
-            regsub -all {*}$nocase [ns_quotehtml $word] \
+            regsub -all {*}$nocase -- [ns_quotehtml $word] \
                 $annotated_value \
                 {<span class='match'>&</span>} \
                 annotated_value
