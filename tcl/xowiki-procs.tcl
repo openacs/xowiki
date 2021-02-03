@@ -2637,7 +2637,7 @@ namespace eval ::xowiki {
     set output ""
     set l ""
 
-    try {
+    ad_try {
       if {$context_obj ne ""} {
         :set_resolve_context \
             -package_id [$context_obj package_id] -parent_id [$context_obj item_id]
@@ -4989,7 +4989,7 @@ namespace eval ::xowiki {
       foreach n $field_names f $form_fields {
         dict set :__form_fields $n $f
       }
-      
+
       :load_values_into_form_fields $form_fields
 
       # deactivate form-fields and do some final sanity checks
