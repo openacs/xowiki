@@ -967,23 +967,28 @@ namespace eval ::xowiki::formfield {
         # highlighting, the code sets :value_with_markup for
         # rendering. Otherwise, the plain :value is used.
         #
+        #ns_log notice "CHECK matches in ${:name} '${:correct_when}'"
+        
         set :value [ns_quotehtml ${:value}]
+        set saved_correct_when ${:correct_when}
+
         set op [lindex ${:correct_when} 0]
         if {$op in {contains contains-not}} {
-          set and_clause "AND ${:correct_when}"
-          set op AND
+          set :correct_when "AND [list ${:correct_when}]"
+          set op AND          
         }
         set dicts {}
         if {$op eq "AND"} {
-          set composite_correct_when ${:correct_when}
           foreach clause [lrange ${:correct_when} 1 end] {
             set :correct_when $clause
             lappend dicts [:process_correct_when_modifier]
           }
-          set :correct_when $composite_correct_when
         }
-        ns_log notice dics=$dicts
+        set :correct_when $saved_correct_when
+
         set annotated_value ${:value}
+        #ns_log notice "CHECK matches in ${:name} dicts <$dicts>"
+
         foreach d $dicts {
           if {[dict get $d op] in {contains contains-not}} {
             set CSSclass [dict get $d op]
@@ -991,16 +996,19 @@ namespace eval ::xowiki::formfield {
             # Mark matches in the div element.
             #
             set nocase [expr {[dict get $d modifier] eq "nocase" ? "-nocase" : ""}]
+            #ns_log notice "CHECK matches in ${:name} nocase=$nocase words=[dict get $d words]"
+
             foreach word [dict get $d words] {
               #
               # We need here probably more escapes, or we should be more
               # restrictive on allowed content in the "contains" clause.
               #
               set word [string map {* \\*} $word]
-              regsub -all {*}$nocase -- [ns_quotehtml $word] \
-                  $annotated_value \
-                  "<span class='match-$CSSclass'>&</span>" \
-                  annotated_value
+              set nrSubst [regsub -all {*}$nocase -- [ns_quotehtml $word] \
+                               $annotated_value \
+                               "<span class='match-$CSSclass'>&</span>" \
+                               annotated_value ]
+              #ns_log notice "MATCH $word -> $nrSubst"
             }
           }
         }
