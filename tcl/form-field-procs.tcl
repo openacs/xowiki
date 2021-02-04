@@ -147,6 +147,22 @@ namespace eval ::xowiki::formfield {
   # application classes
   FormField instproc initialize {} {next}
 
+
+  FormField instproc CSSclass_list_add {attrName value} {
+    #
+    # Convenience function to add a CSS class to the existing values
+    # in "attrName". The function is named somewhat similar to the
+    # JavaScript function "classList.add"
+    #
+    if {$value ne ""} {
+      if {[info exists :$attrName]} {
+        lappend :$attrName $value
+      } else {
+        set :$attrName $value
+      }
+    }
+  }
+
   FormField instproc same_value {v1 v2} {
     if {$v1 eq $v2} {return 1}
     return 0
@@ -588,7 +604,7 @@ namespace eval ::xowiki::formfield {
         set CSSclass form-label
       }
       ::html::div -class $CSSclass {
-        ::html::label -for ${:id} {
+        ::html::label -class [lindex [split ${:name} .] end] -for ${:id} {
           ::html::t ${:label}
         }
         if {${:required} && ${:mode} eq "edit"} {
@@ -705,7 +721,36 @@ namespace eval ::xowiki::formfield {
       set words [lrange ${:correct_when} 1 end]
       set modifier ""
     }
-    return [list words $words value $value modifier $modifier]
+    return [list op [lindex ${:correct_when} 0] words $words value $value modifier $modifier]
+  }
+
+  FormField instproc answer_check=AND {} {
+    set results ""
+    #
+    # The AND clause iterates over the list elements and reduces the
+    # composite AND into multiple simple clauses and overwrites (!
+    # danger) these in the instance variable "correct_when", but
+    # resets these at the end.
+    #
+    set composite_correct_when ${:correct_when}
+    ns_log notice "${:name} ... answercheck ${:correct_when}"
+    foreach clause [lrange ${:correct_when} 1 end] {
+      set :correct_when $clause
+      ns_log notice "${:name} ... AND '$clause' for '${:value}' -> [:answer_is_correct]"
+      lappend results [:answer_is_correct]
+    }
+    set :correct_when $composite_correct_when
+    ns_log notice  "${:name} $composite_correct_when => $results"
+    if {0 in $results} {
+      #
+      # When one element is undecided, all is undecided.
+      #
+      return 0
+    }
+    #
+    # If one element is wrong, all is wrong
+    #
+    return [expr {-1 ni $results}]
   }
 
   FormField instproc answer_check=eq {} {
@@ -771,6 +816,13 @@ namespace eval ::xowiki::formfield {
     }
     return 0
   }
+  FormField instproc answer_check=contains-not {} {
+    #
+    # Correct, when answer does not contain any of the provided
+    # words. Just a negation of "contains".
+    #
+    return [expr {[:answer_check=contains] ? 0 : 1}]
+  }
   FormField instproc answer_check=answer_words {} {
     #
     # Correct, when the answer is equal to the provided (sequence of)
@@ -801,6 +853,7 @@ namespace eval ::xowiki::formfield {
     #:log "CORRECT? ${:name} ([:info class]): value=${:value}, answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {[info exists :correct_when]} {
       set op [lindex ${:correct_when} 0]
+      #:log "CORRECT? ${:name} with op=$op '${:correct_when}'"
       if {[:procsearch answer_check=$op] ne ""} {
         set r [:answer_check=$op]
         if {$r == 0} {
@@ -915,27 +968,44 @@ namespace eval ::xowiki::formfield {
         # rendering. Otherwise, the plain :value is used.
         #
         set :value [ns_quotehtml ${:value}]
-        if {[lindex ${:correct_when} 0] eq "contains"} {
-          #
-          # Mark matches in the div element.
-          #
-          set d [:process_correct_when_modifier]
-          set nocase [expr {[dict get $d modifier] eq "nocase" ? "-nocase" : ""}]
-          set annotated_value ${:value}
-          foreach word [dict get $d words] {
-            #
-            # We need here probably more escapes, or we should be more
-            # restrictive on allowed content in the "contains" clause.
-            #
-            set word [string map {* \\*} $word]
-            regsub -all {*}$nocase -- [ns_quotehtml $word] \
-                $annotated_value \
-                {<span class='match'>&</span>} \
-                annotated_value
+        set op [lindex ${:correct_when} 0]
+        if {$op in {contains contains-not}} {
+          set and_clause "AND ${:correct_when}"
+          set op AND
+        }
+        set dicts {}
+        if {$op eq "AND"} {
+          set composite_correct_when ${:correct_when}
+          foreach clause [lrange ${:correct_when} 1 end] {
+            set :correct_when $clause
+            lappend dicts [:process_correct_when_modifier]
           }
-          if {$annotated_value ne ${:value}} {
-            set :value_with_markup $annotated_value
+          set :correct_when $composite_correct_when
+        }
+        ns_log notice dics=$dicts
+        set annotated_value ${:value}
+        foreach d $dicts {
+          if {[dict get $d op] in {contains contains-not}} {
+            set CSSclass [dict get $d op]
+            #
+            # Mark matches in the div element.
+            #
+            set nocase [expr {[dict get $d modifier] eq "nocase" ? "-nocase" : ""}]
+            foreach word [dict get $d words] {
+              #
+              # We need here probably more escapes, or we should be more
+              # restrictive on allowed content in the "contains" clause.
+              #
+              set word [string map {* \\*} $word]
+              regsub -all {*}$nocase -- [ns_quotehtml $word] \
+                  $annotated_value \
+                  "<span class='match-$CSSclass'>&</span>" \
+                  annotated_value
+            }
           }
+        }
+        if {$annotated_value ne ${:value}} {
+          set :value_with_markup $annotated_value
         }
       }
     }
@@ -1544,6 +1614,7 @@ namespace eval ::xowiki::formfield {
     #
     # Render content within in a fieldset, but with labels etc.
     #
+    :CSSclass_list_add CSSclass [namespace tail [:info class]]
     html::fieldset [:get_attributes id {CSSclass class}] {
       foreach c ${:components} { $c render }
     }
@@ -2302,6 +2373,41 @@ namespace eval ::xowiki::formfield {
     next
     if {${:help_text} eq ""} {
       set :help_text "#xowiki.formfield-correct_when-help_text#"
+    }
+  }
+
+  ###########################################################
+  #
+  # ::xowiki::formfield::comp_correct_when
+  #
+  ###########################################################
+  Class create comp_correct_when -superclass CompoundField
+
+  #
+  # The operator {between btwn} is not needed, since one use more
+  # precisely and for inclusive/exclusive between operations.
+  #
+  comp_correct_when set operators {
+    {= eq}
+    {< lt}
+    {<= le}
+    {> gt}
+    {>= ge}
+    {contains contains}
+    {"contains not" contains-not}
+    {"one of" in}
+  }
+  comp_correct_when instproc initialize {} {
+    if {${:__state} ne "after_specs"} return
+    :create_components  [subst {
+      {operator {select,options=[[self class] set operators],default=eq,form_item_wrapper_CSSclass=form-inline,label=}}
+      {text text,form_item_wrapper_CSSclass=form-inline,size=50,label=}
+      {nocase boolean_checkbox,horizontal=true,default=f,form_item_wrapper_CSSclass=form-inline,label=#xowiki.ignore_case#}
+    }]
+    next
+    set :__initialized 1
+    if {${:help_text} eq ""} {
+      set :help_text "#xowiki.formfield-comp_correct_when-help_text#"
     }
   }
 

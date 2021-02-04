@@ -92,6 +92,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="form-menu-new_link">Fill out</msg>
   <msg key="form-repeatable-add">[add another]</msg>
   <msg key="form-repeatable-add-file">[add file]</msg>
+  <msg key="form-repeatable-add-condition">[add condition]</msg>  
   <msg key="form-repeatable-add-another-file">[add another file]</msg>    
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">       OK       </msg>
@@ -107,6 +108,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   the answer is correct, specified as a predicate followed by arguments (Tcl
   words). The predefined predicates are "eq", "gt", "ge", "lt",
   "le", "btwn", "in", "contains", "match", "answer_words"</msg>
+  <msg key="formfield-comp_correct_when-help_text">All specified
+  conditions must be true for a correct answer.</msg>
   <msg key="formfield-image_url-help_text">HTTP Url of the Image (you might drag an image displayed by a web-browser here)</msg>
   <msg key="formfield-import_archive-help_text">Select the Name of a .zip or .tar.gz File</msg>
   <msg key="formfield-import_archive-label">Import Archive</msg>
@@ -121,6 +124,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="height">Height</msg>
   <msg key="hour">hour</msg>
   <msg key="hours">hours</msg>
+  <msg key="ignore_case">Ignore case</msg>
   <msg key="image_width_hint">The width and height are calculated in pixels (proportions might get lost).</msg>
   <msg key="import">Import</msg>
   <msg key="import_create_user_ids">Create user_ids</msg>

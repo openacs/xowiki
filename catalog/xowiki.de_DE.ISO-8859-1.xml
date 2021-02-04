@@ -88,6 +88,7 @@
   <msg key="form-menu-new_link">Formular ausfüllen</msg>
   <msg key="form-repeatable-add">[weiteres Element hinzufügen]</msg>
   <msg key="form-repeatable-add-file">[Datei anfügen]</msg>
+  <msg key="form-repeatable-add-condition">[weitere Bedingung hinzufügen]</msg>
   <msg key="form-repeatable-add-another-file">[Weitere Datei anfügen]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">OK</msg>
@@ -99,6 +100,8 @@
   <msg key="Form_pretty_name">Wiki Form</msg>
   <msg key="Form_pretty_plural">Wiki Forms</msg>
   <msg key="formfield-author">Verfasser/in</msg>
+  <msg key="formfield-comp_correct_when-help_text">Alle angegebenen
+  Bedingungen müssen für eine korrekte Antwort wahr sein.</msg>  
   <msg key="formfield-image_url-help_text">URL des Bildes (Sie können die URL des Bildes, die im Webbrowser angezeigt wird, hier einfügen)</msg>
   <msg key="formfield-import_archive-help_text">Name des -zip- oder .tar.gz-Files auswählen</msg>
   <msg key="formfield-import_archive-label">Archiv importieren</msg>
@@ -113,6 +116,7 @@
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
   <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet ( die Proportionen können verloren gehen ).</msg>
+  <msg key="ignore_case">Kleinschreibung</msg>
   <msg key="import">Importieren</msg>
   <msg key="import_create_user_ids">User-IDs erstellen</msg>
   <msg key="import_create_user_ids_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import gegebenenfalls neue User-IDs erstellt.</msg>
