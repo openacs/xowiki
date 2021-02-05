@@ -2669,7 +2669,7 @@ namespace eval ::xowiki {
   Package instproc flush_name_cache {-name:required -parent_id:required} {
     # xowiki::LinkCache flush $parent_id
     ::xo::xotcl_object_type_cache flush -partition_key $parent_id $parent_id-$name
-    acs::per_request_cache flush -pattern xo-type-$parent_id-$name   
+    acs::per_request_cache flush -pattern xotcl-core.lookup($parent_id-$name)
   }
 
   Package instproc delete_revision {-revision_id:required -item_id:required} {
