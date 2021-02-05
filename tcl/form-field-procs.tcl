@@ -968,14 +968,14 @@ namespace eval ::xowiki::formfield {
         # rendering. Otherwise, the plain :value is used.
         #
         #ns_log notice "CHECK matches in ${:name} '${:correct_when}'"
-        
+
         set :value [ns_quotehtml ${:value}]
         set saved_correct_when ${:correct_when}
 
         set op [lindex ${:correct_when} 0]
         if {$op in {contains contains-not}} {
           set :correct_when "AND [list ${:correct_when}]"
-          set op AND          
+          set op AND
         }
         set dicts {}
         if {$op eq "AND"} {
@@ -2593,6 +2593,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type password
     :type password
   }
+
   ###########################################################
   #
   # ::xowiki::formfield::numeric
@@ -2601,24 +2602,59 @@ namespace eval ::xowiki::formfield {
 
   Class create numeric -superclass text -parameter {
     {format %.2f}
-  } -extend_slot_default validator numeric
+    {connection_locale 1}
+    {strict 0}
+    {keep_string_rep 0}
+  } -extend_slot_default validator numeric -ad_doc {
+
+    Field with numeric content. Depending on the format, the accepted
+    value can be either an integer or a floating point number. The
+    widget performs localization based on the setting of :locale.
+
+    In case 'keep_string_rep' is not true, the widget converts the
+    value to an internal representation to be able to evaluate numeric
+    expressions by this.
+
+    When 'keep_string_rep' is true, the original string representation
+    is kept, and only validation is performed.
+
+    @param format format for output and determining integer property
+
+    @param connection_locale when set, use the connection locale as
+           source for internationalized input
+
+    @param strict when set, use just use the locale for input
+           checking. Otherwise, always accept as fallback what
+           is accepted by en_US.
+
+    @param keep_string_rep when true, do not convert from and to
+           the internal representation, but preserve the original
+           string.
+  }
+
   numeric instproc initialize {} {
     next
     set :widget_type numeric
     # check, if we have an integer format
     set :is_integer [regexp {%[0-9.]*d} ${:format}]
+    if {${:connection_locale} && [ns_conn isconnected]} {
+      set :locale [ad_conn locale]
+    }
   }
-  numeric instproc convert_to_external value {
+  numeric instproc convert_to_external {value} {
+    if {${:keep_string_rep}} {
+      return $value
+    }
     if {$value eq ""} {
       set result ""
     } else {
       ad_try {
-        return [lc_numeric $value ${:format} [:locale]]
-      } on error errorMsg {
-        util_user_message -message "${:label}: $errorMsg (locale=[:locale])"
+        return [lc_numeric $value ${:format} ${:locale}]
+      } on error {errorMsg} {
+        util_user_message -message "${:label}: $errorMsg (locale=${:locale})"
       }
       #
-      # try again
+      # Try to parse finally the value against the format
       #
       set converted_value $value
       ad_try {
@@ -2629,22 +2665,55 @@ namespace eval ::xowiki::formfield {
     }
     return $result
   }
+
+  numeric instproc convert_to_internal_value {value} {
+    try {
+      lc_parse_number ${:value} ${:locale} ${:is_integer}
+    } on ok {result} {
+    } on error {errorMsg} {
+      #ns_log notice "numeric instproc convert_to_internal <$value> ${:locale} -> $errorMsg ($::errorCode)"
+      if {${:strict} == 0 && ${:locale} ne "en_US"} {
+        try {
+          lc_parse_number ${:value} en_US ${:is_integer}
+        } on ok {result} {
+        }
+      }
+    }
+    return $result
+  }
   numeric instproc convert_to_internal {} {
-    if {[:value] ne ""} {
-      set value [lc_parse_number [:value] [:locale] ${:is_integer}]
+    if {!${:keep_string_rep} && ${:value} ne ""} {
+      #
+      # The value has been already checked against the validator, so
+      # the conversion should be smooth.
+      #
+      set value [:convert_to_internal_value ${:value}]
+      ns_log notice "XXXXXX convert_to_internal '${:value}' --> '$value'"
       ${:object} set_property -new 1 ${:name} [expr {$value}]
-      return
     }
   }
   numeric instproc check=numeric {value} {
-    return [expr {[catch {lc_parse_number $value [:locale] ${:is_integer}}] == 0}]
+    #ns_log notice "=== numeric: value '$value' locale '[:locale]' is_integer '${:is_integer}'"
+    return [expr {[catch {:convert_to_internal_value $value}] == 0}]
   }
   numeric instproc pretty_value value {
     return [:convert_to_external $value]
   }
   numeric instproc answer_check=eq {} {
-    # use numeric equality
-    return [expr {[:value] == [lindex ${:correct_when} 1]}]
+    try {
+      set x [:convert_to_internal_value ${:value}]
+      set y [:convert_to_internal_value [lindex ${:correct_when} 1]]
+      #ns_log notice "numeric answer_check=eq " \
+          "'[lindex ${:correct_when} 1]' with '${:value}'" "->" \
+          "expr {$x == $y}"
+      set result [expr {$x == $y}]
+    } on error {errorMsg} {
+      ns_log warning "numeric answer_check=eq received exception while comparing " \
+          "'[lindex ${:correct_when} 1]' with '${:value}'" \
+          $errorMsg
+      set result 0
+    }
+    return $result
   }
 
   ###########################################################
@@ -4348,6 +4417,16 @@ namespace eval ::xowiki::formfield {
 
       lassign $option text rep
       set render_hints [dict get $render_hints_dict words]
+
+      #
+      # Convert render hints to the form-field type used for
+      # rendering. We might use here
+      #
+      #     number { set type numeric }
+      #
+      # but this has the consequence that the original string
+      # representation might be lost.
+
       switch $render_hints {
         "multiple_lines" {
           set type textarea
@@ -4357,17 +4436,14 @@ namespace eval ::xowiki::formfield {
             dict set field_fc_dict paste false
           }
         }
-        "file_upload" {
-          set type file
-        }
-        default {
-          set type text
-        }
+        number      { set type numeric; dict set field_fc_dict keep_string_rep 1 }
+        file_upload { set type file    }
+        default     { set type text    }
       }
       lappend fields [list $rep [:dict_to_fc -type $type $field_fc_dict]]
     }
 
-    #:log "TEXT text_fields fields\n[join $fields \n]>"
+    #:log "text_fields fields\n[join $fields \n]>"
     :create_components $fields
   }
 
