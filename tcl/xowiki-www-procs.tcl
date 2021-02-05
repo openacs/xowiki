@@ -405,7 +405,6 @@ namespace eval ::xowiki {
     }
     ::xo::Page requireCSS /resources/xowiki/xowiki.css
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id [my revision_id]]
-    $my_page volatile
 
     if {[catch {set html1 [$my_page render]} errorMsg]} {
       set html2 "Error rendering [my revision_id]: $errorMsg"
@@ -417,7 +416,6 @@ namespace eval ::xowiki {
     regexp {^([^.]+)[.]} $time1 _ time1
 
     set other_page [::xowiki::Package instantiate_page_from_id -revision_id $compare_id]
-    $other_page volatile
     #$other_page absolute_links 1
 
     if {[catch {set html2 [$other_page render]} errorMsg]} {
