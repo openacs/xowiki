@@ -136,6 +136,9 @@ namespace eval ::xowiki::test {
             # Create the test folder
             ::xowiki::test::require_folder $testfolder $root_folder_id $package_id
 
+            set testfolder_id [::$package_id lookup -parent_id $root_folder_id -name $testfolder]
+            aa_true "can resolve '$testfolder'" {$testfolder_id > 0}
+            
             #
             # Force the system locale to en_US. The value is
             # automatically reset to the previous value, since we are
@@ -167,7 +170,6 @@ namespace eval ::xowiki::test {
             set f1_p1_pl [::$f1_p1_id pretty_link]
             aa_equals "Pretty link of f1/page $f1_p1_pl" $f1_p1_pl "/xowiki-test/f1/p1"
 
-            set testfolder_id [::$package_id lookup -parent_id $root_folder_id -name $testfolder]
             ::xo::db::CrClass get_instance_from_db -item_id $testfolder_id
             set testfolder_pl [::$testfolder_id pretty_link]
             aa_equals "Pretty link of $testfolder $testfolder_pl" $testfolder_pl "$instance/$testfolder"
