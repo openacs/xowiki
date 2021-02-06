@@ -1994,7 +1994,7 @@ namespace eval ::xowiki {
 
       #
       # Refetch "template_file", since it might have been changed via
-      # set-parameter the cache flush (next line) is not pretty here
+      # set-parameter. The cache-flush (next line) is not pretty here
       # and should be supported from xotcl-core.
       #
       ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
@@ -2005,15 +2005,21 @@ namespace eval ::xowiki {
       # standard location.
       #
       if {[string range $template_file 0 0] eq "/"} {
-        ns_log warning "ignore template file on non-standard location: $template_file"
+        ns_log warning "ignore template as specified in parameter 'template_file'" \
+            "on non-standard location: $template_file. The template should be" \
+            " under\n/packages/[${:package_id} package_key]/resources/templates/..."
         set template_file [::$context_package_id get_parameter \
                                -check_query_parameter false \
                                -nocache \
                                template_file view-default]
       }
-      set template_file [::${:package_id} get_adp_template $template_file]
+      set validated_template_file [::${:package_id} get_adp_template $template_file]
+      if {$validated_template_file eq ""} {
+        ns_log error "invalid template specified in parameter 'template_file': '$template_file'"
+      }
+      set template_file $validated_template_file
 
-      # Force xowiki css to be loaded first(ish), so we can override
+      # Force xowiki*.css to be loaded first(ish), so we can override
       # its styling via the theme (e.g. different buttons...). This
       # uses the "template::head" API directly, since resources from
       # requireCSS are typically loaded later than those from the theme.

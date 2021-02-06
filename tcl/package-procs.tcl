@@ -1459,8 +1459,18 @@ namespace eval ::xowiki {
     # "working".
     #
     set name [:normalize_path $name]
-    foreach package_key [list [:package_key] xowiki] {
 
+    #
+    # Try to locate the file first in the actual package, and - if not
+    # found - as well in "xowiki".
+    #
+    set package_keys ${:package_key}
+    if {${:package_key} ne "xowiki"} {
+      lappend package_keys xowiki
+    }
+
+    set paths {}
+    foreach package_key $package_keys {
       #
       # Backward compatibility check for old style definitions.
       # Notify user about such deprecated usages.
@@ -1469,6 +1479,7 @@ namespace eval ::xowiki {
 
         set tmpl /packages/$package_key/$location/$name
         set fn [acs_root_dir]/$tmpl
+        lappend paths $fn
         #ns_log notice "=== check get_adp_template $fn"
 
         if {[ad_file readable $fn.adp]} {
@@ -1484,6 +1495,8 @@ namespace eval ::xowiki {
         }
       }
     }
+    ns_log warning "get_adp_template: could not locate template '$name'" \
+        "on the following paths:\n[join $paths \n]"
     return ""
   }
 
