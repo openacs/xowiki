@@ -22,6 +22,7 @@ namespace eval ::xowiki::test {
         -procs {
             "::xowiki::Page instproc find_slot"
             "::xo::db::CrItem instproc update_attribute_from_slot"
+            "::xo::db::CrClass proc get_instance_from_db"
         } \
         slot_interactions {
             Test slot interactions
@@ -112,9 +113,12 @@ namespace eval ::xowiki::test {
     aa_register_case \
         -cats {smoke production_safe} \
         -procs {
-            "::xowiki::Package instproc item_ref"
-            "::xowiki::Package instproc resolve_page"
+            "::xo::db::CrClass proc get_instance_from_db"
+            "::xo::db::CrClass proc lookup"
             "::xowiki::Package instproc item_info_from_url"
+            "::xowiki::Package instproc item_ref"
+            "::xowiki::Package instproc lookup"
+            "::xowiki::Package instproc resolve_page"
             "::xowiki::Page instproc create_link"
         } \
         path_resolve {
@@ -138,7 +142,7 @@ namespace eval ::xowiki::test {
 
             set testfolder_id [::$package_id lookup -parent_id $root_folder_id -name $testfolder]
             aa_true "can resolve '$testfolder'" {$testfolder_id > 0}
-            
+
             #
             # Force the system locale to en_US. The value is
             # automatically reset to the previous value, since we are

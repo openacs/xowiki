@@ -20,6 +20,13 @@ aa_register_case \
       "::xowiki::Page instproc www-revisions"
       "::xowiki::Page instproc www-view"
       "::xowiki::Page instproc www-create-new"
+      "::xo::Package instproc require_root_folder"
+      "::xo::PackageMgr instproc initialize"
+      "::xowiki::Page instproc pretty_link"
+      "::xowiki::Page instproc render"
+      "::xowiki::Page instproc is_folder_page"
+      "::xowiki::FormPage instproc is_folder_page"
+      "xowiki::FormPage instproc property"
       site_node::exists_p
       site_node::unmount
       site_node::delete
