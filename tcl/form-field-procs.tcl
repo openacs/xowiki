@@ -2570,8 +2570,23 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   Class create range -superclass FormField -parameter {
-    min max step value
+    min max step value with_output:boolean {output_prefix ""} {output_suffix ""}
+  } -ad_doc {
+
+    HTML5 range input field. The range input is rendered as a slider
+    by the actual browsers.
+
+    @param min minimum value of the value range
+    @param max maximum value of the value range
+    @param step increment steps when moving the slider
+    @param with_output add an output box with show the actual slider value
+           (requires JavaScript)
+    @param output_prefix prepend string value to the actual slider value
+           in the output display
+    @param output_suffix append string value to the actual slider value
+           in the output display
   }
+  
   range instproc initialize {} {
     :type range
     set :widget_type text
@@ -2579,6 +2594,20 @@ namespace eval ::xowiki::formfield {
   range instproc render_input {} {
     ::html::input [:get_attributes type id name value disabled {CSSclass class} min max step value \
                        autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
+    if {${:with_output}} {
+      set :for ${:id}
+      set :outputID ${:id}-output
+      :CSSclass_list_add CSSclass ${:name}
+      ::html::output [:get_attributes for {outputID id} {CSSclass class}] {
+        ::html::t "${:output_prefix}${:value}${:output_suffix}"
+      }
+      set output_value [subst {'${:output_prefix}' + event.srcElement.value + '${:output_suffix}'}]
+      template::add_event_listener \
+          -id ${:id} \
+          -event input \
+          -preventdefault=false \
+          -script "document.getElementById('${:outputID}').value = $output_value;"
+    }
   }
 
   ###########################################################
