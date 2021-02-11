@@ -16,10 +16,10 @@ if {[nsv_exists xowiki must_update_hkeys]
 # Make sure, the site-wide pages are loaded and/or refetched when the
 # source code in the prototype pages changed.
 #
-try {
+::xo::dc transaction {
   ::xowiki::Package require_site_wide_pages -refetch_if_modified true
-} on error {errorMsg} {
-  ns_log error "xowiki-init:  require_site_wide_pages lead to: $errorMsg"
+} on_error {
+  ns_log error "xowiki-init:  require_site_wide_pages lead to: $errmsg"
 }
 
 set ::xowiki::search_mounted_p 1
