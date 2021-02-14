@@ -1264,6 +1264,7 @@ namespace eval ::xowiki {
     set formNode [lindex [${:root} selectNodes //form] 0]
     if {$formNode eq ""} {
       :msg "no form found in page [${:page_template} name]"
+      ns_log notice "no form found in page [${:page_template} name]\n$form"
       set rootNode ${:root}
       $rootNode firstChild fcn
     } else {
