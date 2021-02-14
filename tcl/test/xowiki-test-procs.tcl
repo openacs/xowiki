@@ -20,9 +20,16 @@ namespace eval ::xowiki::test {
     aa_register_case \
         -cats {smoke production_safe} \
         -procs {
-            "::xowiki::Page instproc find_slot"
-            "::xo::db::CrItem instproc update_attribute_from_slot"
+            "::acs::test::require_package_instance"
+            "::lang::system::set_locale"
+            "::site_node::delete"
+            "::site_node::get_node_id"
+            "::site_node::unmount"
             "::xo::db::CrClass proc get_instance_from_db"
+            "::xo::db::CrItem instproc update_attribute_from_slot"
+            "::xowiki::Page instproc find_slot"
+            "::xowiki::test::require_folder"
+            "::xowiki::test::require_page"            
         } \
         slot_interactions {
             Test slot interactions
@@ -113,6 +120,12 @@ namespace eval ::xowiki::test {
     aa_register_case \
         -cats {smoke production_safe} \
         -procs {
+            "::acs::test::require_package_instance"
+            "::lang::system::locale"
+            "::lang::system::set_locale"
+            "::site_node::delete"
+            "::site_node::get_node_id"
+            "::site_node::unmount"
             "::xo::db::CrClass proc get_instance_from_db"
             "::xo::db::CrClass proc lookup"
             "::xowiki::Package instproc item_info_from_url"
@@ -120,6 +133,8 @@ namespace eval ::xowiki::test {
             "::xowiki::Package instproc lookup"
             "::xowiki::Package instproc resolve_page"
             "::xowiki::Page instproc create_link"
+            "::xowiki::test::require_folder"
+            "::xowiki::test::require_page"
         } \
         path_resolve {
             Test various forms of path resolving
@@ -304,15 +319,30 @@ namespace eval ::xowiki::test {
 
 
     aa_register_case -cats {web} -procs {
+        "::acs::test::dom_html"
+        "::acs::test::http"
+        "::acs::test::reply_has_status_code"
+        "::acs::test::require_package_instance"
+        "::export_vars"
+        "::lang::system::locale"
         "::xo::Package instproc initialize"
-        "::xowiki::Package instproc invoke"
         "::xo::Package instproc reply_to_user"
+        "::xowiki::Package instproc invoke"
+        "::xowiki::Page instproc www-create-new"
+        "::xowiki::Page instproc www-edit"
         "::xowiki::test::create_form"
         "::xowiki::test::create_form_page"
-        "::xowiki::test::require_test_folder"
         "::xowiki::test::edit_form_page"
-        "::xowiki::Page instproc www-edit"
-        "::xowiki::Page instproc www-create-new"
+        "::xowiki::test::get_form_CSSclass"
+        "::xowiki::test::get_object_name"
+        "::xowiki::test::require_test_folder"
+        ::acs::test::form_get_fields
+        ::acs::test::form_reply
+        ::acs::test::form_set_fields
+        ::acs::test::get_form
+        ::acs::test::get_url_from_location
+        ::acs::test::xpath::get_form
+        ::acs::test::xpath::get_form_values
     } create_form_with_form_instance {
 
         Create an xowiki form and an instance of this form.  Here we

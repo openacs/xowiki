@@ -1,6 +1,7 @@
 aa_register_case \
     -cats {smoke production_safe} \
     -procs {
+        "::acs::test::require_package_instance"
         "::xowiki::Package instproc normalize_path"
     } \
     package_normalize_path {

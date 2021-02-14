@@ -3,7 +3,17 @@ namespace eval ::xowiki::test {
   aa_register_case \
       -cats {smoke production_safe} \
       -procs {
+        "::acs::test::dom_html"
+        "::acs::test::require_package_instance"
+        "::lang::system::locale"
+        "::lang::system::set_locale"
+        "::xo::PackageMgr instproc initialize"
+        "::xo::db::CrClass proc get_instance_from_db"
+        "::xo::parameter proc set_value"
         "::xowiki::Page instproc render"
+        "::xowiki::test::require_folder"
+        "::xowiki::test::require_link"
+        "::xowiki::test::require_page"        
       } \
       link_tests {
         Test links pointing to folders in different instances

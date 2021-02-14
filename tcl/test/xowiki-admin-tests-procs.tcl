@@ -9,30 +9,43 @@ ad_library {
 aa_register_case \
     -cats {api smoke} \
     -procs {
-      "::xowiki::Package instproc make_link"
-      "::xowiki::Package instproc resolve_page"
-      lang::system::get_locales
+      "::xo::ConnectionContext instproc form_parameter"
+      "::xo::ConnectionContext instproc returnredirect"
+      "::xo::ConnectionContext instproc user_id"
+      "::xo::Package instproc require_root_folder"
+      "::xo::PackageMgr instproc initialize"
+      "::xo::at_cleanup"
       "::xo::db::CrClass instproc get_instance_from_db"
+      "::xo::db::DB-postgresql instproc 0or1row"
+      "::xo::db::DB-postgresql instproc dml"
+      "::xo::db::DB-postgresql instproc get_value"
+      "::xo::db::DB-postgresql instproc list"
+      "::xowiki::FormPage instproc is_folder_page"
+      "::xowiki::FormPage instproc property"
+      "::xowiki::FormPage proc filter_expression"
       "::xowiki::Package instproc external_name"
       "::xowiki::Package instproc item_ref"
+      "::xowiki::Package instproc make_link"
+      "::xowiki::Package instproc resolve_page"
+      "::xowiki::Page instproc is_folder_page"
+      "::xowiki::Page instproc pretty_link"
+      "::xowiki::Page instproc render"
+      "::xowiki::Page instproc www-create-new"
       "::xowiki::Page instproc www-delete"
       "::xowiki::Page instproc www-edit"
       "::xowiki::Page instproc www-revisions"
       "::xowiki::Page instproc www-view"
-      "::xowiki::Page instproc www-create-new"
-      "::xo::Package instproc require_root_folder"
-      "::xo::PackageMgr instproc initialize"
-      "::xowiki::Page instproc pretty_link"
-      "::xowiki::Page instproc render"
-      "::xowiki::Page instproc is_folder_page"
-      "::xowiki::FormPage instproc is_folder_page"
-      "xowiki::FormPage instproc property"
-      site_node::exists_p
-      site_node::unmount
+      "::xowiki::locales"
+      "::xowiki::test::require_folder"
+      "::xowiki::test::require_link"
+      "::xowiki::test::require_page"
+      lang::system::get_locales
       site_node::delete
+      site_node::exists_p
       site_node::get
-      site_node::instantiate_and_mount
       site_node::get_from_url
+      site_node::instantiate_and_mount
+      site_node::unmount 
     } \
     xowiki_test_cases {
       XoWiki Test Cases
