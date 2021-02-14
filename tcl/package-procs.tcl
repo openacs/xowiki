@@ -1487,8 +1487,8 @@ namespace eval ::xowiki {
           #ns_log notice "template is <$result>"
           if {$result ne ""} {
             if {$location eq "www"} {
-              ns_log warning "deprecated location: you should move template\
-                     '$tmpl' to /packages/$package_key/resources/templates/"
+              ns_log warning "deprecated location: you should move template" \
+                  "'$tmpl' to /packages/$package_key/resources/templates/"
             }
             return $result
           }
