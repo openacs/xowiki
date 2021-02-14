@@ -133,7 +133,7 @@ namespace eval ::xowiki {
     set :fields $__fields
   }
 
-  proc ::xowiki::locales {} {
+  ad_proc -private ::xowiki::locales {} {
     set locales [lang::system::get_locales]
     if {[ns_conn isconnected]} {
       #
@@ -148,7 +148,7 @@ namespace eval ::xowiki {
     return $lpairs
   }
 
-  proc ::xowiki::page_templates {} {
+  ad_proc -private ::xowiki::page_templates {} {
     set form ::xowiki::f1 ;# form has to be named this way for the time being
     #set form [lindex [::xowiki::WikiForm info instances -closure] 0]
     $form instvar folder_id
