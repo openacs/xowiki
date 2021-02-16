@@ -411,6 +411,8 @@ namespace eval ::xowiki::test {
         ::acs::test::xpath::get_form_values
         "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xowiki::utility proc formCSSclass"
+        ad_parse_template
+
     } create_form_with_form_instance {
 
         Create an xowiki form and an instance of this form.  Here we

@@ -111,6 +111,7 @@ aa_register_case \
       "::xo::db::CrClass proc get_name"
       "::xo::db::CrClass proc get_child_item_ids"
       "::xo::PackageMgr proc get_package_class_from_package_key"
+      ad_ns_set_to_tcl_vars
     } \
     xowiki_test_cases {
       XoWiki Test Cases
