@@ -9,17 +9,31 @@ ad_library {
 aa_register_case \
     -cats {api smoke} \
     -procs {
+      "::Generic::Form instproc generate"
       "::xo::ConnectionContext instproc form_parameter"
       "::xo::ConnectionContext instproc returnredirect"
       "::xo::ConnectionContext instproc user_id"
+      "::xo::Context instproc get_parameters"
       "::xo::Package instproc require_root_folder"
+      "::xo::PackageMgr instproc import_prototype_page"
       "::xo::PackageMgr instproc initialize"
+      "::xo::PackageMgr instproc require_site_wide_pages"
+      "::xo::Policy instproc check_permissions"
+      "::xo::Policy instproc enforce_permissions"
       "::xo::at_cleanup"
+      "::xo::db::Class instproc instantiate_objects"
+      "::xo::db::CrClass instproc delete"
+      "::xo::db::CrClass instproc fetch_object"
       "::xo::db::CrClass instproc get_instance_from_db"
+      "::xo::db::CrClass instproc instance_select_query"
+      "::xo::db::CrClass proc get_instance_from_db"
+      "::xo::db::CrItem instproc update_item_index"
       "::xo::db::DB-postgresql instproc 0or1row"
       "::xo::db::DB-postgresql instproc dml"
       "::xo::db::DB-postgresql instproc get_value"
       "::xo::db::DB-postgresql instproc list"
+      "::xo::tdom::AttributeManager instproc get_local_attributes"
+      "::xowiki::File instproc www-download"
       "::xowiki::FormPage instproc is_folder_page"
       "::xowiki::FormPage instproc property"
       "::xowiki::FormPage proc filter_expression"
@@ -27,6 +41,7 @@ aa_register_case \
       "::xowiki::Package instproc item_ref"
       "::xowiki::Package instproc make_link"
       "::xowiki::Package instproc resolve_page"
+      "::xowiki::Package instproc www-delete"
       "::xowiki::Page instproc is_folder_page"
       "::xowiki::Page instproc pretty_link"
       "::xowiki::Page instproc render"
@@ -45,7 +60,51 @@ aa_register_case \
       site_node::get
       site_node::get_from_url
       site_node::instantiate_and_mount
-      site_node::unmount 
+      site_node::unmount
+      
+      "::acs::Cache instproc eval"
+      "::acs::root_of_host"
+      "::ad_host"
+      "::ad_return_complaint"
+      "::ad_return_url"
+      "::ad_script_abort"
+      "::ad_text_to_html"
+      "::api_page_documentation_mode_p"
+      "::auth::require_login"
+      "::db_exec"
+      "::db_getrow"
+      "::db_resultrows"
+      "::db_with_handle"
+      "::export_vars"
+      "::notification::type::get_type_id"
+      "::site_node::get_url_from_object_id"
+      "::template::add_body_script"
+      "::template::adp_compile"
+      "::template::adp_eval"
+      "::template::adp_parse"
+      "::template::head::add_css"
+      "::template::head::add_meta"
+      "::template::util::lpop"
+      "::xo::ConnectionContext instproc get_all_form_parameter"
+      "::xo::ConnectionContext instproc get_parameter"
+      "::xo::ConnectionContext instproc permission"
+      "::xo::ConnectionContext instproc url"
+      "::xo::Context instproc export_vars"
+      "::xo::Context instproc original_url_and_query"
+      "::xo::Context instproc package_id"
+      "::xo::PackageMgr instproc first_instance"
+      "::xo::PackageMgr instproc require"
+      "::xo::Page proc get_property"
+      "::xo::Page proc header_stuff"
+      "::xo::Page proc requireCSS"
+      "::xo::Page proc set_property"
+      "::xo::db::Class proc object_type_to_class"
+      "::xo::db::CrClass proc lookup"
+      "::xo::db::CrFolder proc register_content_types"
+      "::xo::db::sql::content_folder proc new"
+      "::xotcl::Object instproc unset"
+      "::xowiki::Package proc preferredCSSToolkit"
+      "::xowiki::hstore::double_quote"
     } \
     xowiki_test_cases {
       XoWiki Test Cases
@@ -56,6 +115,9 @@ aa_register_case \
 
       @author Gustaf Neumann
     } {
+      ns_eval source  /tmp/debug-xowiki.tcl
+      ns_eval source  /tmp/debug-xotcl-core.tcl
+      
         Object test
         test set passed 0
         test set failed 0
@@ -571,7 +633,7 @@ aa_register_case \
         set returned_item_id 0
         set r [regexp {name="item_id"\s+value="([^\"]+)"} $content _ returned_item_id]
         #? {info exists returned_item_id} 1 "item_id contained in form"
-        ns_log notice "====================================================\n$content\n======================"
+        #ns_log notice "====================================================\n$content\n======================"
         ? {expr {$returned_item_id > 0}} 1 "item_id $returned_item_id > 0 (regexp $r)"
         ? {$package_id isobject $returned_item_id} 1 "item is instantiated"
 

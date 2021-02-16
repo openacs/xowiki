@@ -13,7 +13,25 @@ namespace eval ::xowiki::test {
         "::xowiki::Page instproc render"
         "::xowiki::test::require_folder"
         "::xowiki::test::require_link"
-        "::xowiki::test::require_page"        
+        "::xowiki::test::require_page"
+        "::xowiki::Package instproc folder_path"
+        "::xowiki::Package instproc pretty_link"
+        "::xowiki::FormPage instproc update_item_index"
+
+        "::acs::root_of_host"
+        "::ad_acs_kernel_id"
+        "::ad_host"
+        "::api_page_documentation_mode_p"
+        "::auth::require_login"
+        "::export_vars"
+        "::parameter::set_value"
+        "::site_node::get_url_from_object_id"
+        "::xo::ConnectionContext instproc get_parameter"        
+        "::xo::ConnectionContext instproc user_id"
+        "::xo::Context instproc export_vars"
+        "::xo::Context instproc original_url_and_query"
+        "::xo::Context instproc package_id"
+        "::xo::db::Class proc object_type_to_class"
       } \
       link_tests {
         Test links pointing to folders in different instances
@@ -21,6 +39,7 @@ namespace eval ::xowiki::test {
         #
         # Set up of the test case.
         #
+
         set main_xowiki_instance_name   /xowiki-test
         set linked_xowiki_instance_name /xowiki-test-linked
 

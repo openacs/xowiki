@@ -29,11 +29,27 @@ namespace eval ::xowiki::test {
             "::xo::db::CrItem instproc update_attribute_from_slot"
             "::xowiki::Page instproc find_slot"
             "::xowiki::test::require_folder"
-            "::xowiki::test::require_page"            
+            "::xowiki::test::require_page"
+            "::xo::PackageMgr instproc initialize"
+            "::xowiki::FormPage instproc update_attribute_from_slot"
+
+            "::acs::root_of_host"
+            "::ad_host"
+            "::api_page_documentation_mode_p"
+            "::auth::require_login"
+            "::export_vars"
+            "::site_node::get_url_from_object_id"
+            "::xo::ConnectionContext instproc user_id"
+            "::xo::Context instproc export_vars"
+            "::xo::Context instproc original_url_and_query"
+            "::xo::db::Class proc object_type_to_class"
+            "::xo::db::DB-postgresql instproc dml"
+            "::xowiki::Page proc find_slot"
         } \
         slot_interactions {
             Test slot interactions
         } {
+
         set instance /xowiki-test
         set package_id [::acs::test::require_package_instance \
                             -package_key xowiki \
@@ -135,10 +151,27 @@ namespace eval ::xowiki::test {
             "::xowiki::Page instproc create_link"
             "::xowiki::test::require_folder"
             "::xowiki::test::require_page"
+            "::xo::PackageMgr instproc initialize"
+
+            "::acs::root_of_host"
+            "::ad_host"
+            "::api_page_documentation_mode_p"
+            "::auth::require_login"
+            "::export_vars"
+            "::site_node::get_url_from_object_id"
+            "::xo::ConnectionContext instproc query_parameter"
+            "::xo::ConnectionContext instproc user_id"
+            "::xo::Context instproc export_vars"
+            "::xo::Context instproc original_url_and_query"
+            "::xo::Page proc requireCSS"
+            "::xo::Page proc requireJS"
+            "::xo::db::Class proc object_type_to_class"
+            "::xo::db::DB-postgresql instproc get_value"
         } \
         path_resolve {
             Test various forms of path resolving
         } {
+
         set instance /xowiki-test
         set package_id [::acs::test::require_package_instance \
                             -package_key xowiki \
@@ -327,7 +360,10 @@ namespace eval ::xowiki::test {
         "::lang::system::locale"
         "::xo::Package instproc initialize"
         "::xo::Package instproc reply_to_user"
+        "::xowiki::FormPage instproc set_property"
         "::xowiki::Package instproc invoke"
+        "::xowiki::Page instproc get_form_data"
+        "::xowiki::Page instproc include"
         "::xowiki::Page instproc www-create-new"
         "::xowiki::Page instproc www-edit"
         "::xowiki::test::create_form"
@@ -343,6 +379,34 @@ namespace eval ::xowiki::test {
         ::acs::test::get_url_from_location
         ::acs::test::xpath::get_form
         ::acs::test::xpath::get_form_values
+
+        "::xowiki::PageInstance instproc get_from_template"
+        "::xowiki::Package instproc get_parameter"
+        "::xowiki::Package instproc require_root_folder"
+        "::xo::tdom::AttributeManager instproc get_attributes"
+        "::xowiki::FormPage instproc set_form_data"
+        "::xowiki::FormPage instproc combine_data_and_form_field_default"
+        "::xowiki::Package instproc www-edit-new"
+        "::cookieconsent::CookieConsent instproc render_js"
+        "::xo::db::CrItem instproc rename"
+        "::ad_log"
+        "::ad_return_complaint"
+        "::ad_script_abort"
+        "::ad_text_to_html"
+        "::ad_urlencode_query"
+        "::template::util::lpop"
+        "::xo::ConnectionContext instproc get_all_form_parameter"
+        "::xo::ConnectionContext instproc user_id"
+        "::xo::Context instproc invoke_object"
+        "::xo::PackageMgr instproc first_instance"
+        "::xo::PackageMgr instproc initialize"
+        "::xo::PackageMgr instproc require"
+        "::xo::Page proc get_property"
+        "::xo::Page proc set_property"
+        "::xo::db::CrClass instproc get_instance_from_db"
+        "::xowiki::Includelet proc html_encode"
+        "::xo::Table instproc column_names"
+        "::xo::db::CrClass instproc get_instances_from_db"
     } create_form_with_form_instance {
 
         Create an xowiki form and an instance of this form.  Here we
@@ -353,6 +417,7 @@ namespace eval ::xowiki::test {
         was sent by the browser.
 
     } {
+
         #
         # Run the test under the current user_id.
         #
@@ -365,7 +430,6 @@ namespace eval ::xowiki::test {
                             -instance_name $instance]
 
         set testfolder .testfolder
-
         try {
             #
             # Run one upfront request to obtain the request_info, used
