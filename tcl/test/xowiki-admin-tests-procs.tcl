@@ -9,59 +9,35 @@ ad_library {
 aa_register_case \
     -cats {api smoke} \
     -procs {
-      "::Generic::Form instproc generate"
+      "::lang::system::get_locales"
+      "::site_node::delete"
+      "::site_node::exists_p"
+      "::site_node::get"
+      "::site_node::get_from_url"
+      "::site_node::instantiate_and_mount"
+      "::site_node::unmount"
       "::xo::ConnectionContext instproc form_parameter"
       "::xo::ConnectionContext instproc returnredirect"
       "::xo::ConnectionContext instproc user_id"
-      "::xo::Context instproc get_parameters"
-      "::xo::Package instproc require_root_folder"
-      "::xo::PackageMgr instproc import_prototype_page"
       "::xo::PackageMgr instproc initialize"
-      "::xo::PackageMgr instproc require_site_wide_pages"
-      "::xo::Policy instproc check_permissions"
-      "::xo::Policy instproc enforce_permissions"
       "::xo::at_cleanup"
-      "::xo::db::Class instproc instantiate_objects"
-      "::xo::db::CrClass instproc delete"
-      "::xo::db::CrClass instproc fetch_object"
-      "::xo::db::CrClass instproc get_instance_from_db"
-      "::xo::db::CrClass instproc instance_select_query"
       "::xo::db::CrClass proc get_instance_from_db"
-      "::xo::db::CrItem instproc update_item_index"
-      "::xo::db::DB-postgresql instproc 0or1row"
       "::xo::db::DB-postgresql instproc dml"
       "::xo::db::DB-postgresql instproc get_value"
       "::xo::db::DB-postgresql instproc list"
-      "::xo::tdom::AttributeManager instproc get_local_attributes"
-      "::xowiki::File instproc www-download"
-      "::xowiki::FormPage instproc is_folder_page"
-      "::xowiki::FormPage instproc property"
       "::xowiki::FormPage proc filter_expression"
-      "::xowiki::Package instproc external_name"
-      "::xowiki::Package instproc item_ref"
-      "::xowiki::Package instproc make_link"
-      "::xowiki::Package instproc resolve_page"
-      "::xowiki::Package instproc www-delete"
-      "::xowiki::Page instproc is_folder_page"
-      "::xowiki::Page instproc pretty_link"
-      "::xowiki::Page instproc render"
+      "::xowiki::locales"
+      "::xowiki::test::require_folder"
+      "::xowiki::test::require_link"
+      "::xowiki::test::require_page"
       "::xowiki::Page instproc www-create-new"
       "::xowiki::Page instproc www-delete"
       "::xowiki::Page instproc www-edit"
       "::xowiki::Page instproc www-revisions"
       "::xowiki::Page instproc www-view"
-      "::xowiki::locales"
-      "::xowiki::test::require_folder"
-      "::xowiki::test::require_link"
-      "::xowiki::test::require_page"
-      lang::system::get_locales
-      site_node::delete
-      site_node::exists_p
-      site_node::get
-      site_node::get_from_url
-      site_node::instantiate_and_mount
-      site_node::unmount
-      
+
+
+      "::Generic::Form instproc generate"
       "::acs::Cache instproc eval"
       "::acs::root_of_host"
       "::ad_host"
@@ -90,21 +66,51 @@ aa_register_case \
       "::xo::ConnectionContext instproc permission"
       "::xo::ConnectionContext instproc url"
       "::xo::Context instproc export_vars"
+      "::xo::Context instproc get_parameters"
       "::xo::Context instproc original_url_and_query"
       "::xo::Context instproc package_id"
+      "::xo::Package instproc require_root_folder"
       "::xo::PackageMgr instproc first_instance"
+      "::xo::PackageMgr instproc import_prototype_page"
       "::xo::PackageMgr instproc require"
+      "::xo::PackageMgr instproc require_site_wide_pages"
       "::xo::Page proc get_property"
       "::xo::Page proc header_stuff"
       "::xo::Page proc requireCSS"
       "::xo::Page proc set_property"
+      "::xo::Policy instproc check_permissions"
+      "::xo::Policy instproc enforce_permissions"
+      "::xo::db::Class instproc instantiate_objects"
       "::xo::db::Class proc object_type_to_class"
+      "::xo::db::CrClass instproc delete"
+      "::xo::db::CrClass instproc fetch_object"
+      "::xo::db::CrClass instproc get_instance_from_db"
+      "::xo::db::CrClass instproc instance_select_query"
       "::xo::db::CrClass proc lookup"
       "::xo::db::CrFolder proc register_content_types"
+      "::xo::db::CrItem instproc update_item_index"
+      "::xo::db::DB-postgresql instproc 0or1row"
       "::xo::db::sql::content_folder proc new"
+      "::xo::tdom::AttributeManager instproc get_local_attributes"
       "::xotcl::Object instproc unset"
+      "::xowiki::File instproc www-download"
+      "::xowiki::FormPage instproc is_folder_page"
+      "::xowiki::FormPage instproc property"
+      "::xowiki::Package instproc external_name"
+      "::xowiki::Package instproc item_ref"
+      "::xowiki::Package instproc make_link"
+      "::xowiki::Package instproc resolve_page"
+      "::xowiki::Package instproc www-delete"
       "::xowiki::Package proc preferredCSSToolkit"
+      "::xowiki::Page instproc is_folder_page"
+      "::xowiki::Page instproc pretty_link"
+      "::xowiki::Page instproc render"
       "::xowiki::hstore::double_quote"
+      "::xowiki::FormPage proc fetch_object"
+      "::xo::db::CrClass proc get_parent_id"
+      "::xo::db::CrClass proc get_name"
+      "::xo::db::CrClass proc get_child_item_ids"
+      "::xo::PackageMgr proc get_package_class_from_package_key"
     } \
     xowiki_test_cases {
       XoWiki Test Cases
@@ -117,7 +123,7 @@ aa_register_case \
     } {
       ns_eval source  /tmp/debug-xowiki.tcl
       ns_eval source  /tmp/debug-xotcl-core.tcl
-      
+
         Object test
         test set passed 0
         test set failed 0

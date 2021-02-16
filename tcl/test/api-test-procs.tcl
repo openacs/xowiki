@@ -3,17 +3,18 @@ aa_register_case \
     -procs {
         "::acs::test::require_package_instance"
         "::xo::PackageMgr instproc initialize"
-        "::xowiki::Package instproc normalize_path"
 
         "::acs::root_of_host"
         "::ad_host"
         "::api_page_documentation_mode_p"
         "::auth::require_login"
         "::export_vars"
-        "::site_node::get_url_from_object_id"        
+        "::site_node::get_url_from_object_id"
         "::xo::ConnectionContext instproc user_id"
         "::xo::Context instproc export_vars"
         "::xo::Context instproc original_url_and_query"
+        "::xowiki::Package instproc normalize_path"
+        "::xo::PackageMgr proc get_package_class_from_package_key"
     } \
     package_normalize_path {
 
@@ -21,7 +22,6 @@ aa_register_case \
         "normalize_path".
 
     } {
-
         set package_id [acs::test::require_package_instance \
                             -package_key xowiki]
         ::xowiki::Package initialize -package_id $package_id
