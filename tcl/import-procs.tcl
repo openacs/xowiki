@@ -289,7 +289,7 @@ namespace eval ::xowiki {
     while {1} {
       set new 0
       if {[array size items] > 0} {
-        ns_log notice "--export works on [array names items]"
+        ns_log notice "--export works on [array size items] items: [array names items]"
       }
       foreach item_id [array names items] {
         #
