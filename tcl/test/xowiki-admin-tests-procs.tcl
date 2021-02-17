@@ -122,8 +122,6 @@ aa_register_case \
 
       @author Gustaf Neumann
     } {
-      ns_eval source  /tmp/debug-xowiki.tcl
-      ns_eval source  /tmp/debug-xotcl-core.tcl
 
         Object test
         test set passed 0
