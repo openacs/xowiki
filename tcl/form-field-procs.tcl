@@ -774,13 +774,13 @@ namespace eval ::xowiki::formfield {
   FormField instproc answer_check=lt {} {
     set d [:process_correct_when_modifier]
     dict with d {
-      return [expr {$value < [lindex $words 0]}]
+      return [expr {$value ne "" && $value < [lindex $words 0]}]
     }
   }
   FormField instproc answer_check=le {} {
     set d [:process_correct_when_modifier]
     dict with d {
-      return [expr {$value <= [lindex $words 0]}]
+      return [expr {$value ne "" && $value <= [lindex $words 0]}]
     }
   }
   FormField instproc answer_check=btwn {} {
