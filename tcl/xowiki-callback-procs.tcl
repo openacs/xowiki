@@ -36,7 +36,9 @@ namespace eval ::xowiki {
     @author Gustaf Neumann
   } {
     ns_log notice "Executing before-uninstantiate"
-    ::xowiki::delete_gc_messages -package_id $package_id
+    # Delete the messages of general comments to allow one to
+    # uninstantiate the package without violating constraints.
+    general_comments_delete_messages -package_id $package_id
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
       # we deal with a correctly installed package
@@ -58,27 +60,6 @@ namespace eval ::xowiki {
 
     ns_log notice "before-uninstantiate DONE"
   }
-
-
-  ad_proc -private ::xowiki::delete_gc_messages {
-    {-package_id:required}
-  } {
-    Deletes the messages of general comments to allow one to
-    uninstantiate the package without violating constraints.
-
-    @author Gustaf Neumann
-  } {
-    set comment_ids [::xo::dc list get_comments {
-      select g.comment_id
-      from general_comments g, cr_items i,acs_objects o
-      where i.item_id = g.object_id
-      and o.object_id = i.item_id
-      and o.package_id = :package_id}]
-    foreach comment_id $comment_ids {
-      ::xo::db::sql::acs_message delete -message_id $comment_id
-    }
-  }
-
 
   #
   # upgrade logic
