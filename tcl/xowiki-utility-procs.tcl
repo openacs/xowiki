@@ -165,18 +165,20 @@ namespace eval ::xowiki::hstore {
     return [join $keys ,]
   }
 
-  ad_proc -private ::xowiki::hstore::update_hstore {package_id} {
-    update all instance attributes in hstore
+  ad_proc -public ::xowiki::hstore::update_hstore {
+    package_id
+  } {
+    Update all instance attributes in hstore.
+
+    This proc can be used from ds/shell as follows:
+
+       ::xo::Package initialize -url /xowiki
+       ::xowiki::hstore::update_hstore $package_id
   } {
     if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
       return 0
     }
-    #
-    # This proc can be used from ds/shell as follows
-    #
-    #    ::xo::Package initialize -url /xowiki
-    #    ::xowiki::hstore::update_hstore $package_id
-    #
+
     # Check the result
     #
     #    select hkey from xowiki_page_instance where hkey is not null;
