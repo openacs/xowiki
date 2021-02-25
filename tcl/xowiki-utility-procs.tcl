@@ -165,7 +165,7 @@ namespace eval ::xowiki::hstore {
     return [join $keys ,]
   }
 
-  ad_proc -public ::xowiki::hstore::update_hstore {
+  ad_proc -private ::xowiki::hstore::update_hstore {
     package_id
   } {
     Update all instance attributes in hstore.
