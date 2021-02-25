@@ -89,6 +89,27 @@ namespace eval ::xowiki {
     # memory around, so we can delete it.
     rename __upgrade ""
   }
+
+  ad_proc -public -callback subsite::parameter_changed -impl xowiki {
+    -package_id:required
+    -parameter:required
+    -value:required
+  } {
+    Implementation of subsite::parameter_changed for xowiki parameters.
+
+    @param package_id the package_id of the package the parameter was changed for
+    @param parameter  the parameter name
+    @param value      the new value
+  } {
+    if {[::xowiki::Package is_xowiki_p $package_id]} {
+      if {$parameter eq "use_hstore" && $value eq 1} {
+        # hstore has been activated: make sure instance attributes are
+        # persisted in there
+        ::xowiki::hstore::update_hstore $package_id
+      }
+    }
+  }
+
 }
 ::xo::library source_dependent
 

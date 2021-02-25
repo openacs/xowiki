@@ -719,6 +719,24 @@ namespace eval ::xowiki {
     return $value
   }
 
+  Package ad_proc is_xowiki_p {package_id} {
+    A small stunt to detect if a package is a descendant of xowiki.
+
+    @return boolean
+  } {
+    set xowiki_p false
+    set package_key [apm_package_key_from_id $package_id]
+    set package_class [::xo::PackageMgr get_package_class_from_package_key $package_key]
+    if {$package_class ne ""} {
+      # we found an xo::Package, but is it an xowiki package?
+      set classes [list $package_class {*}[$package_class info heritage]]
+      if {"::xowiki::Package" in $classes} {
+        set xowiki_p true
+      }
+    }
+    return $xowiki_p
+  }
+
   Package instproc resolve_package_path {path name_var} {
     #
     # In case, we can resolve the path against an xowiki instance,
@@ -739,16 +757,11 @@ namespace eval ::xowiki {
         return 0
       }
       set package_id [dict get $siten_node_info package_id]
-      set package_class [::xo::PackageMgr get_package_class_from_package_key $package_key]
-      if {$package_class ne ""} {
-        # we found an xo::Package, but is it an xowiki package?
-        set classes [list $package_class {*}[$package_class info heritage]]
-        if {"::xowiki::Package" in $classes} {
-          # yes, it is an xowiki::package, compute the name and return the package_id
-          ::xowiki::Package require $package_id
-          set name [string range $path [string length [dict get $siten_node_info url]] end]
-          return $package_id
-        }
+      if {[::xowiki::Package is_xowiki_p $package_id]} {
+        # yes, it is an xowiki::package, compute the name and return the package_id
+        ::xowiki::Package require $package_id
+        set name [string range $path [string length [dict get $siten_node_info url]] end]
+        return $package_id
       }
     } elseif {!([string match "http*://*" $path] || [string match "ftp://*" $path])} {
       return ${:id}
