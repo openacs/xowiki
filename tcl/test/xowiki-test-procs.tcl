@@ -399,6 +399,7 @@ namespace eval ::xowiki::test {
         "::xowiki::Package instproc invoke"
         "::xowiki::Package instproc require_root_folder"
         "::xowiki::Package instproc www-edit-new"
+        "::xowiki::Package instproc www-import-prototype-page"
         "::xowiki::Page instproc get_form_data"
         "::xowiki::Page instproc include"
         "::xowiki::PageInstance instproc get_from_template"

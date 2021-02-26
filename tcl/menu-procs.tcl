@@ -61,7 +61,7 @@ namespace eval ::xowiki {
       }
 
 
-  MenuItem ad_instproc init args {doku} {
+  MenuItem ad_instproc -private init args {doku} {
     next
     # Use computed default values when not specified
     if {![info exists :title]} {
