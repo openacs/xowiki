@@ -35,6 +35,7 @@ namespace eval ::xowiki::test {
         "::xowiki::FormPage proc fetch_object"
         "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xowiki::utility proc formCSSclass"
+        general_comments_delete_messages
       } \
       link_tests {
         Test links pointing to folders in different instances
