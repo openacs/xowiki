@@ -289,7 +289,8 @@ namespace eval ::xowiki::test {
             if {$autonamed_p} {
                 aa_true "create_form_page: page_name '$f_page_name' is NOT empty" {$f_page_name ne ""}
             } else {
-                aa_true "create_form_page: page_name '$f_page_name' is empty" {$f_page_name eq ""}
+                aa_log "autonamed form pages has page_name '$f_page_name' is empty"
+                dict set form_content _name $f_page_name
             }
             aa_true "create_form_page: creator '$f_creator' is nonempty" {$f_creator ne ""}
 
@@ -326,6 +327,7 @@ namespace eval ::xowiki::test {
 
         ::xo::Package initialize -url $location
         set lang [string range [lang::system::locale] 0 1]
+
         set page_info [::$package_id item_ref \
                            -default_lang $lang \
                            -parent_id $parent_id \
@@ -341,6 +343,8 @@ namespace eval ::xowiki::test {
                    $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
         acs::test::reply_has_status_code $d 302
         aa_log "create_form_page: DONE"
+        dict set d page_info $page_info
+        return $d
     }
 
     ad_proc ::xowiki::test::edit_form_page {
