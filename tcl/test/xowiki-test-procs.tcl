@@ -612,6 +612,7 @@ namespace eval ::xowiki::test {
                 }]
             aa_log "Form  $form_name created"
 
+
             set page_name $lang:r1
             ###########################################################
             aa_section "Create an instance $page_name of $form_name"
@@ -685,6 +686,12 @@ namespace eval ::xowiki::test {
             #
             # In case something has to be cleaned manually, do it here.
             #
+            if {$package_id ne "" && $instance ne ""} {
+                apm_package_instance_delete $package_id
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+            acs::test::user::delete -user_id $user_id
         }
     }
 }
