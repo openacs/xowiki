@@ -358,6 +358,7 @@ namespace eval ::xowiki::test {
         "::acs::test::http"
         "::acs::test::reply_has_status_code"
         "::acs::test::require_package_instance"
+        "::acs::test::user::create"
         "::export_vars"
         "::lang::system::locale"
         "::xowiki::test::create_form"
@@ -426,9 +427,11 @@ namespace eval ::xowiki::test {
     } {
 
         #
-        # Run the test under the current user_id.
+        # Create a new admin user and login
         #
-        set user_id [ad_conn user_id]
+        set user_id [db_nextval acs_object_id_seq]
+        set user_info [acs::test::user::create -user_id $user_id -admin]
+        acs::test::confirm_email -user_id $user_id
 
         set instance /xowiki-test
         set package_id [::acs::test::require_package_instance \
@@ -442,7 +445,7 @@ namespace eval ::xowiki::test {
             # Run one upfront request to obtain the request_info, used
             # in later cases.
             #
-            set request_info [acs::test::http -user_id $user_id $instance/]
+            set request_info [acs::test::http -user_info $user_info $instance/]
             #aa_log "request_info vars: [dict keys $request_info]"
             #aa_log "request_info session [ns_quotehtml <[dict get $request_info session]>]"
 
@@ -564,7 +567,7 @@ namespace eval ::xowiki::test {
                 }]
 
             aa_log "Check content of the edited instance"
-            set d [acs::test::http -user_id $user_id [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            set d [acs::test::http -user_info $user_info [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
@@ -661,7 +664,7 @@ namespace eval ::xowiki::test {
                 }]
 
             aa_log "Check content of the edited instance"
-            set d [acs::test::http -user_id $user_id \
+            set d [acs::test::http -user_info $user_info \
                        [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
