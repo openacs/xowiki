@@ -2405,6 +2405,18 @@ namespace eval ::xowiki::formfield {
     {"contains not" contains-not}
     {"one of" in}
   }
+  # comp_correct_when set descriptions {
+  #   {Antwort gleich}
+  #   {Antwort kleiner}
+  #   {Antwort kleiner oder gleich}
+  #   {Antwort größer}
+  #   {Antwort größer oder gleich}
+  #   {Antwort enthält eines oder mehrer der folgenden Worte}
+  #   {Antwort enthält folgenden Worte nicht}
+  #   {Antwort ist einer der folgenden Worte}
+  # }
+  # {operator {bootstrap-select,options=[[self class] set operators],descriptions=[[self class] set descriptions],default=eq,form_item_wrapper_CSSclass=form-inline,label=}}  
+  
   comp_correct_when instproc initialize {} {
     if {${:__state} ne "after_specs"} return
     :create_components  [subst {
@@ -4631,6 +4643,58 @@ namespace eval ::xowiki::formfield {
   }
 
 
+    ###########################################################
+  #
+  # ::xowiki::formfield::select
+  #
+  ###########################################################
+
+  Class create bootstrap-select -superclass select -parameter {
+  }
+
+  bootstrap-select instproc initialize {} {
+    next
+    ::xo::Page requireCSS "https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css"
+    template::add_script -order 20 -src "https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"
+    security::csp::require script-src https://cdn.jsdelivr.net
+    security::csp::require style-src https://cdn.jsdelivr.net
+  }
+  
+  bootstrap-select instproc render_input {} {
+
+    set value [:value]
+    #set :data-live-search true
+    set :CSSclass "selectpicker form-control"
+    set atts [:get_attributes id name disabled data-live-search {CSSclass class} {placeholder title}]
+    if {${:multiple}} {lappend atts multiple ${:multiple}}
+    if {!${:required}} {
+      set :options [linsert ${:options} 0 [list "--" ""]]
+      set :descriptions [linsert ${:descriptions} 0 ""]      
+    }
+
+    if {[llength ${:options}] != [llength ${:descriptions}]} {
+      error "incorrect number of descriptions provided ([llength ${:descriptions}]): must be [llength ${:options}]"
+    }
+    
+    ::html::select $atts {
+      foreach o ${:options} d ${:descriptions} {
+        lassign $o label rep
+        set :opt_description $d
+        set atts [:get_attributes disabled {opt_description data-subtext}]
+        lappend atts value $rep
+        #:msg "lsearch {$value} $rep ==> [lsearch $value $rep]"
+        if {$rep in $value} {
+          lappend atts selected selected
+        }
+        ::html::option $atts {::html::t $label}
+        ::html::t \n
+      }
+    }
+    :handle_transmit_always $value
+  }
+
+  
+
   ###########################################################
   #
   # ::xowiki::formfield::candidate_box_select
@@ -4979,6 +5043,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class create form_page -superclass abstract_page -parameter {
+    {parent_id *}    
     {form}
     {where}
     {entry_label _title}
@@ -5023,13 +5088,18 @@ namespace eval ::xowiki::formfield {
       }
     }
     lappend from_package_ids ${:package_id}
+    if {${:parent_id} eq "."} {
+      set :parent_id  [${:object} parent_id]
+    }
     set items [::xowiki::FormPage get_form_entries \
                    -base_item_ids ${:form_object_item_ids} \
                    -form_fields [list] \
                    -publish_status ready \
                    -h_where $wc \
+                   -parent_id ${:parent_id} \
                    -package_id ${:package_id} \
                    -from_package_ids $from_package_ids]
+    #ns_log notice "get_form_entries -> [$items children]"
 
     set :options [list]
     foreach i [$items children] {
