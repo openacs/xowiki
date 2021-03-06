@@ -344,13 +344,14 @@ namespace eval ::xowiki::test {
         acs::test::reply_has_status_code $d 302
         aa_log "create_form_page: DONE"
         dict set d page_info $page_info
+        dict set d instance $instance        
         return $d
     }
 
     ad_proc ::xowiki::test::edit_form_page {
         {-user_id 0}
-         {-last_request ""}
-        -instance:required
+        {-last_request ""}
+        {-instance ""}
         -path:required
         {-update ""}
         {-remove ""}
@@ -361,7 +362,12 @@ namespace eval ::xowiki::test {
         In essence, this calls $instance/$path?m=edit
 
     } {
-        aa_log "edit page $path"
+        if {$instance eq ""} {
+            if {[dict exists $last_request instance]} {
+                set instance [dict get $last_request instance]
+            }
+        }
+        aa_log "edit page $instance/$path"
         set d [acs::test::http \
                    -user_id $user_id -last_request $last_request \
                    [export_vars -base $instance/$path $extra_url_parameter]]
@@ -384,8 +390,9 @@ namespace eval ::xowiki::test {
         set f_creator   [dict get $form fields _creator]
 
         aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
-        aa_true "creator '$f_creator' is nonempty" {$f_creator ne ""}
-
+        #aa_true "creator '$f_creator' is nonempty" {$f_creator ne ""}
+        aa_log  "creator '$f_creator'"
+        
         set f_form_action  [dict get $form @action]
         aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
@@ -411,6 +418,9 @@ namespace eval ::xowiki::test {
                    $instance/$path]
         acs::test::reply_has_status_code $d 200
         acs::test::reply_contains $d [dict get $form_content _title]
+
+        dict set d instance $instance        
+        return $d
     }
 
     ad_proc ::xowiki::test::create_form {
@@ -460,7 +470,8 @@ namespace eval ::xowiki::test {
         set f_creator     [dict get $form fields creator]
         set f_form_action [dict get $form @action]
 
-        aa_true "name '$f_page_name' is empty"              {$f_page_name eq ""}
+        aa_true "name '$f_page_name' is empty"             {$f_page_name eq ""}
+        #aa_log  "creator '$f_creator'"
         aa_true "creator '$f_creator' is nonempty"         {$f_creator ne ""}
         aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
