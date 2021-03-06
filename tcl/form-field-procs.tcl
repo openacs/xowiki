@@ -4020,11 +4020,16 @@ namespace eval ::xowiki::formfield {
     if {[info exists :answer]} {
       set count 1
       set :answer_value {}
-      foreach a ${:answer} {
-        if {$a} {
-          lappend :answer_value $count
+      try {
+        foreach a ${:answer} {
+          if {$a} {
+            lappend :answer_value $count
+          }
+          incr count
         }
-        incr count
+      } on error {errorMsg} {
+        ns_log error "${:name}: invalid answer value provided '${:answer}': must be list of booleans"
+        error $errorMsg
       }
       #ns_log notice "???? answer ${:answer} -> ${:answer_value}"
     }
