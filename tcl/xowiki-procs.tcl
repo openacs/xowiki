@@ -5158,7 +5158,7 @@ namespace eval ::xowiki {
       # If the newly created item was in production mode, but ordinary entries
       # are not, change on the first save the status to ready
       #
-      ns_log notice "----- save_data: old_name $old_name, is_new_entry [:is_new_entry $old_name] name <${:name}>"
+      #ns_log notice "----- save_data: old_name $old_name, is_new_entry [:is_new_entry $old_name] name <${:name}>"
       if {[:is_new_entry $old_name]} {
         if {![::$package_id get_parameter production_mode 0]} {
           set :publish_status "ready"
