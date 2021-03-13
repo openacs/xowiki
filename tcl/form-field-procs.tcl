@@ -908,7 +908,10 @@ namespace eval ::xowiki::formfield {
       set feedback [_ xowf.answer_$result]
     }
     if {$feedback_mode > 1} {
-      #:log "=== ${:name} == $feedback_mode=[info exists :correct_when] correction?[info exists :correction] ============"
+      #ns_log notice "${:name} set_feedback $feedback_mode=[info exists :correct_when] " \
+          "correction?[info exists :correction] " \
+          "correction_data?[info exists :correction_data] " \
+          "============"
       if {[info exists :correct_when]} {
         append feedback " ${:correct_when}"
       } elseif {[info exists :correction]} {
@@ -2415,8 +2418,8 @@ namespace eval ::xowiki::formfield {
   #   {Antwort enthält folgenden Worte nicht}
   #   {Antwort ist einer der folgenden Worte}
   # }
-  # {operator {bootstrap-select,options=[[self class] set operators],descriptions=[[self class] set descriptions],default=eq,form_item_wrapper_CSSclass=form-inline,label=}}  
-  
+  # {operator {bootstrap-select,options=[[self class] set operators],descriptions=[[self class] set descriptions],default=eq,form_item_wrapper_CSSclass=form-inline,label=}}
+
   comp_correct_when instproc initialize {} {
     if {${:__state} ne "after_specs"} return
     :create_components  [subst {
@@ -2598,7 +2601,7 @@ namespace eval ::xowiki::formfield {
     @param output_suffix append string value to the actual slider value
            in the output display
   }
-  
+
   range instproc initialize {} {
     :type range
     set :widget_type text
@@ -4073,6 +4076,67 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  enumeration instproc ggw {R W} {
+    return [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
+  }
+
+  enumeration ad_instproc scores {
+    {-r 0}
+    {-f 0}
+    {-rk 0}
+    {-fk 0}
+    {-R}
+    {-W}
+  } {
+    @param R number correct answered
+    @param W number incorrect answered
+    @param rk number checkmarks to a true answer
+    @param fk number checkmarks to a false answer
+    @param r number of answers which are true
+    @param f number  of answers which are false
+  } {
+    #
+    # Now calculate the scores of different scoring schemes.
+    #
+    if {$r > 0} {
+      #
+      # Certain correction schemes divide by $r. We cannot use
+      # these schemes in such cases.
+      #
+      if {$f == 0} {
+        #
+        # No penalty for marking a wrong solution, when there is
+        # no wrong solution.
+        #
+        set wi1 [expr {max((100.0/$r) * $rk,0)}]
+        set wi2 [expr {max((100.0/$r) * $rk, 0)}]
+      } else {
+        set wi1 [expr {max((100.0/$r) * $rk - (100.0/$f) * $fk, 0)}]
+        if {$f == 1} {
+          #
+          # Special rule when there is just one wrong solution.
+          #
+          set wi2 [expr {max((100.0/$r) * $rk - min(50.0, (100.0/$f)) * $fk, 0)}]
+        } else {
+          set wi2 $wi1
+        }
+      }
+      set etk  [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
+    } else {
+      set wi1 0.0
+      set wi2 0.0
+      set etk 0.0
+    }
+
+    set s1   [expr {100.0 * $R / ($R + $W) }]
+    set s2   [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
+
+    set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
+    set ggw  [:ggw $R $W]
+
+    return [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
+  }
+
   enumeration instproc answer_is_correct {} {
     #:log "enumeration CORRECT? ${:name} (value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {![info exists :answer]} {
@@ -4115,46 +4179,7 @@ namespace eval ::xowiki::formfield {
             incr fk
           }
         }
-        #
-        # Now calculate the scores of different scoring schemes.
-        #
-        if {$r > 0} {
-          #
-          # Certain correction schemes divide by $r. We cannot use
-          # these schemes in such cases.
-          #
-          if {$f == 0} {
-            #
-            # No penalty for marking a wrong solution, when there is
-            # no wrong solution.
-            #
-            set wi1 [expr {max((100.0/$r) * $rk,0)}]
-            set wi2 [expr {max((100.0/$r) * $rk, 0)}]
-          } else {
-            set wi1 [expr {max((100.0/$r) * $rk - (100.0/$f) * $fk, 0)}]
-            if {$f == 1} {
-              #
-              # Special rule when there is just one wrong solution.
-              #
-              set wi2 [expr {max((100.0/$r) * $rk - min(50.0, (100.0/$f)) * $fk, 0)}]
-            } else {
-              set wi2 $wi1
-            }
-          }
-          set etk  [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
-        } else {
-          set wi1 0.0
-          set wi2 0.0
-          set etk 0.0
-        }
-
-        set s1   [expr {100.0 * $R / ($R + $W) }]
-        set s2   [expr {100.0 * ($R - $W/2.0) / ($R + $W) }]
-
-        set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
-        set ggw  [expr {100.0 * ($R - $W*0.5) / ($R + $W) }]
-
-        set scores [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
+        set scores [:scores -r $r -f $f -rk $rk -fk $fk -R $R -W $W]
         set :correction_data [list \
                                   item [list r $r f $f] \
                                   marks [list rk $rk fk $fk] \
@@ -4664,7 +4689,7 @@ namespace eval ::xowiki::formfield {
     security::csp::require script-src https://cdn.jsdelivr.net
     security::csp::require style-src https://cdn.jsdelivr.net
   }
-  
+
   bootstrap-select instproc render_input {} {
 
     set value [:value]
@@ -4674,13 +4699,13 @@ namespace eval ::xowiki::formfield {
     if {${:multiple}} {lappend atts multiple ${:multiple}}
     if {!${:required}} {
       set :options [linsert ${:options} 0 [list "--" ""]]
-      set :descriptions [linsert ${:descriptions} 0 ""]      
+      set :descriptions [linsert ${:descriptions} 0 ""]
     }
 
     if {[llength ${:options}] != [llength ${:descriptions}]} {
       error "incorrect number of descriptions provided ([llength ${:descriptions}]): must be [llength ${:options}]"
     }
-    
+
     ::html::select $atts {
       foreach o ${:options} d ${:descriptions} {
         lassign $o label rep
@@ -4698,7 +4723,7 @@ namespace eval ::xowiki::formfield {
     :handle_transmit_always $value
   }
 
-  
+
 
   ###########################################################
   #
@@ -4847,16 +4872,60 @@ namespace eval ::xowiki::formfield {
       set result 1
       set :correction {}
 
+      set R 0; set W 0
       foreach v $value a ${:answer} {
         set ok [expr {$v eq $a}]
         lappend :correction $ok
-        if {!$ok} {
+        if {$ok} {
+          incr R
+        } else {
           set result -1
+          incr W
         }
       }
-      dict set :correction_data scores [expr {$result == 1 ? {"" 1.0} : {"" 0.0} }]
 
-      #:log "reorder_box CORRECT? answers [llength ${:answer}] options [llength ${:options}] -> $result"
+      ns_log notice "${:name}: correction? have grading [info exists :grading]"
+      set correct_relative {}
+      #
+      # Compare neighbors; when left neighbor is smaller then this is
+      # counted as correct. Assumption: provided answer is ascending.
+      #
+      set Rr 0; set Wr 0
+      for {set i 1} {$i < [llength $value]} {incr i} {
+        if {[lindex $value $i-1] < [lindex $value $i]} {
+          incr Rr
+          lappend correction_relative 1
+        } else {
+          set result -1
+          incr Wr
+          lappend correction_relative 0
+        }
+      }
+      #
+      # We could provide a special correction based on the relative
+      # data, but the rendering of this in e.g. the exam protocol is
+      # would need more work (green and red should be between the
+      # answer elements, not left of it).
+      #
+      #if {[info exists :grading] && ${:grading} eq "relative"} {
+      #  set :correction $correction_relative
+      #}
+
+      #
+      # An empty value for grading is the same as grading "exact"
+      #
+      set exact [expr {$result == 1 ? 1.0 : 0.0}]
+      set scores {}
+      lappend scores \
+          exact $exact \
+          "" $exact \
+          position [:ggw $R $W] \
+          relative [:ggw $Rr $Wr]
+
+      dict set :correction_data scores $scores
+
+      #:log "${:name} reorder_box CORRECT? answers [llength ${:answer}] " \
+          "options [llength ${:options}] -> $result scores $scores"
     }
     return $result
   }
@@ -4886,7 +4955,8 @@ namespace eval ::xowiki::formfield {
     #
     set c -1; set indices [lmap o ${:options} {incr c}]
     if {[lsort -integer ${:value}] ne $indices} {
-      error "internal representation of options ${:options} must be subsequent integers starting with 0"
+      error "internal representation of options ${:options} must be subsequent integers\
+            starting with 0\nwe have: ${:value}\noptions: ${:options}"
     }
 
     #
@@ -5048,7 +5118,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class create form_page -superclass abstract_page -parameter {
-    {parent_id *}    
+    {parent_id *}
     {form}
     {where}
     {entry_label _title}
