@@ -388,6 +388,7 @@ namespace eval ::xowiki {
          io.creation_date,
          io.creation_user,
          io.creation_ip,
+         ci.storage_type,
          o.security_inherit_p,
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(ci.live_revision) AS text,
@@ -401,7 +402,7 @@ namespace eval ::xowiki {
          xowiki_page.creator
       FROM xowiki_form_instance_item_index xi
          inner join acs_objects io on object_id = xi.item_id,
-         lateral (select live_revision from cr_items where item_id = xi.item_id) ci
+         lateral (select live_revision, storage_type from cr_items where item_id = xi.item_id) ci
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
          left join acs_objects o on (o.object_id = ci.live_revision)
          left join xowiki_page on (xowiki_page.page_id = ci.live_revision)
@@ -417,6 +418,7 @@ namespace eval ::xowiki {
          io.creation_date,
          io.creation_user,
          io.creation_ip,
+         ci.storage_type,
          o.security_inherit_p,
          o.last_modified, o.modifying_user, o.modifying_ip,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
