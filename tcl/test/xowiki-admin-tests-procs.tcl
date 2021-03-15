@@ -129,13 +129,13 @@ aa_register_case \
         test set failed 0
         test proc section msg {
             :reset
-            aa_log <h1><b>$msg</b></h1>
+            aa_log <h2>$msg</h2>
         }
         test proc subsection msg {
-            aa_log <h2><b>$msg</b></h2>
+            aa_log <h3>$msg</h3>
         }
         test proc subsubsection msg {
-            aa_section <h3><b>$msg</b></h3>
+            aa_section <h4>$msg</h4>
         }
         test proc code msg {
             aa_log "<pre>$msg</pre>"
