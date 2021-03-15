@@ -1096,6 +1096,10 @@ namespace eval ::xowiki {
 
     #:log "--r resolve_page '${:object}' => $page_or_package"
     if {$page_or_package ne ""} {
+
+      # TODO: remove me when settled
+      if {[$page_or_package istype ::xowiki::FormPage] && [$page_or_package info vars storage_type] eq ""} {ad_log notice "$page_or_package has no storage_type"}
+
       #
       # Check, of the target is a symbolic link
       #
@@ -1310,6 +1314,9 @@ namespace eval ::xowiki {
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
       set page [:get_page_from_item_or_revision_id $(item_id)]
+
+      # TODO: remove me when settled
+      if {[$page info vars storage_type] eq ""} {ad_log notice "$page has no storage_type"}
 
       if {[info exists (logical_package_id)] && [info exists (logical_parent_id)]} {
         #
