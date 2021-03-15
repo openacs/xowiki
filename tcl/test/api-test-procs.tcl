@@ -49,6 +49,39 @@ aa_register_case \
         }
     }
 
+
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::randomized_index"
+
+    } \
+    api_randomoized {
+
+        Checks randomization functions.
+
+    } {
+        #
+        # single random value, seeded or not
+        #
+        aa_true "randomized index upper" {[::xowiki::randomized_index 10] < 10}
+        aa_true "randomized index lower" {[::xowiki::randomized_index 10] >= 0}
+        aa_equals "randomized index seeded: [::xowiki::randomized_index -seed 123 10]" \
+            [::xowiki::randomized_index -seed 123 10] 1
+        aa_equals "randomized index seeded: [::xowiki::randomized_index -seed 456 10]" \
+            [::xowiki::randomized_index -seed 456 10] 8
+
+        #
+        # randomized indices, seeded or not
+        #
+        aa_equals "randomized indices [::xowiki::randomized_indices -seed 789 5]" \
+            [::xowiki::randomized_indices -seed 789 5] {3 0 4 1 2}
+        aa_equals "randomized indices min " \
+            [::tcl::mathfunc::min {*}[::xowiki::randomized_indices 5]] 0
+        aa_equals "randomized indices min " \
+            [::tcl::mathfunc::max {*}[::xowiki::randomized_indices 5]] 4
+    }
+
 #
 # Local variables:
 #    mode: tcl

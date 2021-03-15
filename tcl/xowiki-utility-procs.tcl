@@ -55,17 +55,17 @@ namespace eval ::xowiki {
   }
 
   ad_proc randomized_indices {-seed length} {
-    #
-    # Produce a list of "length" random numbers between 0 and
-    # length-1.
-    #
-    # Measure quality of randomization:
-    #
-    #  time {lappend _ [xowiki::randomized_indices -seed [clock microseconds] 3]} 1000
-    #  foreach t $_ {
-    #    lassign $t a b c; dict incr stats "a $a"; dict incr stats "b $b"; dict incr stats "c $c"
-    #  }
-    #  set stats
+    Produce a list of "length" random numbers between 0 and
+    length-1.
+
+    Measure quality of randomization:
+    <pre>
+      time {lappend _ [xowiki::randomized_indices -seed [clock microseconds] 3]} 1000
+      foreach t $_ {
+        lassign $t a b c; dict incr stats "a $a"; dict incr stats "b $b"; dict incr stats "c $c"
+      }
+      set stats
+    </pre>
   } {
     # In case, the seed is specified, set the seed to this value to
     # achieve e.g. a stable bat random order for a user.
@@ -90,6 +90,20 @@ namespace eval ::xowiki {
       set indices [lreplace $indices $i $i]
     }
     return $shuffled
+  }
+
+
+  ad_proc randomized_index {-seed length} {
+    Produce a single randomized index between 0 and
+    length-1.
+  } {
+    # In case, the seed is specified, set the seed to this value to
+    # achieve e.g. a stable bat random order for a user.
+    #
+    if {[info exists seed]} {
+      expr {srand($seed)}
+    }
+    return [expr {int(($length-1) * rand())}]
   }
 
   #
