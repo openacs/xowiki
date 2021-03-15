@@ -67,7 +67,10 @@ namespace eval ::xowiki {
       -pretty_name "#xowiki.File_pretty_name#" -pretty_plural "#xowiki.File_pretty_plural#" \
       -table_name "xowiki_file" -id_column "file_id" \
       -storage_type file \
-      -form ::xowiki::FileForm
+      -form ::xowiki::FileForm \
+      -parameter {
+        {storage_type file}
+      }      
 
   ::xo::db::CrClass create PodcastItem -superclass File \
       -pretty_name "#xowiki.PodcastItem_pretty_name#" -pretty_plural "#xowiki.PodcastItem_pretty_plural#" \
@@ -85,6 +88,7 @@ namespace eval ::xowiki {
       } \
       -storage_type file \
       -form ::xowiki::PodcastForm
+
 
   ::xo::db::CrClass create PageTemplate -superclass Page \
       -pretty_name "#xowiki.PageTemplate_pretty_name#" -pretty_plural "#xowiki.PageTemplate_pretty_plural#" \
