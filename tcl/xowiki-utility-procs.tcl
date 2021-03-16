@@ -94,7 +94,7 @@ namespace eval ::xowiki {
 
 
   ad_proc randomized_index {-seed length} {
-    Produce a single randomized index between 0 and
+    Return a single randomized value between 0 and
     length-1.
   } {
     # In case, the seed is specified, set the seed to this value to
