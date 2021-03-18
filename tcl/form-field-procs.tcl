@@ -2712,13 +2712,13 @@ namespace eval ::xowiki::formfield {
 
   numeric instproc convert_to_internal_value {value} {
     try {
-      lc_parse_number ${:value} ${:locale} ${:is_integer}
+      lc_parse_number $value ${:locale} ${:is_integer}
     } on ok {result} {
     } on error {errorMsg} {
       #ns_log notice "numeric instproc convert_to_internal <$value> ${:locale} -> $errorMsg ($::errorCode)"
       if {${:strict} == 0 && ${:locale} ne "en_US"} {
         try {
-          lc_parse_number ${:value} en_US ${:is_integer}
+          lc_parse_number $value en_US ${:is_integer}
         } on ok {result} {
         }
       }
@@ -2732,7 +2732,6 @@ namespace eval ::xowiki::formfield {
       # the conversion should be smooth.
       #
       set value [:convert_to_internal_value ${:value}]
-      ns_log notice "XXXXXX convert_to_internal '${:value}' --> '$value'"
       ${:object} set_property -new 1 ${:name} [expr {$value}]
     }
   }
