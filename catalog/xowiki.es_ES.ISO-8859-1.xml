@@ -13,6 +13,9 @@
   <msg key="Answers_for_Surveys">Respuestas_por_encuesta</msg>
   <msg key="attached_images">Imágenes adjuntas</msg>
   <msg key="attached_media">Multimedia adjunto</msg>
+  <msg key="autosave_pending">modificado</msg>
+  <msg key="autosave_saved">modificación salvada</msg>
+  <msg key="autosave_rejected">modificación rechazada</msg>
   <msg key="back">Volver</msg>
   <msg key="By_user">Por usuario</msg>
   <msg key="Candidates">Candidatos</msg>
@@ -47,6 +50,7 @@
   <msg key="Edit_category">Editar categoría</msg>
   <msg key="edit_link">editar tags</msg>
   <msg key="edit_title">Editar esta página</msg>
+  <msg key="Enter_message">Introducir mensaje</msg>
   <msg key="entries_using_form">Entradas para la forma %form%</msg>
   <msg key="error-delete_entries_first">Esta página todavía se utiliza por %count% entradas. Elimínelas primero antes de eliminar esta página.</msg>
   <msg key="error-form_constraint-invalid_characters">La restricción del formulario contiene caracteres no válidos</msg>
@@ -98,6 +102,7 @@
   <msg key="Form_pretty_name">Formulario Wiki</msg>
   <msg key="Form_pretty_plural">Formularios Wiki</msg>
   <msg key="formfield-author">Autor</msg>
+  <msg key="formfield-comp_correct_when-help_text">Todas las condiciones deben ser ciertas para que la respuesta sea correcta.</msg>
   <msg key="formfield-correct_when-help_text">Condicion, cuando
   la respuesta es correcta, especificada como un predicado seguido
   de argumentos (palabras Tcl). Los predicados predefinidos son
@@ -106,17 +111,22 @@
   <msg key="formfield-image_url-help_text">URL HTTP de la imagen (puede arrastrar una imagen mostrada por un navegador web aquí)</msg>
   <msg key="formfield-import_archive-help_text">Seleccione el nombre del archivo .zip o .tar.gz </msg>
   <msg key="formfield-import_archive-label">Importar archivo</msg>
+  <msg key="form-repeatable-add-file">[añadir archivo]</msg>
+  <msg key="form-repeatable-add-condition">[añadir condición]</msg>
+  <msg key="form-repeatable-add-another-file">[añadir otro archivo]</msg>
   <msg key="formfield-youtube_url-help_text">Copiar&amp;Pegar URL de vídeo de YouTube (http://www.youtube.com/....)</msg>
   <msg key="FormPage-assignee">Asignado</msg>
   <msg key="FormPage-state">Estado</msg>
   <msg key="FormPage_parameters_title">Parámetros del Wiki</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
+  <msg key="From">De</msg>
   <msg key="future_interval">en %time%</msg>
   <msg key="has_modified_this_page">ha modificado esta página mientras la estabas editando</msg>
   <msg key="height">Altura</msg>
   <msg key="hour">hora</msg>
   <msg key="hours">horas</msg>
+  <msg key="ignore_case">Minúsculas</msg>
   <msg key="image_width_hint">La altura y anchura son calculadas en pixels (las proporciones podrían perderse)</msg>
   <msg key="import">Importar</msg>
   <msg key="import_create_user_ids">Crear user_ids</msg>
@@ -139,6 +149,7 @@
   <msg key="listing_title">Índice de %pretty_plural%</msg>
   <msg key="listing_title_all">Lista de todos los tipos de %pretty_plural%</msg>
   <msg key="Manage_categories">Administrar categorías</msg>
+  <msg key="Message">Mensaje</msg>
   <msg key="menu-Clipboard-Add">Añadir</msg>
   <msg key="menu-Clipboard-Clear">Limpiar</msg>
   <msg key="menu-Clipboard-Content">Contenido</msg>
@@ -254,6 +265,8 @@
   <msg key="revisions_title">Mostrar revisiones de esta página</msg>
   <msg key="richtext-validate_safe_html">%errorMsg% </msg>
   <msg key="rss_client">Cliente de RSS</msg>
+  <msg key="Send">Enviar</msg>
+  <msg key="Send_message_to">Enviar mensaje a</msg>
   <msg key="scoring">Puntuación</msg>
   <msg key="scoring_help_text">Algoritmo para el esquema de evaluación.</msg>
   <msg key="search">Buscar</msg>
@@ -269,9 +282,14 @@
   <msg key="subscribe">Suscribir</msg>
   <msg key="title">Título</msg>
   <msg key="title_of_event">Título</msg>
+  <msg key="to">a</msg>
   <msg key="unread_items">Elementos no leídos</msg>
   <msg key="updated">actualizado</msg>
   <msg key="upload_file">Subir archivo</msg>
+  <msg key="Urgency">Urgencia</msg>
+  <msg key="urgency_low">baja</msg>
+  <msg key="urgency_normal">media</msg>
+  <msg key="urgency_high">alta</msg>
   <msg key="User">Usuario</msg>
   <msg key="view">Vista</msg>
   <msg key="view_in_context">Ver página en el contexto original %context%</msg>
