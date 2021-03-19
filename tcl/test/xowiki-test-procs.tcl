@@ -429,26 +429,20 @@ namespace eval ::xowiki::test {
         #
         # Create a new admin user and login
         #
-        set user_id [db_nextval acs_object_id_seq]
-        set user_info [acs::test::user::create -user_id $user_id -admin]
-        acs::test::confirm_email -user_id $user_id
+       #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowf@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
 
         set instance /xowiki-test
         set package_id [::acs::test::require_package_instance \
                             -package_key xowiki \
                             -empty \
                             -instance_name $instance]
-
         set testfolder .testfolder
-        try {
-            #
-            # Run one upfront request to obtain the request_info, used
-            # in later cases.
-            #
-            set request_info [acs::test::http -user_info $user_info $instance/]
-            #aa_log "request_info vars: [dict keys $request_info]"
-            #aa_log "request_info session [ns_quotehtml <[dict get $request_info session]>]"
 
+        try {
             ###########################################################
             aa_section "Require test folder"
             ###########################################################
@@ -690,7 +684,6 @@ namespace eval ::xowiki::test {
                 set node_id [site_node::get_element -url $instance -element node_id]
                 site_node::delete -node_id $node_id -delete_package
             }
-            acs::test::user::delete -user_id $user_id
         }
     }
 }
