@@ -13,6 +13,9 @@
   <msg key="Answers_for_Surveys">Risposte_al_Questionario</msg>
   <msg key="attached_images">Immagini allegate</msg>
   <msg key="attached_media">Media allegato</msg>
+  <msg key="autosave_pending">modificato</msg>
+  <msg key="autosave_rejected">modifica rigettata</msg>
+  <msg key="autosave_saved">modifiche salvate</msg>
   <msg key="back">Indietro</msg>
   <msg key="By_user">Dall&#39;Utente</msg>
   <msg key="Candidates">Candidati</msg>
@@ -46,6 +49,7 @@
   <msg key="Edit_category">Edita Albero di Categorie</msg>
   <msg key="edit_link">edita tag</msg>
   <msg key="edit_title">Edita questa pagina...</msg>
+  <msg key="Enter_message">Inserire Messaggio</msg>
   <msg key="entries_using_form">Voci per la form %form%</msg>
   <msg key="error-delete_entries_first">Questa pagina è ancora utilizzata da %count% voci. Ti preghiamo di eliminarle prima di eliminare questa pagina.</msg>
   <msg key="error-form_constraint-invalid_characters">Il vincolo form contiene caratteri invalidi</msg>
@@ -87,6 +91,9 @@
   <msg key="form-menu-button-wf-instances">Istanze di %form_name%</msg>
   <msg key="form-menu-new_link">Compila</msg>
   <msg key="form-repeatable-add">[aggiungi altro]</msg>
+  <msg key="form-repeatable-add-another-file">[aggiungi un altro file]</msg>
+  <msg key="form-repeatable-add-condition">[aggiungi condizione]</msg>
+  <msg key="form-repeatable-add-file">[aggiungi file]</msg>
   <msg key="form-repeatable-delete">[x]</msg>
   <msg key="Form-submit_button">OK</msg>
   <msg key="Form-template">Template</msg>
@@ -97,6 +104,7 @@
   <msg key="Form_pretty_name">Wiki Form</msg>
   <msg key="Form_pretty_plural">Wiki Form</msg>
   <msg key="formfield-author">Autore</msg>
+  <msg key="formfield-comp_correct_when-help_text">Tutte le condizioni specificate devono essere vere perchè la risposta sia considerata corretta.</msg>
   <msg key="formfield-correct_when-help_text">Condizione tale per cui la risposta è corretta, specificata come predicato seguito da argomenti (Tcl words). I predicati predefiniti sono &#34;eq&#34;, &#34;gt&#34;, &#34;ge&#34;, &#34;lt&#34;, &#34;le&#34;, &#34;btwn&#34;, &#34;in&#34;, &#34;contains&#34;, &#34;match&#34;, &#34;answer_words&#34;</msg>
   <msg key="formfield-image_url-help_text">URL HTTP dell&#39;immagine (puoi trascinare un#immagine mostrata da un browser web qui)</msg>
   <msg key="formfield-import_archive-help_text">Seleziona il Nome di un File .zip o .tar.gz</msg>
@@ -107,11 +115,13 @@
   <msg key="FormPage_parameters_title">Parametri wiki</msg>
   <msg key="FormPage_pretty_name">Wiki FormPage</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPage</msg>
+  <msg key="From">Da</msg>
   <msg key="future_interval">in %time%</msg>
   <msg key="has_modified_this_page">ha modificato questa pagina mentre la stavi editando</msg>
   <msg key="height">Altezza</msg>
   <msg key="hour">ora</msg>
   <msg key="hours">ore</msg>
+  <msg key="ignore_case">Ignora maiuscole/minuscole</msg>
   <msg key="image_width_hint">La larghezza ed altezza sono calcolate in pixel (le proporzioni potrebbero andare perse)</msg>
   <msg key="import">Importa</msg>
   <msg key="import_create_user_ids">Crea gli id utente</msg>
@@ -159,6 +169,7 @@
   <msg key="menu-Page-Revisions">Revisioni</msg>
   <msg key="menu-Page-Show">Mostra Pagina</msg>
   <msg key="menu-Page-View">Visualizza</msg>
+  <msg key="Message">Messaggio</msg>
   <msg key="minute">minuto</msg>
   <msg key="minutes">minuti</msg>
   <msg key="modified_page">pagina modificata</msg>
@@ -257,6 +268,8 @@
   <msg key="seconds">secondi</msg>
   <msg key="select_link_target">Per creare un link, clicca su un nome pagina</msg>
   <msg key="Selection">Selezione</msg>
+  <msg key="Send">Invia</msg>
+  <msg key="Send_message_to">Invia messaggio a</msg>
   <msg key="shuffle">Mescola le Risposte</msg>
   <msg key="shuffle_help_text">L&#39;ordine delle risposte deve essere presentato casualmente?</msg>
   <msg key="single_word">Parola singola</msg>
@@ -264,9 +277,14 @@
   <msg key="subscribe">Iscriviti</msg>
   <msg key="title">Titolo</msg>
   <msg key="title_of_event">Titolo</msg>
+  <msg key="to">a</msg>
   <msg key="unread_items">Elementi Non Letti</msg>
   <msg key="updated">aggiornato</msg>
   <msg key="upload_file">File caricato</msg>
+  <msg key="Urgency">Urgenza</msg>
+  <msg key="urgency_high">alta</msg>
+  <msg key="urgency_low">bassa</msg>
+  <msg key="urgency_normal">media</msg>
   <msg key="User">Utente</msg>
   <msg key="view">Vedi</msg>
   <msg key="view_in_context">Vedi la pagina nel contesto originale %context%</msg>
