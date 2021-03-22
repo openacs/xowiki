@@ -4573,6 +4573,16 @@ namespace eval ::xowiki::formfield {
     return ""
   }
 
+  text_fields instproc render_help_text {} {
+    #
+    # In case, all the components have no correct_when conditions,
+    # omit the help text ("subquestion" summary).
+    #
+    set joined_conditions [join [lmap c ${:components} {set _ [$c set correct_when]}] ""]
+    if {$joined_conditions ne ""} {
+      next
+    }
+  }
   text_fields instproc render_input {} {
     #
     # Render content within in a fieldset, but with labels etc.
