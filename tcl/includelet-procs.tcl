@@ -4665,7 +4665,7 @@ namespace eval ::xowiki::includelet {
 
     if {$title eq ""} {set title $url}
     set content "<iframe src='[ns_quotehtml $url]' width='[ns_quotehtml $width]' height='[ns_quotehtml $height]'></iframe>"
-    append content "<p><a href='[ns_quotehtml $ur][' title='[ns_quotehtml $title]'>[ns_quotehtml $title]</a></p>"
+    append content "<p><a href='[ns_quotehtml $url]' title='[ns_quotehtml $title]'>[ns_quotehtml $title]</a></p>"
     return $content
   }
 
