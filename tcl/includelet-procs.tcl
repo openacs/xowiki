@@ -4663,10 +4663,19 @@ namespace eval ::xowiki::includelet {
   iframe instproc render {} {
     :get_parameters
 
-    if {$title eq ""} {set title $url}
-    set content "<iframe src='[ns_quotehtml $url]' width='[ns_quotehtml $width]' height='[ns_quotehtml $height]'></iframe>"
-    append content "<p><a href='[ns_quotehtml $url]' title='[ns_quotehtml $title]'>[ns_quotehtml $title]</a></p>"
-    return $content
+    if {$title eq ""} {
+      set title $url
+    }
+
+    set url    [ns_quotehtml $url]
+    set title  [ns_quotehtml $title]
+    set width  [ns_quotehtml $width]
+    set height [ns_quotehtml $height]
+
+    return [subst -nocommands {
+      <iframe src='${url}' width='${width}' height='${height}'></iframe>
+      <p><a href='${url}' title='${title}'>${title}</a></p>
+    }
   }
 
 }
