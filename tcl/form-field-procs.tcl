@@ -5131,6 +5131,7 @@ namespace eval ::xowiki::formfield {
     {form}
     {where}
     {entry_label _title}
+    {orderby title}
   }
 
   form_page instproc initialize {} {
@@ -5182,6 +5183,7 @@ namespace eval ::xowiki::formfield {
                    -h_where $wc \
                    -parent_id ${:parent_id} \
                    -package_id ${:package_id} \
+                   -orderby title \
                    -from_package_ids $from_package_ids]
     #ns_log notice "get_form_entries -> [$items children]"
 
