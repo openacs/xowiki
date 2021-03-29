@@ -4191,8 +4191,10 @@ namespace eval ::xowiki::formfield {
   }
 
   enumeration instproc make_correct {} {
-    set :value ${:answer_value}
-    #ns_log notice "???? make_correct sets value ${:answer_value}"
+    if {[info exists :answer_value]} {
+      set :value ${:answer_value}
+      #ns_log notice "???? make_correct sets value ${:answer_value}"
+    }
   }
 
   enumeration instproc add_statistics {{-options ""}} {
@@ -4790,7 +4792,12 @@ namespace eval ::xowiki::formfield {
           dict set labels $rep serial [incr count]
         }
         if {${:keep_order}} {
-          set selected ${:value}
+          set selected [lmap v ${:value} {
+            if {$v ni $selected} {
+              continue
+            }
+            set _ $v
+          }]
         }
 
         html::div -class candidate-selection -id ${:id} {
@@ -5855,7 +5862,7 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
-  # ::xowiki::boolean-checkox
+  # ::xowiki::boolean_checkox
   #
   ###########################################################
 
