@@ -33,6 +33,7 @@ namespace eval ::xowiki {
     folder.form
     link.form
     page.form
+    form.form
     import-archive.form
     photo.form
   }

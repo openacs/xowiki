@@ -106,6 +106,28 @@ namespace eval ::xowiki {
     return [expr {int(($length-1) * rand())}]
   }
 
+  ad_proc filter_option_list {option_list except} {
+
+    Process an option list (pairs of label and id)
+    suitable to be passed to several widgets and remove
+    all entries having an id from the except list.
+
+    @param option_list list of labels and ids
+    @param except list of interal ids
+    @return filtered option list
+  } {
+    if {[llength $except] == 0} {
+      return $option_list
+    }
+    return [lmap tuple $option_list {
+      if {[lindex $tuple 1] in $except} {
+        continue
+      }
+      set _ $tuple
+    }]
+  }
+
+
   #
   #
   # Helper for virus checks
