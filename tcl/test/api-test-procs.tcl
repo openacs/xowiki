@@ -56,7 +56,7 @@ aa_register_case \
         "::xowiki::randomized_index"
 
     } \
-    api_randomoized {
+    api_randomized {
 
         Checks randomization functions.
 
@@ -80,6 +80,30 @@ aa_register_case \
             [::tcl::mathfunc::min {*}[::xowiki::randomized_indices 5]] 0
         aa_equals "randomized indices min " \
             [::tcl::mathfunc::max {*}[::xowiki::randomized_indices 5]] 4
+    }
+
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "xowiki::filter_option_list"
+    } \
+    api_filter_option_list {
+
+        Checks Option list filtering.
+
+    } {
+        set option_list {{label1 1} {label2 2} {label3 3}}
+        aa_equals "filter option_list with empty exclusion set" \
+            [xowiki::filter_option_list $option_list {}] $option_list
+        aa_equals "filter option_list filter 2 existing values" \
+            [xowiki::filter_option_list $option_list {1 3}] "{label2 2}"
+
+        aa_equals "filter option_list filter all values" \
+            [xowiki::filter_option_list $option_list {2 1 3}] ""
+        aa_equals "filter option_list filter non-existing value" \
+            [xowiki::filter_option_list $option_list {4}] $option_list
+        aa_equals "filter option_list filter from empty list" \
+            [xowiki::filter_option_list {} {4}] {}
     }
 
 #
