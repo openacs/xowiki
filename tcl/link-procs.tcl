@@ -493,7 +493,7 @@ namespace eval ::xowiki {
     loop volume controls controller mastersound starttime endtime
   } {
 
-    ::xowiki::Link::file ad_instproc -deprecated $deprecated_attribute {value:optional} {
+    ::xowiki::Link::file ad_instproc -private -deprecated $deprecated_attribute {value:optional} {
       Provide warning for deprecated HTML attribute;
       this will be removed in releases after OpenACS 5.10.
     } {
