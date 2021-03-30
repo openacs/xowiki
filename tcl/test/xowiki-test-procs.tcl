@@ -27,8 +27,11 @@ namespace eval ::xowiki::test {
             "::site_node::unmount"
             "::xo::PackageMgr instproc initialize"
             "::xo::db::CrClass proc get_instance_from_db"
+            "::xo::db::CrItem instproc update_attribute_from_slot"
+            "::xowiki::FormPage instproc update_attribute_from_slot"
             "::xowiki::test::require_folder"
             "::xowiki::test::require_page"
+            "::xowiki::update_item_index"
 
             "::acs::root_of_host"
             "::ad_host"
@@ -40,9 +43,7 @@ namespace eval ::xowiki::test {
             "::xo::Context instproc export_vars"
             "::xo::Context instproc original_url_and_query"
             "::xo::db::Class proc object_type_to_class"
-            "::xo::db::CrItem instproc update_attribute_from_slot"
             "::xo::db::DB-postgresql instproc dml"
-            "::xowiki::FormPage instproc update_attribute_from_slot"
             "::xowiki::Page instproc find_slot"
             "::xowiki::Page proc find_slot"
         } \
@@ -107,7 +108,10 @@ namespace eval ::xowiki::test {
             ::xo::db::CrClass get_instance_from_db -item_id $p0_id
             aa_equals "new creator is" [$p0_id creator] "the creator"
 
-
+            #
+            # Form page, update instance attributes (hstore is probably
+            # not activated on most instances)
+            #
             aa_section "update from slot on instance attributes"
             set s [$f1_id find_slot instance_attributes]
             aa_true "slot found: $s" {$s ne ""}
@@ -122,9 +126,30 @@ namespace eval ::xowiki::test {
             set d [db_string get_description {select instance_attributes from xowiki_form_pagex where item_id = :item_id}]
             aa_equals "new instance_attributes from db is" $d "a 1"
 
+            #
+            # Form page, update attribute in item index.
+            #
+            aa_section "update from slot on form page and item index"
+            set s [$f1_id find_slot state]
+            aa_true "slot found: $s" {$s ne ""}
+            aa_equals "slot is " $s ::xowiki::FormPage::slot::state
+            aa_equals "slot domain is " [$s domain] ::xowiki::FormPage
+
+            aa_equals "old state is" [$f1_id state] ""
+            $f1_id update_attribute_from_slot $s "initial"
+            aa_equals "new state is" [$f1_id state] "initial"
+
+            set item_id [$f1_id item_id]
+            set d [db_string get_state {select state from xowiki_form_instance_item_index where item_id = :item_id}]
+            aa_equals "new state directly from item index " $d "initial"
+
+            #
+            # Now destroy in memory and refetch to double check, if all is OK.
+            #
             $f1_id destroy
             ::xo::db::CrClass get_instance_from_db -item_id $f1_id
             aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
+            aa_equals "new state is" [$f1_id state] "initial"
 
         } -teardown_code {
             set node_id [site_node::get_node_id -url /$instance]

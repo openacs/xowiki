@@ -54,7 +54,7 @@ aa_register_case \
     -cats {api smoke production_safe} \
     -procs {
         "::xowiki::randomized_index"
-
+        "::xowiki::randomized_indices"
     } \
     api_randomized {
 
@@ -62,7 +62,7 @@ aa_register_case \
 
     } {
         #
-        # single random value, seeded or not
+        # Single random value, seeded or not.
         #
         aa_true "randomized index upper" {[::xowiki::randomized_index 10] < 10}
         aa_true "randomized index lower" {[::xowiki::randomized_index 10] >= 0}
@@ -72,7 +72,7 @@ aa_register_case \
             [::xowiki::randomized_index -seed 456 10] 8
 
         #
-        # randomized indices, seeded or not
+        # Randomized indices, seeded or not.
         #
         aa_equals "randomized indices [::xowiki::randomized_indices -seed 789 5]" \
             [::xowiki::randomized_indices -seed 789 5] {3 0 4 1 2}
@@ -106,6 +106,22 @@ aa_register_case \
             [xowiki::filter_option_list {} {4}] {}
     }
 
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::hstore::dict_as_hkey"
+        "::xowiki::hstore::double_quote"
+    } \
+    api_hstore {
+
+        Checks conversion from dict to hstorage keys with proper secaping
+
+    } {
+        set dict {key1 value1 key2 a'b k'y value3 key4 1,2}
+        aa_equals "filter option_list with empty exclusion set" \
+            [::xowiki::hstore::dict_as_hkey  $dict] \
+            {key1=>value1,key2=>"a''b","k''y"=>value3,key4=>"1,2"}
+    }
 #
 # Local variables:
 #    mode: tcl
