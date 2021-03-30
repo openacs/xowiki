@@ -70,7 +70,7 @@ namespace eval ::xowiki {
       -form ::xowiki::FileForm \
       -parameter {
         {storage_type file}
-      }      
+      }
 
   ::xo::db::CrClass create PodcastItem -superclass File \
       -pretty_name "#xowiki.PodcastItem_pretty_name#" -pretty_plural "#xowiki.PodcastItem_pretty_plural#" \
@@ -1582,14 +1582,15 @@ namespace eval ::xowiki {
 
   } {
     #
-    # perform first the regular operations
+    # Perform first the regular operations.
     #
     next
     #
     # Make sure to update update_item_index when the attribute is
-    # contained in the xowiki_form_instance_item_index
+    # contained in the xowiki_form_instance_item_index.
     #
     set colName [$slot column_name]
+
     if {$colName in {
       package_id
       parent_id
