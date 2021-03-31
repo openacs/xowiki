@@ -454,7 +454,7 @@ namespace eval ::xowiki::test {
         #
         # Create a new admin user and login
         #
-       #
+        #
         # Setup of test user_id and login
         #
         set user_info [::acs::test::user::create -email xowf@acs-testing.test -admin]
