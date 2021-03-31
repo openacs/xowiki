@@ -113,6 +113,7 @@ aa_register_case \
       "::xo::PackageMgr proc get_package_class_from_package_key"
       ad_ns_set_to_tcl_vars
       general_comments_delete_messages
+      xowiki::before-uninstantiate
     } \
     xowiki_test_cases {
       XoWiki Test Cases

@@ -439,6 +439,8 @@ namespace eval ::xowiki::test {
         "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xowiki::utility proc formCSSclass"
         ad_parse_template
+        db_driverkey
+        ad_try
 
     } create_form_with_form_instance {
 
