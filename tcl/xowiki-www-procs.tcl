@@ -2740,7 +2740,7 @@ namespace eval ::xowiki {
         && $current_revision_id != ${:revision_id}
       } {
       set validation_errors [:mutual_overwrite_occurred]
-      #:log "validation error due to mutual_overwrite current_revision_id <$current_revision_id> my ${:revision_id}"
+      ad_log warning "mutual_overwrite occurred, current_revision_id <$current_revision_id> my ${:revision_id}"
     }
 
     if {[:validate=form_input_fields $form_fields] == 0} {
