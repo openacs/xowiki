@@ -26,6 +26,7 @@ namespace eval ::xowiki::formfield {
     {style}
     {type text}
     {label}
+    {label_noquote}
     {name}
     {id}
     {title}
@@ -156,7 +157,7 @@ namespace eval ::xowiki::formfield {
     #
     if {$value ne ""} {
       if {[info exists :$attrName]} {
-        lappend :$attrName $value
+        append :$attrName " " $value
       } else {
         set :$attrName $value
       }
@@ -1697,7 +1698,11 @@ namespace eval ::xowiki::formfield {
     # don't disable submit buttons
     if {[:type] eq "submit"} {:unset -nocomplain disabled}
     ::html::button [:get_attributes name type {form_button_CSSclass class} title disabled] {
-      ::html::t ${:value}
+      if {[info exists :label_noquote] && ${:label_noquote}} {
+        ::html::t -disableOutputEscaping ${:value}
+      } else {
+        ::html::t ${:value}
+      }
     }
     #::html::input [:get_attributes name type {form_button_CSSclass class} value title disabled] {}
     :render_localizer
@@ -4500,7 +4505,7 @@ namespace eval ::xowiki::formfield {
       # representation might be lost.
 
       switch $render_hints {
-        "multiple_lines" {
+        multiple_lines {
           set type textarea
           dict set field_fc_dict rows [dict get $render_hints_dict lines]
           dict set field_fc_dict autosave true
