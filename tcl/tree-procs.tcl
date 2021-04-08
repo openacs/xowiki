@@ -551,7 +551,6 @@ namespace eval ::xowiki {
   }
 
   TreeRenderer=bootstrap3 proc render {tree} {
-    if {${:verbose}} {:log "TreeRenderer=bootstrap3 p=[:info precedence]"}
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
@@ -606,14 +605,14 @@ namespace eval ::xowiki {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
+    # see list of possible icons: https://github.com/jonmiles/bootstrap-treeview
     lappend options \
-        "expandIcon: 'glyphicon glyphicon-folder-close'" \
+        "expandIcon: 'glyphicon glyphicon-none'" \
         "collapseIcon: 'glyphicon glyphicon-folder-open'" \
         "enableLinks: true"
     template::add_body_script -script "\n\$('#$id').treeview({data: \[$jsTree\], [join $options ,] });"
     return "<div id='$id'></div>"
   }
-
 
 }
 ::xo::library source_dependent

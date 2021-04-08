@@ -141,6 +141,13 @@ div.xowiki-content .content-with-folders .form-error {
 }
 
 /*
+ * treeview styling (make indentation more compact)
+ */
+div.folders div.treeview span.indent {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+/*
  * Local Variables:
  * mode: css
  * c-basic-offset: 4
