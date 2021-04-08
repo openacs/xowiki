@@ -34,6 +34,44 @@ namespace eval ::xowiki::includelet {
         {parameter_declaration {}}
         {id}
       }
+
+  ::xowiki::Includelet instproc get_current_folder {parent} {
+    set current_folder ${:__including_page}
+    #:log "get_current_folder: including_page current_folder $current_folder '[$current_folder name]'"
+
+    if {$parent eq ".."} {
+      set current_folder [$current_folder parent_id]
+      ::xo::db::CrClass get_instance_from_db -item_id $current_folder
+    } elseif {$parent eq "."} {
+      # current_folder is already set
+    } elseif {$parent eq "/"} {
+      # set current_folder to the package folder
+      set current_folder [[$current_folder package_id] folder_id]
+    } else {
+      set lang [string range ${:locale} 0 1]
+      set page [::$package_id get_page_from_item_ref \
+                    -use_package_path true \
+                    -use_site_wide_pages true \
+                    -use_prototype_pages true \
+                    -default_lang $lang \
+                    -parent_id [$current_folder item_id] \
+                    $parent]
+      set current_folder $page
+    }
+    #:log "get_current_folder: parent $parent, current_folder $current_folder '[$current_folder name]', folder is formPage [$current_folder istype ::xowiki::FormPage]"
+
+    if {![$current_folder istype ::xowiki::FormPage]} {
+      # current folder has to be a FormPage
+      set current_folder [$current_folder parent_id]
+      #:log "###### use parent of current folder $current_folder '[$current_folder name]'"
+
+      if {![$current_folder istype ::xowiki::FormPage]} {
+        error "get_current_folder not included from a FormPage"
+      }
+    }
+    return $current_folder
+  }
+
   #2.8.0r4
   ::xowiki::Includelet proc require_YUI_CSS {{-version 2.7.0} {-ajaxhelper true} path} {
     if {$ajaxhelper} {
@@ -771,6 +809,7 @@ namespace eval ::xowiki::includelet {
           {-order_items_by "title,asc"}
           {-style "mktree"}
           {-category_ids ""}
+          {-parent /}
           {-except_category_ids ""}
           {-allow_edit false}
           {-ordered_composite}
@@ -788,8 +827,10 @@ namespace eval ::xowiki::includelet {
         @param open_page name (e.g. en:iMacs) of the page to be opened
         initially
 
-        @param tree_style boolean, default: true, rnder category tree
-        based on mktree
+        @param tree_style boolean, default: true, render category tree
+        in tree style and not in sections style
+
+        @param parent page-ref, default: /, select entries from this directory
 
       }
 
@@ -805,8 +846,16 @@ namespace eval ::xowiki::includelet {
     ::xowiki::Tree include_head_entries -renderer ${:style}
   }
 
-  categories instproc category_tree_edit_button {-object_id:integer -locale {-allow_edit false} -tree_id:integer} {
-    set allow_p [::xo::cc permission -object_id $object_id -privilege admin -party_id [::xo::cc set untrusted_user_id]]
+  categories instproc category_tree_edit_button {
+    -object_id:integer
+    -locale
+    {-allow_edit false}
+    -tree_id:integer
+  } {
+    set allow_p [::xo::cc permission \
+                     -object_id $object_id \
+                     -privilege admin \
+                     -party_id [::xo::cc set untrusted_user_id]]
     if {$allow_edit && $allow_p} {
       set package ::${:package_id}
       if {[info exists tree_id]} {
@@ -849,7 +898,9 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set content ""
-    set folder_id [::$package_id folder_id]
+    set current_folder [:get_current_folder $parent]
+    set folder_id [$current_folder item_id]
+
     set open_item_id [expr {$open_page ne "" ?
                             [::xo::db::CrClass lookup -name $open_page -parent_id $folder_id] : 0}]
 
@@ -860,10 +911,12 @@ namespace eval ::xowiki::includelet {
                    -names $tree_name \
                    -output {tree_id tree_name}]
 
-    #:msg "[llength $trees] == 0 && $tree_name"
+    #:msg "[llength $trees] == 0 && tree_name '$tree_name'"
     if {[llength $trees] == 0 && $tree_name ne ""} {
-      # we have nothing left from mapped trees, maybe the tree_names are not mapped;
-      # try to get these
+      #
+      # We have nothing left from mapped trees, maybe the tree_names
+      # are not mapped; try to get these
+      #
       foreach name $tree_name {
         #set tree_id [lindex [category_tree::get_id $tree_name $locale] 0]
         set tree_id [lindex [category_tree::get_id $tree_name] 0]

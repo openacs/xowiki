@@ -523,36 +523,7 @@ namespace eval ::xowiki::includelet {
   child-resources instproc render {} {
     :get_parameters
 
-    set current_folder ${:__including_page}
-    #:log "child-resources: including_page current_folder $current_folder '[$current_folder name]'"
-
-    if {$parent eq ".."} {
-      set current_folder [$current_folder parent_id]
-      ::xo::db::CrClass get_instance_from_db -item_id $current_folder
-    } elseif {$parent eq "."} {
-      # current_folder is already set
-    } else {
-      set lang [string range ${:locale} 0 1]
-      set page [::$package_id get_page_from_item_ref \
-                    -use_package_path true \
-                    -use_site_wide_pages true \
-                    -use_prototype_pages true \
-                    -default_lang $lang \
-                    -parent_id [$current_folder item_id] \
-                    $parent]
-      set current_folder $page
-    }
-    #:log "child-resources parent $parent, current_folder $current_folder '[$current_folder name]', folder is formPage [$current_folder istype ::xowiki::FormPage]"
-
-    if {![$current_folder istype ::xowiki::FormPage]} {
-      # current folder has to be a FormPage
-      set current_folder [$current_folder parent_id]
-      #:log "###### use parent of current folder $current_folder '[$current_folder name]'"
-
-      if {![$current_folder istype ::xowiki::FormPage]} {
-        error "child-resources not included from a FormPage"
-      }
-    }
+    set current_folder [:get_current_folder $parent]
     set :current_folder_id [$current_folder item_id]
 
     set logical_folder_id ${:current_folder_id}
