@@ -36,25 +36,23 @@ namespace eval ::xowiki::includelet {
       }
 
   ::xowiki::Includelet instproc get_current_folder {parent} {
-    set current_folder ${:__including_page}
     set package_id [${:__including_page} package_id]
     #:log "get_current_folder: including_page current_folder $current_folder '[$current_folder name]'"
 
     if {$parent eq ".."} {
-      set current_folder [$current_folder parent_id]
+      set current_folder [${:__including_page} parent_id]
       ::xo::db::CrClass get_instance_from_db -item_id $current_folder
     } elseif {$parent eq "."} {
-      # current_folder is already set
+      set current_folder ${:__including_page}
     } elseif {$parent eq "/"} {
       # set current_folder to the package folder
-      set current_folder [$package_id folder_id]
+      set current_folder [::$package_id folder_id]
     } else {
-      set lang [string range ${:locale} 0 1]
-      set page [$package_id get_page_from_item_ref \
+      set page [::$package_id get_page_from_item_ref \
                     -use_package_path true \
                     -use_site_wide_pages true \
                     -use_prototype_pages true \
-                    -default_lang $lang \
+                    -default_lang [string range ${:locale} 0 1] \
                     -parent_id [$current_folder item_id] \
                     $parent]
       set current_folder $page
