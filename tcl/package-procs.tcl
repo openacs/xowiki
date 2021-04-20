@@ -2420,12 +2420,17 @@ namespace eval ::xowiki {
       set title [:get_parameter PackageTitle [:instance_name]]
     }
     set description [:get_parameter PackageDescription ""]
-    
-    if {![info exists days]
-        && [regexp {^([0-9]+)d} [:query_parameter rss] _ days]
-        && $days < 50000
-      } {
-      # setting the variable days
+
+    if {![info exists days]} {
+      set rss_query_parameter [:query_parameter rss]
+      if {[regexp {^([0-9]+)d} $rss_query_parameter _ days]
+          && $days < 50000
+        } {
+        # Variable "days" is set by regexp
+      } else {
+        ns_log warning "rss_query_parameter has invalid value '$rss_query_parameter'; fall back to 10d"
+        set days 10
+      }
     } else {
       set days 10
     }
