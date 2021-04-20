@@ -861,7 +861,7 @@ namespace eval ::xowiki {
       #       ::xo::Package init and calling a per-package instance
       #       method "initialize"
       #
-      ::xowiki::Package initialize -parameter {{-m view}} -url $(url)$(provided_name) \
+      ::xowiki::Package initialize -parameter {{-m:token view}} -url $(url)$(provided_name) \
           -actual_query ""
       #:log "url=$url=>[::$package_id serialize]"
 
@@ -2427,10 +2427,9 @@ namespace eval ::xowiki {
     } else {
       set days 10
     }
-
     set r [RSS new -destroy_on_cleanup \
                -package_id ${:id} \
-               -parent_ids [:query_parameter parent_ids ""] \
+               -parent_ids [:query_parameter parent_ids:integer,0..n ""] \
                -name_filter $name_filter \
                -entries_of $entries_of \
                -title $title \
