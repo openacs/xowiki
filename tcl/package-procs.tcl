@@ -2422,7 +2422,7 @@ namespace eval ::xowiki {
     set description [:get_parameter PackageDescription ""]
     
     if {![info exists days]
-        && [regexp {[^0-9]*([0-9]+)d} [:query_parameter rss] _ days]} {
+        && [regexp {^([0-9]+)d} [:query_parameter rss] _ days]} {
       # setting the variable days
     } else {
       set days 10
