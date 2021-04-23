@@ -63,6 +63,10 @@ namespace eval ::xowiki {
       append cols {AnchorField create _view -CSSclass view-item-button -label "" \
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
+    if {"revisions" in $buttons} {
+      append cols {AnchorField create _revisions -CSSclass view-item-button -label "" \
+                       -no_csv 1 -richtext 1} \n
+    }
     if {"slim_publish_status" in $buttons} {
       append cols {ImageAnchorField create _publish_status \
                        -orderby _publish_status.src -src "" \
@@ -222,6 +226,11 @@ namespace eval ::xowiki {
         $__c set _delete "&nbsp;"
         $__c set _delete.title #xowiki.delete#
         $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
+      }
+      if {"revisions" in $buttons} {
+        $__c set _revisions ""
+        $__c set _revisions.title #xowiki.revisions#
+        $__c set _revisions.href [::$package_id make_link -link $page_link $p revisions return_url]
       }
       if {"view" in $buttons} {
         $__c set _view "&nbsp;"
