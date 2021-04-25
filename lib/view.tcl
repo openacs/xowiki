@@ -7,7 +7,7 @@ ad_include_contract {
 }
 
 set parameter [subst {
-  {-m view}
+  {-m:token view}
   {-return_url "[ns_conn url]"}
   {-template_file "view-links"}
   {-folder_id 0}

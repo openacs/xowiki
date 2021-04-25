@@ -9,7 +9,7 @@
   @cvs-id $Id$
 
 } -parameter {
-  {-m view}
+  {-m:token view}
   {-folder_id:integer 0}
 }
 
