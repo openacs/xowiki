@@ -1065,7 +1065,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc invoke {
-    -method
+    -method:token
     {-error_template error-template}
     {-batch_mode:boolean 0}
   } {
@@ -2344,7 +2344,6 @@ namespace eval ::xowiki {
   #
   # reindex (for site wide search)
   #
-
   Package ad_instproc www-reindex {} {
 
     This web-callable method can be used to reindex all items of this
@@ -2362,6 +2361,39 @@ namespace eval ::xowiki {
     foreach page_id $pages {
       #search::queue -object_id $page_id -event DELETE
       search::queue -object_id $page_id -event INSERT
+    }
+    :returnredirect .
+  }
+
+  #
+  # www-update-references (for admin purposes, should not be necessary)
+  #
+  Package ad_instproc www-update-references {} {
+
+    This web-callable method can be used to update the page references
+    between all items of this package instance.
+
+    Call with e.g. xowiki/?update-references
+
+  } {
+    set id ${:id}
+    set item_ids [::xo::dc list get_pages {
+      select ci.item_id from xowiki_page, cr_revisions r, cr_items ci, acs_objects o
+      where page_id = r.revision_id and ci.item_id = r.item_id and ci.live_revision = page_id
+      and publish_status = 'ready'
+      and page_id = o.object_id and o.package_id = :id
+    }]
+    #:log "--update-references returns <$item_ids>"
+    foreach item_id $item_ids {
+      set o [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+      if {$o ne ""} {
+        ns_log notice "render $o [$o name]"
+        try {
+          $o render -update_references all
+        } on error {errorMsg} {
+          ns_log warning "render $o [$o name] -> error: $errorMsg"
+        }
+      }
     }
     :returnredirect .
   }
@@ -2934,6 +2966,7 @@ namespace eval ::xowiki {
 
     Class create Package -array set require_permission {
       reindex             swa
+      update-references   {{id admin}}
       change-page-order   {{id admin}}
       import-prototype-page swa
       refresh-login       none
@@ -3001,6 +3034,7 @@ namespace eval ::xowiki {
 
     Class create Package -array set require_permission {
       reindex             {{id admin}}
+      update-references   {{id admin}}
       rss                 none
       refresh-login       none
       google-sitemap      none
@@ -3062,6 +3096,7 @@ namespace eval ::xowiki {
 
     Class create Package -array set require_permission {
       reindex             {{id admin}}
+      update-references   {{id admin}}
       rss                 none
       refresh-login       none
       google-sitemap      none
@@ -3147,6 +3182,7 @@ namespace eval ::xowiki {
 
     Class create Package -array set require_permission {
       reindex             {{id admin}}
+      update-references   {{id admin}}
       rss                 none
       refresh-login       none
       google-sitemap      none
