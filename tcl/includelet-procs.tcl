@@ -2258,6 +2258,7 @@ namespace eval ::xowiki::includelet {
           {-remove_levels 0}
           {-category_id}
           {-locale ""}
+          {-orderby ""}
           {-source ""}
           {-range ""}
           {-allow_reorder ""}
@@ -2280,6 +2281,8 @@ namespace eval ::xowiki::includelet {
         @param remove_levels
         @param category_id
         @param locale
+        @param orderby by default, sorting is done via page_order
+               (and requires pages with page_order). Alternatively, one can use eg. "title,asc".
         @param source
         @param range
         @param allow_reorder
@@ -2321,19 +2324,34 @@ namespace eval ::xowiki::includelet {
     lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
         locale locale_clause
     #:msg locale_clause=$locale_clause
+    set order_direction asc
+    set order_attribute page_order
 
     if {$source ne ""} {
       :get_page_order -source $source
       set page_names ('[join [array names :page_order] ',']')
       set page_order_clause "and name in $page_names"
       set page_order_att ""
+    } elseif {$orderby ne ""} {
+      lassign [split $orderby ,] order_attribute order_direction
+      if {$order_attribute ni {page_order title}} {
+        ns_log warning "toc includelet: ignore invalid page order '$orderby'"
+        set order_attribute page_order
+        set order_direction asc
+        set page_order_att "page_order,"
+        set page_order_clause "and not page_order is NULL"
+      } else {
+        set page_order_att "page_order,"
+        set page_order_clause ""
+        append extra_where_clause " and page_id != [${:__including_page} revision_id]"
+      }
     } else {
       set page_order_clause "and not page_order is NULL"
       set page_order_att "page_order,"
     }
 
     if {$folder_mode} {
-      # TODO just needed for michael aram?
+      # TODO just needed for Michael Aram?
       set parent_id [${:__including_page} item_id]
     } else {
       #set parent_id [::$package_id folder_id]
@@ -2359,7 +2377,10 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    $pages orderby page_order
+    $pages orderby \
+        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        $order_attribute
+
     if {$source ne ""} {
       # add the page_order to the objects
       foreach p [$pages children] {
@@ -2769,6 +2790,7 @@ namespace eval ::xowiki::includelet {
           {-pages ""}
           {-ordered_pages ""}
           {-source}
+          {-publish_status ready}
           {-menu_buttons edit}
           {-range ""}
         }}
@@ -2777,11 +2799,12 @@ namespace eval ::xowiki::includelet {
         Provide a selection of pages
 
         @param edit_link provide an edit link, boolean.
-        @param pages pages of the selection
-        @param ordered_pages set of already ordered pages
-        @param source take "pages" or "ordered_pages" from the provided page
         @param menu_buttons list of buttons for the entries
+        @param ordered_pages set of already ordered pages
+        @param pages pages of the selection
+        @param publish_status list pages only with the provided publish status
         @param range (sub)range of the pages (based on page_order attribute)
+        @param source take "pages" or "ordered_pages" from the provided page
 
       }
 
@@ -2795,6 +2818,11 @@ namespace eval ::xowiki::includelet {
     } else {
       :get_page_order -pages $pages -ordered_pages $ordered_pages
     }
+    set publish_status_clause [expr {[info exists publish_status]
+                                     ? [::xowiki::Includelet publish_status_clause \
+                                            -base_table p \
+                                            $publish_status]
+                                     : ""}]
 
     # should check for quotes in names
     set page_names ('[join [array names :page_order] ',']')
@@ -2803,6 +2831,7 @@ namespace eval ::xowiki::includelet {
         from xowiki_page_live_revision p \
         where parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
         and name in $page_names \
+        $publish_status_clause \
         [::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
       $p set page_order $:page_order([$p set name])
@@ -2934,7 +2963,9 @@ namespace eval ::xowiki::includelet {
           {-locale ""}
           {-range ""}
           {-allow_reorder ""}
+          {-orderby "page_order,asc"}
           {-with_footer "false"}
+          {-publish_status "ready"}
         }}
       } -ad_doc {
 
@@ -2947,6 +2978,8 @@ namespace eval ::xowiki::includelet {
         @param range page range
         @param allow_reorder allow optional page_reorder based on drag and drop
         @param with_footer boolean, default: false
+        @param orderby by default, sorting is done via page_order
+               (and requires pages with page_order). Alternatively, one can use eg. "title,asc"
       }
 
 
@@ -3082,6 +3115,16 @@ namespace eval ::xowiki::includelet {
 
     set allow_reorder [:page_reorder_check_allow $allow_reorder]
 
+    lassign [split $orderby ,] order_attribute order_direction
+    if {$order_attribute ni {page_order title}} {
+      ns_log warning "book includelet: ignore invalid page order '$orderby'"
+      set order_attribute page_order
+      set order_direction asc
+    }
+    set page_order_clause [expr {$order_attribute eq "page_order"
+                                 ? "and not page_order is NULL"
+                                 : ""}]
+
     set extra_where_clause ""
     set cnames ""
     if {[info exists category_id]} {
@@ -3091,23 +3134,31 @@ namespace eval ::xowiki::includelet {
     lassign [::xowiki::Includelet locale_clause -revisions p -items p $package_id $locale] \
         locale locale_clause
 
+    set publish_status_clause [expr {[info exists publish_status]
+                                     ? [::xowiki::Includelet publish_status_clause \
+                                            -base_table p \
+                                            $publish_status]
+                                     : ""}]
     if {$folder_mode} {
-      # TODO just needed for michael aram?
+      # TODO just needed for Michael Aram?
       set parent_id [${:__including_page} item_id]
     } else {
       #set parent_id [::$package_id folder_id]
       set parent_id [${:__including_page} parent_id]
     }
 
-    set pages [::xowiki::Page instantiate_objects -sql \
-                   "select page_id, page_order, name, title, item_id \
+    set sql "select page_id, page_order, name, title, item_id \
         from xowiki_page_live_revision p \
         where parent_id = [ns_dbquotevalue $parent_id]  \
-        and not page_order is NULL $extra_where_clause \
-        $locale_clause \
-        [::xowiki::Page container_already_rendered item_id]" ]
+        $page_order_clause $extra_where_clause \
+        $locale_clause $publish_status_clause \
+        [::xowiki::Page container_already_rendered item_id]"
+
+    set pages [::xowiki::Page instantiate_objects -sql $sql]
     $pages mixin add ::xo::OrderedComposite::IndexCompare
-    $pages orderby page_order
+    $pages orderby \
+        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        $order_attribute
 
     #
     # filter range
