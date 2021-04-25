@@ -53,9 +53,14 @@ namespace eval ::xowiki::includelet {
                     -use_site_wide_pages true \
                     -use_prototype_pages true \
                     -default_lang [string range ${:locale} 0 1] \
-                    -parent_id [$current_folder item_id] \
+                    -parent_id [${:__including_page} parent_id] \
                     $parent]
-      set current_folder $page
+      if {$page ne ""} {
+        set current_folder $page
+      } else {
+        ns_log warning "could not fetch folder via item_ref '$parent'"
+        set current_folder ${:__including_page}
+      }
     }
     #:log "get_current_folder: parent $parent, current_folder $current_folder '[$current_folder name]', folder is formPage [$current_folder istype ::xowiki::FormPage]"
 
