@@ -28,6 +28,11 @@ div.xowiki-content a.delete-item-button {
     padding-right: 16px;
     text-decoration: none;
 }
+div.xowiki-content a.revisions-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -198px no-repeat; 
+    padding-right: 16px;
+    text-decoration: none;
+}
 div.xowiki-content a.view-item-button {
     background: transparent url(/resources/xowiki/sprite16.png) -2px -176px no-repeat; 
     padding-right: 16px;

@@ -9,6 +9,7 @@ div.xowiki-content a.link-icon,
 div.xowiki-content a.broken-link-icon,
 div.xowiki-content a.edit-item-button,
 div.xowiki-content a.delete-item-button,
+div.xowiki-content a.revisions-item-button,
 div.xowiki-content a.view-item-button,
 div.xowiki-content a.create-item-button,
 div.xowiki-content a.copy-item-button,
@@ -24,6 +25,10 @@ div.xowiki-content a.edit-item-button::before {
 div.xowiki-content a.delete-item-button::before {
     font-family: 'Glyphicons Halflings';
     content: "\e020";
+}
+div.xowiki-content a.revisions-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e023";
 }
 div.xowiki-content a.view-item-button::before {
     font-family: 'Glyphicons Halflings';

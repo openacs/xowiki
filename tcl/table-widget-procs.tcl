@@ -64,7 +64,7 @@ namespace eval ::xowiki {
                        -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
     }
     if {"revisions" in $buttons} {
-      append cols {AnchorField create _revisions -CSSclass view-item-button -label "" \
+      append cols {AnchorField create _revisions -CSSclass revisions-item-button -label "" \
                        -no_csv 1 -richtext 1} \n
     }
     if {"slim_publish_status" in $buttons} {
