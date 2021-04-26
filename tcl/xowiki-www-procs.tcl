@@ -1701,6 +1701,7 @@ namespace eval ::xowiki {
         #ns_log notice "SAVE new ia <${:instance_attributes}>"
         set s [:find_slot instance_attributes]
         :update_attribute_from_slot $s ${:instance_attributes}
+        ns_return 200 text/plain ok
 
       } elseif {$prefix eq "" && $key in $field_names} {
         #
@@ -1715,13 +1716,16 @@ namespace eval ::xowiki {
           dict set :instance_attributes $key $value
           :update_attribute_from_slot $s ${:instance_attributes}
         }
-      } else {
-        error "unexpected condition key <$key> value <$value>"
-      }
-      ns_return 200 text/plain ok
+        ns_return 200 text/plain ok
 
+      } else {
+        ns_return 404 text/plain "not ok"
+        ns_log error "autosave attribute: unexpected field name <$key>" \
+            "(prefix '$prefix'), not contained in <$field_names> " \
+            "value [llength $value] bytes"
+      }
     } else {
-      ns_log warning "LAST expecting a single form parameter with a prefix keys <$keys>"
+      ns_log warning "autosave attribute: expecting a single form parameter with a prefix keys <$keys>"
       ns_return 404 text/plain "not ok"
     }
     ns_log notice "SAVE-att DONE"
