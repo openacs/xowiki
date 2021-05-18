@@ -2116,7 +2116,7 @@ namespace eval ::xowiki::formfield {
                             "return_url:localurl" \
                             [::$parent_id pretty_link]]
         ::$package_id returnredirect [${:object} pretty_link \
-                                          -query [export_vars {m delete} return_url]]
+                                          -query [export_vars {{m delete} return_url}]]
       }
     }
   }
