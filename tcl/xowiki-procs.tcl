@@ -3276,6 +3276,8 @@ namespace eval ::xowiki {
       foreach f $form_fields {lappend names [$f name]}
       :msg "No form field with name '$name' found\
             (available fields: [lsort [array names ::_form_field_names]])"
+      ns_log warning "====== lookup_form_field: No form field with name '$name' found" \
+          "(available fields: [lsort [array names ::_form_field_names]])"
     }
     set f [:create_form_fields_from_form_constraints [list $name:text]]
     set $key $f
