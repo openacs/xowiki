@@ -1202,7 +1202,7 @@ namespace eval ::xowiki {
   }
 
   Package instproc get_page_from_item_or_revision_id {item_id} {
-    set revision_id [:query_parameter revision_id:integer 0]
+    set revision_id [:query_parameter revision_id:int32 0]
     if {![string is integer -strict $revision_id]} {
       ad_return_complaint 1 "invalid revision_id"
       ad_script_abort
@@ -2468,7 +2468,7 @@ namespace eval ::xowiki {
     }
     set r [RSS new -destroy_on_cleanup \
                -package_id ${:id} \
-               -parent_ids [:query_parameter parent_ids:integer,0..n ""] \
+               -parent_ids [:query_parameter parent_ids:int32,0..n ""] \
                -name_filter $name_filter \
                -entries_of $entries_of \
                -title $title \
@@ -2630,7 +2630,7 @@ namespace eval ::xowiki {
   } {
     set object_type [:query_parameter object_type:class "::xowiki::Page"]
     set autoname [:get_parameter autoname 0]
-    set parent_id [${:id} query_parameter parent_id:integer ""]
+    set parent_id [${:id} query_parameter parent_id:int32 ""]
     if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
     if {![string is integer -strict $parent_id]} {
       ad_return_complaint 1 "invalid parent_id"
@@ -2649,7 +2649,7 @@ namespace eval ::xowiki {
       $page set page_template [:form_parameter page_template]
     }
 
-    set source_item_id [${:id} query_parameter source_item_id:integer ""]
+    set source_item_id [${:id} query_parameter source_item_id:int32 ""]
     if {$source_item_id ne ""} {
       if {![string is integer -strict $source_item_id]} {
         ad_return_complaint 1 "invalid source_item_id"
@@ -2679,7 +2679,7 @@ namespace eval ::xowiki {
     to be provided as a query parameter.
 
   } {
-    set object_id [:query_parameter object_id:integer]
+    set object_id [:query_parameter object_id:int32]
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
@@ -2702,8 +2702,8 @@ namespace eval ::xowiki {
     "tree_id" have to be provided as a query parameter.
 
   } {
-    set object_id [:query_parameter object_id:integer]
-    set tree_id [:query_parameter tree_id:integer]
+    set object_id [:query_parameter object_id:int32]
+    set tree_id [:query_parameter tree_id:int32]
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
@@ -2765,7 +2765,7 @@ namespace eval ::xowiki {
     #:log "--D delete [self args]"
 
     if {![info exists item_id]} {
-      set item_id [:query_parameter item_id:integer]
+      set item_id [:query_parameter item_id:int32]
       #:log "--D item_id from query parameter $item_id"
     }
     #
