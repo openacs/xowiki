@@ -999,6 +999,18 @@ namespace eval ::xowiki {
     return [:pretty_link]
   }
 
+  FormPage ad_instproc extra_html_fields {} {
+
+    Should be overloaded to provide extra content to some forms. This
+    method can be used to add additional (e.g. hidden) HTML input
+    fields to form pages.
+
+    ::html::input -type hidden -name __object_name -value ${:name}
+
+  } {
+    return ""
+  }
+
   FormPage ad_instproc www-edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
@@ -1026,7 +1038,7 @@ namespace eval ::xowiki {
     #:log anon_instances=$anon_instances
 
     set field_names [:field_names -form $form]
-    #:msg field_names=$field_names
+    #:log field_names=$field_names
     set form_fields [:create_form_fields $field_names]
 
     if {$form eq ""} {
@@ -1046,6 +1058,7 @@ namespace eval ::xowiki {
     #  - if it is required but hidden, show it anyway
     #    (might happen, when e.g. set via @cr_fields ... hidden)
     set name_field [:lookup_form_field -name _name $form_fields]
+
     if {$anon_instances} {
       #$name_field config_from_spec hidden
     } else {
@@ -1283,6 +1296,7 @@ namespace eval ::xowiki {
         ::html::input -type hidden -name __object_name -value ${:name}
         ::html::input -type hidden -name __form_action -value save-form-data
         ::html::input -type hidden -name __current_revision_id -value ${:revision_id}
+        :extra_html_fields
         ::html::CSRFToken
       }
       #
@@ -1333,7 +1347,6 @@ namespace eval ::xowiki {
       #
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
     }
-
 
     if {$formNode ne ""} {
 
@@ -2552,6 +2565,8 @@ namespace eval ::xowiki {
     specified, all form parameters are used.
 
   } {
+    #:log "===== Page get_form_data"
+
     set validation_errors 0
     set category_ids [list]
     array set containers [list]
@@ -2559,7 +2574,7 @@ namespace eval ::xowiki {
 
     if {![info exists field_names]} {
       set field_names [$cc array names form_parameter]
-      #:log "form-params=[$cc array get form_parameter]"
+      #:log "===== Page get_form_data field_names from form data: [$cc array names form_parameter *_.*]"
     }
     #:msg "fields $field_names // $form_fields"
     #foreach f $form_fields { :msg "... $f [$f name]" }
@@ -2598,12 +2613,22 @@ namespace eval ::xowiki {
           }
         }
         default {
-          # user form content fields
+          #
+          # Application form content fields.
+          #
           if {[regexp {^(.+)[.](tmpfile|content-type)} $att _ file field]} {
+            #
+            # File related fields.
+            #
             set f [:lookup_form_field -name $file $form_fields]
             $f $field [string trim [$cc form_parameter $att]]
             #:msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
+
           } else {
+            #
+            # Fields related to instance variables.
+            #
+            #:log "===== Page get_form_data calls lookup_form_field -name $att"
             set f     [:lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
             #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
