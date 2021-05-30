@@ -2332,7 +2332,7 @@ namespace eval ::xowiki {
     redirect. Intended for use from ajax.
 
   } {
-    set return_url [:query_parameter return_url]
+    set return_url [:query_parameter return_url:localurl]
     if {[::xo::cc user_id] == 0} {
       set url [subsite::get_url]register
       :returnredirect [export_vars -base $url return_url]

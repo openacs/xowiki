@@ -37,7 +37,7 @@ namespace eval ::xowiki {
       ${:package_id} www-delete -item_id $item_id
     }
 
-    ${:package_id} returnredirect [:query_parameter "return_url" [:pretty_link]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [:pretty_link]]
   }
 
   #
@@ -67,7 +67,7 @@ namespace eval ::xowiki {
       return OK
     } else {
       ns_log notice "HEADERS: no X-Requested-With"
-      ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+      ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
     }
   }
 
@@ -81,7 +81,7 @@ namespace eval ::xowiki {
 
   } {
     ::xowiki::clipboard clear
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
   }
 
   #
@@ -105,7 +105,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    ${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
   }
 
   #
@@ -135,7 +135,7 @@ namespace eval ::xowiki {
                  -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
-    ::${:package_id} returnredirect [:query_parameter "return_url" [::xo::cc url]]
+    ::${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
   }
 
   #
@@ -220,7 +220,7 @@ namespace eval ::xowiki {
     set original_package_id ${:package_id}
 
     if {[:exists_query_parameter "package_instance"]} {
-      set package_instance [:query_parameter "package_instance:localurl"]
+      set package_instance [:query_parameter package_instance:localurl]
       #
       # Initialize the target package and set the variable package_id.
       #
@@ -239,7 +239,7 @@ namespace eval ::xowiki {
     # Collect some default values from query parameters.
     #
     set default_variables [list]
-    foreach param {name title page_order:graph last_page_id:integer nls_language:wordchar} {
+    foreach param {name title page_order:graph last_page_id:int32 nls_language:wordchar} {
       regexp {^([^:]+):?} $param . key
       if {[:exists_query_parameter $key]} {
         lappend default_variables $key [:query_parameter $param]
@@ -285,13 +285,13 @@ namespace eval ::xowiki {
     #
     if {$parent_id == 0} {
       if {![info exists :parent_id]} {:parent_id [::${:package_id} folder_id]}
-      set fp_parent_id [:form_parameter "parent_id" [:query_parameter "parent_id:integer" ${:parent_id}]]
+      set fp_parent_id [:form_parameter "parent_id" [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
-    set fp_package_id [:form_parameter "package_id" [:query_parameter "package_id:integer" ${:package_id}]]
+    set fp_package_id [:form_parameter "package_id" [:query_parameter package_id:int32 ${:package_id}]]
 
     #
     # Handling publish_status. When the publish_status is provided via
@@ -302,7 +302,7 @@ namespace eval ::xowiki {
     # have to set the publish_status manually (see issue #3380).
     #
     if {$publish_status eq ""} {
-      set publish_status [:query_parameter "publish_status:wordchar" ""]
+      set publish_status [:query_parameter publish_status:wordchar ""]
     }
     if {$publish_status eq "" && [:exists_query_parameter name]} {
       if {[::${:package_id} get_parameter production_mode:boolean 0]} {
@@ -336,7 +336,7 @@ namespace eval ::xowiki {
       set source_item_id [::${:package_id} lookup -use_site_wide_pages true -name $source_page]
     }
     if {$source_item_id == 0} {
-      set source_item_id [:query_parameter source_item_id:integer ""]
+      set source_item_id [:query_parameter source_item_id:int32 ""]
     }
 
     ::xo::Package require $fp_package_id
@@ -566,7 +566,7 @@ namespace eval ::xowiki {
     }
     if {$latest_revision ne ""} {
       # otherwise, "delete" did already the redirect
-      ${:package_id} returnredirect [:query_parameter "return_url" \
+      ${:package_id} returnredirect [:query_parameter return_url:localurl \
                                          [export_vars -base [${:package_id} url] {{m revisions}}]]
     }
   }
@@ -586,7 +586,7 @@ namespace eval ::xowiki {
 
   } {
 
-    set compare_id [:query_parameter "compare_revision_id:integer" 0]
+    set compare_id [:query_parameter compare_revision_id:int32 0]
     if {$compare_id == 0} {
       return ""
     }
@@ -800,7 +800,7 @@ namespace eval ::xowiki {
 
   Page instproc edit_set_default_values {} {
     # set some default values if they are provided
-    foreach param {name title page_order:graph last_page_id:integer nls_language:wordchar} {
+    foreach param {name title page_order:graph last_page_id:int32 nls_language:wordchar} {
       regexp {^([^:]+):?} $param . key
       if {[::${:package_id} exists_query_parameter $key]} {
         #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
@@ -1169,7 +1169,7 @@ namespace eval ::xowiki {
           # The method query_parameter uses now "::xo::cc set_parameter ...."
           # with highest precedence
           #
-          set return_url [::${:package_id} query_parameter return_url $url]
+          set return_url [::${:package_id} query_parameter return_url:localurl $url]
           #:log "${:name}: url=$url, return_url=$return_url"
           ::${:package_id} returnredirect $return_url
 
@@ -1563,7 +1563,7 @@ namespace eval ::xowiki {
       set new_publish_status "production"
     }
     :update_publish_status $new_publish_status
-    ${:package_id} returnredirect [:query_parameter "return_url" [ad_return_url]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #
@@ -1576,7 +1576,7 @@ namespace eval ::xowiki {
 
   } {
     set package     ::${:package_id}
-    set limit       [:query_parameter "limit:integer" 20]
+    set limit       [:query_parameter limit:int32 20]
     set weblog_page [$package get_parameter weblog_page weblog]
     set href        [$package pretty_link -parent_id [$package folder_id] $weblog_page]?summary=1
 
@@ -1664,14 +1664,14 @@ namespace eval ::xowiki {
             [::xo::cc form_parameter __object_name ""] $category_ids
       }
       ${:package_id} returnredirect \
-          [:query_parameter "return_url" [:pretty_link]]
+          [:query_parameter return_url:localurl [:pretty_link]]
       return
     } else {
       # TODO: handle errors in a user friendly way
       ns_log warning "www-save-attributes: we have $validation_errors validation_errors"
     }
     ${:package_id} returnredirect \
-        [:query_parameter "return_url" [:pretty_link]]
+        [:query_parameter return_url:localurl [:pretty_link]]
   }
 
   #
@@ -1779,7 +1779,7 @@ namespace eval ::xowiki {
         [:form_parameter new_tags]
 
     ::${:package_id} returnredirect \
-        [:query_parameter "return_url" [::${:package_id} url]]
+        [:query_parameter return_url:localurl [::${:package_id} url]]
   }
 
   #
@@ -1864,7 +1864,7 @@ namespace eval ::xowiki {
     set object_type [::$page_package_id get_parameter object_type [:info class]]
     set rev_link    [::$page_package_id make_link [self] revisions]
 
-    if {[::$context_package_id query_parameter m ""] eq "edit"} {
+    if {[::$context_package_id query_parameter m:token ""] eq "edit"} {
       set view_link [::$page_package_id make_link [self] view return_url]
       set edit_link ""
     } else {
@@ -1966,7 +1966,7 @@ namespace eval ::xowiki {
     }
 
     if {[:exists_query_parameter return_url]} {
-      set return_url [:query_parameter return_url]
+      set return_url [:query_parameter return_url:localurl]
     }
 
     #:log "--after notifications [info exists notification_image]"
