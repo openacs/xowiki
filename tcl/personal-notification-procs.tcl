@@ -66,7 +66,7 @@ namespace eval ::xowiki::includelet {
 
   personal-notification-messages ad_proc message_add {
     {-notification_id:integer}
-    {-to_user_id:integer}
+    {-to_user_id:integer,1..n}
     {-payload:required}
   } {
 
@@ -78,9 +78,11 @@ namespace eval ::xowiki::includelet {
     # Set the timestamp to [clock microseconds]. It is assumed that we have
     # at most one message per microsecond to this user.
     #
-    nsv_dict set inclass_exam $notification_id $to_user_id \
-        [clock microseconds] \
-        $payload
+    foreach to_user_id $to_user_id {
+      nsv_dict set inclass_exam $notification_id $to_user_id \
+          [clock microseconds] \
+          $payload
+    }
   }
 
   personal-notification-messages ad_proc message_dismiss {
@@ -97,15 +99,24 @@ namespace eval ::xowiki::includelet {
   }
 
   personal-notification-messages ad_proc modal_message_dialog {
-    -to_user_id:integer,required
+    -to_user_id:integer,1..n,required
     {-title "#xowiki.Send_message_to#"}
     {-glyphicon pencil}
   } {
     Create a bootstrap3 modal dialog
   } {
-    set id dialog-msg-$to_user_id
-    set to_user_name [::xo::get_user_name $to_user_id]
+    if {[llength $to_user_id] == 1} {
+      set id dialog-msg-$to_user_id
+      set to_user_name [::xo::get_user_name $to_user_id]
+    } else {
+      set id dialog-msg-all
+      set to_user_name " [llength $to_user_id] #xowf.Participants#"
+    }
     append title " " $to_user_name
+
+    foreach to_user_id $to_user_id {
+      append input_fields [subst {<input type="hidden" name="to_user_id" value="$to_user_id">}]
+    }
 
     return [list link [subst {
       <a href="#$id" title="$title" role="button" data-toggle="modal" data-keyboard="false">
@@ -135,7 +146,7 @@ namespace eval ::xowiki::includelet {
         <input id="option3" name="urgency" value="danger" type="radio">
       </div> <!--form-group-->
 
-      <input type="hidden" name="to_user_id" value="$to_user_id">
+      $input_fields
     </div><!--modal-body-->
     <div class="modal-footer">
     <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
@@ -162,12 +173,14 @@ namespace eval ::xowiki::includelet {
           ev.preventDefault();
           //console.log(ev.target.dataset.id);
           var form = document.querySelector('#' + ev.target.dataset.id + ' form');
-          var msg = form.elements\['msg'\].value;
-          var user_id = form.elements\['to_user_id'\].value;
-          var urgency = form.elements\['urgency'\].value;
+
+          var data = new FormData(form);
           var xhttp = new XMLHttpRequest();
-          xhttp.open("GET", '$url&user_id=' + user_id + '&msg=' + msg + '&urgency=' + urgency, true);
-          xhttp.send();
+          xhttp.open('POST', '$url', true);
+          xhttp.onload = function () {
+            //console.log(this.responseText);
+          };
+          xhttp.send(data);
         });});
     }]
   }
