@@ -12,7 +12,7 @@
  * Gustaf Neumann                      fecit May 2020
  */
 
-var autosave_timeoutID;
+var autosave_timeoutID = {};
 var autosave_idleTime = 10000;
 
 function autosave_save_contents(id) {
@@ -49,10 +49,10 @@ function autosave_handler(id) {
     //console.log('autosave_handler ' + id + ' ' + status);
     status.setAttribute('class', 'pending');
     status.textContent = status.dataset.pending;
-    if (autosave_timeoutID) {
-        clearTimeout(autosave_timeoutID);
+    if (id in autosave_timeoutID) {
+        clearTimeout(autosave_timeoutID[id]);
     }
-    autosave_timeoutID = setTimeout(autosave_save_contents, autosave_idleTime, id);
+    autosave_timeoutID[id] = setTimeout(autosave_save_contents, autosave_idleTime, id);
 };
 
 /*
