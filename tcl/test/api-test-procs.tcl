@@ -114,7 +114,7 @@ aa_register_case \
     } \
     api_hstore {
 
-        Checks conversion from dict to hstorage keys with proper secaping
+        Checks conversion from dict to hstorage keys with proper escaping
 
     } {
         set dict {key1 value1 key2 a'b k'y value3 key4 1,2}
