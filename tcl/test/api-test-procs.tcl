@@ -117,10 +117,10 @@ aa_register_case \
         Checks conversion from dict to hstorage keys with proper escaping
 
     } {
-        set dict {key1 value1 key2 a'b k'y value3 key4 1,2}
+        set dict {key1 value1 key2 a'b k'y value3 key4 1,2 c before\tafter d "hello world"}
         aa_equals "filter option_list with empty exclusion set" \
-            [::xowiki::hstore::dict_as_hkey  $dict] \
-            {key1=>value1,key2=>"a''b","k''y"=>value3,key4=>"1,2"}
+            [::xowiki::hstore::dict_as_hkey $dict] \
+            {key1=>value1,key2=>"a''b","k''y"=>value3,key4=>"1,2",c=>"before	after",d=>"hello world"}
     }
 #
 # Local variables:

@@ -172,11 +172,22 @@ namespace eval ::xowiki::hstore {
   #
   # Helper functions for hstore
   #
+  set ::xowiki::hstore::max_value_size [parameter::get_global_value \
+                                            -package_key xowiki \
+                                            -parameter hstore_max_value_size \
+                                            -default 0]
+
   ad_proc double_quote {value} {
+
+    From hstore manual: "Double-quote keys and values that include
+    whitespace, commas, =s or >s. To include a double quote or a
+    backslash in a key or value, escape it with a backslash."
+    https://www.postgresql.org/docs/current/hstore.html
+
     @return double_quoted value as appropriate for hstore
   } {
-    if {[regexp {[ ,\"\\=>\n\']} $value]} {
-      set value \"[string map [list \" \\\" \\ \\\\ ' ''] $value]\"
+    if {[regexp {[\s,\"\'\\=>]} $value]} {
+      return \"[string map [list \" \\\" \\ \\\\ ' ''] $value]\"
     }
     return $value
   }
@@ -184,11 +195,8 @@ namespace eval ::xowiki::hstore {
   ad_proc dict_as_hkey {dict} {
     @return dict value in form of a hstore key.
   } {
-    set max_value_size [parameter::get_global_value \
-                            -package_key xowiki \
-                            -parameter hstore_max_value_size \
-                            -default 0]
     set keys {}
+    variable ::xowiki::hstore::max_value_size
     foreach {key value} $dict {
       set v [double_quote $value]
       if {$v eq ""
