@@ -2090,10 +2090,9 @@ namespace eval ::xowiki::formfield {
     #
     # Reset the value for form-fields of type "file" to avoid
     # confusions in case of form validation error. A file-name might
-    # have been provided provided, but the file was not uploaded due
-    # to the validation error. If we would not reset the value, the
-    # provided name would cause an interpretation of an uploaded empty
-    # file.
+    # have been provided, but the file was not uploaded due to the
+    # validation error. If we would not reset the value, the provided
+    # name would cause an interpretation of an uploaded empty file.
     #
     ns_log debug "reset_to_default [:serialize]"
     set :value ""
