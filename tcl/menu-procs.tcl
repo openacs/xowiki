@@ -114,7 +114,7 @@ namespace eval ::xowiki {
   #   4) After all updates are performed, use "render-preferred" to obtain
   #      the HTML rendering of the menu.
   #
-  # Follow the following nameing conventions:
+  # Follow the following naming conventions:
   #  1) All menu names must start with a capital letter
   #  2) All menu entry names must start with a capital letter
   #  3) All menu entry names should be named after the menu name

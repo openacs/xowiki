@@ -113,7 +113,7 @@ namespace eval ::xowiki {
     all entries having an id from the except list.
 
     @param option_list list of labels and ids
-    @param except list of interal ids
+    @param except list of internal ids
     @return filtered option list
   } {
     if {[llength $except] == 0} {
