@@ -1302,7 +1302,7 @@ namespace eval ::xowiki::formfield {
     return $html
   }
 
-  FormField instproc reset_to_default args {
+  FormField instproc reset_on_validation_error args {
     #
     # We don't actually do anything here, but subclassess can overload it.
     #
@@ -1688,13 +1688,13 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  CompoundField instproc reset_to_default args {
+  CompoundField instproc reset_on_validation_error args {
     #
     # We actually want to reset all the leaf components
     #
-    ns_log debug "reset_to_default COMPOUND"
+    ns_log debug "reset_on_validation_error COMPOUND"
     foreach f [:leaf_components] {
-      $f reset_to_default {*}$args
+      $f reset_on_validation_error {*}$args
     }
   }
 
@@ -2086,15 +2086,15 @@ namespace eval ::xowiki::formfield {
 
   }
 
-  file instproc reset_to_default args {
+  file instproc reset_on_validation_error args {
     #
-    # Reset the value for form-fields of type "file" to avoid
-    # confusions in case of form validation error. A file-name might
+    # Reset the value for form-fields of type "file" to empty to avoid
+    # confusions in case of form validation errors. A file-name might
     # have been provided, but the file was not uploaded due to the
     # validation error. If we would not reset the value, the provided
     # name would cause an interpretation of an uploaded empty file.
     #
-    ns_log debug "reset_to_default [:serialize]"
+    #ns_log debug "reset_on_validation_error [:serialize]"
     set :value ""
   }
 

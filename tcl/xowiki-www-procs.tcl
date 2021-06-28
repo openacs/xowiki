@@ -2791,10 +2791,12 @@ namespace eval ::xowiki {
     } else {
       :log validation_errors=$validation_errors
       #
-      # There were validation errors. Reset the value of form-fields.
+      # There were validation errors. Reset the value of form-fields
+      # which have to be reset on validation errors due to browser
+      # semantics.
       #
       foreach f $form_fields {
-        $f reset_to_default
+        $f reset_on_validation_error
       }
     }
 
