@@ -2287,7 +2287,7 @@ namespace eval ::xowiki::includelet {
         @param category_id
         @param locale
         @param orderby by default, sorting is done via page_order
-               (and requires pages with page_order). Alternatively, one can use eg. "title,asc".
+               (and requires pages with page_order). Alternatively, one can use e.g. "title,asc".
         @param source
         @param range
         @param allow_reorder
@@ -2984,7 +2984,7 @@ namespace eval ::xowiki::includelet {
         @param allow_reorder allow optional page_reorder based on drag and drop
         @param with_footer boolean, default: false
         @param orderby by default, sorting is done via page_order
-               (and requires pages with page_order). Alternatively, one can use eg. "title,asc"
+               (and requires pages with page_order). Alternatively, one can use e.g. "title,asc"
       }
 
 
