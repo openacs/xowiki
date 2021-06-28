@@ -713,7 +713,135 @@ namespace eval ::xowiki::test {
             }
         }
     }
+
+    aa_register_case -cats {web} -procs {
+        "::acs::test::dom_html"
+        "::acs::test::http"
+        "::acs::test::reply_has_status_code"
+        "::acs::test::require_package_instance"
+        "::acs::test::user::create"
+        "::export_vars"
+        "::lang::system::locale"
+        "::xowiki::test::create_form"
+        "::xowiki::test::create_form_page"
+        "::xowiki::test::edit_form_page"
+        "::xowiki::test::get_form_CSSclass"
+        "::xowiki::test::get_object_name"
+        "::xowiki::test::require_test_folder"
+        "::xowiki::Page instproc www-create-new"
+        "::xowiki::Page instproc www-edit"
+
+    } form_validate {
+
+        Create an xowiki form and an instance of this form.  The
+        instance contains validation errors.
+
+    } {
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowf@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set locale [lang::system::locale]
+            set lang [string range $locale 0 1]
+            set form_name $lang:validation.form
+            ###########################################################
+            aa_section "Create Form $form_name"
+            ###########################################################
+
+            #
+            # The created form contains fields to be validated.
+            #
+
+            ::xowiki::test::create_form \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -name $form_name \
+                -update [subst {
+                    title "Validation Form"
+                    nls_language $locale
+                    text {}
+                    text.format text/html
+                    form {<form>@number@</form>}
+                    form.format text/plain
+                    form_constraints {
+                        number:numeric
+                    }
+                }]
+            aa_log "Form $form_name created"
+
+            ###########################################################
+            aa_section "Create an instance of $form_name named '${lang}:validate1'"
+            ###########################################################
+            set page_name ${lang}:validate1
+            set title "fresh $page_name for validation"
+            set d [::xowiki::test::create_form_page \
+                       -last_request $request_info \
+                       -instance $instance \
+                       -path $testfolder \
+                       -parent_id $folder_id \
+                       -form_name $form_name \
+                       -expect_validation_error "Invalid numeric value" \
+                       -update [subst {
+                           _name "$page_name"
+                           _title "$title"
+                           _nls_language $locale
+                           number a
+                       }]]
+            
+            #ns_log notice "::xowiki::test::create_form_page returns $d"
+            acs::test::reply_has_status_code $d 200
+
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set f_id [::xowiki::test::get_object_name $root]
+                aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+                set new_title [$root getElementById F.$f_id._title]
+                set new_number [$root getElementById F.$f_id.number]
+                aa_equals "_title stays '$title'" $title [$new_title getAttribute value]
+                aa_equals "number stays 'a'" a [$new_number getAttribute value]
+            }
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
 }
+
 #
 # Local variables:
 #    mode: tcl

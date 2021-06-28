@@ -239,6 +239,7 @@ namespace eval ::xowiki::test {
         {-update ""}
         {-remove ""}
         {-extra_url_parameter ""}
+        {-expect_validation_error ""}
     } {
 
         Create a form page via the web interface.
@@ -281,9 +282,9 @@ namespace eval ::xowiki::test {
             set form [::acs::test::xpath::get_form $root [subst {
                 //form\[contains(@class,'$formCSSClass')\]
             }]]
-            set fields [acs::test::form_get_fields $form]
-
             #aa_log "FORM_CONTENT !$form!"
+
+            set fields [acs::test::form_get_fields $form]
             set f_page_name   [dict get $fields _name]
             set f_creator     [dict get $fields _creator]
             if {$autonamed_p} {
@@ -307,44 +308,60 @@ namespace eval ::xowiki::test {
                    -form $form \
                    -update $update \
                    -remove $remove]
-        acs::test::reply_has_status_code $d 302
+        if {$expect_validation_error ne ""} {
+            aa_log "HAVE VALIDATION ERROR"
+            acs::test::reply_has_status_code $d 200
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set errorNodes [$root selectNodes {//div[contains(@class,'form-error')]}]
+                aa_true "errorNodes exist '$errorNodes'" {$errorNodes ne ""}
+                set errorMsgs {}
+                foreach n $errorNodes {
+                    aa_log "validation error '[$n text]'"
+                    lappend errorMsgs [$n text]
+                }
+                aa_true "contains expected msg '$expect_validation_error'" {$expect_validation_error in $errorMsgs}
+            }
+        } else {
+            acs::test::reply_has_status_code $d 302
 
-        #set response [dict get $d body]
-        #ns_log notice "FORM POST\n$response"
+            #set response [dict get $d body]
+            #ns_log notice "FORM POST\n$response"
 
-        foreach {key value} $update {
-            dict set form_content $key $value
+            foreach {key value} $update {
+                dict set form_content $key $value
+            }
+            aa_log "create_form_page: form_content:\n[::xowiki::test::pretty_form_content $form_content]"
+
+            set location [::acs::test::get_url_from_location $d]
+            aa_true "create_form_page: location '$location' is valid" {$location ne ""}
+
+            set d [acs::test::http \
+                       -last_request $last_request -user_id $user_id \
+                       $location]
+            acs::test::reply_has_status_code $d 200
+
+            ::xo::Package initialize -url $location
+            set lang [string range [lang::system::locale] 0 1]
+
+            set page_info [::$package_id item_ref \
+                               -default_lang $lang \
+                               -parent_id $parent_id \
+                               [dict get $form_content _name] \
+                              ]
+            set item_id [dict get $page_info item_id]
+            #aa_log "lookup of $folder_name/page -> $item_id"
+            if {$item_id == 0} {error "Page not found"}
+            ::xo::db::CrClass get_instance_from_db -item_id $item_id
+
+            set d [acs::test::http \
+                       -last_request $last_request -user_id $user_id \
+                       $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
+            acs::test::reply_has_status_code $d 302
+            aa_log "create_form_page: DONE"
+            dict set d page_info $page_info
+            dict set d instance $instance
         }
-        aa_log "create_form_page: form_content:\n[::xowiki::test::pretty_form_content $form_content]"
-
-        set location [::acs::test::get_url_from_location $d]
-        aa_true "create_form_page: location '$location' is valid" {$location ne ""}
-
-        set d [acs::test::http \
-                   -last_request $last_request -user_id $user_id \
-                   $location]
-        acs::test::reply_has_status_code $d 200
-
-        ::xo::Package initialize -url $location
-        set lang [string range [lang::system::locale] 0 1]
-
-        set page_info [::$package_id item_ref \
-                           -default_lang $lang \
-                           -parent_id $parent_id \
-                           [dict get $form_content _name] \
-                          ]
-        set item_id [dict get $page_info item_id]
-        #aa_log "lookup of $folder_name/page -> $item_id"
-        if {$item_id == 0} {error "Page not found"}
-        ::xo::db::CrClass get_instance_from_db -item_id $item_id
-
-        set d [acs::test::http \
-                   -last_request $last_request -user_id $user_id \
-                   $instance/admin/set-publish-state?state=ready&revision_id=[::$item_id revision_id]]
-        acs::test::reply_has_status_code $d 302
-        aa_log "create_form_page: DONE"
-        dict set d page_info $page_info
-        dict set d instance $instance        
         return $d
     }
 
@@ -392,7 +409,7 @@ namespace eval ::xowiki::test {
         aa_true "page_name '$f_page_name' non empty" {$f_page_name ne ""}
         #aa_true "creator '$f_creator' is nonempty" {$f_creator ne ""}
         aa_log  "creator '$f_creator'"
-        
+
         set f_form_action  [dict get $form @action]
         aa_true "form_action '$f_form_action' is nonempty" {$f_form_action ne ""}
 
@@ -419,7 +436,7 @@ namespace eval ::xowiki::test {
         acs::test::reply_has_status_code $d 200
         acs::test::reply_contains $d [dict get $form_content _title]
 
-        dict set d instance $instance        
+        dict set d instance $instance
         return $d
     }
 
