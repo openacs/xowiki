@@ -1145,6 +1145,7 @@ namespace eval ::xowiki {
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
+
         #
         # The data might have references. Perform the rendering here to compute
         # the references instead on every view (which would be safer, but slower). This is
@@ -2747,6 +2748,7 @@ namespace eval ::xowiki {
     }
 
     #
+
     # Finally run the validator on the top-level fields
     #
     foreach f [concat $form_fields] {
@@ -2789,17 +2791,10 @@ namespace eval ::xowiki {
     } else {
       :log validation_errors=$validation_errors
       #
-      # There were validation errors.  Reset the value for form-fields
-      # of type "file" to avoid confusions, since a file-name was
-      # provided, but the file was not uploaded due to the validation
-      # error. If we would not reset the value, the provided name
-      # would cause an interpretation of an uploaded empty file. Maybe
-      # a new method "reset-to-default" would be a good idea.
+      # There were validation errors. Reset the value of form-fields.
       #
       foreach f $form_fields {
-        if {[$f type] eq "file"} {
-          $f set value ""
-        }
+        $f reset_to_default
       }
     }
 
