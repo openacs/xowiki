@@ -8,6 +8,29 @@
 
 namespace eval ::xowiki::formfield {
 
+  ad_proc child_components {{-filter true} objs:object,1..n} {
+
+    For every form-field obj in the provided objs, return a list of
+    all child components (potentially leaf components of compound
+    fields). The result list is filtered by the optional filter
+    expression, which can refer to the current object via variable $_.
+
+    @param objs input form-field objs
+    @param filter
+    @result list of leaf components
+
+  } {
+    set result {}
+    foreach obj $objs {
+      lappend result {*}[lmap _ [$obj leaf_components] {
+        if {![expr $filter]} continue
+        set _
+      }]
+    }
+    return $result
+  }
+
+
   ###########################################################
   #
   # ::xowiki::formfield::FormField (Base Class)
@@ -656,19 +679,6 @@ namespace eval ::xowiki::formfield {
     return $v
   }
 
-
-  FormField instproc child_components {objs:object,1..n} {
-    #
-    # Return for a list of form-field objs all child components
-    # (potentially leaf components of compound fields).
-    #
-    set result {}
-    foreach o $objs {
-      lappend result {*}[:leaf_components]
-    }
-    return $result
-  }
-
   FormField instproc leaf_components {} {
     #
     # We want to be able to be able to call leaf_components on
@@ -678,7 +688,7 @@ namespace eval ::xowiki::formfield {
     return [list [self]]
   }
 
-  
+
   FormField ad_instproc dict_to_fc {
     -name
     -type:required
