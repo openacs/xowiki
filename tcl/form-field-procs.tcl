@@ -656,6 +656,29 @@ namespace eval ::xowiki::formfield {
     return $v
   }
 
+
+  FormField instproc child_components {objs:object,1..n} {
+    #
+    # Return for a list of form-field objs all child components
+    # (potentially leaf components of compound fields).
+    #
+    set result {}
+    foreach o $objs {
+      lappend result {*}[:leaf_components]
+    }
+    return $result
+  }
+
+  FormField instproc leaf_components {} {
+    #
+    # We want to be able to be able to call leaf_components on
+    # arbitrary form-fields, so return for non-composite fields just a
+    # list with a single element.
+    #
+    return [list [self]]
+  }
+
+  
   FormField ad_instproc dict_to_fc {
     -name
     -type:required
@@ -4935,7 +4958,7 @@ namespace eval ::xowiki::formfield {
       ns_log notice "${:name}: correction? have grading [info exists :grading]"
       set correct_relative {}
       #
-      # Compare neighbors; when left neighbor is smaller then this is
+      # Compare neighbors; when left neighbor is smaller, this is
       # counted as correct. Assumption: provided answer is ascending.
       #
       set Rr 0; set Wr 0
