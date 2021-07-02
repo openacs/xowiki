@@ -3110,6 +3110,7 @@ namespace eval ::xowiki::formfield {
     #:msg "setting editor for ${:name}, args=$args,[llength $args]"
     if {[llength $args] == 0} {return ${:editor}}
     set editor [lindex $args 0]
+
     if {[info exists :editor] && $editor eq ${:editor} && [info exists :__initialized]} return
 
     set editor_class [self class]::$editor
@@ -3148,6 +3149,17 @@ namespace eval ::xowiki::formfield {
     set :booleanHTMLAttributes {readonly disabled formnovalidate}
     next
     #ns_log notice "==== ${:name} EDITOR specified? [info exists :editor]"
+
+    # The init of a richtext will immediately reclass the formfield
+    # and call initialize (because 'richtext' in the spec is the name
+    # of a class). This will bring here, before we had the chance to
+    # set the editor value from the spec, because the field class is
+    # parsed before other options. Getting here without an editor,
+    # will cause the code to fallback to the default from the global
+    # parameter, de-facto ingnoring the 'editor=' spec. One quick
+    # solution is to parse the spec here.
+    regexp {,?editor=([^,]+)} ${:spec} m :editor
+
     if {![info exists :editor]} {
       set :editor [parameter::get_global_value -package_key xowiki \
                        -parameter PreferredRichtextEditor -default ckeditor4]

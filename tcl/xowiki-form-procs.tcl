@@ -835,7 +835,7 @@ namespace eval ::xowiki {
         {field_list {item_id name page_order title creator text form form_constraints
           anon_instances description nls_language}}
         {f.text "= richtext,height=150px,label=#xowiki.Form-template#"}
-        {f.form "= richtext,editor=none,height=150px"}
+        {f.form "= richtext,height=150px"}
         {f.form_constraints "="}
         {validate {
           {name {\[::xowiki::validate_name\]} {Another item with this name exists \
