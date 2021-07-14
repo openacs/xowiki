@@ -373,6 +373,7 @@ namespace eval ::xowiki::test {
         {-update ""}
         {-remove ""}
         {-extra_url_parameter {{m edit}}}
+        {-next_page_must_contain ""}
     } {
 
         Edit a form page via the web interface.
@@ -434,7 +435,10 @@ namespace eval ::xowiki::test {
                    -last_request $last_request -user_id $user_id \
                    $instance/$path]
         acs::test::reply_has_status_code $d 200
-        acs::test::reply_contains $d [dict get $form_content _title]
+        if {$next_page_must_contain eq ""} {
+            set next_page_must_contain [dict get $form_content _title]
+        }
+        acs::test::reply_contains $d $next_page_must_contain
 
         dict set d instance $instance
         return $d
