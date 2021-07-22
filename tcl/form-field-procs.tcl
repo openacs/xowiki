@@ -3156,7 +3156,7 @@ namespace eval ::xowiki::formfield {
     # set the editor value from the spec, because the field class is
     # parsed before other options. Getting here without an editor,
     # will cause the code to fallback to the default from the global
-    # parameter, de-facto ingnoring the 'editor=' spec. One quick
+    # parameter, de-facto ignoring the 'editor=' spec. One quick
     # solution is to parse the spec here.
     regexp {,?editor=([^,]+)} ${:spec} m :editor
 
@@ -3439,9 +3439,9 @@ namespace eval ::xowiki::formfield {
     {callback "/* callback code */"}
     {destroy_callback "/* callback code */"}
     {submit_callback ""}
-    {extraPlugins "xowikiimage"}
+    {extraPlugins ""}
     {extraAllowedContent {*(*)}}
-    {ck_package standard-all}
+    {ck_package standard}
     {templatesFiles ""}
     {templates ""}
     {contentsCss /resources/xowiki/ck_contents.css}
@@ -3552,9 +3552,25 @@ namespace eval ::xowiki::formfield {
         # CDN. If we do not use standard-all, then we see an error
         # about a missing
         # ".../4.9.2/full/plugins/iframedialog/plugin.js". There
-        # exists a "iframe" and a "iframedialog" plugin for ckeditor4,
-        # the latter is not included in the standard builds (only in
-        # "-all").
+        # exists a default "iframe" and a "iframedialog" plugin for
+        # ckeditor4, the latter is not included in the standard builds
+        # (only in "-all").
+        #
+        # UPDATE July 2021: The "*-all" ckpackages are gone for newer
+        # versions of CKEditor (e.g. 4.16.*) and it is unlikely that
+        # it will be revived for the standard packages. One can
+        # download the "iframedialog" plugin still from the addons
+        #
+        #    https://ckeditor.com/cke4/addon/iframedialog
+        #
+        # and add it manually to the downloaded tree in e.g.
+        #
+        #   richtext-ckeditor4/www/resources/4.16.1/standard/plugins/
+        #
+        # For the time being, we remove the "xowikiimage" plugin from
+        # the extraPlugins to make it working out of the box. This
+        # plugin should be rewritten using the current dialogs of
+        # ckeditor.
         #
         ::richtext::ckeditor4::add_editor \
             -order 90 \
