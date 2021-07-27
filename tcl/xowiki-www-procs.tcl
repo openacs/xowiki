@@ -1662,7 +1662,7 @@ namespace eval ::xowiki {
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
-            [::xo::cc form_parameter __object_name ""] $category_ids
+            [::xo::cc form_parameter __object_name:token ""] $category_ids
       }
       ${:package_id} returnredirect \
           [:query_parameter return_url:localurl [:pretty_link]]
@@ -2262,6 +2262,7 @@ namespace eval ::xowiki {
     {-omit_field_name_spec:boolean false}
     {-nls_language ""}
   } {
+    #ns_log notice "... create_raw_form_field name $name spec '$spec'"
     set save_slot $slot
     if {$slot eq ""} {
       # We have no slot, so create a minimal slot. This should only happen for instance attributes
@@ -2598,17 +2599,12 @@ namespace eval ::xowiki {
           #
         }
         _* {
-          # instance attribute fields
+          #
+          # CR fields
+          #
           set f     [:lookup_form_field -name $att $form_fields]
           set value [$f value [string trim [$cc form_parameter $att]]]
           set varname [string range $att 1 end]
-          #
-          # Get rid of strange utf-8 characters hex C2AD (Firefox bug?)
-          #
-          #ns_log notice "FORM_DATA var=$varname, value='$value' s=$s"
-          #if {$varname eq "text"} {regsub -all -- "­" $value "" value}
-          #ns_log notice "FORM_DATA var=$varname, value='$value'"
-
           if {![string match "*.*" $att]} {
             set :$varname $value
           }
@@ -2637,7 +2633,7 @@ namespace eval ::xowiki {
               #
               # If the field is not a compound field, put the received
               # value into the instance attributes. The containerized
-              # input values con compound fields are processed below.
+              # input values from compound fields are processed below.
               #
               dict set :instance_attributes $att $value
             }
@@ -2857,14 +2853,16 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc create_form_fields {field_names} {
-    set form_fields   [:create_category_fields]
+    set form_fields [:create_category_fields]
     foreach att $field_names {
       if {[string match "__*" $att]} continue
 
       if {[:form_field_exists $att]} {
-        #ns_log notice "... found [set $key] for $key"
+        #ns_log notice "... found form-field $att"
         lappend form_fields [:lookup_form_field -name $att {}]
+
       } else {
+        #ns_log notice "... create form-field for $att"
         lappend form_fields [:create_form_field \
                                  -cr_field_spec [:get_short_spec @cr_fields] \
                                  -field_spec [:get_short_spec @fields] $att]
@@ -2994,6 +2992,9 @@ namespace eval ::xowiki {
           :combine_data_and_form_field_default $is_new $f [set :$varname]
         }
         default {
+          #:log "load_values_into_form_field $att" \
+              "exists [dict exists ${:instance_attributes} $att]" \
+              "in [dict keys ${:instance_attributes}]"
           if {[dict exists ${:instance_attributes} $att]} {
             :combine_data_and_form_field_default $is_new $f [dict get ${:instance_attributes} $att]
           }
