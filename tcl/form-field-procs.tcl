@@ -462,10 +462,16 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc asWidgetSpec {} {
     set spec ${:widget_type}
-    if {[info exists :spell]} {append spec ",[expr {${:spell} ? {} : {no}}]spell"}
+    if {[info exists :spell]} {
+      append spec ",[expr {${:spell} ? {} : {no}}]spell"
+    }
 
-    if {!${:required}} {append spec ",optional"}
-    if {[info exists :editor]} {append spec " {options {editor ${:editor}}} "}
+    if {!${:required}} {
+      append spec ",optional"
+    }
+    if {[info exists :editor]} {
+      append spec " {options {editor ${:editor}}} "
+    }
     append spec " {label " [list ${:label}] "} "
 
     if {[string match "*bootstrap*" [subsite::get_theme]]} {
@@ -3108,11 +3114,30 @@ namespace eval ::xowiki::formfield {
     # TODO: this should be made a slot setting
     #
     #:msg "setting editor for ${:name}, args=$args,[llength $args]"
-    if {[llength $args] == 0} {return ${:editor}}
+    if {[llength $args] == 0} {
+      return ${:editor}
+    }
     set editor [lindex $args 0]
 
-    if {[info exists :editor] && $editor eq ${:editor} && [info exists :__initialized]} return
+    if {[info exists :editor] && $editor eq ${:editor} && [info exists :__initialized]} {
+      return ${:editor}
+    }
 
+    #
+    # The "none" setting for the richtext field is especially
+    # important for cases, where no editor is specified, which causes
+    # the PreferredRichtextEditor to be used. However, the "form"
+    # field of the xowiki::Form class requires a content surrounded by
+    # the form tag (<form>....</form>), but the CKEditor will remove
+    # sich entries. Since it is better to work on the raw text,
+    # editor=none prevents the usage of the rich text widget, although
+    # it is a richtext field.
+    #
+    if {$editor eq "none"} {
+      set :editor "none"
+      return ${:editor}
+    }
+    
     set editor_class [self class]::$editor
     if {$editor ne "" && ![:hasclass $editor_class]} {
       if {![:isclass $editor_class]} {
@@ -3149,16 +3174,6 @@ namespace eval ::xowiki::formfield {
     set :booleanHTMLAttributes {readonly disabled formnovalidate}
     next
     #ns_log notice "==== ${:name} EDITOR specified? [info exists :editor]"
-
-    # The init of a richtext will immediately reclass the formfield
-    # and call initialize (because 'richtext' in the spec is the name
-    # of a class). This will bring here, before we had the chance to
-    # set the editor value from the spec, because the field class is
-    # parsed before other options. Getting here without an editor,
-    # will cause the code to fallback to the default from the global
-    # parameter, de-facto ignoring the 'editor=' spec. One quick
-    # solution is to parse the spec here.
-    regexp {,?editor=([^,]+)} ${:spec} m :editor
 
     if {![info exists :editor]} {
       set :editor [parameter::get_global_value -package_key xowiki \
@@ -4976,7 +4991,7 @@ namespace eval ::xowiki::formfield {
     } else {
       set value [:value]
       if {[llength $value] != [llength ${:answer}]} {
-        error "list length of value <$value> and answer <${:answer}> must be equal"
+        error "list length of value <$value> and answer <${:answer}> must be equal (${:name})"
       }
       set result 1
       set :correction {}
