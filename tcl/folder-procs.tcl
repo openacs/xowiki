@@ -531,7 +531,7 @@ namespace eval ::xowiki::includelet {
       set :current_folder_id [$current_folder set physical_item_id]
     }
 
-    if {[::xo::cc query_parameter m] ne "list"} {
+    if {[::xo::cc query_parameter m:token] ne "list"} {
       set index [$current_folder property index]
       #:log "child-resources: current folder $current_folder has index <$index>"
       if {$index ne ""} {
