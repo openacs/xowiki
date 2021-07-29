@@ -1219,7 +1219,7 @@ namespace eval ::xowiki::includelet {
         -columns {
           Field create date -label [_ xowiki.Page-last_modified]
           if {[[:info parent] set allow_edit]} {
-            AnchorField create edit -CSSclass edit-item-button -label "" -html {style "padding-right: 2px;"} -richtext 1
+            AnchorField create edit -CSSclass edit-item-button -label "" -richtext 1
           }
           if {[[:info parent] set show_heritage]} {
             AnchorField create inherited -label "" -CSSclass inherited

@@ -81,19 +81,19 @@ TableWidget create t1 -volatile \
       if {$::individual_permissions} {
         ImageAnchorField create permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
-            -alt permsissions -label "" -html {style "padding: 2px;"}
+            -alt permsissions -label ""
       }
       if {$::with_publish_status} {
         ImageAnchorField create publish_status -orderby publish_status.src -src "" \
             -width 8 -height 8 -title "Toggle Publish Status" \
-            -alt "publish status" -label [_ xowiki.publish_status] -html {style "padding: 2px;text-align: center;"}
+            -alt "publish status" -label [_ xowiki.publish_status] -html {style "text-align: center;"}
       }
-      Field create syndicated -label "RSS" -html {style "padding: 2px; text-align: center;"}
-      AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order -html {style "padding: 2px;"}
-      AnchorField create name -label [_ xowiki.Page-name] -orderby name -html {style "padding: 2px;"}
+      Field create syndicated -label "RSS" -html {style "text-align: center;"}
+      AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order
+      AnchorField create name -label [_ xowiki.Page-name] -orderby name
       AnchorField create title -label [_ xowiki.Page-title] -orderby title
-      Field create object_type -label [_ xowiki.page_type] -orderby object_type -html {style "padding: 2px;"}
-      Field create size -label [_ xowiki.Size] -orderby size -html {align right style "padding: 2px;"}
+      Field create object_type -label [_ xowiki.page_type] -orderby object_type
+      Field create size -label [_ xowiki.Size] -orderby size -html {align right}
       Field create last_modified -label [_ xowiki.Page-last_modified] -orderby last_modified
       Field create mod_user -label [_ xowiki.By_user] -orderby mod_user
       AnchorField create delete -CSSclass delete-item-button -label ""

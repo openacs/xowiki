@@ -49,19 +49,19 @@ namespace eval ::xowiki {
                        -width 8 -height 8 -title "Toggle Publish Status" \
                        -alt "publish status" -label [_ xowiki.publish_status] \
                        -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
+                     } \n
     }
     if {"edit" in $buttons} {
       append cols {AnchorField create _edit -CSSclass edit-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+                       -no_csv 1 -richtext 1} \n
     }
     if {"duplicate" in $buttons} {
       append cols {AnchorField create _duplicate -CSSclass copy-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+                       -no_csv 1 -richtext 1} \n
     }
     if {"view" in $buttons} {
       append cols {AnchorField create _view -CSSclass view-item-button -label "" \
-                       -html {style "padding: 2px;"} -no_csv 1 -richtext 1} \n
+                       -no_csv 1 -richtext 1} \n
     }
     if {"revisions" in $buttons} {
       append cols {AnchorField create _revisions -CSSclass revisions-item-button -label "" \
@@ -73,7 +73,7 @@ namespace eval ::xowiki {
                        -width 8 -height 8 -title "Toggle Publish Status" \
                        -alt "publish status" -label "" \
                        -CSSclass publish-status-item-button \
-                       -html {style "padding: 2px;text-align: center;"}} \n
+                     } \n
     }
 
     set sort_fields {}

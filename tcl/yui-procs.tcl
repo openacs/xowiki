@@ -544,7 +544,7 @@ namespace eval ::xo::Table {
         html::tr -class [expr {[incr :__rowcount]%2 ? ${:css.tr.odd-class} : ${:css.tr.even-class} }] {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
-            html::td  [concat [list class list] [$field html]] {
+            html::td [concat [list class [concat list [$field CSSclass]]] [$field html]] {
               $field render-data $line
             }
           }

@@ -443,13 +443,8 @@ namespace eval ::xo::Table {
           foreach field [[self]::__columns children] {
             if {[$field hide]} continue
             if {[$field istype HiddenField]} continue
-            if {![$field exists CSSclass]} {
-              # TODO: remove me when message does not show up
-              ns_log warning "CSSclass missing $field\n[$field serialize]"
-              $field set CSSclass ""
-            }
             set CSSclass [list "list" {*}[$field CSSclass]]
-            html::td [concat [list class  $CSSclass] [$field html]] {
+            html::td [concat [list class $CSSclass] [$field html]] {
               $field render-data $line
             }
           }
