@@ -1171,6 +1171,7 @@ namespace eval ::xowiki {
           # with highest precedence
           #
           set return_url [::${:package_id} query_parameter return_url:localurl $url]
+          set return_url [ad_urlencode_url $return_url]
           #:log "${:name}: url=$url, return_url=$return_url"
           ::${:package_id} returnredirect $return_url
 
