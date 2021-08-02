@@ -1052,15 +1052,16 @@ namespace eval ::xowiki {
 
   File instproc demarshall {args} {
     next
-    # we have to care about recoding the file content
+    # we have to care about saving the file content
 
     if {[info exists :__file_content]} {
-      set :import_file [ad_tmpnam]
-      ::xo::write_file ${:import_file} [::base64::decode ${:__file_content}]
+      ::xo::write_tmp_file :import_file [::base64::decode ${:__file_content}]
       unset :__file_content
+
     } elseif {[info exists :__file_name]} {
       set :import_file ${:__file_name}
       unset :__file_name
+
     } else {
       error "either __file_content or __file_name must be set"
     }

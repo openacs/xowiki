@@ -3137,7 +3137,7 @@ namespace eval ::xowiki::formfield {
       set :editor "none"
       return ${:editor}
     }
-    
+
     set editor_class [self class]::$editor
     if {$editor ne "" && ![:hasclass $editor_class]} {
       if {![:isclass $editor_class]} {
@@ -3996,6 +3996,9 @@ namespace eval ::xowiki::formfield {
       #
       if {![:exists test_item_in_position]} {
         set :test_item_in_position [${:object} property position]
+        #ns_log notice "${:name} randomized_indices get position ${:test_item_in_position} from property"
+      } else {
+        #ns_log notice "${:name} randomized_indices position ${:test_item_in_position} already set"
       }
       set seeds [${:object} property seeds]
       set seed [expr {$seeds ne "" && ${:test_item_in_position} ne ""
@@ -4003,8 +4006,7 @@ namespace eval ::xowiki::formfield {
                       : [xo::cc user_id]}]
       set shuffled [::xowiki::randomized_indices -seed $seed $length]
       #ns_log notice "${:name} randomized_indices for seed $seed (user_id [xo::cc user_id])" \
-          "(${:test_item_in_position} - $seeds): $shuffled" \
-          "(inp [:exists test_item_in_position])"
+          "(${:test_item_in_position} - $seeds): $shuffled"
     } else {
       set shuffled [::xowiki::randomized_indices $length]
     }
@@ -4560,6 +4562,7 @@ namespace eval ::xowiki::formfield {
   Class create text_fields -superclass {CompoundField ShuffleField} -parameter {
     {descriptions ""}
     {paste:boolean true}
+    {substvalues}
   } -ad_doc {
 
     Provide multiple text and short text entries. This field is a
@@ -5629,8 +5632,7 @@ namespace eval ::xowiki::formfield {
       }
     }
     #:msg "guess mime_type of $entry_name = [::xowiki::guesstype $entry_name]"
-    set import_file [ad_tmpnam]
-    ::xo::write_file $import_file $img
+    ::xo::write_tmp_file import_file $img
     set file_object [::xowiki::File new -destroy_on_cleanup \
                          -title $entry_name \
                          -name $entry_name \
