@@ -1171,7 +1171,7 @@ namespace eval ::xowiki {
           # with highest precedence
           #
           set return_url [::${:package_id} query_parameter return_url:localurl $url]
-          set return_url [ad_urlencode_url $return_url]
+
           #:log "${:name}: url=$url, return_url=$return_url"
           ::${:package_id} returnredirect $return_url
 
@@ -1367,6 +1367,7 @@ namespace eval ::xowiki {
           } {
           #:log "=== no return_url specified, using [::xo::cc url] or [[::${:package_id} context] url]"
           set return_url [::xo::cc url]
+          set return_url [ad_urlencode_url $return_url]
         }
       }
       set m [:form_parameter __form_redirect_method "edit"]
