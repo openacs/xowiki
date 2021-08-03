@@ -1815,7 +1815,7 @@ namespace eval ::xowiki {
       foreach att {item package parent} {
         set name physical_${att}_id
         if {[info exists :$name]} {
-          :unset $name
+          unset :$name
         }
       }
     }
@@ -2988,7 +2988,7 @@ namespace eval ::xowiki {
       foreach ref ${:__extra_references} {
         :references resolved $ref
       }
-      :unset __extra_references
+      unset :__extra_references
     }
     #
     # Get page content and care about reference management.
@@ -3040,7 +3040,7 @@ namespace eval ::xowiki {
   Page instproc search_render {} {
     set :__no_form_page_footer 1
     set html [:render -update_references none]
-    :unset __no_form_page_footer
+    unset :__no_form_page_footer
 
     foreach tag {h1 h2 h3 h4 h5 b strong} {
       foreach {match words} [regexp -all -inline "<$tag>(\[^<\]+)</$tag>" $html] {
