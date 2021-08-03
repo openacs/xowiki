@@ -265,7 +265,7 @@ namespace eval ::xowiki::formfield {
     if {[info exists :per_object_behavior]} {
       # remove per-object mixin from the "behavior"
       :mixin delete ${:per_object_behavior}
-      :unset per_object_behavior
+      unset :per_object_behavior
     }
 
     #:msg "reset along [:info precedence]"
@@ -325,7 +325,7 @@ namespace eval ::xowiki::formfield {
     if {$disable} {
       set :disabled true
     } else {
-      :unset -nocomplain disabled
+      unset -nocomplain :disabled
     }
   }
 
@@ -501,6 +501,7 @@ namespace eval ::xowiki::formfield {
         append spec " {help_text {${:help_text}}}"
       }
     }
+    #ns_log notice "${:name} === asWidgetSpec return $spec"
     return $spec
   }
 
@@ -552,7 +553,7 @@ namespace eval ::xowiki::formfield {
     #
     foreach att $atts {
       lassign $att var value
-      if {[info exists :$var]} {:unset $var}
+      if {[info exists :$var]} {unset :$var}
     }
   }
 
@@ -1402,7 +1403,7 @@ namespace eval ::xowiki::formfield {
     if {$disable} {
       set :disabled true
     } else {
-      :unset -nocomplain disabled
+      unset -nocomplain :disabled
     }
     foreach c ${:components} {
       $c set_disabled $disable
@@ -1414,7 +1415,7 @@ namespace eval ::xowiki::formfield {
     if {$is_template} {
       set :is_repeat_template true
     } else {
-      :unset -nocomplain is_repeat_template
+      unset -nocomplain :is_repeat_template
     }
     foreach c ${:components} {
       $c set_is_repeat_template $is_template
@@ -1750,7 +1751,7 @@ namespace eval ::xowiki::formfield {
   }
   submit_button instproc render_input {} {
     # don't disable submit buttons
-    if {[:type] eq "submit"} {:unset -nocomplain disabled}
+    if {[:type] eq "submit"} {unset -nocomplain :disabled}
     ::html::button [:get_attributes name type {form_button_CSSclass class} title disabled] {
       if {[info exists :label_noquote] && ${:label_noquote}} {
         ::html::t -disableOutputEscaping ${:value}
@@ -2227,7 +2228,7 @@ namespace eval ::xowiki::formfield {
     set :widget_type text(hidden)
     # remove mixins in case of retyping
     :mixin ""
-    if {[info exists :size]} {:unset size}
+    if {[info exists :size]} {unset :size}
   }
   hidden instproc render_item {} {
     # don't render the labels
@@ -2980,6 +2981,15 @@ namespace eval ::xowiki::formfield {
     {autosave:boolean false}
     {paste:boolean true}
   }
+
+  textarea instproc clear_editor_mixins {} {
+    foreach m [:info mixin] {
+      if {[$m exists editor_mixin]} {
+        :mixin delete $m
+      }
+    }
+  }
+
   textarea instproc initialize {} {
     set :widget_type text(textarea)
     set :booleanHTMLAttributes {required readonly disabled formnovalidate}
@@ -2989,8 +2999,12 @@ namespace eval ::xowiki::formfield {
     if {![:istype ::xowiki::formfield::richtext] && [info exists :editor]} {
       # downgrading
       #:msg "downgrading [:info class]"
-      foreach m [:info mixin] {if {[$m exists editor_mixin]} {:mixin delete $m}}
-      foreach v {editor options} {if {[info exists :$v]} {:unset $v}}
+      :clear_editor_mixins
+      foreach v {editor options} {
+        if {[info exists :$v]} {
+          unset :$v
+        }
+      }
     }
     if {${:autosave}} {
       ::xo::Page requireJS  "/resources/xowiki/autosave-text.js"
@@ -3109,14 +3123,6 @@ namespace eval ::xowiki::formfield {
         {wiki false}
       }
 
-  richtext instproc clear_editor_mixins {} {
-    foreach m [:info mixin] {
-      if {[$m exists editor_mixin]} {
-        :mixin delete $m
-      }
-    }
-  }
-
   richtext instproc editor {args} {
     #
     # TODO: this should be made a slot setting
@@ -3144,6 +3150,9 @@ namespace eval ::xowiki::formfield {
     if {$editor eq "none"} {
       set :editor "none"
       :clear_editor_mixins
+      if {[info exists :options]} {
+        unset :options
+      }
       return ${:editor}
     }
 
@@ -3198,7 +3207,7 @@ namespace eval ::xowiki::formfield {
       :editor ${:editor}
       :initialize
     }
-
+    set :widget_type richtext
     #set :__initialized 1
   }
 
@@ -3473,14 +3482,14 @@ namespace eval ::xowiki::formfield {
     {additionalConfigOptions ""}
   }
   richtext::ckeditor4 set editor_mixin 1
-  richtext::ckeditor4 instproc initialize {} {
 
+  richtext::ckeditor4 instproc initialize {} {
     switch -- ${:displayMode} {
       inplace { append :help_text " #xowiki.ckeip_help#" }
     }
     next
     set :widget_type richtext
-    # Mangle the id to make it compatible with jquery; most probably
+    # Mangle the id to make it compatible with jQuery; most probably
     # not optimal and just a temporary solution
     regsub -all -- {[.:-]} ${:id} "" id
     :id $id
