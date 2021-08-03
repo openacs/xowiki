@@ -330,7 +330,6 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc behavior {mixin} {
-
     #
     # Specify the behavior of a form field via
     # per object mixins
@@ -356,6 +355,7 @@ namespace eval ::xowiki::formfield {
   FormField instproc interprete_single_spec {s} {
     if {$s eq ""} return
 
+    #ns_log notice "${:name} interprete_single_spec '$s'"
     set package_id [${:object} package_id]
     set s [::xowiki::formfield::FormField get_single_spec -object ${:object} -package_id $package_id $s]
 
@@ -3109,11 +3109,19 @@ namespace eval ::xowiki::formfield {
         {wiki false}
       }
 
+  richtext instproc clear_editor_mixins {} {
+    foreach m [:info mixin] {
+      if {[$m exists editor_mixin]} {
+        :mixin delete $m
+      }
+    }
+  }
+
   richtext instproc editor {args} {
     #
     # TODO: this should be made a slot setting
     #
-    #:msg "setting editor for ${:name}, args=$args,[llength $args]"
+    #:log "RICHTEXT setting editor for ${:name}, args=$args,[llength $args]"
     if {[llength $args] == 0} {
       return ${:editor}
     }
@@ -3135,6 +3143,7 @@ namespace eval ::xowiki::formfield {
     #
     if {$editor eq "none"} {
       set :editor "none"
+      :clear_editor_mixins
       return ${:editor}
     }
 
@@ -3149,7 +3158,7 @@ namespace eval ::xowiki::formfield {
         error [_ xowiki.error-form_constraint-unknown_editor \
                    [list name ${:name} editor [:editor] editors $editors]]
       }
-      foreach m [:info mixin] {if {[$m exists editor_mixin]} {:mixin delete $m}}
+      :clear_editor_mixins
       :mixin add $editor_class
       #:msg "MIXIN $editor: [:info precedence]"
       :reset_parameter
@@ -3189,6 +3198,8 @@ namespace eval ::xowiki::formfield {
       :editor ${:editor}
       :initialize
     }
+
+    #set :__initialized 1
   }
 
   richtext instproc render_richtext_as_div {} {
@@ -3252,12 +3263,11 @@ namespace eval ::xowiki::formfield {
   #    skin: kama, v2, office2003
   #    extraPlugins: tcl-list, is converted to comma list for js
   #
-  #    This formfield class is deprecated, use richtext::ckeditor4
-  #    instead.
+  #    This formfield class being based on ckeditor3 is deprecated,
+  #    use richtext::ckeditor4 instead.
   #
   ###########################################################
   Class create richtext::ckeditor -superclass richtext -parameter {
-    {editor ckeditor}
     {mode wysiwyg}
     {skin kama}
     {toolbar Full}
@@ -3442,7 +3452,6 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class create richtext::ckeditor4 -superclass richtext -parameter {
-    {editor ckeditor4}
     {mode wysiwyg}
     {skin "bootstrapck,/resources/xowiki/ckeditor4/skins/bootstrapck/"}
     {toolbar Full}
@@ -3779,7 +3788,6 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
   Class create richtext::wym -superclass richtext -parameter {
-    {editor wym}
     {CSSclass wymeditor}
     width
     height
