@@ -5725,9 +5725,7 @@ namespace eval ::xowiki::formfield {
 
   Class create redirect -superclass text
   redirect instproc pretty_value {v} {
-    #ad_returnredirect -allow_complete_url $v
-    #ad_script_abort
-    return [[${:object} package_id] returnredirect $v]
+    return [[${:object} package_id] returnredirect [ad_urlencode_url $v]]
   }
 
   ###########################################################

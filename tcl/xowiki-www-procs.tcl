@@ -67,7 +67,7 @@ namespace eval ::xowiki {
       return OK
     } else {
       ns_log notice "HEADERS: no X-Requested-With"
-      ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
+      ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
     }
   }
 
@@ -81,7 +81,7 @@ namespace eval ::xowiki {
 
   } {
     ::xowiki::clipboard clear
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #
@@ -105,7 +105,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
+    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #
@@ -135,7 +135,7 @@ namespace eval ::xowiki {
                  -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
-    ::${:package_id} returnredirect [:query_parameter return_url:localurl [::xo::cc url]]
+    ::${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #
@@ -488,7 +488,7 @@ namespace eval ::xowiki {
       :save
       #:msg "ok $msg"
     }
-    ::${:package_id} returnredirect [::xo::cc url]
+    ::${:package_id} returnredirect [ad_return_url]
   }
 
 
@@ -1524,7 +1524,7 @@ namespace eval ::xowiki {
       return [:www-view [:include [list child-resources -publish_status all]]]
     }
     #:msg "method list undefined for this kind of object"
-    ${:package_id} returnredirect [::xo::cc url]
+    ${:package_id} returnredirect [ad_return_url]
   }
 
   #
@@ -1782,7 +1782,7 @@ namespace eval ::xowiki {
         [:form_parameter new_tags]
 
     ::${:package_id} returnredirect \
-        [:query_parameter return_url:localurl [::${:package_id} url]]
+        [:query_parameter return_url:localurl [ad_return_url]]
   }
 
   #

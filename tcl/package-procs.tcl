@@ -2183,7 +2183,7 @@ namespace eval ::xowiki {
                   -add_revision $add_revision]
 
     if {[info exists via_url] && [:exists_query_parameter "return_url"]} {
-      :returnredirect [:query_parameter "return_url" [:package_url]]
+      :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
     } else {
       return $page
     }
@@ -2686,7 +2686,7 @@ namespace eval ::xowiki {
 
     set href [export_vars \
                   -base [site_node::get_package_url -package_key categories]cadmin/object-map {
-                    {ctx_id $object_id} {object_id}
+                    {ctx_id $object_id} object_id
                   }]
     :returnredirect $href
   }
@@ -2707,8 +2707,10 @@ namespace eval ::xowiki {
 
     # flush could be made more precise in the future
     :flush_page_fragment_cache -scope agg
-    :returnredirect [site_node::get_package_url \
-                         -package_key categories]cadmin/tree-view?tree_id=$tree_id&ctx_id=$object_id&object_id=$object_id
+    :returnredirect [export_vars \
+                         -base [site_node::get_package_url -package_key categories]/cadmin/tree-view {
+                           tree_id {ctx_id $object_id} object_id
+                         }]
   }
 
 
@@ -2827,7 +2829,7 @@ namespace eval ::xowiki {
     } else {
       :log "--D nothing to delete!"
     }
-    :returnredirect [:query_parameter "return_url" [${:id} package_url]]
+    :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
   }
 
   #
