@@ -351,13 +351,14 @@ namespace eval ::xowiki {
       set clipboard_content_link $folder_link?m=clipboard-content
       set clipboard_clear_link   $folder_link?m=clipboard-clear
     }
+    set clipboard_add_link [export_vars -base $folder_link?m=clipboard-add {return_url}]
 
     # TODO: we should check either, whether to user is allowed to
     # copy-to-clipboard from the current folder, and/or the user is
     # allowed to do this with certain items.... (the latter in
     # clipboard-add)
     :add_menu_item -name Clipboard.Add \
-        -item [list url \# listener [list click acs_ListBulkActionMultiFormClick("objects","$folder_link?m=clipboard-add&return_url=$return_url")]]
+        -item [list url \# listener [list click acs_ListBulkActionMultiFormClick("objects","$clipboard_add_link")]]
     :add_menu_item -name Clipboard.Content     -item [list url $clipboard_content_link]
     :add_menu_item -name Clipboard.Clear       -item [list url $clipboard_clear_link]
     :add_menu_item -name Clipboard.Use.Copy    -item [list url $clipboard_copy_link]

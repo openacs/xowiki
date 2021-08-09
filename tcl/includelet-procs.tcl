@@ -2491,7 +2491,7 @@ namespace eval ::xowiki::includelet {
              //console.log('have href ' + href + ' c=' + c);
 
              var transaction = YAHOO.util.Connect.asyncRequest('GET', \
-                 href + '?template_file=view-page&return_url=' + href,
+                 href + '?template_file=view-page&return_url=' + encodeURI(href),
                 {
                   success:function(o) {
                      var bookpage = document.getElementById('book-page');

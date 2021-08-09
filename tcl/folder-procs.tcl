@@ -337,7 +337,6 @@ namespace eval ::xowiki::includelet {
       }
       lappend bind_vars nls_language $nls_language
 
-      set return_url [::xo::cc url]
       $mb current_folder ${:current_folder}
       $mb parent_id $opt_parent_id
       #:log "folders: call update_items with config '$config' bind_vars=$bind_vars"
@@ -347,7 +346,7 @@ namespace eval ::xowiki::includelet {
           -current_page $page \
           -folder_link $folder_link \
           -package_id $package_id \
-          -return_url $return_url
+          -return_url [ad_urlencode_folder_path [::xo::cc url]]
     }
 
     # Start with the "package's folder" as root folder

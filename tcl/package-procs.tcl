@@ -526,7 +526,7 @@ namespace eval ::xowiki {
     Generate a (minimal) link to a wiki page with the specified name.
     Practically all links in the xowiki systems are generated through
     this method. The method returns the URL path urlencoded,
-    unless path_encode is set to false.
+    unless "-path_encode" is set to false.
 
     @param anchor anchor to be added to the link
     @param query query parameters to be added literally to the resulting URL
