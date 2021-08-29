@@ -4967,7 +4967,11 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_content {} {
-    set package_id ${:package_id}
+    #
+    # Produce an HTML rendering from the FormPage.
+    #
+
+    #set package_id ${:package_id}
     :include_header_info -prefix form_view
     if {[::xo::cc mobile]} {
       :include_header_info -prefix mobile
@@ -4979,10 +4983,15 @@ namespace eval ::xowiki {
     }
     if {$text ne ""} {
       #:log "we have a template text='$text'"
-      # we have a template
-      return [next]
+      #
+      # We have a template, this is the first preference.
+      #
+      set HTML [next]
     } else {
       #:log "we have a form '[:get_form]'"
+      #
+      # Fall back to the form, fill it out and compute HTML from this.
+      #
       set form [:get_form]
       if {$form eq ""} {return ""}
 
@@ -5022,8 +5031,10 @@ namespace eval ::xowiki {
       :set_form_data $form_fields
       Form dom_disable_input_fields ${:root}
       # Return finally the result
-      return [${:root} asHTML]
+      set HTML [${:root} asHTML]
     }
+
+    return $HTML
   }
 
 
