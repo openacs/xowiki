@@ -262,7 +262,7 @@ namespace eval ::xowiki {
         $content
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+        <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -286,7 +286,7 @@ namespace eval ::xowiki {
         $content
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
+        <button type="button" class="btn [::xowiki::CSS class btn-default]" data-dismiss="modal">#acs-kernel.common_Close#</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->

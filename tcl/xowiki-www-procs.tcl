@@ -590,7 +590,7 @@ namespace eval ::xowiki {
     if {$compare_id == 0} {
       return ""
     }
-    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::CSS toolkit]
 
     set my_page [::xowiki::Package instantiate_page_from_id -revision_id ${:revision_id}]
 
@@ -967,29 +967,8 @@ namespace eval ::xowiki {
     return $html
   }
 
-  FormPage instproc setCSSDefaults {} {
-    #:log setCSSDefaults
-    # check empty
-    if {[::xowiki::Package preferredCSSToolkit] eq "bootstrap"} {
-      ::xowiki::formfield::FormField parameter {
-        {CSSclass form-control}
-        {form_item_wrapper_CSSclass form-group}
-        {form_widget_CSSclass ""}
-        {form_button_CSSclass "btn btn-default"}
-        {form_button_wrapper_CSSclass ""}
-        {form_help_text_CSSclass help-block}
-      }
-    } else {
-      ::xowiki::formfield::FormField parameter {
-        {CSSclass}
-        {form_widget_CSSclass form-widget}
-        {form_item_wrapper_CSSclass form-item-wrapper}
-        {form_button_CSSclass ""}
-        {form_button_wrapper_CSSclass form-button}
-        {form_help_text_CSSclass form-help-text}
-      }
-      ::xowiki::Form requireFormCSS
-    }
+  FormPage instproc -deprecated setCSSDefaults {} {
+    ad_log warning "deprecated method setCSSDefaults was called. The call should be removed"
   }
 
   FormPage instproc action_url {} {
@@ -1026,7 +1005,6 @@ namespace eval ::xowiki {
   } {
     #:log "edit [self args]"
 
-    :setCSSDefaults
     :include_header_info -prefix form_edit
     if {[::xo::cc mobile]} {
       :include_header_info -prefix mobile
@@ -2046,7 +2024,7 @@ namespace eval ::xowiki {
       # requireCSS are typically loaded later than those from the theme.
 
       template::head::add_css \
-          -href urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit] \
+          -href urn:ad:css:xowiki-[::xowiki::CSS toolkit] \
           -order 0
 
       #

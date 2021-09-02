@@ -117,7 +117,7 @@ namespace eval ::xowiki::includelet {
     foreach to_user_id $to_user_id {
       append input_fields [subst {<input type="hidden" name="to_user_id" value="$to_user_id">}]
     }
-
+    set btnDefault [::xowiki::CSS class btn-default]
     return [list link [subst {
       <a href="#$id" title="$title" role="button" data-toggle="modal" data-keyboard="false">
       <span class="glyphicon glyphicon-$glyphicon" aria-hidden="true"></span>
@@ -149,8 +149,8 @@ namespace eval ::xowiki::includelet {
       $input_fields
     </div><!--modal-body-->
     <div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal">#acs-kernel.common_Close#</button>
-    <button type="submit" class="btn btn-default submit" data-id="$id" data-dismiss="modal">#xowiki.Send#</button>
+    <button type="button" class="btn $btnDefault" data-dismiss="modal">#acs-kernel.common_Close#</button>
+    <button type="submit" class="btn $btnDefault submit" data-id="$id" data-dismiss="modal">#xowiki.Send#</button>
     </div>
   </div>
 </form>

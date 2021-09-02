@@ -2054,11 +2054,11 @@ namespace eval ::xowiki::formfield {
     #  append :CSSclass -file
     #}
     #
-    # The following snippet is Bootstrap-only and requires in
-    # non-bootstrap cases styling.
+    # The following snippet for file-label tailoring is Bootstrap-only
+    # and requires in non-bootstrap cases styling.
     #
     #if {[info exists :choose_file_label]} {
-    #  ::html::label -for ${:id} -class "btn btn-default" {
+    #  ::html::label -for ${:id} -class "btn [::xowiki::CSS class btn-default]" {
     #    ::html::span -class upload-btn-label {
     #      ::html::t ${:choose_file_label}
     #    }
@@ -6389,7 +6389,11 @@ namespace eval ::xowiki::formfield {
   }
 }
 
-
+#
+# Make sure, when we reload the form-fields to reset the
+# toolkit-specific form-field parameter as well.
+#
+::xowiki::CSS clear
 
 ::xo::library source_dependent
 

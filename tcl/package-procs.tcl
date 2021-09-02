@@ -9,7 +9,98 @@
 ::xo::library require -package xotcl-core 06-package-procs
 
 namespace eval ::xowiki {
+  nx::Object create ::xowiki::CSS {
+    :public object method clear {} {
+      #
+      # Clear the cached toolkit name, such that it is reloads the
+      # settings on the next initialize call.
+      #
+      unset -nocomplain :preferredCSSToolkit    
+    }
+    :public object method toolkit {} {
+      #
+      # Return the preferred CSS toolkit
+      #
+      return ${:preferredCSSToolkit}
+    }
+    :public object method initialize {} {
+      #
+      # Initialize tailorization for CSS tooklits. The function reads
+      # the global apm package parameter and sets/resets accordingly
+      # (a) the default values (actially parameters) for the form
+      # field and (b) defines the toolkit specific CSS class name
+      # mapping.
+      #
+      #
+      set paramValue [parameter::get_global_value -package_key xowiki \
+                          -parameter PreferredCSSToolkit \
+                          -default bootstrap]
+      if {[info exists :preferredCSSToolkit]
+          && ${:preferredCSSToolkit} eq $paramValue
+        } {
+        return
+      }      
+      set :preferredCSSToolkit $paramValue
+      
+      if {${:preferredCSSToolkit} eq "bootstrap"} {
+        ::xowiki::formfield::FormField parameter {
+          {CSSclass form-control}
+          {form_item_wrapper_CSSclass form-group}
+          {form_widget_CSSclass ""}
+          {form_button_CSSclass "btn btn-default"}
+          {form_button_wrapper_CSSclass ""}
+          {form_help_text_CSSclass help-block}
+        }
+        set :cssClasses {
+          btn-default btn-default
+          margin-form ""          
+        }
+      } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
+        ::xowiki::formfield::FormField parameter {
+          {CSSclass form-control}
+          {form_item_wrapper_CSSclass form-group}
+          {form_widget_CSSclass ""}
+          {form_button_CSSclass "btn btn-secondary"}
+          {form_button_wrapper_CSSclass ""}
+          {form_help_text_CSSclass help-block}
+        }
+        set :cssClasses {
+          btn-default btn-secondary
+          margin-form ""          
+        }
+      } else {
+        ::xowiki::formfield::FormField parameter {
+          {CSSclass}
+          {form_widget_CSSclass form-widget}
+          {form_item_wrapper_CSSclass form-item-wrapper}
+          {form_button_CSSclass ""}
+          {form_button_wrapper_CSSclass form-button}
+          {form_help_text_CSSclass form-help-text}
+        }
+        set :cssClasses {
+          btn-default ""
+          margin-form margin-form
+        }
+        ::xowiki::Form requireFormCSS
+      }
+    }
+    
+    :public object method class {name} {
+      #
+      # In case, a mapping for CSS classes is defined, return the
+      # mapping for the provided class name. Otherwise return the
+      # provided class name.
+      #
+      if {[dict exists ${:cssClasses} $name]} {
+        return [dict get ${:cssClasses} $name]
+      } else {
+        return $name
+      }
+    }
+  }
+}
 
+namespace eval ::xowiki {
   ::xo::PackageMgr create ::xowiki::Package \
       -superclass ::xo::Package \
       -pretty_name "XoWiki" \
@@ -647,8 +738,9 @@ namespace eval ::xowiki {
   Package instproc init {} {
     #:log "--R creating + folder_object"
     next
-    :require_folder_object
+    :require_folder_object    
     set :policy [:get_parameter -check_query_parameter false security_policy ::xowiki::policy1]
+    ::xowiki::CSS initialize
     # :proc destroy {} {:log "--P "; next}
   }
 
@@ -1194,7 +1286,7 @@ namespace eval ::xowiki {
     }
     set top_includelets ""; set content $error_msg; set folderhtml ""
     ::xo::cc set status_code $status_code
-    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::Package preferredCSSToolkit]
+    ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::CSS toolkit]
     ${:id} return_page -adp $template_file -variables {
       context title index_link back_link header_stuff error_msg
       top_includelets content folderhtml
@@ -2226,12 +2318,10 @@ namespace eval ::xowiki {
     :fix_site_wide_package_ids
   }
 
-  Package proc preferredCSSToolkit {} {
-    return [parameter::get_global_value -package_key xowiki \
-                -parameter PreferredCSSToolkit \
-                -default bootstrap]
+  Package proc -deprecated preferredCSSToolkit {} {
+    return [::xowiki::CSS toolkit]
   }
-
+  
   Package instproc call {object method options} {
     set allowed [${:policy} enforce_permissions \
                      -package_id ${:id} -user_id [::xo::cc user_id] \

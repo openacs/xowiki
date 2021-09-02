@@ -3735,17 +3735,16 @@ namespace eval ::xowiki {
   }
 
   Page instproc css_class_name {{-margin_form:boolean true}} {
+    #
     # Determine the CSS class name for xowiki forms
     #
-    # We need this actually only for PageTemplate and FormPage, but
-    # aliases will require XOTcl 2.0.... so we define it for the time
-    # being on ::xowiki::Page
-    if {[::xowiki::Package preferredCSSToolkit] ne "bootstrap"} {
-      set name [expr {$margin_form ? "margin-form " : ""}]
-    } else {
-      set name ""
+    set name ""    
+    if {$margin_form} {
+      set css [::xowiki::CSS class margin-form]
+      if {$css ne ""} {
+        set name "$css "
+      }
     }
-
     return [append name [::xowiki::utility formCSSclass ${:name}]]
   }
 
@@ -4099,8 +4098,9 @@ namespace eval ::xowiki {
     $doc documentElement root
     :dom_disable_input_fields -with_submit $with_submit $root
     set form [lindex [$root selectNodes //form] 0]
-    if {[::xowiki::Package preferredCSSToolkit] ne "bootstrap"} {
-      Form add_dom_attribute_value $form class "margin-form"
+    set marginForm [::xowiki::CSS class "margin-form"]
+    if {$marginForm ne ""} {
+      Form add_dom_attribute_value $form class $marginForm
     }
     return [$root asHTML]
   }
@@ -4993,9 +4993,9 @@ namespace eval ::xowiki {
       # Fall back to the form, fill it out and compute HTML from this.
       #
       set form [:get_form]
-      if {$form eq ""} {return ""}
-
-      :setCSSDefaults
+      if {$form eq ""} {
+        return ""
+      }
 
       lassign [:field_names_from_form -form $form] form_vars field_names
       set :__field_in_form ""
