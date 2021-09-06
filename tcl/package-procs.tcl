@@ -15,7 +15,7 @@ namespace eval ::xowiki {
       # Clear the cached toolkit name, such that it is reloads the
       # settings on the next initialize call.
       #
-      unset -nocomplain :preferredCSSToolkit    
+      unset -nocomplain :preferredCSSToolkit
     }
     :public object method toolkit {} {
       #
@@ -39,9 +39,9 @@ namespace eval ::xowiki {
           && ${:preferredCSSToolkit} eq $paramValue
         } {
         return
-      }      
+      }
       set :preferredCSSToolkit $paramValue
-      
+
       if {${:preferredCSSToolkit} eq "bootstrap"} {
         ::xowiki::formfield::FormField parameter {
           {CSSclass form-control}
@@ -53,7 +53,7 @@ namespace eval ::xowiki {
         }
         set :cssClasses {
           btn-default btn-default
-          margin-form ""          
+          margin-form ""
         }
       } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
         ::xowiki::formfield::FormField parameter {
@@ -66,7 +66,7 @@ namespace eval ::xowiki {
         }
         set :cssClasses {
           btn-default btn-secondary
-          margin-form ""          
+          margin-form ""
         }
       } else {
         ::xowiki::formfield::FormField parameter {
@@ -84,7 +84,7 @@ namespace eval ::xowiki {
         ::xowiki::Form requireFormCSS
       }
     }
-    
+
     :public object method class {name} {
       #
       # In case, a mapping for CSS classes is defined, return the
@@ -738,7 +738,7 @@ namespace eval ::xowiki {
   Package instproc init {} {
     #:log "--R creating + folder_object"
     next
-    :require_folder_object    
+    :require_folder_object
     set :policy [:get_parameter -check_query_parameter false security_policy ::xowiki::policy1]
     ::xowiki::CSS initialize
     # :proc destroy {} {:log "--P "; next}
@@ -2321,7 +2321,7 @@ namespace eval ::xowiki {
   Package proc -deprecated preferredCSSToolkit {} {
     return [::xowiki::CSS toolkit]
   }
-  
+
   Package instproc call {object method options} {
     set allowed [${:policy} enforce_permissions \
                      -package_id ${:id} -user_id [::xo::cc user_id] \
