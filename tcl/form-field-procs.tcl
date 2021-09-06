@@ -6,6 +6,8 @@
   @cvs-id $Id$
 }
 
+::xo::library require package-procs
+
 namespace eval ::xowiki::formfield {
 
   ad_proc child_components {{-filter true} objs:object,1..n} {
