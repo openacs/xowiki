@@ -2117,7 +2117,7 @@ namespace eval ::xowiki {
     }
 
     set includeletClass [$includelet info class]
-    if {[$includeletClass exists cacheable] && [$includeletClass cacheable]} {
+    if {[$includeletClass exists cacheable] && [$includeletClass set cacheable]} {
       $includelet mixin add ::xowiki::includelet::page_fragment_cache
     }
 
