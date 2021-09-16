@@ -4,9 +4,9 @@
   #
   # A sample Weblog object.
   #
-  my initialize -parameter {
-    {-page_size:integer 10}
-    {-page_number:integer 1}
+  :initialize -parameter {
+    {-page_size:range,arg=1- 10}
+    {-page_number:range,arg=1- 1}
     {-summary:boolean 0}
     {-category_id ""}
     {-date ""}
@@ -20,27 +20,26 @@
   # weblog entry. This is executed in the context of every displayed page.
   #
   Class create EntryRenderer -instproc render {args} {
-    my instvar package_id name title creator creation_user pretty_date description 
-    #my log "--W entry [self] [my name] package_id $package_id"
-    [my set __parent] instvar weblog_obj
+    #:log "--W entry [self] ${:name} package_id ${:package_id}"
+    set weblog_obj [${:__parent} set weblog_obj]
 
     # We get the instance_attributes, if these are available. For the
     # time being, we have these only in full mode (no summary)
-    set link [my detail_link]
-    set show_more [expr {[$weblog_obj summary] && [my exists text] && [my text] ne ""}]
+    set link [:detail_link]
+    set show_more [expr {[$weblog_obj summary] && [info exists :text] && ${:text} ne ""}]
     set more [expr {$show_more ? 
                     " <span class='more'> \[<a href='[ns_quotehtml $link]'>#xowiki.weblog-more#</a>\]</span>" : ""}]
     append more "<p></p>"
-    set my_footer [my htmlFooter]
+    set my_footer [:htmlFooter]
 
     append content "<DIV class='post' style='background: #f8f8f8;'>" \
-        "<h2><a href='[ns_quotehtml $link]'>$title</a></h2>" \
-        "<p class='auth'>Created by $creator, " \
-        "last modified by [::xo::get_user_name $creation_user] " \
-        "<span class='date'>$pretty_date</span></p>" \
-        $description $more $my_footer \n\
+        "<h2><a href='[ns_quotehtml $link]'>${:title}</a></h2>" \
+        "<p class='auth'>Created by ${:creator}, " \
+        "last modified by [::xo::get_user_name ${:creation_user}] " \
+        "<span class='date'>${:pretty_date}</span></p>" \
+        ${:description} $more $my_footer \n\
         "</DIV>"
-    #my log "--W entry done [self] [my info class] subst=[my do_substitutions] [my name]"
+    #:log "--W entry done [self] [:info class] subst=[:do_substitutions] ${:name}"
     return $content
   }
 
@@ -49,41 +48,39 @@
   # This is executed in the context of the whole weblog object
   #
   Class create WeblogRenderer -instproc render {} {
-    my instvar filter_msg link name prev_page_link next_page_link 
-
     set filter ""
     set prev ""
     set next ""
     
-    if {[info exists filter_msg]} {
-      set filter  "<div class='filter'>$filter_msg</div>"
+    if {[info exists :filter_msg]} {
+      set filter  "<div class='filter'>${:filter_msg}</div>"
     } 
-    if {[info exists prev_page_link]} {
-	set prev "<a href='[ns_quotehtml $prev_page_link]'>\
+    if {[info exists :prev_page_link]} {
+      set prev "<a href='[ns_quotehtml ${:prev_page_link}]'>\
         <img border='0' src='/resources/acs-subsite/left.gif' width='13' height='13' \
              alt='Previous Page' style='float: left;  top: 0px;'></a>"
     }
-    if {[info exists next_page_link]} {
-	set next "<a href='[ns_quotehtml $next_page_link]'>\
+    if {[info exists :next_page_link]} {
+      set next "<a href='[ns_quotehtml ${:next_page_link}]'>\
         <img border='0' src='/resources/acs-subsite/right.gif' width='13' height='13' \
              alt='Next Page' style='float: left;  top: 0px;'></a>"
     }
     return "<div class='weblog'> $filter [next] $prev $next </div>"
   }
   
-  my proc content {} {
-    my get_parameters
-    #my log "--get_parameters returned package_id=$package_id"
-    set page [my info parent]
+  :proc content {} {
+    :get_parameters
+    #:log "--get_parameters returned package_id=${:package_id}"
+    set page [:info parent]
 
     if {[$page exists __including_page]} {
       set i [$page set __including_page]
-      #my log "--W including page $i"
+      #:log "--W including page $i"
       set exclude_item_ids [$i item_id]
       $i set render_adp 0  ;# no double adp substitutions
       $i do_substitutions 0;# no double substitutions in parent
     } else {
-      #my log "--W NO including page"
+      #:log "--W NO including page"
       set exclude_item_ids [$page item_id]
       $page set __no_footer 1
     }
@@ -101,7 +98,7 @@
     set entry_renderer [self]::EntryRenderer 
     
     set w [::xowiki::Weblog new -destroy_on_cleanup \
-               -package_id $package_id \
+               -package_id ${:package_id} \
                -page_size $page_size \
                -page_number $page_number \
                -summary $summary \
@@ -119,5 +116,11 @@
     $page do_substitutions 1; # reset to default
     return $html
   }
-  
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

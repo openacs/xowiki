@@ -867,6 +867,40 @@ namespace eval ::xowiki {
       }
     }
 
+    set v 5.10.1d1
+    if {[apm_version_names_compare $from_version_name $v] == -1 &&
+        [apm_version_names_compare $to_version_name $v] > -1} {
+      ns_log notice "-- upgrading to $v"
+
+      #
+      # Update the prototype page for en:weblog-portlet.  We do not
+      # follow here the approach of earlier releases to instantiate
+      # all xowiki packages (that might be many) and call
+      # www-import-prototype-page, but we check for unmodified
+      # prototype pages and delete just these (since they will be
+      # regenerated on the fly when needed).
+      #
+      set page en:weblog-portlet
+      set item_ids [::xo::dc list get_unmodified_prototype_pages {
+        select ci.item_id
+        from cr_items ci,cr_revisions cr
+        where name = :page and live_revision = cr.revision_id
+        group by 1 having count(cr.revision_id) = 1
+      }]
+      foreach item_id $item_ids {
+        ns_log notice "Delete unmodified prototype pages for $page: $item_id"
+        ::xo::db::sql::content_item delete -item_id $item_id
+      }
+      set item_ids [::xo::dc list get_modified_prototype_pages {
+        select ci.item_id
+        from cr_items ci,cr_revisions cr
+        where name = :page and live_revision = cr.revision_id
+        group by 1 having count(cr.revision_id) > 1
+      }]
+      if {[llength $item_ids] > 0} {
+        ns_log notice "Modified prototype pages for $page: $item_ids (require manual checking)"
+      }
+    }
   }
 }
 
