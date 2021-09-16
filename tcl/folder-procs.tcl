@@ -633,7 +633,7 @@ namespace eval ::xowiki::includelet {
       # Update the title to a language-specific value
       #
       $current_folder update_langstring_property _title $lang
-      :msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
+      #:msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
     }
     #:log "child-resources of folder_id ${:current_folder_id}"
     set items [::xowiki::FormPage get_all_children \
