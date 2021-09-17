@@ -700,7 +700,7 @@ namespace eval ::xowiki::formfield {
 
   FormField ad_instproc dict_to_fc {
     -name
-    -type:required
+    -type
     dict
   } {
 
@@ -712,10 +712,15 @@ namespace eval ::xowiki::formfield {
     allowed, etc.
 
     @param name optional form-field name
-    @param type required type of the form-field
+    @param type type of the form-field; if not specified,
+           take it from key "_type" of the dict
     @param dict dict to be converted.
   } {
     set result [expr {[info exists name] ? "$name:" : ""}]
+    if {![info exists type]} {
+      set type [dict get $dict _type]
+      dict unset dict _type
+    }
     set list $type
     foreach {key value} $dict {
       lappend list $key=[::xowiki::formfield::FormField fc_encode $value]
