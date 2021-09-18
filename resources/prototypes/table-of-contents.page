@@ -1,6 +1,2 @@
 ::xowiki::Page new -title "Table of Contents" -text {{{child-resources -publish_status all}}}
 
-
-
-
-

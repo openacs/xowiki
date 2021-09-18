@@ -1,0 +1,22 @@
+# -*- tcl-*-
+# $Id$
+::xowiki::Object new -title "CGI2" -text {
+  #
+  # The classes and objects here are all local to the object, 
+  # as long as no absolute class or object names are used (no leading colons)
+  #
+  Class create CGI
+  CGI instproc content {} {
+    set somevar 100
+    return "Hello \[\[Wiki\]\]-World. It is now \
+	[clock format [clock seconds]]. Somevar=$somevar"
+  }
+  
+  # mixin the Class CGI into the payload object of the ::xowiki::Object
+  # since the object renderer queries the method content, it picks up the
+  # above behavior
+  my mixin add CGI
+}
+
+
+
