@@ -34,7 +34,7 @@ if {![info exists object_type]} {
   set with_children true
 }
 
-set CSSToolkit [::xowiki::Package preferredCSSToolkit]
+set CSSToolkit [::xowiki::CSS toolkit]
 if {$CSSToolkit eq "bootstrap"} {
   template::head::add_css -href urn:ad:css:bootstrap3
 }
