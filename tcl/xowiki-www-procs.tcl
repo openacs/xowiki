@@ -36,8 +36,7 @@ namespace eval ::xowiki {
       :log "bulk-delete: DELETE item_id $item_id"
       ${:package_id} www-delete -item_id $item_id
     }
-
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [:pretty_link]]
+    :return_redirect_without_params
   }
 
   #
@@ -66,8 +65,8 @@ namespace eval ::xowiki {
       ns_log notice "HEADERS: got X-Requested-With"
       return OK
     } else {
-      ns_log notice "HEADERS: no X-Requested-With"
-      ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+      #ns_log notice "HEADERS: no X-Requested-With"
+      :return_redirect_without_params
     }
   }
 
@@ -81,7 +80,7 @@ namespace eval ::xowiki {
 
   } {
     ::xowiki::clipboard clear
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+    :return_redirect_without_params
   }
 
   #
@@ -105,7 +104,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+    :return_redirect_without_params
   }
 
   #
@@ -135,7 +134,7 @@ namespace eval ::xowiki {
                  -parent_id $folder_id -objects $item_ids]
     util_user_message -html -message $msg
     ::xowiki::clipboard clear
-    ::${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+    :return_redirect_without_params
   }
 
   #
@@ -153,6 +152,15 @@ namespace eval ::xowiki {
     ns_conn close
     ::xowiki::clipboard clear
     ad_script_abort
+  }
+
+  Page instproc return_redirect_without_params {} {
+    #
+    # Return to [xo::cc url], the current URL without query
+    # parameters.
+    #
+    ::${:package_id} returnredirect \
+        [:query_parameter return_url:localurl [ad_urlencode_folder_path [::xo::cc url]]]
   }
 
   #
