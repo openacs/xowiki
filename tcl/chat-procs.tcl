@@ -51,15 +51,15 @@ namespace eval ::xo {
     if {![nsv_exists $cls initialized]} {
       :log "-- initialize $cls"
       $cls initialize_nsvs
-      ::xo::clusterwide nsv_set $cls initialized \
+      ::acs::clusterwide nsv_set $cls initialized \
           [ad_schedule_proc \
                -thread "t" [:sweepinterval] $cls sweep_all_chats]
     }
     if {![nsv_exists ${:array}-seen newest]} {
-      ::xo::clusterwide nsv_set ${:array}-seen newest 0
+      ::acs::clusterwide nsv_set ${:array}-seen newest 0
     }
     if {![nsv_exists ${:array}-color idx]} {
-      ::xo::clusterwide nsv_set ${:array}-color idx 0
+      ::acs::clusterwide nsv_set ${:array}-color idx 0
     }
     if {${:user_id} != 0 || [:session_id] != 0} {
       :init_user_color
@@ -69,7 +69,7 @@ namespace eval ::xo {
 
   Chat instproc set_options {} {
     dict for {key value} ${:conf} {
-      ::xo::clusterwide nsv_set ${:array}-options $key $value
+      ::acs::clusterwide nsv_set ${:array}-options $key $value
     }
     foreach {key value} [nsv_array get ${:array}-options] {
       set :$key $value
@@ -79,12 +79,12 @@ namespace eval ::xo {
   Chat instproc register_nsvs {msg_id user_id msg color secs} {
     # Tell the system we are back again, in case we were auto logged out
     if { ![nsv_exists ${:array}-login $user_id] } {
-      ::xo::clusterwide nsv_set ${:array}-login $user_id [clock seconds]
+      ::acs::clusterwide nsv_set ${:array}-login $user_id [clock seconds]
     }
-    ::xo::clusterwide nsv_set ${:array} $msg_id [list ${:now} $secs $user_id $msg $color]
-    ::xo::clusterwide nsv_set ${:array}-seen newest ${:now}
-    ::xo::clusterwide nsv_set ${:array}-seen last $secs
-    ::xo::clusterwide nsv_set ${:array}-last-activity $user_id ${:now}
+    ::acs::clusterwide nsv_set ${:array} $msg_id [list ${:now} $secs $user_id $msg $color]
+    ::acs::clusterwide nsv_set ${:array}-seen newest ${:now}
+    ::acs::clusterwide nsv_set ${:array}-seen last $secs
+    ::acs::clusterwide nsv_set ${:array}-last-activity $user_id ${:now}
   }
 
   Chat instproc add_msg {{-get_new:boolean true} {-uid ""} msg} {
@@ -129,7 +129,7 @@ namespace eval ::xo {
 
   Chat instproc check_age {key ago} {
     if {$ago > ${:timewindow}} {
-      ::xo::clusterwide nsv_unset ${:array} $key
+      ::acs::clusterwide nsv_unset ${:array} $key
       #:log "--c unsetting $key"
       return 0
     }
@@ -171,7 +171,7 @@ namespace eval ::xo {
           :check_age $key [expr {(${:now} - $timestamp) / 1000}]
         }
       }
-      ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
+      ::acs::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
       # :log "--chat setting session_id ${:session_id}: ${:now}"
     } else {
       # :log "--chat nothing new for ${:session_id}"
@@ -187,7 +187,7 @@ namespace eval ::xo {
       }
     }
     #:log "--chat setting session_id ${:session_id}: ${:now}"
-    ::xo::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
+    ::acs::clusterwide nsv_set ${:array}-seen ${:session_id} ${:now}
     :render
   }
 
@@ -217,13 +217,13 @@ namespace eval ::xo {
     # These values could already not be here. Just ignore when we don't
     # find them
     try {
-      ::xo::clusterwide nsv_unset -nocomplain ${:array}-login $user_id
+      ::acs::clusterwide nsv_unset -nocomplain ${:array}-login $user_id
     }
     try {
-      ::xo::clusterwide nsv_unset -nocomplain ${:array}-color $user_id
+      ::acs::clusterwide nsv_unset -nocomplain ${:array}-color $user_id
     }
     try {
-      ::xo::clusterwide nsv_unset -nocomplain ${:array}-last-activity $user_id
+      ::acs::clusterwide nsv_unset -nocomplain ${:array}-last-activity $user_id
     }
   }
 
@@ -234,8 +234,8 @@ namespace eval ::xo {
       set colors [::xo::parameter get -parameter UserColors -default [[:info class] set colors]]
       # ns_log notice "getting colors of [:info class] = [info exists colors]"
       set color [lindex $colors [expr { [nsv_get ${:array}-color idx] % [llength $colors] }]]
-      ::xo::clusterwide nsv_set ${:array}-color ${:user_id} $color
-      ::xo::clusterwide nsv_incr ${:array}-color idx
+      ::acs::clusterwide nsv_set ${:array}-color ${:user_id} $color
+      ::acs::clusterwide nsv_incr ${:array}-color idx
     }
   }
 
@@ -256,8 +256,8 @@ namespace eval ::xo {
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
       # give some proof of our presence to the chat system when we
       # don't issue the login message
-      ::xo::clusterwide nsv_set ${:array}-login ${:user_id} [clock seconds]
-      ::xo::clusterwide nsv_set ${:array}-last-activity ${:user_id} ${:now}
+      ::acs::clusterwide nsv_set ${:array}-login ${:user_id} [clock seconds]
+      ::acs::clusterwide nsv_set ${:array}-last-activity ${:user_id} ${:now}
     }
     :encoder noencode
     #:log "--chat setting session_id ${:session_id}: ${:now} mode=${:mode}"
@@ -384,9 +384,9 @@ namespace eval ::xo {
 
   ChatClass method flush_messages {-chat_id:required} {
     set array "[self]-$chat_id"
-    ::xo::clusterwide nsv_unset -nocomplain $array
-    ::xo::clusterwide nsv_unset -nocomplain $array-seen
-    ::xo::clusterwide nsv_unset -nocomplain $array-last-activity
+    ::acs::clusterwide nsv_unset -nocomplain $array
+    ::acs::clusterwide nsv_unset -nocomplain $array-seen
+    ::acs::clusterwide nsv_unset -nocomplain $array-last-activity
   }
 
   ChatClass method init {} {
