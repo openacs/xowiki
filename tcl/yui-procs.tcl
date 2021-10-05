@@ -7,6 +7,7 @@
   @cvs-id $Id$
 }
 
+::xo::library require -package xotcl-core 30-widget-procs
 ::xo::library require menu-procs
 
 namespace eval ::xowiki {
@@ -533,7 +534,8 @@ namespace eval ::xo::Table {
     html::thead {
       html::tr -class list-header {
         foreach o [[self]::__columns children] {
-          if {[$o hide]} continue
+          ns_log notice "YUIDataTableRenderer $o [$o set name] HIDE [$o hide] RENDER [$o procsearch render]"
+          if {[$o hide]} continue          
           $o render
         }
       }
@@ -558,7 +560,7 @@ namespace eval ::xo::Table {
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
-    if {[llength $bulkactions]>0} {
+    if {[[self]::__bulkactions exists __identifier] || [llength $bulkactions]>0} {
       set name [[self]::__bulkactions set __identifier]
     } else {
       set name [::xowiki::Includelet js_name [self]]

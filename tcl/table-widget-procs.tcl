@@ -13,12 +13,13 @@ namespace eval ::xowiki {
 
   ::xowiki::TableWidget proc create_from_form_fields {
     {-form_field_objs:required}
-    {-package_id}
+    {-package_id:required}
     {-buttons {}}
     {-hidden_field_names ""}
     {-bulk_actions ""}
     {-renderer ""}
     {-orderby ""}
+    {-allow_clipboard:boolean false}
   } {
 
     set actions ""
@@ -32,14 +33,14 @@ namespace eval ::xowiki {
     set bulk_action_cols ""
     foreach bulk_action $bulk_actions {
       if {$bulk_action eq "export"} {
-        append actions [list Action bulk-delete \
-                            -label [_ xowiki.export] \
-                            -tooltip [_ xowiki.export] \
+        append actions [list Action create bulk-$bulk_action \
+                            -label [_ xowiki.$bulk_action] \
+                            -tooltip [_ xowiki.$bulk_action] \
                             -url [::$package_id package_url]admin/export \
                            ] \n
       }
     }
-    if {[llength $bulk_actions] > 0} {
+    if {$allow_clipboard || [llength $bulk_actions] > 0} {
       append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
       append cols {HiddenField create ID} \n
     }

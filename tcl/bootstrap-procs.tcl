@@ -455,41 +455,43 @@ namespace eval ::xo::Table {
 
   BootstrapTableRenderer instproc render-bulkactions {} {
     set bulkactions [[self]::__bulkactions children]
-    html::div -class "btn-group" -role group -aria-label "Bulk actions" {
-      html::t "#xotcl-core.Bulk_actions#:"
-      set bulkaction_container [[lindex $bulkactions 0] set __parent]
-      set name [$bulkaction_container set __identifier]
+    if {[llength $bulkactions] > 0} {
+      html::div -class "btn-group" -role group -aria-label "Bulk actions" {
+        html::t "#xotcl-core.Bulk_actions#:"
+        set bulkaction_container [[lindex $bulkactions 0] set __parent]
+        set name [$bulkaction_container set __identifier]
 
-      foreach bulk_action $bulkactions {
-        set id [::xowiki::Includelet html_id $bulk_action]
-        html::ul -class compact {
-          html::li {
-            #
-            # For some reason, btn-secondary seems not to be available
-            # for the "a" tag, so we set the border-color manually.
-            #
-            html::a -class "btn btn-secondary" -rule button \
-                -title [$bulk_action tooltip] -href # \
-                -style "border-color: #ccc;" \
-                -id $id {
-                  html::t [$bulk_action label]
-                }
-          }
-        }
-        set script [subst {
-          acs_ListBulkActionClick("$name","[$bulk_action url]");
-        }]
-        if {[$bulk_action confirm_message] ne ""} {
-          set script [subst {
-            if (confirm('[$bulk_action confirm_message]')) {
-              $script
+        foreach bulk_action $bulkactions {
+          set id [::xowiki::Includelet html_id $bulk_action]
+          html::ul -class compact {
+            html::li {
+              #
+              # For some reason, btn-secondary seems not to be available
+              # for the "a" tag, so we set the border-color manually.
+              #
+              html::a -class "btn btn-secondary" -rule button \
+                  -title [$bulk_action tooltip] -href # \
+                  -style "border-color: #ccc;" \
+                  -id $id {
+                    html::t [$bulk_action label]
+                  }
             }
+          }
+          set script [subst {
+            acs_ListBulkActionClick("$name","[$bulk_action url]");
           }]
+          if {[$bulk_action confirm_message] ne ""} {
+            set script [subst {
+              if (confirm('[$bulk_action confirm_message]')) {
+                $script
+              }
+            }]
+          }
+          template::add_event_listener \
+              -id $id \
+              -preventdefault=false \
+              -script $script
         }
-        template::add_event_listener \
-            -id $id \
-            -preventdefault=false \
-            -script $script
       }
     }
   }
@@ -500,7 +502,7 @@ namespace eval ::xo::Table {
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}
     set bulkactions [[self]::__bulkactions children]
-    if {[llength $bulkactions] > 0} {
+    if {[[self]::__bulkactions exists __identifier]} {
       set name [[self]::__bulkactions set __identifier]
       html::div -id ${:id}_wrapper -class "table-responsive" {
         html::form -name $name -id $name -method POST {

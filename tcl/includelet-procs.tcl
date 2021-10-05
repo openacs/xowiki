@@ -4368,6 +4368,7 @@ namespace eval ::xowiki::includelet {
           {-renderer ""}
           {-return_url}
           {-date_format}
+          {-allow_clipboard:boolean false}
         }}
       }  -ad_doc {
         Show usages of the specified form.
@@ -4557,7 +4558,8 @@ namespace eval ::xowiki::includelet {
                           -hidden_field_names $hidden_field_names \
                           -bulk_actions $bulk_actions \
                           -renderer $renderer \
-                          -orderby $orderby]
+                          -orderby $orderby \
+                          -allow_clipboard $allow_clipboard]
     #
     # Handling voting_forms
     #
@@ -4642,7 +4644,7 @@ namespace eval ::xowiki::includelet {
                   -uc $uc \
                   -view_field $view_field \
                   -buttons $buttons \
-                  -include_object_id_attribute [expr {[llength $bulk_actions] > 0}] \
+                  -include_object_id_attribute [expr {$allow_clipboard || [llength $bulk_actions] > 0}] \
                   -form_item_ids $form_item_ids \
                   -with_form_link $with_form_link \
                   -csv $csv \
