@@ -19,7 +19,7 @@ namespace eval ::xowiki {
     {-bulk_actions ""}
     {-renderer ""}
     {-orderby ""}
-    {-allow_clipboard:boolean false}
+    {-with_checkboxes:boolean false}
   } {
 
     set actions ""
@@ -40,7 +40,7 @@ namespace eval ::xowiki {
                            ] \n
       }
     }
-    if {$allow_clipboard || [llength $bulk_actions] > 0} {
+    if {$with_checkboxes || [llength $bulk_actions] > 0} {
       append cols [subst {BulkAction create objects -id ID -actions {$actions}}] \n
       append cols {HiddenField create ID} \n
     }
