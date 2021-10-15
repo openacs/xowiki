@@ -1596,7 +1596,8 @@ namespace eval ::xowiki {
         #ns_log notice "=== check get_adp_template $fn"
 
         if {[ad_file readable $fn.adp]} {
-          set result [::template::themed_template $tmpl]
+          #set result [::template::themed_template -verbose $tmpl]
+          set result [::template::themed_template $tmpl]          
           #ns_log notice "template is <$result>"
           if {$result ne ""} {
             if {$location eq "www"} {
