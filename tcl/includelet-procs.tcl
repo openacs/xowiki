@@ -4582,22 +4582,15 @@ namespace eval ::xowiki::includelet {
     #
     # Compute filter clauses
     #
-    set init_vars [list]
-    set uc {tcl false h "" vars "" sql ""}
-    if {[info exists unless]} {
-      set uc [dict merge $uc [::xowiki::FormPage filter_expression $unless ||]]
-      set init_vars [list {*}$init_vars {*}[dict get $uc vars]]
-    }
-    set wc {tcl true h "" vars "" sql ""}
-    if {[info exists where]} {
-      set wc [dict merge $wc [::xowiki::FormPage filter_expression $where &&]]
-      set init_vars [list {*}$init_vars {*}[dict get $wc vars]]
-    }
-    #:msg uc=$uc
-    #:msg wc=$wc
+    set filters [::xowiki::FormPage compute_filter_clauses \
+                     {*}[expr {[info exists unless] ? [list -unless $unless] : ""}] \
+                     {*}[expr {[info exists where] ? [list -where $where] : ""}]]
+
+    #:msg filters=$filters
 
     #
-    # get an ordered composite of the base set (currently including extra_where clause)
+    # Get an ordered composite of the base set (currently including
+    # extra_where clause)
     #
     #:log "exists category_id [info exists category_id]"
     set extra_where_clause ""
@@ -4611,7 +4604,8 @@ namespace eval ::xowiki::includelet {
                    -form_fields $form_field_objs \
                    -publish_status $publish_status \
                    -extra_where_clause $extra_where_clause \
-                   -h_where $wc \
+                   -h_where [dict get $filters wc] \
+                   -h_unless [dict get $filters uc] \
                    -from_package_ids $package_ids \
                    -package_id $package_id]
 
@@ -4625,7 +4619,8 @@ namespace eval ::xowiki::includelet {
                             -parent_id $query_parent_id \
                             -form_fields $form_field_objs \
                             -publish_status $publish_status \
-                            -h_where $wc \
+                            -h_where [dict get $filters wc] \
+                            -h_unless [dict get $filters uc] \
                             -from_package_ids $package_ids \
                             -package_id $package_id]
       }
@@ -4640,7 +4635,7 @@ namespace eval ::xowiki::includelet {
                   -return_url [ad_return_url] \
                   -package_id $package_id \
                   -items $items \
-                  -init_vars $init_vars \
+                  -init_vars [dict get $filters init_vars] \
                   -uc $uc \
                   -view_field $view_field \
                   -buttons $buttons \

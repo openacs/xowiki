@@ -3738,7 +3738,7 @@ namespace eval ::xowiki {
     #
     # Determine the CSS class name for xowiki forms
     #
-    set name ""    
+    set name ""
     if {$margin_form} {
       set css [::xowiki::CSS class margin-form]
       if {$css ne ""} {
@@ -4251,6 +4251,29 @@ namespace eval ::xowiki {
     return 0
   }
 
+  FormPage ad_proc compute_filter_clauses {-unless -where} {
+
+    Compute from "-unless" or "-where" specs the tcl, sql and
+    optionall hstore query fragments.
+
+    @return dict containing "init_vars", "uc" (unless clauses)
+            and "wc" (where clauses)
+  } {
+
+    set init_vars [list]
+    set uc {tcl false h "" vars "" sql ""}
+    if {[info exists unless]} {
+      set uc [dict merge $uc [:filter_expression $unless ||]]
+      set init_vars [list {*}$init_vars {*}[dict get $uc vars]]
+    }
+    set wc {tcl true h "" vars "" sql ""}
+    if {[info exists where]} {
+      set wc [dict merge $wc [:filter_expression $where &&]]
+      set init_vars [list {*}$init_vars {*}[dict get $wc vars]]
+    }
+    return [list init_vars $init_vars uc $uc wc $wc]
+  }
+
   FormPage proc filter_expression {
                                    {-sql true}
                                    input_expr
@@ -4324,11 +4347,18 @@ namespace eval ::xowiki {
         :msg "ignoring $clause"
       }
     }
-    if {[llength $tcl_clause] == 0} {set tcl_clause [list true]}
+    if {[llength $tcl_clause] == 0} {
+      set tcl_clause [list true]
+    }
     #:msg sql=$sql_clause,tcl=$tcl_clause
-    return [list tcl [join $tcl_clause $logical_op] h [join $h_clause ,] \
-                vars $vars sql $sql_clause]
-    #:msg $expression
+    set result [list \
+                    tcl [join $tcl_clause $logical_op] \
+                    h [join $h_clause ,] \
+                    vars $vars \
+                    sql $sql_clause]
+    #:msg "filter_expression -sql $sql inp '$input_expr' log '$logical_op' -> $result"
+
+    return $result
   }
 
   FormPage proc get_form_entries {
@@ -4339,6 +4369,7 @@ namespace eval ::xowiki {
                                   {-parent_id "*"}
                                   {-extra_where_clause ""}
                                   {-h_where {tcl true h "" vars "" sql ""}}
+                                  {-h_unless {tcl true h "" vars "" sql ""}}
                                   {-always_queried_attributes ""}
                                   {-orderby ""}
                                   {-page_size 20}
@@ -4419,16 +4450,28 @@ namespace eval ::xowiki {
     #
     set filter_clause ""
     array set wc $h_where
+    array set uc $h_unless
     set use_hstore [expr {[::xo::dc has_hstore] &&
                           [::$package_id get_parameter use_hstore 0]
                         }]
-    if {$use_hstore && $wc(h) ne ""} {
-      set filter_clause " and '$wc(h)' <@ hkey"
+    set use_hstore 0
+    if {$use_hstore} {
+      if {$wc(h) ne ""} {
+        set filter_clause " and '$wc(h)' <@ hkey"
+      }
+      if {$uc(h) ne ""} {
+        set filter_clause " and not '$uc(h)' <@ hkey"
+      }
     }
-    #:msg "exists sql=[info exists wc(sql)]"
+    #:msg "exists w sql=[info exists wc(sql)] u sql=[info exists uc(sql)] "
     if {$wc(sql) ne "" && $wc(h) ne ""} {
       foreach filter $wc(sql) {
-        append filter_clause "and $filter"
+        append filter_clause " and $filter"
+      }
+    }
+    if {$uc(sql) ne ""} {
+      foreach filter $uc(sql) {
+        append filter_clause " and not $filter"
       }
     }
     #:msg filter_clause=$filter_clause
@@ -4489,15 +4532,27 @@ namespace eval ::xowiki {
                    -named_objects $named_objects -object_named_after "item_id" \
                    -object_class ::xowiki::FormPage -initialize $initialize]
 
-    if {!$use_hstore && $wc(tcl) != "true"} {
-      # Make sure that the expr method is available;
-      # in xotcl 2.0 this will not be needed
-      ::xotcl::alias ::xowiki::FormPage expr -objscope ::expr
+    #:msg "$use_hstore wc tcl $wc(tcl) uc tcl $uc(tcl)"
+    if {!$use_hstore && ($wc(tcl) != "true" || $uc(tcl) != "true")} {
+      # Make sure that the expr method is available
 
       set init_vars $wc(vars)
       foreach p [$items children] {
         $p set __ia [dict merge $init_vars [$p instance_attributes]]
-        if {![$p expr $wc(tcl)]} {$items delete $p}
+
+        if {$wc(tcl) != "true"} {
+          if {![nsf::directdispatch $p -frame object expr $wc(tcl)]} {
+            #:msg "check $wc(tcl) [$p name] => where DELETE"
+            $items delete $p
+            continue
+          }
+        }
+        if {$uc(tcl) != "true"} {
+          if {[nsf::directdispatch $p -frame object ::expr $uc(tcl)]} {
+            #:msg "check $uc(tcl) on [$p name] => unless DELETE"
+            $items delete $p
+          }
+        }
       }
     }
     return $items

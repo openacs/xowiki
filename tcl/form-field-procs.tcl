@@ -5272,6 +5272,7 @@ namespace eval ::xowiki::formfield {
     {parent_id *}
     {form}
     {where}
+    {unless}
     {entry_label _title}
     {orderby title}
   }
@@ -5301,11 +5302,10 @@ namespace eval ::xowiki::formfield {
       return
     }
 
-    set wc {tcl true h "" vars "" sql ""}
-    if {[info exists :where]} {
-      set wc [dict merge $wc [::xowiki::FormPage filter_expression ${:where} &&]]
-      #:msg "where '${:where}' => wc=$wc"
-    }
+    set filters [::xowiki::FormPage compute_filter_clauses \
+                     {*}[expr {[info exists :unless] ? [list -unless ${:unless}] : ""}] \
+                     {*}[expr {[info exists :where] ? [list -where ${:where}] : ""}] \
+                    ]
 
     set from_package_ids {}
     set package_path [::${:package_id} package_path]
@@ -5322,7 +5322,8 @@ namespace eval ::xowiki::formfield {
                    -base_item_ids ${:form_object_item_ids} \
                    -form_fields [list] \
                    -publish_status ready \
-                   -h_where $wc \
+                   -h_where [dict get $filters wc] \
+                   -h_unless [dict get $filters uc] \
                    -parent_id ${:parent_id} \
                    -package_id ${:package_id} \
                    -orderby title \
