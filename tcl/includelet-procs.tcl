@@ -4636,7 +4636,6 @@ namespace eval ::xowiki::includelet {
                   -package_id $package_id \
                   -items $items \
                   -init_vars [dict get $filters init_vars] \
-                  -uc $uc \
                   -view_field $view_field \
                   -buttons $buttons \
                   -include_object_id_attribute [expr {$with_checkboxes || [llength $bulk_actions] > 0}] \
