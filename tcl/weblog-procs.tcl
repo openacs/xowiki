@@ -124,18 +124,20 @@ namespace eval ::xowiki {
       if {[string match "::*" ${:entries_of}]} {
         # class names were provided as a filter
         set class_clause \
-            " and ci.content_type in ('[join [split ${:entries_of} { }] ',']')"
+            [subst { and ci.content_type in ([ns_dbquotelist [split ${:entries_of} { }]]) }]
       } else {
         if {[regexp {^[0-9 ]+$} ${:entries_of}]} {
           # form item_ids were provided as a filter
           set :form_ids ${:entries_of}
         } else {
           # form names provided as a filter
-          set :form_ids [::${:package_id} instantiate_forms \
-                             -forms ${:entries_of}]
+          set :form_ids [::${:package_id} instantiate_forms -forms ${:entries_of}]
         }
         if {${:form_ids} ne ""} {
-          append extra_where_clause " and bt.page_template in ('[join ${:form_ids} ',']') and bt.page_instance_id = bt.revision_id "
+          append extra_where_clause [subst {
+            and bt.page_template in ([ns_dbquotelist ${:form_ids}])
+            and bt.page_instance_id = bt.revision_id
+          }]
         } else {
           error "could not lookup forms ${:entries_of}"
         }

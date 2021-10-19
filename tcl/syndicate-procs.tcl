@@ -121,7 +121,9 @@ namespace eval ::xowiki {
         # without causing a SQL error.
         set form_items [list -1]
       }
-      append extra_where_clause " and p.page_template in ('[join $form_items ',']') and p.page_instance_id = p.revision_id "
+      append extra_where_clause [subst {
+        and p.page_template in ([ns_dbquotelist $form_items]) and p.page_instance_id = p.revision_id
+      }] " "
 
       set :base_table xowiki_form_pagex
     }

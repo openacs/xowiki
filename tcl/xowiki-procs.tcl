@@ -4308,7 +4308,7 @@ namespace eval ::xowiki {
               :msg "ignoring unknown variable $lhs_var in expression"
             }
           } elseif {[llength $rhs]>1} {
-            lappend sql_clause "$lhs_var in ('[join $rhs ',']')"
+            lappend sql_clause "$lhs_var in ([ns_dbquotelist $rhs])"
             # the following statement is only needed, when we rely on tcl-only
             lappend tcl_clause "\[lsearch -exact {$rhs} \[:property $lhs\]\] > -1"
           } else {
