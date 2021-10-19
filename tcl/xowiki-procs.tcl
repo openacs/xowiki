@@ -1280,7 +1280,14 @@ namespace eval ::xowiki {
     ::xo::dc dml delete_tags \
         "delete from xowiki_tags where item_id = :item_id and user_id = :user_id"
 
-    foreach tag [split $tags " ,;"] {
+    #
+    # Map funny characters in tags to white-space. Tags are just
+    # single words, no quotes are allowed. The resulting tags must be
+    # compatible with "Package->validate_tag".
+    #
+    regsub -all {[^\w.-]+} $tags " " tags
+
+    foreach tag [split $tags " "] {
       if {$tag ne ""} {
         ::xo::dc dml insert_tag \
             "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
