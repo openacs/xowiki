@@ -2334,8 +2334,7 @@ namespace eval ::xowiki::includelet {
 
     if {$source ne ""} {
       :get_page_order -source $source
-      set page_names ('[join [array names :page_order] ',']')
-      set page_order_clause "and name in $page_names"
+      set page_order_clause "and name in ([ns_dbquotelist [array names :page_order]])"
       set page_order_att ""
     } elseif {$orderby ne ""} {
       lassign [split $orderby ,] order_attribute order_direction
@@ -2829,13 +2828,11 @@ namespace eval ::xowiki::includelet {
                                             $publish_status]
                                      : ""}]
 
-    # should check for quotes in names
-    set page_names ('[join [array names :page_order] ',']')
     set pages [::xowiki::Page instantiate_objects -sql \
                    "select page_id, name, title, item_id \
         from xowiki_page_live_revision p \
         where parent_id = [ns_dbquotevalue [::$package_id folder_id]] \
-        and name in $page_names \
+        and name in ([ns_dbquotelist [array names :page_order]]) \
         $publish_status_clause \
         [::xowiki::Page container_already_rendered item_id]" ]
     foreach p [$pages children] {
