@@ -1326,7 +1326,7 @@ namespace eval ::xowiki {
         }]
       }
     }
-    join $tags " "
+    return $tags
   }
 
 
