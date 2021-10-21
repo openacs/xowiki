@@ -2985,6 +2985,7 @@ namespace eval ::xowiki::formfield {
     {rows 2}
     {cols 80}
     {spell false}
+    {spellcheck:boolean true}
     {autosave:boolean false}
     {paste:boolean true}
   }
@@ -3024,6 +3025,7 @@ namespace eval ::xowiki::formfield {
       :render_disabled_as_div textarea
     } else {
       set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
+      set spellcheck ${:spellcheck}
       if {${:autosave}} {
         ::html::div -class "autosave" {
           ::html::div -id ${:id}-status \
@@ -3034,7 +3036,7 @@ namespace eval ::xowiki::formfield {
                 ::html::t "" ;#"no change"
               }
           ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
-                                data-repeat-template-id {CSSclass class} \
+                                data-repeat-template-id {CSSclass class} spellcheck \
                                 {*}$booleanAtts] {
                                   ::html::t [:value]
                                 }
@@ -4586,6 +4588,7 @@ namespace eval ::xowiki::formfield {
   Class create text_fields -superclass {CompoundField ShuffleField} -parameter {
     {descriptions ""}
     {paste:boolean true}
+    {spellcheck:boolean true}
     {substvalues}
   } -ad_doc {
 
@@ -4641,6 +4644,9 @@ namespace eval ::xowiki::formfield {
           dict set field_fc_dict autosave true
           if {!${:paste}} {
             dict set field_fc_dict paste false
+          }
+          if {!${:spellcheck}} {
+            dict set field_fc_dict spellcheck false
           }
         }
         number      { set type numeric; dict set field_fc_dict keep_string_rep 1 }
