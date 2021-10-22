@@ -3025,7 +3025,9 @@ namespace eval ::xowiki::formfield {
       :render_disabled_as_div textarea
     } else {
       set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
-      set spellcheck ${:spellcheck}
+      if {!${:spellcheck}} {
+        set :data-gramm false
+      }
       if {${:autosave}} {
         ::html::div -class "autosave" {
           ::html::div -id ${:id}-status \
@@ -3037,7 +3039,7 @@ namespace eval ::xowiki::formfield {
               }
           ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
                                 data-repeat-template-id {CSSclass class} spellcheck \
-                                {*}$booleanAtts] {
+                                data-gramm {*}$booleanAtts] {
                                   ::html::t [:value]
                                 }
         }
