@@ -4260,8 +4260,8 @@ namespace eval ::xowiki {
 
   FormPage ad_proc compute_filter_clauses {-unless -where} {
 
-    Compute from "-unless" or "-where" specs the tcl, sql and
-    optionall hstore query fragments.
+    Compute from "-unless" or "-where" specs the "tcl", "sql" and
+    optional "hstore" query fragments.
 
     @return dict containing "init_vars", "uc" (unless clauses)
             and "wc" (where clauses)
