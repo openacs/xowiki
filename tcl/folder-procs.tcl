@@ -487,6 +487,7 @@ namespace eval ::xowiki::includelet {
             {-columns {
               objects
               edit
+              publish_status
               object_type
               name
               last_modified
@@ -598,7 +599,8 @@ namespace eval ::xowiki::includelet {
                  if {$::__xowiki_with_publish_status} {
                    ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-                       -alt "publish status" -label "" ;#[_ xowiki.publish_status]
+                       -CSSclass publish-status-item-button \
+                       -alt "publish status" -label "" ;#[_ xowiki.publish_status] 
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
@@ -692,6 +694,7 @@ namespace eval ::xowiki::includelet {
           -delete "" \
           -delete.href [export_vars -base $page_link {{m:token delete} return_url}] \
           -delete.title #xowiki.delete#
+     
       if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
         if {[$c set publish_status] eq "ready"} {
