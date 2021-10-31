@@ -1118,9 +1118,29 @@ namespace eval ::xowiki::formfield {
     set :help_text "" ;# we could provide a teacher-level feedback here.
   }
 
-  FormField instproc add_statistics {{-options ""}} {
+  FormField instproc stats_record_count {} {
+    #
+    # This method is just called in situation, where the parent_id is
+    # an instantiated object (via answer_is_correct). The parent
+    # object is the actual workflow.
+    #
+    set reporting_obj ::[${:object} parent_id]
+    $reporting_obj stats_record_count ${:name}
+  }
+
+  FormField instproc -deprecated add_statistics {{-options ""}} {
+    #
+    # The FormField based incremental statistic counter is deprecated,
+    # since for randomization, it is necessary to reinitialized
+    # form-fields of an exam multiple times (different students have
+    # different alternatives, etc.).  Therefore, statistics have to be
+    # collected in general on the level of the workflow object (via
+    # $reporting_obj stats_record_*).
+    #
     dict incr :result_statistics count
+    #ns_log notice "[self] enumeration add_statistics count -> [dict get ${:result_statistics} count]"
     if {[info exists :evaluated_answer_result] && ${:evaluated_answer_result} eq "correct"} {
+      #ns_log notice "[self] enumeration add_statistics count -> [dict get ${:result_statistics} count] correct"
       dict incr :result_statistics correct
       #ns_log notice "??? add_statistics ${:name}: ${:result_statistics}"
     }
@@ -4274,11 +4294,24 @@ namespace eval ::xowiki::formfield {
     return [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
   }
 
+  enumeration instproc stats_record_detail {-label -value correctly_answered} {
+    set reporting_obj ::[${:object} parent_id]
+    $reporting_obj stats_record_detail -label $label -value $value \
+        -name ${:name} \
+        -correctly_answered $correctly_answered
+  }
+
   enumeration instproc answer_is_correct {} {
     #:log "enumeration CORRECT? ${:name} (value=[:value], answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
     if {![info exists :answer]} {
       return 0
     } else {
+      #
+      # The question was answered, therefore, we can count it in the
+      # statistics.
+      #
+      :stats_record_count
+
       set value [:value]
       #:log "enumeration ${:name} CORRECT? answers [llength ${:answer}] options [llength ${:options}]"
       set :correction {}
@@ -4299,6 +4332,10 @@ namespace eval ::xowiki::formfield {
           incr f
           #:log "enumeration ${:name} CORRECT? <$a> <$v ni $value> -> [expr {$v ni $value}]"
         }
+
+        #:log "[self] ${:name} enumeration ${:name} CORRECT $o -> $correctly_answered"
+        :stats_record_detail -label $label -value $v $correctly_answered
+
         lappend :correction $correctly_answered
         if {$correctly_answered} {
           incr R
@@ -4344,6 +4381,7 @@ namespace eval ::xowiki::formfield {
     #
     # Enumeration specific statistics
     #
+    #ns_log notice "[self] enumeration add_statistics (options $options) value <${:value}>"
     foreach v ${:value} {
       dict incr :result_statistics $v
     }
@@ -4432,19 +4470,44 @@ namespace eval ::xowiki::formfield {
   enumeration instproc render_result_statistics {rep} {
     #
     # In case, there are result_statistics, use a "progress bar" to
-    # visualize correct answers.
+    # visualize correct answers per alternative ($rep).
     #
     if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
-      set result_count [dict get ${:result_statistics} count]
-
-      if {$result_count > 0} {
-        ::html::div -class "progress" {
-          set correctCount [expr {[dict exists ${:result_statistics} $rep] ? [dict get ${:result_statistics} $rep] : 0}]
-          set percentage [format %2.0f [expr {$correctCount * 100.0 / $result_count}]]
-          ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
-              -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
-                ::html::t "$percentage %"
-              }
+      #
+      # result_count:    how often was question answered (in general)
+      # correct_count:   how often was an alternative correctly answered
+      # incorrect_count: how often was an alternative incorrectly answered
+      #
+      #set result_count [dict get ${:result_statistics} count]
+      set alternative_counts [expr {[dict exists ${:result_statistics} $rep]
+                                   ? [dict get ${:result_statistics} $rep]
+                                   : ""}]
+      set incorrect_count 0; set correct_count 0
+      if {$alternative_counts ne ""} {
+        foreach key {0 1} var {incorrect_count correct_count} {
+          if {[dict exists $alternative_counts $key]} {
+            set $var [dict get $alternative_counts $key]
+          }
+        }
+      }
+      set answered_count [expr {$correct_count + $incorrect_count}]
+      if {$answered_count > 0} {
+        ::html::div -class container {
+          ::html::div -class row {
+            ::html::span -class "col-sm-2" -style "font-size: x-small; float: right;" {
+              ::html::t "$correct_count of $answered_count correct"
+            }
+            ::html::div -class "progress col-sm-8" \
+                -style "padding: 0px 0px 0px 0px;" {
+                  set percentage [format %2.0f [expr {$correct_count * 100.0 / $answered_count}]]
+                  ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
+                      -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
+                        if {$percentage > 0} {
+                          ::html::t "$percentage % correct"
+                        }
+                      }
+                }
+          }
         }
       }
     }

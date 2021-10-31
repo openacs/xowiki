@@ -1914,6 +1914,22 @@ namespace eval ::xowiki {
     return 1
   }
 
+  Page instproc stats_record_count {name} {
+    # This is a stub which can / should be overloaded in applications,
+    # collecting statistics about certain usage pattern (e.g. exam
+    # workflows).  This method is overloaded in xowf, and is here just
+    # for safety reasons to avoid hard errors.
+    ns_log error "the method Page->stats_record_count should not be called"
+  }
+
+  Page instproc stats_record_detail args {
+    # This is a stub which can / should be overloaded in applications,
+    # collecting statistics about certain usage pattern (e.g. exam
+    # workflows).  This method is overloaded in xowf, and is here just
+    # for safety reasons to avoid hard errors.
+    ns_log error "the method Page->stats_record_detail should not be called"
+  }
+
   Page instproc can_save {} {
     #
     # Determine the parent object of the page to be saved. If the
