@@ -799,12 +799,21 @@ namespace eval ::xowiki {
         }
       }
     }
-    #if {$value eq ""} {set value [::${:folder_id} get_payload $attribute]}
-    if {$value eq ""} {set value [next $attribute $default]}
+    
+    if {$value eq ""} {
+      set value [next $attribute $default]
+    }
     if {$type ne ""} {
-      # to be extended and generalized
+      #
+      # To be extended and generalized.
+      #
       switch -- $type {
-        word {if {[regexp {\W} $value]} {error "value '$value' contains invalid character"}}
+        word {if {[regexp {\W} $value]} {
+          ad_return_complaint 1 "value for parameter '$attribute' contains invalid character"}
+        }
+        noquote {if {[regexp {['\"]} $value]} {
+          ad_return_complaint 1 "value for parameter '$attribute' contains invalid character"}
+        }
         default {error "requested type unknown: $type"}
       }
     }
@@ -1597,7 +1606,7 @@ namespace eval ::xowiki {
 
         if {[ad_file readable $fn.adp]} {
           #set result [::template::themed_template -verbose $tmpl]
-          set result [::template::themed_template $tmpl]          
+          set result [::template::themed_template $tmpl]
           #ns_log notice "template is <$result>"
           if {$result ne ""} {
             if {$location eq "www"} {
@@ -2537,7 +2546,7 @@ namespace eval ::xowiki {
       set name_filter [:get_parameter -type word name_filter ""]
     }
     if {![info exists entries_of]} {
-      set entries_of [:get_parameter entries_of ""]
+      set entries_of [:get_parameter -type noquote entries_of ""]
     }
     if {![info exists title]} {
       set title [:get_parameter PackageTitle [:instance_name]]
