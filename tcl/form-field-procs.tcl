@@ -4042,11 +4042,11 @@ namespace eval ::xowiki::formfield {
       # instance_attribute "position" in the object, where the former
       # has a higher precedence (important for combined forms).
       #
-      if {![:exists test_item_in_position]} {
+      if {![info exists :test_item_in_position]} {
         set :test_item_in_position [${:object} property position]
         #ns_log notice "${:name} randomized_indices get position ${:test_item_in_position} from property"
       } else {
-        #ns_log notice "${:name} randomized_indices position ${:test_item_in_position} already set"
+        #ns_log notice "${:name} randomized_indices position ${:test_item_in_position} already set (user [::xo::cc user_id])"
       }
       set seeds [${:object} property seeds]
       set seed [expr {$seeds ne "" && ${:test_item_in_position} ne ""
