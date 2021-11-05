@@ -35,7 +35,12 @@ function autosave_save_contents(id) {
                 status.setAttribute('class', 'saved');
                 status.textContent = status.dataset.saved;
             } else {
-                status.textContent = status.dataset.rejected;
+                try {
+                    var msg = JSON.parse(this.responseText);
+                    status.textContent = msg.feedback;
+                } catch(e) {
+                    status.textContent = status.dataset.rejected;
+                }
             }
         } else {
             //console.log('not saved status ' + this.status + '  this.readyState ' + this.readyState ) ;
