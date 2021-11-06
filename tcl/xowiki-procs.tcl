@@ -4564,7 +4564,7 @@ namespace eval ::xowiki {
         $p set __ia [dict merge $init_vars [$p instance_attributes]]
 
         if {$wc(tcl) != "true"} {
-          if {![nsf::directdispatch $p -frame object expr $wc(tcl)]} {
+          if {![nsf::directdispatch $p -frame object ::expr $wc(tcl)]} {
             #:msg "check $wc(tcl) [$p name] => where DELETE"
             $items delete $p
             continue
