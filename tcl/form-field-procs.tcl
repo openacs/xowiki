@@ -5361,10 +5361,7 @@ namespace eval ::xowiki::formfield {
     if {$form_objs eq ""} {
       error "Cannot lookup Form '$form_name'"
     }
-    set :form_object_item_ids [list]
-    foreach form_obj $form_objs {
-      lappend :form_object_item_ids [$form_obj item_id]
-    }
+    set :form_object_item_ids [lmap form_obj $form_objs {$form_obj item_id}]
   }
 
   form_page instproc compute_options {} {
