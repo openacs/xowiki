@@ -4297,6 +4297,10 @@ namespace eval ::xowiki {
     return [list init_vars $init_vars uc $uc wc $wc]
   }
 
+  FormPage proc sql_value {input} {
+    string map {* %} $input
+  }
+
   FormPage proc filter_expression {
                                    {-sql true}
                                    input_expr
@@ -4304,7 +4308,13 @@ namespace eval ::xowiki {
                                  } {
     array set tcl_op {= eq < < > > >= >= <= <=}
     array set sql_op {= =  < < > > >= >= <= <=}
-    array set op_map {contains,sql {$lhs_var like '%$rhs%'} contains,tcl {{$rhs} in $lhs_var}}
+    array set op_map {
+      contains,sql {$lhs_var like '%$sql_rhs%'}
+      contains,tcl {{$rhs} in $lhs_var}
+      matches,sql {$lhs_var like '%$sql_rhs%'}
+      matches,tcl {[string match "$rhs" $lhs_var]}
+    }
+    ns_log notice "filter_expression '$input_expr' $logical_op"
     #:msg unless=$unless
     #example for unless: wf_current_state = closed|accepted || x = 1
     set tcl_clause [list]
@@ -4312,23 +4322,24 @@ namespace eval ::xowiki {
     set vars [list]
     set sql_clause [list]
     foreach clause [split [string map [list $logical_op \x00] $input_expr] \x00] {
-      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
+      if {[regexp {^(.*[^<>])\s*([=<>]|<=|>=|contains|matches)\s*([^=]?.*)$} $clause _ lhs op rhs_expr]} {
         set lhs [string trim $lhs]
         set rhs_expr [string trim $rhs_expr]
         if {[string index $lhs 0] eq "_"} {
           #
-          # comparison with field names starting with "_"
+          # Comparison with field names starting with "_"
           #
           set lhs_var [string range $lhs 1 end]
           set rhs [split $rhs_expr |]
+          set sql_rhs [:sql_value $rhs]
           #:msg "check op '$op' in SQL [info exists op_map($op,sql)]"
           if {[info exists op_map($op,sql)]} {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
-            if {[info exists :$lhs_var]} {
+            if {[info exists :db_slot($lhs_var)]} {
               set lhs_var "\[set :$lhs_var\]"
               lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
             } else {
-              :msg "ignoring unknown variable $lhs_var in expression"
+              :msg "ignoring unknown variable '$lhs_var' in expression (have '[lsort [array names :db_slot]]')"
             }
           } elseif {[llength $rhs]>1} {
             lappend sql_clause "$lhs_var in ([ns_dbquotelist $rhs])"
@@ -4352,11 +4363,13 @@ namespace eval ::xowiki {
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
           }
           set lhs_var "\[dict get \$__ia $lhs\]"
+          set tcl_rhs_clauses {}
           foreach rhs [split $rhs_expr |] {
+            set sql_rhs [:sql_value $rhs]
             if {[info exists op_map($op,tcl)]} {
-              lappend tcl_clause [subst -nocommands $op_map($op,tcl)]
+              lappend tcl_rhs_clauses [subst -nocommands $op_map($op,tcl)]
             } else {
-              lappend tcl_clause "$lhs_var $tcl_op($op) {$rhs}"
+              lappend tcl_rhs_clauses "$lhs_var $tcl_op($op) {$rhs}"
             }
             if {$op eq "="} {
               # TODO: think about a solution for other operators with
@@ -4365,6 +4378,7 @@ namespace eval ::xowiki {
               lappend h_clause "$hleft=>[::xowiki::hstore::double_quote $rhs]"
             }
           }
+          lappend tcl_clause ([join $tcl_rhs_clauses ||])
         }
       } else {
         :msg "ignoring $clause"
@@ -4477,6 +4491,12 @@ namespace eval ::xowiki {
     set use_hstore [expr {[::xo::dc has_hstore] &&
                           [::$package_id get_parameter use_hstore 0]
                         }]
+    #
+    # Deactivating hstore optimization for now, must be further
+    # compeleted and debugged before activating it again.
+    #
+    ns_log notice "hstore available $use_hstore, but deactivating anyway for now"
+
     set use_hstore 0
     if {$use_hstore} {
       if {$wc(h) ne ""} {
@@ -4486,18 +4506,19 @@ namespace eval ::xowiki {
         set filter_clause " and not '$uc(h)' <@ hkey"
       }
     }
-    #:msg "exists w sql=[info exists wc(sql)] u sql=[info exists uc(sql)] "
-    if {$wc(sql) ne "" && $wc(h) ne ""} {
+    if {$wc(sql) ne ""} {
+      #:log "... wc SQL '$wc(sql)'"
       foreach filter $wc(sql) {
         append filter_clause " and $filter"
       }
     }
     if {$uc(sql) ne ""} {
+      #:log "... uc SQL '$uc(sql)'"
       foreach filter $uc(sql) {
         append filter_clause " and not $filter"
       }
     }
-    #:msg filter_clause=$filter_clause
+    #:log filter_clause=$filter_clause
 
     #
     # Build package clause
@@ -4544,8 +4565,7 @@ namespace eval ::xowiki {
             $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
-    #ns_log notice "NEW SQL:\n\n$sql\n"
-
+    #ns_log notice "get_form_entries: \n[string map [list :parent_id $parent_id :package_id $package_id] $sql]"
     #
     # When we query all attributes, we return objects named after the
     # item_id (like for single fetches)
@@ -4555,9 +4575,8 @@ namespace eval ::xowiki {
                    -named_objects $named_objects -object_named_after "item_id" \
                    -object_class ::xowiki::FormPage -initialize $initialize]
 
-    #:msg "$use_hstore wc tcl $wc(tcl) uc tcl $uc(tcl)"
+    #:log "$use_hstore wc tcl $wc(tcl) uc tcl $uc(tcl)"
     if {!$use_hstore && ($wc(tcl) != "true" || $uc(tcl) != "true")} {
-      # Make sure that the expr method is available
 
       set init_vars $wc(vars)
       foreach p [$items children] {
@@ -4565,14 +4584,14 @@ namespace eval ::xowiki {
 
         if {$wc(tcl) != "true"} {
           if {![nsf::directdispatch $p -frame object ::expr $wc(tcl)]} {
-            #:msg "check $wc(tcl) [$p name] => where DELETE"
+            #:log "WC check '$wc(tcl)' [$p name] => where DELETE"
             $items delete $p
             continue
           }
         }
         if {$uc(tcl) != "true"} {
           if {[nsf::directdispatch $p -frame object ::expr $uc(tcl)]} {
-            #:msg "check $uc(tcl) on [$p name] => unless DELETE"
+            #:log "UC check '$uc(tcl)' on [$p name] => unless DELETE"
             $items delete $p
           }
         }
