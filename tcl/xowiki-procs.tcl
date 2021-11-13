@@ -4298,7 +4298,10 @@ namespace eval ::xowiki {
   }
 
   FormPage proc sql_value {input} {
-    string map {* %} $input
+    #   
+    # Transform wild-card * into SQL wild-card.
+    #
+    return [string map {* %} $input]
   }
 
   FormPage proc filter_expression {
@@ -4306,17 +4309,21 @@ namespace eval ::xowiki {
                                    input_expr
                                    logical_op
                                  } {
+    #ns_log notice "filter_expression '$input_expr' $logical_op"
+
+    #
+    # example for unless: wf_current_state = closed|accepted || x = 1
+    #
+
     array set tcl_op {= eq < < > > >= >= <= <=}
     array set sql_op {= =  < < > > >= >= <= <=}
     array set op_map {
       contains,sql {$lhs_var like '%$sql_rhs%'}
       contains,tcl {{$rhs} in $lhs_var}
-      matches,sql {$lhs_var like '%$sql_rhs%'}
+      matches,sql {$lhs_var like '$sql_rhs'}
       matches,tcl {[string match "$rhs" $lhs_var]}
     }
-    ns_log notice "filter_expression '$input_expr' $logical_op"
-    #:msg unless=$unless
-    #example for unless: wf_current_state = closed|accepted || x = 1
+
     set tcl_clause [list]
     set h_clause [list]
     set vars [list]
@@ -4565,7 +4572,7 @@ namespace eval ::xowiki {
             $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
-    #ns_log notice "get_form_entries: \n[string map [list :parent_id $parent_id :package_id $package_id] $sql]"
+    #ns_log notice "get_form_entries:\n[string map [list :parent_id $parent_id :package_id $package_id] $sql]"
     #
     # When we query all attributes, we return objects named after the
     # item_id (like for single fetches)
