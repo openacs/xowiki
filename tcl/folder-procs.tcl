@@ -79,9 +79,9 @@ namespace eval ::xowiki::includelet {
   }
 
   folders instproc folder_query {
-    -form_id:required
-    -package_id:required
-    {-parent_id ""}
+    -form_id:integer,required
+    -package_id:integer,required
+    {-parent_id:integer,0..1 ""}
   } {
     if {$parent_id eq ""} {
       return [subst {
@@ -90,13 +90,6 @@ namespace eval ::xowiki::includelet {
         and publish_status = 'ready'
       }]
     }
-    #return [subst {
-    #  select * from xowiki_form_instance_children ch
-    #  left join xowiki_form_instance_attributes xa on (ch.item_id = xa.item_id)
-    #  where page_template = '$form_id' and ch.package_id = '$package_id'
-    #  and root_item_id = '$parent_id'
-    #  and publish_status = 'ready'
-    #}]
 
     #
     # Oracle query missing
@@ -108,7 +101,6 @@ namespace eval ::xowiki::includelet {
          o.object_id, o.object_type, o.title AS object_title, o.context_id,
          o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
          o.last_modified, o.modifying_user, o.modifying_ip,
-         --o.tree_sortkey, o.max_child_sortkey,
          cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
          xowiki_form_page.xowiki_form_page_id,
@@ -121,9 +113,9 @@ namespace eval ::xowiki::includelet {
          WITH RECURSIVE child_items AS (
            select * from xowiki_form_instance_item_index
            where item_id = '$parent_id'
-      UNION ALL
-        select xi.* from xowiki_form_instance_item_index xi, child_items
-        where xi.parent_id = child_items.item_id
+         UNION ALL
+           select xi.* from xowiki_form_instance_item_index xi, child_items
+           where xi.parent_id = child_items.item_id
       )
       select * from child_items
          where page_template = '$form_id' and package_id = '$package_id' and publish_status = 'ready') xi
@@ -138,13 +130,27 @@ namespace eval ::xowiki::includelet {
 
   folders instproc collect_folders {
     -package_id:required
-    -folder_form_id:required
-    -link_form_id:required
+    -folder_form_id
+    -link_form_id
     {-parent_id ""}
     {-subtree_query ""}
     {-depth 3}
   } {
     set folders [list]
+
+    #
+    # In case no "folder_form_id" or "link_form_id" were provided,
+    # fetch it here.
+    #
+    foreach {var form} {
+      folder_form en:folder.form
+      link_form en:link.form
+    } {
+      if {![info exists ${var}_id]} {
+        set $var [::$package_id instantiate_forms -forms $form]
+        set ${var}_id [[set $var] item_id]
+      }
+    }
 
     # safety belt, for recursive structures
     if {$depth < 1} {
@@ -600,7 +606,7 @@ namespace eval ::xowiki::includelet {
                    ImageAnchorField create publish_status -orderby publish_status.src -src "" \
                        -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
                        -CSSclass publish-status-item-button \
-                       -alt "publish status" -label "" ;#[_ xowiki.publish_status] 
+                       -alt "publish status" -label "" ;#[_ xowiki.publish_status]
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
@@ -694,7 +700,7 @@ namespace eval ::xowiki::includelet {
           -delete "" \
           -delete.href [export_vars -base $page_link {{m:token delete} return_url}] \
           -delete.title #xowiki.delete#
-     
+
       if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
         if {[$c set publish_status] eq "ready"} {
