@@ -5,7 +5,7 @@
     -set anon_instances t \
     -set text {} \
     -set form {{<form>
-@MenuBar@ 
+@MenuBar@ @MenuBarSymLinks@ 
 @top_includelet@
 @production_mode@
 @with_delicious@ @with_digg@ @with_general_comments@ 
@@ -15,6 +15,7 @@
 </form>} text/html} \
     -set form_constraints {
 MenuBar:boolean,horizontal=true
+MenuBarSymLinks:boolean,horizontal=true,default=f
 top_includelet:text,default=none
 {_title:text,default=Parameter Page}
 _creator:hidden
