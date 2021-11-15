@@ -336,22 +336,15 @@ namespace eval ::xowiki {
   #
   # Functions used by upgrade procs.
   #
-  proc copy_parameter {from to} {
-    set parameter_obj [::xo::parameter get_parameter_object \
-                           -parameter_name $from -package_key xowiki]
-    if {$parameter_obj eq ""} {error "no such parameter $from"}
+  proc copy_parameter {parameter_old parameter_new} {
     foreach package_id [::xowiki::Package instances] {
-      set value [$parameter_obj get -package_id $package_id]
-      parameter::set_value -package_id $package_id -parameter $to -value $value
+      set value [parameter::get -package_id $package_id -parameter $parameter_old]
+      parameter::set_value -package_id $package_id -parameter parameter $parameter_new -value $value
     }
   }
 
-  proc delete_parameter {from} {
-    set parameter_obj [::xo::parameter get_parameter_object \
-                           -parameter_name $from -package_key xowiki]
-    if {$parameter_obj eq ""} {error "no such parameter $from"}
-    apm_parameter_unregister -package_key [$parameter_obj package_key] [string trimleft $parameter_obj :]
-    $parameter_obj destroy
+  proc delete_parameter {parameter} {
+    apm_parameter_unregister -package_key xowiki $parameter
   }
 
   ad_proc -private fix_all_package_ids {} {

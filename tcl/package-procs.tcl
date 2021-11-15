@@ -2662,8 +2662,9 @@ namespace eval ::xowiki {
       <sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">
     }
     foreach package_id [::xowiki::Package instances] {
-      if {![::xo::parameter get -package_id $package_id \
-                -parameter include_in_google_sitemap_index -default 1]} {
+      if {![parameter::get -package_id $package_id \
+                -parameter include_in_google_sitemap_index \
+                -default 1]} {
         continue
       }
       set last_modified [::xo::dc get_value get_newest_modification_date \

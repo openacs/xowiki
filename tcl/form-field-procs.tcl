@@ -3926,8 +3926,9 @@ namespace eval ::xowiki::formfield {
     if {![info exists :plugins]} {
       :plugins \
           [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
-               -default [::xo::parameter get_from_package_key \
-                             -package_key "acs-templating" -parameter "XinhaDefaultPlugins"]]
+               -default [parameter::get_from_package_key \
+                             -package_key "acs-templating" \
+                             -parameter "XinhaDefaultPlugins"]]
     }
     set :options [:get_attributes editor plugins width height folder_id script_dir javascript wiki_p]
     # for the time being, we can't set the defaults via parameter,
