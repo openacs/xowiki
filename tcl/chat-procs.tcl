@@ -231,7 +231,7 @@ namespace eval ::xo {
     if { [nsv_exists ${:array}-color ${:user_id}] } {
       return
     } else {
-      set colors [parameter::get -parameter UserColors -default [[:info class] set colors]]
+      set colors [::parameter::get -parameter UserColors -default [[:info class] set colors]]
       # ns_log notice "getting colors of [:info class] = [info exists colors]"
       set color [lindex $colors [expr { [nsv_get ${:array}-color idx] % [llength $colors] }]]
       ::acs::clusterwide nsv_set ${:array}-color ${:user_id} $color
@@ -508,7 +508,7 @@ namespace eval ::xowiki {
     }
 
     # get LinkRegex parameter from the chat package
-    set link_regex [parameter::get_global_value \
+    set link_regex [::parameter::get_global_value \
                         -package_key "chat" \
                         -parameter "LinkRegex"]
 
