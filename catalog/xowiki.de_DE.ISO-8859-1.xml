@@ -17,8 +17,7 @@
   <msg key="Candidates">Auswahlmöglichkeiten</msg>
   <msg key="categories">Kategorien</msg>
   <msg key="choiceInteraction_maxChoices">Single Choice</msg>
-  <msg key="choiceInteraction_maxChoices_help_text">Single Choice bedeutet dass nur eine Antwort richtig ist.
-</msg>
+  <msg key="choiceInteraction_maxChoices_help_text">Single Choice bedeutet, dass nur eine Antwort richtig ist.</msg>
   <msg key="choiceInteraction_simpleChoice">Geben Sie hier die Antworten ein.</msg>
   <msg key="choose_file">Datei auswählen</msg>
   <msg key="clear">löschen</msg>
@@ -115,7 +114,7 @@
   <msg key="height">Höhe</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
-  <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet ( die Proportionen können verloren gehen ).</msg>
+  <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet (die Proportionen können verloren gehen ).</msg>
   <msg key="ignore_case">Kleinschreibung</msg>
   <msg key="import">Importieren</msg>
   <msg key="import_create_user_ids">User-IDs erstellen</msg>
@@ -138,7 +137,7 @@
   <msg key="listing_title">Inhaltsverzeichnis der %pretty_plural%</msg>
   <msg key="listing_title_all">Liste aller Arten von %pretty_plural% </msg>
   <msg key="Manage_categories">Kategorien verwalten</msg>
-  <msg key="menu-Clipboard-Add">Zum Clipboad hinzufügen</msg>
+  <msg key="menu-Clipboard-Add">Zur Zwischenablage hinzufügen</msg>
   <msg key="menu-Clipboard-Clear">Leeren</msg>
   <msg key="menu-Clipboard-Content">Inhalt</msg>
   <msg key="menu-Clipboard-Copy">Kopieren</msg>
@@ -206,7 +205,7 @@
   <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
   <msg key="PageInstance-page_template">Seitenvorlage</msg>
   <msg key="PageTemplate-anon_instances">Automatische Namensvergabe</msg>
-  <msg key="party_id-validate_party_id_check">Wert ist keine gültige party_id</msg>
+  <msg key="party_id-validate_party_id_check">Wert ist keine gültige ID</msg>
   <msg key="permissions_manage_package">Berechtigungen für Wiki %package_name% verwalten:</msg>
   <msg key="permissions_manage_page">Berechtigungen für Seite %page_name% verwalten:</msg>
   <msg key="Please_open">Bitte öffnen Sie</msg>
