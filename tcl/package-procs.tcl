@@ -281,6 +281,9 @@ namespace eval ::xowiki {
       ad_log warning "normalize_name receives name '$suffix' containing a colon. A missing -with_prefix?"
       xo::show_stack
     }
+    if {[regexp {^[./]+$} $suffix]} {
+      set suffix [string repeat _ [string length $suffix]]
+    }
     regsub -all -- {[\#/\\:]} $suffix _ suffix
     # if subst_blank_in_name is turned on, turn spaces into _
     if {[:get_parameter subst_blank_in_name 1]} {
@@ -799,7 +802,7 @@ namespace eval ::xowiki {
         }
       }
     }
-    
+
     if {$value eq ""} {
       set value [next $attribute $default]
     }
