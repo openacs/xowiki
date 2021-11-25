@@ -802,7 +802,7 @@ aa_register_case \
 
         ? {::xowiki::FormPage filter_expression \
                "betreuer contains en:person1" &&} \
-            {tcl {{en:person1} in [dict get $__ia betreuer]} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
+            {tcl {({en:person1} in [dict get $__ia betreuer])} h {} vars {betreuer {}} sql {{instance_attributes like '%en:person1%'}}} \
             filter_expr_where_3
 
         ? {::xowiki::FormPage filter_expression \
@@ -812,7 +812,7 @@ aa_register_case \
 
         ? {::xowiki::FormPage filter_expression \
                "_state= closed|accepted || x = 1" ||} \
-            {tcl {[lsearch -exact {closed accepted} [:property _state]] > -1||[dict get $__ia x] eq {1}} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
+            {tcl {[lsearch -exact {closed accepted} [:property _state]] > -1||([dict get $__ia x] eq {1})} h x=>1 vars {x {}} sql {{state in ('closed','accepted')}}} \
             filter_expr_unless_1
 
 

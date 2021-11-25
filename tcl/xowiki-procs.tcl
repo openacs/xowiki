@@ -4366,7 +4366,7 @@ namespace eval ::xowiki {
           if {$op eq "contains"} {
             #make approximate query
             set lhs_var instance_attributes
-            set rhs $rhs_expr
+            set sql_rhs $rhs_expr
             lappend sql_clause [subst -nocommands $op_map($op,sql)]
           }
           set lhs_var "\[dict get \$__ia $lhs\]"
