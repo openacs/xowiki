@@ -797,7 +797,7 @@ aa_register_case \
 
         ? {::xowiki::FormPage filter_expression \
                "_assignee<=123 && y>=123" &&} \
-            {tcl {[:property _assignee] <= {123}&&[dict get $__ia y] >= {123}} h {} vars {y {}} sql {{assignee <= '123'}}} \
+            {tcl {[:property _assignee] <= {123}&&([dict get $__ia y] >= {123})} h {} vars {y {}} sql {{assignee <= '123'}}} \
             filter_expr_where_2
 
         ? {::xowiki::FormPage filter_expression \
