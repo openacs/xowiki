@@ -260,12 +260,19 @@ namespace eval ::xowiki {
   }
 
 
-  Package instproc normalize_name {{-with_prefix:boolean false} string} {
+  Package instproc normalize_name {
+    {-as_item_ref:boolean false}
+    {-with_prefix:boolean false}
+    string
+  } {
     #
     # Normalize the name (in a narrow sense) which refers to a
     # page. This name is not necessarily the content of the "name"
     # field of the content repository, but the name without prefix
     # (sometimes called stripped_name).
+    #
+    # In the case of item_refs, the rules are more permissive to
+    # support page navigation (e.g. "..").
     #
     if {$with_prefix} {
       set name_info [:split_name $string]
@@ -281,7 +288,7 @@ namespace eval ::xowiki {
       ad_log warning "normalize_name receives name '$suffix' containing a colon. A missing -with_prefix?"
       xo::show_stack
     }
-    if {[regexp {^[./]+$} $suffix]} {
+    if {!$as_item_ref && [regexp {^[./]+$} $suffix]} {
       set suffix [string repeat _ [string length $suffix]]
     }
     regsub -all -- {[\#/\\:]} $suffix _ suffix
@@ -1909,7 +1916,7 @@ namespace eval ::xowiki {
     } else {
       array set "" [list link_type "link" prefix $default_lang stripped_name $element]
       if {$normalize_name} {
-        set element [:normalize_name $element]
+        set element [:normalize_name -as_item_ref true $element]
       }
       set name $default_lang:$element
       set use_default_lang 1
@@ -1918,7 +1925,7 @@ namespace eval ::xowiki {
     set name [string trimright $name \0]
     set (stripped_name) [string trimright $(stripped_name) \0]
     if {$normalize_name} {
-      set (stripped_name) [:normalize_name $(stripped_name)]
+      set (stripped_name) [:normalize_name -as_item_ref true $(stripped_name)]
     }
 
     #
