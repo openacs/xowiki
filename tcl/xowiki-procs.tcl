@@ -4298,7 +4298,7 @@ namespace eval ::xowiki {
   }
 
   FormPage proc sql_value {input} {
-    #   
+    #
     # Transform wild-card * into SQL wild-card.
     #
     return [string map {* %} $input]
@@ -4572,7 +4572,8 @@ namespace eval ::xowiki {
             $extra_where_clause" \
                  -orderby $orderby \
                  -limit $limit -offset $offset]
-    ns_log notice "get_form_entries:\n[string map [list :parent_id $parent_id :package_id $package_id] $sql]"
+    #ns_log notice "get_form_entries:\n[string map [list :parent_id $parent_id :package_id $package_id] $sql]"
+
     #
     # When we query all attributes, we return objects named after the
     # item_id (like for single fetches)
