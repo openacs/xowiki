@@ -955,6 +955,7 @@ namespace eval ::xowiki::formfield {
     } else {
       set feedback [_ xowf.answer_$result]
     }
+
     if {$feedback_mode > 1} {
       #ns_log notice "${:name} set_feedback $feedback_mode=[info exists :correct_when] " \
           "correction?[info exists :correction] " \
@@ -993,7 +994,7 @@ namespace eval ::xowiki::formfield {
               }
               #${:object} set_property -new 1 grading_score $grading_score
               set :grading_score $grading_score
-              #ns_log notice "SET GRADING score $grading_score for [self]"
+              #ns_log notice "=== ${:name} SET GRADING score $grading_score"
             } else {
               ns_log notice "=== ${:name} == no scores for grading '${:grading}': ${:correction_data}"
             }
