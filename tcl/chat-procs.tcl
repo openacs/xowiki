@@ -48,12 +48,23 @@ namespace eval ::xo {
     }
     set cls [:info class]
     set :array $cls-${:chat_id}
-    if {![nsv_exists $cls initialized]} {
-      :log "-- initialize $cls"
-      $cls initialize_nsvs
-      ::acs::clusterwide nsv_set $cls initialized \
-          [ad_schedule_proc \
-               -thread "t" [:sweepinterval] $cls sweep_all_chats]
+
+    #
+    # The basic nsv (typically ::chat::Chat) is hit quite frequently
+    # on busy sites. So reduce these these hits.
+    
+    # Something to consider: We could/should do this actually in an
+    # init-script. The only advantage by this construct is to start
+    # the scheduled proc only when a chat is started.
+    #
+    acs::per_thread_cache eval -key chat-initialized-$cls {
+      if {![nsv_exists $cls initialized]} {
+        :log "-- initialize $cls"
+        $cls initialize_nsvs
+        ::acs::clusterwide nsv_set $cls initialized \
+            [ad_schedule_proc \
+                 -thread "t" ${:sweepinterval} $cls sweep_all_chats]
+      }
     }
     if {![nsv_exists ${:array}-seen newest]} {
       ::acs::clusterwide nsv_set ${:array}-seen newest 0
@@ -70,9 +81,7 @@ namespace eval ::xo {
   Chat instproc set_options {} {
     dict for {key value} ${:conf} {
       ::acs::clusterwide nsv_set ${:array}-options $key $value
-    }
-    foreach {key value} [nsv_array get ${:array}-options] {
-      set :$key $value
+      set :$key $value      
     }
   }
 
