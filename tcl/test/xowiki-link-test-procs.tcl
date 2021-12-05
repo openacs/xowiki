@@ -9,7 +9,6 @@ namespace eval ::xowiki::test {
         "::lang::system::set_locale"
         "::xo::PackageMgr instproc initialize"
         "::xo::db::CrClass proc get_instance_from_db"
-        "::xo::parameter proc set_value"
         "::xowiki::test::require_folder"
         "::xowiki::test::require_link"
         "::xowiki::test::require_page"
@@ -20,7 +19,6 @@ namespace eval ::xowiki::test {
         "::api_page_documentation_mode_p"
         "::auth::require_login"
         "::export_vars"
-        "::parameter::set_value"
         "::site_node::get_url_from_object_id"
         "::xo::ConnectionContext instproc get_parameter"
         "::xo::ConnectionContext instproc user_id"
@@ -59,12 +57,8 @@ namespace eval ::xowiki::test {
         aa_log linked_package_id=$linked_package_id
 
         foreach parameter {MenuBar MenuBarSymLinks} {
-          #
-          # Use directly the xo* interface to avoid surprises with
-          # cached parameter values when creating new instances.
-          #
-          xo::parameter set_value -package_id $main_package_id   -parameter $parameter -value 1
-          xo::parameter set_value -package_id $linked_package_id -parameter $parameter -value 1
+          ::parameter::set_value -package_id $main_package_id   -parameter $parameter -value 1
+          ::parameter::set_value -package_id $linked_package_id -parameter $parameter -value 1
         }
 
         set testfolder .testfolder
