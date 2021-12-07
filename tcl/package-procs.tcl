@@ -250,7 +250,7 @@ namespace eval ::xowiki {
       }
 
       if {$item_id != 0} {
-        #:log "clipboard-add adds $page_ref // $item_id"
+        #:log "add $page_ref // $item_id"
         lappend item_ids $item_id
       } else {
         ns_log warning "get_ids_for_bulk_actions: clipboard entry <$page_ref> could not be resolved"
@@ -698,7 +698,7 @@ namespace eval ::xowiki {
     # can have children and same-named folders exist.
     #
     set found_id [:lookup -parent_id $parent_id -name $name]
-    #:log "-pretty_link: lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
+    #:log "lookup [list :lookup -parent_id $parent_id -name $name] -> $found_id"
 
     #
     # In case, we did not receive a "page" but we could look up the
@@ -720,8 +720,8 @@ namespace eval ::xowiki {
       }
     }
 
-    #:log "-pretty_link: found_id=$found_id name=$name,folder_path=$folder_path,lang=$lang,default_lang=$default_lang"
-    #:log "-pretty_link: host <${host}> package_prefix <${package_prefix}>"
+    #:log "found_id=$found_id name=$name,folder_path=$folder_path,lang=$lang,default_lang=$default_lang"
+    #:log "host <${host}> package_prefix <${package_prefix}>"
     if {$download} {
       #
       # Use the special download (file) syntax.
@@ -1229,7 +1229,7 @@ namespace eval ::xowiki {
           set deref [:query_parameter deref:boolean]
         }
 
-        #:log "invoke on LINK <$method> default deref $deref"
+        #:log "LINK <$method> default deref $deref"
         if {$deref} {
           set target [$page_or_package get_target_from_link_page]
           #:log "delegate $method from $page_or_package [$page_or_package name] to $target [$target name]"
@@ -1245,7 +1245,7 @@ namespace eval ::xowiki {
         return [:error_msg "Method <b>'[ns_quotehtml $method]'</b> is not defined for this object"]
       } else {
 
-        #:log "--invoke ${:object} id=$page_or_package method=$method (${:id} batch_mode $batch_mode)"
+        #:log "${:object} id=$page_or_package method=$method (${:id} batch_mode $batch_mode)"
 
         if {$batch_mode} {
           ${:id} set __batch_mode 1
@@ -1351,7 +1351,7 @@ namespace eval ::xowiki {
       set lang [:default_language]
       :log "no lang specified for '$object', use default_language <$lang>"
     }
-    #:log "--o resolve_page '$object', default-lang $lang"
+    #:log "object '$object', default-lang $lang"
 
     #
     # First, resolve package level methods,
@@ -1487,16 +1487,16 @@ namespace eval ::xowiki {
 
     if {$use_package_path} {
       # Check for this page along the package path
-      #:msg "check along package path"
+      #:log "check along package path"
       foreach package [:package_path] {
         set page [$package resolve_page -simple true -lang $lang $object method]
         if {$page ne ""} {
-          #:msg "set_resolve_context inherited -package_id ${:id} -parent_id ${:folder_id}"
+          #:log "set_resolve_context inherited -package_id ${:id} -parent_id ${:folder_id}"
           $page set_resolve_context -package_id ${:id} -parent_id ${:folder_id}
           return $page
         }
       }
-      #:msg "package path done [array get {}]"
+      #:log "package path done [array get {}]"
     }
 
     #
@@ -1505,9 +1505,9 @@ namespace eval ::xowiki {
     #
     set (item_id) [:lookup -use_site_wide_pages true -name en:$(stripped_name)]
     set page [expr {$(item_id) != 0 ? [:get_page_from_item_or_revision_id $(item_id)] : ""}]
-    #:msg "get_site_wide_page for en:'$(stripped_name)' returned '$page' (stripped name)"
+    #:log "get_site_wide_page for en:'$(stripped_name)' returned '$page' (stripped name)"
     if {$page ne ""} {
-      #:msg "set_resolve_context site-wide -package_id ${:id} -parent_id ${:folder_id}"
+      #:log "set_resolve_context site-wide -package_id ${:id} -parent_id ${:folder_id}"
       $page set_resolve_context -package_id ${:id} -parent_id ${:folder_id}
       return $page
     }
@@ -1719,7 +1719,7 @@ namespace eval ::xowiki {
     set item_id [::xo::db::CrClass lookup \
                      -name [dict get $pkg_info page_name] \
                      -parent_id $parent_id]
-    #:log "lookup [dict get $pkg_info page_name] $parent_id in package $package_id returns $item_id, parent_id $parent_id"
+    #:log "[dict get $pkg_info page_name] $parent_id in package $package_id returns $item_id, parent_id $parent_id"
 
     #
     # Test for "0" is only needed when we want to create the first
