@@ -1449,7 +1449,7 @@ namespace eval ::xowiki {
     #:log "NOT found object=$object"
 
     # try standard page
-    set standard_page [${:id} get_parameter $(stripped_name)_page]
+    set standard_page [${:id} get_parameter -check_query_parameter false $(stripped_name)_page]
     if {$standard_page ne ""} {
       #
       # Allow for now mapped standard pages just on the top-level
