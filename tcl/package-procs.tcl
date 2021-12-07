@@ -1198,7 +1198,7 @@ namespace eval ::xowiki {
       # Report true errors in the error log and return the template.
       #
       ad_log error $errorMsg
-      return [:error_msg -template_file $error_template $errorMsg]
+      return [:error_msg -template_file $error_template [ns_quotehtml $errorMsg]]
     }
 
     #
