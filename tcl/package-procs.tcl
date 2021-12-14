@@ -208,6 +208,7 @@ namespace eval ::xowiki {
   } {
     set item_ids {}
     foreach page_ref $page_references {
+      set item_id 0
       #
       # First check whether we got a valid item_id, then check for a
       # URL path. If both are failing, resort to the legacy methods
@@ -236,7 +237,7 @@ namespace eval ::xowiki {
         ns_log notice "get_ids_for_bulk_actions: tried to resolve item_ref <$page_ref> -> $item_id"
       }
 
-      if {![info exists item_id] || $item_id == 0} {
+      if {$item_id == 0} {
         #
         # Try to resolve either via a passed in parent_id or via root folder
         #
