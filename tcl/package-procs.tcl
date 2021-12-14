@@ -215,8 +215,8 @@ namespace eval ::xowiki {
       # (which will be dropped eventually).
       #
       if {[string is integer -strict $page_ref]} {
-        if {[content::item::get -item_id $page_ref]} {
-          set item_id $page_ref
+        ::xo::dc 0or1row -prepare integer check_ref {
+          select item_id from cr_items where item_id = :page_ref
         }
       } elseif {[string index $page_ref 0] eq "/"} {
         #
