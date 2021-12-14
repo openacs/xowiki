@@ -229,10 +229,17 @@ namespace eval ::xowiki {
         #
         # Try $page_ref as item_ref
         #
-        set parent_id_arg [expr {[info exists parent_id] ? [list -parent_id $parent_id] : {}}]
-        set p [:get_page_from_item_ref {*}$parent_id_arg $page_ref]
-        if {$p ne ""} {
-          set item_id [$p item_id]
+        if {![info exists parent_id]} {
+          set parent_ids [list ""]
+        } else {
+          set parent_ids $parent_id
+        }
+        foreach p_id $parent_ids {
+          set p [:get_page_from_item_ref -parent_id $p_id $page_ref]
+          if {$p ne ""} {
+            set item_id [$p item_id]
+            break
+          }
         }
         ns_log notice "get_ids_for_bulk_actions: tried to resolve item_ref <$page_ref> -> $item_id"
       }
@@ -242,8 +249,8 @@ namespace eval ::xowiki {
         # Try to resolve either via a passed in parent_id or via root folder
         #
         set parent_ids [expr {[info exists parent_id] ? $parent_id : ${:folder_id}}]
-        foreach parent_id $parent_ids {
-          set item_id [::xo::db::CrClass lookup -name $page_ref -parent_id $parent_id]
+        foreach p_id $parent_ids {
+          set item_id [::xo::db::CrClass lookup -name $page_ref -parent_id $p_id]
           if {$item_id != 0} {
             break
           }
