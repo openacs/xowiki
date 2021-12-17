@@ -2775,7 +2775,34 @@ namespace eval ::xowiki::formfield {
            the internal representation, but preserve the original
            string.
   }
-
+  numeric instproc render_input {} {
+    #
+    # Prevent inserting invalid value; we allow corrently just a
+    # single dot, comma for floats or "-" to be entered.  Maybe some
+    # of this functionality should be blocked conditionally. Paste
+    # filtering is also currently just half-hearted but probably
+    # sufficient.
+    #
+    set punctuation [expr {[string match %*f ${:format}] ? ",." : "" }]
+    template::add_script -section body -script [subst -nocommands [ns_trim {
+      var e = document.getElementById('${:id}');
+      e.addEventListener('keypress', function (e) {
+        if (!(/[0-9]|[.,]|-/.test(e.key))){
+          e.preventDefault();
+        } else if (/[$punctuation-]/.test(e.key) && e.target.value.includes(e.key)) {
+          e.preventDefault();
+        }
+      });
+      e.addEventListener('paste', function (e) {
+        var pasted = e.clipboardData || window.clipboardData;
+        var text = pasted.getData('Text');
+        if (!text.match(/[0-9$punctuation]|-/)) {
+          e.preventDefault();
+        }
+      });
+    }]]
+    next
+  }
   numeric instproc initialize {} {
     next
     set :widget_type numeric
@@ -4252,7 +4279,7 @@ namespace eval ::xowiki::formfield {
     @param rk number checkmarks to a true answer
     @param fk number checkmarks to a false answer
     @param r number of answers which are true
-    @param f number  of answers which are false
+    @param f number of answers which are false
   } {
     #
     # Now calculate the scores of different scoring schemes.
@@ -4267,7 +4294,7 @@ namespace eval ::xowiki::formfield {
         # No penalty for marking a wrong solution, when there is
         # no wrong solution.
         #
-        set wi1 [expr {max((100.0/$r) * $rk,0)}]
+        set wi1 [expr {max((100.0/$r) * $rk, 0)}]
         set wi2 [expr {max((100.0/$r) * $rk, 0)}]
       } else {
         set wi1 [expr {max((100.0/$r) * $rk - (100.0/$f) * $fk, 0)}]
