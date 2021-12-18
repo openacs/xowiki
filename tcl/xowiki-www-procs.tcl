@@ -2280,6 +2280,7 @@ namespace eval ::xowiki {
     } else {
       set default ""
     }
+    #ns_log notice "... create $name with spec '[join $spec_list ,]'"
     set f [::xowiki::formfield::FormField new -name $name \
                -id        [::xowiki::Includelet html_id F.${:name}.$name] \
                -locale    $nls_language \
@@ -2319,13 +2320,13 @@ namespace eval ::xowiki {
       set short_spec ""
     } else {
       set short_spec [:get_short_spec $name]
-      # :msg "[self] get_short_spec $name returns <$short_spec>"
+      #:msg "[self] get_short_spec $name returns <$short_spec>"
     }
 
     #:log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
     set spec_list [list]
-    if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
+    if {$spec ne ""}       {lappend spec_list $spec}
     #:log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
     set f [next \
                -name $name \
