@@ -2333,7 +2333,7 @@ namespace eval ::xowiki {
 
     #:log "$name '$name', spec '$spec' short_spec '$short_spec', slot=$slot"
     set spec_list [list]
-    
+
     if {$spec ne ""}       {lappend spec_list $spec}
     if {$short_spec ne ""} {lappend spec_list $short_spec}
     #:log "$name: composed spec '[join $spec_list ,]'"

@@ -4500,6 +4500,8 @@ namespace eval ::xowiki::includelet {
       lappend raw_field_names $fn
     }
 
+    #:log raw_field_names=$raw_field_names
+
     #
     # Finally, evaluate conditions in case these are included.
     #
@@ -4861,7 +4863,8 @@ namespace eval ::xowiki::includelet {
       if {![info exists entry_field_names]} {
         set entry_field_names [$entry field_names]
         set entry_form_fields [::xowiki::FormPage get_table_form_fields \
-                                   -base_item $form_item_id -field_names $entry_field_names \
+                                   -base_item $form_item_id \
+                                   -field_names $entry_field_names \
                                    -form_constraints [::$form_item_id set form_constraints]]
         foreach fn $entry_field_names f $entry_form_fields {set ff($fn) $f}
       }
@@ -5041,10 +5044,12 @@ namespace eval ::xowiki::includelet {
     #
     set form_item_ids [::$package_id instantiate_forms -forms $form]
     set form_fields [::xowiki::FormPage get_table_form_fields \
-                         -base_item [lindex $form_item_ids 0] -field_names _name \
+                         -base_item [lindex $form_item_ids 0] \
+                         -field_names _name \
                          -form_constraints ""]
     set items [::xowiki::FormPage get_form_entries \
-                   -base_item_ids $form_item_ids -form_fields $form_fields \
+                   -base_item_ids $form_item_ids \
+                   -form_fields $form_fields \
                    -initialize false \
                    -publish_status $publish_status \
                    -package_id $package_id]
