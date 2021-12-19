@@ -2202,6 +2202,7 @@ namespace eval ::xowiki {
           }
           #:log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
           set f [$base_item create_raw_form_field \
+                     -omit_field_name_spec true \
                      -name $field_name \
                      -slot [$base_item find_slot $varname] \
                      -spec $cr_field_spec,$short_spec \
@@ -2212,6 +2213,7 @@ namespace eval ::xowiki {
         }
         default {
           set f [$base_item create_raw_form_field \
+                     -omit_field_name_spec true \
                      -name $field_name \
                      -slot "" \
                      -spec $field_spec,$short_spec \
@@ -2308,26 +2310,34 @@ namespace eval ::xowiki {
     {-omit_field_name_spec:boolean false}
     {-nls_language ""}
   } {
+    #
     # For workflows, we do not want to get the form constraints of the
     # page itself (i.e. the property of the generic workflow form) but
-    # just the configured properties. Otherwise, we get for a
-    # wrong results for e.g. "{{form-usages -form de:Thread.wf ...}}"
-    # which picks up the label for the _title from the generic Workflow.
+    # just the configured properties. Otherwise, we get for a wrong
+    # results for e.g. "{{form-usages -form de:Thread.wf ...}}"  which
+    # picks up the label for the _title from the generic Workflow.
     # So, when we have configured properties, we use it, use the
     # primitive one just on despair.  Not sure, what the best solution
     # is,... maybe an additional flag.
+    #
     if { $omit_field_name_spec} {
       set short_spec ""
     } else {
+      #
+      # Get for the current page (self) the form-constraints and
+      # return the spec for the specifiled name.
+      #
       set short_spec [:get_short_spec $name]
-      #:msg "[self] get_short_spec $name returns <$short_spec>"
+      #:log "$name get_short_spec returns <$short_spec>"
     }
 
-    #:log "create form-field '$name', short_spec '$short_spec' spec '$spec', slot=$slot"
+    #:log "$name '$name', spec '$spec' short_spec '$short_spec', slot=$slot"
     set spec_list [list]
-    if {$short_spec ne ""} {lappend spec_list $short_spec}
+    
     if {$spec ne ""}       {lappend spec_list $spec}
-    #:log "$name: short_spec '$short_spec', spec_list 1 = '[join $spec_list ,]'"
+    if {$short_spec ne ""} {lappend spec_list $short_spec}
+    #:log "$name: composed spec '[join $spec_list ,]'"
+
     set f [next \
                -name $name \
                -slot $slot \
