@@ -1542,8 +1542,8 @@ namespace eval ::xowiki {
   #
   Page ad_instproc www-toggle-publish-status {} {
 
-    This web-callable method toggles from arbitrary states to "ready"
-    and from "ready" to "production".
+    This web-callable method toggles from "production" to "ready", and
+    from "ready" or "archived" to "production".
 
   } {
     if {${:publish_status} ne "ready"} {

@@ -990,7 +990,7 @@ namespace eval ::xowiki::includelet {
               where c.object_id in ([ns_dbquotelist $items]) "
         } else {
           # TODO: the non-count-part for the ordered_composite is not
-          # tested yet. Although "ordered compostite" can be used
+          # tested yet. Although "ordered composite" can be used
           # only programmatically for now, the code below should be
           # tested. It would be as well possible to obtain titles and
           # names etc. from the ordered composite, resulting in a

@@ -556,6 +556,12 @@ namespace eval ::xo::Table {
                 -script "[$line set $__name.onclick];"
           }
           set CSSclass ${:CSSclass}
+          if {[$line exists $__name.CSSclass]} {
+            set lineCSSclass [$line set $__name.CSSclass]
+            if {$lineCSSclass ne ""} {
+              append CSSclass " " $lineCSSclass
+            }
+          }
           html::a [:get_local_attributes href title {CSSclass class} target id] {
             return [next]
           }

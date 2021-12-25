@@ -603,10 +603,9 @@ namespace eval ::xowiki::includelet {
                      -hide $::hidden(duplicate) \
                      -label ""
                  if {$::__xowiki_with_publish_status} {
-                   ImageAnchorField create publish_status -orderby publish_status.src -src "" \
-                       -width 8 -height 8 -border 0 -title "Toggle Publish Status" \
-                       -CSSclass publish-status-item-button \
-                       -alt "publish status" -label "" ;#[_ xowiki.publish_status]
+                   AnchorField create publish_status -CSSclass publish-status-item-button \
+                       -orderby publish_status.CSSclass \
+                       -label "" -richtext 1
                  }
                  Field create object_type -label [_ xowiki.page_kind] -orderby object_type -richtext false \
                      -hide $::hidden(object_type)
@@ -703,25 +702,33 @@ namespace eval ::xowiki::includelet {
 
       if {$::__xowiki_with_publish_status} {
         # TODO: this should get some architectural support
-        if {[$c set publish_status] eq "ready"} {
-          set image active.png
+
+        set publish_status [$c set publish_status]
+        if {$publish_status eq "ready"} {
+          set CSSclass green
+          set state "production"
+        } elseif {$publish_status eq "expired"} {
+          set CSSclass black
           set state "production"
         } else {
-          set image inactive.png
+          set CSSclass red
           set state "ready"
         }
-        set revision_id [$c set revision_id]
-        [$t last_child] set publish_status.src /resources/xowiki/$image
-        [$t last_child] set publish_status.href \
-            [export_vars -base $page_link {{m toggle-publish-status} return_url}]
+        set line [$t last_child]
+        $line set publish_status "&#9632;"
+        $line set publish_status.CSSclass $CSSclass
+        $line set publish_status.title #xowiki.publish_status_make_$state#
+        $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
       }
     }
 
+    set sort_names [$t column_names]
+    lappend sort_names {*}[lmap n $sort_names {set _ $n.CSSclass}]
     lassign [split $orderby ,] att order
-    if {$att in [$t column_names]} {
+    if {$att in $sort_names} {
       $t orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
     } else {
-      ad_log warning "Ignore invalid sorting criterion '$att'"
+      ad_log warning "Ignore invalid sorting criterion '$att' (valid: $sort_names)"
       util_user_message -message "Ignore invalid sorting criterion '$att'"
     }
 

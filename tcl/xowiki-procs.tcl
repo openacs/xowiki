@@ -2001,15 +2001,19 @@ namespace eval ::xowiki {
   Page instproc update_publish_status {new_publish_status} {
     #
     # The publish_status of xowiki is used for "advertising"
-    # pages. When the publish_status is e.g. "production", users can
-    # access this object when they know obout its existence
-    # (e.g. workflow assignments), but it is excluded from listings,
-    # which contain - per default - only elements in publish_status
-    # "ready".
+    # pages. When the publish_status is e.g. in "production" or
+    # "expired", users can access this object when they know obout its
+    # existence (e.g. workflow assignments), but it is excluded from
+    # listings, which contain - per default - only elements in
+    # publish_status "ready".
     #
     # This proc can be used to change the publish status of a page and
     # handle visibility via syndication.
     #
+    if {$new_publish_status ni {production ready live expired}} {
+      error "update_publish_status receives invalid publish status '$new_publish_status'"
+    }
+
     if {$new_publish_status ne ${:publish_status}} {
       :set_live_revision \
           -revision_id ${:revision_id} \
@@ -2018,7 +2022,7 @@ namespace eval ::xowiki {
       ::xo::xotcl_object_cache flush ${:revision_id}
       ::xo::xotcl_object_cache flush ${:item_id}
 
-      if {$new_publish_status ne "production"} {
+      if {$new_publish_status eq "ready"} {
         ::xowiki::notification::do_notifications -revision_id ${:revision_id}
         ::xowiki::datasource -nocleanup ${:revision_id}
       } else {
@@ -3828,10 +3832,15 @@ namespace eval ::xowiki {
     return $result
   }
 
-  PageInstance instproc get_short_spec {name} {
-    #set form_constraints [:get_from_template form_constraints]
-    set form_constraints [:get_form_constraints]
-    #:msg "fc of [self] ${:name} = $form_constraints"
+  PageInstance instproc get_short_spec {{-form_constraints ""} name} {
+    #
+    # In case, the form_constraints are provided, get the short-spec
+    # from there, otherwise compute form_constraints via
+    # method "get_form_constraints".
+    #
+    if {$form_constraints eq ""} {
+      set form_constraints [:get_form_constraints]
+    }
     if {$form_constraints ne ""} {
       set s [::xowiki::PageInstance get_short_spec_from_form_constraints \
                  -name $name -form_constraints $form_constraints]

@@ -1,4 +1,4 @@
-/* 
+/*
  * Appearance of item-buttons based on bootstrap glyphicons.
  */
 
@@ -8,6 +8,7 @@ div.xowiki-content a.level-up-icon,
 div.xowiki-content a.link-icon,
 div.xowiki-content a.broken-link-icon,
 div.xowiki-content a.edit-item-button,
+div.xowiki-content a.archive-item-button,
 div.xowiki-content a.delete-item-button,
 div.xowiki-content a.revisions-item-button,
 div.xowiki-content a.view-item-button,
@@ -21,6 +22,10 @@ div.xowiki-content a.notification-image-button {
 div.xowiki-content a.edit-item-button::before {
     font-family: 'Glyphicons Halflings';
     content: "\e065";
+}
+div.xowiki-content a.archive-item-button::before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e025";
 }
 div.xowiki-content a.delete-item-button::before {
     font-family: 'Glyphicons Halflings';
@@ -56,6 +61,18 @@ div.xowiki-content .upload-btn-label::before {
     content: "\e027";
     margin-right: 6px;
 }
+div.xowiki-content a.publish-status-item-button.green {
+    color: green;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.red {
+    color: red;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.black {
+    color: black;
+    font-size: larger;
+}
 
 
 /*
@@ -66,6 +83,17 @@ div.xowiki-content span.info-sign::before {
     font-size: smaller;
     padding: 0px 5px 0px 0px;
     content: "\e086";
+}
+
+/*
+ * Spacing in form-usages
+ */
+.form-usages .table > tbody > tr > td.archive-item-button,
+.form-usages .table > tbody > tr > td.delete-item-button,
+.form-usages .table > tbody > tr > td.edit-item-button,
+.form-usages .table > tbody > tr > td.copy-item-button,
+.form-usages .table > tbody > tr > td.publish-status-item-button {
+    padding: 2px;
 }
 
 /*
@@ -111,7 +139,7 @@ div.xowiki-content a.external::after {
     font-size: x-small;
     vertical-align: sub;
     margin-left: 2px;
-    margin-right: 2px;    
+    margin-right: 2px;
     content: "\e164";
 }
 
@@ -121,7 +149,7 @@ div.xowiki-content a.file::after {
     font-size: x-small;
     vertical-align: sub;
     margin-left: 2px;
-    margin-right: 2px;    
+    margin-right: 2px;
     content: "\e022";
 }
 

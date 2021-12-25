@@ -246,7 +246,10 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="pretty_name">Wiki</msg>
   <msg key="processing_objects">Processing objects:</msg>
   <msg key="prompt">Prompt</msg>
-  <msg key="publish_status">Published</msg>
+  <msg key="publish_status">Publish status</msg>
+  <msg key="publish_status_make_ready">Publish</msg>
+  <msg key="publish_status_make_production">Set publish state to production</msg>
+  <msg key="publish_status_make_expired">Set publish state to expired</msg>    
   <msg key="QtiInteraction_weight">Weight</msg>
   <msg key="QtiInteraction_weight_help_text">For the overall score of the question, each interaction is weighted by this value.</msg>
   <msg key="recently_changed_pages">Recently Changed Pages</msg>
@@ -311,4 +314,6 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   
   <msg key="From">From</msg>
   <msg key="to">to</msg>
+  <msg key="Archive">Archive</msg>
+  <msg key="Archive_title">When the item is archived, it is not shown to users anymore.</msg>
 </message_catalog>

@@ -2777,7 +2777,7 @@ namespace eval ::xowiki::formfield {
   }
   numeric instproc render_input {} {
     #
-    # Prevent inserting invalid value; we allow corrently just a
+    # Prevent inserting invalid value; we allow currently just a
     # single dot, comma for floats or "-" to be entered.  Maybe some
     # of this functionality should be blocked conditionally. Paste
     # filtering is also currently just half-hearted but probably

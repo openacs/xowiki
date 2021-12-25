@@ -224,7 +224,10 @@
   <msg key="pretty_name">Wiki</msg>
   <msg key="processing_objects">Verarbeite Objekte:</msg>
   <msg key="prompt">Prompt</msg>
-  <msg key="publish_status">Freigegeben</msg>
+  <msg key="publish_status">Freigabestatus</msg>
+  <msg key="publish_status_make_ready">Freigeben</msg>
+  <msg key="publish_status_make_production">Status auf Bearbeitung setzen</msg>
+  <msg key="publish_status_make_expired">Status auf Archivierung setzen</msg>
   <msg key="QtiInteraction_weight">Gewicht</msg>
   <msg key="recently_changed_pages">Zuletzt geänderte Seiten</msg>
   <msg key="recently_changed_pages_by_categories">Zuletzt geänderte Seiten (nach Kategorien)</msg>
@@ -288,4 +291,6 @@
 
   <msg key="From">Von</msg>
   <msg key="to">bis</msg>
+  <msg key="Archive">Archivieren</msg>
+  <msg key="Archive_title">Archivieren des Eintrags. Der Eintrag wird nach der Archivieriung Benutzern nicht mehr angezeigt.</msg>
 </message_catalog>

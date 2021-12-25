@@ -1,5 +1,5 @@
 /* appearance of item-buttons */
-/* 
+/*
    Positions of images in the sprite:
 
    Add16         -2,-1
@@ -19,38 +19,43 @@
    transparent.png  -1,-308
 */
 div.xowiki-content a.edit-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -68px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -68px no-repeat;
+    padding-right: 16px;
+    text-decoration: none;
+}
+div.xowiki-content a.archive-item-button {
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -46px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.delete-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -46px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -46px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.revisions-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -200px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -200px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.view-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -178px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -178px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.create-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
 div.xowiki-content a.copy-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -24px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -24px no-repeat;
     padding-right: 16px;
     text-decoration: none;
     width: 16px; height: 16px;
 }
 div.xowiki-content a.add-item-button {
-    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat; 
+    background: transparent url(/resources/xowiki/sprite16.png) -2px -3px no-repeat;
     padding-right: 16px;
     text-decoration: none;
 }
@@ -58,6 +63,18 @@ div.xowiki-content a.notification-image-button {
     background: transparent url(/resources/xowiki/sprite16.png) -4px -248px no-repeat; /* 6px more */
     padding-right: 16px;
     text-decoration: none;
+}
+div.xowiki-content a.publish-status-item-button.green {
+    color: green;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.red {
+    color: red;
+    font-size: larger;
+}
+div.xowiki-content a.publish-status-item-button.black {
+    color: black;
+    font-size: larger;
 }
 
 /*
