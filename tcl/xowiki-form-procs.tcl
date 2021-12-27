@@ -237,16 +237,18 @@ namespace eval ::xowiki {
       # $form log "--F validate_name data=[$form exists data]"
       $form instvar data
     }
+    #$data log "validate_name: '$name'"
+
     $data instvar package_id
     set cc [::$package_id context]
 
     set old_name [$cc form_parameter __object_name ""]
     #$data msg "validate: old='$old_name', current='$name'"
 
-    if {[$data istype ::xowiki::File] &&
-        [$data exists upload_file] &&
-        [$data exists mime_type]} {
-      #$data log "--mime validate_name MIME [$data set mime_type]"
+    if {[$data istype ::xowiki::File]
+        && [$data exists upload_file]
+        && [$data exists mime_type]} {
+      #$data log "validate_name: MIME [$data set mime_type]"
       set name [$data build_name $name [$data set upload_file]]
       #
       # Check, if the user is allowed to create a file with the specified
@@ -257,21 +259,21 @@ namespace eval ::xowiki {
       set computed_link [export_vars -base [::$package_id package_url] {{edit-new 1} name
         {object_type ::xowiki::File}}]
       set granted [::$package_id check_permissions -link $computed_link $package_id edit-new]
-      #$data msg computed_link=$computed_link,granted=$granted
+      #$data log "validate_name: computed_link=$computed_link,granted=$granted"
       if {!$granted} {
         util_user_message -message "User not authorized to create a filenamed $name"
         return 0
       }
     } else {
       $data name $name
-      set name [$data build_name -nls_language [$data form_parameter nls_language {}]]
+      set name [$data build_name -nls_language [$data form_parameter nls_language en]]
     }
     if {$name ne ""} {
       set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
       set name [::$package_id normalize_name -with_prefix $prefixed_page_p $name]
     }
 
-    #$data msg "validate: old='$old_name', new='$name'"
+    #$data log "validate_name: old='$old_name', new='$name'"
     if {$name eq $old_name && $name ne ""} {
       # do not change names, which are already validated;
       # otherwise, autonamed entries might get an unwanted en:prefix
@@ -279,7 +281,7 @@ namespace eval ::xowiki {
     }
 
     # check, if we try to create a new item with an existing name
-    #$data msg "validate: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
+    #$data log "validate_name: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
     if {[$data form_parameter __new_p 0]
         || $old_name ne $name
       } {
@@ -287,6 +289,7 @@ namespace eval ::xowiki {
         # the provided name is really new
         return 1
       }
+      #$data log "validate_name: entry '$name' exists here already"
       if {[$data istype ::xowiki::PageInstance]} {
         # The entry might be autonamed. In case of imports from other
         # xowiki instances, we might have name clashes. Therefore, we
@@ -294,8 +297,13 @@ namespace eval ::xowiki {
         set anon_instances [$data get_from_template anon_instances f]
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [[$data page_template] name]]
-          $data name [::xowiki::autoname new -name $basename -parent_id [$data parent_id]]
-          return 1
+          $data log "validate_name: have anon_instances basename '$basename' name '$name'"
+          if {[string match $basename* $name]} {
+            set name [::xowiki::autoname new -name $basename -parent_id [$data parent_id]]
+            $data name $name
+            $data log "validate_name: changed data name to '$name'"
+            return 1
+          }
         }
       }
       return 0

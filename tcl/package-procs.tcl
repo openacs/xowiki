@@ -182,8 +182,10 @@ namespace eval ::xowiki {
   # URL and naming management
   #
   Package instproc split_name {string} {
-    set prefix ""
     regexp {^([a-z][a-z]|file|image|video|audio|js|css|swf|folder):(.*)$} $string _ prefix suffix
+    if {![info exists prefix] || ![info exists suffix]} {
+      error "cannot split name '$string' into a prefix and a suffix"
+    }
     return [list prefix $prefix suffix $suffix]
   }
   Package instproc join_name {{-prefix ""} -name} {
