@@ -419,8 +419,9 @@ namespace eval ::xowiki {
     set item_id [:resolve]
     #:log "-- image resolve for ${:page} returned $item_id (name=${:name}, label=${:label})"
     if {$item_id} {
+      set absolute_links [expr {[${:page} exists absolute_links] ? [${:page} absolute_links] : 0}]
       set link [::${:package_id} pretty_link -download true -query ${:query} \
-                    -absolute [${:page} absolute_links] -parent_id ${:parent_id} \
+                    -absolute $absolute_links -parent_id ${:parent_id} \
                     -page $item_id \
                     ${:name}]
       #:log "--l fully quali [${:page} absolute_links], link=$link [info commands ::$item_id]"
