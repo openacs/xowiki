@@ -742,6 +742,17 @@ namespace eval ::xowiki {
     }
 
     set full_file_name [:full_file_name]
+
+    if {![ad_file exists $full_file_name]} {
+      # This should not happen on a production system, however it
+      # might on a test system that does not have a copy of the
+      # content-repository folder. We fail more gracefully in this
+      # case.
+      ad_log warning "::xowiki::File www-download: '$full_file_name' does not exist on the filesystem, returning 404"
+      ns_returnnotfound
+      ad_script_abort
+    }
+
     #:log "--F FILE=$full_file_name // ${:mime_type}"
 
     set geometry [::xo::cc query_parameter geometry ""]
