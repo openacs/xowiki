@@ -748,7 +748,7 @@ namespace eval ::xowiki {
       # might on a test system that does not have a copy of the
       # content-repository folder. We fail more gracefully in this
       # case.
-      ad_log warning "::xowiki::File www-download: '$full_file_name' does not exist on the filesystem, returning 404"
+      ad_log Error "Could not read file $full_file_name. Maybe the content repository is (partially) missing?"
       ns_returnnotfound
       ad_script_abort
     }
