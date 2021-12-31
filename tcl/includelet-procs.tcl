@@ -4154,10 +4154,6 @@ namespace eval ::xowiki::includelet {
           lassign [list $b $form_item_id] button id
         }
         set form [::xo::db::CrClass get_instance_from_db -item_id $id]
-        #
-        # "Package require" is just a part of "Package initialize"
-        # creating the package object if needed....
-        #
         set form_package_id [$form package_id]
         if {$form_package_id eq ""} {
           #
@@ -4167,6 +4163,10 @@ namespace eval ::xowiki::includelet {
           $form set_resolve_context -package_id $package_id -parent_id $parent_id
           set form_package_id $package_id
         }
+        #
+        # "Package require" is just a part of "Package initialize"
+        # creating the package object if needed....
+        #
         ::xowiki::Package require $form_package_id
         set obj [form-menu-button-$button new -volatile -package_id $package_id \
                      -base [$form pretty_link] \
