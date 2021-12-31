@@ -228,7 +228,7 @@ namespace eval ::xowiki::hstore {
     #
     #    select hkey from xowiki_page_instance where hkey is not null;
     #
-    ::xowf::Package initialize -package_id $package_id
+    ::xo::Package require $package_id
     #
     # We get all revisions, so use the lower level interface
     #
@@ -270,10 +270,10 @@ namespace eval ::xowiki::hstore {
     set t0 [clock clicks -milliseconds]
     ns_log notice "start to work on -package_id $package_id"
 
-    ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+    ::xo::Package require $package_id
 
     set t1 [clock clicks -milliseconds]
-    ns_log notice "$package_id: ::xo::Package initialize took [expr {$t1-$t0}]ms"
+    ns_log notice "$package_id: ::xo::Package require took [expr {$t1-$t0}]ms"
     set t0 $t1
 
     if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
@@ -317,7 +317,7 @@ namespace eval ::xowiki::hstore {
   proc ::xowiki::hstore::update_update_all_form_instances {} {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
-      ::xo::Package initialize -package_id $package_id -init_url false -user_id 0
+      ::xo::Package require $package_id
       if {[::$package_id get_parameter use_hstore 0] == 0} {
         continue
       }
@@ -556,7 +556,7 @@ namespace eval ::xowiki {
 
 
   proc ::xowiki::transform_root_folder {package_id} {
-    ::xo::Package initialize -package_id $package_id
+    ::xo::Package require $package_id
     set item_id [::$package_id folder_id]
 
     if {$item_id == 0} {
@@ -630,7 +630,7 @@ namespace eval ::xowiki {
     return the page_url for an object of type tasks_task
   } {
     ns_log notice "got package_id=$package_id, object_id=$object_id, type=$type"
-    ::xowiki::Package initialize -package_id $package_id
+    ::xowiki::Package require $package_id
     if {[nsf::is object ::$package_id]} {
       return [::$package_id package_url]
     } else {

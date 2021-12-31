@@ -814,7 +814,7 @@ namespace eval ::xowiki::test {
                            _nls_language $locale
                            number a
                        }]]
-            
+
             #ns_log notice "::xowiki::test::create_form_page returns $d"
             acs::test::reply_has_status_code $d 200
 

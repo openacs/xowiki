@@ -151,9 +151,9 @@ namespace eval ::xowiki {
     {-user_id -1}
     {-parameter ""}
   } {
-    Instantiate a page in situations, where the context is not set up
-    (e.g. we have no package object). This call is convenient
-    when testing e.g. from the developer shell
+    Instantiate a page in situations, where the connection context is
+    not set up (e.g. we have no package object). This call is
+    convenient when testing e.g. from the developer shell.
   } {
     set package_id [:get_package_id_from_page_id \
                         -item_id $item_id \
@@ -686,10 +686,10 @@ namespace eval ::xowiki {
       set folder_path [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
       set pkg [::$parent_id package_id]
       if {![nsf::is object ::$pkg]} {
-        ::xowiki::Package initialize -package_id $pkg -init_url false -keep_cc true
+        ::xowiki::Package require $pkg
       }
-      set package_prefix [$pkg get_parameter package_prefix [$pkg package_url]]
-      set default_lang [$pkg default_language]
+      set package_prefix [::$pkg get_parameter package_prefix [$pkg package_url]]
+      set default_lang [::$pkg default_language]
     }
     #:msg "folder_path = $folder_path, -parent_id $parent_id -folder_ids $folder_ids // default_lang [:default_language]"
 
@@ -1549,7 +1549,7 @@ namespace eval ::xowiki {
 
   Package instproc package_path {} {
     #
-    # Compute a list fo package objects which should be used for
+    # Compute a list of package objects which should be used for
     # resolving ("inheritance of objects from other instances").
     #
     set packages [list]
