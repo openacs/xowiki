@@ -1262,17 +1262,17 @@ aa_register_case \
         set l "parentpage"
         set test [label "link" "existing simple page" $l]
         set link [p create_link $l]
-        ? {$link render} "<a   href='/$instance_name/de/parentpage'>parentpage</a>" "\n$test\n "
+        ? {$link render} "<a   href='/$instance_name/de/parentpage'>parentpage</a>" $test
 
         set l "parentpage1"
         set test [label "link" "not existing simple page" $l]
         set link [p create_link $l]
-        ? {$link render} [subst -nocommands {<a class='missing' href='/$instance_name/?nls_language=$expected_locale&amp;object_type=::xowiki::Page&amp;edit-new=1&amp;name=de:parentpage1&amp;parent_id=$folder_id&amp;title=parentpage1'> parentpage1</a>}] "\n$test\n "
+        ? {$link render} [subst -nocommands {<a class='missing' href='/$instance_name/?nls_language=$expected_locale&amp;object_type=::xowiki::Page&amp;edit-new=1&amp;name=de:parentpage1&amp;parent_id=$folder_id&amp;title=parentpage1'>parentpage1</a>}] $test
 
         set l "parentpage#a"
         set test [label "link" "existing simple with anchor" $l]
         set link [p create_link $l]
-        ? {$link render} [subst -nocommands {<a   href='/$instance_name/de/parentpage#a'>parentpage</a>}] "\n$test\n "
+        ? {$link render} [subst -nocommands {<a   href='/$instance_name/de/parentpage#a'>parentpage</a>}] $test
 
         set l "image:image.png"
         set test [label "link" "existing image" $l]

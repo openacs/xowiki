@@ -482,12 +482,10 @@ namespace eval ::xowiki {
       if {[info exists :revision_id]} {
         append href ?revision_id=${:revision_id}
       }
-      return [ns_trim [subst {$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]'
-        alt='$label' title='$label' $style></a>$post}]]
+      return [subst {$pre<a $cls href='[ns_quotehtml $href]'><img $cls src='[ns_quotehtml $link]' alt='$label' title='$label' $style></a>$post}]
     } else {
       if {[info exists :revision_id]} {append link ?revision_id=${:revision_id}}
-      return [ns_trim [subst {$pre<img $cls src='[ns_quotehtml $link]'
-        alt='$label' title='$label' $style>$post}]]
+      return [subst {$pre<img $cls src='[ns_quotehtml $link]' alt='$label' title='$label' $style>$post}]
     }
   }
 

@@ -24,7 +24,7 @@ aa_register_case \
     } {
         set package_id [acs::test::require_package_instance \
                             -package_key xowiki]
-        ::xowiki::Package initialize -package_id $package_id
+        ::xowiki::Package require $package_id
 
         #
         # Don't allow addressing outside of the jail

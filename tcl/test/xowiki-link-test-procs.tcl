@@ -74,7 +74,7 @@ namespace eval ::xowiki::test {
         set locale [lang::system::locale]
         set lang [string range $locale 0 1]
 
-        ::xowiki::Package initialize -package_id $main_package_id
+        ::xowiki::Package require $main_package_id
         ::xowiki::Package initialize -package_id $linked_package_id
 
 
