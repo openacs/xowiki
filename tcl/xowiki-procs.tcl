@@ -3824,6 +3824,11 @@ namespace eval ::xowiki {
     }
     return ""
   }
+  #
+  # Set the nsv array parsed_fcs to dummy values to avoid potential
+  # exceptions on operations requiring its existence.
+  #
+  nsv_set parsed_fcs . .
 
   PageInstance instproc field_names_from_form_constraints {} {
     set form_constraints [:get_form_constraints]
