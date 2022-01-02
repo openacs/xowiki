@@ -3796,8 +3796,9 @@ namespace eval ::xowiki {
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
     #
-    # For the time being we cache the form_constraints. Without
-    # caching, the proc takes 87 microseconds
+    # For the time being we cache the parsed form_constraints. Without
+    # caching, the proc takes 87 microseconds, with chaching, it is
+    # significantly faster.
     #
     # via ns_cache {6.153537846215379 microseconds per iteration}
     # via nsv {3.865795920407959 microseconds per iteration}
