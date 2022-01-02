@@ -3796,27 +3796,34 @@ namespace eval ::xowiki {
 
   PageInstance proc get_short_spec_from_form_constraints {-name -form_constraints} {
     #
-    # For the time being we cache the form_constraints per request as
-    # a global variable, which is reclaimed at the end of the
-    # connection.
+    # For the time being we cache the form_constraints. Without
+    # caching, the proc takes 87 microseconds
     #
-    # We have to take care that the variable name does not contain
-    # namespace-prefixes.
+    # via ns_cache {6.153537846215379 microseconds per iteration}
+    # via nsv {3.865795920407959 microseconds per iteration}
     #
-    regsub -all :: $form_constraints ":_:_" var_name_suffix
+    set varname ::__xo_[ns_md5 $form_constraints]
 
-    set varname ::xowiki_$var_name_suffix
-    if {![info exists $varname]} {
+    if {![nsv_get parsed_fcs $varname dict]} {
+      #
+      # Not parsed yet
+      #
       foreach name_and_spec $form_constraints {
-        regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
-        set ${varname}($spec_name) $short_spec
+        set p [string first : $name_and_spec]
+        if {$p > -1} {
+          dict set dict \
+              [string range $name_and_spec 0 $p-1] \
+              [string range $name_and_spec $p+1 end]
+        }
       }
+      nsv_set parsed_fcs $varname $dict
     }
-    if {[info exists ${varname}($name)]} {
-      return [set ${varname}($name)]
+    if {[dict exists $dict $name]} {
+      return [dict get $dict $name]
     }
     return ""
   }
+  nsv_set parsed_fcs . .
 
   PageInstance instproc field_names_from_form_constraints {} {
     set form_constraints [:get_form_constraints]
@@ -4514,7 +4521,7 @@ namespace eval ::xowiki {
     if {$wc(h) ne "" || $uc(h) ne ""} {
       ns_log notice "hstore available $use_hstore, but deactivating anyway for now (wc $wc(h) uc $uc(h) )"
     }
-    
+
     set use_hstore 0
     if {$use_hstore} {
       if {$wc(h) ne ""} {
