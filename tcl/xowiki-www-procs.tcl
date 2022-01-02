@@ -744,7 +744,7 @@ namespace eval ::xowiki {
     set full_file_name [:full_file_name]
 
     if {![ad_file exists $full_file_name]} {
-      # This should not happen on a production system, however it
+      # This should not happen on a production system, however, it
       # might on a test system that does not have a copy of the
       # content-repository folder. We fail more gracefully in this
       # case.
@@ -1037,6 +1037,9 @@ namespace eval ::xowiki {
     set field_names [:field_names -form $form]
     #:log field_names=$field_names
     set form_fields [:create_form_fields $field_names]
+    #foreach f0 $form_fields {
+    #  ns_log notice "... created ff [$f0 name] [$f0 info class]"
+    #}
 
     if {$form eq ""} {
       #
@@ -2819,8 +2822,8 @@ namespace eval ::xowiki {
     if {!$found} {
       set f [:create_raw_form_field -name $name -slot [:find_slot $name]]
     }
+    #:log "found $name in $form_fields -> $found [$f info class]"
 
-    #:msg "$found $name mode=$mode type=[$f set type] value=[$f value] disa=[$f exists disabled] display_field=[$f display_field]"
     if {$mode eq "edit" || [$f display_field]} {
       set html [$f asHTML]
     } else {
@@ -2931,7 +2934,7 @@ namespace eval ::xowiki {
     foreach fn $reduced_attributes {
       lappend field_names $fn
     }
-    foreach fn [list _text _description _nls_language] {
+    foreach fn {_text _description _nls_language} {
       lappend field_names $fn
     }
     #:msg final-field_names=$field_names
