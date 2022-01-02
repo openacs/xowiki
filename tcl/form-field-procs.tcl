@@ -1,4 +1,4 @@
-::xo::library doc {
+xo::library doc {
   XoWiki - form fields
 
   @creation-date 2007-06-22
@@ -30,6 +30,114 @@ namespace eval ::xowiki::formfield {
       }]
     }
     return $result
+  }
+
+  ad_proc dict_to_fc {
+    -name
+    -type
+    dict
+  } {
+
+    Convert the provided dict into form_constraint syntax (comma
+    separated). The other direction would be more complex, since the
+    fcs are interpreted from left to right, overwriting potentially
+    previous values. The fc-interpretation creates already the form
+    fields, produces intended errors, when certain attributes are not
+    allowed, etc.
+
+    @param name optional form-field name
+    @param type type of the form-field; if not specified,
+           take it from key "_type" of the dict
+    @param dict dict to be converted.
+  } {
+    if {![info exists type]} {
+      set type [dict get $dict _type]
+      dict unset dict _type
+    }
+    set list $type
+    foreach {key value} $dict {
+      lappend list $key=[::xowiki::formfield::FormField fc_encode $value]
+    }
+    if {[info exists name]} {
+      return $name:[info exists name]
+    } else {
+      return [join $list ,]
+    }
+  }
+
+  ad_proc dict_to_spec {{-aspair:boolean false} -name dict} {
+
+    Convert the provided dict into a form-field spec together with the
+    form-field name. When "-aspair" is specified the spec is returned
+    in the list format as used by "create_components". If "-name" is
+    not specified, the name has to be provided via dict member
+    "_name", otherwise an exception is triggered.
+
+  } {
+    if {$dict ne ""} {
+      if {![info exists name]} {
+        set name [dict get $dict _name]
+        dict unset dict _name
+      }
+      if {$aspair_p} {
+        return [list $name [dict_to_fc $dict]]
+      } else {
+        return "$name:[dict_to_fc $dict]"
+      }
+    }
+  }
+
+  ad_proc -private spec_to_dict {-name:required spec} {
+    Convert a single spec to a Tcl dict structure
+  } {
+    dict set result _name $name
+    set elements [split $spec ,]
+    dict set result _type [lindex $elements 0]
+    foreach s [lrange $elements 1 end] {
+      switch -glob -- $s {
+        *=* {
+          set p [string first = $s]
+          set attribute [string range $s 0 $p-1]
+          set value [::xowiki::formfield::FormField fc_decode [string range $s $p+1 end]]
+          dict set result $attribute $value
+        }
+        default {
+          ns_log notice "... spec_to_dict ignores <$s>"
+        }
+      }
+    }
+    return $result
+  }
+
+  ad_proc fc_to_dict {form_constraints} {
+
+    Convert from form_constraint syntax to a dict. This is just a
+    partial implementation to be probably extended in the future.  it
+    expects that the type is the first element and ignores everything
+    not in the synteax "*=*", or skips "@*" fields. Don't expect this
+    to be fully reversible.
+
+  } {
+    set result ""
+    foreach fc $form_constraints {
+      #ns_log notice "... fc_to_dict works on <$fc>"
+      if {[regexp {^([^:]+):(.*)$} $fc _ field_name definition]} {
+        if {[string match @* $field_name]} continue
+        dict set result $field_name [spec_to_dict -name $field_name $definition]
+        dict set result $field_name _definition $definition
+      }
+    }
+    return $result
+  }
+
+
+  ad_proc dict_value {dict key {default ""}} {
+
+    Return the dict value of the specified "key" when this member
+    exists. Otherwise return the default.
+
+  } {
+    expr {[dict exists $dict $key] ? [dict get $dict $key] : $default}
   }
 
 
@@ -150,6 +258,12 @@ namespace eval ::xowiki::formfield {
     return ""
   }
 
+  #
+  # Convenience functions forwarding to procs
+  #
+  FormField instforward dict_to_spec ::xowiki::formfield::dict_to_spec
+  FormField instforward dict_to_fc   ::xowiki::formfield::dict_to_fc
+  FormField instforward dict_value   ::xowiki::formfield::dict_value
 
   #FormField instproc destroy {} {
   #  :log "=== FormField DESTROY ====="
@@ -169,8 +283,9 @@ namespace eval ::xowiki::formfield {
   }
 
   #
-  # Basic initialize method, doing nothing; should be subclassed by the
-  # application classes
+  # Basic initialize method, doing essentially nothing; should be
+  # subclassed by the application classes.
+  #
   FormField instproc initialize {} {next}
 
 
@@ -508,8 +623,10 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render {} {
+    #
     # In case, we use an asHTML of a FormField, we use this
-    # render definition
+    # render definition.
+    #
     if {${:inline}} {
       # with label, error message, help text
       :render_form_widget
@@ -695,37 +812,6 @@ namespace eval ::xowiki::formfield {
     # list with a single element.
     #
     return [list [self]]
-  }
-
-
-  FormField ad_instproc dict_to_fc {
-    -name
-    -type
-    dict
-  } {
-
-    Convert the provided dict into form_constraint syntax (comma
-    separated). The other direction would be more complex, since the
-    fcs are interpreted from left to right, overwriting potentially
-    previous values. The fc-interpretation creates already the form
-    fields, produces intended errors, when certain attributes are not
-    allowed, etc.
-
-    @param name optional form-field name
-    @param type type of the form-field; if not specified,
-           take it from key "_type" of the dict
-    @param dict dict to be converted.
-  } {
-    set result [expr {[info exists name] ? "$name:" : ""}]
-    if {![info exists type]} {
-      set type [dict get $dict _type]
-      dict unset dict _type
-    }
-    set list $type
-    foreach {key value} $dict {
-      lappend list $key=[::xowiki::formfield::FormField fc_encode $value]
-    }
-    return $result[join $list ,]
   }
 
   FormField instproc value_if_nothing_is_returned_from_form {default} {
@@ -2664,6 +2750,8 @@ namespace eval ::xowiki::formfield {
 
   Class create number -superclass FormField -parameter {
     min max step value
+    {js_validate false}
+    {js_invalid_msg ""}
     {td_CSSclass right}
   }
   number instproc initialize {} {
@@ -2676,6 +2764,17 @@ namespace eval ::xowiki::formfield {
     ::html::input [:get_attributes type id name value {CSSclass class} \
                        min max step autocomplete placeholder {*}$boolean_atts] {}
     :resetBooleanAttributes $boolean_atts
+    if {${:js_validate}} {
+      set invalid_msg ${:js_invalid_msg}
+      template::add_event_listener -event input -id ${:id} -script [subst {
+        const inputField = event.target;
+        if (!inputField.checkValidity()) {
+          if ('$invalid_msg' != "") {
+            inputField.setCustomValidity('$invalid_msg');
+          }
+        }
+      }]
+    }
   }
 
   ###########################################################
@@ -4038,7 +4137,7 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  # abstract superclass for select and radio
+  # abstract superclass for "select" and "radio"
   Class create ShuffleField -superclass FormField -parameter {
     {options ""}
     {render_hints ""}
@@ -4750,8 +4849,11 @@ namespace eval ::xowiki::formfield {
       lappend fields [list $rep [:dict_to_fc -type $type $field_fc_dict]]
     }
 
-    #:log "text_fields fields\n[join $fields \n]>"
     :create_components $fields
+
+    #foreach c [:components] {
+    #  :log "... $c [$c name] [$c info class]"
+    #}
   }
 
   text_fields instproc set_feedback {feedback_mode} {

@@ -122,6 +122,82 @@ aa_register_case \
             [::xowiki::hstore::dict_as_hkey $dict] \
             {key1=>value1,key2=>"a''b","k''y"=>value3,key4=>"1,2",c=>"before	after",d=>"hello world"}
     }
+
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::formfield::dict_to_spec"
+        "::xowiki::formfield::dict_value"
+        "::xowiki::formfield::fc_to_dict"
+
+        "::xowiki::formfield::dict_to_fc"
+        "::xowiki::formfield::FormField proc fc_encode"
+        "::xowiki::formfield::FormField proc fc_decode"
+    } \
+    dict_to_xx {
+
+        Checks conversion from dict to specs and form constraints.
+        dict_to_spec is based on dict_to_fc.
+
+    } {
+        set dict {_name myname _type text label "Hello, world!" enabled 1}
+
+        aa_equals "convert to spec" \
+            [::xowiki::formfield::dict_to_spec $dict] \
+            {myname:text,label=Hello__COMMA__ world!,enabled=1}
+        aa_equals "convert to spec -aspair" \
+            [::xowiki::formfield::dict_to_spec -aspair $dict] \
+            {myname {text,label=Hello__COMMA__ world!,enabled=1}}
+
+        #
+        # Common idiom constructing form constraints
+        #
+        set fc ""; lappend fc \
+            @categories:off @cr_fields:hidden \
+            [::xowiki::formfield::dict_to_spec $dict]
+
+        aa_equals "lappend + dict_to_spec fc idiom" \
+            [concat $fc] \
+            {@categories:off @cr_fields:hidden {myname:text,label=Hello__COMMA__ world!,enabled=1}}
+
+        #
+        # Common idiom to create component structure
+        #
+
+        set struct [subst {
+            [list [::xowiki::formfield::dict_to_spec -aspair $dict]]
+            {pattern {text,default=*,label=#xowf.pool_question_pattern#}}
+        }]
+        aa_equals "lappend + dict_to_spec component structure idiom" \
+            [concat $struct] \
+            {{myname {text,label=Hello__COMMA__ world!,enabled=1}}
+            {pattern {text,default=*,label=#xowf.pool_question_pattern#}}}
+
+        #
+        # fc_to_dct
+        #
+        set fc ""; lappend fc \
+            @categories:off @cr_fields:hidden \
+            [::xowiki::formfield::dict_to_spec $dict]
+
+        aa_equals "fc_to_dict (show results of reverse operation)" \
+            [::xowiki::formfield::fc_to_dict $fc] \
+            {myname {_name myname _type text label {Hello, world!} enabled 1 _definition {text,label=Hello__COMMA__ world!,enabled=1}}}
+
+        #
+        # dict_value
+        #
+        aa_equals "dict_value exists" \
+            [::xowiki::formfield::dict_value $dict label] \
+            {Hello, world!}
+        aa_equals "dict_value not exists, no default" \
+            [::xowiki::formfield::dict_value $dict title] \
+            {}
+        aa_equals "dict_value not exists, default" \
+            [::xowiki::formfield::dict_value $dict title xxx] \
+            {xxx}
+    }
+
 #
 # Local variables:
 #    mode: tcl
