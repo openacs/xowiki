@@ -3823,7 +3823,6 @@ namespace eval ::xowiki {
     }
     return ""
   }
-  nsv_set parsed_fcs . .
 
   PageInstance instproc field_names_from_form_constraints {} {
     set form_constraints [:get_form_constraints]
