@@ -2938,15 +2938,13 @@ namespace eval ::xowiki::formfield {
 
   numeric instproc convert_to_internal_value {value} {
     try {
-      lc_parse_number $value ${:locale} ${:is_integer}
-    } on ok {result} {
+      set result [lc_parse_number $value ${:locale} ${:is_integer}]
     } on error {errorMsg} {
       #ns_log notice "numeric instproc convert_to_internal <$value> ${:locale} -> $errorMsg ($::errorCode)"
       if {${:strict} == 0 && ${:locale} ne "en_US"} {
-        try {
-          lc_parse_number $value en_US ${:is_integer}
-        } on ok {result} {
-        }
+        set result [lc_parse_number $value en_US ${:is_integer}]
+      } else {
+        error $errorMsg
       }
     }
     return $result
