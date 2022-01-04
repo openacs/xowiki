@@ -2938,13 +2938,17 @@ namespace eval ::xowiki::formfield {
 
   numeric instproc convert_to_internal_value {value} {
     try {
-      set result [lc_parse_number $value ${:locale} ${:is_integer}]
+      lc_parse_number $value ${:locale} ${:is_integer}
+    } on ok {result} {
     } on error {errorMsg} {
       #ns_log notice "numeric instproc convert_to_internal <$value> ${:locale} -> $errorMsg ($::errorCode)"
       if {${:strict} == 0 && ${:locale} ne "en_US"} {
-        set result [lc_parse_number $value en_US ${:is_integer}]
+        try {
+          lc_parse_number $value en_US ${:is_integer}
+        } on ok {result} {
+        }
       } else {
-        error $errorMsg
+        throw $::errorInfo $errorMsg
       }
     }
     return $result
@@ -5485,7 +5489,7 @@ namespace eval ::xowiki::formfield {
                        -parent_id [${:object} parent_id] \
                        -default_lang [${:object} lang] \
                        -forms $form_name]
-    :log "form_page $form_name resolved into '$form_objs'"
+    #:log "form_page $form_name resolved into '$form_objs'"
 
     if {$form_objs eq ""} {
       error "Cannot lookup Form '$form_name'"
