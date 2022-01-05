@@ -84,9 +84,12 @@ TableWidget create t1 -volatile \
             -alt permsissions -label ""
       }
       if {$::with_publish_status} {
-        ImageAnchorField create publish_status -orderby publish_status.src -src "" \
-            -width 8 -height 8 -title "Toggle Publish Status" \
-            -alt "publish status" -label [_ xowiki.publish_status] -html {style "text-align: center;"}
+        AnchorField create publish_status \
+            -CSSclass publish-status-item-button \
+            -orderby publish_status.CSSclass \
+            -label [_ xowiki.publish_status] \
+            -richtext 1 \
+            -html {style "text-align: center;"}
       }
       Field create syndicated -label "RSS" -html {style "text-align: center;"}
       AnchorField create page_order -label [_ xowiki.Page-page_order] -orderby page_order
@@ -148,6 +151,7 @@ xo::dc foreach instance_select \
               -last_modified $last_modified \
               -syndicated [info exists syndicated($revision_id)] \
               -size [expr {$content_length ne "" ? $content_length : 0}]  \
+              -publish_status "&#9632;" \
               -edit "" \
               -edit.href $edit_link \
               -edit.title #xowiki.edit# \
@@ -156,25 +160,27 @@ xo::dc foreach instance_select \
               -delete.href [export_vars -base [::$package_id package_url] {{delete 1} item_id name return_url}] \
               -delete.title #xowiki.delete#
 
+          set line [::template::t1 last_child]
+
           if {$::individual_permissions} {
-            [::template::t1 last_child] set permissions.href \
+            $line set permissions.href \
                 [export_vars -base permissions {item_id return_url}]
           }
           if {$::with_publish_status} {
             # TODO: this should get some architectural support
             if {$publish_status eq "ready"} {
-              set image active.png
+              set CSSclass green
               set state "production"
             } else {
-              set image inactive.png
+              set CSSclass red
               set state "ready"
             }
-            [::template::t1 last_child] set publish_status.src /resources/xowiki/$image
-            [::template::t1 last_child] set publish_status.href \
-                [export_vars -base [::$package_id package_url]admin/set-publish-state \
-                     {state revision_id return_url}]
+            $line set publish_status "&#9632;"
+            $line set publish_status.CSSclass $CSSclass
+            $line set publish_status.title #xowiki.publish_status_make_$state#
+            $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
           }
-          [::template::t1 last_child] set page_order $page_order
+          $line set page_order $page_order
         }
 
 

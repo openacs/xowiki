@@ -547,7 +547,6 @@ namespace eval ::xo::Table {
         if {[$line exists $__name.href]
             && [set href [$line set $__name.href]] ne ""
           } {
-          # use the CSS class rather from the Field than not the line
           $line instvar [list $__name.title title] [list $__name.target target]
           if {[$line exists $__name.onclick]} {
             set id [::xowiki::Includelet html_id $line]
@@ -555,6 +554,8 @@ namespace eval ::xo::Table {
                 -id $id \
                 -script "[$line set $__name.onclick];"
           }
+          # Default class is from the field definition. To it we
+          # append the class coming from the line.
           set CSSclass ${:CSSclass}
           if {[$line exists $__name.CSSclass]} {
             set lineCSSclass [$line set $__name.CSSclass]
