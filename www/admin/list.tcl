@@ -87,7 +87,7 @@ TableWidget create t1 -volatile \
         AnchorField create publish_status \
             -CSSclass publish-status-item-button \
             -orderby publish_status.CSSclass \
-            -label [_ xowiki.publish_status] \
+            -label "" \
             -richtext 1 \
             -html {style "text-align: center;"}
       }
@@ -135,7 +135,7 @@ xo::dc foreach instance_select \
             # Safety belt for cases, where the instance_select_query
             # brings in instances belonging to other packages.
             ns_log notice "admin/list: have to initialize package $package_id"
-            ::xo::Package initialize -package_id $package_id -keep_cc true
+            ::xo::Package require $package_id
           }
           set page_link [::$package_id pretty_link -parent_id $parent_id $name]
           set edit_link [::$package_id pretty_link -parent_id $parent_id \
@@ -175,7 +175,6 @@ xo::dc foreach instance_select \
               set CSSclass red
               set state "ready"
             }
-            $line set publish_status "&#9632;"
             $line set publish_status.CSSclass $CSSclass
             $line set publish_status.title #xowiki.publish_status_make_$state#
             $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
