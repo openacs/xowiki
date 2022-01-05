@@ -196,18 +196,9 @@ namespace eval ::xowiki {
       }
       if {"publish_status" in $buttons || "slim_publish_status" in $buttons} {
         $__c set _publish_status "&#9632;"
-        set publish_status [$p set publish_status]
-        if {$publish_status eq "ready"} {
-          set CSSclass green
-          set state "production"
-        } elseif {$publish_status eq "expired"} {
-          set CSSclass black
-          set state "production"
-        } else {
-          set CSSclass red
-          set state "ready"
-        }
-        $__c set _publish_status.CSSclass $CSSclass
+        set d [::xowiki::utility publish_status_next_state [$p set publish_status]]
+        set state [dict get $d state]
+        $__c set _publish_status.CSSclass [dict get $d CSSclass]
         $__c set _publish_status.title #xowiki.publish_status_make_$state#
         $__c set _publish_status.href [export_vars -base [::$package_id package_url]admin/set-publish-state {
           state {revision_id "[$p set revision_id]"} return_url

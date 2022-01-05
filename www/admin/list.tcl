@@ -167,16 +167,9 @@ xo::dc foreach instance_select \
                 [export_vars -base permissions {item_id return_url}]
           }
           if {$::with_publish_status} {
-            # TODO: this should get some architectural support
-            if {$publish_status eq "ready"} {
-              set CSSclass green
-              set state "production"
-            } else {
-              set CSSclass red
-              set state "ready"
-            }
-            $line set publish_status.CSSclass $CSSclass
-            $line set publish_status.title #xowiki.publish_status_make_$state#
+            set d [::xowiki::utility publish_status_next_state $publish_status]
+            $line set publish_status.CSSclass [dict get $d CSSclass]
+            $line set publish_status.title #xowiki.publish_status_make_[dict get $d state]#
             $line set publish_status.href [export_vars -base $page_link {{m toggle-publish-status} return_url}]
           }
           $line set page_order $page_order

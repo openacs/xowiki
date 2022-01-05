@@ -850,6 +850,25 @@ namespace eval ::xowiki {
     return $renames
   }
 
+  ::xowiki::utility ad_proc publish_status_next_state {publish_status} {
+
+    Determine next publish status and return dict containing
+    CSSclassand next state.
+    
+  } {
+    if {$publish_status eq "ready"} {
+      set CSSclass green
+      set state "production"
+    } elseif {$publish_status eq "expired"} {
+      set CSSclass black
+      set state "production"
+    } else {
+      set CSSclass red
+      set state "ready"
+    }
+    return [list CSSclass $CSSclass state $state]
+  }
+
   ::xowiki::utility ad_proc formCSSclass {form_name} {
     Obtain CSS class name for a form from its name
   } {
