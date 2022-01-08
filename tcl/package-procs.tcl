@@ -648,7 +648,7 @@ namespace eval ::xowiki {
     @param name name of the wiki page
     @param path_encode control URL encoding of the path segmemts
   } {
-    #:msg "input name=$name, lang=$lang parent_id=$parent_id"
+    #:log "input name=$name, lang=$lang parent_id=$parent_id"
 
     set host [expr {$absolute ? ($siteurl ne "" ? $siteurl : [ad_url]) : ""}]
     if {$anchor ne ""} {set anchor \#$anchor}
@@ -679,8 +679,8 @@ namespace eval ::xowiki {
       set encoded_name ""
       set default_lang [:default_language]
     } else {
-      if {$parent_id eq ""} {
-        ns_log warning "pretty_link of $name: you should consider to pass a parent_id to support folders"
+      if {$parent_id in {"" 0}} {
+        ad_log warning "pretty_link of $name: you should consider to pass a parent_id to support folders"
         set parent_id ${:folder_id}
       }
       set folder_path [:folder_path -parent_id $parent_id -folder_ids $folder_ids -path_encode $path_encode]
@@ -3065,6 +3065,13 @@ namespace eval ::xowiki {
       } else {
         # in case, we have no ::xo::cc (e.g. during bootstrap).
         ad_log warning "no ::xo::cc available (package_id ${:id}), returning default for parameter $attribute"
+
+        #
+        # For more rigid debugging one might consider to enable the
+        # exception below.
+        #
+        #error "no ::xo::cc available (package_id ${:id}), returning default for parameter $attribute"
+        
         return $default
       }
     }
