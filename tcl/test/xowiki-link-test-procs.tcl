@@ -74,9 +74,12 @@ namespace eval ::xowiki::test {
         set locale [lang::system::locale]
         set lang [string range $locale 0 1]
 
-        ::xowiki::Package require $main_package_id
+        #
+        # Perform a full initialize on both packages to get ::xo::cc
+        # also set.
+        #
+        ::xowiki::Package initialize -package_id $main_package_id
         ::xowiki::Package initialize -package_id $linked_package_id
-
 
         set main_root_folder_id   [::$main_package_id folder_id]
         set linked_root_folder_id [::$linked_package_id folder_id]

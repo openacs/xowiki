@@ -60,7 +60,7 @@ namespace eval ::xowiki::test {
         aa_run_with_teardown -rollback -test_code {
 
             set testfolder .testfolder
-            ::xowiki::Package require $package_id
+            ::xowiki::Package initialize -package $package_id
             set root_folder_id [::$package_id folder_id]
 
             lang::system::set_locale en_US
@@ -209,7 +209,7 @@ namespace eval ::xowiki::test {
 
             set testfolder .testfolder
 
-            ::xowiki::Package require $package_id
+            ::xowiki::Package initialize -package $package_id
             set root_folder_id [::$package_id folder_id]
 
             # Create the test folder
