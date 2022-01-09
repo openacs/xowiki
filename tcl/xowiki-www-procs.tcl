@@ -1912,8 +1912,10 @@ namespace eval ::xowiki {
     # make use of the same templating machinery below.
     #
     if {$content eq ""} {
-      set content [:render]
+      set content [:content_header_get][:render]
       #:msg "--after render"
+    } else {
+      set content [:content_header_get]$content
     }
 
     #
@@ -2265,6 +2267,7 @@ namespace eval ::xowiki {
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
     {-nls_language ""}
+    {-form_constraints ""}
   } {
     #ns_log notice "... create_raw_form_field name $name spec '$spec'"
     set save_slot $slot
@@ -2323,6 +2326,7 @@ namespace eval ::xowiki {
     {-configuration ""}
     {-omit_field_name_spec:boolean false}
     {-nls_language ""}
+    {-form_constraints ""}
   } {
     #
     # For workflows, we do not want to get the form constraints of the
@@ -2341,7 +2345,7 @@ namespace eval ::xowiki {
       # Get for the current page (self) the form-constraints and
       # return the spec for the specifiled name.
       #
-      set short_spec [:get_short_spec $name]
+      set short_spec [:get_short_spec -form_constraints $form_constraints $name]
       #:log "$name get_short_spec returns <$short_spec>"
     }
 
@@ -2525,7 +2529,16 @@ namespace eval ::xowiki {
   }
 
   FormPage ad_instproc set_form_data {form_fields} {
-    Store the instance attributes or default values in the form.
+
+    Store the instance attributes or default values into the form via
+    set_form_value. This function iterates over the provided
+    form-fields and checks, if these are known fields in the current
+    form. These known field names are defined via the method
+    "field_names" that extracts these names from a form.
+
+    If one wants to load all values from an FormPage into the provided
+    form-fields, use method "load_values_into_form_fields" instead.
+
   } {
     ::xo::require_html_procs
 
@@ -2594,8 +2607,8 @@ namespace eval ::xowiki {
     #:msg "fields $field_names // $form_fields"
     #foreach f $form_fields { :msg "... $f [$f name]" }
     #
-    # We have a form and get all form input from the fields of the
-    # from into form field objects.
+    # We have the form data and get all form_parameters into the
+    # form-field objects.
     #
     foreach att $field_names {
       #:msg "getting att=$att"
@@ -2885,6 +2898,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc field_names {{-form ""}} {
+    #ns_log notice "=== field_names form <$form>"
     #
     # Ge the field-names mentioned in form (the provided form has
     # always highest precedence).
@@ -2993,7 +3007,13 @@ namespace eval ::xowiki {
   }
 
 
-  FormPage instproc load_values_into_form_fields {form_fields} {
+  FormPage ad_instproc load_values_into_form_fields {form_fields} {
+
+    Load either the instance variables or the instance attributes into
+    the provided form-fields. The function sets the values based on
+    the default values and the values for the current object.
+
+  } {
     set is_new [:is_new_entry ${:name}]
 
     foreach f $form_fields {

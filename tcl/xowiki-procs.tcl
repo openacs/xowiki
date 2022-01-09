@@ -2389,11 +2389,16 @@ namespace eval ::xowiki {
     @return the pretty_link for the current page
     @see ::xowiki::Package instproc pretty_link
   } {
+    if {${:parent_id} eq "0"} {
+      set msg "you must not call pretty_link on a page with parent_id 0"
+      ad_log error $msg
+      error $msg
+    }
     ${:package_id} pretty_link -parent_id ${:parent_id} \
         -anchor $anchor -query $query -absolute $absolute -siteurl $siteurl \
         -lang $lang -download $download -page [self] \
         -path_encode $path_encode \
-        ${:name} \
+        ${:name}
   }
 
   Page instproc detail_link {} {
@@ -3176,6 +3181,23 @@ namespace eval ::xowiki {
     return $content
   }
 
+  Page instproc content_header_append {text} {
+    #
+    # This function is to be called on pages that want to prepend
+    # content prior to the main content. This is especially important
+    # for HTML forms (e.g. produced by the xowiki::Form renderer),
+    # where the form-body is not allowed to contain nested forms.
+    #
+    append ::__xowiki__content_header $text \n
+  }
+  
+  Page instproc content_header_get {} {
+    if {[info exists ::__xowiki__content_header]} {
+      return $::__xowiki__content_header
+    }
+  }
+
+  
   Page instproc form_field_index {form_field_objs} {
     set marker ::__computed_form_field_names($form_field_objs)
     if {[info exists $marker]} return
@@ -3392,7 +3414,7 @@ namespace eval ::xowiki {
       if {![nsf::is object $context]} {
         ::xo::ConnectionContext require \
             -package_id $package_id \
-            -url [:pretty_link]
+            -url [::$package_id pretty_link ${:name}]
       }
       set creation_user [$context user_id]
     }
@@ -4013,9 +4035,10 @@ namespace eval ::xowiki {
     # OpenACS 5.10: In case we have a folder instances without the
     # "description" field set, and we use the new folder.form, and the
     # update script was not yet executed, folders might appear as
-    # empty. In htese cases, call child-resosurces manually.
+    # empty. In these cases, call child-resources manually.
     #
     if {$html eq "" && [:is_folder_page]} {
+      ns_log warning "render_content: [:item_id] {$name} is a folder page without a content (deprecated)"
       set html [:include child-resources]
     }
 
@@ -4174,7 +4197,7 @@ namespace eval ::xowiki {
       set html ""; set mime ""
       lassign ${:text} html mime
       set content [:substitute_markup $html]
-    } elseif {[lindex ${:form} 0] ne ""} {
+    } elseif {[lindex ${:form} 0] ne ""} {      
       set content [[self class] disable_input_fields [lindex ${:form} 0]]
     } else {
       set content ""
@@ -4187,7 +4210,39 @@ namespace eval ::xowiki {
     return [:form_constraints]
   }
 
-
+  FormPage instproc create_form_fields_from_names {
+    {-lookup:switch}
+    {-set_values:switch}
+    {-form_constraints}
+    field_names
+  } {
+    #
+    # Create form-fields from field names. When "-lookup" is
+    # specified, the code tries to reuseexisting form-field instead of
+    # creating/recreating it.
+    #
+    # Since create_raw_form_field uses destroy_on_cleanup, we do not
+    # have to care here about destroying the objects.
+    #
+    set form_fields {}
+    foreach field_name $field_names {
+      if {$lookup && [:form_field_exists $field_name]} {
+        #:msg "... found form_field for $field_name"
+        lappend form_fields [:lookup_form_field -name $field_name {}]
+      } else {
+        #:msg "create '$spec_name' with spec '$short_spec'"
+        lappend form_fields [:create_raw_form_field \
+                                 -name $field_name \
+                                 -form_constraints $form_constraints \
+                                ]
+      }
+    }
+    if {$set_values} {
+      :load_values_into_form_fields $form_fields      
+    }
+    return $form_fields
+  }
+  
   Page instproc create_form_fields_from_form_constraints {
     {-lookup:switch}
     form_constraints
@@ -4214,7 +4269,9 @@ namespace eval ::xowiki {
         lappend form_fields [:create_raw_form_field \
                                  -name $spec_name \
                                  -slot [:find_slot $spec_name] \
-                                 -spec $short_spec]
+                                 -spec $short_spec \
+                                 -form_constraints $form_constraints \
+                                ]
       }
     }
     return $form_fields
@@ -5098,13 +5155,11 @@ namespace eval ::xowiki {
     #
     # Produce an HTML rendering from the FormPage.
     #
-
     #set package_id ${:package_id}
     :include_header_info -prefix form_view
     if {[::xo::cc mobile]} {
       :include_header_info -prefix mobile
     }
-
     set text [:get_from_template text]
     if {$text ne ""} {
       catch {set text [lindex $text 0]}
@@ -5164,7 +5219,6 @@ namespace eval ::xowiki {
 
     return $HTML
   }
-
 
   FormPage instproc get_value {{-field_spec ""} {-cr_field_spec ""} before varname} {
     #

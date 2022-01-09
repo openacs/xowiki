@@ -114,17 +114,20 @@ namespace eval ::xowiki::formfield {
     Convert from form_constraint syntax to a dict. This is just a
     partial implementation to be probably extended in the future.  it
     expects that the type is the first element and ignores everything
-    not in the synteax "*=*", or skips "@*" fields. Don't expect this
+    not in the syntax "*=*", or skips "@*" fields. Don't expect this
     to be fully reversible.
 
   } {
     set result ""
     foreach fc $form_constraints {
       #ns_log notice "... fc_to_dict works on <$fc>"
-      if {[regexp {^([^:]+):(.*)$} $fc _ field_name definition]} {
+      set p [string first : $fc]
+      if {$p > -1} {
+        set field_name [string range $fc 0 $p-1]
+        set short_spec [string range $fc $p+1 end]
         if {[string match @* $field_name]} continue
-        dict set result $field_name [spec_to_dict -name $field_name $definition]
-        dict set result $field_name _definition $definition
+        dict set result $field_name [spec_to_dict -name $field_name $short_spec]
+        dict set result $field_name _definition $short_spec
       }
     }
     return $result
