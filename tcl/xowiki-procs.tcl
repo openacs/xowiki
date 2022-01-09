@@ -3190,14 +3190,14 @@ namespace eval ::xowiki {
     #
     append ::__xowiki__content_header $text \n
   }
-  
+
   Page instproc content_header_get {} {
     if {[info exists ::__xowiki__content_header]} {
       return $::__xowiki__content_header
     }
   }
 
-  
+
   Page instproc form_field_index {form_field_objs} {
     set marker ::__computed_form_field_names($form_field_objs)
     if {[info exists $marker]} return
@@ -4197,7 +4197,7 @@ namespace eval ::xowiki {
       set html ""; set mime ""
       lassign ${:text} html mime
       set content [:substitute_markup $html]
-    } elseif {[lindex ${:form} 0] ne ""} {      
+    } elseif {[lindex ${:form} 0] ne ""} {
       set content [[self class] disable_input_fields [lindex ${:form} 0]]
     } else {
       set content ""
@@ -4238,11 +4238,11 @@ namespace eval ::xowiki {
       }
     }
     if {$set_values} {
-      :load_values_into_form_fields $form_fields      
+      :load_values_into_form_fields $form_fields
     }
     return $form_fields
   }
-  
+
   Page instproc create_form_fields_from_form_constraints {
     {-lookup:switch}
     form_constraints
