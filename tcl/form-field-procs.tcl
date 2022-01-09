@@ -128,6 +128,8 @@ namespace eval ::xowiki::formfield {
         if {[string match @* $field_name]} continue
         dict set result $field_name [spec_to_dict -name $field_name $short_spec]
         dict set result $field_name _definition $short_spec
+      } else {
+        ns_log warning "fc_to_dict: ignore invalid form-constraints entry <$fc>"
       }
     }
     return $result
