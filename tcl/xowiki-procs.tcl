@@ -4038,7 +4038,7 @@ namespace eval ::xowiki {
     # empty. In these cases, call child-resources manually.
     #
     if {$html eq "" && [:is_folder_page]} {
-      ns_log warning "render_content: [:item_id] {$name} is a folder page without a content (deprecated)"
+      ns_log warning "render_content: [:item_id] ${:name} is a folder page without a content (deprecated)"
       set html [:include child-resources]
     }
 
