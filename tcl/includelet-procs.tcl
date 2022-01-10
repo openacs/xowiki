@@ -4169,7 +4169,7 @@ namespace eval ::xowiki::includelet {
         #
         ::xowiki::Package require $form_package_id
         set obj [form-menu-button-$button new -volatile -package_id $package_id \
-                     -base [::$package_id pretty_link -parent_id $parent_id $form] \
+                     -base [::$package_id pretty_link -parent_id $parent_id [$form name]] \
                      -form $form -parent_id $parent_id]
         if {[info exists return_url]} {$obj return_url $return_url}
         lappend button_objs $obj
