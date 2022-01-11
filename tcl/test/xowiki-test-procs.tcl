@@ -18,7 +18,6 @@ namespace eval ::xowiki::formfield {
     regression_test_compound_numeric instproc initialize {} {
         :create_components  {
             {anumber {numeric,label=The Number}}
-            {alabel  {text,label=The Label}}
         }
     }
 }
@@ -776,17 +775,24 @@ namespace eval ::xowiki::test {
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
 
             set installed_locales [lang::system::get_locales]
-            if {"de_DE" in $installed_locales && "en_US" in $installed_locales} {
-                aa_log "USER_INFO $user_info"
+            # en_US must be always in installed_locales
+            set enabled_locale_with_decimal_point_comma ""
+            foreach locale $installed_locales {
+                if {$locale in {de_DE it_IT es_ES}} {
+                    set enabled_locale_with_decimal_point_comma $locale
+                    break
+                }
+            }
+            if {$enabled_locale_with_decimal_point_comma ne ""} {
                 set test_user_id [dict get $user_info user_id]
 
                 lang::user::set_locale -user_id $test_user_id "en_US"
                 aa_equals "check test_user can be set to en_US" \
                     [lang::user::locale -user_id $test_user_id] en_US
 
-                lang::user::set_locale -user_id $test_user_id "de_DE"
-                aa_equals "check test_user can be set to de_DE" \
-                    [lang::user::locale -user_id $test_user_id] de_DE
+                lang::user::set_locale -user_id $test_user_id $enabled_locale_with_decimal_point_comma
+                aa_equals "check test_user can be set to $enabled_locale_with_decimal_point_comma" \
+                    [lang::user::locale -user_id $test_user_id] $enabled_locale_with_decimal_point_comma
 
                 set locale [lang::system::locale]
                 set lang [string range $locale 0 1]
@@ -808,6 +814,7 @@ namespace eval ::xowiki::test {
                         text {
                             <p>
                                @numeric@
+                               @nums@
                                @mycompoundnumeric@
                             </p>
                         }
@@ -815,6 +822,7 @@ namespace eval ::xowiki::test {
                         form {
                             <form>
                                @numeric@
+                               @nums@
                                @mycompoundnumeric@
                             </form>
                         }
@@ -822,8 +830,8 @@ namespace eval ::xowiki::test {
                         form_constraints {
                             _page_order:omit _title:omit _nls_language:omit _description:omit
                             {numeric:numeric}
+                            {nums:numeric,repeat=1..3}
                             mycompoundnumeric:regression_test_compound_numeric
-                            mycompound:regression_test_mycompound
                         }
                     }]
                 aa_log "Form $form_name created"
@@ -834,7 +842,7 @@ namespace eval ::xowiki::test {
                 ###########################################################
 
                 #
-                # provide as de_DE the value "1.2" and "6.66" as the
+                # provide the value "1.2" and "6.66" as the
                 # numeric value in the compound field
                 #
                 ::xowiki::test::create_form_page \
@@ -848,11 +856,16 @@ namespace eval ::xowiki::test {
                         _title "fresh $page_name"
                         _nls_language $locale
                         numeric 1.2
+                        nums.1 1.1
+                        nums.2 1.2
                         mycompoundnumeric.anumber 6.66
                     }]
 
                 aa_log "Page $page_name created"
 
+                ###########################################################
+                aa_section "Edit $form_name named '$page_name'"
+                ###########################################################
                 set extra_url_parameter {{m edit}}
                 aa_log "Edit page with $page_name [lang::user::locale -user_id $test_user_id]"
                 set d [acs::test::http -last_request $request_info \
@@ -866,18 +879,22 @@ namespace eval ::xowiki::test {
                     aa_true "page_name '$f_id' non empty" {$f_id ne ""}
                     aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
                     set id_part [string map {: _} $page_name]
-                    set numNode [$root getElementById F.$id_part.numeric]
-                    aa_true "numeric field is found" {$numNode ne ""}
+                    set node [$root getElementById F.$id_part.numeric]
+                    aa_true "initial numeric field is found" {$node ne ""}
 
-                    set numValue [$numNode getAttribute value]
-                    aa_equals "numeric value is '$numValue'" $numValue "1,20"
+                    set value [$node getAttribute value]
+                    aa_equals "initial numeric value is '$value'" $value "1,20"
 
-                    set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
-                    aa_true "compound numeric field is found" {$compoundNumNode ne ""}
+                    set node [$root getElementById F.$id_part.mycompoundnumeric.anumber]
+                    aa_true "initial compound numeric field is found" {$node ne ""}
 
-                    set compoundNumValue [$compoundNumNode getAttribute value]
-                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6,66"
+                    set value [$node getAttribute value]
+                    aa_equals "initial compound numeric value is '$value'" $value "6,66"
                 }
+
+                ###########################################################
+                aa_section "Edit and change $form_name named '$page_name'"
+                ###########################################################
                 ::xowiki::test::edit_form_page \
                     -last_request $d \
                     -instance $instance \
@@ -885,24 +902,34 @@ namespace eval ::xowiki::test {
                     -update [subst {
                         _title "edited $page_name"
                         numeric "1,3"
+                        nums.1 "1,11"
+                        nums.2 "1,21"
                         mycompoundnumeric.anumber "6,7"
                     }]
+
                 set d [acs::test::http -last_request $request_info \
                            [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
                 acs::test::reply_has_status_code $d 200
                 set response [dict get $d body]
                 acs::test::dom_html root $response {
-                    set f_id     [::xowiki::test::get_object_name $root]
+                    set f_id    [::xowiki::test::get_object_name $root]
                     set id_part [string map {: _} $page_name]
-                    set numNode [$root getElementById F.$id_part.numeric]
-                    set numValue [$numNode getAttribute value]
-                    aa_equals "numeric value is '$numValue'" $numValue "1,30"
+                    set node    [$root getElementById F.$id_part.numeric]
+                    set value   [$node getAttribute value]
+                    aa_equals "edit numeric value is '$value'" $value "1,30"
+
+                    set node  [$root getElementById F.$id_part.nums.1]
+                    set value [$node getAttribute value]
+                    aa_equals "edit compound numeric value is '$value'" $value "1,11"
 
                     set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
                     set compoundNumValue [$compoundNumNode getAttribute value]
-                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6,70"
+                    aa_equals "edit compound numeric value is '$compoundNumValue'" $compoundNumValue "6,70"
                 }
 
+                ###########################################################
+                aa_section "Edit in en_US $form_name named '$page_name'"
+                ###########################################################
                 #
                 # We have now the numeric value with the comma, now
                 # change language to en. The value displayed (in edit
@@ -915,20 +942,24 @@ namespace eval ::xowiki::test {
                 acs::test::reply_has_status_code $d 200
                 set response [dict get $d body]
                 acs::test::dom_html root $response {
-                    set f_id     [::xowiki::test::get_object_name $root]
+                    set f_id    [::xowiki::test::get_object_name $root]
                     set id_part [string map {: _} $page_name]
-                    set numNode [$root getElementById F.$id_part.numeric]
-                    set numValue [$numNode getAttribute value]
-                    aa_equals "numeric value is '$numValue'" $numValue "1.30"
+                    set node  [$root getElementById F.$id_part.numeric]
+                    set value [$node getAttribute value]
+                    aa_equals "en_US numeric value is '$value'" $value "1.30"
 
-                    set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
-                    set compoundNumValue [$compoundNumNode getAttribute value]
-                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6.70"
+                    set node  [$root getElementById F.$id_part.nums.1]
+                    set value [$node getAttribute value]
+                    aa_equals "en_US compound numeric value is '$value'" $value "1.11"
+
+                    set node  [$root getElementById F.$id_part.mycompoundnumeric.anumber]
+                    set value [$node getAttribute value]
+                    aa_equals "en_US compound numeric value is '$value'" $value "6.70"
                 }
 
 
             } else {
-                aa_log "this test needs en and de locales, installed are '[lang::system::get_locales]'"
+                aa_log "this test needs locales with decimal point set to comma, installed are '[lang::system::get_locales]'"
             }
 
         } on error {errorMsg} {
