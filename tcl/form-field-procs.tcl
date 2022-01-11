@@ -1616,7 +1616,7 @@ namespace eval ::xowiki::formfield {
 
   CompoundField instproc get_compound_value {} {
     #
-    # Set the internal representation based on the components values.
+    # returns the internal representation based on the components values.
     #
     set cc [[${:object} package_id] context]
 
@@ -1834,6 +1834,22 @@ namespace eval ::xowiki::formfield {
     # internal representation; actually we could drop the instance
     # atts of the components from the "instance_attributes" ...
     ${:object} set_property -new 1 ${:name} [:get_compound_value]
+  }
+
+  CompoundField instproc convert_to_external {internal} {
+    #ns_log notice "Compound ${:name} convert_to_external <$internal>"
+    set result {}
+    foreach c ${:components} {
+      set name [$c name]
+      if {[dict exists $internal $name]} {
+        set value [$c convert_to_external [dict get $internal $name]]
+      } else {
+        set value ""
+      }
+      lappend result [$c name] $value
+    }
+    #ns_log notice "Compound ${:name} convert_to_external -> $result"
+    return $result
   }
 
   CompoundField instproc make_correct {} {
@@ -2917,6 +2933,7 @@ namespace eval ::xowiki::formfield {
     }
   }
   numeric instproc convert_to_external {value} {
+    #ns_log notice "convert_to_external ${:name} keep_string_rep ${:keep_string_rep}"
     if {${:keep_string_rep}} {
       return $value
     }
@@ -2924,7 +2941,7 @@ namespace eval ::xowiki::formfield {
       set result ""
     } else {
       ad_try {
-        return [lc_numeric $value ${:format} ${:locale}]
+        set value [lc_numeric $value ${:format} ${:locale}]
       } on error {errorMsg} {
         util_user_message -message "${:label}: $errorMsg (locale=${:locale})"
       }
@@ -2938,10 +2955,12 @@ namespace eval ::xowiki::formfield {
         set result $value
       }
     }
+    #ns_log notice "convert_to_external ${:name} keep_string_rep ${:keep_string_rep} -> $result"
     return $result
   }
 
   numeric instproc convert_to_internal_value {value} {
+    #ns_log notice "convert_to_internal_value called with value '$value'"
     try {
       lc_parse_number $value ${:locale} ${:is_integer}
     } on ok {result} {
@@ -2956,6 +2975,7 @@ namespace eval ::xowiki::formfield {
         throw $::errorInfo $errorMsg
       }
     }
+    #ns_log notice "convert_to_internal_value called with value '$value' -> $result"
     return $result
   }
   numeric instproc convert_to_internal {} {
@@ -2964,8 +2984,8 @@ namespace eval ::xowiki::formfield {
       # The value has been already checked against the validator, so
       # the conversion should be smooth.
       #
-      set value [:convert_to_internal_value ${:value}]
-      ${:object} set_property -new 1 ${:name} [expr {$value}]
+      set :value [:convert_to_internal_value ${:value}]
+      ${:object} set_property -new 1 ${:name} ${:value}
     }
   }
   numeric instproc check=numeric {value} {
