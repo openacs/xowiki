@@ -834,7 +834,7 @@ namespace eval ::xowiki::test {
                 ###########################################################
 
                 #
-                # provide as it_IT the value "1.2" and 6.66 as the
+                # provide as it_IT the value "1.2" and "6.66" as the
                 # numeric value in the compound field
                 #
                 ::xowiki::test::create_form_page \
