@@ -776,7 +776,7 @@ namespace eval ::xowiki::test {
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
 
             set installed_locales [lang::system::get_locales]
-            if {"it_IT" in $installed_locales && "en_US" in $installed_locales} {
+            if {"de_DE" in $installed_locales && "en_US" in $installed_locales} {
                 aa_log "USER_INFO $user_info"
                 set test_user_id [dict get $user_info user_id]
 
@@ -784,9 +784,9 @@ namespace eval ::xowiki::test {
                 aa_equals "check test_user can be set to en_US" \
                     [lang::user::locale -user_id $test_user_id] en_US
 
-                lang::user::set_locale -user_id $test_user_id "it_IT"
-                aa_equals "check test_user can be set to it_IT" \
-                    [lang::user::locale -user_id $test_user_id] it_IT
+                lang::user::set_locale -user_id $test_user_id "de_DE"
+                aa_equals "check test_user can be set to de_DE" \
+                    [lang::user::locale -user_id $test_user_id] de_DE
 
                 set locale [lang::system::locale]
                 set lang [string range $locale 0 1]
@@ -834,7 +834,7 @@ namespace eval ::xowiki::test {
                 ###########################################################
 
                 #
-                # provide as it_IT the value "1.2" and "6.66" as the
+                # provide as de_DE the value "1.2" and "6.66" as the
                 # numeric value in the compound field
                 #
                 ::xowiki::test::create_form_page \
