@@ -52,7 +52,7 @@ namespace eval ::xo {
     #
     # The basic nsv (typically ::chat::Chat) is hit quite frequently
     # on busy sites. So reduce these these hits.
-    
+
     # Something to consider: We could/should do this actually in an
     # init-script. The only advantage by this construct is to start
     # the scheduled proc only when a chat is started.
@@ -79,9 +79,14 @@ namespace eval ::xo {
   }
 
   Chat instproc set_options {} {
-    dict for {key value} ${:conf} {
+    # Any supplied conf we are going to save and apply to any other
+    # instance of this chat created in the future.
+    if {[llength ${:conf}] > 0} {
+      ::acs::clusterwide nsv_array set ${:array}-conf ${:conf}
+    }
+    dict for {key value} [nsv_array get ${:array}-conf] {
       ::acs::clusterwide nsv_set ${:array}-options $key $value
-      set :$key $value      
+      set :$key $value
     }
   }
 
