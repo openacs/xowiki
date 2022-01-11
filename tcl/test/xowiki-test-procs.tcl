@@ -13,6 +13,14 @@ namespace eval ::xowiki::formfield {
         }]
         set :__initialized 1
     }
+
+    Class create regression_test_compound_numeric -superclass CompoundField
+    regression_test_compound_numeric instproc initialize {} {
+        :create_components  {
+            {anumber {numeric,label=The Number}}
+            {alabel  {text,label=The Label}}
+        }
+    }
 }
 
 namespace eval ::xowiki::test {
@@ -768,7 +776,7 @@ namespace eval ::xowiki::test {
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
 
             set installed_locales [lang::system::get_locales]
-            if {"de_DE" in $installed_locales && "en_US" in $installed_locales} {
+            if {"it_IT" in $installed_locales && "en_US" in $installed_locales} {
                 aa_log "USER_INFO $user_info"
                 set test_user_id [dict get $user_info user_id]
 
@@ -776,9 +784,9 @@ namespace eval ::xowiki::test {
                 aa_equals "check test_user can be set to en_US" \
                     [lang::user::locale -user_id $test_user_id] en_US
 
-                lang::user::set_locale -user_id $test_user_id "de_DE"
-                aa_equals "check test_user can be set to de_DE" \
-                    [lang::user::locale -user_id $test_user_id] de_DE
+                lang::user::set_locale -user_id $test_user_id "it_IT"
+                aa_equals "check test_user can be set to it_IT" \
+                    [lang::user::locale -user_id $test_user_id] it_IT
 
                 set locale [lang::system::locale]
                 set lang [string range $locale 0 1]
@@ -797,13 +805,24 @@ namespace eval ::xowiki::test {
                     -update [subst {
                         title "Numeric Testing Form"
                         nls_language en_US
-                        text {<p>@numeric@</p>}
+                        text {
+                            <p>
+                               @numeric@
+                               @mycompoundnumeric@
+                            </p>
+                        }
                         text.format text/html
-                        form {<form>@numeric@</form>}
+                        form {
+                            <form>
+                               @numeric@
+                               @mycompoundnumeric@
+                            </form>
+                        }
                         form.format text/html
                         form_constraints {
                             _page_order:omit _title:omit _nls_language:omit _description:omit
                             {numeric:numeric}
+                            mycompoundnumeric:regression_test_compound_numeric
                             mycompound:regression_test_mycompound
                         }
                     }]
@@ -815,7 +834,8 @@ namespace eval ::xowiki::test {
                 ###########################################################
 
                 #
-                # provide as de_DE the value "1.2"
+                # provide as it_IT the value "1.2" and 6.66 as the
+                # numeric value in the compound field
                 #
                 ::xowiki::test::create_form_page \
                     -last_request $request_info \
@@ -828,6 +848,7 @@ namespace eval ::xowiki::test {
                         _title "fresh $page_name"
                         _nls_language $locale
                         numeric 1.2
+                        mycompoundnumeric.anumber 6.66
                     }]
 
                 aa_log "Page $page_name created"
@@ -850,6 +871,12 @@ namespace eval ::xowiki::test {
 
                     set numValue [$numNode getAttribute value]
                     aa_equals "numeric value is '$numValue'" $numValue "1,20"
+
+                    set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
+                    aa_true "compound numeric field is found" {$compoundNumNode ne ""}
+
+                    set compoundNumValue [$compoundNumNode getAttribute value]
+                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6,66"
                 }
                 ::xowiki::test::edit_form_page \
                     -last_request $d \
@@ -858,6 +885,7 @@ namespace eval ::xowiki::test {
                     -update [subst {
                         _title "edited $page_name"
                         numeric "1,3"
+                        mycompoundnumeric.anumber "6,7"
                     }]
                 set d [acs::test::http -last_request $request_info \
                            [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
@@ -869,6 +897,10 @@ namespace eval ::xowiki::test {
                     set numNode [$root getElementById F.$id_part.numeric]
                     set numValue [$numNode getAttribute value]
                     aa_equals "numeric value is '$numValue'" $numValue "1,30"
+
+                    set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
+                    set compoundNumValue [$compoundNumNode getAttribute value]
+                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6,70"
                 }
 
                 #
@@ -888,6 +920,10 @@ namespace eval ::xowiki::test {
                     set numNode [$root getElementById F.$id_part.numeric]
                     set numValue [$numNode getAttribute value]
                     aa_equals "numeric value is '$numValue'" $numValue "1.30"
+
+                    set compoundNumNode [$root getElementById F.$id_part.mycompoundnumeric.anumber]
+                    set compoundNumValue [$compoundNumNode getAttribute value]
+                    aa_equals "compound numeric value is '$compoundNumValue'" $compoundNumValue "6.70"
                 }
 
 
