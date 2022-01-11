@@ -459,7 +459,7 @@ namespace eval ::xowiki::test {
         #
         # Setup of test user_id and login
         #
-        set user_info [::acs::test::user::create -email xowf@acs-testing.test -admin]
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
         set request_info [::acs::test::login $user_info]
 
         set instance /xowiki-test
@@ -528,7 +528,7 @@ namespace eval ::xowiki::test {
                         mycompound:regression_test_mycompound
                     }
                 }]
-            aa_log "Form  $form_name created"
+            aa_log "Form $form_name created"
 
             ###########################################################
             aa_section "Create an instance of $form_name named '$lang:cb1'"
@@ -720,6 +720,201 @@ namespace eval ::xowiki::test {
         "::acs::test::reply_has_status_code"
         "::acs::test::require_package_instance"
         "::acs::test::user::create"
+        "::lang::system::locale"
+        "::lang::user::locale"
+        "::lang::user::set_locale"
+        "::xowiki::Page instproc www-create-new"
+        "::xowiki::Page instproc www-edit"
+        "::xowiki::test::create_form"
+        "::xowiki::test::create_form_page"
+        "::xowiki::test::edit_form_page"
+        "::xowiki::test::get_form_CSSclass"
+        "::xowiki::test::get_object_name"
+        "::xowiki::test::require_test_folder"
+    } create_form_with_numeric {
+
+        Create an xowiki form and an instance of this form.  Here we
+        test primarily the numeric field with its interactions to
+        preferred language settings.
+
+    } {
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set installed_locales [lang::system::get_locales]
+            if {"de_DE" in $installed_locales && "en_US" in $installed_locales} {
+                aa_log "USER_INFO $user_info"
+                set test_user_id [dict get $user_info user_id]
+
+                lang::user::set_locale -user_id $test_user_id "en_US"
+                aa_equals "check test_user can be set to en_US" \
+                    [lang::user::locale -user_id $test_user_id] en_US
+
+                lang::user::set_locale -user_id $test_user_id "de_DE"
+                aa_equals "check test_user can be set to de_DE" \
+                    [lang::user::locale -user_id $test_user_id] de_DE
+
+                set locale [lang::system::locale]
+                set lang [string range $locale 0 1]
+                set form_name en:numeric-testing.form
+
+                ###########################################################
+                aa_section "Create Form $form_name"
+                ###########################################################
+                #
+                ::xowiki::test::create_form \
+                    -last_request $request_info \
+                    -instance $instance \
+                    -path $testfolder \
+                    -parent_id $folder_id \
+                    -name $form_name \
+                    -update [subst {
+                        title "Numeric Testing Form"
+                        nls_language en_US
+                        text {<p>@numeric@</p>}
+                        text.format text/html
+                        form {<form>@numeric@</form>}
+                        form.format text/html
+                        form_constraints {
+                            _page_order:omit _title:omit _nls_language:omit _description:omit
+                            {numeric:numeric}
+                            mycompound:regression_test_mycompound
+                        }
+                    }]
+                aa_log "Form $form_name created"
+
+                set page_name en:num1
+                ###########################################################
+                aa_section "Create an instance of $form_name named '$page_name'"
+                ###########################################################
+
+                #
+                # provide as de_DE the value "1.2"
+                #
+                ::xowiki::test::create_form_page \
+                    -last_request $request_info \
+                    -instance $instance \
+                    -path $testfolder \
+                    -parent_id $folder_id \
+                    -form_name $form_name \
+                    -update [subst {
+                        _name $page_name
+                        _title "fresh $page_name"
+                        _nls_language $locale
+                        numeric 1.2
+                    }]
+
+                aa_log "Page $page_name created"
+
+                set extra_url_parameter {{m edit}}
+                aa_log "Edit page with $page_name [lang::user::locale -user_id $test_user_id]"
+                set d [acs::test::http -last_request $request_info \
+                           [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+                acs::test::reply_has_status_code $d 200
+
+                set response [dict get $d body]
+                acs::test::dom_html root $response {
+                    set f_id     [::xowiki::test::get_object_name $root]
+                    set CSSclass [::xowiki::test::get_form_CSSclass $root]
+                    aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+                    aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
+                    set id_part [string map {: _} $page_name]
+                    set numNode [$root getElementById F.$id_part.numeric]
+                    aa_true "numeric field is found" {$numNode ne ""}
+
+                    set numValue [$numNode getAttribute value]
+                    aa_equals "numeric value is '$numValue'" $numValue "1,20"
+                }
+                ::xowiki::test::edit_form_page \
+                    -last_request $d \
+                    -instance $instance \
+                    -path $testfolder/$page_name \
+                    -update [subst {
+                        _title "edited $page_name"
+                        numeric "1,3"
+                    }]
+                set d [acs::test::http -last_request $request_info \
+                           [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+                acs::test::reply_has_status_code $d 200
+                set response [dict get $d body]
+                acs::test::dom_html root $response {
+                    set f_id     [::xowiki::test::get_object_name $root]
+                    set id_part [string map {: _} $page_name]
+                    set numNode [$root getElementById F.$id_part.numeric]
+                    set numValue [$numNode getAttribute value]
+                    aa_equals "numeric value is '$numValue'" $numValue "1,30"
+                }
+
+                #
+                # We have now the numeric value with the comma, now
+                # change language to en. The value displayed (in edit
+                # field, or in view should be now the value with the
+                # period).
+                #
+                lang::user::set_locale -user_id $test_user_id "en_US"
+                set d [acs::test::http -last_request $request_info \
+                           [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+                acs::test::reply_has_status_code $d 200
+                set response [dict get $d body]
+                acs::test::dom_html root $response {
+                    set f_id     [::xowiki::test::get_object_name $root]
+                    set id_part [string map {: _} $page_name]
+                    set numNode [$root getElementById F.$id_part.numeric]
+                    set numValue [$numNode getAttribute value]
+                    aa_equals "numeric value is '$numValue'" $numValue "1.30"
+                }
+
+
+            } else {
+                aa_log "this test needs en and de locales, installed are '[lang::system::get_locales]'"
+            }
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
+
+
+    aa_register_case -cats {web} -procs {
+        "::acs::test::dom_html"
+        "::acs::test::http"
+        "::acs::test::reply_has_status_code"
+        "::acs::test::require_package_instance"
+        "::acs::test::user::create"
         "::export_vars"
         "::lang::system::locale"
         "::xowiki::test::create_form"
@@ -740,7 +935,7 @@ namespace eval ::xowiki::test {
         #
         # Setup of test user_id and login
         #
-        set user_info [::acs::test::user::create -email xowf@acs-testing.test -admin]
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
         set request_info [::acs::test::login $user_info]
 
         set instance /xowiki-test
