@@ -3826,6 +3826,7 @@ namespace eval ::xowiki {
     # via nsv {3.865795920407959 microseconds per iteration}
     #
     set varname ::__xo_[ns_md5 $form_constraints]
+    set dict ""
 
     if {![nsv_get parsed_fcs $varname dict]} {
       #
