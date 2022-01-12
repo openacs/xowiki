@@ -1652,8 +1652,11 @@ namespace eval ::xowiki::formfield {
     set :structure $spec_list
     set :components [list]
     foreach entry $spec_list {
-      #:log "create_components creates $entry"
+      #:log "create_components creates form-field for spec '$entry'"
       lassign $entry name spec
+      if {$name eq ""} {
+        continue
+      }
       #
       # create for each component a form field
       #
