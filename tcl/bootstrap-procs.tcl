@@ -124,6 +124,7 @@ namespace eval ::xowiki {
         html::t ${:text}
       }
     }
+    html::t \n
     if {[info exists :listener] && ${:listener} ne ""} {
       lassign ${:listener} type body
       template::add_event_listener -event $type -id ${:id} \
