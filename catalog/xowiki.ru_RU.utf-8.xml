@@ -134,7 +134,6 @@
   <msg key="menu-Clipboard-Add">Добавить</msg>
   <msg key="menu-Clipboard-Clear">Очистить</msg>
   <msg key="menu-Clipboard-Content">Содержание</msg>
-  <msg key="menu-Clipboard-Copy">Копия</msg>
   <msg key="menu-Clipboard-Use-Copy">Копия</msg>
   <msg key="menu-Clipboard-Use-Export">Экспорт</msg>
   <msg key="menu-Package-ImportArchive">Импорт архива</msg>

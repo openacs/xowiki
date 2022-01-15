@@ -150,9 +150,9 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="menu-Clipboard-Add">Add to Clipboard</msg>
   <msg key="menu-Clipboard-Clear">Clear Clipboard</msg>
   <msg key="menu-Clipboard-Content">Show Clipboard Content</msg>
-  <msg key="menu-Clipboard-Copy">Insert here</msg>
-  <msg key="menu-Clipboard-Use-Copy">Insert here</msg>
-  <msg key="menu-Clipboard-Use-Export">Export Clipboard Content</msg>
+  <msg key="menu-Clipboard-Use-Copy">Insert content here ...</msg>
+  <msg key="menu-Clipboard-Use-Move">Move content here ...</msg>
+  <msg key="menu-Clipboard-Use-Export">Export content</msg>
   <msg key="menu-New">New</msg>
   <msg key="menu-New-File">File</msg>
   <msg key="menu-New-Folder">Folder</msg>

@@ -140,9 +140,9 @@
   <msg key="menu-Clipboard-Add">Zur Zwischenablage hinzufügen</msg>
   <msg key="menu-Clipboard-Clear">Leeren</msg>
   <msg key="menu-Clipboard-Content">Inhalt</msg>
-  <msg key="menu-Clipboard-Copy">Kopieren</msg>
-  <msg key="menu-Clipboard-Use-Copy">Inhalt in Ordner kopieren</msg>
-  <msg key="menu-Clipboard-Use-Export">Inhalt exportieren</msg>
+  <msg key="menu-Clipboard-Use-Copy">Inhalte hier einfügen</msg>
+  <msg key="menu-Clipboard-Use-Move">Inhalte hierher verschieben</msg>
+  <msg key="menu-Clipboard-Use-Export">Inhalte exportieren</msg>
   <msg key="menu-New">Neu</msg>
   <msg key="menu-New-File">Datei</msg>
   <msg key="menu-New-Folder">Ordner</msg>

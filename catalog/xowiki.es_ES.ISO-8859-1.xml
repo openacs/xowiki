@@ -153,7 +153,6 @@
   <msg key="menu-Clipboard-Add">Añadir</msg>
   <msg key="menu-Clipboard-Clear">Limpiar</msg>
   <msg key="menu-Clipboard-Content">Contenido</msg>
-  <msg key="menu-Clipboard-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Copy">Copiar</msg>
   <msg key="menu-Clipboard-Use-Export">Exportar</msg>
   <msg key="menu-New">Nuevo</msg>
