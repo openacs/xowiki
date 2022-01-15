@@ -44,6 +44,7 @@ namespace eval ::xowiki::test {
 
     ad_proc -private -deprecated ::xowiki::test::get_url_from_location {d} {
         Deprecated version of ::acs::test::get_url_from_location
+        @see acs::test::get_url_from_location
     } {
         ::acs::test::get_url_from_location $d
     }
