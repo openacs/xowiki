@@ -3838,6 +3838,8 @@ namespace eval ::xowiki {
           dict set dict \
               [string range $name_and_spec 0 $p-1] \
               [string range $name_and_spec $p+1 end]
+        } else {
+          ad_log warning "get_short_spec_from_form_constraints: name_and_spec <$name_and_spec> is invalid"
         }
       }
       nsv_set parsed_fcs $varname $dict
