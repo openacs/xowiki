@@ -1102,6 +1102,156 @@ namespace eval ::xowiki::test {
             }
         }
     }
+
+
+    aa_register_case -cats {web} -procs {
+        "::acs::test::dom_html"
+        "::acs::test::http"
+        "::acs::test::reply_has_status_code"
+        "::acs::test::require_package_instance"
+        "::acs::test::user::create"
+        "::xowiki::Page instproc save_new"
+        "::xowiki::Page instproc pretty_link"
+        "::xowiki::Page instproc create_link"
+        "::xowiki::Page instproc anchor"
+        "::xowiki::Page instproc substitute_markup"
+        "::xowiki::File instproc save_new"
+    } nested_self_references {
+
+        Create a parent page, a child page and then an image stored
+        under the child page. The child page references the image
+        using .SELF., while the parent includes the child page.
+
+        Make sure that the image is correctly included inside of both
+        pages when they are rendered.
+
+    } {
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set parent_page [::xowiki::Page new \
+                                 -title "I am your father, Hello World" \
+                                 -name en:father \
+                                 -package_id $package_id \
+                                 -parent_id $folder_id \
+                                 -destroy_on_cleanup \
+                                 -text {{
+                                     {{father/hello}}
+                                 } "text/plain"}]
+            $parent_page save_new
+
+
+            set page [::xowiki::Page new \
+                          -title "Hello World" \
+                          -name en:hello \
+                          -package_id $package_id \
+                          -parent_id [$parent_page item_id] \
+                          -destroy_on_cleanup \
+                          -text {{
+                              [[.SELF./image:hello_file|Hello File]]
+                          } "text/plain"}]
+            $page save_new
+
+            set file_object [::xowiki::File new -destroy_on_cleanup \
+                                 -title "Hello World File" \
+                                 -name file:hello_file \
+                                 -parent_id [$page item_id] \
+                                 -mime_type image/png \
+                                 -package_id $package_id \
+                                 -creation_user [dict get $user_info user_id]]
+            $file_object set import_file \
+                [acs_root_dir]/packages/acs-templating/www/resources/sort-ascending.png
+            $file_object save_new
+
+            aa_true "$file_object was saved" [string is integer [$file_object item_id]]
+
+            set d [acs::test::http -last_request $request_info [$parent_page pretty_link]]
+            acs::test::reply_has_status_code $d 200
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set link_found_p false
+                foreach e [$root getElementsByTagName img] {
+                    set file_url [$e getAttribute src]
+                    if {[string match "*hello_file*" $file_url]} {
+                        set link_found_p true
+                        break
+                    }
+                }
+
+                aa_true "File was found on the page" $link_found_p
+                ns_log warning $response
+            }
+
+            if {$link_found_p} {
+                set d [acs::test::http -last_request $request_info $file_url]
+                acs::test::reply_has_status_code $d 200
+                set content_type [ns_set iget [dict get $d headers] content-type]
+                aa_equals "Content type is an image" image/png $content_type
+            }
+
+            set d [acs::test::http -last_request $request_info [$page pretty_link]]
+            acs::test::reply_has_status_code $d 200
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set link_found_p false
+                foreach e [$root getElementsByTagName img] {
+                    set file_url [$e getAttribute src]
+                    if {[string match "*hello_file*" $file_url]} {
+                        set link_found_p true
+                        break
+                    }
+                }
+
+                aa_true "File was found on the page" $link_found_p
+                ns_log warning $response
+            }
+
+            if {$link_found_p} {
+                set d [acs::test::http -last_request $request_info $file_url]
+                acs::test::reply_has_status_code $d 200
+                set content_type [ns_set iget [dict get $d headers] content-type]
+                aa_equals "Content type is an image" image/png $content_type
+            }
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
+
 }
 
 #
