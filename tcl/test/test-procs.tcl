@@ -546,6 +546,24 @@ namespace eval ::xowiki::test {
         acs::test::reply_has_status_code $d 302
     }
 
+    ad_proc ::xowiki::test::get_content {d} {
+
+        Retrieve form a result dict of a request just the xowiki
+        content part, denoted by the div with class 'xowiki-content'
+        (i.e., leave out the header and footer).
+
+        @return HTML with xowiki content or empty, iof not there
+    } {
+        acs::test::dom_html root [dict get $d body] {
+            set xowiki_content [$root selectNodes {//div[@class='xowiki-content']}]
+            if {$xowiki_content ne ""} {
+                set xowiki_content [$xowiki_content asHTML]
+            }
+        }
+        return $xowiki_content
+    }
+
+
 }
 
 #

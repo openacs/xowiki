@@ -393,14 +393,15 @@ namespace eval ::xowiki::test {
         "::acs::test::user::create"
         "::export_vars"
         "::lang::system::locale"
+        "::xowiki::Page instproc www-create-new"
+        "::xowiki::Page instproc www-edit"
         "::xowiki::test::create_form"
         "::xowiki::test::create_form_page"
         "::xowiki::test::edit_form_page"
+        "::xowiki::test::get_content"
         "::xowiki::test::get_form_CSSclass"
         "::xowiki::test::get_object_name"
         "::xowiki::test::require_test_folder"
-        "::xowiki::Page instproc www-create-new"
-        "::xowiki::Page instproc www-edit"
 
         "::ad_log"
         "::ad_return_complaint"
@@ -697,15 +698,16 @@ namespace eval ::xowiki::test {
                        [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
             acs::test::reply_has_status_code $d 200
 
-            set response [dict get $d body]
-            acs::test::dom_html root $response {
+            #ns_log notice CONTENT=[::xowiki::test::get_content $d]
+            
+            acs::test::dom_html root [::xowiki::test::get_content $d] {
                 set id_part [string map {: _} $page_name]
                 set input1 [$root getElementById F.$id_part.txt.1]
                 set input2 [$root getElementById F.$id_part.txt.2]
+                aa_log "input1 '$input1' input2 '$input2'"
                 aa_equals "input1 (1st element of repeated field)" [$input1 getAttribute value] t1
                 aa_equals "input2 (2nd element of repeated field)" [$input2 getAttribute value] t2
             }
-
 
 
         } on error {errorMsg} {
