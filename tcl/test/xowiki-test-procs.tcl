@@ -1155,30 +1155,33 @@ namespace eval ::xowiki::test {
             set package_id [dict get $folder_info package_id]
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
 
+            aa_section "Create father page 'en:father'"
             set parent_page [::xowiki::Page new \
+                                 -destroy_on_cleanup \
                                  -title "I am your father, Hello World" \
                                  -name en:father \
                                  -package_id $package_id \
                                  -parent_id $folder_id \
-                                 -destroy_on_cleanup \
                                  -text {{
-                                     {{father/hello}}
+                                     {{en:father/hello}}
                                  } "text/plain"}]
             $parent_page save_new
 
-
+            aa_section "Create child page 'en:hello'"
             set page [::xowiki::Page new \
+                          -destroy_on_cleanup \
                           -title "Hello World" \
                           -name en:hello \
                           -package_id $package_id \
                           -parent_id [$parent_page item_id] \
-                          -destroy_on_cleanup \
                           -text {{
                               [[.SELF./image:hello_file|Hello File]]
                           } "text/plain"}]
             $page save_new
 
-            set file_object [::xowiki::File new -destroy_on_cleanup \
+            aa_section "Create image 'file:hello_file' as child of child page"
+            set file_object [::xowiki::File new \
+                                 -destroy_on_cleanup \
                                  -title "Hello World File" \
                                  -name file:hello_file \
                                  -parent_id [$page item_id] \
@@ -1191,6 +1194,7 @@ namespace eval ::xowiki::test {
 
             aa_true "$file_object was saved" [string is integer [$file_object item_id]]
 
+            aa_section "load [$parent_page name] and check links"
             set d [acs::test::http -last_request $request_info [$parent_page pretty_link]]
             acs::test::reply_has_status_code $d 200
             set response [dict get $d body]
@@ -1215,6 +1219,7 @@ namespace eval ::xowiki::test {
                 aa_equals "Content type is an image" image/png $content_type
             }
 
+            aa_section "load [$page name] and check links"
             set d [acs::test::http -last_request $request_info [$page pretty_link]]
             acs::test::reply_has_status_code $d 200
             set response [dict get $d body]
