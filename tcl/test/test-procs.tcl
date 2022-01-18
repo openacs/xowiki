@@ -204,7 +204,7 @@ namespace eval ::xowiki::test {
             # expect a permission denied error.
             #
             set d [acs::test::http -user_id 0 $instance/$form_name?m=create-new&return_url=$instance/]
-            aa_equals "require_test_folder: Status code valid" [dict get $d status] 403
+            acs::test::reply_has_status_code $d 403
 
             ::xowiki::test::create_form_page \
                 -user_id $user_id \
@@ -362,6 +362,7 @@ namespace eval ::xowiki::test {
             aa_log "create_form_page: DONE"
             dict set d page_info $page_info
             dict set d instance $instance
+            dict set d item_id $item_id
         }
         return $d
     }
