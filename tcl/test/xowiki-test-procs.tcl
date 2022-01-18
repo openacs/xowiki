@@ -1191,53 +1191,34 @@ namespace eval ::xowiki::test {
             $file_object set import_file \
                 [acs_root_dir]/packages/acs-templating/www/resources/sort-ascending.png
             $file_object save_new
-
             aa_true "$file_object was saved" [string is integer [$file_object item_id]]
 
             aa_section "load [$parent_page name] and check links"
             set d [acs::test::http -last_request $request_info [$parent_page pretty_link]]
             acs::test::reply_has_status_code $d 200
-            set response [dict get $d body]
-            acs::test::dom_html root $response {
-                set link_found_p false
-                foreach e [$root getElementsByTagName img] {
-                    set file_url [$e getAttribute src]
-                    if {[string match "*hello_file*" $file_url]} {
-                        set link_found_p true
-                        break
-                    }
-                }
-
-                aa_true "File was found on the page" $link_found_p
-                ns_log warning $response
+            acs::test::dom_html root [dict get $d body] {
+                set images [lmap p [$root selectNodes {//img[@class='image']/@src}] {file tail [lindex $p 1]}]
+                set file_urls [lmap p [$root selectNodes {//img[@class='image']/@src}] {lindex $p 1}]
             }
 
-            if {$link_found_p} {
+            aa_true "File was found on the page" {"hello_file" in $images}
+            foreach file_url $file_urls {
                 set d [acs::test::http -last_request $request_info $file_url]
                 acs::test::reply_has_status_code $d 200
                 set content_type [ns_set iget [dict get $d headers] content-type]
-                aa_equals "Content type is an image" image/png $content_type
+                aa_equals "Content type of $file_url is an image" image/png $content_type
             }
 
             aa_section "load [$page name] and check links"
             set d [acs::test::http -last_request $request_info [$page pretty_link]]
             acs::test::reply_has_status_code $d 200
-            set response [dict get $d body]
-            acs::test::dom_html root $response {
-                set link_found_p false
-                foreach e [$root getElementsByTagName img] {
-                    set file_url [$e getAttribute src]
-                    if {[string match "*hello_file*" $file_url]} {
-                        set link_found_p true
-                        break
-                    }
-                }
-
-                aa_true "File was found on the page" $link_found_p
-                ns_log warning $response
+            acs::test::dom_html root [dict get $d body] {
+                set images [lmap p [$root selectNodes {//img[@class='image']/@src}] {file tail [lindex $p 1]}]
+                set file_urls [lmap p [$root selectNodes {//img[@class='image']/@src}] {lindex $p 1}]
             }
 
-            if {$link_found_p} {
+            aa_true "File was found on the page" [expr {"hello_file" in $images}]
+            foreach file_url $file_urls {
                 set d [acs::test::http -last_request $request_info $file_url]
                 acs::test::reply_has_status_code $d 200
                 set content_type [ns_set iget [dict get $d headers] content-type]

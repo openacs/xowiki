@@ -376,7 +376,7 @@ namespace eval ::xowiki::test {
         {-remove ""}
         {-extra_url_parameter {{m edit}}}
         {-next_page_must_contain ""}
-        {-refetch:boolean false}
+        {-refetch:boolean true}
     } {
 
         Edit a form page via the web interface.
@@ -428,8 +428,7 @@ namespace eval ::xowiki::test {
                    -update $update \
                    -remove $remove]
         acs::test::reply_has_status_code $d 302
-
-        set location /[::acs::test::get_url_from_location $d]
+        # set location /[::acs::test::get_url_from_location $d]
 
         if {$refetch_p} {
             foreach {key value} $update {
