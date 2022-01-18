@@ -443,10 +443,10 @@ namespace eval ::xowiki::test {
             if {$next_page_must_contain eq ""} {
                 set next_page_must_contain [dict get $form_content _title]
             }
-            acs::test::reply_contains $d $next_page_must_contain            
+            acs::test::reply_contains $d $next_page_must_contain
         }
         dict set d instance $instance
-        return $d        
+        return $d
     }
 
     ad_proc ::xowiki::test::create_form {
