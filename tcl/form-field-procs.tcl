@@ -1411,6 +1411,10 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  FormField instproc is_repeat_template_p {} {
+    return [expr {[info exists :is_repeat_template] && ${:is_repeat_template} == "true"}]
+  }
+
   FormField instproc field_value {v} {
     if {[info exists :show_raw_value]} {
       return $v
@@ -1842,14 +1846,22 @@ namespace eval ::xowiki::formfield {
   CompoundField instproc convert_to_external {internal} {
     #ns_log notice "Compound ${:name} convert_to_external <$internal>"
     set result {}
-    foreach c ${:components} {
-      set name [$c name]
-      if {[dict exists $internal $name]} {
+    set c [lindex ${:components} 0]
+    if {[$c is_repeat_template_p]} {
+      foreach {name value} $internal {
         set value [$c convert_to_external [dict get $internal $name]]
-      } else {
-        set value ""
+        lappend result $name $value
       }
-      lappend result [$c name] $value
+    } else {
+      foreach c ${:components} {
+        set name [$c name]
+        if {[dict exists $internal $name]} {
+          set value [$c convert_to_external [dict get $internal $name]]
+        } else {
+          set value ""
+        }
+        lappend result [$c name] $value
+      }
     }
     #ns_log notice "Compound ${:name} convert_to_external -> $result"
     return $result
@@ -3747,7 +3759,8 @@ namespace eval ::xowiki::formfield {
 
   richtext::ckeditor4 instproc render_input {} {
     set disabled [:is_disabled]
-    set is_repeat_template [expr {[info exists :is_repeat_template] && ${:is_repeat_template} == "true"}]
+    set is_repeat_template [:is_repeat_template_p]
+
     # :msg "${:id} ${:name} - $is_repeat_template"
 
     if {$is_repeat_template} {

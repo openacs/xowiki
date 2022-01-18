@@ -195,10 +195,6 @@ namespace eval ::xowiki::formfield {
     return $r
   }
 
-  repeatContainer instproc convert_to_external {internal} {
-    return $internal
-  }
-
   repeatContainer instproc trim_values {} {
     # Trim trailing values identical to default.
     # Trimming the components list seems sufficient.
