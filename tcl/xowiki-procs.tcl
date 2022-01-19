@@ -1804,6 +1804,7 @@ namespace eval ::xowiki {
       set :item_id $item_id
     }
   }
+
   Page instproc reset_resolve_context {} {
     #
     # Pop the last values from the stack
@@ -2411,6 +2412,17 @@ namespace eval ::xowiki {
     return [:pretty_link]
   }
 
+  Page instproc self_link_ids {} {
+    #ns_log notice "physical_item_id [:physical_item_id] item_id [:item_id] :item_id ${:item_id}"
+    #ns_log notice "physical_parent_id [:physical_parent_id] parent_id [:parent_id] :parent_id ${:parent_id}"
+    if {[:physical_parent_id] ne ${:parent_id}} {
+      set parent_id ${:parent_id}
+    } else {
+      set parent_id [:physical_item_id]
+    }
+    return [list package_id [:physical_package_id] parent_id $parent_id]
+  }
+
   Page instproc create_link {arg} {
     #:msg [self args]
     set label $arg
@@ -2493,12 +2505,16 @@ namespace eval ::xowiki {
       # resource (e.g. the image name) under the current (physical)
       # item.
       #
+      set self_link_ids [:self_link_ids]
+      set parent_id [dict get $self_link_ids parent_id]
+      set package_id [dict get $self_link_ids package_id]
+
+      #ns_log notice "SELF-LINK '[dict get $link_info link]' in TEXT resolve with parent $parent_id"
       set is_self_link true
-      set package_id [:physical_package_id]
       set item_ref_info [::$package_id item_ref \
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
-                             -parent_id [:physical_item_id] \
+                             -parent_id $parent_id \
                              $link]
       dict set link_info link $link
       #:log "SELF-LINK returns $item_ref_info"
@@ -2507,6 +2523,7 @@ namespace eval ::xowiki {
       #
       # A plain link, search relative to the parent.
       #
+      #ns_log notice "PLAIN-LINK '[dict get $link_info link]' in TEXT resolve with parent $parent_id"
       set item_ref_info [::$package_id item_ref \
                              -use_package_path $use_package_path \
                              -default_lang [:lang] \
@@ -2653,7 +2670,6 @@ namespace eval ::xowiki {
 
 
   Page instproc substitute_markup {{-context_obj ""} content} {
-
     if {${:mime_type} eq "text/enhanced"} {
       set content [ad_enhanced_text_to_html $content]
     }
@@ -3502,6 +3518,7 @@ namespace eval ::xowiki {
   }
 
   PlainPage instproc substitute_markup {{-context_obj ""} raw_content} {
+
     #
     # The provided text is a raw text that is transformed into HTML
     # markup for links etc.
