@@ -2413,13 +2413,7 @@ namespace eval ::xowiki {
   }
 
   Page instproc self_link_ids {} {
-    #ns_log notice "physical_item_id [:physical_item_id] item_id [:item_id] :item_id ${:item_id}"
-    #ns_log notice "physical_parent_id [:physical_parent_id] parent_id [:parent_id] :parent_id ${:parent_id}"
-    if {[:physical_parent_id] ne ${:parent_id}} {
-      set parent_id ${:parent_id}
-    } else {
-      set parent_id [:physical_item_id]
-    }
+    set parent_id [expr {[info exists :__ignore_self_in_links] ? ${:parent_id} : [:physical_item_id]}]
     return [list package_id [:physical_package_id] parent_id $parent_id]
   }
 
@@ -2506,7 +2500,7 @@ namespace eval ::xowiki {
       # item.
       #
       set self_link_ids [:self_link_ids]
-      set parent_id [dict get $self_link_ids parent_id]
+      set parent_id  [dict get $self_link_ids parent_id]
       set package_id [dict get $self_link_ids package_id]
 
       #ns_log notice "SELF-LINK '[dict get $link_info link]' in TEXT resolve with parent $parent_id"
@@ -2697,6 +2691,7 @@ namespace eval ::xowiki {
       if {$context_obj ne ""} {
         :set_resolve_context \
             -package_id [$context_obj package_id] -parent_id [$context_obj item_id]
+        set :__ignore_self_in_links 1
       }
 
       foreach l0 [split $content \n] {
@@ -2715,6 +2710,7 @@ namespace eval ::xowiki {
       error $errorMsg
     } finally {
       if {$context_obj ne ""} {
+        unset :__ignore_self_in_links
         :reset_resolve_context
       }
     }
