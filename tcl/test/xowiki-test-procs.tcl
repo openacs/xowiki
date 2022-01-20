@@ -426,6 +426,7 @@ namespace eval ::xowiki::test {
         "::xo::db::CrItem instproc rename"
         "::xo::tdom::AttributeManager instproc get_attributes"
         "::xowiki::FormPage instproc combine_data_and_form_field_default"
+        "::xowiki::FormPage instproc load_values_into_form_fields"
         "::xowiki::FormPage instproc set_form_data"
         "::xowiki::FormPage instproc set_property"
         "::xowiki::Includelet proc html_encode"
@@ -699,7 +700,7 @@ namespace eval ::xowiki::test {
             acs::test::reply_has_status_code $d 200
 
             #ns_log notice CONTENT=[::xowiki::test::get_content $d]
-            
+
             acs::test::dom_html root [::xowiki::test::get_content $d] {
                 set id_part [string map {: _} $page_name]
                 set input1 [$root getElementById F.$id_part.txt.1]
@@ -740,6 +741,8 @@ namespace eval ::xowiki::test {
         "::xowiki::test::get_form_CSSclass"
         "::xowiki::test::get_object_name"
         "::xowiki::test::require_test_folder"
+
+        "::xowiki::FormPage instproc load_values_into_form_fields"
     } create_form_with_numeric {
 
         Create an xowiki form and an instance of this form.  Here we
@@ -1118,6 +1121,8 @@ namespace eval ::xowiki::test {
         "::xowiki::Page instproc anchor"
         "::xowiki::Page instproc substitute_markup"
         "::xowiki::File instproc save_new"
+
+        "::ad_returnfile_background"
     } nested_self_references {
 
         Create a parent page, a child page and then an image stored

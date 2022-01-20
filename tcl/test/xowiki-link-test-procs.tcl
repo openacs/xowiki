@@ -19,21 +19,22 @@ namespace eval ::xowiki::test {
         "::api_page_documentation_mode_p"
         "::auth::require_login"
         "::export_vars"
+        "::general_comments_delete_messages"
         "::site_node::get_url_from_object_id"
         "::xo::ConnectionContext instproc get_parameter"
         "::xo::ConnectionContext instproc user_id"
         "::xo::Context instproc export_vars"
         "::xo::Context instproc original_url_and_query"
         "::xo::Context instproc package_id"
+        "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xo::db::Class proc object_type_to_class"
+        "::xo::db::CrClass proc ensure_item_ids_instantiated"
         "::xowiki::FormPage instproc update_item_index"
+        "::xowiki::FormPage proc fetch_object"
         "::xowiki::Package instproc folder_path"
         "::xowiki::Package instproc pretty_link"
         "::xowiki::Page instproc render"
-        "::xowiki::FormPage proc fetch_object"
-        "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xowiki::utility proc formCSSclass"
-        general_comments_delete_messages
       } \
       link_tests {
         Test links pointing to folders in different instances
