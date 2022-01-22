@@ -1048,10 +1048,10 @@ namespace eval ::xowiki {
     rights to invoke the method. If not, this method returns empty.
 
     @param privilege
+        When provided, the privilege can be "public" (do not check rights)
+        or a privilege to be checked on the package_id and the current user.
         When this parameter is not specified, the policy is used to determine
         the rights to be checked.
-        When provided, can be "public" (do not check rights) or a privilege to be
-        checked on the package_id and the current user.
 
     @param link
         When this parameter is specified, is used used as base link for export_vars
@@ -1289,8 +1289,13 @@ namespace eval ::xowiki {
         return $r
       }
     } else {
-      # the requested page was not found, provide an error message and
-      # an optional link for creating the page
+      #
+      # The requested page was not found, provide an error message and
+      # an optional link for creating the page. The creation link
+      # depends on the method "create_new_snippet", which checks
+      # whether the policy in place supports "edit-new" permissions
+      # for the current user.
+      #
       set path [::xowiki::Includelet html_encode ${:object}]
       set edit_snippet [:create_new_snippet $path]
       return [:error_msg -status_code 404 -template_file $error_template \
@@ -1522,26 +1527,33 @@ namespace eval ::xowiki {
       return $page
     }
 
-    :log "try to import a prototype page for '$(stripped_name)' [array get {}]"
-    if {$(stripped_name) ne ""} {
-      #
-      # Allow import of prototype pages into the actual folder.
-      #
-      if {[info exists (logical_parent_id)]} {
-        set parent_id $(logical_parent_id)
-      } elseif {[info exists (parent_id)]} {
-        set parent_id $(parent_id)
-      } else {
-        set parent_id ${:folder_id}
+    #
+    # Is the current user allowed to create a page from the prototype
+    # pages?  In some packages, this might not be allowed.
+    #
+    if {[:check_permissions -package_id [self] [self] create-from-prototype]} {
+
+      :log "try to import a prototype page for '$(stripped_name)' [array get {}]"
+      if {$(stripped_name) ne ""} {
+        #
+        # Try to import of prototype pages into the actual folder.
+        #
+        if {[info exists (logical_parent_id)]} {
+          set parent_id $(logical_parent_id)
+        } elseif {[info exists (parent_id)]} {
+          set parent_id $(parent_id)
+        } else {
+          set parent_id ${:folder_id}
+        }
+        set page [:www-import-prototype-page \
+                      -lang $lang \
+                      -parent_id $parent_id \
+                      -add_revision false \
+                      $(stripped_name)]
       }
-      set page [:www-import-prototype-page \
-                    -lang $lang \
-                    -parent_id $parent_id \
-                    -add_revision false \
-                    $(stripped_name)]
-    }
-    if {$page eq ""} {
-      :log "no prototype for '$object' found"
+      if {$page eq ""} {
+        :log "no prototype for '$object' found"
+      }
     }
 
     return $page
@@ -2079,7 +2091,7 @@ namespace eval ::xowiki {
     # Obtain item info (item_id parent_id lang stripped_name) from the
     # specified url. Search starts always at the root.
     #
-    # @param with_package_prefix flag, if provided url contains package-url
+    # @param with_package_prefix flag, if provided URL contains package-url
     # @return item ref data (parent_id lang stripped_name method)
     #
     if {$with_package_prefix && [string match "/*" $url]} {
@@ -3071,7 +3083,7 @@ namespace eval ::xowiki {
         # exception below.
         #
         #error "no ::xo::cc available (package_id ${:id}), returning default for parameter $attribute"
-        
+
         return $default
       }
     }
@@ -3112,6 +3124,7 @@ namespace eval ::xowiki {
         {{has_name {[.](js|css)$}} id admin}
         {id create}
       }
+      create-from-prototype {{id create}}
     }
 
     Class create Page -array set require_permission {
@@ -3159,7 +3172,8 @@ namespace eval ::xowiki {
 
   Policy policy2 -contains {
     #
-    # we require side wide admin rights for deletions and code
+    # Require side wide admin rights for deletions and creation of
+    # program code via ::xowiki::Object.
     #
 
     Class create Package -array set require_permission {
@@ -3179,6 +3193,7 @@ namespace eval ::xowiki {
         {{has_name {[.](js|css)$}} swa}
         {id create}
       }
+      create-from-prototype {{id create}}
     }
 
     Class create Page -array set require_permission {
@@ -3220,8 +3235,9 @@ namespace eval ::xowiki {
 
   Policy policy3 -contains {
     #
-    # we require side wide admin rights for deletions
-    # we perform checking on item_ids for pages.
+    # Require side wide admin rights for deletions.  Perform checking
+    # on item_ids (instead on package_id) for pages. This policy
+    # implements therefor per-page permissions.
     #
 
     Class create Package -array set require_permission {
@@ -3241,6 +3257,7 @@ namespace eval ::xowiki {
         {{has_name {[.](js|css)$}} swa}
         {id create}
       }
+      create-from-prototype {{id create}}
     }
 
     Class create Page -array set require_permission {
@@ -3306,7 +3323,7 @@ namespace eval ::xowiki {
   #:log "--set granted [policy4 check_permissions -user_id 0 -package_id 0 function f]"
 
   #
-  # an example with in_state condition...
+  # An example with an "in_state" condition for workflows ...
   #
   Policy policy5 -contains {
 
@@ -3327,6 +3344,7 @@ namespace eval ::xowiki {
         {{has_name {[.](js|css)$}} swa}
         {id create}
       }
+      create-from-prototype {{id create}}
     }
 
     Class create Page -array set require_permission {
