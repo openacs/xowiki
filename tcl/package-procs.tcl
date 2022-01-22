@@ -3237,7 +3237,7 @@ namespace eval ::xowiki {
     #
     # Require side wide admin rights for deletions.  Perform checking
     # on item_ids (instead on package_id) for pages. This policy
-    # implements therefor per-page permissions.
+    # implements therefore per-page permissions.
     #
 
     Class create Package -array set require_permission {
