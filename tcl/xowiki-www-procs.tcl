@@ -729,12 +729,10 @@ namespace eval ::xowiki {
     # with the proper delivery information.
     #
     set package_id [::xo::cc package_id]
-    ::$package_id set mime_type ${:mime_type}
     #
     # Use always ad_returnfile_background, it is clever enough to use
     # the right delivery mode in case of doubt.
     #
-    ::$package_id set delivery ad_returnfile_background
 
     if {[:exists_query_parameter filename]} {
       set fn [::xo::backslash_escape \" [:query_parameter filename]]
@@ -744,14 +742,23 @@ namespace eval ::xowiki {
     set full_file_name [:full_file_name]
 
     if {![ad_file exists $full_file_name]} {
-      # This should not happen on a production system, however, it
-      # might on a test system that does not have a copy of the
-      # content-repository folder. We fail more gracefully in this
+      #
+      # This should not happen on a production system. In certain
+      # testing setups, a system admin might not have provided the
+      # full content repository.  We fail more gracefully in this
       # case.
-      ad_log Error "Could not read file $full_file_name. Maybe the content repository is (partially) missing?"
-      ns_returnnotfound
-      ad_script_abort
+      #
+      ad_log error "The file '$full_file_name' does not exist." \
+          "Maybe the content repository is (partially) missing?"
+
+      return [::${:package_id} error_msg -status_code 500 [subst {
+        No file for link <b>'[ns_quotehtml [ns_conn url]]'</b> available.<br>
+        Please report this to the web master of this site.
+      }]]
     }
+
+    ::$package_id set mime_type ${:mime_type}
+    ::$package_id set delivery ad_returnfile_background
 
     #:log "--F FILE=$full_file_name // ${:mime_type}"
 
