@@ -1531,7 +1531,7 @@ namespace eval ::xowiki {
     # Is the current user allowed to create a page from the prototype
     # pages?  In some packages, this might not be allowed.
     #
-    if {[:check_permissions -package_id [self] [self] create-from-prototype]} {
+    if {[:check_permissions -package_id ${:id} [self] create-from-prototype]} {
 
       :log "try to import a prototype page for '$(stripped_name)' [array get {}]"
       if {$(stripped_name) ne ""} {
