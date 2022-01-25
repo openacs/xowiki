@@ -265,8 +265,8 @@ namespace eval ::xowiki {
         return 0
       }
     } else {
-      $data name $name
-      set name [$data build_name -nls_language [$data form_parameter nls_language en]]
+      $data name $name      
+      set name [$data build_name -nls_language [$data form_parameter nls_language en_US]]
     }
     if {$name ne ""} {
       set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
