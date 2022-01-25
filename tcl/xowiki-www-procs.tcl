@@ -1045,7 +1045,7 @@ namespace eval ::xowiki {
     #:log field_names=$field_names
     set form_fields [:create_form_fields $field_names]
     #foreach f0 $form_fields {
-    #  ns_log notice "... created ff [$f0 name] [$f0 info class]"
+    #  ns_log notice "... created ff [$f0 name] [$f0 info class] '[$f0 value]'"
     #}
 
     if {$form eq ""} {
@@ -1148,7 +1148,7 @@ namespace eval ::xowiki {
       } else {
         #
         # We have no validation errors, so we can save the content.
-        #
+        #        
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
@@ -1199,7 +1199,7 @@ namespace eval ::xowiki {
       #
       # Build the input form and display the current values.
       #
-      #:log "form_action is something different: <[:form_parameter __form_action {}]>"
+      #:log "form_action is something different: <[:form_parameter __form_action {}]>"      
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [::${:package_id} default_locale]
@@ -2638,7 +2638,7 @@ namespace eval ::xowiki {
           set f     [:lookup_form_field -name $att $form_fields]
           set value [$f value [string trim [$cc form_parameter $att]]]
           set varname [string range $att 1 end]
-          if {![string match "*.*" $att]} {
+          if {[string first . $att] == -1} {
             set :$varname $value
           }
         }
@@ -2662,7 +2662,7 @@ namespace eval ::xowiki {
             set f     [:lookup_form_field -name $att $form_fields]
             set value [$f value [string trim [$cc form_parameter $att]]]
             #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
-            if {![string match "*.*" $att]} {
+            if {[string first . $att] == -1} {
               #
               # If the field is not a compound field, put the received
               # value into the instance attributes. The containerized
@@ -2678,7 +2678,7 @@ namespace eval ::xowiki {
           }
         }
       }
-      if {[string match "*.*" $att]} {
+      if {[string first . $att] > -1} {
         lassign [split $att .] container component
         lappend containers($container) $component
       }
@@ -2777,7 +2777,6 @@ namespace eval ::xowiki {
     }
 
     #
-
     # Finally run the validator on the top-level fields
     #
     foreach f [concat $form_fields] {
