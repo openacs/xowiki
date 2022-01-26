@@ -4181,12 +4181,14 @@ namespace eval ::xowiki::formfield {
   ###########################################################
 
   # abstract superclass for "select" and "radio"
-  Class create ShuffleField -superclass FormField -parameter {
-    {options ""}
-    {render_hints ""}
-    {show_max ""}
-    {shuffle_kind:wordchar none}
-  } -ad_doc {
+  Class create ShuffleField -superclass FormField \
+      -extend_slot_default validator options \
+      -parameter {
+        {options ""}
+        {render_hints ""}
+        {show_max ""}
+        {shuffle_kind:wordchar none}
+      } -ad_doc {
 
     An abstract class for shuffling options and answers.  The options
     can be used a content of checkboxes, radioboxes and the like. This
@@ -4195,6 +4197,25 @@ namespace eval ::xowiki::formfield {
     @param shuffle_kind none|peruser|always
   }
   ShuffleField set abstract 1
+
+  ShuffleField instproc check=options {value} {
+    set result 1
+    if {$value ne "" && [info exists :options]} {
+      set allowed_values [lmap option ${:options} {lindex $option 1}]
+      if {!${:multiple}} {
+        set value [list $value]
+      }
+      foreach v $value {
+        if {$v ni $allowed_values} {
+          set result 0
+          break
+        }
+      }
+      ns_log notice "OPTIONS CHECK <$value> in <$allowed_values> -> $result" \
+          "([:info class])"
+    }
+    return $result
+  }
 
   ShuffleField instproc randomized_indices {length} {
     #
@@ -5435,6 +5456,20 @@ namespace eval ::xowiki::formfield {
     next
   }
 
+  abstract_page instproc check=options {value} {
+    #
+    # This is a very basic check, which disallows in essence space and
+    # some funny characters.
+    #
+    if {${:multiple}} {
+      set result [nsf::is graph,0..n $value]
+    } else {
+      set result [nsf::is graph $value]
+    }
+    #ns_log notice "OPTIONS CHECK abstract_page '$value' -> $result // '${:multiple}'"
+    return $result
+  }
+
   abstract_page instproc fetch_entry_label {entry_label item_id} {
     # The following is a temporary solution, only working with cr-item attributes
     # We should support as well user level instance attributes.
@@ -6244,6 +6279,10 @@ namespace eval ::xowiki::formfield {
   Class create boolean_checkbox -superclass checkbox -parameter {
     {default t}
   }
+  boolean_checkbox instproc check=options {value} {
+    return [expr {$value in {t f ""}}]
+  }
+
   boolean_checkbox instproc value_if_nothing_is_returned_from_form {default} {
     if {[info exists :disabled]} {
       return $default
