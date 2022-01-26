@@ -40,13 +40,13 @@
   <msg key="details">Details</msg>
   <msg key="duplicate">Duplizieren</msg>
   <msg key="edit">Bearbeiten</msg>
-  <msg key="Edit_category">Kategorienbaum bearbeiten</msg>
+  <msg key="Edit_category">Kategoriebaum bearbeiten</msg>
   <msg key="edit_link">bearbeiten</msg>
   <msg key="edit_title">Diese Seite bearbeiten ...</msg>
   <msg key="entries_using_form">Einträge für Formular %form%</msg>
   <msg key="error-delete_entries_first">Dieses Formular wird noch von %count% Einträgen verwendet. Bitte löschen Sie diese, bevor Sie das Formular löschen.</msg>
   <msg key="error-form_constraint-invalid_characters">Form constraint enthält ungültige Zeichen</msg>
-  <msg key="error-form_constraint-unknown_attribute">From field &#39;%name%&#39; (class %class%) enthält das unbekannte Attribut &#39;%entry%&#39;
+  <msg key="error-form_constraint-unknown_attribute">Form field &#39;%name%&#39; (class %class%) enthält das unbekannte Attribut &#39;%entry%&#39;
 </msg>
   <msg key="error-form_constraint-unknown_editor">Unbekannter Editor %editor%. Mögliche Werte sind: %editors%
 </msg>
@@ -114,13 +114,13 @@
   <msg key="height">Höhe</msg>
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
-  <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet (die Proportionen können verloren gehen ).</msg>
+  <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet (die Proportionen können verloren gehen).</msg>
   <msg key="ignore_case">Kleinschreibung</msg>
   <msg key="import">Importieren</msg>
   <msg key="import_create_user_ids">User-IDs erstellen</msg>
   <msg key="import_create_user_ids_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import gegebenenfalls neue User-IDs erstellt.</msg>
   <msg key="import_replace">Objekte ersetzen</msg>
-  <msg key="import_replace_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import bereits bestehende Objekte ersetzt. Bei Nicht-Aktivieren wird beim Import eine neue Version des Objekts hinzugefügt.</msg>
+  <msg key="import_replace_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import bereits bestehende Objekte ersetzt. Andernfalls wird beim Import eine neue Version des Objekts hinzugefügt.</msg>
   <msg key="Import_successful">Die Objekte wurden erfolgreich importiert</msg>
   <msg key="import_title">Wiki Seiten importieren</msg>
   <msg key="import_upload_file">Datei für Upload auswählen</msg>
@@ -152,7 +152,7 @@
   <msg key="menu-Package-Admin">Admin</msg>
   <msg key="menu-Package-ImportArchive">Archiv importieren</msg>
   <msg key="menu-Package-ImportDump">Dump importieren</msg>
-  <msg key="menu-Package-Notifications">Notifizierungen</msg>
+  <msg key="menu-Package-Notifications">Benachrichtigungen</msg>
   <msg key="menu-Package-Startpage">Startseite</msg>
   <msg key="menu-Package-Subscribe">Abonnieren</msg>
   <msg key="menu-Package-Toc">Inhaltsverzeichnis</msg>
@@ -198,7 +198,7 @@
   <msg key="Page-text">Inhalt</msg>
   <msg key="Page-title">Titel der Seite</msg>
   <msg key="Page-validate_name">Another item with the name &#39;%value%&#39; exists already in this folder</msg>
-  <msg key="Page-validate_page_order">Page Order ungültig, nur Buchstaben, Ziffern, Punkte und Unterstrich sind erlaubt,.</msg>
+  <msg key="Page-validate_page_order">Page Order ungültig, nur Buchstaben, Ziffern, Punkte und Unterstrich sind erlaubt.</msg>
   <msg key="page_kind">Art</msg>
   <msg key="page_title">Seitentitel</msg>
   <msg key="page_type">Typ der Seite</msg>
@@ -292,5 +292,5 @@
   <msg key="From">Von</msg>
   <msg key="to">bis</msg>
   <msg key="Archive">Archivieren</msg>
-  <msg key="Archive_title">Archivieren des Eintrags. Der Eintrag wird nach der Archivieriung Benutzern nicht mehr angezeigt.</msg>
+  <msg key="Archive_title">Archivieren des Eintrags. Der Eintrag wird nach der Archivierung Benutzern nicht mehr angezeigt.</msg>
 </message_catalog>
