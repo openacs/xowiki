@@ -3216,6 +3216,7 @@ namespace eval ::xowiki::formfield {
       set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
       if {!${:spellcheck}} {
         set :data-gramm false
+        set :data-lt-active false
       }
       if {${:autosave}} {
         ::html::div -class "autosave" {
@@ -3228,7 +3229,7 @@ namespace eval ::xowiki::formfield {
               }
           ::html::textarea [:get_attributes id name cols rows style wrap placeholder \
                                 data-repeat-template-id {CSSclass class} spellcheck \
-                                data-gramm {*}$booleanAtts] {
+                                data-gramm data-lt-active {*}$booleanAtts] {
                                   ::html::t [:value]
                                 }
         }
