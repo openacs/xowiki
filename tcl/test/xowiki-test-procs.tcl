@@ -20,6 +20,35 @@ namespace eval ::xowiki::formfield {
             {anumber {numeric,label=The Number}}
         }
     }
+
+    #
+    # A compound field containing a repeated compound field
+    #
+    Class create regression_test_compound_with_repeat -superclass CompoundField
+    regression_test_compound_with_repeat instproc initialize {} {
+        :create_components  {
+            {anumber {numeric,label=The Number}}
+            {atext {text,label=The Text}}
+            {aradio {radio,label=The Radio,options={X X} {Y Y} {Z Z}}}
+            {acheckbox {checkbox,label=The Checkbox,options={X X} {Y Y} {Z Z}}}
+            {aselect {select,label=The Select,options={X X} {Y Y} {Z Z}}}
+            {amultiselect {select,multiple=true,label=The Select,options={X X} {Y Y} {Z Z}}}
+            {arepeatedcompound {regression_test_compound_with_repeat2,repeat=0..5,label=The nested compound}}
+        }
+    }
+
+    Class create regression_test_compound_with_repeat2 -superclass CompoundField
+    regression_test_compound_with_repeat2 instproc initialize {} {
+        :create_components  {
+            {anumber {numeric,label=The Number}}
+            {atext {text,label=The Text}}
+            {aradio {radio,label=The Radio,options={A A} {B B} {C C}}}
+            {acheckbox {checkbox,label=The Checkbox,options={A A} {B B} {C C}}}
+            {aselect {select,label=The Select,options={A A} {B B} {C C}}}
+            {amultiselect {select,multiple=true,label=The Select,options={A A} {B B} {C C}}}
+        }
+    }
+
 }
 
 namespace eval ::xowiki::test {
@@ -710,6 +739,100 @@ namespace eval ::xowiki::test {
                 aa_equals "input2 (2nd element of repeated field)" [$input2 getAttribute value] t2
             }
 
+            set form_name $lang:repeated-compound.form
+            ###########################################################
+            aa_section "Create Form $form_name"
+            ###########################################################
+
+            #
+            # We now generate a form where a nested compound field is
+            # used as as template for a repeated field.
+            #
+
+            ::xowiki::test::create_form \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -name $form_name \
+                -update [subst {
+                    title "Repeated Compound Form"
+                    nls_language $locale
+                    text {<p>@_text@</p><p>@mycompoundwithrepeat@</p>}
+                    text.format text/html
+                    form {<form>@mycompoundwithrepeat@</form>}
+                    form.format text/html
+                    form_constraints {
+                        _page_order:omit _title:omit _nls_language:omit _description:omit
+                        {mycompoundwithrepeat:regression_test_compound_with_repeat,label=The Compound With Repeat}
+                    }
+                }]
+            aa_log "Form $form_name created"
+
+            set page_name $lang:rc1
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name'"
+            ###########################################################
+
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -update [subst {
+                    _name $page_name
+                    _title "fresh $page_name"
+                    _nls_language $locale
+                }]
+
+            aa_log "Page $page_name created"
+
+            set extra_url_parameter {{m edit}}
+            aa_log "Check content of the fresh instance"
+            set d [acs::test::http -last_request $request_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            acs::test::reply_has_status_code $d 200
+
+            ::xowiki::test::edit_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder/$page_name \
+                -update [subst {
+                    _title "edited $page_name"
+                    mycompoundwithrepeat.acheckbox X
+
+                    mycompoundwithrepeat.arepeatedcompound.1.anumber 1
+                    mycompoundwithrepeat.arepeatedcompound.1.acheckbox C
+
+                    mycompoundwithrepeat.arepeatedcompound.2.anumber 2
+                    mycompoundwithrepeat.arepeatedcompound.2.acheckbox B
+
+                    mycompoundwithrepeat.arepeatedcompound.3.anumber 3
+                    mycompoundwithrepeat.arepeatedcompound.3.acheckbox A
+
+                    mycompoundwithrepeat.arepeatedcompound.4.anumber 4
+                }]
+
+            aa_log "Check content of the edited instance"
+            set d [acs::test::http -user_info $user_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            acs::test::reply_has_status_code $d 200
+
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set f_id     [::xowiki::test::get_object_name $root]
+                set CSSclass [::xowiki::test::get_form_CSSclass $root]
+                aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+                aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
+                set id_part [string map {: _} $page_name]
+                set radio1 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:X]
+                set radio2 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:Y]
+                set radio3 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:Z]
+                aa_equals "Radio 'X' not checked"   [$radio1 hasAttribute checked] 0
+                aa_equals "Radio 'Y' not checked"   [$radio2 hasAttribute checked] 0
+                aa_equals "Radio 'Z' not checked"   [$radio3 hasAttribute checked] 0
+            }
 
         } on error {errorMsg} {
             aa_true "Error msg: $errorMsg" 0
