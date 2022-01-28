@@ -3335,6 +3335,7 @@ namespace eval ::xowiki {
 
     if {$name ni {langmarks fontname fontsize formatblock} && ![string match *__locale $name]} {
       set names [list]
+      #xo::show_stack
       foreach f $form_fields {lappend names [$f name]}
       :msg "No form field with name '$name' found\
             (available fields: [lsort [array names ::_form_field_names]])"
@@ -4853,6 +4854,13 @@ namespace eval ::xowiki {
         set page [::xo::cc cache [list ::${:package_id} get_page_from_item_ref $pp]]
         if {$page eq ""} {
           ad_log error "Could not resolve parameter page '$pp' of FormPage [self]."
+        }
+        #
+        # The following block should not be necessary
+        #
+        if {![::nsf::is object $page]} {
+          ad_log warning "We have to refetch parameter page"
+          ::xo::db::CrClass get_instance_from_db -item_id [string trimleft $page :]
         }
 
         if {$page ne "" && [$page exists instance_attributes]} {
