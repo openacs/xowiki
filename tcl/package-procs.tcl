@@ -771,6 +771,46 @@ namespace eval ::xowiki {
   #  next
   #}
 
+  Package ad_instproc get_parameter_from_parameter_page {
+    {-parameter_page_name ""}
+    parameter
+    {default ""}
+  } {
+    Try to get the parameter from the named parameter_page.
+
+    @return parameter value or empty
+  } {
+    set value $default
+    if {$parameter_page_name ne ""} {
+      if {![regexp {/?..:} $parameter_page_name]} {
+        ad_log error "Name of parameter page '$parameter_page_name'" \
+            "of FormPage [self] must contain a language prefix"
+      } else {
+        set page [::xo::cc cache \
+                      [list ::${:id} get_page_from_item_ref $parameter_page_name]]
+        if {$page eq ""} {
+          ad_log error "Could not resolve parameter page '$parameter_page_name'" \
+              "for package ${:id}."
+        }
+        #
+        # The following block should not be necessary
+        #
+        if {![::nsf::is object $page]} {
+          ad_log warning "We have to refetch parameter page"
+          ::xo::db::CrClass get_instance_from_db -item_id [string trimleft $page :]
+        }
+
+        if {$page ne "" && [$page exists instance_attributes]} {
+          set __ia [$page set instance_attributes]
+          if {[dict exists $__ia $parameter]} {
+            set value [dict get $__ia $parameter]
+          }
+        }
+      }
+    }
+    return $value
+  }
+
   Package ad_instproc get_parameter {
     {-check_query_parameter true}
     {-nocache:switch}
@@ -799,25 +839,9 @@ namespace eval ::xowiki {
       # resolve_page_name needs as well parameters such as
       # use_connection_locale or subst_blank_in_name, etc.).
       #
-      set pp [:get_parameter parameter_page ""]
-      if {$pp ne ""} {
-        if {![regexp {/?..:} $pp]} {
-          ad_log error "Name of parameter page '$pp' of package ${:id} must contain a language prefix"
-        } else {
-          set page [::xo::cc cache [list [self] get_page_from_item_ref $pp]]
-          if {$page eq ""} {
-            ad_log error "Could not resolve parameter page '$pp' of package ${:id}."
-          }
-          #:msg pp=$pp,page=$page-att=$attribute
-
-          if {$page ne "" && [$page exists instance_attributes]} {
-            set __ia [$page set instance_attributes]
-            if {[dict exists $__ia $attribute]} {
-              set value [dict get $__ia $attribute]
-            }
-          }
-        }
-      }
+      set value [:get_parameter_from_parameter_page \
+                     -parameter_page_name [:get_parameter parameter_page ""] \
+                     $attribute]
     }
 
     if {$value eq ""} {
