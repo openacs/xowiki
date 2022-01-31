@@ -3397,6 +3397,7 @@ namespace eval ::xowiki {
     {-instance_attributes ""}
     {-default_variables ""}
     {-nls_language ""}
+    {-state initial}
     {-creation_user ""}
     {-publish_status production}
     {-source_item_id ""}
@@ -3440,12 +3441,9 @@ namespace eval ::xowiki {
                -nls_language $nls_language \
                -publish_status $publish_status \
                -creation_user $creation_user \
+               -state $state \
                -instance_attributes $ia \
                -page_template ${:item_id}]
-
-    if {[info exists :state]} {
-      $f set state ${:state}
-    }
 
     # Make sure to load the instance attributes
     #$f array set __ia [$f instance_attributes]
