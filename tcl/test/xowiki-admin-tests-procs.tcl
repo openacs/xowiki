@@ -36,7 +36,6 @@ aa_register_case \
       "::xowiki::Page instproc www-revisions"
       "::xowiki::Page instproc www-view"
 
-
       "::Generic::Form instproc generate"
       "::acs::Cache instproc eval"
       "::acs::root_of_host"
@@ -74,6 +73,7 @@ aa_register_case \
       "::xo::PackageMgr instproc import_prototype_page"
       "::xo::PackageMgr instproc require"
       "::xo::PackageMgr instproc require_site_wide_pages"
+      "::xo::PackageMgr proc get_package_class_from_package_key"
       "::xo::Page proc get_property"
       "::xo::Page proc header_stuff"
       "::xo::Page proc requireCSS"
@@ -86,6 +86,9 @@ aa_register_case \
       "::xo::db::CrClass instproc fetch_object"
       "::xo::db::CrClass instproc get_instance_from_db"
       "::xo::db::CrClass instproc instance_select_query"
+      "::xo::db::CrClass proc get_child_item_ids"
+      "::xo::db::CrClass proc get_name"
+      "::xo::db::CrClass proc get_parent_id"
       "::xo::db::CrClass proc lookup"
       "::xo::db::CrFolder proc register_content_types"
       "::xo::db::CrItem instproc update_item_index"
@@ -97,7 +100,9 @@ aa_register_case \
       "::xowiki::File instproc www-download"
       "::xowiki::FormPage instproc is_folder_page"
       "::xowiki::FormPage instproc property"
+      "::xowiki::FormPage proc fetch_object"
       "::xowiki::Package instproc external_name"
+      "::xowiki::Package instproc get_parameter_from_parameter_page"
       "::xowiki::Package instproc item_ref"
       "::xowiki::Package instproc make_link"
       "::xowiki::Package instproc resolve_page"
@@ -106,11 +111,6 @@ aa_register_case \
       "::xowiki::Page instproc pretty_link"
       "::xowiki::Page instproc render"
       "::xowiki::hstore::double_quote"
-      "::xowiki::FormPage proc fetch_object"
-      "::xo::db::CrClass proc get_parent_id"
-      "::xo::db::CrClass proc get_name"
-      "::xo::db::CrClass proc get_child_item_ids"
-      "::xo::PackageMgr proc get_package_class_from_package_key"
       ad_ns_set_to_tcl_vars
       general_comments_delete_messages
       xowiki::before-uninstantiate
