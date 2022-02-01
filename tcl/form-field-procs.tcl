@@ -6144,8 +6144,7 @@ namespace eval ::xowiki::formfield {
   }
 
   date instproc set_compound_value {value} {
-    #:msg "${:name} original value '[:value]' // passed='$value' disa?[info exists :disabled]"
-    # if {$value eq ""} {return}
+    #:log "${:name} original value '[:value]' // passed='$value' disa?[info exists :disabled]"
     if { $value eq {} } {
       # We need to reset component values so that
       # instances of this class can be used as flyweight
@@ -6157,11 +6156,11 @@ namespace eval ::xowiki::formfield {
       return
     }
     set value [::xo::db::tcl_date $value tz]
-    #:msg "transformed value '$value'"
     if {$value ne ""} {
+      #ns_log notice "DATE date tries to scan '$value' // <[string map [list _ " "] $value]>"
       set ticks [clock scan [string map [list _ " "] $value]]
     } else {
-      set ticks ""
+      error "date: the parsed database value must not be empty"
     }
     set :defaults(year)  [clock format $ticks -format %Y]
     set :defaults(month) [clock format $ticks -format %m]
