@@ -4258,18 +4258,20 @@ namespace eval ::xowiki {
     return $form_fields
   }
 
-  Page instproc create_form_fields_from_form_constraints {
+  Page ad_instproc create_form_fields_from_form_constraints {
     {-lookup:switch}
     form_constraints
   } {
-    #
-    # Create form-fields from form constraints. When "-lookup" is
-    # specified, the code reuses existing form-field instead of
-    # recrating it.
-    #
-    # Since create_raw_form_field uses destroy_on_cleanup, we do not
-    # have to care here about destroying the objects.
-    #
+    
+     Create form-fields from form constraints. When "-lookup" is
+     specified, the code reuses existing form-field instead of
+     recreating it.
+    
+     Since create_raw_form_field uses destroy_on_cleanup, we do not
+     have to care here about destroying the objects.
+
+     @return potentially empty list of form-field objects
+   } {
     set form_fields [list]
     foreach name_and_spec $form_constraints {
       regexp {^([^:]+):(.*)$} $name_and_spec _ spec_name short_spec
