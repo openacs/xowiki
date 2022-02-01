@@ -39,7 +39,7 @@ set YUI_JS_PATHS {
 
 if {0} {
   #
-  # Downloading YUI files is cumbersome. Therefore this small helper
+  # Downloading YUI files is cumbersome. Therefore, this small helper
   # that maybe someone else finds helpful if there is some more
   # updates (which is not highly likely).
   #
