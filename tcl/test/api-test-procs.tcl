@@ -198,6 +198,53 @@ aa_register_case \
             {xxx}
     }
 
+aa_register_case \
+    -cats {api smoke production_safe} \
+    -procs {
+        "::xowiki::Page instproc create_form_fields_from_form_constraints"
+    } \
+    form_fields_from_form_constraints {
+
+        Create (different) types of form-field with minimal interface.
+
+    } {
+        ::xo::require_html_procs
+        set p1 [xowiki::Page new \
+                    -name en:foo \
+                    -package_id [ad_conn package_id] \
+                    -destroy_on_cleanup]
+        aa_log "p1 = $p1"
+        foreach fc {
+            {t:textarea,value=foo}
+            {show_ip:boolean,horizontal=true,default=t,label=#xowf.Show_IP#}
+            {date:date,default=2022-02-01 22:03:00}
+        } props {
+            {name t rows 2 cols 80}
+            {name show_ip value t horizontal true required false label #xowf.Show_IP#}
+            {name date value "2022-02-01 22:03:00"}
+        } {
+            set ff [$p1 create_form_fields_from_form_constraints \
+                        [list $fc]]
+
+            aa_log "<pre>[$ff serialize]</pre>"
+            #aa_log "[$ff name] [$ff info class] [$ff value]"
+            foreach {k v} $props {
+                aa_true "$k has value '$v' == '[$ff $k]'" {[$ff $k] eq $v}
+            }
+            dom createDocument html doc
+            set root [$doc documentElement]
+            $root appendFromScript {
+                $ff render_input
+            }
+            #
+            # Here we could check with xpath the content of the rended
+            # form field.
+            #
+            set HTML [lmap n [$root childNode] {$n asHTML}]
+            aa_log "<pre>[ns_quotehtml $HTML]</pre>"
+        }
+    }
+
 #
 # Local variables:
 #    mode: tcl

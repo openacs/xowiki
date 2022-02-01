@@ -644,6 +644,113 @@ namespace eval ::xowiki::test {
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 0
             }
 
+
+            set form_name $lang:Misc.form
+            ###########################################################
+            aa_section "Create form $form_name"
+            ###########################################################
+            #
+            # Create a form with a repeated field.
+            #
+            ::xowiki::test::create_form \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -name $form_name \
+                -update [subst {
+                    title "Form for miscelaneus form fields"
+                    nls_language $locale
+                    text {<p>@date@</p>}
+                    text.format text/html
+                    form {<form>@date@</form>}
+                    form.format text/html
+                    form_constraints {
+                        _page_order:omit _title:omit _nls_language:omit _description:omit
+                        date:date
+                    }
+                }]
+            aa_log "Form $form_name created"
+
+
+            set page_name $lang:m1
+            ###########################################################
+            aa_section "Create an instance $page_name of $form_name"
+            ###########################################################
+
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -update [subst {
+                    _name $page_name
+                    _title "fresh $page_name"
+                    _nls_language $locale
+                }]
+
+            aa_log "Page $page_name created"
+
+            set extra_url_parameter {{m edit}}
+            aa_log "Check content of the fresh instance"
+            set d [acs::test::http -last_request $request_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            acs::test::reply_has_status_code $d 200
+
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set f_id     [::xowiki::test::get_object_name $root]
+                set CSSclass [::xowiki::test::get_form_CSSclass $root]
+                aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+                aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
+                set id_part F.[string map {: _} $page_name]
+                set input1 [$root getElementById $id_part.date.DD]
+                set input2 [$root getElementById $id_part.date.month]
+                set input3 [$root getElementById $id_part.date.YYYY]
+                aa_true "input1 (1st element of date)" {$input1 ne ""}
+                aa_true "input2 (2nd element of date)" {$input2 ne ""}
+                aa_true "input3 (3rd element of date)" {[$input3 getAttribute value] eq ""}
+            }
+
+            ################################################################################
+            aa_section "Edit an instance $page_name of $form_name to add 2nd repeated field"
+            ################################################################################
+
+            ::xowiki::test::edit_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder/$page_name \
+                -update [subst {
+                    _title "edited $page_name"
+                    date.DD 1
+                    date.month 1
+                    date.YYYY 2022
+                }]
+
+            aa_log "Check content of the edited instance"
+            set d [acs::test::http -user_info $user_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            acs::test::reply_has_status_code $d 200
+
+            #ns_log notice CONTENT=[::xowiki::test::get_content $d]
+
+            acs::test::dom_html root [::xowiki::test::get_content $d] {
+                set id_part F.[string map {: _} $page_name]
+                set input1 [$root selectNodes "//select\[@id='$id_part.date.DD'\]/option\[@value='1'\]"]
+                set input2 [$root selectNodes "//select\[@id='$id_part.date.month'\]/option\[@value='1'\]"]
+                set input3 [$root getElementById $id_part.date.YYYY]
+                aa_true "input1 (1st element of date)" {$input1 ne ""}
+                aa_true "input2 (2nd element of date)" {$input2 ne ""}
+                aa_true "input3 (3rd element of date)" {[$input3 getAttribute value] eq "2022"}
+                foreach v [list $input1 $input2] {
+                    if {$v eq ""} continue
+                    aa_true "input selected '[$v getAttribute selected]'" \
+                        {[$v getAttribute selected] eq "selected"}
+                }
+            }
+
+
             set form_name $lang:Repeat.form
             ###########################################################
             aa_section "Create form $form_name"
@@ -658,7 +765,7 @@ namespace eval ::xowiki::test {
                 -parent_id $folder_id \
                 -name $form_name \
                 -update [subst {
-                    title "Checkbox Testing Form"
+                    title "Repeat Form"
                     nls_language $locale
                     text {<p>@txt@</p>}
                     text.format text/html
@@ -669,7 +776,7 @@ namespace eval ::xowiki::test {
                         txt:text,repeat=1..5,default=t1
                     }
                 }]
-            aa_log "Form  $form_name created"
+            aa_log "Form $form_name created"
 
 
             set page_name $lang:r1
@@ -703,9 +810,9 @@ namespace eval ::xowiki::test {
                 set CSSclass [::xowiki::test::get_form_CSSclass $root]
                 aa_true "page_name '$f_id' non empty" {$f_id ne ""}
                 aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
-                set id_part [string map {: _} $page_name]
-                set input1 [$root getElementById F.$id_part.txt.1]
-                set input2 [$root getElementById F.$id_part.txt.2]
+                set id_part F.[string map {: _} $page_name]
+                set input1 [$root getElementById $id_part.txt.1]
+                set input2 [$root getElementById $id_part.txt.2]
                 aa_equals "input1 (1st element of repeated field)" [$input1 getAttribute value] t1
                 aa_equals "input2 (2nd element of repeated field)" "" ""
             }
@@ -731,9 +838,9 @@ namespace eval ::xowiki::test {
             #ns_log notice CONTENT=[::xowiki::test::get_content $d]
 
             acs::test::dom_html root [::xowiki::test::get_content $d] {
-                set id_part [string map {: _} $page_name]
-                set input1 [$root getElementById F.$id_part.txt.1]
-                set input2 [$root getElementById F.$id_part.txt.2]
+                set id_part F.[string map {: _} $page_name]
+                set input1 [$root getElementById $id_part.txt.1]
+                set input2 [$root getElementById $id_part.txt.2]
                 aa_log "input1 '$input1' input2 '$input2'"
                 aa_equals "input1 (1st element of repeated field)" [$input1 getAttribute value] t1
                 aa_equals "input2 (2nd element of repeated field)" [$input2 getAttribute value] t2
@@ -841,8 +948,8 @@ namespace eval ::xowiki::test {
             # In case something has to be cleaned manually, do it here.
             #
             if {$package_id ne "" && $instance ne ""} {
-                set node_id [site_node::get_element -url $instance -element node_id]
-                site_node::delete -node_id $node_id -delete_package
+                #set node_id [site_node::get_element -url $instance -element node_id]
+                #site_node::delete -node_id $node_id -delete_package
             }
         }
     }
