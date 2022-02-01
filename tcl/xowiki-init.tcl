@@ -3,7 +3,7 @@
 # form_instance_item_index.
 #
 # We do this in a *-init file, since at that time, all library files
-# are usable. If we would do thisduring loading, we would have
+# are usable. If we would do this during loading, we would have
 # problems with not-yet loaded library files from other packages.
 #
 if {[nsv_exists xowiki must_update_hkeys]
