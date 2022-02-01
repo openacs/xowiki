@@ -6238,6 +6238,14 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  date instproc convert_to_external {internal} {
+    #
+    # For the date formfield, the internal representation does not
+    # need conversion to external.
+    #
+    return $internal
+  }
+
   date instproc render_input {} {
     #
     # render the content inline within a fieldset, without labels etc.
