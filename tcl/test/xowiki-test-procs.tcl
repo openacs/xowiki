@@ -171,21 +171,23 @@ namespace eval ::xowiki::test {
             aa_equals "slot is " $s ::xowiki::FormPage::slot::state
             aa_equals "slot domain is " [$s domain] ::xowiki::FormPage
 
-            aa_equals "old state is" [$f1_id state] ""
-            $f1_id update_attribute_from_slot $s "initial"
-            aa_equals "new state is" [$f1_id state] "initial"
+            set state [::xo::dc get_value get_state {select state from xowiki_form_pagex where item_id = :item_id}]
+            aa_equals "state directly from item index" $state [$f1_id state]
 
-            set item_id [$f1_id item_id]
-            set d [db_string get_state {select state from xowiki_form_instance_item_index where item_id = :item_id}]
-            aa_equals "new state directly from item index " $d "initial"
+            foreach state {"" initial teststate} {
+                $f1_id update_attribute_from_slot $s $state
+                aa_equals "state from object is '$state'" [$f1_id state] $state
+                set db_state [::xo::dc get_value get_state {select state from xowiki_form_pagex where item_id = :item_id}]
+                aa_equals "state directly from item index is '$state'" $db_state $state
 
-            #
-            # Now destroy in memory and refetch to double check, if all is OK.
-            #
-            $f1_id destroy
-            ::xo::db::CrClass get_instance_from_db -item_id $f1_id
-            aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
-            aa_equals "new state is" [$f1_id state] "initial"
+                #
+                # Now destroy in memory and refetch to double check, if all is OK.
+                #
+                $f1_id destroy
+                ::xo::db::CrClass get_instance_from_db -item_id $f1_id
+                aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
+                aa_equals "new state is" [$f1_id state] $state
+            }
 
         } -teardown_code {
             set node_id [site_node::get_node_id -url /$instance]
