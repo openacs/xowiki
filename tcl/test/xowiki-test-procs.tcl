@@ -118,7 +118,7 @@ namespace eval ::xowiki::test {
             aa_equals "new description is" [$p0_id description] "new description"
 
             set item_id [$p0_id item_id]
-            set d [db_string get_description {select description from xowiki_pagex where item_id = :item_id}]
+            set d [::xo::dc get_value get_description {select description from xowiki_pagex where item_id = :item_id}]
             aa_equals "new description from db is" $d "new description"
 
             $p0_id destroy
@@ -137,7 +137,7 @@ namespace eval ::xowiki::test {
             aa_equals "new creator is" [$p0_id creator] "the creator"
 
             set item_id [$p0_id item_id]
-            set d [db_string get_creator {select creator from xowiki_pagex where item_id = :item_id}]
+            set d [::xo::dc get_value get_creator {select creator from xowiki_pagex where item_id = :item_id}]
             aa_equals "new creator from db is" $d "the creator"
 
             $p0_id destroy
@@ -159,7 +159,7 @@ namespace eval ::xowiki::test {
             aa_equals "new instance_attributes is" [$f1_id instance_attributes] "a 1"
 
             set item_id [$f1_id item_id]
-            set d [db_string get_description {select instance_attributes from xowiki_form_pagex where item_id = :item_id}]
+            set d [::xo::dc get_value get_description {select instance_attributes from xowiki_form_pagex where item_id = :item_id}]
             aa_equals "new instance_attributes from db is" $d "a 1"
 
             #
