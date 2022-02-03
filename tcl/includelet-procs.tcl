@@ -2268,6 +2268,7 @@ namespace eval ::xowiki::includelet {
           {-range ""}
           {-allow_reorder ""}
           {-include_in_foldertree "true"}
+          {-CSSclass_top_ul ""}
         }}
         id
       } -ad_doc {
@@ -2292,7 +2293,7 @@ namespace eval ::xowiki::includelet {
         @param range
         @param allow_reorder
         @param include_in_foldertree
-
+        @param CSSclass_top_ul CSS class for top-level UL element
       }
 
   #"select page_id,  page_order, name, title, \
@@ -2660,7 +2661,7 @@ namespace eval ::xowiki::includelet {
 
     #
     # Build a reduced toc tree based on pure HTML (no JavaScript or
-    # ajax involved).  If an open_page is specified, produce an as
+    # AJAX involved).  If an open_page is specified, produce an as
     # small as possible tree and omit all non-visible nodes.
     #
     if {$open_page ne ""} {
@@ -2682,7 +2683,7 @@ namespace eval ::xowiki::includelet {
       #set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[::$package_id package_url]';"
       set HTML [$tree render -style listdnd -context [list min_level $min_level]]
     } else {
-      set HTML [$tree render -style list]
+      set HTML [$tree render -style list -properties ${:render_properties}]
     }
 
     return $HTML
@@ -2712,6 +2713,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     array set :navigation {count 0 position 0 current ""}
     set list_mode 0
+    dict set :render_properties CSSclass_top_ul $CSSclass_top_ul
 
     #
     # If there is no renderer specified, determine the renderer from
@@ -2724,7 +2726,16 @@ namespace eval ::xowiki::includelet {
         "folders" {set style "folders"; set renderer yuitree}
         "list"    {set style ""; set list_mode 1; set renderer list}
         "none"    {set style ""; set renderer none}
-        "default" {set style "yuitree"; set renderer yuitree}
+        "yuitree" {set renderer "yuitree"}
+        "default" {set style ""; set list_mode 1; set renderer list
+          #
+          # Fall back to "xowiki-tree" for "CSSclass_top_ul" only when
+          # value was not specified.
+          #
+          if {$CSSclass_top_ul eq ""} {
+            dict set :render_properties CSSclass_top_ul xowiki-tree
+          }
+        }
       }
       set :use_tree_renderer 0
     } else {

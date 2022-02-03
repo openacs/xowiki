@@ -72,12 +72,18 @@ namespace eval ::xowiki {
     }
   }
   Tree instproc open_tree {} {;}
-  Tree instproc render {{-style mktree} {-js ""} {-context ""}} {
+
+  Tree instproc render {
+    {-style mktree}
+    {-js ""}
+    {-context ""}
+    {-properties ""}
+  } {
     set renderer [[self class] renderer $style]
     $renderer set context $context
     $renderer set js $js
     TreeNode instmixin $renderer
-    set content [$renderer render [self]]
+    set content [$renderer render -properties $properties [self]]
     TreeNode instmixin ""
     if {[$renderer set js] ne ""} {
       template::add_body_script -script [$renderer set js]
@@ -204,7 +210,7 @@ namespace eval ::xowiki {
   TreeRenderer instproc include_head_entries {args} {
     # to be overloaded
   }
-  TreeRenderer instproc render {tree} {
+  TreeRenderer instproc render {{-properties ""} tree} {
     set content ""
     foreach c [$tree children] {append content [$c render] \n}
     return $content
@@ -236,11 +242,16 @@ namespace eval ::xowiki {
   TreeRenderer create TreeRenderer=list
   TreeRenderer=list proc include_head_entries {args} {
     # In the general case, we have nothing to include.  More
-    # specialized renders will provide their head entries.
+    # specialized renders could provide their head entries.
   }
-  TreeRenderer=list proc render {tree} {
-    return "<ul id='[$tree id]'>[next]</ul>"
+  TreeRenderer=list proc render {{-properties ""} tree} {
+    set ul_class [expr {[dict exists $properties CSSclass_top_ul]
+                        && [dict get $properties CSSclass_top_ul] ne ""
+                        ? "class='[dict get $properties CSSclass_top_ul]' "
+                        : ""}]
+    return "<ul ${ul_class}id='[$tree id]'>[next]</ul>"
   }
+
   TreeRenderer=list instproc render_item {{-highlight:boolean false} item} {
     $item instvar title href
     set prefix [$item set prefix]
@@ -301,7 +312,7 @@ namespace eval ::xowiki {
     #::xo::Page requireJS  "/resources/acs-templating/mktree.js"
     template::add_body_script -src "/resources/acs-templating/mktree.js"
   }
-  TreeRenderer=mktree proc render {tree} {
+  TreeRenderer=mktree proc render {{-properties ""} tree} {
     return "<ul class='mktree' id='[$tree id]'>[next]</ul>"
   }
 
@@ -316,7 +327,7 @@ namespace eval ::xowiki {
   TreeRenderer=samplemenu proc include_head_entries {args} {
     # add your CSS here...
   }
-  TreeRenderer=samplemenu proc render {tree} {
+  TreeRenderer=samplemenu proc render {{-properties ""} tree} {
     return "<ul class='menu' id='[$tree id]'>[next]</ul>"
   }
 
@@ -368,7 +379,7 @@ namespace eval ::xowiki {
     return "<li $o_atts>$entry $content"
   }
 
-  TreeRenderer=bootstrap3horizontal proc render {tree} {
+  TreeRenderer=bootstrap3horizontal proc render {{-properties ""} tree} {
     set name [$tree name]
     if {$name ne ""} {
       set navbarLabel [subst {
@@ -420,7 +431,7 @@ namespace eval ::xowiki {
     }
     ::xo::Page requireJS urn:ad:js:yui2:treeview/treeview-min
   }
-  TreeRenderer=yuitree proc render {tree} {
+  TreeRenderer=yuitree proc render {{-properties ""} tree} {
     return "<div id='[$tree id]'><ul>[next]</ul></div>"
   }
 
@@ -449,7 +460,7 @@ namespace eval ::xowiki {
         -script "listdnd_${event}_handler(event);"
   }
 
-  TreeRenderer=listdnd proc render {tree} {
+  TreeRenderer=listdnd proc render {{-properties ""} tree} {
     #:log "=== TreeRenderer=listdnd render $tree"
     #
     # Do we allow reorder on the top-level?
@@ -550,7 +561,7 @@ namespace eval ::xowiki {
     security::csp::require script-src cdnjs.cloudflare.com
   }
 
-  TreeRenderer=bootstrap3 proc render {tree} {
+  TreeRenderer=bootstrap3 proc render {{-properties ""} tree} {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
@@ -601,7 +612,7 @@ namespace eval ::xowiki {
   # Bootstrap3 tree renderer with folder structure
   #--------------------------------------------------------------------------------
   TreeRenderer create TreeRenderer=bootstrap3-folders -superclass TreeRenderer=bootstrap3
-  TreeRenderer=bootstrap3-folders proc render {tree} {
+  TreeRenderer=bootstrap3-folders proc render {{-properties ""} tree} {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
     set options ""
