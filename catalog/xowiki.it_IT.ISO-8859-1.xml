@@ -2,6 +2,7 @@
 <message_catalog package_key="xowiki" locale="it_IT" charset="ISO-8859-1">
 
   <msg key="abstract">Riassunto</msg>
+  <msg key="abstract_page-validate_options">Pagina selezionata non valida</msg>
   <msg key="add">Aggiungi</msg>
   <msg key="added">aggiunto</msg>
   <msg key="admin">Amministratore</msg>
@@ -11,12 +12,15 @@
   <msg key="All_pages">Tutti gli elementi</msg>
   <msg key="answers">Risposte</msg>
   <msg key="Answers_for_Surveys">Risposte_al_Questionario</msg>
+  <msg key="Archive">Archivia</msg>
+  <msg key="Archive_title">Quando un oggetto viene archiviato, non sarà più mostrato agli utenti.</msg>
   <msg key="attached_images">Immagini allegate</msg>
   <msg key="attached_media">Media allegato</msg>
   <msg key="autosave_pending">modificato</msg>
   <msg key="autosave_rejected">modifica rigettata</msg>
   <msg key="autosave_saved">modifiche salvate</msg>
   <msg key="back">Indietro</msg>
+  <msg key="boolean_checkbox-validate_options">Valore booleano non valido</msg>
   <msg key="By_user">Dall&#39;Utente</msg>
   <msg key="Candidates">Candidati</msg>
   <msg key="categories">Categorie</msg>
@@ -149,6 +153,7 @@
   <msg key="menu-Clipboard-Content">Contenuto</msg>
   <msg key="menu-Clipboard-Use-Copy">Copia</msg>
   <msg key="menu-Clipboard-Use-Export">Esporta</msg>
+  <msg key="menu-Clipboard-Use-Move">Sposta il contenuto qui...</msg>
   <msg key="menu-New">Nuovo</msg>
   <msg key="menu-New-File">File</msg>
   <msg key="menu-New-Folder">Cartella</msg>
@@ -247,6 +252,9 @@
   <msg key="processing_objects">Oggetti processati:</msg>
   <msg key="prompt">Prompt</msg>
   <msg key="publish_status">Pubblicato</msg>
+  <msg key="publish_status_make_expired">Imposta lo stato pubblicazione a &#34;expired&#34;</msg>
+  <msg key="publish_status_make_production">Imposta lo stato pubblicazione a &#34;production&#34;</msg>
+  <msg key="publish_status_make_ready">Pubblica</msg>
   <msg key="QtiInteraction_weight">Peso</msg>
   <msg key="QtiInteraction_weight_help_text">Per il punteggio complessivo della domanda, ogni interazione viene pesata per il suo valore.</msg>
   <msg key="questions">Domande</msg>
@@ -271,6 +279,7 @@
   <msg key="Send_message_to">Invia messaggio a</msg>
   <msg key="shuffle">Mescola le Risposte</msg>
   <msg key="shuffle_help_text">L&#39;ordine delle risposte deve essere presentato casualmente?</msg>
+  <msg key="ShuffleField-validate_options">Opzione selezionata non valida</msg>
   <msg key="single_word">Parola singola</msg>
   <msg key="Size">Dimensione</msg>
   <msg key="subscribe">Iscriviti</msg>
