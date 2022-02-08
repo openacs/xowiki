@@ -2269,6 +2269,7 @@ namespace eval ::xowiki::includelet {
           {-allow_reorder ""}
           {-include_in_foldertree "true"}
           {-CSSclass_top_ul ""}
+          {-CSSclass_ul ""}
         }}
         id
       } -ad_doc {
@@ -2294,6 +2295,7 @@ namespace eval ::xowiki::includelet {
         @param allow_reorder
         @param include_in_foldertree
         @param CSSclass_top_ul CSS class for top-level UL element
+        @param CSSclass_ul CSS class for all UL elements
       }
 
   #"select page_id,  page_order, name, title, \
@@ -2676,6 +2678,7 @@ namespace eval ::xowiki::includelet {
         -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
         -owner [self] \
+        -properties ${:render_properties} \
         $pages
 
     if {$allow_reorder ne ""} {
@@ -2713,6 +2716,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     array set :navigation {count 0 position 0 current ""}
     set list_mode 0
+    dict set :render_properties CSSclass_ul $CSSclass_ul
     dict set :render_properties CSSclass_top_ul $CSSclass_top_ul
 
     #
@@ -2722,18 +2726,18 @@ namespace eval ::xowiki::includelet {
     #
     if {$renderer eq ""} {
       switch -- $style {
-        "menu"    {set style "menu"; set renderer yuitree}
-        "folders" {set style "folders"; set renderer yuitree}
+        "menu"    {set renderer yuitree}
+        "folders" {set renderer yuitree}
+        "yuitree" {set renderer "yuitree"}
         "list"    {set style ""; set list_mode 1; set renderer list}
         "none"    {set style ""; set renderer none}
-        "yuitree" {set renderer "yuitree"}
         "default" {set style ""; set list_mode 1; set renderer list
           #
-          # Fall back to "xowiki-tree" for "CSSclass_top_ul" only when
-          # value was not specified.
+          # Fall back to "xowiki-tree" for "CSSclass_ul" only when
+          # value was not specified as a parameter.
           #
-          if {$CSSclass_top_ul eq ""} {
-            dict set :render_properties CSSclass_top_ul xowiki-tree
+          if {$CSSclass_ul eq ""} {
+            dict set :render_properties CSSclass_ul xowiki-tree
           }
         }
       }

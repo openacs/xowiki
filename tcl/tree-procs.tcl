@@ -97,26 +97,39 @@ namespace eval ::xowiki {
     {-book_mode false}
     {-open_page ""}
     {-expand_all false}
+    {-properties ""}
     -owner
     pages
   } {
     set tree(-1) [self]
     set :open_node($tree(-1)) 1
     set pos 0
-    if {${:verbose}} {:log "add_pages want to add [llength [$pages children]] pages"}
+    if {${:verbose}} {
+      :log "add_pages want to add [llength [$pages children]] pages"
+    }
+    if {[dict exists $properties CSSclass_ul]} {
+      set extra_flags "-ul_class [dict get $properties CSSclass_ul]"
+    } else {
+      set extra_flags ""
+    }
     foreach o [$pages children] {
       $o instvar page_order title name
-      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {set parent ""}
+      if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {
+        set parent ""
+      }
       set page_number [$owner page_number $page_order $remove_levels]
 
       set level [regsub -all -- {[.]} [$o set page_order] _ page_order_js]
-      if {${:verbose}} {:log "... work on [$o set page_order] level $level full $full"}
+      if {${:verbose}} {
+        :log "... work on [$o set page_order] level $level full $full"
+      }
       if {$full || [info exists :open_node($parent)] || [info exists :open_node($page_order)]} {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
         set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
                    -object $o -owner [self] \
+                   {*}$extra_flags \
                    -label $title -prefix $page_number -href $href \
                    -highlight $is_current \
                    -expanded $is_open \
@@ -125,7 +138,9 @@ namespace eval ::xowiki {
         set tree($level) $c
         for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
-        if {$is_open} {$c open_tree}
+        if {$is_open} {
+          $c open_tree
+        }
       }
     }
     return $tree(-1)
@@ -215,6 +230,13 @@ namespace eval ::xowiki {
     foreach c [$tree children] {append content [$c render] \n}
     return $content
   }
+  TreeRenderer instproc get_property {properties property {default ""}} {
+    set value $default
+    if {[dict exists $properties $property]} {
+      set value [dict get $properties $property]
+    }
+    return $value
+  }
 
   #
   # The renderers should provide the following methods as procs
@@ -245,11 +267,10 @@ namespace eval ::xowiki {
     # specialized renders could provide their head entries.
   }
   TreeRenderer=list proc render {{-properties ""} tree} {
-    set ul_class [expr {[dict exists $properties CSSclass_top_ul]
-                        && [dict get $properties CSSclass_top_ul] ne ""
-                        ? "class='[dict get $properties CSSclass_top_ul]' "
-                        : ""}]
-    return "<ul ${ul_class}id='[$tree id]'>[next]</ul>"
+    set CSSclass [:get_property $properties CSSclass_ul \
+                      [:get_property $properties CSSclass_top_ul]]
+    set my_ul_class [expr {$CSSclass ne "" ? "class='$CSSclass' " : ""}]
+    return "<ul ${my_ul_class}id='[$tree id]'>[next]</ul>"
   }
 
   TreeRenderer=list instproc render_item {{-highlight:boolean false} item} {
