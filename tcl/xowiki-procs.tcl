@@ -317,17 +317,17 @@ namespace eval ::xowiki {
     nsv_set xowiki must_update_hkeys \
         [expr {[::xo::db::require exists_table xowiki_form_instance_item_index] == 0}]
 
-    ::xo::db::require table xowiki_form_instance_item_index {
+    ::xo::db::require table xowiki_form_instance_item_index [subst {
       item_id             {integer references cr_items(item_id) on delete cascade}
       name                {character varying(400)}
       package_id          {integer}
       parent_id           {integer references cr_items(item_id) on delete cascade}
-      publish_status      {text}
+      publish_status      {character varying(40)}
       page_template       {integer references cr_items(item_id) on delete cascade}
       hkey                {hstore}
       assignee            {integer references parties(party_id) on delete cascade}
-      state               {text}
-    } $populate
+      state               {[::xo::dc map_datatype text]}
+    }] $populate
 
     ::xo::db::require index -table xowiki_form_instance_item_index -col hkey -using gist
 
@@ -336,16 +336,16 @@ namespace eval ::xowiki {
     #
     # Create table "xowiki_form_instance_item_index" without hstore column
     #
-    ::xo::db::require table xowiki_form_instance_item_index {
+    ::xo::db::require table xowiki_form_instance_item_index [subst {
       item_id             {integer references cr_items(item_id) on delete cascade}
       name                {character varying(400)}
       package_id          {integer}
       parent_id           {integer references cr_items(item_id) on delete cascade}
-      publish_status      {text}
+      publish_status      {character varying(40)}
       page_template       {integer references cr_items(item_id) on delete cascade}
       assignee            {integer references parties(party_id) on delete cascade}
-      state               {text}
-    } $populate
+      state               {[::xo::dc map_datatype text]}
+    }] $populate
 
     set hkey_in_view ""
   }
@@ -416,7 +416,7 @@ namespace eval ::xowiki {
     set sql [subst {
       SELECT
          xi.package_id, xi.parent_id, xi.name,
-         $hkey_in_view xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
+         xi.publish_status, xi.assignee, xi.state, xi.page_template, xi.item_id,
          o.object_id, o.object_type, o.title AS object_title,
          io.context_id,
          io.creation_date,
@@ -425,7 +425,9 @@ namespace eval ::xowiki {
          ci.storage_type,
          o.security_inherit_p,
          o.last_modified, o.modifying_user, o.modifying_ip,
-         cr.revision_id, cr.title, content_revision__get_content(cr.revision_id) AS text,
+         cr.revision_id, cr.title,
+         cr.content as data,
+         cr_text.text,
          cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
          (select xowiki_form_page_id from xowiki_form_page
           where xowiki_form_page_id = ci.live_revision) as xowiki_form_page_id,
@@ -434,7 +436,7 @@ namespace eval ::xowiki {
          xowiki_page.page_id,
          xowiki_page.page_order,
          xowiki_page.creator
-      FROM xowiki_form_instance_item_index xi
+      FROM cr_text, xowiki_form_instance_item_index xi
          inner join acs_objects io on object_id = xi.item_id
          left join cr_items ci on (ci.item_id = xi.item_id)
          left join cr_revisions cr on (cr.revision_id = ci.live_revision)
@@ -459,16 +461,38 @@ namespace eval ::xowiki {
   #         and page_template = 20260757
   #         and publish_status='ready';
   #
-  #   Note: this query needs an oracle counter-part
 
-  ::xo::db::require view xowiki_form_instance_children {
-      With RECURSIVE child_items AS (
+  if {[db_type] eq "postgresql"} {
+
+    ::xo::db::require view xowiki_form_instance_children {
+      WITH RECURSIVE child_items AS (
         select item_id as root_item_id, * from xowiki_form_instance_item_index
       UNION ALL
         select child_items.root_item_id, xi.* from xowiki_form_instance_item_index xi, child_items
         where xi.parent_id = child_items.item_id
       )
       select * from child_items
+    }
+
+  } else {
+    #
+    # Oracle
+    #
+    ::xo::db::require view xowiki_form_instance_children {
+      WITH child_items (
+          root_item_id, item_id, name, package_id, parent_id, publish_status, page_template, assignee, state
+      ) AS (
+        select item_id as root_item_id,
+               xi.item_id, xi.name, xi.package_id, xi.parent_id, xi.publish_status, xi.page_template, xi.assignee, xi.state
+        from xowiki_form_instance_item_index xi
+      UNION ALL
+        select child_items.root_item_id,
+               xi.item_id, xi.name, xi.package_id, xi.parent_id, xi.publish_status, xi.page_template, xi.assignee, xi.state
+        from xowiki_form_instance_item_index xi, child_items
+        where xi.parent_id = child_items.item_id
+      )
+      select * from child_items
+    }
   }
 
   # xowiki_form_instance_attributes
@@ -488,9 +512,11 @@ namespace eval ::xowiki {
   #      left join xowiki_form_instance_attributes xa on ch.item_id = xa.item_id;
   #
   #
-  ::xo::db::require view xowiki_form_instance_attributes {
+  if {[db_type] eq "postgresql"} {
+
+    ::xo::db::require view xowiki_form_instance_attributes {
       SELECT
-    ci.item_id,
+         ci.item_id,
          o.package_id,
          o.object_id, o.object_type, o.title AS object_title, o.context_id,
          o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
@@ -509,6 +535,33 @@ namespace eval ::xowiki {
          left join xowiki_page on (o.object_id = xowiki_page.page_id)
          left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
          left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
+    }
+  } else {
+    #
+    # Oracle
+    #
+    ::xo::db::require view xowiki_form_instance_attributes {
+      SELECT
+         ci.item_id,
+         o.package_id,
+         o.object_id, o.object_type, o.title AS object_title, o.context_id,
+         o.security_inherit_p, o.creation_user, o.creation_date, o.creation_ip,
+         o.last_modified, o.modifying_user, o.modifying_ip,
+         cr.revision_id, cr.title, cr.content as data,
+         cr_text.text, cr.description, cr.publish_date, cr.mime_type, cr.nls_language,
+         xowiki_form_page.xowiki_form_page_id,
+         xowiki_page_instance.page_instance_id,
+         xowiki_page_instance.instance_attributes,
+         xowiki_page.page_id,
+         xowiki_page.page_order,
+         xowiki_page.creator
+      FROM cr_text, cr_items ci
+         left join cr_revisions cr on (cr.revision_id = ci.live_revision)
+         left join acs_objects o on (o.object_id = ci.live_revision)
+         left join xowiki_page on (o.object_id = xowiki_page.page_id)
+         left join xowiki_page_instance on (o.object_id = xowiki_page_instance.page_instance_id)
+         left join xowiki_form_page on (o.object_id = xowiki_form_page.xowiki_form_page_id)
+    }
   }
 
   #ns_logctl severity Debug(sql) off
@@ -4262,11 +4315,11 @@ namespace eval ::xowiki {
     {-lookup:switch}
     form_constraints
   } {
-    
+
      Create form-fields from form constraints. When "-lookup" is
      specified, the code reuses existing form-field instead of
      recreating it.
-    
+
      Since create_raw_form_field uses destroy_on_cleanup, we do not
      have to care here about destroying the objects.
 
