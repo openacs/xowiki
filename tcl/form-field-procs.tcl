@@ -4078,6 +4078,7 @@ namespace eval ::xowiki::formfield {
     {wiki_p true}
     {slim false}
     {CSSclass xinha}
+    extraPlugins
   }
   richtext::xinha set editor_mixin 1
   richtext::xinha instproc initialize {} {
@@ -4094,12 +4095,14 @@ namespace eval ::xowiki::formfield {
 
     next
     set :widget_type richtext
-    if {![info exists :plugins]} {
+    if {![info exists :extraPlugins]} {
       :plugins \
           [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
                -default [parameter::get_from_package_key \
                              -package_key "acs-templating" \
                              -parameter "XinhaDefaultPlugins"]]
+    } else {
+      set :plugins ${:extraPlugins}
     }
     set :options [:get_attributes editor plugins width height folder_id script_dir javascript wiki_p]
     # for the time being, we can't set the defaults via parameter,
