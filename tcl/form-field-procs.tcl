@@ -4096,7 +4096,7 @@ namespace eval ::xowiki::formfield {
     next
     set :widget_type richtext
     if {![info exists :extraPlugins]} {
-      :plugins \
+      set :plugins \
           [parameter::get -parameter "XowikiXinhaDefaultPlugins" \
                -default [parameter::get_from_package_key \
                              -package_key "acs-templating" \
