@@ -5275,6 +5275,14 @@ namespace eval ::xowiki::formfield {
     {shuffle:boolean true}
   }
 
+  reorder_box instproc initialize {} {
+    #
+    # The reorder_box must always be treated as a :multiple field
+    #
+    set :multiple 1
+    next
+  }
+
   reorder_box instproc answer_is_correct {} {
     #
     # This method returns 0 (undecided), -1 (incorrect) or 1 (correct)
