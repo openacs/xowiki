@@ -398,26 +398,35 @@ namespace eval ::xowiki {
   }
   ArchiveFile instproc unpack {} {
     set success 0
-    #:log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
     switch [::xowiki::guesstype ${:name}] {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
-        ::util::unzip -source ${:file} -destination ${:tmpdir}
-        :import -dir ${:tmpdir} -parent_id ${:parent_id}
-        set success 1
+        set success [util::file_content_check -type zip -file ${:file}]
+        if {!$success} {
+          util_user_message -message "The uploaded file is apparently not a zip file."
+        } else {
+          ::util::unzip -source ${:file} -destination ${:tmpdir}
+          :import -dir ${:tmpdir} -parent_id ${:parent_id}
+        }
       }
       application/x-compressed {
         if {[string match "*tar.gz" ${:name}]} {
-          set cmd [::util::which tar]
-          exec $cmd -xzf ${:file} -C ${:tmpdir}
-          :import -dir ${:tmpdir} -parent_id ${:parent_id}
-          set success 1
+          set success [util::file_content_check -type gzip -file ${:file}]
+          if {!$success} {
+            util_user_message -message "The uploaded file is apparently not a gzip file."
+          } else {
+            set cmd [::util::which tar]
+            exec $cmd -xzf ${:file} -C ${:tmpdir}
+            :import -dir ${:tmpdir} -parent_id ${:parent_id}
+          }
         } else {
-          :msg "unknown compressed file type ${:name}"
+          util_user_message -message "Unknown compressed file type ${:name}."
         }
       }
-      default {:msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
+      default {
+        util_user_message -message "Type '[::xowiki::guesstype ${:name}]' is not an supported archive format."
+      }
     }
     #:msg success=$success
     return $success

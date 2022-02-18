@@ -38,9 +38,19 @@ ad_form \
       }
 
       set upload_tmpfile [template::util::file::get_property tmp_filename $upload_file]
-      set f [open $upload_tmpfile];
-      # if we do not set translation binary,
+
+      set file_looks_ok [util::file_content_check -type export -file ${upload_tmpfile}]
+      if {!$file_looks_ok} {
+        template::form::set_error upload_form upload_file \
+            "The provided file is not in the export file format"
+        break
+      }
+      
+      set f [open $upload_tmpfile]
+      #
+      # If we do not set translation binary,
       # backslashes at the end of the lines might be lost
+      #
       fconfigure $f -translation binary -encoding utf-8
       set content [read $f]; close $f
 
