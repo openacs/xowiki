@@ -1344,7 +1344,7 @@ namespace eval ::xowiki {
       if {$tag ne ""} {
         ::xo::dc dml insert_tag \
             "insert into xowiki_tags (item_id,package_id, user_id, tag, time) \
-          values (:item_id, :package_id, :user_id, :tag, now())"
+          values (:item_id, :package_id, :user_id, :tag, CURRENT_TIMESTAMP)"
       }
     }
     search::queue -object_id $revision_id -event UPDATE
@@ -3219,13 +3219,13 @@ namespace eval ::xowiki {
       # only record information for authenticated users
       ::xo::dc transaction {
         set rows [xo::dc dml -prepare integer,integer update_last_visisted {
-          update xowiki_last_visited set time = now(), count = count + 1
+          update xowiki_last_visited set time = CURRENT_TIMESTAMP, count = count + 1
           where page_id = :item_id and user_id = :user_id
         }]
         if {$rows ne "" && $rows < 1} {
           ::xo::dc dml insert_last_visisted \
               "insert into xowiki_last_visited (page_id, package_id, user_id, count, time) \
-               values (:item_id, :package_id, :user_id, 1, now())"
+               values (:item_id, :package_id, :user_id, 1, CURRENT_TIMESTAMP)"
         }
       }
     }
@@ -4773,7 +4773,7 @@ namespace eval ::xowiki {
                           "to_char(last_modified,'YYYY-MM-DD HH24:MI') as last_modified" ]
       set base_table [$object_type set table_name]i
       if {$object_type eq "::xowiki::FormPage"} {
-        set attributes "* $attributes"
+        set attributes "bt.* $attributes"
       }
       set items [$object_type get_instances_from_db \
                      -folder_id $folder_id \
@@ -4821,7 +4821,7 @@ namespace eval ::xowiki {
                                   -folder_id:required
                                   {-publish_status ready}
                                   {-object_types {::xowiki::Page ::xowiki::Form ::xowiki::FormPage}}
-                                  {-extra_where_clause true}
+                                  {-extra_where_clause "1=1"}
                                   {-include_child_folders none}
                                   {-initialize true}
                                 } {
@@ -4871,7 +4871,7 @@ namespace eval ::xowiki {
                             "to_char(last_modified,'YYYY-MM-DD HH24:MI') as last_modified" ]
         set base_table [$object_type set table_name]i
         if {$object_type eq "::xowiki::FormPage"} {
-          set attributes "* $attributes"
+          set attributes "bt.* $attributes"
         }
         set items [$object_type get_instances_from_db \
                        -folder_id $folder_id \

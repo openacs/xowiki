@@ -72,6 +72,7 @@ namespace eval ::xowiki::includelet {
       default   {
         #:msg "render tree $tree // [$tree procsearch render ]"
         set HTML [$tree render -style bootstrap3-folders]
+        #set HTML [$tree render -style list -properties {CSSclass_top_ul xowiki-tree}]
       }
     }
     #:log HTML=$HTML
@@ -621,7 +622,7 @@ namespace eval ::xowiki::includelet {
                      -label ""
                }]
 
-    set extra_where_clause "true"
+    set extra_where_clause "1=1"
     # TODO: why filter on title and name?
     if {[info exists regexp]} {
       set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
@@ -642,7 +643,7 @@ namespace eval ::xowiki::includelet {
       $current_folder update_langstring_property _title $lang
       #:msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
     }
-    #:log "child-resources of folder_id ${:current_folder_id}"
+    #:log "child-resources of folder_id ${:current_folder_id} with publish_status '$publish_status'"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
