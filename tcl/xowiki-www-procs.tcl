@@ -2194,9 +2194,9 @@ namespace eval ::xowiki {
                                        {-nls_language ""}
                                      } {
 
-    array set __att [list publish_status 1]
+    set __att {publish_status 1}
     foreach att [list last_modified creation_user {*}[::xowiki::FormPage array names db_slot]] {
-      set __att($att) 1
+      dict set __att $att 1
     }
 
     # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -2220,7 +2220,7 @@ namespace eval ::xowiki {
         __* {error not_allowed}
         _* {
           set varname [string range $field_name 1 end]
-          if {![info exists __att($varname)]} {
+          if {![dict exists $__att $varname]} {
             error "unknown attribute $field_name"
           }
           #:log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
@@ -2734,7 +2734,9 @@ namespace eval ::xowiki {
             #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {$v ne $default} {
-              if {![string match "*.*" $att]} {set :$varname $value}
+              if {[string first . $att] == -1} {
+                set :$varname $value
+              }
             }
           }
           default {
@@ -2753,7 +2755,7 @@ namespace eval ::xowiki {
             #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
 
             set value [$f value $v]
-            if {![string match "*.*" $att]} {
+            if {[string first . $att] == -1} {
               dict set :instance_attributes $att $value
             }
           }
