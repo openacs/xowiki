@@ -2261,11 +2261,12 @@ namespace eval ::xowiki {
                       -parent_id $search_parent_id \
                       $link]
 
-    #:msg  "[:instance_name] (root ${:folder_id}) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+    #:msg "[:instance_name] (root ${:folder_id}) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
       if {[$page package_id] ne ${:id} || [$page parent_id] != $(parent_id)} {
-        #:msg "set_resolve_context site_wide_pages ${:id} and -parent_id $parent_id"
+        #:log "set_resolve_context site_wide_pages ${:id} and -parent_id $parent_id"
         $page set_resolve_context -package_id ${:id} -parent_id $parent_id
       }
       return $page
@@ -2909,7 +2910,7 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
-  Package ad_instproc www-delete {-item_id -name -parent_id} {
+  Package ad_instproc www-delete {-item_id -name -parent_id -return_url} {
 
     This web-callable "delete" method does not require an instantiated object,
     while the class-specific delete methods in xowiki-procs need these.
@@ -2918,7 +2919,8 @@ namespace eval ::xowiki {
     While the class specific methods are used from the
     application pages, the package_level method is used from the admin pages.
 
-    If no item_id given, take it from the query parameter
+    If no "item_id", "name" or "return_url" are given, take it from
+    the query parameters.
 
   } {
     #:log "--D delete [self args]"
@@ -2932,6 +2934,11 @@ namespace eval ::xowiki {
     #
     if {![info exists name]} {
       set name [:query_parameter name]
+    }
+
+    if {![info exists return_url]} {
+      set return_url [:query_parameter return_url:localurl \
+                          [ad_urlencode_folder_path ${:package_url}]]
     }
 
     if {$item_id eq ""} {
@@ -2986,7 +2993,7 @@ namespace eval ::xowiki {
     } else {
       :log "--D nothing to delete!"
     }
-    :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
+    :returnredirect $return_url
   }
 
   #

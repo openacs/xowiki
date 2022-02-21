@@ -504,17 +504,19 @@ namespace eval ::xowiki {
   # Externally callable method: delete
   #
 
-  Page ad_instproc www-delete {} {
+  Page ad_instproc www-delete {-return_url} {
 
     This web-callable method deletes a page via the delete
     method of the package.
 
   } {
+    set returnUrlOpt [expr {[info exists return_url] ? [list -return_url $return_url] : ""}]
+
     # delete always via package
-    ${:package_id} www-delete -item_id ${:item_id} -name ${:name}
+    ${:package_id} www-delete -item_id ${:item_id} -name ${:name} {*}$returnUrlOpt
   }
 
-  PageTemplate ad_instproc www-delete {} {
+  PageTemplate ad_instproc www-delete {-return_url} {
 
     This web-callable method deletes a page via the delete method
     of the package.  This method checks first, if there exists still
@@ -1561,19 +1563,28 @@ namespace eval ::xowiki {
   #
   # Externally callable method: toggle-publish-status
   #
-  Page ad_instproc www-toggle-publish-status {} {
+  Page ad_instproc www-toggle-publish-status {-return_url} {
 
     This web-callable method toggles from "production" to "ready", and
     from "ready" or "archived" to "production".
 
+    The return_url can be passed in for cases, where some proc calls
+    internally this function, since update_publish_status might have
+    to initialize some related objects, which might modify the
+    return_url as well (e.g., workflows with specialized return_url
+    handling).
+
   } {
+    if {![info exists return_url]} {
+      set return_url [:query_parameter return_url:localurl [ad_return_url]]
+    }
     if {${:publish_status} ne "ready"} {
       set new_publish_status "ready"
     } else {
       set new_publish_status "production"
     }
     :update_publish_status $new_publish_status
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+    ${:package_id} returnredirect $return_url
   }
 
   #
