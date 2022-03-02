@@ -4204,7 +4204,7 @@ namespace eval ::xowiki::formfield {
 
   ShuffleField instproc check=options {value} {
     set result 1
-    if {$value ne "" && [info exists :options]} {
+    if {![:is_disabled] && $value ne "" && [info exists :options]} {
       set allowed_values [lmap option ${:options} {lindex $option 1}]
       if {!${:multiple}} {
         set value [list $value]
