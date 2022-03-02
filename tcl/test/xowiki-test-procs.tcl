@@ -671,7 +671,7 @@ namespace eval ::xowiki::test {
                     form_constraints {
                         _page_order:omit _title:omit _nls_language:omit _description:omit
                         date:date
-                        {date2:date,format=DD_MONTH_YYYY_HH24_MI,default=2011-01-01 20:55,disabled,error_msg=__xowiki_test_errmsg}
+                        {date2:date,format=DD_MONTH_YYYY_HH24_MI,default=2011-01-01 20:55,disabled}
                     }
                 }]
             aa_log "Form $form_name created"
@@ -703,8 +703,6 @@ namespace eval ::xowiki::test {
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
-            aa_true "Page does not contain a form error for date2 field" \
-                {[string first __xowiki_test_errmsg $response] == -1}
             acs::test::dom_html root $response {
                 set f_id     [::xowiki::test::get_object_name $root]
                 set CSSclass [::xowiki::test::get_form_CSSclass $root]
@@ -717,6 +715,21 @@ namespace eval ::xowiki::test {
                 aa_true "input1 (1st element of date)" {$input1 ne ""}
                 aa_true "input2 (2nd element of date)" {$input2 ne ""}
                 aa_true "input3 (3rd element of date)" {[$input3 getAttribute value] eq ""}
+
+                set input4 [$root selectNodes \
+                                "//select\[@id='$id_part.date2.DD'\]/option\[@selected\]"]
+                set input5 [$root selectNodes \
+                                "//select\[@id='$id_part.date2.month'\]/option\[@selected\]"]
+                set input6 [$root getElementById $id_part.date2.YYYY]
+                set input7 [$root selectNodes \
+                                "//select\[@id='$id_part.date2.HH24'\]/option\[@selected\]"]
+                set input8 [$root selectNodes \
+                                "//select\[@id='$id_part.date2.MI'\]/option\[@selected\]"]
+                aa_true "input4 (1st element of date2)" {[$input4 getAttribute value] eq "1"}
+                aa_true "input5 (2nd element of date2)" {[$input5 getAttribute value] eq "1"}
+                aa_true "input6 (3rd element of date2)" {[$input6 getAttribute value] eq "2011"}
+                aa_true "input7 (4th element of date2)" {[$input7 getAttribute value] eq "20"}
+                aa_true "input8 (5th element of date2)" {[$input8 getAttribute value] eq "55"}
             }
 
             ################################################################################
@@ -740,7 +753,6 @@ namespace eval ::xowiki::test {
             acs::test::reply_has_status_code $d 200
 
             #ns_log notice CONTENT=[::xowiki::test::get_content $d]
-
             acs::test::dom_html root [::xowiki::test::get_content $d] {
                 set id_part F.[string map {: _} $page_name]
                 set input1 [$root selectNodes "//select\[@id='$id_part.date.DD'\]/option\[@value='1'\]"]
