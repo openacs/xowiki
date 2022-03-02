@@ -652,7 +652,8 @@ namespace eval ::xowiki::test {
             aa_section "Create form $form_name"
             ###########################################################
             #
-            # Create a form with a repeated field.
+            # Create a form with date fields in different formats
+            # (date is a repeated field).
             #
             ::xowiki::test::create_form \
                 -last_request $request_info \
@@ -663,13 +664,14 @@ namespace eval ::xowiki::test {
                 -update [subst {
                     title "Form for miscelaneus form fields"
                     nls_language $locale
-                    text {<p>@date@</p>}
+                    text {<p>@date@</p><p>@date2@</p>}
                     text.format text/html
-                    form {<form>@date@</form>}
+                    form {<form>@date@ @date2@</form>}
                     form.format text/html
                     form_constraints {
                         _page_order:omit _title:omit _nls_language:omit _description:omit
                         date:date
+                        {date2:date,format=DD_MONTH_YYYY_HH24_MI,default=2011-01-01 20:55,disabled,error_msg=__xowiki_test_errmsg}
                     }
                 }]
             aa_log "Form $form_name created"
@@ -701,6 +703,8 @@ namespace eval ::xowiki::test {
             acs::test::reply_has_status_code $d 200
 
             set response [dict get $d body]
+            aa_true "Page does not contain a form error for date2 field" \
+                {[string first __xowiki_test_errmsg $response] == -1}
             acs::test::dom_html root $response {
                 set f_id     [::xowiki::test::get_object_name $root]
                 set CSSclass [::xowiki::test::get_form_CSSclass $root]
@@ -716,7 +720,7 @@ namespace eval ::xowiki::test {
             }
 
             ################################################################################
-            aa_section "Edit an instance $page_name of $form_name to add 2nd repeated field"
+            aa_section "Edit an instance $page_name of $form_name to set the dates"
             ################################################################################
 
             ::xowiki::test::edit_form_page \
