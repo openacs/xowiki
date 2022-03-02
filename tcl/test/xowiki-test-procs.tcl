@@ -745,6 +745,8 @@ namespace eval ::xowiki::test {
                     date.DD 1
                     date.month 1
                     date.YYYY 2022
+
+                    date2.YYYY 2021
                 }]
 
             aa_log "Check content of the edited instance"
@@ -766,6 +768,9 @@ namespace eval ::xowiki::test {
                     aa_true "input selected '[$v getAttribute selected]'" \
                         {[$v getAttribute selected] eq "selected"}
                 }
+
+                set input4 [$root getElementById $id_part.date2.YYYY]
+                aa_true "input4 (year element of date2)" {[$input4 getAttribute value] eq "2011"}
             }
 
 
