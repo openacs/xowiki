@@ -850,10 +850,10 @@ namespace eval ::xowiki {
     return $renames
   }
 
-  ::xowiki::utility ad_proc publish_status_next_state {publish_status} {
+  ::xowiki::utility ad_proc -private publish_status_next_state {publish_status} {
 
     Determine next publish status and return dict containing
-    CSSclassand next state.
+    CSSclass and next state.
     
   } {
     if {$publish_status eq "ready"} {
