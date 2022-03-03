@@ -3426,14 +3426,34 @@ namespace eval ::xowiki::formfield {
   }
 
   richtext instproc check=safe_html {value} {
-    # don't check if the user has sufficient permissions on the package
+    #
+    # Don't check, if the user has sufficient permissions on the
+    # package
+    #
     if {[::xo::cc permission \
              -object_id [::xo::cc package_id] \
              -privilege swa \
              -party_id [::xo::cc user_id]]} {
       set msg ""
     } else {
-      set msg [ad_html_security_check $value]
+      #
+      # Check, if the package has global settings for AllowedTags,
+      # AllowedAttributes, or AllowedProtocols. If (some of) these
+      # exist, use these for configuring "ad_html_security_check". If
+      # not, fall back to the default (site wide) definition.
+      #
+      set package_key [apm_package_key_from_id [${:object} package_id]]
+      set options {}
+      foreach var {attributes tags protocols} {
+        set params [parameter::get_global_value \
+                       -package_key $package_key \
+                       -parameter Allowed[string totitle $var] \
+                       -default ""]
+        if {$value ne ""} {
+          lappend options -allowed_$var $params
+        }
+      }
+      set msg [ad_html_security_check {*}$options $value]
     }
     if {$msg ne ""} {
       :uplevel [list set errorMsg $msg]
@@ -3441,6 +3461,7 @@ namespace eval ::xowiki::formfield {
     }
     return 1
   }
+    
   richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
     if {[:wiki]} {
@@ -3992,7 +4013,7 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
-
+  
   ###########################################################
   #
   # ::xowiki::formfield::richtext::wym
