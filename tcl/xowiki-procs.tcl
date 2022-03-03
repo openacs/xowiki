@@ -1751,9 +1751,11 @@ namespace eval ::xowiki {
 
     if {$selection eq ""} {
       error [subst {
-        The form page with item_id $item_id was not found in the xowiki_form_instance_item_index.
-        Consider 'DROP TABLE xowiki_form_instance_item_index CASCADE;' and restart server
-        (the table is rebuilt automatically)
+        The form page with item_id $item_id was not found in the
+        xowiki_form_instance_item_index.  Consider 'DROP TABLE
+        xowiki_form_instance_item_index CASCADE;' and restart server
+        (the table is rebuilt automatically, but this could take a
+        while, when the number of pages is huge).
       }]
     }
 
