@@ -92,15 +92,22 @@ namespace eval ::xowiki {
   }
 
   Tree instproc add_pages {
-    {-full false}
-    {-remove_levels 0}
-    {-book_mode false}
+    {-full:boolean false}
+    {-remove_levels:integer 0}
+    {-book_mode:boolean false}
     {-open_page ""}
     {-expand_all false}
     {-properties ""}
-    -owner
-    pages
+    -owner:object
+    pages:object
   } {
+    #
+    # Add the pages of the ordered composite to the tree.  Note that
+    # it is intended to preserve the order criterion of the provided
+    # ordered composite in "pages". If you want to change the order
+    # set it already for the passed-in ordered composite via the
+    # method "orderby" of the OrderedComposite.
+    #
     set tree(-1) [self]
     set :open_node($tree(-1)) 1
     set pos 0
@@ -129,7 +136,7 @@ namespace eval ::xowiki {
         set is_open [expr {$is_current || $expand_all}]
         set c [::xowiki::TreeNode new \
                    -orderby pos \
-                   -pos $page_order \
+                   -pos [incr pos] \
                    -level $level \
                    -object $o \
                    -owner [self] \
