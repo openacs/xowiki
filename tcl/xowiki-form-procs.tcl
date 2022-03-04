@@ -230,6 +230,13 @@ namespace eval ::xowiki {
 
 
   proc ::xowiki::validate_name {{data ""}} {
+    #
+    # This proc is not only a validator of the "name" attribute, but
+    # modifies "name" according to the value of the language settings,
+    # in case it is applied on non-file pages. In cases of data of the
+    # autonamed forms (i.e. for pages of type ::xowiki::PageInstance),
+    # it avoids name clashes as well.
+    #
     upvar name name
     if {$data eq ""} {
       unset data
@@ -265,8 +272,17 @@ namespace eval ::xowiki {
         return 0
       }
     } else {
-      $data name $name      
-      set name [$data build_name -nls_language [$data form_parameter nls_language en_US]]
+      $data name $name
+      #
+      # Try first to get the language from the form parameter
+      # "nls_language". If this fails, get it from "nls_language". If
+      # this fails as well, fall back to "en_US". Actually, one should
+      # consider parameterizing/refactoring validate_name which
+      # predates form-fields and follows ad_form conventions and uses
+      # upvar, etc.
+      #
+      set nls_language [$data form_parameter nls_language [$data form_parameter _nls_language en_US]]
+      set name [$data build_name -nls_language $nls_language]
     }
     if {$name ne ""} {
       set prefixed_page_p [expr {![$data is_folder_page] && ![$data is_link_page]}]
@@ -291,9 +307,11 @@ namespace eval ::xowiki {
       }
       #$data log "validate_name: entry '$name' exists here already"
       if {[$data istype ::xowiki::PageInstance]} {
+        #
         # The entry might be autonamed. In case of imports from other
         # xowiki instances, we might have name clashes. Therefore, we
         # compute a fresh name here.
+        #
         set anon_instances [$data get_from_template anon_instances f]
         if {$anon_instances} {
           set basename [::xowiki::autoname basename [[$data page_template] name]]
