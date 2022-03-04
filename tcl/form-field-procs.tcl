@@ -3449,7 +3449,7 @@ namespace eval ::xowiki::formfield {
                        -package_key $package_key \
                        -parameter Allowed[string totitle $var] \
                        -default ""]
-        if {$value ne ""} {
+        if {$params ne ""} {
           lappend options -allowed_$var $params
         }
       }
