@@ -24,6 +24,11 @@ namespace eval ::xowiki {
     then the caller page.  This method is e.g. called by the
     folder-procs.
 
+    By passing the "instantiate_p" one can decide whether each item
+    should be instantiated (useful when the delete logic from the
+    whole item ancestry is required), or if we will rely on the
+    cheaper deletion at the package level. The default is false.
+
   } {
     ::security::csrf::validate
 
@@ -31,10 +36,17 @@ namespace eval ::xowiki {
       :msg "nothing to delete"
     }
 
+    set instantiate_p [:form_parameter instantiate_p false]
+
     set item_ids [:get_ids_for_bulk_actions [:form_parameter objects]]
     foreach item_id $item_ids {
       :log "bulk-delete: DELETE item_id $item_id"
-      ${:package_id} www-delete -item_id $item_id
+      if {$instantiate_p} {
+        set i [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+        $i www-delete
+      } else {
+        ${:package_id} www-delete -item_id $item_id
+      }
     }
     :return_redirect_without_params
   }
