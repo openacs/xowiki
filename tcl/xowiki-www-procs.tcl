@@ -322,19 +322,6 @@ namespace eval ::xowiki {
     }
 
     #
-    # Provide "p.configure" hook to programmatically configure pages
-    #
-    if {[:exists_query_parameter p.configure]} {
-      set configure_method [:query_parameter p.configure:wordchar]
-      if {[$f procsearch configure_page=$configure_method] ne ""} {
-        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
-        $f configure_page=$configure_method $name
-      } else {
-        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
-      }
-    }
-
-    #
     # Provide "p.source" hook to configure pages by copying variables
     # from other pages (e.g. sitewide pages)
     #
@@ -361,6 +348,19 @@ namespace eval ::xowiki {
         && $publish_status in {"production" "ready" "live" "expired"}
       } {
       $f publish_status $publish_status
+    }
+
+    #
+    # Provide "p.configure" hook to programmatically configure pages
+    #
+    if {[:exists_query_parameter p.configure]} {
+      set configure_method [:query_parameter p.configure:wordchar]
+      if {[$f procsearch configure_page=$configure_method] ne ""} {
+        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
+        $f configure_page=$configure_method $name
+      } else {
+        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
+      }
     }
 
     if {$name eq ""} {
