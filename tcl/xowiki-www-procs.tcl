@@ -2725,11 +2725,7 @@ namespace eval ::xowiki {
       #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
 
-      if {![info exists processed($att)] && ![$f exists disabled]} {
-
-        if {[$f exists is_repeat_template]} {
-          continue
-        }
+      if {![info exists processed($att)] && ![$f exists is_repeat_template]} {
         #:log  "==== form field $att [$f info class] not yet processed"
 
         switch -glob -- $att {

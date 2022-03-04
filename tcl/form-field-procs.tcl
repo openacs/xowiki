@@ -4038,16 +4038,7 @@ namespace eval ::xowiki::formfield {
 
   ShuffleField instproc check=options {value} {
     set result 1
-    #
-    # TODO: The introduction of "![:is_disabled]" was recently added
-    # by Antonio to bypass a strange and not fully analyzed problem
-    # with the date widget. There is no logical reason, why the
-    # disabled state requires bypassing input checking. The change is
-    # probably mostly harmless (but I can't exclude potential attack
-    # vectors), but should not stay here like this until the next
-    # release.
-    #
-    if {![:is_disabled] && $value ne "" && [info exists :options]} {
+    if {$value ne "" && [info exists :options]} {
       set allowed_values [lmap option ${:options} {lindex $option 1}]
       if {!${:multiple}} {
         set value [list $value]
