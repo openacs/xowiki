@@ -127,14 +127,20 @@ namespace eval ::xowiki {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
-        set c [::xowiki::TreeNode new -orderby pos -pos $page_order -level $level \
-                   -object $o -owner [self] \
-                   {*}$extra_flags \
-                   -label $title -prefix $page_number -href $href \
+        set c [::xowiki::TreeNode new \
+                   -orderby pos \
+                   -pos $page_order \
+                   -level $level \
+                   -object $o \
+                   -owner [self] \
+                   -label $title \
+                   -prefix $page_number \
+                   -href $href \
                    -highlight $is_current \
                    -expanded $is_open \
                    -open_requests 1 \
-                   -verbose ${:verbose}]
+                   -verbose ${:verbose} \
+                   {*}$extra_flags]
         set tree($level) $c
         for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
