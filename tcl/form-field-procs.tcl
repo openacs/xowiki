@@ -4308,11 +4308,13 @@ namespace eval ::xowiki::formfield {
           set wi2 $wi1
         }
       }
-      set etk  [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
+      set canvas [expr {max(($rk * 100.0/$r) - ($fk * 100.0/$r), 0)}]
+      set etk    [expr {100.0 * (($r*1.0+$f) /$r) * ($rk - $fk) / ($R + $W) }]
     } else {
       set wi1 0.0
       set wi2 0.0
       set etk 0.0
+      set canvas 0.0
     }
 
     set s1   [expr {100.0 * $R / ($R + $W) }]
@@ -4320,8 +4322,8 @@ namespace eval ::xowiki::formfield {
 
     set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
     set ggw  [:ggw $R $W]
-
-    return [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw]
+    
+    return [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw canvas $canvas]
   }
 
   enumeration instproc stats_record_detail {-label -value correctly_answered} {
