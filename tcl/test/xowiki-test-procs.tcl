@@ -51,6 +51,12 @@ namespace eval ::xowiki::formfield {
 
 }
 
+namespace eval ::xowiki {
+  FormPage instproc configure_page=regression_test {name} {
+    set :description "foo"
+  }
+}
+
 namespace eval ::xowiki::test {
 
     aa_register_case \
@@ -1484,6 +1490,60 @@ namespace eval ::xowiki::test {
                 set content_type [ns_set iget [dict get $d headers] content-type]
                 aa_equals "Content type is an image" image/png $content_type
             }
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
+
+    aa_register_case -cats {web} -procs {
+        "::xowiki::Page instproc www-create-new"
+    } create_folder_and_configure {
+
+        Create an xowiki FormPage and provide the configure query_parameter.
+
+    } {
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -extra_url_parameter {{p.configure regression_test}} \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set folder [::xo::db::CrClass get_instance_from_db -item_id $folder_id]
+            set folder_description [$folder description]
+            aa_true "folder_description = '$folder_description'" {$folder_description eq "foo"}
 
         } on error {errorMsg} {
             aa_true "Error msg: $errorMsg" 0
