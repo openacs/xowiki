@@ -127,7 +127,7 @@ namespace eval ::xowiki {
         set href [$owner href $book_mode $name]
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
-        set c [::xowiki::TreeNode new -orderby pos -pos [incr pos] -level $level \
+        set c [::xowiki::TreeNode new -orderby pos -pos $page_order -level $level \
                    -object $o -owner [self] \
                    {*}$extra_flags \
                    -label $title -prefix $page_number -href $href \
