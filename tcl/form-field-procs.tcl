@@ -4049,7 +4049,7 @@ namespace eval ::xowiki::formfield {
           break
         }
       }
-      ns_log notice "OPTIONS CHECK <$value> in <$allowed_values> -> $result" \
+      ns_log notice "OPTIONS CHECK ${:name} <$value> in <$allowed_values> -> $result" \
           "([:info class])"
     }
     return $result
