@@ -2736,9 +2736,12 @@ namespace eval ::xowiki {
     foreach f [concat $form_fields $leaf_components] {
       #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
-
-      if {![info exists processed($att)] && ![$f exists is_repeat_template]} {
-        #:log  "==== form field $att [$f info class] not yet processed"
+      
+      if {![info exists processed($att)]
+          && ![$f exists is_repeat_template]
+          && ![$f exists disabled]
+        } {
+        #ns_log notice "==== form field $att [$f info class] not yet processed"
 
         switch -glob -- $att {
           __* {
@@ -2750,7 +2753,7 @@ namespace eval ::xowiki {
             set default ""
             if {[info exists :$varname]} {set default [set :$varname]}
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {$v ne $default} {
               if {[string first . $att] == -1} {
@@ -2771,7 +2774,7 @@ namespace eval ::xowiki {
               set default [dict get ${:instance_attributes} $att]
             }
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
 
             set value [$f value $v]
             if {[string first . $att] == -1} {
