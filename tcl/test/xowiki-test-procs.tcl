@@ -563,16 +563,18 @@ namespace eval ::xowiki::test {
                 -update [subst {
                     title "Checkbox Testing Form"
                     nls_language $locale
-                    text {<p>@_text@</p><p>box1 @box1@ box2 @box2@</p>}
+                    text {<p>@_text@</p><p>box1 @box1@ box2 @box2@ box3 @box3@</p>}
                     text.format text/html
-                    form {<form>@box1@ @box2@ @mycompound@</form>}
+                    form {<form>@box1@ @box2@ @box3@ @mycompound@</form>}
                     form.format text/html
                     form_constraints {
                         _page_order:omit _title:omit _nls_language:omit _description:omit
                         {box1:checkbox,options={1 1} {2 2},horizontal=true,default=1}
                         {box2:checkbox,options={a a} {b b},horizontal=true,repeat=1..3,default=a}
+                        {box3:checkbox,options={30 30} {31 31},horizontal=true,default=30,disabled}
                         mycompound:regression_test_mycompound
                     }
+                    anon_instances t
                 }]
             aa_log "Form $form_name created"
 
@@ -613,11 +615,16 @@ namespace eval ::xowiki::test {
                 set input_box3 [$root getElementById F.$id_part.box2.1:a]
                 set input_box4 [$root getElementById F.$id_part.box2.1:b]
                 set input_box5 [$root getElementById F.$id_part.mycompound.start_on_publish:t]
+                set input_box6 [$root getElementById F.$id_part.box3:30]
+                set input_box7 [$root getElementById F.$id_part.box3:31]
                 aa_equals "input_box1 box checked (box1: simple box)"   [$input_box1 hasAttribute checked] 0
                 aa_equals "input_box2 box checked (box1: simple box)"   [$input_box2 hasAttribute checked] 1
                 aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
                 aa_equals "input_box4 box checked (box2: repeated box)" [$input_box4 hasAttribute checked] 1
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 1
+                aa_equals "input_box6 box checked (box3: simple disabled box)"   [$input_box6 hasAttribute checked] 0
+                aa_equals "input_box7 box checked (box3: simple disabled box)"   [$input_box7 hasAttribute checked] 1
+                #ns_log notice "XXXX box3\n[$input_box6 asHTML] \n[$input_box7 asHTML]"
             }
 
             ###########################################################
@@ -645,11 +652,16 @@ namespace eval ::xowiki::test {
                 set input_box3 [$root getElementById F.$id_part.box2.1:a]
                 set input_box4 [$root getElementById F.$id_part.box2.1:b]
                 set input_box5 [$root getElementById F.$id_part.mycompound.start_on_publish:t]
+                set input_box6 [$root getElementById F.$id_part.box3:30]
+                set input_box7 [$root getElementById F.$id_part.box3:31]
                 aa_equals "input_box1 box checked (box1: simple box)"   [$input_box1 hasAttribute checked] 0
                 aa_equals "input_box2 box checked (box1: simple box)"   [$input_box2 hasAttribute checked] 0
                 aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
                 aa_equals "input_box4 box checked (box2: repeated box)" [$input_box4 hasAttribute checked] 0
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 0
+                aa_equals "input_box6 box checked (box3: simple disabled box)"   [$input_box6 hasAttribute checked] 0
+                aa_equals "input_box7 box checked (box3: simple disabled box)"   [$input_box7 hasAttribute checked] 1
+                #ns_log notice "XXXX box3\n[$input_box6 asHTML] \n[$input_box7 asHTML]"
             }
 
 
