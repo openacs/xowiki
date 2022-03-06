@@ -3461,7 +3461,7 @@ namespace eval ::xowiki::formfield {
     }
     return 1
   }
-    
+
   richtext instproc pretty_value {v} {
     # for richtext, perform minimal output escaping
     if {[:wiki]} {
@@ -3826,7 +3826,7 @@ namespace eval ::xowiki::formfield {
       }
     }
   }
-  
+
   ###########################################################
   #
   # ::xowiki::formfield::richtext::wym
@@ -4104,13 +4104,43 @@ namespace eval ::xowiki::formfield {
         # Multiple choice: Accept every subselection as valid for the
         # time being.
         #
+        if {[info exists :grading]
+            && ${:grading} in {wi1 wi2 canvas etk}
+            && [info exists :answer_value]
+          } {
+          #
+          # These grading schemes require that at least one alternative is true.
+          #
+          set nr_correct 0
+          foreach v ${:answer_value} {
+            if {$v - 1 in $subselection} {
+              incr nr_correct 1
+            }
+          }
+          #ns_log notice "XXXX subselection <$subselection> answer_value ${:answer_value} shuffled <$shuffled> -> $nr_correct"
+          if {$nr_correct == 0} {
+            #
+            # Take a random correct value and insert this at a random position.
+            #
+            set answerIndex [expr {int([llength ${:answer_value}] * rand())}]
+            set dropIndex [expr {int(${:show_max} * rand())}]
+            set subselection [lreplace $subselection $dropIndex $dropIndex [expr {[lindex ${:answer_value} $answerIndex] - 1}]]
+            ns_log notice "XXXX selected correctIndex $answerIndex dropIndex $dropIndex -> $subselection"
+          }
+
+        }
       } elseif {[info exists :answer_value]} {
         #
-        # Single choice: make sure that the correct element is
-        # included in subselection.
+        # Single choice: we have exactly one value which is correct,
+        # which is the "answer_value".  Make sure that this correct
+        # element is included in subselection.
         #
         set must_contain [expr {${:answer_value} - 1}]
         if {$must_contain ni $subselection} {
+          #
+          # It is not included. Drop a random element from the range
+          # of answers and insert there the correct value.
+          #
           #ns_log notice "--- have to fix subselection does not contain $must_contain"
           set dropIndex [expr {int($range * rand())}]
           set subselection [lreplace $subselection $dropIndex $dropIndex $must_contain]
@@ -4322,7 +4352,7 @@ namespace eval ::xowiki::formfield {
 
     set ggw0 [expr {100.0 * ($R - $W) / ($R + $W) }]
     set ggw  [:ggw $R $W]
-    
+
     return [list wi1 $wi1 wi2 $wi2 s1 $s1 s2 $s2 etk $etk ggw0 $ggw0 ggw $ggw canvas $canvas]
   }
 
