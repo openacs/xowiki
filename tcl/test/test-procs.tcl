@@ -111,16 +111,25 @@ namespace eval ::xowiki::test {
         return $item_id
     }
 
-    ad_proc -private ::xowiki::test::require_page {name parent_id package_id {file_content ""}} {
+    ad_proc -private ::xowiki::test::require_page {
+        -text
+        name
+        parent_id
+        package_id
+        {file_content ""}
+    } {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
         if {$item_id == 0} {
             if {$file_content eq ""} {
                 ::$package_id get_lang_and_name -name $name lang stripped_name
                 set nls_language [::xowiki::Package get_nls_language_from_lang $lang]
+                if {![info exists text]} {
+                    set text [list "Content of $name" text/html]
+                }
                 set f [::xowiki::Page new -name $name -description "" \
                            -parent_id $parent_id -package_id $package_id \
                            -nls_language $nls_language \
-                           -text [list "Content of $name" text/html]]
+                           -text $text]
             } else {
                 set mime_type [::xowiki::guesstype $name]
                 set f [::xowiki::File new -name $name -description "" \
