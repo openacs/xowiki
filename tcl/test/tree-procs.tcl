@@ -19,7 +19,6 @@ namespace eval ::xowiki::test {
 
             try {
 
-                set testfolder .testfolder
                 ::xowiki::Package initialize -package $package_id
                 set root_folder_id [::$package_id folder_id]
 

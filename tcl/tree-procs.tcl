@@ -113,7 +113,7 @@ namespace eval ::xowiki {
     set pos 0
     if {${:verbose}} {
       :log "add_pages want to add [llength [$pages children]] pages"
-    }
+    }   
     set ul_class [expr {[dict exists $properties CSSclass_ul] ?
                         [dict get $properties CSSclass_ul] : ""}]
     foreach o [$pages children] {
@@ -132,8 +132,6 @@ namespace eval ::xowiki {
         set is_current [expr {$open_page eq $name}]
         set is_open [expr {$is_current || $expand_all}]
         set c [::xowiki::TreeNode new \
-                   -orderby pos \
-                   -pos [incr pos] \
                    -level $level \
                    -object $o \
                    -owner [self] \
