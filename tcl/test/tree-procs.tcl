@@ -124,6 +124,13 @@ namespace eval ::xowiki::test {
                         [string match "*$page_order" $toc_url]
                 }
 
+                # Get one of the rendered linky and check that it
+                # points to an existing page.
+                set d [acs::test::http \
+                           -user_info $user_info \
+                           [lindex $toc_urls 0]]
+                acs::test::reply_has_status_code $d 200
+
 
                 #
                 # This ToC is configured to expand all of the links
@@ -160,6 +167,13 @@ namespace eval ::xowiki::test {
                     aa_true "'$toc_url' is in the expected order '$page_order'" \
                         [string match "*$page_order" $toc_url]
                 }
+
+                # Get one of the rendered linky and check that it
+                # points to an existing page.
+                set d [acs::test::http \
+                           -user_info $user_info \
+                           [lindex $toc_urls 0]]
+                acs::test::reply_has_status_code $d 200
 
             } finally {
                 # set node_id [site_node::get_node_id -url /$instance]
