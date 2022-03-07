@@ -123,6 +123,43 @@ namespace eval ::xowiki::test {
                         [string match "*$page_order" $toc_url]
                 }
 
+
+                #
+                # This ToC is configured to expand all of the links
+                #
+                set page_name en:toc2
+                set toc1_id [xowiki::test::require_page \
+                                 -text [list "{{toc -style list -expand_all true}}" text/html] \
+                                 $page_name \
+                                 $f_id \
+                                 $package_id]
+
+                aa_section "Render a ToC that will expand all links"
+                set d [acs::test::http \
+                           -user_info $user_info \
+                           $instance/$folder_name/$page_name]
+                acs::test::reply_has_status_code $d 200
+
+                set response [dict get $d body]
+                aa_true "Includelet was rendered correctly" \
+                    {[string first "Error in includelet 'toc'" $response] == -1}
+
+                set toc_urls [list]
+                acs::test::dom_html root $response {
+                    set toc_links [$root selectNodes \
+                                       "//*\[@class='toc'\]//a\[@href\]"]
+                    aa_equals "The expected number of links has been rendered" \
+                        [llength $toc_links] [llength $page_orders]
+                    foreach toc_link $toc_links {
+                        lappend toc_urls [$toc_link getAttribute href]
+                    }
+                }
+
+                foreach toc_url $toc_urls page_order $page_orders {
+                    aa_true "'$toc_url' is in the expected order '$page_order'" \
+                        [string match "*$page_order" $toc_url]
+                }
+
             } finally {
                 # set node_id [site_node::get_node_id -url /$instance]
                 # site_node::unmount -node_id $node_id
