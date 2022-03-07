@@ -114,11 +114,8 @@ namespace eval ::xowiki {
     if {${:verbose}} {
       :log "add_pages want to add [llength [$pages children]] pages"
     }
-    if {[dict exists $properties CSSclass_ul]} {
-      set extra_flags "-ul_class [dict get $properties CSSclass_ul]"
-    } else {
-      set extra_flags ""
-    }
+    set ul_class [expr {[dict exists $properties CSSclass_ul] ?
+                        [dict get $properties CSSclass_ul] : ""}]
     foreach o [$pages children] {
       $o instvar page_order title name
       if {![regexp {^(.*)[.]([^.]+)} $page_order _ parent]} {
@@ -147,7 +144,7 @@ namespace eval ::xowiki {
                    -expanded $is_open \
                    -open_requests 1 \
                    -verbose ${:verbose} \
-                   {*}$extra_flags]
+                   -ul_class $ul_class]
         set tree($level) $c
         for {set l [expr {$level - 1}]} {![info exists tree($l)]} {incr l -1} {}
         $tree($l) add $c
