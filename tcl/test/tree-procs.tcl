@@ -33,8 +33,9 @@ namespace eval ::xowiki::test {
                               $folder_name $root_folder_id $package_id]
 
                 #
-                # Create a trivial ToC page with "list" style and
-                # check that this won't return an error
+                # Simple ToC using the "list" style that will render
+                # only pages at the first level of the hierarchy
+                # represented by the page_order.
                 #
                 set page_name en:toc1
                 set toc1_id [xowiki::test::require_page \
