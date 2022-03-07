@@ -113,6 +113,7 @@ namespace eval ::xowiki::test {
 
     ad_proc -private ::xowiki::test::require_page {
         -text
+        {-page_order ""}
         name
         parent_id
         package_id
@@ -126,14 +127,22 @@ namespace eval ::xowiki::test {
                 if {![info exists text]} {
                     set text [list "Content of $name" text/html]
                 }
-                set f [::xowiki::Page new -name $name -description "" \
-                           -parent_id $parent_id -package_id $package_id \
+                set f [::xowiki::Page new \
+                           -name $name \
+                           -description "" \
+                           -parent_id $parent_id \
+                           -package_id $package_id \
                            -nls_language $nls_language \
+                           -page_order $page_order \
                            -text $text]
             } else {
                 set mime_type [::xowiki::guesstype $name]
-                set f [::xowiki::File new -name $name -description "" \
-                           -parent_id $parent_id -package_id $package_id \
+                set f [::xowiki::File new \
+                           -name $name \
+                           -description "" \
+                           -parent_id $parent_id \
+                           -package_id $package_id \
+                           -page_order $page_order \
                            -mime_type $mime_type]
 
                 ::xo::write_tmp_file import_file [::base64::decode $file_content]
