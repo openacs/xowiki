@@ -2618,7 +2618,7 @@ namespace eval ::xowiki::includelet {
       set :js [:yui_non_ajax]
     }
 
-    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id]]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
@@ -2633,7 +2633,6 @@ namespace eval ::xowiki::includelet {
   toc instproc render_tree {{-full false} pages} {
     :get_parameters
     set tree [::xowiki::Tree new -destroy_on_cleanup \
-                  -orderby pos \
                   -id [:id] \
                   -verbose 0 \
                   -owner [self]]
@@ -2672,7 +2671,7 @@ namespace eval ::xowiki::includelet {
     } else {
       set allow_reorder [:page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
-    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id]]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full \
         -remove_levels $remove_levels \
@@ -2768,6 +2767,10 @@ namespace eval ::xowiki::includelet {
     # children of the parent of the page depending on "folder_mode".
     #
     set pages [:build_toc $package_id $locale $source $range]
+
+    #foreach p [$pages children] {
+    #  ns_log notice "... [$p set page_order] [$p set name]"
+    #}
 
     #
     # Build the general navigation structure using associative arrays
