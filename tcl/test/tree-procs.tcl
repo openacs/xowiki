@@ -54,14 +54,49 @@ namespace eval ::xowiki::test {
                 aa_true "Includelet was rendered correctly" \
                     {[string first "Error in includelet 'toc'" $response] == -1}
 
+                acs::test::dom_html root $response {
+                    set toc_links [$root selectNodes \
+                                       "//*\[@class='toc'\]//a\[@href\]"]
+                    aa_equals "No links should be rendered in the ToC, as no pages specify an order." \
+                        [llength $toc_links] 0
+                }
 
-                aa_section "Render ToC with one page to display"
 
-                ::xowiki::test::require_page \
-                    -page_order 10 \
-                    p10 \
-                    $f_id \
-                    $package_id
+                aa_section "Render ToC with pages to display"
+
+                set page_orders {
+                    1
+                    1.1
+                    1.1.1
+                    2
+                    2.1
+                    3
+                    3.1
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    10.1
+                    100
+                }
+
+                set first_level_page_orders [list]
+                foreach page_order $page_orders {
+                    if {[string first . $page_order] == -1} {
+                        lappend first_level_page_orders $page_order
+                    }
+                }
+
+                foreach page_order $page_orders {
+                    ::xowiki::test::require_page \
+                        -page_order $page_order \
+                        tocPage-${page_order} \
+                        $f_id \
+                        $package_id
+                }
 
                 set d [acs::test::http \
                            -user_info $user_info \
@@ -72,6 +107,21 @@ namespace eval ::xowiki::test {
                 aa_true "Includelet was rendered correctly" \
                     {[string first "Error in includelet 'toc'" $response] == -1}
 
+                set toc_urls [list]
+                acs::test::dom_html root $response {
+                    set toc_links [$root selectNodes \
+                                       "//*\[@class='toc'\]//a\[@href\]"]
+                    aa_equals "The expected number of links has been rendered" \
+                        [llength $toc_links] [llength $first_level_page_orders]
+                    foreach toc_link $toc_links {
+                        lappend toc_urls [$toc_link getAttribute href]
+                    }
+                }
+
+                foreach toc_url $toc_urls page_order $first_level_page_orders {
+                    aa_true "'$toc_url' is in the expected order '$page_order'" \
+                        [string match "*$page_order" $toc_url]
+                }
 
             } finally {
                 # set node_id [site_node::get_node_id -url /$instance]
