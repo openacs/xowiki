@@ -159,6 +159,31 @@ namespace eval ::xowiki::test {
         return $item_id
     }
 
+    ad_proc -private ::xowiki::test::require_form_page {
+        {-title}
+        {-form en:Page.form}
+        {-page_order}
+        name parent_id package_id} {
+        set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
+
+        if {$item_id == 0} {
+            set form_id [::$package_id instantiate_forms -forms $form]
+            set f [::$form_id create_form_page_instance \
+                       -name $name \
+                       -nls_language en_US \
+                       -default_variables [list \
+                                               title [expr {[info exists title] ? $title : "Page $name"}] \
+                                               {*}[expr {[info exists page_order] ? "page_order $page_order" : ""}] \
+                                               parent_id $parent_id \
+                                               package_id $package_id]]
+            $f publish_status ready
+            $f save_new
+            set item_id [$f item_id]
+        }
+        aa_log "  $name => $item_id"
+        return $item_id
+    }
+
     ad_proc -private ::xowiki::test::label {intro case ref} {
         return "$intro '$ref' -- $case"
     }
