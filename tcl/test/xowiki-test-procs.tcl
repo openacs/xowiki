@@ -622,8 +622,8 @@ namespace eval ::xowiki::test {
                 aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
                 aa_equals "input_box4 box checked (box2: repeated box)" [$input_box4 hasAttribute checked] 1
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 1
-                aa_equals "input_box6 box checked (box3: simple disabled box)"   [$input_box6 hasAttribute checked] 0
-                aa_equals "input_box7 box checked (box3: simple disabled box)"   [$input_box7 hasAttribute checked] 1
+                aa_equals "input_box6 box checked (box3: simple disabled box)" [$input_box6 hasAttribute checked] 1
+                aa_equals "input_box7 box checked (box3: simple disabled box)" [$input_box7 hasAttribute checked] 0
                 #ns_log notice "XXXX box3\n[$input_box6 asHTML] \n[$input_box7 asHTML]"
             }
 
@@ -659,8 +659,8 @@ namespace eval ::xowiki::test {
                 aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
                 aa_equals "input_box4 box checked (box2: repeated box)" [$input_box4 hasAttribute checked] 0
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 0
-                aa_equals "input_box6 box checked (box3: simple disabled box)"   [$input_box6 hasAttribute checked] 0
-                aa_equals "input_box7 box checked (box3: simple disabled box)"   [$input_box7 hasAttribute checked] 1
+                aa_equals "input_box6 box checked (box3: simple disabled box)" [$input_box6 hasAttribute checked] 1
+                aa_equals "input_box7 box checked (box3: simple disabled box)" [$input_box7 hasAttribute checked] 0
                 #ns_log notice "XXXX box3\n[$input_box6 asHTML] \n[$input_box7 asHTML]"
             }
 

@@ -5988,7 +5988,7 @@ namespace eval ::xowiki::formfield {
     }
     #:msg "${:name} initialize date, format=${:format} components=${:components}"
     foreach c ${:components} {$c destroy}
-    :components [list]
+    :components {}
 
     foreach element [split ${:format}] {
       if {![info exists :format_map($element)]} {
@@ -6050,10 +6050,12 @@ namespace eval ::xowiki::formfield {
     foreach c ${:components} {
       if {[$c istype ::xowiki::formfield::label]} continue
       if {$ticks ne ""} {
-        set value_part [clock format $ticks -format [$c set code]]
+        set value_part [string trim [clock format $ticks -format [$c set code]]]
         if {[$c set trim_zeros]} {
           set value_part [string trimleft $value_part 0]
-          if {$value_part eq ""} {set value_part 0}
+          if {$value_part eq ""} {
+            set value_part 0
+          }
         }
       } else {
         set value_part ""
@@ -6083,7 +6085,9 @@ namespace eval ::xowiki::formfield {
     if {![string is integer $year]} {set year 0}
 
     foreach v [list year month day hour min sec] {
-      if {[set $v] eq ""} {set $v [set :defaults($v)]}
+      if {[set $v] eq ""} {
+        set $v [set :defaults($v)]
+      }
     }
     #:msg "$year-$month-$day ${hour}:${min}:${sec}"
     if {[catch {set ticks [clock scan "$year-$month-$day ${hour}:${min}:${sec}"]}]} {
@@ -6250,7 +6254,14 @@ namespace eval ::xowiki::formfield {
 
   Class create form -superclass richtext -parameter {
     {height 200}
+    {editor none}
   } -extend_slot_default validator form
+
+  form instproc initialize {} {
+    set :widget_type richtext
+    set ::__extra_allowed_tags form
+    set :__initialized 1
+  }
 
   form instproc check=form {value} {
     set form $value
