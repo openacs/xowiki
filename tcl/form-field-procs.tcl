@@ -4049,8 +4049,14 @@ namespace eval ::xowiki::formfield {
           break
         }
       }
-      ns_log notice "OPTIONS CHECK ${:name} <$value> in <$allowed_values> -> $result" \
-          "([:info class])"
+      if {$result == 0} {
+        #
+        # Report for the time being invalid validate from option
+        # fields.
+        #
+        ns_log notice "OPTIONS CHECK ${:name} <$value> in <$allowed_values> -> $result" \
+            "([:info class])"
+      }
     }
     return $result
   }
