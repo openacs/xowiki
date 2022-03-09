@@ -4233,13 +4233,17 @@ namespace eval ::xowiki {
   Form proc disable_input_fields {{-with_submit 0} form} {
     dom parse -simple -html $form doc
     $doc documentElement root
-    :dom_disable_input_fields -with_submit $with_submit $root
-    set form [lindex [$root selectNodes //form] 0]
-    set marginForm [::xowiki::CSS class "margin-form"]
-    if {$marginForm ne ""} {
-      Form add_dom_attribute_value $form class $marginForm
+    if {$root ne ""} {
+      :dom_disable_input_fields -with_submit $with_submit $root
+      set form [lindex [$root selectNodes //form] 0]
+      set marginForm [::xowiki::CSS class "margin-form"]
+      if {$marginForm ne ""} {
+        Form add_dom_attribute_value $form class $marginForm
+      }
+      return [$root asHTML]
+    } else {
+      ns_log notice "Form $form is apparently empty"
     }
-    return [$root asHTML]
   }
 
   Form proc add_dom_attribute_value {dom_node attr value} {
