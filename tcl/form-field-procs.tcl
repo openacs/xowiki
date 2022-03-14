@@ -6264,7 +6264,8 @@ namespace eval ::xowiki::formfield {
   } -extend_slot_default validator form
 
   form instproc initialize {} {
-    set :widget_type richtext
+    set :widget_type text(textarea)
+    set :booleanHTMLAttributes {required readonly disabled formnovalidate}
     set ::__extra_allowed_tags form
     set :__initialized 1
   }
