@@ -161,7 +161,7 @@ namespace eval ::xowiki::test {
 
     ad_proc -private ::xowiki::test::require_form_page {
         {-title}
-        {-form en:Page.form}
+        {-form en:page.form}
         {-page_order}
         name parent_id package_id} {
         set item_id [::xo::db::CrClass lookup -name $name -parent_id $parent_id]
