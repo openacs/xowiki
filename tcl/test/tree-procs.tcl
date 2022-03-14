@@ -36,10 +36,10 @@ namespace eval ::xowiki::test {
                 # only pages at the first level of the hierarchy
                 # represented by the page_order.
                 #
-                set page_name en:toc1
+                set page_name toc1
                 set toc1_id [xowiki::test::require_page \
                                  -text [list "{{toc -style list}}" text/html] \
-                                 $page_name \
+                                 en:$page_name \
                                  $f_id \
                                  $package_id]
 
@@ -93,7 +93,7 @@ namespace eval ::xowiki::test {
                 foreach page_order $page_orders {
                     ::xowiki::test::require_page \
                         -page_order $page_order \
-                        tocPage-${page_order} \
+                        en:tocPage-${page_order} \
                         $f_id \
                         $package_id
                 }
@@ -134,10 +134,10 @@ namespace eval ::xowiki::test {
                 #
                 # This ToC is configured to expand all of the links
                 #
-                set page_name en:toc2
+                set page_name toc2
                 set toc1_id [xowiki::test::require_page \
                                  -text [list "{{toc -style list -expand_all true}}" text/html] \
-                                 $page_name \
+                                 en:$page_name \
                                  $f_id \
                                  $package_id]
 
