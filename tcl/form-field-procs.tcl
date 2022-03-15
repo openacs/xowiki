@@ -347,6 +347,7 @@ namespace eval ::xowiki::formfield {
         #:msg "++ call-field level validator $validator_method '$value'"
         set success [:validation_check $validator_method $value]
       }
+      #:log "++ ${:name} [:info class] validator=[:validator] ([llength [:validator]]) value=$value -> $success"
       if {$success == 1} {
         #
         # The previous check was ok, check now for a validator on the
@@ -370,9 +371,12 @@ namespace eval ::xowiki::formfield {
         if {![info exists __langPkg]} {
           set __langPkg "xowiki"
         }
-        #:log "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level] -- [lsort [info vars]]"
+        #:log "calling $__langPkg.$cl-validate_$validator with [list value $value errorMsg $errorMsg] on level [info level]"
         set msg [_ $__langPkg.$cl-validate_$validator [list value $value errorMsg $errorMsg]]
-        #:log "++ ${:name}: ======> RETURN VALIDATION FAILED <$msg>"
+        if {$msg eq ""} {
+          set msg  "validation of field '$validator' failed, '$errorMsg', no message key '$__langPkg.$cl-validate_$validator' provided"
+          :log "++ ${:name}: VALIDATION FAILED <$msg>"
+        }
         return $msg
       }
     }
@@ -6271,13 +6275,34 @@ namespace eval ::xowiki::formfield {
   }
 
   form instproc check=form {value} {
-    set form $value
-    #:msg form=$form
-    dom parse -simple -html $form doc
-    $doc documentElement root
-    set rootNodeName ""
-    if {$root ne ""} {set rootNodeName [$root nodeName]}
-    return [expr {$rootNodeName eq "form"}]
+    #:msg form=$value
+    if {$value eq ""} {
+      #
+      # Support forms which are empty
+      #
+      return 1
+    }
+    #
+    # All other forms must start with a <form> tag.
+    #
+    try {
+      dom parse -simple -html $value doc
+    } on ok {r} {
+      $doc documentElement root
+      set rootNodeName ""
+      if {$root ne ""} {
+        set rootNodeName [$root nodeName]
+      }
+      set ok [expr {$rootNodeName eq "form"}]
+    } on error {errorMsg} {
+      ns_log notice "dom parsed lead to $errorMsg"
+      set ok 0
+    }
+    if {!$ok} {
+      :uplevel {set errorMsg "Form does not start with a <form> tag."}
+    }
+    #ns_log notice "check=form returns $ok"
+    return $ok
   }
 
   ###########################################################
