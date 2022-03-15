@@ -1656,7 +1656,7 @@ namespace eval ::xowiki {
       foreach location {resources/templates www} {
 
         set tmpl /packages/$package_key/$location/$name
-        set fn [acs_root_dir]/$tmpl
+        set fn $::acs::rootdir/$tmpl
         lappend paths $fn
         #ns_log notice "=== check get_adp_template $fn"
 

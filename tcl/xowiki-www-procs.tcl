@@ -2157,7 +2157,7 @@ namespace eval ::xowiki {
         #
 
         set __including_page $page
-        #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
+        #set __adp_stub $::acs::rootdir/packages/xowiki/www/view-default
         set __adp_stub [::$context_package_id get_adp_template view-default]
 
         set template_code [template::adp_compile -string $template]
