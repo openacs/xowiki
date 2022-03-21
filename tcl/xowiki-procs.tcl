@@ -3643,7 +3643,7 @@ namespace eval ::xowiki {
     if {${:mime_type} eq "text/plain"} {
       set f [open [:full_file_name] r]; set data [read $f]; close $f
       set result [list text $data mime text/plain]
-    } else if {[::namespace which ::search::convert::binary_to_text] ne ""} {
+    } elseif {[::namespace which ::search::convert::binary_to_text] ne ""} {
       set txt [search::convert::binary_to_text \
                    -filename [:full_file_name] \
                    -mime_type ${:mime_type}]
