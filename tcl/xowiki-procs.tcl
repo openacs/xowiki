@@ -3642,7 +3642,8 @@ namespace eval ::xowiki {
     #  array set "" {mime text/html text "" html "" keywords ""}
     set mime ${:mime_type}
     if {$mime eq "text/plain"} {
-      set result [next]
+      set f [open [:full_file_name] r]; set data [read $f]; close $f
+      set result [list text $data mime text/plain]
     } else {
       if {[info commands "::search::convert::binary_to_text"] ne ""} {
         set txt [search::convert::binary_to_text -filename [:full_file_name] -mime_type $mime]
