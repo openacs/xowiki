@@ -5034,6 +5034,10 @@ namespace eval ::xowiki {
     return [expr $wc(tcl)]
   }
 
+  FormPage instproc condition=has_name {query_context value} {
+    return [regexp $value ${:name}]
+  }
+
   # If the folder has a property "langstring" assume that the
   # content is a dict containing multiple attributes in multiple
   # languages.
