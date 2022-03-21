@@ -3640,17 +3640,16 @@ namespace eval ::xowiki {
 
   File instproc search_render {} {
     #  array set "" {mime text/html text "" html "" keywords ""}
-    set mime ${:mime_type}
-    if {$mime eq "text/plain"} {
+    if {${:mime_type} eq "text/plain"} {
       set f [open [:full_file_name] r]; set data [read $f]; close $f
       set result [list text $data mime text/plain]
+    } else if {[::namespace which ::search::convert::binary_to_text] ne ""} {
+      set txt [search::convert::binary_to_text \
+                   -filename [:full_file_name] \
+                   -mime_type ${:mime_type}]
+      set result [list text $txt mime text/plain]
     } else {
-      if {[info commands "::search::convert::binary_to_text"] ne ""} {
-        set txt [search::convert::binary_to_text -filename [:full_file_name] -mime_type $mime]
-        set result [list text $txt mime text/plain]
-      } else {
-        set result [list text "" mime text/plain]
-      }
+      set result [list text "" mime text/plain]
     }
 
     #ns_log notice "search_render returns $result"
