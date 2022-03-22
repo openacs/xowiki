@@ -1467,7 +1467,7 @@ namespace eval ::xowiki::test {
                                  -package_id $package_id \
                                  -creation_user [dict get $user_info user_id]]
             $file_object set import_file \
-                [acs_root_dir]/packages/acs-templating/www/resources/sort-ascending.png
+                $::acs::rootdir/packages/acs-templating/www/resources/sort-ascending.png
             $file_object save_new
             aa_true "$file_object was saved" [string is integer [$file_object item_id]]
 

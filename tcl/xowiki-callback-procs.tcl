@@ -76,7 +76,7 @@ namespace eval ::xowiki {
   } {
     ns_log notice "-- UPGRADE $from_version_name -> $to_version_name"
 
-    set upgrade_file [acs_root_dir]/packages/xowiki/tcl/upgrade/upgrade.tcl
+    set upgrade_file $::acs::rootdir/packages/xowiki/tcl/upgrade/upgrade.tcl
     #
     # The upgrade file contains the upgrade proc of the following form:
     #
