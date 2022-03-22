@@ -6,8 +6,10 @@
   @creation-date Aug 11, 2006
   @cvs-id $Id$
 } -parameter {
-  {create_user_ids 0}
-  {replace 0}
+  {create_user_ids:integer 0}
+  {replace:integer 0}
+  {return_url:localurl ../}
+  {parent_id:object_id 0}
 }
 
 set msg ""
@@ -73,7 +75,6 @@ ad_form \
           if {![info exists preexists($o)]} {lappend objects $o}
         }
         ns_log notice "objects to import: $objects"
-        set parent_id [ns_queryget parent_id 0]
         #::xotcl::Object msg parent_id=$parent_id
         ad_try {
           set msg [::$package_id import -replace $replace -create_user_ids $create_user_ids \
@@ -95,7 +96,6 @@ ad_form \
     }
 
 
-set return_url [ns_queryget return_url ../]
 set title [_ xowiki.import_title]
 set context .
 ad_return_template
