@@ -6,11 +6,30 @@
   @creation-date Aug 11, 2006
   @cvs-id $Id$
 } -parameter {
-  {create_user_ids:integer 0}
-  {replace:integer 0}
-  {return_url:localurl ../}
-  {parent_id:object_id 0}
+  {-create_user_ids:integer 0}
+  {-replace:integer 0}
+  {-return_url:localurl ../}
+  {-parent_id:object_id 0}
 }
+
+if {$parent_id ne 0} {
+  set success 0
+  try {
+    ::xo::db::CrClass get_instance_from_db -item_id $parent_id
+  } on ok {parentObj} {
+    if {[$parentObj package_id] == $package_id} {
+      set success 1
+    }
+  } on error {errorMsg} {
+    ns_log warning "import.tcl sees invalid parent_id '$parent_id'"
+  }
+  if {!$success} {
+    ad_return_complaint 1 "provided parent_id is invalid"
+    ns_log notice STILL
+    ad_script_abort
+  }
+}
+
 
 set msg ""
 ad_form \
