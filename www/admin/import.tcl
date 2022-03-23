@@ -9,7 +9,7 @@
   {-create_user_ids:integer 0}
   {-replace:integer 0}
   {-return_url:localurl ../}
-  {-parent_id:object_id 0}
+  {-parent_id:intger 0}
 }
 if {$parent_id ne 0} {
   set success [::xo::db::CrClass id_belongs_to_package -item_id $parent_id -package_id $package_id]
