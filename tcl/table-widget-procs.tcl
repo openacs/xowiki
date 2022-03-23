@@ -19,6 +19,7 @@ namespace eval ::xowiki {
     {-bulk_actions ""}
     {-renderer ""}
     {-orderby ""}
+    {-type_map ""}
     {-with_checkboxes:boolean false}
   } {
 
@@ -127,11 +128,11 @@ namespace eval ::xowiki {
       set sortable 0
     }
     if {$sortable} {
-      if {$att eq "_page_order"} {
-        $table_widget mixin add ::xo::OrderedComposite::IndexCompare
-      }
       #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-      $table_widget orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+      $table_widget orderby \
+          -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] \
+          -type [ad_decode $att _page_order index {*}$type_map dictionary] \
+          $att
     }
     return $table_widget
   }
