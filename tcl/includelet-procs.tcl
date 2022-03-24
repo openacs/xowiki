@@ -2857,7 +2857,6 @@ namespace eval ::xowiki::includelet {
       $p set page_order $:page_order([$p set name])
     }
 
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
     if {$range ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
@@ -2868,7 +2867,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    $pages orderby page_order
+    $pages orderby -type index page_order
     return [:render_children $pages $menu_buttons]
   }
 
@@ -3175,9 +3174,9 @@ namespace eval ::xowiki::includelet {
         [::xowiki::Page container_already_rendered item_id]"
 
     set pages [::xowiki::Page instantiate_objects -sql $sql]
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby \
         -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        -type [ad_decode $order_attribute page_order index dictionary] \
         $order_attribute
 
     #

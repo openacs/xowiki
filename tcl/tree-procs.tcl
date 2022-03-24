@@ -58,11 +58,11 @@ namespace eval ::xowiki {
     if {![nsf::is object $items]} {
       ::xo::OrderedComposite create $items
       if {[info exists orderby]} {
-        if {$orderby eq "page_order"} {
-          $items mixin add ::xo::OrderedComposite::IndexCompare
-        }
         set direction [expr {$increasing ? "increasing" : "decreasing"}]
-        $items orderby -order $direction $orderby
+        $items orderby \
+            -order $direction \
+            -type [ad_decode $orderby page_order index dictionary] \
+            $orderby
       }
     }
     $items add $itemobj
@@ -113,7 +113,7 @@ namespace eval ::xowiki {
     set pos 0
     if {${:verbose}} {
       :log "add_pages want to add [llength [$pages children]] pages"
-    }   
+    }
     set ul_class [expr {[dict exists $properties CSSclass_ul] ?
                         [dict get $properties CSSclass_ul] : ""}]
     foreach o [$pages children] {
