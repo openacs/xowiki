@@ -1336,7 +1336,7 @@ namespace eval ::xowiki::formfield {
               :$inner_method
             }
             ::html::div -class "modal-footer" {
-              ::html::button -type "button" -class "btn btn-secondary" -data-dismiss "modal" {
+              ::html::button -type "button" -class "btn [::xowiki::CSS class btn-default]" -data-dismiss "modal" {
                 ::html::t Close
               }
             }

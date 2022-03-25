@@ -466,13 +466,8 @@ namespace eval ::xo::Table {
           set id [::xowiki::Includelet html_id $bulk_action]
           html::ul -class compact {
             html::li {
-              #
-              # For some reason, btn-secondary seems not to be available
-              # for the "a" tag, so we set the border-color manually.
-              #
-              html::a -class "btn btn-secondary" -rule button \
+              html::a -class "btn [::xowiki::CSS class btn-default]" -rule button \
                   -title [$bulk_action tooltip] -href # \
-                  -style "border-color: #ccc;" \
                   -id $id {
                     html::t [$bulk_action label]
                   }
