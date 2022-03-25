@@ -304,11 +304,21 @@ namespace eval ::xowiki {
     # parent_id has priority over the other measures to obtain it.
     #
     if {$parent_id == 0} {
-      if {![info exists :parent_id]} {:parent_id [::${:package_id} folder_id]}
+      if {![info exists :parent_id]} {
+        set :parent_id [::${:package_id} folder_id]
+      }
       set fp_parent_id [:form_parameter "parent_id" [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
+    #
+    # Allow only inserts to own package.
+    #
+    if {![::xo::db::CrClass id_belongs_to_package -item_id $fp_parent_id -package_id ${:package_id}]} {
+      ad_return_complaint 1 "invalid parent_id"
+      ad_script_abort
+    }
+
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
     set fp_package_id [:form_parameter "package_id" [:query_parameter package_id:int32 ${:package_id}]]
@@ -1162,7 +1172,7 @@ namespace eval ::xowiki {
       } else {
         #
         # We have no validation errors, so we can save the content.
-        #        
+        #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
@@ -1213,7 +1223,7 @@ namespace eval ::xowiki {
       #
       # Build the input form and display the current values.
       #
-      #:log "form_action is something different: <[:form_parameter __form_action {}]>"      
+      #:log "form_action is something different: <[:form_parameter __form_action {}]>"
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [::${:package_id} default_locale]
@@ -2736,7 +2746,7 @@ namespace eval ::xowiki {
     foreach f [concat $form_fields $leaf_components] {
       #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
-      
+
       if {![info exists processed($att)]
           && ![$f exists is_repeat_template]
           && ![$f exists disabled]

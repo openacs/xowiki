@@ -2788,11 +2788,13 @@ namespace eval ::xowiki {
   } {
     set object_type [:query_parameter object_type:class "::xowiki::Page"]
     set autoname [:get_parameter autoname 0]
-    set parent_id [${:id} query_parameter parent_id:int32 ""]
-    if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
-    if {![string is integer -strict $parent_id]} {
-      ad_return_complaint 1 "invalid parent_id"
-      ad_script_abort
+    set parent_id [${:id} query_parameter parent_id:cr_item_of_package,arg=${:id}]
+    if {$parent_id eq ""} {
+      set parent_id [${:id} form_parameter folder_id ${:folder_id}]
+      if {![::xo::db::CrClass id_belongs_to_package -item_id $parent_id -package_id ${:id}]} {
+        ad_return_complaint 1 "invalid parent_id"
+        ad_script_abort
+      }
     }
     set page [$object_type new -volatile -parent_id $parent_id -package_id ${:id}]
     # :ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"

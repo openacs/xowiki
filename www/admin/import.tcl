@@ -9,14 +9,10 @@
   {-create_user_ids:integer 0}
   {-replace:integer 0}
   {-return_url:localurl ../}
-  {-parent_id:intger 0}
+  {-parent_id:integer 0}
 }
 if {$parent_id ne 0} {
-  set success [::xo::db::CrClass id_belongs_to_package -item_id $parent_id -package_id $package_id]
-    if {!$success} {
-    ad_return_complaint 1 "provided parent_id is invalid"
-    ad_script_abort
-  }
+  set parent_id [::xo::cc query_parameter parent_id:cr_item_of_package,arg=$package_id]
 }
 
 set msg ""
