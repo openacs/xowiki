@@ -1,5 +1,5 @@
 ::xowiki::Package initialize -ad_doc {
-  
+
   Import objects in XOTcl serializer format
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
@@ -54,7 +54,7 @@ ad_form \
             "The provided file is not in the export file format"
         break
       }
-      
+
       set f [open $upload_tmpfile]
       #
       # If we do not set translation binary,
