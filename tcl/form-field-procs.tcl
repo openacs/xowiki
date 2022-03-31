@@ -4047,11 +4047,15 @@ namespace eval ::xowiki::formfield {
       if {!${:multiple}} {
         set value [list $value]
       }
-      foreach v $value {
-        if {$v ni $allowed_values} {
-          set result 0
-          break
+      if {[string is list $value]} {
+        foreach v $value {
+          if {$v ni $allowed_values} {
+            set result 0
+            break
+          }
         }
+      } else {
+        set result 0
       }
       if {$result == 0} {
         #
