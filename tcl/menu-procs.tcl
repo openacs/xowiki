@@ -131,7 +131,7 @@ namespace eval ::xowiki {
     id
     {dropzone:boolean true}
     {current_folder:object}
-    {parent_id ""}
+    {parent_id:integer,0..1 ""}
   }
 
   ::xowiki::MenuBar instproc get_prop {dict key {default ""}} {
@@ -311,11 +311,9 @@ namespace eval ::xowiki {
                {object_type ::xowiki::File} \
                parent_id return_url autoname template_file]
 
-      set new_form_link \
-          [::$package_id make_link \
-               ::$package_id edit-new \
-               {object_type ::xowiki::Form} \
-               parent_id return_url autoname template_file]
+      set new_form_link [::$package_id make_form_link -form en:form.form \
+                             -parent_id ${:parent_id} \
+                             -nls_language $nls_language -return_url $return_url]
     }
 
     :add_menu_item -name New.Page   -item [list url $new_page_link]
@@ -608,8 +606,9 @@ namespace eval ::xowiki {
                 -package_key xowiki \
                 -parameter PreferredCSSToolkit \
                 -default bootstrap] {
-      bootstrap {set menuBarRenderer render-bootstrap}
-      default   {set menuBarRenderer render-yui}
+      bootstrap -
+      bootstrap5 {set menuBarRenderer render-bootstrap}
+      default    {set menuBarRenderer render-yui}
     }
     :$menuBarRenderer
   }

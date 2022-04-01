@@ -578,6 +578,7 @@ namespace eval ::xowiki::includelet {
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
     switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
+      bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }

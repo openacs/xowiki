@@ -24,7 +24,7 @@ template::register_urn -urn urn:ad:js:highcharts \
 #    xowiki.css + xowiki-bootstrap3-specific.css -> xowiki-bootstrap3.css
 #
 set resDir $::acs::rootdir/packages/xowiki/www/resources
-foreach variant {yui bootstrap3} {
+foreach variant {yui bootstrap3 bootstrap5} {
   if {![ad_file exists $resDir/xowiki-$variant.css]
       || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki.css]
       || [ad_file mtime $resDir/xowiki-$variant.css] < [ad_file mtime $resDir/xowiki-$variant-specific.css]
@@ -43,6 +43,7 @@ template::register_urn -urn urn:ad:css:bootstrap3 \
 
 template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xowiki-yui.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
+template::register_urn -urn urn:ad:css:xowiki-bootstrap5 -resource /resources/xowiki/xowiki-bootstrap5.css
 
 set resource_info [xowiki::bootstrap_treeview::resource_info -version 1.2.0]
 foreach URN [dict keys [dict get $resource_info urnMap]] {

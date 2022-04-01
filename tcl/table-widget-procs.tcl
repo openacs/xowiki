@@ -108,8 +108,9 @@ namespace eval ::xowiki {
                   -package_key xowiki \
                   -parameter PreferredCSSToolkit \
                   -default bootstrap] {
-                    bootstrap {set renderer BootstrapTableRenderer}
-                    default   {set renderer YUIDataTableRenderer}
+                    bootstrap -
+                    bootstrap5 {set renderer BootstrapTableRenderer}
+                    default    {set renderer YUIDataTableRenderer}
                   }
       lappend cmd -renderer $renderer
     }

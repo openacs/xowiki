@@ -1309,20 +1309,14 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_collapsed {-id:required {-label ""} -inner_method} {
-    template::add_script -src urn:ad:js:bootstrap3
-    set num [clock clicks -microseconds]
-    ::html::button -type button -class "btn btn-xs" -data-toggle "collapse" -data-target "#$id" {
-      ::html::span -class "glyphicon glyphicon-chevron-down" {::html::t $label}
-    }
+    ::xowiki::BootstrapCollapseButton new -id $id -label $label -toggle "collapse" -direction "down"
     ::html::div -id "$id" -class "collapse" {
       :$inner_method
     }
   }
 
   FormField instproc render_modal {-id:required {-label ""} -inner_method} {
-    ::html::button -type button -class "btn btn-xs" -data-toggle "modal" -data-target "#$id" {
-      ::html::span -class "glyphicon glyphicon-chevron-down" {::html::t $label}
-    }
+    ::xowiki::BootstrapCollapseButton new -id $id -label $label -toggle "modal" -direction "down"
     ::html::div -id "$id" -class "modal fade" -tabindex -1 -role dialog aria-hidden "true" {
       ::html::div -class "modal-dialog" -role document {
         ::html::div -class "modal-content" {

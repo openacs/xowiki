@@ -33,7 +33,7 @@ aa_register_case \
                           "toc-folder" $root_folder_id $package_id]
 
             #
-            # Create pages for toc testing, including page_order comparsions
+            # Create pages for toc testing, including page_order comparisons
             #
             foreach po {
                 1

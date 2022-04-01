@@ -27,14 +27,13 @@ namespace eval ::xowiki {
       -parameter {
         {autorender false}
         {menubar}
-        {containerClass "container-fluid"}
-        {navbarClass "navbar navbar-default navbar-static-top"}
+        {containerClass "container-fluid px-0"}
+        {navbarClass "navbar navbar-default navbar-static-top mx-2 p-0"}
       }
 
   BootstrapNavbar instproc init {} {
     ::xo::Page requireJS urn:ad:js:jquery
-    ::xo::Page requireCSS urn:ad:css:bootstrap3
-    ::xo::Page requireJS  urn:ad:js:bootstrap3
+    ::xowiki::CSS require_toolkit -css -js
     next
   }
 
@@ -42,7 +41,7 @@ namespace eval ::xowiki {
   BootstrapNavbar ad_instproc render {} {
     http://getbootstrap.com/components/#navbar
   } {
-    html::nav -class [:navbarClass] -role "navigation" {
+    html::nav -class [xowiki::CSS classes ${:navbarClass}] -role "navigation" -style "background-color: #f8f9fa;" {
       #
       # Render the pull down menus
       #
@@ -56,7 +55,7 @@ namespace eval ::xowiki {
           }
         }
         if {[llength $rightMenuEntries] > 0} {
-          html::ul -class "nav navbar-nav navbar-right" {
+          html::ul -class "nav navbar-nav [::xowiki::CSS class navbar-right]" {
             foreach entry $rightMenuEntries {
               $entry render
             }
@@ -83,9 +82,9 @@ namespace eval ::xowiki {
     # get group header
     set group " "
 
-    html::ul -class "nav navbar-nav" {
-      html::li -class "dropdown" {
-        set class "dropdown-toggle"
+    html::ul -class "nav navbar-nav px-3" {
+      html::li -class "nav-item dropdown" {
+        set class "nav-link dropdown-toggle"
         if {[:brand]} {lappend class "navbar-brand"}
         html::a -href "\#" -class $class -data-toggle "dropdown" {
           html::t [:text]
@@ -119,7 +118,7 @@ namespace eval ::xowiki {
       }
 
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
-    html::li -class [expr {${:href} eq "" ? "disabled": ""}] {
+    html::li -class [expr {${:href} eq "" ? "nav-item disabled": "nav-item"}] {
       html::a [:get_attributes target href title id] {
         html::t ${:text}
       }
@@ -311,6 +310,32 @@ namespace eval ::xowiki {
     }
   }
 
+  ::xo::tdom::Class create BootstrapCollapseButton \
+      -parameter {
+        {id:required}
+        {toggle:required}
+        {direction:required}
+        {label:required}
+      }
+
+  BootstrapCollapseButton instproc init {} {
+    switch [::xowiki::CSS toolkit] {
+      "bootstrap" {
+        template::add_script -src urn:ad:js:bootstrap3
+        ::html::button -type button -class "btn btn-xs" -data-toggle ${:toggle} -data-target "#${:id}" {
+          ::html::span -class "glyphicon glyphicon-chevron-${:direction}" {::html::t ${:label}}
+        }
+      }
+      "bootstrap5" {
+        template::add_script -src urn:ad:js:bootstrap5
+        ::html::button -type button -class "btn btn-sm" -data-bs-toggle ${:toggle} -data-bs-target "#${:id}" {
+          ::html::i -class "bi bi-chevron-${:direction}" {::html::t ${:label}}
+        }
+      }
+    }
+  }
+
+
   # =======================================================
   # ::xo::library doc {
   #   ... styling for bootstrap menubar ...
@@ -414,8 +439,8 @@ namespace eval ::xo::Table {
       -instproc init_renderer {} {
         next
         set :css.table-class "table table-striped"
-        set :css.tr.even-class even
-        set :css.tr.odd-class odd
+        set :css.tr.even-class "align-middle"
+        set :css.tr.odd-class "align-middle"
         set :id [::xowiki::Includelet js_name [::xowiki::Includelet html_id [self]]]
       }
 
@@ -457,7 +482,7 @@ namespace eval ::xo::Table {
   BootstrapTableRenderer instproc render-bulkactions {} {
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions] > 0} {
-      html::div -class "btn-group" -role group -aria-label "Bulk actions" {
+      html::div -class "btn-group align-items-center" -role group -aria-label "Bulk actions" {
         html::t "#xotcl-core.Bulk_actions#:"
         set bulkaction_container [[lindex $bulkactions 0] set __parent]
         set name [$bulkaction_container set __identifier]
@@ -466,7 +491,7 @@ namespace eval ::xo::Table {
           set id [::xowiki::Includelet html_id $bulk_action]
           html::ul -class compact {
             html::li {
-              html::a -class "btn [::xowiki::CSS class btn-default]" -rule button \
+              html::a -class [::xowiki::CSS class bulk-action] -rule button \
                   -title [$bulk_action tooltip] -href # \
                   -id $id {
                     html::t [$bulk_action label]
@@ -493,7 +518,7 @@ namespace eval ::xo::Table {
   }
 
   BootstrapTableRenderer instproc render {} {
-    ::xo::Page requireCSS urn:ad:css:bootstrap3
+    ::xowiki::CSS require_toolkit -css
 
     if {![nsf::is object [self]::__actions]} {:actions {}}
     if {![nsf::is object [self]::__bulkactions]} {:__bulkactions {}}

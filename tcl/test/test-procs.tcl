@@ -514,29 +514,66 @@ namespace eval ::xowiki::test {
         #
         # New form creation happens over the top-level URL
         #
+        #set d [acs::test::http \
+        #           -last_request $last_request -user_id $user_id \
+        #           $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
+
         set d [acs::test::http \
                    -last_request $last_request -user_id $user_id \
-                   $instance/?object_type=::xowiki::Form&edit-new=1&parent_id=$parent_id&return_url=$instance/$path]
-        acs::test::reply_has_status_code $d 200
+                   $instance/form.form?m=create-new&parent_id=$parent_id&return_url=$instance/$path]
+        #
+        # If we use form.form, we get a redirect; classical
+        # "object_type=::xowiki::Form&edit-new=1" has no redirect.
+        #
+        if {[acs::test::reply_has_status_code $d 302]} {
 
-        set response [dict get $d body]
-        #ns_log notice response=$response
-        set formCSSClass "margin-form"
+            set location [::acs::test::get_url_from_location $d]
+            set d [acs::test::http -last_request $last_request -user_id $user_id $location/]
+            acs::test::reply_has_status_code $d 200
+            set formform 1
 
-        acs::test::dom_html root $response {
+            set response [::xowiki::test::get_content $d]
+            #ns_log notice response=$response
+            set formCSSClass "Form-form"
 
-            set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
-            set f_submit [$root selectNodes $selector]
-            aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+            acs::test::dom_html root $response {
 
-            set f_id     [::xowiki::test::get_object_name $root]
-            aa_true "page_id '$f_id' is empty" {$f_id eq ""}
+                set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//button\[@type='submit'\])}]
+                set f_submit [$root selectNodes $selector]
+                aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+
+                set f_id     [::xowiki::test::get_object_name $root]
+                aa_false "page_id '$f_id' is empty" {$f_id eq ""}
+            }
+            set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
+            ns_log notice "FORM <$form>"
+
+            set f_page_name   [dict get $form fields _name]
+            set f_creator     [dict get $form fields _creator]
+        } else {
+            acs::test::reply_has_status_code $d 200
+            set formform 0
+
+            set response [dict get $d body]
+            #ns_log notice response=$response
+            set formCSSClass "margin-form"
+
+            acs::test::dom_html root $response {
+
+                set selector [subst {string(//form\[contains(@class,'$formCSSClass')\]//input\[@type='submit'\]/@value)}]
+                set f_submit [$root selectNodes $selector]
+                aa_true "submit_button '$f_submit' is non empty" {$f_submit ne ""}
+
+                set f_id     [::xowiki::test::get_object_name $root]
+                aa_true "page_id '$f_id' is empty" {$f_id eq ""}
+            }
+            set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
+            ns_log notice "FORM <$form>"
+
+            set f_page_name   [dict get $form fields name]
+            set f_creator     [dict get $form fields creator]
         }
 
-        set form [acs::test::get_form $response "//form\[contains(@class,'$formCSSClass')\]"]
-
-        set f_page_name   [dict get $form fields name]
-        set f_creator     [dict get $form fields creator]
         set f_form_action [dict get $form @action]
 
         aa_true "name '$f_page_name' is empty"             {$f_page_name eq ""}
@@ -550,7 +587,7 @@ namespace eval ::xowiki::test {
         aa_true "page has at least 9 fields" { [llength $names] >= 9 }
 
         aa_log "empty form_content:\n$[::xowiki::test::pretty_form_content $form_content]"
-        dict set form_content name $name
+        dict set form_content [expr {$formform ? "_name" : "name"}] $name
         set form [acs::test::form_set_fields $form $form_content]
 
         set d [::acs::test::form_reply \

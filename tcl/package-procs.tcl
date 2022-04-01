@@ -23,23 +23,74 @@ namespace eval ::xowiki {
       #
       return ${:preferredCSSToolkit}
     }
+
+    :public object method require_toolkit {{-css:switch} {-js:switch}} {
+      #
+      # Make sure that the preferred toolkit is loaded. Not that some
+      # combination won't match nicely, since e.g. the toolbar of a
+      # theme based on bootstrap5 is messed up, when the preferred
+      # toolkit is bootstrap3. .... so, we should have some default
+      # setting or fallbacks to handle such situations.
+      #
+      if {${:preferredCSSToolkit} eq "bootstrap5"} {
+        if {$css} {::xo::Page requireCSS urn:ad:css:bootstrap5}
+        if {$js}  {::xo::Page requireJS  urn:ad:js:bootstrap5}
+      } elseif {${:preferredCSSToolkit} eq "bootstrap"} {
+        if {$css} {::xo::Page requireCSS urn:ad:css:bootstrap3}
+        if {$js}  {::xo::Page requireJS  urn:ad:js:bootstrap3}
+      } else {
+        # YUI has many simple files, let the application decide what
+        # to be loaded.
+      }
+    }
+
     :public object method initialize {} {
       #
-      # Initialize tailorization for CSS tooklits. The function reads
+      # Initialize tailorization for CSS toolkits. The function reads
       # the global apm package parameter and sets/resets accordingly
       # (a) the default values (actially parameters) for the form
       # field and (b) defines the toolkit specific CSS class name
       # mapping.
       #
       #
+      # Loading optional, but universally present header files has do
+      # be performed per request... not sure this is the best place,
+      # since packages are as well initialized in the background.
+      #
+      if {[ns_conn isconnected] && [apm_package_enabled_p "bootstrap-icons"]} {
+          template::head::add_css -href urn:ad:css:bootstrap-icons
+      }
+
       set paramValue [parameter::get_global_value -package_key xowiki \
                           -parameter PreferredCSSToolkit \
-                          -default bootstrap]
+                          -default default]
+      #
+      # Check, if parameter value is compatible with the theme. In
+      # particular, a preferred toolkit of "bootstrap3" does not work
+      # when the theme is based on Bootstrap 5 and vice versa. When necessary,
+      # align the value.
+      #
+      if {$paramValue in {default bootstrap bootstrap5} && [ns_conn isconnected]} {
+        set theme [subsite::get_theme]
+        if {$paramValue in {bootstrap default} && [string match *bootstrap5* $theme]} {
+          set paramValue bootstrap5
+        } elseif {$paramValue in {bootstrap5 default} && [string match *bootstrap3* $theme]} {
+          set paramValue bootstrap
+        }
+        if {$paramValue eq "default"} {
+          # For the time being, Bootstrap 3 is the default.
+          set paramValue bootstrap
+        }
+      }
       if {[info exists :preferredCSSToolkit]
           && ${:preferredCSSToolkit} eq $paramValue
         } {
         return
       }
+      #
+      # The code below is executed only on first initialization of the
+      # object or on changes of the preferredCSSToolkit.
+      #
       set :preferredCSSToolkit $paramValue
 
       if {${:preferredCSSToolkit} eq "bootstrap"} {
@@ -53,6 +104,7 @@ namespace eval ::xowiki {
         }
         set :cssClasses {
           btn-default btn-default
+          bulk-action "btn btn-default"
           margin-form ""
         }
       } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
@@ -60,12 +112,15 @@ namespace eval ::xowiki {
           {CSSclass form-control}
           {form_item_wrapper_CSSclass form-group}
           {form_widget_CSSclass ""}
-          {form_button_CSSclass "btn btn-secondary"}
+          {form_button_CSSclass "btn btn-outline-secondary btn-sm"}
           {form_button_wrapper_CSSclass ""}
           {form_help_text_CSSclass help-block}
         }
         set :cssClasses {
-          btn-default btn-secondary
+          btn-default btn-outline-secondary
+          bulk-action "btn btn-outline-secondary btn-sm"
+          navbar-default navbar-light
+          navbar-right ms-auto
           margin-form ""
         }
       } else {
@@ -96,6 +151,13 @@ namespace eval ::xowiki {
       } else {
         return $name
       }
+    }
+
+    :public object method classes {classNames} {
+      #
+      # Map a list of CSS class names
+      #
+      return [join [lmap class $classNames {:class $class}] " "]
     }
   }
 }
