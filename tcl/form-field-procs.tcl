@@ -648,15 +648,20 @@ namespace eval ::xowiki::formfield {
 
   FormField instproc render_form_widget {} {
     # This method provides the form-widget wrapper
-    set CSSclass [expr {[info exists :form_widget_CSSclass] ? ${:form_widget_CSSclass} : ""}]
-    if {${:error_msg} ne ""} {
-      append CSSclass " form-widget-error"
+    if {0} {
+      # no wrapper for form-widget (label + input)
+      :render_input
+    } else {
+      set CSSclass [expr {[info exists :form_widget_CSSclass] ? ${:form_widget_CSSclass} : ""}]
+      if {${:error_msg} ne ""} {
+        append CSSclass " form-widget-error"
+      }
+      set atts [list class $CSSclass]
+      if {${:inline}} {
+        lappend atts style "display: inline;"
+      }
+      ::html::div $atts { :render_input }
     }
-    set atts [list class $CSSclass]
-    if {${:inline}} {
-      lappend atts style "display: inline;"
-    }
-    ::html::div $atts { :render_input }
   }
 
   FormField instproc booleanAttributes {args} {
@@ -762,13 +767,24 @@ namespace eval ::xowiki::formfield {
       } else {
         set CSSclass form-label
       }
-      ::html::div -class $CSSclass {
-        ::html::label -class [lindex [split ${:name} .] end] -for ${:id} {
+      if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+        ::html::label -class "${:form_label_CSSclass} [lindex [split ${:name} .] end]" -for ${:id} {
           ::html::t ${:label}
         }
         if {${:required} && ${:mode} eq "edit"} {
           ::html::div -class form-required-mark {
             ::html::t " (#acs-templating.required#)"
+          }
+        }
+      } else {
+        ::html::div -class $CSSclass {
+          ::html::label -class "${:form_label_CSSclass} [lindex [split ${:name} .] end]" -for ${:id} {
+            ::html::t ${:label}
+          }
+          if {${:required} && ${:mode} eq "edit"} {
+            ::html::div -class form-required-mark {
+              ::html::t " (#acs-templating.required#)"
+            }
           }
         }
       }
@@ -791,11 +807,10 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_help_text {} {
-    set text ${:help_text}
-    if {$text ne ""} {
+    if {${:help_text} ne ""} {
       html::div -class [:form_help_text_CSSclass] {
         html::span -class "info-sign" { }
-        html::t $text
+        html::t ${:help_text}
       }
     }
   }
@@ -1796,6 +1811,7 @@ namespace eval ::xowiki::formfield {
     # Render content within in a fieldset, but with labels etc.
     #
     :CSSclass_list_add CSSclass [namespace tail [:info class]]
+    :CSSclass_list_add CSSclass "input-group align-items-center"
     html::fieldset [:get_attributes id {CSSclass class}] {
       foreach c ${:components} { $c render }
     }

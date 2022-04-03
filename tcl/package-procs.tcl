@@ -94,38 +94,52 @@ namespace eval ::xowiki {
       set :preferredCSSToolkit $paramValue
 
       if {${:preferredCSSToolkit} eq "bootstrap"} {
-        ::xowiki::formfield::FormField parameter {
-          {CSSclass form-control}
-          {form_item_wrapper_CSSclass form-group}
-          {form_widget_CSSclass ""}
-          {form_button_CSSclass "btn btn-default"}
-          {form_button_wrapper_CSSclass ""}
-          {form_help_text_CSSclass help-block}
-        }
         set :cssClasses {
           btn-default btn-default
           bulk-action "btn btn-default"
+          form-action "btn btn-default"
+          action "btn btn-default"
           margin-form ""
+          card "panel panel-default"
+          card-header panel-heading
+          card-body panel-body
         }
-      } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
-        ::xowiki::formfield::FormField parameter {
+        ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
           {form_item_wrapper_CSSclass form-group}
+          {form_label_CSSclass ""}
           {form_widget_CSSclass ""}
-          {form_button_CSSclass "btn btn-outline-secondary btn-sm"}
+          {form_button_CSSclass "[xowiki::CSS class form-action]"}
           {form_button_wrapper_CSSclass ""}
           {form_help_text_CSSclass help-block}
-        }
+        }]
+      } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
         set :cssClasses {
           btn-default btn-outline-secondary
           bulk-action "btn btn-outline-secondary btn-sm"
+          form-action "btn btn-outline-secondary btn-sm m-1"
+          action "btn btn-outline-secondary btn-sm m-1"
           navbar-default navbar-light
           navbar-right ms-auto
           margin-form ""
+          cog gear
+          print printer
+          close btn-close
+          warn exclamation-triangle-fill
         }
+        ::xowiki::formfield::FormField parameter [subst {
+          {CSSclass form-control}
+          {form_item_wrapper_CSSclass mb-3}
+          {form_label_CSSclass "form-label me-1"}
+          {form_widget_CSSclass ""}
+          {form_button_CSSclass "[xowiki::CSS class form-action]"}
+          {form_button_wrapper_CSSclass ""}
+          {form_help_text_CSSclass form-text}
+        }]
       } else {
         ::xowiki::formfield::FormField parameter {
           {CSSclass}
+          {form_label_CSSclass ""}
           {form_widget_CSSclass form-widget}
           {form_item_wrapper_CSSclass form-item-wrapper}
           {form_button_CSSclass ""}

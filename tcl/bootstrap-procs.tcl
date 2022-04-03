@@ -294,7 +294,7 @@ namespace eval ::xowiki {
     }
   }
 
-  BootstrapNavbarModeButton ad_instproc render {} {doku} {
+  BootstrapNavbarModeButton instproc render {} {
     html::li {
       html::form -class "form" -method "POST" -action ${:href} {
         html::div -class "checkbox ${:CSSclass}" {
@@ -318,7 +318,7 @@ namespace eval ::xowiki {
         {label:required}
       }
 
-  BootstrapCollapseButton instproc init {} {
+  BootstrapCollapseButton instproc render {} {
     switch [::xowiki::CSS toolkit] {
       "bootstrap" {
         template::add_script -src urn:ad:js:bootstrap3
@@ -598,6 +598,132 @@ namespace eval ::xo::Table {
   Class create BootstrapTableRenderer::ImageAnchorField -superclass TABLE::ImageAnchorField
   Class create BootstrapTableRenderer::BulkAction -superclass TABLE::BulkAction
 }
+
+namespace eval ::xowiki::bootstrap {
+
+  ad_proc ::xowiki::bootstrap::card {
+    -title:required
+    -body:required
+  } {
+  } {
+    return [ns_trim -delimiter | [subst {
+      |<div class="[xowiki::CSS class card]">
+      |  <div class="[xowiki::CSS class card-header]">$title</div>
+      |  <div class="[xowiki::CSS class card-body]">$body</div>
+      |</div>
+    }]]
+  }
+
+  ad_proc ::xowiki::bootstrap::icon {
+    -name:required
+    -style
+    -CSSclass
+  } {
+  } {
+    #<span class="glyphicon glyphicon-cog" aria-hidden="true" style="float: right;"></span>
+    set name [xowiki::CSS class $name]
+    set styleAtt [expr {[info exists style] ? "style='$style'" : ""}]
+    set CSSclass [expr {[info exists CSSclass] ? " $CSSclass" : ""}]
+    switch [::xowiki::CSS toolkit] {
+      "bootstrap" {
+        return [subst {<span class="glyphicon glyphicon-$name$CSSclass" aria-hidden="true" $styleAtt></span>}]
+      }
+      default {
+        return [subst {<i class="bi bi-$name$CSSclass" aria-hidden="true" $styleAtt></i>}]
+      }
+    }
+  }
+
+
+  ad_proc ::xowiki::bootstrap::modal_dialog {
+    -id:required
+    -title:required
+    {-subtitle ""}
+    -body:required 
+  } {
+    Generic modal dialog wrapper.
+    @param id
+    @param title HTML markup for the modal title (can contain tags)
+    @param subtitle HTML markup for the modal subtitle (can contain tags)
+    @param body HTML markup for the modal body (can contain tags)
+
+    @return HTML markup
+  } {
+    if {$subtitle ne ""} {
+      set subtitle [subst {<p class="modal-subtitle">$subtitle</p>}]
+    }
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      set data_attribute "data-bs"
+      ::security::csp::require img-src data:
+      set close_button_label ""
+      set before_close  "<h4 class='modal-title' id='configurationModalTitle'>$title</h4>"
+      set after_close  ""
+    } else {
+      set data_attribute "data"
+      set close_button_label {<span aria-hidden="true">&#215;</span>}
+      set before_close  ""
+      set after_close  "<h4 class='modal-title' id='configurationModalTitle'>$title</h4>"
+    }
+
+    return [ns_trim -delimiter | [subst {
+      |<div class="modal fade" id="$id" tabindex="-1" role="dialog"
+      |     aria-labelledby="$id-label" aria-hidden="true">
+      |  <div class="modal-dialog" role="document">
+      |    <div class="modal-content">
+      |      <div class="modal-header">
+      |        $before_close<button type="button" class="[xowiki::CSS class close]"
+      |           $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
+      |        </button>$after_close
+      |      </div>
+      |      <div class="modal-body">$subtitle
+      |        <form class="form-horizontal" id="configuration-form" role="form" action="#" method="post">
+      |        $body
+      |        </form>
+      |      </div>
+      |      <div class="modal-footer">
+      |        <button type="button" class="btn [::xowiki::CSS class btn-default]"
+      |                $data_attribute-dismiss="modal">#acs-kernel.common_Cancel#
+      |        </button>
+      |        <button id="$id-confirm" type="button" class="btn btn-primary confirm"
+      |                $data_attribute-dismiss="modal">#acs-subsite.Confirm#
+      |        </button>
+      |      </div>
+      |    </div>
+      |  </div>
+      |</div>
+    }]]
+  }
+
+
+  
+  ad_proc ::xowiki::bootstrap::modal_dialog_popup_button {
+    -target:required
+    -label:required
+    {-title ""}
+    {-CSSclass ""}
+  } {
+    Generic modal dialog wrapper.
+    @param target ID of the target modal dialog
+    @param title title for the anchor (help popup), plain text
+    @param label HTML markup for the modal popup label (can contain tags)
+
+    @return HTML markup
+  } {
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      set data_attribute "data-bs"
+    } else {
+      set data_attribute "data"
+    }
+    return [ns_trim -delimiter | [subst {
+      |<a class="$CSSclass" href="#" title="$title"
+      |  $data_attribute-toggle="modal" $data_attribute-target='#$target'>
+      |  $label
+      |</a>
+    }]]
+  }
+}
+
+
 
 ::xo::library source_dependent
 
