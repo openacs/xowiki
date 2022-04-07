@@ -39,10 +39,11 @@ function changePreview(url,name,mime) {
           });
         </script>
       </if>
-    <!-- </a> -->
     </if>
-<small><br>@sub_files.date@ </small><a href="@sub_files.delete_url@"><img src="/resources/acs-subsite/Delete16.gif" width="16" height="16" border="0" alt="delete" title="Delete" ></a>
-</center>
+    <!-- </a> -->
+  <small><br>@sub_files.date@ </small>
+  <a href="@sub_files.delete_url@"><adp:icon name="trash" title="#acs-subsite.Delete#"></a>
+  </center>
 </div>
 <br/>
 </multiple>
