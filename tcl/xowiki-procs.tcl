@@ -3995,41 +3995,10 @@ namespace eval ::xowiki {
     # use default widget spec
     return $default_spec
   }
-  
-  PageInstance instproc adp_parse_tags {HTML} {
-    #
-    # This method is similar to
-    #
-    #     template::adp_compile -string $HTML
-    #
-    # but it just performs tag substion (and not ADP variable
-    # substitution, since this is done differently concerning instance
-    # attributes, etc) on the provided HTML chunk.
-    #
-    #ns_log notice "adp_parse_tags BEGIN: $HTML"
-    set old_parse_list [expr {[info exists ::template::parse_list] ? $::template::parse_list : ""}]
-    set ::template::parse_list ""
-    #
-    # The following exception handler is just for safety to achieve a
-    # high-level of backward compatibility. In case
-    # "adp_compile_chunk" and or the evaluation of the resulting code
-    # fails, fall back to the original behavior without ADP tag
-    # substitution.
-    #
-    try {
-      template::adp_compile_chunk $HTML
-      set HTML [eval [join $::template::parse_list \n]]
-    } on error {errorMsg} {
-      ad_log warning "adp_parse_tags failed on parsing:\n$HTML"
-    }
-    set ::template::parse_list $old_parse_list
-    #ns_log notice "adp_parse_tags END: $HTML"
-    return $HTML    
-  }
-  
+
   PageInstance instproc get_form {} {
     # get the (HTML) form of the ::xowiki::PageTemplates/::xowiki::Form
-    return [:adp_parse_tags [:get_html_from_content [:get_from_template form]]]
+    return [::xowiki::adp_parse_tags [:get_html_from_content [:get_from_template form]]]
   }
 
   PageInstance instproc get_template_object {} {

@@ -101,7 +101,7 @@ namespace eval ::xowiki::includelet {
   personal-notification-messages ad_proc modal_message_dialog {
     -to_user_id:integer,1..n,required
     {-title "#xowiki.Send_message_to#"}
-    {-glyphicon pencil}
+    {-adpicon pencil}
   } {
     Create a bootstrap3 modal dialog
   } {
@@ -118,10 +118,10 @@ namespace eval ::xowiki::includelet {
       append input_fields [subst {<input type="hidden" name="to_user_id" value="$to_user_id">}]
     }
     set btnDefault [::xowiki::CSS class btn-default]
-    return [list link [subst {
+    return [list link [::xowiki::adp_parse_tags [subst {
       <a href="#$id" title="$title" role="button" data-toggle="modal" data-keyboard="false">
-      <span class="glyphicon glyphicon-$glyphicon" aria-hidden="true"></span>
-    }] dialog [subst {
+      <adp:icon name="$adpicon" aria-hidden="true"></span>
+    }]] dialog [::xowiki::adp_parse_tags [subst {
       <div class="modal fade" id='$id' tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
 <form role="form" class="form-vertical" method="post" action="">
@@ -133,8 +133,8 @@ namespace eval ::xowiki::includelet {
 
     <div class="modal-body">
       <div class="form-group">
-      <label for="msg"><span class="glyphicon glyphicon-$glyphicon"></span> #xowiki.Message#</label>
-        <input class="form-control" id="msg" name="msg" Placeholder="#xowiki.Enter_message#" required autofocus>
+      <label for="msg"><adp:icon name="$adpicon"> #xowiki.Message#</label>
+        <input class="form-control" id="msg" name="msg" placeholder="#xowiki.Enter_message#" required autofocus>
       </div>
       <div class="form-group">
       #xowiki.Urgency#
@@ -156,7 +156,7 @@ namespace eval ::xowiki::includelet {
 </form>
       </div><!--modal-dialog-->
       </div><!--modal-->
-    }]]
+    }]]]
   }
 
   personal-notification-messages ad_proc modal_message_dialog_register_submit {

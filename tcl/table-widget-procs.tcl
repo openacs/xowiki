@@ -222,7 +222,7 @@ namespace eval ::xowiki {
         $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
       }
       if {"archive" in $buttons} {
-        #$__c set _archive "<span class='glyphicon glyphicon-download-alt'></span>"; #content: "\e025";
+        # $__c set _archive "<adp:icon name='download'>; #content: "\e025";
         $__c set _archive "&nbsp;"
         $__c set _archive.title #xowiki.Archive_title#
         set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
