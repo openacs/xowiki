@@ -1768,19 +1768,14 @@ namespace eval ::xowiki::includelet {
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
-        set notification_image \
-            "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-            alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>"
+        set notification_image "<adp:icon name='envelope' title='[ns_quotehtml $notification_text]'>"
 
         set cat_notif_link [export_vars -base /notifications/request-new \
                                 {{return_url $notifications_return_url} \
                                      {pretty_name $notification_text} \
                                      {type_id $notification_type} \
                                      {object_id $category_id}}]
-        append entry "<a href='[ns_quotehtml $cat_notif_link]'> " \
-            "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
-            "alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>" </a>
-
+        append entry "<a href='[ns_quotehtml $cat_notif_link]'> " $notification_image </a>
       }
       lappend entries $entry
     }

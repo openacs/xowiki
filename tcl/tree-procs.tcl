@@ -644,12 +644,18 @@ namespace eval ::xowiki {
   TreeRenderer=bootstrap3-folders proc render {{-properties ""} tree} {
     set jsTree [string trimright [next] ", \n"]
     set id [$tree id]
-    set options ""
+    set options [list "enableLinks: true"]
     # see list of possible icons: https://github.com/jonmiles/bootstrap-treeview
-    lappend options \
-        "expandIcon: 'glyphicon glyphicon-none'" \
-        "collapseIcon: 'glyphicon glyphicon-folder-open'" \
-        "enableLinks: true"
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      lappend options \
+          "expandIcon: 'glyphicon glyphicon-none'" \
+          "collapseIcon: 'bi bi-folder2-open'"
+      #"expandIcon: 'bi bi-folder'"
+    } else {
+      lappend options \
+          "expandIcon: 'glyphicon glyphicon-none'" \
+          "collapseIcon: 'glyphicon glyphicon-folder-open'"
+    }
     template::add_body_script -script "\n\$('#$id').treeview({data: \[$jsTree\], [join $options ,] });"
     return "<div id='$id'></div>"
   }

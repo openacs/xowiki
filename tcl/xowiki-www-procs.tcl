@@ -1936,14 +1936,12 @@ namespace eval ::xowiki {
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
         set notification_text "Subscribe to [::$context_package_id instance_name]"
         set notification_subscribe_link \
-                                         [export_vars -base /notifications/request-new \
-                                              {{return_url $notifications_return_url}
-                                                {pretty_name $notification_text}
-                                                {type_id $notification_type}
-                                                {object_id $context_package_id}}]
-        set notification_image \
-                                         "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-        alt='$notification_text' title='$notification_text'>"
+            [export_vars -base /notifications/request-new \
+                 {{return_url $notifications_return_url}
+                   {pretty_name $notification_text}
+                   {type_id $notification_type}
+                   {object_id $context_package_id}}]
+        set notification_image "<adp:icon name='envelope' title='[ns_quotehtml $notification_text]'>"
       }
     }
 
