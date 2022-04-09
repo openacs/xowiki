@@ -1957,6 +1957,7 @@ namespace eval ::xowiki {
     } else {
       set content [:content_header_get]$content
     }
+    set content [::xowiki::parse_adp_tags $content]
 
     #
     # These variables can be influenced via set-parameter.
