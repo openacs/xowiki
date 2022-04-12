@@ -64,7 +64,7 @@ namespace eval ::xowiki {
      </blockquote>
     but it just performs tag substion (and not ADP variable
     substitution, since this is done differently concerning instance
-                                       attributes, etc) on the provided HTML chunk.
+    attributes, etc) on the provided HTML chunk.
 
     @param HTML text containing potentially ADP tags
     @return HTML text with substituted ADP tags
