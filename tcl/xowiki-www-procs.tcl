@@ -1966,7 +1966,7 @@ namespace eval ::xowiki {
     # Setup top includeletes and footers.
     #
 
-    set footer [:htmlFooter -content $content]
+    set footer [::xowiki::adp_parse_tags [:htmlFooter -content $content]]
     set top_includelets ""
     set vp [string trim [::$context_package_id get_parameter "top_includelet" ""]]
     if {$vp ne "" && $vp ne "none"} {
@@ -2166,7 +2166,6 @@ namespace eval ::xowiki {
         #
 
         set __including_page $page
-        #set __adp_stub $::acs::rootdir/packages/xowiki/www/view-default
         set __adp_stub [::$context_package_id get_adp_template view-default]
 
         set template_code [template::adp_compile -string $template]
