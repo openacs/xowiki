@@ -2368,6 +2368,16 @@ namespace eval ::xowiki::includelet {
             $extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
 
+    #
+    # Set the mixin for page-order before the call of __value_compare.
+    # Probably, we should use here a different approach to support as well
+    # sorting by different attributes.
+    #
+    $pages orderby \
+        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        -type [ad_decode $order_attribute page_order index dictionary] \
+        $order_attribute
+
     if {$range ne "" && $page_order_att ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
@@ -2377,11 +2387,6 @@ namespace eval ::xowiki::includelet {
         }
       }
     }
-
-    $pages orderby \
-        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
-        -type [ad_decode $order_attribute page_order index dictionary] \
-        $order_attribute
 
     if {$source ne ""} {
       # add the page_order to the objects
