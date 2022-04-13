@@ -28,7 +28,7 @@ namespace eval ::xowiki {
         {autorender false}
         {menubar}
         {containerClass "container-fluid px-0"}
-        {navbarClass "navbar navbar-default navbar-static-top mx-2 p-0"}
+        {navbarClass "navbar navbar-expand-lg navbar-default navbar-static-top mx-2 p-0"}
       }
 
   BootstrapNavbar instproc init {} {
@@ -45,7 +45,7 @@ namespace eval ::xowiki {
       #
       # Render the pull down menus
       #
-      html::div -class [:containerClass] {
+      html::div -class ${:containerClass} {
         set rightMenuEntries {}
         foreach entry [:children] {
           if {[$entry istype ::xowiki::BootstrapNavbarDropdownMenu]} {
@@ -85,10 +85,15 @@ namespace eval ::xowiki {
     html::ul -class "nav navbar-nav px-3" {
       html::li -class "nav-item dropdown" {
         set class "nav-link dropdown-toggle"
-        if {[:brand]} {lappend class "navbar-brand"}
-        html::a -href "\#" -class $class -data-toggle "dropdown" {
-          html::t [:text]
-          html::b -class "caret"
+        if {${:brand}} {
+          lappend class "navbar-brand"
+        }
+        set data_attribute [expr {[::xowiki::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
+        html::a -href "\#" -class $class -$data_attribute-toggle "dropdown" {
+          html::t ${:text}
+          if {[xowiki::CSS toolkit] eq "bootstrap"} {
+            html::b -class "caret"
+          }
         }
         html::ul -class "dropdown-menu" {
           foreach dropdownmenuitem [:children] {
@@ -96,7 +101,7 @@ namespace eval ::xowiki {
                 && [$dropdownmenuitem set group] ne $group
               } {
               if {$group ne " "} {
-                html::li -class "divider"
+                html::li -class "divider dropdown-divider"
               }
               set group [$dropdownmenuitem set group]
             }
@@ -119,7 +124,8 @@ namespace eval ::xowiki {
 
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
     html::li -class [expr {${:href} eq "" ? "nav-item disabled": "nav-item"}] {
-      html::a [:get_attributes target href title id] {
+      set :CSSclass dropdown-item
+      html::a [:get_attributes target href title id {CSSclass class}] {
         html::t ${:text}
       }
     }
@@ -287,7 +293,7 @@ namespace eval ::xowiki {
         };
       }
       html t [subst {
-        document.getElementById('[:id]').addEventListener('click', function (event) {
+        document.getElementById('${:id}').addEventListener('click', function (event) {
           mode_button_ajax_submit(this.form);
         });
       }]
@@ -300,7 +306,7 @@ namespace eval ::xowiki {
         html::div -class "checkbox ${:CSSclass}" {
           html::label -class "checkbox-inline" {
             set checked [expr {${:on} ? {-checked true} : ""}]
-            html::input -id [:id] -class "debug form-control" -name "debug" -type "checkbox" {*}$checked
+            html::input -id ${:id} -class "debug form-control" -name "debug" -type "checkbox" {*}$checked
             html::span -style ${:spanStyle} {html::t ${:text}}
             html::input -name "modebutton" -type "hidden" -value "${:button}"
           }
@@ -575,8 +581,10 @@ namespace eval ::xo::Table {
                 -id $id \
                 -script "[$line set $__name.onclick];"
           }
-          # Default class is from the field definition. To it we
-          # append the class coming from the line.
+          #
+          # The default class is from the field definition. Append to this value
+          # the class coming from the entry line.
+          #
           set CSSclass ${:CSSclass}
           if {[$line exists $__name.CSSclass]} {
             set lineCSSclass [$line set $__name.CSSclass]
@@ -639,7 +647,7 @@ namespace eval ::xowiki::bootstrap {
     -id:required
     -title:required
     {-subtitle ""}
-    -body:required 
+    -body:required
   } {
     Generic modal dialog wrapper.
     @param id
@@ -695,7 +703,7 @@ namespace eval ::xowiki::bootstrap {
   }
 
 
-  
+
   ad_proc ::xowiki::bootstrap::modal_dialog_popup_button {
     -target:required
     -label:required
