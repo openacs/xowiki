@@ -24,8 +24,10 @@ namespace eval ::xowiki {
         {f.description "="}
         {f.nls_language "="}
         {validate {
-          {name {\[::xowiki::validate_name\]} {Another item with this name exists \
-                already in this folder}}
+          {name {\[::xowiki::validate_name\]}
+            {Another item with this name exists already in this folder} }
+          {name {[string length \$name] < 4}
+            {The name is too long.  Please  enter a value of at most 4000 characters long} }
           {page_order {\[::xowiki::validate_form_field page_order\]} {Page Order invalid; \
                 might only contain upper and lowercase letters, underscore, digits and dots}}
         }}

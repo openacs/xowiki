@@ -2913,12 +2913,31 @@ namespace eval ::xowiki {
     upvar nls_language nls_language
     set success [::xowiki::validate_name [self]]
     if {$success} {
-      # set the instance variable with a potentially prefixed name
-      # the classical validators do just an upvar
+      set actual_length [string length $name]
+      set max_length 400
+      if {$actual_length > $max_length} {
+        set errorMsg [_ acs-tcl.lt_name_is_too_long__Ple \
+                          [list name $name max_length $max_length actual_length $actual_length]]
+        set success 0
+      }
+    } else {
+      set errorMsg [_ xowiki.Page-validate_name-duplicate_item [list value $name]]
+    }
+
+    if {$success} {
+      #
+      # Set the instance variable with a potentially prefixed
+      # name. The classical validators (like xowiki::validate_name) do
+      # just an upvar. Therefore, the "name" value is already
+      # normalized and prefixed.
+      #
       set :name $name
+    } else {
+      uplevel [list set errorMsg $errorMsg]
     }
     return $success
   }
+
   Page instproc validate=page_order {value} {
     if {[info exists :page_order]} {
       set page_order [string trim $value " ."]

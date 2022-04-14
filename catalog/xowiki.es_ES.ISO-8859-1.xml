@@ -213,7 +213,8 @@
   <msg key="Page-text">Contenido</msg>
   <msg key="Page-title">Título de la Página</msg>
   <msg key="Page-validate_form_constraints"> %errorMsg% </msg>
-  <msg key="Page-validate_name">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
+  <msg key="Page-validate_name">%errorMsg%</msg>
+  <msg key="Page-validate_name-duplicate_item">Otro elemento con el valor &#39;%value%&#39; ya existe en ésta carpeta</msg>
   <msg key="Page-validate_page_order">Orden de página no válido: sólo puede contener letras, guión bajo, dígitos y puntos</msg>
   <msg key="page_kind">Tipo</msg>
   <msg key="Page_pretty_name">Página XoWiki</msg>
