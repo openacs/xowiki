@@ -1366,16 +1366,6 @@ namespace eval ::xowiki {
       }
 
       #
-      # Insert unreported errors.
-      #
-      foreach f $form_fields {
-        if {[$f set error_msg] ne ""
-            && ![$f exists error_reported]
-          } {
-          $f render_error_msg
-        }
-      }
-      #
       # Add a submit field(s) at bottom.
       #
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
@@ -1431,7 +1421,7 @@ namespace eval ::xowiki {
     }
     :post_process_dom_tree ${:doc} ${:root} $form_fields
 
-    set html [${:root} asHTML]
+    set html [${:root} asHTML]    
     set html [:regsub_eval  \
                   {(^|[^\\])\x03([[:alnum:]_:]+)\x03} $html \
                   {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
@@ -1440,6 +1430,32 @@ namespace eval ::xowiki {
     #
     set html [string map [list \x03 @] $html]
 
+    #
+    # Handle unreported errors (in the future...). Unreported errors
+    # might occur, when a form-field was rendered above without
+    # "render_item". This can happen with inline rendering of the
+    # input fields where validation errors occur. Inline rendering
+    # happens very seldom (I know not a single occurrence in the
+    # wild). For such cases, one should define an extra field in the
+    # form with an idea, reparse the tree and insert the errors
+    # there. But first look, if we find a single occurrence.
+    #
+    set unprocessed {}
+    foreach f $form_fields {
+      if {[$f set error_msg] ne ""
+          && ![$f exists error_reported]
+        } {
+        ns_log notice "form-field [$f name] has unprocessed error msg '[$f set error_msg]'"
+        #$f render_error_msg
+        lappend unprocessed [$f name]
+      }
+    }
+    #ns_log notice "=============== $unprocessed unprocessed error messages"
+    if {[llength $unprocessed] > 0} {
+      ad_log warning "form has [llength $unprocessed] unprocessed " \
+          "error messages in fields $unprocessed"
+    }
+    
     #:log "calling VIEW with HTML [string length $html]"
     if {$view} {
       :www-view $html
