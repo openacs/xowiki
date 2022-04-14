@@ -796,10 +796,11 @@ namespace eval ::xowiki::formfield {
   }
 
   FormField instproc render_error_msg {} {
-    if {[:error_msg] ne "" && ![info exists :error_reported]} {
+    #ns_log notice "render_error_msg: field ${:name} has errorMsg (reported [info exists :error_reported]) '${:error_msg}'"
+    if {${:error_msg} ne "" && ![info exists :error_reported]} {
       ::html::div -class form-error {
         set label ${:label} ;# needed for error_msg; TODO: we should provide a substitution_list similar to "_"
-        ::html::t [::xo::localize [:error_msg]]
+        ::html::t [::xo::localize ${:error_msg}]
         :render_localizer
         set :error_reported 1
       }
