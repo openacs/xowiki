@@ -66,6 +66,7 @@ namespace eval ::xowiki {
   ::xo::db::CrClass create File -superclass Page \
       -pretty_name "#xowiki.File_pretty_name#" -pretty_plural "#xowiki.File_pretty_plural#" \
       -table_name "xowiki_file" -id_column "file_id" \
+      -non_cached_instance_var_patterns {import_file do_substitutions} \
       -storage_type file \
       -form ::xowiki::FileForm \
       -parameter {
