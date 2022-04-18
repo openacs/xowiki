@@ -316,7 +316,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="From">From</msg>
   <msg key="to">to</msg>
   <msg key="Archive">Archive</msg>
-  <msg key="Archive_title">When the item is archived, it is not shown to users anymore.</msg>
+  <msg key="Archive_title">Archive item. When the item is archived, it is not shown to users anymore.</msg>
   <msg key="ShuffleField-validate_options">Invalid option value</msg>
   <msg key="abstract_page-validate_options">Invalid selected page</msg>
   <msg key="boolean_checkbox-validate_options">Invalid Boolean value</msg>

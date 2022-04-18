@@ -136,17 +136,17 @@ div.xowiki-content a.broken-link-icon::after {
 div.xowiki-content a.external::after {
     /* glyphicon-new-window */
     font-family: 'bootstrap-icons' !important;
-    font-size: x-small;
+    font-size: smaller;
     vertical-align: sub;
     margin-left: 2px;
     margin-right: 2px;
-    content: "\f2c1"; /* cloud */
+    content: "\f1c5";  /* box-arrow-up-right; alt: "\f2c1";  cloud */
 }
 
 div.xowiki-content a.file::after {
     /* glyphicon-file */
     font-family: 'bootstrap-icons' !important;
-    font-size: x-small;
+    font-size: smaller;
     vertical-align: sub;
     margin-left: 2px;
     margin-right: 2px;
