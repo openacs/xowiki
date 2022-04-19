@@ -1971,7 +1971,7 @@ namespace eval ::xowiki {
     } else {
       set content [:content_header_get]$content
     }
-    set content [::xowiki::adp_parse_tags $content]
+    #set content [::xowiki::adp_parse_tags $content]
 
     #
     # These variables can be influenced via set-parameter.
@@ -1982,7 +1982,7 @@ namespace eval ::xowiki {
     # Setup top includeletes and footers.
     #
 
-    set footer [::xowiki::adp_parse_tags [:htmlFooter -content $content]]
+    set footer [:htmlFooter -content $content]
     set top_includelets ""
     set vp [string trim [::$context_package_id get_parameter "top_includelet" ""]]
     if {$vp ne "" && $vp ne "none"} {

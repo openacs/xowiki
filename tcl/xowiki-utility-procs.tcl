@@ -55,42 +55,6 @@ namespace eval ::xowiki {
     return $text
   }
 
-  ad_proc adp_parse_tags {HTML} {
-
-    Parse the tags of the provided HTML text.
-     This method is similar to
-     <blockquote>
-         template::adp_compile -string $HTML
-     </blockquote>
-    but it just performs tag substion (and not ADP variable
-    substitution, since this is done differently concerning instance
-    attributes, etc) on the provided HTML chunk.
-
-    @param HTML text containing potentially ADP tags
-    @return HTML text with substituted ADP tags
-  } {
-    #
-    #ns_log notice "adp_parse_tags BEGIN: $HTML"
-    set old_parse_list [expr {[info exists ::template::parse_list] ? $::template::parse_list : ""}]
-    set ::template::parse_list ""
-    #
-    # The following exception handler is just for safety to achieve a
-    # high-level of backward compatibility. In case
-    # "adp_compile_chunk" and or the evaluation of the resulting code
-    # fails, fall back to the original behavior without ADP tag
-    # substitution.
-    #
-    try {
-      template::adp_compile_chunk $HTML
-      set HTML [eval [join $::template::parse_list \n]]
-    } on error {errorMsg} {
-      ad_log warning "adp_parse_tags failed on parsing:\n$HTML"
-    }
-    set ::template::parse_list $old_parse_list
-    #ns_log notice "adp_parse_tags END: $HTML"
-    return $HTML
-  }
-
   ad_proc randomized_indices {-seed length} {
     Produce a list of "length" random numbers between 0 and
     length-1.

@@ -118,10 +118,10 @@ namespace eval ::xowiki::includelet {
       append input_fields [subst {<input type="hidden" name="to_user_id" value="$to_user_id">}]
     }
     set btnDefault [::xowiki::CSS class btn-default]
-    return [list link [::xowiki::adp_parse_tags [subst {
+    return [list link [subst {
       <a href="#$id" title="$title" role="button" data-toggle="modal" data-keyboard="false">
       <adp:icon name="$adpicon" aria-hidden="true"></span>
-    }]] dialog [::xowiki::adp_parse_tags [subst {
+    }] dialog [subst {
       <div class="modal fade" id='$id' tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
 <form role="form" class="form-vertical" method="post" action="">
@@ -156,7 +156,7 @@ namespace eval ::xowiki::includelet {
 </form>
       </div><!--modal-dialog-->
       </div><!--modal-->
-    }]]]
+    }]]
   }
 
   personal-notification-messages ad_proc modal_message_dialog_register_submit {

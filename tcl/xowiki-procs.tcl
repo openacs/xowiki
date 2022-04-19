@@ -4018,7 +4018,7 @@ namespace eval ::xowiki {
 
   PageInstance instproc get_form {} {
     # get the (HTML) form of the ::xowiki::PageTemplates/::xowiki::Form
-    return [::xowiki::adp_parse_tags [:get_html_from_content [:get_from_template form]]]
+    return [:get_html_from_content [:get_from_template form]]
   }
 
   PageInstance instproc get_template_object {} {
