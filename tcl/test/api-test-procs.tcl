@@ -127,29 +127,6 @@ aa_register_case \
 aa_register_case \
     -cats {api smoke production_safe} \
     -procs {
-        "::xowiki::adp_parse_tags"
-    } \
-    adp_parse_tags {
-
-        Checks the helper xowiki::adp_parse_tags, which performs a
-        subset of template::adp_compile.
-
-    } {
-        set HTML {<p>foo <adp:icon name="edit">bar}
-        set result [::xowiki::adp_parse_tags $HTML]
-        aa_log [ns_quotehtml $result]
-        aa_true "test substitution of adp:icon contains either 'class' or 'src' attribute" \
-            [regexp {(class=|src=)} $result]
-        set HTML {<p>foo @a@ <adp:icon name="edit">bar @b@}
-        set result [::xowiki::adp_parse_tags $HTML]
-        aa_log [ns_quotehtml $result]
-        aa_true "test substitution contains still template variables" \
-            [regexp {@} $result]
-    }
-
-aa_register_case \
-    -cats {api smoke production_safe} \
-    -procs {
         "::xowiki::formfield::dict_to_spec"
         "::xowiki::formfield::dict_value"
         "::xowiki::formfield::fc_to_dict"
