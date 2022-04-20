@@ -2,7 +2,7 @@
 ::xowiki::Form new \
     -set name en:page.form \
     -title "Wiki" \
-    -set anon_instances f \
+    -set anon_instances t \
     -set text {@_text@} \
     -set form {<form> @_name@ @_page_order@ @_title@ @_creator@ @_text@ @_description@ @_nls_language@</form>} \
     -set form_constraints {}
