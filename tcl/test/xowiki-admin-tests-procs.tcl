@@ -124,7 +124,6 @@ aa_register_case \
 
       @author Gustaf Neumann
     } {
-
         Object test
         test set passed 0
         test set failed 0
@@ -1591,7 +1590,9 @@ aa_register_case \
                     -slot ::xowiki::PodcastItem::slot::pub_date]
         set widgetSpec [$f0 asWidgetSpec]
         ? {regexp {date,optional.*.*YYYY.*MM.*} $widgetSpec} 1 "date with format"
-    }
+
+        test destroy
+   }
 
 # Local variables:
 #    mode: tcl
