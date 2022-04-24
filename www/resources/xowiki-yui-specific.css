@@ -64,17 +64,18 @@ div.xowiki-content a.notification-image-button {
     padding-right: 16px;
     text-decoration: none;
 }
+div.xowiki-content a.publish-status-item-button {
+    font-size: larger;
+    text-decoration: none;
+}
 div.xowiki-content a.publish-status-item-button.green {
     color: green;
-    font-size: larger;
 }
 div.xowiki-content a.publish-status-item-button.red {
     color: red;
-    font-size: larger;
 }
 div.xowiki-content a.publish-status-item-button.black {
     color: black;
-    font-size: larger;
 }
 
 /*

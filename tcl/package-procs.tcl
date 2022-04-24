@@ -78,8 +78,11 @@ namespace eval ::xowiki {
           set paramValue bootstrap
         }
         if {$paramValue eq "default"} {
-          # For the time being, Bootstrap 3 is the default.
-          set paramValue bootstrap
+          # For the time being, YUI is the default (deriving default
+          # toolkit from theme did not work, we have to assume that
+          # the fonts for Boostrap 3 or 5 are not loaded for edit
+          # buttons, etc.
+          set paramValue yui
         }
       }
       if {[info exists :preferredCSSToolkit]
