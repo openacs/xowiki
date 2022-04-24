@@ -159,7 +159,7 @@ aa_register_case \
                 #ns_log notice "RRR $includelet => $HTML "
 
                 acs::test::dom_html root $HTML {
-                    set elements [lmap node [$root selectNodes {//tr/td[2]}] {lindex [$node asText] 0}]
+                    set elements [lmap node [$root selectNodes {//tr/td[last()]}] {lindex [$node asText] 0}]
                 }
                 aa_log "elements: $elements"
 
