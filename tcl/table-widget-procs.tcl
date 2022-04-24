@@ -340,7 +340,7 @@ namespace eval ::xowiki {
     if {$csv} {
       set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=csv"
-      lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
+      lappend links "<a href='[ns_quotehtml $csv_href]'><adp:icon name='filetype-csv' alt='CSV' title='Dowload CSV'></a>"
     }
     if {[llength $voting_dict] != 0} {
       set voting_form [dict get $voting_dict voting_form]
