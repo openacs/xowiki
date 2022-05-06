@@ -4292,7 +4292,22 @@ namespace eval ::xowiki {
       lassign ${:text} html mime
       set content [:substitute_markup $html]
     } elseif {[lindex ${:form} 0] ne ""} {
-      set content [[self class] disable_input_fields [lindex ${:form} 0]]
+      #
+      # The method "disable_input_fields" consists essentially of
+      #
+      #     dom parse -simple -html $form doc
+      #     ...
+      #     return [$root asHTML]
+      #
+      #  Unfortunately, this causes that some tags unknown to tdom
+      #  (like <adp:icon>) are converted to escaped tags (&lt; ...).
+      #  This can be regarded as a bug. To avoid this problem, we
+      #  substitute here the adp_tags in advance. This needs more
+      #  investigation in other cases.... The potential harm in this
+      #  cases here is very little, but probably, there are other
+      #  cases as well where this might harm.
+      #
+      set content [[self class] disable_input_fields [template::adp_parse_tags [lindex ${:form} 0]]]
     } else {
       set content ""
     }
