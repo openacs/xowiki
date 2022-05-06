@@ -80,7 +80,7 @@ namespace eval ::xowiki {
         if {$paramValue eq "default"} {
           # For the time being, YUI is the default (deriving default
           # toolkit from theme did not work, we have to assume that
-          # the fonts for Boostrap 3 or 5 are not loaded for edit
+          # the fonts for Bootstrap 3 or 5 are not loaded for edit
           # buttons, etc.
           set paramValue yui
         }
