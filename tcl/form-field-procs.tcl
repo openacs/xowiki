@@ -601,7 +601,14 @@ namespace eval ::xowiki::formfield {
     append spec " {label " [list ${:label}] "} "
 
     if {[string match "*bootstrap*" [subsite::get_theme]]} {
-      array set :html {class "form-control"}
+      # TODO: we need a better solution for this
+      if {[::xowiki::CSS toolkit] eq "bootstrap5"
+          && ([:hasclass ::xowiki::formfield::radio] || [:hasclass ::xowiki::formfield::checkbox])
+        } {
+        array set :html {class "form-check-input"}       
+      } else {
+        array set :html {class "form-control"}
+      }
     }
 
     if {[info exists :html]} {
@@ -4667,6 +4674,7 @@ namespace eval ::xowiki::formfield {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
+      #ns_log notice RADIO-ATTS=$atts
       if {$value eq $rep} {
         lappend atts checked checked
       }
@@ -4714,6 +4722,7 @@ namespace eval ::xowiki::formfield {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
+      #ns_log notice ATTS=$atts
       if {$rep in $value} {
         lappend atts checked checked
       }
