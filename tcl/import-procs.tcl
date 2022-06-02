@@ -347,6 +347,36 @@ namespace eval ::xowiki {
     return $content
   }
 
+  exporter proc marshall_all_to_file {
+    {-mode export}
+    {-cleanup:boolean false}
+    -filename:required
+    item_ids
+  } {
+    #
+    # This method is similar to "marshall_all", but exports the objects
+    # directly to a file. This can save memory when exporting a large
+    # collection of objects, since the plain "marshall_all" appends to
+    # a string, which can get very large, especially due to Tcl's
+    # "double the size when space is needed" policy during "append"
+    # operations.
+    #
+    set output_file [open $filename w]
+    foreach item_id $item_ids {
+      ad_try {
+        puts $output_file [::$item_id marshall -mode $mode]
+        if {$cleanup && [info exists ::xo::cleanup(::$item_id)]} {
+          {*}$::xo::cleanup(::$item_id)
+        }
+      } on error {errorMsg} {
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
+        error $errorMsg
+      } finally {
+        close $output_file
+      }
+    }
+  }
+
   exporter proc export {item_ids} {
     #
     # include implicitly needed objects, instantiate the objects.
