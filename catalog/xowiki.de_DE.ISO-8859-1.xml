@@ -115,7 +115,7 @@
   <msg key="hour">Stunde</msg>
   <msg key="hours">Stunden</msg>
   <msg key="image_width_hint">Breite und Höhe werden in Pixel berechnet (die Proportionen können verloren gehen).</msg>
-  <msg key="ignore_case">Kleinschreibung</msg>
+  <msg key="ignore_case">Ignoriere Großschreibung</msg>
   <msg key="import">Importieren</msg>
   <msg key="import_create_user_ids">User-IDs erstellen</msg>
   <msg key="import_create_user_ids_helptxt">Falls dieses Kästchen aktiviert ist, werden beim Import gegebenenfalls neue User-IDs erstellt.</msg>
