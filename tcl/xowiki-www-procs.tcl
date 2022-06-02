@@ -1283,6 +1283,20 @@ namespace eval ::xowiki {
     :post_process_form_fields $form_fields
 
     #
+    # "dom parse -html" has two problems with ADP tags like "<adp:icon ...>":
+    # a) If the tag name contains a colon or underscore, the tag is
+    #    treated like plain text, i.e. "<" and ">" are converted into
+    #    HTML entities.
+    # b) These tags have to be closed "<adp:icon ...>" is invalid.
+    #    Several existomg ADP tags have not closing tag.
+    #
+    # Therefore, we resolve the ADP tags before parsing the text by
+    # tdom. There should be some framework support to do this in
+    # general, but until we have this, resolve this problem here locally.
+    #
+    set form [::template::adp_parse_tags [:substitute_markup $form]]
+
+    #
     # The following command would be correct, but does not work due to a bug in
     # tdom.
     # set form [:regsub_eval  \
@@ -1292,7 +1306,6 @@ namespace eval ::xowiki {
     # by \x03 to avoid conflict with the input and we replace these
     # magic chars finally with the fields resulting from tdom.
 
-    set form [:substitute_markup $form]
     set form [string map [list @ \x03] $form]
     #:msg form=$form
 
@@ -1421,7 +1434,7 @@ namespace eval ::xowiki {
     }
     :post_process_dom_tree ${:doc} ${:root} $form_fields
 
-    set html [${:root} asHTML]    
+    set html [${:root} asHTML]
     set html [:regsub_eval  \
                   {(^|[^\\])\x03([[:alnum:]_:]+)\x03} $html \
                   {:form_field_as_html -mode edit "\\\1" "\2" $form_fields}]
@@ -1455,7 +1468,7 @@ namespace eval ::xowiki {
       ad_log warning "form has [llength $unprocessed] unprocessed " \
           "error messages in fields $unprocessed"
     }
-    
+
     #:log "calling VIEW with HTML [string length $html]"
     if {$view} {
       :www-view $html
