@@ -499,7 +499,9 @@ namespace eval ::xowiki {
           if {$kind eq "form_link"} {
             ad_log warning "$me, name 'form_link' is deprecated, use 'entry' instead"
           }
-          if {[dict exists $properties -form]} {
+          if {[dict exists $properties -link]} {
+            set link [dict get $properties -link]
+          } elseif {[dict exists $properties -form]} {
             set q [expr {[dict exists $properties -query] ? "-query [dict get $properties -query]" : ""}]
             dict with bind_vars {
               set link [::$package_id make_form_link \
