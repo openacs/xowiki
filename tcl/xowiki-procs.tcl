@@ -107,7 +107,7 @@ namespace eval ::xowiki {
       -slots {
         ::xo::db::CrAttribute create page_template \
             -datatype integer \
-            -references "cr_items(item_id)"
+            -references "cr_items(item_id) DEFERRABLE INITIALLY DEFERRED"
         ::xo::db::CrAttribute create instance_attributes \
             -sqltype long_text \
             -default ""
