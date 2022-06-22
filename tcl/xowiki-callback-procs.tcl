@@ -28,6 +28,59 @@ namespace eval ::xowiki {
     }
   }
 
+  ad_proc -private ::xowiki::delete_instances_of_siblings {
+    {-parent_id:required}
+  } {
+    It is possible to have formpages (e.g. workflow instances)
+    depending on other formpages (e.g. workflows) stored under the
+    same parent.
+
+    content_item.delete stored procedure does respect parent->child
+    relationship and will delete children before their parent,
+    however, it won't honor the template->instance relationship. If
+    template and instance belong to the same folder, the order in
+    which they will be deleted is unspecified, so we might try to
+    delete a workflow before we have deleted its instances.
+
+    Since change
+    https://cvs.openacs.org/changelog/OpenACS?cs=oacs-5-10%3Agustafn%3A20220613165033,
+    deleting a template before its instances will throw an error. This
+    is better than before the change, where zombie items would be
+    silently left in the database.
+
+    We address the cornercase of template and instance under the same
+    parent by deleting such formpages before we delete all the rest.
+  } {
+    #
+    # FormPages where the template is in their same folder, over the
+    # whole tree with root in parent_id
+    #
+    foreach page_instance_id [::xo::dc list get_sibling_instances {
+      with recursive parents as
+      (
+       select item_id from cr_items
+       where item_id = :parent_id
+
+       union
+
+       select i.item_id
+       from cr_items i,
+            parents p
+       where i.parent_id = p.item_id
+       )
+        select i.item_id
+          from xowiki_form_instance_item_index i,
+               xowiki_form_instance_item_index t,
+               parents p
+         where i.page_template = t.item_id
+           and i.parent_id = t.parent_id
+           and i.parent_id = p.item_id
+    }] {
+      ns_log notice "DELETING $page_instance_id"
+      ::xo::db::sql::content_item delete -item_id $page_instance_id
+    }
+  }
+
   ad_proc -public ::xowiki::before-uninstantiate {
     {-package_id:required}
   } {
@@ -41,6 +94,10 @@ namespace eval ::xowiki {
     general_comments_delete_messages -package_id $package_id
     set root_folder_id [::xo::db::CrClass lookup -name "xowiki: $package_id" -parent_id -100]
     if {$root_folder_id ne "0"} {
+
+      # Cleanup instances of templates located in the same folder
+      ::xowiki::delete_instances_of_siblings -parent_id $root_folder_id
+
       # we deal with a correctly installed package
       if {[::xo::dc 0or1row is_transformed_folder {
         select 1 from cr_folders where folder_id = :root_folder_id}

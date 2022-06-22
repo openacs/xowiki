@@ -3068,6 +3068,10 @@ namespace eval ::xowiki {
       foreach child_item_id [::xo::db::CrClass get_child_item_ids -item_id $item_id] {
         :flush_references -item_id $child_item_id
       }
+
+      # Cleanup instances of templates located in the same folder
+      ::xowiki::delete_instances_of_siblings -parent_id $item_id
+
       $object_type delete -item_id $item_id
       :flush_references -item_id $item_id -name $name -parent_id $parent_id
       :flush_page_fragment_cache -scope agg
