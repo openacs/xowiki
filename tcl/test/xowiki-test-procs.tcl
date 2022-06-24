@@ -1570,6 +1570,145 @@ namespace eval ::xowiki::test {
         }
     }
 
+
+    aa_register_case -cats {web} check_page_template_constraint {
+
+        Document and enforce the expected behavior when Forms are
+        deleted: this is forbidden and will return an error as long as
+        they have instances.
+
+        @see https://cvs.openacs.org/changelog/OpenACS?cs=oacs-5-10%3Agustafn%3A20220613165033
+
+    } {
+
+        #
+        # Create a new admin user and login
+        #
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set locale [lang::system::locale]
+            set lang [string range $locale 0 1]
+            set form_name $lang:the-form.form
+            ###########################################################
+            aa_section "Create Form $form_name"
+            ###########################################################
+
+            set form_info [::xowiki::test::create_form \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -name $form_name \
+                -update [subst {
+                    title "Some Basic Form"
+                    nls_language $locale
+                    text {<p>I am a form</p>}
+                    text.format text/html
+                    form {<form></form>}
+                    form.format text/html
+                    form_constraints {}
+                    anon_instances t
+                }]]
+            aa_log "Form $form_name created"
+
+            set page_name $lang:the-form-instance
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name'"
+            ###########################################################
+
+            set page_info [::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -update [subst {
+                    _name $page_name
+                    _title "fresh $page_name"
+                    _nls_language $locale
+                }]]
+
+            aa_log "Page $page_name created"
+
+            ###########################################################
+            aa_section "Delete form $form_name when we have instances"
+            ###########################################################
+
+            set item_id [dict get $page_info item_id]
+
+            set form_id [::xo::dc get_value get_form {
+                select page_template from xowiki_form_instance_item_index
+                where item_id = :item_id
+            }]
+            ::xowiki::Package initialize -package_id $package_id
+            set form [::xo::db::CrClass get_instance_from_db -item_id $form_id]
+
+            aa_true "Deleting a form with instances fails" [catch {
+                $form delete
+            } errmsg]
+
+            ###########################################################
+            aa_section "Delete form $form_name after deleting instances"
+            ###########################################################
+
+            set page [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+            $page delete
+
+            aa_false "Deleting a form without instances is OK" [catch {
+                $form delete
+            } errmsg]
+
+            ###########################################################
+            aa_section "Check that form and instances have been deleted"
+            ###########################################################
+
+            aa_false "Form is no more" [::xo::dc 0or1row check_form {
+                select 1 from acs_objects where object_id = :form_id
+            }]
+
+            aa_false "Form instance is no more" [::xo::dc 0or1row check_form {
+                select 1 from acs_objects where object_id = :item_id
+            }]
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
 }
 
 #
