@@ -902,37 +902,6 @@ namespace eval ::xowiki {
       }
     }
 
-    set v 5.10.1d31
-    if {[apm_version_names_compare $from_version_name $v] == -1 &&
-        [apm_version_names_compare $to_version_name $v] > -1} {
-      ns_log notice "-- upgrading to $v"
-
-      if {[::xo::dc 0or1row constraint_exists {
-        SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-        WHERE CONSTRAINT_NAME ='xowiki_page_instance_page_template_fkey'
-        AND TABLE_NAME = 'xowiki_page_instance'}]} {
-        ::xo::dc transaction {
-          ::xo::dc dml drop_constraint \
-              "alter table xowiki_page_instance drop constraint xowiki_page_instance_page_template_fkey"
-          ::xo::dc dml recreate_constraint \
-              "alter table xowiki_page_instance add constraint xowiki_page_instance_page_template_fkey foreign key (page_template) references cr_items(item_id)"
-        }
-      }
-    }
-
-    set v 5.10.1d32
-    if {[apm_version_names_compare $from_version_name $v] == -1 &&
-        [apm_version_names_compare $to_version_name $v] > -1} {
-      ns_log notice "-- upgrading to $v"
-
-      if {[::xo::dc 0or1row constraint_exists {
-        SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-        WHERE CONSTRAINT_NAME ='xowiki_page_instance_page_template_fkey'
-        AND TABLE_NAME = 'xowiki_page_instance'}]} {
-          ::xo::dc dml alter_constraint \
-              "alter table xowiki_page_instance alter constraint xowiki_page_instance_page_template_fkey DEFERRABLE INITIALLY DEFERRED"
-      }
-    }
   }
 }
 
