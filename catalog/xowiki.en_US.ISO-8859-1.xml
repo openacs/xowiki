@@ -223,6 +223,7 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="PageTemplate-anon_instances">Autonamed Entries</msg>
   <msg key="PageTemplate_pretty_name">Wiki Page Template</msg>
   <msg key="PageTemplate_pretty_plural">Wiki Page Templates</msg>
+  <msg key="Participants">Participants</msg>
   <msg key="party_id-validate_party_id_check">Value is not a valid party_id</msg>
   <msg key="permissions_manage_package">Manage Permissions for Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Manage Permissions for Page: %page_name%</msg>

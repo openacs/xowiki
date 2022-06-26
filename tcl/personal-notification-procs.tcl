@@ -110,7 +110,7 @@ namespace eval ::xowiki::includelet {
       set to_user_name [::xo::get_user_name $to_user_id]
     } else {
       set id dialog-msg-all
-      set to_user_name " [llength $to_user_id] #xowf.Participants#"
+      set to_user_name " [llength $to_user_id] #xowiki.Participants#"
     }
     append title " " $to_user_name
 

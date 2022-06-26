@@ -206,6 +206,7 @@
   <msg key="PageInstance-instance_attributes">Instanzattribute</msg>
   <msg key="PageInstance-page_template">Seitenvorlage</msg>
   <msg key="PageTemplate-anon_instances">Automatische Namensvergabe</msg>
+  <msg key="Participants">Teilnehmer</msg>
   <msg key="party_id-validate_party_id_check">Wert ist keine gültige ID</msg>
   <msg key="permissions_manage_package">Berechtigungen für Wiki %package_name% verwalten:</msg>
   <msg key="permissions_manage_page">Berechtigungen für Seite %page_name% verwalten:</msg>

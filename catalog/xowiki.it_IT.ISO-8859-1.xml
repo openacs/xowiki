@@ -228,6 +228,7 @@
   <msg key="PageTemplate-anon_instances">Nome Automatico Voci</msg>
   <msg key="PageTemplate_pretty_name">Template Wiki Page</msg>
   <msg key="PageTemplate_pretty_plural">Template Wiki Page</msg>
+  <msg key="Participants">Partecipanti</msg>
   <msg key="party_id-validate_party_id_check">Il valore non è un party_id valido</msg>
   <msg key="permissions_manage_package">Gestisci i Permessi per il Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Gestisci i Permessi per la pagina: %page_name%</msg>

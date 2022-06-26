@@ -167,12 +167,12 @@ aa_register_case \
 
         set struct [subst {
             [list [::xowiki::formfield::dict_to_spec -aspair $dict]]
-            {pattern {text,default=*,label=#xowf.pool_question_pattern#}}
+            {pattern {text,default=*,label=pool_question_pattern}}
         }]
         aa_equals "lappend + dict_to_spec component structure idiom" \
             [concat $struct] \
             {{myname {text,label=Hello__COMMA__ world!,enabled=1}}
-            {pattern {text,default=*,label=#xowf.pool_question_pattern#}}}
+            {pattern {text,default=*,label=pool_question_pattern}}}
 
         #
         # fc_to_dct
@@ -217,11 +217,11 @@ aa_register_case \
         aa_log "p1 = $p1"
         foreach fc {
             {t:textarea,value=foo}
-            {show_ip:boolean,horizontal=true,default=t,label=#xowf.Show_IP#}
+            {show_ip:boolean,horizontal=true,default=t,label=Show_IP}
             {date:date,default=2022-02-01 22:03:00}
         } props {
             {name t rows 2 cols 80}
-            {name show_ip value t horizontal true required false label #xowf.Show_IP#}
+            {name show_ip value t horizontal true required false label Show_IP}
             {name date value "2022-02-01 22:03:00"}
         } {
             set ff [$p1 create_form_fields_from_form_constraints \

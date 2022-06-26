@@ -228,6 +228,7 @@
   <msg key="PageTemplate-anon_instances">Entradas innomadas</msg>
   <msg key="PageTemplate_pretty_name">Plantilla de página Wiki</msg>
   <msg key="PageTemplate_pretty_plural">Plantillas de página Wiki</msg>
+  <msg key="Participants">Participantes</msg>
   <msg key="party_id-validate_party_id_check">El valor no es un party_id válido</msg>
   <msg key="permissions_manage_package">Administrar permisos de Wiki: %package_name%</msg>
   <msg key="permissions_manage_page">Administrar permisos de Page: %page_name%</msg>
