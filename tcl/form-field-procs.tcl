@@ -6310,7 +6310,7 @@ namespace eval ::xowiki::formfield {
     # All other forms must start with a <form> tag.
     #
     try {
-      dom parse -simple -html $value doc
+      dom parse -simple $value doc
     } on ok {r} {
       $doc documentElement root
       set rootNodeName ""
