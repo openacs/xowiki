@@ -23,7 +23,7 @@ if {[nsv_exists xowiki must_update_hkeys]
 }
 
 set ::xowiki::search_mounted_p 1
-set search_driver [parameter::get -package_id [apm_package_id_from_key search] \
+set search_driver [parameter::get_from_package_key -package_key search \
                        -parameter FtsEngineDriver]
 
 #

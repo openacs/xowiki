@@ -2932,7 +2932,7 @@ namespace eval ::xowiki::includelet {
     regsub -nocase -all "<form " $inner_html "<div class='form' " inner_html
     regsub -nocase -all "<form>" $inner_html "<div class='form'>" inner_html
     regsub -nocase -all "</form *>" $inner_html "</div>" inner_html
-    dom parse -simple -html <form>$inner_html</form> doc
+    dom parse -simple <form>$inner_html</form> doc
     $doc documentElement root
 
     set fields [$root selectNodes "//div\[@class = 'wiki-menu'\]"]

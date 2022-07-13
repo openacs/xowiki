@@ -853,7 +853,7 @@ namespace eval ::xowiki {
   proc ::xowiki::validate_form_form {} {
     upvar form form
     if {$form eq ""} {return 1}
-    dom parse -simple -html [lindex $form 0] doc
+    dom parse -simple [lindex $form 0] doc
     $doc documentElement root
     return [expr {$root ne "" && [$root nodeName] eq "form"}]
   }
@@ -882,7 +882,7 @@ namespace eval ::xowiki {
     # provide unique ids and names, if form is provided
     #     set form [${:data} set form]
     #     if {$form ne ""} {
-    #       dom parse -simple -html [lindex $form 0] doc
+    #       dom parse -simple [lindex $form 0] doc
     #       $doc documentElement root
     #       set id ID$item_id
     #       $root setAttribute id $id
