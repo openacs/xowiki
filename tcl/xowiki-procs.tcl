@@ -3452,7 +3452,7 @@ namespace eval ::xowiki {
     #:msg status=[$r set status]
     if {$status == 200} {
       #:msg data=$data
-      dom parse -simple $data doc
+      dom parse -html -simple $data doc
       $doc documentElement root
       set n [$root selectNodes {//*[@id="result_box"]}]
       :msg "$text $from=>$to node '$n'"
@@ -4251,7 +4251,7 @@ namespace eval ::xowiki {
   }
 
   Form proc disable_input_fields {{-with_submit 0} form} {
-    dom parse -simple $form doc
+    dom parse -simple -html $form doc
     $doc documentElement root
     if {$root ne ""} {
       :dom_disable_input_fields -with_submit $with_submit $root
@@ -5152,7 +5152,7 @@ namespace eval ::xowiki {
         lappend field_names $att
       }
       #ns_log notice "field_names_from_form: [:serialize]"
-      dom parse -simple $form doc
+      dom parse -html -simple $form doc
       $doc documentElement root
       set fields [$root selectNodes "//*\[@name != ''\]"]
       foreach field $fields {
@@ -5296,7 +5296,7 @@ namespace eval ::xowiki {
                     {:form_field_as_html -mode display "\\\1" "\2" $form_fields}]
 
       # we parse the form just for the margin-form.... maybe regsub?
-      dom parse -simple $form :doc
+      dom parse -html -simple $form :doc
       ${:doc} documentElement :root
       set form_node [lindex [${:root} selectNodes //form] 0]
 

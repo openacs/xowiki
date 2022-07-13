@@ -1309,7 +1309,7 @@ namespace eval ::xowiki {
     set form [string map [list @ \x03] $form]
     #:msg form=$form
 
-    dom parse -simple $form :doc
+    dom parse -simple -html $form :doc
     ${:doc} documentElement :root
 
     if {${:root} eq ""} {
