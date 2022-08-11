@@ -2683,8 +2683,10 @@ namespace eval ::xowiki {
       switch -glob -- $att {
         __category_* {
           set f [:lookup_form_field -name $att $form_fields]
-          set value [$f value [$cc form_parameter $att]]
-          foreach v $value {lappend category_ids $v}
+          if {![$f exists disabled]} {
+            set value [$f value [$cc form_parameter $att]]
+            foreach v $value {lappend category_ids $v}
+          }
         }
         __* {
           #
@@ -2696,10 +2698,12 @@ namespace eval ::xowiki {
           # CR fields
           #
           set f     [:lookup_form_field -name $att $form_fields]
-          set value [$f value [string trim [$cc form_parameter $att]]]
-          set varname [string range $att 1 end]
-          if {[string first . $att] == -1} {
-            set :$varname $value
+          if {![$f exists disabled]} {
+            set value [$f value [string trim [$cc form_parameter $att]]]
+            set varname [string range $att 1 end]
+            if {[string first . $att] == -1} {
+              set :$varname $value
+            }
           }
         }
         default {
@@ -2711,7 +2715,9 @@ namespace eval ::xowiki {
             # File related fields.
             #
             set f [:lookup_form_field -name $file $form_fields]
-            $f $field [string trim [$cc form_parameter $att]]
+            if {![$f exists disabled]} {
+              $f $field [string trim [$cc form_parameter $att]]
+            }
             #:msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
 
           } else {
@@ -2720,19 +2726,21 @@ namespace eval ::xowiki {
             #
             #:log "===== Page get_form_data calls lookup_form_field -name $att"
             set f     [:lookup_form_field -name $att $form_fields]
-            set value [$f value [string trim [$cc form_parameter $att]]]
-            #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
-            if {[string first . $att] == -1} {
-              #
-              # If the field is not a compound field, put the received
-              # value into the instance attributes. The containerized
-              # input values from compound fields are processed below.
-              #
-              dict set :instance_attributes $att $value
-            }
-            if {[$f exists is_category_field]} {
-              foreach v $value {
-                lappend category_ids $v
+            if {![$f exists disabled]} {
+              set value [$f value [string trim [$cc form_parameter $att]]]
+              #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
+              if {[string first . $att] == -1} {
+                #
+                # If the field is not a compound field, put the received
+                # value into the instance attributes. The containerized
+                # input values from compound fields are processed below.
+                #
+                dict set :instance_attributes $att $value
+              }
+              if {[$f exists is_category_field]} {
+                foreach v $value {
+                  lappend category_ids $v
+                }
               }
             }
           }
