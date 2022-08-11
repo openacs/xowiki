@@ -565,10 +565,11 @@ namespace eval ::xowiki::test {
                     nls_language $locale
                     text {<p>@_text@</p><p>box1 @box1@ box2 @box2@ box3 @box3@</p>}
                     text.format text/html
-                    form {<form>@box1@ @box2@ @box3@ @mycompound@</form>}
+                    form {<form>@ignored@ @assignee@ @box1@ @box2@ @box3@ @mycompound@</form>}
                     form.format text/html
                     form_constraints {
                         _page_order:omit _title:omit _nls_language:omit _description:omit
+                        ignored:text,disabled _assignee:text,disabled
                         {box1:checkbox,options={1 1} {2 2},horizontal=true,default=1}
                         {box2:checkbox,options={a a} {b b},horizontal=true,repeat=1..3,default=a}
                         {box3:checkbox,options={30 30} {31 31},horizontal=true,default=30,disabled}
@@ -583,7 +584,12 @@ namespace eval ::xowiki::test {
             ###########################################################
             set page_name $lang:cb1
 
-            ::xowiki::test::create_form_page \
+            set user_id [dict get $user_info user_id]
+            set another_user_id [::xo::dc get_value get_another_user {
+                select max(user_id) from users where user_id <> :user_id
+            }]
+
+            set d [::xowiki::test::create_form_page \
                 -last_request $request_info \
                 -instance $instance \
                 -path $testfolder \
@@ -593,7 +599,9 @@ namespace eval ::xowiki::test {
                     _name $page_name
                     _title "fresh $page_name"
                     _nls_language $locale
-                }]
+                    ignored {I should not be stored}
+                    _assignee $another_user_id
+                }]]
 
             aa_log "Page $page_name created"
 
@@ -610,6 +618,8 @@ namespace eval ::xowiki::test {
                 aa_true "page_name '$f_id' non empty" {$f_id ne ""}
                 aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
                 set id_part [string map {: _} $page_name]
+                set ignored [$root getElementById F.$id_part.ignored]
+                set assignee [$root getElementById F.$id_part._assignee]
                 set input_box1 [$root getElementById F.$id_part.box1:1]
                 set input_box2 [$root getElementById F.$id_part.box1:2]
                 set input_box3 [$root getElementById F.$id_part.box2.1:a]
@@ -617,6 +627,8 @@ namespace eval ::xowiki::test {
                 set input_box5 [$root getElementById F.$id_part.mycompound.start_on_publish:t]
                 set input_box6 [$root getElementById F.$id_part.box3:30]
                 set input_box7 [$root getElementById F.$id_part.box3:31]
+                aa_equals "ignored text field is empty"  [$ignored getAttribute value] ""
+                aa_equals "assignee text field is empty" [$assignee getAttribute value] ""
                 aa_equals "input_box1 box checked (box1: simple box)"   [$input_box1 hasAttribute checked] 0
                 aa_equals "input_box2 box checked (box1: simple box)"   [$input_box2 hasAttribute checked] 1
                 aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
