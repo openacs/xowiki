@@ -124,6 +124,15 @@ aa_register_case \
 
       @author Gustaf Neumann
     } {
+        #
+        # Later on in the test we will loop through ::xowiki::Page
+        # instances to perform some checks. Make sure we do not have
+        # leftover pollution from previous tests.
+        #
+        foreach p [::xowiki::Page info instances] {
+           $p destroy
+        }
+
         Object test
         test set passed 0
         test set failed 0
