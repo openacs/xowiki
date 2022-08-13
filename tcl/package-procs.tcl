@@ -106,6 +106,7 @@ namespace eval ::xowiki {
           card "panel panel-default"
           card-header panel-heading
           card-body panel-body
+          d-none hidden
         }
         ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
