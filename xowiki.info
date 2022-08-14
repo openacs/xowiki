@@ -10,7 +10,7 @@
     <inherit-templates-p>t</inherit-templates-p>
     <auto-mount>xowiki</auto-mount>
 
-    <version name="5.10.1d33" url="http://openacs.org/repository/download/apm/xowiki-5.10.1d33.apm">
+    <version name="5.10.1d34" url="http://openacs.org/repository/download/apm/xowiki-5.10.1d34.apm">
 	<owner url="mailto:neumann@wu-wien.ac.at">Gustaf Neumann</owner>
 	<summary>A xotcl-based enterprise wiki system with multiple object types</summary>
 	<release-date>2021-09-15</release-date>
