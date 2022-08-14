@@ -107,6 +107,7 @@ namespace eval ::xowiki {
           card-header panel-heading
           card-body panel-body
           d-none hidden
+          text-warning text-warn
         }
         ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
@@ -129,7 +130,6 @@ namespace eval ::xowiki {
           cog gear
           print printer
           close btn-close
-          warn exclamation-triangle-fill
         }
         ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
