@@ -620,6 +620,7 @@ namespace eval ::xowiki::test {
                 set id_part [string map {: _} $page_name]
                 set ignored [$root getElementById F.$id_part.ignored]
                 set assignee [$root getElementById F.$id_part._assignee]
+                set page_order [$root getElementById F.$id_part._page_order]
                 set input_box1 [$root getElementById F.$id_part.box1:1]
                 set input_box2 [$root getElementById F.$id_part.box1:2]
                 set input_box3 [$root getElementById F.$id_part.box2.1:a]
@@ -636,6 +637,7 @@ namespace eval ::xowiki::test {
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 1
                 aa_equals "input_box6 box checked (box3: simple disabled box)" [$input_box6 hasAttribute checked] 1
                 aa_equals "input_box7 box checked (box3: simple disabled box)" [$input_box7 hasAttribute checked] 0
+                aa_equals "page_order should be omitted and not be rendered" $page_order ""
                 #ns_log notice "XXXX box3\n[$input_box6 asHTML] \n[$input_box7 asHTML]"
             }
 
