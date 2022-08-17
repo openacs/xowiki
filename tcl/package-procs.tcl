@@ -2992,6 +2992,12 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
+  Package instproc query_parameter_return_url {default} {
+    return [:query_parameter "return_url:localurl" \
+                [:query_parameter "local_return_url:localurl" \
+                     $default]]
+  }
+
   Package ad_instproc www-delete {-item_id -name -parent_id -return_url} {
 
     This web-callable "delete" method does not require an instantiated object,
@@ -3019,7 +3025,7 @@ namespace eval ::xowiki {
     }
 
     if {![info exists return_url]} {
-      set return_url [:query_parameter return_url:localurl \
+      set return_url [:query_parameter_return_url \
                           [ad_urlencode_folder_path ${:package_url}]]
     }
 

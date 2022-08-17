@@ -1598,7 +1598,7 @@ namespace eval ::xowiki {
     the parameter "local_return_url".
 
   } {
-    set page_id [:query_parameter "revision_id"]
+    set page_id [:query_parameter revision_id]
     if {[string is integer -strict $page_id]} {
       set revision_id $page_id
     } else {
@@ -1606,9 +1606,8 @@ namespace eval ::xowiki {
     }
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
-    ${:package_id} returnredirect [:query_parameter "return_url" \
-                                       [:query_parameter "local_return_url" \
-                                            [export_vars -base [::${:package_id} url] {{m revisions}}]]]
+    ${:package_id} returnredirect [:query_parameter_return_url \
+                                       [export_vars -base [::${:package_id} url] {{m revisions}}]]
   }
 
   #
