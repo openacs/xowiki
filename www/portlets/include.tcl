@@ -3,7 +3,6 @@ ad_page_contract {
 } {
   __including_page
   portlet
-  __adp_stub
 }
 
 #ns_log notice "--including_page= $__including_page, portlet=$portlet"
