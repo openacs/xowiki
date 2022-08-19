@@ -1,4 +1,4 @@
-ad_page_contract {
+ad_include_contract {
   Portlet include
 } {
   __including_page
@@ -6,8 +6,8 @@ ad_page_contract {
 }
 
 #ns_log notice "--including_page= $__including_page, portlet=$portlet"
+
 set content [$__including_page include $portlet]
-#set header_stuff [::xo::Page header_stuff]
 template::set_file [ad_file dirname $__adp_stub]/plain-include
 
 # Local variables:
