@@ -160,7 +160,7 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8;">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="categories [set open_page] -decoration plain">
                       </div></div>
                       <div style="float:right; width: 70%;">
@@ -192,7 +192,7 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="categories [set open_page] -decoration plain">
                       </div></div>
                       <div style="float:right; width: 70%;">
@@ -208,14 +208,14 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
                       <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-                      <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page
                       summary="0" noparens="0">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="tags -decoration plain">
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="tags -popular 1 -limit 30 -decoration plain">
                       <hr>
-                      <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+                      <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
                       portlet="presence -interval {30 minutes} -decoration plain">
                       <hr>
                       <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
@@ -258,14 +258,14 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
           <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-          <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page
           summary="0" noparens="0">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="tags -decoration plain">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="tags -popular 1 -limit 30 -decoration plain">
           <hr>
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="presence -interval {30 minutes} -decoration plain">
           <hr>
           <a href="contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
@@ -276,7 +276,7 @@ namespace eval ::xowiki {
      margin-left: 6px; margin-top: 6px; padding: 0px;
 ">
           <div style="position:relative; right:6px; bottom:6px;  border: 1px solid #a9a9a9; padding: 5px 5px; background: #f8f8f8">
-          <include src="/packages/xowiki/www/portlets/include" &__including_page=page
+          <include src="/packages/xowiki/lib/portlets/include" &__including_page=page
           portlet="categories [set open_page] -decoration plain">
           </div></div>  <!-- background -->
           </div>
@@ -333,29 +333,29 @@ namespace eval ::xowiki {
         <div class="col-md-3 col-sm-4 col-xs-12 home-left col-md-pull-9 col-sm-pull-8" style="font-size:small;"> <!-- left panel in full view -->
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
+                    <include src="/packages/xowiki/lib/portlets/weblog-mini-calendar" &__including_page=page summary="0" noparens="0">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="tags -decoration plain">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="tags -popular 1 -limit 30 -decoration plain">
                 </div>
             </div>
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="presence -interval {30 minutes} -decoration plain">
                     <a href="/xowiki/contributors" title="Show People contributing to this XoWiki Instance">Contributors</a>
                 </div>
             </div> <!-- background -->
 
             <div class="thumbnail">
                 <div class="caption">
-                    <include src="/packages/xowiki/www/portlets/include" &__including_page=page portlet="categories [set open_page] -decoration plain">
+                    <include src="/packages/xowiki/lib/portlets/include" &__including_page=page portlet="categories [set open_page] -decoration plain">
                 </div>
             </div>  <!-- background -->
         </div>
