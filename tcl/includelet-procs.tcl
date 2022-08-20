@@ -35,6 +35,12 @@ namespace eval ::xowiki::includelet {
         {id}
       }
 
+  ::xowiki::Includelet instproc tableWidget {} {
+    return [expr {[::xowiki::CSS toolkit] in {bootstrap3 bootstrap}
+                  ? "::xowiki::BootstrapTable"
+                  : "TableWidget" }]
+  }
+
   ::xowiki::Includelet instproc get_current_folder {parent} {
     set package_id [${:__including_page} package_id]
     #:log "get_current_folder: including_page current_folder $current_folder '[$current_folder name]'"
@@ -1212,7 +1218,7 @@ namespace eval ::xowiki::includelet {
                      -party_id [::xo::cc set untrusted_user_id]]
     set show_heritage $admin_p
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
         -set show_heritage $admin_p \
@@ -1315,7 +1321,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
@@ -1375,7 +1381,7 @@ namespace eval ::xowiki::includelet {
       #
       append :title " in last $interval"
 
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
             Field create users -label [_ xowiki.includelet-visitors] -html { align right }
@@ -1398,7 +1404,7 @@ namespace eval ::xowiki::includelet {
                }
     } else {
 
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
             Field create count -label [_ xowiki.includelets-visits] -html { align right }
@@ -1503,7 +1509,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           Field create user  -label [_ xowiki.includelet-visitors] -html { align right }
           Field create count -label [_ xowiki.includelets-visits] -html { align right }
@@ -1556,7 +1562,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
@@ -4266,7 +4272,7 @@ namespace eval ::xowiki::includelet {
       #
       # standard table encoder
       #
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             Field create value -orderby value -label value
             Field create count -orderby count -label count
