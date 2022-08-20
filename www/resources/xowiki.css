@@ -639,6 +639,13 @@ div.xowiki-content div.autosave div.saved
     margin: 0px 4px 0px 0px;
 }
 
+.xowiki-content .portlet-wrapper .panel-heading,
+.xowiki-content .portlet-wrapper .card-header
+{
+    color: #FFFFFF;
+    background-color: #428bca;
+}
+
 /*
  * Local Variables:
  * mode: css

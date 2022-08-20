@@ -595,19 +595,45 @@ namespace eval ::xowiki::includelet {
     set class      [namespace tail [:info class]]
     set id         [expr {[info exists :id] ? "id='[:id]'" : ""}]
     set html       [next]
-    set localized_title [::xo::localize $title]
-    set link [expr {[string match "*:*" $name] ?
-                    "<a href='[ns_quotehtml [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
-                    $localized_title}]
+    set localized_title [ns_quotehtml [::xo::localize $title]]
+    set href [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]
+    set link [expr {[string match "*:*" $name]
+                    ? "<a href='[ns_quotehtml $href]'>$localized_title</a>"
+                    : $localized_title}]
     ::xo::render_localizer
-    return [subst [[self class] set template]]
-  } -set template [expr {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1 ?
-                         {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
-                           <div class='portlet-title-no-controls'>$link</div></div>
-                           <div $id class='portlet'>$html</div></div></div>
-                         } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
-                           <div $id class='portlet'>[next]</div></div>}
-                       }]
+
+    switch [::xowiki::CSS toolkit] {
+      bootstrap -
+      bootstrap5 {
+        if {$link ne ""} {
+          set template [ns_trim -delimiter | {
+            |<div class="[xowiki::CSS class card]">
+            |  <div class="[xowiki::CSS class card-header]">$link</div>
+            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |</div>}]
+        } else {
+          set template [ns_trim -delimiter | {
+            |<div class="[xowiki::CSS class card]">
+            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |</div>}]
+        }
+      }
+      yui {
+        set template [ns_trim -delimiter | {
+          |<div class='portlet-header'>
+          |  <div class='portlet-title-no-controls'>$link</div>
+          |</div>
+          |<div $id class='portlet'>$html</div>}]
+      }
+    }
+    return [subst [ns_trim -delimiter | {
+      |<div class='$class'>
+      |  <div class='portlet-wrapper'>
+      |    [subst $template]
+      |  </div>
+      |</div>}]]
+  }
+
 
   Class create ::xowiki::includelet::decoration=edit -instproc render {} {
     set name       ${:name}
