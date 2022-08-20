@@ -36,7 +36,7 @@ namespace eval ::xowiki::includelet {
       }
 
   ::xowiki::Includelet instproc tableWidget {} {
-    return [expr {[::xowiki::CSS toolkit] in {bootstrap3 bootstrap}
+    return [expr {[::xowiki::CSS toolkit] in {bootstrap5 bootstrap}
                   ? "::xowiki::BootstrapTable"
                   : "TableWidget" }]
   }
