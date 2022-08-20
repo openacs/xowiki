@@ -436,9 +436,9 @@ namespace eval ::xowiki {
         -current_page $current_page
 
 
-    set uploader_link [::$package_id make_link ${:current_folder} file-upload]
+    set upload_link [::$package_id make_link ${:current_folder} file-upload]
     :add_extra_item -name dropzone1 -type DropZone \
-        -item [list url $uploader_link label DropZone uploader File]
+        -item [list url $upload_link label DropZone disposition File]
 
     #set modestate [::xowiki::mode::admin get]
     #set modebutton_link [::$package_id make_link ${:current_folder} toggle-modebutton]
@@ -464,7 +464,7 @@ namespace eval ::xowiki {
     #   {clear_menu -menu New}
     #   {entry -name New.Page -label #xowiki.new# -form en:page.form}
     #   {entry -name New.File -label File -object_type ::xowiki::File}
-    #   {dropzone -name DropZone -label DropZone -uploader File}
+    #   {dropzone -name DropZone -label DropZone -disposition File}
     #   {modebutton -name Admin -label admin -button admin}
 
     set config_items [:config=$config \
@@ -548,6 +548,7 @@ namespace eval ::xowiki {
           foreach {var default} {
             name dropzone
             uploader File
+            disposition File
             label DropZone
           } {
             set $var $default
@@ -555,10 +556,14 @@ namespace eval ::xowiki {
               set $var [dict get $properties -$var]
             }
           }
+          if {![info exists disposition] && [info exists uploader]} {
+            # use the legacy name
+            set disposition $uploader
+          }
 
           set link [::$package_id make_link ${:parent_id} file-upload]
           :add_extra_item -name $name -type DropZone \
-              -item [list url $link uploader $uploader label $label]
+              -item [list url $link disposition $disposition label $label]
         }
 
         modebutton {

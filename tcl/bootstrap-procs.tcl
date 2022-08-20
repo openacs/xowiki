@@ -143,57 +143,110 @@ namespace eval ::xowiki {
   ::xo::tdom::Class create BootstrapNavbarDropzone \
       -superclass MenuComponent \
       -parameter {
+        {label "DropZone"}
         {href "#"}
-        text
-        uploader
+        {text ""}
+        {disposition File}
+        {file_name_prefix ""}
+      } \
+      -ad_doc {
+
+        Dropzone widget for drag and drop of files, e.g. in the
+        menubar.  The widget provides added support for updating the
+        current page with feedback of the dropped files.
+
+        @param href URL for POST request
+        @param label Text to be displayed at the place where files are
+               dropped to
+        @param file_name_prefix prefix for files being uploaded
+               (used e.g. by the online exam).
+        @param disposition define, what happens after the file was
+               uploaded, e.g. whether the content has to be
+               transformed, stored and displayed later.
       }
 
-  BootstrapNavbarDropzone instproc js {-uploadlink:required} {
+  BootstrapNavbarDropzone instproc js {} {
     html::script -type "text/javascript" -nonce [security::csp::nonce] {
-      html::t [subst -nocommands {
+      html::t {
         + function($) {
           'use strict';
 
           var dropZone = document.getElementById('drop-zone');
           var uploadForm = document.getElementById('js-upload-form');
           var progressBar = document.getElementById('dropzone-progress-bar');
+          var dropZoneResponse = document.getElementById('iconified-files-wrapper');
           var uploadFileRunning = 0;
+          var uploadFilesStatus = [];
+          var uploadFilesResponse = [];
 
-          var startUpload = function(files, csrf) {
+          var startUpload = function(files, disposition, url, prefix, csrf) {
+            //console.log("files " + files + " dispo '"+ disposition + "' url " + url + " prefix " + prefix);
             if (typeof files !== "undefined") {
               for (var i=0, l=files.length; i<l; i++) {
                  // Send the file as multiple single requests and
                  // not as a single post containing all entries. This
                  // gives users with older NaviServers or AOLserver the chance
                  // drop multiple files.
-                 uploadFile(files[i], csrf);
+                 uploadFile(files[i], disposition, url, prefix, csrf);
                }
+
             } else {
               alert("No support for the File API in this web browser");
             }
           }
 
-          var uploadFile = function(file, csrf) {
+          var uploadFile = function(file, disposition, url, prefix, csrf) {
             var xhr;
             var formData = new FormData();
-            var url = "$uploadlink" + "&name=" + file.name;
+            var fullName = (prefix == "" ? file.name : prefix + '/' + file.name);
+            var fullUrl = url
+            + "&disposition=" + encodeURIComponent(disposition)
+            + "&name=" + encodeURIComponent(fullName);
+
             xhr = new XMLHttpRequest();
             xhr.upload.addEventListener("progress", function (evt) {
               if (evt.lengthComputable) {
-                // For multiple drop files, we should probably we should sum up the sizes.
-                // However, this since the uploads are in parallel, this is already useful.
+
+                // For multiple drop files, we should probably we
+                // should sum up the sizes.  However, since the
+                // uploads are in parallel, this is already useful.
+
                 progressBar.style.width = (evt.loaded / evt.total) * 100 + "%";
               } else {
                 // No data to calculate on
               }
             }, false);
-            xhr.addEventListener("load", function () {
+            xhr.addEventListener("load", function (event) {
               uploadFileRunning--;
+              uploadFilesStatus.push(event.currentTarget.status);
+              uploadFilesResponse.push(event.currentTarget.response);
+              //console.log("ended with status " + event.currentTarget.status);
+              //console.log("running: " + uploadFileRunning);
+              if (dropZoneResponse) {
+
+                // We have a dropzone response and update this in the
+                // web page.
+
+                dropZoneResponse.innerHTML = uploadFilesResponse[uploadFilesResponse.length-1];
+                dropZoneResponse.querySelectorAll('.drop-file').forEach(el => iconified_file_setup(el));
+              }
               if (uploadFileRunning < 1) {
-                location.reload(true);
+                if (dropZoneResponse) {
+
+                  // We are done with all uploads. When the response is
+                  // provided, it was updated above already in the web
+                  // page, but we have still to reset the progress bar
+                  // to indicate that we are done.
+
+                  progressBar.style.width = '0%';
+
+                } else {
+                  // Reload the page to trigger a refresh
+                  location.reload(true);
+                }
               }
             }, false);
-            xhr.open("post", url, true);
+            xhr.open("post", fullUrl, true);
             formData.append("upload", file);
             formData.append("__csrf_token", csrf);
             uploadFileRunning++;
@@ -201,19 +254,36 @@ namespace eval ::xowiki {
           }
 
           uploadForm.addEventListener('submit', function(e) {
+            //
+            // Input handler for classical form submit
+            //
             var input = document.getElementById('js-upload-files');
             var uploadFiles = input.files;
             var csrf = input.form.elements["__csrf_token"].value;
             e.preventDefault();
-            startUpload(input.files, csrf)
+            //console.log("Submit handler");
+            startUpload(input.files,
+                        input.dataset.disposition ?? 'File',
+                        input.dataset.url,
+                        input.dataset.file_name_prefix ?? '',
+                        csrf);
           })
 
           dropZone.ondrop = function(e) {
+            //
+            // Input handler for drag & drop
+            //
             e.preventDefault();
             this.className = 'upload-drop-zone';
             var form = document.getElementById('js-upload-files').form;
             var csrf = form.elements["__csrf_token"].value;
-            startUpload(e.dataTransfer.files, csrf)
+            var input = document.getElementById('js-upload-files');
+            //console.log("Drop handler");
+            startUpload(e.dataTransfer.files,
+                        input.dataset.disposition ?? 'File',
+                        input.dataset.url,
+                        input.dataset.file_name_prefix ?? '',
+                        csrf);
           }
 
           dropZone.ondragover = function() {
@@ -226,7 +296,7 @@ namespace eval ::xowiki {
             return false;
           }
         } (jQuery);
-      }]
+      }
     }
   }
 
@@ -239,7 +309,14 @@ namespace eval ::xowiki {
             -id "js-upload-form" {
               html::div -class "form-inline" {
                 html::div -class "form-group" {
-                  html::input -type "file" -name {files[]} -id "js-upload-files" -multiple multiple
+                  html::input \
+                      -type "file" \
+                      -name {files[]} \
+                      -id "js-upload-files" \
+                      -data-file_name_prefix ${:file_name_prefix} \
+                      -data-url ${:href} \
+                      -data-disposition ${:disposition} \
+                      -multiple multiple
                 }
                 html::button -type "submit" -class "btn btn-sm btn-primary" -id "js-upload-submit" {
                   html::t ${:text}
@@ -247,10 +324,8 @@ namespace eval ::xowiki {
                 ::html::CSRFToken
               }
             }
-      }
-      html::li {
         html::div -class "upload-drop-zone" -id "drop-zone" {
-          html::span {html::t "DropZone"}
+          html::span {html::t ${:label}}
           html::div -class "progress" {
             html::div -style "width: 0%;" -class "progress-bar" -id dropzone-progress-bar {
               html::span -class "sr-only" {html::t ""}
@@ -258,7 +333,7 @@ namespace eval ::xowiki {
           }
         }
       }
-      :js -uploadlink ${:href}&uploader=${:uploader}
+      :js
     }
   }
 
@@ -386,10 +461,11 @@ namespace eval ::xowiki {
                         ::xowiki::BootstrapNavbarDropzone \
                             -text [:get_prop $value label] \
                             -href [:get_prop $value url] \
-                            -uploader [:get_prop $value uploader] {}
+                            -disposition [:get_prop $value disposition File] {}
                       }
                       "ModeButton" {
-                        template::head::add_css -href "/resources/xotcl-core/titatoggle/titatoggle-dist.css"
+                        template::head::add_css \
+                            -href "/resources/xotcl-core/titatoggle/titatoggle-dist.css"
 
                         ::xowiki::BootstrapNavbarModeButton \
                             -text [:get_prop $value label] \

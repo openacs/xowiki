@@ -1497,27 +1497,46 @@ namespace eval ::xowiki {
     set form [ns_getform]
 
     #
-    # Get the uploader via query parameter.  We have currently the
-    # following uploader classes defined (see
+    # Get the disposition via query parameter.  We have currently the
+    # following disposition classes defined (see
     # xowiki-uploader-procs.tcl)
     #
     #   - ::xowiki::UploadFile
     #   - ::xowiki::UploadPhotoForm
+    #   - ::xowiki::UploadFileIconified
     #
     ::security::csrf::validate
-    set uploader [ns_set get $form uploader File]
-    set uploaderClass ::xowiki::UploadFile
-    if {[info commands ::xowiki::Upload$uploader] ne ""} {
-      set uploaderClass ::xowiki::Upload$uploader
+
+    set disposition [:query_parameter disposition:wordchar File]
+    set fileName [:query_parameter name:graph [ns_set get $form upload]]
+
+    set dispositionClass ::xowiki::UploadFile
+    if {[info commands ::xowiki::Upload$disposition] ne ""} {
+      set dispositionClass ::xowiki::Upload$disposition
     }
-    set uploaderObject [$uploaderClass new \
-                            -file_name [ns_set get $form upload] \
-                            -content_type [ns_set get $form upload.content-type] \
-                            -tmpfile [ns_set get $form upload.tmpfile] \
-                            -parent_object [self]]
-    set result [$uploaderObject store_file]
-    $uploaderObject destroy
+
+    #ns_log notice "disposition class '$dispositionClass'"
+    set dispositionObject [$dispositionClass new \
+                               -file_name $fileName \
+                               -content_type [ns_set get $form upload.content-type] \
+                               -tmpfile [ns_set get $form upload.tmpfile] \
+                               -parent_object [self]]
+    set result [$dispositionObject store_file]
+    $dispositionObject destroy
     ns_return [dict get $result status_code] text/plain [dict get $result message]
+    ad_script_abort
+  }
+
+  FormPage ad_instproc render_iconified {upload_info} {
+
+    Renderer of the iconic file(s). This method is a stub to be
+    refined (e.g. in xowf).
+
+    @param upload_info dict containing the "file_object" and "file_name"
+    @return HTML content
+
+  } {
+    return "[dict get $upload_info file_name] created"
   }
 
   #
