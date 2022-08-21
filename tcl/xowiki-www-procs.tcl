@@ -1527,9 +1527,9 @@ namespace eval ::xowiki {
     ad_script_abort
   }
 
-  FormPage ad_instproc render_iconified {upload_info} {
+  FormPage ad_instproc render_thumbnails {upload_info} {
 
-    Renderer of the iconic file(s). This method is a stub to be
+    Renderer of the thumnail file(s). This method is a stub to be
     refined (e.g. in xowf).
 
     @param upload_info dict containing the "file_object" and "file_name"

@@ -24,6 +24,57 @@ namespace eval ::xowiki {
       return ${:preferredCSSToolkit}
     }
 
+    :public object method icon_name {filename} {
+      #
+      # Return an icon name for the proved filename
+      #
+      # Default icon name
+      set iconName file
+      if {${:iconset} eq "bootstrap-icons"} {
+        switch [ad_file extension $filename] {
+          .doc  -
+          .docx -
+          .odt  -
+          .txt  {set iconName "file-earmark-text"}
+          
+          .csv  -
+          .ods  -
+          .xls  -
+          .xlsx {set iconName "file-earmark-spreadsheet"}
+          
+          .odp  -
+          .ppt  -
+          .pptx {set iconName "file-earmark-spreadsheet"}
+          
+          .pdf  {set iconName "file-earmark-pdf"}
+
+          .c    -
+          .h    -
+          .tcl {set iconName "file-earmark-code"}
+          
+          .css  -
+          .html -
+          .java -
+          .js   - 
+          .json -
+          .py   -
+          .sql {set iconName "filetype-[string range [ad_file extension $filename] 1 end]"}
+          
+          default {
+            switch -glob [ns_guesstype $filename] {
+              image/* {set iconName "file-earmark-image"}
+              video/* {set iconName "file-earmark-play"}
+              audio/* {set iconName "file-earmark-slides"}
+              default {
+                ns_log notice "not handled '[ad_file extension $filename] / [ns_guesstype $filename] of <$filename>"
+              }
+            }
+          }
+        }
+      }
+      return $iconName
+    }
+
     :public object method require_toolkit {{-css:switch} {-js:switch}} {
       #
       # Make sure that the preferred toolkit is loaded. Not that some
@@ -85,6 +136,10 @@ namespace eval ::xowiki {
           set paramValue yui
         }
       }
+
+      #
+      # Just do initialization once
+      #
       if {[info exists :preferredCSSToolkit]
           && ${:preferredCSSToolkit} eq $paramValue
         } {
@@ -95,6 +150,7 @@ namespace eval ::xowiki {
       # object or on changes of the preferredCSSToolkit.
       #
       set :preferredCSSToolkit $paramValue
+      set :iconset [template::iconset]
 
       if {${:preferredCSSToolkit} eq "bootstrap"} {
         set :cssClasses {

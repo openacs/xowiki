@@ -61,7 +61,7 @@ namespace eval ::xowiki {
     :public method store_file {} {
       set d [next]
       if {[dict get $d status_code] in {200 201}} {
-        return [list status_code 201 message [${:parent_object} render_iconified $d]]
+        return [list status_code 201 message [${:parent_object} render_thumbnails $d]]
       }
       return {status_code 500 message "something wrong"}
     }

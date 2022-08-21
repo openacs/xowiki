@@ -11,7 +11,8 @@
 ::xo::library require -package xotcl-core 30-widget-procs
 
 namespace eval ::xowiki {
-  # minimal implementation of Bootstrap "navbar"
+  #
+  # Minimal implementation of Bootstrap "navbar"
   # currently only "dropdown" elements are supported within the navbar
   # TODO: add support to include:
   # - forms
@@ -174,7 +175,7 @@ namespace eval ::xowiki {
           var dropZone = document.getElementById('drop-zone');
           var uploadForm = document.getElementById('js-upload-form');
           var progressBar = document.getElementById('dropzone-progress-bar');
-          var dropZoneResponse = document.getElementById('iconified-files-wrapper');
+          var dropZoneResponse = document.getElementById('thumbnail-files-wrapper');
           var uploadFileRunning = 0;
           var uploadFilesStatus = [];
           var uploadFilesResponse = [];
@@ -228,7 +229,7 @@ namespace eval ::xowiki {
                 // web page.
 
                 dropZoneResponse.innerHTML = uploadFilesResponse[uploadFilesResponse.length-1];
-                dropZoneResponse.querySelectorAll('.drop-file').forEach(el => iconified_file_setup(el));
+                dropZoneResponse.querySelectorAll('.thumbnail-file').forEach(el => thumbnail_files_setup(el));
               }
               if (uploadFileRunning < 1) {
                 if (dropZoneResponse) {
