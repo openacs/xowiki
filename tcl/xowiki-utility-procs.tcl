@@ -527,17 +527,17 @@ namespace eval ::xowiki {
   }
 
   proc read_file {fn} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::read_file xo::read_file
     return [::xo::read_file $fn]
   }
 
   proc write_file {fn content} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::write_file xo::write_file
     return [::xo::write_file $fn $content]
   }
 
   nsf::proc ::xowiki::get_raw_request_body {-as_string:switch -as_file:switch} {
-    ns_log warning "::xowiki::get_raw_request_body deprecated. Use ::xo::get_raw_request_body instead"
+    ad_log_deprecated proc xowiki::get_raw_request_body xo::get_raw_request_body
     return [::xo::get_raw_request_body -as_string $as_string_p -as_file $as_file_p]
   }
 

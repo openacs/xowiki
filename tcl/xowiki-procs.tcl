@@ -1311,12 +1311,15 @@ namespace eval ::xowiki {
   }
 
   Page proc import {-user_id -package_id -folder_id {-replace 0} -objects} {
-    :log "DEPRECATED"
-    if {![info exists package_id]}  {set package_id  [::xo::cc package_id]}
+    ad_log_deprecated "::xowiki::Page proc" "import" "::$package_id import ..."
+
+    if {![info exists package_id]}  {
+      set package_id  [::xo::cc package_id]
+    }
     set cmd [list ::$package_id import -replace $replace]
 
-    if {[info exists user_id]}   {lappend cmd -user_id $user_id}
-    if {[info exists objects]}   {lappend cmd -objects $objects}
+    if {[info exists user_id]} {lappend cmd -user_id $user_id}
+    if {[info exists objects]} {lappend cmd -objects $objects}
     {*}$cmd
   }
 
@@ -4128,7 +4131,7 @@ namespace eval ::xowiki {
     # empty. In these cases, call child-resources manually.
     #
     if {$html eq "" && [:is_folder_page]} {
-      ns_log warning "render_content: [:item_id] '${:name}' is a folder page without a content (deprecated)"
+      ad_log_deprecated "folder page without a content" "[:item_id] '${:name}'"
       set html [:include child-resources]
     }
 
