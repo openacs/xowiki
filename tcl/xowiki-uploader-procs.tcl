@@ -59,6 +59,9 @@ namespace eval ::xowiki {
     # xowf for the online exam.
     #
     :public method store_file {} {
+      #
+      # Store files and return a thumbnail rendering when successful.
+      #      
       set d [next]
       if {[dict get $d status_code] in {200 201}} {
         return [list status_code 201 message [${:parent_object} render_thumbnails $d]]
