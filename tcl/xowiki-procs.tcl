@@ -2270,7 +2270,7 @@ namespace eval ::xowiki {
     #
     # For security reasons, don't allow arbitrary paths to different
     # packages.  All allowed includelets must be made available
-    # under xowiki/www (preferable xowiki/www/portlets/*). When the
+    # under xowiki/www (preferable xowiki/lib/portlets/*). When the
     # provided path contains "admin/*", admin rights are required.
     #
     if {[string match "admin/*" $adp_fn]} {
@@ -2291,7 +2291,7 @@ namespace eval ::xowiki {
       #
       return [list allowed 0 msg "Invalid name for adp_include" fn ""]
     }
-    return [list allowed 1 msg "" fn /packages/[::${:package_id} package_key]/www/$adp_fn]
+    return [list allowed 1 msg "" fn /packages/[::${:package_id} package_key]/lib/$adp_fn]
   }
 
   Page instproc include_content {arg ch2} {
@@ -4076,6 +4076,7 @@ namespace eval ::xowiki {
     @return either the property value or a default value
   } {
     set form_obj [:get_template_object]
+
     #:msg "get $var from template form_obj=$form_obj [$form_obj info class]"
 
     # The resulting page should be either a Form (PageTemplate) or
