@@ -676,7 +676,7 @@ namespace eval ::xowiki::includelet {
       ad_try {
         set prettyName [$c pretty_name]
       } on error {errorMsg} {
-        :msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+        :msg "can't obtain pretty name of [$c name] (item_id [$c item_id]): $errorMsg"
         set prettyName $name
       }
 
@@ -756,7 +756,7 @@ namespace eval ::xowiki::includelet {
     #       -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]]
     #   set menubar [$mb render-preferred]
     # }
-    ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
+    #ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
     set viewers [util_coalesce \
                      [$current_folder property viewers] \
                      [$current_folder get_parameter viewers]]
