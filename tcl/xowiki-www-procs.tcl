@@ -2627,7 +2627,6 @@ namespace eval ::xowiki {
   } {
     ::xo::require_html_procs
 
-    #array set __ia ${:instance_attributes}
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry
@@ -2701,7 +2700,7 @@ namespace eval ::xowiki {
       switch -glob -- $att {
         __category_* {
           set f [:lookup_form_field -name $att $form_fields]
-          if {![$f exists disabled]} {
+          if {![$f disabled]} {
             set value [$f value [$cc form_parameter $att]]
             foreach v $value {lappend category_ids $v}
           }
@@ -2715,8 +2714,8 @@ namespace eval ::xowiki {
           #
           # CR fields
           #
-          set f     [:lookup_form_field -name $att $form_fields]
-          if {![$f exists disabled]} {
+          set f [:lookup_form_field -name $att $form_fields]
+          if {![$f disabled]} {
             set value [$f value [string trim [$cc form_parameter $att]]]
             set varname [string range $att 1 end]
             if {[string first . $att] == -1} {
@@ -2733,7 +2732,7 @@ namespace eval ::xowiki {
             # File related fields.
             #
             set f [:lookup_form_field -name $file $form_fields]
-            if {![$f exists disabled]} {
+            if {![$f disabled]} {
               $f $field [string trim [$cc form_parameter $att]]
             }
             #:msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
@@ -2742,11 +2741,11 @@ namespace eval ::xowiki {
             #
             # Fields related to instance variables.
             #
-            #:log "===== Page get_form_data calls lookup_form_field -name $att"
-            set f     [:lookup_form_field -name $att $form_fields]
-            if {![$f exists disabled]} {
+            :log "===== Page get_form_data calls lookup_form_field -name $att"
+            set f [:lookup_form_field -name $att $form_fields]
+            if {![$f disabled]} {
               set value [$f value [string trim [$cc form_parameter $att]]]
-              #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
+              #:log "===== Page get_form_data calls lookup_form_field -name $att -> $f -> '$value'"              
               if {[string first . $att] == -1} {
                 #
                 # If the field is not a compound field, put the received
@@ -2802,7 +2801,7 @@ namespace eval ::xowiki {
 
       if {![info exists processed($att)]
           && ![$f exists is_repeat_template]
-          && ![$f exists disabled]
+          && ![$f disabled]
         } {
         #ns_log notice "==== form field $att [$f info class] not yet processed"
 
@@ -3143,7 +3142,7 @@ namespace eval ::xowiki {
 
   FormPage instproc form_fields_sanity_check {form_fields} {
     foreach f $form_fields {
-      if {[$f exists disabled]} {
+      if {[$f disabled]} {
         # don't mark disabled fields as required
         if {[$f required]} {
           $f required false

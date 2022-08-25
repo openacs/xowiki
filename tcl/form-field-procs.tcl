@@ -157,7 +157,7 @@ namespace eval ::xowiki::formfield {
     {hide_value false}
     {inline false}
     {mode edit}
-    {disabled}
+    {disabled 0}
     {disabled_as_div}
     {show_raw_value}
 
