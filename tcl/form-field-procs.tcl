@@ -406,9 +406,7 @@ namespace eval ::xowiki::formfield {
         set $key 1
       }
     }
-    if {[info exists :disabled]} {
-      :set_disabled 0
-    }
+    :set_disabled false
   }
 
   FormField proc interprete_condition {-package_id -object cond} {
@@ -709,7 +707,7 @@ namespace eval ::xowiki::formfield {
     # change in the future the "name" of the disabled entry to keep
     # some hypothetical html-checker quiet.
     #
-    if {[info exists :disabled] && [info exists :transmit_field_always]} {
+    if {[:is_disabled] && [info exists :transmit_field_always]} {
       ::html::div {
         ::html::input [list type hidden name ${:name} value $value] {}
       }
@@ -1544,11 +1542,8 @@ namespace eval ::xowiki::formfield {
 
   CompoundField instproc set_disabled {disable} {
     #:msg "${:name} set disabled $disable"
-    if {$disable} {
-      set :disabled true
-    } else {
-      unset -nocomplain :disabled
-    }
+    next
+
     foreach c ${:components} {
       $c set_disabled $disable
     }
@@ -1923,7 +1918,7 @@ namespace eval ::xowiki::formfield {
   }
   submit_button instproc render_input {} {
     # don't disable submit buttons
-    if {[:type] eq "submit"} {unset -nocomplain :disabled}
+    if {[:type] eq "submit"} {:set_disabled false}
     ::html::button [:get_attributes name type {form_button_CSSclass class} title disabled] {
       if {[info exists :label_noquote] && ${:label_noquote}} {
         ::html::t -disableOutputEscaping ${:value}
@@ -4243,6 +4238,7 @@ namespace eval ::xowiki::formfield {
 
   ShuffleField instproc initialize {} {
     next
+
     #
     # Shuffle options when needed
     #
@@ -4306,7 +4302,7 @@ namespace eval ::xowiki::formfield {
     # - view mode: the fields were deactivated (made insensitive);
     #   this means: keep the old value -> return default
 
-    if {[info exists :disabled]} {
+    if {[:is_disabled]} {
       return $default
     } else {
       return ""
@@ -4665,7 +4661,7 @@ namespace eval ::xowiki::formfield {
   radio instproc render_input {} {
     set value [:value]
 
-    set base_atts [:get_attributes disabled]
+    set disabled_p [:is_disabled]
     lappend base_atts \
         type radio \
         name [expr {[info exists :forced_name] ? ${:forced_name} : ${:name}}]
@@ -4674,6 +4670,9 @@ namespace eval ::xowiki::formfield {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
+      if {$disabled_p} {
+        lappend atts disabled true
+      }
       #ns_log notice RADIO-ATTS=$atts
       if {$value eq $rep} {
         lappend atts checked checked
@@ -4713,7 +4712,7 @@ namespace eval ::xowiki::formfield {
   checkbox instproc render_input {} {
     set value [:value]
 
-    set base_atts [:get_attributes disabled]
+    set disabled_p [:is_disabled]
     lappend base_atts \
         type checkbox \
         name ${:name}
@@ -4722,6 +4721,9 @@ namespace eval ::xowiki::formfield {
       lassign $o label rep
       set id ${:id}:$rep
       set atts [list {*}$base_atts id $id value $rep]
+      if {$disabled_p} {
+        lappend atts disabled true
+      }
       #ns_log notice ATTS=$atts
       if {$rep in $value} {
         lappend atts checked checked
@@ -4967,7 +4969,9 @@ namespace eval ::xowiki::formfield {
 
   select instproc render_input {} {
     set value [:value]
-    set atts [:get_attributes id name disabled {CSSclass class}]
+    set atts [:get_attributes id name {CSSclass class}]
+    set disabled_p [:is_disabled]
+    if {$disabled_p} {lappend atts disabled true}
     if {${:multiple}} {lappend atts multiple ${:multiple}}
     if {!${:required}} {
       set :options [linsert ${:options} 0 [list "--" ""]]
@@ -4975,7 +4979,10 @@ namespace eval ::xowiki::formfield {
     ::html::select $atts {
       foreach o ${:options} {
         lassign $o label rep
-        set atts [:get_attributes disabled]
+        set atts {}
+        if {$disabled_p} {
+          lappend atts disabled true
+        }
         lappend atts value $rep
         #:msg "lsearch {$value} $rep ==> [lsearch $value $rep]"
         if {$rep in $value} {
@@ -5011,7 +5018,9 @@ namespace eval ::xowiki::formfield {
     set value [:value]
     #set :data-live-search true
     set :CSSclass "selectpicker form-control"
-    set atts [:get_attributes id name disabled data-live-search {CSSclass class} {placeholder title}]
+    set atts [:get_attributes id name data-live-search {CSSclass class} {placeholder title}]
+    set disabled_p [:is_disabled]
+    if {$disabled_p} {lappend atts disabled true}
     if {${:multiple}} {lappend atts multiple ${:multiple}}
     if {!${:required}} {
       set :options [linsert ${:options} 0 [list "--" ""]]
@@ -5026,7 +5035,8 @@ namespace eval ::xowiki::formfield {
       foreach o ${:options} d ${:descriptions} {
         lassign $o label rep
         set :opt_description $d
-        set atts [:get_attributes disabled {opt_description data-subtext}]
+        set atts [:get_attributes {opt_description data-subtext}]
+        if {$disabled_p} {lappend atts disabled true}
         lappend atts value $rep
         #:msg "lsearch {$value} $rep ==> [lsearch $value $rep]"
         if {$rep in $value} {
@@ -6047,7 +6057,7 @@ namespace eval ::xowiki::formfield {
                  -name ${:name}.$name -id ${:id}.$name \
                  -locale [:locale] -object ${:object}]
       #:msg "creating ${:name}.$name"
-      $c set_disabled [info exists :disabled]
+      $c set_disabled [:is_disabled]
       $c set code $code
       $c set trim_zeros $trim_zeros
       if {$c ni ${:components}} {lappend :components $c}
@@ -6181,7 +6191,7 @@ namespace eval ::xowiki::formfield {
     {default t}
   }
   boolean instproc value_if_nothing_is_returned_from_form {default} {
-    if {[info exists :disabled]} {
+    if {[:is_disabled]} {
       return $default
     } else {
       return f
@@ -6207,7 +6217,7 @@ namespace eval ::xowiki::formfield {
   }
 
   boolean_checkbox instproc value_if_nothing_is_returned_from_form {default} {
-    if {[info exists :disabled]} {
+    if {[:is_disabled]} {
       return $default
     } else {
       return f
