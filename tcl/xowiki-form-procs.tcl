@@ -848,7 +848,9 @@ namespace eval ::xowiki {
     regsub -all -- "</?p */?>" $clean_content "" clean_content
     #ns_log notice "--validate_form_content '$content' clean='$clean_content', \
         #    stripped='[string trim $clean_content]'"
-    if {[string trim $clean_content] eq ""} { set text [list "" $mime]}
+    if {[string is space $clean_content]} {
+      set text [list "" $mime]
+    }
     #:log "final text='$text'"
     return 1
   }
