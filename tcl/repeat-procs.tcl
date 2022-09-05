@@ -234,7 +234,7 @@ namespace eval ::xowiki::formfield {
       }
       incr nrItems
 
-      set containerIsDisabled [expr {[info exists :disabled] && [:disabled] != "false"}]
+      set containerIsDisabled [:is_disabled]
       set containerIsPrototype [string match "*.0*" ${:name}]
       set isPrototypeElement 0
       foreach c ${:components} {
