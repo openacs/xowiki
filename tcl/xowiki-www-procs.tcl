@@ -3061,7 +3061,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc post_process_form_fields {form_fields} {
-    # We offer here the possibility to iterate over the form fields before it
+    # We offer here the possibility to iterate over the form fields
     # before they are rendered
   }
 
