@@ -690,6 +690,9 @@ namespace eval ::xowiki::bootstrap {
     -title:required
     -body:required
   } {
+    Render a Bootstrap Card.
+
+    @return HTML
   } {
     return [ns_trim -delimiter | [subst {
       |<div class="[xowiki::CSS class card]">
@@ -704,6 +707,9 @@ namespace eval ::xowiki::bootstrap {
     -style
     -CSSclass
   } {
+    Render a Boostrap Icon.
+
+    @return HTML
   } {
     #<span class="glyphicon glyphicon-cog" aria-hidden="true" style="float: right;"></span>
     set name [xowiki::CSS class $name]

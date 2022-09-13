@@ -1030,7 +1030,17 @@ namespace eval ::xowiki {
   }
 
 
-  :ad_proc user_is_active {{-asHTML:boolean false} uid} {
+  :ad_proc user_is_active {
+    {-asHTML:boolean false}
+    uid
+  } {
+    Tell whether a user is active according to the Request Monitor.
+
+    @param asHTML when true, the proc will return an HTML rendering of
+                  the user information.
+    @param uid the user id
+
+    @return boolean or HTML accrording to the 'asHTML' flag.
   } {
     if {[info commands ::throttle] ne "" &&
         [::throttle info methods user_is_active] ne ""} {
