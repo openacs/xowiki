@@ -2685,9 +2685,26 @@ namespace eval ::xowiki {
     set cc [::${:package_id} context]
 
     if {![info exists field_names]} {
-      set field_names [$cc array names form_parameter]
-      #:log "===== Page get_form_data field_names from form data: [$cc array names form_parameter *_.*]"
+      #
+      # Field names might come directly from the POST request payload
+      # and need to be validated: enforce that field names are made
+      # only by alphanumeric characters and dots, with the exception
+      # of file related fields, where either .tmpfile or .content-type
+      # will be appended.
+      #
+      set field_names [list]
+      foreach att [$cc array names form_parameter] {
+        if {[regexp {^[\w.]+(\.(tmpfile|content-type))?$} $att]} {
+          lappend field_names $att
+        } else {
+          #
+          # We might decide to return a 403 here instead...
+          #
+          ad_log warning "Page get_form_data: field name '$att' was skipped. Received field names: [$cc array names form_parameter]"
+        }
+      }
     }
+
     #:msg "fields $field_names // $form_fields"
     #foreach f $form_fields { :msg "... $f [$f name]" }
     #
