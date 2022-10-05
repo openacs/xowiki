@@ -1814,7 +1814,7 @@ namespace eval ::xowiki::formfield {
     # Render content within in a fieldset, but with labels etc.
     #
     :CSSclass_list_add CSSclass [namespace tail [:info class]]
-    :CSSclass_list_add CSSclass "input-group align-items-center"
+    :CSSclass_list_add CSSclass "align-items-center"
     html::fieldset [:get_attributes id {CSSclass class}] {
       foreach c ${:components} { $c render }
     }
