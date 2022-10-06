@@ -4677,7 +4677,7 @@ namespace eval ::xowiki::formfield {
       if {$value eq $rep} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class radio-inline}
+      if {1 || ${:horizontal}} {lappend label_class [::xowiki::CSS class radio-inline]}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description
@@ -4728,7 +4728,7 @@ namespace eval ::xowiki::formfield {
       if {$rep in $value} {
         lappend atts checked checked
       }
-      if {1 || ${:horizontal}} {lappend label_class checkbox-inline}
+      if {1 || ${:horizontal}} {lappend label_class [::xowiki::CSS class checkbox-inline]}
       ::html::label -for $id -class $label_class {
         ::html::input $atts {}
         :render_label_text $label $label_class $description

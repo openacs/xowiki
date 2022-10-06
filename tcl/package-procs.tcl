@@ -186,6 +186,8 @@ namespace eval ::xowiki {
           cog gear
           print printer
           close btn-close
+          checkbox-inline form-check-inline
+          radio-inline form-check-inline
         }
         ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
