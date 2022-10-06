@@ -6,8 +6,8 @@ ad_page_contract {
   parent_id:object_type(cr_item),notnull
 }
 
-set output ""
 set return_url [export_vars -base [ad_conn url] -no_empty {parent_id}]
+
 db_multirow -extend {
   delete_url
   download_url
@@ -39,9 +39,6 @@ db_multirow -extend {
   set img_id "preview-img-${revision_id}"
   set image_p [expr {$mime_type in {"image/jpeg" "image/png" "image/gif"}}]
 }
-
-
-set server_url ""
 
 # Local variables:
 #    mode: tcl
