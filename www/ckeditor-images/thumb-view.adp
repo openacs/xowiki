@@ -27,7 +27,6 @@ function changePreview(url,name,mime) {
 <multiple name="sub_files">
 <div style="border: 1px solid black;background-color: #cfcfcf;padding-top: 5px;">
     <center>
-    <!-- <a href="preview?revision=@sub_files.revision_id@" target="preview"> -->
     @sub_files.title@
     @sub_files.mime_type@
     <if @sub_files.mime_type@ in "image/jpeg" "image/png" "image/gif">
