@@ -1,13 +1,9 @@
 ad_page_contract {
 
+  Display image attachments of an XoWiki page
+
 } {
-    {parent_id:naturalnum ""}
-} -validate {
-    parent_id_exists -requires {parent_id} {
-        if {[xo::dc 0or1row object_exists "select item_id from cr_items where item_id = :parent_id"] == 0} {
-            ad_complain "Specified item does not exist"
-        }
-    }
+  parent_id:object_type(cr_item),notnull
 }
 
 set output ""
