@@ -18,7 +18,7 @@ template::register_urn -urn urn:ad:js:highcharts \
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
 #
-# Produce the xowiki.css variants that can be included based on preferred CSS tookit:
+# Produce the xowiki.css variants that can be included based on preferred CSS toolkit:
 #
 #    xowiki.css + xowiki-yui-specific.css        -> xowiki-yui.css
 #    xowiki.css + xowiki-bootstrap3-specific.css -> xowiki-bootstrap3.css

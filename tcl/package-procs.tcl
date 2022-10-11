@@ -99,7 +99,7 @@ namespace eval ::xowiki {
       #
       # Initialize tailorization for CSS toolkits. The function reads
       # the global apm package parameter and sets/resets accordingly
-      # (a) the default values (actially parameters) for the form
+      # (a) the default values (actually parameters) for the form
       # field and (b) defines the toolkit specific CSS class name
       # mapping.
       #
@@ -340,7 +340,7 @@ namespace eval ::xowiki {
     ("name" attribute in the database, requires parent_id to be
     provided as well)
 
-    @param parent_id optional, only needed in lagacy cases,
+    @param parent_id optional, only needed in legacy cases,
            when page_reference is provided as page name
     @param page_references item_ids, paths or names to be resolved as item_ids
     @return list of valid item_ids
@@ -1554,7 +1554,7 @@ namespace eval ::xowiki {
       # We have a reference to another instance, we can't resolve this
       # from this package.  Report back not found by empty result.
       #
-      #ns_log notice "reference to onother instance: <$object>"
+      #ns_log notice "reference to another instance: <$object>"
       return ""
     }
 

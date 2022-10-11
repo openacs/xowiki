@@ -2144,7 +2144,7 @@ namespace eval ::xowiki {
       # there must be something syntactically wrong
       return [:error_in_includelet $arg [_ xowiki.error-includelet-dash_syntax_invalid]]
     }
-    #:msg "includelet: [lindex $arg 0], caller parms ? '[lrange $arg 1 end]'"
+    #:msg "includelet: [lindex $arg 0], caller parameters ? '[lrange $arg 1 end]'"
 
     # the include is either a includelet class, or a wiki page
     if {[:isclass ::xowiki::includelet::$page_name]} {
@@ -3766,7 +3766,7 @@ namespace eval ::xowiki {
     #set page_link [::$package_id make_link -privilege public [self] download ""]
 
     set ctx [::$package_id context]
-    set revision_id [$ctx query_parameter revision_id:intger]
+    set revision_id [$ctx query_parameter revision_id:integer]
     set query [expr {$revision_id ne "" ? "revision_id=$revision_id" : ""}]
     set page_link [:pretty_link -download true -query $query]
     if {[$ctx query_parameter html-content] ne ""} {

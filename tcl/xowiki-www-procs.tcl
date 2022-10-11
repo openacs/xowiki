@@ -1132,7 +1132,7 @@ namespace eval ::xowiki {
       #:log "we have to validate"
       #
       # In case we are triggered internally, we might not have a
-      # a connection and therefore do not valide the csrf token.
+      # a connection. Therefore, do not validate the CSRF token.
       #
       if {![::${:package_id} exists __batch_mode]} {
         security::csrf::validate
@@ -2692,6 +2692,8 @@ namespace eval ::xowiki {
       # of file related fields, where either .tmpfile or .content-type
       # will be appended.
       #
+      #:log "===== Page get_form_data RAW field_names from form data: [$cc array names form_parameter *_.*]"
+
       set field_names [list]
       foreach att [$cc array names form_parameter] {
         if {[regexp {^[\w.]+(\.(tmpfile|content-type))?$} $att]} {
@@ -3108,7 +3110,7 @@ namespace eval ::xowiki {
     } else {
       #
       # Reset for form field value to the external
-      # respresentation of the data value.
+      # representation of the data value.
       #
       $form_field value [$form_field convert_to_external $data_value]
     }

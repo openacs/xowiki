@@ -707,7 +707,7 @@ namespace eval ::xowiki::bootstrap {
     -style
     -CSSclass
   } {
-    Render a Boostrap Icon.
+    Render a Bootstrap Icon.
 
     @return HTML
   } {

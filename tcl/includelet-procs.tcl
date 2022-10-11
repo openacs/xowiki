@@ -4725,7 +4725,7 @@ namespace eval ::xowiki::includelet {
       lappend table_field_names $count
       # In most situations, it seems useful to have just one field in
       # the voting table. If there are multiple, we use a comma to
-      # separate the values (looks bettern than separate columns).
+      # separate the values (looks better than separate columns).
       set field_contents [list]
       foreach __fn $field_names {
         lappend field_contents [$t set $__fn]
@@ -4856,7 +4856,7 @@ namespace eval ::xowiki::includelet {
         current folder.
 
         @param folder
-        @param glob optional matching patter for page names
+        @param glob optional matching pattern for page names
       }
 
   yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {

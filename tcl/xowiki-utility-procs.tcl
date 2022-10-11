@@ -1040,7 +1040,7 @@ namespace eval ::xowiki {
                   the user information.
     @param uid the user id
 
-    @return boolean or HTML accrording to the 'asHTML' flag.
+    @return boolean or HTML according to the 'asHTML' flag.
   } {
     if {[info commands ::throttle] ne "" &&
         [::throttle info methods user_is_active] ne ""} {
