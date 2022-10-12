@@ -4387,7 +4387,7 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {__decoration plain}
         {parameter_declaration {
-          {-form_item_id:integer}
+          {-form_item_id:integer,1..n}
           {-form}
           {-parent_id}
           {-package_ids ""}
@@ -4493,7 +4493,7 @@ namespace eval ::xowiki::includelet {
         return -code error "could not load form '$form' (default-language [$o lang])"
       }
     } else {
-      set form_item_ids [list $form_item_id]
+      set form_item_ids $form_item_id
     }
 
     set form_constraints $extra_form_constraints\n
