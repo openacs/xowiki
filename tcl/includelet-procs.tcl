@@ -4401,6 +4401,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-unless}
           {-where}
+          {-extra_where_clause {}}
           {-csv true}
           {-voting_form}
           {-voting_form_form ""}
@@ -4426,6 +4427,17 @@ namespace eval ::xowiki::includelet {
         @param date_format
            Date format used for modification date.
            Might be "pretty-age" or a format string like "%Y-%m-%d %T".
+
+        @param extra_where_clause
+           a plain SQL clause that will be appended to the where
+           clause retrieving the entries.
+        @param where
+           filter those entries where the instance attribute condition
+           expressed by this flag does not match.
+        @param unless
+           filter those entries where the instance attribute condition
+           expressed by this flag matches.
+
       }
 
   form-usages instproc render {} {
@@ -4641,9 +4653,10 @@ namespace eval ::xowiki::includelet {
     # extra_where clause)
     #
     #:log "exists category_id [info exists category_id]"
-    set extra_where_clause ""
     if {[info exists category_id]} {
-      lassign [:category_clause $category_id item_id] cnames extra_where_clause
+      append extra_where_clause \
+          [expr {$extra_where_clause ne "" ? " and " : ""}] \
+          [lindex [:category_clause $category_id item_id] 1]
     }
 
     set items [::xowiki::FormPage get_form_entries \
