@@ -80,7 +80,7 @@ TableWidget create t1 -volatile \
       AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
       if {$::individual_permissions} {
         ImageAnchorField create permissions -src /resources/xowiki/permissions.png -width 16 \
-            -height 16 -border 0 -title "Manage Individual Permssions for this Item" \
+            -height 16 -border 0 -title "Manage Individual Permissions for this Item" \
             -alt permsissions -label ""
       }
       if {$::with_publish_status} {
