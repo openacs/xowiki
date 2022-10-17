@@ -4653,7 +4653,7 @@ namespace eval ::xowiki::includelet {
     # extra_where clause)
     #
     #:log "exists category_id [info exists category_id]"
-    if {[info exists category_id]} {
+    if {[info exists with_categories] && [info exists category_id]} {
       append extra_where_clause \
           [expr {$extra_where_clause ne "" ? " and " : ""}] \
           [lindex [:category_clause $category_id item_id] 1]
@@ -4670,23 +4670,6 @@ namespace eval ::xowiki::includelet {
                    -from_package_ids $package_ids \
                    -package_id $package_id]
 
-    if {[info exists with_categories]} {
-      if {$extra_where_clause eq ""} {
-        set base_items $items
-      } else {
-        # difference to variable items: just the extra_where_clause
-        set base_items [::xowiki::FormPage get_form_entries \
-                            -base_item_ids $form_item_ids \
-                            -parent_id $query_parent_id \
-                            -form_fields $form_field_objs \
-                            -publish_status $publish_status \
-                            -h_where [dict get $filters wc] \
-                            -h_unless [dict get $filters uc] \
-                            -from_package_ids $package_ids \
-                            -package_id $package_id]
-      }
-    }
-
     #:log "queries done"
     if {[info exists wf]} {
       set wf_link [::$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
@@ -4696,7 +4679,7 @@ namespace eval ::xowiki::includelet {
                   -form_field_objs $form_field_objs \
                   -return_url [ad_return_url] \
                   -package_id $package_id \
-                  -items $base_items \
+                  -items $items \
                   -init_vars [dict get $filters init_vars] \
                   -view_field $view_field \
                   -buttons $buttons \
