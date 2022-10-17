@@ -1625,7 +1625,7 @@ namespace eval ::xowiki {
     }
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
-    ${:package_id} returnredirect [:query_parameter_return_url \
+    ${:package_id} returnredirect [${:package_id} query_parameter_return_url \
                                        [export_vars -base [::${:package_id} url] {{m revisions}}]]
   }
 
