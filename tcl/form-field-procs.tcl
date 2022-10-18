@@ -5060,6 +5060,7 @@ namespace eval ::xowiki::formfield {
     {as_box:boolean false}
     {keep_order:boolean false}
     {dnd:boolean true}
+    {bulk_operation:boolean false}
   }  -ad_doc {
     Class for selecting a subset from a list of candidates.
     @param as_box makes something like in info box in wikipedia (right floated)
@@ -5078,6 +5079,18 @@ namespace eval ::xowiki::formfield {
         -event $event \
         -preventdefault=false \
         -script "selection_area_${event}_handler(event);"
+  }
+
+  candidate_box_select instproc add_bulk_handler {
+    -id:required
+    -event:required
+    -operation:required
+  } {
+    template::add_event_listener \
+        -id $id \
+        -event $event \
+        -preventdefault=false \
+        -script "selection_area_bulk_operation_handler(event,'$operation');"
   }
 
   candidate_box_select instproc render_input {} {
@@ -5129,6 +5142,12 @@ namespace eval ::xowiki::formfield {
           ::html::div -class workarea {
             ::html::h3 { ::html::t "#xowiki.Selection#"}
             # TODO what todo with DISABLED?
+            if {${:bulk_operation}} {
+              ::html::div -id ${:id}.bulk_remove -role "button" -class "text-center bulk-remove" {
+                ::html::t ">>"
+                :add_bulk_handler -id ${:id}.bulk_remove -event click -operation bulk_remove
+              }
+            }
             ::html::ul -class "region selected" \
                 -id ${:id}.selected {
                   foreach v $selected {
@@ -5148,6 +5167,12 @@ namespace eval ::xowiki::formfield {
           #
           ::html::div -class workarea {
             ::html::h3 { ::html::t "#xowiki.Candidates#"}
+            if {${:bulk_operation}} {
+              ::html::div -id ${:id}.bulk_add -role "button" -class "text-center bulk-add" {
+                ::html::t "<<"
+                :add_bulk_handler -id ${:id}.bulk_add -event click -operation bulk_add
+              }
+            }
             ::html::ul -id ${:id}.candidates -class region {
               foreach v $candidates {
                 set id ${:id}.[dict get $labels $v serial]

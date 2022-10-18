@@ -47,9 +47,13 @@ function selection_area_drop_handler(ev) {
     // Reparent the dropped item
     ul.appendChild(sourceElement);
 
+    var id = ul.parentElement.parentElement.id;
+    selection_area_update_internal_representation(id);
+}
+
+function selection_area_update_internal_representation (id) {
     // Update the internal representation based on the data-element of
     // the list items.
-    var id       = ul.parentElement.parentElement.id;
     var textarea = document.getElementById(id + ".text");
     var items    = document.getElementById(id + ".selected").getElementsByTagName('LI');
     var internalRep = "";
@@ -59,6 +63,28 @@ function selection_area_drop_handler(ev) {
     }
 
     textarea.value = internalRep;
+}
+
+function selection_area_bulk_operation_handler(ev, operation) {
+    if (operation == 'bulk_add') {
+        var source_class = '.candidates';
+        var destination_class = '.selected';
+    } else {
+        // bulk_remove operation
+        var source_class = '.selected';
+        var destination_class = '.candidates';
+    }
+
+    var id          = ev.target.previousSibling.parentElement.parentElement.id;
+    var source      = document.getElementById(id + source_class).getElementsByTagName('LI');
+    var destination = document.getElementById(id + destination_class);
+
+    // Reparent all source items
+    while(source.length > 0) {
+        destination.appendChild(source[0]);
+    }
+
+    selection_area_update_internal_representation(id);
 }
 
 /*
