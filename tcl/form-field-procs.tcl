@@ -603,7 +603,7 @@ namespace eval ::xowiki::formfield {
       if {[::xowiki::CSS toolkit] eq "bootstrap5"
           && ([:hasclass ::xowiki::formfield::radio] || [:hasclass ::xowiki::formfield::checkbox])
         } {
-        array set :html {class "form-check-input"}       
+        array set :html {class "form-check-input"}
       } else {
         array set :html {class "form-control"}
       }
@@ -1366,7 +1366,7 @@ namespace eval ::xowiki::formfield {
     # In case, there are result_statistics, use a "progress bar" to
     # visualize correct answers.
     #
-    # Currently, this is bootstrap3 only.
+    # Currently, this is bootstrap only, unless pie charts are used.
     #
     if {[info exists :result_statistics] && [dict exists ${:result_statistics} count]} {
       set result_count [dict get ${:result_statistics} count]
@@ -4582,22 +4582,48 @@ namespace eval ::xowiki::formfield {
       }
       set answered_count [expr {$correct_count + $incorrect_count}]
       if {$answered_count > 0} {
+        set with_pie_charts [::xo::cc query_parameter pie:boolean 0]
+
+        if {$with_pie_charts} {
+          if {![info exists ::__xotcl_highcharts_pie]} {
+            template::add_body_script -src "//code.highcharts.com/highcharts.js"
+            security::csp::require script-src code.highcharts.com
+          }
+          set graphID pie-[incr ::__xotcl_highcharts_pie]
+        }
         ::html::div -class container {
           ::html::div -class row {
             ::html::span -class "col-sm-2" -style "font-size: x-small; float: right;" {
               ::html::t "$correct_count of $answered_count correct"
             }
-            ::html::div -class "progress col-sm-8" \
-                -style "padding: 0px 0px 0px 0px;" {
-                  set percentage [format %2.0f [expr {$correct_count * 100.0 / $answered_count}]]
-                  ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
-                      -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
-                        if {$percentage > 0} {
-                          ::html::t "$percentage % correct"
+            if {$with_pie_charts} {
+              ::html::div -class "col-sm-2"  -style "width: 400px; height:120px;" -id $graphID {}
+            } else {
+              ::html::div -class "progress col-sm-8" \
+                  -style "padding: 0px 0px 0px 0px;" {
+                    set percentage [format %2.0f [expr {$correct_count * 100.0 / $answered_count}]]
+                    ::html::div -class "progress-bar progress-bar-success" -role "progressbar" \
+                        -aria-valuenow $percentage -aria-valuemin "0" -aria-valuemax "100" -style "width:$percentage%" {
+                          if {$percentage > 0} {
+                            ::html::t "$percentage % correct"
+                          }
                         }
-                      }
-                }
+                  }
+            }
           }
+        }
+        if {$with_pie_charts} {
+          set startAngle [expr {$correct_count == 0 || $incorrect_count == 0 ? 90: 0}]
+          template::add_body_script -script [subst [ns_trim {
+            Highcharts.chart('$graphID', {
+              chart: {type: 'pie'},
+              plotOptions: {pie: {size: 35, startAngle: $startAngle }},
+              title: {text: ''},
+              colors: \['green', 'red'\],
+              credits: {enabled: false },
+              series: \[{name: 'Results', data: \[ {name:'correct', y: $correct_count}, {name:'incorrect', y: $incorrect_count}\]}\]
+            });
+          }]]
         }
       }
     }
