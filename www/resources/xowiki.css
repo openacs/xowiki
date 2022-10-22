@@ -646,6 +646,13 @@ div.xowiki-content div.autosave div.saved
     background-color: #428bca;
 }
 
+.xowiki-content .xowiki-nav-inactive {
+    color: grey;
+}
+.xowiki-content .xowiki-nav-active {
+    color: black;
+}
+
 /*
  * Local Variables:
  * mode: css

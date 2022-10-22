@@ -35,12 +35,10 @@ if {$book_next_link ne ""} {
                       <tr>
                       <td>
                       <if @book_prev_link@ not nil>
-                      <a href="@book_prev_link@" accesskey='p' id="bookNavPrev.a">
-                      <img alt='Previous' src='/resources/xowiki/previous.png' width='15' id="bookNavPrev.img"></a>
+                      <a href="@book_prev_link@" class="xowiki-nav-active" accesskey='p' id="bookNavPrev.a"><adp:icon name="previous"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='p' id="bookNavPrev.a">
-                      <img alt='No Previous' src='/resources/xowiki/previous-end.png' width='15' id="bookNavPrev.img"></a>
+                      <a href="" class="xowiki-nav-inactive" accesskey='p' id="bookNavPrev.a"><adp:icon name="previous"></a>
                       </else>
                       </td>
 
@@ -56,12 +54,10 @@ if {$book_next_link ne ""} {
 
                       <td id="bookNavNext">
                       <if @book_next_link@ not nil>
-                      <a href="@book_next_link@" accesskey='n' id="bookNavNext.a">
-                      <img alt='Next' src='/resources/xowiki/next.png' width='15' id="bookNavNext.img"></a>
+                      <a href="@book_next_link@" class="xowiki-nav-active" accesskey='n' id="bookNavNext.a"><adp:icon name="next"></a>
                       </if>
                       <else>
-                      <a href="" accesskey='n' id="bookNavNext.a">
-                      <img alt='No Next' src='/resources/xowiki/next-end.png' width='15' id="bookNavNext.img"></a>
+                      <a href="" class="xowiki-nav-inactive" accesskey='n' id="bookNavNext.a"><adp:icon name="next"></a>
                       </else>
                       </td>
                       </tr>
