@@ -4586,8 +4586,18 @@ namespace eval ::xowiki::formfield {
 
         if {$with_pie_charts} {
           if {![info exists ::__xotcl_highcharts_pie]} {
-            template::add_body_script -src "//code.highcharts.com/highcharts.js"
-            security::csp::require script-src code.highcharts.com
+            if {[template::head::can_resolve_urn urn:ad:js:highcharts]} {
+              #
+              # The highcharts package is available
+              #
+              template::add_body_script -src urn:ad:js:highcharts
+            } else {
+              #
+              # The highcharts package is not available, go straight to the CDN.
+              #
+              template::add_body_script -src "//code.highcharts.com/highcharts.js"
+              security::csp::require script-src code.highcharts.com
+            }
           }
           set graphID pie-[incr ::__xotcl_highcharts_pie]
         }
