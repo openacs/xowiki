@@ -5175,8 +5175,8 @@ namespace eval ::xowiki::formfield {
           #
           # Selections
           #
-          ::html::div -class workarea {
-            ::html::h3 { ::html::t "#xowiki.Selection#"}
+          ::html::div -class "workarea selected" {
+            ::html::h3 { ::html::t "#xowiki.Selection# ([llength $selected])"}
             # TODO what todo with DISABLED?
             if {${:bulk_operation}} {
               ::html::div -id ${:id}.bulk_remove -role "button" -class "text-center bulk-remove" {
@@ -5201,8 +5201,8 @@ namespace eval ::xowiki::formfield {
           #
           # Candidates
           #
-          ::html::div -class workarea {
-            ::html::h3 { ::html::t "#xowiki.Candidates#"}
+          ::html::div -class "workarea candidates" {
+            ::html::h3 { ::html::t "#xowiki.Candidates# ([llength $candidates])"}
             if {${:bulk_operation}} {
               ::html::div -id ${:id}.bulk_add -role "button" -class "text-center bulk-add" {
                 ::html::t "<<"

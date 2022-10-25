@@ -63,6 +63,8 @@ function selection_area_update_internal_representation (id) {
     }
 
     textarea.value = internalRep;
+
+    selection_area_update_count_information(id);
 }
 
 function selection_area_bulk_operation_handler(ev, operation) {
@@ -85,6 +87,20 @@ function selection_area_bulk_operation_handler(ev, operation) {
     }
 
     selection_area_update_internal_representation(id);
+}
+
+function selection_area_update_count_information(id) {
+    // Update the count information for the listings
+    for (var element of ['candidates', 'selected']) {
+        // get the list elements
+        var list_elements  = document.getElementById(id + '.' + element).getElementsByTagName('LI');
+
+        // get the list header element
+        var list_header = document.getElementById(id).getElementsByClassName('workarea ' + element)[0].getElementsByTagName('H3')[0];
+
+        // replace the count information e.g. "Selection (0)" -> "Selection (1)"
+        list_header.innerHTML = list_header.innerHTML.replace(/\(.*\)/,'(' + list_elements.length + ')');
+    }
 }
 
 /*
