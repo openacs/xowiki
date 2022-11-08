@@ -2086,7 +2086,7 @@ namespace eval ::xowiki::formfield {
       # When production_mode is set, make sure, the new file object
       # is not in a published state.
       #
-      if {[::$package_id get_parameter production_mode 0]} {
+      if {[::$package_id get_parameter production_mode:boolean 0]} {
         $file_object publish_status "production"
       }
       $file_object save_new {*}$save_flag

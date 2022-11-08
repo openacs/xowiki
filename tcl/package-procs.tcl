@@ -441,14 +441,14 @@ namespace eval ::xowiki {
     }
     regsub -all -- {[\#/\\:]} $suffix _ suffix
     # if subst_blank_in_name is turned on, turn spaces into _
-    if {[:get_parameter subst_blank_in_name 1]} {
+    if {[:get_parameter subst_blank_in_name:boolean 1]} {
       regsub -all -- { +} $suffix "_" suffix
     }
     return [:join_name -prefix $prefix -name $suffix]
   }
 
   Package instproc default_locale {} {
-    if {[:get_parameter use_connection_locale 0]} {
+    if {[:get_parameter use_connection_locale:boolean 0]} {
       # we return the connection locale (if not connected the system locale)
       set locale [::xo::cc locale]
     } else {
@@ -956,21 +956,35 @@ namespace eval ::xowiki {
     attribute
     {default ""}
   } {
-    resolves configurable parameters according to the following precedence:
+    Resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
     (3) form fields from the parameter_page FormPage
     (4) standard OpenACS package parameter
+
+    The specified attribute can be of the form "name:value_constraint"
   } {
+    set attribute_name $attribute
+    set attribute_constraint ""
+    regexp {^([^:]+):(.*)$} $attribute . attribute_name attribute_constraint
+
     if {$nocache} {
       set value ""
     } else {
-      set value [::xo::cc get_parameter $attribute]
+      #
+      # Cached values, or values programmatically set
+      #
+      set value [::xo::cc get_parameter $attribute_name]
     }
+
     if {$check_query_parameter && $value eq ""} {
+      #
+      # Query parameter handle already the notation with
+      # "name:valueconstraint"
+      #
       set value [string trim [:query_parameter $attribute]]
     }
-    if {$value eq "" && $attribute ne "parameter_page"} {
+    if {$value eq "" && $attribute_name ne "parameter_page"} {
       #
       # Try to get the parameter from the parameter_page.  We have to
       # be very cautious here to avoid recursive calls (e.g. when
@@ -979,11 +993,11 @@ namespace eval ::xowiki {
       #
       set value [:get_parameter_from_parameter_page \
                      -parameter_page_name [:get_parameter parameter_page ""] \
-                     $attribute]
+                     $attribute_name]
     }
 
     if {$value eq ""} {
-      set value [next $attribute $default]
+      set value [next $attribute_name $default]
     }
     if {$type ne ""} {
       #
@@ -998,6 +1012,9 @@ namespace eval ::xowiki {
         }
         default {error "requested type unknown: $type"}
       }
+    }
+    if {$value ne "" && $attribute_constraint ne ""} {
+      xo::validate_parameter_constraints $attribute_name $attribute_constraint $value
     }
     #:log "           $attribute returns '$value'"
     return $value
@@ -1190,7 +1207,7 @@ namespace eval ::xowiki {
 
 
   Package instproc show_page_order {} {
-    return [:get_parameter display_page_order 1]
+    return [:get_parameter display_page_order:boolean 1]
   }
 
   #
@@ -2479,7 +2496,7 @@ namespace eval ::xowiki {
                   -add_revision $add_revision]
 
     if {[info exists via_url] && [:exists_query_parameter "return_url"]} {
-      :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
+      :returnredirect [:query_parameter "return_url:localurl" [ad_urlencode_folder_path ${:package_url}]]
     } else {
       return $page
     }
@@ -2924,7 +2941,7 @@ namespace eval ::xowiki {
 
   } {
     set object_type [:query_parameter object_type:class "::xowiki::Page"]
-    set autoname [:get_parameter autoname 0]
+    set autoname [:get_parameter autoname:boolean 0]
     set parent_id [${:id} query_parameter parent_id:cr_item_of_package,arg=${:id}]
     if {$parent_id eq ""} {
       set parent_id [${:id} form_parameter folder_id ${:folder_id}]
@@ -3116,7 +3133,7 @@ namespace eval ::xowiki {
                       [_ xowiki.error-delete_entries_first [list count $count]]]
         }
       }
-      if {[:get_parameter "with_general_comments" 0]} {
+      if {[:get_parameter with_general_comments:boolean 0]} {
         #
         # We have general comments. In a first step, we have to delete
         # these, before we are able to delete the item.

@@ -269,7 +269,7 @@ namespace eval ::xowiki::includelet {
 
     #:msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
-    if {[::$package_id get_parameter "MenuBar" 0]} {
+    if {[::$package_id get_parameter MenuBar:boolean 0]} {
 
       #
       # We want a menubar. Create a menubar object, which might be

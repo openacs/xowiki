@@ -259,7 +259,7 @@ namespace eval ::xowiki {
     :add_menu_item -name Package.Startpage -item [list url $folder_link]
     :add_menu_item -name Package.Toc -item [list url $index_link]
 
-    if {[::$package_id get_parameter "with_notifications" 1]} {
+    if {[::$package_id get_parameter with_notifications:boolean 1]} {
       if {[::xo::cc user_id] != 0} {
         #
         # notifications require login
@@ -320,7 +320,7 @@ namespace eval ::xowiki {
     :add_menu_item -name New.File   -item [list url $new_file_link]
     :add_menu_item -name New.Folder -item [list url $new_folder_link]
 
-    if {[::$package_id get_parameter "MenuBarSymLinks" 0]} {
+    if {[::$package_id get_parameter MenuBarSymLinks:boolean 0]} {
       #
       # Symlinks are configured
       #

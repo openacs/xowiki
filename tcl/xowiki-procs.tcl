@@ -1603,7 +1603,7 @@ namespace eval ::xowiki {
     :instvar name item_id package_id parent_id publish_status \
         page_template instance_attributes assignee state
 
-    set useHstore [::$package_id get_parameter use_hstore 0]
+    set useHstore [::$package_id get_parameter use_hstore:boolean 0]
     set updateVars {name = :name, package_id = :package_id,
       parent_id = :parent_id, publish_status = :publish_status,
       page_template = :page_template, assignee = :assignee,
@@ -1668,7 +1668,7 @@ namespace eval ::xowiki {
     } elseif {
               $colName eq "instance_attributes"
               && [::xo::dc has_hstore]
-              && [::${:package_id} get_parameter use_hstore 0]
+              && [::${:package_id} get_parameter use_hstore:boolean 0]
             } {
       ::xowiki::update_item_index -item_id ${:item_id} -hstore_attributes $value
     }
@@ -3008,7 +3008,7 @@ namespace eval ::xowiki {
     }
 
     set tags ""
-    if {[::$package_id get_parameter "with_tags" 1] &&
+    if {[::$package_id get_parameter with_tags:boolean 1] &&
         ![:exists_query_parameter no_tags] &&
         [::xo::cc user_id] != 0
       } {
@@ -3021,20 +3021,20 @@ namespace eval ::xowiki {
       set tag_content ""
     }
 
-    if {[::$package_id get_parameter "with_digg" 0] && [info exists url]} {
+    if {[::$package_id get_parameter with_digg:boolean 0] && [info exists url]} {
       if {![info exists description]} {set description [:get_description $content]}
       append footer "<div style='float: right'>" \
           [:include [list digg -description $description -url $url]] "</div>\n"
     }
 
-    if {[::$package_id get_parameter "with_delicious" 0] && [info exists url]} {
+    if {[::$package_id get_parameter with_delicious:boolean 0] && [info exists url]} {
       if {![info exists description]} {set description [:get_description $content]}
       append footer "<div style='float: right; padding-right: 10px;'>" \
           [:include [list delicious -description $description -url $url -tags $tags]] \
           "</div>\n"
     }
 
-    if {[::$package_id get_parameter "with_yahoo_publisher" 0] && [info exists package_url]} {
+    if {[::$package_id get_parameter with_yahoo_publisher:boolean 0] && [info exists package_url]} {
       set publisher [::$package_id get_parameter "my_yahoo_publisher" \
                          [::xo::get_user_name [::xo::cc user_id]]]
       append footer \
@@ -3045,11 +3045,11 @@ namespace eval ::xowiki {
           "</div>\n"
     }
 
-    if {[::$package_id get_parameter "show_page_references" 1]} {
+    if {[::$package_id get_parameter show_page_references:boolean 1]} {
       append footer [:include my-references]
     }
 
-    if {[::$package_id get_parameter "show_per_object_categories" 1]} {
+    if {[::$package_id get_parameter show_per_object_categories:boolean 1]} {
       set html [:include my-categories]
       if {$html ne ""} {
         append footer $html <br>
@@ -3059,7 +3059,7 @@ namespace eval ::xowiki {
 
     append footer $tag_content
 
-    if {[::$package_id get_parameter "with_general_comments" 0] &&
+    if {[::$package_id get_parameter with_general_comments:boolean 0] &&
         ![:exists_query_parameter no_gc]} {
       append footer [:include my-general-comments]
     }
@@ -3137,7 +3137,7 @@ namespace eval ::xowiki {
     #
     if {$with_footer && [::xo::cc get_parameter content-type text/html] eq "text/html"} {
       append content "<DIV class='content-chunk-footer'>"
-      if {![info exists :__no_footer] && ![::xo::cc get_parameter __no_footer 0]} {
+      if {![info exists :__no_footer] && ![::xo::cc get_parameter __no_footer:boolean 0]} {
         append content [:footer]
       }
       append content "</DIV>\n"
@@ -4689,7 +4689,7 @@ namespace eval ::xowiki {
     array set wc $h_where
     array set uc $h_unless
     set use_hstore [expr {[::xo::dc has_hstore] &&
-                          [::$package_id get_parameter use_hstore 0]
+                          [::$package_id get_parameter use_hstore:boolean 0]
                         }]
     #
     # Deactivating hstore optimization for now, must be further
@@ -5459,7 +5459,7 @@ namespace eval ::xowiki {
       #
       #ns_log notice "----- save_data: old_name $old_name, is_new_entry [:is_new_entry $old_name] name <${:name}>"
       if {[:is_new_entry $old_name]} {
-        if {![::$package_id get_parameter production_mode 0]} {
+        if {![::$package_id get_parameter production_mode:boolean 0]} {
           set :publish_status "ready"
         }
       }

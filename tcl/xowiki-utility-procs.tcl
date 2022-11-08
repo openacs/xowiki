@@ -37,7 +37,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create tidy
   tidy proc clean {text} {
-    if {[[::xo::cc package_id] get_parameter tidy 0]
+    if {[[::xo::cc package_id] get_parameter tidy:boolean 0]
         && [info commands ::util::which] ne ""} {
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
@@ -139,7 +139,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create virus
   virus proc check {fns} {
-    if {[[::xo::cc package_id] get_parameter clamav 1]
+    if {[[::xo::cc package_id] get_parameter:boolean clamav 1]
         && [info commands ::util::which] ne ""} {
       set clamscanCmd [::util::which clamdscan]
       foreach fn $fns {
@@ -220,7 +220,7 @@ namespace eval ::xowiki::hstore {
        ::xo::Package initialize -url /xowiki
        ::xowiki::hstore::update_hstore $package_id
   } {
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -276,7 +276,7 @@ namespace eval ::xowiki::hstore {
     ns_log notice "$package_id: ::xo::Package require took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -318,7 +318,7 @@ namespace eval ::xowiki::hstore {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
       ::xo::Package require $package_id
-      if {[::$package_id get_parameter use_hstore 0] == 0} {
+      if {[::$package_id get_parameter use_hstore:boolean 0] == 0} {
         continue
       }
       ad_try {

@@ -1974,7 +1974,7 @@ namespace eval ::xowiki {
     set view_link   [::$page_package_id make_link [self] view return_url]
 
     set notification_subscribe_link ""
-    if {[::$context_package_id get_parameter "with_notifications" 1]} {
+    if {[::$context_package_id get_parameter with_notifications:boolean 1]} {
       if {[::xo::cc user_id] != 0} {
         #
         # Notifications are only be displayed for logged-in users.
@@ -2007,7 +2007,7 @@ namespace eval ::xowiki {
     #
     # These variables can be influenced via set-parameter.
     #
-    set autoname [::$page_package_id get_parameter autoname 0]
+    set autoname [::$page_package_id get_parameter autoname:boolean 0]
 
     #
     # Setup top includeletes and footers.
@@ -2015,12 +2015,12 @@ namespace eval ::xowiki {
 
     set footer [:htmlFooter -content $content]
     set top_includelets ""
-    set vp [string trim [::$context_package_id get_parameter "top_includelet" ""]]
+    set vp [string trim [::$context_package_id get_parameter top_includelet ""]]
     if {$vp ne "" && $vp ne "none"} {
       set top_includelets [:include $vp]
     }
 
-    if {[::$context_package_id get_parameter "MenuBar" 0]} {
+    if {[::$context_package_id get_parameter MenuBar:boolean 0]} {
       #
       # When a "MenuBar" is used, it might contain folder-specific
       # content. Therefore, we have to compute the tree. The resulting
@@ -2042,7 +2042,7 @@ namespace eval ::xowiki {
       }
     }
 
-    if {[::$context_package_id get_parameter "with_user_tracking" 1]} {
+    if {[::$context_package_id get_parameter with_user_tracking:boolean 1]} {
       :record_last_visited
     }
 
@@ -2050,7 +2050,7 @@ namespace eval ::xowiki {
     # Deal with the views package (many thanks to Malte for this
     # snippet!)
     #
-    if {[::$context_package_id get_parameter with_views_package_if_available 1]
+    if {[::$context_package_id get_parameter with_views_package_if_available:boolean 1]
         && [info commands ::views::record_view] ne ""} {
       views::record_view -object_id ${:item_id} -viewer_id [::xo::cc user_id]
       array set views_data [views::get -object_id ${:item_id}]
@@ -2062,7 +2062,7 @@ namespace eval ::xowiki {
 
     #:log "--after notifications [info exists notification_image]"
 
-    set master [::$context_package_id get_parameter "master" 1]
+    set master [::$context_package_id get_parameter master:boolean 1]
     if {![string is boolean -strict $master]} {
       ad_return_complaint 1 "value of master is not boolean"
       ad_script_abort
@@ -2078,7 +2078,7 @@ namespace eval ::xowiki {
       # We could offer a user to translate the current page to his preferred language
       #
       # set create_in_req_locale_link ""
-      # if {[::$context_package_id get_parameter use_connection_locale 0]} {
+      # if {[::$context_package_id get_parameter use_connection_locale:boolean 0]} {
       #  $context_package_id get_lang_and_name -path [::$context_package_id set object] req_lang req_local_name
       #  set default_lang [::$page_package_id default_language]
       #  if {$req_lang ne $default_lang} {
@@ -2093,7 +2093,7 @@ namespace eval ::xowiki {
       # }
 
       #:log "--after context delete_link=$delete_link "
-      #set template [::$context_package_id get_parameter "template" ""]
+      #set template [::$context_package_id get_parameter template ""]
       set template ""
       set page [self]
 
