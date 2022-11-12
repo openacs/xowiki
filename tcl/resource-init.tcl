@@ -14,9 +14,11 @@ template::register_urn -urn urn:ad:js:bootstrap3  \
 template::register_urn -urn urn:ad:js:get-http-object \
     -resource /resources/xowiki/get-http-object.js
 
-template::register_urn -urn urn:ad:js:highcharts \
-    -resource //code.highcharts.com/7.0/highcharts.js \
-    -csp_list {script-src code.highcharts.com}
+if {![apm_package_enabled_p "highcharts"]} {
+  template::register_urn -urn urn:ad:js:highcharts \
+      -resource https://cdnjs.cloudflare.com/ajax/libs/highcharts/10.3.1/highcharts.js \
+      -csp_list {script-src cdnjs.cloudflare.com}
+}
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
 
 #
