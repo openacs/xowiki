@@ -322,16 +322,6 @@ div.reorder_box textarea {
     display: none;
 }
 
-div.reorder_box li::before {
-    /* glyphicon-move */
-    font-family: 'Glyphicons Halflings';
-    content: "\e068 ";
-    float: left;
-    position: relative;
-    font-size: 12px;
-    margin-right: 10px;
-    color: #aaa;
-}
 
 /*
  * Book styling

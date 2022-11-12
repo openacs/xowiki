@@ -60,6 +60,17 @@ div.xowiki-content .upload-btn-label::before {
     content: "\f603";
     margin-right: 6px;
 }
+div.xowiki-content div.reorder_box li::before {
+    /* bi-arrows-move */
+    font-family: 'bootstrap-icons' !important;
+    content: "\f14e";
+    float: left;
+    position: relative;
+    font-size: 12px;
+    margin-right: 10px;
+    color: #aaa;
+}
+
 div.xowiki-content a.publish-status-item-button.green {
     color: green;
     position: relative;

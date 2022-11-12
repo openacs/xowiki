@@ -61,6 +61,16 @@ div.xowiki-content .upload-btn-label::before {
     content: "\e027";
     margin-right: 6px;
 }
+div.xowiki-content div.reorder_box li::before {
+    /* glyphicon-move */
+    font-family: 'Glyphicons Halflings';
+    content: "\e068 ";
+    float: left;
+    position: relative;
+    font-size: 12px;
+    margin-right: 10px;
+    color: #aaa;
+}
 div.xowiki-content a.publish-status-item-button.green {
     color: green;
     font-size: larger;
