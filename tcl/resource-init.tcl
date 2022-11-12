@@ -4,6 +4,8 @@
 template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.6.0.min.js
 template::register_urn -urn urn:ad:js:jquery-ui   -resource /resources/xowiki/jquery/jquery-ui.min.js
 template::register_urn -urn urn:ad:css:jquery-ui  -resource /resources/xowiki/jquery/jquery-ui.css
+template::register_urn -urn urn:ad:js:jquery-ui-touch-punch \
+    -resource /resources/xowiki/jquery/jquery.ui.touch-punch-0.2.3.js
 
 template::register_urn -urn urn:ad:js:bootstrap3  \
     -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js \

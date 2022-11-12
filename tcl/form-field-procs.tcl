@@ -5371,6 +5371,9 @@ namespace eval ::xowiki::formfield {
       #
       ::xo::Page requireCSS urn:ad:css:jquery-ui
       ::xo::Page requireJS urn:ad:js:jquery-ui
+      if {[::xo::cc mobile]} {
+        ::xo::Page requireJS urn:ad:js:jquery-ui-touch-punch
+      }
 
       template::add_body_script -script  [subst {
         \$("#$jqID").sortable();
@@ -5412,7 +5415,7 @@ namespace eval ::xowiki::formfield {
               foreach v ${:value} c ${:correction} {
                 set cl "list-group-item"
                 lappend cl [expr {$c eq "1" ? "correct" : $c eq "0" ? "incorrect" : ""} ]
-                ::html::li -class $cl -data-value $v {
+                ::html::li -class $cl -style "min-width:200px;" -data-value $v {
                   ::html::t [lindex ${:options} $v 0]
                 }
               }
