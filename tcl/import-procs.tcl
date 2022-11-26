@@ -419,8 +419,7 @@ namespace eval ::xowiki {
   ArchiveFile instproc init {} {
     :destroy_on_cleanup
     ::xo::db::CrClass get_instance_from_db -item_id ${:parent_id}
-    set :tmpdir [ad_tmpnam]
-    file mkdir ${:tmpdir}
+    set :tmpdir [ad_mktmpdir import]
   }
   ArchiveFile instproc delete {} {
     file delete -force -- ${:tmpdir}
