@@ -124,6 +124,14 @@ aa_register_case \
 
       @author Gustaf Neumann
     } {
+        #
+        # Later on in the test we will loop through ::xowiki::Page
+        # instances to perform some checks. Make sure we do not have
+        # leftover pollution from previous tests.
+        #
+        foreach p [::xowiki::Page info instances] {
+           $p destroy
+        }
 
         Object test
         test set passed 0
@@ -1591,7 +1599,9 @@ aa_register_case \
                     -slot ::xowiki::PodcastItem::slot::pub_date]
         set widgetSpec [$f0 asWidgetSpec]
         ? {regexp {date,optional.*.*YYYY.*MM.*} $widgetSpec} 1 "date with format"
-    }
+
+        test destroy
+   }
 
 # Local variables:
 #    mode: tcl

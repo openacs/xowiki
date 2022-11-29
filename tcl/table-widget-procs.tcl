@@ -19,6 +19,7 @@ namespace eval ::xowiki {
     {-bulk_actions ""}
     {-renderer ""}
     {-orderby ""}
+    {-type_map ""}
     {-with_checkboxes:boolean false}
   } {
 
@@ -107,8 +108,9 @@ namespace eval ::xowiki {
                   -package_key xowiki \
                   -parameter PreferredCSSToolkit \
                   -default bootstrap] {
-                    bootstrap {set renderer BootstrapTableRenderer}
-                    default   {set renderer YUIDataTableRenderer}
+                    bootstrap -
+                    bootstrap5 {set renderer BootstrapTableRenderer}
+                    default    {set renderer YUIDataTableRenderer}
                   }
       lappend cmd -renderer $renderer
     }
@@ -127,11 +129,11 @@ namespace eval ::xowiki {
       set sortable 0
     }
     if {$sortable} {
-      if {$att eq "_page_order"} {
-        $table_widget mixin add ::xo::OrderedComposite::IndexCompare
-      }
       #:msg "order=[expr {$order eq {asc} ? {increasing} : {decreasing}}] $att"
-      $table_widget orderby -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] $att
+      $table_widget orderby \
+          -order [expr {$order eq "asc" ? "increasing" : "decreasing"}] \
+          -type [ad_decode $att _page_order index {*}$type_map dictionary] \
+          $att
     }
     return $table_widget
   }
@@ -220,7 +222,7 @@ namespace eval ::xowiki {
         $__c set _delete.href [::$package_id make_link -link $page_link $p delete return_url]
       }
       if {"archive" in $buttons} {
-        #$__c set _archive "<span class='glyphicon glyphicon-download-alt'></span>"; #content: "\e025";
+        # $__c set _archive "<adp:icon name='download'>; #content: "\e025";
         $__c set _archive "&nbsp;"
         $__c set _archive.title #xowiki.Archive_title#
         set url [export_vars -base [::$package_id package_url]admin/set-publish-state \
@@ -338,7 +340,7 @@ namespace eval ::xowiki {
     if {$csv} {
       set encoded_includelet_key [ns_urlencode [ns_base64urlencode $includelet_key]]
       set csv_href "[::xo::cc url]?[::xo::cc actual_query]&includelet_key=$encoded_includelet_key&generate=csv"
-      lappend links "<a href='[ns_quotehtml $csv_href]'>csv</a>"
+      lappend links "<a href='[ns_quotehtml $csv_href]'><adp:icon name='filetype-csv' alt='CSV' title='Dowload CSV'></a>"
     }
     if {[llength $voting_dict] != 0} {
       set voting_form [dict get $voting_dict voting_form]

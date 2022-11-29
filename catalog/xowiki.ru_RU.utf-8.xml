@@ -175,7 +175,8 @@
   <msg key="Page-text">Содержание</msg>
   <msg key="Page-title">Наименование страницы</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
-  <msg key="Page-validate_name">Другой элемент с наименование  '%value%' уже существует в этой директории</msg>
+  <msg key="Page-validate_name">%errorMsg%</msg>
+  <msg key="Page-validate_name-duplicate_item">Другой элемент с наименование '%value%' уже существует в этой директории</msg>
   <msg key="Page-validate_page_order">Недопустимый порядок страниц; может содержать заглавные и строчные буквы, подчёркивание, цифры и точки</msg>
   <msg key="page_kind">Тип</msg>
   <msg key="Page_pretty_name">XoWiki страница</msg>

@@ -24,6 +24,11 @@ namespace eval ::xowiki {
     then the caller page.  This method is e.g. called by the
     folder-procs.
 
+    By passing the "instantiate_p" one can decide whether each item
+    should be instantiated (useful when the delete logic from the
+    whole item ancestry is required), or if we will rely on the
+    cheaper deletion at the package level. The default is false.
+
   } {
     ::security::csrf::validate
 
@@ -31,10 +36,17 @@ namespace eval ::xowiki {
       :msg "nothing to delete"
     }
 
+    set instantiate_p [:form_parameter instantiate_p false]
+
     set item_ids [:get_ids_for_bulk_actions [:form_parameter objects]]
     foreach item_id $item_ids {
       :log "bulk-delete: DELETE item_id $item_id"
-      ${:package_id} www-delete -item_id $item_id
+      if {$instantiate_p} {
+        set i [::xo::db::CrClass get_instance_from_db -item_id $item_id]
+        $i www-delete
+      } else {
+        ${:package_id} www-delete -item_id $item_id
+      }
     }
     :return_redirect_without_params
   }
@@ -292,11 +304,21 @@ namespace eval ::xowiki {
     # parent_id has priority over the other measures to obtain it.
     #
     if {$parent_id == 0} {
-      if {![info exists :parent_id]} {:parent_id [::${:package_id} folder_id]}
+      if {![info exists :parent_id]} {
+        set :parent_id [::${:package_id} folder_id]
+      }
       set fp_parent_id [:form_parameter "parent_id" [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
+    #
+    # Allow only inserts to own package.
+    #
+    if {![::xo::db::CrClass id_belongs_to_package -item_id $fp_parent_id -package_id ${:package_id}]} {
+      ad_return_complaint 1 "invalid parent_id"
+      ad_script_abort
+    }
+
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
     set fp_package_id [:form_parameter "package_id" [:query_parameter package_id:int32 ${:package_id}]]
@@ -319,19 +341,6 @@ namespace eval ::xowiki {
         set publish_status "ready"
       }
       :log "FINAL publish_status $publish_status"
-    }
-
-    #
-    # Provide "p.configure" hook to programmatically configure pages
-    #
-    if {[:exists_query_parameter p.configure]} {
-      set configure_method [:query_parameter p.configure:wordchar]
-      if {[$f procsearch configure_page=$configure_method] ne ""} {
-        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
-        $f configure_page=$configure_method $name
-      } else {
-        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
-      }
     }
 
     #
@@ -361,6 +370,19 @@ namespace eval ::xowiki {
         && $publish_status in {"production" "ready" "live" "expired"}
       } {
       $f publish_status $publish_status
+    }
+
+    #
+    # Provide "p.configure" hook to programmatically configure pages
+    #
+    if {[:exists_query_parameter p.configure]} {
+      set configure_method [:query_parameter p.configure:wordchar]
+      if {[$f procsearch configure_page=$configure_method] ne ""} {
+        #ns_log notice "call [$f procsearch configure_page=$configure_method] // [$f info class]"
+        $f configure_page=$configure_method $name
+      } else {
+        ns_log notice "cannot find configure_page=$configure_method on [$f info precedence]"
+      }
     }
 
     if {$name eq ""} {
@@ -504,17 +526,19 @@ namespace eval ::xowiki {
   # Externally callable method: delete
   #
 
-  Page ad_instproc www-delete {} {
+  Page ad_instproc www-delete {-return_url} {
 
     This web-callable method deletes a page via the delete
     method of the package.
 
   } {
+    set returnUrlOpt [expr {[info exists return_url] ? [list -return_url $return_url] : ""}]
+
     # delete always via package
-    ${:package_id} www-delete -item_id ${:item_id} -name ${:name}
+    ${:package_id} www-delete -item_id ${:item_id} -name ${:name} {*}$returnUrlOpt
   }
 
-  PageTemplate ad_instproc www-delete {} {
+  PageTemplate ad_instproc www-delete {-return_url} {
 
     This web-callable method deletes a page via the delete method
     of the package.  This method checks first, if there exists still
@@ -1094,7 +1118,7 @@ namespace eval ::xowiki {
       #
       foreach name [:form_parameter __disabled_fields] {
         set f [:lookup_form_field -name $name $form_fields]
-        $f disabled disabled
+        $f set_disabled true
       }
     }
 
@@ -1108,7 +1132,7 @@ namespace eval ::xowiki {
       #:log "we have to validate"
       #
       # In case we are triggered internally, we might not have a
-      # a connection and therefore do not valide the csrf token.
+      # a connection. Therefore, do not validate the CSRF token.
       #
       if {![::${:package_id} exists __batch_mode]} {
         security::csrf::validate
@@ -1148,7 +1172,7 @@ namespace eval ::xowiki {
       } else {
         #
         # We have no validation errors, so we can save the content.
-        #        
+        #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
             [::xo::cc form_parameter __object_name ""] $category_ids
@@ -1199,7 +1223,7 @@ namespace eval ::xowiki {
       #
       # Build the input form and display the current values.
       #
-      #:log "form_action is something different: <[:form_parameter __form_action {}]>"      
+      #:log "form_action is something different: <[:form_parameter __form_action {}]>"
       if {[:is_new_entry ${:name}]} {
         set :creator [::xo::get_user_name [::xo::cc user_id]]
         set :nls_language [::${:package_id} default_locale]
@@ -1259,6 +1283,20 @@ namespace eval ::xowiki {
     :post_process_form_fields $form_fields
 
     #
+    # "dom parse -html" has two problems with ADP tags like "<adp:icon ...>":
+    # a) If the tag name contains a colon or underscore, the tag is
+    #    treated like plain text, i.e. "<" and ">" are converted into
+    #    HTML entities.
+    # b) These tags have to be closed "<adp:icon ...>" is invalid.
+    #    Several existomg ADP tags have not closing tag.
+    #
+    # Therefore, we resolve the ADP tags before parsing the text by
+    # tdom. There should be some framework support to do this in
+    # general, but until we have this, resolve this problem here locally.
+    #
+    set form [::template::adp_parse_tags [:substitute_markup $form]]
+
+    #
     # The following command would be correct, but does not work due to a bug in
     # tdom.
     # set form [:regsub_eval  \
@@ -1268,7 +1306,6 @@ namespace eval ::xowiki {
     # by \x03 to avoid conflict with the input and we replace these
     # magic chars finally with the fields resulting from tdom.
 
-    set form [:substitute_markup $form]
     set form [string map [list @ \x03] $form]
     #:msg form=$form
 
@@ -1342,16 +1379,6 @@ namespace eval ::xowiki {
       }
 
       #
-      # Insert unreported errors.
-      #
-      foreach f $form_fields {
-        if {[$f set error_msg] ne ""
-            && ![$f exists error_reported]
-          } {
-          $f render_error_msg
-        }
-      }
-      #
       # Add a submit field(s) at bottom.
       #
       :render_form_action_buttons -CSSclass [string trim "$button_class(wym) $button_class(xinha)"]
@@ -1390,7 +1417,7 @@ namespace eval ::xowiki {
       #
       # (a) Disable explicit input fields.
       #
-      foreach f $form_fields {$f disabled 1}
+      foreach f $form_fields {$f set_disabled true}
       #
       # (b) Disable input in HTML-specified fields.
       #
@@ -1415,6 +1442,32 @@ namespace eval ::xowiki {
     # Replace unbalanced @ characters.
     #
     set html [string map [list \x03 @] $html]
+
+    #
+    # Handle unreported errors (in the future...). Unreported errors
+    # might occur, when a form-field was rendered above without
+    # "render_item". This can happen with inline rendering of the
+    # input fields where validation errors occur. Inline rendering
+    # happens very seldom (I know not a single occurrence in the
+    # wild). For such cases, one should define an extra field in the
+    # form with an idea, reparse the tree and insert the errors
+    # there. But first look, if we find a single occurrence.
+    #
+    set unprocessed {}
+    foreach f $form_fields {
+      if {[$f set error_msg] ne ""
+          && ![$f exists error_reported]
+        } {
+        ns_log notice "form-field [$f name] has unprocessed error msg '[$f set error_msg]'"
+        #$f render_error_msg
+        lappend unprocessed [$f name]
+      }
+    }
+    #ns_log notice "=============== $unprocessed unprocessed error messages"
+    if {[llength $unprocessed] > 0} {
+      ad_log warning "form has [llength $unprocessed] unprocessed " \
+          "error messages in fields $unprocessed"
+    }
 
     #:log "calling VIEW with HTML [string length $html]"
     if {$view} {
@@ -1444,27 +1497,46 @@ namespace eval ::xowiki {
     set form [ns_getform]
 
     #
-    # Get the uploader via query parameter.  We have currently the
-    # following uploader classes defined (see
+    # Get the disposition via query parameter.  We have currently the
+    # following disposition classes defined (see
     # xowiki-uploader-procs.tcl)
     #
     #   - ::xowiki::UploadFile
     #   - ::xowiki::UploadPhotoForm
+    #   - ::xowiki::UploadFileIconified
     #
     ::security::csrf::validate
-    set uploader [ns_set get $form uploader File]
-    set uploaderClass ::xowiki::UploadFile
-    if {[info commands ::xowiki::Upload$uploader] ne ""} {
-      set uploaderClass ::xowiki::Upload$uploader
+
+    set disposition [:query_parameter disposition:wordchar File]
+    set fileName [:query_parameter name:graph [ns_set get $form upload]]
+
+    set dispositionClass ::xowiki::UploadFile
+    if {[info commands ::xowiki::Upload$disposition] ne ""} {
+      set dispositionClass ::xowiki::Upload$disposition
     }
-    set uploaderObject [$uploaderClass new \
-                            -file_name [ns_set get $form upload] \
-                            -content_type [ns_set get $form upload.content-type] \
-                            -tmpfile [ns_set get $form upload.tmpfile] \
-                            -parent_object [self]]
-    set result [$uploaderObject store_file]
-    $uploaderObject destroy
+
+    #ns_log notice "disposition class '$dispositionClass'"
+    set dispositionObject [$dispositionClass new \
+                               -file_name $fileName \
+                               -content_type [ns_set get $form upload.content-type] \
+                               -tmpfile [ns_set get $form upload.tmpfile] \
+                               -parent_object [self]]
+    set result [$dispositionObject store_file]
+    $dispositionObject destroy
     ns_return [dict get $result status_code] text/plain [dict get $result message]
+    ad_script_abort
+  }
+
+  FormPage ad_instproc render_thumbnails {upload_info} {
+
+    Renderer of the thumnail file(s). This method is a stub to be
+    refined (e.g. in xowf).
+
+    @param upload_info dict containing the "file_object" and "file_name"
+    @return HTML content
+
+  } {
+    return "[dict get $upload_info file_name] created"
   }
 
   #
@@ -1545,7 +1617,7 @@ namespace eval ::xowiki {
     the parameter "local_return_url".
 
   } {
-    set page_id [:query_parameter "revision_id"]
+    set page_id [:query_parameter revision_id]
     if {[string is integer -strict $page_id]} {
       set revision_id $page_id
     } else {
@@ -1553,27 +1625,35 @@ namespace eval ::xowiki {
     }
     #:log "--M set_live_revision $revision_id"
     :set_live_revision -revision_id $revision_id
-    ${:package_id} returnredirect [:query_parameter "return_url" \
-                                       [:query_parameter "local_return_url" \
-                                            [export_vars -base [::${:package_id} url] {{m revisions}}]]]
+    ${:package_id} returnredirect [${:package_id} query_parameter_return_url \
+                                       [export_vars -base [::${:package_id} url] {{m revisions}}]]
   }
 
   #
   # Externally callable method: toggle-publish-status
   #
-  Page ad_instproc www-toggle-publish-status {} {
+  Page ad_instproc www-toggle-publish-status {-return_url} {
 
     This web-callable method toggles from "production" to "ready", and
     from "ready" or "archived" to "production".
 
+    The return_url can be passed in for cases, where some proc calls
+    internally this function, since update_publish_status might have
+    to initialize some related objects, which might modify the
+    return_url as well (e.g., workflows with specialized return_url
+    handling).
+
   } {
+    if {![info exists return_url]} {
+      set return_url [:query_parameter return_url:localurl [ad_return_url]]
+    }
     if {${:publish_status} ne "ready"} {
       set new_publish_status "ready"
     } else {
       set new_publish_status "production"
     }
     :update_publish_status $new_publish_status
-    ${:package_id} returnredirect [:query_parameter return_url:localurl [ad_return_url]]
+    ${:package_id} returnredirect $return_url
   }
 
   #
@@ -1894,7 +1974,7 @@ namespace eval ::xowiki {
     set view_link   [::$page_package_id make_link [self] view return_url]
 
     set notification_subscribe_link ""
-    if {[::$context_package_id get_parameter "with_notifications" 1]} {
+    if {[::$context_package_id get_parameter with_notifications:boolean 1]} {
       if {[::xo::cc user_id] != 0} {
         #
         # Notifications are only be displayed for logged-in users.
@@ -1903,14 +1983,12 @@ namespace eval ::xowiki {
         set notification_type [notification::type::get_type_id -short_name xowiki_notif]
         set notification_text "Subscribe to [::$context_package_id instance_name]"
         set notification_subscribe_link \
-                                         [export_vars -base /notifications/request-new \
-                                              {{return_url $notifications_return_url}
-                                                {pretty_name $notification_text}
-                                                {type_id $notification_type}
-                                                {object_id $context_package_id}}]
-        set notification_image \
-                                         "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-        alt='$notification_text' title='$notification_text'>"
+            [export_vars -base /notifications/request-new \
+                 {{return_url $notifications_return_url}
+                   {pretty_name $notification_text}
+                   {type_id $notification_type}
+                   {object_id $context_package_id}}]
+        set notification_image "<adp:icon name='envelope' title='[ns_quotehtml $notification_text]'>"
       }
     }
 
@@ -1924,11 +2002,12 @@ namespace eval ::xowiki {
     } else {
       set content [:content_header_get]$content
     }
+    #set content [::xowiki::adp_parse_tags $content]
 
     #
     # These variables can be influenced via set-parameter.
     #
-    set autoname [::$page_package_id get_parameter autoname 0]
+    set autoname [::$page_package_id get_parameter autoname:boolean 0]
 
     #
     # Setup top includeletes and footers.
@@ -1936,12 +2015,12 @@ namespace eval ::xowiki {
 
     set footer [:htmlFooter -content $content]
     set top_includelets ""
-    set vp [string trim [::$context_package_id get_parameter "top_includelet" ""]]
+    set vp [string trim [::$context_package_id get_parameter top_includelet ""]]
     if {$vp ne "" && $vp ne "none"} {
       set top_includelets [:include $vp]
     }
 
-    if {[::$context_package_id get_parameter "MenuBar" 0]} {
+    if {[::$context_package_id get_parameter MenuBar:boolean 0]} {
       #
       # When a "MenuBar" is used, it might contain folder-specific
       # content. Therefore, we have to compute the tree. The resulting
@@ -1963,7 +2042,7 @@ namespace eval ::xowiki {
       }
     }
 
-    if {[::$context_package_id get_parameter "with_user_tracking" 1]} {
+    if {[::$context_package_id get_parameter with_user_tracking:boolean 1]} {
       :record_last_visited
     }
 
@@ -1971,7 +2050,7 @@ namespace eval ::xowiki {
     # Deal with the views package (many thanks to Malte for this
     # snippet!)
     #
-    if {[::$context_package_id get_parameter with_views_package_if_available 1]
+    if {[::$context_package_id get_parameter with_views_package_if_available:boolean 1]
         && [info commands ::views::record_view] ne ""} {
       views::record_view -object_id ${:item_id} -viewer_id [::xo::cc user_id]
       array set views_data [views::get -object_id ${:item_id}]
@@ -1983,7 +2062,7 @@ namespace eval ::xowiki {
 
     #:log "--after notifications [info exists notification_image]"
 
-    set master [::$context_package_id get_parameter "master" 1]
+    set master [::$context_package_id get_parameter master:boolean 1]
     if {![string is boolean -strict $master]} {
       ad_return_complaint 1 "value of master is not boolean"
       ad_script_abort
@@ -1999,7 +2078,7 @@ namespace eval ::xowiki {
       # We could offer a user to translate the current page to his preferred language
       #
       # set create_in_req_locale_link ""
-      # if {[::$context_package_id get_parameter use_connection_locale 0]} {
+      # if {[::$context_package_id get_parameter use_connection_locale:boolean 0]} {
       #  $context_package_id get_lang_and_name -path [::$context_package_id set object] req_lang req_local_name
       #  set default_lang [::$page_package_id default_language]
       #  if {$req_lang ne $default_lang} {
@@ -2014,7 +2093,7 @@ namespace eval ::xowiki {
       # }
 
       #:log "--after context delete_link=$delete_link "
-      #set template [::$context_package_id get_parameter "template" ""]
+      #set template [::$context_package_id get_parameter template ""]
       set template ""
       set page [self]
 
@@ -2134,7 +2213,6 @@ namespace eval ::xowiki {
         #
 
         set __including_page $page
-        #set __adp_stub [acs_root_dir]/packages/xowiki/www/view-default
         set __adp_stub [::$context_package_id get_adp_template view-default]
 
         set template_code [template::adp_compile -string $template]
@@ -2194,9 +2272,9 @@ namespace eval ::xowiki {
                                        {-nls_language ""}
                                      } {
 
-    array set __att [list publish_status 1]
+    set __att {publish_status 1}
     foreach att [list last_modified creation_user {*}[::xowiki::FormPage array names db_slot]] {
-      set __att($att) 1
+      dict set __att $att 1
     }
 
     # set cr_field_spec [::xowiki::PageInstance get_short_spec_from_form_constraints \
@@ -2220,7 +2298,7 @@ namespace eval ::xowiki {
         __* {error not_allowed}
         _* {
           set varname [string range $field_name 1 end]
-          if {![info exists __att($varname)]} {
+          if {![dict exists $__att $varname]} {
             error "unknown attribute $field_name"
           }
           #:log "create_raw_form_field of $field_name <$cr_field_spec,$short_spec>"
@@ -2549,7 +2627,6 @@ namespace eval ::xowiki {
   } {
     ::xo::require_html_procs
 
-    #array set __ia ${:instance_attributes}
     foreach f $form_fields {
       set att [$f name]
       # just handle fields of the form entry
@@ -2608,9 +2685,28 @@ namespace eval ::xowiki {
     set cc [::${:package_id} context]
 
     if {![info exists field_names]} {
-      set field_names [$cc array names form_parameter]
-      #:log "===== Page get_form_data field_names from form data: [$cc array names form_parameter *_.*]"
+      #
+      # Field names might come directly from the POST request payload
+      # and need to be validated: enforce that field names are made
+      # only by alphanumeric characters and dots, with the exception
+      # of file related fields, where either .tmpfile or .content-type
+      # will be appended.
+      #
+      #:log "===== Page get_form_data RAW field_names from form data: [$cc array names form_parameter *_.*]"
+
+      set field_names [list]
+      foreach att [$cc array names form_parameter] {
+        if {[regexp {^[\w.]+(\.(tmpfile|content-type))?$} $att]} {
+          lappend field_names $att
+        } else {
+          #
+          # We might decide to return a 403 here instead...
+          #
+          ad_log warning "Page get_form_data: field name '$att' was skipped. Received field names: [$cc array names form_parameter]"
+        }
+      }
     }
+
     #:msg "fields $field_names // $form_fields"
     #foreach f $form_fields { :msg "... $f [$f name]" }
     #
@@ -2623,8 +2719,10 @@ namespace eval ::xowiki {
       switch -glob -- $att {
         __category_* {
           set f [:lookup_form_field -name $att $form_fields]
-          set value [$f value [$cc form_parameter $att]]
-          foreach v $value {lappend category_ids $v}
+          if {![$f is_disabled]} {
+            set value [$f value [$cc form_parameter $att]]
+            foreach v $value {lappend category_ids $v}
+          }
         }
         __* {
           #
@@ -2635,11 +2733,13 @@ namespace eval ::xowiki {
           #
           # CR fields
           #
-          set f     [:lookup_form_field -name $att $form_fields]
-          set value [$f value [string trim [$cc form_parameter $att]]]
-          set varname [string range $att 1 end]
-          if {[string first . $att] == -1} {
-            set :$varname $value
+          set f [:lookup_form_field -name $att $form_fields]
+          if {![$f is_disabled]} {
+            set value [$f value [string trim [$cc form_parameter $att]]]
+            set varname [string range $att 1 end]
+            if {[string first . $att] == -1} {
+              set :$varname $value
+            }
           }
         }
         default {
@@ -2651,28 +2751,32 @@ namespace eval ::xowiki {
             # File related fields.
             #
             set f [:lookup_form_field -name $file $form_fields]
-            $f $field [string trim [$cc form_parameter $att]]
+            if {![$f is_disabled]} {
+              $f $field [string trim [$cc form_parameter $att]]
+            }
             #:msg "[$f name]: [list $f $field [string trim [$cc form_parameter $att]]]"
 
           } else {
             #
             # Fields related to instance variables.
             #
-            #:log "===== Page get_form_data calls lookup_form_field -name $att"
-            set f     [:lookup_form_field -name $att $form_fields]
-            set value [$f value [string trim [$cc form_parameter $att]]]
-            #:msg "value of $att ($f) = '$value' exists=[$cc exists_form_parameter $att]"
-            if {[string first . $att] == -1} {
-              #
-              # If the field is not a compound field, put the received
-              # value into the instance attributes. The containerized
-              # input values from compound fields are processed below.
-              #
-              dict set :instance_attributes $att $value
-            }
-            if {[$f exists is_category_field]} {
-              foreach v $value {
-                lappend category_ids $v
+            :log "===== Page get_form_data calls lookup_form_field -name $att"
+            set f [:lookup_form_field -name $att $form_fields]
+            if {![$f is_disabled]} {
+              set value [$f value [string trim [$cc form_parameter $att]]]
+              #:log "===== Page get_form_data calls lookup_form_field -name $att -> $f -> '$value'"              
+              if {[string first . $att] == -1} {
+                #
+                # If the field is not a compound field, put the received
+                # value into the instance attributes. The containerized
+                # input values from compound fields are processed below.
+                #
+                dict set :instance_attributes $att $value
+              }
+              if {[$f exists is_category_field]} {
+                foreach v $value {
+                  lappend category_ids $v
+                }
               }
             }
           }
@@ -2714,12 +2818,11 @@ namespace eval ::xowiki {
       #:log "check processed $f [$f name] [info exists processed([$f name])] disabled=[$f is_disabled]"
       set att [$f name]
 
-      if {![info exists processed($att)] && ![$f exists disabled]} {
-
-        if {[$f exists is_repeat_template]} {
-          continue
-        }
-        #:log  "==== form field $att [$f info class] not yet processed"
+      if {![info exists processed($att)]
+          && ![$f exists is_repeat_template]
+          && ![$f is_disabled]
+        } {
+        #ns_log notice "==== form field $att [$f info class] not yet processed"
 
         switch -glob -- $att {
           __* {
@@ -2731,10 +2834,12 @@ namespace eval ::xowiki {
             set default ""
             if {[info exists :$varname]} {set default [set :$varname]}
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
             set value [$f value $v]
             if {$v ne $default} {
-              if {![string match "*.*" $att]} {set :$varname $value}
+              if {[string first . $att] == -1} {
+                set :$varname $value
+              }
             }
           }
           default {
@@ -2750,10 +2855,10 @@ namespace eval ::xowiki {
               set default [dict get ${:instance_attributes} $att]
             }
             set v [$f value_if_nothing_is_returned_from_form $default]
-            #:log "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
+            #ns_log notice "===== value_if_nothing_is_returned_from_form [$f name] '$default' => '$v' (type=[$f info class])"
 
             set value [$f value $v]
-            if {![string match "*.*" $att]} {
+            if {[string first . $att] == -1} {
               dict set :instance_attributes $att $value
             }
           }
@@ -2975,7 +3080,7 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc post_process_form_fields {form_fields} {
-    # We offer here the possibility to iterate over the form fields before it
+    # We offer here the possibility to iterate over the form fields
     # before they are rendered
   }
 
@@ -3005,7 +3110,7 @@ namespace eval ::xowiki {
     } else {
       #
       # Reset for form field value to the external
-      # respresentation of the data value.
+      # representation of the data value.
       #
       $form_field value [$form_field convert_to_external $data_value]
     }
@@ -3056,7 +3161,7 @@ namespace eval ::xowiki {
 
   FormPage instproc form_fields_sanity_check {form_fields} {
     foreach f $form_fields {
-      if {[$f exists disabled]} {
+      if {[$f is_disabled]} {
         # don't mark disabled fields as required
         if {[$f required]} {
           $f required false

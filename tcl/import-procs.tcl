@@ -347,6 +347,36 @@ namespace eval ::xowiki {
     return $content
   }
 
+  exporter proc marshall_all_to_file {
+    {-mode export}
+    {-cleanup:boolean false}
+    -filename:required
+    item_ids
+  } {
+    #
+    # This method is similar to "marshall_all", but exports the objects
+    # directly to a file. This can save memory when exporting a large
+    # collection of objects, since the plain "marshall_all" appends to
+    # a string, which can get very large, especially due to Tcl's
+    # "double the size when space is needed" policy during "append"
+    # operations.
+    #
+    set output_file [open $filename w]
+    foreach item_id $item_ids {
+      ad_try {
+        puts $output_file [::$item_id marshall -mode $mode]
+        if {$cleanup && [info exists ::xo::cleanup(::$item_id)]} {
+          {*}$::xo::cleanup(::$item_id)
+        }
+      } on error {errorMsg} {
+        ns_log error "Error while exporting $item_id [::$item_id name]\n$errorMsg\n$::errorInfo"
+        error $errorMsg
+      } finally {
+        close $output_file
+      }
+    }
+  }
+
   exporter proc export {item_ids} {
     #
     # include implicitly needed objects, instantiate the objects.
@@ -389,8 +419,7 @@ namespace eval ::xowiki {
   ArchiveFile instproc init {} {
     :destroy_on_cleanup
     ::xo::db::CrClass get_instance_from_db -item_id ${:parent_id}
-    set :tmpdir [ad_tmpnam]
-    file mkdir ${:tmpdir}
+    set :tmpdir [ad_mktmpdir import]
   }
   ArchiveFile instproc delete {} {
     file delete -force -- ${:tmpdir}
@@ -398,26 +427,35 @@ namespace eval ::xowiki {
   }
   ArchiveFile instproc unpack {} {
     set success 0
-    #:log "::xowiki::guesstype '${:name}' => [::xowiki::guesstype ${:name}]"
     switch [::xowiki::guesstype ${:name}] {
       application/zip -
       application/x-zip -
       application/x-zip-compressed {
-        ::util::unzip -source ${:file} -destination ${:tmpdir}
-        :import -dir ${:tmpdir} -parent_id ${:parent_id}
-        set success 1
+        set success [util::file_content_check -type zip -file ${:file}]
+        if {!$success} {
+          util_user_message -message "The uploaded file is apparently not a zip file."
+        } else {
+          ::util::unzip -source ${:file} -destination ${:tmpdir}
+          :import -dir ${:tmpdir} -parent_id ${:parent_id}
+        }
       }
       application/x-compressed {
         if {[string match "*tar.gz" ${:name}]} {
-          set cmd [::util::which tar]
-          exec $cmd -xzf ${:file} -C ${:tmpdir}
-          :import -dir ${:tmpdir} -parent_id ${:parent_id}
-          set success 1
+          set success [util::file_content_check -type gzip -file ${:file}]
+          if {!$success} {
+            util_user_message -message "The uploaded file is apparently not a gzip file."
+          } else {
+            set cmd [::util::which tar]
+            exec $cmd -xzf ${:file} -C ${:tmpdir}
+            :import -dir ${:tmpdir} -parent_id ${:parent_id}
+          }
         } else {
-          :msg "unknown compressed file type ${:name}"
+          util_user_message -message "Unknown compressed file type ${:name}."
         }
       }
-      default {:msg "type [::xowiki::guesstype ${:name}] of ${:name} unknown"}
+      default {
+        util_user_message -message "Type '[::xowiki::guesstype ${:name}]' is not an supported archive format."
+      }
     }
     #:msg success=$success
     return $success

@@ -23,54 +23,185 @@ namespace eval ::xowiki {
       #
       return ${:preferredCSSToolkit}
     }
+
+    :public object method icon_name {filename} {
+      #
+      # Return an icon name for the proved filename
+      #
+      # Default icon name
+      set iconName file
+      if {${:iconset} eq "bootstrap-icons"} {
+        switch [ad_file extension $filename] {
+          .doc  -
+          .docx -
+          .odt  -
+          .txt  {set iconName "file-earmark-text"}
+          
+          .csv  -
+          .ods  -
+          .xls  -
+          .xlsx {set iconName "file-earmark-spreadsheet"}
+          
+          .odp  -
+          .ppt  -
+          .pptx {set iconName "file-earmark-spreadsheet"}
+          
+          .pdf  {set iconName "file-earmark-pdf"}
+
+          .c    -
+          .h    -
+          .tcl {set iconName "file-earmark-code"}
+          
+          .css  -
+          .html -
+          .java -
+          .js   - 
+          .json -
+          .py   -
+          .sql {set iconName "filetype-[string range [ad_file extension $filename] 1 end]"}
+          
+          default {
+            switch -glob [ns_guesstype $filename] {
+              image/* {set iconName "file-earmark-image"}
+              video/* {set iconName "file-earmark-play"}
+              audio/* {set iconName "file-earmark-slides"}
+              default {
+                ns_log notice "not handled '[ad_file extension $filename] / [ns_guesstype $filename] of <$filename>"
+              }
+            }
+          }
+        }
+      }
+      return $iconName
+    }
+
+    :public object method require_toolkit {{-css:switch} {-js:switch}} {
+      #
+      # Make sure that the preferred toolkit is loaded. Not that some
+      # combination won't match nicely, since e.g. the toolbar of a
+      # theme based on bootstrap5 is messed up, when the preferred
+      # toolkit is bootstrap3. .... so, we should have some default
+      # setting or fallbacks to handle such situations.
+      #
+      if {${:preferredCSSToolkit} eq "bootstrap5"} {
+        if {$css} {::xo::Page requireCSS urn:ad:css:bootstrap5}
+        if {$js}  {::xo::Page requireJS  urn:ad:js:bootstrap5}
+      } elseif {${:preferredCSSToolkit} eq "bootstrap"} {
+        if {$css} {::xo::Page requireCSS urn:ad:css:bootstrap3}
+        if {$js}  {::xo::Page requireJS  urn:ad:js:bootstrap3}
+      } else {
+        # YUI has many simple files, let the application decide what
+        # to be loaded.
+      }
+    }
+
     :public object method initialize {} {
       #
-      # Initialize tailorization for CSS tooklits. The function reads
+      # Initialize tailorization for CSS toolkits. The function reads
       # the global apm package parameter and sets/resets accordingly
-      # (a) the default values (actially parameters) for the form
+      # (a) the default values (actually parameters) for the form
       # field and (b) defines the toolkit specific CSS class name
       # mapping.
       #
       #
+      # Loading optional, but universally present header files has do
+      # be performed per request... not sure this is the best place,
+      # since packages are as well initialized in the background.
+      #
+      if {[ns_conn isconnected] && [apm_package_enabled_p "bootstrap-icons"]} {
+          template::head::add_css -href urn:ad:css:bootstrap-icons
+      }
+
       set paramValue [parameter::get_global_value -package_key xowiki \
                           -parameter PreferredCSSToolkit \
-                          -default bootstrap]
+                          -default default]
+      #
+      # Check, if parameter value is compatible with the theme. In
+      # particular, a preferred toolkit of "bootstrap3" does not work
+      # when the theme is based on Bootstrap 5 and vice versa. When necessary,
+      # align the value.
+      #
+      if {$paramValue in {default bootstrap bootstrap5} && [ns_conn isconnected]} {
+        set theme [subsite::get_theme]
+        if {$paramValue in {bootstrap default} && [string match *bootstrap5* $theme]} {
+          set paramValue bootstrap5
+        } elseif {$paramValue in {bootstrap5 default} && [string match *bootstrap3* $theme]} {
+          set paramValue bootstrap
+        }
+        if {$paramValue eq "default"} {
+          # For the time being, YUI is the default (deriving default
+          # toolkit from theme did not work, we have to assume that
+          # the fonts for Bootstrap 3 or 5 are not loaded for edit
+          # buttons, etc.
+          set paramValue yui
+        }
+      }
+
+      #
+      # Just do initialization once
+      #
       if {[info exists :preferredCSSToolkit]
           && ${:preferredCSSToolkit} eq $paramValue
         } {
         return
       }
+      #
+      # The code below is executed only on first initialization of the
+      # object or on changes of the preferredCSSToolkit.
+      #
       set :preferredCSSToolkit $paramValue
+      set :iconset [template::iconset]
 
       if {${:preferredCSSToolkit} eq "bootstrap"} {
-        ::xowiki::formfield::FormField parameter {
-          {CSSclass form-control}
-          {form_item_wrapper_CSSclass form-group}
-          {form_widget_CSSclass ""}
-          {form_button_CSSclass "btn btn-default"}
-          {form_button_wrapper_CSSclass ""}
-          {form_help_text_CSSclass help-block}
-        }
         set :cssClasses {
           btn-default btn-default
+          bulk-action "btn btn-default"
+          form-action "btn btn-default"
+          action "btn btn-default"
           margin-form ""
+          card "panel panel-default"
+          card-header panel-heading
+          card-body panel-body
+          d-none hidden
+          text-warning text-warn
         }
-      } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
-        ::xowiki::formfield::FormField parameter {
+        ::xowiki::formfield::FormField parameter [subst {
           {CSSclass form-control}
           {form_item_wrapper_CSSclass form-group}
+          {form_label_CSSclass ""}
           {form_widget_CSSclass ""}
-          {form_button_CSSclass "btn btn-secondary"}
+          {form_button_CSSclass "[xowiki::CSS class form-action]"}
           {form_button_wrapper_CSSclass ""}
           {form_help_text_CSSclass help-block}
-        }
+        }]
+      } elseif {${:preferredCSSToolkit} eq "bootstrap5"} {
         set :cssClasses {
-          btn-default btn-secondary
+          btn-default btn-outline-secondary
+          bulk-action "btn btn-outline-secondary btn-sm"
+          form-action "btn btn-outline-secondary btn-sm m-1"
+          action "btn btn-outline-secondary btn-sm m-1"
+          navbar-default navbar-light
+          navbar-right ms-auto
           margin-form ""
+          cog gear
+          print printer
+          close btn-close
+          checkbox-inline form-check-inline
+          radio-inline form-check-inline
         }
+        ::xowiki::formfield::FormField parameter [subst {
+          {CSSclass form-control}
+          {form_item_wrapper_CSSclass mb-3}
+          {form_label_CSSclass "form-label me-1"}
+          {form_widget_CSSclass ""}
+          {form_button_CSSclass "[xowiki::CSS class form-action]"}
+          {form_button_wrapper_CSSclass ""}
+          {form_help_text_CSSclass form-text}
+        }]
       } else {
         ::xowiki::formfield::FormField parameter {
           {CSSclass}
+          {form_label_CSSclass ""}
           {form_widget_CSSclass form-widget}
           {form_item_wrapper_CSSclass form-item-wrapper}
           {form_button_CSSclass ""}
@@ -96,6 +227,13 @@ namespace eval ::xowiki {
       } else {
         return $name
       }
+    }
+
+    :public object method classes {classNames} {
+      #
+      # Map a list of CSS class names
+      #
+      return [join [lmap class $classNames {:class $class}] " "]
     }
   }
 }
@@ -202,7 +340,7 @@ namespace eval ::xowiki {
     ("name" attribute in the database, requires parent_id to be
     provided as well)
 
-    @param parent_id optional, only needed in lagacy cases,
+    @param parent_id optional, only needed in legacy cases,
            when page_reference is provided as page name
     @param page_references item_ids, paths or names to be resolved as item_ids
     @return list of valid item_ids
@@ -303,14 +441,14 @@ namespace eval ::xowiki {
     }
     regsub -all -- {[\#/\\:]} $suffix _ suffix
     # if subst_blank_in_name is turned on, turn spaces into _
-    if {[:get_parameter subst_blank_in_name 1]} {
+    if {[:get_parameter subst_blank_in_name:boolean 1]} {
       regsub -all -- { +} $suffix "_" suffix
     }
     return [:join_name -prefix $prefix -name $suffix]
   }
 
   Package instproc default_locale {} {
-    if {[:get_parameter use_connection_locale 0]} {
+    if {[:get_parameter use_connection_locale:boolean 0]} {
       # we return the connection locale (if not connected the system locale)
       set locale [::xo::cc locale]
     } else {
@@ -818,21 +956,35 @@ namespace eval ::xowiki {
     attribute
     {default ""}
   } {
-    resolves configurable parameters according to the following precedence:
+    Resolves configurable parameters according to the following precedence:
     (1) values specifically set per page {{set-parameter ...}}
     (2) query parameter
     (3) form fields from the parameter_page FormPage
     (4) standard OpenACS package parameter
+
+    The specified attribute can be of the form "name:value_constraint"
   } {
+    set attribute_name $attribute
+    set attribute_constraint ""
+    regexp {^([^:]+):(.*)$} $attribute . attribute_name attribute_constraint
+
     if {$nocache} {
       set value ""
     } else {
-      set value [::xo::cc get_parameter $attribute]
+      #
+      # Cached values, or values programmatically set
+      #
+      set value [::xo::cc get_parameter $attribute_name]
     }
+
     if {$check_query_parameter && $value eq ""} {
+      #
+      # Query parameter handle already the notation with
+      # "name:valueconstraint"
+      #
       set value [string trim [:query_parameter $attribute]]
     }
-    if {$value eq "" && $attribute ne "parameter_page"} {
+    if {$value eq "" && $attribute_name ne "parameter_page"} {
       #
       # Try to get the parameter from the parameter_page.  We have to
       # be very cautious here to avoid recursive calls (e.g. when
@@ -841,11 +993,11 @@ namespace eval ::xowiki {
       #
       set value [:get_parameter_from_parameter_page \
                      -parameter_page_name [:get_parameter parameter_page ""] \
-                     $attribute]
+                     $attribute_name]
     }
 
     if {$value eq ""} {
-      set value [next $attribute $default]
+      set value [next $attribute_name $default]
     }
     if {$type ne ""} {
       #
@@ -860,6 +1012,9 @@ namespace eval ::xowiki {
         }
         default {error "requested type unknown: $type"}
       }
+    }
+    if {$value ne "" && $attribute_constraint ne ""} {
+      xo::validate_parameter_constraints $attribute_name $attribute_constraint $value
     }
     #:log "           $attribute returns '$value'"
     return $value
@@ -1052,7 +1207,7 @@ namespace eval ::xowiki {
 
 
   Package instproc show_page_order {} {
-    return [:get_parameter display_page_order 1]
+    return [:get_parameter display_page_order:boolean 1]
   }
 
   #
@@ -1416,7 +1571,7 @@ namespace eval ::xowiki {
       # We have a reference to another instance, we can't resolve this
       # from this package.  Report back not found by empty result.
       #
-      #ns_log notice "reference to onother instance: <$object>"
+      #ns_log notice "reference to another instance: <$object>"
       return ""
     }
 
@@ -1656,7 +1811,7 @@ namespace eval ::xowiki {
       foreach location {resources/templates www} {
 
         set tmpl /packages/$package_key/$location/$name
-        set fn [acs_root_dir]/$tmpl
+        set fn $::acs::rootdir/$tmpl
         lappend paths $fn
         #ns_log notice "=== check get_adp_template $fn"
 
@@ -1666,8 +1821,7 @@ namespace eval ::xowiki {
           #ns_log notice "template is <$result>"
           if {$result ne ""} {
             if {$location eq "www"} {
-              ns_log warning "deprecated location: you should move template" \
-                  "'$tmpl' to /packages/$package_key/resources/templates/"
+              ad_log_deprecated "template" $tmpl /packages/$package_key/resources/templates/
             }
             return $result
           }
@@ -2261,11 +2415,12 @@ namespace eval ::xowiki {
                       -parent_id $search_parent_id \
                       $link]
 
-    #:msg  "[:instance_name] (root ${:folder_id}) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+    #:msg "[:instance_name] (root ${:folder_id}) item-ref for '$link' search parent $search_parent_id, parent $parent_id, returns\n[array get {}]"
+
     if {$(item_id)} {
       set page [::xo::db::CrClass get_instance_from_db -item_id $(item_id)]
       if {[$page package_id] ne ${:id} || [$page parent_id] != $(parent_id)} {
-        #:msg "set_resolve_context site_wide_pages ${:id} and -parent_id $parent_id"
+        #:log "set_resolve_context site_wide_pages ${:id} and -parent_id $parent_id"
         $page set_resolve_context -package_id ${:id} -parent_id $parent_id
       }
       return $page
@@ -2341,7 +2496,7 @@ namespace eval ::xowiki {
                   -add_revision $add_revision]
 
     if {[info exists via_url] && [:exists_query_parameter "return_url"]} {
-      :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
+      :returnredirect [:query_parameter "return_url:localurl" [ad_urlencode_folder_path ${:package_url}]]
     } else {
       return $page
     }
@@ -2786,12 +2941,14 @@ namespace eval ::xowiki {
 
   } {
     set object_type [:query_parameter object_type:class "::xowiki::Page"]
-    set autoname [:get_parameter autoname 0]
-    set parent_id [${:id} query_parameter parent_id:int32 ""]
-    if {$parent_id eq ""} {set parent_id [${:id} form_parameter folder_id ${:folder_id}]}
-    if {![string is integer -strict $parent_id]} {
-      ad_return_complaint 1 "invalid parent_id"
-      ad_script_abort
+    set autoname [:get_parameter autoname:boolean 0]
+    set parent_id [${:id} query_parameter parent_id:cr_item_of_package,arg=${:id}]
+    if {$parent_id eq ""} {
+      set parent_id [${:id} form_parameter folder_id ${:folder_id}]
+      if {![::xo::db::CrClass id_belongs_to_package -item_id $parent_id -package_id ${:id}]} {
+        ad_return_complaint 1 "invalid parent_id"
+        ad_script_abort
+      }
     }
     set page [$object_type new -volatile -parent_id $parent_id -package_id ${:id}]
     # :ds "parent_id of $page = [$page parent_id], cl=[$page info class] parent_id=$parent_id\n[$page serialize]"
@@ -2909,7 +3066,13 @@ namespace eval ::xowiki {
     ::xo::db::sql::content_revision del -revision_id $revision_id
   }
 
-  Package ad_instproc www-delete {-item_id -name -parent_id} {
+  Package instproc query_parameter_return_url {default} {
+    return [:query_parameter "return_url:localurl" \
+                [:query_parameter "local_return_url:localurl" \
+                     $default]]
+  }
+
+  Package ad_instproc www-delete {-item_id -name -parent_id -return_url} {
 
     This web-callable "delete" method does not require an instantiated object,
     while the class-specific delete methods in xowiki-procs need these.
@@ -2918,7 +3081,8 @@ namespace eval ::xowiki {
     While the class specific methods are used from the
     application pages, the package_level method is used from the admin pages.
 
-    If no item_id given, take it from the query parameter
+    If no "item_id", "name" or "return_url" are given, take it from
+    the query parameters.
 
   } {
     #:log "--D delete [self args]"
@@ -2932,6 +3096,11 @@ namespace eval ::xowiki {
     #
     if {![info exists name]} {
       set name [:query_parameter name]
+    }
+
+    if {![info exists return_url]} {
+      set return_url [:query_parameter_return_url \
+                          [ad_urlencode_folder_path ${:package_url}]]
     }
 
     if {$item_id eq ""} {
@@ -2964,7 +3133,7 @@ namespace eval ::xowiki {
                       [_ xowiki.error-delete_entries_first [list count $count]]]
         }
       }
-      if {[:get_parameter "with_general_comments" 0]} {
+      if {[:get_parameter with_general_comments:boolean 0]} {
         #
         # We have general comments. In a first step, we have to delete
         # these, before we are able to delete the item.
@@ -2980,13 +3149,14 @@ namespace eval ::xowiki {
       foreach child_item_id [::xo::db::CrClass get_child_item_ids -item_id $item_id] {
         :flush_references -item_id $child_item_id
       }
+
       $object_type delete -item_id $item_id
       :flush_references -item_id $item_id -name $name -parent_id $parent_id
       :flush_page_fragment_cache -scope agg
     } else {
       :log "--D nothing to delete!"
     }
-    :returnredirect [:query_parameter "return_url" [ad_urlencode_folder_path ${:package_url}]]
+    :returnredirect $return_url
   }
 
   #

@@ -36,7 +36,7 @@ TableWidget t1 -volatile \
           [export_vars -base /shared/parameters {package_id return_url}]
       Action new -label [_ xowiki.export] -url export
       Action new -label [_ xowiki.import] -url import
-      Action new -label [_ acs-subsite.Permissions] -url [export_vars -base permissions {package_id}]
+      Action new -label [_ acs-subsite.Permissions] -url permissions
     }] \
     -columns {
       Field create object_type -label [_ xowiki.page_type]

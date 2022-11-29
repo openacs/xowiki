@@ -72,6 +72,7 @@ namespace eval ::xowiki::includelet {
       default   {
         #:msg "render tree $tree // [$tree procsearch render ]"
         set HTML [$tree render -style bootstrap3-folders]
+        #set HTML [$tree render -style list -properties {CSSclass_top_ul xowiki-tree}]
       }
     }
     #:log HTML=$HTML
@@ -268,7 +269,7 @@ namespace eval ::xowiki::includelet {
 
     #:msg "FOLDERS [$page name] package_id $package_id current_folder ${:current_folder} [${:current_folder} name]"
 
-    if {[::$package_id get_parameter "MenuBar" 0]} {
+    if {[::$package_id get_parameter MenuBar:boolean 0]} {
 
       #
       # We want a menubar. Create a menubar object, which might be
@@ -577,6 +578,7 @@ namespace eval ::xowiki::includelet {
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
     switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
+      bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
     }
@@ -621,7 +623,7 @@ namespace eval ::xowiki::includelet {
                      -label ""
                }]
 
-    set extra_where_clause "true"
+    set extra_where_clause "1=1"
     # TODO: why filter on title and name?
     if {[info exists regexp]} {
       set extra_where_clause "(bt.title ~ '$regexp' OR ci.name ~ '$regexp' )"
@@ -642,7 +644,7 @@ namespace eval ::xowiki::includelet {
       $current_folder update_langstring_property _title $lang
       #:msg "$current_folder update_langstring_property _title $lang -> [$current_folder title]"
     }
-    #:log "child-resources of folder_id ${:current_folder_id}"
+    #:log "child-resources of folder_id ${:current_folder_id} with publish_status '$publish_status'"
     set items [::xowiki::FormPage get_all_children \
                    -folder_id ${:current_folder_id} \
                    -publish_status $publish_status \
@@ -674,7 +676,7 @@ namespace eval ::xowiki::includelet {
       ad_try {
         set prettyName [$c pretty_name]
       } on error {errorMsg} {
-        :msg "can't obtain pretty name of [$c item_id] [$c name]: $errorMsg"
+        :msg "can't obtain pretty name of [$c name] (item_id [$c item_id]): $errorMsg"
         set prettyName $name
       }
 
@@ -754,7 +756,7 @@ namespace eval ::xowiki::includelet {
     #       -nls_language [$current_folder get_nls_language_from_lang [::xo::cc lang]]
     #   set menubar [$mb render-preferred]
     # }
-    ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
+    #ns_log notice "sub-menubar: 2nd update_items needed? menubar <$menubar>"
     set viewers [util_coalesce \
                      [$current_folder property viewers] \
                      [$current_folder get_parameter viewers]]

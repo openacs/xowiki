@@ -1,0 +1,11 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:folder.form \
+    -title "Folder Form" \
+    -set anon_instances t \
+    -set text {{{child-resources}}} \
+    -set form {<form>@extra_menu_entries@ @index@ @ParameterPages@ @viewers@ @inherit_folders@</form>} \
+    -set form_constraints {extra_menu_entries:menuentries _nls_language:omit _name:required}
+
+
+

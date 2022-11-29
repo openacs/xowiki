@@ -35,6 +35,12 @@ namespace eval ::xowiki::includelet {
         {id}
       }
 
+  ::xowiki::Includelet instproc tableWidget {} {
+    return [expr {[::xowiki::CSS toolkit] in {bootstrap5 bootstrap}
+                  ? "::xowiki::BootstrapTable"
+                  : "TableWidget" }]
+  }
+
   ::xowiki::Includelet instproc get_current_folder {parent} {
     set package_id [${:__including_page} package_id]
     #:log "get_current_folder: including_page current_folder $current_folder '[$current_folder name]'"
@@ -589,19 +595,45 @@ namespace eval ::xowiki::includelet {
     set class      [namespace tail [:info class]]
     set id         [expr {[info exists :id] ? "id='[:id]'" : ""}]
     set html       [next]
-    set localized_title [::xo::localize $title]
-    set link [expr {[string match "*:*" $name] ?
-                    "<a href='[ns_quotehtml [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]]'>[ns_quotehtml $localized_title]</a>" :
-                    $localized_title}]
+    set localized_title [ns_quotehtml [::xo::localize $title]]
+    set href [::$package_id pretty_link -parent_id [::$package_id folder_id] $name]
+    set link [expr {[string match "*:*" $name]
+                    ? "<a href='[ns_quotehtml $href]'>$localized_title</a>"
+                    : $localized_title}]
     ::xo::render_localizer
-    return [subst [[self class] set template]]
-  } -set template [expr {[apm_version_names_compare [ad_acs_version] 5.3.0] == 1 ?
-                         {<div class='$class'><div class='portlet-wrapper'><div class='portlet-header'>
-                           <div class='portlet-title-no-controls'>$link</div></div>
-                           <div $id class='portlet'>$html</div></div></div>
-                         } : {<div class='$class'><div class='portlet-title'><span>$link</span></div>
-                           <div $id class='portlet'>[next]</div></div>}
-                       }]
+
+    switch [::xowiki::CSS toolkit] {
+      bootstrap -
+      bootstrap5 {
+        if {$link ne ""} {
+          set template [ns_trim -delimiter | {
+            |<div class="[xowiki::CSS class card]">
+            |  <div class="[xowiki::CSS class card-header]">$link</div>
+            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |</div>}]
+        } else {
+          set template [ns_trim -delimiter | {
+            |<div class="[xowiki::CSS class card]">
+            |  <div $id class="[xowiki::CSS class card-body]">$html</div>
+            |</div>}]
+        }
+      }
+      yui {
+        set template [ns_trim -delimiter | {
+          |<div class='portlet-header'>
+          |  <div class='portlet-title-no-controls'>$link</div>
+          |</div>
+          |<div $id class='portlet'>$html</div>}]
+      }
+    }
+    return [subst [ns_trim -delimiter | {
+      |<div class='$class'>
+      |  <div class='portlet-wrapper'>
+      |    [subst $template]
+      |  </div>
+      |</div>}]]
+  }
+
 
   Class create ::xowiki::includelet::decoration=edit -instproc render {} {
     set name       ${:name}
@@ -1212,7 +1244,7 @@ namespace eval ::xowiki::includelet {
                      -party_id [::xo::cc set untrusted_user_id]]
     set show_heritage $admin_p
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -set allow_edit $allow_edit \
         -set allow_delete $allow_delete \
         -set show_heritage $admin_p \
@@ -1315,7 +1347,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
@@ -1375,7 +1407,7 @@ namespace eval ::xowiki::includelet {
       #
       append :title " in last $interval"
 
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
             Field create users -label [_ xowiki.includelet-visitors] -html { align right }
@@ -1398,7 +1430,7 @@ namespace eval ::xowiki::includelet {
                }
     } else {
 
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
             Field create count -label [_ xowiki.includelets-visits] -html { align right }
@@ -1503,7 +1535,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           Field create user  -label [_ xowiki.includelet-visitors] -html { align right }
           Field create count -label [_ xowiki.includelets-visits] -html { align right }
@@ -1556,7 +1588,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     ::xo::Page requireCSS "/resources/acs-templating/lists.css"
 
-    TableWidget create t1 -volatile \
+    [:tableWidget] create t1 -volatile \
         -columns {
           AnchorField create title -label [::xowiki::Page::slot::title set pretty_name]
         }
@@ -1768,19 +1800,14 @@ namespace eval ::xowiki::includelet {
       if {$notification_type ne ""} {
         set notification_text "Subscribe category $category_name in tree $tree_name"
         set notifications_return_url [expr {[info exists return_url] ? $return_url : [ad_return_url]}]
-        set notification_image \
-            "<img style='border: 0px;' src='/resources/xowiki/email.png' \
-            alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>"
+        set notification_image "<adp:icon name='envelope' title='[ns_quotehtml $notification_text]'>"
 
         set cat_notif_link [export_vars -base /notifications/request-new \
                                 {{return_url $notifications_return_url} \
                                      {pretty_name $notification_text} \
                                      {type_id $notification_type} \
                                      {object_id $category_id}}]
-        append entry "<a href='[ns_quotehtml $cat_notif_link]'> " \
-            "<img style='border: 0px;' src='/resources/xowiki/email.png' " \
-            "alt='[ns_quotehtml $notification_text]' title='[ns_quotehtml $notification_text]'>" </a>
-
+        append entry "<a href='[ns_quotehtml $cat_notif_link]'> " $notification_image </a>
       }
       lappend entries $entry
     }
@@ -2268,6 +2295,8 @@ namespace eval ::xowiki::includelet {
           {-range ""}
           {-allow_reorder ""}
           {-include_in_foldertree "true"}
+          {-CSSclass_top_ul ""}
+          {-CSSclass_ul ""}
         }}
         id
       } -ad_doc {
@@ -2292,7 +2321,8 @@ namespace eval ::xowiki::includelet {
         @param range
         @param allow_reorder
         @param include_in_foldertree
-
+        @param CSSclass_top_ul CSS class for top-level UL element
+        @param CSSclass_ul CSS class for all UL elements
       }
 
   #"select page_id,  page_order, name, title, \
@@ -2370,7 +2400,16 @@ namespace eval ::xowiki::includelet {
             $extra_where_clause $locale_clause"]
     set pages [::xowiki::Page instantiate_objects -sql $sql]
 
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
+    #
+    # Set the mixin for page-order before the call of __value_compare.
+    # Probably, we should use here a different approach to support as well
+    # sorting by different attributes.
+    #
+    $pages orderby \
+        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        -type [ad_decode $order_attribute page_order index dictionary] \
+        $order_attribute
+
     if {$range ne "" && $page_order_att ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
@@ -2380,10 +2419,6 @@ namespace eval ::xowiki::includelet {
         }
       }
     }
-
-    $pages orderby \
-        -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
-        $order_attribute
 
     if {$source ne ""} {
       # add the page_order to the objects
@@ -2615,7 +2650,7 @@ namespace eval ::xowiki::includelet {
       set :js [:yui_non_ajax]
     }
 
-    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id]]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
@@ -2630,7 +2665,6 @@ namespace eval ::xowiki::includelet {
   toc instproc render_tree {{-full false} pages} {
     :get_parameters
     set tree [::xowiki::Tree new -destroy_on_cleanup \
-                  -orderby pos \
                   -id [:id] \
                   -verbose 0 \
                   -owner [self]]
@@ -2660,7 +2694,7 @@ namespace eval ::xowiki::includelet {
 
     #
     # Build a reduced toc tree based on pure HTML (no JavaScript or
-    # ajax involved).  If an open_page is specified, produce an as
+    # AJAX involved).  If an open_page is specified, produce an as
     # small as possible tree and omit all non-visible nodes.
     #
     if {$open_page ne ""} {
@@ -2669,12 +2703,13 @@ namespace eval ::xowiki::includelet {
     } else {
       set allow_reorder [:page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
-    set tree [::xowiki::Tree new -destroy_on_cleanup -orderby pos -id [:id]]
+    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full \
         -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
         -owner [self] \
+        -properties ${:render_properties} \
         $pages
 
     if {$allow_reorder ne ""} {
@@ -2682,7 +2717,7 @@ namespace eval ::xowiki::includelet {
       #set js "\nYAHOO.xo_page_order_region.DDApp.package_url = '[::$package_id package_url]';"
       set HTML [$tree render -style listdnd -context [list min_level $min_level]]
     } else {
-      set HTML [$tree render -style list]
+      set HTML [$tree render -style list -properties ${:render_properties}]
     }
 
     return $HTML
@@ -2712,6 +2747,8 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     array set :navigation {count 0 position 0 current ""}
     set list_mode 0
+    dict set :render_properties CSSclass_ul $CSSclass_ul
+    dict set :render_properties CSSclass_top_ul $CSSclass_top_ul
 
     #
     # If there is no renderer specified, determine the renderer from
@@ -2720,11 +2757,20 @@ namespace eval ::xowiki::includelet {
     #
     if {$renderer eq ""} {
       switch -- $style {
-        "menu"    {set style "menu"; set renderer yuitree}
-        "folders" {set style "folders"; set renderer yuitree}
+        "menu"    {set renderer yuitree}
+        "folders" {set renderer yuitree}
+        "yuitree" {set renderer "yuitree"}
         "list"    {set style ""; set list_mode 1; set renderer list}
         "none"    {set style ""; set renderer none}
-        "default" {set style "yuitree"; set renderer yuitree}
+        "default" {set style ""; set list_mode 1; set renderer list
+          #
+          # Fall back to "xowiki-tree" for "CSSclass_ul" only when
+          # value was not specified as a parameter.
+          #
+          if {$CSSclass_ul eq ""} {
+            dict set :render_properties CSSclass_ul xowiki-tree
+          }
+        }
       }
       set :use_tree_renderer 0
     } else {
@@ -2753,6 +2799,10 @@ namespace eval ::xowiki::includelet {
     # children of the parent of the page depending on "folder_mode".
     #
     set pages [:build_toc $package_id $locale $source $range]
+
+    #foreach p [$pages children] {
+    #  ns_log notice "... [$p set page_order] [$p set name]"
+    #}
 
     #
     # Build the general navigation structure using associative arrays
@@ -2839,7 +2889,6 @@ namespace eval ::xowiki::includelet {
       $p set page_order $:page_order([$p set name])
     }
 
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
     if {$range ne ""} {
       lassign [split $range -] from to
       foreach p [$pages children] {
@@ -2850,7 +2899,7 @@ namespace eval ::xowiki::includelet {
       }
     }
 
-    $pages orderby page_order
+    $pages orderby -type index page_order
     return [:render_children $pages $menu_buttons]
   }
 
@@ -2915,7 +2964,7 @@ namespace eval ::xowiki::includelet {
     regsub -nocase -all "<form " $inner_html "<div class='form' " inner_html
     regsub -nocase -all "<form>" $inner_html "<div class='form'>" inner_html
     regsub -nocase -all "</form *>" $inner_html "</div>" inner_html
-    dom parse -simple -html <form>$inner_html</form> doc
+    dom parse -simple <form>$inner_html</form> doc
     $doc documentElement root
 
     set fields [$root selectNodes "//div\[@class = 'wiki-menu'\]"]
@@ -3157,9 +3206,9 @@ namespace eval ::xowiki::includelet {
         [::xowiki::Page container_already_rendered item_id]"
 
     set pages [::xowiki::Page instantiate_objects -sql $sql]
-    $pages mixin add ::xo::OrderedComposite::IndexCompare
     $pages orderby \
         -order [expr {$order_direction in {asc ""} ? "increasing" : "decreasing"}] \
+        -type [ad_decode $order_attribute page_order index dictionary] \
         $order_attribute
 
     #
@@ -4249,7 +4298,7 @@ namespace eval ::xowiki::includelet {
       #
       # standard table encoder
       #
-      TableWidget create t1 -volatile \
+      [:tableWidget] create t1 -volatile \
           -columns {
             Field create value -orderby value -label value
             Field create count -orderby count -label count
@@ -4338,7 +4387,7 @@ namespace eval ::xowiki::includelet {
       -parameter {
         {__decoration plain}
         {parameter_declaration {
-          {-form_item_id:integer}
+          {-form_item_id:integer,1..n}
           {-form}
           {-parent_id}
           {-package_ids ""}
@@ -4352,6 +4401,7 @@ namespace eval ::xowiki::includelet {
           {-category_id}
           {-unless}
           {-where}
+          {-extra_where_clause {}}
           {-csv true}
           {-voting_form}
           {-voting_form_form ""}
@@ -4377,6 +4427,17 @@ namespace eval ::xowiki::includelet {
         @param date_format
            Date format used for modification date.
            Might be "pretty-age" or a format string like "%Y-%m-%d %T".
+
+        @param extra_where_clause
+           a plain SQL clause that will be appended to the where
+           clause retrieving the entries.
+        @param where
+           filter those entries where the instance attribute condition
+           expressed by this flag does not match.
+        @param unless
+           filter those entries where the instance attribute condition
+           expressed by this flag matches.
+
       }
 
   form-usages instproc render {} {
@@ -4432,7 +4493,7 @@ namespace eval ::xowiki::includelet {
         return -code error "could not load form '$form' (default-language [$o lang])"
       }
     } else {
-      set form_item_ids [list $form_item_id]
+      set form_item_ids $form_item_id
     }
 
     set form_constraints $extra_form_constraints\n
@@ -4592,9 +4653,10 @@ namespace eval ::xowiki::includelet {
     # extra_where clause)
     #
     #:log "exists category_id [info exists category_id]"
-    set extra_where_clause ""
-    if {[info exists category_id]} {
-      lassign [:category_clause $category_id item_id] cnames extra_where_clause
+    if {[info exists with_categories] && [info exists category_id]} {
+      append extra_where_clause \
+          [expr {$extra_where_clause ne "" ? " and " : ""}] \
+          [lindex [:category_clause $category_id item_id] 1]
     }
 
     set items [::xowiki::FormPage get_form_entries \
@@ -4608,22 +4670,6 @@ namespace eval ::xowiki::includelet {
                    -from_package_ids $package_ids \
                    -package_id $package_id]
 
-    if {[info exists with_categories]} {
-      if {$extra_where_clause eq ""} {
-        set base_items $items
-      } else {
-        # difference to variable items: just the extra_where_clause
-        set base_items [::xowiki::FormPage get_form_entries \
-                            -base_item_ids $form_item_ids \
-                            -parent_id $query_parent_id \
-                            -form_fields $form_field_objs \
-                            -publish_status $publish_status \
-                            -h_where [dict get $filters wc] \
-                            -h_unless [dict get $filters uc] \
-                            -from_package_ids $package_ids \
-                            -package_id $package_id]
-      }
-    }
     #:log "queries done"
     if {[info exists wf]} {
       set wf_link [::$package_id pretty_link -parent_id $parent_id -path_encode false $wf]
@@ -4676,7 +4722,7 @@ namespace eval ::xowiki::includelet {
       lappend table_field_names $count
       # In most situations, it seems useful to have just one field in
       # the voting table. If there are multiple, we use a comma to
-      # separate the values (looks bettern than separate columns).
+      # separate the values (looks better than separate columns).
       set field_contents [list]
       foreach __fn $field_names {
         lappend field_contents [$t set $__fn]
@@ -4807,7 +4853,7 @@ namespace eval ::xowiki::includelet {
         current folder.
 
         @param folder
-        @param glob optional matching patter for page names
+        @param glob optional matching pattern for page names
       }
 
   yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {
@@ -4998,12 +5044,7 @@ namespace eval ::xowiki::includelet {
 
   gravatar proc url {-email {-size 80} {-default mp}} {
     # reusable helper proc to compute a gravatar URL
-    if {[info commands ns_md5] ne ""} {
-      set md5 [string tolower [ns_md5 $email]]
-    } else {
-      package require md5
-      set md5 [string tolower [md5::Hex [md5::md5 -- $email]]]
-    }
+    set md5 [string tolower [ns_md5 $email]]
     security::csp::require img-src www.gravatar.com
     return //www.gravatar.com/avatar/$md5?size=$size&d=$default
   }

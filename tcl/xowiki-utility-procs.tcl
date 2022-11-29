@@ -37,7 +37,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create tidy
   tidy proc clean {text} {
-    if {[[::xo::cc package_id] get_parameter tidy 0]
+    if {[[::xo::cc package_id] get_parameter tidy:boolean 0]
         && [info commands ::util::which] ne ""} {
       set tidycmd [::util::which tidy]
       if {$tidycmd ne ""} {
@@ -139,7 +139,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create virus
   virus proc check {fns} {
-    if {[[::xo::cc package_id] get_parameter clamav 1]
+    if {[[::xo::cc package_id] get_parameter clamav:boolean 1]
         && [info commands ::util::which] ne ""} {
       set clamscanCmd [::util::which clamdscan]
       foreach fn $fns {
@@ -220,7 +220,7 @@ namespace eval ::xowiki::hstore {
        ::xo::Package initialize -url /xowiki
        ::xowiki::hstore::update_hstore $package_id
   } {
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -276,7 +276,7 @@ namespace eval ::xowiki::hstore {
     ns_log notice "$package_id: ::xo::Package require took [expr {$t1-$t0}]ms"
     set t0 $t1
 
-    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore 0] } {
+    if {![::xo::dc has_hstore] && [::$package_id get_parameter use_hstore:boolean 0] } {
       return 0
     }
 
@@ -318,7 +318,7 @@ namespace eval ::xowiki::hstore {
     #::xo::db::select_driver DB
     foreach package_id [lsort [::xowiki::Package instances -closure true]] {
       ::xo::Package require $package_id
-      if {[::$package_id get_parameter use_hstore 0] == 0} {
+      if {[::$package_id get_parameter use_hstore:boolean 0] == 0} {
         continue
       }
       ad_try {
@@ -527,17 +527,17 @@ namespace eval ::xowiki {
   }
 
   proc read_file {fn} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::read_file xo::read_file
     return [::xo::read_file $fn]
   }
 
   proc write_file {fn content} {
-    ns_log warning "::xowiki::write_file deprecated. Use ::xo::write_file instead"
+    ad_log_deprecated proc xowiki::write_file xo::write_file
     return [::xo::write_file $fn $content]
   }
 
   nsf::proc ::xowiki::get_raw_request_body {-as_string:switch -as_file:switch} {
-    ns_log warning "::xowiki::get_raw_request_body deprecated. Use ::xo::get_raw_request_body instead"
+    ad_log_deprecated proc xowiki::get_raw_request_body xo::get_raw_request_body
     return [::xo::get_raw_request_body -as_string $as_string_p -as_file $as_file_p]
   }
 
@@ -850,11 +850,11 @@ namespace eval ::xowiki {
     return $renames
   }
 
-  ::xowiki::utility ad_proc publish_status_next_state {publish_status} {
+  ::xowiki::utility ad_proc -private publish_status_next_state {publish_status} {
 
     Determine next publish status and return dict containing
-    CSSclassand next state.
-    
+    CSSclass and next state.
+
   } {
     if {$publish_status eq "ready"} {
       set CSSclass green
@@ -1030,7 +1030,17 @@ namespace eval ::xowiki {
   }
 
 
-  :ad_proc user_is_active {{-asHTML:boolean false} uid} {
+  :ad_proc user_is_active {
+    {-asHTML:boolean false}
+    uid
+  } {
+    Tell whether a user is active according to the Request Monitor.
+
+    @param asHTML when true, the proc will return an HTML rendering of
+                  the user information.
+    @param uid the user id
+
+    @return boolean or HTML according to the 'asHTML' flag.
   } {
     if {[info commands ::throttle] ne "" &&
         [::throttle info methods user_is_active] ne ""} {

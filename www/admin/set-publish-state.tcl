@@ -14,6 +14,12 @@
 }
 
 set page [::xo::db::CrClass get_instance_from_db -revision_id $revision_id]
+# ensure page is from the current package
+if {$package_id != [$page package_id]} {
+  ad_return_forbidden
+  ad_script_abort
+}
+
 $page update_publish_status $state
 
 ad_returnredirect $return_url

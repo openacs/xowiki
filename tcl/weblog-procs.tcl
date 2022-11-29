@@ -1,3 +1,9 @@
+::xo::library doc {
+  XoWiki - weblog procs
+
+  @author Gustaf Neumann
+}
+
 namespace eval ::xowiki {
   #
   # ::xowiki::Weblog
