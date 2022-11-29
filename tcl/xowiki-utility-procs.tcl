@@ -139,7 +139,7 @@ namespace eval ::xowiki {
   #
   ::xotcl::Object create virus
   virus proc check {fns} {
-    if {[[::xo::cc package_id] get_parameter:boolean clamav 1]
+    if {[[::xo::cc package_id] get_parameter clamav:boolean 1]
         && [info commands ::util::which] ne ""} {
       set clamscanCmd [::util::which clamdscan]
       foreach fn $fns {
