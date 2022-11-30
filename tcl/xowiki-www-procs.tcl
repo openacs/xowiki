@@ -2760,7 +2760,7 @@ namespace eval ::xowiki {
             #
             # Fields related to instance variables.
             #
-            :log "===== Page get_form_data calls lookup_form_field -name $att"
+            #:log "===== Page get_form_data calls lookup_form_field -name $att"
             set f [:lookup_form_field -name $att $form_fields]
             if {![$f is_disabled]} {
               set value [$f value [string trim [$cc form_parameter $att]]]
