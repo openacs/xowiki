@@ -611,21 +611,21 @@ div.xowiki-content div.autosave div.saved
 }
 
 
-.xowiki-content table.table > thead .sort-active {
+.xowiki-content table > thead .sort-active {
     margin: 0px 4px 0px 4px;
     opacity: 1;
     font-weight: 900;
     color: #000;
 }
-.xowiki-content table.table > thead .sort-inactive {
+.xowiki-content table > thead .sort-inactive {
     margin: 0px 4px 0px 4px;
     opacity: 0.5;
     font-weight: 900;
 }
-.xowiki-content table.table > thead .sort-up {
+.xowiki-content table > thead .sort-up {
     margin: 0px 0px 0px 4px;
 }
-.xowiki-content table.table > thead .sort-down {
+.xowiki-content table > thead .sort-down {
     margin: 0px 4px 0px 0px;
 }
 
