@@ -219,7 +219,7 @@ namespace eval ::xowiki {
     $data instvar package_id
     if {[$data istype ::xowiki::PodcastItem] && $duration eq "" && [$data exists import_file]} {
       set filename [expr {[$data exists full_file_name] ? [$data full_file_name] : [$data set import_file]}]
-      set ffmpeg [::$package_id get_parameter "ffmpeg" "/usr/bin/ffmpeg"]
+      set ffmpeg [::$package_id get_parameter -check_query_parameter false "ffmpeg" "/usr/bin/ffmpeg"]
       if {[ad_file exists $ffmpeg]} {
         catch {exec $ffmpeg -i $filename} output
         if {[info exists output]} {
@@ -395,7 +395,7 @@ namespace eval ::xowiki {
     if {[${:data} exists_form_parameter text.format]} {
       ${:data} set mime_type [${:data} form_parameter text.format]
     }
-    if {$new && [[${:data} set package_id] get_parameter production_mode 0]} {
+    if {$new && [[${:data} set package_id] get_parameter production_mode:boolean 0]} {
       ${:data} set publish_status production
     }
     :tidy

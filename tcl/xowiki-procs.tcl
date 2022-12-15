@@ -2171,7 +2171,7 @@ namespace eval ::xowiki {
         # we use as default decoration for included pages
         # the "portlet" decoration
         #
-        $page set __decoration [::$package_id get_parameter default-portlet-decoration portlet]
+        $page set __decoration [::$package_id get_parameter default-portlet-decoration:graph portlet]
       }
     }
 
@@ -2893,8 +2893,8 @@ namespace eval ::xowiki {
   Page instproc get_rich_text_spec {field_name default} {
     set package_id ${:package_id}
     set spec ""
-    #:msg WidgetSpecs=[::$package_id get_parameter WidgetSpecs]
-    foreach {s widget_spec} [::$package_id get_parameter WidgetSpecs] {
+    #:msg WidgetSpecs=[::$package_id get_parameter -check_query_parameter false WidgetSpecs]
+    foreach {s widget_spec} [::$package_id get_parameter -check_query_parameter false WidgetSpecs] {
       lassign [split $s ,] page_name var_name
       # in case we have no name (edit new page) we use the first value or the default.
       set name [expr {[info exists :name] ? ${:name} : $page_name}]
@@ -3135,7 +3135,7 @@ namespace eval ::xowiki {
     #
     # handle footer
     #
-    if {$with_footer && [::xo::cc get_parameter content-type text/html] eq "text/html"} {
+    if {$with_footer && [::xo::cc get_parameter content-type:graph text/html] eq "text/html"} {
       append content "<DIV class='content-chunk-footer'>"
       if {![info exists :__no_footer] && ![::xo::cc get_parameter __no_footer:boolean 0]} {
         append content [:footer]
@@ -3991,7 +3991,7 @@ namespace eval ::xowiki {
   PageInstance instproc widget_spec_from_folder_object {name given_template_name} {
     # get the widget field specifications from the payload of the folder object
     # for a field with a specified name in a specified page template
-    foreach {s widget_spec} [::${:package_id} get_parameter WidgetSpecs] {
+    foreach {s widget_spec} [::${:package_id} get_parameter -check_query_parameter false WidgetSpecs] {
       lassign [split $s ,] template_name var_name
       #ns_log notice "--w template_name $template_name, given '$given_template_name' varname=$var_name name=$name"
       if {([string match $template_name $given_template_name] || $given_template_name eq "") &&

@@ -1683,7 +1683,7 @@ namespace eval ::xowiki::includelet {
     set entries [list]
 
     if {![info exists page]} {
-      set page [::$package_id get_parameter weblog_page]
+      set page [::$package_id get_parameter weblog_page:graph]
     }
 
     set href [::$package_id package_url]tag/
@@ -1721,7 +1721,7 @@ namespace eval ::xowiki::includelet {
 
     set p_link [${:__including_page} pretty_link]
     set return_url [::xo::cc url]?[::xo::cc actual_query]
-    set weblog_page [::$package_id get_parameter weblog_page weblog]
+    set weblog_page [::$package_id get_parameter weblog_page:graph weblog]
     set save_tag_link [::$package_id make_link -link $p_link ${:__including_page} \
                            save-tags return_url]
     set popular_tags_link [::$package_id make_link -link $p_link ${:__including_page} \
@@ -1781,7 +1781,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
     set content ""
 
-    set weblog_page [::$package_id get_parameter weblog_page weblog]
+    set weblog_page [::$package_id get_parameter weblog_page:graph weblog]
     set entries [list]
     set href [export_vars -base [::$package_id package_url]$weblog_page {summary}]
     set notification_type ""
@@ -1933,7 +1933,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set publisher [ad_urlencode $publisher]
-    set feedname  [ad_urlencode [::$package_id get_parameter PackageTitle [::$package_id instance_name]]]
+    set feedname  [ad_urlencode [::$package_id get_parameter -check_query_parameter false PackageTitle [::$package_id instance_name]]]
     set rssurl    [ad_urlencode $rssurl]
     set my_yahoo_link "http://us.rd.yahoo.com/my/atm/$publisher/$feedname/*http://add.my.yahoo.com/rss?url=$rssurl"
 

@@ -992,7 +992,7 @@ namespace eval ::xowiki {
       # use_connection_locale or subst_blank_in_name, etc.).
       #
       set value [:get_parameter_from_parameter_page \
-                     -parameter_page_name [:get_parameter parameter_page ""] \
+                     -parameter_page_name [:get_parameter parameter_page:graph ""] \
                      $attribute_name]
     }
 
@@ -1590,7 +1590,7 @@ namespace eval ::xowiki {
                           item_id ${:folder_id} \
                           method [:query_parameter m]]
       } else {
-        set object [${:id} get_parameter index_page "index"]
+        set object [${:id} get_parameter index_page:graph "index"]
         #:log "--o object after getting index_page is '$object'"
       }
     }
@@ -2300,7 +2300,7 @@ namespace eval ::xowiki {
         set summary [::xo::cc query_parameter summary:boolean 0]
         set popular [::xo::cc query_parameter popular:boolean 0]
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
-        set weblog_page [:get_parameter -check_query_parameter false weblog_page]
+        set weblog_page [:get_parameter -check_query_parameter false weblog_page:graph]
         :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) local_name
         set :object $weblog_page
         ::xo::cc set actual_query $tag_kind=$tag&summary=$summary

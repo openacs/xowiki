@@ -42,7 +42,7 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::${:package_id} get_parameter PreferredCSSToolkit:graph bootstrap] {
       yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
       bootstrap -
       default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
@@ -53,7 +53,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set tree [:build_tree]
-    switch [::${:package_id} get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::${:package_id} get_parameter PreferredCSSToolkit:graph bootstrap] {
       yui {
            set js "
            var [:js_name];
@@ -364,7 +364,7 @@ namespace eval ::xowiki::includelet {
     # Check, if the optional context tree view is activated
     #
     set top_folder_of_tree $root_folder
-    if {$context_tree_view || [::$package_id get_parameter FolderContextTreeView false]} {
+    if {$context_tree_view || [::$package_id get_parameter FolderContextTreeView:boolean false]} {
       set parent_id [${:current_folder} parent_id]
       if {$parent_id ne -100} {
         set top_folder_of_tree $parent_id
@@ -577,7 +577,7 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_folder_link [::$package_id make_link \
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
-    switch [::$package_id get_parameter PreferredCSSToolkit bootstrap] {
+    switch [::$package_id get_parameter PreferredCSSToolkit:graph bootstrap] {
       bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}

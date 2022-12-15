@@ -1667,7 +1667,7 @@ namespace eval ::xowiki {
   } {
     set package     ::${:package_id}
     set limit       [:query_parameter limit:int32 20]
-    set weblog_page [$package get_parameter weblog_page weblog]
+    set weblog_page [$package get_parameter weblog_page:graph weblog]
     set href        [$package pretty_link -parent_id [$package folder_id] $weblog_page]?summary=1
 
     set entries [list]
@@ -1943,7 +1943,7 @@ namespace eval ::xowiki {
     #:msg "page_package_id=$page_package_id, context_package_id=$context_package_id"
 
     set template_file [ns_normalizepath [:query_parameter "template_file" \
-                                             [::$context_package_id get_parameter template_file view-default]]]
+                                             [::$context_package_id get_parameter template_file:graph view-default]]]
     if {[nsf::is object ::xowiki::$template_file]} {
       $template_file before_render [self]
     }
@@ -1951,7 +1951,7 @@ namespace eval ::xowiki {
     #
     # Set up template variables.
     #
-    set object_type [::$page_package_id get_parameter object_type [:info class]]
+    set object_type [::$page_package_id get_parameter object_type:graph [:info class]]
     set rev_link    [::$page_package_id make_link [self] revisions]
 
     if {[::$context_package_id query_parameter m:token ""] eq "edit"} {
@@ -2106,9 +2106,9 @@ namespace eval ::xowiki {
       # set-parameter. The cache-flush (next line) is not pretty here
       # and should be supported from xotcl-core.
       #
-      ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file])
+      ::xo::cc unset -nocomplain cache([list $context_package_id get_parameter template_file:graph])
       set template_file [:query_parameter "template_file" \
-                             [::$context_package_id get_parameter template_file view-default]]
+                             [::$context_package_id get_parameter template_file:graph view-default]]
       #
       # If the template_file does not have a path, assume it in the
       # standard location.
@@ -2251,7 +2251,7 @@ namespace eval ::xowiki {
         }
       }
     } else {
-      set :mime_type [::xo::cc get_parameter content-type text/html]
+      set :mime_type [::xo::cc get_parameter content-type:graph text/html]
       return $content
     }
   }
