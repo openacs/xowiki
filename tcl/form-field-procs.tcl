@@ -2255,7 +2255,7 @@ namespace eval ::xowiki::formfield {
 
             if {![:istype image]} {
               append href ?filename=[ns_urlencode $fn]
-              if {$revision_id ne ""  && [string is integer $revision_id]} {
+              if {[nsf::is integer $revision_id]} {
                 append href &revision_id=$revision_id
               }
             }

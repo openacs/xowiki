@@ -794,7 +794,7 @@ namespace eval ::xowiki {
 
     :get_lang_and_name -default_lang $lang -name $name lang name
 
-    set package_prefix [:get_parameter package_prefix ${:package_url}]
+    set package_prefix [:get_parameter -check_query_parameter false package_prefix ${:package_url}]
     if {$package_prefix eq "/" && [string length $lang]>2} {
       #
       # Don't compact the path for images etc. to avoid conflicts
@@ -1605,12 +1605,13 @@ namespace eval ::xowiki {
     }
 
     #:log "object <$object>"
-    if {$(item_id) == 0 && [:get_parameter fallback_languages ""] ne ""} {
-      foreach fallback_lang [:get_parameter fallback_languages ""] {
-        if {$fallback_lang ne $lang} {
-          array set "" [:item_info_from_url -with_package_prefix false -default_lang $fallback_lang $object]
+    set fallback_languages [:get_parameter -check_query_parameter false fallback_languages ""]
+    if {$(item_id) == 0 && $fallback_languages ne ""} {
+      foreach fallback_language $fallback_languages {
+        if {$fallback_language ne $lang} {
+          array set "" [:item_info_from_url -with_package_prefix false -default_lang $fallback_language $object]
           if { $(item_id) != 0 } {
-            :log "item_info_from_url based on fallback_lang <$fallback_lang> returns [array get {}]"
+            :log "item_info_from_url based on fallback_lang <$fallback_language> returns [array get {}]"
             break
           }
         }
@@ -1745,7 +1746,7 @@ namespace eval ::xowiki {
     #
     set packages [list]
     set package_url [string trimright [:package_url] /]
-    set package_path [:get_parameter PackagePath]
+    set package_path [:get_parameter -check_query_parameter false PackagePath]
     #
     # To avoid recursions, remove the current package from the list of
     # packages if was accidentally included. Get the package objects
@@ -2029,7 +2030,7 @@ namespace eval ::xowiki {
     set elements [split $llink /]
     # Get start-page, if path is empty
     if {[llength $elements] == 0} {
-      set link [:get_parameter index_page "index"]
+      set link [:get_parameter -check_query_parameter false index_page "index"]
       set elements [list $link]
     }
 
@@ -2299,7 +2300,7 @@ namespace eval ::xowiki {
         set summary [::xo::cc query_parameter summary:boolean 0]
         set popular [::xo::cc query_parameter popular:boolean 0]
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
-        set weblog_page [:get_parameter weblog_page]
+        set weblog_page [:get_parameter -check_query_parameter false weblog_page]
         :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) local_name
         set :object $weblog_page
         ::xo::cc set actual_query $tag_kind=$tag&summary=$summary
@@ -2754,15 +2755,15 @@ namespace eval ::xowiki {
   } {
     set folder_id [::${:id} folder_id]
     if {![info exists name_filter]} {
-      set name_filter [:get_parameter -type word name_filter ""]
+      set name_filter [:get_parameter -check_query_parameter false -type word name_filter ""]
     }
     if {![info exists entries_of]} {
-      set entries_of [:get_parameter -type noquote entries_of ""]
+      set entries_of [:get_parameter -check_query_parameter false -type noquote entries_of ""]
     }
     if {![info exists title]} {
-      set title [:get_parameter PackageTitle [:instance_name]]
+      set title [:get_parameter -check_query_parameter false PackageTitle ${:instance_name}]
     }
-    set description [:get_parameter PackageDescription ""]
+    set description [:get_parameter -check_query_parameter false PackageDescription ""]
 
     if {![info exists days]} {
       set rss_query_parameter [:query_parameter rss]

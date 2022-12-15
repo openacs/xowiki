@@ -1483,7 +1483,7 @@ namespace eval ::xowiki::test {
             $file_object set import_file \
                 $::acs::rootdir/packages/acs-templating/www/resources/sort-ascending.png
             $file_object save_new
-            aa_true "$file_object was saved" [string is integer [$file_object item_id]]
+            aa_true "$file_object was saved" [nsf::is integer [$file_object item_id]]
 
             aa_section "load [$parent_page name] and check links"
             set d [acs::test::http -last_request $request_info [$parent_page pretty_link]]

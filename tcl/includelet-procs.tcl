@@ -249,7 +249,7 @@ namespace eval ::xowiki::includelet {
       set ands [list]
       set and_names [list]
       foreach cid_and [split $cid_or ,] {
-        if {![string is integer -strict $cid_and]} {
+        if {![nsf::is integer $cid_and]} {
           ad_return_complaint 1 "invalid category id '$cid_and'"
           ad_script_abort
         }
@@ -1055,7 +1055,7 @@ namespace eval ::xowiki::includelet {
         foreach cid [split $category_ids ,] {
           set or_ids [split $cid |]
           foreach or_id $or_ids {
-            if {![string is integer $or_id]} {
+            if {![nsf::is integer $or_id]} {
               ad_return_complaint 1 "invalid category_id"
               ad_script_abort
             }
@@ -1785,7 +1785,7 @@ namespace eval ::xowiki::includelet {
     set entries [list]
     set href [export_vars -base [::$package_id package_url]$weblog_page {summary}]
     set notification_type ""
-    if {[::$package_id get_parameter "with_notifications" 1] &&
+    if {[::$package_id get_parameter with_notifications:boolean 1] &&
         [::xo::cc user_id] != 0} { ;# notifications require login
       set notification_type [notification::type::get_type_id -short_name xowiki_notif]
     }
@@ -2245,7 +2245,7 @@ namespace eval ::xowiki::includelet {
     #set js "YAHOO.xo_page_order_region.DDApp.package_url = '[::${:package_id} package_url]';\n"
     set last_level 0
     set ID [:js_name]
-    if {[string is integer -strict $allow_reorder]} {
+    if {[nsf::is integer $allow_reorder]} {
       set min_level $allow_reorder
     } else {
       set min_level 1
