@@ -6190,7 +6190,9 @@ namespace eval ::xowiki::formfield {
     }
     # Validation happens after the value is retrieved.
     # To avoid errors in "clock scan", fix the year if necessary
-    if {![string is integer $year]} {set year 0}
+    if {![nsf::is integer $year]} {
+      set year 0
+    }
 
     foreach v [list year month day hour min sec] {
       if {[set $v] eq ""} {
@@ -6567,7 +6569,7 @@ namespace eval ::xowiki::formfield {
       # Check, if the calendar_id can be determined
       #
       set calendar_id ""
-      if {[string is integer -strict ${:calendar}]} {
+      if {[nsf::is integer ${:calendar}]} {
         set calendar_id ${:calendar}
         if {[calendar::name $calendar_id] eq ""} {
           set calendar_id ""
