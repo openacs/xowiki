@@ -274,6 +274,13 @@ namespace eval ::xowiki {
         return 0
       }
     } else {
+      if {![$data istype ::xowiki::File] && [regexp {^[a-zA-Z][a-zA-Z]:$} $name]} {
+        #
+        # The name looks like a language prefix followed by an empty
+        # name. Empty names are not allowed.
+        #
+        return 0
+      }
       $data name $name
       #
       # Try first to get the language from the form parameter
