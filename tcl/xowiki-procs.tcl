@@ -2925,7 +2925,15 @@ namespace eval ::xowiki {
         set success 0
       }
     } else {
-      set errorMsg [_ xowiki.Page-validate_name-duplicate_item [list value $name]]
+      #
+      # The plain form valudation has signaled, that the name is not
+      # ok. Try to provide a more detailed error message.
+      #
+      if {![:istype ::xowiki::File] && [regexp {^[a-zA-Z][a-zA-Z]:$} $name]} {
+        set errorMsg [_ xowiki.Page-validate_name-invalid_name [list value $name]]
+      } else {
+        set errorMsg [_ xowiki.Page-validate_name-duplicate_item [list value $name]]
+      }
     }
 
     if {$success} {
