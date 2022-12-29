@@ -5390,7 +5390,7 @@ namespace eval ::xowiki {
     if {$group_id eq ""} {
       # group::new does not flush the cache - sigh!  Therefore, we have
       # to flush the old cache entry here manually.
-      ns_cache flush util_memoize \
+      ::acs::clusterwide ns_cache flush util_memoize \
           "group::get_id_not_cached -group_name $group_name -subsite_id {} -application_group_id {}"
       set group_id [group::new -group_name $group_name]
     }
