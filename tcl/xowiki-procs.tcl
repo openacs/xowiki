@@ -2926,7 +2926,7 @@ namespace eval ::xowiki {
       }
     } else {
       #
-      # The plain form valudation has signaled, that the name is not
+      # The plain form validation has signaled, that the name is not
       # ok. Try to provide a more detailed error message.
       #
       if {![:istype ::xowiki::File] && [regexp {^[a-zA-Z][a-zA-Z]:$} $name]} {
