@@ -2087,7 +2087,7 @@ namespace eval ::xowiki {
         ::xowiki::datasource -nocleanup ${:revision_id}
       } else {
         set revision_id ${:revision_id}
-        db_dml flush_syndication {delete from syndication where object_id = :revision_id}
+        ::xo::dc dml -prepare integer flush_syndication {delete from syndication where object_id = :revision_id}
       }
     }
   }
