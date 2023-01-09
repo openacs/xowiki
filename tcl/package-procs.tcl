@@ -3263,6 +3263,12 @@ namespace eval ::xowiki {
     if {$nocache} {
       next
     } else {
+      #
+      # Cache the parameter value regardless of the notation with
+      # "name:valueconstraint"
+      #
+      regexp {^([^:]+):.*$} $attribute _ attribute
+
       set key [list ${:id} [self proc] $attribute]
       if {[nsf::is object "::xo::cc"]} {
         if {[::xo::cc cache_exists $key]} {
