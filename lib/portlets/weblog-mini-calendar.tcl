@@ -68,7 +68,7 @@ set innersql "from xowiki_pagei p, cr_items ci \
         and ci.item_id != :including_item_id \
         and ci.publish_status <> 'production' "
 
-xo::dc foreach entries_this_month "select count(ci.item_id) as c,
+::xo::dc foreach entries_this_month "select count(ci.item_id) as c,
         [::xo::dc date_trunc day p.publish_date] as d \
         $innersql
         and [::xo::dc date_trunc_expression month p.publish_date :date_reference] \
@@ -87,7 +87,7 @@ xo::dc foreach entries_this_month "select count(ci.item_id) as c,
 #
 # Compute the available time range
 #
-set dates [db_list_of_lists get_dates "select min([::xo::dc date_trunc day p.publish_date]),max([::xo::dc date_trunc day p.publish_date]) $innersql"]
+set dates [::xo::dc list_of_lists get_dates "select min([::xo::dc date_trunc day p.publish_date]),max([::xo::dc date_trunc day p.publish_date]) $innersql"]
 set earliest_date [::xo::db::tcl_date [lindex $dates 0 0] _]
 set latest_date   [::xo::db::tcl_date [lindex $dates 0 end] _]
 

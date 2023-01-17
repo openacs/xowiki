@@ -64,7 +64,7 @@ foreach object_type $object_types {
   set add_title ""
   set add_href ""
   set pretty_plural [$object_type pretty_plural]
-  if {[catch {set n [db_list count [$object_type instance_select_query \
+  if {[catch {set n [::xo::dc list count [$object_type instance_select_query \
                                        -folder_id [::$package_id set folder_id] \
                                        -count 1 -with_subtypes false]]}]} {
     set n -

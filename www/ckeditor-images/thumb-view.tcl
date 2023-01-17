@@ -8,7 +8,7 @@ ad_page_contract {
 
 set return_url [export_vars -base [ad_conn url] -no_empty {parent_id}]
 
-db_multirow -extend {
+::xo::dc multirow -prepare integer -extend {
   delete_url
   download_url
   img_id
