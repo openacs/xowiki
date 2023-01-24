@@ -4761,7 +4761,7 @@ namespace eval ::xowiki::formfield {
         lappend atts disabled true
       }
       #ns_log notice ATTS=$atts
-      if {$rep in $value} {
+      if {[string is list -strict $value] && $rep in $value} {
         lappend atts checked checked
       }
       if {1 || ${:horizontal}} {lappend label_class [::xowiki::CSS class checkbox-inline]}
@@ -5021,7 +5021,7 @@ namespace eval ::xowiki::formfield {
         }
         lappend atts value $rep
         #:msg "lsearch {$value} $rep ==> [lsearch $value $rep]"
-        if {$rep in $value} {
+        if {[string is list -strict $value] && $rep in $value} {
           lappend atts selected selected
         }
         ::html::option $atts {::html::t $label}
