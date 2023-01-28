@@ -77,7 +77,7 @@ TableWidget create t1 -volatile \
         Action new -label [_ xowiki.export] -tooltip [_ xowiki.export] -url export
         Action new -label [_ xowiki.delete] -tooltip [_ xowiki.delete] -url bulk-delete
       }
-      AnchorField edit -CSSclass edit-item-button -label "" -html {style "padding: 0px;"}
+      AnchorField edit -CSSclass edit-item-button -label ""
       if {$::individual_permissions} {
         ImageAnchorField create permissions -src /resources/xowiki/permissions.png -width 16 \
             -height 16 -border 0 -title "Manage Individual Permissions for this Item" \
