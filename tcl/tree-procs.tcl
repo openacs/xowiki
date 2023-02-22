@@ -439,7 +439,7 @@ namespace eval ::xowiki {
       -superclass TreeRenderer=list \
       -li_expanded_atts [list "class='expanded'" ""]
 
-  TreeRenderer=yuitree proc include_head_entries {{-style ""} {-ajax 1} args} {
+  TreeRenderer=yuitree proc include_head_entries {{-style ""} {-ajax:boolean 1} args} {
     ::xo::Page requireCSS urn:ad:css:yui2:fonts/fonts-min
     ::xo::Page requireCSS urn:ad:css:yui2:treeview/assets/skins/sam/treeview
     if {$style ne ""} {

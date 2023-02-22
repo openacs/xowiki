@@ -1043,7 +1043,7 @@ namespace eval ::xowiki {
   FormPage ad_instproc www-edit {
     {-validation_errors ""}
     {-disable_input_fields 0}
-    {-view true}
+    {-view:boolean true}
   } {
 
     This web-callable method renders a form page in "edit" mode

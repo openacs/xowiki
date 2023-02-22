@@ -764,7 +764,7 @@ namespace eval ::xowiki {
     {-siteurl ""}
     {-lang ""}
     {-parent_id ""}
-    {-download false}
+    {-download:boolean false}
     {-context_url ""}
     {-folder_ids ""}
     {-path_encode:boolean true}
@@ -1217,7 +1217,7 @@ namespace eval ::xowiki {
     {-with_entities 0}
     -privilege
     -link
-    object
+    object:object
     {method ""}
     args
   } {
@@ -1521,7 +1521,7 @@ namespace eval ::xowiki {
 
   Package ad_instproc resolve_page {
     {-use_package_path true}
-    {-simple false}
+    {-simple:boolean false}
     -lang
     object
     method_var
@@ -1533,7 +1533,7 @@ namespace eval ::xowiki {
     @param use_package_path
     @param simple when set, do not try to resolve using item refs, prototype pages or package_path
     @param lang language used for resolving
-    @param object element to be resolved
+    @param object element name to be resolved (not an xotcl object)
     @param method_var output variable for method to be called on the object
     @return instantiated object (Page or Package) or empty
 
@@ -2544,7 +2544,7 @@ namespace eval ::xowiki {
     return [::xowiki::CSS toolkit]
   }
 
-  Package instproc call {object method options} {
+  Package instproc call {object:object method options} {
     set allowed [${:policy} enforce_permissions \
                      -package_id ${:id} -user_id [::xo::cc user_id] \
                      $object $method]
@@ -2858,7 +2858,7 @@ namespace eval ::xowiki {
   Package ad_proc google_sitemapindex {
     {-changefreq "daily"}
     {-priority "priority"}
-    {-package}
+    {-package:object}
   } {
 
     This method provides a sitemap index of all xowiki

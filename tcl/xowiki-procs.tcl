@@ -1639,7 +1639,7 @@ namespace eval ::xowiki {
     }
   }
 
-  FormPage ad_instproc update_attribute_from_slot {-revision_id slot value} {
+  FormPage ad_instproc update_attribute_from_slot {-revision_id slot:object value} {
 
     Tailored version of update_attribute_from_slot to keep
     insert_xowiki_form_instance_item_index in sync after single
@@ -1723,7 +1723,7 @@ namespace eval ::xowiki {
     -item_id:required
     {-revision_id 0}
     -object:required
-    {-initialize true}
+    {-initialize:boolean true}
   } {
     Load a content item into the specified object. If revision_id is
     provided, the specified revision is returned, otherwise the live

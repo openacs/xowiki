@@ -282,7 +282,7 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  repeatContainer instproc validate {obj} {
+  repeatContainer instproc validate {obj:object} {
     foreach c [lrange ${:components} 1 [:count_values [:value]]] {
       set result [$c validate $obj]
       if {$result ne ""} {

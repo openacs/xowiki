@@ -242,7 +242,7 @@ namespace eval ::xowiki::formfield {
     return [string map [list __COMMA__ ,] $string]
   }
 
-  FormField proc get_from_name {object name} {
+  FormField proc get_from_name {object:object name} {
     #
     # Get a form field via name. The provided names are unique for a
     # form. If multiple forms should be rendered simultaneously, we
@@ -318,7 +318,7 @@ namespace eval ::xowiki::formfield {
     return [:uplevel [list :$validator_method $value]]
   }
 
-  FormField instproc validate {obj} {
+  FormField instproc validate {obj:object} {
     # use the 'value' method to deal e.g. with compound fields
     set value [:value]
     #:msg "[:info class] value=$value req=${:required} // ${:value} //"
@@ -409,7 +409,7 @@ namespace eval ::xowiki::formfield {
     :set_disabled false
   }
 
-  FormField proc interprete_condition {-package_id -object cond} {
+  FormField proc interprete_condition {-package_id -object:object cond} {
     if {[::xo::cc info methods role=$cond] ne ""} {
       if {$cond eq "creator"} {
         set success [::xo::cc role=$cond \
@@ -429,7 +429,7 @@ namespace eval ::xowiki::formfield {
 
   FormField set cond_regexp {^([^=?]+)[?]([^:]*)[:](.*)$}
 
-  FormField proc get_single_spec {-package_id -object string} {
+  FormField proc get_single_spec {-package_id -object:object string} {
     if {[regexp ${:cond_regexp} $string _ condition true_spec false_spec]} {
       if {[:interprete_condition -package_id $package_id -object $object $condition]} {
         return [:get_single_spec -package_id $package_id -object $object $true_spec]
@@ -1603,7 +1603,7 @@ namespace eval ::xowiki::formfield {
     }
   }
 
-  CompoundField instproc validate {obj} {
+  CompoundField instproc validate {obj:object} {
     # Delegate validate to the components. If a validation of a
     # component fails, report the error message back.
     foreach c ${:components} {

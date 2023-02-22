@@ -38,7 +38,7 @@ namespace eval ::xowiki {
     [:report_lines]"
   }
 
-  Importer instproc import {-object:required -replace -create_user_ids} {
+  Importer instproc import {-object:object,required -replace:boolean -create_user_ids} {
     #
     # Import a single object. In essence, this method demarshalls a
     # single object and inserts it (or updates it) in the database. It

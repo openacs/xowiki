@@ -4800,7 +4800,7 @@ namespace eval ::xowiki::includelet {
           {-height "500px"}
         }}
       } -ad_doc {
-        Include an iframe contining the specified URL
+        Include an iframe containing the specified URL
 
         @param title
         @param url
