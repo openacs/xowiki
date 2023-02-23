@@ -2297,8 +2297,8 @@ namespace eval ::xowiki {
         # todo: missing: tag links to subdirectories, also on url generation
         set tag $stripped_url
         :validate_tag $tag
-        set summary [::xo::cc query_parameter summary:boolean 0]
-        set popular [::xo::cc query_parameter popular:boolean 0]
+        set summary [string is true -strict [::xo::cc query_parameter summary:boolean 0]]
+        set popular [string is true -strict [::xo::cc query_parameter popular:boolean 0]]
         set tag_kind [expr {$popular ? "ptag" :"tag"}]
         set weblog_page [:get_parameter -check_query_parameter false weblog_page:graph]
         :get_lang_and_name -default_lang $default_lang -name $weblog_page (lang) local_name
