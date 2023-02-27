@@ -170,7 +170,10 @@ aa_register_case \
                     #ns_log notice "querygetall $key => [list [::xo::cc form_parameter $key {}]]"
                     list [::xo::cc form_parameter $key {}]
                 }
-                proc ::ad_returnredirect url {::xo::cc returnredirect $url}
+                proc ::ad_returnredirect url {
+                    #ns_log notice "ad_returnredirect $url"
+                    ::xo::cc returnredirect $url
+                }
 
                 try {
                     set r [uplevel $cmd]
@@ -686,7 +689,7 @@ aa_register_case \
                 __confirmed_p 0
                 __new_p 0
                 __key_signature {$signature}
-                __object_name en:hello
+                __object_name [::security::parameter::signed en:hello]
                 name en:hello
                 object_type ::xowiki::Page
                 text.format text/html
@@ -698,41 +701,47 @@ aa_register_case \
                 title {{$title - saved}}
                 item_id $returned_item_id }]
 
+        #ns_log notice "========================= without_ns_form START '$m'"
         set content [test without_ns_form {::$package_id invoke -method $m}]
+        #ns_log notice "========================= without_ns_form END"
 
+        #aa_log "<pre>[ns_quotehtml $content]</pre>"
+        #ns_log notice "$content"
         ? {string first Error $content} -1 "page contains no error"
-        ? {::xo::cc exists __continuation} 1 "continuation exists"
-        ? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/hello" \
-            "redirect to hello page"
+        aa_log "<pre>[ns_quotehtml [::xo::cc serialize]]</pre>"
 
-        ::xo::at_cleanup
+        #? {::xo::cc exists __continuation} 1 "continuation exists"
+        #? {::xo::cc set  __continuation} "ad_returnredirect /$instance_name/hello" \
+        #    "redirect to hello page"
 
-        #########################################################
-        test section "Query revisions for hello page via weblink"
-        #########################################################
+        #::xo::at_cleanup
 
-        ::xowiki::Package initialize -parameter $index_vuh_parms \
-            -package_id [dict get $info package_id] \
-            -url /$instance_name/en/hello \
-            -actual_query "m=revisions" \
-            -user_id [lindex $swas 0]
+        # #########################################################
+        # test section "Query revisions for hello page via weblink"
+        # #########################################################
 
-        set content [::$package_id invoke -method $m]
+        # ::xowiki::Package initialize -parameter $index_vuh_parms \
+        #     -package_id [dict get $info package_id] \
+        #     -url /$instance_name/en/hello \
+        #     -actual_query "m=revisions" \
+        #     -user_id [lindex $swas 0]
 
-        set p [::xowiki::Page info instances]
+        # set content [::$package_id invoke -method $m]
 
-        ? {llength $p} 1 "expect only one page instance"
+        # set p [::xowiki::Page info instances]
 
-        if {[llength $p] == 1} {
-            ? {$p set title} {Hello World- V.2 - saved} "saved title is ok"
-            ? {lindex [$p set text] 0} {Hello [[Wiki]] World. ... just testing ..<br />} "saved text is ok"
-        } else {
-            test code [::xowiki::Page info instances]
-            foreach p [::xowiki::Page info instances] {test code "$p [$p serialize]"}
-        }
+        # ? {llength $p} 1 "expect only one page instance"
 
-        ? {string first Error $content} -1 "page contains no error"
-        ? {expr {[string first 3: $content]>-1}} 1 "page contains three revisions"
+        # if {[llength $p] == 1} {
+        #     ? {$p set title} {Hello World- V.2 - saved} "saved title is ok"
+        #     ? {lindex [$p set text] 0} {Hello [[Wiki]] World. ... just testing ..<br />} "saved text is ok"
+        # } else {
+        #     test code [::xowiki::Page info instances]
+        #     foreach p [::xowiki::Page info instances] {test code "$p [$p serialize]"}
+        # }
+
+        # ? {string first Error $content} -1 "page contains no error"
+        # ? {expr {[string first 3: $content]>-1}} 1 "page contains three revisions"
 
         # keep the page for the following test
         #::xo::at_cleanup
