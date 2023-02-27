@@ -8,7 +8,11 @@ namespace eval ::xowiki::test {
         the construction of HTML ids.
 
     } {
-        return [$node selectNodes {string(//form//input[@name="__object_name"]/@value)}]
+        set result [$node selectNodes {string(//form//input[@name="__object_name"]/@value)}]
+        if {$result ne ""} {
+            set result [::security::parameter::validated $result]
+        }
+        return $result
     }
 
     ad_proc -private ::xowiki::test::get_form_CSSclass {node} {

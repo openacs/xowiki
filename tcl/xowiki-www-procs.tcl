@@ -1032,9 +1032,9 @@ namespace eval ::xowiki {
 
     Should be overloaded to provide extra content to some forms. This
     method can be used to add additional (e.g. hidden) HTML input
-    fields to form pages.
+    fields to form pages. Example:
 
-    ::html::input -type hidden -name __object_name -value ${:name}
+    ::html::input -type hidden -name __object_name -value [::security::parameter::signed ${:name}]
 
   } {
     return ""
@@ -1168,14 +1168,14 @@ namespace eval ::xowiki {
         #
         # Reset the name in error cases to the original one.
         #
-        set :name [:form_parameter __object_name]
+        set :name [:form_parameter __object_name:signed,convert]
       } else {
         #
         # We have no validation errors, so we can save the content.
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
-            [::xo::cc form_parameter __object_name ""] $category_ids
+            [::xo::cc form_parameter __object_name:signed,convert ""] $category_ids
 
         #
         # The data might have references. Perform the rendering here to compute
@@ -1339,7 +1339,7 @@ namespace eval ::xowiki {
     #
     $rootNode insertBeforeFromScript {
       ::html::div {
-        ::html::input -type hidden -name __object_name -value ${:name}
+        ::html::input -type hidden -name __object_name -value [::security::parameter::signed ${:name}]
         ::html::input -type hidden -name __form_action -value save-form-data
         ::html::input -type hidden -name __current_revision_id -value ${:revision_id}
         :extra_html_fields
@@ -1751,7 +1751,7 @@ namespace eval ::xowiki {
         #
         :save_data \
             -use_given_publish_date [expr {"_publish_date" in $field_names}] \
-            [::xo::cc form_parameter __object_name:token ""] $category_ids
+            [::xo::cc form_parameter __object_name:signed,convert ""] $category_ids
       }
       ${:package_id} returnredirect \
           [:query_parameter return_url:localurl [:pretty_link]]

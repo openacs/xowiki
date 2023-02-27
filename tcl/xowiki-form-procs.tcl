@@ -251,7 +251,7 @@ namespace eval ::xowiki {
     $data instvar package_id
     set cc [::$package_id context]
 
-    set old_name [$cc form_parameter __object_name ""]
+    set old_name [$cc form_parameter __object_name:signed,convert ""]
     #$data msg "validate: old='$old_name', current='$name'"
 
     if {[$data istype ::xowiki::File]
