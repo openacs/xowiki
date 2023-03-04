@@ -36,30 +36,30 @@ namespace eval ::xowiki {
           .docx -
           .odt  -
           .txt  {set iconName "file-earmark-text"}
-          
+
           .csv  -
           .ods  -
           .xls  -
           .xlsx {set iconName "file-earmark-spreadsheet"}
-          
+
           .odp  -
           .ppt  -
           .pptx {set iconName "file-earmark-spreadsheet"}
-          
+
           .pdf  {set iconName "file-earmark-pdf"}
 
           .c    -
           .h    -
           .tcl {set iconName "file-earmark-code"}
-          
+
           .css  -
           .html -
           .java -
-          .js   - 
+          .js   -
           .json -
           .py   -
           .sql {set iconName "filetype-[string range [ad_file extension $filename] 1 end]"}
-          
+
           default {
             switch -glob [ns_guesstype $filename] {
               image/* {set iconName "file-earmark-image"}
@@ -899,6 +899,13 @@ namespace eval ::xowiki {
     :require_folder_object
     set :policy [:get_parameter -check_query_parameter false security_policy ::xowiki::policy1]
     ::xowiki::CSS initialize
+    set init_parameter [:get_parameter -check_query_parameter false PackageInitParameter ""]
+    if {$init_parameter eq "swa-only"} {
+      if {[ns_conn isconnected] && ![acs_user::site_wide_admin_p -user_id [xo::cc user_id]]} {
+        :reply_to_user [:error_msg -title "Restricted Access" "This page is restricted to Site Admins only"]
+        ad_script_abort
+      }
+    }
     # :proc destroy {} {:log "--P "; next}
   }
 
@@ -1482,12 +1489,11 @@ namespace eval ::xowiki {
     }
   }
 
-  Package instproc error_msg {{-template_file error-template} {-status_code 200} error_msg} {
+  Package instproc error_msg {{-title Error} {-template_file error-template} {-status_code 200} error_msg} {
     if {![regexp {^[./]} $template_file]} {
       set template_file [:get_adp_template $template_file]
     }
     set context [list [${:id} instance_name]]
-    set title Error
     set header_stuff [::xo::Page header_stuff]
     set index_link [:make_link -privilege public -link "" ${:id} {} {}]
     set link [:query_parameter "return_url:localurl" ""]

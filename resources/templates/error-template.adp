@@ -10,7 +10,7 @@
  <if @index_link@ not nil><a href="@index_link;noi18n@" accesskey='i'>#xowiki.index#</a></if>
 </div>
 <p>&nbsp;</p>
-<h3>Error:</h3>
+<h3>@title@</h3>
 <p>
 <blockquote>
 @error_msg;noquote@
