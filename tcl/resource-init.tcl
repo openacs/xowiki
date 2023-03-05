@@ -1,7 +1,7 @@
 #
 # Register some URNs that we are providing for sharing.
 #
-template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.6.0.min.js
+template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.6.3.min.js
 template::register_urn -urn urn:ad:js:jquery-ui   -resource /resources/xowiki/jquery/jquery-ui.min.js
 template::register_urn -urn urn:ad:css:jquery-ui  -resource /resources/xowiki/jquery/jquery-ui.css
 template::register_urn -urn urn:ad:js:jquery-ui-touch-punch \
