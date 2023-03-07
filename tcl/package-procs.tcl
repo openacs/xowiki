@@ -899,13 +899,13 @@ namespace eval ::xowiki {
     :require_folder_object
     set :policy [:get_parameter -check_query_parameter false security_policy ::xowiki::policy1]
     ::xowiki::CSS initialize
-    set init_parameter [:get_parameter -check_query_parameter false PackageInitParameter ""]
-    if {$init_parameter eq "swa-only"} {
-      if {[ns_conn isconnected] && ![acs_user::site_wide_admin_p -user_id [xo::cc user_id]]} {
-        :reply_to_user [:error_msg -title "Restricted Access" "This page is restricted to Site Admins only"]
-        ad_script_abort
-      }
-    }
+    #
+    # Call package instance initialization after full initialization
+    # of the package with the value of the package parameter
+    # "PackageInitParameter". For the time being, this parameter
+    # should be set via the parameter page.
+    #
+    :process_init_parameter [:get_parameter -check_query_parameter false PackageInitParameter ""]
     # :proc destroy {} {:log "--P "; next}
   }
 
