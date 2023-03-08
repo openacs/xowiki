@@ -8,8 +8,8 @@
   @param object_type
   @param query
 } -parameter {
-  {-object_type ::xowiki::Page}
-  {-return_url "."}
+  {-object_type:token ::xowiki::Page}
+  {-return_url:localurl "."}
 }
 
 set sql [$object_type instance_select_query \

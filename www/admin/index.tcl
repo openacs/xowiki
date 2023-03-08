@@ -7,7 +7,7 @@
   @cvs-id $Id$
 
 } -parameter {
-  {-object_type ::xowiki::Page}
+  {-object_type:token ::xowiki::Page}
 }
 
 set context [list]

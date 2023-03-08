@@ -7,7 +7,7 @@
 
   @param object_type
 } -parameter {
-  {-object_type ::xowiki::Page}
+  {-object_type:token ::xowiki::Page}
   {-objects ""}
 }
 
