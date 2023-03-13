@@ -42,6 +42,26 @@ namespace eval ::xo {
     set :now [clock clicks -milliseconds]
     if {![info exists :user_id]} {
       set :user_id [ad_conn user_id]
+      set :requestor [::xo::cc requestor]
+      if {${:user_id} == 0} {
+        #
+        # Maybe the user_id was timed out, so fall potentially back to
+        # the untrusted_user_id (which might be as well 0).
+        #
+        set :user_id [::xo::cc get_user_id]
+      }
+      #
+      # Keep always the original user_id
+      #
+      set :original_user_id ${:user_id}
+      if {${:user_id} == 0} {
+        #
+        # Overwrite the user_id with the requestor. This increases
+        # backward compatibility and eases handling of the identifier
+        # for the user.
+        #
+        set :user_id ${:requestor}
+      }
     }
     if {![info exists :session_id]} {
       set :session_id [ad_conn session_id]
@@ -266,6 +286,13 @@ namespace eval ::xo {
   Chat instproc login {} {
     :log "--chat login mode=${:mode}"
     if {${:login_messages_p} && ![:user_active ${:user_id}]} {
+      if {![nsv_array exists ${:array}-anonymous_ids]} {
+        #
+        # Create array in case it does not exist, since we need it in
+        # the next command.
+        #
+        ::acs::clusterwide nsv_set ${:array}-anonymous_ids . .
+      }
       :add_msg -uid ${:user_id} -get_new false [_ xotcl-core.has_entered_the_room]
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
       # give some proof of our presence to the chat system when we
@@ -286,8 +313,61 @@ namespace eval ::xo {
     return $color
   }
 
+  Chat instproc usable_screen_name { screen_name requestor } {
+    if {[nsv_get ${:array}-anonymous_ids $screen_name seenRequestor]} {
+      if {$seenRequestor eq $requestor} {
+        #
+        # We have this screen name already assigned to this requestor.
+        #
+        #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> later time"
+        return 1
+      } else {
+        #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> not usable <$seenRequestor != $requestor>"
+        return 0
+      }
+    }
+    #
+    # We saw this screen name the first time.
+    #
+    #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> first time"
+    nsv_set ${:array}-anonymous_ids $screen_name $requestor
+    return 1
+  }
+
   Chat instproc user_name { user_id } {
-    if {$user_id > 0} {
+    #
+    # Map the provided user_id (which might be numeric or an IP
+    # address) to a screen name, which might be the configured screen
+    # name, the user name, or of the form userXXX.
+    #
+    #:log "user_name for $user_id"
+    if {![nsf::is int32 $user_id]} {
+      #
+      # The user_id is a requestor (e.g. IPv4 or IPv6 address)
+      #
+      set requestor $user_id
+      if {[::acs::icanuse "ns_hash"]} {
+        set hash [ns_hash $requestor]
+        set screen_name user[expr {$hash % 1000}]
+        if {![:usable_screen_name $screen_name $requestor]} {
+          #
+          # Collision: we have this screen_name already for a
+          # different requestor.
+          #
+          for {set i 1} {$i < 200} {incr i} {
+            set screen_name user[expr {$hash % 1000}]$i
+            if {[:usable_screen_name $screen_name $requestor]} {
+              break
+            }
+          }
+        }
+      } else {
+        set screen_name $requestor
+      }
+    } elseif {$user_id > 0} {
+      #
+      # True user_id
+      #
       set screen_name [acs_user::get_user_info -user_id $user_id -element screen_name]
       if {$screen_name eq ""} {
         set screen_name [person::name -person_id $user_id]
@@ -295,8 +375,12 @@ namespace eval ::xo {
     } elseif { $user_id == 0 } {
       set screen_name "Nobody"
     } else {
+      #
+      # This might be triggered during background processing.
+      #
       set screen_name "System"
     }
+    #:log "user_name for $user_id -> $screen_name"
     return $screen_name
   }
 
@@ -344,7 +428,7 @@ namespace eval ::xo {
     if {$json ne ""} {
       return [subst {
         <script nonce='[security::csp::nonce]'>
-           var data = $json;
+           let data = $json;
            parent.getData(data);
         </script>\n
       }]
@@ -472,16 +556,21 @@ namespace eval ::xowiki {
     {-package_id ""}
     {-mode ""}
     {-path ""}
-    {-avatar_p true}
-    -login_messages_p
-    -logout_messages_p
+    {-avatar_p:boolean true}
+    {-force_login_p:boolean false}
+    -login_messages_p:boolean
+    -logout_messages_p:boolean
     -timewindow
   } {
     Logs into a chat
   } {
     #:log "--chat"
-    if {![ns_conn isconnected]} return
-    auth::require_login
+    if {![ns_conn isconnected]} {
+      return
+    }
+    if {$force_login_p} {
+      auth::require_login
+    }
 
     set session_id [ad_conn session_id].[clock seconds]
     set base_url [export_vars -base /shared/ajax/chat -no_empty {
@@ -546,7 +635,7 @@ namespace eval ::xowiki {
 
     set send_url ${base_url}&m=add_msg&msg=
 
-    :log "--CHAT mode=$mode"
+    #:log "--CHAT mode=$mode"
 
     template::add_body_script -script {
       document.getElementById('xowiki-chat-send').focus();
@@ -581,7 +670,7 @@ namespace eval ::xowiki {
     }]
 
     set conf [dict create]
-    foreach var [list login_messages_p logout_messages_p timewindow] {
+    foreach var {force_login_p login_messages_p logout_messages_p timewindow} {
       if {[info exists $var]} {
         dict set conf $var [set $var]
       }
@@ -598,10 +687,10 @@ namespace eval ::xowiki {
     set js ""
     set data [c1 login]
     if {$data ne ""} {
-      append js [subst {
-        var data = $data;
+      append js [subst -nocommands {
+        let data = $data;
         for (var i = 0; i < data.length; i++) {
-          renderData(data\[i\]);
+          renderData(data[i]);
         }
       }]
     }
