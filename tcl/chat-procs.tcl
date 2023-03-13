@@ -41,6 +41,12 @@ namespace eval ::xo {
 
     set :now [clock clicks -milliseconds]
     if {![info exists :user_id]} {
+      #
+      # Chat may be instantiated outside xowiki, where ::xo::cc is
+      # assumed to exist.
+      #
+      ::xo::ConnectionContext require -url [ad_conn url]
+
       set :user_id [ad_conn user_id]
       set :requestor [::xo::cc requestor]
       if {${:user_id} == 0} {
@@ -91,6 +97,9 @@ namespace eval ::xo {
     }
     if {![nsv_exists ${:array}-color idx]} {
       ::acs::clusterwide nsv_set ${:array}-color idx 0
+    }
+    if {![nsv_array exists ${:array}-anonymous_ids]} {
+      ::acs::clusterwide nsv_set ${:array}-anonymous_ids . .
     }
     if {${:user_id} != 0 || [:session_id] != 0} {
       :init_user_color
@@ -286,13 +295,6 @@ namespace eval ::xo {
   Chat instproc login {} {
     :log "--chat login mode=${:mode}"
     if {${:login_messages_p} && ![:user_active ${:user_id}]} {
-      if {![nsv_array exists ${:array}-anonymous_ids]} {
-        #
-        # Create array in case it does not exist, since we need it in
-        # the next command.
-        #
-        ::acs::clusterwide nsv_set ${:array}-anonymous_ids . .
-      }
       :add_msg -uid ${:user_id} -get_new false [_ xotcl-core.has_entered_the_room]
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
       # give some proof of our presence to the chat system when we
@@ -666,7 +668,6 @@ namespace eval ::xowiki {
          </div>
          <div id='xowiki-chat-users'></div>
       </div>
-      <span id="xowiki-my-user-id" hidden>[ad_conn user_id]</span>
     }]
 
     set conf [dict create]
@@ -683,6 +684,10 @@ namespace eval ::xowiki {
         -mode       $mode \
         -conf       $conf
     #:log "--CHAT created c1 with mode=$mode"
+
+    append html [subst {
+      <span id="xowiki-my-user-id" hidden>[c1 set user_id]</span>
+    }]
 
     set js ""
     set data [c1 login]

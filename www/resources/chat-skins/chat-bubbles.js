@@ -76,6 +76,7 @@ function renderMessage(msg) {
 
         // Add terminator for the previous message block if exists
         if (previous_user_id != "") {
+            console.log('aaaa', previous_user_id, my_user_id);
             if (previous_user_id == my_user_id) {
                 end_message = document.createElement('div');
                 end_message.className = 'xowiki-chat-message-block-end-me';
@@ -99,7 +100,11 @@ function renderMessage(msg) {
             wrapper.className = 'xowiki-chat-user-pic-wrap';
             if (show_avatar) {
                 img = document.createElement('img');
-                img.src = '/shared/portrait-bits.tcl?user_id=' + user_id
+                const imgHref = ((user_id == 0 || my_user_id == 0
+                                || !Number.isInteger(user_id) )
+                               ? '/shared/avatar-x50.png'
+                               : "/shared/portrait-bits.tcl?user_id=" + user_id);
+                img.setAttribute("src", imgHref);
                 img.className = 'xowiki-chat-user-pic';
                 img.style = 'border-color:' + color;
                 wrapper.appendChild(img);
@@ -107,10 +112,7 @@ function renderMessage(msg) {
             messages.appendChild(wrapper);
 
             // User link
-            a = document.createElement('a');
-            a.href = '/shared/community-member?user%5fid=' + user_id;
-            a.target = '_blank';
-            a.className = 'xowiki-chat-user-link';
+            const a = userLinkElement(user_id, my_user_id);
 
             // User name
             span = document.createElement('span');
@@ -196,14 +198,7 @@ function renderUsers(msg) {
         var color = msg.message[i].color;
 
         // User link
-        a = document.createElement('a');
-        if (user_id != my_user_id) {
-            a.href = '/shared/community-member?user%5fid=' + user_id;
-        } else {
-            a.href = '/pvt/home';
-        }
-        a.target = '_blank';
-        a.className = 'xowiki-chat-user-link';
+        const a = userLinkElement(user_id, my_user_id);
 
         // User block
         user_block = document.createElement('div');
@@ -215,7 +210,11 @@ function renderUsers(msg) {
             wrapper = document.createElement('div');
             wrapper.className = 'xowiki-chat-user-pic-wrap';
             img = document.createElement('img');
-            img.setAttribute("src", "/shared/portrait-bits.tcl?user_id=" + user_id);
+            let imgHref = ((user_id == 0 || my_user_id == 0
+                            || !Number.isInteger(user_id) )
+                           ? '/shared/avatar-x50.png'
+                           : "/shared/portrait-bits.tcl?user_id=" + user_id);
+            img.setAttribute("src", imgHref);
             img.setAttribute("class", "xowiki-chat-user-pic");
             img.setAttribute("style", "border-color:" + color);
             wrapper.appendChild(img);

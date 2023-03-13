@@ -56,31 +56,6 @@ function addSendPic() {
     }
 }
 
-function userLinkElement(user_id, current_user, where) {
-    let element;
-    let href;
-
-    if (user_id == 0 || !isInteger(user_id)) {
-        href = '';
-    } else if (user_id != current_user) {
-        href = '/shared/community-member?user%5fid=' + user_id;
-    } else {
-        href = '/pvt/home';
-    }
-    //console.log(where + " user_id " + user_id + " current_user " + current_user + " -> " + href);
-
-    if (href != "") {
-        element = document.createElement('a');
-        element.href = href;
-        element.target = '_blank';
-        element.className = 'xowiki-chat-user-link';
-    } else {
-        element = document.createElement('span');
-    }
-    return element;
-}
-
-
 // Render the message
 function renderMessage(msg) {
     var messages = document.getElementById('xowiki-chat-messages');
@@ -96,7 +71,7 @@ function renderMessage(msg) {
     user_block.className = 'xowiki-chat-user-block';
 
     // User link
-    a = userLinkElement(user_id, my_user_id, 'message');
+    a = userLinkElement(user_id, my_user_id);
 
     // User name
     span = document.createElement('span');
@@ -154,7 +129,7 @@ function renderUsers(msg) {
         var user = msg.message[i].user.replace(/\\'/g, "\"");
         var user_id = msg.message[i].user_id;
         var color = msg.message[i].color;
-        let a = userLinkElement(user_id, my_user_id, 'userlist');
+        let a = userLinkElement(user_id, my_user_id);
 
         // User block
         user_block = document.createElement('div');
@@ -169,7 +144,7 @@ function renderUsers(msg) {
             // We do not have an image for an anonymous user, the
             // anonymous user cannot access the portrait bits.
             let imgHref = ((user_id == 0 || my_user_id == 0
-                            || !isInteger(user_id) )
+                            || !Number.isInteger(user_id) )
                            ? '/shared/avatar-x50.png'
                            : "/shared/portrait-bits.tcl?user_id=" + user_id);
             img.setAttribute("src", imgHref);

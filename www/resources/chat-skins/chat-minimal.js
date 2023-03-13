@@ -78,7 +78,11 @@ function renderMessage(msg) {
     wrapper.className = 'xowiki-chat-user-pic-wrap';
     if (show_avatar) {
         img = document.createElement('img');
-        img.src = '/shared/portrait-bits.tcl?user_id=' + user_id
+        const imgHref = ((user_id == 0 || my_user_id == 0
+                          || !Number.isInteger(user_id) )
+                         ? '/shared/avatar-x50.png'
+                         : "/shared/portrait-bits.tcl?user_id=" + user_id);
+        img.setAttribute("src", imgHref);
         img.className = 'xowiki-chat-user-pic';
         img.style = 'border-color:' + color;
         wrapper.appendChild(img);
@@ -90,14 +94,7 @@ function renderMessage(msg) {
     user_block.className = 'xowiki-chat-user-block';
 
     // User link
-    a = document.createElement('a');
-    if (user_id != my_user_id) {
-        a.href = '/shared/community-member?user%5fid=' + user_id;
-    } else {
-        a.href = '/pvt/home';
-    }
-    a.target = '_blank';
-    a.className = 'xowiki-chat-user-link';
+    const a = userLinkElement(user_id, my_user_id);
 
     // User name
     span = document.createElement('span');

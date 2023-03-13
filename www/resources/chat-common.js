@@ -133,3 +133,28 @@ function renderData(json) {
         }
     }
 }
+
+function userLinkElement(user_id, current_user) {
+    let element;
+    let href;
+
+    if (user_id == 0 || !Number.isInteger(user_id)) {
+        href = '';
+    } else if (user_id != current_user) {
+        href = '/shared/community-member?user%5fid=' + user_id;
+    } else {
+        href = '/pvt/home';
+    }
+
+    if (href != "") {
+        element = document.createElement('a');
+        element.href = href;
+        element.target = '_blank';
+    } else {
+        element = document.createElement('span');
+    }
+
+    element.className = 'xowiki-chat-user-link';
+
+    return element;
+}
