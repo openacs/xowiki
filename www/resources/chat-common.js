@@ -138,7 +138,7 @@ function userLinkElement(user_id, current_user) {
     let element;
     let href;
 
-    if (user_id == 0 || !Number.isInteger(user_id)) {
+    if (user_id == 0 || !Number(user_id)) {
         href = '';
     } else if (user_id != current_user) {
         href = '/shared/community-member?user%5fid=' + user_id;
