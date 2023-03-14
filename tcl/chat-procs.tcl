@@ -45,7 +45,7 @@ namespace eval ::xo {
       # Chat may be instantiated outside xowiki, where ::xo::cc is
       # assumed to exist.
       #
-      ::xo::ConnectionContext require -url [ad_conn url]
+      ::xo::ConnectionContext require
 
       set :user_id [ad_conn user_id]
       set :requestor [::xo::cc requestor]
