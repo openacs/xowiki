@@ -2245,7 +2245,7 @@ namespace eval ::xowiki {
     renders it and returns either html or an error message.
   } {
     set page [:instantiate_includelet $arg]
-    if {$page eq ""} {
+    if {$page eq "" || ![nsf::is object $page]} {
       # The variable 'page_name' is required by the message key
       set page_name $arg
       return [:error_during_render [_ xowiki.error-includelet-unknown]]
