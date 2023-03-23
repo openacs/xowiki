@@ -111,7 +111,6 @@ aa_register_case \
       "::xowiki::Page instproc pretty_link"
       "::xowiki::Page instproc render"
       "::xowiki::hstore::double_quote"
-      ad_ns_set_to_tcl_vars
       general_comments_delete_messages
       xowiki::before-uninstantiate
     } \
