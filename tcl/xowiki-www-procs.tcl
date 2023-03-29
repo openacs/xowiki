@@ -1494,7 +1494,6 @@ namespace eval ::xowiki {
     if {[ns_conn method] ne "POST"} {
       error "method should be called via POST"
     }
-    set form [ns_getform]
 
     #
     # Get the disposition via query parameter.  We have currently the
@@ -1508,7 +1507,7 @@ namespace eval ::xowiki {
     ::security::csrf::validate
 
     set disposition [:query_parameter disposition:wordchar File]
-    set fileName [:query_parameter name:graph [ns_set get $form upload]]
+    set fileName [:query_parameter name:graph [ns_queryget upload]]
 
     set dispositionClass ::xowiki::UploadFile
     if {[info commands ::xowiki::Upload$disposition] ne ""} {
@@ -1518,8 +1517,8 @@ namespace eval ::xowiki {
     #ns_log notice "disposition class '$dispositionClass'"
     set dispositionObject [$dispositionClass new \
                                -file_name $fileName \
-                               -content_type [ns_set get $form upload.content-type] \
-                               -tmpfile [ns_set get $form upload.tmpfile] \
+                               -content_type [ns_queryget upload.content-type] \
+                               -tmpfile [ns_queryget upload.tmpfile] \
                                -parent_object [self]]
     set result [$dispositionObject store_file]
     $dispositionObject destroy
@@ -1562,8 +1561,7 @@ namespace eval ::xowiki {
     #
     #    ::xowiki::mode::admin
     #
-    set form [ns_getform]
-    set button [ns_set get $form button admin]
+    set button [ns_queryget button admin]
     ::xowiki::mode::$button toggle
     ns_return 200 text/plain ok
   }
