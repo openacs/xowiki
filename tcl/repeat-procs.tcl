@@ -102,7 +102,7 @@ namespace eval ::xowiki::formfield {
     #
     # Add max content items (1 .. max) and build form fields
     #
-    set formAction [${:object} form_parameter __form_action {}]
+    set formAction [${:object} form_parameter __form_action:graph {}]
     # TODO: we use for the time being the code for dynamic repeat field
     if {0 && $formAction eq ""} {
       #

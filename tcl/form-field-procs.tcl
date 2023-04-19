@@ -2544,7 +2544,7 @@ namespace eval ::xowiki::formfield {
       # a name suffix "__locale" or get the locale as specified by the user.
       #
       set locale [::$package_id form_parameter \
-                      "${:name}__locale" \
+                      "${:name}__locale:token" \
                       [::$package_id default_locale]]
       #
       # Save the value in the message keys with the resulting locale

@@ -290,7 +290,7 @@ namespace eval ::xowiki {
       # predates form-fields and follows ad_form conventions and uses
       # upvar, etc.
       #
-      set nls_language [$data form_parameter nls_language [$data form_parameter _nls_language]]
+      set nls_language [$data form_parameter nls_language:token [$data form_parameter _nls_language]]
       if {$nls_language eq ""} {
         set nls_language en_US
       }
@@ -310,7 +310,7 @@ namespace eval ::xowiki {
 
     # check, if we try to create a new item with an existing name
     #$data log "validate_name: new=[$data form_parameter __new_p 0], eq=[expr {$old_name ne $name}]"
-    if {[$data form_parameter __new_p 0]
+    if {[$data form_parameter __new_p:boolean 0]
         || $old_name ne $name
       } {
       if {[::xo::db::CrClass lookup -name $name -parent_id [$data parent_id]] == 0} {
@@ -399,7 +399,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc data_from_form {{-new 0}} {
-    if {[${:data} exists_form_parameter text.format]} {
+    if {[${:data} exists_form_parameter:graph text.format]} {
       ${:data} set mime_type [${:data} form_parameter text.format]
     }
     if {$new && [[${:data} set package_id] get_parameter production_mode:boolean 0]} {
@@ -799,7 +799,7 @@ namespace eval ::xowiki {
   }
 
   PageInstanceEditForm instproc init {} {
-    set item_id [${:data} form_parameter item_id]
+    set item_id [${:data} form_parameter:int32 item_id]
     #
     # make sure to have page template object loaded
     #

@@ -2951,7 +2951,7 @@ namespace eval ::xowiki {
     set autoname [:get_parameter autoname:boolean 0]
     set parent_id [${:id} query_parameter parent_id:cr_item_of_package,arg=${:id}]
     if {$parent_id eq ""} {
-      set parent_id [${:id} form_parameter folder_id ${:folder_id}]
+      set parent_id [${:id} form_parameter folder_id:int32 ${:folder_id}]
       if {![::xo::db::CrClass id_belongs_to_package -item_id $parent_id -package_id ${:id}]} {
         ad_return_complaint 1 "invalid parent_id"
         ad_script_abort
