@@ -10,8 +10,6 @@ aa_register_case -cats {
     smoke production_safe
 } -procs {
     util::which
-    apm_tar_cmd
-    apm_gzip_cmd
 } xowiki_exec_dependencies {
     Test external command dependencies for this package.
 } {
