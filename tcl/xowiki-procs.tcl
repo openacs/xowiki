@@ -1676,6 +1676,7 @@ namespace eval ::xowiki {
 
   ad_proc update_item_index {
     -item_id:required
+    -name
     -package_id
     -parent_id
     -publish_status
@@ -1693,7 +1694,7 @@ namespace eval ::xowiki {
   } {
     set updates {}
     foreach var {
-      package_id parent_id
+      name package_id parent_id
       publish_status page_template
       assignee state
     } {
