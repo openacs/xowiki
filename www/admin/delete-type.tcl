@@ -12,6 +12,11 @@
   {-return_url:localurl "."}
 }
 
+if {![nsf::is object $object_type] || ![$object_type isclass ::xowiki::Page]} {
+  ad_return_forbidden
+  ad_script_abort
+}
+
 set sql [$object_type instance_select_query \
              -with_subtypes 0 \
              -folder_id [::$package_id folder_id]]
