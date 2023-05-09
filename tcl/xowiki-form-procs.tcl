@@ -399,7 +399,7 @@ namespace eval ::xowiki {
   }
 
   WikiForm instproc data_from_form {{-new 0}} {
-    if {[${:data} exists_form_parameter:graph text.format]} {
+    if {[${:data} exists_form_parameter text.format:graph]} {
       ${:data} set mime_type [${:data} form_parameter text.format]
     }
     if {$new && [[${:data} set package_id] get_parameter production_mode:boolean 0]} {
@@ -799,7 +799,7 @@ namespace eval ::xowiki {
   }
 
   PageInstanceEditForm instproc init {} {
-    set item_id [${:data} form_parameter:int32 item_id]
+    set item_id [${:data} form_parameter item_id:int32]
     #
     # make sure to have page template object loaded
     #
