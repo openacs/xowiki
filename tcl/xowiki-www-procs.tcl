@@ -36,7 +36,7 @@ namespace eval ::xowiki {
       :msg "nothing to delete"
     }
 
-    set instantiate_p [:form_parameter instantiate_p false]
+    set instantiate_p [:form_parameter instantiate_p:boolean false]
 
     set item_ids [:get_ids_for_bulk_actions [:form_parameter objects]]
     foreach item_id $item_ids {
@@ -307,7 +307,7 @@ namespace eval ::xowiki {
       if {![info exists :parent_id]} {
         set :parent_id [::${:package_id} folder_id]
       }
-      set fp_parent_id [:form_parameter "parent_id" [:query_parameter parent_id:int32 ${:parent_id}]]
+      set fp_parent_id [:form_parameter parent_id [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
@@ -321,7 +321,7 @@ namespace eval ::xowiki {
 
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
-    set fp_package_id [:form_parameter "package_id" [:query_parameter package_id:int32 ${:package_id}]]
+    set fp_package_id [:form_parameter package_id [:query_parameter package_id:int32 ${:package_id}]]
 
     #
     # Handling publish_status. When the publish_status is provided via
@@ -1185,7 +1185,7 @@ namespace eval ::xowiki {
         set content [:render -update_references all]
         #:log "after save refs=[expr {[info exists :references]?${:references} : {NONE}}]"
 
-        set redirect_method [:form_parameter __form_redirect_method "view"]
+        set redirect_method [:form_parameter __form_redirect_method:word "view"]
         #:log "redirect_method $redirect_method"
 
         if {$redirect_method eq "__none"} {
@@ -1216,7 +1216,7 @@ namespace eval ::xowiki {
       # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
       #
-      set redirect_method [:form_parameter __form_redirect_method "view"]
+      set redirect_method [:form_parameter __form_redirect_method:word "view"]
       #:log "__redirect_method=$redirect_method"
       return [:www-view]
     } else {
@@ -1404,7 +1404,7 @@ namespace eval ::xowiki {
           set return_url [ad_urlencode_url $return_url]
         }
       }
-      set m [:form_parameter __form_redirect_method "edit"]
+      set m [:form_parameter __form_redirect_method:word "edit"]
       set url [export_vars -no_base_encode -base [:action_url] {m return_url}]
       #:log "=== setting action <$url> for form-action my-name ${:name}"
       $formNode setAttribute action $url method POST role form

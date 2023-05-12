@@ -2730,9 +2730,9 @@ namespace eval ::xowiki {
         -from [string trim [:form_parameter from ""]] \
         -to [string trim [:form_parameter to ""]] \
         -clean [string trim [:form_parameter clean ""]] \
-        -folder_id [string trim [:form_parameter folder_id ${:folder_id}]] \
+        -folder_id [string trim [:form_parameter folder_id:int32 ${:folder_id}]] \
         -package_id ${:id} \
-        -publish_status [string trim [:form_parameter publish_status "ready|live|expired"]]
+        -publish_status [string trim [:form_parameter publish_status:word "ready|live|expired"]]
 
     set :mime_type text/plain
     return ""
@@ -2967,7 +2967,7 @@ namespace eval ::xowiki {
       # access to the ::xowiki::PageTemplate of the
       # ::xowiki::PageInstance.
       #
-      $page set page_template [:form_parameter page_template]
+      $page set page_template [:form_parameter page_template:int32]
     }
 
     set source_item_id [${:id} query_parameter source_item_id:int32 ""]
