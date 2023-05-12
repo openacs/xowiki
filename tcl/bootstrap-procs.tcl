@@ -42,28 +42,33 @@ namespace eval ::xowiki {
   BootstrapNavbar ad_instproc render {} {
     http://getbootstrap.com/components/#navbar
   } {
-    html::nav -class [xowiki::CSS classes ${:navbarClass}] -role "navigation" -style "background-color: #f8f9fa;" {
-      #
-      # Render the pull down menus
-      #
-      html::div -class ${:containerClass} {
-        set rightMenuEntries {}
-        foreach entry [:children] {
-          if {[$entry istype ::xowiki::BootstrapNavbarDropdownMenu]} {
-            $entry render
-          } else {
-            lappend rightMenuEntries $entry
-          }
-        }
-        if {[llength $rightMenuEntries] > 0} {
-          html::ul -class "nav navbar-nav [::xowiki::CSS class navbar-right]" {
-            foreach entry $rightMenuEntries {
-              $entry render
+    html::nav \
+        -class [xowiki::CSS classes ${:navbarClass}] \
+        -role "navigation" \
+        -style "background-color: #f8f9fa;" {
+          #
+          # Render the pull down menus
+          #
+          html::div -class ${:containerClass} {
+            set rightMenuEntries {}
+            html::ul -class "nav navbar-nav px-3" {
+              foreach entry [:children] {
+                if {[$entry istype ::xowiki::BootstrapNavbarDropdownMenu]} {
+                  $entry render
+                } else {
+                  lappend rightMenuEntries $entry
+                }
+              }
+            }
+            if {[llength $rightMenuEntries] > 0} {
+              html::ul -class "nav navbar-nav [::xowiki::CSS class navbar-right]" {
+                foreach entry $rightMenuEntries {
+                  $entry render
+                }
+              }
             }
           }
         }
-      }
-    }
   }
 
 
@@ -83,31 +88,29 @@ namespace eval ::xowiki {
     # get group header
     set group " "
 
-    html::ul -class "nav navbar-nav px-3" {
-      html::li -class "nav-item dropdown" {
-        set class "nav-link dropdown-toggle"
-        if {${:brand}} {
-          lappend class "navbar-brand"
+    html::li -class "nav-item dropdown" {
+      set class "nav-link dropdown-toggle"
+      if {${:brand}} {
+        lappend class "navbar-brand"
+      }
+      set data_attribute [expr {[::xowiki::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
+      html::a -href "\#" -class $class -$data_attribute-toggle "dropdown" {
+        html::t ${:text}
+        if {[xowiki::CSS toolkit] eq "bootstrap"} {
+          html::b -class "caret"
         }
-        set data_attribute [expr {[::xowiki::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
-        html::a -href "\#" -class $class -$data_attribute-toggle "dropdown" {
-          html::t ${:text}
-          if {[xowiki::CSS toolkit] eq "bootstrap"} {
-            html::b -class "caret"
-          }
-        }
-        html::ul -class "dropdown-menu" {
-          foreach dropdownmenuitem [:children] {
-            if {[$dropdownmenuitem set group] ne ""
-                && [$dropdownmenuitem set group] ne $group
-              } {
-              if {$group ne " "} {
-                html::li -class "divider dropdown-divider"
-              }
-              set group [$dropdownmenuitem set group]
+      }
+      html::ul -class "dropdown-menu" {
+        foreach dropdownmenuitem [:children] {
+          if {[$dropdownmenuitem set group] ne ""
+              && [$dropdownmenuitem set group] ne $group
+            } {
+            if {$group ne " "} {
+              html::li -class "divider dropdown-divider"
             }
-            $dropdownmenuitem render
+            set group [$dropdownmenuitem set group]
           }
+          $dropdownmenuitem render
         }
       }
     }
@@ -158,12 +161,12 @@ namespace eval ::xowiki {
 
         @param href URL for POST request
         @param label Text to be displayed at the place where files are
-               dropped to
+        dropped to
         @param file_name_prefix prefix for files being uploaded
-               (used e.g. by the online exam).
+        (used e.g. by the online exam).
         @param disposition define, what happens after the file was
-               uploaded, e.g. whether the content has to be
-               transformed, stored and displayed later.
+        uploaded, e.g. whether the content has to be
+        transformed, stored and displayed later.
       }
 
   BootstrapNavbarDropzone instproc js {} {
@@ -184,12 +187,12 @@ namespace eval ::xowiki {
             //console.log("files " + files + " dispo '"+ disposition + "' url " + url + " prefix " + prefix);
             if (typeof files !== "undefined") {
               for (var i=0, l=files.length; i<l; i++) {
-                 // Send the file as multiple single requests and
-                 // not as a single post containing all entries. This
-                 // gives users with older NaviServers or AOLserver the chance
-                 // drop multiple files.
-                 uploadFile(files[i], disposition, url, prefix, csrf);
-               }
+                // Send the file as multiple single requests and
+                // not as a single post containing all entries. This
+                // gives users with older NaviServers or AOLserver the chance
+                // drop multiple files.
+                uploadFile(files[i], disposition, url, prefix, csrf);
+             }
 
             } else {
               alert("No support for the File API in this web browser");
