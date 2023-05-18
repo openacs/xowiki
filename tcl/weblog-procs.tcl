@@ -58,7 +58,7 @@ namespace eval ::xowiki {
     set extra_where_clause ""
 
     if {${:date} ne ""} {
-      if {![regexp {^\d\d\d\d[-]\d\d[-]\d\d$} ${:date}]} {
+      if {![regexp {^\d\d\d\d[-]\d?\d[-]\d?\d$} ${:date}]} {
         ns_log Warning "invalid date '${:date}'"
         ad_return_complaint 1 "invalid date"
         ad_script_abort
