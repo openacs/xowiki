@@ -1012,10 +1012,10 @@ namespace eval ::xowiki::formfield {
     #  -  0: can't say (or report back, that no evaluation should be
     #        provided for this field)
     #
-    #  This method is free from side-effects (no instance variables are updated).
+    #  This method is free of side-effects (no instance variables are updated).
     #
     #:log "CORRECT? ${:name} ([:info class]): value=${:value}, answer=[expr {[info exists :answer]?${:answer}:{NONE}}]"
-    if {[info exists :correct_when]} {
+    if {[info exists :correct_when] && ${:correct_when} ne ""} {
       set op [lindex ${:correct_when} 0]
       #:log "CORRECT? ${:name} with op=$op '${:correct_when}'"
       if {[:procsearch answer_check=$op] ne ""} {
@@ -2476,7 +2476,11 @@ namespace eval ::xowiki::formfield {
   text instproc initialize {} {
     :type text
     set :widget_type text
-    foreach p [list size maxlength] {if {[info exists :$p]} {set :html($p) [:$p]}}
+    foreach p [list size maxlength] {
+      if {[info exists :$p]} {
+        set :html($p) [:$p]
+      }
+    }
   }
   text instproc render_input {} {
     if {[:is_disabled] && [info exists :disabled_as_div]} {
@@ -4857,9 +4861,9 @@ namespace eval ::xowiki::formfield {
 
     :create_components $fields
 
-    #foreach c [:components] {
-    #  :log "... $c [$c name] [$c info class]"
-    #}
+    foreach c [:components] {
+      :log "... $c [$c name] [$c info class]"
+    }
   }
 
   text_fields instproc set_feedback {feedback_mode} {
@@ -4869,13 +4873,16 @@ namespace eval ::xowiki::formfield {
     # (fully) correct.
     #
     set :evaluated_answer_result [expr {"0" in ${:correction} ? "incorrect" : "correct"}]
+    #ns_log notice "set_feedback correction ${:correction} -> ${:evaluated_answer_result}"
     return ${:evaluated_answer_result}
   }
 
   text_fields instproc answer_is_correct {} {
     #:log "text_fields  CORRECT? ${:name}"
 
-    set feedback_mode [expr {[${:object} exists __feedback_mode] ? [${:object} set __feedback_mode] : 0}]
+    set feedback_mode [expr {[${:object} exists __feedback_mode]
+                             ? [${:object} set __feedback_mode]
+                             : 0}]
     set results {}
     set :correction {}
     foreach c [lsort ${:components}] {
