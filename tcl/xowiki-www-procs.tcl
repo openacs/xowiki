@@ -1185,7 +1185,7 @@ namespace eval ::xowiki {
         set content [:render -update_references all]
         #:log "after save refs=[expr {[info exists :references]?${:references} : {NONE}}]"
 
-        set redirect_method [:form_parameter __form_redirect_method:word "view"]
+        set redirect_method [:form_parameter __form_redirect_method:wordchar "view"]
         #:log "redirect_method $redirect_method"
 
         if {$redirect_method eq "__none"} {
@@ -1216,7 +1216,7 @@ namespace eval ::xowiki {
       # We have nothing to save (maybe everything is read-only). Check
       # __feedback_mode to prevent recursive loops.
       #
-      set redirect_method [:form_parameter __form_redirect_method:word "view"]
+      set redirect_method [:form_parameter __form_redirect_method:wordchar "view"]
       #:log "__redirect_method=$redirect_method"
       return [:www-view]
     } else {
@@ -1404,7 +1404,7 @@ namespace eval ::xowiki {
           set return_url [ad_urlencode_url $return_url]
         }
       }
-      set m [:form_parameter __form_redirect_method:word "edit"]
+      set m [:form_parameter __form_redirect_method:wordchar "edit"]
       set url [export_vars -no_base_encode -base [:action_url] {m return_url}]
       #:log "=== setting action <$url> for form-action my-name ${:name}"
       $formNode setAttribute action $url method POST role form
