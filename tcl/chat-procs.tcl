@@ -48,7 +48,7 @@ namespace eval ::xo {
       ::xo::ConnectionContext require
 
       set :user_id [ad_conn user_id]
-      set :requestor [::xo::cc requestor]
+      set :requester [::xo::cc requester]
       if {${:user_id} == 0} {
         #
         # Maybe the user_id was timed out, so fall potentially back to
@@ -62,11 +62,11 @@ namespace eval ::xo {
       set :original_user_id ${:user_id}
       if {${:user_id} == 0} {
         #
-        # Overwrite the user_id with the requestor. This increases
+        # Overwrite the user_id with the requester. This increases
         # backward compatibility and eases handling of the identifier
         # for the user.
         #
-        set :user_id ${:requestor}
+        set :user_id ${:requester}
       }
     }
     if {![info exists :session_id]} {
@@ -315,24 +315,24 @@ namespace eval ::xo {
     return $color
   }
 
-  Chat instproc usable_screen_name { screen_name requestor } {
-    if {[nsv_get ${:array}-anonymous_ids $screen_name seenRequestor]} {
-      if {$seenRequestor eq $requestor} {
+  Chat instproc usable_screen_name { screen_name requester } {
+    if {[nsv_get ${:array}-anonymous_ids $screen_name seenRequester]} {
+      if {$seenRequester eq $requester} {
         #
-        # We have this screen name already assigned to this requestor.
+        # We have this screen name already assigned to this requester.
         #
-        #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> later time"
+        #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> later time"
         return 1
       } else {
-        #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> not usable <$seenRequestor != $requestor>"
+        #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> not usable <$seenRequester != $requester>"
         return 0
       }
     }
     #
     # We saw this screen name the first time.
     #
-    #ns_log notice "check screen name for $requestor in ${:array}-anonymous_ids -> first time"
-    nsv_set ${:array}-anonymous_ids $screen_name $requestor
+    #ns_log notice "check screen name for $requester in ${:array}-anonymous_ids -> first time"
+    nsv_set ${:array}-anonymous_ids $screen_name $requester
     return 1
   }
 
@@ -340,31 +340,31 @@ namespace eval ::xo {
     #
     # Map the provided user_id (which might be numeric or an IP
     # address) to a screen name, which might be the configured screen
-    # name, the user name, or of the form userXXX.
+    # name, the username, or of the form userXXX.
     #
     #:log "user_name for $user_id"
     if {![nsf::is int32 $user_id]} {
       #
-      # The user_id is a requestor (e.g. IPv4 or IPv6 address)
+      # The user_id is a requester (e.g. IPv4 or IPv6 address)
       #
-      set requestor $user_id
+      set requester $user_id
       if {[::acs::icanuse "ns_hash"]} {
-        set hash [ns_hash $requestor]
+        set hash [ns_hash $requester]
         set screen_name user[expr {$hash % 1000}]
-        if {![:usable_screen_name $screen_name $requestor]} {
+        if {![:usable_screen_name $screen_name $requester]} {
           #
           # Collision: we have this screen_name already for a
-          # different requestor.
+          # different requester.
           #
           for {set i 1} {$i < 200} {incr i} {
             set screen_name user[expr {$hash % 1000}]$i
-            if {[:usable_screen_name $screen_name $requestor]} {
+            if {[:usable_screen_name $screen_name $requester]} {
               break
             }
           }
         }
       } else {
-        set screen_name $requestor
+        set screen_name $requester
       }
     } elseif {$user_id > 0} {
       #
