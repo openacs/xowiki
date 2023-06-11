@@ -382,7 +382,7 @@ namespace eval ::xowiki {
       append entry \
           "<a class='dropdown-toggle' data-toggle='dropdown' href='#'>" \
           [ns_quotehtml $label] \
-          "<span class='caret'></span></a>"
+          "</a>"
       set o_atts "class='dropdown'"
       set u_atts "class='dropdown-menu'"
 

@@ -96,9 +96,6 @@ namespace eval ::xowiki {
       set data_attribute [expr {[::xowiki::CSS toolkit] eq "bootstrap5" ? "data-bs" : "data"}]
       html::a -href "\#" -class $class -$data_attribute-toggle "dropdown" {
         html::t ${:text}
-        if {[xowiki::CSS toolkit] eq "bootstrap"} {
-          html::b -class "caret"
-        }
       }
       html::ul -class "dropdown-menu" {
         foreach dropdownmenuitem [:children] {
