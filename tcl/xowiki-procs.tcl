@@ -4702,7 +4702,7 @@ namespace eval ::xowiki {
                         }]
     #
     # Deactivating hstore optimization for now, must be further
-    # compeleted and debugged before activating it again.
+    # completed and debugged before activating it again.
     #
     if {$wc(h) ne "" || $uc(h) ne ""} {
       ns_log notice "hstore available $use_hstore, but deactivating anyway for now (wc $wc(h) uc $uc(h) )"
