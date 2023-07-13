@@ -689,13 +689,15 @@ namespace eval ::xowiki::bootstrap {
   ad_proc ::xowiki::bootstrap::card {
     -title:required
     -body:required
+    {-CSSclass ""}
   } {
     Render a Bootstrap Card.
 
     @return HTML
   } {
+    if 
     return [ns_trim -delimiter | [subst {
-      |<div class="[xowiki::CSS class card]">
+      |<div class="[xowiki::CSS class card] $CSSclass">
       |  <div class="[xowiki::CSS class card-header]">$title</div>
       |  <div class="[xowiki::CSS class card-body]">$body</div>
       |</div>
