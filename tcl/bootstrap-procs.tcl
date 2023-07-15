@@ -695,7 +695,6 @@ namespace eval ::xowiki::bootstrap {
 
     @return HTML
   } {
-    if 
     return [ns_trim -delimiter | [subst {
       |<div class="[xowiki::CSS class card] $CSSclass">
       |  <div class="[xowiki::CSS class card-header]">$title</div>
