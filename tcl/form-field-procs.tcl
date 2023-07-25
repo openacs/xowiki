@@ -5105,7 +5105,7 @@ namespace eval ::xowiki::formfield {
     {dnd:boolean true}
     {bulk_operation:boolean false}
   }  -ad_doc {
-    Class for selecting a subset from a list of candidates.
+    XOTcl class for selecting a subset from a list of candidates.
     @param as_box makes something like in info box in wikipedia (right floated)
     @param keep_order when set, the user provided order is preserved, otherwise
            the order form the candidates is used.
