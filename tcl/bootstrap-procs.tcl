@@ -567,13 +567,16 @@ namespace eval ::xo::Table {
     set bulkactions [[self]::__bulkactions children]
     if {[llength $bulkactions] > 0} {
       html::div -class "btn-group align-items-center" -role group -aria-label "Bulk actions" {
-        html::t "#xotcl-core.Bulk_actions#:"
-        set bulkaction_container [[lindex $bulkactions 0] set __parent]
-        set name [$bulkaction_container set __identifier]
+        html::span -class "bulk-action-label" {
+          html::t "#xotcl-core.Bulk_actions#:"
+        }
 
-        foreach bulk_action $bulkactions {
-          set id [::xowiki::Includelet html_id $bulk_action]
-          html::ul -class compact {
+        html::ul -class compact {        
+          set bulkaction_container [[lindex $bulkactions 0] set __parent]
+          set name [$bulkaction_container set __identifier]
+
+          foreach bulk_action $bulkactions {
+            set id [::xowiki::Includelet html_id $bulk_action]
             html::li {
               html::a -class [::xowiki::CSS class bulk-action] -rule button \
                   -title [$bulk_action tooltip] -href # \
@@ -582,21 +585,21 @@ namespace eval ::xo::Table {
                   }
             }
           }
-          set script [subst {
-            acs_ListBulkActionClick("$name","[$bulk_action url]");
-          }]
-          if {[$bulk_action confirm_message] ne ""} {
-            set script [subst {
-              if (confirm('[$bulk_action confirm_message]')) {
-                $script
-              }
-            }]
-          }
-          template::add_event_listener \
-              -id $id \
-              -preventdefault=false \
-              -script $script
         }
+        set script [subst {
+          acs_ListBulkActionClick("$name","[$bulk_action url]");
+        }]
+        if {[$bulk_action confirm_message] ne ""} {
+          set script [subst {
+            if (confirm('[$bulk_action confirm_message]')) {
+              $script
+            }
+          }]
+        }
+        template::add_event_listener \
+            -id $id \
+            -preventdefault=false \
+            -script $script
       }
     }
   }
