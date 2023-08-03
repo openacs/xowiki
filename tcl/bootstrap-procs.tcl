@@ -124,8 +124,9 @@ namespace eval ::xowiki {
       }
 
   BootstrapNavbarDropdownMenuItem ad_instproc render {} {doku} {
-    html::li -class [expr {${:href} eq "" ? "nav-item disabled": "nav-item"}] {
-      set :CSSclass dropdown-item
+    set disabledClass [expr {${:href} eq "" ? "disabled" : ""}]
+    html::li -class [string trimright "nav-item $disabledClass"] {
+      set :CSSclass [string trimright "dropdown-item $disabledClass"]
       html::a [:get_attributes target href title id {CSSclass class}] {
         html::t ${:text}
       }
