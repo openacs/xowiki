@@ -198,6 +198,9 @@ namespace eval ::xowiki {
           {form_button_wrapper_CSSclass ""}
           {form_help_text_CSSclass form-text}
         }]
+        ::xowiki::formfield::select parameter {
+          {CSSclass form-select}
+        }
       } else {
         ::xowiki::formfield::FormField parameter {
           {CSSclass}
