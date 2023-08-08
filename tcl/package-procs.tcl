@@ -201,6 +201,12 @@ namespace eval ::xowiki {
         ::xowiki::formfield::select parameter {
           {CSSclass form-select}
         }
+        ::xowiki::formfield::checkbox parameter {
+          {CSSclass form-check}
+        }
+        ::xowiki::formfield::radio parameter {
+          {CSSclass form-check}
+        }
       } else {
         ::xowiki::formfield::FormField parameter {
           {CSSclass}
