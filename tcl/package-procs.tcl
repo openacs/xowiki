@@ -207,6 +207,9 @@ namespace eval ::xowiki {
         ::xowiki::formfield::radio parameter {
           {CSSclass form-check}
         }
+        ::xowiki::formfield::range parameter {
+          {CSSclass form-range}
+        }
       } else {
         ::xowiki::formfield::FormField parameter {
           {CSSclass}
