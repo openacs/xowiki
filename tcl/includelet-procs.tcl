@@ -2650,7 +2650,7 @@ namespace eval ::xowiki::includelet {
       set :js [:yui_non_ajax]
     }
 
-    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
+    set tree [::xowiki::Tree new -id [:id] -destroy_on_cleanup]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page -expand_all $expand_all \
@@ -2664,10 +2664,11 @@ namespace eval ::xowiki::includelet {
 
   toc instproc render_tree {{-full false} pages} {
     :get_parameters
-    set tree [::xowiki::Tree new -destroy_on_cleanup \
+    set tree [::xowiki::Tree new \
                   -id [:id] \
                   -verbose 0 \
-                  -owner [self]]
+                  -owner [self] \
+                  -destroy_on_cleanup]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full -remove_levels $remove_levels \
         -book_mode $book_mode -open_page $open_page \
@@ -2703,7 +2704,7 @@ namespace eval ::xowiki::includelet {
     } else {
       set allow_reorder [:page_reorder_check_allow -with_head_entries false $allow_reorder]
     }
-    set tree [::xowiki::Tree new -destroy_on_cleanup -id [:id]]
+    set tree [::xowiki::Tree new -id [:id] -destroy_on_cleanup]
     $tree array set open_node [array get :open_node]
     $tree add_pages -full $full \
         -remove_levels $remove_levels \

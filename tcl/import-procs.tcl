@@ -476,14 +476,15 @@ namespace eval ::xowiki {
         } else {
           # we create a new folder ...
           set folder_form_id [::$package_id instantiate_forms -forms en:folder.form]
-          set folder_object [FormPage new -destroy_on_cleanup \
+          set folder_object [FormPage new \
                                  -title $file_name \
                                  -name $file_name \
                                  -package_id $package_id \
                                  -parent_id $parent_id \
                                  -nls_language en_US \
                                  -instance_attributes {} \
-                                 -page_template $folder_form_id]
+                                 -page_template $folder_form_id \
+                                 -destroy_on_cleanup ]
           $folder_object save_new
           # ..... and refetch it under its canonical name
           ::xo::db::CrClass get_instance_from_db -item_id [$folder_object item_id]
@@ -536,13 +537,14 @@ namespace eval ::xowiki {
             $file_object save
           } else {
             :msg "file $file_name created new"
-            set file_object [::xowiki::File new -destroy_on_cleanup \
+            set file_object [::xowiki::File new \
                                  -title $file_name \
                                  -name file:$file_name \
                                  -parent_id $parent_id \
                                  -mime_type $mime_type \
                                  -package_id $package_id \
-                                 -creation_user [::xo::cc user_id] ]
+                                 -creation_user [::xo::cc user_id] \
+                                 -destroy_on_cleanup ]
             $file_object set import_file $tmpfile
             $file_object save_new
           }

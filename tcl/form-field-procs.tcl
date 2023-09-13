@@ -1456,13 +1456,14 @@ namespace eval ::xowiki::formfield {
       #
       set label [${:object} title]
     }
-    set l [::xowiki::Link create new -destroy_on_cleanup \
+    set l [::xowiki::Link create new \
                -page ${:object} -type "image" \
                -lang [dict get $item_ref prefix] \
                -stripped_name [dict get $item_ref stripped_name] \
                -label $label \
                -parent_id [dict get $item_ref parent_id] \
-               -item_id [dict get $item_ref item_id]]
+               -item_id [dict get $item_ref item_id] \
+               -destroy_on_cleanup]
 
     if {[:istype file]} {
       if {$revision_id ne ""} {
@@ -2073,13 +2074,14 @@ namespace eval ::xowiki::formfield {
       #
       #:msg "new file"
       set package_id [${:object} package_id]
-      set file_object [::xowiki::File new -destroy_on_cleanup \
+      set file_object [::xowiki::File new \
                            -title $file_name \
                            -name $object_name \
                            -parent_id $parent_id \
                            -mime_type $content_type \
                            -package_id $package_id \
-                           -creation_user [::xo::cc user_id] ]
+                           -creation_user [::xo::cc user_id] \
+                           -destroy_on_cleanup]
       $file_object set import_file $tmpfile
       eval $publish_date_cmd
       #
@@ -2188,14 +2190,15 @@ namespace eval ::xowiki::formfield {
 
         #:log "name <$object_name> pretty value name '[dict get $item_info stripped_name]'"
 
-        set l [::xowiki::Link new -destroy_on_cleanup \
+        set l [::xowiki::Link new \
                    -page ${:object} -type "file" \
                    -lang [dict get $item_info prefix] \
                    -stripped_name [dict get $item_info stripped_name] \
                    -label $fn \
                    -extra_query_parameter [list [list filename $fn]] \
                    -parent_id [dict get $item_info parent_id] \
-                   -item_id [dict get $item_info item_id]]
+                   -item_id [dict get $item_info item_id] \
+                   -destroy_on_cleanup]
         append result [$l render]
       }
       return $result
@@ -5928,13 +5931,14 @@ namespace eval ::xowiki::formfield {
     }
     #:msg "guess mime_type of $entry_name = [::xowiki::guesstype $entry_name]"
     ::xo::write_tmp_file import_file $img
-    set file_object [::xowiki::File new -destroy_on_cleanup \
+    set file_object [::xowiki::File new \
                          -title $entry_name \
                          -name $entry_name \
                          -parent_id $folder_id \
                          -mime_type [::xowiki::guesstype $entry_name] \
                          -package_id [${:object} package_id] \
                          -creation_user [::xo::cc user_id] \
+                         -destroy_on_cleanup \
                         ]
     $file_object set import_file $import_file
     $file_object save_new

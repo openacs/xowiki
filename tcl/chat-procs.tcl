@@ -678,11 +678,11 @@ namespace eval ::xowiki {
     }
 
     :create c1 \
-        -destroy_on_cleanup \
         -chat_id    $chat_id \
         -session_id $session_id \
         -mode       $mode \
-        -conf       $conf
+        -conf       $conf \
+        -destroy_on_cleanup
     #:log "--CHAT created c1 with mode=$mode"
 
     append html [subst {

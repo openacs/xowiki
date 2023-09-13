@@ -2613,7 +2613,7 @@ namespace eval ::xowiki {
           } else {
             ::xowiki::Package require_site_wide_pages
             set form_id [::${:id} instantiate_forms -forms en:folder.form]
-            set f [FormPage new -destroy_on_cleanup \
+            set f [FormPage new \
                        -name $name \
                        -text "" \
                        -package_id ${:id} \
@@ -2621,7 +2621,8 @@ namespace eval ::xowiki {
                        -nls_language en_US \
                        -publish_status ready \
                        -instance_attributes {} \
-                       -page_template $form_id]
+                       -page_template $form_id \
+                       -destroy_on_cleanup ]
             $f save_new
             set folder_id [$f item_id]
 
@@ -2796,14 +2797,15 @@ namespace eval ::xowiki {
     } else {
       set days 10
     }
-    set r [RSS new -destroy_on_cleanup \
+    set r [RSS new \
                -package_id ${:id} \
                -parent_ids [:query_parameter parent_ids:int32,0..n ""] \
                -name_filter $name_filter \
                -entries_of $entries_of \
                -title $title \
                -description $description \
-               -days $days]
+               -days $days \
+               -destroy_on_cleanup ]
 
     set :mime_type text/xml
     return [$r render]

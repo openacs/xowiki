@@ -2762,7 +2762,7 @@ namespace eval ::xowiki {
             set f [:lookup_form_field -name $att $form_fields]
             if {![$f is_disabled]} {
               set value [$f value [string trim [$cc form_parameter $att]]]
-              #:log "===== Page get_form_data calls lookup_form_field -name $att -> $f -> '$value'"              
+              #:log "===== Page get_form_data calls lookup_form_field -name $att -> $f -> '$value'"
               if {[string first . $att] == -1} {
                 #
                 # If the field is not a compound field, put the received
@@ -3146,9 +3146,10 @@ namespace eval ::xowiki {
   }
 
   FormPage instproc render_form_action_buttons {{-CSSclass ""}} {
-    set f [::xowiki::formfield::submit_button new -destroy_on_cleanup \
+    set f [::xowiki::formfield::submit_button new \
                -name __form_button_ok \
-               -CSSclass $CSSclass]
+               -CSSclass $CSSclass \
+               -destroy_on_cleanup ]
 
     ::html::div [expr {[$f exists form_button_wrapper_CSSclass]
                        ? [list class [$f form_button_wrapper_CSSclass]]
