@@ -261,7 +261,7 @@ namespace eval ::xowiki {
         [apm_version_names_compare $to_version_name "0.59"] > -1} {
       ns_log notice "-- upgrading to 0.59"
       #
-      # Remove all old objects of tyoe ::xowiki::FormInstance and the type
+      # Remove all old objects of type ::xowiki::FormInstance and the type
       # from the database.
       #
       if {[catch {
