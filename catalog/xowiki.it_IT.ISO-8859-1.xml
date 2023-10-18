@@ -215,6 +215,7 @@
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">%errorMsg%</msg>
   <msg key="Page-validate_name-duplicate_item">Esiste già un altro oggetto di nome &#39;%value%&#39; in questa cartella</msg>
+  <msg key="Page-validate_name-invalid_name">Il nome &#39;%value%&#39; non è valido</msg>
   <msg key="Page-validate_page_order">Ordine Pagina non valido; può contenere solo caratteri maiuscoli e minuscoli, underscore, cifre e punti</msg>
   <msg key="page_kind">Tipo</msg>
   <msg key="Page_pretty_name">Pagina XoWiki</msg>
