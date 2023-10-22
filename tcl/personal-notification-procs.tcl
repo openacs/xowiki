@@ -196,6 +196,15 @@ namespace eval ::xowiki::includelet {
     #
     # provided via get_parameters
     #
+
+    # Create Bootstrap3/5 compatible attributes
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      set data_attribute "data-bs"
+      set close_button_css "btn-close"
+    } else {
+      set data_attribute "data"
+      set close_button_css "close"
+    }
     template::add_body_script -script [subst {
       var inclass_exam_messages_ts = \[\];
 
@@ -220,8 +229,8 @@ namespace eval ::xowiki::includelet {
                 if (inclass_exam_messages_ts.indexOf(data.ts) == -1) {
                   var alert = 'alert-' + data.urgency;
                   block = '<div class="alert ' + alert + ' alert-dismissible" style="width:50%">'
-                  + '<a id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="close" '
-                  + 'data-dismiss="alert" aria-label="close">&times;</a>'
+                  + '<a id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="$close_button_css" '
+                  + '$data_attribute-dismiss="alert" aria-label="close">&times;</a>'
                   + '<strong>' + data.from +':</strong> <span>' + data.text + '</span>'
                   + '</div>';
                   inclass_exam_messages_ts.push(data.ts);
@@ -231,7 +240,7 @@ namespace eval ::xowiki::includelet {
                 el.innerHTML += block;
               }
             });
-            document.querySelectorAll('a.close').forEach(function(e) {
+            document.querySelectorAll('a.$close_button_css').forEach(function(e) {
               //console.log('register dismiss handler ts '+ e.dataset.ts);
               e.removeEventListener('click', inclass_exam_dismiss_handler);
               e.addEventListener('click', inclass_exam_dismiss_handler);

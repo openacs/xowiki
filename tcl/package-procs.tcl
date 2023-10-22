@@ -1638,7 +1638,61 @@ namespace eval ::xowiki {
 
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
-      set page [:get_page_from_item_or_revision_id $(item_id)]
+      
+      if {$method eq "download"} {
+        set object_id $(item_id)
+        set isObject [::xo::dc 0or1row -prepare integer check_object_id {
+          select 1 from acs_objects where object_id = :object_id
+        }]
+        
+        if {!$isObject} {
+          #
+          # Something horrible must have happened. We have a cached
+          # item_id, which is not an object.
+          #
+          ns_log error "GN: BIG PROBLEM: the cache lookup of <$(parent_id)-$(name)> returned" \
+              "something, which is not an object <$(item_id)>.. flush cache for this"
+          xo::xotcl_object_type_cache flush -partition_key $(parent_id) $(parent_id-$(name)
+          set parent_id $(parent_id)
+          set name $(name)
+          set fetched_id [::xo::dc get_value -prepare integer,text check_object_id {
+            select item_id from cr_items where parent_id = :parent_id and name = :name
+          }]
+          ns_log notice "... refetched ID <$(parent_id)-$(name)> -> $fetched_id"
+          set (item_id) $fetched_id
+        }
+      }
+      try {
+        :get_page_from_item_or_revision_id $(item_id)
+      } on error {errorMsg} {
+        ns_log error "GN: BIG PROBLEM 2: could not fetch page for item_id '$(item_id)' CONTEXT: [array get {}]"
+        try {
+          set cache_name [::nsf::dispatch xo::xotcl_object_type_cache cache_name $(item_id)]
+          set cache_key $(parent_id)-$(name)
+          set cache_value "NONE"
+          set cached [ns_cache_get $cache_name $cache_key cache_value]        
+          set cache_info "cache_name $cache_name cache_key $cache_key cached $cached cache_value $cache_value"
+          if {$cached} {
+            xo::xotcl_object_type_cache flush -partition_key $(parent_id) $(parent_id)-$(name)
+          }          
+        } on error {errorMsg} {
+          set cache_info "no cache info <$errorMsg>"
+        }
+        ns_log notice "... cache info $cache_info"        
+        return -code error -errorcode $::errorCode -errorinfo $::errorInfo $errorMsg
+      } on ok {result} {
+        set page $result
+      }
+      try {
+        set cache_name [::nsf::dispatch xo::xotcl_object_type_cache cache_name $(item_id)]
+        set cache_key $(parent_id)-$(name)
+        set cache_value "NONE"
+        set cached [ns_cache_get $cache_name $cache_key cache_value]        
+        set cache_info "cache_name $cache_name cache_key $cache_key cached $cached cache_value $cache_value"
+      } on error {errorMsg} {
+        set cache_info "no cache info <$errorMsg>"
+      }
+      ns_log notice "GOT <$page> cache info $cache_info"
 
       # TODO: remove me when settled
       if {[$page info vars storage_type] eq ""} {ad_log notice "$page has no storage_type"}
