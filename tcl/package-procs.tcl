@@ -1638,6 +1638,7 @@ namespace eval ::xowiki {
 
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
+      if {![info exists method]} { set method "" }
 
       if {$method eq "download"} {
         set object_id $(item_id)
