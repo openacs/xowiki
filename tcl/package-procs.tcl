@@ -1638,13 +1638,13 @@ namespace eval ::xowiki {
 
     if {$(item_id) ne 0} {
       if {$(method) ne ""} { set method $(method) }
-      
+
       if {$method eq "download"} {
         set object_id $(item_id)
         set isObject [::xo::dc 0or1row -prepare integer check_object_id {
           select 1 from acs_objects where object_id = :object_id
         }]
-        
+
         if {!$isObject} {
           #
           # Something horrible must have happened. We have a cached
@@ -1670,15 +1670,15 @@ namespace eval ::xowiki {
           set cache_name [::nsf::dispatch xo::xotcl_object_type_cache cache_name $(item_id)]
           set cache_key $(parent_id)-$(name)
           set cache_value "NONE"
-          set cached [ns_cache_get $cache_name $cache_key cache_value]        
+          set cached [ns_cache_get $cache_name $cache_key cache_value]
           set cache_info "cache_name $cache_name cache_key $cache_key cached $cached cache_value $cache_value"
           if {$cached} {
             xo::xotcl_object_type_cache flush -partition_key $(parent_id) $(parent_id)-$(name)
-          }          
+          }
         } on error {errorMsg} {
           set cache_info "no cache info <$errorMsg>"
         }
-        ns_log notice "... cache info $cache_info"        
+        ns_log notice "... cache info $cache_info"
         return -code error -errorcode $::errorCode -errorinfo $::errorInfo $errorMsg
       } on ok {result} {
         set page $result
@@ -1687,7 +1687,7 @@ namespace eval ::xowiki {
         set cache_name [::nsf::dispatch xo::xotcl_object_type_cache cache_name $(item_id)]
         set cache_key $(parent_id)-$(name)
         set cache_value "NONE"
-        set cached [ns_cache_get $cache_name $cache_key cache_value]        
+        set cached [ns_cache_get $cache_name $cache_key cache_value]
         set cache_info "cache_name $cache_name cache_key $cache_key cached $cached cache_value $cache_value"
       } on error {errorMsg} {
         set cache_info "no cache info <$errorMsg>"
