@@ -686,7 +686,7 @@ namespace eval ::xowiki {
     #:log "--CHAT created c1 with mode=$mode"
 
     append html [subst {
-      <span id="xowiki-my-user-id" hidden>[c1 set user_id]</span>
+      <span id="xowiki-my-user-id" style="display:none;">[c1 set user_id]</span>
     }]
 
     set js ""
@@ -732,11 +732,8 @@ namespace eval ::xowiki {
         set send_msg_handler scriptedStreamingSendMsgHandler
       }
     }
-    append html [subst {
-      <script nonce='[security::csp::nonce]'>
-      $js
-      </script>
-    }]
+
+    template::add_body_handler -event load -script $js
 
     template::add_refresh_on_history_handler
 
