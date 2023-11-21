@@ -571,7 +571,7 @@ namespace eval ::xo::Table {
           html::t "#xotcl-core.Bulk_actions#:"
         }
 
-        html::ul -class compact {        
+        html::ul -class compact {
           set bulkaction_container [[lindex $bulkactions 0] set __parent]
           set name [$bulkaction_container set __identifier]
 
@@ -584,22 +584,22 @@ namespace eval ::xo::Table {
                     html::t [$bulk_action label]
                   }
             }
+            set script [subst {
+              acs_ListBulkActionClick("$name","[$bulk_action url]");
+            }]
+            if {[$bulk_action confirm_message] ne ""} {
+              set script [subst {
+                if (confirm('[$bulk_action confirm_message]')) {
+                  $script
+                }
+              }]
+            }
+            template::add_event_listener \
+                -id $id \
+                -preventdefault=false \
+                -script $script
           }
         }
-        set script [subst {
-          acs_ListBulkActionClick("$name","[$bulk_action url]");
-        }]
-        if {[$bulk_action confirm_message] ne ""} {
-          set script [subst {
-            if (confirm('[$bulk_action confirm_message]')) {
-              $script
-            }
-          }]
-        }
-        template::add_event_listener \
-            -id $id \
-            -preventdefault=false \
-            -script $script
       }
     }
   }
