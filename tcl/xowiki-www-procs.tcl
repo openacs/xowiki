@@ -259,7 +259,13 @@ namespace eval ::xowiki {
     # Collect some default values from query parameters.
     #
     set default_variables [list]
-    foreach param {name title page_order:graph last_page_id:int32 nls_language:wordchar} {
+    foreach param [list \
+                       name \
+                       title \
+                       page_order:graph \
+                       last_page_id:int32 \
+                       "nls_language:oneof,set=[join [lang::system::get_locales] |]" \
+                      ] {
       regexp {^([^:]+):?} $param . key
       if {[:exists_query_parameter $key]} {
         lappend default_variables $key [:query_parameter $param]
@@ -850,7 +856,13 @@ namespace eval ::xowiki {
 
   Page instproc edit_set_default_values {} {
     # set some default values if they are provided
-    foreach param {name title page_order:graph last_page_id:int32 nls_language:wordchar} {
+    foreach param [list \
+                       name \
+                       title \
+                       page_order:graph \
+                       last_page_id:int32 \
+                       "nls_language:oneof,set=[join [lang::system::get_locales] |]" \
+                      ] {
       regexp {^([^:]+):?} $param . key
       if {[::${:package_id} exists_query_parameter $key]} {
         #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
