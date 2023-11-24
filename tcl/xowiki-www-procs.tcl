@@ -264,7 +264,7 @@ namespace eval ::xowiki {
                        title \
                        page_order:graph \
                        last_page_id:int32 \
-                       "nls_language:oneof,set=[join [lang::system::get_locales] |]" \
+                       "nls_language:oneof,arg=[join [lang::system::get_locales] |]" \
                       ] {
       regexp {^([^:]+):?} $param . key
       if {[:exists_query_parameter $key]} {
@@ -861,7 +861,7 @@ namespace eval ::xowiki {
                        title \
                        page_order:graph \
                        last_page_id:int32 \
-                       "nls_language:oneof,set=[join [lang::system::get_locales] |]" \
+                       "nls_language:oneof,arg=[join [lang::system::get_locales] |]" \
                       ] {
       regexp {^([^:]+):?} $param . key
       if {[::${:package_id} exists_query_parameter $key]} {
