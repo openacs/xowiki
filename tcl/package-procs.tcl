@@ -1693,7 +1693,7 @@ namespace eval ::xowiki {
       } on error {errorMsg} {
         set cache_info "no cache info <$errorMsg>"
       }
-      ns_log notice "GOT <$page> cache info $cache_info"
+      #ns_log notice "GOT <$page> cache info $cache_info"
 
       # TODO: remove me when settled
       if {[$page info vars storage_type] eq ""} {ad_log notice "$page has no storage_type"}
