@@ -2107,7 +2107,9 @@ namespace eval ::xowiki {
       set template ""
       set page [self]
 
-      foreach css [::$context_package_id get_parameter extra_css ""] {
+      foreach css [::$context_package_id get_parameter \
+                       -check_query_parameter false \
+                       extra_css ""] {
         ::xo::Page requireCSS -order 10 $css
       }
 
