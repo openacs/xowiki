@@ -1519,7 +1519,17 @@ namespace eval ::xowiki {
     ::security::csrf::validate
 
     set disposition [:query_parameter disposition:wordchar File]
-    set fileName [:query_parameter name:graph [ns_queryget upload]]
+
+    #
+    # Filename is sanitized. If it turns out to be made only of
+    # invalid characters, we complain.
+    #
+    set fileName [ad_sanitize_filename \
+                      [ns_queryget name [ns_queryget upload]]]
+    if {[string length $filename] == 0} {
+      ad_return_complaint 1 [_ acs-templating.Invalid_filename]
+      ad_script_abort
+    }
 
     set dispositionClass ::xowiki::UploadFile
     if {[info commands ::xowiki::Upload$disposition] ne ""} {
