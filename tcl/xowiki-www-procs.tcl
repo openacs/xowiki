@@ -2696,6 +2696,13 @@ namespace eval ::xowiki {
     array set containers [list]
     set cc [::${:package_id} context]
 
+    #
+    # Fetching the form data may also affect this object's
+    # variables. Backup the old page object to revert these changes in
+    # case of validation error.
+    #
+    :copy old_page
+
     if {![info exists field_names]} {
       #
       # Field names might come directly from the POST request payload
@@ -2942,6 +2949,13 @@ namespace eval ::xowiki {
       #
       foreach f $form_fields {
         $f reset_on_validation_error
+      }
+      #
+      # Revert changes performed by this method on the page object, as
+      # these may come from data failing to validate.
+      #
+      foreach var [old_page info vars] {
+        set :$var [old_page set $var]
       }
     }
 
