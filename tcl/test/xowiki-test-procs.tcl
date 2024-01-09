@@ -621,19 +621,19 @@ namespace eval ::xowiki::test {
                 set ignored [$root getElementById F.$id_part.ignored]
                 set assignee [$root getElementById F.$id_part._assignee]
                 set page_order [$root getElementById F.$id_part._page_order]
-                set input_box1 [$root getElementById F.$id_part.box1:1]
-                set input_box2 [$root getElementById F.$id_part.box1:2]
-                set input_box3 [$root getElementById F.$id_part.box2.1:a]
-                set input_box4 [$root getElementById F.$id_part.box2.1:b]
+                set input_box1_1 [$root getElementById F.$id_part.box1:1]
+                set input_box1_2 [$root getElementById F.$id_part.box1:2]
+                set input_box2_1_a [$root getElementById F.$id_part.box2.1:a]
+                set input_box2_1_b [$root getElementById F.$id_part.box2.1:b]
                 set input_box5 [$root getElementById F.$id_part.mycompound.start_on_publish:t]
                 set input_box6 [$root getElementById F.$id_part.box3:30]
                 set input_box7 [$root getElementById F.$id_part.box3:31]
                 aa_equals "ignored text field is empty"  [$ignored getAttribute value] ""
                 aa_equals "assignee text field is empty" [$assignee getAttribute value] ""
-                aa_equals "input_box1 box checked (box1: simple box)"   [$input_box1 hasAttribute checked] 0
-                aa_equals "input_box2 box checked (box1: simple box)"   [$input_box2 hasAttribute checked] 1
-                aa_equals "input_box3 box checked (box2: repeated box)" [$input_box3 hasAttribute checked] 0
-                aa_equals "input_box4 box checked (box2: repeated box)" [$input_box4 hasAttribute checked] 1
+                aa_equals "input_box1_1 box checked (box1: simple box)"   [$input_box1_1 hasAttribute checked] 1
+                aa_equals "input_box1_2 box checked (box1: simple box)"   [$input_box1_2 hasAttribute checked] 0
+                aa_equals "input_box2_1_a box checked (box2: repeated box)" [$input_box2_1_a hasAttribute checked] 1
+                aa_equals "input_box2_1_b box checked (box2: repeated box)" [$input_box2_1_b hasAttribute checked] 0
                 aa_equals "input_box5 box checked (mycompound)"         [$input_box5 hasAttribute checked] 1
                 aa_equals "input_box6 box checked (box3: simple disabled box)" [$input_box6 hasAttribute checked] 1
                 aa_equals "input_box7 box checked (box3: simple disabled box)" [$input_box7 hasAttribute checked] 0
@@ -994,6 +994,54 @@ namespace eval ::xowiki::test {
                 aa_equals "Radio 'X' not checked"   [$radio1 hasAttribute checked] 0
                 aa_equals "Radio 'Y' not checked"   [$radio2 hasAttribute checked] 0
                 aa_equals "Radio 'Z' not checked"   [$radio3 hasAttribute checked] 0
+
+                set anumber_3 [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.anumber]
+                # Note: we check on purpose for math equality, not string equality
+                aa_true "Number in 3rd repeat field is correct" {[$anumber_3 getAttribute value] == 3}
+                set acheckbox_3_a [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:A]
+                set acheckbox_3_b [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:B]
+                set acheckbox_3_c [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:C]
+                aa_equals "Checkbox in 3rd repeat field 'A' checked"     [$acheckbox_3_a hasAttribute checked] 1
+                aa_equals "Checkbox in 3rd repeat field 'B' not checked" [$acheckbox_3_b hasAttribute checked] 0
+                aa_equals "Checkbox in 3rd repeat field 'C' not checked" [$acheckbox_3_c hasAttribute checked] 0
+            }
+
+            ::xowiki::test::edit_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder/$page_name \
+                -update [subst {
+                    _title "twice-edited $page_name"
+                }]
+
+            aa_log "Check content of the twice-edited instance"
+            set d [acs::test::http -user_info $user_info \
+                       [export_vars -base $instance/$testfolder/$page_name $extra_url_parameter]]
+            acs::test::reply_has_status_code $d 200
+
+            set response [dict get $d body]
+            acs::test::dom_html root $response {
+                set f_id     [::xowiki::test::get_object_name $root]
+                set CSSclass [::xowiki::test::get_form_CSSclass $root]
+                aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+                aa_true "CSSclass: '$CSSclass' non empty"  {$CSSclass ne ""}
+                set id_part [string map {: _} $page_name]
+                set radio1 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:X]
+                set radio2 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:Y]
+                set radio3 [$root getElementById F.$id_part.mycompoundwithrepeat.aradio:Z]
+                aa_equals "Radio 'X' not checked"   [$radio1 hasAttribute checked] 0
+                aa_equals "Radio 'Y' not checked"   [$radio2 hasAttribute checked] 0
+                aa_equals "Radio 'Z' not checked"   [$radio3 hasAttribute checked] 0
+
+                set anumber_3 [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.anumber]
+                # Note: we check on purpose for math equality, not string equality
+                aa_true "Number in 3rd repeat field is correct" {[$anumber_3 getAttribute value] == 3}
+                set acheckbox_3_a [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:A]
+                set acheckbox_3_b [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:B]
+                set acheckbox_3_c [$root getElementById F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.acheckbox:C]
+                aa_equals "Checkbox in 3rd repeat field 'A' checked"     [$acheckbox_3_a hasAttribute checked] 1
+                aa_equals "Checkbox in 3rd repeat field 'B' not checked" [$acheckbox_3_b hasAttribute checked] 0
+                aa_equals "Checkbox in 3rd repeat field 'C' not checked" [$acheckbox_3_c hasAttribute checked] 0
             }
 
         } on error {errorMsg} {
