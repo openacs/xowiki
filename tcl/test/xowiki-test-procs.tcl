@@ -1012,6 +1012,8 @@ namespace eval ::xowiki::test {
                 -path $testfolder/$page_name \
                 -update [subst {
                     _title "twice-edited $page_name"
+
+                    mycompoundwithrepeat.arepeatedcompound.3.aselect B
                 }]
 
             aa_log "Check content of the twice-edited instance"
@@ -1042,6 +1044,10 @@ namespace eval ::xowiki::test {
                 aa_equals "Checkbox in 3rd repeat field 'A' checked"     [$acheckbox_3_a hasAttribute checked] 1
                 aa_equals "Checkbox in 3rd repeat field 'B' not checked" [$acheckbox_3_b hasAttribute checked] 0
                 aa_equals "Checkbox in 3rd repeat field 'C' not checked" [$acheckbox_3_c hasAttribute checked] 0
+
+                set aselect_1_selected [$root selectNodes \
+                                            "//select\[@id='F.$id_part.mycompoundwithrepeat.arepeatedcompound.3.aselect'\]/option\[@selected\]"]
+                aa_equals "Select was set to B" [$aselect_1_selected getAttribute value] B
             }
 
         } on error {errorMsg} {
