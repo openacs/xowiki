@@ -1472,10 +1472,18 @@ namespace eval ::xowiki {
             #
             # The exception was a real error
             #
+
             ad_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
-            return [:error_msg -status_code 500 \
-                        -template_file $error_template \
-                        "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
+
+            if {[ns_conn isconnected]} {
+              #
+              # When connected, also try to render the error to the
+              # user.
+              #
+              return [:error_msg -status_code 500 \
+                          -template_file $error_template \
+                          "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
+            }
           }
 
         } finally {
