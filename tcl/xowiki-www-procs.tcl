@@ -2964,7 +2964,14 @@ namespace eval ::xowiki {
       # Revert changes performed by this method on the page object, as
       # these may come from data failing to validate.
       #
-      old_page copy [self]
+      foreach var [old_page info vars] {
+        set :$var [old_page set $var]
+        if {[old_page array exists $var]} {
+          array set :$var [old_page array get $var]
+        } else {
+          set :$var [old_page set $var]
+        }
+      }
     }
 
     #:log "=== get_form_data has validation_errors $validation_errors, instance_attributes: ${:instance_attributes}"
