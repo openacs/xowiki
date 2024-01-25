@@ -585,14 +585,6 @@ namespace eval ::xowiki {
     return [next]
   }
 
-  #         {f.pub_date
-  #       {pub_date:date,optional {format "YYYY MM DD HH24 MI"} {html {id date}}
-  #         {after_html {<input type="button"
-  #           style="height:23px; width:23px; background: url('/resources/acs-templating/calendar.gif');"
-  #           onclick ="return showCalendarWithDateWidget('date', 'y-m-d');" /> Y-M-D}
-  #         }}
-  #     }
-
   Class create PodcastForm -superclass FileForm \
       -parameter {
         {html { enctype multipart/form-data }} \
@@ -608,8 +600,6 @@ namespace eval ::xowiki {
           {duration {\[::xowiki::validate_duration\]} {Check duration and provide default}}
         }}
       }
-
-  #        {help_text {E.g. 9:16 means 9 minutes 16 seconds (if ffmpeg is installed and configured, it will get the value automatically)}}
 
   PodcastForm instproc to_timestamp {widgetinfo} {
     if {$widgetinfo ne ""} {
