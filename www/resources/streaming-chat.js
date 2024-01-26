@@ -2,52 +2,26 @@
 // $Id$
 // -gustaf neumann   April 2006
 
-var http = getHttpObject();
-// Pointer to the last character read from the partial ajax request.
-var http_last = 0;
-var http_send = getHttpObject();
-
-function getData() {
-    // alert('access responseText'); // hmm, IE does not allow us to
-    // access responstext in state == 3 :(
-    var response = http.responseText.substring(http_last);
-    // We recognize a complete message by a trailing }\n. One line
-    // might contain multiple messages though.
-    if (response.match(/\}[\n ]+$/)) {
-        var messages = response.split("\n");
-        for (var i = 0; i < messages.length; i++) {
-            var message = messages[i].trim();
-            if (message == '') {continue;}
-            console.log(message);
-            var json = JSON.parse(message);
-            renderData(json);
-        }
-        http_last = http.responseText.length;
-    }
-}
-
 function chatSubscribe(subscribe_url) {
-    http.open('GET', subscribe_url, true);
-    http.onreadystatechange = function() {
-        if (http.readyState == 3) {
-	    getData();
-        } else if (http.readyState == 4) {
-            //console.log("chatSubscribe readyState = " + http.readyState + " status " + http.status);
-            // alert('status code =' + http.status);
-            var status = http.status;
-            if (status != 200 && status != 0) {
-                console.error('Something wrong in HTTP request, status code = ' + status);
-            }
-            if (status < 400 || status >= 500) {
-                console.log('Server has closed the connection. Try to reconnect in 10s...');
-                setTimeout(chatSubscribe, 10000, subscribe_url);
-            }
+    const source = new EventSource(subscribe_url);
+
+    source.addEventListener('message', (e) => {
+        renderData(JSON.parse(e.data));
+    });
+
+    //
+    // Attempt to reconnect in case of error, but only if the
+    // connection is closed: some browsers will reconnect
+    // automatically.
+    //
+    source.addEventListener('error', (e) => {
+        if (source.readyState === EventSource.CLOSED) {
+            setTimeout(chatSubscribe, 10000, subscribe_url);
         }
-    };
-    http.send(null);
-    http_last = 0;
+    });
 }
 
+var http_send = getHttpObject();
 function streamingSendMsgHandler() {
     if (http_send.readyState == 4) {
         if (http_send.status != 200) {

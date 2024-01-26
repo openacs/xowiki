@@ -520,17 +520,16 @@ namespace eval ::xowiki {
     #
     if {[info commands ::thread::mutex] ne "" &&
         ![catch {ns_conn contentsentlength}]} {
-      #
-      # scripted streaming should work everywhere
-      #
-      set mode scripted-streaming
-      if {![regexp msie|opera [string tolower [ns_set iget [ns_conn headers] User-Agent]]]} {
+      if {[regexp {msie|opera mini} [string tolower [ns_set iget [ns_conn headers] User-Agent]]]} {
         #
-        # Explorer doesn't expose partial response until request state
-        # != 4, while Opera fires onreadystateevent only once. For
-        # this reason, for every browser except them, we could use the
-        # nice mode without the spinning load indicator.
+        # Opera Mini and Internet Explorer do not support Server Sent
+        # Events. Fallback to scripted-streaming, which should work
+        # everywhere.
         #
+        # See https://caniuse.com/eventsource
+        #
+        set mode scripted-streaming
+      } else {
         set mode streaming
       }
     }
