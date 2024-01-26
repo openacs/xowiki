@@ -425,20 +425,6 @@ namespace eval ::xo {
     }
   }
 
-  Chat instproc js_encode_msg {msg} {
-    set json [string trim [:json_encode_msg $msg]]
-    if {$json ne ""} {
-      return [subst {
-        <script nonce='[security::csp::nonce]'>
-           let data = $json;
-           parent.getData(data);
-        </script>\n
-      }]
-    } else {
-      return
-    }
-  }
-
   Chat instproc broadcast_msg {msg} {
     #:log "--chat broadcast_msg"
     ${:mr} send_to_subscriber chat-${:chat_id} [:json_encode_msg $msg]
