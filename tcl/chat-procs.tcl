@@ -491,52 +491,6 @@ namespace eval ::xowiki {
     return [expr {[nsf::is object $class] && [$class class] eq [self]}]
   }
 
-  ::xo::ChatClass instproc get_mode {} {
-    # The most conservative mode is
-    # - "polling" (which requires for every connected client polling
-    #    requests), followed by
-    # - "scripted-streaming" (which opens and "infinitely long" HTML
-    #   files with embedded script tags; very portable, but this
-    #   causes the loading indicator to spin), followed by
-    # - "streaming" (true streaming, but this requires
-    #   an HTTP stack supporting partial reads).
-    #
-    # NOTICE 1: The guessing is based on current versions of the
-    # browsers. Older versions of the browser might behave
-    # differently.
-    #
-    # NOTICE 2: "streaming" (and to a lesser extend
-    # "scripted-streaming" - which used chunked encoding) might be
-    # influenced by the buffering behavior of a reverse proxy, which
-    # might have to be configured appropriately.
-    #
-    # To be independent of the guessing mode, instantiate the chat
-    # object with "mode" specified.
-    #
-    set mode polling
-    #
-    # Check, whether we have the tcllibthread and a sufficiently new
-    # AOLserver/NaviServer supporting bgdelivery transfers.
-    #
-    if {[info commands ::thread::mutex] ne "" &&
-        ![catch {ns_conn contentsentlength}]} {
-      if {[regexp {msie|opera mini} [string tolower [ns_set iget [ns_conn headers] User-Agent]]]} {
-        #
-        # Opera Mini and Internet Explorer do not support Server Sent
-        # Events. Fallback to scripted-streaming, which should work
-        # everywhere.
-        #
-        # See https://caniuse.com/eventsource
-        #
-        set mode scripted-streaming
-      } else {
-        set mode streaming
-      }
-    }
-
-    return $mode
-  }
-
   ::xo::ChatClass ad_instproc login {
     -chat_id:required
     {-skin "classic"}
@@ -559,43 +513,26 @@ namespace eval ::xowiki {
       auth::require_login
     }
 
-    set session_id [ad_conn session_id].[clock seconds]
-    set base_url [export_vars -base /shared/ajax/chat -no_empty {
-      {id $chat_id} {s $session_id} {class "[self]"}
-    }]
-
     # This might come in handy to get resources from the chat package
     # if we want to have e.g. a separate css.
     # set package_key [apm_package_key_from_id $package_id]
     # set resources_path /resources/${package_key}
     template::head::add_css -href /resources/xowiki/chat-skins/chat-$skin.css
 
-    if {$mode eq ""} {
-      #
-      # The parameter "mode" was not specified, we try to guess the
-      # "best" mode known to work for the currently used browser.
-      #
-      set mode [:get_mode]
-      :log "--chat mode $mode"
+    #
+    # Check, whether we have the tcllibthread and a sufficiently new
+    # AOLserver/NaviServer supporting bgdelivery transfers. When this
+    # is missing, we must force the mode to polling.
+    #
+    if {[info commands ::thread::mutex] eq "" ||
+        [catch {ns_conn contentsentlength}]} {
+      set mode polling
     }
 
-    switch -- $mode {
-      polling {
-        set jspath /resources/xowiki/chat.js
-        set subscribe_url ${base_url}&m=get_new&mode=polling
-      }
-      streaming {
-        set jspath /resources/xowiki/streaming-chat.js
-        set subscribe_url ${base_url}&m=subscribe&mode=streaming
-      }
-      scripted-streaming {
-        set jspath /resources/xowiki/scripted-streaming-chat.js
-        set subscribe_url ${base_url}&m=subscribe&mode=scripted
-      }
-      default {
-        error "mode $mode unknown, valid are: polling, streaming and scripted-streaming"
-      }
-    }
+    set session_id [ad_conn session_id].[clock seconds]
+    set base_url [export_vars -base /shared/ajax/chat -no_empty {
+      {id $chat_id} {s $session_id} {class "[self]"} mode
+    }]
 
     # get LinkRegex parameter from the chat package
     set link_regex [::parameter::get_global_value \
@@ -616,17 +553,10 @@ namespace eval ::xowiki {
     template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
     template::head::add_javascript -script "const show_avatar = $show_avatar;" -order 20
-    template::head::add_javascript -src /resources/xowiki/chat-common.js -order 21
     template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 22
-    template::head::add_javascript -src $jspath -order 30
-
-    set send_url ${base_url}&m=add_msg&msg=
+    template::head::add_javascript -src /resources/xowiki/chat.js -order 30
 
     #:log "--CHAT mode=$mode"
-
-    template::add_body_script -script {
-      document.getElementById('xowiki-chat-send').focus();
-    }
 
     set html ""
 
@@ -693,38 +623,13 @@ namespace eval ::xowiki {
 
     #:log "--CHAT create HTML for mode=$mode"
 
-    switch -- $mode {
-      "polling" {
-        append js [subst {
-          chatSubscribe('$subscribe_url');
-        }]
-        set send_msg_handler pollingSendMsgHandler
-      }
-
-      "streaming" {
-        append js [subst {
-          chatSubscribe('$subscribe_url');
-        }]
-        set send_msg_handler streamingSendMsgHandler
-      }
-
-      "scripted-streaming" {
-        append html [subst {
-          <iframe name='ichat' id='ichat' src='[ns_quotehtml $subscribe_url]'
-             style='width:0px; height:0px; border: 0px'>
-          </iframe>
-        }]
-        set send_msg_handler scriptedStreamingSendMsgHandler
-      }
-    }
+    append js [subst {
+      chatSubscribe('$base_url');
+    }]
 
     template::add_body_handler -event load -script $js
 
     template::add_refresh_on_history_handler
-
-    template::add_event_listener \
-        -id "xowiki-chat-messages-form" -event "submit" \
-        -script [subst {chatSendMsg('${send_url}', ${send_msg_handler});}]
 
     return $html
   }
