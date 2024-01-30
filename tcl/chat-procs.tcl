@@ -549,8 +549,6 @@ namespace eval ::xowiki {
         set show_avatar false
     }
 
-    # small JavaScript library to obtain a portable ajax request object
-    template::head::add_javascript -src urn:ad:js:get-http-object -order 10
     template::head::add_javascript -script "const linkRegex = \"${link_regex}\";" -order 19
     template::head::add_javascript -script "const show_avatar = $show_avatar;" -order 20
     template::head::add_javascript -src /resources/xowiki/chat-skins/chat-$skin.js -order 22
