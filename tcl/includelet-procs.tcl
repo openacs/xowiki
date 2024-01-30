@@ -2226,10 +2226,6 @@ namespace eval ::xowiki::includelet {
       #:msg "granted=$granted"
       if {$granted} {
         if {$with_head_entries} {
-          #set ajaxhelper 1
-          #::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "utilities/utilities.js"
-          #::xowiki::Includelet require_YUI_JS -ajaxhelper $ajaxhelper "selector/selector-min.js"
-          #::xo::Page requireJS  "/resources/xowiki/yui-page-order-region.js"
           ::xo::Page requireJS "/resources/xowiki/listdnd.js"
         }
       } else {
