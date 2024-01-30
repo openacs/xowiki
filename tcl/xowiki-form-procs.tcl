@@ -270,7 +270,7 @@ namespace eval ::xowiki {
       set granted [::$package_id check_permissions -link $computed_link $package_id edit-new]
       #$data log "validate_name: computed_link=$computed_link,granted=$granted"
       if {!$granted} {
-        util_user_message -message "User not authorized to create a filenamed $name"
+        util_user_message -message "User not authorized to create a file named $name"
         return 0
       }
     } else {
