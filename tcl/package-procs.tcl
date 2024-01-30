@@ -1472,18 +1472,10 @@ namespace eval ::xowiki {
             #
             # The exception was a real error
             #
-
             ad_log error "error during invocation of method $method errorMsg: $errorMsg, $::errorInfo"
-
-            if {[ns_conn isconnected]} {
-              #
-              # When connected, also try to render the error to the
-              # user.
-              #
-              return [:error_msg -status_code 500 \
-                          -template_file $error_template \
-                          "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
-            }
+            return [:error_msg -status_code 500 \
+                        -template_file $error_template \
+                        "error during [ns_quotehtml $method]: <pre>[ns_quotehtml $errorMsg]</pre>"]
           }
 
         } finally {
@@ -1510,6 +1502,10 @@ namespace eval ::xowiki {
   }
 
   Package instproc error_msg {{-title Error} {-template_file error-template} {-status_code 200} error_msg} {
+    if {![ns_conn isconnected]} {
+      ad_log error "Trying to return error page with status $status in disconnacted stage; message: [ns_striphtml $error_msg]"
+      return
+    }
     if {![regexp {^[./]} $template_file]} {
       set template_file [:get_adp_template $template_file]
     }
