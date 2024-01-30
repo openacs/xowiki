@@ -2965,7 +2965,6 @@ namespace eval ::xowiki {
       # these may come from data failing to validate.
       #
       foreach var [old_page info vars] {
-        set :$var [old_page set $var]
         if {[old_page array exists $var]} {
           array set :$var [old_page array get $var]
         } else {
