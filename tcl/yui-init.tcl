@@ -104,13 +104,13 @@ if {[ad_file isdirectory $::acs::rootdir/packages/ajaxhelper/www/resources]} {
   foreach path $YUI_CSS_PATHS {
     template::register_urn \
         -urn      urn:ad:css:yui2:$path \
-        -resource //cdnjs.cloudflare.com/ajax/libs/yui/$version/$path.css
+        -resource //cdnjs.com/libraries/yui/$version/$path.css
   }
 
   foreach path $YUI_JS_PATHS {
     template::register_urn \
         -urn      urn:ad:js:yui2:$path \
-        -resource //cdnjs.cloudflare.com/ajax/libs/yui/$version/$path.js
+        -resource //cdnjs.com/libraries/yui/$version/$path.js
   }
 }
 
