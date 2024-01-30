@@ -38,7 +38,7 @@ namespace eval ::xowiki {
 
     set instantiate_p [:form_parameter instantiate_p:boolean false]
 
-    set item_ids [:get_ids_for_bulk_actions [:form_parameter objects]]
+    set item_ids [:get_ids_for_bulk_actions [:form_parameter objects:int32,0..n]]
     foreach item_id $item_ids {
       :log "bulk-delete: DELETE item_id $item_id"
       if {$instantiate_p} {
@@ -69,7 +69,7 @@ namespace eval ::xowiki {
       :msg "nothing to copy"
     }
 
-    ::xowiki::clipboard add [:get_ids_for_bulk_actions [:form_parameter objects]]
+    ::xowiki::clipboard add [:get_ids_for_bulk_actions [:form_parameter objects:int32,0..n]]
     #
     # When called via AJAX, we have reason to make a redirect.
     #
@@ -258,17 +258,23 @@ namespace eval ::xowiki {
     #
     # Collect some default values from query parameters.
     #
-    set default_variables [list]
-    foreach param [list \
-                       name \
-                       title \
-                       page_order:graph \
-                       last_page_id:int32 \
-                       "nls_language:oneof,arg=[join [lang::system::get_locales] |]" \
-                      ] {
-      regexp {^([^:]+):?} $param . key
+    set default_variables {}
+    #
+    # The value for "name" is validated later, and requires the type
+    # of the object. Different names are allowed for files, folders
+    # and other wiki pages.
+    #
+    foreach name_and_spec [list \
+                               name \
+                               title \
+                               page_order:graph \
+                               last_page_id:int32 \
+                               nls_language:oneof,arg=[join [lang::system::get_locales] |] \
+                              ] {
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
       if {[:exists_query_parameter $key]} {
-        lappend default_variables $key [:query_parameter $param]
+        lappend default_variables $key [:query_parameter $name_and_spec]
       }
     }
 
@@ -280,7 +286,7 @@ namespace eval ::xowiki {
     # We should probably allow as well controlling auto-naming and
     # and prohibit empty postings.
 
-    set text_to_html [:form_parameter "__text_to_html" ""]
+    set text_to_html [:form_parameter __text_to_html:0..n ""]
     foreach key {_text _name} {
       if {[:exists_form_parameter $key]} {
         set __value [:form_parameter $key]
@@ -313,7 +319,7 @@ namespace eval ::xowiki {
       if {![info exists :parent_id]} {
         set :parent_id [::${:package_id} folder_id]
       }
-      set fp_parent_id [:form_parameter parent_id [:query_parameter parent_id:int32 ${:parent_id}]]
+      set fp_parent_id [:form_parameter parent_id:int32 [:query_parameter parent_id:int32 ${:parent_id}]]
     } else {
       set fp_parent_id $parent_id
     }
@@ -327,7 +333,7 @@ namespace eval ::xowiki {
 
     # In case the Form is inherited and package_id was not specified, we
     # use the actual package_id.
-    set fp_package_id [:form_parameter package_id [:query_parameter package_id:int32 ${:package_id}]]
+    set fp_package_id [:form_parameter package_id:int32 [:query_parameter package_id:int32 ${:package_id}]]
 
     #
     # Handling publish_status. When the publish_status is provided via
@@ -346,7 +352,7 @@ namespace eval ::xowiki {
       } else {
         set publish_status "ready"
       }
-      :log "FINAL publish_status $publish_status"
+      #:log "FINAL publish_status $publish_status"
     }
 
     #
@@ -407,10 +413,17 @@ namespace eval ::xowiki {
 
     $f notification_notify
 
-    foreach var {return_url:localurl template_file title detail_link:localurl text} {
-      regexp {^([^:]+):?} $var . key
+    foreach name_and_spec {
+      return_url:localurl
+      template_file
+      title
+      detail_link:localurl
+      text
+    } {
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
       if {[:exists_query_parameter $key]} {
-        set $key [:query_parameter $var]
+        set $key [:query_parameter $name_and_spec]
         :log "set instance var from query param '$key' -> '[set $key]'"
       }
     }
@@ -424,7 +437,7 @@ namespace eval ::xowiki {
       #
       set template_file [$fp_package_id normalizepath $template_file]
     }
-    set form_redirect [:form_parameter "__form_redirect" ""]
+    set form_redirect [:form_parameter __form_redirect:0..n ""]
     if {$form_redirect eq ""} {
       set form_redirect [$f pretty_link -query [export_vars {
         {m $view_method} return_url template_file title detail_link text
@@ -856,17 +869,18 @@ namespace eval ::xowiki {
 
   Page instproc edit_set_default_values {} {
     # set some default values if they are provided
-    foreach param [list \
-                       name \
-                       title \
-                       page_order:graph \
-                       last_page_id:int32 \
-                       "nls_language:oneof,arg=[join [lang::system::get_locales] |]" \
+    foreach name_and_spec [list \
+                               name \
+                               title \
+                               page_order:graph \
+                               last_page_id:int32 \
+                               nls_language:oneof,arg=[join [lang::system::get_locales] |] \
                       ] {
-      regexp {^([^:]+):?} $param . key
+      set p [string first : $name_and_spec]
+      set key [expr {$p > -1 ? [string range $name_and_spec 0 $p-1] : $name_and_spec}]
       if {[::${:package_id} exists_query_parameter $key]} {
         #:log "setting [self] set $key [::${:package_id} query_parameter $key]"
-        set :$key [::${:package_id} query_parameter $param]
+        set :$key [::${:package_id} query_parameter $name_and_spec]
       }
     }
   }
@@ -1128,7 +1142,7 @@ namespace eval ::xowiki {
       # Disable some form-fields since these are disabled in the form
       # as well.
       #
-      foreach name [:form_parameter __disabled_fields] {
+      foreach name [:form_parameter __disabled_fields:0..n] {
         set f [:lookup_form_field -name $name $form_fields]
         $f set_disabled true
       }
@@ -1521,8 +1535,9 @@ namespace eval ::xowiki {
     set disposition [:query_parameter disposition:wordchar File]
 
     #
-    # Filename is sanitized. If it turns out to be made only of
-    # invalid characters, we complain.
+    # Filename is sanitized. If the filename contains only invalid
+    # characters, "ad_sanitize_filename" might return empty, and we
+    # complain.
     #
     set fileName [ad_sanitize_filename \
                       [ns_queryget name [ns_queryget upload]]]
@@ -1886,7 +1901,7 @@ namespace eval ::xowiki {
         -item_id ${:item_id} \
         -revision_id ${:revision_id} \
         -package_id ${:package_id} \
-        [:form_parameter new_tags]
+        [:form_parameter new_tags:0..n]
 
     ::${:package_id} returnredirect \
         [:query_parameter return_url:localurl [ad_return_url]]
@@ -2117,9 +2132,7 @@ namespace eval ::xowiki {
       set template ""
       set page [self]
 
-      foreach css [::$context_package_id get_parameter \
-                       -check_query_parameter false \
-                       extra_css ""] {
+      foreach css [::$context_package_id get_parameter extra_css:localurl ""] {
         ::xo::Page requireCSS -order 10 $css
       }
 
@@ -2706,13 +2719,6 @@ namespace eval ::xowiki {
     array set containers [list]
     set cc [::${:package_id} context]
 
-    #
-    # Fetching the form data may also affect this object's
-    # variables. Backup the old page object to revert these changes in
-    # case of validation error.
-    #
-    :copy old_page
-
     if {![info exists field_names]} {
       #
       # Field names might come directly from the POST request payload
@@ -2959,17 +2965,6 @@ namespace eval ::xowiki {
       #
       foreach f $form_fields {
         $f reset_on_validation_error
-      }
-      #
-      # Revert changes performed by this method on the page object, as
-      # these may come from data failing to validate.
-      #
-      foreach var [old_page info vars] {
-        if {[old_page array exists $var]} {
-          array set :$var [old_page array get $var]
-        } else {
-          set :$var [old_page set $var]
-        }
       }
     }
 
