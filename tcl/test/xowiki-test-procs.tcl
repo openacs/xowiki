@@ -1428,9 +1428,25 @@ namespace eval ::xowiki::test {
             acs::test::dom_html root $response {
                 set f_id [::xowiki::test::get_object_name $root]
                 aa_true "page_name '$f_id' non empty" {$f_id ne ""}
+
+                #
+                # The title displayed in the form field should be the
+                # one coming from the rejected FormPage in order for
+                # the user to receive feedback and rework their
+                # submission.
+                #
                 set new_title [$root getElementById F.$f_id._title]
-                set new_number [$root getElementById F.$f_id.number]
                 aa_equals "_title stays '$title'" $title [$new_title getAttribute value]
+
+                #
+                # The page title itself should not be influenced by
+                # the rejected information we provided.
+                #
+                set page_title [[lindex [$root getElementsByTagName title] 0] text]
+                aa_false "Unvalidated title '$title' was NOT used in the response title '$page_title'" \
+                    [string match *$title* $page_title]
+
+                set new_number [$root getElementById F.$f_id.number]
                 aa_equals "number stays 'a'" a [$new_number getAttribute value]
             }
 
