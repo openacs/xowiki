@@ -1295,16 +1295,19 @@ namespace eval ::xowiki {
   }
 
 
-  Page instproc copy_content_vars {-from_object:required} {
-    array set excluded_var {
+  Page instproc copy_content_vars {-from_object:required {-except {}}} {
+    set excluded_var {
       folder_id 1 package_id 1 absolute_links 1 lang_links 1 modifying_user 1
       publish_status 1 item_id 1 revision_id 1 last_modified 1
       parent_id 1 context_id 1
     }
+    foreach var $except {
+      dict set excluded_var $var 1
+    }
     foreach var [$from_object info vars] {
       # don't copy vars starting with "__"
       if {[string match "__*" $var]} continue
-      if {![info exists excluded_var($var)]} {
+      if {![dict exists $excluded_var $var]} {
         set :$var [$from_object set $var]
       }
     }
@@ -3519,7 +3522,6 @@ namespace eval ::xowiki {
       }
       set creation_user [$context user_id]
     }
-
     set f [FormPage new -destroy_on_cleanup \
                -name $name \
                -text $text \
@@ -3546,8 +3548,13 @@ namespace eval ::xowiki {
     # If we copy an item, we use source_item_id to provide defaults.
     #
     if {$source_item_id ne ""} {
-      set source [FormPage get_instance_from_db -item_id $source_item_id]
-      $f copy_content_vars -from_object $source
+      set sourceObj [FormPage get_instance_from_db -item_id $source_item_id]
+      $f copy_content_vars -from_object $sourceObj -except name
+      
+      #
+      # In case, we want manual autonaming, the following could be
+      # used.
+      # 
       #set name "[::xowiki::autoname new -parent_id $source_item_id -name ${:name}]"
       #::$package_id get_lang_and_name -name $name lang name
       #$f set name $name
