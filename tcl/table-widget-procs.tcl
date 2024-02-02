@@ -104,14 +104,11 @@ namespace eval ::xowiki {
     if {$renderer ne ""} {
       lappend cmd -renderer $renderer
     } else {
-      switch [parameter::get_global_value \
-                  -package_key xowiki \
-                  -parameter PreferredCSSToolkit \
-                  -default bootstrap] {
-                    bootstrap -
-                    bootstrap5 {set renderer BootstrapTableRenderer}
-                    default    {set renderer YUIDataTableRenderer}
-                  }
+      switch [::xowiki::CSS toolkit] {
+        bootstrap -
+        bootstrap5 {set renderer BootstrapTableRenderer}
+        default    {set renderer YUIDataTableRenderer}
+      }
       lappend cmd -renderer $renderer
     }
     set table_widget [{*}$cmd]

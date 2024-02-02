@@ -42,7 +42,7 @@ namespace eval ::xowiki::includelet {
       }
 
   folders instproc include_head_entries {} {
-    switch [::${:package_id} get_parameter PreferredCSSToolkit:graph bootstrap] {
+    switch [::xowiki::CSS toolkit] {
       yui     {::xowiki::Tree include_head_entries -renderer yuitree -style folders}
       bootstrap -
       default { ::xowiki::Tree include_head_entries -renderer bootstrap3 }
@@ -53,7 +53,7 @@ namespace eval ::xowiki::includelet {
     :get_parameters
 
     set tree [:build_tree]
-    switch [::${:package_id} get_parameter PreferredCSSToolkit:graph bootstrap] {
+    switch [::xowiki::CSS toolkit] {
       yui {
            set js "
            var [:js_name];
@@ -279,9 +279,14 @@ namespace eval ::xowiki::includelet {
       set menu_entries [list \
                             {*}[::$package_id get_parameter ExtraMenuEntries {}] \
                             {*}[${:current_folder} property extra_menu_entries]]
-      set have_config [lsearch -index 0 $menu_entries config]
+      set have_config [lsearch -all -index 0 $menu_entries config]
 
-      if {$have_config > -1} {
+      if {$have_config != -1} {
+        #
+        # In case, we have multiple entries, use the last one.
+        #
+        set have_config [lrange $have_config end end]
+
         #
         # We have a special configuration for the menubar, probably
         # consisting of a default setup and/or a menubar class. The
@@ -347,6 +352,7 @@ namespace eval ::xowiki::includelet {
       $mb current_folder ${:current_folder}
       $mb parent_id $opt_parent_id
       #:log "folders: call update_items with config '$config' bind_vars=$bind_vars"
+
       $mb update_items \
           -bind_vars $bind_vars \
           -config $config \
@@ -577,7 +583,7 @@ namespace eval ::xowiki::includelet {
     set ::__xowiki_folder_link [::$package_id make_link \
                                     -link $current_folder_pretty_link \
                                     $current_folder bulk-delete $csrf return_url]
-    switch [::$package_id get_parameter PreferredCSSToolkit:graph bootstrap] {
+    switch [::xowiki::CSS toolkit] {
       bootstrap5 -
       bootstrap {set tableWidgetClass ::xowiki::BootstrapTable}
       default   {set tableWidgetClass ::xowiki::YUIDataTable}
