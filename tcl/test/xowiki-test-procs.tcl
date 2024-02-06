@@ -1442,7 +1442,7 @@ namespace eval ::xowiki::test {
                 # submission.
                 #
                 set new_title [$root getElementById F.$f_id._title]
-                aa_equals "_title stays '$title'" $title [$new_title getAttribute value]
+                aa_equals "_title stays '[ns_quotehtml $title]'" $title [$new_title getAttribute value]
 
                 #
                 # On a standard installation, the page title is set to
@@ -1450,7 +1450,7 @@ namespace eval ::xowiki::test {
                 # we make sure that our injection attempt has not been
                 # rendered "raw" to the client.
                 #
-                aa_false "Unvalidated title '$title' was NOT used unquoted in the response" \
+                aa_false "Unvalidated title '[ns_quotehtml $title]' was NOT used unquoted in the response" \
                     [string match *$title* $response]
 
                 set new_number [$root getElementById F.$f_id.number]
