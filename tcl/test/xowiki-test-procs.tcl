@@ -1406,7 +1406,13 @@ namespace eval ::xowiki::test {
             aa_section "Create an instance of $form_name named '${lang}:validate1'"
             ###########################################################
             set page_name ${lang}:validate1
-            set title "fresh $page_name for validation"
+
+            #
+            # A FormPage title containing a javascript injection
+            # attempt.
+            #
+            set title "fresh $page_name for validation <script>console.log('Injected!');</script>"
+
             set d [::xowiki::test::create_form_page \
                        -last_request $request_info \
                        -instance $instance \
@@ -1439,12 +1445,13 @@ namespace eval ::xowiki::test {
                 aa_equals "_title stays '$title'" $title [$new_title getAttribute value]
 
                 #
-                # The page title itself should not be influenced by
-                # the rejected information we provided.
+                # On a standard installation, the page title is set to
+                # the (potentially unvalidated) FormPage title. Here
+                # we make sure that our injection attempt has not been
+                # rendered "raw" to the client.
                 #
-                set page_title [[lindex [$root getElementsByTagName title] 0] text]
-                aa_false "Unvalidated title '$title' was NOT used in the response title '$page_title'" \
-                    [string match *$title* $page_title]
+                aa_false "Unvalidated title '$title' was NOT used unquoted in the response" \
+                    [string match *$title* $response]
 
                 set new_number [$root getElementById F.$f_id.number]
                 aa_equals "number stays 'a'" a [$new_number getAttribute value]
