@@ -103,8 +103,20 @@ namespace eval ::xowiki::includelet {
     {-title "#xowiki.Send_message_to#"}
     {-adpicon pencil}
   } {
-    Create a bootstrap3 modal dialog
+    Create a bootstrap3/5-compatible modal dialog
   } {
+    if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
+      set data_attribute "data-bs"
+      set close_button_label ""
+      set before_close  "<h4 class='modal-title' id='configurationModalTitle'>$title</h4>"
+      set after_close  ""
+
+    } else {
+      set data_attribute "data"
+      set close_button_label {<span aria-hidden="true">&#215;</span>}
+      set before_close  ""
+      set after_close  "<h4 class='modal-title' id='configurationModalTitle'>$title</h4>"
+    }
     if {[llength $to_user_id] == 1} {
       set id dialog-msg-$to_user_id
       set to_user_name [::xo::get_user_name $to_user_id]
@@ -119,7 +131,7 @@ namespace eval ::xowiki::includelet {
     }
     set btnDefault [::xowiki::CSS class btn-default]
     return [list link [subst {
-      <a href="#$id" title="$title" role="button" data-toggle="modal" data-keyboard="false">
+      <a href="#$id" title="$title" role="button" $data_attribute-toggle="modal" $data_attribute-keyboard="false">
       <adp:icon name="$adpicon" aria-hidden="true"></span>
     }] dialog [subst {
       <div class="modal fade" id='$id' tabindex="-1" role="dialog">
@@ -127,8 +139,9 @@ namespace eval ::xowiki::includelet {
 <form role="form" class="form-vertical" method="post" action="">
   <div class="modal-content">
     <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title">$title</h4>
+      $before_close<button type="button" class="[xowiki::CSS class close]"
+      $data_attribute-dismiss="modal" aria-label="Close">$close_button_label
+      </button>$after_close
     </div><!-- modal-header -->
 
     <div class="modal-body">
@@ -149,8 +162,8 @@ namespace eval ::xowiki::includelet {
       $input_fields
     </div><!--modal-body-->
     <div class="modal-footer">
-    <button type="button" class="btn $btnDefault" data-dismiss="modal">#acs-kernel.common_Close#</button>
-    <button type="submit" class="btn $btnDefault submit" data-id="$id" data-dismiss="modal">#xowiki.Send#</button>
+    <button type="button" class="btn $btnDefault" $data_attribute-dismiss="modal">#acs-kernel.common_Close#</button>
+    <button type="submit" class="btn $btnDefault submit" data-id="$id" $data_attribute-dismiss="modal">#xowiki.Send#</button>
     </div>
   </div>
 </form>
@@ -200,10 +213,10 @@ namespace eval ::xowiki::includelet {
     # Create Bootstrap3/5 compatible attributes
     if {[::xowiki::CSS toolkit] eq "bootstrap5"} {
       set data_attribute "data-bs"
-      set close_button_css "btn-close"
+      set close_button_label ""
     } else {
       set data_attribute "data"
-      set close_button_css "close"
+      set close_button_label {<span aria-hidden="true">&#215;</span>}
     }
     template::add_body_script -script [subst {
       var inclass_exam_messages_ts = \[\];
@@ -229,8 +242,8 @@ namespace eval ::xowiki::includelet {
                 if (inclass_exam_messages_ts.indexOf(data.ts) == -1) {
                   var alert = 'alert-' + data.urgency;
                   block = '<div class="alert ' + alert + ' alert-dismissible" style="width:50%">'
-                  + '<a id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="$close_button_css" '
-                  + '$data_attribute-dismiss="alert" aria-label="close">&times;</a>'
+                  + '<button id="ts' + data.ts + '" data-ts="' +  data.ts + '" href="#" class="[::xowiki::CSS class close]" '
+                  + '$data_attribute-dismiss="alert" aria-label="close">$close_button_label</button>'
                   + '<strong>' + data.from +':</strong> <span>' + data.text + '</span>'
                   + '</div>';
                   inclass_exam_messages_ts.push(data.ts);
@@ -240,7 +253,7 @@ namespace eval ::xowiki::includelet {
                 el.innerHTML += block;
               }
             });
-            document.querySelectorAll('a.$close_button_css').forEach(function(e) {
+            document.querySelectorAll('button.[::xowiki::CSS class close]').forEach(function(e) {
               //console.log('register dismiss handler ts '+ e.dataset.ts);
               e.removeEventListener('click', inclass_exam_dismiss_handler);
               e.addEventListener('click', inclass_exam_dismiss_handler);
