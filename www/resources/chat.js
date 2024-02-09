@@ -199,6 +199,16 @@ function chatSubscribe(url) {
                 setTimeout(chatSubscribe, 10000, subscribeURL);
             }
         });
+
+        //
+        // Close the EventSource connection before we leave/reload the
+        // page: some browsers, such as Firefox at the time of
+        // writing, may complain otherwise.
+        //
+        window.addEventListener('beforeunload', (e) => {
+            source.close();
+        });
+
         break;
     case 'scripted':
         //
