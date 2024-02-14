@@ -290,8 +290,10 @@ namespace eval ::xowiki {
       # predates form-fields and follows ad_form conventions and uses
       # upvar, etc.
       #
-      set nls_language [$data form_parameter nls_language:token [$data form_parameter _nls_language]]
-      if {$nls_language eq ""} {
+      set nls_language [$data form_parameter \
+                            nls_language:token \
+                            [$data form_parameter _nls_language:token]]
+      if {$nls_language eq "" || [string length $nls_language] > 5} {
         set nls_language en_US
       }
       set name [$data build_name -nls_language $nls_language]
