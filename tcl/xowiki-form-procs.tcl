@@ -293,8 +293,23 @@ namespace eval ::xowiki {
       set nls_language [$data form_parameter \
                             nls_language:token \
                             [$data form_parameter _nls_language:token]]
-      if {$nls_language eq "" || [string length $nls_language] > 5} {
+      if {$nls_language eq ""} {
         set nls_language en_US
+      } elseif {$nls_language ni [lang::system::get_locales]} {
+        #
+        # The locale does not belong to the enabled locales. This can
+        # be still wanted by the application, but we should provide a
+        # hint in the log file about this unusual situation.
+        #
+        if {$nls_language ni [lang::system::get_locales -all]} {
+          set message "'$nls_language' not defined in the system, call back to 'en_US'"
+          set severity warning
+          set nls_language en_US
+        } else {
+          set severity notice
+          set message "'$nls_language' not enabled in the system"
+        }
+        ns_log $severity "suspect content of form variable nls_language: $message"
       }
       set name [$data build_name -nls_language $nls_language]
     }
