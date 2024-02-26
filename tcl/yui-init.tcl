@@ -37,31 +37,6 @@ set YUI_JS_PATHS {
   yahoo/yahoo-min
 }
 
-if {0} {
-  #
-  # Downloading YUI files is cumbersome. Therefore, this small helper
-  # that maybe someone else finds helpful if there is some more
-  # updates (which is not highly likely).
-  #
-  # see: https://cdnjs.com/libraries/yui/2.9.0
-  #
-  set version 2.9.0
-  set root /usr/local/oacs-5-10/openacs-4/packages/ajaxhelper/www/resources/yui-2.9.0
-  foreach path $YUI_CSS_PATHS {
-    set dir $root/[file join {*}[lrange [file split $path] 0 end-1]]
-    file mkdir $dir
-    exec wget -q -P $dir https://cdnjs.cloudflare.com/ajax/libs/yui/2.9.0/$path.css
-  }
-
-  foreach path $YUI_JS_PATHS {
-    set dir $root/[file join {*}[lrange [file split $path] 0 end-1]]
-    file mkdir $dir
-    exec wget -q -P $dir https://cdnjs.cloudflare.com/ajax/libs/yui/2.9.0/$path.js
-  }
-}
-
-
-
 #
 # The following asset files is up to my knowledge not available via CDN
 #
