@@ -37,6 +37,7 @@
   <msg key="copy_entry">Copia Voce</msg>
   <msg key="create_new_entry_of_type">Crea una nuova voce di tipo %type%</msg>
   <msg key="create_this_page_in_language">Crea questa pagina in una lingua differente</msg>
+  <msg key="datetime-local-validate_valid_format">Data/ora non valida</msg>
   <msg key="day">giorno</msg>
   <msg key="days">giorni</msg>
   <msg key="delete">Elimina</msg>
@@ -121,6 +122,8 @@
   <msg key="FormPage_pretty_plural">Wiki FormPage</msg>
   <msg key="From">Da</msg>
   <msg key="future_interval">in %time%</msg>
+  <msg key="h5date-validate_valid_format">Data non valida</msg>
+  <msg key="h5time-validate_valid_format">Ora non valida</msg>
   <msg key="has_modified_this_page">ha modificato questa pagina mentre la stavi editando</msg>
   <msg key="height">Altezza</msg>
   <msg key="hour">ora</msg>
