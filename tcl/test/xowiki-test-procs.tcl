@@ -1800,6 +1800,192 @@ namespace eval ::xowiki::test {
             }
         }
     }
+
+    aa_register_case -cats {web} check_html5_formfields {
+
+        Test the behavior of HTML5 date and time fields.
+
+    } {
+
+        #
+        # Create a new admin user and login
+        #
+        #
+        # Setup of test user_id and login
+        #
+        set user_info [::acs::test::user::create -email xowiki@acs-testing.test -admin]
+        set request_info [::acs::test::login $user_info]
+
+        set instance /xowiki-test
+        set package_id [::acs::test::require_package_instance \
+                            -package_key xowiki \
+                            -empty \
+                            -instance_name $instance]
+        set testfolder .testfolder
+
+        try {
+            ###########################################################
+            aa_section "Require test folder"
+            ###########################################################
+
+            set folder_info [::xowiki::test::require_test_folder \
+                                 -last_request $request_info \
+                                 -instance $instance \
+                                 -folder_name $testfolder \
+                                 -fresh \
+                                ]
+
+            set folder_id  [dict get $folder_info folder_id]
+            set package_id [dict get $folder_info package_id]
+            aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
+
+            set locale [lang::system::locale]
+            set lang [string range $locale 0 1]
+            set form_name $lang:the-form.form
+            ###########################################################
+            aa_section "Create Form $form_name"
+            ###########################################################
+
+            set form_info [::xowiki::test::create_form \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -name $form_name \
+                -update [subst {
+                    title "Date/time validation form"
+                    nls_language $locale
+                    text {}
+                    text.format text/html
+                    form {
+                        <form>
+                        @date@
+                        @time@
+                        @datetime@
+                        </form>
+                    }
+                    form.format text/plain
+                    form_constraints {
+                        date:h5date
+                        time:h5time
+                        datetime:datetime-local
+                    }
+                }]]
+            aa_log "Form $form_name created"
+
+            set page_name $lang:the-form-instance
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name' with invalid date"
+            ###########################################################
+
+            set expected_error [::lang::message::lookup \
+                                    $locale \
+                                    xowiki.h5date-validate_valid_format]
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -expect_validation_error $expected_error \
+                -update [list \
+                             _name $page_name \
+                             _title "fresh $page_name" \
+                             _nls_language $locale \
+                             date bogus \
+                             time 08:00 \
+                             datetime 2024-02-29T09:15 \
+                            ]
+
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name' with invalid time"
+            ###########################################################
+
+            set expected_error [::lang::message::lookup \
+                                    $locale \
+                                    xowiki.h5time-validate_valid_format]
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -expect_validation_error $expected_error \
+                -update [list \
+                             _name $page_name \
+                             _title "fresh $page_name" \
+                             _nls_language $locale \
+                             date 2024-02-29 \
+                             time bogus \
+                             datetime 2024-02-29T09:15 \
+                            ]
+
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name' with invalid datetime"
+            ###########################################################
+
+            set expected_error [::lang::message::lookup \
+                                    $locale \
+                                    xowiki.datetime-local-validate_valid_format]
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -expect_validation_error $expected_error \
+                -update [list \
+                             _name $page_name \
+                             _title "fresh $page_name" \
+                             _nls_language $locale \
+                             date 2024-02-29 \
+                             time 08:01 \
+                             datetime bogus \
+                            ]
+
+            ###########################################################
+            aa_section "Create an instance of $form_name named '$page_name' with empty datetime values"
+            ###########################################################
+
+            ::xowiki::test::create_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder \
+                -parent_id $folder_id \
+                -form_name $form_name \
+                -update [list \
+                             _name $page_name \
+                             _title "fresh $page_name" \
+                             _nls_language $locale \
+                            ]
+
+            ###########################################################
+            aa_section "Edit '$page_name' with proper datetime values"
+            ###########################################################
+
+            ::xowiki::test::edit_form_page \
+                -last_request $request_info \
+                -instance $instance \
+                -path $testfolder/$page_name \
+                -update [list \
+                             date 2024-02-29 \
+                             time 08:01 \
+                             datetime 2024-02-29T08:01 \
+                            ]
+
+        } on error {errorMsg} {
+            aa_true "Error msg: $errorMsg" 0
+        } finally {
+            #
+            # In case something has to be cleaned manually, do it here.
+            #
+            if {$package_id ne "" && $instance ne ""} {
+                set node_id [site_node::get_element -url $instance -element node_id]
+                site_node::delete -node_id $node_id -delete_package
+            }
+        }
+    }
+
 }
 
 #
