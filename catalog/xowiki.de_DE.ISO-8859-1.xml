@@ -33,6 +33,7 @@
   <msg key="copy_entry">Kopiere Eintrag</msg>
   <msg key="create_new_entry_of_type">Neuen Eintrag vom Typ %type% erstellen</msg>
   <msg key="create_this_page_in_language">Erzeuge diese Seite in der folgenden Sprache</msg>
+  <msg key="datetime-local-validate_valid_format">Ungültige Datumszeitangabe</msg>
   <msg key="day">Tag</msg>
   <msg key="days">Tagen</msg>
   <msg key="delete">Löschen</msg>
@@ -119,6 +120,8 @@
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
   <msg key="From">Von</msg>
   <msg key="future_interval">in %time%</msg>
+  <msg key="h5date-validate_valid_format">Ungültige Datumsangabe</msg>
+  <msg key="h5time-validate_valid_format">Ungültige Zeitangabe</msg>
   <msg key="has_modified_this_page">hat diese Seite verändert während sie von Ihnen bearbeitet wurde</msg>
   <msg key="height">Höhe</msg>
   <msg key="hour">Stunde</msg>

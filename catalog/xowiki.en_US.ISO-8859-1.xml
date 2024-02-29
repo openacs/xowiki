@@ -38,6 +38,7 @@
   <msg key="correct_when-validate_valid_predicate">%errorMsg%</msg>
   <msg key="create_new_entry_of_type">Create new entry of type %type%</msg>
   <msg key="create_this_page_in_language">Create this page in a different language</msg>
+  <msg key="datetime-local-validate_valid_format">Invalid datetime string</msg>
   <msg key="day">day</msg>
   <msg key="days">days</msg>
   <msg key="delete">Delete</msg>
@@ -131,6 +132,8 @@ Argument list must contain attribute value pairs (attributes with dashes)</msg>
   <msg key="FormPage_pretty_plural">Wiki FormPages</msg>
   <msg key="From">From</msg>
   <msg key="future_interval">in %time%</msg>
+  <msg key="h5date-validate_valid_format">Invalid date string</msg>
+  <msg key="h5time-validate_valid_format">Invalid time string</msg>
   <msg key="has_modified_this_page">has modified this page while you were editing it</msg>
   <msg key="height">Height</msg>
   <msg key="hour">hour</msg>

@@ -2499,6 +2499,35 @@ namespace eval ::xowiki::formfield {
     }
   }
 
+  text instproc is_clock_string_p {value formats} {
+    #
+    # Checks if a string is a valid clock string according to
+    # specified formats.
+    #
+    # @see clock
+    #
+    # @return 1 or 0
+    #
+    if {$value eq ""} {
+      #
+      # Empty values are fine here, the field may be optional.
+      #
+      return 1
+    }
+    foreach f $formats {
+      try {
+        clock scan $value -format $f
+      } on error {errmsg} {
+        ns_log notice \
+            "text instproc is_clock_string_p" \
+            "'$value' is not in clock format '$f'"
+      } on ok {d} {
+        return 1
+      }
+    }
+    return 0
+  }
+
   ###########################################################
   #
   # ::xowiki::formfield::localized_text
@@ -2711,10 +2740,20 @@ namespace eval ::xowiki::formfield {
   #  HTML 5 input type "date", to avoid naming conflict with
   #  pre-existing formfield of type "date"
   ###########################################################
-  Class create h5date -superclass text
+  Class create h5date \
+      -superclass text \
+      -extend_slot_default validator valid_format \
+      -parameter {
+        {formats {"%Y-%m-%d"}}
+      }
+
   h5date instproc initialize {} {
     next
     :type date
+  }
+
+  h5date instproc check=valid_format {value} {
+    return [:is_clock_string_p $value ${:formats}]
   }
 
   ###########################################################
@@ -2724,12 +2763,21 @@ namespace eval ::xowiki::formfield {
   #  HTML 5 input type "time", to avoid naming conflict with
   #  pre-existing formfield of type "time"
   ###########################################################
-  Class create h5time -superclass text
+  Class create h5time \
+      -superclass text \
+      -extend_slot_default validator valid_format \
+      -parameter {
+        {formats {"%H:%M"}}
+      }
+
   h5time instproc initialize {} {
     next
     :type time
   }
 
+  h5time instproc check=valid_format {value} {
+    return [:is_clock_string_p $value ${:formats}]
+  }
 
   ###########################################################
   #
@@ -2737,10 +2785,20 @@ namespace eval ::xowiki::formfield {
   #
   ###########################################################
 
-  Class create datetime-local -superclass text
+  Class create datetime-local \
+      -superclass text \
+      -extend_slot_default validator valid_format \
+      -parameter {
+        {formats {"%Y-%m-%dT%H:%M"}}
+      }
+
   datetime-local instproc initialize {} {
     next
     :type datetime-local
+  }
+
+  datetime-local instproc check=valid_format {value} {
+    return [:is_clock_string_p $value ${:formats}]
   }
 
   ###########################################################
@@ -6648,13 +6706,13 @@ namespace eval ::xowiki::formfield {
     #:log "time_span initialize [info exists :__initialized], multi=${:multiday} state=${:__state}"
     if {${:__state} ne "after_specs"} return
     set :widget_type time_span
-    if {${:multiday}} {
-      set dtend_format DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI
-      set dtend_display_format %Q_%X
-    } else {
-      set dtend_format HH24_MI
-      set dtend_display_format %X
-    }
+    # if {${:multiday}} {
+    #   set dtend_format DD_MONTH_YYYY_#xowiki.event-hour_prefix#_HH24_MI
+    #   set dtend_display_format %Q_%X
+    # } else {
+    #   set dtend_format HH24_MI
+    #   set dtend_display_format %X
+    # }
     :create_components [subst {
       {dtstart {datetime-local,form_item_wrapper_CSSclass=form-inline,label=#xowiki.From#}}
       {dtend   {h5time,form_item_wrapper_CSSclass=form-inline,label=#xowiki.to#}}
