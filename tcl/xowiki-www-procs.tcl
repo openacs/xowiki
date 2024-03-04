@@ -1541,7 +1541,7 @@ namespace eval ::xowiki {
     #
     set fileName [ad_sanitize_filename \
                       [ns_queryget name [ns_queryget upload]]]
-    if {[string length $filename] == 0} {
+    if {[string length $fileName] == 0} {
       ad_return_complaint 1 [_ acs-templating.Invalid_filename]
       ad_script_abort
     }
