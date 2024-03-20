@@ -581,13 +581,16 @@ namespace eval ::xowiki {
          </div>
          <div id='xowiki-chat-users'></div>
       </div>
+    }]
+
+    #
+    # A chat may be embedded later in the page's lifecycle, e.g. when
+    # it is extracted from a template. This event will be triggered
+    # only when the chat became an actual part of the DOM. This means
+    # we can actually subscribe to the chat.
+    #
+    append html [subst {
       <script nonce="[security::csp::nonce]">
-        //
-        // A chat may be embedded later in the page's lifecycle,
-        // e.g. when it is extracted from a template. This event will
-        // be triggered only when the chat became an actual part of
-        // the DOM. This means we can actually subscribe to the chat.
-        //
         window.dispatchEvent(new Event('xowikichatloaded'));
       </script>
     }]
