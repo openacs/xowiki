@@ -581,6 +581,15 @@ namespace eval ::xowiki {
          </div>
          <div id='xowiki-chat-users'></div>
       </div>
+      <script nonce="[security::csp::nonce]">
+        //
+        // A chat may be embedded later in the page's lifecycle,
+        // e.g. when it is extracted from a template. This event will
+        // be triggered only when the chat became an actual part of
+        // the DOM. This means we can actually subscribe to the chat.
+        //
+        window.dispatchEvent(new Event('xowikichatloaded'));
+      </script>
     }]
 
     set conf [dict create]
@@ -625,7 +634,15 @@ namespace eval ::xowiki {
       chatSubscribe('$base_url');
     }]
 
-    template::add_body_handler -event load -script $js
+    #
+    # This handler will wait for the chat to be appended to the DOM to
+    # trigger the relevant javascript.
+    #
+    ::template::head::add_javascript -script [subst -nocommands {
+      window.addEventListener('xowikichatloaded', () => {
+          $js
+      });
+    }]
 
     template::add_refresh_on_history_handler
 
