@@ -1,7 +1,7 @@
 #
 # Register some URNs that we are providing for sharing.
 #
-template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.6.4.min.js
+template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.7.1.min.js
 template::register_urn -urn urn:ad:js:jquery-ui   -resource /resources/xowiki/jquery/jquery-ui.min.js
 template::register_urn -urn urn:ad:css:jquery-ui  -resource /resources/xowiki/jquery/jquery-ui.css
 template::register_urn -urn urn:ad:js:jquery-ui-touch-punch \
@@ -16,7 +16,7 @@ template::register_urn -urn urn:ad:js:get-http-object \
 
 if {![apm_package_enabled_p "highcharts"]} {
   template::register_urn -urn urn:ad:js:highcharts \
-      -resource https://cdnjs.cloudflare.com/ajax/libs/highcharts/10.3.1/highcharts.js \
+      -resource https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.0/highcharts.js \
       -csp_list {script-src cdnjs.cloudflare.com}
 }
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
