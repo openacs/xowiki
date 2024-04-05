@@ -22,7 +22,7 @@ like MediaWiki, XoWiki is based on a rich text editor and focuses more
 on integration with OpenACS (e.g. categories, general comments,
 ADP-includes). XoWiki combines aspects of wikis (ease of
 page-creation) with aspects of a content management system (revisions,
-re-usable items, multiple languages). Furthermore, XoWiki allows one to
+reusable items, multiple languages). Furthermore, XoWiki allows one to
 define different types of links such one could define book-structures
 (where a navigation structure could be built on the fly) or glossaries
 with different kind of word relationships (like synonyms,
