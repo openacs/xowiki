@@ -2404,7 +2404,7 @@ namespace eval ::xowiki::formfield {
     # don't render the labels
     if {[info exists :sign] && ${:sign}} {
       set token_id [sec_get_random_cached_token_id]
-      set secret [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
+      set secret [ns_config "ns/server/[ns_info server]/acs" parameterSecret ""]
       if {[info exists :max_age]} {
         set max_age ${:max_age}
       } else {
@@ -2424,7 +2424,7 @@ namespace eval ::xowiki::formfield {
     set v 1
     if {[info exists :sign] && ${:sign}} {
       set sig [::xo::cc form_parameter __${:name}_sig]
-      set secret [ns_config "ns/server/[ns_info server]/acs" parametersecret ""]
+      set secret [ns_config "ns/server/[ns_info server]/acs" parameterSecret ""]
       set v [ad_verify_signature -secret $secret $value $sig]
       ns_log notice "==== we have sig <$sig> val $v"
     }
