@@ -100,22 +100,12 @@ namespace eval ::xowiki::formfield {
     set componentItemSpecs [list [list 0 $itemSpec]]
 
     #
-    # Add max content items (1 .. max) and build form fields
+    # We use dynamic repeat fields. The number of fields generated on
+    # the server side is the minimum, while the rest will be created
+    # on demand via javascript.
     #
-    set formAction [${:object} form_parameter __form_action:graph {}]
-    # TODO: we use for the time being the code for dynamic repeat field
-    if {0 && $formAction eq ""} {
-      #
-      # The form field is in input mode; as long there is no js
-      # support do incrementally add form fields in js, we have to
-      # generate it here.
-      #
-      set max [:max]
-    } else {
-      #set max [:max]
-      set max [:min] ;# use dynamic repeat fields: if set to min, repeat fields will be created on demand
-    }
-    #ns_log notice "dynamic repeat MAX=$max FORMACTION <$formAction>"
+    set max [:min]
+
     for {set i 1} {$i <= $max} {incr i} {
       set componentItemSpec [:component_item_spec $i $itemSpec $isRequired]
       #ns_log notice "dynamic repeat componentItemSpec $componentItemSpec"
