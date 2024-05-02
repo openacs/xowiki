@@ -4096,6 +4096,212 @@ namespace eval ::xowiki::formfield {
 
   ###########################################################
   #
+  # ::xowiki::formfield::richtext::tinymce
+  #
+  ###########################################################
+  Class create richtext::tinymce -superclass richtext -parameter {
+    {extraPlugins ""}
+    {customConfig ""}
+    {additionalConfig ""}
+  } -ad_doc {
+    TinyMCE XoWiki richtext-editor integration.
+
+    @param extraPlugins a list of couples 'pluginId' 'pluginURL'
+                        specifying additional plugins.
+
+    @param customConfig a configuration dict that will completely
+                        override configuration coming from the
+                        parameters.
+    @param additionalConfig a configuration dict that will be merged
+                            with configuration coming from the
+                            parameters. Values specified here will
+                            take precedence on the parameter values.
+
+    @see https://www.tiny.cloud/docs/tinymce/latest/
+  }
+
+  richtext::tinymce set editor_mixin 1
+
+  richtext::tinymce instproc initialize {} {
+    next
+    set :widget_type richtext
+  }
+
+  richtext::tinymce instproc compute_config {} {
+    #
+    # Here we compute the editor config, mergin explicit one with
+    # systems configurations.
+    #
+    # @return a dict
+    #
+    if {${:customConfig} ne ""} {
+      set default_config ${:customConfig}
+    } else {
+      set default_config [::richtext::tinymce::default_config]
+    }
+
+    set config [list]
+
+    if {${:extraPlugins} ne ""} {
+      set extra_plugins [::richtext::tinymce::serialize_options ${:extraPlugins}]
+      lappend config external_plugins "{$extra_plugins}"
+    }
+
+    #
+    # Inline means the editor will not be displayed unless we click on
+    # its content. We also supported an inplace mode, where the editor
+    # does something similar, but with explicit save and cancel
+    # buttons underneath.
+    #
+    # As the difference is subtle and there is currently not a
+    # requirement for inplace mode, we treat both mode the same as
+    # "inline".
+    #
+    set inline_p [expr {${:displayMode} in {"inplace" "inline"} ? true : false}]
+    lappend config inline $inline_p
+
+    set config [dict merge \
+                    [list language [ad_conn language]] \
+                    $default_config \
+                    ${:additionalConfig} \
+                    $config]
+  }
+
+  richtext::tinymce instproc render_input {} {
+    set disabled [:is_disabled]
+    set is_repeat_template [:is_repeat_template_p]
+
+    #
+    # Field is disabled. We simply render as a div.
+    #
+    if {$disabled && !$is_repeat_template} {
+      :render_richtext_as_div
+      return
+    }
+
+    set config [:compute_config]
+    set inline_p [dict get $config inline]
+
+    set config [::richtext::tinymce::serialize_options $config]
+
+    #
+    # Include the relevant javascript.
+    #
+    ::richtext::tinymce::add_editor -init=false
+
+    if {$is_repeat_template} {
+      #
+      # A repeated field. We use a MutationObserver to detect whenever
+      # a new field has been appended and we enhance it on the fly.
+      #
+      ::template::add_body_handler \
+          -identifier richtext_tinymce_editor_init_repeat \
+          -event load \
+          -script {
+            function richtext_tinymce_editor_init_repeat(id, containerId, editorConfig) {
+              const repeatSelector = `[id^='${containerId}']`;
+              const compoundRepeatSelector = `[data-repeat-template-id='${id}']`
+              const targetNode = document.getElementById(containerId);
+              const config = { childList: true };
+              const callback = (mutationList, observer) => {
+                for (const mutation of mutationList) {
+                  for (const repeatedField of mutation.addedNodes) {
+                    const inputField = repeatedField.querySelector(compoundRepeatSelector) ||
+                                       repeatedField.querySelector(repeatSelector);
+                    if (!inputField) { continue; }
+                    const fieldId = inputField.id;
+                    const repeatInfo = JSON.parse(repeatedField.getAttribute('data-repeat'));
+                    const fieldName = repeatInfo ? repeatInfo.name : null;
+                    editorConfig.selector = `[id='${fieldId}']`;
+                    tinyMCE.init(editorConfig).then((editors) => {
+                      let replacedField;
+                      let fieldNum = 1;
+                      for (const hiddenField of targetNode.
+                           querySelectorAll('input[type=hidden]')) {
+                        if (hiddenField.name === fieldId) {
+                          replacedField = hiddenField;
+                          replacedField.name = `${fieldName}.${fieldNum}`;
+                          break;
+                        }
+                        fieldNum++;
+                      }
+                      replacedField?.form.addEventListener('submit', (evt) => {
+                        replacedField.value = editors[0].getContent();
+                      });
+                    });
+                  }
+                }
+              };
+              const observer = new MutationObserver(callback);
+              observer.observe(targetNode, config);
+            }
+          }
+
+      #
+      # Hook to locate our richtext template when repeated.
+      #
+      set :data-repeat-template-id ${:id}
+
+      #
+      # The repeat container is the topmost ancestor of this
+      # formfield. This is true both for regular and compound repeated
+      # fields.
+      #
+      set obj [self]
+      while {[$obj exists parent_field]} {
+        set parent_field [$obj set parent_field]
+        set obj $parent_field
+      }
+      set repeat_container_id [$parent_field id]
+
+      ::template::add_body_handler -event load -script [subst -nocommands {
+        richtext_tinymce_editor_init_repeat('${:id}', '${repeat_container_id}', {$config});
+      }]
+    } else {
+      #
+      # A regular non-repeated field.
+      #
+      ::template::add_body_handler \
+          -identifier richtext_tinymce_editor_init \
+          -event load \
+          -script {
+            function richtext_tinymce_editor_init(elementId, fieldName, editorConfig) {
+              editorConfig.selector = `[id='${elementId}']`;
+              tinyMCE.init(editorConfig).then((editors) => {
+                const replacedField = document.querySelector(`input[type=hidden][name='${elementId}']`);
+                replacedField?.form.addEventListener('submit', (evt) => {
+                  replacedField.name = fieldName;
+                  replacedField.value = editors[0].getContent();
+                });
+              });
+            }
+          }
+
+      ::template::add_body_handler -event load -script [subst -nocommands {
+        richtext_tinymce_editor_init('${:id}', '${:name}', {$config});
+      }]
+    }
+
+    if {$inline_p} {
+      #
+      # In inline mode, the markup we send is a div, that TinyMCE
+      # replaces with an editor + a hidden input field with our same id,
+      # but no name attribute.
+      #
+      # Before the form is submitted, we get the content from the
+      # editor and store it as the hidden field value, then set the
+      # name attibute as XoWiki expects it. This logic is found in
+      # both the promise handler for TinyMCE.init up in the js
+      # functions.
+      #
+      :render_richtext_as_div
+    } else {
+      next
+    }
+  }
+
+  ###########################################################
+  #
   # ::xowiki::formfield::ShuffleField
   #
   ###########################################################
