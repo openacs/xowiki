@@ -29,6 +29,7 @@ namespace eval ::xowiki::formfield {
         :create_components  {
             {anumber {numeric,label=The Number}}
             {atext {text,label=The Text}}
+            {arichtext {richtext,label=The Richtext}}
             {aradio {radio,label=The Radio,options={X X} {Y Y} {Z Z}}}
             {acheckbox {checkbox,label=The Checkbox,options={X X} {Y Y} {Z Z}}}
             {aselect {select,label=The Select,options={X X} {Y Y} {Z Z}}}
@@ -42,6 +43,7 @@ namespace eval ::xowiki::formfield {
         :create_components  {
             {anumber {numeric,label=The Number}}
             {atext {text,label=The Text}}
+            {arichtext {richtext,label=The Richtext}}
             {aradio {radio,label=The Radio,options={A A} {B B} {C C}}}
             {acheckbox {checkbox,label=The Checkbox,options={A A} {B B} {C C}}}
             {aselect {select,label=The Select,options={A A} {B B} {C C}}}
