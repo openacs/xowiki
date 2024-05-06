@@ -3404,6 +3404,7 @@ namespace eval ::xowiki::formfield {
         width
         height
         {wiki false}
+        preset
       }
 
   richtext instproc editor {args} {
@@ -3457,6 +3458,26 @@ namespace eval ::xowiki::formfield {
       set :__initialized 1
     }
     set :editor $editor
+  }
+
+  richtext instproc preset_conf {} {
+    #
+    # The actual richtext-editor implementation may provide some
+    # use-case based presets. Examples may be a "minimal", "standard"
+    # and "advanced" configuration that are reused in various forms.
+    #
+    # Here, we check and eventually return such conf, which will be
+    # applied to the loading formfield.
+    #
+    # The purpose of this feature is to have a set of logical
+    # configurations that do not depend on the specific editor and can
+    # be extended downstream.
+    #
+    if {[info exists :preset] &&
+        [info exists :editor] &&
+        [info commands ::richtext::${:editor}::preset::${:preset}] ne ""} {
+      return [::richtext::${:editor}::preset::${:preset}]
+    }
   }
 
   richtext instproc initialize {} {
@@ -3744,6 +3765,16 @@ namespace eval ::xowiki::formfield {
       set id ${:id}
       set name ${:name}
       set package_id [${:object} package_id]
+
+      #
+      # Apply configuration from presets, if any.
+      #
+      foreach {key value} [:preset_conf] {
+        # We do not set variables that do not exist.
+        if {[info exists :${key}]} {
+          set :${key} $value
+        }
+      }
 
       # Earlier versions required the plugin "sourcedialog" in
       # "inline" mode. Not sure why. This plugin was removed from
@@ -4130,7 +4161,7 @@ namespace eval ::xowiki::formfield {
   richtext::tinymce instproc compute_config {} {
     #
     # Here we compute the editor config, mergin explicit one with
-    # systems configurations.
+    # systems configurations and presets.
     #
     # @return a dict
     #
@@ -4163,6 +4194,7 @@ namespace eval ::xowiki::formfield {
     set config [dict merge \
                     [list language [ad_conn language]] \
                     $default_config \
+                    [:preset_conf] \
                     ${:additionalConfig} \
                     $config]
   }
