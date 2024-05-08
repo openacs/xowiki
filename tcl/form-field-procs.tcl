@@ -3695,6 +3695,16 @@ namespace eval ::xowiki::formfield {
     return $result
   }
 
+  richtext::ckeditor4 instproc imageSelectorDialog {} {
+    #
+    # Hook for downstream implementation to override the image
+    # selection dialog with a different endpoint.
+    #
+    # @return URL
+    #
+    return ${:imageSelectorDialog}?parent_id=[${:object} item_id]
+  }
+
   richtext::ckeditor4 instproc render_input {} {
     set disabled [:is_disabled]
     set is_repeat_template [:is_repeat_template_p]
@@ -3821,7 +3831,7 @@ namespace eval ::xowiki::formfield {
         extraPlugins: '[join ${:extraPlugins} ,]',
         extraAllowedContent: '${:extraAllowedContent}',
         contentsCss: '${:contentsCss}',
-        imageSelectorDialog: '[:imageSelectorDialog]?parent_id=[${:object} item_id]',
+        imageSelectorDialog: '[:imageSelectorDialog]',
         ready_callback: '$ready_callback2',
         customConfig: '${:customConfig}',
         textarea_id: id
