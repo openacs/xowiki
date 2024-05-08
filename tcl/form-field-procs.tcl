@@ -4201,6 +4201,12 @@ namespace eval ::xowiki::formfield {
     set inline_p [expr {${:displayMode} in {"inplace" "inline"} ? true : false}]
     lappend config inline $inline_p
 
+    #
+    # Inject a reference to the current object, useful e.g. for
+    # plugins to know where to point to.
+    #
+    lappend config object_id [${:object} item_id]
+
     set config [dict merge \
                     [list language [ad_conn language]] \
                     $default_config \
