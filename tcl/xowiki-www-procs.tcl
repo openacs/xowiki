@@ -3071,8 +3071,8 @@ namespace eval ::xowiki {
     }
 
     #
-    # Remove the fields already included in auto_fields form the needed_attributes.
-    # The final list field_names determines the order of the fields in the form.
+    # Remove the fields already included in auto_fields from the needed_attributes.
+    # The final list "field_names" determines the order of the fields in the form.
     #
     set auto_fields [list _name _page_order _title _creator _assignee _text _description _nls_language]
     set reduced_attributes $needed_attributes

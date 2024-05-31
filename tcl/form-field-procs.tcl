@@ -5423,7 +5423,7 @@ namespace eval ::xowiki::formfield {
     XOTcl class for selecting a subset from a list of candidates.
     @param as_box makes something like in info box in wikipedia (right floated)
     @param keep_order when set, the user provided order is preserved, otherwise
-           the order form the candidates is used.
+           the order from the candidates is used.
     @param dnd allow drag and drop
   }
   candidate_box_select set abstract 1
