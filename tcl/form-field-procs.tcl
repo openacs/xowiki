@@ -2924,8 +2924,10 @@ namespace eval ::xowiki::formfield {
     set :widget_type text
   }
   range instproc render_input {} {
-    ::html::input [:get_attributes type id name value disabled {CSSclass class} min max step value \
-                       autofocus autocomplete formnovalidate multiple pattern placeholder readonly required] {}
+    set atts [:get_attributes type id name value {CSSclass class} min max step value \
+                  autofocus autocomplete formnovalidate multiple pattern placeholder readonly required]
+    if {[:is_disabled]} {lappend atts {*}"disabled 1"}
+    ::html::input $atts {}
     if {${:with_output}} {
       set :for ${:id}
       set :outputID ${:id}-output
