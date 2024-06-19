@@ -2486,7 +2486,7 @@ namespace eval ::xowiki {
     set link $arg
     set options ""
     regexp {^([^|]+)[|](.*)$} $arg _ link label
-    regexp {^([^|]+)[|](.*)$} $label _ label options
+    regexp {^([^|]*)[|](.*)$} $label _ label options
     set options [:unescape $options]
     set link [string trim $link]
 
