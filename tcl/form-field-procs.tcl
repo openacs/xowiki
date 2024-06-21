@@ -3434,7 +3434,7 @@ namespace eval ::xowiki::formfield {
         width
         height
         {wiki false}
-        preset
+        {preset "standard"}
       }
 
   richtext instproc editor {args} {
@@ -3498,6 +3498,12 @@ namespace eval ::xowiki::formfield {
     #
     # Here, we check and eventually return such conf, which will be
     # applied to the loading formfield.
+    #
+    # The default for the :preset variable is set to "standard", but
+    # may be overridden by subclasses. This provides a hook for
+    # site-wide customization via a tcl proc, which enables to inject
+    # e.g. information coming from the connection context or other tcl
+    # commands, not possible via parameter alone.
     #
     # The purpose of this feature is to have a set of logical
     # configurations that do not depend on the specific editor and can
