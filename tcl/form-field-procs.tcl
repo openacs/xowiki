@@ -3519,7 +3519,7 @@ namespace eval ::xowiki::formfield {
 
   richtext instproc render_richtext_as_div {} {
     #:msg "[:get_attributes id style {CSSclass class}]"
-    ::html::div [:get_attributes id style {CSSclass class}] {
+    ::html::div [:get_attributes id style {CSSclass class} data-repeat-template-id] {
       if {[:wiki]} {
         ${:object} references clear
         ::html::t -disableOutputEscaping [${:object} substitute_markup [:value]]
