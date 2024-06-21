@@ -3294,7 +3294,17 @@ namespace eval ::xowiki::formfield {
   }
 
   textarea instproc render_input {} {
-    if {[:is_disabled] && [info exists :disabled_as_div]} {
+    if {[info exists :render_as_div_p] && ${:render_as_div_p}} {
+      #
+      # A subclass set :render_as_div_p to indicate they want the
+      # field to be rendered as a div, but did not want to interrupt
+      # inheritance.
+      #
+      # When superclass behavior is not needed, one may simply call
+      # :render_as_div directly in the subclass methods.
+      #
+      :render_as_div
+    } elseif {[:is_disabled] && [info exists :disabled_as_div]} {
       :render_disabled_as_div textarea
     } else {
       set booleanAtts [:booleanAttributes {*}${:booleanHTMLAttributes}]
@@ -3353,6 +3363,24 @@ namespace eval ::xowiki::formfield {
       :resetBooleanAttributes $booleanAtts
     }
     :render_result_statistics
+  }
+
+  textarea instproc render_as_div {} {
+    #
+    # Rendering a textarea as a div is needed in particular for
+    # richtext editors, where some may not expect to enhance a
+    # textarea as usual, but a div.
+    #
+    #:msg "[:get_attributes id style {CSSclass class}]"
+    ::html::div [:get_attributes id style {CSSclass class} data-repeat-template-id] {
+      if {[:wiki]} {
+        ${:object} references clear
+        ::html::t -disableOutputEscaping [${:object} substitute_markup [:value]]
+      } else {
+        ::html::t -disableOutputEscaping [:value]
+      }
+    }
+    ::html::div
   }
 
   textarea instproc set_feedback {feedback_mode} {
@@ -3515,19 +3543,6 @@ namespace eval ::xowiki::formfield {
     }
     set :widget_type richtext
     #set :__initialized 1
-  }
-
-  richtext instproc render_richtext_as_div {} {
-    #:msg "[:get_attributes id style {CSSclass class}]"
-    ::html::div [:get_attributes id style {CSSclass class} data-repeat-template-id] {
-      if {[:wiki]} {
-        ${:object} references clear
-        ::html::t -disableOutputEscaping [${:object} substitute_markup [:value]]
-      } else {
-        ::html::t -disableOutputEscaping [:value]
-      }
-    }
-    ::html::div
   }
 
   richtext instproc check=safe_html {value} {
@@ -3723,7 +3738,7 @@ namespace eval ::xowiki::formfield {
     }
 
     if {![:istype ::xowiki::formfield::richtext] || ($disabled && !$is_repeat_template)} {
-      :render_richtext_as_div
+      :render_as_div
     } else {
 
       template::head::add_javascript -src urn:ad:js:jquery
@@ -3890,7 +3905,7 @@ namespace eval ::xowiki::formfield {
             } );
           }]
         }
-        :render_richtext_as_div
+        :render_as_div
       } elseif {${:displayMode} eq "inline"} {
         if {"xowikiimage" in ${:extraPlugins}} {
           set ready_callback "xowiki_image_callback(CKEDITOR.instances\['$id'\]);"
@@ -3972,7 +3987,7 @@ namespace eval ::xowiki::formfield {
   richtext::wym instproc render_input {} {
     set disabled [:is_disabled]
     if {![:istype ::xowiki::formfield::richtext] || $disabled } {
-      :render_richtext_as_div
+      :render_as_div
     } else {
       ::xo::Page requireCSS "/resources/xowiki/wymeditor/skins/default/screen.css"
       ::xo::Page requireJS urn:ad:js:jquery
@@ -4084,7 +4099,7 @@ namespace eval ::xowiki::formfield {
   richtext::xinha instproc render_input {} {
     set disabled [:is_disabled]
     if {![:istype ::xowiki::formfield::richtext] || $disabled} {
-      :render_richtext_as_div
+      :render_as_div
     } else {
       #
       # required CSP directives for Xinha
@@ -4225,7 +4240,7 @@ namespace eval ::xowiki::formfield {
     # Field is disabled. We simply render as a div.
     #
     if {$disabled && !$is_repeat_template} {
-      :render_richtext_as_div
+      :render_as_div
       return
     }
 
@@ -4344,10 +4359,13 @@ namespace eval ::xowiki::formfield {
       # both the promise handler for TinyMCE.init up in the js
       # functions.
       #
-      :render_richtext_as_div
-    } else {
-      next
+      # We do not want to stop inheritance here, because we want to be
+      # able to plug behavior in subclasses of richtext.
+      #
+      set :render_as_div_p true
     }
+
+    next
   }
 
   ###########################################################
