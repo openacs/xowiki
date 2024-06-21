@@ -4252,12 +4252,12 @@ namespace eval ::xowiki::formfield {
               const repeatSelector = `[id^='${containerId}']`;
               const compoundRepeatSelector = `[data-repeat-template-id='${id}']`
               const targetNode = document.getElementById(containerId);
-              const config = { childList: true };
+              const config = { childList: true, subtree: true };
               const callback = (mutationList, observer) => {
                 for (const mutation of mutationList) {
                   for (const repeatedField of mutation.addedNodes) {
-                    const inputField = repeatedField.querySelector(compoundRepeatSelector) ||
-                                       repeatedField.querySelector(repeatSelector);
+                    const inputField = repeatedField.querySelector?.(compoundRepeatSelector) ||
+                                       repeatedField.querySelector?.(repeatSelector);
                     if (!inputField) { continue; }
                     const fieldId = inputField.id;
                     const repeatInfo = JSON.parse(repeatedField.getAttribute('data-repeat'));
