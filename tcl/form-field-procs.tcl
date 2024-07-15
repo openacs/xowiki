@@ -4193,7 +4193,7 @@ namespace eval ::xowiki::formfield {
 
   richtext::tinymce instproc compute_config {} {
     #
-    # Here we compute the editor config, mergin explicit one with
+    # Here we compute the editor config, merging requested one with
     # systems configurations and presets.
     #
     # @return a dict
@@ -4361,7 +4361,7 @@ namespace eval ::xowiki::formfield {
       #
       # Before the form is submitted, we get the content from the
       # editor and store it as the hidden field value, then set the
-      # name attibute as XoWiki expects it. This logic is found in
+      # name attribute as XoWiki expects it. This logic is found in
       # both the promise handler for TinyMCE.init up in the js
       # functions.
       #
