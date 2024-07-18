@@ -3524,13 +3524,13 @@ namespace eval ::xowiki::formfield {
       standard {}
       default {error "value '${:displayMode}' invalid: valid entries for displayMode are inplace, inline or standard (default)"}
     }
+    next
     #
     # Don't set HTML5 attribute "required", since this does not match
     # well with Richtext Editors (at least ckeditor4 has problems,
     # other probably as well).
     #
     set :booleanHTMLAttributes {readonly disabled formnovalidate}
-    next
     #ns_log notice "==== ${:name} EDITOR specified? [info exists :editor]"
 
     if {![info exists :editor]} {
