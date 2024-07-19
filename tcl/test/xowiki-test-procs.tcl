@@ -1120,25 +1120,39 @@ namespace eval ::xowiki::test {
             set package_id [dict get $folder_info package_id]
             aa_true "folder_id '$folder_id' is not 0" {$folder_id != 0}
 
+            ###########################################################
+            aa_section "Check locales"
+            ###########################################################
             set installed_locales [lang::system::get_locales]
             # en_US must be always in installed_locales
-            set enabled_locale_with_decimal_point_comma ""
+            #
+            # The tests below check conversion from to values with
+            # decimal points and decimal commas. This test can only be
+            # performed, when the locale of the package
+            # (package_locale) to be tested is installed and loaded,
+            # and its decimal point is a comma.
+            #
+            set package_locale [lang::conn::locale -package_id $package_id]
+            set user_locale en_US
             foreach locale $installed_locales {
-                if {$locale in {de_DE it_IT es_ES}} {
-                    set enabled_locale_with_decimal_point_comma $locale
+                if {[lang::message::lookup $locale acs-lang.localization-decimal_point .] eq ","} {
+                    set user_locale $locale
                     break
                 }
             }
-            if {$enabled_locale_with_decimal_point_comma ne ""} {
+            aa_log "package_locale $package_locale user_locale $user_locale"
+
+            if {$user_locale ne "en_US"} {
+                aa_log "perform tests with user_locale $user_locale (assuming the decimal point is a comma)"
                 set test_user_id [dict get $user_info user_id]
 
                 lang::user::set_locale -user_id $test_user_id "en_US"
-                aa_equals "check test_user can be set to en_US" \
+                aa_equals "check if locale of test_user can be set to en_US" \
                     [lang::user::locale -user_id $test_user_id] en_US
 
-                lang::user::set_locale -user_id $test_user_id $enabled_locale_with_decimal_point_comma
-                aa_equals "check test_user can be set to $enabled_locale_with_decimal_point_comma" \
-                    [lang::user::locale -user_id $test_user_id] $enabled_locale_with_decimal_point_comma
+                lang::user::set_locale -user_id $test_user_id $user_locale
+                aa_equals "check if locale of test_user can be set to $user_locale" \
+                    [lang::user::locale -user_id $test_user_id] $user_locale
 
                 set locale [lang::system::locale]
                 set lang [string range $locale 0 1]
@@ -1305,7 +1319,7 @@ namespace eval ::xowiki::test {
 
 
             } else {
-                aa_log "this test needs locales with decimal point set to comma, installed are '[lang::system::get_locales]'"
+                aa_log "This test needs a locale with the decimal point set to comma, installed locales '[lang::system::get_locales]'"
             }
 
         } on error {errorMsg} {
