@@ -47,7 +47,10 @@ namespace eval ::xowiki::bootstrap_treeview {
         urnMap {
           urn:ad:css:bootstrap3-treeview bootstrap-treeview.min.css
           urn:ad:js:bootstrap3-treeview  bootstrap-treeview.min.js
-        }
+        } \
+        versionCheckURL https://cdnjs.com/libraries/bootstrap-treeview \
+        versionCheckAPI {cdn cdnjs library bootstrap-treeview count 1} \
+        installedVersion $version
 
     if {$cdnHost ne ""} {
       lappend result csp_lists [subst {
