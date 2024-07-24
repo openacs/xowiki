@@ -1510,7 +1510,7 @@ namespace eval ::xowiki {
       set template_file [:get_adp_template $template_file]
     }
     set context [list [${:id} instance_name]]
-    set header_stuff [::xo::Page header_stuff]
+    ::xo::Page header_stuff
     set index_link [:make_link -privilege public -link "" ${:id} {} {}]
     set link [:query_parameter "return_url:localurl" ""]
     if {$link ne ""} {set back_link $link}
@@ -1523,7 +1523,7 @@ namespace eval ::xowiki {
     ::xo::cc set status_code $status_code
     ::xo::Page requireCSS urn:ad:css:xowiki-[::xowiki::CSS toolkit]
     ${:id} return_page -adp $template_file -variables {
-      context title index_link back_link header_stuff error_msg
+      context title index_link back_link error_msg
       top_includelets content folderhtml
     }
   }
