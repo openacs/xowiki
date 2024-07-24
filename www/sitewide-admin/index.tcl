@@ -10,7 +10,7 @@ set version 1.2.0
 set resource_info [::xowiki::bootstrap_treeview::resource_info -version $version]
 set resoure_name  [dict get $resource_info resourceName]
 set resource_title "Static resources"
-set download_url download?version=$version
+set download_url [ad_conn url]/download?version=$version
 set context [list $title]
 
 

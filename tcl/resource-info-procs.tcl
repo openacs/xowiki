@@ -40,7 +40,7 @@ namespace eval ::xowiki::bootstrap_treeview {
         cdn $cdn \
         cdnHost $cdnHost \
         prefix $prefix \
-        versionCheckURL "https://cdnjs.com/libraries?q=bootstrap-treeview" \
+        versionCheckURL https://cdnjs.com/libraries/bootstrap-treeview \
         cssFiles {bootstrap-treeview.min.css} \
         jsFiles  {bootstrap-treeview.min.js} \
         extraFiles {} \
