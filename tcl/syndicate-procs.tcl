@@ -400,7 +400,7 @@ namespace eval ::xowiki {
   }
 
   RSS-client instproc parse {data} {
-    set doc [ dom parse $data ]
+    set doc [ dom parse -- $data ]
     set root [ $doc documentElement ]
 
     switch [RSS-client getRSSVersion $doc] {
