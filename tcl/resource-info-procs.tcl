@@ -20,11 +20,10 @@ namespace eval ::xowiki::bootstrap_treeview {
     # Setup variables for access via CDN vs. local resources.
     #
     set resourceDir [acs_package_root_dir xowiki/www/resources/bootstrap-treeview]
-    set resourceUrl /resources/xowiki/bootstrap-treeview
     set cdn         //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview
 
     if {[file exists $resourceDir/$version/bootstrap-treeview.min.css]} {
-      set prefix  $resourceUrl/$version
+      set prefix  /resources/xowiki/bootstrap-treeview/$version
       set cdnHost ""
     } else {
       set prefix $cdn/$version
