@@ -14,9 +14,7 @@ if {![file writable $resourceDir/$version]} {
     error "directory $resourceDir/$version is not writable"
 }
 
-::util::resources::download \
-    -resource_info $resource_info \
-    -version_dir $version
+::util::resources::download -resource_info $resource_info
 
 # foreach url [dict get $resource_info downloadURLs] {
 #     set fn [file tail $url]
