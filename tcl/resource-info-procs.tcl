@@ -47,7 +47,7 @@ namespace eval ::xowiki::bootstrap_treeview {
           urn:ad:js:bootstrap3-treeview  bootstrap-treeview.min.js
         } \
         versionCheckAPI {cdn cdnjs library bootstrap-treeview count 1} \
-        installedVersion $version
+        configuredVersion $version
 
     if {$cdnHost ne ""} {
       lappend result csp_lists [subst {
