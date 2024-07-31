@@ -110,17 +110,17 @@ function openFileSelector() {
     
     (w < 640) ? w = 640 : w = w;
     (h < 480) ? h = 480 : h = h;
-    var dimensons = "width="+w+",height="+h;
+    var dimensions = "width="+w+",height="+h;
     if (!document.all) {
 	selector_window = window.open("@file_selector_link;noquote@", 
 	   "file_selector" , 
 	   "toolbar=no,menubar=no,personalbar=no,scrollbars=yes,resizable=yes," + 
-	   dimensons);
+	   dimensions);
     } else {
 	selector_window = window.open("@file_selector_link;noquote@", 
 	 "file_selector", 
 	 "channelmode=no,directories=no,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no," + 
-	 dimensons);
+	 dimensions);
     }
     selector_window.moveTo(w/2,h/2);
     selector_window.focus();
