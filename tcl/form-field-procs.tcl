@@ -3566,7 +3566,7 @@ namespace eval ::xowiki::formfield {
       # Check, if the package has global settings for AllowedTags,
       # AllowedAttributes, or AllowedProtocols. If (some of) these
       # exist, use these for configuring "ad_html_security_check". If
-      # not, fall back to the default (site wide) definition.
+      # not, fall back to the default (site-wide) definition.
       #
       set package_key [apm_package_key_from_id [${:object} package_id]]
       set options {}

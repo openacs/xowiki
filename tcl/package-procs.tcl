@@ -2732,7 +2732,7 @@ namespace eval ::xowiki {
   }
 
   #
-  # reindex (for site wide search)
+  # reindex (for site-wide search)
   #
   Package ad_instproc www-reindex {} {
 
