@@ -3,10 +3,11 @@ ad_page_contract {
 
     @creation-date Jan 04, 2017
 } {
+    {lib:token,notnull ""}
     {version:token,notnull ""}
 }
 
-set resource_info [::xowiki::bootstrap_treeview::resource_info -version $version]
+set resource_info [::xowiki::${lib}::resource_info -version $version]
 set resourceDir [dict get $resource_info resourceDir]
 file mkdir $resourceDir/$version
 
@@ -25,9 +26,6 @@ if {![file writable $resourceDir/$version]} {
 # }
 
 ad_returnredirect .
-
-#https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0//bootstrap-treeview.min.css
-#      //cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css
 
 # Local variables:
 #    mode: tcl

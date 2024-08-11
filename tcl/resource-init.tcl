@@ -1,11 +1,6 @@
 #
 # Register some URNs that we are providing for sharing.
 #
-template::register_urn -urn urn:ad:js:jquery      -resource /resources/xowiki/jquery/jquery-3.7.1.min.js
-template::register_urn -urn urn:ad:js:jquery-ui   -resource /resources/xowiki/jquery/jquery-ui.min.js
-template::register_urn -urn urn:ad:css:jquery-ui  -resource /resources/xowiki/jquery/jquery-ui.css
-template::register_urn -urn urn:ad:js:jquery-ui-touch-punch \
-    -resource /resources/xowiki/jquery/jquery.ui.touch-punch-0.2.3.js
 
 template::register_urn -urn urn:ad:js:bootstrap3  \
     -resource //maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js \
@@ -16,7 +11,7 @@ template::register_urn -urn urn:ad:js:get-http-object \
 
 if {![apm_package_enabled_p "highcharts"]} {
   template::register_urn -urn urn:ad:js:highcharts \
-      -resource https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.0/highcharts.js \
+      -resource https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.3/highcharts.js \
       -csp_list {script-src cdnjs.cloudflare.com}
 }
 #template::register_urn -urn urn:ad:js:highcharts-theme   -resource /resources/xowiki/highcharts/js/themes/gray.js
@@ -49,15 +44,7 @@ template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xo
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap5 -resource /resources/xowiki/xowiki-bootstrap5.css
 
-set resource_info [xowiki::bootstrap_treeview::resource_info -version 1.2.0]
-foreach URN [dict keys [dict get $resource_info urnMap]] {
-  template::register_urn \
-      -urn $URN \
-      -resource [dict get $resource_info prefix]/[dict get $resource_info urnMap $URN] \
-      -csp_list [expr {[dict exists $resource_info csp_lists $URN]
-                       ? [dict set $resource_info csp_lists $URN]
-                       : ""}]
-}
+::util::resources::register_urns -namespace xowiki
 
 
 #
