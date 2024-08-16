@@ -1,7 +1,6 @@
 <master>
   <property name="doc(title)">@title;literal@</property>
   <property name="context">@context;literal@</property>
-  <property name="head">@header_stuff;literal@
   </property>
 
 <div class='xowiki-content'>
