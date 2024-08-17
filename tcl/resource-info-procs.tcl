@@ -39,9 +39,12 @@ namespace eval ::xowiki::bootstrap_treeview {
     if {[file exists $resourceDir/$version/bootstrap-treeview.min.css]} {
       set prefix  /resources/xowiki/bootstrap-treeview/$version
       set cdnHost ""
+      set cspMap ""
     } else {
       set prefix $cdn/$version
       set cdnHost cdnjs.cloudflare.com
+      dict set cspMap ad:css:bootstrap3-treeview style-src $cdnHost
+      dict set cspMap urn:ad:js:bootstrap3-treeview script-src $cdnHost
     }
 
     #
@@ -56,6 +59,7 @@ namespace eval ::xowiki::bootstrap_treeview {
         cssFiles {bootstrap-treeview.min.css} \
         jsFiles  {bootstrap-treeview.min.js} \
         extraFiles {} \
+        cspMap $cspMap \
         urnMap {
           urn:ad:css:bootstrap3-treeview bootstrap-treeview.min.css
           urn:ad:js:bootstrap3-treeview  bootstrap-treeview.min.js
@@ -65,16 +69,6 @@ namespace eval ::xowiki::bootstrap_treeview {
         parameterInfo $parameter_info \
         configuredVersion $version
 
-    if {$cdnHost ne ""} {
-      lappend result csp_lists [subst {
-        urn:ad:css:bootstrap3-treeview {
-          style-src $cdnHost
-        }
-        urn:ad:js:bootstrap3-treeview {
-          script-src $cdnHost
-        }
-      }]
-    }
     return $result
   }
 }
@@ -116,9 +110,11 @@ namespace eval ::xowiki::jquery {
     if {[file exists $path]} {
       set prefix  /resources/xowiki/jquery/$version
       set cdnHost ""
+      set cspMap ""
     } else {
       set prefix $cdn/$version
       set cdnHost cdnjs.cloudflare.com
+      dict set cspMap urn:ad:js:jquery script-src $cdnHost
     }
 
     #
@@ -133,21 +129,13 @@ namespace eval ::xowiki::jquery {
         cssFiles {} \
         jsFiles  {jquery.min.js} \
         extraFiles {} \
-        urnMap {
-          urn:ad:js:jquery jquery.min.js
-        } \
+        cspMap $cspMap \
+        urnMap {urn:ad:js:jquery jquery.min.js} \
         versionCheckAPI {cdn cdnjs library jquery count 1} \
         vulnerabilityCheck {service snyk library jquery} \
         parameterInfo $parameter_info \
         configuredVersion $version
 
-    if {$cdnHost ne ""} {
-      lappend result csp_lists [subst {
-        urn:ad:js:jquery {
-          script-src $cdnHost
-        }
-      }]
-    }
     return $result
   }
 }
@@ -189,9 +177,12 @@ namespace eval ::xowiki::jqueryui {
     if {[file exists $path]} {
       set prefix  /resources/xowiki/jqueryui/$version
       set cdnHost ""
+      set cspMap ""
     } else {
       set prefix $cdn/$version
       set cdnHost cdnjs.cloudflare.com
+      dict set cspMap urn:ad:css:jqueryui style-src $cdnHost
+      dict set cspMap urn:ad:js:jqueryui script-src $cdnHost
     }
 
     #
@@ -206,6 +197,7 @@ namespace eval ::xowiki::jqueryui {
         cssFiles {themes/base/jquery-ui.min.css} \
         jsFiles  {jquery-ui.min.js} \
         extraFiles {} \
+        cspMap $cspMap \
         urnMap {
           urn:ad:css:jquery-ui themes/base/jquery-ui.min.css
           urn:ad:js:jquery-ui jquery-ui.min.js
@@ -215,16 +207,6 @@ namespace eval ::xowiki::jqueryui {
         parameterInfo $parameter_info \
         configuredVersion $version
 
-    if {$cdnHost ne ""} {
-      lappend result csp_lists [subst {
-        urn:ad:css:jqueryui {
-          style-src $cdnHost
-        }
-        urn:ad:js:jqueryui {
-          script-src $cdnHost
-        }
-      }]
-    }
     return $result
   }
 }
@@ -265,9 +247,11 @@ namespace eval ::xowiki::jqueryui_touchpunch {
     if {[file exists $path]} {
       set prefix  /resources/xowiki/jqueryui-touch-punch/$version
       set cdnHost ""
+      set cspMap ""
     } else {
       set prefix $cdn/$version
       set cdnHost cdnjs.cloudflare.com
+      dict set cspMap urn:ad:js:jqueryui-touch-punch script-src $cdnHost
     }
 
     #
@@ -282,6 +266,7 @@ namespace eval ::xowiki::jqueryui_touchpunch {
         cssFiles {} \
         jsFiles  {jqueryui-touch-punch.min.js} \
         extraFiles {} \
+        cspMap $cspMap \
         urnMap {
           urn:ad:js:jqueryui-touch-punch jqueryui-touch-punch.min.js
         } \
@@ -290,13 +275,6 @@ namespace eval ::xowiki::jqueryui_touchpunch {
         parameterInfo $parameter_info \
         configuredVersion $version
 
-    if {$cdnHost ne ""} {
-      lappend result csp_lists [subst {
-        urn:ad:js:jqueryui-touch-punch {
-          script-src $cdnHost
-        }
-      }]
-    }
     return $result
   }
 }
