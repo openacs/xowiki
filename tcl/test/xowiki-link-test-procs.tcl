@@ -110,7 +110,7 @@ namespace eval ::xowiki::test {
         # (b) that the page link points to the target instance (no resolve_local provided)
         #
         aa_log "check content of /$linked_xowiki_instance_name/$linked_folder_name"
-        ns_log notice "search for link with title en:p1: link_content $link_content"
+        #ns_log notice "search for link with title en:p1: link_content $link_content"
         acs::test::dom_html root $link_content {
           set node [$root selectNodes //td\[@class='list'\]/a\[@title='en:p1'\]]
           aa_true "one page found" {[llength $node] == 1}
