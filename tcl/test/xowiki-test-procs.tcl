@@ -462,6 +462,7 @@ namespace eval ::xowiki::test {
         "::xo::Table instproc column_names"
         "::xo::db::CrClass instproc get_instance_from_db"
         "::xo::db::CrClass instproc get_instances_from_db"
+        "::xo::db::CrClass proc id_belongs_to_package"
         "::xo::db::CrItem instproc rename"
         "::xo::tdom::AttributeManager instproc get_attributes"
         "::xowiki::FormPage instproc combine_data_and_form_field_default"
@@ -1678,7 +1679,11 @@ namespace eval ::xowiki::test {
     }
 
 
-    aa_register_case -cats {web} check_page_template_constraint {
+    aa_register_case -cats {web} -procs {
+
+        "::xo::db::CrClass proc id_belongs_to_package"
+        
+    } check_page_template_constraint {
 
         Document and enforce the expected behavior when Forms are
         deleted: this is forbidden and will return an error as long as
