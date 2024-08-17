@@ -31,3 +31,5 @@
 </li>
 
 </ul>
+
+<include src="/packages/acs-templating/lib/registered-urns" match="*:xowiki* *:jquery*">
