@@ -2643,7 +2643,9 @@ namespace eval ::xowiki {
             $field setAttribute value $value
           }
         }
-        default {:log "can't handle $type so far $att=$value"}
+        default {
+          #:log "can't handle $type so far $att=$value"
+        }
       }
     }
   }
