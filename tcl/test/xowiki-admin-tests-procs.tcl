@@ -1631,6 +1631,7 @@ aa_register_case \
         ? {regexp {date,optional.*.*YYYY.*MM.*} $widgetSpec} 1 "date with format"
 
         test destroy
+        rename ? ""
    }
 
 # Local variables:
