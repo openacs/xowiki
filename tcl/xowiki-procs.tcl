@@ -146,8 +146,15 @@ namespace eval ::xowiki {
         # xowiki_form_instance_item_index.
         #
         if {[::xo::dc has_hstore]} {
+          if {[xo::dc list check_type {select 1 from acs_datatypes where datatype = 'hstore'}] eq {}} {
+            xo::dc dml add_datatype_hstore {
+              insert into acs_datatypes (datatype, max_n_values, database_type, column_size)
+              values  ('hstore', null, 'hstore', null)
+            }
+          }
           ::xo::db::CrAttribute create hkey \
               -sqltype hstore \
+              -datatype hstore \
               -default ""
         }
       } \
