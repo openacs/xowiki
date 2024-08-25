@@ -36,7 +36,7 @@ set search_driver [parameter::get_from_package_key -package_key search \
 # is subsite aware).
 #
 if { [site_node::get_package_url -package_key search] eq "" } {
-  ns_log Warning "xowiki: Search package is not mounted."
+  ns_log notice "xowiki: Search package is not mounted."
   set ::xowiki::search_mounted_p 0
 } elseif { $search_driver eq ""} {
   ns_log Warning "xowiki: FtsEngineDriver parameter in package search is empty."

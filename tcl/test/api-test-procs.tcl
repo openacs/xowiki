@@ -15,8 +15,9 @@ aa_register_case \
         "::xo::Context instproc original_url_and_query"
         "::xowiki::Package instproc normalize_path"
         "::xo::PackageMgr proc get_package_class_from_package_key"
-    } \
-    package_normalize_path {
+        "::xo::PackageMgr instproc require"
+        "::xowiki::Package instproc require_root_folder"        
+    } package_normalize_path {
 
         Checks various forms of the xowiki::Package API method
         "normalize_path".
@@ -24,7 +25,7 @@ aa_register_case \
     } {
         set package_id [acs::test::require_package_instance \
                             -package_key xowiki]
-        ::xowiki::Package require $package_id
+        ::xowiki::Package initialize -package_id $package_id
 
         #
         # Don't allow addressing outside of the jail

@@ -1783,7 +1783,9 @@ namespace eval ::xowiki::test {
             set form [::xo::db::CrClass get_instance_from_db -item_id $form_id]
 
             aa_true "Deleting a form with instances fails" [catch {
-                $form delete
+                aa_silence_log_entries -severities {error notice} {
+                    $form delete
+                }
             } errmsg]
 
             ###########################################################
