@@ -16,7 +16,7 @@ aa_register_case \
         "::xowiki::Package instproc normalize_path"
         "::xo::PackageMgr proc get_package_class_from_package_key"
         "::xo::PackageMgr instproc require"
-        "::xowiki::Package instproc require_root_folder"        
+        "::xowiki::Package instproc require_root_folder"
     } package_normalize_path {
 
         Checks various forms of the xowiki::Package API method

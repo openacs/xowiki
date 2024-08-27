@@ -250,7 +250,7 @@ namespace eval ::xowiki::formfield {
                 -id $del_id \
                 -script [subst {xowiki.repeat.delItem(this,'$clientData');}]
           }
-          $c render_input          
+          $c render_input
         }
         incr i
       }

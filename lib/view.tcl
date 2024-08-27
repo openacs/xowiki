@@ -33,7 +33,7 @@ if {[info exists url]} {
   #              -item_id $item_id \
   #              -parameter $parameter]
   #  ::xo::cc export_vars
-  
+
   ad_log_deprecated "view.tcl" "item_id $item_id" "-url $url"
 }
 
@@ -45,9 +45,6 @@ set html [::$package_id invoke -method $m]
 if {[info exists css]} {
   set html $css$html
 }
-
-
-
 
 # Local variables:
 #    mode: tcl

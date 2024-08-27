@@ -1682,7 +1682,7 @@ namespace eval ::xowiki::test {
     aa_register_case -cats {web} -procs {
 
         "::xo::db::CrClass proc id_belongs_to_package"
-        
+
     } check_page_template_constraint {
 
         Document and enforce the expected behavior when Forms are
