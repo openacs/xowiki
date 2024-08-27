@@ -44,7 +44,7 @@ template::register_urn -urn urn:ad:css:xowiki-yui -resource /resources/xowiki/xo
 template::register_urn -urn urn:ad:css:xowiki-bootstrap -resource /resources/xowiki/xowiki-bootstrap3.css
 template::register_urn -urn urn:ad:css:xowiki-bootstrap5 -resource /resources/xowiki/xowiki-bootstrap5.css
 
-::util::resources::register_urns -namespace xowiki
+::util::resources::register_urns -prefix xowiki
 
 
 #
