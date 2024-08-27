@@ -762,8 +762,8 @@ namespace eval ::xowiki {
     File object.  The following query parameter can be used to
     influence the behavior
 
-    @param "filename"  use this query parameter as filename in the content-disposition.
-    @param "geometry"  when used on images, the images are scaled before delivery
+    @query_param filename  use this query parameter as filename in the content-disposition.
+    @query_param geometry  when used on images, the images are scaled before delivery
 
   } {
     #

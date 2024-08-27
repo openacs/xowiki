@@ -452,8 +452,8 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         List the available form field types of this installation.
 
-        @param flat when "true" display a flat list structure instead
-        of a tree (default)
+        @query_param flat when "true" display a flat list structure instead
+                     of a tree (default)
       }
 
   available-formfields instproc class_name {cl} {
@@ -855,18 +855,18 @@ namespace eval ::xowiki::includelet {
 
         List the specified category tree.
 
-        @param tree_name match pattern, if specified displays only the
+        @query_param tree_name match pattern, if specified displays only the
         trees with matching names
 
-        @param no_tree_name if specified, tree names are not displayed
+        @query_param no_tree_name if specified, tree names are not displayed
 
-        @param open_page name (e.g. en:iMacs) of the page to be opened
+        @query_param open_page name (e.g. en:iMacs) of the page to be opened
         initially
 
-        @param tree_style boolean, default: true, render category tree
+        @query_param tree_style boolean, default: true, render category tree
         in tree style and not in sections style
 
-        @param parent page-ref, default: /, select entries from this directory
+        @query_param parent page-ref, default: /, select entries from this directory
 
       }
 
@@ -1128,12 +1128,12 @@ namespace eval ::xowiki::includelet {
 
         Display recent entries by categories.
 
-        @param tree_name match pattern, if specified displays only the
+        @query_param tree_name match pattern, if specified displays only the
         trees with matching names
 
-        @param max_entries show given number of new entries
-        @param locale use the specified locale
-        @param pretty_age boolean, use pretty age or not
+        @query_param max_entries show given number of new entries
+        @query_param locale use the specified locale
+        @query_param pretty_age boolean, use pretty age or not
 
       }
 
@@ -1230,10 +1230,10 @@ namespace eval ::xowiki::includelet {
 
         Display recent modified entries.
 
-        @param max_entries show given number of new entries
-        @param allow_edit boolean to optionally offer an edit button
-        @param allow_delete boolean to optionally offer a delete button
-        @param pretty_age boolean, use pretty age or not
+        @query_param max_entries show given number of new entries
+        @query_param allow_edit boolean to optionally offer an edit button
+        @query_param allow_delete boolean to optionally offer a delete button
+        @query_param pretty_age boolean, use pretty age or not
 
       }
 
@@ -1339,7 +1339,7 @@ namespace eval ::xowiki::includelet {
 
         Display last visited pages.
 
-        @param max_entries show given number of entries
+        @query_param max_entries show given number of entries
       }
 
 
@@ -1389,8 +1389,8 @@ namespace eval ::xowiki::includelet {
 
         Display most popular pages of this wiki instance.
 
-        @param max_entries show given number of entries
-        @param interval specified optionally the time interval since when pages are listed
+        @query_param max_entries show given number of entries
+        @query_param interval specified optionally the time interval since when pages are listed
 
       }
 
@@ -1474,8 +1474,8 @@ namespace eval ::xowiki::includelet {
 
         Include RSS content
 
-        @param max_entries show given number of entries
-        @param url source for the RSS feed
+        @query_param max_entries show given number of entries
+        @query_param url source for the RSS feed
 
       }
 
@@ -1527,7 +1527,7 @@ namespace eval ::xowiki::includelet {
 
          List the most frequent visitors.
 
-        @param max_entries show given number of entries
+        @query_param max_entries show given number of entries
 
       }
 
@@ -1580,7 +1580,7 @@ namespace eval ::xowiki::includelet {
 
         List unread items.
 
-        @param max_entries show given number of entries
+        @query_param max_entries show given number of entries
 
       }
 
@@ -1652,10 +1652,10 @@ namespace eval ::xowiki::includelet {
 
         Display specified tags.
 
-        @param limit maximum number of new entries
-        @param summary boolean to optionally provide summary
-        @param popular boolean to optionally list popular tags
-        @param page provide alternate weblog listing page
+        @query_param limit maximum number of new entries
+        @query_param summary boolean to optionally provide summary
+        @query_param popular boolean to optionally list popular tags
+        @query_param page provide alternate weblog listing page
 
       }
 
@@ -1713,7 +1713,7 @@ namespace eval ::xowiki::includelet {
         List the tags associated with the
         current page.
 
-        @param summary when specified, tag points to a summarized listing
+        @query_param summary when specified, tag points to a summarized listing
       }
 
   my-tags instproc render {} {
@@ -1774,7 +1774,7 @@ namespace eval ::xowiki::includelet {
         List the categories associated with the
         current page.
 
-        @param summary when specified, the category points to a summarized listing
+        @query_param summary when specified, the category points to a summarized listing
       }
 
   my-categories instproc render {} {
@@ -1860,8 +1860,9 @@ namespace eval ::xowiki::includelet {
         }}
       } -ad_doc {
         Add a button to submit article to digg.
-        @param description
-        @param url
+        
+        @query_param description
+        @query_param url
       }
 
 
@@ -1887,9 +1888,10 @@ namespace eval ::xowiki::includelet {
         }}
       } -ad_doc {
         Add a button to submit article to delicious.
-        @param description
-        @param url
-        @param tags
+        
+        @query_param description
+        @query_param url
+        @query_param tags
       }
 
   delicious instproc render {} {
@@ -1925,8 +1927,8 @@ namespace eval ::xowiki::includelet {
         Name of the publisher, when posting URLs to my yahoo (use in
         connection with with_yahoo_publisher).
 
-        @param publisher
-        @param rssurl
+        @query_param publisher
+        @query_param rssurl
       }
 
   my-yahoo-publisher instproc render {} {
@@ -2120,16 +2122,16 @@ namespace eval ::xowiki::includelet {
 
         Show users actively in the wiki.
 
-        @param interval list users when active in the wiki in the
+        @query_param interval list users when active in the wiki in the
         specified interval (default: 10 minutes)
 
-        @param max_users maximum number of users to list
+        @query_param max_users maximum number of users to list
 
-        @param show_anonymous specify, whether users not logged in
+        @query_param show_anonymous specify, whether users not logged in
         should get a result from this includelet. Possible values
         "nothing", "all", "summary"
 
-        @param page restrict listing to changes on a certain page.
+        @query_param page restrict listing to changes on a certain page.
       }
 
   # TODO make display style -decoration
@@ -2302,23 +2304,23 @@ namespace eval ::xowiki::includelet {
         based on the value of the "page_order" attributes. Only those
         pages are rendered that have a nonempty "page_order" field.
 
-        @param style
-        @param renderer
-        @param open_page
-        @param folder_mode
-        @param ajax
-        @param expand_all
-        @param remove_levels
-        @param category_id
-        @param locale
-        @param orderby by default, sorting is done via page_order
+        @query_param style
+        @query_param renderer
+        @query_param open_page
+        @query_param folder_mode
+        @query_param ajax
+        @query_param expand_all
+        @query_param remove_levels
+        @query_param category_id
+        @query_param locale
+        @query_param orderby by default, sorting is done via page_order
                (and requires pages with page_order). Alternatively, one can use e.g. "title,asc".
-        @param source
-        @param range
-        @param allow_reorder
-        @param include_in_foldertree
-        @param CSSclass_top_ul CSS class for top-level UL element
-        @param CSSclass_ul CSS class for all UL elements
+        @query_param source
+        @query_param range
+        @query_param allow_reorder
+        @query_param include_in_foldertree
+        @query_param CSSclass_top_ul CSS class for top-level UL element
+        @query_param CSSclass_ul CSS class for all UL elements
       }
 
   #"select page_id,  page_order, name, title, \
@@ -2849,13 +2851,13 @@ namespace eval ::xowiki::includelet {
 
         Provide a selection of pages
 
-        @param edit_link provide an edit link, boolean.
-        @param menu_buttons list of buttons for the entries
-        @param ordered_pages set of already ordered pages
-        @param pages pages of the selection
-        @param publish_status list pages only with the provided publish status
-        @param range (sub)range of the pages (based on page_order attribute)
-        @param source take "pages" or "ordered_pages" from the provided page
+        @query_param edit_link provide an edit link, boolean.
+        @query_param menu_buttons list of buttons for the entries
+        @query_param ordered_pages set of already ordered pages
+        @query_param pages pages of the selection
+        @query_param publish_status list pages only with the provided publish status
+        @query_param range (sub)range of the pages (based on page_order attribute)
+        @query_param source take "pages" or "ordered_pages" from the provided page
 
       }
 
@@ -2948,9 +2950,9 @@ namespace eval ::xowiki::includelet {
 
         Create a form from the selection
 
-        @param edit_links provide an edit link, boolean.
-        @param pages pages of the selection
-        @param ordered_pages set of already ordered pages
+        @query_param edit_links provide an edit link, boolean.
+        @query_param pages pages of the selection
+        @query_param ordered_pages set of already ordered pages
 
       }
 
@@ -3019,14 +3021,14 @@ namespace eval ::xowiki::includelet {
 
         Show contents in book mode.
 
-        @param category_id
-        @param menu_buttons default: edit
-        @param folder_mode boolean, default false
-        @param locale for the content
-        @param range page range
-        @param allow_reorder allow optional page_reorder based on drag and drop
-        @param with_footer boolean, default: false
-        @param orderby by default, sorting is done via page_order
+        @query_param category_id
+        @query_param menu_buttons default: edit
+        @query_param folder_mode boolean, default false
+        @query_param locale for the content
+        @query_param range page range
+        @query_param allow_reorder allow optional page_reorder based on drag and drop
+        @query_param with_footer boolean, default: false
+        @query_param orderby by default, sorting is done via page_order
                (and requires pages with page_order). Alternatively, one can use e.g. "title,asc"
       }
 
@@ -3604,7 +3606,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Button to edit the current or a different page
 
-        @param page_id optional item_id of the referred page
+        @query_param page_id optional item_id of the referred page
       }
 
   edit-item-button instproc render {} {
@@ -3636,7 +3638,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Button to delete the current or a different page
 
-        @param page_id optional item_id of the referred page
+        @query_param page_id optional item_id of the referred page
       }
 
   delete-item-button instproc render {} {
@@ -3662,7 +3664,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Button to view the current or a different page
 
-        @param page_id optional item_id of the referred page
+        @query_param page_id optional item_id of the referred page
       }
 
   view-item-button instproc render {} {
@@ -3687,7 +3689,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Button to create a new page based on the current one
 
-        @param page_id optional item_id of the referred page
+        @query_param page_id optional item_id of the referred page
       }
 
   create-item-button instproc render {} {
@@ -3724,7 +3726,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Button to copy a page
 
-        @param page_id optional item_id of the referred page
+        @query_param page_id optional item_id of the referred page
       }
 
   copy-item-button instproc render {} {
@@ -4417,21 +4419,21 @@ namespace eval ::xowiki::includelet {
       }  -ad_doc {
         Show usages of the specified form.
 
-        @param return_url
+        @query_param return_url
            When provided and NOT empty, use the value as return_url.
            When provided and empty, do NOT set a return URL.
            When NOT provided, set the calling page as return_url.
-        @param date_format
+        @query_param date_format
            Date format used for modification date.
            Might be "pretty-age" or a format string like "%Y-%m-%d %T".
 
-        @param extra_where_clause
+        @query_param extra_where_clause
            a plain SQL clause that will be appended to the where
            clause retrieving the entries.
-        @param where
+        @query_param where
            filter those entries where the instance attribute condition
            expressed by this flag does not match.
-        @param unless
+        @query_param unless
            filter those entries where the instance attribute condition
            expressed by this flag matches.
 
@@ -4799,10 +4801,10 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include an iframe containing the specified URL
 
-        @param title
-        @param url
-        @param width
-        @param height
+        @query_param title
+        @query_param url
+        @query_param width
+        @pquery_aram height
       }
 
 
@@ -4849,8 +4851,8 @@ namespace eval ::xowiki::includelet {
         Include YUI carousel showing the pages of the specified or
         current folder.
 
-        @param folder
-        @param glob optional matching pattern for page names
+        @query_param folder
+        @query_param glob optional matching pattern for page names
       }
 
   yui-carousel instproc images {-package_id -parent_id {-glob ""} {-width ""} {-height ""}} {
@@ -5035,8 +5037,8 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include gravatar picture for the specified email
 
-        @param email
-        @param size in pixel, default 80
+        @query_param email
+        @query_param size in pixel, default 80
       }
 
   gravatar proc url {-email {-size 80} {-default mp}} {
@@ -5068,9 +5070,9 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include random form page (instance of the specified form)
 
-        @param form
-        @param publish_status (default ready)
-        @param expires (default 600 secs)
+        @query_param form
+        @query_param publish_status (default ready)
+        @query_param expires (default 600 secs)
       }
 
   random-form-page proc page_names {package_id form publish_status} {
@@ -5141,7 +5143,7 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include an mp4 image using flowplayer
 
-        @param mp4
+        @query_param mp4
       }
 
   flowplayer instproc include_head_entries {} {
@@ -5193,9 +5195,9 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include the specified HTML file
 
-        @param file file to be included
-        @param title
-        @param extra_css
+        @query_param file file to be included
+        @query_param title
+        @query_param extra_css
       }
 
 
@@ -5258,15 +5260,15 @@ namespace eval ::xowiki::includelet {
       } -ad_doc {
         Include a chat in the current page
 
-        @param mode
-        @param path
-        @param skin
-        @param title
-        @param chat_id
-        @param avatar_p
-        @param login_messages_p
-        @param logout_messages_p
-        @param timewindow
+        @query_param mode
+        @query_param path
+        @query_param skin
+        @query_param title
+        @query_param chat_id
+        @query_param avatar_p
+        @query_param login_messages_p
+        @query_param logout_messages_p
+        @query_param timewindow
       }
 
   chat instproc render {} {
@@ -5311,8 +5313,8 @@ namespace eval ::xowiki::includelet {
         Include a link to the community including the current page.
         This includelet is designed to work with dotlrn.
 
-        @param text text to be displayed in community link
-        @param url optional path relative to community
+        @query_param text text to be displayed in community link
+        @query_param url optional path relative to community
 
       } -instproc render {} {
         :get_parameters
