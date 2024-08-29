@@ -268,7 +268,7 @@ namespace eval ::xowiki::jqueryui_touchpunch {
         extraFiles {} \
         cspMap $cspMap \
         urnMap {
-          urn:ad:js:jqueryui-touch-punch jqueryui-touch-punch.min.js
+          urn:ad:js:jquery-ui-touch-punch jqueryui-touch-punch.min.js
         } \
         versionCheckAPI {cdn cdnjs library jqueryui-touch-punch count 1} \
         vulnerabilityCheck {service snyk library jquery-ui-touch-punch} \
