@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<message_catalog package_key="chat" locale="ca_ES" charset="ISO-8859-1">
+
+  <msg key="chat_has_entered_the_room">ha entrat en la sala</msg>
+  <msg key="chat_has_left_the_room">ha eixit de la sala</msg>
+  <msg key="chat_message">Missatge</msg>
+  <msg key="chat_Send_Refresh">Envia/Refresca</msg>
+</message_catalog>

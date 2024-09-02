@@ -16,6 +16,10 @@
   <msg key="By_user">Пользователем</msg>
   <msg key="Candidates">Кандидаты</msg>
   <msg key="categories">Категории</msg>
+  <msg key="chat_has_entered_the_room">вошёл в комнату</msg>
+  <msg key="chat_has_left_the_room">покинул комнату</msg>
+  <msg key="chat_message">Сообщение</msg>
+  <msg key="chat_Send_Refresh">Отослать/Обновить</msg>
   <msg key="choiceInteraction_maxChoices">Легкий выбор</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Простой выбор означает, что только один ответ правильный</msg>
   <msg key="choiceInteraction_simpleChoice">Ввести какие-нибудь значения</msg>
@@ -45,20 +49,20 @@
   <msg key="entries_using_form">Запись для формы %form%</msg>
   <msg key="error-delete_entries_first">Эта страница используется записями %count%. Перед удалением страницы удалите, пожалуйста, записи.</msg>
   <msg key="error-form_constraint-invalid_characters">Ограничитель формы содержит недопустимые знаки</msg>
-  <msg key="error-form_constraint-unknown_attribute">Поле формы '%name%' (class %class%) содержит неизвестный атрибут '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_attribute">Поле формы &#39;%name%&#39; (class %class%) содержит неизвестный атрибут &#39;%entry%&#39;</msg>
   <msg key="error-form_constraint-unknown_editor">Неизвестный редактор %editor%. Возможные значения: %editors%</msg>
-  <msg key="error-form_constraint-unknown_spec_entry">Поле формы '%name%' содержит неизвестную спецификацю '%entry%'</msg>
+  <msg key="error-form_constraint-unknown_spec_entry">Поле формы &#39;%name%&#39; содержит неизвестную спецификацю &#39;%entry%&#39;</msg>
   <msg key="error-includelet-adp_syntax_invalid">Синтаксис: adp &amp;lt;имя adp-файла&amp;gt; {&amp;lt;список аргументов&amp;gt;}&lt;br/&gt;
 
-Недействительный список аргументов: '%adp%'; должен быть составлен в виде: пар применимых значений (одинакового количества элементов)</msg>
+Недействительный список аргументов: &#39;%adp%&#39;; должен быть составлен в виде: пар применимых значений (одинакового количества элементов)</msg>
   <msg key="error-includelet-dash_syntax_invalid">&lt;pre&gt;%errMsg%&lt;/pre&gt;
 
 Список аргументов должен содержать пар применимых значений(атрибуты с тире)</msg>
   <msg key="error-includelet-error_during_adp_evaluation">проверка adp файла направляет сообщение об ошибке: %errorMsg%</msg>
-  <msg key="error-includelet-error_during_render">Ошибка в инклуделете '%page_name%': &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
+  <msg key="error-includelet-error_during_render">Ошибка в инклуделете &#39;%page_name%&#39;: &lt;pre&gt;%::errorInfo%&lt;/pre&gt;</msg>
   <msg key="error-includelet-nesting_to_deep">Слишком глубокая вложенность инклуделетов</msg>
-  <msg key="error-includelet-unknown">Ошибка: неизвестный инклуделет '%page_name%' </msg>
-  <msg key="error_in_includelet">Ошибка в инклуделете '{{%arg%}}' на странице %name%:</msg>
+  <msg key="error-includelet-unknown">Ошибка: неизвестный инклуделет &#39;%page_name%&#39; </msg>
+  <msg key="error_in_includelet">Ошибка в инклуделете &#39;{{%arg%}}&#39; на странице %name%:</msg>
   <msg key="event">Событие</msg>
   <msg key="event-end_of_event">Окончание</msg>
   <msg key="event-end_of_lecture">Конец лекции</msg>
@@ -176,7 +180,7 @@
   <msg key="Page-title">Наименование страницы</msg>
   <msg key="Page-validate_form_constraints">%errorMsg%</msg>
   <msg key="Page-validate_name">%errorMsg%</msg>
-  <msg key="Page-validate_name-duplicate_item">Другой элемент с наименование '%value%' уже существует в этой директории</msg>
+  <msg key="Page-validate_name-duplicate_item">Другой элемент с наименование &#39;%value%&#39; уже существует в этой директории</msg>
   <msg key="Page-validate_page_order">Недопустимый порядок страниц; может содержать заглавные и строчные буквы, подчёркивание, цифры и точки</msg>
   <msg key="page_kind">Тип</msg>
   <msg key="Page_pretty_name">XoWiki страница</msg>
@@ -207,10 +211,10 @@
   <msg key="PodcastItem_pretty_plural">Пункты из подкаста</msg>
   <msg key="popular_tags_label">Популярные тэги</msg>
   <msg key="popular_tags_link">популярные тэги</msg>
-  <msg key="portlet_page_does_not_exist_error_long">Cтраница с именем &quot;%page_name%&quot; отсутствует.</msg>
+  <msg key="portlet_page_does_not_exist_error_long">Cтраница с именем &#34;%page_name%&#34; отсутствует.</msg>
   <msg key="portlet_page_does_not_exist_error_short">Указанная страница не существует</msg>
   <msg key="portlet_title_exists_error_long">Пожалуйста,измените имя существующего портлета либо название xowiki страницы, которую вы хотите добавить в портал.</msg>
-  <msg key="portlet_title_exists_error_short">Портлет с заголовком '%page_title%' уже существует в этом портале.</msg>
+  <msg key="portlet_title_exists_error_short">Портлет с заголовком &#39;%page_title%&#39; уже существует в этом портале.</msg>
   <msg key="pretty_name">Вики</msg>
   <msg key="prompt">Подсказка</msg>
   <msg key="publish_status">Опубликованный</msg>

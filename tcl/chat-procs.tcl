@@ -253,7 +253,7 @@ namespace eval ::xo {
     set user_id [expr {$user_id ne "" ? $user_id : ${:user_id}}]
     ns_log notice "--core-chat User $user_id logging out of chat"
     if {${:logout_messages_p}} {
-      if {$msg eq ""} {set msg [_ chat.has_left_the_room].}
+      if {$msg eq ""} {set msg [_ xowiki.chat_has_left_the_room].}
       :add_msg -uid $user_id -get_new false $msg
     }
 
@@ -295,7 +295,7 @@ namespace eval ::xo {
   Chat instproc login {} {
     :log "--chat login mode=${:mode}"
     if {${:login_messages_p} && ![:user_active ${:user_id}]} {
-      :add_msg -uid ${:user_id} -get_new false [_ xotcl-core.has_entered_the_room]
+      :add_msg -uid ${:user_id} -get_new false [_ xowiki.chat_has_entered_the_room]
     } elseif {${:user_id} > 0 && ![nsv_exists ${:array}-login ${:user_id}]} {
       # give some proof of our presence to the chat system when we
       # don't issue the login message
@@ -559,8 +559,8 @@ namespace eval ::xowiki {
     set html ""
 
     if {[apm_package_installed_p chat]} {
-      set message_label [_ chat.message]
-      set send_label [_ chat.Send_Refresh]
+      set message_label [_ xowiki.chat_message]
+      set send_label [_ xowiki.chat_Send_Refresh]
     } else {
       set message_label "Message"
       set send_label "Send"

@@ -24,6 +24,10 @@
   <msg key="By_user">Dall&#39;Utente</msg>
   <msg key="Candidates">Candidati</msg>
   <msg key="categories">Categorie</msg>
+  <msg key="chat_has_entered_the_room">è entrato nella stanza</msg>
+  <msg key="chat_has_left_the_room">ha lasciato la stanza</msg>
+  <msg key="chat_message">Messaggio</msg>
+  <msg key="chat_Send_Refresh">Invia/Rinfresca</msg>
   <msg key="choiceInteraction_maxChoices">Scelta Singola</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Scelta Singola significa che solo una risposta è corretta.</msg>
   <msg key="choiceInteraction_simpleChoice">Inserisci alcune scelte.</msg>

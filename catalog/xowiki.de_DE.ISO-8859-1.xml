@@ -296,4 +296,8 @@
   <msg key="year">Jahr</msg>
   <msg key="years">Jahren</msg>
   <msg key="your_tags_label">Persönliche Schlagwörter</msg>
+  <msg key="chat_has_entered_the_room">hat den Raum betreten</msg>
+  <msg key="chat_has_left_the_room">hat den Raum verlassen</msg>
+  <msg key="chat_message">Nachricht</msg>
+  <msg key="chat_Send_Refresh">Senden</msg>
 </message_catalog>

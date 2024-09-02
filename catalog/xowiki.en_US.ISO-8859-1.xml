@@ -24,6 +24,10 @@
   <msg key="By_user">By User</msg>
   <msg key="Candidates">Candidates</msg>
   <msg key="categories">Categories</msg>
+  <msg key="chat_has_entered_the_room">has entered the room</msg>
+  <msg key="chat_has_left_the_room">has left the room</msg>
+  <msg key="chat_message">Message</msg>
+  <msg key="chat_Send_Refresh">Send/Refresh</msg>
   <msg key="choiceInteraction_maxChoices">Single Choice</msg>
   <msg key="choiceInteraction_maxChoices_help_text">Single Choice means that only once choice is correct.</msg>
   <msg key="choiceInteraction_simpleChoice">Enter some choices.</msg>
