@@ -1,0 +1,8 @@
+# -*- tcl-*-
+::xowiki::Form new \
+    -set name en:photo.form \
+    -title "Photo" \
+    -set anon_instances t \
+    -set text {<p>@_title@</p> <p>@image@</p>} \
+    -set form {} \
+    -set form_constraints {image:image}

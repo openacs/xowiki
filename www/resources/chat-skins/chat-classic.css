@@ -2,23 +2,9 @@
     box-sizing: border-box;
 }
 
-/* Chat container */
-#xowiki-chat-container {
-    height: 70vh;
-    width: 100%;
-    position: relative;
-}
-
-/* Chat includelet */
-#xowiki-chat-includelet {
-    height: 700px;
-    width: 100%;
-    position: relative;
-}
-
 /* Users and messages container */
 #xowiki-chat {
-    height: 100%;
+    height: 70vh;
     width: 100%;
     margin-bottom: 1%;
     overflow: hidden;
@@ -194,6 +180,8 @@
     background-color: #eceff1;
     border-radius: 8px;
     padding-right: 45px;
+    width: 100%; /* Do not let the browser set a "natural" content size for this
+                    element, so that flex can always shrink/enlarge it as needed */
     min-width: 0; /* Avoid overlapping when screen width is very small */
 }
 

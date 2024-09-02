@@ -27,12 +27,14 @@ if {[info exists url]} {
   #
   # TODO: This branch should be removed after the release of OpenACS 5.10
   #
-  ns_log warning "deprecated call of xowiki/lib/view.tcl: use 'url' as parameter instead"
+  #ns_log warning "deprecated call of xowiki/lib/view.tcl: use 'url' as parameter instead"
+  #
+  #set page [::xowiki::Package instantiate_page_from_id \
+  #              -item_id $item_id \
+  #              -parameter $parameter]
+  #  ::xo::cc export_vars
 
-  set page [::xowiki::Package instantiate_page_from_id \
-                -item_id $item_id \
-                -parameter $parameter]
-    ::xo::cc export_vars
+  ad_log_deprecated "view.tcl" "item_id $item_id" "-url $url"
 }
 
 template::head::add_css \
@@ -43,9 +45,6 @@ set html [::$package_id invoke -method $m]
 if {[info exists css]} {
   set html $css$html
 }
-
-
-
 
 # Local variables:
 #    mode: tcl

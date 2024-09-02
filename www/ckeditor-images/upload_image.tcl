@@ -29,7 +29,9 @@ ad_form -name upload_form \
       set mime_type [::xowiki::guesstype $file_name]
       set tmp_size [ad_file size $upload_tmpfile]
 
-      if {$size ne ""} {exec convert -resize $size $upload_tmpfile $upload_tmpfile}
+      if {$size ne ""} {
+        exec [::util::which convert] -resize $size $upload_tmpfile $upload_tmpfile
+      }
       if {![regexp (image/*|audio/mpeg|application/x-shockwave-flash|application/vnd.adobe.flash-movie|video/mp4) $mime_type]} {
         #template::form::set_error "upload_image" "upload_file" "[_ tlf-resource-integrator.HTMLArea_SelectImageUploadNoImage]"
         break

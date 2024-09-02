@@ -4,7 +4,7 @@
   This is the default resolver for the xowiki package. In essence, it
   determines from the provided method "m" a web-callable method via
   the package specific "invoke" method, executes it and returns the
-  result to the requestor.
+  result to the requester.
 
   @author Gustaf Neumann (gustaf.neumann@wu-wien.ac.at)
   @creation-date July, 2006
