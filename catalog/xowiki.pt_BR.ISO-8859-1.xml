@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="chat" locale="pt_BR" charset="ISO-8859-1">
+<message_catalog package_key="xowiki" locale="pt_BR" charset="ISO-8859-1">
 
   <msg key="chat_has_entered_the_room">entrou na sala</msg>
   <msg key="chat_has_left_the_room">deixou a sala</msg>
